@@ -1,0 +1,6 @@
+@AuthService_HostAddress = http://localhost:5104
+
+GET {{AuthService_HostAddress}}/users/VttToolsWebApp
+Accept: application/json
+
+###
