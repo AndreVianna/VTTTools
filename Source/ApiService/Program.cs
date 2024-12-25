@@ -35,7 +35,8 @@ app.MapDefaultEndpoints();
 app.MapGameSessionEndpoints();
 
 app.UseExceptionHandler();
-if (app.Environment.IsDevelopment()) app.MapOpenApi();
+if (app.Environment.IsDevelopment())
+    app.MapOpenApi();
 
 app.UseHttpsRedirection();
 

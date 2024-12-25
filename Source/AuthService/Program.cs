@@ -53,7 +53,8 @@ app.MapDefaultEndpoints();
 app.MapAuthEndpoints();
 
 app.UseExceptionHandler();
-if (app.Environment.IsDevelopment()) app.MapOpenApi();
+if (app.Environment.IsDevelopment())
+    app.MapOpenApi();
 
 app.UseHttpsRedirection();
 

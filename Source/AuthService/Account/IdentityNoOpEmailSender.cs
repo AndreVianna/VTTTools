@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Identity;
-
 namespace AuthService.Account;
 
 internal sealed class IdentityNoOpEmailSender : IEmailSender<ApplicationUser> {

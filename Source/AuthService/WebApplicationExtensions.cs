@@ -3,7 +3,8 @@ namespace Microsoft.AspNetCore.Builder;
 
 internal static class WebApplicationExtensions {
     public static void MapDefaultEndpoints(this WebApplication app) {
-        if (!app.Environment.IsDevelopment()) return;
+        if (!app.Environment.IsDevelopment())
+            return;
         app.MapHealthChecks("/health");
         app.MapHealthChecks("/alive", new() { Predicate = r => r.Tags.Contains("live") });
     }
