@@ -4,8 +4,8 @@ builder.AddServiceDefaults();
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 
-var redisConnection = builder.Configuration["Redis:Connection"]
-                   ?? throw new InvalidOperationException("Redis connection is missing from the configuration.");
+var redisConnection = builder.Configuration.GetConnectionString("Redis")
+                   ?? throw new InvalidOperationException("Redis connection string is missing from the configuration.");
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConnection));
 builder.Services.AddSingleton<ICacheService, CacheService>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
