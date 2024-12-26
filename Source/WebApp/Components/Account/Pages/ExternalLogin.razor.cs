@@ -113,20 +113,20 @@ public partial class ExternalLogin {
         _message = $"Error: {string.Join(",", result.Errors.Select(error => error.Description))}";
     }
 
-    private ApplicationUser CreateUser() {
+    private User CreateUser() {
         try {
-            return Activator.CreateInstance<ApplicationUser>();
+            return Activator.CreateInstance<User>();
         }
         catch {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. "
-                                              + $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor");
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(User)}'. "
+                                              + $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor");
         }
     }
 
-    private IUserEmailStore<ApplicationUser> GetEmailStore()
+    private IUserEmailStore<User> GetEmailStore()
         => !UserManager.SupportsUserEmail
                ? throw new NotSupportedException("The default UI requires a user store with email support.")
-               : (IUserEmailStore<ApplicationUser>)UserStore;
+               : (IUserEmailStore<User>)UserStore;
 
     private sealed class InputModel {
         [Required]

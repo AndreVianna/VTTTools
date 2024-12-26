@@ -2,14 +2,14 @@
 
 public partial class GenerateRecoveryCodes {
     private string? _message;
-    private ApplicationUser _user = default!;
+    private User _user = default!;
     private IEnumerable<string>? _recoveryCodes;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
 
         var isTwoFactorEnabled = await UserManager.GetTwoFactorEnabledAsync(_user);
         if (!isTwoFactorEnabled)

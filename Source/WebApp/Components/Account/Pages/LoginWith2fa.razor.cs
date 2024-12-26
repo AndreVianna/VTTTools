@@ -3,7 +3,7 @@
 // ReSharper disable once InconsistentNaming
 public partial class LoginWith2fa {
     private string? _message;
-    private ApplicationUser _user = default!;
+    private User _user = default!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();

@@ -1,4 +1,5 @@
 // ReSharper disable once CheckNamespace
+
 namespace Microsoft.AspNetCore.Routing;
 
 internal static class IdentityComponentsEndpointRouteBuilderExtensions {
@@ -10,7 +11,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions {
 
         accountGroup.MapPost("/PerformExternalLogin", (
             HttpContext context,
-            [FromServices] SignInManager<ApplicationUser> signInManager,
+            [FromServices] SignInManager<User> signInManager,
             [FromForm] string provider,
             [FromForm] string returnUrl) => {
                 IEnumerable<KeyValuePair<string, StringValues>> query = [
@@ -28,7 +29,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions {
 
         accountGroup.MapPost("/Logout", async (
             ClaimsPrincipal _,
-            [FromServices] SignInManager<ApplicationUser> signInManager,
+            [FromServices] SignInManager<User> signInManager,
             [FromForm] string returnUrl) => {
                 await signInManager.SignOutAsync();
                 return TypedResults.LocalRedirect($"~/{returnUrl}");
@@ -38,7 +39,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions {
 
         manageGroup.MapPost("/LinkExternalLogin", async (
             HttpContext context,
-            [FromServices] SignInManager<ApplicationUser> signInManager,
+            [FromServices] SignInManager<User> signInManager,
             [FromForm] string provider) => {
                 // Clear the existing external cookie to ensure a clean login process
                 await context.SignOutAsync(IdentityConstants.ExternalScheme);
@@ -57,7 +58,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions {
 
         manageGroup.MapPost("/DownloadPersonalData", async (
             HttpContext context,
-            [FromServices] UserManager<ApplicationUser> userManager,
+            [FromServices] UserManager<User> userManager,
             [FromServices] AuthenticationStateProvider _) => {
                 var user = await userManager.GetUserAsync(context.User);
                 if (user is null)
@@ -68,7 +69,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions {
 
                 // Only include personal data for download
                 var personalData = new Dictionary<string, string>();
-                var personalDataProps = typeof(ApplicationUser).GetProperties().Where(
+                var personalDataProps = typeof(User).GetProperties().Where(
                     prop => Attribute.IsDefined(prop, typeof(PersonalDataAttribute)));
                 foreach (var p in personalDataProps)
                     personalData.Add(p.Name, p.GetValue(user)?.ToString() ?? "null");

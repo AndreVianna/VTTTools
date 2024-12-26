@@ -2,7 +2,7 @@
 
 public partial class DeletePersonalData {
     private string? _message;
-    private ApplicationUser _user = default!;
+    private User _user = default!;
     private bool _requirePassword;
 
     [CascadingParameter]
@@ -13,7 +13,7 @@ public partial class DeletePersonalData {
 
     protected override async Task OnInitializedAsync() {
         Input ??= new();
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
         _requirePassword = await UserManager.HasPasswordAsync(_user);
     }
 

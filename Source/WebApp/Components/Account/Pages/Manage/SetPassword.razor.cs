@@ -2,7 +2,7 @@
 
 public partial class SetPassword {
     private string? _message;
-    private ApplicationUser _user = default!;
+    private User _user = default!;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -11,7 +11,7 @@ public partial class SetPassword {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
 
         var hasPassword = await UserManager.HasPasswordAsync(_user);
         if (hasPassword)

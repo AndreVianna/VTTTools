@@ -5,7 +5,7 @@ namespace WebApp.Components.Account.Pages.Manage;
 public partial class EnableAuthenticator {
     private static readonly CompositeFormat _authenticatorUriFormat = CompositeFormat.Parse("otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6");
     private string? _message;
-    private ApplicationUser _user = default!;
+    private User _user = default!;
     private string? _sharedKey;
     private string? _authenticatorUri;
     private IEnumerable<string>? _recoveryCodes;
@@ -17,7 +17,7 @@ public partial class EnableAuthenticator {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
 
         await LoadSharedKeyAndQrCodeUriAsync(_user);
     }
@@ -46,7 +46,7 @@ public partial class EnableAuthenticator {
             RedirectManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication", _message, HttpContext);
     }
 
-    private async ValueTask LoadSharedKeyAndQrCodeUriAsync(ApplicationUser user) {
+    private async ValueTask LoadSharedKeyAndQrCodeUriAsync(User user) {
         // Load the authenticator key & QR code URI to display on the form
         var unformattedKey = await UserManager.GetAuthenticatorKeyAsync(user);
         if (string.IsNullOrEmpty(unformattedKey)) {

@@ -4,7 +4,7 @@ namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class Email {
     private string? _message;
-    private ApplicationUser _user = default!;
+    private User _user = default!;
     private string? _email;
     private bool _isEmailConfirmed;
 
@@ -15,7 +15,7 @@ public partial class Email {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
         _email = await UserManager.GetEmailAsync(_user);
         _isEmailConfirmed = await UserManager.IsEmailConfirmedAsync(_user);
 

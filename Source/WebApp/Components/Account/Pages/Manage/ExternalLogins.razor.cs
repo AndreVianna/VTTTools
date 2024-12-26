@@ -2,7 +2,7 @@
 
 public partial class ExternalLogins {
     public const string LinkLoginCallbackAction = "LinkLoginCallback";
-    private ApplicationUser _user = default!;
+    private User _user = default!;
     private IList<UserLoginInfo>? _currentLogins;
     private IList<AuthenticationScheme>? _otherLogins;
     private bool _showRemoveButton;
@@ -20,12 +20,12 @@ public partial class ExternalLogins {
     private string? Action { get; set; }
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
         _currentLogins = await UserManager.GetLoginsAsync(_user);
         _otherLogins = [.. (await SignInManager.GetExternalAuthenticationSchemesAsync()).Where(auth => _currentLogins.All(ul => auth.Name != ul.LoginProvider))];
 
         string? passwordHash = null;
-        if (UserStore is IUserPasswordStore<ApplicationUser> userPasswordStore)
+        if (UserStore is IUserPasswordStore<User> userPasswordStore)
             passwordHash = await userPasswordStore.GetPasswordHashAsync(_user, HttpContext.RequestAborted);
 
         _showRemoveButton = passwordHash is not null || _currentLogins.Count > 1;

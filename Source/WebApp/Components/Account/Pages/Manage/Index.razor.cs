@@ -1,7 +1,7 @@
 ﻿namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class Index {
-    private ApplicationUser _user = default!;
+    private User _user = default!;
     private string? _username;
     private string? _phoneNumber;
 
@@ -12,7 +12,7 @@ public partial class Index {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
         _username = await UserManager.GetUserNameAsync(_user);
         _phoneNumber = await UserManager.GetPhoneNumberAsync(_user);
 

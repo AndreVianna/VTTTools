@@ -7,6 +7,7 @@ global using System.Text;
 global using System.Text.Json;
 
 global using Domain.Auth;
+global using Domain.Contracts.Account;
 
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Components;
@@ -23,5 +24,6 @@ global using Microsoft.Extensions.Primitives;
 
 global using WebApp.Components;
 global using WebApp.Components.Account;
+global using WebApp.Components.Account.Model;
 global using WebApp.Components.Account.Pages;
 global using WebApp.Components.Account.Pages.Manage;

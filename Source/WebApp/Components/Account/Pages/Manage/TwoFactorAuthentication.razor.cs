@@ -13,7 +13,7 @@ public partial class TwoFactorAuthentication {
     private HttpContext HttpContext { get; set; } = default!;
 
     protected override async Task OnInitializedAsync() {
-        var user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        var user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
         _canTrack = HttpContext.Features.Get<ITrackingConsentFeature>()
                              ?.CanTrack
                 ?? true;

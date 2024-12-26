@@ -22,7 +22,7 @@ public partial class RegisterConfirmation {
             HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             _statusMessage = "Error finding user for unspecified email";
         }
-        else if (EmailSender is IEmailSender<ApplicationUser>) {
+        else if (EmailSender is IEmailSender<User>) {
             // Once you add a real email sender, you should remove this code that lets you confirm the account
             var userId = await UserManager.GetUserIdAsync(user);
             var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);

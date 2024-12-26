@@ -4,5 +4,5 @@ public partial class PersonalData {
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    protected override async Task OnInitializedAsync() => _ = await UserAccessor.GetRequiredUserAsync(HttpContext);
+    protected override async Task OnInitializedAsync() => _ = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
 }

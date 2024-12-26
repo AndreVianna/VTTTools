@@ -2,7 +2,7 @@
 
 public partial class ChangePassword {
     private string? _message;
-    private ApplicationUser _user = default!;
+    private User _user = default!;
     private bool _hasPassword;
 
     [CascadingParameter]
@@ -12,7 +12,7 @@ public partial class ChangePassword {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
         _hasPassword = await UserManager.HasPasswordAsync(_user);
         if (!_hasPassword)
             RedirectManager.RedirectTo("Account/Manage/SetPassword");

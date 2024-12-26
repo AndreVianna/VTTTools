@@ -61,12 +61,4 @@ public static class HostApplicationBuilderExtensions {
 
         return builder;
     }
-
-    public static WebApplication MapDefaultEndpoints(this WebApplication app) {
-        if (!app.Environment.IsDevelopment())
-            return app;
-        app.MapHealthChecks("/health");
-        app.MapHealthChecks("/alive", new() { Predicate = r => r.Tags.Contains("live") });
-        return app;
-    }
 }

@@ -5,7 +5,7 @@ public partial class ResetAuthenticator {
     private HttpContext HttpContext { get; set; } = default!;
 
     private async Task OnSubmitAsync() {
-        var user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        var user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
         await UserManager.SetTwoFactorEnabledAsync(user, false);
         await UserManager.ResetAuthenticatorKeyAsync(user);
         var userId = await UserManager.GetUserIdAsync(user);

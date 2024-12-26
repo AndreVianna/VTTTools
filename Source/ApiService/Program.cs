@@ -1,3 +1,5 @@
+using ApiService.Handlers;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
@@ -31,7 +33,7 @@ var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapDefaultEndpoints();
+app.MapHealthCheckEndpoints();
 app.MapGameSessionEndpoints();
 
 app.UseExceptionHandler();

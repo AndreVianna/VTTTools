@@ -1,3 +1,5 @@
+using AuthService.Handlers;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
@@ -36,9 +38,18 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddEntityFrameworkStores<AuthDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+builder.Services.Configure<IdentityOptions>(options => {
+    options.Stores.SchemaVersion = IdentitySchemaVersions.Version2;
+    options.Stores.MaxLengthForKeys = 48;
+    options.Stores.ProtectPersonalData = true;
+    options.SignIn.RequireConfirmedAccount = true;
+    options.SignIn.RequireConfirmedEmail = true;
+    options.User.RequireUniqueEmail = true;
+    options.Password.RequiredLength = 8;
+    options.Password.RequiredUniqueChars = 4;
+});
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-
 builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
@@ -49,8 +60,9 @@ app.Use((context, next) => ValidateJwtToken(context, jwtSettings, next));
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapDefaultEndpoints();
-app.MapAuthEndpoints();
+app.MapHealthCheckEndpoints();
+app.MapClientConnectionEndpoints();
+app.MapUserAccountEndpoints();
 
 app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())

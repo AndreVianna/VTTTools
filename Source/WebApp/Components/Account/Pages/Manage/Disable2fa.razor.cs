@@ -2,13 +2,13 @@
 
 // ReSharper disable once InconsistentNaming
 public partial class Disable2fa {
-    private ApplicationUser _user = default!;
+    private User _user = default!;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
 
         if (HttpMethods.IsGet(HttpContext.Request.Method) && !await UserManager.GetTwoFactorEnabledAsync(_user))
             throw new InvalidOperationException("Cannot disable 2FA for user as it's not currently enabled.");
