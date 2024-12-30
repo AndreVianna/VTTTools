@@ -31,5 +31,5 @@ public record Map {
             ? throw new ArgumentOutOfRangeException(nameof(CellHeight), value, "The map cell height must be greater than zero.")
             : value;
     } = 50; // in pixels
-    public List<Token> Tokens { get; init; } = [];
+    public List<GameToken> Tokens { get; init; } = [];
 }

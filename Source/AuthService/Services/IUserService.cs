@@ -2,5 +2,5 @@
 namespace AuthService.Services;
 
 public interface IUserService {
-    Task<ApplicationUser?> GetUserAsync(string id);
+    Task<User?> GetUserAsync(string id);
 }

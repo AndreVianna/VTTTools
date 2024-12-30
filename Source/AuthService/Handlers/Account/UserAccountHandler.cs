@@ -1,28 +1,25 @@
-﻿using Domain.Contracts.Account;
-
-using IResult = Microsoft.AspNetCore.Http.IResult;
+﻿using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace AuthService.Handlers.Account;
 
-internal class UserAccountHandler(UserManager<ApplicationUser> userManager,
-                                  IEmailSender<ApplicationUser> emailSender,
-                                  NavigationManager navigationManager,
+internal class UserAccountHandler(UserManager<User> userManager,
+                                  IContactHandler contactHandler,
                                   ILogger<UserAccountHandler> logger)
     : IUserAccountHandler {
     [Authorize]
-    public static async Task<IResult> FindUserByEmailAsync(UserAccountHandler handler, string email) {
+    public static async Task<IResult> FindUserByEmailAsync(IUserAccountHandler handler, string email) {
         var response = await handler.FindAsync(null, email);
         return response is not null ? Results.Ok(response)
              : Results.NotFound();
     }
 
-    public static async Task<IResult> FindByIdAsync(UserAccountHandler handler, string id) {
+    public static async Task<IResult> FindByIdAsync(IUserAccountHandler handler, string id) {
         var response = await handler.FindAsync(id, null);
         return response is not null ? Results.Ok(response)
              : Results.NotFound();
     }
 
-    public static async Task<IResult> RegisterAsync(UserAccountHandler handler, RegisterUserRequest request) {
+    public static async Task<IResult> RegisterAsync(IUserAccountHandler handler, RegisterUserRequest request) {
         var response = await handler.CreateAsync(request);
         return response.IsSuccess ? Results.Ok(response.Value)
              : Results.BadRequest(response.Errors);
@@ -49,7 +46,7 @@ internal class UserAccountHandler(UserManager<ApplicationUser> userManager,
     }
 
     public async Task<Result<RegisterUserResponse>> CreateAsync(RegisterUserRequest request) {
-        var user = new ApplicationUser();
+        var user = new User();
         await userManager.SetUserNameAsync(user, request.Email);
         await userManager.SetEmailAsync(user, request.Email);
         var result = await userManager.CreateAsync(user, request.Password);
@@ -63,21 +60,13 @@ internal class UserAccountHandler(UserManager<ApplicationUser> userManager,
             UserId = await userManager.GetUserIdAsync(user),
             RequiresConfirmation = userManager.Options.SignIn.RequireConfirmedAccount,
         };
-        await SendConfirmationEmail(request, response.UserId, user);
+        await SendConfirmationEmail(request, user);
 
         return response;
     }
 
-    private async Task SendConfirmationEmail(RegisterUserRequest request, string userId, ApplicationUser user) {
+    private async Task SendConfirmationEmail(RegisterUserRequest request, User user) {
         var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
-        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var uri = navigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri;
-        var parameters = new Dictionary<string, object?> {
-            ["userId"] = userId,
-            ["code"] = code,
-            ["returnUrl"] = request.ReturnUrl
-        };
-        var callbackUrl = navigationManager.GetUriWithQueryParameters(uri, parameters);
-        await emailSender.SendConfirmationLinkAsync(user, request.Email, HtmlEncoder.Default.Encode(callbackUrl));
+        await contactHandler.SendConfirmationLinkAsync(user, code, request.ReturnUrl);
     }
 }

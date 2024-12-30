@@ -1,7 +1,7 @@
 ﻿namespace AuthService.Services;
 
-public class UserService(UserManager<ApplicationUser> userManager)
+public class UserService(UserManager<User> userManager)
     : IUserService {
-    public Task<ApplicationUser?> GetUserAsync(string id)
+    public Task<User?> GetUserAsync(string id)
         => userManager.FindByIdAsync(id);
 }

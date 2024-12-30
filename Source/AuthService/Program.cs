@@ -1,5 +1,3 @@
-using AuthService.Handlers;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
@@ -14,16 +12,17 @@ builder.Services.AddSingleton<IJwtService, JwtService>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()
                ?? throw new InvalidOperationException("Jwt settings are missing from the configuration.");
-
 var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key));
 builder.Services.AddAuthentication(options => {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options => options.TokenValidationParameters = new() {
-    ValidateIssuer = true,
     ValidateLifetime = true,
     ValidateIssuerSigningKey = true,
+    ValidateIssuer = true,
     ValidIssuer = jwtSettings.Issuer,
+    ValidateAudience = true,
+    ValidAudiences = jwtSettings.Audiences,
     IssuerSigningKey = securityKey,
 });
 
@@ -34,7 +33,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddIdentityCore<User>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<AuthDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
@@ -49,19 +48,16 @@ builder.Services.Configure<IdentityOptions>(options => {
     options.Password.RequiredUniqueChars = 4;
 });
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddSingleton<IEmailSender<User>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
-
-// Middleware to validate client credentials
-app.Use((context, next) => ValidateJwtToken(context, jwtSettings, next));
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapHealthCheckEndpoints();
-app.MapClientConnectionEndpoints();
+app.MapApiClientEndpoints();
 app.MapUserAccountEndpoints();
 
 app.UseExceptionHandler();
@@ -71,31 +67,3 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.Run();
-
-return;
-
-static async Task ValidateJwtToken(HttpContext context, JwtSettings settings, Func<Task> next) {
-    try {
-        var token = context.Request.Headers.Authorization.FirstOrDefault()?.Replace("Bearer ", "");
-        if (string.IsNullOrWhiteSpace(token)) {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return;
-        }
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(settings.Key);
-        tokenHandler.ValidateToken(token,
-                                   new() {
-                                       ValidateIssuer = true,
-                                       ValidateLifetime = true,
-                                       ValidateIssuerSigningKey = true,
-                                       ValidIssuer = settings.Issuer,
-                                       IssuerSigningKey = new SymmetricSecurityKey(key),
-                                   },
-                                   out _);
-        await next();
-    }
-    catch (SecurityTokenException) {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-    }
-}
