@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AuthService.Migrations {
     [DbContext(typeof(AuthDbContext))]
-    [Migration("20241231065420_CreateIdentitySchema")]
+    [Migration("00000000000000_CreateIdentitySchema")]
     partial class CreateIdentitySchema {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder) {

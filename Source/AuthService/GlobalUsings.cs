@@ -34,6 +34,7 @@ global using Microsoft.EntityFrameworkCore.Infrastructure;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 global using Microsoft.EntityFrameworkCore.Migrations;
 global using Microsoft.EntityFrameworkCore.ValueGeneration;
+global using Microsoft.Extensions.Caching.Distributed;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
 global using Microsoft.Extensions.Options;
 global using Microsoft.IdentityModel.Tokens;
@@ -41,10 +42,3 @@ global using Microsoft.IdentityModel.Tokens;
 global using OpenTelemetry;
 global using OpenTelemetry.Metrics;
 global using OpenTelemetry.Trace;
-
-global using StackExchange.Redis;
-
-global using System.Text;
-global using System.Text.Json;
-
-global using Microsoft.Extensions.Caching.Distributed;

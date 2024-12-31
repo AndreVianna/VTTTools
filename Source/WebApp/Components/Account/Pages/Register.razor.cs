@@ -27,7 +27,7 @@ public partial class Register {
             Email = Input.Email,
             Name = Input.Name,
             Password = Input.Password,
-            ConfirmationPageAbsoluteUri = NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").ToString(),
+            ConfirmationUrl = NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").ToString(),
             ReturnUrl = ReturnUrl,
         };
         var response = await client.PostAsJsonAsync(_usersUri, request);

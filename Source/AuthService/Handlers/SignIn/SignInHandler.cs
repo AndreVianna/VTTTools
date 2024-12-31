@@ -13,7 +13,6 @@ internal sealed class SignInHandler(IConfiguration configuration,
     private static readonly JwtSecurityTokenHandler _jwtHandler = new();
     private readonly IdentityOptions _options = identityOptions.Value;
 
-    [Authorize]
     public static async Task<IResult> SignInWithPasswordAsync(ISignInHandler handler, PasswordSignInRequest request) {
         var result = await handler.PasswordSignInAsync(request);
         return result switch {
@@ -46,7 +45,14 @@ internal sealed class SignInHandler(IConfiguration configuration,
 
         if (result.RequiresTwoFactor) {
             logger.LogInformation("Account '{USerId}' requires two factor.", user.Id);
-            var token = await userManager.GenerateTwoFactorTokenAsync(user, _options.Tokens.AuthenticatorTokenProvider);
+            var provider = user.TwoFactorType switch {
+                TwoFactorType.TextMessage => TokenOptions.DefaultPhoneProvider,
+                TwoFactorType.PhoneCall => TokenOptions.DefaultPhoneProvider,
+                TwoFactorType.Email => TokenOptions.DefaultEmailProvider,
+                TwoFactorType.Authenticator => TokenOptions.DefaultAuthenticatorProvider,
+                _ => throw new InvalidOperationException("Authenticator type is required if two factor authentication is enabled."),
+            };
+            var token = await userManager.GenerateTwoFactorTokenAsync(user, provider);
             await contactHandler.SendTwoFactorMessageAsync(user, token);
             return SignInResult.TwoFactorIsRequired(token);
         }

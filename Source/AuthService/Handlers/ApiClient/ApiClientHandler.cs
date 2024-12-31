@@ -18,34 +18,35 @@ internal sealed class ApiClientHandler(AuthDbContext data,
         if (!TryExtractValuesFromHeader(context, out var clientId, out var clientSecret))
             return null;
 
-        var client = await GetAuthenticatedClientOrDefaultAsync(data, clientId, clientSecret);
+        var client = await GetAuthenticatedClientOrDefaultAsync(clientId, clientSecret);
         if (client is null)
             return null;
 
-        (var token, var expiration) = CreateJwtToken(configuration, client);
+        (var token, var expiration) = CreateJwtToken();
 
         await cache.StoreJwtAsync(clientId!, token, expiration);
         return token;
     }
 
-    private static (string token, DateTime expiration) CreateJwtToken(IConfiguration configuration, Client client) {
+    private (string token, DateTime expiration) CreateJwtToken() {
         var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>()!;
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(jwtSettings.Key);
+        var keyBytes = Encoding.UTF8.GetBytes(jwtSettings.Key);
+        var now = DateTime.UtcNow;
         var tokenDescriptor = new SecurityTokenDescriptor {
             Issuer = jwtSettings.Issuer,
-            Audience = client.Name,
-            Expires = DateTime.UtcNow.AddMinutes(jwtSettings.ExpirationMinutes),
-            IssuedAt = DateTime.UtcNow,
+            Audience = jwtSettings.Audience,
+            IssuedAt = now,
+            Expires = now.AddMinutes(jwtSettings.ExpirationMinutes),
             TokenType = "ApiClient",
-            SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+            SigningCredentials = new(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256Signature),
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
         var tokenString = tokenHandler.WriteToken(token);
         return (tokenString, tokenDescriptor.Expires!.Value);
     }
 
-    private static async Task<Client?> GetAuthenticatedClientOrDefaultAsync(AuthDbContext data, string id, string secret) {
+    private async Task<Client?> GetAuthenticatedClientOrDefaultAsync(string id, string secret) {
         var client = await data.Clients.FindAsync(id);
         if (client is null)
             return null;

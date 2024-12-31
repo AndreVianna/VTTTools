@@ -63,6 +63,7 @@ app.UseAuthorization();
 app.MapHealthCheckEndpoints();
 app.MapApiClientEndpoints();
 app.MapUserAccountEndpoints();
+app.MapSignInEndpoints();
 
 app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())

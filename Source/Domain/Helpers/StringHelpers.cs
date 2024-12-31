@@ -1,4 +1,4 @@
-﻿namespace Domain.Contracts.SignIn;
+﻿namespace Domain.Helpers;
 
 internal static partial class StringHelpers {
     private static readonly Regex _emailFormat = GenerateEmailFormatValidator();

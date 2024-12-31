@@ -1,4 +1,5 @@
-﻿using IResult = Microsoft.AspNetCore.Http.IResult;
+﻿
+using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace AuthService.Handlers.Account;
 
@@ -6,21 +7,18 @@ internal sealed class UserAccountHandler(UserManager<User> userManager,
                                          IContactHandler contactHandler,
                                          ILogger<UserAccountHandler> logger)
     : IUserAccountHandler {
-    [Authorize]
     public static async Task<IResult> FindByEmailAsync(IUserAccountHandler handler, string email) {
         var response = await handler.FindAsync(null, email);
         return response is not null ? Results.Ok(response)
              : Results.NotFound();
     }
 
-    [Authorize]
     public static async Task<IResult> FindByIdAsync(IUserAccountHandler handler, string id) {
         var response = await handler.FindAsync(id, null);
         return response is not null ? Results.Ok(response)
              : Results.NotFound();
     }
 
-    [Authorize]
     public static async Task<IResult> RegisterAsync(IUserAccountHandler handler, RegisterUserRequest request) {
         var response = await handler.CreateAsync(request);
         return response.IsSuccess ? Results.Ok(response.Value)
@@ -48,13 +46,18 @@ internal sealed class UserAccountHandler(UserManager<User> userManager,
     }
 
     public async Task<Result<RegisterUserResponse>> CreateAsync(RegisterUserRequest request) {
-        var user = new User();
+        var validationResult = request.Validate();
+        if (validationResult.HasErrors)
+            return validationResult.Errors;
+
+        var user = new User { Name = request.Name };
         await userManager.SetUserNameAsync(user, request.Email);
         await userManager.SetEmailAsync(user, request.Email);
         var result = await userManager.CreateAsync(user, request.Password);
 
-        if (!result.Succeeded)
-            return result.Errors.ToArray(e => new ValidationError($"{e.Code}: {e.Description}"));
+        if (!result.Succeeded) {
+            return result.Errors.ToArray(e => new ValidationError(e.Description, GetSource(e.Code)));
+        }
 
         logger.LogInformation("User created a new account with password.");
 
@@ -67,8 +70,15 @@ internal sealed class UserAccountHandler(UserManager<User> userManager,
         return response;
     }
 
+    private static string GetSource(string code)
+        => code switch {
+            _ when code.StartsWith("Duplicate") => "Email",
+            _ when code.StartsWith("Password") => "Password",
+            _ => "",
+        };
+
     private async Task SendConfirmationEmail(RegisterUserRequest request, User user) {
         var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
-        await contactHandler.SendConfirmationEmailAsync(user, code, request.ConfirmationPageAbsoluteUri, request.ReturnUrl);
+        await contactHandler.SendConfirmationEmailAsync(user, code, request.ConfirmationUrl, request.ReturnUrl);
     }
 }
