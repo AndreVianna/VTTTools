@@ -2,23 +2,25 @@
 
 namespace AuthService.Handlers.Account;
 
-internal class UserAccountHandler(UserManager<User> userManager,
-                                  IContactHandler contactHandler,
-                                  ILogger<UserAccountHandler> logger)
+internal sealed class UserAccountHandler(UserManager<User> userManager,
+                                         IContactHandler contactHandler,
+                                         ILogger<UserAccountHandler> logger)
     : IUserAccountHandler {
     [Authorize]
-    public static async Task<IResult> FindUserByEmailAsync(IUserAccountHandler handler, string email) {
+    public static async Task<IResult> FindByEmailAsync(IUserAccountHandler handler, string email) {
         var response = await handler.FindAsync(null, email);
         return response is not null ? Results.Ok(response)
              : Results.NotFound();
     }
 
+    [Authorize]
     public static async Task<IResult> FindByIdAsync(IUserAccountHandler handler, string id) {
         var response = await handler.FindAsync(id, null);
         return response is not null ? Results.Ok(response)
              : Results.NotFound();
     }
 
+    [Authorize]
     public static async Task<IResult> RegisterAsync(IUserAccountHandler handler, RegisterUserRequest request) {
         var response = await handler.CreateAsync(request);
         return response.IsSuccess ? Results.Ok(response.Value)
@@ -67,6 +69,6 @@ internal class UserAccountHandler(UserManager<User> userManager,
 
     private async Task SendConfirmationEmail(RegisterUserRequest request, User user) {
         var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
-        await contactHandler.SendConfirmationLinkAsync(user, code, request.ReturnUrl);
+        await contactHandler.SendConfirmationEmailAsync(user, code, request.ConfirmationPageAbsoluteUri, request.ReturnUrl);
     }
 }

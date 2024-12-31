@@ -1,6 +1,8 @@
-@AuthService_HostAddress = http://localhost:5104
+@AuthService_HostAddress = https://localhost:7166
+@AuthService_ClientCredentials = Q2xpZW50SWQ6Q2xpZW50U2VjcmV0
 
-GET {{AuthService_HostAddress}}/users/VttToolsWebApp
-Accept: application/json
+POST {{AuthService_HostAddress}}/token
+Authorization: Basic {{AuthService_ClientCredentials}}
+Content-Type: application/json
 
 ###

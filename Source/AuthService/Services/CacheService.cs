@@ -1,10 +1,12 @@
 ﻿namespace AuthService.Services;
 
-public class CacheService(IConnectionMultiplexer redis) : ICacheService {
-    private readonly IDatabase _redisDatabase = redis.GetDatabase();
+public class CacheService(IDistributedCache cache)
+    : ICacheService {
+    public async Task StoreJwtAsync(string clientId, string token, DateTimeOffset expiration, CancellationToken ct = default) {
+        var options = new DistributedCacheEntryOptions { AbsoluteExpiration = expiration };
+        await cache.SetStringAsync($"jwt:{clientId}", token, options, ct);
+    }
 
-    public Task StoreJwtAsync(string clientId, string token, DateTimeOffset expiration)
-        => _redisDatabase.StringSetAsync($"jwt:{clientId}", token, expiration - DateTimeOffset.UtcNow);
-
-    public async Task<string?> RetrieveJwtAsync(string clientId) => await _redisDatabase.StringGetAsync($"jwt:{clientId}");
+    public Task<string?> RetrieveJwtAsync(string clientId, CancellationToken ct = default)
+        => cache.GetStringAsync($"jwt:{clientId}", ct);
 }

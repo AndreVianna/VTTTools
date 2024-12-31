@@ -3,14 +3,13 @@ using SignInResult = DotNetToolbox.Results.SignInResult;
 
 namespace AuthService.Handlers.SignIn;
 
-internal class SignInHandler(IConfiguration configuration,
+internal sealed class SignInHandler(IConfiguration configuration,
                              IOptions<IdentityOptions> identityOptions,
                              UserManager<User> userManager,
                              SignInManager<User> signInManager,
                              IContactHandler contactHandler,
                              ILogger<SignInHandler> logger)
     : ISignInHandler {
-
     private static readonly JwtSecurityTokenHandler _jwtHandler = new();
     private readonly IdentityOptions _options = identityOptions.Value;
 
@@ -68,8 +67,8 @@ internal class SignInHandler(IConfiguration configuration,
             var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>()!;
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key));
             var token = _jwtHandler.CreateEncodedJwt(
-                issuer: "AuthService",
-                audience: "WebApp",
+                issuer: jwtSettings.Issuer,
+                audience: jwtSettings.Audience,
                 subject: identity,
                 notBefore: null,
                 expires: DateTime.UtcNow.AddMinutes(30),

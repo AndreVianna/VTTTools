@@ -2,16 +2,16 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 var cache = builder.AddRedis("cache");
 
-var apiService = builder.AddProject<Projects.ApiService>("ApiService");
-var authService = builder.AddProject<Projects.AuthService>("AuthService");
+var authService = builder.AddProject<Projects.AuthService>("AuthService")
+    .WithReference(cache);
+
+var apiService = builder.AddProject<Projects.ApiService>("ApiService")
+    .WithReference(cache);
 
 builder.AddProject<Projects.WebApp>("webapp")
     .WithExternalHttpEndpoints()
     .WithReference(cache)
-    .WaitFor(cache)
     .WithReference(authService)
-    .WaitFor(apiService)
-    .WithReference(apiService)
-    .WaitFor(apiService);
+    .WithReference(apiService);
 
 builder.Build().Run();

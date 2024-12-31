@@ -1,4 +1,5 @@
 ﻿
+global using System.Collections.Specialized;
 global using System.ComponentModel.DataAnnotations;
 global using System.Diagnostics.CodeAnalysis;
 global using System.IdentityModel.Tokens.Jwt;
@@ -25,7 +26,6 @@ global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Authorization;
-global using Microsoft.AspNetCore.Components;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.AspNetCore.WebUtilities;
@@ -43,3 +43,8 @@ global using OpenTelemetry.Metrics;
 global using OpenTelemetry.Trace;
 
 global using StackExchange.Redis;
+
+global using System.Text;
+global using System.Text.Json;
+
+global using Microsoft.Extensions.Caching.Distributed;

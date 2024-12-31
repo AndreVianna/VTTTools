@@ -1,24 +1,18 @@
-﻿
-namespace AuthService.Handlers.Contact;
+﻿namespace AuthService.Handlers.Contact;
 
-public interface IContactHandler {
-    Task SendConfirmationLinkAsync(User user, string code, string? returnUrl = null);
-    Task SendTwoFactorMessageAsync(User user, string token);
-}
-
-public class ContactHandler(IEmailSender<User> emailSender,
-                            NavigationManager navigationManager)
+public class ContactHandler(IEmailSender<User> emailSender)
     : IContactHandler {
-    public Task SendConfirmationLinkAsync(User user, string code, string? returnUrl = null) {
+    public Task SendConfirmationEmailAsync(User user, string code, string callbackAbsoluteUri, string? returnUrl = null) {
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var uri = navigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri;
-        var parameters = new Dictionary<string, object?> {
-            ["userId"] = user.Id,
+        var builder = new UriBuilder(callbackAbsoluteUri);
+        var parameters = new NameValueCollection {
+            ["userId"] = user.Id.ToString(),
             ["code"] = code,
-            ["returnUrl"] = returnUrl,
+            ["returnUrl"] = returnUrl
         };
-        var callbackUrl = navigationManager.GetUriWithQueryParameters(uri, parameters);
-        return emailSender.SendConfirmationLinkAsync(user, user.Email, callbackUrl);
+        builder.Query = parameters.ToString();
+        return emailSender.SendConfirmationLinkAsync(user, user.Email, builder.Uri.ToString());
     }
+
     public Task SendTwoFactorMessageAsync(User user, string token) => Task.CompletedTask;
 }

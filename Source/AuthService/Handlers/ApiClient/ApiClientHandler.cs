@@ -3,22 +3,29 @@ using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace AuthService.Handlers.ApiClient;
 
-internal static class ApiClientHandler {
-    public static async Task<IResult> GenerateTokenAsync(HttpContext context,
-                                                         AuthDbContext data,
-                                                         IConfiguration configuration,
-                                                         ICacheService cache) {
+internal sealed class ApiClientHandler(AuthDbContext data,
+                                IConfiguration configuration,
+                                ICacheService cache)
+    : IApiClientHandler {
+    public static async Task<IResult> GenerateTokenAsync(IApiClientHandler handler, HttpContext context) {
+        var token = await handler.GenerateTokenAsync(context);
+        return token is null
+            ? Results.Unauthorized()
+            : Results.Ok(token);
+    }
+
+    public async Task<string?> GenerateTokenAsync(HttpContext context) {
         if (!TryExtractValuesFromHeader(context, out var clientId, out var clientSecret))
-            return Results.Unauthorized();
+            return null;
 
         var client = await GetAuthenticatedClientOrDefaultAsync(data, clientId, clientSecret);
         if (client is null)
-            return Results.Unauthorized();
+            return null;
 
         (var token, var expiration) = CreateJwtToken(configuration, client);
 
         await cache.StoreJwtAsync(clientId!, token, expiration);
-        return Results.Ok(token);
+        return token;
     }
 
     private static (string token, DateTime expiration) CreateJwtToken(IConfiguration configuration, Client client) {

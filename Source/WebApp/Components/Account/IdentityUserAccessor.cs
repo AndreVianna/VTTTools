@@ -22,8 +22,9 @@ internal sealed class IdentityUserAccessor(IHttpClientFactory clientFactory, Ide
     private async Task<User?> GetUserAsync(string? id, CancellationToken ct) {
         var client = clientFactory.CreateClient("AuthService");
         var response = await client.GetFromJsonAsync<FindUserResponse>(string.Format(null, _userUri, id), ct);
-        if (response is null) return null;
-        return new User {
+        return response is null
+            ? null
+            : new User {
             Id = response.Id,
             Email = response.Email,
             Name = response.Name,

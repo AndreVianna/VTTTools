@@ -8,6 +8,9 @@ public partial class Register {
     protected IHttpClientFactory ClientFactory { get; init; } = null!;
 
     [Inject]
+    protected NavigationManager NavigationManager { get; init; } = null!;
+
+    [Inject]
     protected IdentityRedirectManager RedirectManager { get; init; } = null!;
 
     [SupplyParameterFromForm]
@@ -24,7 +27,7 @@ public partial class Register {
             Email = Input.Email,
             Name = Input.Name,
             Password = Input.Password,
-            ConfirmationPage = "Account/ConfirmEmail",
+            ConfirmationPageAbsoluteUri = NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").ToString(),
             ReturnUrl = ReturnUrl,
         };
         var response = await client.PostAsJsonAsync(_usersUri, request);
