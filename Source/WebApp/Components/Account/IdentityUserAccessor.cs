@@ -20,7 +20,7 @@ internal sealed class IdentityUserAccessor(IHttpClientFactory clientFactory, Ide
     private static readonly CompositeFormat _userUri = CompositeFormat.Parse("/users/{0}");
 
     private async Task<User?> GetUserAsync(string? id, CancellationToken ct) {
-        var client = clientFactory.CreateClient("AuthService");
+        var client = clientFactory.CreateClient("IdentityService");
         var response = await client.GetFromJsonAsync<FindUserResponse>(string.Format(null, _userUri, id), ct);
         return response is null
             ? null

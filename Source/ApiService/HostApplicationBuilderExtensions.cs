@@ -2,7 +2,7 @@
 namespace Microsoft.Extensions.Hosting;
 
 public static class HostApplicationBuilderExtensions {
-    public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder)
+    public static void AddServiceDefaults<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder {
         builder.ConfigureOpenTelemetry();
 
@@ -11,23 +11,14 @@ public static class HostApplicationBuilderExtensions {
         builder.Services.AddServiceDiscovery();
 
         builder.Services.ConfigureHttpClientDefaults(http => {
-            // Turn on resilience by default
             http.AddStandardResilienceHandler();
-
-            // Turn on service discovery by default
             http.AddServiceDiscovery();
         });
-
-        // Uncomment the following to restrict the allowed schemes for service discovery.
-        // builder.Services.Configure<ServiceDiscoveryOptions>(options =>
-        // {
-        //     options.AllowedSchemes = ["https"];
-        // });
-
-        return builder;
     }
 
-    private static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder {
+    // ReSharper disable once UnusedMethodReturnValue.Local
+    private static void ConfigureOpenTelemetry<TBuilder>(this TBuilder builder)
+        where TBuilder : IHostApplicationBuilder {
         builder.Logging.AddOpenTelemetry(logging => {
             logging.IncludeFormattedMessage = true;
             logging.IncludeScopes = true;
@@ -42,23 +33,21 @@ public static class HostApplicationBuilderExtensions {
                     .AddHttpClientInstrumentation());
 
         builder.AddOpenTelemetryExporters();
-
-        return builder;
     }
 
-    private static TBuilder AddOpenTelemetryExporters<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder {
+    private static void AddOpenTelemetryExporters<TBuilder>(this TBuilder builder)
+        where TBuilder : IHostApplicationBuilder {
+        // ReSharper disable StringLiteralTypo
+        // ReSharper disable once IdentifierTypo
         var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+        // ReSharper enable StringLiteralTypo
 
         if (useOtlpExporter)
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
-
-        return builder;
     }
 
-    private static TBuilder AddDefaultHealthChecks<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder {
-        builder.Services.AddHealthChecks()
-            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
-
-        return builder;
-    }
+    private static void AddDefaultHealthChecks<TBuilder>(this TBuilder builder)
+        where TBuilder : IHostApplicationBuilder
+        => builder.Services.AddHealthChecks()
+                  .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 }

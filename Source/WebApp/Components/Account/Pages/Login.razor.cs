@@ -36,7 +36,7 @@ public partial class Login {
     }
 
     public async Task LoginUser() {
-        var client = ClientFactory.CreateClient("AuthService");
+        var client = ClientFactory.CreateClient("IdentityService");
         var request = new PasswordSignInRequest {
             Email = Input.Email,
             Password = Input.Password,

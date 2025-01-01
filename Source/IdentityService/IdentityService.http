@@ -1,0 +1,34 @@
+@AuthService_HostAddress = https://localhost:7166
+@AuthService_ClientCredentials = Q2xpZW50SWQ6Q2xpZW50U2VjcmV0
+@AuthService_ClientToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkFwaUNsaWVudCJ9.eyJuYmYiOjE3MzU2NjkzNTcsImV4cCI6MTczNTY3MTE1NywiaWF0IjoxNzM1NjY5MzU3LCJpc3MiOiJodHRwczovL2xvY2FsaG9zdDo3MTY2IiwiYXVkIjoiVnR0VG9vbHMifQ.OTFKQUZsZ8IaaG079NjCYZtTD7mG2I9P3237Hj8bVsQ
+
+POST {{AuthService_HostAddress}}/tokens
+Authorization: Basic {{AuthService_ClientCredentials}}
+Content-Type: application/json
+
+###
+
+POST {{AuthService_HostAddress}}/users
+Authorization: Bearer {{AuthService_ClientToken}}
+Content-Type: application/json
+
+{
+  "Name": "Test User",
+  "Email": "test@host.com",
+  "Password": "Sup3r53cr3t!",
+  "ConfirmationUrl": "https://localhost:7166/confirm"
+}
+
+###
+
+POST {{AuthService_HostAddress}}/signin
+Authorization: Bearer {{AuthService_ClientToken}}
+Content-Type: application/json
+
+{
+  "Email": "test@host.com",
+  "Password": "Sup3r53cr3t!",
+  "RememberMe": true
+}
+
+###

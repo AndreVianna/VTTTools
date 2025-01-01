@@ -1,11 +1,22 @@
 ﻿namespace ApiService.Data.Model;
 
-[Table("Clients")]
-public class ApiClient {
-    [Key]
-    [MaxLength(200)]
-    public required string Id { get; init; }
+public class ApiClient
+    : ApiClient<Guid>;
 
-    [MaxLength(200)]
-    public required string HashedSecret { get; init; }
+public class ApiClient<TKey> {
+    [Key]
+    public virtual required TKey Id { get; init; }
+
+    [MaxLength(64)]
+    public virtual required string Name { get; init; }
+
+    [MaxLength(256)]
+    public virtual required string HashedSecret { get; init; }
+
+    public void Configure(EntityTypeBuilder<ApiClient> builder) {
+        builder.ToTable("Clients");
+        builder.Property(x => x.Id)
+            .ValueGeneratedOnAdd()
+            .HasValueGenerator<SequentialGuidValueGenerator>();
+    }
 }

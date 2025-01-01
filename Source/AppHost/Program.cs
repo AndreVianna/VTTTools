@@ -2,10 +2,10 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 var cache = builder.AddRedis("cache");
 
-var authService = builder.AddProject<Projects.AuthService>("AuthService")
+var authService = builder.AddProject<Projects.IdentityService>("IdentityService")
     .WithReference(cache);
 
-var apiService = builder.AddProject<Projects.ApiService>("ApiService")
+var apiService = builder.AddProject<Projects.GameService>("GameService")
     .WithReference(cache);
 
 builder.AddProject<Projects.WebApp>("webapp")

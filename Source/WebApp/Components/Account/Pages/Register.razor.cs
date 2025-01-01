@@ -22,7 +22,7 @@ public partial class Register {
     private string? Message => _identityErrors is null ? null : $"Error: {string.Join(", ", _identityErrors.Select(error => error.Description))}";
 
     public async Task RegisterUser(EditContext _) {
-        var client = ClientFactory.CreateClient("AuthService");
+        var client = ClientFactory.CreateClient("IdentityService");
         var request = new RegisterUserRequest {
             Email = Input.Email,
             Name = Input.Name,
