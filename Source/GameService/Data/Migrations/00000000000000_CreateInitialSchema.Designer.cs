@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 #nullable disable
 
 namespace GameService.Data.Migrations {
-    [DbContext(typeof(ApiDbContext))]
+    [DbContext(typeof(GameServiceDbContext))]
     [Migration("00000000000000_CreateInitialSchema")]
     partial class CreateInitialSchema {
         /// <inheritdoc />

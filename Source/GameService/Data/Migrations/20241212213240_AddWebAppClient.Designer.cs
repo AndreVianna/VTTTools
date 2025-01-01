@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 #nullable disable
 
 namespace GameService.Data.Migrations {
-    [DbContext(typeof(ApiDbContext))]
+    [DbContext(typeof(GameServiceDbContext))]
     [Migration("20241212213240_AddWebAppClient")]
     partial class AddWebAppClient {
         /// <inheritdoc />

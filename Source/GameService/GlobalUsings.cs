@@ -2,13 +2,13 @@
 global using System.ComponentModel.DataAnnotations.Schema;
 global using System.Text;
 
-global using GameService.Data;
-global using GameService.Data.Model;
-global using GameService.Services;
-
-global using Domain.Auth;
 global using Domain.Model;
 global using Domain.Storage;
+
+global using GameService.Data;
+global using GameService.Services;
+
+global using HttpServices.Data;
 
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Authorization;

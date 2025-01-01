@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 #nullable disable
 
 namespace GameService.Data.Migrations {
-    [DbContext(typeof(ApiDbContext))]
+    [DbContext(typeof(GameServiceDbContext))]
     partial class ApiDbContextModelSnapshot : ModelSnapshot {
         protected override void BuildModel(ModelBuilder modelBuilder) {
 #pragma warning disable 612, 618

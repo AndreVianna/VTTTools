@@ -6,9 +6,8 @@ global using System.Security.Claims;
 global using System.Text;
 global using System.Text.Json;
 
-global using Domain.Auth;
-global using Domain.Contracts.SignIn;
 global using Domain.Contracts.Account;
+global using Domain.Contracts.SignIn;
 
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Components;
