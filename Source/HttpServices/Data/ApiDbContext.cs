@@ -17,8 +17,6 @@ public class ApiDbContext<TClient, TKey>(DbContextOptions options)
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<TClient>().ToTable("Clients");
-        if (typeof(TKey) != typeof(string))
-            modelBuilder.Entity<TClient>().Property(x => x.Id).ValueGeneratedOnAdd();
         if (typeof(TKey) == typeof(Guid))
             modelBuilder.Entity<TClient>().Property(x => x.Id).HasValueGenerator<SequentialGuidValueGenerator>();
 

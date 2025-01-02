@@ -1,88 +1,116 @@
 namespace HttpServices.Data;
 
 public class IdentityApiDbContext(DbContextOptions options)
-    : IdentityApiDbContext<ApiClient>(options);
-
-public class IdentityApiDbContext<TClient>(DbContextOptions options)
-    : IdentityApiDbContext<TClient, ApiClientUser>(options)
-    where TClient : ApiClient;
-
-public class IdentityApiDbContext<TClient, TUser>(DbContextOptions options)
-    : IdentityApiDbContext<TClient, TUser, ApiClientRole, Guid>(options)
-    where TClient : ApiClient
-    where TUser : ApiClientUser;
+    : IdentityApiDbContext<ApiClient, User, Role>(options);
 
 public class IdentityApiDbContext<TClient, TUser, TRole>(DbContextOptions options)
-    : IdentityApiDbContext<TClient, TUser, TRole, Guid>(options)
+    : IdentityApiDbContext<TClient, ApiClientClaim, TUser, UserClaim, UserLogin, UserToken, TRole, UserRole, RoleClaim>(options)
     where TClient : ApiClient
-    where TUser : ApiClientUser
-    where TRole : ApiClientRole;
+    where TUser : User
+    where TRole : Role;
 
-public class IdentityApiDbContext<TClient, TUser, TRole, TKey>(DbContextOptions options)
-    : IdentityApiDbContext<TClient, TUser, TRole, ApiClientUserClaim<TKey>, ApiClientUserRole<TKey>, ApiClientUserLogin<TKey>, ApiClientRoleClaim<TKey>, ApiClientUserToken<TKey>, TKey>(options)
-    where TClient : ApiClient<TKey>
-    where TUser : ApiClientUser<TKey>
-    where TRole : ApiClientRole<TKey>
+public class IdentityApiDbContext<TClient, TClientClaim, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
+    : IdentityApiDbContext<Guid, TClient, TClientClaim, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(options)
+    where TClient : ApiClient
+    where TClientClaim : ApiClientClaim
+    where TUser : User
+    where TUserClaim : UserClaim
+    where TUserLogin : UserLogin
+    where TUserToken : UserToken
+    where TRole : Role
+    where TUserRole : UserRole
+    where TRoleClaim : RoleClaim;
+
+public class IdentityApiDbContext<TKey>(DbContextOptions options)
+    : IdentityApiDbContext<TKey, ApiClient<TKey>, User<TKey>, Role<TKey>>(options)
     where TKey : IEquatable<TKey>;
 
-public class IdentityApiDbContext<TClient, TUser, TRole, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken, TKey>(DbContextOptions options)
-    : IdentityDbContext<TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>(options)
+public class IdentityApiDbContext<TKey, TClient, TUser, TRole>(DbContextOptions options)
+    : IdentityApiDbContext<TKey, TClient, ApiClientClaim<TKey>, TUser, UserClaim<TKey>, UserLogin<TKey>, UserToken<TKey>, TRole, UserRole<TKey>, RoleClaim<TKey>>(options)
+    where TKey : IEquatable<TKey>
     where TClient : ApiClient<TKey>
-    where TUser : ApiClientUser<TKey>
-    where TRole : ApiClientRole<TKey>
-    where TUserClaim : ApiClientUserClaim<TKey>
-    where TUserRole : ApiClientUserRole<TKey>
-    where TUserLogin : ApiClientUserLogin<TKey>
-    where TRoleClaim : ApiClientRoleClaim<TKey>
-    where TUserToken : ApiClientUserToken<TKey>
-    where TKey : IEquatable<TKey> {
+    where TUser : User<TKey>
+    where TRole : Role<TKey>;
+
+public class IdentityApiDbContext<TKey, TClient, TClientClaim, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
+    : IdentityDbContext<TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>(options)
+    where TKey : IEquatable<TKey>
+    where TClient : ApiClient<TKey>
+    where TClientClaim : ApiClientClaim<TKey>
+    where TUser : User<TKey>
+    where TUserClaim : UserClaim<TKey>
+    where TUserLogin : UserLogin<TKey>
+    where TUserToken : UserToken<TKey>
+    where TRole : Role<TKey>
+    where TUserRole : UserRole<TKey>
+    where TRoleClaim : RoleClaim<TKey> {
     public virtual DbSet<TClient> Clients { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
 
-        builder.Entity<TClient>().ToTable("Clients");
-        if (typeof(TKey) != typeof(string))
-            builder.Entity<TClient>().Property(x => x.Id).ValueGeneratedOnAdd();
-        if (typeof(TKey) == typeof(Guid))
-            builder.Entity<TClient>().Property(x => x.Id).HasValueGenerator<SequentialGuidValueGenerator>();
+        builder.Entity<TClient>(b => {
+            b.ToTable("ApiClients");
+            if (typeof(TKey) == typeof(Guid))
+                builder.Entity<TClient>().Property(x => x.Id).HasValueGenerator<SequentialGuidValueGenerator>();
+            b.HasMany<TClientClaim>().WithOne().HasForeignKey(e => e.ApiClientId).IsRequired();
+            b.HasMany<TRole>().WithOne().HasForeignKey(e => e.ApiClientId).IsRequired();
+            b.HasMany<TUser>().WithOne().HasForeignKey(e => e.ApiClientId).IsRequired();
+        });
 
-        ((EntityTypeBuilder)builder.Entity<TUser>()).ToTable("Users");
-        if (typeof(TKey) != typeof(string))
-            builder.Entity<TUser>().Property(x => x.Id).ValueGeneratedOnAdd();
-        if (typeof(TKey) == typeof(Guid))
-            builder.Entity<TUser>().Property(x => x.Id).HasValueGenerator<SequentialGuidValueGenerator>();
-        builder.Entity<TUser>().Property(e => e.Name).HasMaxLength(256);
-        builder.Entity<TUser>().Property(e => e.PhoneNumber).HasMaxLength(25);
-        builder.Entity<TUser>().Property(e => e.SecurityStamp).HasMaxLength(50);
-        builder.Entity<TUser>().Property(e => e.ConcurrencyStamp).HasMaxLength(50);
-        builder.Entity<TUser>().Property(e => e.TwoFactorType).HasConversion<string>();
+        builder.Entity<TClientClaim>(b => {
+            b.ToTable("ApiClientClaims");
+            b.HasKey(e => e.Id);
+            b.Property(e => e.ClaimType).HasMaxLength(64);
+            b.Property(e => e.ClaimValue).HasMaxLength(256);
+        });
 
-        ((EntityTypeBuilder)builder.Entity<TUserClaim>()).ToTable("UserClaims");
-        builder.Entity<TUserClaim>().Property(e => e.ClaimType).HasMaxLength(128);
+        builder.Entity<TUser>(b => {
+            b.ToTable("Users");
+            if (typeof(TKey) == typeof(Guid))
+                b.Property(x => x.Id).HasValueGenerator<SequentialGuidValueGenerator>();
+            b.Property(e => e.Name).HasMaxLength(256);
+            b.Property(e => e.PhoneNumber).HasMaxLength(25);
+            b.Property(e => e.SecurityStamp).HasMaxLength(48);
+            b.Property(e => e.ConcurrencyStamp).HasMaxLength(48);
+            b.Property(e => e.TwoFactorType).HasConversion<string>();
+        });
 
-        ((EntityTypeBuilder)builder.Entity<TUserLogin>()).ToTable("UserLogins");
-        builder.Entity<TUserLogin>().Property(e => e.LoginProvider).HasMaxLength(64);
-        builder.Entity<TUserLogin>().Property(e => e.ProviderKey).HasMaxLength(128);
-        builder.Entity<TUserLogin>().Property(e => e.ProviderDisplayName).HasMaxLength(64);
+        builder.Entity<TUserClaim>(b => {
+            b.ToTable("UserClaims");
+            b.Property(e => e.ClaimType).HasMaxLength(64);
+            b.Property(e => e.ClaimValue).HasMaxLength(256);
+        });
 
-        ((EntityTypeBuilder)builder.Entity<TUserToken>()).ToTable("UserTokens");
-        builder.Entity<TUserToken>().Property(e => e.LoginProvider).HasMaxLength(64);
-        builder.Entity<TUserToken>().Property(e => e.Name).HasMaxLength(32);
+        builder.Entity<TUserLogin>(b => {
+            b.ToTable("UserLogins");
+            b.Property(e => e.LoginProvider).HasMaxLength(64);
+            b.Property(e => e.ProviderKey).HasMaxLength(128);
+            b.Property(e => e.ProviderDisplayName).HasMaxLength(64);
+        });
 
-        ((EntityTypeBuilder)builder.Entity<TRole>()).ToTable("Roles");
-        if (typeof(TKey) != typeof(string))
-            builder.Entity<TRole>().Property(x => x.Id).ValueGeneratedOnAdd();
-        if (typeof(TKey) == typeof(Guid))
-            builder.Entity<TRole>().Property(x => x.Id).HasValueGenerator<SequentialGuidValueGenerator>();
-        builder.Entity<TRole>().Property(e => e.Name).HasMaxLength(64);
-        builder.Entity<TRole>().Property(e => e.NormalizedName).HasMaxLength(64);
-        builder.Entity<TRole>().Property(e => e.ConcurrencyStamp).HasMaxLength(50);
+        builder.Entity<TUserToken>(b => {
+            b.ToTable("UserTokens");
+            b.Property(e => e.LoginProvider).HasMaxLength(64);
+            b.Property(e => e.Name).HasMaxLength(32);
+        });
 
-        ((EntityTypeBuilder)builder.Entity<TRoleClaim>()).ToTable("RoleClaims");
-        builder.Entity<TRoleClaim>().Property(e => e.ClaimType).HasMaxLength(128);
+        builder.Entity<TRole>(b => {
+            b.ToTable("Roles");
+            if (typeof(TKey) == typeof(Guid))
+                b.Property(x => x.Id).HasValueGenerator<SequentialGuidValueGenerator>();
+            b.Property(e => e.Name).HasMaxLength(64);
+            b.Property(e => e.NormalizedName).HasMaxLength(64);
+            b.Property(e => e.ConcurrencyStamp).HasMaxLength(48);
+        });
 
-        ((EntityTypeBuilder)builder.Entity<TUserRole>()).ToTable("UserRoles");
+        builder.Entity<TRoleClaim>(b => {
+            b.ToTable("RoleClaims");
+            b.Property(e => e.ClaimType).HasMaxLength(64);
+            b.Property(e => e.ClaimValue).HasMaxLength(256);
+        });
+
+        builder.Entity<TUserRole>(b => b.ToTable("UserRoles"));
 
         builder.ApplyConfigurationsFromAssembly(typeof(ApiDbContext).Assembly);
     }

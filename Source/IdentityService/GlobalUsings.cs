@@ -12,6 +12,11 @@ global using Domain.Contracts.SignIn;
 
 global using DotNetToolbox.Results;
 
+global using HttpServices.Abstractions.Model;
+global using HttpServices.Data;
+
+global using IdentityService.Data;
+
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.WebUtilities;
 global using Microsoft.EntityFrameworkCore;

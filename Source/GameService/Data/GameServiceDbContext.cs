@@ -1,5 +1,5 @@
 namespace GameService.Data;
 
-public class GameServiceDbContext(DbContextOptions<GameServiceDbContext> options, IConfiguration configuration)
+public class GameServiceDbContext(DbContextOptions<GameServiceDbContext> options)
     : ApiDbContext(options) {
 }

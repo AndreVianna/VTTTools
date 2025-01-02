@@ -13,7 +13,7 @@ internal sealed class AuthenticationService<TUser>(IConfiguration configuration,
                                                    IMessagingService<TUser> messagingService,
                                                    ILogger<AuthenticationService<TUser>> logger)
     : IAuthenticationService
-    where TUser : ApiClientUser {
+    where TUser : User {
     private readonly IdentityOptions _options = identityOptions.Value;
 
     public async Task<SignInResult> PasswordSignInAsync(PasswordSignInRequest request) {

@@ -1,11 +1,14 @@
 namespace HttpServices.Abstractions.Model;
 
-public class ApiClientUser()
-    : ApiClientUser<Guid>();
+public class User()
+    : User<Guid>();
 
-public class ApiClientUser<TKey>()
+public class User<TKey>()
     : IdentityUser<TKey>()
     where TKey : IEquatable<TKey> {
+    [Required]
+    public virtual TKey ApiClientId { get; set; } = default!;
+
     [Required]
     [ProtectedPersonalData]
 #pragma warning disable CS8765 // Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).

@@ -2,10 +2,13 @@
 namespace Microsoft.Extensions.Hosting;
 
 public static class IdentityProviderWebApi {
-    public static WebApiBuilder CreateBuilder(String[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
-        => CreateBuilder<IdentityApiDbContext, ApiClientUser, ApiClientRole>(args, configure);
+    public static WebApiBuilder CreateBuilder(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
+        => CreateBuilder<IdentityApiDbContext, User, Role>(args, configure);
 
-    public static WebApiBuilder CreateBuilder<TDatabase, TUser, TRole>(String[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
+    public static WebApiBuilder CreateBuilder<TDatabase>(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
+        where TDatabase : DbContext => CreateBuilder<TDatabase, User, Role>(args, configure);
+
+    public static WebApiBuilder CreateBuilder<TDatabase, TUser, TRole>(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
         where TDatabase : DbContext
         where TUser : class
         where TRole : class {

@@ -1,21 +1,21 @@
 ﻿namespace HttpServices.Services.Account;
 
-internal class AccountService(UserManager<ApiClientUser> userManager,
-                              IMessagingService<ApiClientUser> messagingService,
+internal class AccountService(UserManager<User> userManager,
+                              IMessagingService<User> messagingService,
                               ILogger<AccountService> logger)
-    : AccountService<ApiClientUser>(userManager, messagingService, logger);
+    : AccountService<User>(userManager, messagingService, logger);
 
 internal class AccountService<TUser>(UserManager<TUser> userManager,
                                      IMessagingService<TUser> messagingService,
                                      ILogger<AccountService<TUser>> logger)
     : AccountService<TUser, Guid>(userManager, messagingService, logger)
-    where TUser : ApiClientUser, new();
+    where TUser : User, new();
 
 internal class AccountService<TUser, TKey>(UserManager<TUser> userManager,
                                            IMessagingService<TUser> messagingService,
                                            ILogger<AccountService<TUser, TKey>> logger)
     : IAccountService
-    where TUser : ApiClientUser<TKey>, new()
+    where TUser : User<TKey>, new()
     where TKey : IEquatable<TKey> {
     public async Task<FindUserResponse?> FindAsync(string? id, string? email) {
         var user = id is not null ? await userManager.FindByIdAsync(id)
@@ -32,7 +32,7 @@ internal class AccountService<TUser, TKey>(UserManager<TUser> userManager,
                  LockoutEnabled = await userManager.GetLockoutEnabledAsync(user),
                  LockoutEnd = await userManager.GetLockoutEndDateAsync(user),
                  AccessFailedCount = await userManager.GetAccessFailedCountAsync(user),
-                 Name = user.Name!,
+                 Name = user.Name,
                  PreferredName = user.PreferredName,
              };
     }

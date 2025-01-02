@@ -16,7 +16,7 @@ public class WebApiBuilder(WebApplicationBuilder builder)
 
     void IHostApplicationBuilder.ConfigureContainer<TContainerBuilder>(IServiceProviderFactory<TContainerBuilder> factory, Action<TContainerBuilder>? configure)
         => ((IHostApplicationBuilder)builder).ConfigureContainer(factory, configure);
-    IDictionary<Object, Object> IHostApplicationBuilder.Properties => ((IHostApplicationBuilder)builder).Properties;
+    IDictionary<object, object> IHostApplicationBuilder.Properties => ((IHostApplicationBuilder)builder).Properties;
 
     public WebApplication Build() {
         var app = builder.Build();
@@ -27,11 +27,8 @@ public class WebApiBuilder(WebApplicationBuilder builder)
         app.UseHttpsRedirection();
 
         app.MapHealthCheckEndpoints();
-        MapApiClientEndpoints(app);
+        app.MapApiClientEndpoints();
 
         return app;
     }
-
-    private static void MapApiClientEndpoints(IEndpointRouteBuilder app)
-        => app.MapPost("/tokens", TokenEndpoints.GenerateAsync);
 }
