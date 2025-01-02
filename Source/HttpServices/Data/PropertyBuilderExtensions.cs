@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore.Metadata;
-
 namespace HttpServices.Data;
 
 public static class PropertyBuilderExtensions {

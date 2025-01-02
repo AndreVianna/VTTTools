@@ -11,10 +11,13 @@ global using ApiService.Services.Cache;
 global using DotNetToolbox.Results;
 
 global using HttpServices.Abstractions.Contracts.Account;
+global using HttpServices.Abstractions.Contracts.Client;
 global using HttpServices.Abstractions.Contracts.SignIn;
+global using HttpServices.Abstractions.Helpers;
 global using HttpServices.Abstractions.Model;
 global using HttpServices.Data;
 global using HttpServices.Services;
+global using HttpServices.Services.Client;
 global using HttpServices.Services.Messaging;
 global using HttpServices.Services.Token;
 
@@ -24,7 +27,9 @@ global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.AspNetCore.WebUtilities;
 global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.ChangeTracking;
 global using Microsoft.EntityFrameworkCore.Infrastructure;
+global using Microsoft.EntityFrameworkCore.Metadata;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 global using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 global using Microsoft.EntityFrameworkCore.ValueGeneration;

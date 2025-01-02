@@ -1,9 +1,9 @@
 ﻿namespace HttpServices.Services.Token;
 
 internal sealed class TokenService<TDatabase>(TDatabase data,
-                                IConfiguration configuration,
-                                ICacheService cache,
-                                ILogger<TokenService<TDatabase>> logger)
+                                              IConfiguration configuration,
+                                              ICacheService cache,
+                                              ILogger<TokenService<TDatabase>> logger)
     : ITokenService
     where TDatabase : DbContext {
     public async Task<string?> GenerateClientTokenAsync(HttpContext context) {
@@ -31,7 +31,7 @@ internal sealed class TokenService<TDatabase>(TDatabase data,
             Audience = jwtSettings.Audience,
             IssuedAt = now,
             Expires = now.AddMinutes(jwtSettings.ExpirationMinutes),
-            TokenType = "Consumers",
+            TokenType = "Clients",
             SigningCredentials = new(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256Signature),
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -39,8 +39,8 @@ internal sealed class TokenService<TDatabase>(TDatabase data,
         return (tokenString, tokenDescriptor.Expires!.Value);
     }
 
-    private async Task<Consumer?> GetAuthenticatedClientOrDefaultAsync(string id, string secret) {
-        var client = await data.Set<Consumer>().FindAsync(id);
+    private async Task<Abstractions.Model.Client?> GetAuthenticatedClientOrDefaultAsync(string id, string secret) {
+        var client = await data.Set<Abstractions.Model.Client>().FindAsync(id);
         if (client is null)
             return null;
         var hashedSecret = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(secret)));

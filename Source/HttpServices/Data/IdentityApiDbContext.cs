@@ -1,17 +1,17 @@
 namespace HttpServices.Data;
 
 public class IdentityApiDbContext(DbContextOptions options)
-    : IdentityApiDbContext<Consumer, NamedUser, Role>(options);
+    : IdentityApiDbContext<Client, NamedUser, Role>(options);
 
-public class IdentityApiDbContext<TConsumer, TUser, TRole>(DbContextOptions options)
-    : IdentityApiDbContext<TConsumer, TUser, UserClaim, UserLogin, UserToken, TRole, UserRole, RoleClaim>(options)
-    where TConsumer : Consumer
+public class IdentityApiDbContext<TClient, TUser, TRole>(DbContextOptions options)
+    : IdentityApiDbContext<TClient, TUser, UserClaim, UserLogin, UserToken, TRole, UserRole, RoleClaim>(options)
+    where TClient : Client
     where TUser : NamedUser
     where TRole : Role;
 
-public class IdentityApiDbContext<TConsumer, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
-    : IdentityApiDbContext<string, TConsumer, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(options)
-    where TConsumer : Consumer
+public class IdentityApiDbContext<TClient, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
+    : IdentityApiDbContext<string, TClient, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(options)
+    where TClient : Client
     where TUser : NamedUser
     where TUserClaim : UserClaim
     where TUserLogin : UserLogin
@@ -21,20 +21,20 @@ public class IdentityApiDbContext<TConsumer, TUser, TUserClaim, TUserLogin, TUse
     where TRoleClaim : RoleClaim;
 
 public class IdentityApiDbContext<TKey>(DbContextOptions options)
-    : IdentityApiDbContext<TKey, Consumer<TKey>, NamedUser<TKey>, Role<TKey>>(options)
+    : IdentityApiDbContext<TKey, Client<TKey>, NamedUser<TKey>, Role<TKey>>(options)
     where TKey : IEquatable<TKey>;
 
-public class IdentityApiDbContext<TKey, TConsumer, TUser, TRole>(DbContextOptions options)
-    : IdentityApiDbContext<TKey, TConsumer, TUser, UserClaim<TKey>, UserLogin<TKey>, UserToken<TKey>, TRole, UserRole<TKey>, RoleClaim<TKey>>(options)
+public class IdentityApiDbContext<TKey, TClient, TUser, TRole>(DbContextOptions options)
+    : IdentityApiDbContext<TKey, TClient, TUser, UserClaim<TKey>, UserLogin<TKey>, UserToken<TKey>, TRole, UserRole<TKey>, RoleClaim<TKey>>(options)
     where TKey : IEquatable<TKey>
-    where TConsumer : Consumer<TKey>
+    where TClient : Client<TKey>
     where TUser : NamedUser<TKey>
     where TRole : Role<TKey>;
 
-public class IdentityApiDbContext<TKey, TConsumer, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
+public class IdentityApiDbContext<TKey, TClient, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
     : IdentityDbContext<TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>(options)
     where TKey : IEquatable<TKey>
-    where TConsumer : Consumer<TKey>
+    where TClient : Client<TKey>
     where TUser : NamedUser<TKey>
     where TUserClaim : UserClaim<TKey>
     where TUserLogin : UserLogin<TKey>
@@ -42,7 +42,7 @@ public class IdentityApiDbContext<TKey, TConsumer, TUser, TUserClaim, TUserLogin
     where TRole : Role<TKey>
     where TUserRole : UserRole<TKey>
     where TRoleClaim : RoleClaim<TKey> {
-    public virtual DbSet<TConsumer> Consumers { get; set; } = null!;
+    public virtual DbSet<TClient> Clients { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder) {
         var storeOptions = GetStoreOptions();
@@ -54,8 +54,8 @@ public class IdentityApiDbContext<TKey, TConsumer, TUser, TUserClaim, TUserLogin
                             ? new PersonalDataConverter(this.GetService<IPersonalDataProtector>())
                             : null;
 
-        builder.Entity<TConsumer>(b => {
-            b.ToTable("Consumers");
+        builder.Entity<TClient>(b => {
+            b.ToTable("Clients");
             b.HasKey(e => e.Id);
 
             b.Property(i => i.Id).ValueGeneratedOnAdd().SetDefaultValueGeneration();
