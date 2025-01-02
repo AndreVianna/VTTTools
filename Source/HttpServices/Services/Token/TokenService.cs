@@ -31,7 +31,7 @@ internal sealed class TokenService<TDatabase>(TDatabase data,
             Audience = jwtSettings.Audience,
             IssuedAt = now,
             Expires = now.AddMinutes(jwtSettings.ExpirationMinutes),
-            TokenType = "ApiClient",
+            TokenType = "Consumers",
             SigningCredentials = new(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256Signature),
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -39,8 +39,8 @@ internal sealed class TokenService<TDatabase>(TDatabase data,
         return (tokenString, tokenDescriptor.Expires!.Value);
     }
 
-    private async Task<ApiClient?> GetAuthenticatedClientOrDefaultAsync(string id, string secret) {
-        var client = await data.Set<ApiClient>().FindAsync(id);
+    private async Task<Consumer?> GetAuthenticatedClientOrDefaultAsync(string id, string secret) {
+        var client = await data.Set<Consumer>().FindAsync(id);
         if (client is null)
             return null;
         var hashedSecret = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(secret)));
@@ -58,6 +58,7 @@ internal sealed class TokenService<TDatabase>(TDatabase data,
              || string.IsNullOrWhiteSpace(authHeader.Parameter)) {
                 return false;
             }
+
             var content = Encoding.UTF8.GetString(Convert.FromBase64String(authHeader.Parameter));
             var parts = content.Split(':');
             if (parts.Length < 2
@@ -65,6 +66,7 @@ internal sealed class TokenService<TDatabase>(TDatabase data,
              || string.IsNullOrWhiteSpace(parts[1])) {
                 return false;
             }
+
             clientId = parts[0];
             clientSecret = parts[1];
             return true;

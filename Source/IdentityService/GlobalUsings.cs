@@ -9,6 +9,7 @@ global using System.Text;
 
 global using Domain.Contracts.Account;
 global using Domain.Contracts.SignIn;
+global using Domain.Model;
 
 global using DotNetToolbox.Results;
 

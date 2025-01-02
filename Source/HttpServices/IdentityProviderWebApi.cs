@@ -3,10 +3,10 @@ namespace Microsoft.Extensions.Hosting;
 
 public static class IdentityProviderWebApi {
     public static WebApiBuilder CreateBuilder(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
-        => CreateBuilder<IdentityApiDbContext, User, Role>(args, configure);
+        => CreateBuilder<IdentityApiDbContext, NamedUser, Role>(args, configure);
 
     public static WebApiBuilder CreateBuilder<TDatabase>(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
-        where TDatabase : DbContext => CreateBuilder<TDatabase, User, Role>(args, configure);
+        where TDatabase : DbContext => CreateBuilder<TDatabase, NamedUser, Role>(args, configure);
 
     public static WebApiBuilder CreateBuilder<TDatabase, TUser, TRole>(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
         where TDatabase : DbContext

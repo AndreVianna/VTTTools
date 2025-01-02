@@ -1,21 +1,21 @@
 ﻿namespace HttpServices.Services.Account;
 
-internal class AccountService(UserManager<User> userManager,
-                              IMessagingService<User> messagingService,
+internal class AccountService(UserManager<NamedUser> userManager,
+                              IMessagingService<NamedUser> messagingService,
                               ILogger<AccountService> logger)
-    : AccountService<User>(userManager, messagingService, logger);
+    : AccountService<NamedUser>(userManager, messagingService, logger);
 
 internal class AccountService<TUser>(UserManager<TUser> userManager,
                                      IMessagingService<TUser> messagingService,
                                      ILogger<AccountService<TUser>> logger)
-    : AccountService<TUser, Guid>(userManager, messagingService, logger)
-    where TUser : User, new();
+    : AccountService<TUser, string>(userManager, messagingService, logger)
+    where TUser : NamedUser, new();
 
 internal class AccountService<TUser, TKey>(UserManager<TUser> userManager,
                                            IMessagingService<TUser> messagingService,
                                            ILogger<AccountService<TUser, TKey>> logger)
     : IAccountService
-    where TUser : User<TKey>, new()
+    where TUser : NamedUser<TKey>, new()
     where TKey : IEquatable<TKey> {
     public async Task<FindUserResponse?> FindAsync(string? id, string? email) {
         var user = id is not null ? await userManager.FindByIdAsync(id)
@@ -25,15 +25,7 @@ internal class AccountService<TUser, TKey>(UserManager<TUser> userManager,
              : new() {
                  Id = await userManager.GetUserIdAsync(user),
                  Email = (await userManager.GetEmailAsync(user))!,
-                 EmailConfirmed = await userManager.IsEmailConfirmedAsync(user),
-                 PhoneNumber = await userManager.GetPhoneNumberAsync(user),
-                 PhoneNumberConfirmed = await userManager.IsPhoneNumberConfirmedAsync(user),
-                 TwoFactorEnabled = await userManager.GetTwoFactorEnabledAsync(user),
-                 LockoutEnabled = await userManager.GetLockoutEnabledAsync(user),
-                 LockoutEnd = await userManager.GetLockoutEndDateAsync(user),
-                 AccessFailedCount = await userManager.GetAccessFailedCountAsync(user),
-                 Name = user.Name,
-                 PreferredName = user.PreferredName,
+                 Name = user.Name!,
              };
     }
 
@@ -47,11 +39,10 @@ internal class AccountService<TUser, TKey>(UserManager<TUser> userManager,
         await userManager.SetEmailAsync(user, request.Email);
         var result = await userManager.CreateAsync(user, request.Password);
 
-        if (!result.Succeeded) {
+        if (!result.Succeeded)
             return result.Errors.ToArray(e => new ValidationError(e.Description, GetSource(e.Code)));
-        }
 
-        logger.LogInformation("User created a new account with password.");
+        logger.LogInformation("NamedUser created a new account with password.");
 
         var response = new RegisterUserResponse {
             UserId = await userManager.GetUserIdAsync(user),

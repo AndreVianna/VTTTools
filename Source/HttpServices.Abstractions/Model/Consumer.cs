@@ -1,15 +1,10 @@
 ﻿namespace HttpServices.Abstractions.Model;
 
-public class ApiClient()
-    : ApiClient<Guid>();
+public class Consumer()
+    : Consumer<string>();
 
-public class ApiClient<TKey>() {
-    [Key]
+public class Consumer<TKey>() {
     public virtual TKey Id { get; init; } = default!;
-
-    [MaxLength(64)]
     public virtual string Name { get; set; } = null!;
-
-    [MaxLength(256)]
     public virtual string HashedSecret { get; set; } = null!;
 }

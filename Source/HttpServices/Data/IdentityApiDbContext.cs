@@ -1,19 +1,18 @@
 namespace HttpServices.Data;
 
 public class IdentityApiDbContext(DbContextOptions options)
-    : IdentityApiDbContext<ApiClient, User, Role>(options);
+    : IdentityApiDbContext<Consumer, NamedUser, Role>(options);
 
-public class IdentityApiDbContext<TClient, TUser, TRole>(DbContextOptions options)
-    : IdentityApiDbContext<TClient, ApiClientClaim, TUser, UserClaim, UserLogin, UserToken, TRole, UserRole, RoleClaim>(options)
-    where TClient : ApiClient
-    where TUser : User
+public class IdentityApiDbContext<TConsumer, TUser, TRole>(DbContextOptions options)
+    : IdentityApiDbContext<TConsumer, TUser, UserClaim, UserLogin, UserToken, TRole, UserRole, RoleClaim>(options)
+    where TConsumer : Consumer
+    where TUser : NamedUser
     where TRole : Role;
 
-public class IdentityApiDbContext<TClient, TClientClaim, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
-    : IdentityApiDbContext<Guid, TClient, TClientClaim, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(options)
-    where TClient : ApiClient
-    where TClientClaim : ApiClientClaim
-    where TUser : User
+public class IdentityApiDbContext<TConsumer, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
+    : IdentityApiDbContext<string, TConsumer, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(options)
+    where TConsumer : Consumer
+    where TUser : NamedUser
     where TUserClaim : UserClaim
     where TUserLogin : UserLogin
     where TUserToken : UserToken
@@ -22,96 +21,131 @@ public class IdentityApiDbContext<TClient, TClientClaim, TUser, TUserClaim, TUse
     where TRoleClaim : RoleClaim;
 
 public class IdentityApiDbContext<TKey>(DbContextOptions options)
-    : IdentityApiDbContext<TKey, ApiClient<TKey>, User<TKey>, Role<TKey>>(options)
+    : IdentityApiDbContext<TKey, Consumer<TKey>, NamedUser<TKey>, Role<TKey>>(options)
     where TKey : IEquatable<TKey>;
 
-public class IdentityApiDbContext<TKey, TClient, TUser, TRole>(DbContextOptions options)
-    : IdentityApiDbContext<TKey, TClient, ApiClientClaim<TKey>, TUser, UserClaim<TKey>, UserLogin<TKey>, UserToken<TKey>, TRole, UserRole<TKey>, RoleClaim<TKey>>(options)
+public class IdentityApiDbContext<TKey, TConsumer, TUser, TRole>(DbContextOptions options)
+    : IdentityApiDbContext<TKey, TConsumer, TUser, UserClaim<TKey>, UserLogin<TKey>, UserToken<TKey>, TRole, UserRole<TKey>, RoleClaim<TKey>>(options)
     where TKey : IEquatable<TKey>
-    where TClient : ApiClient<TKey>
-    where TUser : User<TKey>
+    where TConsumer : Consumer<TKey>
+    where TUser : NamedUser<TKey>
     where TRole : Role<TKey>;
 
-public class IdentityApiDbContext<TKey, TClient, TClientClaim, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
+public class IdentityApiDbContext<TKey, TConsumer, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
     : IdentityDbContext<TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>(options)
     where TKey : IEquatable<TKey>
-    where TClient : ApiClient<TKey>
-    where TClientClaim : ApiClientClaim<TKey>
-    where TUser : User<TKey>
+    where TConsumer : Consumer<TKey>
+    where TUser : NamedUser<TKey>
     where TUserClaim : UserClaim<TKey>
     where TUserLogin : UserLogin<TKey>
     where TUserToken : UserToken<TKey>
     where TRole : Role<TKey>
     where TUserRole : UserRole<TKey>
     where TRoleClaim : RoleClaim<TKey> {
-    public virtual DbSet<TClient> Clients { get; set; } = null!;
+    public virtual DbSet<TConsumer> Consumers { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder) {
-        base.OnModelCreating(builder);
+        var storeOptions = GetStoreOptions();
+        var maxKeyLength = storeOptions?.MaxLengthForKeys ?? 0;
+        if (maxKeyLength == 0)
+            maxKeyLength = 128;
+        var encryptPersonalData = storeOptions?.ProtectPersonalData ?? false;
+        var converter = encryptPersonalData
+                            ? new PersonalDataConverter(this.GetService<IPersonalDataProtector>())
+                            : null;
 
-        builder.Entity<TClient>(b => {
-            b.ToTable("ApiClients");
-            if (typeof(TKey) == typeof(Guid))
-                builder.Entity<TClient>().Property(x => x.Id).HasValueGenerator<SequentialGuidValueGenerator>();
-            b.HasMany<TClientClaim>().WithOne().HasForeignKey(e => e.ApiClientId).IsRequired();
-            b.HasMany<TRole>().WithOne().HasForeignKey(e => e.ApiClientId).IsRequired();
-            b.HasMany<TUser>().WithOne().HasForeignKey(e => e.ApiClientId).IsRequired();
-        });
-
-        builder.Entity<TClientClaim>(b => {
-            b.ToTable("ApiClientClaims");
+        builder.Entity<TConsumer>(b => {
+            b.ToTable("Consumers");
             b.HasKey(e => e.Id);
-            b.Property(e => e.ClaimType).HasMaxLength(64);
-            b.Property(e => e.ClaimValue).HasMaxLength(256);
+
+            b.Property(i => i.Id).ValueGeneratedOnAdd().SetDefaultValueGeneration();
+            b.Property(e => e.Name).HasMaxLength(256).IsRequired();
+            b.Property(e => e.HashedSecret).IsRequired();
+
+            b.HasMany<TRole>().WithOne().HasForeignKey(e => e.ApiClientId).IsRequired(false).OnDelete(DeleteBehavior.SetNull);
+            b.HasMany<TUser>().WithOne().HasForeignKey(e => e.ApiClientId).IsRequired(false).OnDelete(DeleteBehavior.SetNull);
         });
 
         builder.Entity<TUser>(b => {
             b.ToTable("Users");
-            if (typeof(TKey) == typeof(Guid))
-                b.Property(x => x.Id).HasValueGenerator<SequentialGuidValueGenerator>();
-            b.Property(e => e.Name).HasMaxLength(256);
-            b.Property(e => e.PhoneNumber).HasMaxLength(25);
-            b.Property(e => e.SecurityStamp).HasMaxLength(48);
-            b.Property(e => e.ConcurrencyStamp).HasMaxLength(48);
-            b.Property(e => e.TwoFactorType).HasConversion<string>();
+
+            b.Property(i => i.Id).ValueGeneratedOnAdd().SetDefaultValueGeneration();
+            b.Property(e => e.UserName).HasMaxLength(256).IsRequired();
+            b.Property(e => e.NormalizedUserName).HasMaxLength(256).IsRequired();
+            b.Property(e => e.Email).HasMaxLength(256).IsRequired();
+            b.Property(e => e.NormalizedEmail).HasMaxLength(256).IsRequired();
+            b.Property(e => e.Name).HasMaxLength(256).IsRequired();
+            b.Property(e => e.PhoneNumber).HasMaxLength(32);
+            b.Property(e => e.SecurityStamp).HasMaxLength(256);
+            b.Property(u => u.ConcurrencyStamp).HasMaxLength(48).IsConcurrencyToken();
+            b.Property(e => e.TwoFactorType).HasConversion<string>().IsRequired().HasDefaultValue(TwoFactorType.Email);
+
+            b.HasMany<TUserClaim>().WithOne().HasForeignKey(e => e.UserId).IsRequired();
+            b.HasMany<TUserLogin>().WithOne().HasForeignKey(e => e.UserId).IsRequired();
+            b.HasMany<TUserToken>().WithOne().HasForeignKey(e => e.UserId).IsRequired();
+            b.HasMany<TUserRole>().WithOne().HasForeignKey(e => e.UserId).IsRequired();
+
+            b.HasIndex(u => u.NormalizedEmail).HasDatabaseName("EmailIndex").IsUnique();
+            b.HasIndex(u => u.NormalizedUserName).HasDatabaseName("UserNameIndex").IsUnique();
+
+            b.ConvertPersonalDataProperties(converter);
         });
 
         builder.Entity<TUserClaim>(b => {
             b.ToTable("UserClaims");
+            b.HasKey(e => e.Id);
             b.Property(e => e.ClaimType).HasMaxLength(64);
             b.Property(e => e.ClaimValue).HasMaxLength(256);
         });
 
         builder.Entity<TUserLogin>(b => {
             b.ToTable("UserLogins");
+            b.HasKey(e => new { e.LoginProvider, e.ProviderKey });
             b.Property(e => e.LoginProvider).HasMaxLength(64);
-            b.Property(e => e.ProviderKey).HasMaxLength(128);
+            b.Property(e => e.ProviderKey).HasMaxLength(maxKeyLength);
             b.Property(e => e.ProviderDisplayName).HasMaxLength(64);
         });
 
         builder.Entity<TUserToken>(b => {
             b.ToTable("UserTokens");
+            b.HasKey(t => new { t.UserId, t.LoginProvider, t.Name });
             b.Property(e => e.LoginProvider).HasMaxLength(64);
             b.Property(e => e.Name).HasMaxLength(32);
+
+            b.ConvertPersonalDataProperties(converter);
         });
 
         builder.Entity<TRole>(b => {
             b.ToTable("Roles");
-            if (typeof(TKey) == typeof(Guid))
-                b.Property(x => x.Id).HasValueGenerator<SequentialGuidValueGenerator>();
-            b.Property(e => e.Name).HasMaxLength(64);
-            b.Property(e => e.NormalizedName).HasMaxLength(64);
-            b.Property(e => e.ConcurrencyStamp).HasMaxLength(48);
+            b.HasKey(e => e.Id);
+
+            b.Property(i => i.Id).ValueGeneratedOnAdd().SetDefaultValueGeneration();
+            b.Property(e => e.Name).HasMaxLength(64).IsRequired();
+            b.Property(e => e.NormalizedName).HasMaxLength(64).IsRequired();
+            b.Property(e => e.ConcurrencyStamp).IsConcurrencyToken().HasMaxLength(36);
+
+            b.HasMany<TRoleClaim>().WithOne().HasForeignKey(e => e.RoleId).IsRequired();
+            b.HasMany<TUserRole>().WithOne().HasForeignKey(e => e.RoleId).IsRequired();
+
+            b.HasIndex(r => r.NormalizedName).HasDatabaseName("RoleNameIndex").IsUnique();
         });
 
         builder.Entity<TRoleClaim>(b => {
             b.ToTable("RoleClaims");
+            b.HasKey(rc => rc.Id);
             b.Property(e => e.ClaimType).HasMaxLength(64);
             b.Property(e => e.ClaimValue).HasMaxLength(256);
         });
 
-        builder.Entity<TUserRole>(b => b.ToTable("UserRoles"));
-
-        builder.ApplyConfigurationsFromAssembly(typeof(ApiDbContext).Assembly);
+        builder.Entity<TUserRole>(b => {
+            b.ToTable("UserRoles");
+            b.HasKey(r => new { r.UserId, r.RoleId });
+        });
     }
+
+    private StoreOptions? GetStoreOptions() => this.GetService<IDbContextOptions>()
+                       .Extensions.OfType<CoreOptionsExtension>()
+                       .FirstOrDefault()?.ApplicationServiceProvider
+                       ?.GetService<IOptions<IdentityOptions>>()
+                       ?.Value.Stores;
 }

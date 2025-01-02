@@ -1,10 +1,8 @@
 ﻿namespace HttpServices.Abstractions.Model;
 
 public class UserClaim()
-    : UserClaim<Guid>();
+    : UserClaim<string>();
 
 public class UserClaim<TKey>()
     : IdentityUserClaim<TKey>()
-    where TKey : IEquatable<TKey>{
-    public virtual TKey ApiClientId { get; set; } = default!;
-}
+    where TKey : IEquatable<TKey>;

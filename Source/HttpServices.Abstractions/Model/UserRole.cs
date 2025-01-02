@@ -1,10 +1,8 @@
 ﻿namespace HttpServices.Abstractions.Model;
 
 public class UserRole()
-    : UserRole<Guid>();
+    : UserRole<string>();
 
 public class UserRole<TKey>()
     : IdentityUserRole<TKey>()
-    where TKey : IEquatable<TKey> {
-    public virtual TKey ApiClientId { get; set; } = default!;
-}
+    where TKey : IEquatable<TKey>;

@@ -2,7 +2,7 @@
 
 namespace HttpServices.Services.SignIn;
 
-internal static  class AuthenticationService {
+internal static class AuthenticationService {
     public static JwtSecurityTokenHandler JwtHandler { get; } = new();
 }
 
@@ -13,7 +13,7 @@ internal sealed class AuthenticationService<TUser>(IConfiguration configuration,
                                                    IMessagingService<TUser> messagingService,
                                                    ILogger<AuthenticationService<TUser>> logger)
     : IAuthenticationService
-    where TUser : User {
+    where TUser : NamedUser {
     private readonly IdentityOptions _options = identityOptions.Value;
 
     public async Task<SignInResult> PasswordSignInAsync(PasswordSignInRequest request) {
@@ -51,9 +51,9 @@ internal sealed class AuthenticationService<TUser>(IConfiguration configuration,
             logger.LogInformation("Account '{UserId}' logged in.", user.Id);
             var roles = await userManager.GetRolesAsync(user);
             var claims = new Claim[] {
-                new(_options.ClaimsIdentity.UserIdClaimType, user.Id.ToString()),
-                new(_options.ClaimsIdentity.UserNameClaimType, user.Name),
-                new(_options.ClaimsIdentity.EmailClaimType, user.Email),
+                new(_options.ClaimsIdentity.UserIdClaimType, user.Id),
+                new(_options.ClaimsIdentity.UserNameClaimType, user.Name!),
+                new(_options.ClaimsIdentity.EmailClaimType, user.Email!),
             };
             claims = [.. claims, .. roles.Select(role => new Claim(ClaimTypes.Role, role))];
             var identity = new ClaimsIdentity(claims,

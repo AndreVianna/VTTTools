@@ -1,10 +1,8 @@
 ﻿namespace HttpServices.Abstractions.Model;
 
 public class RoleClaim()
-    : RoleClaim<Guid>();
+    : RoleClaim<string>();
 
 public class RoleClaim<TKey>()
     : IdentityRoleClaim<TKey>()
-    where TKey : IEquatable<TKey>{
-    public virtual TKey ApiClientId { get; set; } = default!;
-}
+    where TKey : IEquatable<TKey>;

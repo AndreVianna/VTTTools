@@ -1,10 +1,8 @@
 ﻿namespace HttpServices.Abstractions.Model;
 
 public class UserLogin()
-    : UserLogin<Guid>();
+    : UserLogin<string>();
 
 public class UserLogin<TKey>()
     : IdentityUserLogin<TKey>()
-    where TKey : IEquatable<TKey>{
-    public virtual TKey ApiClientId { get; set; } = default!;
-}
+    where TKey : IEquatable<TKey>;

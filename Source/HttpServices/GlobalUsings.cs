@@ -26,6 +26,7 @@ global using Microsoft.AspNetCore.WebUtilities;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Infrastructure;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 global using Microsoft.EntityFrameworkCore.ValueGeneration;
 global using Microsoft.Extensions.Caching.Distributed;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;

@@ -37,11 +37,10 @@ public static class HostApplicationBuilderExtensions {
     private static void AddOpenTelemetryExporters<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder {
         // ReSharper disable StringLiteralTypo
-        // ReSharper disable once IdentifierTypo
-        var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+        var useExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
         // ReSharper enable StringLiteralTypo
 
-        if (useOtlpExporter)
+        if (useExporter)
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
     }
 
