@@ -1,11 +1,13 @@
 ﻿using IResult = Microsoft.AspNetCore.Http.IResult;
 
-namespace HttpServices.Services.Account;
+// ReSharper disable once CheckNamespace
+namespace Microsoft.AspNetCore.Routing;
 
-internal static class AccountEndpoints {
-    public static void MapUserAccountEndpoints(this WebApplication app) {
+public static class UserAccountEndpoints {
+    public static IEndpointRouteBuilder MapUserAccountManagementEndpoints(this IEndpointRouteBuilder app) {
         app.MapGet("/users/{id}", FindByIdAsync);
         app.MapPost("/users", RegisterAsync);
+        return app;
     }
 
     private static async Task<IResult> FindByIdAsync(IAccountService service, string id) {

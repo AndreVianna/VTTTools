@@ -1,6 +1,6 @@
 ﻿using SignInResult = DotNetToolbox.Results.SignInResult;
 
-namespace HttpServices.Services.SignIn;
+namespace HttpServices.Services.Authentication;
 
 internal static class AuthenticationService {
     public static JwtSecurityTokenHandler JwtHandler { get; } = new();
@@ -13,7 +13,7 @@ internal sealed class AuthenticationService<TUser>(IConfiguration configuration,
                                                    IMessagingService<TUser> messagingService,
                                                    ILogger<AuthenticationService<TUser>> logger)
     : IAuthenticationService
-    where TUser : NamedUser {
+    where TUser : User {
     private readonly IdentityOptions _options = identityOptions.Value;
 
     public async Task<SignInResult> PasswordSignInAsync(PasswordSignInRequest request) {

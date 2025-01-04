@@ -1,9 +1,22 @@
-@AuthService_HostAddress = https://localhost:7465
-@AuthService_ClientCredentials = Q2xpZW50SWQ6Q2xpZW50U2VjcmV0
-@AuthService_ClientToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkFwaUNsaWVudCJ9.eyJuYmYiOjE3MzU2NjkzNTcsImV4cCI6MTczNTY3MTE1NywiaWF0IjoxNzM1NjY5MzU3LCJpc3MiOiJodHRwczovL2xvY2FsaG9zdDo3MTY2IiwiYXVkIjoiVnR0VG9vbHMifQ.OTFKQUZsZ8IaaG079NjCYZtTD7mG2I9P3237Hj8bVsQ
+@GameService_HostAddress = https://localhost:7465
+@GameService_ClientCredentials = Q2xpZW50SWQ6Q2xpZW50U2VjcmV0
+@GameService_ClientToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkFwaUNsaWVudCJ9.eyJuYmYiOjE3MzU2NjkzNTcsImV4cCI6MTczNTY3MTE1NywiaWF0IjoxNzM1NjY5MzU3LCJpc3MiOiJodHRwczovL2xvY2FsaG9zdDo3MTY2IiwiYXVkIjoiVnR0VG9vbHMifQ.OTFKQUZsZ8IaaG079NjCYZtTD7mG2I9P3237Hj8bVsQ
 
-POST {{AuthService_HostAddress}}/tokens
-Authorization: Basic {{AuthService_ClientCredentials}}
+GET {{GameService_HostAddress}}/health
+
+###
+
+
+GET {{GameService_HostAddress}}/live
+
+###
+
+POST {{GameService_HostAddress}}/clients
+
+###
+
+POST {{GameService_HostAddress}}/tokens
+Authorization: Basic {{GameService_ClientCredentials}}
 Content-Type: application/json
 
 ###

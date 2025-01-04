@@ -1,18 +1,18 @@
 namespace HttpServices.Data;
 
 public class IdentityApiDbContext(DbContextOptions options)
-    : IdentityApiDbContext<Client, NamedUser, Role>(options);
+    : IdentityApiDbContext<Client, User, Role>(options);
 
 public class IdentityApiDbContext<TClient, TUser, TRole>(DbContextOptions options)
     : IdentityApiDbContext<TClient, TUser, UserClaim, UserLogin, UserToken, TRole, UserRole, RoleClaim>(options)
     where TClient : Client
-    where TUser : NamedUser
+    where TUser : User
     where TRole : Role;
 
 public class IdentityApiDbContext<TClient, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
     : IdentityApiDbContext<string, TClient, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(options)
     where TClient : Client
-    where TUser : NamedUser
+    where TUser : User
     where TUserClaim : UserClaim
     where TUserLogin : UserLogin
     where TUserToken : UserToken

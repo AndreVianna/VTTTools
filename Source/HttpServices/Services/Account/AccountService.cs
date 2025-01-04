@@ -1,15 +1,9 @@
 ﻿namespace HttpServices.Services.Account;
 
-internal class AccountService(UserManager<NamedUser> userManager,
-                              IMessagingService<NamedUser> messagingService,
-                              ILogger<AccountService> logger)
-    : AccountService<NamedUser>(userManager, messagingService, logger);
-
-internal class AccountService<TUser>(UserManager<TUser> userManager,
-                                     IMessagingService<TUser> messagingService,
-                                     ILogger<AccountService<TUser>> logger)
-    : AccountService<TUser, string>(userManager, messagingService, logger)
-    where TUser : NamedUser, new();
+internal sealed class AccountService(UserManager<User> userManager,
+                                     IMessagingService<User> messagingService,
+                                     ILogger<AccountService> logger)
+    : AccountService<User, string>(userManager, messagingService, logger);
 
 internal class AccountService<TUser, TKey>(UserManager<TUser> userManager,
                                            IMessagingService<TUser> messagingService,
@@ -42,7 +36,7 @@ internal class AccountService<TUser, TKey>(UserManager<TUser> userManager,
         if (!result.Succeeded)
             return result.Errors.ToArray(e => new ValidationError(e.Description, GetSource(e.Code)));
 
-        logger.LogInformation("NamedUser created a new account with password.");
+        logger.LogInformation("New user account created.");
 
         var response = new RegisterUserResponse {
             UserId = await userManager.GetUserIdAsync(user),

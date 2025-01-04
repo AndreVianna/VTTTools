@@ -26,9 +26,6 @@ public class WebApiBuilder(WebApplicationBuilder builder)
             app.MapOpenApi();
         app.UseHttpsRedirection();
 
-        app.MapHealthCheckEndpoints();
-        app.MapApiClientEndpoints();
-
         return app;
     }
 }

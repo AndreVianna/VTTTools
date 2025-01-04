@@ -1,10 +1,13 @@
 ﻿using IResult = Microsoft.AspNetCore.Http.IResult;
 
-namespace HttpServices.Services.SignIn;
+// ReSharper disable once CheckNamespace
+namespace Microsoft.AspNetCore.Routing;
 
-internal static class AuthenticationManager {
-    public static void MapSignInEndpoints(this WebApplication app)
-        => app.MapPost("/signin", SignInWithPasswordAsync);
+public static class AuthenticationEndpoints {
+    public static IEndpointRouteBuilder MapAuthenticationManagementEndpoints(this IEndpointRouteBuilder app) {
+        app.MapPost("/signin", SignInWithPasswordAsync);
+        return app;
+    }
 
     private static async Task<IResult> SignInWithPasswordAsync(IAuthenticationService service, PasswordSignInRequest request) {
         var result = await service.PasswordSignInAsync(request);

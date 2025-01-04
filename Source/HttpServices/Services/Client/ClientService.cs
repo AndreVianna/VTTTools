@@ -5,7 +5,7 @@ internal sealed class ClientService<TDatabase>(TDatabase data,
     : IClientService
     where TDatabase : DbContext {
     public async Task<Result<RegisterClientResponse>> RegisterAsync(RegisterClientRequest request) {
-        logger.LogInformation("Register new client requested.");
+        logger.LogInformation("New api client registration requested.");
         var validationResult = request.Validate();
         if (validationResult.HasErrors)
             return validationResult.Errors;
@@ -18,7 +18,8 @@ internal sealed class ClientService<TDatabase>(TDatabase data,
         };
         await data.Set<Abstractions.Model.Client>().AddAsync(client);
 
-        logger.LogInformation("NamedUser created a new account with password.");
+        logger.LogInformation("New api client registered.");
+
         return new RegisterClientResponse {
             ClientId = client.Id,
             ClientSecret = secret,

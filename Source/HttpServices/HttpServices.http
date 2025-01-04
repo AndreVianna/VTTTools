@@ -1,0 +1,5 @@
+﻿@HttpServices_HostAddress = https://localhost:52994
+
+POST {{HttpServices_HostAddress}}/clients
+
+###

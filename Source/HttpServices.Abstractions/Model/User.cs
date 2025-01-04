@@ -1,6 +1,6 @@
 namespace HttpServices.Abstractions.Model;
 
-public class NamedUser()
+public class User()
     : NamedUser<string>();
 
 public class NamedUser<TKey>()

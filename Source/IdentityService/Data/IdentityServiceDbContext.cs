@@ -1,3 +1,5 @@
+using User = Domain.Model.User;
+
 namespace IdentityService.Data;
 
 public class IdentityServiceDbContext(DbContextOptions<IdentityServiceDbContext> options)

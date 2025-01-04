@@ -31,3 +31,5 @@ global using Microsoft.IdentityModel.Tokens;
 global using OpenTelemetry;
 global using OpenTelemetry.Metrics;
 global using OpenTelemetry.Trace;
+
+global using static System.Ensure;

@@ -2,6 +2,19 @@
 @AuthService_ClientCredentials = Q2xpZW50SWQ6Q2xpZW50U2VjcmV0
 @AuthService_ClientToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkFwaUNsaWVudCJ9.eyJuYmYiOjE3MzU2NjkzNTcsImV4cCI6MTczNTY3MTE1NywiaWF0IjoxNzM1NjY5MzU3LCJpc3MiOiJodHRwczovL2xvY2FsaG9zdDo3MTY2IiwiYXVkIjoiVnR0VG9vbHMifQ.OTFKQUZsZ8IaaG079NjCYZtTD7mG2I9P3237Hj8bVsQ
 
+GET {{AuthService_HostAddress}}/health
+
+###
+
+
+GET {{AuthService_HostAddress}}/live
+
+###
+
+POST {{AuthService_HostAddress}}/clients
+
+###
+
 POST {{AuthService_HostAddress}}/tokens
 Authorization: Basic {{AuthService_ClientCredentials}}
 Content-Type: application/json

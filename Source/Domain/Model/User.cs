@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 namespace Domain.Model;
 
 public class User
-    : NamedUser {
+    : HttpServices.Abstractions.Model.User {
     [ProtectedPersonalData]
     public virtual string? PreferredName { get; set; }
 }
