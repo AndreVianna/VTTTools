@@ -108,14 +108,42 @@ set "Level=%~2"
 
 :: Calculate indentation
 set "Tb=  "
-set /a "IndentLevel=!Level!*2"
 set "Indent="
-for /L %%T in (1,1,!IndentLevel!) do set "Indent=!Indent!!Tb!"
+for /L %%T in (1,1,!Level!) do set "Indent=!Indent!!Tb!"
 
-:: Count files/folders in this directory
-for /F "tokens=*" %%A in ('dir /b /a-d "%FolderPath%" 2^>nul ^| find /v /c ""') do set "FileCount=%%A"
-for /F "tokens=*" %%B in ('dir /b /ad  "%FolderPath%" 2^>nul ^| find /v /c ""') do set "FolderCount=%%B"
+:: Count files in this directory with allowed extensions
+set "FileCount=0"
+for %%F in ("!FolderPath!/*") do (
+    set "SkipFile=1"
+    for %%A in (%AllowedExts%) do (
+        if "%%~xF"=="%%~A" set /a "SkipFile=0"
+    )
+    if "!SkipFile!"=="0" (
+        set /a "FileCount+=1"
+        echo File: "%%~nF%%~xF" >> "%LogFile%"
+    ) else (
+        echo File: "%%~nF%%~xF [Excluded]" >> "%LogFile%"
+    )
+)
+
+:: Count subfolders in this directory excluding the ones in ExcludedDirs
+set "FolderCount=0"
+for /D %%D in ("!FolderPath!/*") do (
+    set "SkipSub=0"
+    for %%B in (%ExcludedDirs%) do (
+        if "%%~nD%%~xD"=="%%~B" set "SkipSub=1"
+    )
+    if "!SkipSub!"=="0" (
+        set /a "FolderCount+=1"
+        echo Folder: "%%~nD%%~xD" >> "%LogFile%"
+    ) else (
+        echo Folder: "%%~nD%%~xD [Excluded]" >> "%LogFile%"
+    )
+)
+
 set /a "Total=!FileCount!+!FolderCount!"
+
+echo Processing folder: "!FolderPath! (!Total! = !FileCount! + !FolderCount!)" >> "%LogFile%"
 
 if "!Total!"=="0" goto :skip_folder
 
@@ -128,8 +156,6 @@ if "!Level!"=="0" (
 ) else (
     echo !Indent!^<folder name="!FolderName!"^> >> "%OutputFile%"
 )
-
-echo Processing folder: "!FolderName!" >> "%LogFile%"
 
 :: Process files
 if "!FileCount!" neq "0" call :ProcessFiles "!FolderPath!" "!Indent!"
@@ -156,30 +182,21 @@ exit /b
 :ProcessFiles
 setlocal enabledelayedexpansion
 
-set "HasFile=0"
 for %%F in ("%~1\*") do (
-    if /I not "%%~aF"=="d" (
-        set "SkipFile=1"
-        for %%A in (%AllowedExts%) do (
-            if "%%~xF"=="%%~A" set "SkipFile=0"
-        )
-
-        if "!SkipFile!"=="0" (
-            set "AddedFile=%%F"
-            echo Adding file: "!AddedFile:%AbsolutePath%=!"
-            echo Adding file: "!AddedFile:%AbsolutePath%=!" >> "%LogFile%"
-            if "!HasFile!"=="0" echo %~2!Tb!^<files^> >> "%OutputFile%"
-            set "HasFile=1"
-
-            echo %~2!Tb!!Tb!^<file name="%%~nxF"^>^<^^![CDATA[ >> "%OutputFile%"
-            type "%%~fF" >> "%OutputFile%"
-            echo %~2!Tb!!Tb!]]^>^</file^> >> "%OutputFile%"
-        )
+    set "SkipFile=1"
+    for %%A in (%AllowedExts%) do (
+        if "%%~xF"=="%%~A" set "SkipFile=0"
     )
-)
 
-if "!HasFile!"=="1" (
-    echo %~2!Tb!^</files^> >> "%OutputFile%"
+    if "!SkipFile!"=="0" (
+        set "AddedFile=%%F"
+        echo Adding file: "!AddedFile:%AbsolutePath%=!"
+        echo Adding file: "!AddedFile:%AbsolutePath%=!" >> "%LogFile%"
+
+        echo %~2!Tb!^<file name="%%~nxF"^>^<^^![CDATA[ >> "%OutputFile%"
+        type "%%~fF" >> "%OutputFile%"
+        echo %~2!Tb!]]^>^</file^> >> "%OutputFile%"
+    )
 )
 
 echo Processed files in folder: "%~1" >> "%LogFile%"
@@ -195,26 +212,17 @@ exit /b
 :ProcessFolders
 setlocal enabledelayedexpansion
 
-set "HasFolder=0"
 for /D %%D in ("%~1\*") do (
     set "SkipSub=0"
-
     :: Check exclusion
     for %%E in (%ExcludedDirs%) do (
         if "%%~nD"=="%%~E" set "SkipSub=1"
     )
 
     if "!SkipSub!"=="0" (
-        if "!HasFolder!"=="0" echo %~2!Tb!^<folders^> >> "%OutputFile%"
-        set "HasFolder=1"
-
         set /a "NewLevel=%~3+1"
         call :ProcessFolder "%%~fD" !NewLevel!
     )
-)
-
-if "!HasFolder!"=="1" (
-    echo %~2!Tb!^</folders^> >> "%OutputFile%"
 )
 
 echo Processed subfolders in folder: "%~1" >> "%LogFile%"
