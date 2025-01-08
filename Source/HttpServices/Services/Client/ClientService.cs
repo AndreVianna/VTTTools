@@ -4,7 +4,7 @@ internal sealed class ClientService<TDatabase>(TDatabase data,
                                                ILogger<ClientService<TDatabase>> logger)
     : IClientService
     where TDatabase : DbContext {
-    public async Task<Result<RegisterClientResponse>> RegisterAsync(RegisterClientRequest request) {
+    public async Task<Result<RegisterClientResponse>> RegisterAsync(RegisterClientRequest request, CancellationToken ct = default) {
         logger.LogInformation("New api client registration requested.");
         var validationResult = request.Validate();
         if (validationResult.HasErrors)
@@ -12,11 +12,11 @@ internal sealed class ClientService<TDatabase>(TDatabase data,
 
         var secret = StringHelpers.GenerateSecret(_secretSize);
 
-        var client = new Abstractions.Model.Client {
+        var client = new ApiClient {
             Name = request.Name,
-            HashedSecret = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(secret))),
         };
-        await data.Set<Abstractions.Model.Client>().AddAsync(client);
+        await data.Set<ApiClient>().AddAsync(client, ct);
+        await data.SaveChangesAsync(ct);
 
         logger.LogInformation("New api client registered.");
 

@@ -5,3 +5,5 @@ global using Domain.Helpers;
 
 global using DotNetToolbox;
 global using DotNetToolbox.Results;
+
+global using Microsoft.AspNetCore.Identity;

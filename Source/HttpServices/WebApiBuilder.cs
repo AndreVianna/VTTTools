@@ -20,11 +20,14 @@ public class WebApiBuilder(WebApplicationBuilder builder)
 
     public WebApplication Build() {
         var app = builder.Build();
+
         app.UseAuthentication();
         app.UseExceptionHandler();
-        if (app.Environment.IsDevelopment())
-            app.MapOpenApi();
+        app.MapOpenApi();
         app.UseHttpsRedirection();
+
+        app.MapHealthCheckEndpoints();
+        app.MapApiAuthEndpoints();
 
         return app;
     }

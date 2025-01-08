@@ -1,5 +1,6 @@
 ﻿namespace HttpServices.Services.Token;
 
 internal interface ITokenService {
-    Task<string?> GenerateClientTokenAsync(HttpContext context);
+    Task<NewTokenResponse?> GenerateTokenAsync(HttpContext context, NewTokenRequest request, CancellationToken ct = default);
+    Task<TokenResponse?> GetTokenAsync(HttpContext context, CancellationToken ct = default);
 }

@@ -1,15 +1,12 @@
 namespace HttpServices.Abstractions.Model;
 
 public class User()
-    : NamedUser<string>();
+    : User<string>();
 
-public class NamedUser<TKey>()
+public class User<TKey>()
     : IdentityUser<TKey>()
     where TKey : IEquatable<TKey> {
-    public virtual TKey? ApiClientId { get; set; }
-
-    [ProtectedPersonalData]
-    public virtual string? Name { get; set; }
+    public virtual TKey? ClientId { get; set; }
 
     [PersonalData]
     public virtual bool AccountConfirmed => EmailConfirmed || PhoneNumberConfirmed;

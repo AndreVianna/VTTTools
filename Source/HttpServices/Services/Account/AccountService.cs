@@ -9,7 +9,7 @@ internal class AccountService<TUser, TKey>(UserManager<TUser> userManager,
                                            IMessagingService<TUser> messagingService,
                                            ILogger<AccountService<TUser, TKey>> logger)
     : IAccountService
-    where TUser : NamedUser<TKey>, new()
+    where TUser : User<TKey>, new()
     where TKey : IEquatable<TKey> {
     public async Task<FindUserResponse?> FindAsync(string? id, string? email) {
         var user = id is not null ? await userManager.FindByIdAsync(id)

@@ -5,9 +5,6 @@ var builder = WebApi.CreateBuilder<GameServiceDbContext>(args, (options, configu
 
 var app = builder.Build();
 
-app.MapHealthCheckEndpoints();
-app.MapApiClientManagementEndpoints();
-
 app.MapGameSessionManagementEndpoints();
 
 app.Run();

@@ -13,7 +13,7 @@ public static class WebApi {
         builder.Services.AddOpenApi();
 
         builder.Services.AddSingleton<ICacheService, CacheService>();
-
+        builder.Services.AddDbContext<TDatabase>(options => configure?.Invoke(options, builder.Configuration));
         builder.Services.AddScoped<ITokenService, TokenService<TDatabase>>();
 
         var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()
@@ -32,7 +32,6 @@ public static class WebApi {
             IssuerSigningKey = securityKey,
         });
 
-        builder.Services.AddDbContext<TDatabase>(options => configure?.Invoke(options, builder.Configuration));
         return new(builder);
     }
 }

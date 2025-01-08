@@ -9,7 +9,7 @@ public class MessagingService<TUser>(IEmailSender<TUser> emailSender)
 
 public class MessagingService<TUser, TKey>(IEmailSender<TUser> emailSender)
     : IMessagingService<TUser>
-    where TUser : NamedUser<TKey>
+    where TUser : User<TKey>
     where TKey : IEquatable<TKey> {
     public Task SendConfirmationEmailAsync(TUser user, string code, string callbackAbsoluteUri, string? returnUrl = null) {
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
