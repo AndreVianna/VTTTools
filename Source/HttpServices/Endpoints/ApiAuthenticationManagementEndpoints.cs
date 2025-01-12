@@ -5,8 +5,8 @@ using IResult = Microsoft.AspNetCore.Http.IResult;
 // ReSharper disable once CheckNamespace
 namespace Microsoft.AspNetCore.Routing;
 
-public static class ApiAuthEndpoints {
-    public static IEndpointRouteBuilder MapApiAuthEndpoints(this IEndpointRouteBuilder app) {
+public static class ApiAuthenticationManagementEndpoints {
+    public static IEndpointRouteBuilder MapApiAuthenticationManagementEndpoints(this IEndpointRouteBuilder app) {
         app.MapPost("/tokens", GenerateTokenAsync)
            .Produces<NewTokenResponse>()
            .Produces(StatusCodes.Status401Unauthorized);

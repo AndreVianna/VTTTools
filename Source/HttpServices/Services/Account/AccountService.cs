@@ -19,7 +19,6 @@ internal class AccountService<TUser, TKey>(UserManager<TUser> userManager,
              : new() {
                  Id = await userManager.GetUserIdAsync(user),
                  Email = (await userManager.GetEmailAsync(user))!,
-                 Name = user.Name!,
              };
     }
 
@@ -28,7 +27,7 @@ internal class AccountService<TUser, TKey>(UserManager<TUser> userManager,
         if (validationResult.HasErrors)
             return validationResult.Errors;
 
-        var user = new TUser { Name = request.Name };
+        var user = new TUser();
         await userManager.SetUserNameAsync(user, request.Email);
         await userManager.SetEmailAsync(user, request.Email);
         var result = await userManager.CreateAsync(user, request.Password);

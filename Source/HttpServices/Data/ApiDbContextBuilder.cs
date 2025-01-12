@@ -84,7 +84,6 @@ internal static class IdentityProviderApiDbContextBuilder {
             b.Property(e => e.NormalizedUserName).HasMaxLength(256).IsRequired();
             b.Property(e => e.Email).HasMaxLength(256).IsRequired();
             b.Property(e => e.NormalizedEmail).HasMaxLength(256).IsRequired();
-            b.Property(e => e.Name).HasMaxLength(256).IsRequired();
             b.Property(e => e.PhoneNumber).HasMaxLength(32);
             b.Property(e => e.SecurityStamp).HasMaxLength(256);
             b.Property(e => e.ConcurrencyStamp).HasMaxLength(48).IsConcurrencyToken();

@@ -1,16 +1,13 @@
 ﻿namespace HttpServices.Abstractions.Contracts.Account;
 
-public sealed record RegisterUserRequest : IValidatable {
-    public required string Name { get; set; }
+public record RegisterUserRequest : IValidatable {
     public required string Email { get; init; }
     public required string Password { get; set; }
     public required string ConfirmationUrl { get; set; }
     public string? ReturnUrl { get; set; }
 
-    public Result Validate(IMap? context = null) {
+    public virtual Result Validate(IMap? context = null) {
         var result = Result.Success();
-        if (string.IsNullOrWhiteSpace(Name))
-            result += new ValidationError("Name is required.", nameof(Name));
         if (string.IsNullOrWhiteSpace(Email)) {
             result += new ValidationError("Email is required.", nameof(Email));
         }

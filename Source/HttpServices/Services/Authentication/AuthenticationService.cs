@@ -52,7 +52,6 @@ internal sealed class AuthenticationService<TUser>(IConfiguration configuration,
             var roles = await userManager.GetRolesAsync(user);
             var claims = new Claim[] {
                 new(_options.ClaimsIdentity.UserIdClaimType, user.Id),
-                new(_options.ClaimsIdentity.UserNameClaimType, user.Name!),
                 new(_options.ClaimsIdentity.EmailClaimType, user.Email!),
             };
             claims = [.. claims, .. roles.Select(role => new Claim(ClaimTypes.Role, role))];
