@@ -12,8 +12,9 @@ public sealed class WebApi : IHost, IApplicationBuilder, IEndpointRouteBuilder, 
     private const string _globalEndpointRouteBuilderKey = "__GlobalEndpointRouteBuilder";
     private readonly WebApplication _app;
 
-    internal WebApi(WebApplication app) {
+    internal WebApi(WebApplication app, WebApiType type) {
         _app = app;
+        Type = type;
         ApplicationBuilder = new(_app.Services, ServerFeatures);
         Logger = _app.Services.GetRequiredService<ILoggerFactory>().CreateLogger(Environment.ApplicationName);
         Properties[_globalEndpointRouteBuilderKey] = this;
@@ -26,63 +27,41 @@ public sealed class WebApi : IHost, IApplicationBuilder, IEndpointRouteBuilder, 
         => CreateBuilder(args).Build();
 
     public static WebApiBuilder CreateBuilder(string[]? args = null)
-        => new(WebApplication.CreateBuilder(args ?? []));
+        => CreateBuilderInternal(new() { Type = WebApiType.Default, Args = args ?? [] });
 
     public static WebApiBuilder CreateSlimBuilder(string[]? args = null)
-        => new(WebApplication.CreateSlimBuilder(args ?? []));
+        => CreateBuilderInternal(new() { Type = WebApiType.Slim, Args = args ?? [] });
+
+    public static WebApiBuilder CreateEmptyBuilder(string[]? args = null)
+        => CreateBuilderInternal(new() { Type = WebApiType.Empty, Args = args ?? [] });
 
     public static WebApiBuilder CreateBuilder(WebApiOptions options)
-        => new(WebApplication.CreateBuilder(new WebApplicationOptions {
-            Args = options.Args,
-            EnvironmentName = options.EnvironmentName,
-            ApplicationName = options.ApplicationName,
-        }));
+        => CreateBuilderInternal(options);
 
-    public static WebApiBuilder CreateSlimBuilder(WebApiOptions options)
-        => new(WebApplication.CreateSlimBuilder(new WebApplicationOptions {
+    private static WebApiBuilder CreateBuilderInternal(WebApiOptions options) {
+        var webAppOptions = new WebApplicationOptions {
             Args = options.Args,
             EnvironmentName = options.EnvironmentName,
             ApplicationName = options.ApplicationName,
-        }));
-
-    public static WebApiBuilder CreateEmptyBuilder(WebApiOptions options)
-        => new(WebApplication.CreateEmptyBuilder(new() {
-            Args = options.Args,
-            EnvironmentName = options.EnvironmentName,
-            ApplicationName = options.ApplicationName,
-        }));
+        };
+        var webAppBuilder = options.Type switch {
+            WebApiType.Default => WebApplication.CreateBuilder(webAppOptions),
+            WebApiType.Slim => WebApplication.CreateSlimBuilder(webAppOptions),
+            _ => WebApplication.CreateEmptyBuilder(webAppOptions),
+        };
+        return new(webAppBuilder, options);
+    }
 
     //public static WebApiBuilder CreateBuilder<TDatabase>(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
     //    where TDatabase : DbContext {
     //    var builder = WebApplication.CreateBuilder(args);
-
-    //    builder.AddServiceDefaults();
-    //    builder.AddRedisDistributedCache("cache");
-
     //    builder.Services.AddProblemDetails();
-
-    //    builder.Services.AddSingleton<ICacheService, CacheService>();
     //    builder.Services.AddDbContext<TDatabase>(options => configure?.Invoke(options, builder.Configuration));
     //    builder.Services.AddScoped<ITokenService, TokenService<TDatabase>>();
-
-    //    var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()
-    //                   ?? throw new InvalidOperationException("Jwt settings are missing from the configuration.");
-    //    var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key));
-    //    builder.Services.AddAuthentication(options => {
-    //        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    //        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    //    }).AddJwtBearer(options => options.TokenValidationParameters = new() {
-    //        ValidateLifetime = true,
-    //        ValidateIssuerSigningKey = true,
-    //        ValidateIssuer = true,
-    //        ValidIssuer = jwtSettings.Issuer,
-    //        ValidateAudience = true,
-    //        ValidAudience = jwtSettings.Audience,
-    //        IssuerSigningKey = securityKey,
-    //    });
-
     //    return new(builder);
     //}
+
+    public WebApiType Type { get; }
 
     public IServiceProvider Services => _app.Services;
     public IConfiguration Configuration => _app.Configuration;
@@ -113,7 +92,7 @@ public sealed class WebApi : IHost, IApplicationBuilder, IEndpointRouteBuilder, 
     public Task StopAsync(CancellationToken cancellationToken = default) => _app.StopAsync(cancellationToken);
     public IApplicationBuilder Use(Func<RequestDelegate, RequestDelegate> middleware) => _app.Use(middleware);
 
-    private string DebuggerToString() => $@"ApplicationName = ""{Environment.ApplicationName}"", IsRunning = {(IsRunning ? "true" : "false")}";
+    private string DebuggerToString() => $"""ApplicationName = "{Environment.ApplicationName}", IsRunning = {(IsRunning ? "true" : "false")}""";
 
     // Web app is running if the app has been started and hasn't been stopped.
     private bool IsRunning => Lifetime.ApplicationStarted.IsCancellationRequested && !Lifetime.ApplicationStopped.IsCancellationRequested;

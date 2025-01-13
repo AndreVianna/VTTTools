@@ -6,7 +6,7 @@ var builder = IdentityProviderWebApi.CreateBuilder<IdentityServiceDbContext>(arg
 var app = builder.Build();
 
 app.MapHealthCheckEndpoints();
-app.MapApiAuthenticationManagementEndpoints();
+app.MapApiClientManagementEndpoints();
 app.MapAuthenticationManagementEndpoints();
 app.MapUserAccountManagementEndpoints();
 
