@@ -1,10 +1,11 @@
 namespace HttpServices.Abstractions.Model;
 
-public class User()
-    : NamedUser<string>();
+public class User
+    : NamedUser<string>
+    , IUserIdentity;
 
-public class NamedUser<TKey>()
-    : IdentityUser<TKey>()
+public class NamedUser<TKey>
+    : IdentityUser<TKey>
     where TKey : IEquatable<TKey> {
     public virtual TKey? ApiClientId { get; set; }
 

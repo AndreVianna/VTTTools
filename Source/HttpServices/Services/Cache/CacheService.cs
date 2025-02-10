@@ -1,7 +1,7 @@
 ﻿// ReSharper disable once CheckNamespace
 namespace ApiService.Services.Cache;
 
-public class CacheService(IDistributedCache cache)
+internal class CacheService(IDistributedCache cache)
     : ICacheService {
     public Task AddTokenAsync(string clientId, string token, DateTimeOffset expiration, CancellationToken ct = default) {
         var options = new DistributedCacheEntryOptions { AbsoluteExpiration = expiration };

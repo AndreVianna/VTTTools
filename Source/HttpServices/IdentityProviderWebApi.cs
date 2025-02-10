@@ -1,6 +1,9 @@
 // ReSharper disable once CheckNamespace
-namespace Microsoft.Extensions.Hosting;
 
+using AuthenticationService = HttpServices.Services.Authentication.AuthenticationService;
+using IAuthenticationService = HttpServices.Services.Authentication.IAuthenticationService;
+
+namespace Microsoft.Extensions.Hosting;
 public static class IdentityProviderWebApi {
     public static WebApiBuilder CreateBuilder(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
         => CreateBuilder<IdentityApiDbContext, User, Role>(args, configure);
@@ -10,9 +13,15 @@ public static class IdentityProviderWebApi {
 
     public static WebApiBuilder CreateBuilder<TDatabase, TUser, TRole>(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
         where TDatabase : DbContext
-        where TUser : class
+        where TUser : class, IUserIdentity
         where TRole : class {
         var builder = WebApi.CreateBuilder<TDatabase>(args, configure);
+
+        builder.Services.Configure<ExtendedIdentityOptions>(builder.Configuration.GetSection("Identity"));
+        builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+        builder.Services.AddScoped<IAccountService, AccountService>();
+        builder.Services.AddScoped<IMessagingService, MessagingService>();
+        builder.Services.AddScoped<IEmailSender, NullEmailSender>();
 
         builder.Services.AddDataProtection();
         builder.Services.AddIdentity<TUser, TRole>(options => {

@@ -1,4 +1,7 @@
 @echo off
+set "CDATA_OPEN=^<^^!^[CDATA^["
+set "CDATA_CLOSE=^]^]^>"
+
 setlocal enabledelayedexpansion
 
 :: ------------------------------------------------------------------
@@ -40,7 +43,12 @@ if "!RelativePath:~0,2!"=="\\" (
 :: Strip leading "./", ".\", or "\"
 :strip
 if "!RelativePath:~0,1!"=="\" set "RelativePath=!RelativePath:~1!" & goto strip
-if "!RelativePath:~0,1!"=="." set "RelativePath=!RelativePath:~1!" & goto strip
+if "!RelativePath:~0,2!"==".\" set "RelativePath=!RelativePath:~2!" & goto strip
+if "!RelativePath:~0,2!"=="./" set "RelativePath=!RelativePath:~2!" & goto strip
+if "!RelativePath:~0,1!"=="." (
+    set "RelativePath=!RelativePath:~1!"
+    goto strip
+)
 
 :: ------------------------------------------------------------------
 :: Step 2: Construct the AbsolutePath
@@ -51,8 +59,10 @@ set "AbsolutePath=!AbsolutePath:/=\!"     :: Normalize forward slashes to backsl
 :collapse
 if not "!AbsolutePath!"=="!AbsolutePath:\\=\!" set "AbsolutePath=!AbsolutePath:\\=\!" & goto collapse
 
-:: Ensure the path does not end with a backslash
-if "!AbsolutePath:~-1!"=="\" set "AbsolutePath=!AbsolutePath:~0,-1!"
+:: Ensure the path does not end with a backslash (unless it's a drive root)
+if not "!AbsolutePath!"=="!AbsolutePath:~0,3!" (
+    if "!AbsolutePath:~-1!"=="\" set "AbsolutePath=!AbsolutePath:~0,-1!"
+)
 
 :: Verify the AbsolutePath exists
 if not exist "!AbsolutePath!" (
@@ -64,6 +74,7 @@ if not exist "!AbsolutePath!" (
 :: Step 3: Derive Output File Name
 :: ------------------------------------------------------------------
 for %%I in ("%CD%") do set "CurrentFolderName=%%~nI"
+if "%CurrentFolderName%"=="" set "CurrentFolderName=Root"
 
 if "%RelativePath%"=="" (
     set "FileName=!CurrentFolderName!.src"
@@ -71,6 +82,8 @@ if "%RelativePath%"=="" (
     set "RelativePathDots=!RelativePath:\=.!"
     set "FileName=!CurrentFolderName!.!RelativePathDots!.src"
 )
+:: Remove spaces from the file name if any
+set "FileName=%FileName: =%"
 
 set "OutputFile=%CD%\!FileName!"
 if exist "%OutputFile%" del "%OutputFile%"
@@ -82,12 +95,11 @@ if "!DebugMode!"=="1" set "LogFile=%CD%\MergeCode.log"
 echo Log for merging script run at %date% %time% > "%LogFile%"
 echo Creating "!FileName!" @ %CD%... >> "%LogFile%"
 
-
 :: ------------------------------------------------------------------
 :: Step 4: Process the folder tree
 :: ------------------------------------------------------------------
 pushd "!AbsolutePath!"
-call :ProcessFolder "!AbsolutePath!" 0
+call :ProcessFolder "!AbsolutePath!" 0 ""
 popd
 
 echo.
@@ -97,73 +109,75 @@ exit /b
 
 :: ------------------------------------------------------------------
 :: :ProcessFolder
-::   %~1 - Folder path (minus trailing backslash)
-::   %~2 - Current depth level
+::   %1 - Folder path (without trailing backslash)
+::   %2 - Current depth level (numeric)
+::   %3 - Current indentation string (optional; if empty, computed from level)
 :: ------------------------------------------------------------------
 :ProcessFolder
 setlocal enabledelayedexpansion
-
 set "FolderPath=%~1"
 set "Level=%~2"
+set "Indent=%~3"
+if "!Indent!"=="" (
+    set "Tb=  "
+    set "Indent="
+    for /L %%T in (1,1,!Level!) do set "Indent=!Indent!!Tb!"
+) else (
+    set "Tb=  "
+)
 
-:: Calculate indentation
-set "Tb=  "
-set "Indent="
-for /L %%T in (1,1,!Level!) do set "Indent=!Indent!!Tb!"
-
-:: Count files in this directory with allowed extensions
+:: Count files with allowed extensions
 set "FileCount=0"
-for %%F in ("!FolderPath!/*") do (
+for %%F in ("!FolderPath!\*") do (
     set "SkipFile=1"
     for %%A in (%AllowedExts%) do (
-        if "%%~xF"=="%%~A" set /a "SkipFile=0"
+        if /I "%%~xF"=="%%~A" set "SkipFile=0"
     )
     if "!SkipFile!"=="0" (
-        set /a "FileCount+=1"
+        set /a FileCount+=1
         echo File: "%%~nF%%~xF" >> "%LogFile%"
     ) else (
         echo File: "%%~nF%%~xF [Excluded]" >> "%LogFile%"
     )
 )
 
-:: Count subfolders in this directory excluding the ones in ExcludedDirs
+:: Count subfolders (excluding those in ExcludedDirs)
 set "FolderCount=0"
-for /D %%D in ("!FolderPath!/*") do (
+for /D %%D in ("!FolderPath!\*") do (
     set "SkipSub=0"
     for %%B in (%ExcludedDirs%) do (
-        if "%%~nD%%~xD"=="%%~B" set "SkipSub=1"
+        if /I "%%~nD"=="%%~B" set "SkipSub=1"
     )
     if "!SkipSub!"=="0" (
-        set /a "FolderCount+=1"
-        echo Folder: "%%~nD%%~xD" >> "%LogFile%"
+        set /a FolderCount+=1
+        echo Folder: "%%~nD" >> "%LogFile%"
     ) else (
-        echo Folder: "%%~nD%%~xD [Excluded]" >> "%LogFile%"
+        echo Folder: "%%~nD [Excluded]" >> "%LogFile%"
     )
 )
 
-set /a "Total=!FileCount!+!FolderCount!"
-
+set /a Total=FileCount+FolderCount
 echo Processing folder: "!FolderPath! (!Total! = !FileCount! + !FolderCount!)" >> "%LogFile%"
 
 if "!Total!"=="0" goto :skip_folder
 
-:: Determine folder name
-for %%I in ("!FolderPath!") do set "FolderName=%%~nI%%~xI"
+:: Get the folder name
+for %%I in ("!FolderPath!") do set "FolderName=%%~nI"
 
-:: Print <root> or <folder> depending on level
+:: Write the opening tag
 if "!Level!"=="0" (
     echo ^<root name="!FolderName!"^> >> "%OutputFile%"
 ) else (
     echo !Indent!^<folder name="!FolderName!"^> >> "%OutputFile%"
 )
 
-:: Process files
-if "!FileCount!" neq "0" call :ProcessFiles "!FolderPath!" "!Indent!"
+:: Process files in the folder
+if not "!FileCount!"=="0" call :ProcessFiles "!FolderPath!" "!Indent!"
 
-:: Process subfolders
-if "!FolderCount!" neq "0" call :ProcessFolders "!FolderPath!" "!Indent!" "!Level!"
+:: Process subfolders (pass down the current indent)
+if not "!FolderCount!"=="0" call :ProcessFolders "!FolderPath!" !Level! "!Indent!"
 
-:: Close </root> or </folder>
+:: Write the closing tag
 if "!Level!"=="0" (
     echo ^</root^> >> "%OutputFile%"
 ) else (
@@ -176,55 +190,50 @@ exit /b
 
 :: ------------------------------------------------------------------
 :: :ProcessFiles
-::   %~1 - Folder path
-::   %~2 - Indent
+::   %1 - Folder path
+::   %2 - Current indentation string
 :: ------------------------------------------------------------------
 :ProcessFiles
 setlocal enabledelayedexpansion
-
+set "Tb=  "
 for %%F in ("%~1\*") do (
     set "SkipFile=1"
     for %%A in (%AllowedExts%) do (
-        if "%%~xF"=="%%~A" set "SkipFile=0"
+        if /I "%%~xF"=="%%~A" set "SkipFile=0"
     )
-
     if "!SkipFile!"=="0" (
         set "AddedFile=%%F"
         echo Adding file: "!AddedFile:%AbsolutePath%=!"
         echo Adding file: "!AddedFile:%AbsolutePath%=!" >> "%LogFile%"
-
-        echo %~2!Tb!^<file name="%%~nxF"^>^<^^![CDATA[ >> "%OutputFile%"
+        echo %~2%Tb%^<file name="%%~nxF"^>%CDATA_OPEN% >> "%OutputFile%"
         type "%%~fF" >> "%OutputFile%"
-        echo %~2!Tb!]]^>^</file^> >> "%OutputFile%"
+        echo %~2!Tb!%CDATA_CLOSE%^</file^> >> "%OutputFile%"
     )
 )
-
 echo Processed files in folder: "%~1" >> "%LogFile%"
 endlocal
 exit /b
 
 :: ------------------------------------------------------------------
 :: :ProcessFolders
-::   %~1 - Folder path
-::   %~2 - Indent
-::   %~3 - Level
+::   %1 - Folder path
+::   %2 - Current depth level (numeric)
+::   %3 - Current indentation string
 :: ------------------------------------------------------------------
 :ProcessFolders
 setlocal enabledelayedexpansion
-
+set "Tb=  "
 for /D %%D in ("%~1\*") do (
     set "SkipSub=0"
-    :: Check exclusion
     for %%E in (%ExcludedDirs%) do (
-        if "%%~nD"=="%%~E" set "SkipSub=1"
+        if /I "%%~nD"=="%%~E" set "SkipSub=1"
     )
-
     if "!SkipSub!"=="0" (
-        set /a "NewLevel=%~3+1"
-        call :ProcessFolder "%%~fD" !NewLevel!
+        set /a NewLevel=%~2+1
+        set "NewIndent=%~3%Tb%"
+        call :ProcessFolder "%%~fD" !NewLevel! "!NewIndent!"
     )
 )
-
 echo Processed subfolders in folder: "%~1" >> "%LogFile%"
 endlocal
 exit /b

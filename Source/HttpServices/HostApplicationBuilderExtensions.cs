@@ -46,6 +46,7 @@ public static class HostApplicationBuilderExtensions {
 
     private static void AddDefaultHealthChecks<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
-        => builder.Services.AddHealthChecks()
+        => builder.Services
+                  .AddHealthChecks()
                   .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 }

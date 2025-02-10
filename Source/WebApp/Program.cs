@@ -6,7 +6,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents()
     .AddAuthenticationStateSerialization();
 
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("auth", static client => client.BaseAddress = new("https://localhost:7166"));
+builder.Services.AddHttpClient("game", static client => client.BaseAddress = new("https://localhost:7465"));
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();

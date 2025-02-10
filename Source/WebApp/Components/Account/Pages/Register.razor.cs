@@ -1,7 +1,8 @@
-﻿namespace WebApp.Components.Account.Pages;
+﻿using static HttpServices.Abstractions.UserAccountEndpoints;
+
+namespace WebApp.Components.Account.Pages;
 
 public partial class Register {
-    private const string _usersUri = "/users";
     private IEnumerable<IdentityError>? _identityErrors = [];
 
     [Inject]
@@ -14,7 +15,7 @@ public partial class Register {
     protected IdentityRedirectManager RedirectManager { get; init; } = null!;
 
     [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
+    protected InputModel Input { get; set; } = new();
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
@@ -30,15 +31,15 @@ public partial class Register {
             ConfirmationUrl = NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").ToString(),
             ReturnUrl = ReturnUrl,
         };
-        var response = await client.PostAsJsonAsync(_usersUri, request);
+        var response = await client.PostAsJsonAsync(FindUserByIdEndpoint, request);
         if (!response.IsSuccessStatusCode) {
-            _identityErrors = [ new() { Code = "REGISTER_001", Description = "Error!" } ];
+            _identityErrors = [new() { Code = "REGISTER_001", Description = "Error!" }];
             return;
         }
         RedirectManager.RedirectTo(ReturnUrl);
     }
 
-    private sealed class InputModel {
+    protected sealed class InputModel {
         [Required]
         [MaxLength(256)]
         [Display(Name = "Name")]

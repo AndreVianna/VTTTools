@@ -1,13 +1,14 @@
 ﻿namespace HttpServices.Services.Messaging;
 
-public class MessagingService(IEmailSender<User> emailSender)
-    : MessagingService<User>(emailSender);
+internal class MessagingService(IEmailSender emailSender)
+    : MessagingService<User>(emailSender)
+    , IMessagingService;
 
-public class MessagingService<TUser>(IEmailSender<TUser> emailSender)
+internal class MessagingService<TUser>(IEmailSender<TUser> emailSender)
     : MessagingService<TUser, string>(emailSender)
     where TUser : User;
 
-public class MessagingService<TUser, TKey>(IEmailSender<TUser> emailSender)
+internal class MessagingService<TUser, TKey>(IEmailSender<TUser> emailSender)
     : IMessagingService<TUser>
     where TUser : NamedUser<TKey>
     where TKey : IEquatable<TKey> {
@@ -17,7 +18,7 @@ public class MessagingService<TUser, TKey>(IEmailSender<TUser> emailSender)
         var parameters = new NameValueCollection {
             ["userId"] = user.Id.ToString(),
             ["code"] = code,
-            ["returnUrl"] = returnUrl
+            ["returnUrl"] = returnUrl,
         };
         builder.Query = parameters.ToString();
         return emailSender.SendConfirmationLinkAsync(user, user.Email!, builder.Uri.ToString());

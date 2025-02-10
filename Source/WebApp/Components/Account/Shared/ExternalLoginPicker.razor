@@ -1,11 +1,4 @@
-﻿@using Microsoft.AspNetCore.Authentication
-@using Microsoft.AspNetCore.Identity
-@using WebApp.Components.Account.Model
-
-@inject SignInManager<User> SignInManager
-@inject IdentityRedirectManager RedirectManager
-
-@if (_externalLogins.Length == 0)
+﻿@if (_externalLogins.Length == 0)
 {
     <div>
         <p>

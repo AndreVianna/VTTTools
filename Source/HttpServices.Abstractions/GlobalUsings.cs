@@ -8,4 +8,5 @@ global using DotNetToolbox.Results;
 
 global using HttpServices.Abstractions.Helpers;
 
+global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Identity;

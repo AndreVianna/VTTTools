@@ -1,17 +1,14 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using static HttpServices.Abstractions.AuthenticationEndpoints;
 
 namespace WebApp.Components.Account.Pages;
 
 public partial class Login {
-    private const string _signInUri = "/signIn";
     private static readonly JwtSecurityTokenHandler _jwtHandler = new();
 
     private string? _errorMessage;
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext HttpContext { get; set; } = null!;
 
     [Inject]
     protected IHttpClientFactory ClientFactory { get; init; } = null!;
@@ -20,7 +17,7 @@ public partial class Login {
     protected IdentityRedirectManager RedirectManager { get; init; } = null!;
 
     [Inject]
-    protected Logger<Login> Logger { get; init; } = null!;
+    protected ILogger<Login> Logger { get; init; } = null!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
@@ -28,22 +25,23 @@ public partial class Login {
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
+    private HttpClient _httpClient = null!;
+
     protected override async Task OnInitializedAsync() {
-        if (HttpMethods.IsGet(HttpContext.Request.Method)) {
-            // Clear the existing external cookie to ensure a clean login process
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-        }
+        _httpClient = ClientFactory.CreateClient("auth");
+        if (!HttpMethods.IsGet(HttpContext.Request.Method))
+            return;
+        await _httpClient.PostAsJsonAsync(SignOutEndpoint, new SignOutRequest());
     }
 
     public async Task LoginUser() {
-        var client = ClientFactory.CreateClient("IdentityService");
         var request = new PasswordSignInRequest {
             Email = Input.Email,
             Password = Input.Password,
             RememberMe = Input.RememberMe,
             ReturnUrl = ReturnUrl,
         };
-        var response = await client.PostAsJsonAsync(_signInUri, request);
+        var response = await _httpClient.PostAsJsonAsync(SignInEndpoint, request);
         if (!response.IsSuccessStatusCode) {
             _errorMessage = "Error: Invalid login attempt.";
             return;

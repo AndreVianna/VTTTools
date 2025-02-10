@@ -7,6 +7,7 @@ var app = builder.Build();
 
 app.MapHealthCheckEndpoints();
 app.MapApiClientManagementEndpoints();
+
 app.MapAuthenticationManagementEndpoints();
 app.MapUserAccountManagementEndpoints();
 

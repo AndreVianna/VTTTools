@@ -6,8 +6,6 @@ global using System.Security.Claims;
 global using System.Security.Cryptography;
 global using System.Text;
 
-global using ApiService.Services.Cache;
-
 global using DotNetToolbox.Results;
 
 global using HttpServices.Abstractions.Contracts.Account;
@@ -16,17 +14,17 @@ global using HttpServices.Abstractions.Contracts.SignIn;
 global using HttpServices.Abstractions.Helpers;
 global using HttpServices.Abstractions.Model;
 global using HttpServices.Data;
-global using HttpServices.Services;
+global using HttpServices.Model;
 global using HttpServices.Services.Account;
-global using HttpServices.Services.Authentication;
 global using HttpServices.Services.Client;
 global using HttpServices.Services.Messaging;
-global using HttpServices.Services.Token;
 
 global using Microsoft.AspNetCore.Abstractions;
+global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.WebUtilities;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.ChangeTracking;

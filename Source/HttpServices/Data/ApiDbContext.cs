@@ -9,8 +9,8 @@ public class ApiDbContext<TClient>(DbContextOptions options)
 
 public class ApiDbContext<TKey, TClient>(DbContextOptions options)
     : DbContext(options)
-    where TClient : Client<TKey>
-    where TKey : IEquatable<TKey> {
+    where TKey : IEquatable<TKey>
+    where TClient : Client<TKey> {
     public virtual DbSet<TClient> Clients { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {

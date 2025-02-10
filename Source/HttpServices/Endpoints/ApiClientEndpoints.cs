@@ -1,3 +1,5 @@
+using static HttpServices.Abstractions.ApiClientEndpoints;
+
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 // ReSharper disable once CheckNamespace
@@ -5,19 +7,21 @@ namespace Microsoft.AspNetCore.Routing;
 
 public static class ApiClientEndpoints {
     public static IEndpointRouteBuilder MapApiClientManagementEndpoints(this IEndpointRouteBuilder app) {
-        app.MapPost("/tokens", GenerateAsync);
-        app.MapPost("/clients", RegisterAsync);
+        app.MapPost(TokensEndpoint, GenerateAsync);
+        app.MapPost(ClientsEndpoint, RegisterAsync);
         return app;
     }
 
-    private static async Task<IResult> GenerateAsync(ITokenService service, HttpContext context) {
-        var token = await service.GenerateClientTokenAsync(context);
-        return token is null
-            ? Results.Unauthorized()
-            : Results.Ok(token);
+    private static async Task<IResult> GenerateAsync([FromServices] IClientService service, [FromBody] GenerateTokenRequest request) {
+        var result = await service.GenerateTokenAsync(request);
+        return result.HasErrors
+                   ? Results.BadRequest(result.Errors)
+                   : result.Value is null
+                       ? Results.Unauthorized()
+                       : Results.Ok(result.Value);
     }
 
-    private static async Task<IResult> RegisterAsync(IClientService service, RegisterClientRequest request) {
+    private static async Task<IResult> RegisterAsync([FromServices] IClientService service, [FromBody] RegisterClientRequest request) {
         var result = await service.RegisterAsync(request);
         return Results.Ok(result);
     }

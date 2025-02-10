@@ -3,5 +3,7 @@
 namespace HttpServices.Services.Authentication;
 
 internal interface IAuthenticationService {
-    Task<SignInResult> PasswordSignInAsync(PasswordSignInRequest request);
+    Task<SignInResult> PasswordSignIn(PasswordSignInRequest request);
+    Task SignOut(SignOutRequest request);
+    Task<AuthenticationScheme[]> GetSchemes();
 }
