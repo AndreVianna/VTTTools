@@ -1,4 +1,6 @@
-﻿global using HttpServices.Abstractions.Model;
+﻿global using Domain.Model;
+
+global using HttpServices.Abstractions.Model;
 global using HttpServices.Data;
 
 global using IdentityService.Data;

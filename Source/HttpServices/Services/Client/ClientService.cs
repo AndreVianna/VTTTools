@@ -15,11 +15,12 @@ internal sealed class ClientService<TDatabase>(TDatabase data,
 
         var secret = StringHelpers.GenerateSecret(_secretSize);
 
-        var client = new Abstractions.Model.Client {
+        var client = new ApiClient {
             Name = request.Name,
             HashedSecret = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(secret))),
         };
-        await data.Set<Abstractions.Model.Client>().AddAsync(client);
+        await data.Set<ApiClient>().AddAsync(client);
+        await data.SaveChangesAsync();
 
         logger.LogInformation("New api client registered.");
 
@@ -29,17 +30,30 @@ internal sealed class ClientService<TDatabase>(TDatabase data,
         };
     }
 
-    public async Task<Result<string?>> GenerateTokenAsync(GenerateTokenRequest request) {
+    public async Task<Result<TokenResponse?>?> GenerateTokenAsync(GenerateTokenRequest request) {
         logger.LogInformation("Api token requested.");
         var validationResult = request.Validate();
         if (validationResult.HasErrors)
             return validationResult.Errors;
 
         var client = await GetAuthenticatedClientOrDefaultAsync(request.ClientId, request.ClientSecret);
-        return CreateJwtToken(client);
+        var token = CreateJwtToken(client, request.Name);
+        if (token is null) {
+            logger.LogWarning("Invalid client credentials.");
+            return null;
+        }
+        await data.Set<ApiToken>().AddAsync(token);
+        await data.SaveChangesAsync();
+
+        logger.LogInformation("Api token generated.");
+        return new TokenResponse {
+            Name = request.Name,
+            Token = token.Value,
+            Expiration = token.Expiration,
+        };
     }
 
-    private string? CreateJwtToken(Abstractions.Model.Client? client) {
+    private ApiToken? CreateJwtToken(ApiClient? client, string? name) {
         if (client is null)
             return null;
         var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>()!;
@@ -58,14 +72,21 @@ internal sealed class ClientService<TDatabase>(TDatabase data,
         tokenDescriptor.Claims.Add(ClaimTypes.NameIdentifier, client.Id);
         tokenDescriptor.Claims.Add(ClaimTypes.Name, client.Name);
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+        return new() {
+            ApiClientId = client.Id,
+            Name = name,
+            Value = tokenHandler.WriteToken(token),
+            Expiration = tokenDescriptor.Expires,
+        };
     }
 
-    private async Task<Abstractions.Model.Client?> GetAuthenticatedClientOrDefaultAsync(string id, string secret) {
-        var client = await data.Set<Abstractions.Model.Client>().FindAsync(id);
+    private async Task<ApiClient?> GetAuthenticatedClientOrDefaultAsync(string id, string secret) {
+        var client = await data.Set<ApiClient>().FindAsync(id);
         if (client is null)
             return null;
         var hashedSecret = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(secret)));
         return hashedSecret != client.HashedSecret ? null : client;
     }
+
+    Task<Result<string?>> IClientService.GenerateTokenAsync(GenerateTokenRequest request) => throw new NotImplementedException();
 }

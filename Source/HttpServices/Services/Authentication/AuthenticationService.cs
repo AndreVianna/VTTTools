@@ -5,11 +5,11 @@ namespace HttpServices.Services.Authentication;
 internal sealed class AuthenticationService(IConfiguration configuration,
                                             IHostEnvironment environment,
                                             IOptions<ExtendedIdentityOptions> identityOptions,
-                                            UserManager<User> userManager,
-                                            SignInManager<User> signInManager,
+                                            UserManager<NamedUser> userManager,
+                                            SignInManager<NamedUser> signInManager,
                                             IMessagingService messagingService,
                                             ILogger<AuthenticationService> logger)
-    : AuthenticationService<User>(configuration,
+    : AuthenticationService<NamedUser>(configuration,
                                   environment,
                                   identityOptions,
                                   userManager,
@@ -25,7 +25,7 @@ internal class AuthenticationService<TUser>(IConfiguration configuration,
                                             IMessagingService<TUser> messagingService,
                                             ILogger<AuthenticationService<TUser>> logger)
     : IAuthenticationService
-    where TUser : User {
+    where TUser : NamedUser {
     private readonly ExtendedIdentityOptions _options = identityOptions.Value;
     private static readonly JwtSecurityTokenHandler _jwtHandler = new();
 

@@ -5,3 +5,7 @@ global using Domain.Helpers;
 
 global using DotNetToolbox;
 global using DotNetToolbox.Results;
+
+global using HttpServices.Abstractions.Model;
+
+global using Microsoft.AspNetCore.Identity;

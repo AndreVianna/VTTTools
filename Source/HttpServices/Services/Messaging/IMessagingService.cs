@@ -1,6 +1,6 @@
 ﻿namespace HttpServices.Services.Messaging;
 
-internal interface IMessagingService : IMessagingService<User>;
+internal interface IMessagingService : IMessagingService<NamedUser>;
 
 internal interface IMessagingService<in TUser>
     where TUser : class {

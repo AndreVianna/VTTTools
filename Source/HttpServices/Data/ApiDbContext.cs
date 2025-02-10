@@ -1,28 +1,31 @@
 namespace HttpServices.Data;
 
 public class ApiDbContext(DbContextOptions options)
-    : ApiDbContext<Client>(options);
+    : ApiDbContext<string, ApiClient, ApiToken>(options)
+    , IApiDbContext;
 
-public class ApiDbContext<TClient>(DbContextOptions options)
-    : ApiDbContext<string, TClient>(options)
-    where TClient : Client;
+public class ApiDbContext<TKey>(DbContextOptions options)
+    : ApiDbContext<TKey, ApiClient<TKey>, ApiToken<TKey>>(options)
+    , IApiDbContext<TKey>
+    where TKey : IEquatable<TKey>;
 
-public class ApiDbContext<TKey, TClient>(DbContextOptions options)
+public class ApiDbContext<TClient, TToken>(DbContextOptions options)
+    : ApiDbContext<string, TClient, TToken>(options)
+    , IApiDbContext<TClient, TToken>
+    where TClient : ApiClient
+    where TToken : ApiToken;
+
+public class ApiDbContext<TKey, TClient, TToken>(DbContextOptions options)
     : DbContext(options)
+    , IApiDbContext<TKey, TClient, TToken>
     where TKey : IEquatable<TKey>
-    where TClient : Client<TKey> {
-    public virtual DbSet<TClient> Clients { get; set; } = null!;
+    where TClient : ApiClient<TKey>
+    where TToken : ApiToken<TKey> {
+    public DbSet<TClient> Clients { get; set; } = null!;
+    public DbSet<TToken> Tokens { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);
-
-        modelBuilder.Entity<TClient>(b => {
-            b.ToTable("Clients");
-            b.HasKey(i => i.Id);
-
-            b.Property(i => i.Id).ValueGeneratedOnAdd().SetDefaultValueGeneration();
-            b.Property(e => e.Name).HasMaxLength(256).IsRequired();
-            b.Property(e => e.HashedSecret).IsRequired();
-        });
+        ApiDbContextBuilder.CreateModel<TKey, TClient, TToken>(this, modelBuilder);
     }
 }

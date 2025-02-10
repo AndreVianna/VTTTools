@@ -1,10 +1,10 @@
 ﻿namespace HttpServices.Services.Account;
 
-internal sealed class AccountService(UserManager<User> userManager,
+internal sealed class AccountService(UserManager<NamedUser> userManager,
                                      IOptions<ExtendedIdentityOptions> identityOptions,
                                      IMessagingService messagingService,
                                      ILogger<AccountService> logger)
-    : AccountService<User, string>(userManager, identityOptions, messagingService, logger);
+    : AccountService<NamedUser, string>(userManager, identityOptions, messagingService, logger);
 
 internal class AccountService<TUser, TKey>(UserManager<TUser> userManager,
                                            IOptions<ExtendedIdentityOptions> identityOptions,

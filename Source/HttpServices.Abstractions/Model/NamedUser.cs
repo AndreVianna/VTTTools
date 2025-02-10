@@ -1,6 +1,6 @@
 namespace HttpServices.Abstractions.Model;
 
-public class User
+public class NamedUser
     : NamedUser<string>
     , IUserIdentity;
 

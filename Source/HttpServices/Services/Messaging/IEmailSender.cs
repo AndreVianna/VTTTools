@@ -1,3 +1,3 @@
 ﻿namespace HttpServices.Services.Messaging;
 
-internal interface IEmailSender : IEmailSender<User>;
+internal interface IEmailSender : IEmailSender<NamedUser>;
