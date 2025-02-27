@@ -20,7 +20,7 @@ public static class UserAccountEndpoints {
 
     private static async Task<IResult> RegisterAsync([FromServices] IAccountService service, [FromBody] RegisterUserRequest request) {
         var response = await service.CreateAsync(request);
-        return response.IsSuccess ? Results.Ok(response.Value)
+        return response.IsSuccessful ? Results.Ok(response.Value)
                    : Results.BadRequest(response.Errors);
     }
 }

@@ -10,17 +10,17 @@ public record RegisterUserRequest : IValidatable {
     public virtual Result Validate(IMap? context = null) {
         var result = Result.Success();
         if (string.IsNullOrWhiteSpace(Email)) {
-            result += new ValidationError("Email is required.", nameof(Email));
+            result += new Error("Email is required.", nameof(Email));
         }
         else {
             if (!Email.IsValidEmail())
-                result += new ValidationError("Email is invalid.", nameof(Email));
+                result += new Error("Email is invalid.", nameof(Email));
         }
         if (string.IsNullOrWhiteSpace(Password)) {
-            result += new ValidationError("Password is required.", nameof(Password));
+            result += new Error("Password is required.", nameof(Password));
         }
         if (string.IsNullOrWhiteSpace(ConfirmationUrl))
-            result += new ValidationError("Confirmation URL is required.", nameof(ConfirmationUrl));
+            result += new Error("Confirmation URL is required.", nameof(ConfirmationUrl));
         return result;
     }
 }

@@ -7,16 +7,16 @@ public sealed record PasswordSignInRequest : IValidatable {
     public string? ReturnUrl { get; init; }
 
     public Result Validate(IMap? context = null) {
-        var result = new Result();
+        var result = Result.Success();
         if (string.IsNullOrWhiteSpace(Email)) {
-            result += new ValidationError("Email is required.", nameof(Email));
+            result += new Error("Email is required.", nameof(Email));
         }
         else {
             if (!Email.IsValidEmail())
-                result += new ValidationError("Email is invalid.", nameof(Email));
+                result += new Error("Email is invalid.", nameof(Email));
         }
         if (string.IsNullOrWhiteSpace(Password))
-            result += new ValidationError("Password is required.", nameof(Password));
+            result += new Error("Password is required.", nameof(Password));
         return result;
     }
 }

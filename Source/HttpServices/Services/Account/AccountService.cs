@@ -28,23 +28,23 @@ internal class AccountService<TUser, TKey>(UserManager<TUser> userManager,
     }
 
     public async Task<Result<RegisterUserResponse>> CreateAsync(RegisterUserRequest request) {
-        var validationResult = request.Validate();
-        if (validationResult.HasErrors)
-            return validationResult.Errors;
+        var result = request.Validate();
+        if (result.HasErrors)
+            return result;
 
         if (request.Email.Equals(_options.MasterUser?.Email, StringComparison.OrdinalIgnoreCase))
-            return new[] { new ValidationError("Email", "A user with this email already exists.") };
+            return new[] { new Error("Email", "A user with this email already exists.") };
 
         if (await userManager.FindByEmailAsync(request.Email) != null)
-            return new[] { new ValidationError("Email", "A user with this email already exists.") };
+            return new[] { new Error("Email", "A user with this email already exists.") };
 
         var user = new TUser { Name = request.Name };
         await userManager.SetUserNameAsync(user, request.Email);
         await userManager.SetEmailAsync(user, request.Email);
-        var result = await userManager.CreateAsync(user, request.Password);
+        var identityResult = await userManager.CreateAsync(user, request.Password);
 
-        if (!result.Succeeded)
-            return result.Errors.ToArray(e => new ValidationError(e.Description, GetSource(e.Code)));
+        if (!identityResult.Succeeded)
+            return identityResult.Errors.ToArray(e => new Error(e.Description, GetSource(e.Code)));
 
         logger.LogInformation("New user account created.");
 

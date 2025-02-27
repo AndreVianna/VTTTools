@@ -9,9 +9,9 @@ internal sealed class ClientService<TDatabase>(TDatabase data,
 
     public async Task<Result<RegisterClientResponse>> RegisterAsync(RegisterClientRequest request) {
         logger.LogInformation("New api client registration requested.");
-        var validationResult = request.Validate();
-        if (validationResult.HasErrors)
-            return validationResult.Errors;
+        var result = request.Validate();
+        if (result.HasErrors)
+            return result.Errors.ToArray();
 
         var secret = StringHelpers.GenerateSecret(_secretSize);
 
@@ -32,9 +32,9 @@ internal sealed class ClientService<TDatabase>(TDatabase data,
 
     public async Task<Result<TokenResponse?>?> GenerateTokenAsync(GenerateTokenRequest request) {
         logger.LogInformation("Api token requested.");
-        var validationResult = request.Validate();
-        if (validationResult.HasErrors)
-            return validationResult.Errors;
+        var result = request.Validate();
+        if (result.HasErrors)
+            return result.Errors.ToArray();
 
         var client = await GetAuthenticatedClientOrDefaultAsync(request.ClientId, request.ClientSecret);
         var token = CreateJwtToken(client, request.Name);

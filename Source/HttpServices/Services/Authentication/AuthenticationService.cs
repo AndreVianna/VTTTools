@@ -1,4 +1,4 @@
-﻿using SignInResult = DotNetToolbox.Results.SignInResult;
+﻿using DotNetToolbox.Constants;
 
 namespace HttpServices.Services.Authentication;
 
@@ -27,21 +27,22 @@ internal class AuthenticationService<TUser>(IConfiguration configuration,
     : IAuthenticationService
     where TUser : NamedUser {
     private readonly ExtendedIdentityOptions _options = identityOptions.Value;
-    private static readonly JwtSecurityTokenHandler _jwtHandler = new();
+    private readonly JwtSecurityTokenHandler _jwtHandler = new();
 
-    public async Task<SignInResult> PasswordSignIn(PasswordSignInRequest request) {
+    public async Task<TypedResult<SignInStatus, string>> PasswordSignIn(PasswordSignInRequest request) {
         logger.LogInformation("Login attempt for '{Email}'.", request.Email);
         if (TryValidateMasterUser(request, _options.MasterUser, out var master)) {
             var token = GenerateUserToken(master.Id, master.Name!, master.Email!, [Roles.Admin]);
             await signInManager.SignInAsync(master, true);
             logger.LogInformation("Master user logged in.");
-            return SignInResult.Success(token);
+            return TypedResult.As(SignInStatus.Success, token);
         }
 
         var user = await userManager.FindByEmailAsync(request.Email);
         if (user is null) {
-            logger.LogInformation("Account for '{Email}' not found.", request.Email);
-            return SignInResult.FailedAttempt();
+            logger.LogInformation("Account '{Email}' not found.", request.Email);
+            var error = new Error($"Account '{request.Email}' not found.", nameof(request.Email));
+            return TypedResult.As(SignInStatus.AccountNotFound, [error]).WithNo<string>();
         }
 
         var result = await signInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, lockoutOnFailure: user.LockoutEnabled);
@@ -49,34 +50,39 @@ internal class AuthenticationService<TUser>(IConfiguration configuration,
         if (!user.AccountConfirmed && _options.SignIn.RequireConfirmedAccount) {
             logger.LogInformation("Account '{UserId}' requires confirmation.", user.Id);
             var token = await GenerateEmailConfirmationToken(user);
-            return SignInResult.ConfirmationIsPending(token);
+            var error = new Error("Account requires confirmation.", nameof(request.Email));
+            return TypedResult.As(SignInStatus.EmailNotConfirmed, token, error);
         }
 
         if (result.RequiresTwoFactor) {
             logger.LogInformation("Account '{UserId}' requires two factor.", user.Id);
             var token = await GenerateAndSendTwoFactorToken(user);
-            return SignInResult.TwoFactorIsRequired(token);
+            var error = new Error("Two factor authentication required.", nameof(request.Email));
+            return TypedResult.As(SignInStatus.RequiresTwoFactor, token, error);
         }
 
         if (result.Succeeded) {
             logger.LogInformation("Account '{UserId}' logged in.", user.Id);
             var roles = await userManager.GetRolesAsync(user);
             var token = GenerateUserToken(user.Id, user.Name!, user.Email!, roles);
-            return SignInResult.Success(token);
+            return TypedResult.As(SignInStatus.Success, token);
         }
 
         if (result.IsLockedOut) {
             logger.LogInformation("Account '{UserId}' is locked out.", user.Id);
-            return SignInResult.LockedAccount();
+            var error = new Error("Account is temporarily locked.", nameof(request.Email));
+            return TypedResult.As(SignInStatus.LockedAccount, [error]).WithNo<string>();
         }
 
         if (result.IsNotAllowed) {
             logger.LogInformation("Account '{UserId}' is blocked.", user.Id);
-            return SignInResult.BlockedAccount();
+            var error = new Error("Account is blocked.", nameof(request.Email));
+            return TypedResult.As(SignInStatus.BlockedAccount, [error]).WithNo<string>();
         }
 
-        logger.LogInformation("Account '{UserId}' invalid login.", user.Id);
-        return SignInResult.FailedAttempt();
+        logger.LogInformation("Invalid login for '{UserId}'", user.Id);
+        var failure = new Error("Invalid login.", nameof(request.Email));
+        return TypedResult.As(SignInStatus.IncorrectLogin, [failure]).WithNo<string>();
     }
 
     public Task SignOut(SignOutRequest _)

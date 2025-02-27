@@ -8,9 +8,9 @@ public sealed record GenerateTokenRequest : IValidatable {
     public Result Validate(IMap? context = null) {
         var result = Result.Success();
         if (string.IsNullOrWhiteSpace(ClientId))
-            result += new ValidationError("ClientId is required.", nameof(ClientId));
+            result += new Error("ClientId is required.", nameof(ClientId));
         if (string.IsNullOrWhiteSpace(ClientSecret))
-            result += new ValidationError("ClientSecret is required.", nameof(ClientSecret));
+            result += new Error("ClientSecret is required.", nameof(ClientSecret));
         return result;
     }
 }

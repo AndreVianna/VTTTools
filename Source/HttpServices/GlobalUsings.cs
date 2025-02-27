@@ -1,11 +1,13 @@
 global using System.Collections.Specialized;
 global using System.Diagnostics.CodeAnalysis;
 global using System.IdentityModel.Tokens.Jwt;
+global using System.Net;
 global using System.Net.Http.Headers;
 global using System.Security.Claims;
 global using System.Security.Cryptography;
 global using System.Text;
 
+global using DotNetToolbox;
 global using DotNetToolbox.Results;
 
 global using HttpServices.Abstractions.Contracts.Account;
