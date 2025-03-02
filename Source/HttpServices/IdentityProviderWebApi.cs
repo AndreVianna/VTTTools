@@ -1,28 +1,33 @@
-// ReSharper disable once CheckNamespace
-
 using AuthenticationService = HttpServices.Services.Authentication.AuthenticationService;
 using IAuthenticationService = HttpServices.Services.Authentication.IAuthenticationService;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.Hosting;
+
 public static class IdentityProviderWebApi {
     public static WebApiBuilder CreateBuilder(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
-        => CreateBuilder<IdentityProviderApiDbContext, NamedUser, Role>(args, configure);
+        => CreateBuilder<IdentityProviderApiDbContext, User, NamedUserProfile>(args, configure);
 
-    public static WebApiBuilder CreateBuilder<TDatabase>(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
-        where TDatabase : DbContext => CreateBuilder<TDatabase, NamedUser, Role>(args, configure);
-
-    public static WebApiBuilder CreateBuilder<TDatabase, TUser, TRole>(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
+    public static WebApiBuilder CreateBuilder<TDatabase, TUser, TProfile>(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
         where TDatabase : DbContext
-        where TUser : class, IUserIdentity
+        where TUser : class, IIdentityUser<TProfile>, new()
+        where TProfile : class, IUserProfile, new()
+        => CreateBuilder<TDatabase, TUser, TProfile, Role>(args, configure);
+
+    public static WebApiBuilder CreateBuilder<TDatabase, TUser, TProfile, TRole>(string[] args, Action<DbContextOptionsBuilder, IConfiguration>? configure = null)
+        where TDatabase : DbContext
+        where TUser : class, IIdentityUser<TProfile>, new()
+        where TProfile : class, IUserProfile, new()
         where TRole : class {
         var builder = WebApi.CreateBuilder<TDatabase>(args, configure);
 
         builder.Services.Configure<ExtendedIdentityOptions>(builder.Configuration.GetSection("Identity"));
         builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
         builder.Services.AddScoped<IAccountService, AccountService>();
-        builder.Services.AddScoped<IMessagingService, MessagingService>();
-        builder.Services.AddScoped<IEmailSender, NullEmailSender>();
+        builder.Services.AddScoped<IMessagingService<TUser>, MessagingService<TUser, TProfile>>();
+        builder.Services.AddScoped<IEmailSender<TUser>, NullEmailSender<TUser>>();
 
+        builder.Services.AddSingleton<IPersonalDataProtector, NullPersonalDataProtector>();
         builder.Services.AddDataProtection();
         builder.Services.AddIdentity<TUser, TRole>(options => {
             options.SignIn.RequireConfirmedAccount = true;

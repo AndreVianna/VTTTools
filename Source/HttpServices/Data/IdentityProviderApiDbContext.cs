@@ -1,21 +1,27 @@
 namespace HttpServices.Data;
 
 public class IdentityProviderApiDbContext(DbContextOptions options)
-    : IdentityProviderApiDbContext<ApiClient, ApiToken, NamedUser, Role>(options);
+    : IdentityProviderApiDbContext<NamedUserProfile>(options);
 
-public class IdentityProviderApiDbContext<TClient, TToken, TUser, TRole>(DbContextOptions options)
-    : IdentityProviderApiDbContext<TClient, TToken, TUser, UserClaim, UserLogin, UserToken, TRole, UserRole, RoleClaim>(options)
+public class IdentityProviderApiDbContext<TProfile>(DbContextOptions options)
+    : IdentityProviderApiDbContext<ApiClient, ApiToken, User<TProfile>, TProfile, Role>(options)
+    where TProfile : class, IUserProfile;
+
+public class IdentityProviderApiDbContext<TClient, TToken, TUser, TProfile, TRole>(DbContextOptions options)
+    : IdentityProviderApiDbContext<TClient, TToken, TUser, TProfile, UserClaim, UserLogin, UserToken, TRole, UserRole, RoleClaim>(options)
     where TClient : ApiClient
     where TToken : ApiToken
-    where TUser : NamedUser
+    where TUser : User<TProfile>
+    where TProfile : class, IUserProfile
     where TRole : Role;
 
-public class IdentityProviderApiDbContext<TClient, TToken, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
-    : IdentityProviderApiDbContext<string, TClient, TToken, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(options)
+public class IdentityProviderApiDbContext<TClient, TToken, TUser, TProfile, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
+    : IdentityProviderApiDbContext<string, TClient, TToken, TUser, TProfile, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(options)
     , IApiDbContext<TClient, TToken>
     where TClient : ApiClient
     where TToken : ApiToken
-    where TUser : NamedUser
+    where TUser : User<TProfile>
+    where TProfile : class, IUserProfile
     where TUserClaim : UserClaim
     where TUserLogin : UserLogin
     where TUserToken : UserToken
@@ -23,26 +29,29 @@ public class IdentityProviderApiDbContext<TClient, TToken, TUser, TUserClaim, TU
     where TUserRole : UserRole
     where TRoleClaim : RoleClaim;
 
-public class IdentityProviderApiDbContext<TKey>(DbContextOptions options)
-    : IdentityProviderApiDbContext<TKey, ApiClient<TKey>, ApiToken<TKey>, NamedUser<TKey>, Role<TKey>>(options)
+public class IdentityProviderApiDbContext<TKey, TProfile>(DbContextOptions options)
+    : IdentityProviderApiDbContext<TKey, ApiClient<TKey>, ApiToken<TKey>, User<TKey, TProfile>, TProfile, Role<TKey>>(options)
     , IApiDbContext<TKey>
-    where TKey : IEquatable<TKey>;
+    where TKey : IEquatable<TKey>
+    where TProfile : class, IUserProfile;
 
-public class IdentityProviderApiDbContext<TKey, TClient, TToken, TUser, TRole>(DbContextOptions options)
-    : IdentityProviderApiDbContext<TKey, TClient, TToken, TUser, UserClaim<TKey>, UserLogin<TKey>, UserToken<TKey>, TRole, UserRole<TKey>, RoleClaim<TKey>>(options)
+public class IdentityProviderApiDbContext<TKey, TClient, TToken, TUser, TProfile, TRole>(DbContextOptions options)
+    : IdentityProviderApiDbContext<TKey, TClient, TToken, TUser, TProfile, UserClaim<TKey>, UserLogin<TKey>, UserToken<TKey>, TRole, UserRole<TKey>, RoleClaim<TKey>>(options)
     where TKey : IEquatable<TKey>
     where TClient : ApiClient<TKey>
     where TToken : ApiToken<TKey>
-    where TUser : NamedUser<TKey>
+    where TUser : User<TKey, TProfile>
+    where TProfile : class, IUserProfile
     where TRole : Role<TKey>;
 
-public class IdentityProviderApiDbContext<TKey, TClient, TToken, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
+public class IdentityProviderApiDbContext<TKey, TClient, TToken, TUser, TProfile, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(DbContextOptions options)
     : IdentityDbContext<TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>(options), IIdentityApiDbContext<TKey, TClient, TToken>
     , IApiDbContext<TKey, TClient, TToken>
     where TKey : IEquatable<TKey>
     where TClient : ApiClient<TKey>
     where TToken : ApiToken<TKey>
-    where TUser : NamedUser<TKey>
+    where TUser : User<TKey, TProfile>
+    where TProfile : class, IUserProfile
     where TUserClaim : UserClaim<TKey>
     where TUserLogin : UserLogin<TKey>
     where TUserToken : UserToken<TKey>
@@ -54,6 +63,6 @@ public class IdentityProviderApiDbContext<TKey, TClient, TToken, TUser, TUserCla
 
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
-        IdentityProviderApiDbContextBuilder.CreateModel<TKey, TClient, TToken, TUser, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(this, builder);
+        IdentityProviderApiDbContextBuilder.ConfigureModel<TKey, TClient, TToken, TUser, TProfile, TUserClaim, TUserLogin, TUserToken, TRole, TUserRole, TRoleClaim>(this, builder);
     }
 }

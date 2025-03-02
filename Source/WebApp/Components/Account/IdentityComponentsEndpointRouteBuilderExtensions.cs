@@ -1,4 +1,6 @@
+
 // ReSharper disable once CheckNamespace
+using Microsoft.AspNetCore.Antiforgery;
 
 namespace Microsoft.AspNetCore.Routing;
 
@@ -28,10 +30,12 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions {
             });
 
         accountGroup.MapPost("/Logout", async (
-            ClaimsPrincipal _,
-            [FromServices] SignInManager<User> signInManager,
+            HttpContext context,
+            [FromServices] IAntiforgery antiForgery,
             [FromForm] string returnUrl) => {
-                await signInManager.SignOutAsync();
+                await antiForgery.ValidateRequestAsync(context);
+                await context.SignOutAsync();
+                context.Session.Remove("AuthToken");
                 return TypedResults.LocalRedirect($"~/{returnUrl}");
             });
 

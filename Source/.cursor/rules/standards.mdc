@@ -1,0 +1,70 @@
+---
+description: coding
+globs: *.cs
+---
+### Core EditorConfig Options
+- **Indentation & Spacing:** Use 4 spaces for each indent and set tab width to 4.
+- **Line Endings:** Use Windows-style (CRLF) line endings and always add a final newline.
+
+---
+
+### .NET Code Actions
+- **Member Display:** Show all type members without hiding advanced ones.
+- **Member Insertion:** Insert new members alongside similar ones.
+- **Property Generation:** Favor auto-implemented properties.
+- **Symbol Lookup:** Enable searching within reference assemblies.
+
+---
+
+### .NET Coding Conventions
+- **Usings Organization:** Group using directives and list system namespaces first.
+- **Qualification:** Avoid unnecessary qualification (like using "this.") for events, fields, methods, and properties.
+- **Predefined Type Usage:** Prefer explicit type names for locals/parameters but use C#’s built-in type keywords for member access.
+- **Parentheses for Clarity:** Always wrap binary and relational operations in parentheses for clarity, but omit them when they’re unnecessary.
+- **Accessibility Modifiers:** Require explicit access modifiers on non-interface members.
+- **Modern Expression Techniques:** Encourage using null coalescing, object/collection initializers, tuple naming, and inline expressions.
+- **Field & Parameter Practices:** Mark fields as readonly when possible and flag all unused parameters.
+- **Blank Line Rules:** Disallow extra blank lines while allowing statements immediately after a block.
+
+---
+
+### C# Coding Conventions
+- **Var Usage:** Use “var” when the variable type is obvious or for built-in types.
+- **Expression-Bodied Syntax:** Adopt expression-bodied members for properties, methods, lambdas, etc. (but not for constructors).
+- **Pattern Matching & Switches:** Favor modern pattern matching and switch expressions.
+- **Null & Boolean Checks:** Prefer simple default expressions, null checks, and streamlined boolean logic.
+- **Modifiers Order & Function Style:** Enforce a specific order for modifiers and encourage static or local functions over anonymous ones.
+- **Braces & Using Directives:** Use braces for multiline blocks and place using directives outside namespaces.
+- **Spacing Between Lines:** Disallow unnecessary blank lines after tokens in initializers or expressions.
+
+---
+
+### C# Formatting Rules
+- **New Lines:** Start catch, else, and finally blocks on new lines, and break query clauses onto new lines.
+- **Indentation:** Indent block contents and case statements, but keep braces and labels flush left.
+- **Spacing Consistency:** Maintain consistent spacing around operators, commas, parentheses, and brackets.
+- **Block Wrapping:** Preserve single-line blocks for brevity, unless multiline formatting improves clarity.
+- **Using directives:** Arrange using directives so that System namespaces come first, with all groups separated and sorted alphabetically.
+
+---
+
+### Naming Styles
+- **Interface Naming:** Ensure interface names begin with an “I.”
+- **Type & Member Naming:** Require types (classes, structs, enums) and non-field members (properties, methods, events) to use PascalCase.
+- **Application to Symbols:** Apply these naming conventions consistently across all related code symbols.
+
+---
+
+### Diagnostic Rules
+- **Severity Settings:** Adjust the strictness (warning, error, silent, or none) for a broad range of compiler and analyzer messages.
+
+---
+
+### Specific C# Features
+- **Prefer UTF-8 string literals:** Encourages using UTF-8 encoded string literals.
+- **Prefer primary constructors:** Favors the concise primary constructor syntax for initializing types.
+- **Prefer file-scoped namespaces:** Enforces declaring namespaces at the file level, reducing nesting and indentation.
+- **Implicit collection expressions enabled:** Allows initializing collections without explicitly specifying types.
+- **Prefer method group conversions:** Prefers directly converting methods to delegates rather than wrapping them in lambdas.
+
+---

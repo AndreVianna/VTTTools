@@ -26,6 +26,6 @@ public class ApiDbContext<TKey, TClient, TToken>(DbContextOptions options)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);
-        ApiDbContextBuilder.CreateModel<TKey, TClient, TToken>(this, modelBuilder);
+        ApiDbContextBuilder.ConfigureModel<TKey, TClient, TToken>(this, modelBuilder);
     }
 }

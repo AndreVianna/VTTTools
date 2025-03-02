@@ -1,7 +1,7 @@
 ﻿namespace HttpServices.Abstractions.Contracts.Account;
 
 public record RegisterUserRequest : IValidatable {
-    public required string Name { get; init; }
+    public string? Name { get; init; }
     public required string Email { get; init; }
     public required string Password { get; set; }
     public required string ConfirmationUrl { get; set; }

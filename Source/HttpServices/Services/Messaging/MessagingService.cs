@@ -1,17 +1,15 @@
 ﻿namespace HttpServices.Services.Messaging;
 
-internal sealed class MessagingService(IEmailSender emailSender)
-    : MessagingService<NamedUser>(emailSender)
-    , IMessagingService;
+internal class MessagingService<TUser, TProfile>(IEmailSender<TUser> emailSender)
+    : MessagingService<TUser, string, TProfile>(emailSender)
+    where TUser : class, IIdentityUser<TProfile>
+    where TProfile : class, IUserProfile;
 
-internal class MessagingService<TUser>(IEmailSender<TUser> emailSender)
-    : MessagingService<TUser, string>(emailSender)
-    where TUser : NamedUser;
-
-internal class MessagingService<TUser, TKey>(IEmailSender<TUser> emailSender)
+internal class MessagingService<TUser, TKey, TProfile>(IEmailSender<TUser> emailSender)
     : IMessagingService<TUser>
-    where TUser : NamedUser<TKey>
-    where TKey : IEquatable<TKey> {
+    where TUser : class, IIdentityUser<TKey, TProfile>
+    where TKey : IEquatable<TKey>
+    where TProfile : class, IUserProfile {
     public Task SendConfirmationEmailAsync(TUser user, string code, string callbackAbsoluteUri, string? returnUrl = null) {
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         var builder = new UriBuilder(callbackAbsoluteUri);

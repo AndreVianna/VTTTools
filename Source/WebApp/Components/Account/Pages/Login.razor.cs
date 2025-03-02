@@ -31,7 +31,7 @@ public partial class Login {
         _httpClient = ClientFactory.CreateClient("auth");
         if (!HttpMethods.IsGet(HttpContext.Request.Method))
             return;
-        await _httpClient.PostAsJsonAsync(SignOutEndpoint, new SignOutRequest());
+        await HttpContext.SignOutAsync();
     }
 
     public async Task LoginUser() {
@@ -59,47 +59,17 @@ public partial class Login {
         if (result.RequiresTwoFactor) {
             RedirectManager.RedirectTo("Account/LoginWith2fa", new() {
                 ["returnUrl"] = ReturnUrl,
-                ["rememberMe"] = Input.RememberMe
+                ["rememberMe"] = Input.RememberMe,
             });
             return;
         }
 
         var authToken = _jwtHandler.ReadJwtToken(result.Token);
-        var claimsIdentity = new ClaimsIdentity(authToken.Claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var claimsIdentity = new ClaimsIdentity(authToken.Claims, IdentityConstants.ExternalScheme);
         var authProperties = new AuthenticationProperties { IsPersistent = Input.RememberMe };
-        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+        await HttpContext.SignInAsync(new(claimsIdentity), authProperties);
         HttpContext.Session.SetString("AuthToken", result.Token);
         RedirectManager.RedirectTo(ReturnUrl);
-
-        //// This doesn't count login failures towards account lockout
-        //// To enable password failures to trigger account lockout, set lockoutOnFailure: true
-        //var result = await SignInManager.PasswordSignInAsync(Input.Email,
-        //                                                     Input.Password,
-        //                                                     Input.RememberMe,
-        //                                                     lockoutOnFailure: false);
-        //if (result.Succeeded) {
-        //    Logger.LogInformation("User logged in.");
-        //    RedirectManager.RedirectTo(ReturnUrl);
-        //    return;
-        //}
-
-        //if (result.RequiresTwoFactor) {
-        //    Logger.LogInformation("2 factor required.");
-        //    RedirectManager.RedirectTo("Account/LoginWith2fa", new() {
-        //        ["returnUrl"] = ReturnUrl,
-        //        ["rememberMe"] = Input.RememberMe
-        //    });
-        //    return;
-        //}
-
-        //if (result.IsLockedOut) {
-        //    Logger.LogWarning("User account locked out.");
-        //    RedirectManager.RedirectTo("Account/Lockout");
-        //    return;
-        //}
-
-        //Logger.LogWarning("Invalid login attempt.");
-        //_errorMessage = "Error: Invalid login attempt.";
     }
 
     private sealed class InputModel {

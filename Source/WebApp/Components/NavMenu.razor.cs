@@ -3,6 +3,9 @@
 public partial class NavMenu {
     private string? _currentUrl;
 
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = null!;
+
     protected override void OnInitialized() {
         _currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
