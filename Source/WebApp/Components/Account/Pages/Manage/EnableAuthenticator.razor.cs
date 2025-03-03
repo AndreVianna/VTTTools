@@ -1,25 +1,23 @@
-﻿using System.Globalization;
-
-namespace WebApp.Components.Account.Pages.Manage;
+﻿namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class EnableAuthenticator {
     private static readonly CompositeFormat _authenticatorUriFormat = CompositeFormat.Parse("otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6");
     private string? _message;
-    private User _user = default!;
+    private User _user = null!;
     private string? _sharedKey;
     private string? _authenticatorUri;
     private IEnumerable<string>? _recoveryCodes;
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext HttpContext { get; set; } = null!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
+        _user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
 
-        await LoadSharedKeyAndQrCodeUriAsync(_user);
+        await LoadSharedKeyAndQrCodeUriAsync(_user!);
     }
 
     private async Task OnValidSubmitAsync() {

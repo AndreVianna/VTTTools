@@ -1,6 +1,4 @@
-﻿using System.Text.Encodings.Web;
-
-namespace WebApp.Components.Account.Pages;
+﻿namespace WebApp.Components.Account.Pages;
 
 public partial class ExternalLogin {
     public const string LoginCallbackAction = "LoginCallback";
@@ -8,7 +6,7 @@ public partial class ExternalLogin {
     private ExternalLoginInfo? _externalLoginInfo;
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext HttpContext { get; set; } = null!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();

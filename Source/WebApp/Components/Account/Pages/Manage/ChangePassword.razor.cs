@@ -2,17 +2,17 @@
 
 public partial class ChangePassword {
     private string? _message;
-    private User _user = default!;
+    private User _user = null!;
     private bool _hasPassword;
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext HttpContext { get; set; } = null!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
+        _user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
         _hasPassword = await UserManager.HasPasswordAsync(_user);
         if (!_hasPassword)
             RedirectManager.RedirectTo("Account/Manage/SetPassword");

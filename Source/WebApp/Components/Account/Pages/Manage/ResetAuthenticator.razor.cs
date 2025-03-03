@@ -2,10 +2,10 @@
 
 public partial class ResetAuthenticator {
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext HttpContext { get; set; } = null!;
 
     private async Task OnSubmitAsync() {
-        var user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
+        var user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
         await UserManager.SetTwoFactorEnabledAsync(user, false);
         await UserManager.ResetAuthenticatorKeyAsync(user);
         var userId = await UserManager.GetUserIdAsync(user);

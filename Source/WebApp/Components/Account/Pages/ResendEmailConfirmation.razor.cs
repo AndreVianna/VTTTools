@@ -1,6 +1,4 @@
-﻿using System.Text.Encodings.Web;
-
-namespace WebApp.Components.Account.Pages;
+﻿namespace WebApp.Components.Account.Pages;
 
 public partial class ResendEmailConfirmation {
     private string? _message;

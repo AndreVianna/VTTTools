@@ -2,18 +2,17 @@
 
 public partial class DeletePersonalData {
     private string? _message;
-    private User _user = default!;
+    private User _user = null!;
     private bool _requirePassword;
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext HttpContext { get; set; } = null!;
 
     [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
+    private InputModel Input { get; } = new();
 
     protected override async Task OnInitializedAsync() {
-        Input ??= new();
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
+        _user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
         _requirePassword = await UserManager.HasPasswordAsync(_user);
     }
 

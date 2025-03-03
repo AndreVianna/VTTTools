@@ -1,6 +1,6 @@
 ﻿namespace WebApp.Components.Account.Model;
 
-public record User {
+public record WebAppUser {
     [Required]
     [StringLength(48)]
     public required string Id { get; init; }
@@ -18,16 +18,4 @@ public record User {
 
     [StringLength(25)]
     public string? PhoneNumber { get; init; }
-
-    public bool EmailConfirmed { get; init; }
-
-    public bool PhoneNumberConfirmed { get; init; }
-
-    public bool TwoFactorEnabled { get; init; }
-
-    public DateTimeOffset? LockoutEnd { get; init; }
-
-    public bool LockoutEnabled { get; init; }
-
-    public int AccessFailedCount { get; init; }
 }

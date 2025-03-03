@@ -1,14 +1,14 @@
 ﻿namespace HttpServices.Services.Account;
 
 internal sealed class AccountService(UserManager<User> userManager,
-                                     IOptions<ExtendedIdentityOptions> identityOptions,
+                                     IOptions<AuthenticationServiceOptions> identityOptions,
                                      IMessagingService<User> messagingService,
                                      ILogger<AccountService> logger)
     : AccountService<User, NamedUserProfile>(userManager, identityOptions, messagingService, logger)
     , IAccountService;
 
 internal class AccountService<TUser, TProfile>(UserManager<TUser> userManager,
-                                     IOptions<ExtendedIdentityOptions> identityOptions,
+                                     IOptions<AuthenticationServiceOptions> identityOptions,
                                      IMessagingService<TUser> messagingService,
                                      ILogger<AccountService<TUser, TProfile>> logger)
     : AccountService<TUser, string, TProfile>(userManager, identityOptions, messagingService, logger)
@@ -16,14 +16,14 @@ internal class AccountService<TUser, TProfile>(UserManager<TUser> userManager,
     where TProfile : class, IUserProfile, new();
 
 internal class AccountService<TUser, TKey, TProfile>(UserManager<TUser> userManager,
-                                                     IOptions<ExtendedIdentityOptions> identityOptions,
+                                                     IOptions<AuthenticationServiceOptions> identityOptions,
                                                      IMessagingService<TUser> messagingService,
                                                      ILogger<AccountService<TUser, TKey, TProfile>> logger)
     : IAccountService<TKey>
     where TUser : class, IIdentityUser<TKey, TProfile>, new()
     where TKey : IEquatable<TKey>
     where TProfile : class, IUserProfile, new() {
-    private readonly ExtendedIdentityOptions _options = identityOptions.Value;
+    private readonly AuthenticationServiceOptions _options = identityOptions.Value;
 
     public async Task<FindUserResponse?> FindAsync(string? id, string? email) {
         var user = id is not null ? await userManager.FindByIdAsync(id)
@@ -32,8 +32,14 @@ internal class AccountService<TUser, TKey, TProfile>(UserManager<TUser> userMana
         return string.IsNullOrWhiteSpace(user?.Email) ? null
              : new() {
                  Id = user.Id.ToString()!,
+                 Identifier = user.IdentifierType switch {
+                    IdentifierType.Email => user.Email!,
+                    IdentifierType.UserName => user.UserName!,
+                    _ => user.Id.ToString()!,
+                 },
                  Email = user.Email,
-                 Name = user.Profile?.Name ?? user.Email,
+                 UserName = user.UserName,
+                 Name = user.Profile?.Name ?? user.UserName ?? user.Email!,
              };
     }
 
@@ -42,15 +48,16 @@ internal class AccountService<TUser, TKey, TProfile>(UserManager<TUser> userMana
         if (result.HasErrors)
             return result;
 
-        if (request.Email.Equals(_options.MasterUser?.Email, StringComparison.OrdinalIgnoreCase))
+        if (request.Email.Equals(_options.Master?.Identifier, StringComparison.OrdinalIgnoreCase))
             return new[] { new Error("Email", "A user with this email already exists.") };
 
         if (await userManager.FindByEmailAsync(request.Email) != null)
             return new[] { new Error("Email", "A user with this email already exists.") };
 
         var user = Activator.CreateInstance<TUser>();
+        user.Email = request.Email;
         user.Profile = Activator.CreateInstance<TProfile>();
-        user.Profile.Name = request.Name ?? user.UserName ?? user.Email ?? string.Empty;
+        user.Profile.Name = request.Name ?? string.Empty;
         await userManager.SetUserNameAsync(user, request.Email);
         await userManager.SetEmailAsync(user, request.Email);
         var identityResult = await userManager.CreateAsync(user, request.Password);

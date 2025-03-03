@@ -12,18 +12,12 @@ builder.Services.AddHttpClient("game", static client => client.BaseAddress = new
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
-builder.Services.AddScoped<ISecurityStampValidator, NullSecurityStampValidator>();
+builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingAuthenticationStateProvider>();
 builder.Services.AddAuthentication(options => {
-    options.DefaultScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultScheme = IdentityConstants.ExternalScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
 }).AddIdentityCookies();
 
-builder.Services.AddSession(options => {
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-    options.Cookie.SameSite = SameSiteMode.Strict;
-});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -39,12 +33,11 @@ else {
 app.UseHttpsRedirection();
 
 app.UseAntiforgery();
-app.UseSession();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode();
-app.MapAdditionalIdentityEndpoints();
+app.MapApiEndpoints();
 
 app.Run();

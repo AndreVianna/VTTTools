@@ -2,7 +2,7 @@
 
 public partial class LoginWithRecoveryCode {
     private string? _message;
-    private User _user = default!;
+    private User _user = null!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();

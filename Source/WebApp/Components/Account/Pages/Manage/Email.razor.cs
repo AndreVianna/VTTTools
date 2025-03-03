@@ -1,23 +1,21 @@
-﻿using System.Text.Encodings.Web;
-
-namespace WebApp.Components.Account.Pages.Manage;
+﻿namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class Email {
     private string? _message;
-    private User _user = default!;
+    private User _user = null!;
     private string? _email;
     private bool _isEmailConfirmed;
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext HttpContext { get; set; } = null!;
 
     [SupplyParameterFromForm(FormName = "change-email")]
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
-        _email = await UserManager.GetEmailAsync(_user);
-        _isEmailConfirmed = await UserManager.IsEmailConfirmedAsync(_user);
+        _user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
+        _email = await UserManager.GetEmailAsync(_user!);
+        _isEmailConfirmed = await UserManager.IsEmailConfirmedAsync(_user!);
 
         Input.NewEmail ??= _email;
     }

@@ -4,7 +4,7 @@ public partial class ConfirmEmail {
     private string? _statusMessage;
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext HttpContext { get; set; } = null!;
 
     [SupplyParameterFromQuery]
     private string? UserId { get; set; }

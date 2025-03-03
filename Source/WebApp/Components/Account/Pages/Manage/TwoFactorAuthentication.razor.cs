@@ -10,13 +10,11 @@ public partial class TwoFactorAuthentication {
     private bool _isMachineRemembered;
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext HttpContext { get; set; } = null!;
 
     protected override async Task OnInitializedAsync() {
-        var user = await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None);
-        _canTrack = HttpContext.Features.Get<ITrackingConsentFeature>()
-                             ?.CanTrack
-                ?? true;
+        var user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
+        _canTrack = HttpContext.Features.Get<ITrackingConsentFeature>()?.CanTrack ?? true;
         _hasAuthenticator = await UserManager.GetAuthenticatorKeyAsync(user) is not null;
         _is2FaEnabled = await UserManager.GetTwoFactorEnabledAsync(user);
         _isMachineRemembered = await SignInManager.IsTwoFactorClientRememberedAsync(user);

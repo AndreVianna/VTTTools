@@ -1,6 +1,6 @@
 ﻿namespace HttpServices.Services.Messaging;
 
-internal class MessagingService<TUser, TProfile>(IEmailSender<TUser> emailSender)
+internal sealed class MessagingService<TUser, TProfile>(IEmailSender<TUser> emailSender)
     : MessagingService<TUser, string, TProfile>(emailSender)
     where TUser : class, IIdentityUser<TProfile>
     where TProfile : class, IUserProfile;

@@ -1,6 +1,6 @@
 ﻿namespace HttpServices.Services.Messaging;
 
-internal class NullEmailSender<TUser>
+internal sealed class NullEmailSender<TUser>
     : IEmailSender<TUser>
     where TUser : class {
     public Task SendConfirmationLinkAsync(TUser user, string email, string confirmationLink) => Task.CompletedTask;

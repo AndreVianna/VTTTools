@@ -1,8 +1,10 @@
-﻿namespace HttpServices.Services.Authentication;
+﻿using System.Text.Json;
+
+namespace HttpServices.Services.Authentication;
 
 internal sealed class AuthenticationService(IConfiguration configuration,
                                             IHostEnvironment environment,
-                                            IOptions<ExtendedIdentityOptions> identityOptions,
+                                            IOptions<AuthenticationServiceOptions> identityOptions,
                                             UserManager<User> userManager,
                                             SignInManager<User> signInManager,
                                             IMessagingService<User> messagingService,
@@ -17,7 +19,7 @@ internal sealed class AuthenticationService(IConfiguration configuration,
 
 internal class AuthenticationService<TUser, TProfile>(IConfiguration configuration,
                                             IHostEnvironment environment,
-                                            IOptions<ExtendedIdentityOptions> identityOptions,
+                                            IOptions<AuthenticationServiceOptions> identityOptions,
                                             UserManager<TUser> userManager,
                                             SignInManager<TUser> signInManager,
                                             IMessagingService<TUser> messagingService,
@@ -25,22 +27,22 @@ internal class AuthenticationService<TUser, TProfile>(IConfiguration configurati
     : IAuthenticationService
     where TUser : class, IIdentityUser<TProfile>, new()
     where TProfile : class, IUserProfile, new() {
-    private readonly ExtendedIdentityOptions _options = identityOptions.Value;
+    private readonly AuthenticationServiceOptions _options = identityOptions.Value;
     private readonly JwtSecurityTokenHandler _jwtHandler = new();
 
     public async Task<TypedResult<SignInStatus, string>> PasswordSignIn(PasswordSignInRequest request) {
-        logger.LogInformation("Login attempt for '{Email}'.", request.Email);
-        if (TryValidateMasterUser(request, _options.MasterUser, out var master)) {
-            var token = GenerateUserToken(master.Id, master.Profile?.Name ?? master.Email!, master.Email!, [Roles.Admin]);
+        logger.LogInformation("Login attempt for '{Email}'.", request.Identifier);
+        if (TryValidateMasterUser(request, _options.Master, out var master)) {
+            var token = GenerateUserToken(master.Id, master.Identifier, [Roles.Admin], master.Email, master.PhoneNumber, master.Profile);
             await signInManager.SignInAsync(master, true);
             logger.LogInformation("Master user logged in.");
             return TypedResult.As(SignInStatus.Success, token);
         }
 
-        var user = await userManager.FindByEmailAsync(request.Email);
+        var user = await userManager.FindByEmailAsync(request.Identifier);
         if (user is null) {
-            logger.LogInformation("Account '{Email}' not found.", request.Email);
-            var error = new Error($"Account '{request.Email}' not found.", nameof(request.Email));
+            logger.LogInformation("Account '{Email}' not found.", request.Identifier);
+            var error = new Error($"Account '{request.Identifier}' not found.", nameof(request.Identifier));
             return TypedResult.As(SignInStatus.AccountNotFound, [error]).WithNo<string>();
         }
 
@@ -49,38 +51,38 @@ internal class AuthenticationService<TUser, TProfile>(IConfiguration configurati
         if (!user.AccountConfirmed && _options.SignIn.RequireConfirmedAccount) {
             logger.LogInformation("Account '{UserId}' requires confirmation.", user.Id);
             var token = await GenerateEmailConfirmationToken(user);
-            var error = new Error("Account requires confirmation.", nameof(request.Email));
+            var error = new Error("Account requires confirmation.", nameof(request.Identifier));
             return TypedResult.As(SignInStatus.EmailNotConfirmed, token, error);
         }
 
         if (result.RequiresTwoFactor) {
             logger.LogInformation("Account '{UserId}' requires two factor.", user.Id);
             var token = await GenerateAndSendTwoFactorToken(user);
-            var error = new Error("Two factor authentication required.", nameof(request.Email));
+            var error = new Error("Two factor authentication required.", nameof(request.Identifier));
             return TypedResult.As(SignInStatus.RequiresTwoFactor, token, error);
         }
 
         if (result.Succeeded) {
             logger.LogInformation("Account '{UserId}' logged in.", user.Id);
             var roles = await userManager.GetRolesAsync(user);
-            var token = GenerateUserToken(user.Id, user.Profile?.Name ?? user.Email!, user.Email!, roles);
+            var token = GenerateUserToken(user.Id, user.Identifier, roles, user.Email, user.PhoneNumber, user.Profile);
             return TypedResult.As(SignInStatus.Success, token);
         }
 
         if (result.IsLockedOut) {
             logger.LogInformation("Account '{UserId}' is locked out.", user.Id);
-            var error = new Error("Account is temporarily locked.", nameof(request.Email));
+            var error = new Error("Account is temporarily locked.", nameof(request.Identifier));
             return TypedResult.As(SignInStatus.LockedAccount, [error]).WithNo<string>();
         }
 
         if (result.IsNotAllowed) {
             logger.LogInformation("Account '{UserId}' is blocked.", user.Id);
-            var error = new Error("Account is blocked.", nameof(request.Email));
+            var error = new Error("Account is blocked.", nameof(request.Identifier));
             return TypedResult.As(SignInStatus.BlockedAccount, [error]).WithNo<string>();
         }
 
         logger.LogInformation("Invalid login for '{UserId}'", user.Id);
-        var failure = new Error("Invalid login.", nameof(request.Email));
+        var failure = new Error("Invalid login.", nameof(request.Identifier));
         return TypedResult.As(SignInStatus.IncorrectLogin, [failure]).WithNo<string>();
     }
 
@@ -104,51 +106,56 @@ internal class AuthenticationService<TUser, TProfile>(IConfiguration configurati
         return token;
     }
 
-    private bool TryValidateMasterUser(PasswordSignInRequest request, MasterUserOptions? master, [NotNullWhen(true)] out TUser? user) {
+    private bool TryValidateMasterUser(PasswordSignInRequest request, MasterOptions? masterUser, [NotNullWhen(true)] out TUser? user) {
         user = null;
-        if (master is null
-          || !request.Email.Equals(master.Email, StringComparison.OrdinalIgnoreCase)
-          || request.Password != (environment.IsDevelopment()
-                                        ? master.Password
-                                        : Convert.ToBase64String(SHA512.HashData(Encoding.UTF8.GetBytes(master.Password))))) {
+        if (masterUser?.Identifier.Equals(request.Identifier, StringComparison.OrdinalIgnoreCase) != true
+         || masterUser.HashedSecret != (environment.IsDevelopment()
+                                            ? request.Password
+                                            : Convert.ToBase64String(SHA512.HashData(Encoding.UTF8.GetBytes(request.Password))))) {
             return false;
         }
 
         user = InstanceFactory.Create<TUser>();
-        user.Id = master.Id;
-        user.UserName = master.Email;
-        user.NormalizedUserName = master.Email.ToUpperInvariant();
-        user.Email = master.Email;
-        user.NormalizedEmail = master.Email.ToUpperInvariant();
+        user.Id = masterUser.Id;
+        user.Identifier = masterUser.Identifier;
+        user.Email = masterUser.Email;
+        user.NormalizedEmail = user.Email?.ToUpperInvariant();
+        user.UserName = masterUser.Identifier;
+        user.NormalizedUserName = user.UserName?.ToUpperInvariant();
         user.SecurityStamp = Guid.NewGuid().ToString();
         user.EmailConfirmed = true;
+        user.LockoutEnabled = true;
         user.TwoFactorEnabled = false;
-        user.LockoutEnabled = false;
 
-        user.Profile = new() { Name = master.Profile?.Name ?? master.Email };
+        user.Profile = new() { Name = masterUser.Name ?? masterUser.Identifier };
         return true;
     }
 
-    private string GenerateUserToken(string id, string name, string email, IEnumerable<string> roles) {
-        var claims = new Claim[] {
-            new(_options.ClaimsIdentity.UserIdClaimType, id),
-            new(_options.ClaimsIdentity.UserNameClaimType, email),
-            new(_options.ClaimsIdentity.EmailClaimType, email),
-            new("name", name),
+    private string GenerateUserToken(string id, string identifier, IEnumerable<string> roles, string? email, string? phoneNumber, IUserProfile? profile) {
+        var claims = new List<Claim> {
+            new(_options.ClaimsIdentity.IdClaimType, id),
+            new(_options.ClaimsIdentity.IdentifierClaimType, identifier),
         };
-        claims = [.. claims, .. roles.Select(role => new Claim(_options.ClaimsIdentity.RoleClaimType, role))];
+        if (!string.IsNullOrWhiteSpace(email))
+            claims.Add(new(_options.ClaimsIdentity.EmailClaimType, email));
+        if (!string.IsNullOrWhiteSpace(phoneNumber))
+            claims.Add(new(_options.ClaimsIdentity.PhoneNumberClaimType, phoneNumber));
+        claims.AddRange(roles.Select(role => new Claim(_options.ClaimsIdentity.RoleClaimType, role)));
+        if (profile is not null)
+            claims.Add(new(_options.ClaimsIdentity.ProfileClaimType, JsonSerializer.Serialize(profile)));
         var identity = new ClaimsIdentity(claims,
                                           IdentityConstants.ExternalScheme,
-                                          _options.ClaimsIdentity.UserIdClaimType,
+                                          _options.ClaimsIdentity.IdentifierClaimType,
                                           _options.ClaimsIdentity.RoleClaimType);
         var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>()!;
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key));
+        var now = DateTime.UtcNow;
         return _jwtHandler.CreateEncodedJwt(issuer: jwtSettings.Issuer,
                                             audience: jwtSettings.Audience,
                                             subject: identity,
-                                            notBefore: null,
-                                            expires: DateTime.UtcNow.AddMinutes(30),
-                                            issuedAt: DateTime.UtcNow,
+                                            notBefore: now,
+                                            expires: now.AddMinutes(30),
+                                            issuedAt: now,
                                             signingCredentials: new(securityKey, SecurityAlgorithms.HmacSha256));
     }
 }

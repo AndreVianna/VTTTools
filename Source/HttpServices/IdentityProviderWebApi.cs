@@ -21,7 +21,7 @@ public static class IdentityProviderWebApi {
         where TRole : class {
         var builder = WebApi.CreateBuilder<TDatabase>(args, configure);
 
-        builder.Services.Configure<ExtendedIdentityOptions>(builder.Configuration.GetSection("Identity"));
+        builder.Services.Configure<AuthenticationServiceOptions>(builder.Configuration.GetSection("Identity"));
         builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
         builder.Services.AddScoped<IAccountService, AccountService>();
         builder.Services.AddScoped<IMessagingService<TUser>, MessagingService<TUser, TProfile>>();

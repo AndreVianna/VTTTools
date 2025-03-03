@@ -27,16 +27,16 @@ public partial class Login {
 
     private HttpClient _httpClient = null!;
 
-    protected override async Task OnInitializedAsync() {
+    protected override Task OnInitializedAsync() {
         _httpClient = ClientFactory.CreateClient("auth");
-        if (!HttpMethods.IsGet(HttpContext.Request.Method))
-            return;
-        await HttpContext.SignOutAsync();
+        return !HttpMethods.IsGet(HttpContext.Request.Method)
+                   ? Task.CompletedTask
+                   : HttpContext.SignOutAsync();
     }
 
     public async Task LoginUser() {
         var request = new PasswordSignInRequest {
-            Email = Input.Email,
+            Identifier = Input.Email,
             Password = Input.Password,
             RememberMe = Input.RememberMe,
             ReturnUrl = ReturnUrl,
@@ -68,7 +68,6 @@ public partial class Login {
         var claimsIdentity = new ClaimsIdentity(authToken.Claims, IdentityConstants.ExternalScheme);
         var authProperties = new AuthenticationProperties { IsPersistent = Input.RememberMe };
         await HttpContext.SignInAsync(new(claimsIdentity), authProperties);
-        HttpContext.Session.SetString("AuthToken", result.Token);
         RedirectManager.RedirectTo(ReturnUrl);
     }
 

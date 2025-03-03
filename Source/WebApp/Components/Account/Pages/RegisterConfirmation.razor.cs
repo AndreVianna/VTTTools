@@ -5,7 +5,7 @@ public partial class RegisterConfirmation {
     private string? _statusMessage;
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext HttpContext { get; set; } = null!;
 
     [SupplyParameterFromQuery]
     private string? Email { get; set; }

@@ -6,14 +6,13 @@ internal static class IdentityProviderApiDbContextBuilder {
         where TClient : ApiClient<TKey>
         where TToken : ApiToken<TKey>
         where TUser : User<TKey, TProfile>
-        where TProfile : class, IUserProfile
+        where TProfile : class, IUserProfile, new()
         where TUserClaim : UserClaim<TKey>
         where TUserLogin : UserLogin<TKey>
         where TUserToken : UserToken<TKey>
         where TRole : Role<TKey>
         where TUserRole : UserRole<TKey>
         where TRoleClaim : RoleClaim<TKey> {
-
         ApiDbContextBuilder.ConfigureModel<TKey, TClient, TToken>(context, modelBuilder);
 
         var storeOptions = context.GetService<IDbContextOptions>()
@@ -52,6 +51,7 @@ internal static class IdentityProviderApiDbContextBuilder {
 
         modelBuilder.Entity<TUser>(b => {
             b.ToTable("Users");
+            b.OwnsOne(u => u.Profile);
 
             b.Property(i => i.Id).ValueGeneratedOnAdd().SetDefaultValueGeneration();
             b.Property(e => e.UserName).HasMaxLength(256).IsRequired();
@@ -61,9 +61,8 @@ internal static class IdentityProviderApiDbContextBuilder {
             b.Property(e => e.PhoneNumber).HasMaxLength(32);
             b.Property(e => e.SecurityStamp).HasMaxLength(256);
             b.Property(e => e.ConcurrencyStamp).HasMaxLength(48).IsConcurrencyToken();
-            b.Property(e => e.TwoFactorType).HasConversion<string>().IsRequired().HasDefaultValue(TwoFactorType.Undefined);
-
-            b.OwnsOne(u => u.Profile);
+            b.Property(e => e.TwoFactorType).HasConversion<string>().IsRequired().HasDefaultValue(TwoFactorType.None);
+            b.Property(e => e.IdentifierType).HasConversion<string>().IsRequired().HasDefaultValue(IdentifierType.Email);
 
             b.HasMany<TUserClaim>().WithOne().HasForeignKey(e => e.UserId).IsRequired();
             b.HasMany<TUserLogin>().WithOne().HasForeignKey(e => e.UserId).IsRequired();

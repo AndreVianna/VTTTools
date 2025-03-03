@@ -7,7 +7,7 @@ public partial class StatusMessage {
     public string? Message { get; set; }
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext HttpContext { get; set; } = null!;
 
     private string? DisplayMessage => Message ?? _messageFromCookie;
 
