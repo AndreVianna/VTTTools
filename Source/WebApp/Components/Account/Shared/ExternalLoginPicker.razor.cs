@@ -1,4 +1,4 @@
-﻿using static HttpServices.Abstractions.AuthenticationEndpoints;
+﻿using static HttpServices.AuthenticationEndpoints;
 
 namespace WebApp.Components.Account.Shared;
 

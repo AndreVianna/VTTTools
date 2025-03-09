@@ -1,4 +1,6 @@
-﻿namespace WebApp.Components.Account.Pages;
+﻿using HttpServices.Model;
+
+namespace WebApp.Components.Account.Pages;
 
 public partial class LoginWithRecoveryCode {
     private string? _message;

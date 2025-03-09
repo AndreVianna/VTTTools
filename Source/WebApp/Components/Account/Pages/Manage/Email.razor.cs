@@ -1,4 +1,6 @@
-﻿namespace WebApp.Components.Account.Pages.Manage;
+﻿using HttpServices.Model;
+
+namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class Email {
     private string? _message;

@@ -1,4 +1,6 @@
-﻿namespace Domain.Contracts.Account;
+﻿using HttpServices.Model;
+
+namespace Domain.Contracts.Account;
 
 public sealed record FindUserResponse {
     public required string Id { get; init; }

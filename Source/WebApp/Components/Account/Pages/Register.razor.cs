@@ -1,4 +1,4 @@
-﻿using static HttpServices.Abstractions.UserAccountEndpoints;
+﻿using static HttpServices.UserAccountEndpoints;
 
 namespace WebApp.Components.Account.Pages;
 

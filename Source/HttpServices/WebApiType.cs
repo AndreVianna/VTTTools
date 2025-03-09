@@ -1,4 +1,4 @@
-namespace Microsoft.Extensions.Hosting;
+namespace HttpServices;
 
 public enum WebApiType {
     Empty,

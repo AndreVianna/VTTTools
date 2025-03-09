@@ -1,4 +1,4 @@
-var builder = WebApi.CreateBuilder<GameServiceDbContext>(args, (options, configuration) => {
+var builder = WebApi.CreateBuilder<ServiceDbContext>(args, (options, configuration) => {
     var connectionString = IsNotNull(configuration.GetConnectionString("DefaultConnection"));
     options.UseSqlServer(connectionString);
 });

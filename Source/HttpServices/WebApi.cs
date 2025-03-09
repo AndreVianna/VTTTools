@@ -1,4 +1,5 @@
 // ReSharper disable once CheckNamespace
+
 namespace Microsoft.Extensions.Hosting;
 
 public static class WebApi {
@@ -11,7 +12,7 @@ public static class WebApi {
         builder.Services.AddProblemDetails();
         builder.Services.AddOpenApi();
 
-        builder.Services.AddScoped<IClientService, ClientService<TDatabase>>();
+        builder.Services.AddScoped<IApiConsumerService, ApiConsumerService<TDatabase>>();
 
         var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()
                        ?? throw new InvalidOperationException("Jwt settings are missing from the configuration.");

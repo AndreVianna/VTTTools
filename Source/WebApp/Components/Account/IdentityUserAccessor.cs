@@ -1,3 +1,5 @@
+using HttpServices.Model;
+
 namespace WebApp.Components.Account;
 
 internal sealed class IdentityUserAccessor(IHttpClientFactory clientFactory, IdentityRedirectManager redirectManager) {
@@ -29,7 +31,6 @@ internal sealed class IdentityUserAccessor(IHttpClientFactory clientFactory, Ide
                 IdentifierType = IdentifierType.Email,
                 Identifier = response.Email,
                 Email = response.Email,
-                Profile = new() { Name = response.Name },
                 PhoneNumber = response.PhoneNumber,
             };
     }

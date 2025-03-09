@@ -1,4 +1,6 @@
-﻿namespace WebApp.Components.Account.Pages;
+﻿using HttpServices.Model;
+
+namespace WebApp.Components.Account.Pages;
 
 // ReSharper disable once InconsistentNaming
 public partial class LoginWith2fa {

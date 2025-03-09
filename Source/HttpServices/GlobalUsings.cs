@@ -9,16 +9,19 @@ global using System.Text;
 
 global using DotNetToolbox;
 global using DotNetToolbox.Results;
+global using DotNetToolbox.Validation;
 
-global using HttpServices.Abstractions.Contracts.Account;
-global using HttpServices.Abstractions.Contracts.Client;
-global using HttpServices.Abstractions.Contracts.SignIn;
-global using HttpServices.Abstractions.Helpers;
-global using HttpServices.Abstractions.Model;
+global using HttpServices.Accounts.Contracts;
+global using HttpServices.ApiConsumers;
+global using HttpServices.ApiConsumers.Contracts;
+global using HttpServices.ApiConsumers.Data;
+global using HttpServices.ApiConsumers.Model;
+global using HttpServices.Helpers;
 global using HttpServices.Data;
-global using HttpServices.Model;
+global using HttpServices.Identity.Contracts;
+global using HttpServices.Identity.Model;
+global using HttpServices.Identity.Options;
 global using HttpServices.Services.Account;
-global using HttpServices.Services.Client;
 global using HttpServices.Services.Messaging;
 
 global using Microsoft.AspNetCore.Abstractions;

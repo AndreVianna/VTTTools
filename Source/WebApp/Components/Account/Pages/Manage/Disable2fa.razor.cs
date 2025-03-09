@@ -1,4 +1,6 @@
-﻿namespace WebApp.Components.Account.Pages.Manage;
+﻿using HttpServices.Model;
+
+namespace WebApp.Components.Account.Pages.Manage;
 
 // ReSharper disable once InconsistentNaming
 public partial class Disable2fa {

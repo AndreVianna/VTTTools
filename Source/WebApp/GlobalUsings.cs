@@ -12,8 +12,6 @@ global using System.Text.Json;
 global using Domain.Contracts.Account;
 
 global using HttpServices.Abstractions;
-global using HttpServices.Abstractions.Contracts.SignIn;
-global using HttpServices.Abstractions.Model;
 
 global using Microsoft.AspNetCore.Antiforgery;
 global using Microsoft.AspNetCore.Authentication;

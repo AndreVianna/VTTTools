@@ -1,5 +1,7 @@
 ﻿using Domain.Model;
 
+using HttpServices.Model;
+
 namespace WebApp.Components;
 
 public partial class NavMenu {

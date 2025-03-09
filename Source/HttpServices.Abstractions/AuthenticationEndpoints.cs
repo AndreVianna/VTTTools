@@ -1,4 +1,4 @@
-﻿namespace HttpServices.Abstractions;
+﻿namespace HttpServices;
 
 public static class AuthenticationEndpoints {
     public const string SignInEndpoint = "/sign-in";

@@ -1,4 +1,4 @@
-namespace Microsoft.Extensions.Hosting;
+namespace HttpServices;
 
 public class WebApiOptions {
     public WebApiType Type { get; init; }

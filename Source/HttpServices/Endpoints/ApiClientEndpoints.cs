@@ -1,4 +1,4 @@
-using static HttpServices.Abstractions.ApiClientEndpoints;
+using static HttpServices.ApiClientEndpoints;
 
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
@@ -12,7 +12,7 @@ public static class ApiClientEndpoints {
         return app;
     }
 
-    private static async Task<IResult> GenerateAsync([FromServices] IClientService service, [FromBody] GenerateTokenRequest request) {
+    private static async Task<IResult> GenerateAsync([FromServices] IApiConsumerService service, [FromBody] GenerateTokenRequest request) {
         var result = await service.GenerateTokenAsync(request);
         return result.HasErrors
                    ? Results.BadRequest(result.Errors)
@@ -21,7 +21,7 @@ public static class ApiClientEndpoints {
                        : Results.Ok(result.Value);
     }
 
-    private static async Task<IResult> RegisterAsync([FromServices] IClientService service, [FromBody] RegisterClientRequest request) {
+    private static async Task<IResult> RegisterAsync([FromServices] IApiConsumerService service, [FromBody] RegisterClientRequest request) {
         var result = await service.RegisterAsync(request);
         return Results.Ok(result);
     }

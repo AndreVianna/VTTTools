@@ -1,7 +1,9 @@
-var builder = IdentityProviderWebApi.CreateBuilder<IdentityServiceDbContext, User, NamedUserProfile>(args, (options, configuration) => {
-    var connectionString = IsNotNull(configuration.GetConnectionString("DefaultConnection"));
-    options.UseSqlServer(connectionString);
-});
+using HttpServices.Identity.Model;
+
+var builder = IdentityProviderWebApi.CreateBuilder<ServiceDbContext, UserIdentity>(args, (options, configuration) => {
+                                                                                             var connectionString = IsNotNull(configuration.GetConnectionString("DefaultConnection"));
+                                                                                             options.UseSqlServer(connectionString);
+                                                                                         });
 
 var app = builder.Build();
 

@@ -1,4 +1,6 @@
-﻿using static HttpServices.Abstractions.UserAccountEndpoints;
+﻿using HttpServices.Accounts;
+
+using static HttpServices.UserAccountEndpoints;
 
 using IResult = Microsoft.AspNetCore.Http.IResult;
 

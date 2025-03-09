@@ -1,4 +1,6 @@
-﻿using static HttpServices.Abstractions.AuthenticationEndpoints;
+﻿using HttpServices.Contracts.SignIn;
+
+using static HttpServices.AuthenticationEndpoints;
 
 namespace WebApp.Components.Account.Pages;
 

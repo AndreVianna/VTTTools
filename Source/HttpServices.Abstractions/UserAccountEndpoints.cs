@@ -1,4 +1,4 @@
-﻿namespace HttpServices.Abstractions;
+﻿namespace HttpServices;
 
 public static class UserAccountEndpoints {
     public const string UsersEndpoint = "/users";

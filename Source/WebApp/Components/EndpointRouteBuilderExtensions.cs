@@ -1,4 +1,7 @@
 // ReSharper disable once CheckNamespace
+
+using HttpServices.Model;
+
 namespace WebApp.Components;
 
 internal static class EndpointRouteBuilderExtensions {

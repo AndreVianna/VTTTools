@@ -1,4 +1,4 @@
-﻿using static HttpServices.Abstractions.HealthCheckEndpoints;
+﻿using static HttpServices.HealthCheckEndpoints;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.AspNetCore.Routing;

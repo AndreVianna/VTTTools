@@ -1,4 +1,4 @@
-﻿namespace HttpServices.Abstractions.Helpers;
+﻿namespace HttpServices.Helpers;
 
 public static partial class StringHelpers {
     private static readonly Random _randomizer = new((int)DateTimeOffset.UtcNow.Ticks);

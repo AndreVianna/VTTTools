@@ -1,4 +1,4 @@
-namespace HttpServices.Abstractions;
+namespace HttpServices;
 
 public static class ApiClientEndpoints {
     public const string TokensEndpoint = "/tokens";

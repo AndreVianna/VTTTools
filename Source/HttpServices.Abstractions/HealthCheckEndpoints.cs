@@ -1,4 +1,4 @@
-﻿namespace HttpServices.Abstractions;
+﻿namespace HttpServices;
 
 public static class HealthCheckEndpoints {
     public const string HealthEndpoint = "/health";

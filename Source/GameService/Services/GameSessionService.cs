@@ -15,7 +15,7 @@ public class GameSessionService(IGameSessionStorage data) {
     public async Task<GameSession?> GetSessionAsync(Guid sessionId, CancellationToken ct = default)
         => await data.GetByIdAsync(sessionId, ct);
 
-    public async Task JoinSessionAsync(Guid sessionId, Guid userId, PlayerRole role = PlayerRole.Player, CancellationToken ct = default) {
+    public async Task JoinSessionAsync(Guid sessionId, Guid userId, UserGameRole role = UserGameRole.Player, CancellationToken ct = default) {
         var session = await data.GetByIdAsync(sessionId, ct)
             ?? throw new("Session not found.");
         session.Players.Add(new() { UserId = userId, Role = role });

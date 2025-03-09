@@ -1,7 +1,7 @@
-﻿using static HttpServices.Abstractions.AuthenticationEndpoints;
-using static HttpServices.Services.Authentication.SignInStatus;
+﻿using static HttpServices.AuthenticationEndpoints;
+using static HttpServices.Identity.Model.SignInStatus;
 
-using IAuthenticationService = HttpServices.Services.Authentication.IAuthenticationService;
+using IAuthenticationService = HttpServices.Identity.IAuthenticationService;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 // ReSharper disable once CheckNamespace
