@@ -16,7 +16,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityService", "Identity
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpServices", "HttpServices\HttpServices.csproj", "{C9153A34-3D92-4843-9BAE-BA21E07F5A8E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpServices.Abstractions", "HttpServices.Abstractions\HttpServices.Abstractions.csproj", "{377E9100-72A8-4017-B0EF-B57D651E6C50}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpServices.Abstractions", "HttpServices.Abstractions\HttpServices.Abstractions.csproj", "{0802F33D-C679-49F2-AEA2-F870B5832120}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,10 +52,10 @@ Global
 		{C9153A34-3D92-4843-9BAE-BA21E07F5A8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9153A34-3D92-4843-9BAE-BA21E07F5A8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9153A34-3D92-4843-9BAE-BA21E07F5A8E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{377E9100-72A8-4017-B0EF-B57D651E6C50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{377E9100-72A8-4017-B0EF-B57D651E6C50}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{377E9100-72A8-4017-B0EF-B57D651E6C50}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{377E9100-72A8-4017-B0EF-B57D651E6C50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0802F33D-C679-49F2-AEA2-F870B5832120}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0802F33D-C679-49F2-AEA2-F870B5832120}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0802F33D-C679-49F2-AEA2-F870B5832120}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0802F33D-C679-49F2-AEA2-F870B5832120}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

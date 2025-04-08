@@ -1,8 +1,4 @@
-﻿using Domain.Model;
-
-using HttpServices.Model;
-
-namespace WebApp.Components;
+﻿namespace WebApp.Components;
 
 public partial class NavMenu {
     private string? _currentUrl;
@@ -18,7 +14,7 @@ public partial class NavMenu {
         UserName = string.Empty;
         if (HttpContext.User.Identity is not ClaimsIdentity identity)
             return;
-        var json = identity.Claims.FirstOrDefault(c => c.Type == AuthenticationClaimTypes.Profile)?.Value;
+        var json = identity.Claims.FirstOrDefault(c => c.Type == UserClaimTypes.Profile)?.Value;
         var profile = json is null ? null : JsonSerializer.Deserialize<UserProfile>(json);
         UserName = profile?.PreferredName ?? profile?.Name ?? identity.Name ?? string.Empty;
     }

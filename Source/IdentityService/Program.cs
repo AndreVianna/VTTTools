@@ -1,9 +1,10 @@
-using HttpServices.Identity.Model;
+using IdentityService.Data.Clients;
+using IdentityService.Data.Users;
 
-var builder = IdentityProviderWebApi.CreateBuilder<ServiceDbContext, UserIdentity>(args, (options, configuration) => {
-                                                                                             var connectionString = IsNotNull(configuration.GetConnectionString("DefaultConnection"));
-                                                                                             options.UseSqlServer(connectionString);
-                                                                                         });
+var builder = IdentityProviderWebApi.CreateBuilder<MultiTenantDataContext, UsersDataContext, User>(args, (options, configuration) => {
+                                                                                                      var connectionString = IsNotNull(configuration.GetConnectionString("DefaultConnection"));
+                                                                                                      options.UseSqlServer(connectionString);
+                                                                                                  });
 
 var app = builder.Build();
 
@@ -11,6 +12,6 @@ app.MapHealthCheckEndpoints();
 app.MapApiClientManagementEndpoints();
 
 app.MapAuthenticationManagementEndpoints();
-app.MapUserAccountManagementEndpoints();
+//app.MapUserAccountManagementEndpoints();
 
 app.Run();

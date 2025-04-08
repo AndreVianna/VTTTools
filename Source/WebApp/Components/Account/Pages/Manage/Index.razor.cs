@@ -1,6 +1,4 @@
-﻿using HttpServices.Model;
-
-namespace WebApp.Components.Account.Pages.Manage;
+﻿namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class Index {
     private User _user = null!;

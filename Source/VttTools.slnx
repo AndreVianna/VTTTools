@@ -1,0 +1,17 @@
+<Solution>
+  <Project Path="AppHost/AppHost.csproj" />
+  <Project Path="Domain/Domain.csproj" />
+  <Project Path="GameService/GameService.csproj" />
+  <Project Path="IdentityProvider.WebApi.Abstractions/IdentityProvider.WebApi.Abstractions.csproj" Id="b279d906-c7ff-4aeb-9823-a9a7b6a76046" />
+  <Project Path="IdentityProvider.WebApi.EntityFrameworkCore/IdentityProvider.WebApi.EntityFrameworkCore.csproj" Id="3b5ea6ee-b1f0-42a0-b485-dfc86a46f644" />
+  <Project Path="IdentityProvider.WebApi/IdentityProvider.WebApi.csproj" Id="dcb07b32-2f70-47c7-842d-f43c3ab3df3a" />
+  <Project Path="IdentityService/IdentityService.csproj" />
+  <Project Path="MultiTenant.WebApi.Abstractions/MultiTenant.WebApi.Abstractions.csproj" Id="77ca41f6-5fe9-4161-84e8-819ebee7b5b3" />
+  <Project Path="MultiTenant.WebApi.EntityFrameworkCore/MultiTenant.WebApi.EntityFrameworkCore.csproj" Id="e3f841c2-3eb9-4d56-a270-81b2959593e8" />
+  <Project Path="MultiTenant.WebApi/MultiTenant.WebApi.csproj" Id="2ac341e9-ac11-4063-917d-3d1adc4919c1" />
+  <Project Path="Tests/Tests.csproj" />
+  <Project Path="WebApi.Abstractions/WebApi.Abstractions.csproj" Id="c78027b9-682e-4772-8a1f-fa5bb8a5b00e" />
+  <Project Path="WebApi.EntityFrameworkCore/WebApi.EntityFrameworkCore.csproj" Id="04b6211d-d826-4e66-912c-a6d050831338" />
+  <Project Path="WebApi/WebApi.csproj" Id="2f0194af-1417-424a-8f41-7e4e055bd5d4" />
+  <Project Path="WebApp/WebApp.csproj" />
+</Solution>

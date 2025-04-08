@@ -1,6 +1,4 @@
-﻿using HttpServices.Model;
-
-namespace WebApp.Components.Account.Pages;
+﻿namespace WebApp.Components.Account.Pages;
 
 public partial class ExternalLogin {
     public const string LoginCallbackAction = "LoginCallback";
@@ -57,13 +55,13 @@ public partial class ExternalLogin {
                                                                   bypassTwoFactor: true);
 
         if (result.Succeeded) {
-            Logger.LogInformation("{Name} logged in with {LoginProvider} provider.",
+            Logger.LogInformation("{Type} logged in with {LoginProvider} provider.",
                                   _externalLoginInfo.Principal.Identity?.Name,
                                   _externalLoginInfo.LoginProvider);
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.IsLockedOut) {
-            Logger.LogInformation("{Name} locked out.",
+            Logger.LogInformation("{Type} locked out.",
                                   _externalLoginInfo.Principal.Identity?.Name);
             RedirectManager.RedirectTo("Account/Lockout");
         }
@@ -87,7 +85,7 @@ public partial class ExternalLogin {
         if (result.Succeeded) {
             result = await UserManager.AddLoginAsync(user, _externalLoginInfo);
             if (result.Succeeded) {
-                Logger.LogInformation("User created an account using {Name} provider.", _externalLoginInfo.LoginProvider);
+                Logger.LogInformation("User created an account using {Type} provider.", _externalLoginInfo.LoginProvider);
 
                 var userId = await UserManager.GetUserIdAsync(user);
                 var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);

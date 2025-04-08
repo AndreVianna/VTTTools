@@ -4,8 +4,6 @@ global using Domain.Storage;
 global using GameService.Data;
 global using GameService.Services;
 
-global using HttpServices.Data;
-
 global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;

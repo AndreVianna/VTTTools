@@ -1,6 +1,4 @@
-﻿using static HttpServices.AuthenticationEndpoints;
-
-namespace WebApp.Components.Account.Shared;
+﻿namespace WebApp.Components.Account.Shared;
 
 public partial class ExternalLoginPicker {
     [CascadingParameter]

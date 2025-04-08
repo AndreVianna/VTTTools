@@ -1,8 +1,4 @@
-﻿using HttpServices.Contracts.SignIn;
-
-using static HttpServices.AuthenticationEndpoints;
-
-namespace WebApp.Components.Account.Pages;
+﻿namespace WebApp.Components.Account.Pages;
 
 public partial class Login {
     private static readonly JwtSecurityTokenHandler _jwtHandler = new();
@@ -40,8 +36,6 @@ public partial class Login {
         var request = new PasswordSignInRequest {
             Identifier = Input.Email,
             Password = Input.Password,
-            RememberMe = Input.RememberMe,
-            ReturnUrl = ReturnUrl,
         };
         var response = await _httpClient.PostAsJsonAsync(SignInEndpoint, request);
         if (!response.IsSuccessStatusCode) {

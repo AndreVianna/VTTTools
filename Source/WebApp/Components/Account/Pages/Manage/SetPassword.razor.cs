@@ -1,6 +1,4 @@
-﻿using HttpServices.Model;
-
-namespace WebApp.Components.Account.Pages.Manage;
+﻿namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class SetPassword {
     private string? _message;

@@ -1,5 +1,3 @@
-using HttpServices.Model;
-
 namespace WebApp.Components.Account;
 
 // This is a server-side AuthenticationStateProvider that revalidates the security stamp for the connected user

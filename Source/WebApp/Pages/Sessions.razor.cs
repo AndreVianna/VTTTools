@@ -1,6 +1,4 @@
-﻿using Domain.Model;
-
-namespace WebApp.Pages;
+﻿namespace WebApp.Pages;
 
 public partial class Sessions {
     private List<GameSession> _sessions = [];
