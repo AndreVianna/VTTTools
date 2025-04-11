@@ -3,11 +3,12 @@
 public enum SignInStatus {
     InvalidInput,
     AccountNotFound,
-    BlockedAccount,
-    LockedAccount,
-    IncorrectLogin,
+    AccountIsBlocked,
+    AccountIsLocked,
+    LoginProviderNotFound,
+    Incorrect,
     AccountConfirmationRequired,
-    TwoFactorSetupIsPending,
+    TwoFactorIsNotSetup,
     TwoFactorRequired,
     Success,
 }

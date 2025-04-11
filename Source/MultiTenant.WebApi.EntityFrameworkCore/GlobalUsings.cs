@@ -3,6 +3,7 @@ global using System.ComponentModel.DataAnnotations;
 global using System.Diagnostics.CodeAnalysis;
 
 global using DotNetToolbox;
+global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Identity;

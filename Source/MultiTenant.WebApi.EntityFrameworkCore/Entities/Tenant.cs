@@ -8,4 +8,5 @@ public class Tenant {
     public virtual string Secret { get; set; } = null!;
 
     public virtual IList<TenantTokenEntity> Tokens { get; } = [];
+    public virtual IList<TenantClaim> Claims { get; } = [];
 }

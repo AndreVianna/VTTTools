@@ -14,7 +14,7 @@ public abstract record Token()
     /// <inheritdoc />
     public required Guid Id { get; init; }
     /// <inheritdoc />
-    public required string Type { get; init; }
+    public string Type { get; } = string.Empty;
     /// <inheritdoc />
     public required string Value { get; init; }
 }

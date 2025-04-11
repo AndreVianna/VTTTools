@@ -1,12 +1,8 @@
 ﻿namespace WebApi.Builders;
 
 public interface IBasicWebApiBuilder
-    : IBasicWebApiBuilder<BasicWebApiOptions>;
+    : IWebApiBuilder<BasicWebApiOptions>;
 
 public interface IBasicWebApiBuilder<out TOptions>
-    : IHostApplicationBuilder
-    where TOptions : WebApiOptions<TOptions>, new() {
-    TOptions Options { get; }
-
-    WebApplication Build(Action<WebApplication>? configure = null);
-}
+    : IWebApiBuilder<TOptions>
+    where TOptions : BasicWebApiOptions<TOptions>, new();

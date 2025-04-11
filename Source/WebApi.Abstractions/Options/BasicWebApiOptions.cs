@@ -1,10 +1,10 @@
 ﻿namespace WebApi.Options;
 
 public record BasicWebApiOptions
-    : WebApiOptions<BasicWebApiOptions>
+    : BasicWebApiOptions<BasicWebApiOptions>
     , IBasicWebApiOptions;
 
 public record BasicWebApiOptions<TOptions>
     : WebApiOptions<TOptions>
-    , IBasicWebApiOptions
+    , IBasicWebApiOptions<TOptions>
     where TOptions : BasicWebApiOptions<TOptions>, new();

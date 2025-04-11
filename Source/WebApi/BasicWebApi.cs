@@ -2,7 +2,7 @@
 namespace WebApi;
 
 /// <summary>
-/// Provides static factory methods for creating and configuring a basic Web API application builder (<see cref="BasicWebApiBuilder"/>).
+/// Provides static factory methods for creating and configuring a basic Web API application.
 /// Includes essential services like caching, problem details, OpenAPI support, token factories, and Aspire service defaults.
 /// </summary>
 public static class BasicWebApi {
@@ -25,38 +25,10 @@ public static class BasicWebApi {
     /// <returns>A configured <typeparamref name="TBuilder"/> instance.</returns>
     public static TBuilder CreateBuilder<TBuilder, TOptions>(string[] args, Action<TBuilder>? setup = null)
         where TBuilder : BasicWebApiBuilder<TBuilder, TOptions>
-        where TOptions : WebApiOptions<TOptions>, new() {
-        var applicationBuilder = WebApplication.CreateSlimBuilder(args);
-        var builder = ConvertBuilder<TBuilder, TOptions>(applicationBuilder);
+        where TOptions : BasicWebApiOptions<TOptions>, new() {
+        var builder = InstanceFactory.Create<TBuilder>((object)args);
         setup?.Invoke(builder);
         return builder;
-    }
-
-    private static TBuilder ConvertBuilder<TBuilder, TOptions>(WebApplicationBuilder builder)
-        where TBuilder : BasicWebApiBuilder<TBuilder, TOptions>
-        where TOptions : WebApiOptions<TOptions>, new() {
-        builder.Services.AddOptions<TOptions>()
-               .Bind(builder.Configuration)
-               .ValidateDataAnnotations();
-        var options = new TOptions();
-        builder.Configuration.Bind(options);
-
-        builder.AddServiceDefaults();
-        if (options.UseRedisCache) {
-            builder.AddRedisDistributedCache("redis");
-            builder.Services.AddScoped<ICacheService, CacheService>();
-        }
-
-        builder.Services.AddProblemDetails();
-        if (options.ShowOpenApi != ShowOpenApi.No)
-            builder.Services.AddOpenApi();
-
-        builder.Services.AddHttpContextAccessor();
-
-        builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.AddSingleton<ITokenFactory, TokenFactory>();
-
-        return InstanceFactory.Create<TBuilder>(builder, options);
     }
 
     /// <summary>
@@ -80,7 +52,7 @@ public static class BasicWebApi {
     /// <returns>Returns the configured web application instance.</returns>
     public static WebApplication Build<TBuilder, TOptions>(string[] args, Action<TBuilder>? setup = null, Action<WebApplication>? configure = null)
         where TBuilder : BasicWebApiBuilder<TBuilder, TOptions>
-        where TOptions : WebApiOptions<TOptions>, new() {
+        where TOptions : BasicWebApiOptions<TOptions>, new() {
         var builder = CreateBuilder<TBuilder, TOptions>(args, setup);
         return builder.Build(configure);
     }
@@ -104,6 +76,6 @@ public static class BasicWebApi {
     /// <param name="configure">Optional action to configure the built application pipeline.</param>
     public static void Run<TBuilder, TOptions>(string[] args, Action<TBuilder>? setup = null, Action<WebApplication>? configure = null)
         where TBuilder : BasicWebApiBuilder<TBuilder, TOptions>
-        where TOptions : WebApiOptions<TOptions>, new()
+        where TOptions : BasicWebApiOptions<TOptions>, new()
         => Build<TBuilder, TOptions>(args, setup, configure).Run();
 }

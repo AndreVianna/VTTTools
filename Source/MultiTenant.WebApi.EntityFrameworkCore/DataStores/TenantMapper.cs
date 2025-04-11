@@ -5,13 +5,14 @@ public class TenantMapper<TTenant, TTenantEntity>
     where TTenant : Tenant, new()
     where TTenantEntity : TenantEntity, new() {
     [return: NotNullIfNotNull(nameof(entity))]
-    public TTenant? ToDomainModel(TTenantEntity? entity)
+    public TTenant? ToModel(TTenantEntity? entity)
         => entity is null
                ? null
                : new() {
                    Id = entity.Id,
                    Name = entity.Name,
                    Secret = entity.Secret,
+                   AccessTokens = entity.Tokens.ToArray(ToShallowModel),
                };
 
     [return: NotNullIfNotNull(nameof(model))]
@@ -23,18 +24,23 @@ public class TenantMapper<TTenant, TTenantEntity>
                    Secret = model.Secret,
                };
 
-    [return: NotNullIfNotNull(nameof(entity))]
-    public AccessToken? ToDomainModel(TenantTokenEntity? entity)
-        => entity is null
+    public void UpdateEntity(TTenant model, TTenantEntity entity) {
+        entity.Name = model.Name;
+        entity.Secret = model.Secret;
+    }
+
+    [return: NotNullIfNotNull(nameof(token))]
+    public OwnedAccessToken<TTenant>? ToModel(TenantTokenEntity? token, [NotNullIfNotNull(nameof(token))] TTenantEntity? tenant)
+        => token is null
                ? null
                : new() {
-                   Id = entity.Id,
-                   CreatedAt = entity.CreatedAt,
-                   Type = AuthTokenType.Access,
-                   DelayStartUntil = entity.DelayStartUntil,
-                   ValidUntil = entity.ValidUntil,
-                   Value = entity.Value,
-                   RenewableUntil = entity.CanRefreshUntil,
+                   Id = token.Id,
+                   Owner = ToShallowModel(tenant!),
+                   CreatedAt = token.CreatedAt,
+                   DelayStartUntil = token.DelayStartUntil,
+                   ValidUntil = token.ValidUntil,
+                   Value = token.Value,
+                   RenewableUntil = token.RenewableUntil,
                };
 
     [return: NotNullIfNotNull(nameof(model))]
@@ -47,6 +53,29 @@ public class TenantMapper<TTenant, TTenantEntity>
                    DelayStartUntil = model.DelayStartUntil,
                    ValidUntil = model.ValidUntil,
                    Value = model.Value,
-                   CanRefreshUntil = model.RenewableUntil,
+                   RenewableUntil = model.RenewableUntil,
                };
+
+    [return: NotNullIfNotNull(nameof(entity))]
+    public AccessToken? ToModel(TenantTokenEntity? entity)
+        => entity is null
+               ? null
+               : ToShallowModel(entity);
+
+    private static TTenant ToShallowModel(TTenantEntity entity)
+        => new() {
+            Id = entity.Id,
+            Name = entity.Name,
+            Secret = entity.Secret,
+        };
+
+    private static AccessToken ToShallowModel(TenantTokenEntity entity)
+        => new() {
+            Id = entity.Id,
+            CreatedAt = entity.CreatedAt,
+            DelayStartUntil = entity.DelayStartUntil,
+            ValidUntil = entity.ValidUntil,
+            Value = entity.Value,
+            RenewableUntil = entity.RenewableUntil,
+        };
 }

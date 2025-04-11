@@ -9,6 +9,5 @@ public static class UserClaimTypes {
     public const string PhoneNumber = "WebApi.Identity.User.PhoneNumber";
     public const string Roles = "WebApi.Identity.User.Roles";
     public const string Role = "WebApi.Identity.User.Role";
-    public const string Profile = "WebApi.Identity.User.Profile";
     public static readonly string SecurityStamp = _defaultIdentityClaims.SecurityStampClaimType;
 }

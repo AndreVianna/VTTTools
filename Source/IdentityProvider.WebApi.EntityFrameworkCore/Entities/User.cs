@@ -1,31 +1,32 @@
 namespace WebApi.Identity.EntityFrameworkCore.Entities;
 
-public class User
+[method: SetsRequiredMembers]
+public class User()
     : IUserIdentity {
-    public User() { }
-    public User(string identifier) : this() {
-        Identifier = identifier;
-    }
-
     public Guid Id { get; set; }
 
     [MaxLength(256)]
-    public string Identifier { get; set; } = string.Empty;
+    public required string Identifier { get; set; } = string.Empty;
 
     [MaxLength(256)]
     [ProtectedPersonalData]
     public string? Email { get; set; }
+    public bool EmailIsConfirmed { get; set; }
+
     [MaxLength(32)]
     [ProtectedPersonalData]
     public string? PhoneNumber { get; set; }
+    public bool PhoneNumberIsConfirmed { get; set; }
+
     [MaxLength(36)]
     public string? ConcurrencyStamp { get; set; } = Guid.CreateVersion7().ToString();
-    public bool AccountConfirmed { get; set; }
-    public bool TwoFactorEnabled { get; set; }
-    public TwoFactorType TwoFactorType { get; set; }
+
+    public bool AccountIsConfirmed { get; set; }
+    public bool TwoFactorIsSetup { get; set; }
+    public bool CanBeLockedOut { get; set; }
     public DateTimeOffset? LockoutEnd { get; set; }
-    public bool LockoutEnabled { get; set; }
-    public int AccessFailedCount { get; set; }
+    public byte FailedSignInCount { get; set; }
+    public bool IsBlocked { get; set; }
 
     public ICollection<UserLogin> Logins { get; set; } = new HashSet<UserLogin>();
     public ICollection<UserClaim> Claims { get; set; } = new HashSet<UserClaim>();

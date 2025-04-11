@@ -7,7 +7,7 @@
 public record AccessToken
     : TemporaryToken
     , IAccessToken
-    , ITypedRefreshableToken<AccessToken> {
+    , IRenewableTokenFactory<AccessToken> {
     public AccessToken() {
     }
 

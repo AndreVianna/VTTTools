@@ -1,19 +1,17 @@
 ﻿namespace WebApi.Options;
 
 public interface IIdentityProviderWebApiOptions
-    : IIdentityProviderWebApiOptions<IdentityProviderWebApiOptions>;
+    : IIdentityProviderWebApiOptions<IIdentityProviderWebApiOptions>;
 
 public interface IIdentityProviderWebApiOptions<out TOptions>
-    : IBasicWebApiOptions
-    where TOptions : IdentityProviderWebApiOptions<TOptions>, new() {
-    UserClaimsOptions Claims { get; set; }
-    LockoutOptions Lockout { get; set; }
-    MasterIdentityOptions? Master { get; set; }
-    PasswordOptions Password { get; set; }
-
-    bool RequiresConfirmedAccount { get; set; }
-    TemporaryTokenOptions AccountConfirmationToken { get; set; }
-    bool RequiresTwoFactorAuthentication { get; set; }
-    TwoFactorTokenOptions TwoFactorToken { get; set; }
-    AccessTokenOptions UserAccessToken { get; }
+    : IWebApiOptions<TOptions>
+    where TOptions : IIdentityProviderWebApiOptions<TOptions> {
+    UserIdentifierType IdentifierType { get; }
+    MasterIdentityOptions? Master { get; }
+    UserClaimsOptions UserClaims { get;}
+    RoleClaimsOptions RoleClaims { get; }
+    SignInOptions InternalSignIn { get; }
+    Dictionary<string, SignInOptions> ExternalSignInProviders { get; set; }
+    AccountConfirmationOptions AccountConfirmation { get;}
+    TwoFactorAuthenticationOptions TwoFactorAuthentication { get;}
 }

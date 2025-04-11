@@ -5,7 +5,7 @@ public record MultiTenantWebApiOptions
     , IMultiTenantWebApiOptions;
 
 public record MultiTenantWebApiOptions<TOptions>
-    : BasicWebApiOptions<TOptions>
+    : WebApiOptions<TOptions>
     , IMultiTenantWebApiOptions<TOptions>
     where TOptions : MultiTenantWebApiOptions<TOptions>, new() {
     public TenantClaimsOptions Claims { get; set; } = new();

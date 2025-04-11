@@ -25,6 +25,7 @@ global using OpenTelemetry.Trace;
 global using WebApi;
 global using WebApi.Builders;
 global using WebApi.Contracts;
+global using WebApi.Contracts.Authentication;
 global using WebApi.DataStores;
 global using WebApi.Model;
 global using WebApi.Options;

@@ -3,9 +3,11 @@
 public interface ITenantMapper<TTenant, TTenantEntity>
     where TTenant : Tenant, new()
     where TTenantEntity : TenantEntity, new() {
-    TTenant? ToDomainModel(TTenantEntity? entity);
+    TTenant? ToModel(TTenantEntity? entity);
     TTenantEntity? ToEntity(TTenant? model);
+    void UpdateEntity(TTenant model, TTenantEntity entity);
 
-    AccessToken? ToDomainModel(TenantTokenEntity? entity);
+    OwnedAccessToken<TTenant>? ToModel(TenantTokenEntity? token, TTenantEntity? tenant);
+    AccessToken? ToModel(TenantTokenEntity? entity);
     TenantTokenEntity? ToEntity(AccessToken? model, Guid tenantId);
 }

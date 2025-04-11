@@ -1,12 +1,12 @@
 ﻿namespace WebApi.Contracts;
 
 public sealed record AuthenticateTenantRequest
-    : IValidatable {
+    : Request {
     public required string Identifier { get; init; }
     public required string Secret { get; init; }
 
-    public Result Validate(IMap? context = null) {
-        var result = Result.Success();
+    public override Result Validate(IMap? context = null) {
+        var result = base.Validate(context);
         if (string.IsNullOrWhiteSpace(Identifier))
             result += new Error($"The '{nameof(Identifier)}' is required.", nameof(Identifier));
         if (string.IsNullOrWhiteSpace(Secret))

@@ -4,13 +4,13 @@ public class AccountManagementTokenFactory<TUser>(UserManager<TUser> userManager
     : TokenFactory(clock)
     , IAccountManagementTokenFactory<TUser>
     where TUser : User {
-    public async Task<TemporaryToken> CreateTwoFactorToken(TUser user, TwoFactorTokenOptions options) {
+    public async Task<TemporaryToken> CreateTwoFactorToken(TUser user, TwoFactorAuthenticationOptions options) {
         var value = await userManager.GenerateTwoFactorTokenAsync(user, options.Type.ToString());
-        return CreateTemporaryToken(options, AccountManagementTokenType.TwoFactor, value);
+        return CreateTemporaryToken(options.Token, AccountManagementTokenType.TwoFactor, value);
     }
 
-    public async Task<TemporaryToken> CreateAccountConfirmationToken(TUser user, TemporaryTokenOptions options) {
+    public async Task<TemporaryToken> CreateAccountConfirmationToken(TUser user, AccountConfirmationOptions options) {
         var value = await userManager.GenerateEmailConfirmationTokenAsync(user);
-        return CreateTemporaryToken(options, AccountManagementTokenType.AccountConfirmation, value);
+        return CreateTemporaryToken(options.Token, AccountManagementTokenType.AccountConfirmation, value);
     }
 }

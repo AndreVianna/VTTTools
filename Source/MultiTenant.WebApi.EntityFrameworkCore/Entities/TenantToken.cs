@@ -13,5 +13,5 @@ public class TenantToken {
     public virtual DateTimeOffset DelayStartUntil { get; set; }
     public virtual DateTimeOffset ValidUntil { get; set; }
 
-    public virtual DateTimeOffset? CanRefreshUntil { get; set; }
+    public virtual DateTimeOffset? RenewableUntil { get; set; }
 }

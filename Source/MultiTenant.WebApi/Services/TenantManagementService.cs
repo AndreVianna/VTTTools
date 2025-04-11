@@ -17,14 +17,14 @@ public class TenantManagementService(ITenantDataStore storage,
     }
 
     /// <inheritdoc />
-    public async Task<Result<RegisterTenantResponse>> RegisterAsync(RegisterTenantRequest request) {
+    public async Task<Result<AddTenantResponse>> RegisterAsync(AddTenantRequest request) {
         logger.LogInformation("Tenant registration requested for name '{TenantName}'.", request.Name);
         var validationResult = request.Validate();
         if (validationResult.HasErrors)
             return validationResult;
 
         var secret = GenerateSecret(_options.Secret.Size);
-        var tenant = ToModel(request, HashSecret(secret));
+        var tenant = request.ToModel(HashSecret(secret));
 
         await storage.AddOrUpdateAsync(tenant);
         logger.LogInformation("Tenant registered successfully with ID '{TenantId}' for name '{TenantName}'.", tenant.Id, tenant.Name);
@@ -32,23 +32,17 @@ public class TenantManagementService(ITenantDataStore storage,
         return tenant.ToResponse(secret);
     }
 
-    internal static Tenant ToModel(RegisterTenantRequest request, string hashedSecret)
-        => new() {
-            Name = request.Name,
-            Secret = hashedSecret,
-        };
-
     /// <inheritdoc />
-    public async Task<Result<AccessTokenResponse?>> AuthenticateAsync(AuthenticateTenantRequest request) {
+    public async Task<Result<RenewableTokenResponse?>> AuthenticateAsync(AuthenticateTenantRequest request) {
         logger.LogInformation("Tenant authentication requested for identifier '{TenantIdentifier}'.", request.Identifier);
         var validationResult = request.Validate();
         if (validationResult.HasErrors)
-            return validationResult.WithNo<AccessTokenResponse?>();
+            return validationResult.WithNo<RenewableTokenResponse?>();
 
         if (!TryDecodeTenantId(request.Identifier, out var id))
             return Result.Failure("Invalid credentials.");
 
-        var tenant = await GetAuthenticatedTenantOrDefaultAsync(id, request.Secret);
+        var tenant = await FindAuthenticatedTenantAsync(id, request.Secret);
         if (tenant is null)
             return Result.Failure("Invalid credentials.");
 
@@ -59,42 +53,37 @@ public class TenantManagementService(ITenantDataStore storage,
 
         var accessToken = tokenFactory.CreateAccessToken(_options.TenantAccessToken, subject);
 
-        await storage.AddAccessTokenAsync(tenant.Id, accessToken);
+        await storage.CreateAccessTokenAsync(tenant.Id, accessToken);
 
         logger.LogInformation("Tenant '{TenantId}' authenticated, tokens generated.", tenant.Id);
         return accessToken.ToResponse();
     }
 
     /// <inheritdoc />
-    public async Task<Result<AccessTokenResponse?>> RefreshAccessTokenAsync(RefreshTenantAccessTokenRequest request) {
+    public async Task<Result<RenewableTokenResponse?>> RefreshAccessTokenAsync(RenewTenantAccessRequest request) {
         logger.LogInformation("Refresh token request received.");
         var validationResult = request.Validate();
         if (validationResult.HasErrors)
             return validationResult;
 
-        var token = await storage.FindTokenByIdAsync(request.TokenId);
-        if (token is null) {
+        var owner = await storage.FindByActiveAccessTokenAsync(request.TenantId, request.TokenId);
+        if (owner is null) {
             logger.LogWarning("Refresh token not found, expired, or already used.");
             return Result.Failure("Invalid or expired refresh token.");
         }
 
-        var invalidated = await storage.InvalidateTokenAsync(request.TokenId);
-        if (!invalidated) {
-            logger.LogWarning("Failed to invalidate token '{TokenId}' after finding it.", request.TokenId);
-            return Result.Failure("Failed to process the used refresh token.");
-        }
+        await storage.CancelAccessTokenRenewalAsync(request.TokenId);
 
-        var tenant = await storage.FindByTokenIdAsync(request.TokenId);
         var subject = new ClaimsIdentity([
-             new(_options.Claims.Identifier, Base64UrlEncoder.Encode(tenant!.Id.ToByteArray())),
-             new(_options.Claims.Name, tenant.Name),
+             new(_options.Claims.Identifier, Base64UrlEncoder.Encode(owner.Id.ToByteArray())),
+             new(_options.Claims.Name, owner.Name),
         ]);
         var newAccessToken = tokenFactory.CreateAccessToken(_options.TenantAccessToken, subject);
 
-        await storage.AddAccessTokenAsync(tenant.Id, newAccessToken);
-        await storage.RemoveAccessTokenAsync(request.TokenId);
+        await storage.CreateAccessTokenAsync(owner.Id, newAccessToken);
+        await storage.DeleteAccessTokenAsync(request.TokenId);
 
-        logger.LogInformation("Access token refreshed successfully for tenant '{TenantId}'. New refresh token issued.", tenant.Id);
+        logger.LogInformation("Access token refreshed successfully for tenant '{TenantId}'. New refresh token issued.", owner.Id);
         return newAccessToken.ToResponse();
     }
 
@@ -109,39 +98,29 @@ public class TenantManagementService(ITenantDataStore storage,
         try {
             var bytes = Base64UrlEncoder.DecodeBytes(identifier);
             if (bytes.Length != 16) {
-                logger.LogWarning("Invalid tenant identifier format: '{Identifier}'.", identifier);
+                logger.LogInformation("Invalid tenant identifier: '{Identifier}'.", identifier);
                 return false;
             }
             id = new(bytes);
             return true;
         }
         catch (FormatException ex) {
-            logger.LogWarning(ex, "Invalid tenant identifier decoding: '{Identifier}'.", identifier);
+            logger.LogInformation(ex, "Invalid tenant identifier: '{Identifier}'.", identifier);
             return false;
         }
     }
 
-    private async Task<Tenant?> GetAuthenticatedTenantOrDefaultAsync(Guid id, string secret) {
+    private async Task<Tenant?> FindAuthenticatedTenantAsync(Guid id, string secret) {
         var tenant = await storage.FindByIdAsync(id);
         if (tenant is null) {
-            logger.LogWarning("Tenant '{TenantId}' not found during authentication attempt.", id);
+            logger.LogInformation("Attempted to authentication non-existing Tenant with id '{TenantId}'.", id);
             return null;
         }
 
-        var hashedSecret = HashSecret(secret);
+        if (HashSecret(secret) == tenant.Secret)
+            return tenant;
 
-        if (hashedSecret != tenant.Secret) {
-            logger.LogWarning("Invalid secret provided for tenant '{TenantId}'.", id);
-            // Consider adding lockout logic here based on failed attempts
-            return null;
-        }
-
-        // Potentially add checks: Is tenant active/enabled?
-        // if (!tenant.IsActive) {
-        //     logger.LogWarning("Authentication attempt for inactive tenant '{TenantId}'.", id);
-        //     return null;
-        // }
-
-        return tenant;
+        logger.LogInformation("Invalid secret provided while authenticating tenant with id '{TenantId}'.", id);
+        return null;
     }
 }

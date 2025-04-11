@@ -1,10 +1,13 @@
 ﻿namespace WebApi.Tenants.EntityFrameworkCore.Entities;
 
-public class TenantClaim {
+[method: SetsRequiredMembers]
+public class TenantClaim() {
     public int Id { get; set; }
     public Guid TenantId { get; set; }
     [MaxLength(256)]
-    public string ClaimType { get; set; } = null!;
+    [Required(AllowEmptyStrings = false)]
+    public required string ClaimType { get; set; } = string.Empty;
     [MaxLength(4096)]
-    public string ClaimValue { get; set; } = null!;
+    [Required(AllowEmptyStrings = false)]
+    public required string ClaimValue { get; set; } = string.Empty;
 }

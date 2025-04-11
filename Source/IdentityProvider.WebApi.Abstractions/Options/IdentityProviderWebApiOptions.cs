@@ -5,16 +5,16 @@ public record IdentityProviderWebApiOptions
     , IIdentityProviderWebApiOptions;
 
 public record IdentityProviderWebApiOptions<TOptions>
-    : BasicWebApiOptions<TOptions>
+    : WebApiOptions<TOptions>
     , IIdentityProviderWebApiOptions<TOptions>
     where TOptions : IdentityProviderWebApiOptions<TOptions>, new() {
-    public UserClaimsOptions Claims { get; set; } = new();
-    public LockoutOptions Lockout { get; set; } = new();
+    public UserIdentifierType IdentifierType { get; set; }
     public MasterIdentityOptions? Master { get; set; }
-    public PasswordOptions Password { get; set; } = new();
-    public bool RequiresConfirmedAccount { get; set; }
-    public TemporaryTokenOptions AccountConfirmationToken { get; set; } = new();
-    public bool RequiresTwoFactorAuthentication { get; set; }
-    public TwoFactorTokenOptions TwoFactorToken { get; set; } = new();
+    public UserClaimsOptions UserClaims { get; set; } = new();
+    public RoleClaimsOptions RoleClaims { get; set; } = new();
+    public SignInOptions InternalSignIn { get; set; } = new();
+    public Dictionary<string, SignInOptions> ExternalSignInProviders { get; set; } = [];
     public AccessTokenOptions UserAccessToken { get; set; } = new();
+    public AccountConfirmationOptions AccountConfirmation { get; set; } = new();
+    public TwoFactorAuthenticationOptions TwoFactorAuthentication { get; set; } = new();
 }

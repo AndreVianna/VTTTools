@@ -1,4 +1,8 @@
-﻿namespace WebApi.Tenants.EntityFrameworkCore.DataStores;
+﻿using System.Linq.Expressions;
+
+using Microsoft.EntityFrameworkCore.Query;
+
+namespace WebApi.Tenants.EntityFrameworkCore.DataStores;
 
 public sealed class TenantDataStore(TenantDataContext context,
                                     ITenantMapper<Tenant, TenantEntity> map,
@@ -15,32 +19,31 @@ public class TenantDataStore<TStore, TTenant, TTenantEntity>(TenantDataContext<T
     where TTenant : Tenant, new()
     where TTenantEntity : TenantEntity, new() {
     /// <inheritdoc />
-    public Task<bool> ExistsAsync(Guid id, CancellationToken ct = default)
-        => context.Tenants.AnyAsync(e => e.Id == id, ct);
-
-    /// <inheritdoc />
     public async ValueTask<TTenant?> FindByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Tenants
+                                  .Include(t => t.Tokens)
                                   .AsNoTracking()
                                   .FirstOrDefaultAsync(e => e.Id == id, ct);
-        return map.ToDomainModel(entity);
+        return map.ToModel(entity);
     }
 
     /// <inheritdoc />
-    public async ValueTask<TTenant?> FindByTokenIdAsync(Guid id, CancellationToken ct) {
+    public async ValueTask<TTenant?> FindByActiveAccessTokenAsync(Guid ownerId, Guid tokenId, CancellationToken ct) {
         var now = timeProvider.GetUtcNow();
-        var entity = await context.Tokens
-                                  .Include(t => t.Tenant)
+        var entity = await context.Tenants
+                                  .Include(t => t.Tokens)
+                                  .Where(t => t.Id == ownerId
+                                           && t.Tokens.Any(tt => tt.Id == tokenId
+                                                              && tt.ValidUntil < now))
                                   .AsNoTracking()
-                                  .Where(t => t.Id == id && t.ValidUntil < now)
                                   .FirstOrDefaultAsync(ct);
-        return map.ToDomainModel((TTenantEntity?)entity?.Tenant);
+        return map.ToModel(entity);
     }
 
     /// <inheritdoc />
     public async Task<bool> AddOrUpdateAsync(TTenant tenant, CancellationToken ct = default) {
         Ensure.IsNotNull(tenant);
-        var entity = await context.Tenants.FindAsync([tenant.Id], cancellationToken: ct); // Use FindAsync with key array
+        var entity = await context.Tenants.FindAsync([tenant.Id], cancellationToken: ct);
 
         if (entity is null) {
             entity = map.ToEntity(tenant)!;
@@ -51,8 +54,7 @@ public class TenantDataStore<TStore, TTenant, TTenantEntity>(TenantDataContext<T
             return true;
         }
 
-        entity.Name = tenant.Name;
-        entity.Secret = tenant.Secret;
+        map.UpdateEntity(tenant, entity);
         context.Tenants.Update(entity);
         await context.SaveChangesAsync(ct);
         logger.LogInformation("Updated tenant with ID '{TenantId}'.", entity.Id);
@@ -72,20 +74,18 @@ public class TenantDataStore<TStore, TTenant, TTenantEntity>(TenantDataContext<T
     }
 
     /// <inheritdoc />
-    public async ValueTask<IEnumerable<AccessToken>> GetAccessTokensAsync(Guid tenantId, CancellationToken ct = default) {
+    public async ValueTask<IEnumerable<AccessToken>> GetTenantAccessTokensAsync(Guid tenantId, CancellationToken ct = default) {
         var now = timeProvider.GetUtcNow();
         return await context.Tokens
                             .AsNoTracking()
                             .Where(e => e.TenantId == tenantId && e.ValidUntil > now)
-                            .Select(e => map.ToDomainModel(e)!)
+                            .Select(e => map.ToModel(e)!)
                             .ToArrayAsync(ct);
     }
 
     /// <inheritdoc />
-    public async Task<bool> AddAccessTokenAsync(Guid tenantId, AccessToken accessToken, CancellationToken ct = default) {
+    public async Task<bool> CreateAccessTokenAsync(Guid tenantId, AccessToken accessToken, CancellationToken ct = default) {
         Ensure.IsNotNull(accessToken);
-        if (accessToken.Type != AuthTokenType.Access)
-            throw new ArgumentException("Invalid access token type provided.");
         var entity = map.ToEntity(accessToken, tenantId)!;
         await context.Tokens.AddAsync(entity, ct);
         var changes = await context.SaveChangesAsync(ct);
@@ -93,12 +93,12 @@ public class TenantDataStore<TStore, TTenant, TTenantEntity>(TenantDataContext<T
     }
 
     /// <inheritdoc />
-    public async Task<bool> RemoveAccessTokenAsync(Guid id, CancellationToken ct = default) {
-        var changes = await context.Tokens
-                      .Where(e => e.Id == id)
-                      .ExecuteDeleteAsync(ct);
-        if (changes == 0) {
-            logger.LogWarning("Attempted to remove non-existent access token  id: {TokenId}.", id);
+    public async Task<bool> DeleteAccessTokenAsync(Guid id, CancellationToken ct = default) {
+        var deletedRows = await context.Tokens
+                                   .Where(e => e.Id == id)
+                                   .ExecuteDeleteAsync(ct);
+        if (deletedRows == 0) {
+            logger.LogWarning("Attempted to remove non-existent access token with id: {TokenId}.", id);
             return false;
         }
 
@@ -107,44 +107,31 @@ public class TenantDataStore<TStore, TTenant, TTenantEntity>(TenantDataContext<T
     }
 
     /// <inheritdoc />
-    public async ValueTask<AccessToken?> FindTokenByIdAsync(Guid id, CancellationToken ct) {
-        var now = timeProvider.GetUtcNow();
-        var entity = await context.Tokens
-                                  .AsNoTracking()
-                                  .Where(t => t.Id == id && t.ValidUntil < now)
-                                  .FirstOrDefaultAsync(ct);
-        return map.ToDomainModel(entity);
-    }
-
-    /// <inheritdoc />
-    public async Task<bool> InvalidateTokenAsync(Guid id, CancellationToken ct = default) {
+    public async Task<bool> CancelAccessTokenRenewalAsync(Guid id, CancellationToken ct = default) {
         var affectedRows = await context.Tokens
                                         .Where(t => t.Id == id)
-                                        .ExecuteUpdateAsync(updates => updates.SetProperty(t => t.CanRefreshUntil, (DateTimeOffset?)null),
-                                                            ct);
+                                        .ExecuteUpdateAsync(ClearRefreshUntilProperty(), ct);
 
         if (affectedRows == 0) {
-            logger.LogWarning("Attempted to invalidate non-existent token with id '{TokenId}'.", id);
+            logger.LogWarning("Attempted to cancel renewal for non-existent token with id '{TokenId}'.", id);
             return false;
         }
 
-        logger.LogInformation("Invalidated token with id '{TokenId}'.", id);
+        logger.LogInformation("Canceled renewal for token with id '{TokenId}'.", id);
         return true;
     }
 
     /// <inheritdoc />
     public async Task<int> CleanExpiredTokensAsync(CancellationToken ct = default) {
         var now = timeProvider.GetUtcNow();
-        var affectedRows = await context.Tokens
-                                      .Where(t => t.CanRefreshUntil <= now)
-                                      .ExecuteUpdateAsync(updates => updates.SetProperty(t => t.CanRefreshUntil, (DateTimeOffset?)null), ct);
-
-        logger.LogInformation("Invalidated {Count} expired refresh tokens during cleanup.", affectedRows);
-
         var deletedRows = await context.Tokens
-                                      .Where(t => t.ValidUntil <= now && t.CanRefreshUntil <= now)
+                                      .Where(t => t.ValidUntil <= now && t.RenewableUntil <= now)
                                       .ExecuteDeleteAsync(ct);
-        logger.LogInformation("Deleted {Count} fully expired token records during cleanup.", deletedRows);
-        return affectedRows;
+
+        logger.LogInformation("Deleted {Count} fully expired tokens during cleanup.", deletedRows);
+        return deletedRows;
     }
+
+    private static Expression<Func<SetPropertyCalls<TenantTokenEntity>, SetPropertyCalls<TenantTokenEntity>>> ClearRefreshUntilProperty()
+        => updates => updates.SetProperty(t => t.RenewableUntil, (DateTimeOffset?)null);
 }

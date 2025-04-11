@@ -1,11 +1,11 @@
 ﻿namespace WebApi.Options;
 
 public interface IMultiTenantWebApiOptions
-    : IMultiTenantWebApiOptions<MultiTenantWebApiOptions>;
+    : IMultiTenantWebApiOptions<IMultiTenantWebApiOptions>;
 
-public interface IMultiTenantWebApiOptions<TOptions>
-    : IBasicWebApiOptions
-    where TOptions : MultiTenantWebApiOptions<TOptions>, new() {
+public interface IMultiTenantWebApiOptions<out TOptions>
+    : IWebApiOptions<TOptions>
+    where TOptions : IMultiTenantWebApiOptions<TOptions> {
     TenantClaimsOptions Claims { get; set; }
     SecretOptions Secret { get; set; }
     AccessTokenOptions TenantAccessToken { get; }

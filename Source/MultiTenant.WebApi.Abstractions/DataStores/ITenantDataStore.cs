@@ -13,14 +13,6 @@ public interface ITenantDataStore
 public interface ITenantDataStore<TTenant>
     where TTenant : Tenant, new() {
     /// <summary>
-    /// Checks if a tenant with the specified ID exists.
-    /// </summary>
-    /// <param name="id">The tenant ID.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>True if the tenant exists, otherwise false.</returns>
-    Task<bool> ExistsAsync(Guid id, CancellationToken ct = default);
-
-    /// <summary>
     /// Finds a tenant by its ID.
     /// </summary>
     /// <param name="id">The tenant ID.</param>
@@ -28,13 +20,15 @@ public interface ITenantDataStore<TTenant>
     /// <returns>The tenant details or null if not found.</returns>
     ValueTask<TTenant?> FindByIdAsync(Guid id, CancellationToken ct = default);
 
+    // Refresh Token Methods
     /// <summary>
-    /// Finds a tenant by the ID of a token associated with it.
+    /// Finds access token details based on a token id.
     /// </summary>
-    /// <param name="id">The token ID.</param>
+    /// <param name="ownerId">The owner of the token.</param>
+    /// <param name="tokenId">The token id to search for.</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>The tenant details or null if not found.</returns>
-    ValueTask<TTenant?> FindByTokenIdAsync(Guid id, CancellationToken ct = default);
+    /// <returns>The token from the id.</returns>
+    ValueTask<TTenant?> FindByActiveAccessTokenAsync(Guid ownerId, Guid tokenId, CancellationToken ct = default);
 
     /// <summary>
     /// Adds a new tenant or updates an existing one.
@@ -52,15 +46,6 @@ public interface ITenantDataStore<TTenant>
     /// <returns>True if the tenant was deleted, otherwise false.</returns>
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 
-    // Access Token Methods
-    /// <summary>
-    /// Retrieves all active access tokens for a specific tenant.
-    /// </summary>
-    /// <param name="tenantId">The tenant ID.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>A collection of access tokens.</returns>
-    ValueTask<IEnumerable<AccessToken>> GetAccessTokensAsync(Guid tenantId, CancellationToken ct = default);
-
     /// <summary>
     /// Adds a new access token and its associated refresh token details for a tenant.
     /// </summary>
@@ -68,7 +53,7 @@ public interface ITenantDataStore<TTenant>
     /// <param name="accessToken">The access token details.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>True if the tokens were added successfully, otherwise false.</returns>
-    Task<bool> AddAccessTokenAsync(Guid tenantId, AccessToken accessToken, CancellationToken ct = default);
+    Task<bool> CreateAccessTokenAsync(Guid tenantId, AccessToken accessToken, CancellationToken ct = default);
 
     /// <summary>
     /// Removes a specific access token record by its composite key (TenantId, Number).
@@ -76,25 +61,16 @@ public interface ITenantDataStore<TTenant>
     /// <param name="id">The token ID.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>True if the token record was removed, otherwise false.</returns>
-    Task<bool> RemoveAccessTokenAsync(Guid id, CancellationToken ct = default);
-
-    // Refresh Token Methods
-    /// <summary>
-    /// Finds access token details based on a token id.
-    /// </summary>
-    /// <param name="id">The token id to search for.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>The token from the id.</returns>
-    ValueTask<AccessToken?> FindTokenByIdAsync(Guid id, CancellationToken ct = default);
+    Task<bool> DeleteAccessTokenAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
-    /// Invalidates a specific refresh token by its value (e.g., by nullifying it out).
+    /// Cancel the renewal of a token by removing is refresh value.
     /// This prevents the token from being used again for refreshing.
     /// </summary>
     /// <param name="id">The id of the token value to cancel the refresh.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>True if the token was found and invalidated, otherwise false.</returns>
-    Task<bool> InvalidateTokenAsync(Guid id, CancellationToken ct = default);
+    Task<bool> CancelAccessTokenRenewalAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
     /// Removes or invalidates all refresh tokens that have expired based on the current time.

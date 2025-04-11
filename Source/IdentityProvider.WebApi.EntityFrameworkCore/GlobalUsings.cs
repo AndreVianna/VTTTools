@@ -1,4 +1,5 @@
 global using System.ComponentModel.DataAnnotations;
+global using System.Diagnostics.CodeAnalysis;
 global using System.Security.Claims;
 
 global using Microsoft.AspNetCore.Builder;
@@ -20,7 +21,5 @@ global using WebApi.Model;
 global using WebApi.Options;
 
 global using LoginProviderEntity = WebApi.Identity.EntityFrameworkCore.Entities.LoginProvider;
-global using Role = WebApi.Model.Role;
-global using RoleEntity = WebApi.Identity.EntityFrameworkCore.Entities.Role;
 global using User = WebApi.Model.User;
 global using UserEntity = WebApi.Identity.EntityFrameworkCore.Entities.User;
