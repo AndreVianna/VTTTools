@@ -13,7 +13,7 @@ public partial class LoginWithRecoveryCode {
     protected override async Task OnInitializedAsync()
         // Ensure the user has gone through the username & password screen first
         => _user = await SignInManager.GetTwoFactorAuthenticationUserAsync()
-            ?? throw new InvalidOperationException("Unable to load two-factor authentication user.");
+                ?? throw new InvalidOperationException("Unable to load two-factor authentication user.");
 
     private async Task OnValidSubmitAsync() {
         var recoveryCode = Input.RecoveryCode.Replace(" ", string.Empty);

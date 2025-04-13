@@ -23,12 +23,14 @@ public partial class ExternalLogin {
     private string? ProviderDisplayName => _externalLoginInfo?.ProviderDisplayName;
 
     protected override async Task OnInitializedAsync() {
-        if (RemoteError is not null)
+        if (RemoteError is not null) {
             RedirectManager.RedirectToWithStatus("Account/Login", $"Error from external provider: {RemoteError}", HttpContext);
+        }
 
         var info = await SignInManager.GetExternalLoginInfoAsync();
-        if (info is null)
+        if (info is null) {
             RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information.", HttpContext);
+        }
 
         _externalLoginInfo = info;
 
@@ -45,35 +47,38 @@ public partial class ExternalLogin {
     }
 
     private async Task OnLoginCallbackAsync() {
-        if (_externalLoginInfo is null)
+        if (_externalLoginInfo is null) {
             RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information.", HttpContext);
+        }
 
         // Sign in the user with this external login provider if the user already has a login.
-        var result = await SignInManager.ExternalLoginSignInAsync(_externalLoginInfo.LoginProvider,
+        var result = await SignInManager.ExternalLoginSignInAsync(
+                                                                  _externalLoginInfo.LoginProvider,
                                                                   _externalLoginInfo.ProviderKey,
                                                                   isPersistent: false,
                                                                   bypassTwoFactor: true);
 
         if (result.Succeeded) {
-            Logger.LogInformation("{Type} logged in with {LoginProvider} provider.",
+            Logger.LogInformation(
+                                  "{Name} logged in with {LoginProvider} provider.",
                                   _externalLoginInfo.Principal.Identity?.Name,
                                   _externalLoginInfo.LoginProvider);
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.IsLockedOut) {
-            Logger.LogInformation("{Type} locked out.",
-                                  _externalLoginInfo.Principal.Identity?.Name);
             RedirectManager.RedirectTo("Account/Lockout");
         }
 
         // If the user does not have an account, then ask the user to create an account.
-        if (_externalLoginInfo.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
+        if (_externalLoginInfo.Principal.HasClaim(c => c.Type == ClaimTypes.Email)) {
             Input.Email = _externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email) ?? "";
+        }
     }
 
     private async Task OnValidSubmitAsync() {
-        if (_externalLoginInfo is null)
+        if (_externalLoginInfo is null) {
             RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information during confirmation.", HttpContext);
+        }
 
         var emailStore = GetEmailStore();
         var user = CreateUser();
@@ -85,23 +90,21 @@ public partial class ExternalLogin {
         if (result.Succeeded) {
             result = await UserManager.AddLoginAsync(user, _externalLoginInfo);
             if (result.Succeeded) {
-                Logger.LogInformation("User created an account using {Type} provider.", _externalLoginInfo.LoginProvider);
+                Logger.LogInformation("User created an account using {Name} provider.", _externalLoginInfo.LoginProvider);
 
                 var userId = await UserManager.GetUserIdAsync(user);
                 var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-                var callbackUrl = NavigationManager.GetUriWithQueryParameters(NavigationManager.ToAbsoluteUri("Account/ConfirmEmail")
-                                                                                               .AbsoluteUri,
-                                                                              new Dictionary<string, object?> {
-                                                                                  ["userId"] = userId,
-                                                                                  ["code"] = code
-                                                                              });
+                var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+                                                                              NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+                                                                              new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
                 await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
                 // If account confirmation is required, we need to show the link if we don't have a real email sender
-                if (UserManager.Options.SignIn.RequireConfirmedAccount)
+                if (UserManager.Options.SignIn.RequireConfirmedAccount) {
                     RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
+                }
 
                 await SignInManager.SignInAsync(user, isPersistent: false, _externalLoginInfo.LoginProvider);
                 RedirectManager.RedirectTo(ReturnUrl);
@@ -116,15 +119,14 @@ public partial class ExternalLogin {
             return Activator.CreateInstance<User>();
         }
         catch {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(User)}'. "
-                                              + $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor");
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(User)}'. " +
+                                                $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor");
         }
     }
 
-    private IUserEmailStore<User> GetEmailStore()
-        => !UserManager.SupportsUserEmail
-               ? throw new NotSupportedException("The default UI requires a user store with email support.")
-               : (IUserEmailStore<User>)UserStore;
+    private IUserEmailStore<User> GetEmailStore() => !UserManager.SupportsUserEmail
+            ? throw new NotSupportedException("The default UI requires a user store with email support.")
+            : (IUserEmailStore<User>)UserStore;
 
     private sealed class InputModel {
         [Required]

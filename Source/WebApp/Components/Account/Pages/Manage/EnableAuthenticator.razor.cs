@@ -15,17 +15,17 @@ public partial class EnableAuthenticator {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
 
-        await LoadSharedKeyAndQrCodeUriAsync(_user!);
+        await LoadSharedKeyAndQrCodeUriAsync(_user);
     }
 
     private async Task OnValidSubmitAsync() {
         // Strip spaces and hyphens
-        var verificationCode = Input.Code.Replace(" ", string.Empty)
-                                    .Replace("-", string.Empty);
+        var verificationCode = Input.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
 
-        var is2FaTokenValid = await UserManager.VerifyTwoFactorTokenAsync(_user, UserManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
+        var is2FaTokenValid = await UserManager.VerifyTwoFactorTokenAsync(
+                                                                          _user, UserManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
 
         if (!is2FaTokenValid) {
             _message = "Error: Verification code is invalid.";
@@ -38,10 +38,12 @@ public partial class EnableAuthenticator {
 
         _message = "Your authenticator app has been verified.";
 
-        if (await UserManager.CountRecoveryCodesAsync(_user) == 0)
+        if (await UserManager.CountRecoveryCodesAsync(_user) == 0) {
             _recoveryCodes = await UserManager.GenerateNewTwoFactorRecoveryCodesAsync(_user, 10);
-        else
+        }
+        else {
             RedirectManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication", _message, HttpContext);
+        }
     }
 
     private async ValueTask LoadSharedKeyAndQrCodeUriAsync(User user) {
@@ -62,24 +64,22 @@ public partial class EnableAuthenticator {
         var result = new StringBuilder();
         var currentPosition = 0;
         while (currentPosition + 4 < unformattedKey.Length) {
-            result.Append(unformattedKey.AsSpan(currentPosition, 4))
-                  .Append(' ');
+            result.Append(unformattedKey.AsSpan(currentPosition, 4)).Append(' ');
             currentPosition += 4;
         }
-
-        if (currentPosition < unformattedKey.Length)
+        if (currentPosition < unformattedKey.Length) {
             result.Append(unformattedKey.AsSpan(currentPosition));
+        }
 
-        return result.ToString()
-                     .ToLowerInvariant();
+        return result.ToString().ToLowerInvariant();
     }
 
-    private string GenerateQrCodeUri(string email, string unformattedKey)
-        => string.Format(CultureInfo.InvariantCulture,
-                         _authenticatorUriFormat,
-                         UrlEncoder.Encode("Microsoft.AspNetCore.Identity.UI"),
-                         UrlEncoder.Encode(email),
-                         unformattedKey);
+    private string GenerateQrCodeUri(string email, string unformattedKey) => string.Format(
+                             CultureInfo.InvariantCulture,
+                             _authenticatorUriFormat,
+                             UrlEncoder.Encode("Microsoft.AspNetCore.Identity.UI"),
+                             UrlEncoder.Encode(email),
+                             unformattedKey);
 
     private sealed class InputModel {
         [Required]

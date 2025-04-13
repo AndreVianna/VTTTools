@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.Features;
-
-namespace WebApp.Components.Account.Pages.Manage;
+﻿namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class TwoFactorAuthentication {
     private bool _canTrack;
@@ -13,7 +11,7 @@ public partial class TwoFactorAuthentication {
     private HttpContext HttpContext { get; set; } = null!;
 
     protected override async Task OnInitializedAsync() {
-        var user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
+        var user = await UserAccessor.GetRequiredUserAsync(HttpContext);
         _canTrack = HttpContext.Features.Get<ITrackingConsentFeature>()?.CanTrack ?? true;
         _hasAuthenticator = await UserManager.GetAuthenticatorKeyAsync(user) is not null;
         _is2FaEnabled = await UserManager.GetTwoFactorEnabledAsync(user);
@@ -24,8 +22,7 @@ public partial class TwoFactorAuthentication {
     private async Task OnSubmitForgetBrowserAsync() {
         await SignInManager.ForgetTwoFactorClientAsync();
 
-        RedirectManager
-           .RedirectToCurrentPageWithStatus("The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.",
-                                            HttpContext);
+        RedirectManager.RedirectToCurrentPageWithStatus("The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.",
+                                                        HttpContext);
     }
 }

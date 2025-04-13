@@ -1,4 +1,3 @@
-// ReSharper disable once CheckNamespace
 namespace WebApp.Components;
 
 internal static class EndpointRouteBuilderExtensions {

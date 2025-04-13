@@ -1,5 +1,7 @@
 ﻿@implements IDisposable
 
+@inject UserManager<User> UserManager
+@inject IdentityUserAccessor UserAccessor
 @inject NavigationManager NavigationManager
 
 <div class="top-row ps-3 navbar navbar-dark">

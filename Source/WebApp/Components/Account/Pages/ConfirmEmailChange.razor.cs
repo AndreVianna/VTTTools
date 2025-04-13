@@ -16,8 +16,10 @@ public partial class ConfirmEmailChange {
     private string? Code { get; set; }
 
     protected override async Task OnInitializedAsync() {
-        if (UserId is null || Email is null || Code is null)
-            RedirectManager.RedirectToWithStatus("Account/Login", "Error: Invalid email change confirmation link.", HttpContext);
+        if (UserId is null || Email is null || Code is null) {
+            RedirectManager.RedirectToWithStatus(
+                                                 "Account/Login", "Error: Invalid email change confirmation link.", HttpContext);
+        }
 
         var user = await UserManager.FindByIdAsync(UserId);
         if (user is null) {

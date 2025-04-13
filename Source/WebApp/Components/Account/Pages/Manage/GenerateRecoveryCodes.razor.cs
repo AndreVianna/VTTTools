@@ -9,11 +9,12 @@ public partial class GenerateRecoveryCodes {
     private HttpContext HttpContext { get; set; } = null!;
 
     protected override async Task OnInitializedAsync() {
-        _user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
 
         var isTwoFactorEnabled = await UserManager.GetTwoFactorEnabledAsync(_user);
-        if (!isTwoFactorEnabled)
+        if (!isTwoFactorEnabled) {
             throw new InvalidOperationException("Cannot generate recovery codes for user because they do not have 2FA enabled.");
+        }
     }
 
     private async Task OnSubmitAsync() {

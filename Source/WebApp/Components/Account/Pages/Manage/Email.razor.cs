@@ -13,9 +13,9 @@ public partial class Email {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
-        _email = await UserManager.GetEmailAsync(_user!);
-        _isEmailConfirmed = await UserManager.IsEmailConfirmedAsync(_user!);
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        _email = await UserManager.GetEmailAsync(_user);
+        _isEmailConfirmed = await UserManager.IsEmailConfirmedAsync(_user);
 
         Input.NewEmail ??= _email;
     }
@@ -29,13 +29,9 @@ public partial class Email {
         var userId = await UserManager.GetUserIdAsync(_user);
         var code = await UserManager.GenerateChangeEmailTokenAsync(_user, Input.NewEmail);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var callbackUrl = NavigationManager.GetUriWithQueryParameters(NavigationManager.ToAbsoluteUri("Account/ConfirmEmailChange")
-                                                                                       .AbsoluteUri,
-                                                                      new Dictionary<string, object?> {
-                                                                          ["userId"] = userId,
-                                                                          ["email"] = Input.NewEmail,
-                                                                          ["code"] = code
-                                                                      });
+        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+                                                                      NavigationManager.ToAbsoluteUri("Account/ConfirmEmailChange").AbsoluteUri,
+                                                                      new Dictionary<string, object?> { ["userId"] = userId, ["email"] = Input.NewEmail, ["code"] = code });
 
         await EmailSender.SendConfirmationLinkAsync(_user, Input.NewEmail, HtmlEncoder.Default.Encode(callbackUrl));
 
@@ -43,18 +39,16 @@ public partial class Email {
     }
 
     private async Task OnSendEmailVerificationAsync() {
-        if (_email is null)
+        if (_email is null) {
             return;
+        }
 
         var userId = await UserManager.GetUserIdAsync(_user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(_user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var callbackUrl = NavigationManager.GetUriWithQueryParameters(NavigationManager.ToAbsoluteUri("Account/ConfirmEmail")
-                                                                                       .AbsoluteUri,
-                                                                      new Dictionary<string, object?> {
-                                                                          ["userId"] = userId,
-                                                                          ["code"] = code
-                                                                      });
+        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+                                                                      NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+                                                                      new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
 
         await EmailSender.SendConfirmationLinkAsync(_user, _email, HtmlEncoder.Default.Encode(callbackUrl));
 

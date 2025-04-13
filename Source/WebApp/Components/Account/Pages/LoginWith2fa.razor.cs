@@ -1,6 +1,6 @@
 ﻿namespace WebApp.Components.Account.Pages;
 
-// ReSharper disable once InconsistentNaming
+ // ReSharper disable once InconsistentNaming
 public partial class LoginWith2fa {
     private string? _message;
     private User _user = null!;
@@ -15,12 +15,12 @@ public partial class LoginWith2fa {
     private bool RememberMe { get; set; }
 
     protected override async Task OnInitializedAsync()
+        // Ensure the user has gone through the username & password screen first
         => _user = await SignInManager.GetTwoFactorAuthenticationUserAsync()
-            ?? throw new InvalidOperationException("Unable to load two-factor authentication user.");
+                ?? throw new InvalidOperationException("Unable to load two-factor authentication user.");
 
     private async Task OnValidSubmitAsync() {
-        var authenticatorCode = Input.TwoFactorCode!.Replace(" ", string.Empty)
-                                     .Replace("-", string.Empty);
+        var authenticatorCode = Input.TwoFactorCode!.Replace(" ", string.Empty).Replace("-", string.Empty);
         var result = await SignInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, RememberMe, Input.RememberMachine);
         var userId = await UserManager.GetUserIdAsync(_user);
 

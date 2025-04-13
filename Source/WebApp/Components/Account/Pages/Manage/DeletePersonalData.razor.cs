@@ -9,10 +9,11 @@ public partial class DeletePersonalData {
     private HttpContext HttpContext { get; set; } = null!;
 
     [SupplyParameterFromForm]
-    private InputModel Input { get; } = new();
+    private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
+        Input ??= new();
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
         _requirePassword = await UserManager.HasPasswordAsync(_user);
     }
 
@@ -23,8 +24,9 @@ public partial class DeletePersonalData {
         }
 
         var result = await UserManager.DeleteAsync(_user);
-        if (!result.Succeeded)
+        if (!result.Succeeded) {
             throw new InvalidOperationException("Unexpected error occurred deleting user.");
+        }
 
         await SignInManager.SignOutAsync();
 

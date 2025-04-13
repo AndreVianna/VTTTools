@@ -16,12 +16,9 @@ public partial class ResendEmailConfirmation {
         var userId = await UserManager.GetUserIdAsync(user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var callbackUrl = NavigationManager.GetUriWithQueryParameters(NavigationManager.ToAbsoluteUri("Account/ConfirmEmail")
-                                                                                       .AbsoluteUri,
-                                                                      new Dictionary<string, object?> {
-                                                                          ["userId"] = userId,
-                                                                          ["code"] = code
-                                                                      });
+        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+                                                                      NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+                                                                      new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
         _message = "Verification email sent. Please check your email.";

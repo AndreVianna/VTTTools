@@ -20,42 +20,43 @@ public partial class ExternalLogins {
     private string? Action { get; set; }
 
     protected override async Task OnInitializedAsync() {
-        _user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
         _currentLogins = await UserManager.GetLoginsAsync(_user);
-        _otherLogins = [.. (await SignInManager.GetExternalAuthenticationSchemesAsync()).Where(auth => _currentLogins.All(ul => auth.Name != ul.LoginProvider))];
+        var schemes = await SignInManager.GetExternalAuthenticationSchemesAsync();
+        _otherLogins = [..schemes.Where(auth => _currentLogins.All(ul => auth.Name != ul.LoginProvider))];
 
         string? passwordHash = null;
-        if (UserStore is IUserPasswordStore<User> userPasswordStore)
+        if (UserStore is IUserPasswordStore<User> userPasswordStore) {
             passwordHash = await userPasswordStore.GetPasswordHashAsync(_user, HttpContext.RequestAborted);
+        }
 
         _showRemoveButton = passwordHash is not null || _currentLogins.Count > 1;
 
-        if (HttpMethods.IsGet(HttpContext.Request.Method) && Action == LinkLoginCallbackAction)
+        if (HttpMethods.IsGet(HttpContext.Request.Method) && Action == LinkLoginCallbackAction) {
             await OnGetLinkLoginCallbackAsync();
+        }
     }
 
-    private async Task OnRemoveProviderAsync() {
+    private async Task OnSubmitAsync() {
         var result = await UserManager.RemoveLoginAsync(_user, LoginProvider!, ProviderKey!);
-        if (!result.Succeeded)
+        if (!result.Succeeded) {
             RedirectManager.RedirectToCurrentPageWithStatus("Error: The external login was not removed.", HttpContext);
+        }
 
         await SignInManager.RefreshSignInAsync(_user);
         RedirectManager.RedirectToCurrentPageWithStatus("The external login was removed.", HttpContext);
     }
 
-    private void OnLinkProvider()
-        => RedirectManager.RedirectTo($"Account/Manage/LinkExternalLogin/{LoginProvider}");
-
     private async Task OnGetLinkLoginCallbackAsync() {
         var userId = await UserManager.GetUserIdAsync(_user);
         var info = await SignInManager.GetExternalLoginInfoAsync(userId);
-        if (info is null)
+        if (info is null) {
             RedirectManager.RedirectToCurrentPageWithStatus("Error: Could not load external login info.", HttpContext);
+        }
 
         var result = await UserManager.AddLoginAsync(_user, info);
         if (!result.Succeeded) {
-            RedirectManager.RedirectToCurrentPageWithStatus("Error: The external login was not added. External logins can only be associated with one account.",
-                                                            HttpContext);
+            RedirectManager.RedirectToCurrentPageWithStatus("Error: The external login was not added. External logins can only be associated with one account.", HttpContext);
         }
 
         // Clear the existing external cookie to ensure a clean login process

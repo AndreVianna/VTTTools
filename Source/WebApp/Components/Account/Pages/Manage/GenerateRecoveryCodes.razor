@@ -1,10 +1,7 @@
 ﻿@page "/Account/Manage/GenerateRecoveryCodes"
 
-@using Microsoft.AspNetCore.Identity
-
 @inject UserManager<User> UserManager
 @inject IdentityUserAccessor UserAccessor
-@inject IdentityRedirectManager RedirectManager
 @inject ILogger<GenerateRecoveryCodes> Logger
 
 <PageTitle>Generate two-factor authentication (2FA) recovery codes</PageTitle>

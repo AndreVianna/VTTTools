@@ -11,11 +11,12 @@ public partial class SetPassword {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
 
         var hasPassword = await UserManager.HasPasswordAsync(_user);
-        if (hasPassword)
+        if (hasPassword) {
             RedirectManager.RedirectTo("Account/Manage/ChangePassword");
+        }
     }
 
     private async Task OnValidSubmitAsync() {

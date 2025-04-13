@@ -1,5 +1,13 @@
 ﻿@page "/Account/Register"
 
+@inject UserManager<User> UserManager
+@inject IUserStore<User> UserStore
+@inject SignInManager<User> SignInManager
+@inject IEmailSender<User> EmailSender
+@inject ILogger<Register> Logger
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+
 <PageTitle>Register</PageTitle>
 
 <h1>Register</h1>

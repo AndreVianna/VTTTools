@@ -1,4 +1,8 @@
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseDefaultServiceProvider((_, o) => {
+    o.ValidateScopes = true;
+    o.ValidateOnBuild = true;
+});
 
 // Add services to the container.
 builder.Services.AddDistributedMemoryCache();
@@ -7,7 +11,6 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents()
     .AddAuthenticationStateSerialization();
 
-builder.Services.AddHttpClient("auth", static client => client.BaseAddress = new("https://localhost:7166"));
 builder.Services.AddHttpClient("game", static client => client.BaseAddress = new("https://localhost:7465"));
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();

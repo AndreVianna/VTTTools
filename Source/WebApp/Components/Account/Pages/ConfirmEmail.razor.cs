@@ -13,8 +13,9 @@ public partial class ConfirmEmail {
     private string? Code { get; set; }
 
     protected override async Task OnInitializedAsync() {
-        if (UserId is null || Code is null)
+        if (UserId is null || Code is null) {
             RedirectManager.RedirectTo("");
+        }
 
         var user = await UserManager.FindByIdAsync(UserId);
         if (user is null) {

@@ -12,7 +12,7 @@ public partial class Index {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = (await UserAccessor.GetRequiredUserAsync(HttpContext, CancellationToken.None))!;
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
         _username = await UserManager.GetUserNameAsync(_user);
         _phoneNumber = await UserManager.GetPhoneNumberAsync(_user);
 
@@ -22,8 +22,9 @@ public partial class Index {
     private async Task OnValidSubmitAsync() {
         if (Input.PhoneNumber != _phoneNumber) {
             var setPhoneResult = await UserManager.SetPhoneNumberAsync(_user, Input.PhoneNumber);
-            if (!setPhoneResult.Succeeded)
+            if (!setPhoneResult.Succeeded) {
                 RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to set phone number.", HttpContext);
+            }
         }
 
         await SignInManager.RefreshSignInAsync(_user);
@@ -32,7 +33,7 @@ public partial class Index {
 
     private sealed class InputModel {
         [Phone]
-        [Display(Name = "PhoneNumber number")]
+        [Display(Name = "Phone number")]
         public string? PhoneNumber { get; set; }
     }
 }

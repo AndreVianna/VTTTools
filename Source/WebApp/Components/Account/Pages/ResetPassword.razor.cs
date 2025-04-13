@@ -12,8 +12,9 @@ public partial class ResetPassword {
     private string? Message => _identityErrors is null ? null : $"Error: {string.Join(", ", _identityErrors.Select(error => error.Description))}";
 
     protected override void OnInitialized() {
-        if (Code is null)
+        if (Code is null) {
             RedirectManager.RedirectTo("Account/InvalidPasswordReset");
+        }
 
         Input.Code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
     }
@@ -26,8 +27,9 @@ public partial class ResetPassword {
         }
 
         var result = await UserManager.ResetPasswordAsync(user, Input.Code, Input.Password);
-        if (result.Succeeded)
+        if (result.Succeeded) {
             RedirectManager.RedirectTo("Account/ResetPasswordConfirmation");
+        }
 
         _identityErrors = result.Errors;
     }

@@ -8,15 +8,13 @@ public partial class NavMenu {
 
     protected string UserName { get; set; } = null!;
 
-    protected override void OnInitialized() {
+    protected override async Task OnInitializedAsync() {
         _currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
         UserName = string.Empty;
-        if (HttpContext.User.Identity is not ClaimsIdentity identity)
-            return;
-        var json = identity.Claims.FirstOrDefault(c => c.Type == UserClaimTypes.Profile)?.Value;
-        var profile = json is null ? null : JsonSerializer.Deserialize<UserProfile>(json);
-        UserName = profile?.PreferredName ?? profile?.Name ?? identity.Name ?? string.Empty;
+        var user = await UserManager.GetUserAsync(HttpContext.User);
+        if (user is null) return;
+        UserName = user.DisplayName ?? user.Name;
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e) {
