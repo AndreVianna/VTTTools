@@ -1,5 +1,3 @@
-using VttTools.Data.Model;
-
 namespace VttTools.Data;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)

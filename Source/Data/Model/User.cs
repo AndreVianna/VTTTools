@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace VttTools.Data.Model;
 
 // Add profile data for application users by adding properties to the User class

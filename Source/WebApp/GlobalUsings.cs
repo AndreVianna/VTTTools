@@ -29,6 +29,7 @@ global using Microsoft.Extensions.Options;
 global using Microsoft.Extensions.Primitives;
 global using Microsoft.JSInterop;
 
+global using VttTools.Data;
 global using VttTools.Data.Model;
 
 global using WebApp;

@@ -8,11 +8,7 @@ public class ApplicationDbContextFactory
                      .SetBasePath(Directory.GetCurrentDirectory())
                      .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                      .AddUserSecrets<ApplicationDbContextFactory>();
-        var config = builder.Build();
-
-        var connectionString = config.GetConnectionString("Application")
-                            ?? throw new InvalidOperationException("Connection string 'Application' not found.");
-
+        var connectionString = DataProvider.GetConnectionString(builder.Build());
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         optionsBuilder.UseSqlServer(connectionString, _ => _.MigrationsAssembly("Data"));
         optionsBuilder.EnableSensitiveDataLogging();

@@ -19,8 +19,6 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors();
 
-app.UseAuthentication();
-app.UseAuthorization();
 MapHealthCheckEndpoints();
 app.MapOpenApi();
 
@@ -34,15 +32,15 @@ void AddRequiredServices() {
         http.AddServiceDiscovery();
     });
     builder.Services.AddProblemDetails();
+    builder.Services.AddProblemDetails();
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddSingleton(TimeProvider.System);
     builder.Services.Configure<JsonOptions>(o => o.SerializerOptions.Converters.Add(new OptionalConverterFactory()));
     builder.Services.AddDistributedMemoryCache();
     builder.Services.AddCors();
     builder.Services.AddOpenApi();
-    builder.Services
-                .AddHealthChecks()
-                .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+    builder.Services.AddHealthChecks()
+                    .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 }
 
 void MapHealthCheckEndpoints() {

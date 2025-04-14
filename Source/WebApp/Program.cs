@@ -4,26 +4,43 @@ builder.Host.UseDefaultServiceProvider((_, o) => {
     o.ValidateOnBuild = true;
 });
 
-// Add services to the container.
 builder.Services.AddDistributedMemoryCache();
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents()
-    .AddInteractiveWebAssemblyComponents()
-    .AddAuthenticationStateSerialization();
+builder.AddSqlServerDataProvider();
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddHttpClient("game", static client => client.BaseAddress = new("https://localhost:7465"));
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+builder.Services.AddIdentityCore<User>(opt => {
+    opt.SignIn.RequireConfirmedAccount = true;
+    opt.SignIn.RequireConfirmedEmail = true;
+    opt.SignIn.RequireConfirmedPhoneNumber = false;
+    opt.User.RequireUniqueEmail = true;
+    opt.Password.RequiredLength = 8;
+    opt.Stores.SchemaVersion = IdentitySchemaVersions.Version2;
+}).AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddSignInManager()
+                .AddDefaultTokenProviders();
+
+builder.Services.AddSingleton<IEmailSender<User>, IdentityNoOpEmailSender>();
+
 builder.Services.AddAuthentication(options => {
     options.DefaultScheme = IdentityConstants.ExternalScheme;
     options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
 }).AddIdentityCookies();
+builder.Services.AddAuthorization();
+
+builder.Services.AddRazorComponents()
+                .AddInteractiveServerComponents()
+                .AddInteractiveWebAssemblyComponents()
+                .AddAuthenticationStateSerialization();
+
+builder.Services.AddHttpClient("game", static client => client.BaseAddress = new("https://localhost:7465"));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()) {
     app.UseWebAssemblyDebugging();
     app.UseMigrationsEndPoint();
@@ -41,6 +58,7 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode();
+app.MapAdditionalIdentityEndpoints();
 app.MapApiEndpoints();
 
 app.Run();
