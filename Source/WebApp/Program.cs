@@ -1,10 +1,15 @@
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+
+using VttTools.Model.Identity;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseDefaultServiceProvider((_, o) => {
     o.ValidateScopes = true;
     o.ValidateOnBuild = true;
 });
 
-builder.Services.AddDistributedMemoryCache();
+AddDefaultHealthChecks();
+builder.AddRedisOutputCache("redis");
 builder.AddSqlServerDataProvider();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -58,7 +63,22 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode();
+MapDefaultEndpoints();
 app.MapAdditionalIdentityEndpoints();
 app.MapApiEndpoints();
 
 app.Run();
+return;
+
+void AddDefaultHealthChecks()
+    => builder.Services.AddHealthChecks()
+                       .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+
+void MapDefaultEndpoints() {
+    if (!app.Environment.IsDevelopment())
+        return;
+    app.MapHealthChecks("/health");
+    app.MapHealthChecks("/alive", new() {
+        Predicate = r => r.Tags.Contains("live"),
+    });
+}

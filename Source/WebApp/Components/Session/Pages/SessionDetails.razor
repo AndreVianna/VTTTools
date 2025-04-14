@@ -1,0 +1,145 @@
+@page "/session/{SessionId:guid}"
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ISessionService GameSessionService
+@attribute [Authorize]
+
+<PageTitle>Game Session: @(_session?.Name ?? "Loading...")</PageTitle>
+
+@if (_session == null)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container">
+        <div class="row mb-4 align-items-center">
+            <div class="col">
+                <h1>@_session.Name</h1>
+            </div>
+            <div class="col-auto">
+                @if (_isGameMaster)
+                {
+                    <button class="btn btn-primary me-2" @onclick="OpenEditSessionDialog">Edit Session</button>
+                    <button class="btn btn-success me-2" @onclick="StartSession">Start Session</button>
+                }
+                <button class="btn btn-secondary" @onclick="NavigateToSessions">Back to Sessions</button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Maps</h5>
+                        @if (_isGameMaster)
+                        {
+                            <button class="btn btn-sm btn-outline-primary">Add Map</button>
+                        }
+                    </div>
+                    <div class="card-body">
+                        @if (!_session.Maps.Any())
+                        {
+                            <div class="alert alert-info">
+                                No maps available. Add a map to get started.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="list-group">
+                                @foreach (var map in _session.Maps)
+                                {
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">@map.Name</h6>
+                                            <small>@map.Width x @map.Height</small>
+                                        </div>
+                                        <div>
+                                            @if (_session.ActiveMapId == map.Id)
+                                            {
+                                                <span class="badge bg-success">Active</span>
+                                            }
+                                            else if (_isGameMaster)
+                                            {
+                                                <button class="btn btn-sm btn-outline-primary" @onclick="() => SetActiveMap(map.Id)">
+                                                    Set Active
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Players</h5>
+                        @if (_isGameMaster)
+                        {
+                            <button class="btn btn-sm btn-outline-primary">Invite Player</button>
+                        }
+                    </div>
+                    <div class="card-body">
+                        @if (!_session.Players.Any())
+                        {
+                            <div class="alert alert-info">
+                                No players have joined this session.
+                            </div>
+                        }
+                        else
+                        {
+                            <ul class="list-group">
+                                @foreach (var player in _session.Players)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        @(player.UserId == _currentUserId ? "You" : player.UserId.ToString()[..8])
+                                        <span class="badge bg-@(player.Type == PlayerType.Master ? "danger" : "primary")">
+                                            @player.Type
+                                        </span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showEditDialog)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Session</h5>
+                    <button type="button" class="btn-close" @onclick="CloseEditSessionDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="sessionName" class="form-label">Session Name</label>
+                        <input type="text" class="form-control" id="sessionName" @bind="_editSessionName">
+                        @if (!string.IsNullOrEmpty(_sessionNameError))
+                        {
+                            <div class="text-danger mt-1">@_sessionNameError</div>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseEditSessionDialog">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="UpdateSession">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}

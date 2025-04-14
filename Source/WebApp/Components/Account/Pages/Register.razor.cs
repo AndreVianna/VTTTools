@@ -1,4 +1,6 @@
-﻿namespace WebApp.Components.Account.Pages;
+﻿using VttTools.Model.Identity;
+
+namespace WebApp.Components.Account.Pages;
 
 public partial class Register {
     private IEnumerable<IdentityError>? _identityErrors;

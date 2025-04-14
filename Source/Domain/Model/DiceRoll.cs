@@ -1,4 +1,4 @@
-﻿namespace Domain.Model;
+﻿namespace VttTools.Model;
 
 public record DiceRoll {
     public required string Expression { get; init; } // e.g., "2d6+5"

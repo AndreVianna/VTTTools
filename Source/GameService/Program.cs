@@ -1,3 +1,5 @@
+using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseDefaultServiceProvider((_, o) => {
     o.ValidateScopes = true;
@@ -10,6 +12,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => {
     options.UseSqlServer(connectionString);
 });
 
+// Add GameSession services
+builder.Services.AddSingleton<ISessionStorage, SessionStorage>();
+builder.Services.AddScoped<ISessionService, SessionService>();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -18,9 +24,12 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 
 MapHealthCheckEndpoints();
 app.MapOpenApi();
+app.MapGameSessionManagementEndpoints();
 
 app.Run();
 return;
@@ -32,12 +41,20 @@ void AddRequiredServices() {
         http.AddServiceDiscovery();
     });
     builder.Services.AddProblemDetails();
-    builder.Services.AddProblemDetails();
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddSingleton(TimeProvider.System);
     builder.Services.Configure<JsonOptions>(o => o.SerializerOptions.Converters.Add(new OptionalConverterFactory()));
     builder.Services.AddDistributedMemoryCache();
-    builder.Services.AddCors();
+
+    builder.Services.AddCors(options
+        => options.AddDefaultPolicy(policy
+            => policy.WithOrigins("https://localhost:5001", "https://localhost:7040")
+                     .AllowAnyMethod()
+                     .AllowAnyHeader()));
+
+    builder.Services.AddAuthentication().AddJwtBearer();
+    builder.Services.AddAuthorization();
+
     builder.Services.AddOpenApi();
     builder.Services.AddHealthChecks()
                     .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);

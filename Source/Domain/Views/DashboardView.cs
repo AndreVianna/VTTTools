@@ -1,2 +1,2 @@
-﻿namespace Domain.Views;
+﻿namespace VttTools.Views;
 public record DashboardView;

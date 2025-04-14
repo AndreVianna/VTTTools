@@ -1,0 +1,90 @@
+﻿@page "/sessions"
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ISessionService GameSessionService
+@attribute [Authorize]
+
+<PageTitle>Game Sessions</PageTitle>
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Game Sessions</h1>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="OpenCreateSessionDialog">Create New Session</button>
+        </div>
+    </div>
+
+    @if (_sessions == null)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!_sessions.Any())
+    {
+        <div class="alert alert-info">
+            You don't have any game sessions yet. Create a new session to get started!
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (var session in _sessions)
+            {
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@session.Name</h5>
+                            <p class="card-text">
+                                <small class="text-muted">@session.Players.Count player(s)</small>
+                            </p>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-sm btn-primary" @onclick="() => JoinSession(session.Id)">Join</button>
+                                @if (session.OwnerId == _currentUserId)
+                                {
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteSession(session.Id)">Delete</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@if (_showCreateDialog)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Session</h5>
+                    <button type="button" class="btn-close" @onclick="CloseCreateSessionDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="sessionName" class="form-label">Session Name</label>
+                        <input type="text" class="form-control" id="sessionName" @bind="_newSessionName">
+                        @if (!string.IsNullOrEmpty(_sessionNameError))
+                        {
+                            <div class="text-danger mt-1">@_sessionNameError</div>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseCreateSessionDialog">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="CreateSession">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}

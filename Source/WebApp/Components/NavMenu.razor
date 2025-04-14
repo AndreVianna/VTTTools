@@ -1,4 +1,5 @@
-﻿@implements IDisposable
+﻿@using VttTools.Model.Identity
+@implements IDisposable
 
 @inject UserManager<User> UserManager
 @inject IdentityUserAccessor UserAccessor
@@ -25,6 +26,11 @@
         <div class="nav-item px-3">
           <NavLink class="nav-link" href="Account/Manage">
             <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @UserName
+          </NavLink>
+        </div>
+        <div class="nav-item px-3">
+          <NavLink class="nav-link" href="Sessions">
+            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Sessions
           </NavLink>
         </div>
         <div class="nav-item px-3">

@@ -1,4 +1,6 @@
-﻿namespace WebApp.Components.Account.Pages.Manage;
+﻿using VttTools.Model.Identity;
+
+namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class SetPassword {
     private string? _message;

@@ -1,3 +1,5 @@
+using VttTools.Model.Identity;
+
 namespace WebApp.Components.Account;
 
 internal sealed class IdentityUserAccessor(UserManager<User> userManager, IdentityRedirectManager redirectManager) {

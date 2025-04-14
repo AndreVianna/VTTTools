@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Identity.UI.Services;
 
+using VttTools.Model.Identity;
+
 namespace WebApp.Components.Account;
 internal sealed class IdentityNoOpEmailSender
     : IEmailSender<User>

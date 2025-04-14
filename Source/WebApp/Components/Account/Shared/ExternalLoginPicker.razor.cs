@@ -1,4 +1,6 @@
-﻿namespace WebApp.Components.Account.Shared;
+﻿using VttTools.Model.Identity;
+
+namespace WebApp.Components.Account.Shared;
 
 public partial class ExternalLoginPicker {
     private AuthenticationScheme[] _externalLogins = [];

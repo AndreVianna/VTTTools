@@ -1,4 +1,6 @@
-﻿namespace WebApp.Components.Account.Pages.Manage;
+﻿using VttTools.Model.Identity;
+
+namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class ChangePassword {
     private string? _message;

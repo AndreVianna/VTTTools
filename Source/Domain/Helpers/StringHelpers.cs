@@ -1,4 +1,4 @@
-﻿namespace Domain.Helpers;
+﻿namespace VttTools.Helpers;
 
 internal static partial class StringHelpers {
     private static readonly Regex _emailFormat = GenerateEmailFormatValidator();

@@ -1,4 +1,6 @@
-﻿namespace WebApp.Components.Account.Pages.Manage;
+﻿using VttTools.Model.Identity;
+
+namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class GenerateRecoveryCodes {
     private string? _message;
