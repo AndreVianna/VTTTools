@@ -10,14 +10,14 @@ public interface ISessionStorage {
     /// <param name="id">The session ID</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>The game session</returns>
-    Task<Session> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<Session?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves all sessions
     /// </summary>
     /// <param name="ct">Cancellation token</param>
     /// <returns>Collection of all game sessions</returns>
-    Task<IEnumerable<Session>> GetAllAsync(CancellationToken ct = default);
+    Task<Session[]> GetAllAsync(CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves all sessions for a specific user
@@ -25,7 +25,7 @@ public interface ISessionStorage {
     /// <param name="userId">The user ID</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>Collection of game sessions for the user</returns>
-    Task<IEnumerable<Session>> GetByUserIdAsync(Guid userId, CancellationToken ct = default);
+    Task<Session[]> GetByUserIdAsync(Guid userId, CancellationToken ct = default);
 
     /// <summary>
     /// Adds a new session

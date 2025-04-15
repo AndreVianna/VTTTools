@@ -1,4 +1,5 @@
 ﻿@page "/sessions"
+@rendermode InteractiveAuto
 
 <PageTitle>Game Sessions</PageTitle>
 
@@ -42,6 +43,7 @@
                         <div class="card-footer">
                             <div class="d-flex justify-content-between">
                                 <button class="btn btn-sm btn-primary" @onclick="() => JoinSession(session.Id)">Join</button>
+                                <button class="btn btn-sm btn-primary" @onclick="() => ViewSession(session.Id)">Edit</button>
                                 @if (session.OwnerId == _currentUserId)
                                 {
                                     <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteSession(session.Id)">Delete</button>

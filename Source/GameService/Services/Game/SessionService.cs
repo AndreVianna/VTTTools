@@ -1,94 +1,125 @@
 ﻿namespace GameService.Services.Game;
 
-public class SessionService(ISessionStorage data)
+public class SessionService(ISessionStorage storage)
     : ISessionService {
-    public async Task<Session> CreateSessionAsync(string name, Guid creatorUserId, CancellationToken ct = default) {
+    public Task<Session[]> GetSessionsAsync(Guid userId, CancellationToken ct = default)
+        => storage.GetByUserIdAsync(userId, ct);
+
+    public Task<Session?> GetSessionAsync(Guid userId, Guid sessionId, CancellationToken ct = default)
+        => storage.GetByIdAsync(sessionId, ct);
+
+    public async Task<Result<Session>> CreateSessionAsync(Guid userId, CreateSessionData data, CancellationToken ct = default) {
+        var result = data.Validate();
+        if (result.HasErrors)
+            return Result.Failure(result.Errors);
+
         var session = new Session {
-            Id = Guid.NewGuid(),
-            Name = name,
-            OwnerId = creatorUserId,
-            Players = [new SessionPlayer { UserId = creatorUserId, Type = PlayerType.Master }],
+            Name = data.Name,
+            OwnerId = userId,
+            Players = [new SessionPlayer { UserId = userId, Type = PlayerType.Master }],
         };
 
-        await data.AddAsync(session, ct);
+        await storage.AddAsync(session, ct);
         return session;
     }
 
-    public async Task<Session?> GetSessionAsync(Guid sessionId, CancellationToken ct = default)
-        => await data.GetByIdAsync(sessionId, ct);
+    public async Task<TypedResult<HttpStatusCode>> UpdateSessionAsync(Guid userId, Guid sessionId, UpdateSessionData data, CancellationToken ct = default) {
+        var result = data.Validate();
+        if (result.HasErrors)
+            return TypedResult.As(HttpStatusCode.BadRequest, result.Errors);
 
-    public Task<IEnumerable<Session>> GetUserSessionsAsync(Guid userId, CancellationToken ct = default)
-        // This would be implemented with actual data retrieval in a real implementation
-        // For now we're returning an empty list as a placeholder
-        => Task.FromResult(Enumerable.Empty<Session>());
+        var session = await storage.GetByIdAsync(sessionId, ct);
+        if (session is null)
+            return TypedResult.As(HttpStatusCode.NotFound);
 
-    public async Task UpdateSessionAsync(Guid sessionId, string name, CancellationToken ct = default) {
-        var session = await data.GetByIdAsync(sessionId, ct)
-            ?? throw new KeyNotFoundException("Session not found.");
-
-        session.Name = name;
-        await data.UpdateAsync(session, ct);
-    }
-
-    public async Task DeleteSessionAsync(Guid sessionId, Guid userId, CancellationToken ct = default) {
-        var session = await data.GetByIdAsync(sessionId, ct)
-            ?? throw new KeyNotFoundException("Session not found.");
-
-        // Only the owner should be able to delete a session
         if (session.OwnerId != userId)
-            throw new UnauthorizedAccessException("Only the session owner can delete a session.");
+            return TypedResult.As(HttpStatusCode.Forbidden);
 
-        // This would call a delete method in IGameSessionStorage which needs to be added
-        // await _data.DeleteAsync(sessionId, ct);
+        session.Name = data.Name;
+        await storage.UpdateAsync(session, ct);
+        return TypedResult.As(HttpStatusCode.NoContent);
     }
 
-    public async Task JoinSessionAsync(Guid sessionId, Guid userId, PlayerType type = PlayerType.Player, CancellationToken ct = default) {
-        var session = await data.GetByIdAsync(sessionId, ct)
-            ?? throw new KeyNotFoundException("Session not found.");
+    public async Task<TypedResult<HttpStatusCode>> DeleteSessionAsync(Guid userId, Guid sessionId, CancellationToken ct = default) {
+        var session = await storage.GetByIdAsync(sessionId, ct);
+        if (session is null)
+            return TypedResult.As(HttpStatusCode.NotFound);
 
-        // Check if the user is already in the session
+        if (session.OwnerId != userId)
+            return TypedResult.As(HttpStatusCode.Forbidden);
+
+        await storage.DeleteAsync(sessionId, ct);
+        return TypedResult.As(HttpStatusCode.NoContent);
+    }
+
+    public async Task<TypedResult<HttpStatusCode>> JoinSessionAsync(Guid userId, Guid sessionId, PlayerType joinAs, CancellationToken ct = default) {
+        var session = await storage.GetByIdAsync(sessionId, ct);
+        if (session is null)
+            return TypedResult.As(HttpStatusCode.NotFound);
+
         if (session.Players.Any(p => p.UserId == userId))
-            return; // User is already in the session
+            return TypedResult.As(HttpStatusCode.NoContent);
 
-        session.Players.Add(new() { UserId = userId, Type = type });
-        await data.UpdateAsync(session, ct);
+        session.Players.Add(new() { UserId = userId, Type = joinAs });
+        await storage.UpdateAsync(session, ct);
+        return TypedResult.As(HttpStatusCode.NoContent);
     }
 
-    public async Task LeaveSessionAsync(Guid sessionId, Guid userId, CancellationToken ct = default) {
-        var session = await data.GetByIdAsync(sessionId, ct)
-            ?? throw new KeyNotFoundException("Session not found.");
-
-        // Owner can't leave their own session, they must delete it or transfer ownership
-        if (session.OwnerId == userId)
-            throw new InvalidOperationException("Session owner cannot leave the session.");
+    public async Task<TypedResult<HttpStatusCode>> LeaveSessionAsync(Guid userId, Guid sessionId, CancellationToken ct = default) {
+        var session = await storage.GetByIdAsync(sessionId, ct);
+        if (session is null)
+            return TypedResult.As(HttpStatusCode.NotFound);
 
         session.Players.RemoveWhere(p => p.UserId == userId);
-        await data.UpdateAsync(session, ct);
+        await storage.UpdateAsync(session, ct);
+        return TypedResult.As(HttpStatusCode.NoContent);
     }
 
-    public async Task SetActiveMapAsync(Guid sessionId, int mapNumber, CancellationToken ct = default) {
-        var session = await data.GetByIdAsync(sessionId, ct)
-            ?? throw new KeyNotFoundException("Session not found.");
+    public async Task<TypedResult<HttpStatusCode>> SetActiveMapAsync(Guid userId, Guid sessionId, int mapNumber, CancellationToken ct = default) {
+        var session = await storage.GetByIdAsync(sessionId, ct);
+        if (session is null)
+            return TypedResult.As(HttpStatusCode.NotFound);
 
-        if (session.Maps.All(m => m.Number != mapNumber))
-            throw new KeyNotFoundException("Map not found in this session.");
-
-        session.ActiveMap = mapNumber;
-        await data.UpdateAsync(session, ct);
-    }
-
-    public async Task StartSessionAsync(Guid sessionId, Guid userId, CancellationToken ct = default) {
-        var session = await data.GetByIdAsync(sessionId, ct)
-            ?? throw new KeyNotFoundException("Session not found.");
-
-        // Ensure the user has permission to start the session
         var isGameMaster = session.OwnerId == userId ||
                            session.Players.Any(p => p.UserId == userId && p.Type == PlayerType.Master);
-
         if (!isGameMaster)
-            throw new UnauthorizedAccessException("Only game masters can start a session.");
+            return TypedResult.As(HttpStatusCode.Forbidden);
+
+        if (session.Maps.All(m => m.Number != mapNumber))
+            return TypedResult.As(HttpStatusCode.BadRequest, new Error("Map not found in this session.", nameof(mapNumber)));
+
+        session.ActiveMap = mapNumber;
+        await storage.UpdateAsync(session, ct);
+        return TypedResult.As(HttpStatusCode.NoContent);
+    }
+
+    public async Task<TypedResult<HttpStatusCode>> StartSessionAsync(Guid userId, Guid sessionId, CancellationToken ct = default) {
+        var session = await storage.GetByIdAsync(sessionId, ct);
+        if (session is null)
+            return TypedResult.As(HttpStatusCode.NotFound);
+
+        var isGameMaster = session.OwnerId == userId ||
+                           session.Players.Any(p => p.UserId == userId && p.Type == PlayerType.Master);
+        if (!isGameMaster)
+            return TypedResult.As(HttpStatusCode.Forbidden);
 
         // Additional session start logic would go here
         // For now this is just a placeholder
+        return TypedResult.As(HttpStatusCode.NoContent);
+    }
+
+    public async Task<TypedResult<HttpStatusCode>> StopSessionAsync(Guid userId, Guid sessionId, CancellationToken ct = default) {
+        var session = await storage.GetByIdAsync(sessionId, ct);
+        if (session is null)
+            return TypedResult.As(HttpStatusCode.NotFound);
+
+        var isGameMaster = session.OwnerId == userId ||
+                           session.Players.Any(p => p.UserId == userId && p.Type == PlayerType.Master);
+        if (!isGameMaster)
+            return TypedResult.As(HttpStatusCode.Forbidden);
+
+        // Additional session end logic would go here
+        // For now this is just a placeholder
+        return TypedResult.As(HttpStatusCode.NoContent);
     }
 }

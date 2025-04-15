@@ -4,7 +4,7 @@ var cache = builder.AddRedis("redis")
                    .WithRedisInsight()
                    .WithLifetime(ContainerLifetime.Persistent);
 
-var gameService = builder.AddProject<Projects.GameService>("game")
+var gameService = builder.AddProject<Projects.GameService>("gameapi")
     .WithReference(cache)
     .WaitFor(cache)
     .WithExternalHttpEndpoints()

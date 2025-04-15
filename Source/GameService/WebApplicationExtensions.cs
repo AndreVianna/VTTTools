@@ -6,138 +6,152 @@ internal static class WebApplicationExtensions {
         var sessions = app.MapGroup("/api/sessions")
             .RequireAuthorization();
 
-        // Create a new game session
         sessions.MapPost("/", async (
-            [FromBody] CreateSessionRequest request,
             ClaimsPrincipal principal,
+            [FromBody] CreateSessionRequest request,
             [FromServices] ISessionService sessionService) => {
                 var userId = GetUserId(principal);
-                var session = await sessionService.CreateSessionAsync(request.Name, userId);
-                return Results.Created($"/api/sessions/{session.Id}", session);
+                var data = new CreateSessionData {
+                    Name = request.Name,
+                };
+                var result = await sessionService.CreateSessionAsync(userId, data);
+                return result.IsSuccessful
+                           ? Results.Created($"/api/sessions/{result.Value.Id}", result.Value)
+                           : Results.ValidationProblem(result.Errors.GroupedBySource());
             });
 
-        // Get sessions for the current principal
         sessions.MapGet("/", async (
             ClaimsPrincipal principal,
             [FromServices] ISessionService sessionService) => {
                 var userId = GetUserId(principal);
-                var userSessions = await sessionService.GetUserSessionsAsync(userId);
+                var userSessions = await sessionService.GetSessionsAsync(userId);
                 return Results.Ok(userSessions);
             });
 
-        // Get specific session
         sessions.MapGet("/{id:guid}", async (
-            Guid id,
+            ClaimsPrincipal principal,
+            [FromRoute] Guid id,
             [FromServices] ISessionService sessionService) => {
-                var session = await sessionService.GetSessionAsync(id);
+                var userId = GetUserId(principal);
+                var session = await sessionService.GetSessionAsync(userId, id);
                 return session != null
                     ? Results.Ok(session)
                     : Results.NotFound();
             });
 
-        // Update session
         sessions.MapPut("/{id:guid}", async (
-            Guid id,
+            ClaimsPrincipal principal,
+            [FromRoute] Guid id,
             [FromBody] UpdateSessionRequest request,
-            ClaimsPrincipal _,
             [FromServices] ISessionService sessionService) => {
                 try {
-                    await sessionService.UpdateSessionAsync(id, request.Name);
-                    return Results.NoContent();
+                    var userId = GetUserId(principal);
+                    var data = new UpdateSessionData {
+                        Name = request.Name,
+                    };
+                    var result = await sessionService.UpdateSessionAsync(userId, id, data);
+                    return result.Status switch {
+                        HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
+                        _ => Results.StatusCode((int)result.Status),
+                    };
                 }
-                catch (KeyNotFoundException) {
-                    return Results.NotFound();
-                }
-                catch (UnauthorizedAccessException) {
-                    return Results.Forbid();
+                catch (Exception ex) {
+                    return Results.InternalServerError(ex);
                 }
             });
 
-        // Delete session
         sessions.MapDelete("/{id:guid}", async (
-            Guid id,
             ClaimsPrincipal principal,
+            [FromRoute] Guid id,
             [FromServices] ISessionService sessionService) => {
                 try {
                     var userId = GetUserId(principal);
-                    await sessionService.DeleteSessionAsync(id, userId);
-                    return Results.NoContent();
+                    var result = await sessionService.DeleteSessionAsync(userId, id);
+                    return result.Status switch {
+                        HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
+                        _ => Results.StatusCode((int)result.Status),
+                    };
                 }
-                catch (KeyNotFoundException) {
-                    return Results.NotFound();
-                }
-                catch (UnauthorizedAccessException) {
-                    return Results.Forbid();
+                catch (Exception ex) {
+                    return Results.InternalServerError(ex);
                 }
             });
 
-        // Join session
         sessions.MapPost("/{id:guid}/join", async (
-            Guid id,
+            ClaimsPrincipal principal,
+            [FromRoute] Guid id,
             [FromBody] JoinSessionRequest request,
-            ClaimsPrincipal principal,
             [FromServices] ISessionService sessionService) => {
                 try {
                     var userId = GetUserId(principal);
-                    await sessionService.JoinSessionAsync(id, userId, request.Role);
-                    return Results.NoContent();
+                    var result = await sessionService.JoinSessionAsync(userId, id, request.JoinAs);
+                    return result.Status switch {
+                        HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
+                        _ => Results.StatusCode((int)result.Status),
+                    };
                 }
-                catch (KeyNotFoundException) {
-                    return Results.NotFound();
+                catch (Exception ex) {
+                    return Results.InternalServerError(ex);
                 }
             });
 
-        // Leave session
         sessions.MapPost("/{id:guid}/leave", async (
-            Guid id,
             ClaimsPrincipal principal,
+            [FromRoute] Guid id,
             [FromServices] ISessionService sessionService) => {
                 try {
                     var userId = GetUserId(principal);
-                    await sessionService.LeaveSessionAsync(id, userId);
-                    return Results.NoContent();
+                    var result = await sessionService.LeaveSessionAsync(userId, id);
+                    return Results.StatusCode((int)result.Status);
                 }
-                catch (KeyNotFoundException) {
-                    return Results.NotFound();
-                }
-                catch (InvalidOperationException ex) {
-                    return Results.BadRequest(ex.Message);
+                catch (Exception ex) {
+                    return Results.InternalServerError(ex);
                 }
             });
 
-        // Set active map
         sessions.MapPost("/{id:guid}/maps/{map:int}/activate", async (
-            Guid id,
-            int map,
-            ClaimsPrincipal _,
-            [FromServices] ISessionService sessionService) => {
-                try {
-                    await sessionService.SetActiveMapAsync(id, map);
-                    return Results.NoContent();
-                }
-                catch (KeyNotFoundException ex) when (ex.Message.Contains("Session")) {
-                    return Results.NotFound("Session not found");
-                }
-                catch (KeyNotFoundException) {
-                    return Results.NotFound("Map not found in this session");
-                }
-            });
-
-        // Start session
-        sessions.MapPost("/{id:guid}/start", async (
-            Guid id,
             ClaimsPrincipal principal,
+            [FromRoute] Guid id,
+            [FromRoute] int map,
             [FromServices] ISessionService sessionService) => {
                 try {
                     var userId = GetUserId(principal);
-                    await sessionService.StartSessionAsync(id, userId);
-                    return Results.NoContent();
+                    var result = await sessionService.SetActiveMapAsync(userId, id, map);
+                    return result.Status switch {
+                        HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
+                        _ => Results.StatusCode((int)result.Status),
+                    };
                 }
-                catch (KeyNotFoundException) {
-                    return Results.NotFound();
+                catch (Exception ex) {
+                    return Results.InternalServerError(ex);
                 }
-                catch (UnauthorizedAccessException) {
-                    return Results.Forbid();
+            });
+
+        sessions.MapPost("/{id:guid}/start", async (
+            ClaimsPrincipal principal,
+            [FromRoute] Guid id,
+            [FromServices] ISessionService sessionService) => {
+                try {
+                    var userId = GetUserId(principal);
+                    var result = await sessionService.StartSessionAsync(userId, id);
+                    return Results.StatusCode((int)result.Status);
+                }
+                catch (Exception ex) {
+                    return Results.InternalServerError(ex);
+                }
+            });
+
+        sessions.MapPost("/{id:guid}/stop", async (
+            ClaimsPrincipal principal,
+            [FromRoute] Guid id,
+            [FromServices] ISessionService sessionService) => {
+                try {
+                    var userId = GetUserId(principal);
+                    var result = await sessionService.StopSessionAsync(userId, id);
+                    return Results.StatusCode((int)result.Status);
+                }
+                catch (Exception ex) {
+                    return Results.InternalServerError(ex);
                 }
             });
     }
@@ -149,8 +163,3 @@ internal static class WebApplicationExtensions {
                    : throw new UnauthorizedAccessException("Invalid principal ID");
     }
 }
-
-// Request DTOs
-public record CreateSessionRequest(string Name);
-public record UpdateSessionRequest(string Name);
-public record JoinSessionRequest(PlayerType Role = PlayerType.Player);

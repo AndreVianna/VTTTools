@@ -6,6 +6,12 @@ builder.Host.UseDefaultServiceProvider((_, o) => {
     o.ValidateOnBuild = true;
 });
 
+builder.Services.AddServiceDiscovery();
+builder.Services.ConfigureHttpClientDefaults(http => {
+    http.AddStandardResilienceHandler();
+    http.AddServiceDiscovery();
+});
+
 AddDefaultHealthChecks();
 builder.AddRedisOutputCache("redis");
 builder.AddSqlServerDataProvider();
@@ -40,7 +46,7 @@ builder.Services.AddRazorComponents()
                 .AddInteractiveWebAssemblyComponents()
                 .AddAuthenticationStateSerialization();
 
-builder.Services.AddHttpClient("game", static client => client.BaseAddress = new("https://localhost:7465"));
+builder.Services.AddHttpClient("game", static client => client.BaseAddress = new("https+http://gameapi"));
 
 var app = builder.Build();
 

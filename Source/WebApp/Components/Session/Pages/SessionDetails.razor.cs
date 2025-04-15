@@ -1,15 +1,15 @@
 namespace WebApp.Components.Session.Pages;
 
 public partial class SessionDetails {
+    private HttpClient _http = null!;
+
     [Parameter]
     public Guid SessionId { get; set; }
 
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
-    private HttpClient Http { get; set; } = null!;
-    [Inject]
-    private ISessionService GameSessionService { get; set; } = null!;
+    private IHttpClientFactory HttpClientFactory { get; set; } = null!;
     [Inject]
     private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
 
@@ -21,12 +21,14 @@ public partial class SessionDetails {
     private string _sessionNameError = string.Empty;
 
     protected override async Task OnInitializedAsync() {
+        _http = HttpClientFactory.CreateClient("game");
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
         if (user.Identity?.IsAuthenticated == true) {
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId)) _currentUserId = userId;
+            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
+                _currentUserId = userId;
         }
 
         await LoadSessionDetails();
@@ -36,11 +38,13 @@ public partial class SessionDetails {
 
     private async Task LoadSessionDetails() {
         try {
-            _session = await GameSessionService.GetSessionAsync(SessionId);
-            if (_session != null) {
-                _isGameMaster = _session.OwnerId == _currentUserId ||
-                                _session.Players.Any(p => p.UserId == _currentUserId && p.Type == PlayerType.Master);
-            }
+            var response = await _http.GetAsync($"/api/sessions/{SessionId}");
+            response.EnsureSuccessStatusCode();
+            _session = await response.Content.ReadFromJsonAsync<VttTools.Model.Game.Session>();
+            if (_session == null)
+                return;
+            _isGameMaster = _session.OwnerId == _currentUserId ||
+                            _session.Players.Any(p => p.UserId == _currentUserId && p.Type == PlayerType.Master);
         }
         catch (Exception ex) {
             // Handle error
@@ -69,10 +73,7 @@ public partial class SessionDetails {
         }
 
         try {
-            // Call API to update session
-            await Http.PutAsJsonAsync($"/api/sessions/{SessionId}", new { Name = _editSessionName });
-
-            // Reload session details
+            await _http.PutAsJsonAsync($"/api/sessions/{SessionId}", new { Name = _editSessionName });
             await LoadSessionDetails();
             _showEditDialog = false;
         }
@@ -83,18 +84,19 @@ public partial class SessionDetails {
 
     private async Task SetActiveMap(int map) {
         try {
-            await GameSessionService.SetActiveMapAsync(SessionId, map);
+            var response = await _http.PostAsync($"/api/sessions/{SessionId}/maps/{map}/activate", null);
+            response.EnsureSuccessStatusCode();
             await LoadSessionDetails();
         }
         catch (Exception ex) {
-            // Handle error
             await Console.Error.WriteLineAsync($"Error setting active map: {ex.Message}");
         }
     }
 
     private async Task StartSession() {
         try {
-            await GameSessionService.StartSessionAsync(SessionId, _currentUserId);
+            var response = await _http.PostAsync($"/api/sessions/{SessionId}/start", null);
+            response.EnsureSuccessStatusCode();
             // Redirect to the game view once it's implemented
             // Navigation.NavigateTo($"/game/{SessionId}");
         }

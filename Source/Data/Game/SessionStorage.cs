@@ -2,8 +2,8 @@
 
 public class SessionStorage(ApplicationDbContext context)
     : ISessionStorage {
-    public async Task<Session> GetByIdAsync(Guid id, CancellationToken ct = default) {
-        var session = await context.Sessions
+    public Task<Session?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        => context.Sessions
             .Include(s => s.Players)
             .Include(s => s.Maps)
                 .ThenInclude(m => m.Tokens)
@@ -11,24 +11,21 @@ public class SessionStorage(ApplicationDbContext context)
             .AsNoTrackingWithIdentityResolution()
             .FirstOrDefaultAsync(s => s.Id == id, ct);
 
-        return session ?? throw new KeyNotFoundException($"Session with ID {id} not found.");
-    }
-
-    public async Task<IEnumerable<Session>> GetAllAsync(CancellationToken ct = default)
-        => await context.Sessions
+    public Task<Session[]> GetAllAsync(CancellationToken ct = default)
+        => context.Sessions
             .Include(s => s.Players)
             .AsNoTrackingWithIdentityResolution()
-            .ToListAsync(ct);
+            .ToArrayAsync(ct);
 
-    public async Task<IEnumerable<Session>> GetByUserIdAsync(Guid userId, CancellationToken ct = default)
-        => await context.Sessions
+    public Task<Session[]> GetByUserIdAsync(Guid userId, CancellationToken ct = default)
+        => context.Sessions
             .Include(s => s.Players)
             .Include(s => s.Maps)
                 .ThenInclude(m => m.Tokens)
             .Include(s => s.Messages)
             .Where(s => s.OwnerId == userId || s.Players.Any(p => p.UserId == userId))
             .AsNoTrackingWithIdentityResolution()
-            .ToListAsync(ct);
+            .ToArrayAsync(ct);
 
     public async Task AddAsync(Session session, CancellationToken ct = default) {
         await context.Sessions.AddAsync(session, ct);

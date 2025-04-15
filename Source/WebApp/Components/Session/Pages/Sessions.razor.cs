@@ -1,6 +1,9 @@
-﻿namespace WebApp.Components.Session.Pages;
+﻿using VttTools.HttpContracts.Game;
+
+namespace WebApp.Components.Session.Pages;
 
 public partial class Sessions {
+    private HttpClient _http = null!;
     private List<VttTools.Model.Game.Session>? _sessions;
     private bool _showCreateDialog;
     private string _newSessionName = string.Empty;
@@ -10,13 +13,12 @@ public partial class Sessions {
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
-    private HttpClient Http { get; set; } = null!;
-    [Inject]
-    private ISessionService GameSessionService { get; set; } = null!;
+    private IHttpClientFactory HttpClientFactory { get; set; } = null!;
     [Inject]
     private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
 
     protected override async Task OnInitializedAsync() {
+        _http = HttpClientFactory.CreateClient("game");
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var principal = authState.User;
 
@@ -31,19 +33,18 @@ public partial class Sessions {
 
     private async Task LoadSessions() {
         try {
-            _sessions = (await Http.GetFromJsonAsync<List<VttTools.Model.Game.Session>>("/api/sessions"))!;
+            _sessions = await _http.GetFromJsonAsync<List<VttTools.Model.Game.Session>>("/api/sessions");
         }
         catch (Exception) {
-            // For demo purposes, create sample data if API is not available
             _sessions = [new() {
-                                   Id = Guid.NewGuid(),
-                                   Name = "Demo Session",
-                                   OwnerId = _currentUserId,
-                                   Players = [new() {
-                                       UserId = _currentUserId,
-                                       Type = PlayerType.Master,
-                                   }],
-                               }];
+                Id = Guid.NewGuid(),
+                Name = "Demo Session",
+                OwnerId = _currentUserId,
+                Players = [new() {
+                    UserId = _currentUserId,
+                    Type = PlayerType.Master,
+                }],
+            }];
         }
     }
 
@@ -53,7 +54,8 @@ public partial class Sessions {
         _sessionNameError = string.Empty;
     }
 
-    private void CloseCreateSessionDialog() => _showCreateDialog = false;
+    private void CloseCreateSessionDialog()
+        => _showCreateDialog = false;
 
     private async Task CreateSession() {
         if (string.IsNullOrWhiteSpace(_newSessionName)) {
@@ -62,9 +64,14 @@ public partial class Sessions {
         }
 
         try {
-            var session = await GameSessionService.CreateSessionAsync(_newSessionName, _currentUserId);
+            var request = new CreateSessionRequest {
+                Name = _newSessionName,
+            };
+            var response = await _http.PostAsJsonAsync("/api/sessions", request);
+            response.EnsureSuccessStatusCode();
+            var session = await response.Content.ReadFromJsonAsync<VttTools.Model.Game.Session>();
             _sessions ??= [];
-            _sessions.Add(session);
+            _sessions.Add(session!);
             _showCreateDialog = false;
         }
         catch (Exception ex) {
@@ -74,8 +81,10 @@ public partial class Sessions {
 
     private async Task JoinSession(Guid sessionId) {
         try {
-            await GameSessionService.JoinSessionAsync(sessionId, _currentUserId);
-            NavigationManager.NavigateTo($"/session/{sessionId}");
+            var response = await _http.PostAsync($"/api/sessions/{sessionId}/join", null);
+            response.EnsureSuccessStatusCode();
+            // Redirect to the game view once it's implemented
+            // Navigation.NavigateTo($"/game/{SessionId}");
         }
         catch (Exception ex) {
             // Handle error
@@ -83,15 +92,19 @@ public partial class Sessions {
         }
     }
 
+    private void ViewSession(Guid sessionId)
+        => NavigationManager.NavigateTo($"/session/{sessionId}");
+
     private async Task DeleteSession(Guid sessionId) {
         if (!await DisplayConfirmation("Are you sure you want to delete this session?"))
             return;
 
         try {
-            await Http.DeleteAsync($"/api/sessions/{sessionId}");
             var sessionToRemove = _sessions?.FirstOrDefault(s => s.Id == sessionId);
             if (sessionToRemove == null)
                 return;
+            var response = await _http.DeleteAsync($"/api/sessions/{sessionId}");
+            response.EnsureSuccessStatusCode();
             _sessions?.Remove(sessionToRemove);
         }
         catch (Exception ex) {
