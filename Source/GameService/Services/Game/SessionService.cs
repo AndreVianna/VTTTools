@@ -6,10 +6,8 @@ public class SessionService(ISessionStorage data)
         var session = new Session {
             Id = Guid.NewGuid(),
             Name = name,
-            Owner = new() {
-                Id = creatorUserId,
-            },
-            Players = [new Player { User = new() { Id = creatorUserId }, Type = PlayerType.Master }],
+            OwnerId = creatorUserId,
+            Players = [new SessionPlayer { UserId = creatorUserId, Type = PlayerType.Master }],
         };
 
         await data.AddAsync(session, ct);
@@ -37,22 +35,22 @@ public class SessionService(ISessionStorage data)
             ?? throw new KeyNotFoundException("Session not found.");
 
         // Only the owner should be able to delete a session
-        if (session.Owner.Id != userId)
+        if (session.OwnerId != userId)
             throw new UnauthorizedAccessException("Only the session owner can delete a session.");
 
         // This would call a delete method in IGameSessionStorage which needs to be added
         // await _data.DeleteAsync(sessionId, ct);
     }
 
-    public async Task JoinSessionAsync(Guid sessionId, User user, PlayerType type = PlayerType.Player, CancellationToken ct = default) {
+    public async Task JoinSessionAsync(Guid sessionId, Guid userId, PlayerType type = PlayerType.Player, CancellationToken ct = default) {
         var session = await data.GetByIdAsync(sessionId, ct)
             ?? throw new KeyNotFoundException("Session not found.");
 
         // Check if the user is already in the session
-        if (session.Players.Any(p => p.User.Id == user.Id))
+        if (session.Players.Any(p => p.UserId == userId))
             return; // User is already in the session
 
-        session.Players.Add(new() { User = user, Type = type });
+        session.Players.Add(new() { UserId = userId, Type = type });
         await data.UpdateAsync(session, ct);
     }
 
@@ -61,10 +59,10 @@ public class SessionService(ISessionStorage data)
             ?? throw new KeyNotFoundException("Session not found.");
 
         // Owner can't leave their own session, they must delete it or transfer ownership
-        if (session.Owner.Id == userId)
+        if (session.OwnerId == userId)
             throw new InvalidOperationException("Session owner cannot leave the session.");
 
-        session.Players.RemoveWhere(p => p.User.Id == userId);
+        session.Players.RemoveWhere(p => p.UserId == userId);
         await data.UpdateAsync(session, ct);
     }
 
@@ -84,8 +82,8 @@ public class SessionService(ISessionStorage data)
             ?? throw new KeyNotFoundException("Session not found.");
 
         // Ensure the user has permission to start the session
-        var isGameMaster = session.Owner.Id == userId ||
-                           session.Players.Any(p => p.User.Id == userId && p.Type == PlayerType.Master);
+        var isGameMaster = session.OwnerId == userId ||
+                           session.Players.Any(p => p.UserId == userId && p.Type == PlayerType.Master);
 
         if (!isGameMaster)
             throw new UnauthorizedAccessException("Only game masters can start a session.");

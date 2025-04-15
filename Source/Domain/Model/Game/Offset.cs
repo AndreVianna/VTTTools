@@ -1,3 +1,6 @@
 ﻿namespace VttTools.Model.Game;
 
-public record Offset(decimal Width, decimal Height);
+public class Offset {
+    public double Left { get; set; }
+    public double Top { get; set; }
+}

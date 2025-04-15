@@ -57,16 +57,16 @@ else
                                     <div class="list-group-item d-flex justify-content-between align-items-center">
                                         <div>
                                             <h6 class="mb-0">@map.Name</h6>
-                                            <small>@map.Width x @map.Height</small>
+                                            <small>@map.Size!.Width x @map.Size!.Height</small>
                                         </div>
                                         <div>
-                                            @if (_session.ActiveMapId == map.Id)
+                                            @if (_session.ActiveMap == map.Number)
                                             {
                                                 <span class="badge bg-success">Active</span>
                                             }
                                             else if (_isGameMaster)
                                             {
-                                                <button class="btn btn-sm btn-outline-primary" @onclick="() => SetActiveMap(map.Id)">
+                                                <button class="btn btn-sm btn-outline-primary" @onclick="() => SetActiveMap(map.Number)">
                                                     Set Active
                                                 </button>
                                             }

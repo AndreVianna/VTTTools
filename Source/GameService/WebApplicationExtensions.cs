@@ -76,12 +76,10 @@ internal static class WebApplicationExtensions {
             Guid id,
             [FromBody] JoinSessionRequest request,
             ClaimsPrincipal principal,
-            [FromServices] ISessionService sessionService,
-            [FromServices] UserManager<User> userManager) => {
+            [FromServices] ISessionService sessionService) => {
                 try {
-                    var user = await userManager.GetUserAsync(principal)
-                            ?? throw new UnauthorizedAccessException("Invalid principal ID");
-                    await sessionService.JoinSessionAsync(id, user, request.Role);
+                    var userId = GetUserId(principal);
+                    await sessionService.JoinSessionAsync(id, userId, request.Role);
                     return Results.NoContent();
                 }
                 catch (KeyNotFoundException) {

@@ -1,7 +1,6 @@
 ﻿namespace VttTools.Model.Game;
 
-public class Message {
-    public Session Session { get; set; } = null!;
+public class SessionMessage {
     public DateTimeOffset SentAt { get; set; }
     public int SentBy { get; set; }
     public int? SentTo { get; set; } // in case of a "whisper"

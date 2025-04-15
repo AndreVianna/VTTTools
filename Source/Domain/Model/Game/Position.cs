@@ -1,3 +1,6 @@
 ﻿namespace VttTools.Model.Game;
 
-public record Position(int X, int Y);
+public class Position {
+    public int Left { get; set; }
+    public int Top { get; set; }
+}

@@ -65,10 +65,10 @@ public interface ISessionService {
     /// Adds a user to a game session
     /// </summary>
     /// <param name="sessionId">ID of the session to join</param>
-    /// <param name="user">The user joining the session</param>
+    /// <param name="userId">The user joining the session</param>
     /// <param name="type">Role of the user in the session</param>
     /// <param name="ct">Cancellation token</param>
-    Task JoinSessionAsync(Guid sessionId, User user, PlayerType type = PlayerType.Player, CancellationToken ct = default);
+    Task JoinSessionAsync(Guid sessionId, Guid userId, PlayerType type = PlayerType.Player, CancellationToken ct = default);
 
     /// <summary>
     /// Removes a user from a game session

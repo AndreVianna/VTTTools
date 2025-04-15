@@ -34,8 +34,8 @@ public partial class SessionDetails {
         try {
             _session = await GameSessionService.GetSessionAsync(SessionId);
             if (_session != null) {
-                _isGameMaster = _session.Owner.Id == _currentUserId ||
-                                _session.Players.Any(p => p.User.Id == _currentUserId && p.Type == PlayerType.Master);
+                _isGameMaster = _session.OwnerId == _currentUserId ||
+                                _session.Players.Any(p => p.UserId == _currentUserId && p.Type == PlayerType.Master);
             }
         }
         catch (Exception ex) {

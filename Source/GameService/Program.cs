@@ -13,7 +13,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => {
 });
 
 // Add GameSession services
-builder.Services.AddSingleton<ISessionStorage, SessionStorage>();
+builder.Services.AddScoped<ISessionStorage, SessionStorage>();
 builder.Services.AddScoped<ISessionService, SessionService>();
 
 var app = builder.Build();

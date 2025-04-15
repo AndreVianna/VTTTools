@@ -1,20 +1,14 @@
-﻿using VttTools.Model.Identity;
-
-namespace WebApp.Components.Session.Pages;
+﻿namespace WebApp.Components.Session.Pages;
 
 public partial class Sessions {
     [Inject]
     private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
-
-    [Inject]
-    private UserManager<User> UserManager { get; set; } = null!;
 
     private List<VttTools.Model.Game.Session>? _sessions;
     private bool _showCreateDialog;
     private string _newSessionName = string.Empty;
     private string _sessionNameError = string.Empty;
     private Guid _currentUserId;
-    private User? _currentUser;
 
     protected override async Task OnInitializedAsync() {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -22,10 +16,8 @@ public partial class Sessions {
 
         if (principal.Identity?.IsAuthenticated == true) {
             var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId)) {
+            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
                 _currentUserId = userId;
-                _currentUser = await UserManager.GetUserAsync(principal);
-            }
         }
 
         await LoadSessions();
@@ -40,9 +32,9 @@ public partial class Sessions {
             _sessions = [new() {
                                    Id = Guid.NewGuid(),
                                    Name = "Demo Session",
-                                   Owner = _currentUser!,
+                                   OwnerId = _currentUserId,
                                    Players = [new() {
-                                       User = _currentUser!,
+                                       UserId = _currentUserId,
                                        Type = PlayerType.Master,
                                    }],
                                }];
@@ -76,7 +68,7 @@ public partial class Sessions {
 
     private async Task JoinSession(Guid sessionId) {
         try {
-            await GameSessionService.JoinSessionAsync(sessionId, _currentUser!);
+            await GameSessionService.JoinSessionAsync(sessionId, _currentUserId);
             Navigation.NavigateTo($"/session/{sessionId}");
         }
         catch (Exception ex) {
@@ -104,7 +96,7 @@ public partial class Sessions {
     }
 
     // In a real application, you would use a dialog service instead
-    private Task<bool> DisplayConfirmation(string message)
+    private static Task<bool> DisplayConfirmation(string _)
         // JavaScript confirmation isn't ideal, but we'll use it for this example
         => Task.FromResult(true);
 }

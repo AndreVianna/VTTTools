@@ -4,9 +4,7 @@ public class SessionStorage(ApplicationDbContext context)
     : ISessionStorage {
     public async Task<Session> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var session = await context.Sessions
-            .Include(s => s.Owner)
             .Include(s => s.Players)
-                .ThenInclude(p => p.User)
             .Include(s => s.Maps)
                 .ThenInclude(m => m.Tokens)
             .Include(s => s.Messages)
@@ -18,21 +16,17 @@ public class SessionStorage(ApplicationDbContext context)
 
     public async Task<IEnumerable<Session>> GetAllAsync(CancellationToken ct = default)
         => await context.Sessions
-            .Include(s => s.Owner)
             .Include(s => s.Players)
-                .ThenInclude(p => p.User)
             .AsNoTrackingWithIdentityResolution()
             .ToListAsync(ct);
 
     public async Task<IEnumerable<Session>> GetByUserIdAsync(Guid userId, CancellationToken ct = default)
         => await context.Sessions
-            .Include(s => s.Owner)
             .Include(s => s.Players)
-                .ThenInclude(p => p.User)
             .Include(s => s.Maps)
                 .ThenInclude(m => m.Tokens)
             .Include(s => s.Messages)
-            .Where(s => s.Owner.Id == userId || s.Players.Any(p => p.User.Id == userId))
+            .Where(s => s.OwnerId == userId || s.Players.Any(p => p.UserId == userId))
             .AsNoTrackingWithIdentityResolution()
             .ToListAsync(ct);
 
