@@ -10,13 +10,23 @@ public partial class TwoFactorAuthentication {
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = null!;
 
+    [Inject]
+    private UserManager<User> UserManager { get; set; } = null!;
+    [Inject]
+    private SignInManager<User> SignInManager { get; set; } = null!;
+    [Inject]
+    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    [Inject]
+    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+
     protected override async Task OnInitializedAsync() {
-        var user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        if (result.IsFailure) return;
         _canTrack = HttpContext.Features.Get<ITrackingConsentFeature>()?.CanTrack ?? true;
-        _hasAuthenticator = await UserManager.GetAuthenticatorKeyAsync(user) is not null;
-        _is2FaEnabled = await UserManager.GetTwoFactorEnabledAsync(user);
-        _isMachineRemembered = await SignInManager.IsTwoFactorClientRememberedAsync(user);
-        _recoveryCodesLeft = await UserManager.CountRecoveryCodesAsync(user);
+        _hasAuthenticator = await UserManager.GetAuthenticatorKeyAsync(result.Value) is not null;
+        _is2FaEnabled = await UserManager.GetTwoFactorEnabledAsync(result.Value);
+        _isMachineRemembered = await SignInManager.IsTwoFactorClientRememberedAsync(result.Value);
+        _recoveryCodesLeft = await UserManager.CountRecoveryCodesAsync(result.Value);
     }
 
     private async Task OnSubmitForgetBrowserAsync() {

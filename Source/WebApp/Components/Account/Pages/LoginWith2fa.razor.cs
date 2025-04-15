@@ -1,11 +1,18 @@
-﻿using VttTools.Model.Identity;
+﻿namespace WebApp.Components.Account.Pages;
 
-namespace WebApp.Components.Account.Pages;
-
- // ReSharper disable once InconsistentNaming
+// ReSharper disable once InconsistentNaming
 public partial class LoginWith2fa {
     private string? _message;
     private User _user = null!;
+
+    [Inject]
+    private UserManager<User> UserManager { get; set; } = null!;
+    [Inject]
+    private SignInManager<User> SignInManager { get; set; } = null!;
+    [Inject]
+    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    [Inject]
+    private ILogger<LoginWith2fa> Logger { get; set; } = null!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();

@@ -5,6 +5,12 @@ public partial class SessionDetails {
     public Guid SessionId { get; set; }
 
     [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject]
+    private HttpClient Http { get; set; } = null!;
+    [Inject]
+    private ISessionService GameSessionService { get; set; } = null!;
+    [Inject]
     private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
 
     private VttTools.Model.Game.Session? _session;
@@ -20,9 +26,7 @@ public partial class SessionDetails {
 
         if (user.Identity?.IsAuthenticated == true) {
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId)) {
-                _currentUserId = userId;
-            }
+            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId)) _currentUserId = userId;
         }
 
         await LoadSessionDetails();
@@ -41,11 +45,11 @@ public partial class SessionDetails {
         catch (Exception ex) {
             // Handle error
             await Console.Error.WriteLineAsync($"Error loading session: {ex.Message}");
-            Navigation.NavigateTo("/sessions");
+            NavigationManager.NavigateTo("/sessions");
         }
     }
 
-    private void NavigateToSessions() => Navigation.NavigateTo("/sessions");
+    private void NavigateToSessions() => NavigationManager.NavigateTo("/sessions");
 
     private void OpenEditSessionDialog() {
         if (_session == null)

@@ -1,6 +1,4 @@
-﻿using VttTools.Model.Identity;
-
-namespace WebApp.Components.Account.Pages.Manage;
+﻿namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class SetPassword {
     private string? _message;
@@ -9,26 +7,38 @@ public partial class SetPassword {
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = null!;
 
+    [Inject]
+    private UserManager<User> UserManager { get; set; } = null!;
+    [Inject]
+    private SignInManager<User> SignInManager { get; set; } = null!;
+    [Inject]
+    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    [Inject]
+    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    [Inject]
+    private ILogger<SetPassword> Logger { get; set; } = null!;
+
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
-
+        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        if (result.IsFailure) return;
+        _user = result.Value;
         var hasPassword = await UserManager.HasPasswordAsync(_user);
-        if (hasPassword) {
-            RedirectManager.RedirectTo("Account/Manage/ChangePassword");
-        }
+        if (hasPassword) RedirectManager.RedirectTo("Account/Manage/ChangePassword");
     }
 
     private async Task OnValidSubmitAsync() {
         var addPasswordResult = await UserManager.AddPasswordAsync(_user, Input.NewPassword!);
         if (!addPasswordResult.Succeeded) {
+            Logger.LogWarning("Failed to set the password for the user with Id {UserId}.", _user.Id);
             _message = $"Error: {string.Join(",", addPasswordResult.Errors.Select(error => error.Description))}";
             return;
         }
 
         await SignInManager.RefreshSignInAsync(_user);
+        Logger.LogInformation("The password for the user with Id {UserId} was set.", _user.Id);
         RedirectManager.RedirectToCurrentPageWithStatus("Your password has been set.", HttpContext);
     }
 

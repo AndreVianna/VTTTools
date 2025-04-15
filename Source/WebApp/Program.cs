@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-using VttTools.Model.Identity;
-
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseDefaultServiceProvider((_, o) => {
     o.ValidateScopes = true;

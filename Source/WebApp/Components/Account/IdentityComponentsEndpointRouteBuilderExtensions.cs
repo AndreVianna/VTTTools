@@ -1,7 +1,4 @@
 // ReSharper disable once CheckNamespace
-
-using VttTools.Model.Identity;
-
 namespace Microsoft.AspNetCore.Routing;
 
 internal static class IdentityComponentsEndpointRouteBuilderExtensions {

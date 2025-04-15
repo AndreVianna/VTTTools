@@ -6,6 +6,13 @@ public partial class NavMenu {
     [CascadingParameter]
     protected HttpContext HttpContext { get; set; } = null!;
 
+    [Inject]
+    private UserManager<User> UserManager { get; set; } = null!;
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject]
+    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+
     protected string UserName { get; set; } = null!;
 
     protected override async Task OnInitializedAsync() {
@@ -13,7 +20,8 @@ public partial class NavMenu {
         NavigationManager.LocationChanged += OnLocationChanged;
         UserName = string.Empty;
         var user = await UserManager.GetUserAsync(HttpContext.User);
-        if (user is null) return;
+        if (user is null)
+            return;
         UserName = user.DisplayName ?? user.Name;
     }
 

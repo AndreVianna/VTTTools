@@ -1,6 +1,4 @@
-﻿using VttTools.Model.Identity;
-
-namespace WebApp.Components.Account.Pages.Manage;
+﻿namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class GenerateRecoveryCodes {
     private string? _message;
@@ -10,13 +8,22 @@ public partial class GenerateRecoveryCodes {
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = null!;
 
+    [Inject]
+    private UserManager<User> UserManager { get; set; } = null!;
+    [Inject]
+    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    [Inject]
+    private ILogger<GenerateRecoveryCodes> Logger { get; set; } = null!;
+
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        if (result.IsFailure)
+            return;
+        _user = result.Value;
 
         var isTwoFactorEnabled = await UserManager.GetTwoFactorEnabledAsync(_user);
-        if (!isTwoFactorEnabled) {
+        if (!isTwoFactorEnabled)
             throw new InvalidOperationException("Cannot generate recovery codes for user because they do not have 2FA enabled.");
-        }
     }
 
     private async Task OnSubmitAsync() {

@@ -1,9 +1,22 @@
-﻿using VttTools.Model.Identity;
-
-namespace WebApp.Components.Account.Pages;
+﻿namespace WebApp.Components.Account.Pages;
 
 public partial class Register {
     private IEnumerable<IdentityError>? _identityErrors;
+
+    [Inject]
+    private UserManager<User> UserManager { get; set; } = null!;
+    [Inject]
+    private IUserStore<User> UserStore { get; set; } = null!;
+    [Inject]
+    private SignInManager<User> SignInManager { get; set; } = null!;
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject]
+    private IEmailSender<User> EmailSender { get; set; } = null!;
+    [Inject]
+    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    [Inject]
+    private ILogger<Register> Logger { get; set; } = null!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
@@ -11,11 +24,21 @@ public partial class Register {
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private string? Message => _identityErrors is null ? null : $"Error: {string.Join(", ", _identityErrors.Select(error => error.Description))}";
+    private bool HasExternalLoginProviders { get; set; }
+
+    private string? Message => _identityErrors is null
+                                   ? null
+                                   : $"Error: {string.Join(", ", _identityErrors.Select(error => error.Description))}";
+
+    protected override async Task OnInitializedAsync() {
+        var externalLogins = await SignInManager.GetExternalAuthenticationSchemesAsync();
+        HasExternalLoginProviders = externalLogins.Any();
+    }
 
     public async Task RegisterUser(EditContext _) {
         var user = CreateUser();
 
+        user.Name = Input.Name;
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         var emailStore = GetEmailStore();
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
@@ -31,15 +54,13 @@ public partial class Register {
         var userId = await UserManager.GetUserIdAsync(user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
-                                                                      NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+        var callbackUrl = NavigationManager.GetUriWithQueryParameters(NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
                                                                       new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
 
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
         if (UserManager.Options.SignIn.RequireConfirmedAccount) {
-            RedirectManager.RedirectTo(
-                                       "Account/RegisterConfirmation",
+            RedirectManager.RedirectTo("Account/RegisterConfirmation",
                                        new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
         }
 
@@ -47,7 +68,7 @@ public partial class Register {
         RedirectManager.RedirectTo(ReturnUrl);
     }
 
-    private User CreateUser() {
+    private static User CreateUser() {
         try {
             return Activator.CreateInstance<User>();
         }
@@ -62,6 +83,10 @@ public partial class Register {
             : (IUserEmailStore<User>)UserStore;
 
     private sealed class InputModel {
+        [Required]
+        [Display(Name = "Name")]
+        public string Name { get; set; } = "";
+
         [Required]
         [EmailAddress]
         [Display(Name = "Email")]

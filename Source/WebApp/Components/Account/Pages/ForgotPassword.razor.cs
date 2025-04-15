@@ -1,6 +1,15 @@
 ﻿namespace WebApp.Components.Account.Pages;
 
 public partial class ForgotPassword {
+    [Inject]
+    private UserManager<User> UserManager { get; set; } = null!;
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject]
+    private IEmailSender<User> EmailSender { get; set; } = null!;
+    [Inject]
+    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 

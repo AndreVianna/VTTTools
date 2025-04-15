@@ -1,6 +1,4 @@
-﻿using VttTools.Model.Identity;
-
-namespace WebApp.Components.Account.Pages.Manage;
+﻿namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class DeletePersonalData {
     private string? _message;
@@ -10,12 +8,24 @@ public partial class DeletePersonalData {
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = null!;
 
+    [Inject]
+    private UserManager<User> UserManager { get; set; } = null!;
+    [Inject]
+    private SignInManager<User> SignInManager { get; set; } = null!;
+    [Inject]
+    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    [Inject]
+    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    [Inject]
+    private ILogger<DeletePersonalData> Logger { get; set; } = null!;
+
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        Input ??= new();
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        if (result.IsFailure) return;
+        _user = result.Value;
         _requirePassword = await UserManager.HasPasswordAsync(_user);
     }
 
@@ -26,9 +36,7 @@ public partial class DeletePersonalData {
         }
 
         var result = await UserManager.DeleteAsync(_user);
-        if (!result.Succeeded) {
-            throw new InvalidOperationException("Unexpected error occurred deleting user.");
-        }
+        if (!result.Succeeded) throw new InvalidOperationException("Unexpected error occurred deleting user.");
 
         await SignInManager.SignOutAsync();
 

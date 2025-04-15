@@ -6,6 +6,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
-        ApplicationDbContextBuilder.ConfigureModel(builder);
+        IdentitySchemaBuilder.ConfigureModel(builder);
+        IdentitySchemaBuilder.SeedIdentity(builder);
+        GameSchemaBuilder.ConfigureModel(builder);
     }
 }

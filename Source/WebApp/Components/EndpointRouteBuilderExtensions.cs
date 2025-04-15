@@ -1,5 +1,3 @@
-using VttTools.Model.Identity;
-
 namespace WebApp.Components;
 
 internal static class EndpointRouteBuilderExtensions {

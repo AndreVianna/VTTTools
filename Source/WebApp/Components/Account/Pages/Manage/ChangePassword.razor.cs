@@ -1,6 +1,4 @@
-﻿using VttTools.Model.Identity;
-
-namespace WebApp.Components.Account.Pages.Manage;
+﻿namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class ChangePassword {
     private string? _message;
@@ -10,16 +8,28 @@ public partial class ChangePassword {
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = null!;
 
+    [Inject]
+    private UserManager<User> UserManager { get; set; } = null!;
+    [Inject]
+    private SignInManager<User> SignInManager { get; set; } = null!;
+    [Inject]
+    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    [Inject]
+    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    [Inject]
+    private ILogger<ChangePassword> Logger { get; set; } = null!;
+
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext)
-             ?? throw new ArgumentNullException();
+        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        if (result.IsFailure)
+            return;
+        _user = result.Value;
         _hasPassword = await UserManager.HasPasswordAsync(_user);
-        if (!_hasPassword) {
+        if (!_hasPassword)
             RedirectManager.RedirectTo("Account/Manage/SetPassword");
-        }
     }
 
     private async Task OnValidSubmitAsync() {

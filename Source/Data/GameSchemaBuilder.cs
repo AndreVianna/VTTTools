@@ -1,6 +1,6 @@
 namespace VttTools.Data;
 
-internal static class ApplicationDbContextBuilder {
+internal static class GameSchemaBuilder {
     public static void ConfigureModel(ModelBuilder builder)
         => builder.Entity<Session>(entity => {
             entity.ToTable("Sessions");

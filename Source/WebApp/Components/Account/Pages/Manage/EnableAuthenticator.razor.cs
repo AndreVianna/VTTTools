@@ -1,6 +1,4 @@
-﻿using VttTools.Model.Identity;
-
-namespace WebApp.Components.Account.Pages.Manage;
+﻿namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class EnableAuthenticator {
     private static readonly CompositeFormat _authenticatorUriFormat = CompositeFormat.Parse("otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6");
@@ -13,12 +11,24 @@ public partial class EnableAuthenticator {
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = null!;
 
+    [Inject]
+    private UserManager<User> UserManager { get; set; } = null!;
+    [Inject]
+    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    [Inject]
+    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    [Inject]
+    private UrlEncoder UrlEncoder { get; set; } = null!;
+    [Inject]
+    private ILogger<EnableAuthenticator> Logger { get; set; } = null!;
+
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
-
+        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        if (result.IsFailure) return;
+        _user = result.Value;
         await LoadSharedKeyAndQrCodeUriAsync(_user);
     }
 
@@ -40,12 +50,10 @@ public partial class EnableAuthenticator {
 
         _message = "Your authenticator app has been verified.";
 
-        if (await UserManager.CountRecoveryCodesAsync(_user) == 0) {
+        if (await UserManager.CountRecoveryCodesAsync(_user) == 0)
             _recoveryCodes = await UserManager.GenerateNewTwoFactorRecoveryCodesAsync(_user, 10);
-        }
-        else {
+        else
             RedirectManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication", _message, HttpContext);
-        }
     }
 
     private async ValueTask LoadSharedKeyAndQrCodeUriAsync(User user) {
@@ -69,9 +77,7 @@ public partial class EnableAuthenticator {
             result.Append(unformattedKey.AsSpan(currentPosition, 4)).Append(' ');
             currentPosition += 4;
         }
-        if (currentPosition < unformattedKey.Length) {
-            result.Append(unformattedKey.AsSpan(currentPosition));
-        }
+        if (currentPosition < unformattedKey.Length) result.Append(unformattedKey.AsSpan(currentPosition));
 
         return result.ToString().ToLowerInvariant();
     }

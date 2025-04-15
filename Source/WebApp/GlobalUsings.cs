@@ -8,6 +8,8 @@ global using System.Text;
 global using System.Text.Encodings.Web;
 global using System.Text.Json;
 
+global using DotNetToolbox.Results;
+
 global using Microsoft.AspNetCore.Antiforgery;
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Authorization;
@@ -21,6 +23,7 @@ global using Microsoft.AspNetCore.Components.Web.Virtualization;
 global using Microsoft.AspNetCore.Http.Extensions;
 global using Microsoft.AspNetCore.Http.Features;
 global using Microsoft.AspNetCore.Identity;
+global using Microsoft.AspNetCore.Identity.UI.Services;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.WebUtilities;
 global using Microsoft.Extensions.Options;
@@ -29,6 +32,8 @@ global using Microsoft.JSInterop;
 
 global using VttTools.Data;
 global using VttTools.Model.Game;
+global using VttTools.Model.Identity;
+global using VttTools.Services.Game;
 
 global using WebApp;
 global using WebApp.Components;

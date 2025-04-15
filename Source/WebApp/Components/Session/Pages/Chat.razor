@@ -1,0 +1,13 @@
+﻿@page "/chat"
+
+<h1>Chat</h1>
+
+<ul>
+  @foreach (var message in _messages)
+  {
+    <li>@message</li>
+  }
+</ul>
+
+<input @bind="_newMessage" @bind:event="oninput" />
+<button @onclick="SendMessage">Send</button>

@@ -12,7 +12,7 @@ using VttTools.Data;
 namespace VttTools.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250414161450_CreateIdentitySchema")]
+    [Migration("20250415141432_CreateIdentitySchema")]
     partial class CreateIdentitySchema
     {
         /// <inheritdoc />
@@ -25,7 +25,7 @@ namespace VttTools.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("VttTools.Data.Model.Identity.Role", b =>
+            modelBuilder.Entity("VttTools.Model.Identity.Role", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -50,10 +50,10 @@ namespace VttTools.Data.Migrations
                         .HasDatabaseName("RoleNameIndex")
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("Roles", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Model.Identity.RoleClaim", b =>
+            modelBuilder.Entity("VttTools.Model.Identity.RoleClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -74,10 +74,10 @@ namespace VttTools.Data.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("RoleClaims", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Model.Identity.User", b =>
+            modelBuilder.Entity("VttTools.Model.Identity.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -149,10 +149,10 @@ namespace VttTools.Data.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Model.Identity.UserClaim", b =>
+            modelBuilder.Entity("VttTools.Model.Identity.UserClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -173,10 +173,10 @@ namespace VttTools.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("UserClaims", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Model.Identity.UserLogin", b =>
+            modelBuilder.Entity("VttTools.Model.Identity.UserLogin", b =>
                 {
                     b.Property<string>("LoginProvider")
                         .HasColumnType("nvarchar(450)");
@@ -194,10 +194,10 @@ namespace VttTools.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("UserLogins", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Model.Identity.UserRole", b =>
+            modelBuilder.Entity("VttTools.Model.Identity.UserRole", b =>
                 {
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -209,10 +209,10 @@ namespace VttTools.Data.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("UserRoles", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Model.Identity.UserToken", b =>
+            modelBuilder.Entity("VttTools.Model.Identity.UserToken", b =>
                 {
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -228,54 +228,54 @@ namespace VttTools.Data.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Model.Identity.RoleClaim", b =>
+            modelBuilder.Entity("VttTools.Model.Identity.RoleClaim", b =>
                 {
-                    b.HasOne("VttTools.Data.Model.Identity.Role", null)
+                    b.HasOne("VttTools.Model.Identity.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("VttTools.Data.Model.Identity.UserClaim", b =>
+            modelBuilder.Entity("VttTools.Model.Identity.UserClaim", b =>
                 {
-                    b.HasOne("VttTools.Data.Model.Identity.User", null)
+                    b.HasOne("VttTools.Model.Identity.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("VttTools.Data.Model.Identity.UserLogin", b =>
+            modelBuilder.Entity("VttTools.Model.Identity.UserLogin", b =>
                 {
-                    b.HasOne("VttTools.Data.Model.Identity.User", null)
+                    b.HasOne("VttTools.Model.Identity.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("VttTools.Data.Model.Identity.UserRole", b =>
+            modelBuilder.Entity("VttTools.Model.Identity.UserRole", b =>
                 {
-                    b.HasOne("VttTools.Data.Model.Identity.Role", null)
+                    b.HasOne("VttTools.Model.Identity.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Model.Identity.User", null)
+                    b.HasOne("VttTools.Model.Identity.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("VttTools.Data.Model.Identity.UserToken", b =>
+            modelBuilder.Entity("VttTools.Model.Identity.UserToken", b =>
                 {
-                    b.HasOne("VttTools.Data.Model.Identity.User", null)
+                    b.HasOne("VttTools.Model.Identity.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
