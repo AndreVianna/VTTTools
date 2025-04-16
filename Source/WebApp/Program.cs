@@ -48,12 +48,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddHttpClient<GameServiceClient>(static (services, client) => {
     client.BaseAddress = new("https+http://gameapi");
-    var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext!;
-    var identity = httpContext.User?.Identity as ClaimsIdentity;
-    if (identity?.IsAuthenticated != true)
-        return;
-    var userId = identity.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-    client.DefaultRequestHeaders.Authorization = new("Basic", userId);
+    SetClientAuthentication(services, client);
 });
 
 var app = builder.Build();
@@ -94,4 +89,13 @@ void MapDefaultEndpoints() {
     app.MapHealthChecks("/alive", new() {
         Predicate = r => r.Tags.Contains("live"),
     });
+}
+
+static void SetClientAuthentication(IServiceProvider services, HttpClient client) {
+    var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext!;
+    var identity = httpContext.User?.Identity as ClaimsIdentity;
+    if (identity?.IsAuthenticated != true)
+        return;
+    var userId = identity.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+    client.DefaultRequestHeaders.Authorization = new("Basic", userId);
 }

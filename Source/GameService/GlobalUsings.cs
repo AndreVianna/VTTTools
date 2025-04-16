@@ -8,9 +8,11 @@ global using DotNetToolbox;
 global using DotNetToolbox.Results;
 global using DotNetToolbox.Validation;
 
+global using GameService.Middlewares;
 global using GameService.Services.Game;
 global using GameService.Utilities;
 
+global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.EntityFrameworkCore;
