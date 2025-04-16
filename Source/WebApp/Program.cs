@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseDefaultServiceProvider((_, o) => {
     o.ValidateScopes = true;
@@ -11,6 +9,8 @@ builder.Services.ConfigureHttpClientDefaults(http => {
     http.AddStandardResilienceHandler();
     http.AddServiceDiscovery();
 });
+
+builder.Services.AddHttpContextAccessor();
 
 AddDefaultHealthChecks();
 builder.AddRedisOutputCache("redis");
@@ -46,7 +46,15 @@ builder.Services.AddRazorComponents()
                 .AddInteractiveWebAssemblyComponents()
                 .AddAuthenticationStateSerialization();
 
-builder.Services.AddHttpClient("game", static client => client.BaseAddress = new("https+http://gameapi"));
+builder.Services.AddHttpClient<GameServiceClient>(static (services, client) => {
+    client.BaseAddress = new("https+http://gameapi");
+    var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext!;
+    var identity = httpContext.User?.Identity as ClaimsIdentity;
+    if (identity?.IsAuthenticated != true)
+        return;
+    var userId = identity.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+    client.DefaultRequestHeaders.Authorization = new("Basic", userId);
+});
 
 var app = builder.Build();
 
@@ -59,8 +67,9 @@ else {
     app.UseHsts();
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseHttpsRedirection();
-
 app.UseAntiforgery();
 
 app.MapStaticAssets();

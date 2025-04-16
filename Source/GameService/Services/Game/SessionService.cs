@@ -2,8 +2,10 @@
 
 public class SessionService(ISessionStorage storage)
     : ISessionService {
-    public Task<Session[]> GetSessionsAsync(Guid userId, CancellationToken ct = default)
-        => storage.GetByUserIdAsync(userId, ct);
+    public async Task<Session[]> GetSessionsAsync(Guid userId, CancellationToken ct = default) {
+        var data = await storage.GetByUserIdAsync(userId, ct);
+        return data;
+    }
 
     public Task<Session?> GetSessionAsync(Guid userId, Guid sessionId, CancellationToken ct = default)
         => storage.GetByIdAsync(sessionId, ct);

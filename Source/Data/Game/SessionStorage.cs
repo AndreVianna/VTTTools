@@ -17,15 +17,16 @@ public class SessionStorage(ApplicationDbContext context)
             .AsNoTrackingWithIdentityResolution()
             .ToArrayAsync(ct);
 
-    public Task<Session[]> GetByUserIdAsync(Guid userId, CancellationToken ct = default)
-        => context.Sessions
-            .Include(s => s.Players)
-            .Include(s => s.Maps)
-                .ThenInclude(m => m.Tokens)
-            .Include(s => s.Messages)
-            .Where(s => s.OwnerId == userId || s.Players.Any(p => p.UserId == userId))
-            .AsNoTrackingWithIdentityResolution()
-            .ToArrayAsync(ct);
+    public Task<Session[]> GetByUserIdAsync(Guid userId, CancellationToken ct = default) {
+        var query = context.Sessions
+                      .Include(s => s.Players)
+                      .Include(s => s.Maps)
+                      .ThenInclude(m => m.Tokens)
+                      .Include(s => s.Messages)
+                      .Where(s => s.OwnerId == userId || s.Players.Any(p => p.UserId == userId))
+                      .AsNoTrackingWithIdentityResolution();
+        return query.ToArrayAsync(ct);
+    }
 
     public async Task AddAsync(Session session, CancellationToken ct = default) {
         await context.Sessions.AddAsync(session, ct);

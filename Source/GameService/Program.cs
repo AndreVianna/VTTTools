@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,10 +7,16 @@ builder.Host.UseDefaultServiceProvider((_, o) => {
     o.ValidateScopes = true;
     o.ValidateOnBuild = true;
 });
+builder.Services.AddServiceDiscovery();
+builder.Services.ConfigureHttpClientDefaults(http => {
+    http.AddStandardResilienceHandler();
+    http.AddServiceDiscovery();
+});
+
 AddRequiredServices();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => {
-    var connectionString = IsNotNull(builder.Configuration.GetConnectionString("DefaultConnection"));
+    var connectionString = IsNotNull(builder.Configuration.GetConnectionString("Application"));
     options.UseSqlServer(connectionString);
 });
 
@@ -25,7 +33,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors();
 app.UseAuthentication();
-app.UseAuthorization();
+app.UseMiddleware<MyAuthorizationMiddleware>();
 
 MapHealthCheckEndpoints();
 app.MapOpenApi();
@@ -35,11 +43,6 @@ app.Run();
 return;
 
 void AddRequiredServices() {
-    builder.Services.AddServiceDiscovery();
-    builder.Services.ConfigureHttpClientDefaults(http => {
-        http.AddStandardResilienceHandler();
-        http.AddServiceDiscovery();
-    });
     builder.Services.AddProblemDetails();
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddSingleton(TimeProvider.System);
@@ -52,7 +55,7 @@ void AddRequiredServices() {
                      .AllowAnyMethod()
                      .AllowAnyHeader()));
 
-    builder.Services.AddAuthentication().AddJwtBearer();
+    builder.Services.AddAuthentication();
     builder.Services.AddAuthorization();
 
     builder.Services.AddOpenApi();
@@ -65,4 +68,19 @@ void MapHealthCheckEndpoints() {
        .WithName("IsHealthy");
     app.MapHealthChecks("/alive", new() { Predicate = r => r.Tags.Contains("live") })
        .WithName("IsAlive");
+}
+
+public sealed class MyAuthorizationMiddleware {
+    private readonly AuthorizationMiddleware _internal;
+    public MyAuthorizationMiddleware(RequestDelegate next, IAuthorizationPolicyProvider policyProvider, IServiceProvider services, ILogger<AuthorizationMiddleware> logger) {
+        _internal = new(next, policyProvider, services, logger);
+    }
+
+    public Task Invoke(HttpContext context) {
+        var authorization = context.Request.Headers.Authorization.FirstOrDefault();
+        var values = authorization?.Split(" ") ?? [];
+        if (values is ["Basic", _])
+            context.User = new(new ClaimsIdentity([new(ClaimTypes.NameIdentifier, values[1])], ClaimTypes.NameIdentifier));
+        return _internal.Invoke(context);
+    }
 }

@@ -1,15 +1,13 @@
 namespace WebApp.Components.Session.Pages;
 
 public partial class SessionDetails {
-    private HttpClient _http = null!;
-
     [Parameter]
     public Guid SessionId { get; set; }
 
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
-    private IHttpClientFactory HttpClientFactory { get; set; } = null!;
+    private GameServiceClient GameApiClient { get; set; } = null!;
     [Inject]
     private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
 
@@ -21,7 +19,6 @@ public partial class SessionDetails {
     private string _sessionNameError = string.Empty;
 
     protected override async Task OnInitializedAsync() {
-        _http = HttpClientFactory.CreateClient("game");
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
@@ -38,7 +35,7 @@ public partial class SessionDetails {
 
     private async Task LoadSessionDetails() {
         try {
-            var response = await _http.GetAsync($"/api/sessions/{SessionId}");
+            var response = await GameApiClient.HttpClient.GetAsync($"/api/sessions/{SessionId}");
             response.EnsureSuccessStatusCode();
             _session = await response.Content.ReadFromJsonAsync<VttTools.Model.Game.Session>();
             if (_session == null)
@@ -73,7 +70,7 @@ public partial class SessionDetails {
         }
 
         try {
-            await _http.PutAsJsonAsync($"/api/sessions/{SessionId}", new { Name = _editSessionName });
+            await GameApiClient.HttpClient.PutAsJsonAsync($"/api/sessions/{SessionId}", new { Name = _editSessionName });
             await LoadSessionDetails();
             _showEditDialog = false;
         }
@@ -84,7 +81,7 @@ public partial class SessionDetails {
 
     private async Task SetActiveMap(int map) {
         try {
-            var response = await _http.PostAsync($"/api/sessions/{SessionId}/maps/{map}/activate", null);
+            var response = await GameApiClient.HttpClient.PostAsync($"/api/sessions/{SessionId}/maps/{map}/activate", null);
             response.EnsureSuccessStatusCode();
             await LoadSessionDetails();
         }
@@ -95,7 +92,7 @@ public partial class SessionDetails {
 
     private async Task StartSession() {
         try {
-            var response = await _http.PostAsync($"/api/sessions/{SessionId}/start", null);
+            var response = await GameApiClient.HttpClient.PostAsync($"/api/sessions/{SessionId}/start", null);
             response.EnsureSuccessStatusCode();
             // Redirect to the game view once it's implemented
             // Navigation.NavigateTo($"/game/{SessionId}");
