@@ -1,13 +1,9 @@
 namespace VttTools.Contracts.Game;
 
-using System.ComponentModel.DataAnnotations;
-using VttTools.Model.Game;
-
 /// <summary>
 /// Request to update an existing Adventure template.
 /// </summary>
-public record UpdateAdventureRequest : Request
-{
+public record UpdateAdventureRequest : Request {
     /// <summary>
     /// New name for the adventure. If null, name is unchanged.
     /// </summary>

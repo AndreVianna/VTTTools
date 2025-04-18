@@ -1,5 +1,3 @@
-using VttTools.Contracts.Game;
-
 using MeetingModel = VttTools.Model.Game.Meeting;
 
 namespace WebApp.Components.Meeting.Pages;

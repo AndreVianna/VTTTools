@@ -1,8 +1,4 @@
-﻿using System.Net;
-
-using VttTools.Contracts.Game;
-
-namespace VttTools.Services.Game;
+﻿namespace VttTools.Services.Game;
 
 /// <summary>
 /// Service for managing game meetings

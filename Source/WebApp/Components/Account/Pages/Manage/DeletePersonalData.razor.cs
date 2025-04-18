@@ -24,7 +24,8 @@ public partial class DeletePersonalData {
 
     protected override async Task OnInitializedAsync() {
         var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
-        if (result.IsFailure) return;
+        if (result.IsFailure)
+            return;
         _user = result.Value;
         _requirePassword = await UserManager.HasPasswordAsync(_user);
     }
@@ -36,7 +37,8 @@ public partial class DeletePersonalData {
         }
 
         var result = await UserManager.DeleteAsync(_user);
-        if (!result.Succeeded) throw new InvalidOperationException("Unexpected error occurred deleting user.");
+        if (!result.Succeeded)
+            throw new InvalidOperationException("Unexpected error occurred deleting user.");
 
         await SignInManager.SignOutAsync();
 

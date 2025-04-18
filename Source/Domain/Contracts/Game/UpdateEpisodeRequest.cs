@@ -1,7 +1,5 @@
 namespace VttTools.Contracts.Game;
 
-using VttTools.Model.Game;
-
 /// <summary>
 /// Request to update an existing Episode template.
 /// </summary>

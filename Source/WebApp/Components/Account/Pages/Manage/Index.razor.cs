@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR;
-
-namespace WebApp.Components.Account.Pages.Manage;
+﻿namespace WebApp.Components.Account.Pages.Manage;
 
 public partial class Index {
     private User _user = null!;
@@ -26,7 +24,8 @@ public partial class Index {
 
     protected override async Task OnInitializedAsync() {
         var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
-        if (result.IsFailure) return;
+        if (result.IsFailure)
+            return;
         _user = result.Value;
         _username = await UserManager.GetUserNameAsync(_user);
         _phoneNumber = await UserManager.GetPhoneNumberAsync(_user);

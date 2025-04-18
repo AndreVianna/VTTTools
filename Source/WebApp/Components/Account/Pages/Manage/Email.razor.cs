@@ -25,7 +25,8 @@ public partial class Email {
 
     protected override async Task OnInitializedAsync() {
         var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
-        if (result.IsFailure) return;
+        if (result.IsFailure)
+            return;
         _user = result.Value;
         _email = await UserManager.GetEmailAsync(_user);
         _isEmailConfirmed = await UserManager.IsEmailConfirmedAsync(_user);
@@ -51,7 +52,8 @@ public partial class Email {
     }
 
     private async Task OnSendEmailVerificationAsync() {
-        if (_email is null) return;
+        if (_email is null)
+            return;
 
         var userId = await UserManager.GetUserIdAsync(_user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(_user);

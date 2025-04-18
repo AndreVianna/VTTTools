@@ -34,18 +34,21 @@ public partial class ExternalLogins {
 
     protected override async Task OnInitializedAsync() {
         var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
-        if (result.IsFailure) return;
+        if (result.IsFailure)
+            return;
         _user = result.Value;
         _currentLogins = await UserManager.GetLoginsAsync(_user);
         var schemes = await SignInManager.GetExternalAuthenticationSchemesAsync();
-        _otherLogins = [..schemes.Where(auth => _currentLogins.All(ul => auth.Name != ul.LoginProvider))];
+        _otherLogins = [.. schemes.Where(auth => _currentLogins.All(ul => auth.Name != ul.LoginProvider))];
 
         string? passwordHash = null;
-        if (UserStore is IUserPasswordStore<User> userPasswordStore) passwordHash = await userPasswordStore.GetPasswordHashAsync(_user, HttpContext.RequestAborted);
+        if (UserStore is IUserPasswordStore<User> userPasswordStore)
+            passwordHash = await userPasswordStore.GetPasswordHashAsync(_user, HttpContext.RequestAborted);
 
         _showRemoveButton = passwordHash is not null || _currentLogins.Count > 1;
 
-        if (HttpMethods.IsGet(HttpContext.Request.Method) && Action == LinkLoginCallbackAction) await OnGetLinkLoginCallbackAsync();
+        if (HttpMethods.IsGet(HttpContext.Request.Method) && Action == LinkLoginCallbackAction)
+            await OnGetLinkLoginCallbackAsync();
     }
 
     private async Task OnSubmitAsync() {

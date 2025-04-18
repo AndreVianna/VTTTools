@@ -1,7 +1,5 @@
 namespace VttTools.Services.Game;
 
-using VttTools.Model.Game;
-
 /// <summary>
 /// Service for retrieving and managing Asset templates.
 /// </summary>

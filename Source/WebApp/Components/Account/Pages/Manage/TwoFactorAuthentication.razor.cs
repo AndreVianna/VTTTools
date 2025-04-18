@@ -21,7 +21,8 @@ public partial class TwoFactorAuthentication {
 
     protected override async Task OnInitializedAsync() {
         var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
-        if (result.IsFailure) return;
+        if (result.IsFailure)
+            return;
         _canTrack = HttpContext.Features.Get<ITrackingConsentFeature>()?.CanTrack ?? true;
         _hasAuthenticator = await UserManager.GetAuthenticatorKeyAsync(result.Value) is not null;
         _is2FaEnabled = await UserManager.GetTwoFactorEnabledAsync(result.Value);

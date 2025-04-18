@@ -12,14 +12,11 @@ global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Antiforgery;
 global using Microsoft.AspNetCore.Authentication;
-global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Components;
 global using Microsoft.AspNetCore.Components.Authorization;
 global using Microsoft.AspNetCore.Components.Forms;
 global using Microsoft.AspNetCore.Components.Routing;
 global using Microsoft.AspNetCore.Components.Server;
-global using Microsoft.AspNetCore.Components.Web;
-global using Microsoft.AspNetCore.Components.Web.Virtualization;
 global using Microsoft.AspNetCore.Http.Extensions;
 global using Microsoft.AspNetCore.Http.Features;
 global using Microsoft.AspNetCore.Identity;
@@ -29,20 +26,14 @@ global using Microsoft.AspNetCore.WebUtilities;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
 global using Microsoft.Extensions.Options;
 global using Microsoft.Extensions.Primitives;
-global using Microsoft.JSInterop;
 
-global using VttTools.Data;
-global using VttTools.Data.Extensions;
-global using VttTools.Data.Options;
-global using VttTools.Model.Game;
 global using VttTools.Contracts.Game;
+global using VttTools.Data;
+global using VttTools.Model.Game;
 global using VttTools.Model.Identity;
-global using VttTools.Services.Game;
 
-global using WebApp;
 global using WebApp.Components;
 global using WebApp.Components.Account;
 global using WebApp.Components.Account.Pages;
 global using WebApp.Components.Account.Pages.Manage;
-global using WebApp.Components.Account.Shared;
 global using WebApp.Services;

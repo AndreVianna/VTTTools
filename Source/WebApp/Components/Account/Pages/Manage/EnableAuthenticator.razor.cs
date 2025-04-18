@@ -27,7 +27,8 @@ public partial class EnableAuthenticator {
 
     protected override async Task OnInitializedAsync() {
         var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
-        if (result.IsFailure) return;
+        if (result.IsFailure)
+            return;
         _user = result.Value;
         await LoadSharedKeyAndQrCodeUriAsync(_user);
     }
@@ -77,7 +78,8 @@ public partial class EnableAuthenticator {
             result.Append(unformattedKey.AsSpan(currentPosition, 4)).Append(' ');
             currentPosition += 4;
         }
-        if (currentPosition < unformattedKey.Length) result.Append(unformattedKey.AsSpan(currentPosition));
+        if (currentPosition < unformattedKey.Length)
+            result.Append(unformattedKey.AsSpan(currentPosition));
 
         return result.ToString().ToLowerInvariant();
     }

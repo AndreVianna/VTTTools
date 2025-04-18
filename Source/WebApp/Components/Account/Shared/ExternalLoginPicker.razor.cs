@@ -14,6 +14,6 @@ public partial class ExternalLoginPicker {
 
     protected override async Task OnInitializedAsync() {
         var schemes = await SignInManager.GetExternalAuthenticationSchemesAsync();
-        _externalLogins = [..schemes];
+        _externalLogins = [.. schemes];
     }
 }

@@ -1,8 +1,5 @@
 namespace VttTools.Contracts.Game;
 
-using System.ComponentModel.DataAnnotations;
-using VttTools.Model.Game;
-
 /// <summary>
 /// Request to create a new Episode template under an Adventure.
 /// </summary>

@@ -1,6 +1,4 @@
-﻿using VttTools.Contracts.Game;
-
-namespace VttTools.Services.Game;
+﻿namespace VttTools.Services.Game;
 
 public interface IEpisodeService {
     Task<Guid> AddAssetAsync(int episodeId, Guid assetId, AddEpisodeAssetData data, CancellationToken ct = default);

@@ -599,7 +599,8 @@ namespace VttTools.Data.Migrations
                                     b2.Navigation("CellSize")
                                         .IsRequired();
 
-                                    b2.Navigation("Offset");
+                                    b2.Navigation("Offset")
+                                        .IsRequired();
                                 });
 
                             b1.OwnsOne("VttTools.Model.Game.Size", "Size", b2 =>

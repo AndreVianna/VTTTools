@@ -23,10 +23,12 @@ public partial class SetPassword {
 
     protected override async Task OnInitializedAsync() {
         var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
-        if (result.IsFailure) return;
+        if (result.IsFailure)
+            return;
         _user = result.Value;
         var hasPassword = await UserManager.HasPasswordAsync(_user);
-        if (hasPassword) RedirectManager.RedirectTo("Account/Manage/ChangePassword");
+        if (hasPassword)
+            RedirectManager.RedirectTo("Account/Manage/ChangePassword");
     }
 
     private async Task OnValidSubmitAsync() {

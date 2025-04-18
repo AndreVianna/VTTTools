@@ -23,7 +23,8 @@ public partial class RegisterConfirmation {
     private string? ReturnUrl { get; set; }
 
     protected override async Task OnInitializedAsync() {
-        if (Email is null) RedirectManager.RedirectTo("");
+        if (Email is null)
+            RedirectManager.RedirectTo("");
 
         var user = await UserManager.FindByEmailAsync(Email);
         if (user is null) {

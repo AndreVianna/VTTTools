@@ -29,12 +29,7 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
-// serve uploaded files from 'uploads' folder
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "uploads")),
-    RequestPath = "/uploads"
-});
+app.UseStaticFiles();
 app.UseRouting();
 app.UseCors();
 app.UseAuthentication();
@@ -43,7 +38,6 @@ app.UseMiddleware<MyAuthorizationMiddleware>();
 MapHealthCheckEndpoints();
 app.MapOpenApi();
 app.MapGameMeetingManagementEndpoints();
-// Map Adventure, Episode & Asset endpoints
 app.MapAdventureManagementEndpoints();
 app.MapAssetManagementEndpoints();
 

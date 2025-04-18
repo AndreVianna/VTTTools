@@ -1,23 +1,19 @@
 @page "/Adventures/{AdventureId:guid}/Episodes"
-@using VttTools.Model.Game
-@using VttTools.Contracts.Game
-@inject WebApp.Services.GameServiceClient GameClient
-@inject NavigationManager NavManager
 
 <h3>Episodes for Adventure @AdventureId</h3>
 
 <div class="mb-3">
-    <input class="form-control mb-1" placeholder="Name" @bind="newName" />
-    <select class="form-select mb-1" @bind="newVisibility">
+    <input class="form-control mb-1" placeholder="Name" @bind="_newName" />
+    <select class="form-select mb-1" @bind="_newVisibility">
         <option value="@Visibility.Hidden">Hidden</option>
         <option value="@Visibility.Private">Private</option>
         <option value="@Visibility.Public">Public</option>
     </select>
     <button class="btn btn-primary" @onclick="CreateEpisode">Create</button>
-    <button class="btn btn-secondary ms-2" @onclick='() => NavManager.NavigateTo("/Adventures")'>Back to Adventures</button>
+    <button class="btn btn-secondary ms-2" @onclick='() => NavigationManager.NavigateTo("/Adventures")'>Back to Adventures</button>
 </div>
 
-@if (episodes is null)
+@if (_episodes is null)
 {
     <p><em>Loading...</em></p>
 }
@@ -32,7 +28,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var ep in episodes)
+            @foreach (var ep in _episodes)
             {
                 <tr>
                     <td>@ep.Name</td>
@@ -48,7 +44,7 @@ else
     </table>
 }
 
-@if (isEditing && editEpisode is not null)
+@if (_isEditing && _editEpisode is not null)
 {
     <div class="modal show d-block" tabindex="-1">
         <div class="modal-dialog">
@@ -58,8 +54,8 @@ else
                     <button type="button" class="btn-close" @onclick="CancelEdit"></button>
                 </div>
                 <div class="modal-body">
-                    <input class="form-control mb-1" @bind="editEpisode.Name" />
-                    <select class="form-select mb-1" @bind="editEpisode.Visibility">
+                    <input class="form-control mb-1" @bind="_editEpisode.Name" />
+                    <select class="form-select mb-1" @bind="_editEpisode.Visibility">
                         <option value="@Visibility.Hidden">Hidden</option>
                         <option value="@Visibility.Private">Private</option>
                         <option value="@Visibility.Public">Public</option>
@@ -73,86 +69,4 @@ else
         </div>
     </div>
     <div class="modal-backdrop fade show"></div>
-}
-
-@code {
-    [Parameter]
-    public Guid AdventureId { get; set; }
-
-    private Episode[]? episodes;
-    private string newName = string.Empty;
-    private Visibility newVisibility = Visibility.Hidden;
-
-    private bool isEditing;
-    private UpdateEpisodeRequest editEpisode = new();
-    private Guid editingEpisodeId;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadEpisodes();
-    }
-
-    private async Task LoadEpisodes()
-    {
-        episodes = await GameClient.GetEpisodesAsync(AdventureId);
-        StateHasChanged();
-    }
-
-    private async Task CreateEpisode()
-    {
-        if (string.IsNullOrWhiteSpace(newName))
-            return;
-        var request = new CreateEpisodeRequest
-        {
-            Name = newName,
-            Visibility = newVisibility
-        };
-        var created = await GameClient.CreateEpisodeAsync(AdventureId, request);
-        if (created != null)
-        {
-            newName = string.Empty;
-            await LoadEpisodes();
-        }
-    }
-
-    private void StartEdit(Episode ep)
-    {
-        isEditing = true;
-        editingEpisodeId = ep.Id;
-        editEpisode = new UpdateEpisodeRequest
-        {
-            Name = ep.Name,
-            Visibility = ep.Visibility
-        };
-    }
-
-    private void CancelEdit()
-    {
-        isEditing = false;
-    }
-
-    private async Task SaveEdit()
-    {
-        var updated = await GameClient.UpdateEpisodeAsync(editingEpisodeId, editEpisode);
-        if (updated != null)
-        {
-            isEditing = false;
-            await LoadEpisodes();
-        }
-    }
-
-    private async Task DeleteEpisode(Guid id)
-    {
-        await GameClient.DeleteEpisodeAsync(id);
-        await LoadEpisodes();
-    }
-
-    private async Task CloneEpisode(Guid id)
-    {
-        var clone = await GameClient.CloneEpisodeAsync(id);
-        if (clone != null)
-        {
-            await LoadEpisodes();
-        }
-    }
 }

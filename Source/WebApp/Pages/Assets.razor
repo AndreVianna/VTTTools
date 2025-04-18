@@ -1,20 +1,17 @@
 @page "/Assets"
-@using VttTools.Model.Game
-@using VttTools.Contracts.Game
-@inject WebApp.Services.GameServiceClient GameClient
 
 <h3>Assets</h3>
 
 <div class="mb-3">
-    <input class="form-control mb-1" placeholder="Name" @bind="newName" />
-    <input class="form-control mb-1" placeholder="Source URL" @bind="newSource" />
-    <select class="form-select mb-1" @bind="newType">
+    <input class="form-control mb-1" placeholder="Name" @bind="_newName" />
+    <input class="form-control mb-1" placeholder="Source URL" @bind="_newSource" />
+    <select class="form-select mb-1" @bind="_newType">
         @foreach (var t in Enum.GetValues<AssetType>())
         {
             <option value="@t">@t</option>
         }
     </select>
-    <select class="form-select mb-1" @bind="newVisibility">
+    <select class="form-select mb-1" @bind="_newVisibility">
         @foreach (var v in Enum.GetValues<Visibility>())
         {
             <option value="@v">@v</option>
@@ -23,7 +20,7 @@
     <button class="btn btn-primary" @onclick="CreateAsset">Create</button>
 </div>
 
-@if (assets is null)
+@if (_assets is null)
 {
     <p><em>Loading...</em></p>
 }
@@ -40,7 +37,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var asset in assets)
+            @foreach (var asset in _assets)
             {
                 <tr>
                     <td>@asset.Name</td>
@@ -54,49 +51,4 @@ else
             }
         </tbody>
     </table>
-}
-
-@code {
-    private Asset[]? assets;
-    private string newName = string.Empty;
-    private string newSource = string.Empty;
-    private AssetType newType = AssetType.Placeholder;
-    private Visibility newVisibility = Visibility.Hidden;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadAssets();
-    }
-
-    private async Task LoadAssets()
-    {
-        assets = await GameClient.GetAssetsAsync();
-        StateHasChanged();
-    }
-
-    private async Task CreateAsset()
-    {
-        if (string.IsNullOrWhiteSpace(newName) || string.IsNullOrWhiteSpace(newSource))
-            return;
-        var request = new CreateAssetRequest
-        {
-            Name = newName,
-            Source = newSource,
-            Type = newType,
-            Visibility = newVisibility
-        };
-        var created = await GameClient.CreateAssetAsync(request);
-        if (created != null)
-        {
-            newName = string.Empty;
-            newSource = string.Empty;
-            await LoadAssets();
-        }
-    }
-
-    private async Task DeleteAsset(Guid id)
-    {
-        await GameClient.DeleteAssetAsync(id);
-        await LoadAssets();
-    }
 }

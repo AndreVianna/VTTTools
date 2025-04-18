@@ -1,7 +1,5 @@
 namespace VttTools.Storage.Game;
 
-using VttTools.Model.Game;
-
 /// <summary>
 /// Storage interface for Asset entities.
 /// </summary>

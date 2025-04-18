@@ -1,6 +1,6 @@
 ﻿namespace WebApp.Components.Account.Pages.Manage;
 
- // ReSharper disable once InconsistentNaming
+// ReSharper disable once InconsistentNaming
 public partial class Disable2fa {
     private User _user = null!;
 
@@ -18,7 +18,8 @@ public partial class Disable2fa {
 
     protected override async Task OnInitializedAsync() {
         var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
-        if (result.IsFailure) return;
+        if (result.IsFailure)
+            return;
         _user = result.Value;
         if (HttpMethods.IsGet(HttpContext.Request.Method) && !await UserManager.GetTwoFactorEnabledAsync(_user))
             throw new InvalidOperationException("Cannot disable 2FA for user as it's not currently enabled.");
@@ -26,7 +27,8 @@ public partial class Disable2fa {
 
     private async Task OnSubmitAsync() {
         var disable2FaResult = await UserManager.SetTwoFactorEnabledAsync(_user, false);
-        if (!disable2FaResult.Succeeded) throw new InvalidOperationException("Unexpected error occurred disabling 2FA.");
+        if (!disable2FaResult.Succeeded)
+            throw new InvalidOperationException("Unexpected error occurred disabling 2FA.");
 
         var userId = await UserManager.GetUserIdAsync(_user);
         Logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", userId);

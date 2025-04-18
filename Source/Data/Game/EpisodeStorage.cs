@@ -11,8 +11,7 @@ public class EpisodeStorage(ApplicationDbContext context)
                   .Include(e => e.Adventure)
                   .Include(e => e.EpisodeAssets)
                     .ThenInclude(ea => ea.Asset)
-                  // filter by AdventureId property mapped to ParentId column
-                  .Where(e => e.AdventureId == adventureId)
+                  .Where(e => e.ParentId == adventureId)
                   .AsNoTrackingWithIdentityResolution()
                   .ToArrayAsync(ct);
 

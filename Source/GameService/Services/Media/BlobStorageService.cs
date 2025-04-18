@@ -13,9 +13,7 @@ public class BlobStorageService(BlobServiceClient client)
         var blobName = $"{name}_{Path.GetRandomFileName()}{extension}";
 
         var blobClient = await GetBlobClient(blobName, ct);
-        imageStream.Position = 0;
         await blobClient.UploadAsync(imageStream, true, ct);
-        imageStream.Close();
 
         // return URL path
         return $"/uploads/{blobName}";

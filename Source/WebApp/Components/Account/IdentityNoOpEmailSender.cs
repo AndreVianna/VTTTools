@@ -1,8 +1,7 @@
 namespace WebApp.Components.Account;
 
 internal sealed class IdentityNoOpEmailSender
-    : IEmailSender<User>
-{
+    : IEmailSender<User> {
     private readonly IEmailSender _emailSender = new NoOpEmailSender();
 
     public Task SendConfirmationLinkAsync(User user, string email, string confirmationLink)

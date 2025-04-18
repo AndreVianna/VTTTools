@@ -93,8 +93,8 @@ namespace VttTools.Data.Migrations {
                     Stage_Source = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
                     Stage_Size_Width = table.Column<double>(type: "float", nullable: false),
                     Stage_Size_Height = table.Column<double>(type: "float", nullable: false),
-                    Stage_Grid_Offset_Left = table.Column<double>(type: "float", nullable: true),
-                    Stage_Grid_Offset_Top = table.Column<double>(type: "float", nullable: true),
+                    Stage_Grid_Offset_Left = table.Column<double>(type: "float", nullable: false),
+                    Stage_Grid_Offset_Top = table.Column<double>(type: "float", nullable: false),
                     Stage_Grid_CellSize_Width = table.Column<double>(type: "float", nullable: false),
                     Stage_Grid_CellSize_Height = table.Column<double>(type: "float", nullable: false)
                 },
