@@ -2,7 +2,7 @@
   <Project Path="AppHost/AppHost.csproj" />
   <Project Path="Data/Data.csproj" Id="e19ebaab-72d8-412e-bf00-dfa28a86e96c" />
   <Project Path="Domain/Domain.csproj" />
+  <Project Path="Domain.UnitTests/Domain.UnitTests.csproj" />
   <Project Path="GameService/GameService.csproj" />
-  <Project Path="Tests/Tests.csproj" />
   <Project Path="WebApp/WebApp.csproj" />
 </Solution>

@@ -19,7 +19,7 @@ public class AdventureStorage(ApplicationDbContext context)
                   .Include(a => a.Episodes)
                   .AsNoTrackingWithIdentityResolution()
                   .FirstOrDefaultAsync(a => a.Id == id, ct);
-    
+
     /// <inheritdoc />
     public async Task<Adventure> AddAsync(Adventure adventure, CancellationToken ct = default)
     {

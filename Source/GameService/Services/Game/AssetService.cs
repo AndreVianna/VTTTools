@@ -1,17 +1,11 @@
 namespace GameService.Services.Game;
 
-using VttTools.Contracts.Game;
-using VttTools.Model.Game;
-using VttTools.Storage.Game;
-using VttTools.Services.Game;
-
 /// <summary>
 /// Implements IAssetService using EF Core storage.
 /// </summary>
 public class AssetService(
     IAssetStorage assetStorage)
-    : IAssetService
-{
+    : IAssetService {
     /// <inheritdoc />
     public Task<Asset[]> GetAssetsAsync(CancellationToken ct = default)
         => assetStorage.GetAllAsync(ct);
@@ -21,10 +15,8 @@ public class AssetService(
         => assetStorage.GetByIdAsync(assetId, ct);
 
     /// <inheritdoc />
-    public async Task<Asset> CreateAssetAsync(Guid userId, CreateAssetRequest request, CancellationToken ct = default)
-    {
-        var asset = new Asset
-        {
+    public async Task<Asset> CreateAssetAsync(Guid userId, CreateAssetRequest request, CancellationToken ct = default) {
+        var asset = new Asset {
             Id = Guid.NewGuid(),
             OwnerId = userId,
             Name = request.Name,
@@ -36,8 +28,7 @@ public class AssetService(
     }
 
     /// <inheritdoc />
-    public async Task<Asset?> UpdateAssetAsync(Guid userId, Guid assetId, UpdateAssetRequest request, CancellationToken ct = default)
-    {
+    public async Task<Asset?> UpdateAssetAsync(Guid userId, Guid assetId, UpdateAssetRequest request, CancellationToken ct = default) {
         var asset = await assetStorage.GetByIdAsync(assetId, ct);
         if (asset is null || asset.OwnerId != userId)
             return null;
@@ -53,8 +44,7 @@ public class AssetService(
     }
 
     /// <inheritdoc />
-    public async Task<bool> DeleteAssetAsync(Guid userId, Guid assetId, CancellationToken ct = default)
-    {
+    public async Task<bool> DeleteAssetAsync(Guid userId, Guid assetId, CancellationToken ct = default) {
         var asset = await assetStorage.GetByIdAsync(assetId, ct);
         if (asset is null || asset.OwnerId != userId)
             return false;

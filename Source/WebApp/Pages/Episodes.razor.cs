@@ -5,10 +5,8 @@ public partial class Episodes {
     public Guid AdventureId { get; set; }
 
     private Episode[]? _episodes;
-    private string _newName = string.Empty;
-    private Visibility _newVisibility = Visibility.Hidden;
     private bool _isEditing;
-    private UpdateEpisodeRequest _editEpisode = new();
+    //private UpdateEpisodeRequest _editEpisode = new();
     private Guid _editingEpisodeId;
 
     [Inject]
@@ -16,7 +14,9 @@ public partial class Episodes {
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
 
-    protected override async Task OnInitializedAsync() => await LoadEpisodes();
+    private InputModel Input { get; set; } = new();
+
+    protected override Task OnInitializedAsync() => LoadEpisodes();
 
     private async Task LoadEpisodes() {
         _episodes = await GameService.GetEpisodesAsync(AdventureId);
@@ -24,15 +24,13 @@ public partial class Episodes {
     }
 
     private async Task CreateEpisode() {
-        if (string.IsNullOrWhiteSpace(_newName))
-            return;
         var request = new CreateEpisodeRequest {
-            Name = _newName,
-            Visibility = _newVisibility
+            Name = Input.Name,
+            Visibility = Input.Visibility,
         };
-        var created = await GameService.CreateEpisodeAsync(AdventureId, request);
-        if (created != null) {
-            _newName = string.Empty;
+        var result = await GameService.CreateEpisodeAsync(AdventureId, request);
+        if (result.IsSuccessful) {
+            Input = new();
             await LoadEpisodes();
         }
     }
@@ -40,17 +38,21 @@ public partial class Episodes {
     private void StartEdit(Episode ep) {
         _isEditing = true;
         _editingEpisodeId = ep.Id;
-        _editEpisode = new UpdateEpisodeRequest {
+        Input = new() {
             Name = ep.Name,
-            Visibility = ep.Visibility
+            Visibility = ep.Visibility,
         };
     }
 
     private void CancelEdit() => _isEditing = false;
 
     private async Task SaveEdit() {
-        var updated = await GameService.UpdateEpisodeAsync(_editingEpisodeId, _editEpisode);
-        if (updated != null) {
+        var request = new UpdateEpisodeRequest {
+            Name = Input.Name,
+            Visibility = Input.Visibility,
+        };
+        var result = await GameService.UpdateEpisodeAsync(_editingEpisodeId, request);
+        if (result.IsSuccessful) {
             _isEditing = false;
             await LoadEpisodes();
         }
@@ -62,9 +64,15 @@ public partial class Episodes {
     }
 
     private async Task CloneEpisode(Guid id) {
-        var clone = await GameService.CloneEpisodeAsync(id);
-        if (clone != null) {
+        var result = await GameService.CloneEpisodeAsync(id);
+        if (result.IsSuccessful) {
             await LoadEpisodes();
         }
+    }
+
+    private sealed class InputModel {
+        [Required(AllowEmptyStrings = false)]
+        public string Name { get; set; } = string.Empty;
+        public Visibility Visibility { get; set; } = Visibility.Hidden;
     }
 }

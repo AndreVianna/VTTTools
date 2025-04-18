@@ -3,8 +3,8 @@
 <h3>Episodes for Adventure @AdventureId</h3>
 
 <div class="mb-3">
-    <input class="form-control mb-1" placeholder="Name" @bind="_newName" />
-    <select class="form-select mb-1" @bind="_newVisibility">
+    <input class="form-control mb-1" placeholder="Name" @bind="Input.Name" />
+    <select class="form-select mb-1" @bind="Input.Visibility">
         <option value="@Visibility.Hidden">Hidden</option>
         <option value="@Visibility.Private">Private</option>
         <option value="@Visibility.Public">Public</option>
@@ -44,7 +44,7 @@ else
     </table>
 }
 
-@if (_isEditing && _editEpisode is not null)
+@if (_isEditing)
 {
     <div class="modal show d-block" tabindex="-1">
         <div class="modal-dialog">
@@ -54,8 +54,8 @@ else
                     <button type="button" class="btn-close" @onclick="CancelEdit"></button>
                 </div>
                 <div class="modal-body">
-                    <input class="form-control mb-1" @bind="_editEpisode.Name" />
-                    <select class="form-select mb-1" @bind="_editEpisode.Visibility">
+                    <input class="form-control mb-1" @bind="Input.Name" />
+                    <select class="form-select mb-1" @bind="Input.Visibility">
                         <option value="@Visibility.Hidden">Hidden</option>
                         <option value="@Visibility.Private">Private</option>
                         <option value="@Visibility.Public">Public</option>

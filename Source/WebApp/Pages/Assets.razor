@@ -3,15 +3,15 @@
 <h3>Assets</h3>
 
 <div class="mb-3">
-    <input class="form-control mb-1" placeholder="Name" @bind="_newName" />
-    <input class="form-control mb-1" placeholder="Source URL" @bind="_newSource" />
-    <select class="form-select mb-1" @bind="_newType">
+    <input class="form-control mb-1" placeholder="Name" @bind="Input.Name" />
+    <input class="form-control mb-1" placeholder="Source URL" @bind="Input.Source" />
+    <select class="form-select mb-1" @bind="Input.Type">
         @foreach (var t in Enum.GetValues<AssetType>())
         {
             <option value="@t">@t</option>
         }
     </select>
-    <select class="form-select mb-1" @bind="_newVisibility">
+    <select class="form-select mb-1" @bind="Input.Visibility">
         @foreach (var v in Enum.GetValues<Visibility>())
         {
             <option value="@v">@v</option>

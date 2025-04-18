@@ -3,8 +3,7 @@ namespace VttTools.Storage.Game;
 /// <summary>
 /// Storage interface for Adventure entities.
 /// </summary>
-public interface IAdventureStorage
-{
+public interface IAdventureStorage {
     /// <summary>
     /// Retrieves all adventure templates.
     /// </summary>
@@ -14,7 +13,7 @@ public interface IAdventureStorage
     /// Retrieves an adventure by its ID.
     /// </summary>
     Task<Adventure?> GetByIdAsync(Guid id, CancellationToken ct = default);
-    
+
     /// <summary>
     /// Adds a new adventure template.
     /// </summary>

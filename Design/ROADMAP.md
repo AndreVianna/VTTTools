@@ -19,22 +19,22 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 **MVP Goal**: Enable Game Masters to create and manage game content hierarchies.
 
 ### Tasks:
- - [x] Adventure Templates CRUD API & UI
-   - [ ] List, create, rename, delete Adventures
-   - [ ] Set and update Visibility (Hidden, Private, Public)
-   - [ ] Inline rename/edit & clone in UI (deep clone of templates)
-- [x] Episode Templates CRUD API & UI (nested under Adventures)
-  - [x] List, create, rename, delete Episodes for a given Adventure
+- [ ] Adventure Templates CRUD API & UI
+  - [ ] List, create, rename, delete Adventures
+  - [ ] Set and update Visibility (Hidden, Private, Public)
+  - [ ] Inline rename/edit & clone in UI (deep clone of templates)
+- [ ] Episode Templates CRUD API & UI (nested under Adventures)
+  - [ ] List, create, rename, delete Episodes for a given Adventure
   - [ ] Basic in-place rename/edit; full Canvas editor in Phase 3
   - [ ] Set Visibility and transfer ownership
   - [x] Endpoint to clone an Episode template (POST /api/episodes/{id}/clone)
- - [x] Asset Templates CRUD API & UI
-   - [x] List, rename, delete Assets
-   - [ ] Support file uploads (local FS in Dev, Azure Blob in Prod) via POST /api/assets/{id}/upload
-   - [x] Set Visibility (ownership transfer deferred)
- - [ ] Template Cloning Endpoints
-   - [ ] POST /api/adventures/{id}/clone to deep‑clone an Adventure template (including nested Episodes, Stage data, and EpisodeAssets)
-   - [x] POST /api/episodes/{id}/clone to duplicate an Episode template
+- [ ] Asset Templates CRUD API & UI
+  - [ ] List, rename, delete Assets
+  - [ ] Support file uploads (local FS in Dev, Azure Blob in Prod) via POST /api/assets/{id}/upload
+  - [ ] Set Visibility (ownership transfer deferred)
+- [ ] Template Cloning Endpoints
+  - [ ] POST /api/adventures/{id}/clone to deep‑clone an Adventure template (including nested Episodes, Stage data, and EpisodeAssets)
+  - [ ] POST /api/episodes/{id}/clone to duplicate an Episode template
 - [ ] UI: "Content" menu
   - [ ] "Adventures" page (manages Adventures and nested Episodes)
   - [ ] "Assets" page (manages Assets uploads and metadata)

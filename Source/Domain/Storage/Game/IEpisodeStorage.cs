@@ -14,7 +14,7 @@ public interface IEpisodeStorage
     /// Retrieves an episode by its ID.
     /// </summary>
     Task<Episode?> GetByIdAsync(Guid id, CancellationToken ct = default);
-    
+
     /// <summary>
     /// Adds a new episode template.
     /// </summary>
