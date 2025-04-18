@@ -1,0 +1,117 @@
+﻿@page "/meetings"
+@rendermode InteractiveAuto
+
+<PageTitle>Game Meetings</PageTitle>
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Game Meetings</h1>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="OpenCreateMeetingDialog">Create New Meeting</button>
+        </div>
+    </div>
+
+    @if (_meetings == null)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!_meetings.Any())
+    {
+        <div class="alert alert-info">
+            You don't have any game meetings yet. Create a new meeting to get started!
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (var meeting in _meetings)
+            {
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@meeting.Name</h5>
+                            <p class="card-text">
+                                <small class="text-muted">@meeting.Players.Count player(s)</small>
+                            </p>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-sm btn-primary" @onclick="() => JoinMeeting(meeting.Id)">Join</button>
+                                <button class="btn btn-sm btn-primary" @onclick="() => ViewMeeting(meeting.Id)">Edit</button>
+                                @if (meeting.OwnerId == _currentUserId)
+                                {
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteMeeting(meeting.Id)">Delete</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@if (_showCreateDialog)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Meeting</h5>
+                    <button type="button" class="btn-close" @onclick="CloseCreateMeetingDialog"></button>
+                </div>
+                <div class="modal-body">
+    <div class="mb-3">
+        <label for="meetingName" class="form-label">Meeting Name</label>
+        <input type="text" class="form-control" id="meetingName" @bind="_newMeetingName" />
+        @if (!string.IsNullOrEmpty(_meetingNameError))
+        {
+            <div class="text-danger mt-1">@_meetingNameError</div>
+        }
+    </div>
+    <div class="mb-3">
+        <label for="adventureSelect" class="form-label">Adventure</label>
+        <select id="adventureSelect" class="form-select" @onchange="OnAdventureChanged">
+            <option value="">-- Select an adventure --</option>
+            @if (_adventures != null)
+            {
+                @foreach (var adv in _adventures)
+                {
+                    <option value="@adv.Id" selected="@(adv.Id == _selectedAdventureId)">@adv.Name</option>
+                }
+            }
+        </select>
+    </div>
+    @if (_episodes != null)
+    {
+        <div class="mb-3">
+            <label for="episodeSelect" class="form-label">Initial Episode</label>
+            <select id="episodeSelect" class="form-select" @bind="_selectedEpisodeId">
+                <option value="">-- Select an episode --</option>
+                @foreach (var ep in _episodes)
+                {
+                    <option value="@ep.Id">@ep.Name</option>
+                }
+            </select>
+            @if (_showEpisodeError)
+            {
+                <div class="text-danger mt-1">Episode selection is required</div>
+            }
+        </div>
+    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseCreateMeetingDialog">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="CreateMeeting">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}

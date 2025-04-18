@@ -22,14 +22,191 @@ namespace VttTools.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("VttTools.Model.Game.Session", b =>
+            modelBuilder.Entity("VttTools.Model.Game.Adventure", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int?>("ActiveMap")
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Visibility")
                         .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
+
+                    b.ToTable("Adventures", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Model.Game.Asset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Assets", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Model.Game.Campaign", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
+
+                    b.ToTable("Campaigns", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Model.Game.Epic", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Epics", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Model.Game.Episode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsTemplate")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ParentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
+
+                    b.ToTable("Episodes", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Model.Game.EpisodeAsset", b =>
+                {
+                    b.Property<Guid>("EpisodeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ControlledBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<double>("Scale")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("float")
+                        .HasDefaultValue(1.0);
+
+                    b.HasKey("EpisodeId", "AssetId");
+
+                    b.ToTable("EpisodeAssets", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Model.Game.Meeting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("EpisodeId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -41,7 +218,7 @@ namespace VttTools.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sessions", (string)null);
+                    b.ToTable("Meetings", (string)null);
                 });
 
             modelBuilder.Entity("VttTools.Model.Identity.Role", b =>
@@ -293,157 +470,95 @@ namespace VttTools.Data.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Model.Game.Session", b =>
+            modelBuilder.Entity("VttTools.Model.Game.Adventure", b =>
                 {
-                    b.OwnsMany("VttTools.Model.Game.SessionMap", "Maps", b1 =>
+                    b.HasOne("VttTools.Model.Game.Campaign", "Campaign")
+                        .WithMany("Adventures")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Campaign");
+                });
+
+            modelBuilder.Entity("VttTools.Model.Game.Asset", b =>
+                {
+                    b.OwnsOne("VttTools.Model.Game.Size", "Size", b1 =>
                         {
-                            b1.Property<Guid>("SessionId")
+                            b1.Property<Guid>("AssetId")
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<int>("Number")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("int");
+                            b1.Property<double>("Height")
+                                .HasColumnType("float");
 
-                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Number"));
+                            b1.Property<double>("Width")
+                                .HasColumnType("float");
 
-                            b1.Property<string>("ImageUrl")
-                                .IsRequired()
-                                .HasMaxLength(256)
-                                .HasColumnType("nvarchar(256)");
+                            b1.HasKey("AssetId");
 
-                            b1.Property<string>("MasterImageUrl")
-                                .HasMaxLength(256)
-                                .HasColumnType("nvarchar(256)");
-
-                            b1.Property<string>("Name")
-                                .IsRequired()
-                                .HasMaxLength(100)
-                                .HasColumnType("nvarchar(100)");
-
-                            b1.HasKey("SessionId", "Number");
-
-                            b1.ToTable("SessionMaps", (string)null);
+                            b1.ToTable("Assets");
 
                             b1.WithOwner()
-                                .HasForeignKey("SessionId");
+                                .HasForeignKey("AssetId");
+                        });
 
-                            b1.OwnsMany("VttTools.Model.Game.SessionMapToken", "Tokens", b2 =>
-                                {
-                                    b2.Property<Guid>("SessionId")
-                                        .HasColumnType("uniqueidentifier");
+                    b.Navigation("Size")
+                        .IsRequired();
+                });
 
-                                    b2.Property<int>("MapNumber")
-                                        .HasColumnType("int");
+            modelBuilder.Entity("VttTools.Model.Game.Campaign", b =>
+                {
+                    b.HasOne("VttTools.Model.Game.Epic", "Epic")
+                        .WithMany("Campaigns")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
-                                    b2.Property<int>("Number")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("int");
+                    b.Navigation("Epic");
+                });
 
-                                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b2.Property<int>("Number"));
+            modelBuilder.Entity("VttTools.Model.Game.Episode", b =>
+                {
+                    b.HasOne("VttTools.Model.Game.Adventure", "Adventure")
+                        .WithMany("Episodes")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                                    b2.Property<int?>("ControlledBy")
-                                        .HasColumnType("int");
+                    b.OwnsOne("VttTools.Model.Game.Stage", "Stage", b1 =>
+                        {
+                            b1.Property<Guid>("EpisodeId")
+                                .HasColumnType("uniqueidentifier");
 
-                                    b2.Property<string>("ImageUrl")
-                                        .IsRequired()
-                                        .HasMaxLength(256)
-                                        .HasColumnType("nvarchar(256)");
+                            b1.Property<int>("MapType")
+                                .HasColumnType("int");
 
-                                    b2.Property<bool>("IsLocked")
-                                        .HasMaxLength(256)
-                                        .HasColumnType("bit");
+                            b1.Property<string>("Source")
+                                .IsRequired()
+                                .HasMaxLength(512)
+                                .HasColumnType("nvarchar(512)");
 
-                                    b2.Property<string>("Name")
-                                        .IsRequired()
-                                        .HasMaxLength(100)
-                                        .HasColumnType("nvarchar(100)");
+                            b1.HasKey("EpisodeId");
 
-                                    b2.HasKey("SessionId", "MapNumber", "Number");
+                            b1.ToTable("Episodes");
 
-                                    b2.ToTable("SessionMapTokens", (string)null);
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("SessionId", "MapNumber");
-
-                                    b2.OwnsOne("VttTools.Model.Game.Position", "Position", b3 =>
-                                        {
-                                            b3.Property<Guid>("SessionMapTokenSessionId")
-                                                .HasColumnType("uniqueidentifier");
-
-                                            b3.Property<int>("SessionMapTokenMapNumber")
-                                                .HasColumnType("int");
-
-                                            b3.Property<int>("SessionMapTokenNumber")
-                                                .HasColumnType("int");
-
-                                            b3.Property<int>("Left")
-                                                .HasColumnType("int");
-
-                                            b3.Property<int>("Top")
-                                                .HasColumnType("int");
-
-                                            b3.HasKey("SessionMapTokenSessionId", "SessionMapTokenMapNumber", "SessionMapTokenNumber");
-
-                                            b3.ToTable("SessionMapTokens");
-
-                                            b3.WithOwner()
-                                                .HasForeignKey("SessionMapTokenSessionId", "SessionMapTokenMapNumber", "SessionMapTokenNumber");
-                                        });
-
-                                    b2.OwnsOne("VttTools.Model.Game.Size", "Size", b3 =>
-                                        {
-                                            b3.Property<Guid>("SessionMapTokenSessionId")
-                                                .HasColumnType("uniqueidentifier");
-
-                                            b3.Property<int>("SessionMapTokenMapNumber")
-                                                .HasColumnType("int");
-
-                                            b3.Property<int>("SessionMapTokenNumber")
-                                                .HasColumnType("int");
-
-                                            b3.Property<int>("Height")
-                                                .HasColumnType("int");
-
-                                            b3.Property<int>("Width")
-                                                .HasColumnType("int");
-
-                                            b3.HasKey("SessionMapTokenSessionId", "SessionMapTokenMapNumber", "SessionMapTokenNumber");
-
-                                            b3.ToTable("SessionMapTokens");
-
-                                            b3.WithOwner()
-                                                .HasForeignKey("SessionMapTokenSessionId", "SessionMapTokenMapNumber", "SessionMapTokenNumber");
-                                        });
-
-                                    b2.Navigation("Position")
-                                        .IsRequired();
-
-                                    b2.Navigation("Size")
-                                        .IsRequired();
-                                });
+                            b1.WithOwner()
+                                .HasForeignKey("EpisodeId");
 
                             b1.OwnsOne("VttTools.Model.Game.Grid", "Grid", b2 =>
                                 {
-                                    b2.Property<Guid>("SessionMapSessionId")
+                                    b2.Property<Guid>("StageEpisodeId")
                                         .HasColumnType("uniqueidentifier");
 
-                                    b2.Property<int>("SessionMapNumber")
-                                        .HasColumnType("int");
+                                    b2.HasKey("StageEpisodeId");
 
-                                    b2.HasKey("SessionMapSessionId", "SessionMapNumber");
-
-                                    b2.ToTable("SessionMaps");
+                                    b2.ToTable("Episodes");
 
                                     b2.WithOwner()
-                                        .HasForeignKey("SessionMapSessionId", "SessionMapNumber");
+                                        .HasForeignKey("StageEpisodeId");
 
-                                    b2.OwnsOne("VttTools.Model.Game.Cell", "Cell", b3 =>
+                                    b2.OwnsOne("VttTools.Model.Game.Size", "CellSize", b3 =>
                                         {
-                                            b3.Property<Guid>("GridSessionMapSessionId")
+                                            b3.Property<Guid>("GridStageEpisodeId")
                                                 .HasColumnType("uniqueidentifier");
-
-                                            b3.Property<int>("GridSessionMapNumber")
-                                                .HasColumnType("int");
 
                                             b3.Property<double>("Height")
                                                 .HasColumnType("float");
@@ -451,21 +566,18 @@ namespace VttTools.Data.Migrations
                                             b3.Property<double>("Width")
                                                 .HasColumnType("float");
 
-                                            b3.HasKey("GridSessionMapSessionId", "GridSessionMapNumber");
+                                            b3.HasKey("GridStageEpisodeId");
 
-                                            b3.ToTable("SessionMaps");
+                                            b3.ToTable("Episodes");
 
                                             b3.WithOwner()
-                                                .HasForeignKey("GridSessionMapSessionId", "GridSessionMapNumber");
+                                                .HasForeignKey("GridStageEpisodeId");
                                         });
 
-                                    b2.OwnsOne("VttTools.Model.Game.Offset", "Offset", b3 =>
+                                    b2.OwnsOne("VttTools.Model.Game.Position", "Offset", b3 =>
                                         {
-                                            b3.Property<Guid>("GridSessionMapSessionId")
+                                            b3.Property<Guid>("GridStageEpisodeId")
                                                 .HasColumnType("uniqueidentifier");
-
-                                            b3.Property<int>("GridSessionMapNumber")
-                                                .HasColumnType("int");
 
                                             b3.Property<double>("Left")
                                                 .HasColumnType("float");
@@ -473,39 +585,37 @@ namespace VttTools.Data.Migrations
                                             b3.Property<double>("Top")
                                                 .HasColumnType("float");
 
-                                            b3.HasKey("GridSessionMapSessionId", "GridSessionMapNumber");
+                                            b3.HasKey("GridStageEpisodeId");
 
-                                            b3.ToTable("SessionMaps");
+                                            b3.ToTable("Episodes");
 
                                             b3.WithOwner()
-                                                .HasForeignKey("GridSessionMapSessionId", "GridSessionMapNumber");
+                                                .HasForeignKey("GridStageEpisodeId");
                                         });
 
-                                    b2.Navigation("Cell");
+                                    b2.Navigation("CellSize")
+                                        .IsRequired();
 
                                     b2.Navigation("Offset");
                                 });
 
                             b1.OwnsOne("VttTools.Model.Game.Size", "Size", b2 =>
                                 {
-                                    b2.Property<Guid>("SessionMapSessionId")
+                                    b2.Property<Guid>("StageEpisodeId")
                                         .HasColumnType("uniqueidentifier");
 
-                                    b2.Property<int>("SessionMapNumber")
-                                        .HasColumnType("int");
+                                    b2.Property<double>("Height")
+                                        .HasColumnType("float");
 
-                                    b2.Property<int>("Height")
-                                        .HasColumnType("int");
+                                    b2.Property<double>("Width")
+                                        .HasColumnType("float");
 
-                                    b2.Property<int>("Width")
-                                        .HasColumnType("int");
+                                    b2.HasKey("StageEpisodeId");
 
-                                    b2.HasKey("SessionMapSessionId", "SessionMapNumber");
-
-                                    b2.ToTable("SessionMaps");
+                                    b2.ToTable("Episodes");
 
                                     b2.WithOwner()
-                                        .HasForeignKey("SessionMapSessionId", "SessionMapNumber");
+                                        .HasForeignKey("StageEpisodeId");
                                 });
 
                             b1.Navigation("Grid")
@@ -513,13 +623,84 @@ namespace VttTools.Data.Migrations
 
                             b1.Navigation("Size")
                                 .IsRequired();
-
-                            b1.Navigation("Tokens");
                         });
 
-                    b.OwnsMany("VttTools.Model.Game.SessionMessage", "Messages", b1 =>
+                    b.Navigation("Adventure");
+
+                    b.Navigation("Stage")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("VttTools.Model.Game.EpisodeAsset", b =>
+                {
+                    b.HasOne("VttTools.Model.Game.Asset", "Asset")
+                        .WithMany()
+                        .HasForeignKey("EpisodeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VttTools.Model.Game.Episode", "Episode")
+                        .WithMany("EpisodeAssets")
+                        .HasForeignKey("EpisodeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("VttTools.Model.Game.Position", "Position", b1 =>
                         {
-                            b1.Property<Guid>("SessionId")
+                            b1.Property<Guid>("EpisodeAssetEpisodeId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("EpisodeAssetAssetId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<double>("Left")
+                                .HasColumnType("float");
+
+                            b1.Property<double>("Top")
+                                .HasColumnType("float");
+
+                            b1.HasKey("EpisodeAssetEpisodeId", "EpisodeAssetAssetId");
+
+                            b1.ToTable("EpisodeAssets");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EpisodeAssetEpisodeId", "EpisodeAssetAssetId");
+                        });
+
+                    b.Navigation("Asset");
+
+                    b.Navigation("Episode");
+
+                    b.Navigation("Position")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("VttTools.Model.Game.Meeting", b =>
+                {
+                    b.OwnsMany("VttTools.Model.Game.MeetingEvent", "Events", b1 =>
+                        {
+                            b1.Property<Guid>("MeetingId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<DateTimeOffset>("Timestamp")
+                                .HasColumnType("datetimeoffset");
+
+                            b1.Property<string>("Description")
+                                .IsRequired()
+                                .HasMaxLength(1024)
+                                .HasColumnType("nvarchar(1024)");
+
+                            b1.HasKey("MeetingId", "Timestamp");
+
+                            b1.ToTable("MeetingEvents", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("MeetingId");
+                        });
+
+                    b.OwnsMany("VttTools.Model.Game.MeetingMessage", "Messages", b1 =>
+                        {
+                            b1.Property<Guid>("MeetingId")
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<DateTimeOffset>("SentAt")
@@ -533,20 +714,23 @@ namespace VttTools.Data.Migrations
                             b1.Property<int>("SentBy")
                                 .HasColumnType("int");
 
-                            b1.Property<int?>("SentTo")
+                            b1.PrimitiveCollection<string>("SentTo")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<int>("Type")
                                 .HasColumnType("int");
 
-                            b1.HasKey("SessionId", "SentAt");
+                            b1.HasKey("MeetingId", "SentAt");
 
-                            b1.ToTable("SessionMassages", (string)null);
+                            b1.ToTable("MeetingMessages", (string)null);
 
                             b1.WithOwner()
-                                .HasForeignKey("SessionId");
+                                .HasForeignKey("MeetingId");
                         });
 
-                    b.OwnsMany("VttTools.Model.Game.SessionPlayer", "Players", b1 =>
+                    b.OwnsMany("VttTools.Model.Game.MeetingPlayer", "Players", b1 =>
                         {
-                            b1.Property<Guid>("SessionId")
+                            b1.Property<Guid>("MeetingId")
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<Guid>("UserId")
@@ -556,15 +740,15 @@ namespace VttTools.Data.Migrations
                             b1.Property<int>("Type")
                                 .HasColumnType("int");
 
-                            b1.HasKey("SessionId", "UserId");
+                            b1.HasKey("MeetingId", "UserId");
 
-                            b1.ToTable("SessionPlayers", (string)null);
+                            b1.ToTable("MeetingPlayers", (string)null);
 
                             b1.WithOwner()
-                                .HasForeignKey("SessionId");
+                                .HasForeignKey("MeetingId");
                         });
 
-                    b.Navigation("Maps");
+                    b.Navigation("Events");
 
                     b.Navigation("Messages");
 
@@ -620,6 +804,26 @@ namespace VttTools.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("VttTools.Model.Game.Adventure", b =>
+                {
+                    b.Navigation("Episodes");
+                });
+
+            modelBuilder.Entity("VttTools.Model.Game.Campaign", b =>
+                {
+                    b.Navigation("Adventures");
+                });
+
+            modelBuilder.Entity("VttTools.Model.Game.Epic", b =>
+                {
+                    b.Navigation("Campaigns");
+                });
+
+            modelBuilder.Entity("VttTools.Model.Game.Episode", b =>
+                {
+                    b.Navigation("EpisodeAssets");
                 });
 #pragma warning restore 612, 618
         }

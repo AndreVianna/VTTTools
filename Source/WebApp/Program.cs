@@ -1,3 +1,5 @@
+using static VttTools.Data.Options.ApplicationDbContextOptions;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseDefaultServiceProvider((_, o) => {
     o.ValidateScopes = true;
@@ -14,7 +16,7 @@ builder.Services.AddHttpContextAccessor();
 
 AddDefaultHealthChecks();
 builder.AddRedisOutputCache("redis");
-builder.AddSqlServerDataProvider();
+builder.AddSqlServerDbContext<ApplicationDbContext>(ConnectionStringName);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddCascadingAuthenticationState();
@@ -30,8 +32,8 @@ builder.Services.AddIdentityCore<User>(opt => {
     opt.Password.RequiredLength = 8;
     opt.Stores.SchemaVersion = IdentitySchemaVersions.Version2;
 }).AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddSignInManager()
-                .AddDefaultTokenProviders();
+  .AddSignInManager()
+  .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<User>, IdentityNoOpEmailSender>();
 

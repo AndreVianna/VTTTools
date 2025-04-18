@@ -1,0 +1,155 @@
+@page "/Adventures"
+@using VttTools.Model.Game
+@using VttTools.Contracts.Game
+@inject WebApp.Services.GameServiceClient GameClient
+@inject NavigationManager NavManager
+
+<h3>Adventures</h3>
+
+<div class="mb-3">
+    <input class="form-control mb-1" placeholder="Name" @bind="newName" />
+    <select class="form-select mb-1" @bind="newVisibility">
+        <option value="@Visibility.Hidden">Hidden</option>
+        <option value="@Visibility.Private">Private</option>
+        <option value="@Visibility.Public">Public</option>
+    </select>
+    <button class="btn btn-primary" @onclick="CreateAdventure">Create</button>
+</div>
+
+@if (adventures is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Visibility</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var adv in adventures)
+            {
+                <tr>
+                    <td>@adv.Name</td>
+                    <td>@adv.Visibility</td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm me-1" @onclick='() => NavManager.NavigateTo($"/Adventures/{adv.Id}/Episodes")'>Episodes</button>
+                        <button class="btn btn-secondary btn-sm me-1" @onclick="() => StartEdit(adv)">Edit</button>
+                        <button class="btn btn-info btn-sm me-1" @onclick="() => CloneAdventure(adv.Id)">Clone</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteAdventure(adv.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@* Edit Adventure Modal *@
+@if (isEditing && editAdventure is not null)
+{
+    <div class="modal show d-block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Adventure</h5>
+                    <button type="button" class="btn-close" @onclick="CancelEdit"></button>
+                </div>
+                <div class="modal-body">
+                    <input class="form-control mb-1" @bind="editAdventure.Name" />
+                    <select class="form-select mb-1" @bind="editAdventure.Visibility">
+                        <option value="@Visibility.Hidden">Hidden</option>
+                        <option value="@Visibility.Private">Private</option>
+                        <option value="@Visibility.Public">Public</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveEdit">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private bool isEditing;
+    private UpdateAdventureRequest editAdventure = new();
+    private Guid editingAdventureId;
+    private Adventure[]? adventures;
+    private string newName = string.Empty;
+    private Visibility newVisibility = Visibility.Hidden;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAdventures();
+    }
+
+    private async Task LoadAdventures()
+    {
+        adventures = await GameClient.GetAdventuresAsync();
+        StateHasChanged();
+    }
+
+    private async Task CreateAdventure()
+    {
+        if (string.IsNullOrWhiteSpace(newName))
+            return;
+        var request = new CreateAdventureRequest
+        {
+            Name = newName,
+            Visibility = newVisibility
+        };
+        var created = await GameClient.CreateAdventureAsync(request);
+        if (created != null)
+        {
+            newName = string.Empty;
+            await LoadAdventures();
+        }
+    }
+
+    private async Task DeleteAdventure(Guid id)
+    {
+        await GameClient.DeleteAdventureAsync(id);
+        await LoadAdventures();
+    }
+
+    private void StartEdit(Adventure adv)
+    {
+        isEditing = true;
+        editingAdventureId = adv.Id;
+        editAdventure = new UpdateAdventureRequest
+        {
+            Name = adv.Name,
+            Visibility = adv.Visibility
+        };
+    }
+
+    private void CancelEdit()
+    {
+        isEditing = false;
+    }
+
+    private async Task SaveEdit()
+    {
+        var updated = await GameClient.UpdateAdventureAsync(editingAdventureId, editAdventure);
+        if (updated != null)
+        {
+            isEditing = false;
+            await LoadAdventures();
+        }
+    }
+
+    private async Task CloneAdventure(Guid id)
+    {
+        var clone = await GameClient.CloneAdventureAsync(id);
+        if (clone != null)
+        {
+            await LoadAdventures();
+        }
+    }
+}

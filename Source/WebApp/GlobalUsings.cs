@@ -32,7 +32,10 @@ global using Microsoft.Extensions.Primitives;
 global using Microsoft.JSInterop;
 
 global using VttTools.Data;
+global using VttTools.Data.Extensions;
+global using VttTools.Data.Options;
 global using VttTools.Model.Game;
+global using VttTools.Contracts.Game;
 global using VttTools.Model.Identity;
 global using VttTools.Services.Game;
 

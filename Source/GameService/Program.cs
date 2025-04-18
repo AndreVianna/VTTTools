@@ -13,14 +13,15 @@ builder.Services.ConfigureHttpClientDefaults(http => {
 
 AddRequiredServices();
 
-builder.Services.AddDbContext<ApplicationDbContext>(options => {
-    var connectionString = IsNotNull(builder.Configuration.GetConnectionString("Application"));
-    options.UseSqlServer(connectionString);
-});
+builder.AddSqlServerDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
+builder.AddAzureBlobClient(AzureStorageOptions.ConnectionStringName);
+builder.AddGameDataStorage();
+builder.Services.AddScoped<IMeetingService, MeetingService>();
 
-// Add GameSession services
-builder.Services.AddScoped<ISessionStorage, SessionStorage>();
-builder.Services.AddScoped<ISessionService, SessionService>();
+// Add Adventure & Episode services
+builder.Services.AddScoped<IAdventureStorage, AdventureStorage>();
+builder.Services.AddScoped<IEpisodeStorage, EpisodeStorage>();
+builder.Services.AddScoped<IAdventureService, AdventureService>();
 
 var app = builder.Build();
 
@@ -28,6 +29,12 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
+// serve uploaded files from 'uploads' folder
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "uploads")),
+    RequestPath = "/uploads"
+});
 app.UseRouting();
 app.UseCors();
 app.UseAuthentication();
@@ -35,7 +42,10 @@ app.UseMiddleware<MyAuthorizationMiddleware>();
 
 MapHealthCheckEndpoints();
 app.MapOpenApi();
-app.MapGameSessionManagementEndpoints();
+app.MapGameMeetingManagementEndpoints();
+// Map Adventure, Episode & Asset endpoints
+app.MapAdventureManagementEndpoints();
+app.MapAssetManagementEndpoints();
 
 app.Run();
 return;
@@ -55,6 +65,8 @@ void AddRequiredServices() {
 
     builder.Services.AddAuthentication();
     builder.Services.AddAuthorization();
+    // register storage service for file uploads
+    builder.Services.AddScoped<IStorageService, BlobStorageService>();
 
     builder.Services.AddOpenApi();
     builder.Services.AddHealthChecks()

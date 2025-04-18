@@ -7,7 +7,7 @@ global using DotNetToolbox.Validation;
 
 global using Microsoft.AspNetCore.Identity;
 
-global using VttTools.HttpContracts.Game;
 global using VttTools.Model;
 global using VttTools.Model.Game;
 global using VttTools.Model.Identity;
+global using VttTools.Contracts.Game;

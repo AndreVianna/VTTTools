@@ -1,6 +1,6 @@
 ﻿namespace VttTools.Model.Game;
 
 public class Position {
-    public int Left { get; set; }
-    public int Top { get; set; }
+    public double Left { get; set; }
+    public double Top { get; set; }
 }
