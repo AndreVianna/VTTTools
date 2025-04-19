@@ -20,12 +20,38 @@ public class MeetingTests {
     }
 
     [Fact]
+    public void Constructor_WhenCalledWithValues_InitializesWithDefaultValues() {
+        // Arrange & Act
+        var meeting = new Meeting {
+            Id = Guid.NewGuid(),
+            OwnerId = Guid.Empty,
+            Name = string.Empty,
+            Players = [],
+            Messages = [],
+            Events = [],
+            EpisodeId = Guid.NewGuid(),
+        };
+
+        // Assert
+        meeting.Id.Should().NotBeEmpty();
+        meeting.OwnerId.Should().BeEmpty();
+        meeting.Name.Should().BeEmpty();
+        meeting.Players.Should().NotBeNull();
+        meeting.Players.Should().BeEmpty();
+        meeting.EpisodeId.Should().NotBeNull();
+        meeting.Messages.Should().NotBeNull();
+        meeting.Messages.Should().BeEmpty();
+        meeting.Events.Should().NotBeNull();
+        meeting.Events.Should().BeEmpty();
+    }
+
+    [Fact]
     public void PlayersCollection_WhenAdded_ContainsAddedPlayer() {
         // Arrange
         var meeting = new Meeting();
         var player = new MeetingPlayer {
             UserId = Guid.NewGuid(),
-            Type = PlayerType.Player
+            Type = PlayerType.Player,
         };
 
         // Act
@@ -43,7 +69,7 @@ public class MeetingTests {
         var message = new MeetingMessage {
             SentBy = Guid.NewGuid(),
             Content = "Test message",
-            SentAt = DateTime.UtcNow
+            SentAt = DateTime.UtcNow,
         };
 
         // Act
@@ -60,7 +86,7 @@ public class MeetingTests {
         var meeting = new Meeting();
         var meetingEvent = new MeetingEvent {
             Timestamp = DateTime.UtcNow,
-            Description = "Test event"
+            Description = "Test event",
         };
 
         // Act

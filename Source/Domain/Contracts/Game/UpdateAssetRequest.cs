@@ -24,4 +24,13 @@ public record UpdateAssetRequest : Request
     /// New visibility setting. If null, visibility is unchanged.
     /// </summary>
     public Visibility? Visibility { get; init; }
+
+    public override Result Validate(IMap? context = null) {
+        var result = base.Validate(context);
+        if (Name is not null && (Name.Length == 0 || Name.All(char.IsWhiteSpace)))
+            result += new Error("Asset name cannot be empty.", nameof(Name));
+        if (Source is not null && (Source.Length == 0 || Source.All(char.IsWhiteSpace)))
+            result += new Error("Asset source cannot be empty.", nameof(Source));
+        return result;
+    }
 }

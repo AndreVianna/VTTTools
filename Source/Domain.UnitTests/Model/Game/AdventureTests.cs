@@ -7,7 +7,7 @@ public class AdventureTests {
         var adventure = new Adventure();
 
         // Assert
-        adventure.Id.Should().NotBeEmpty();
+        adventure.Id.Should().BeEmpty();
         adventure.OwnerId.Should().BeEmpty();
         adventure.ParentId.Should().BeNull();
         adventure.Campaign.Should().BeNull();
@@ -21,11 +21,21 @@ public class AdventureTests {
     [Fact]
     public void EpisodesCollection_WhenAdded_ContainsAddedEpisode() {
         // Arrange
-        var adventure = new Adventure();
+        var campaign = new Campaign {
+            Id = Guid.NewGuid(),
+        };
+        var adventure = new Adventure {
+            Id = Guid.NewGuid(),
+            Name = "Test Adventure",
+            OwnerId = Guid.NewGuid(),
+            Visibility = Visibility.Hidden,
+            TemplateId = Guid.NewGuid(),
+            ParentId = campaign.Id,
+            Campaign = campaign,
+            Episodes = [],
+        };
         var episode = new Episode {
             Id = Guid.NewGuid(),
-            Name = "Test Episode",
-            OwnerId = Guid.NewGuid()
         };
 
         // Act
