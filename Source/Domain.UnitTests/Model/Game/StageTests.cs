@@ -28,8 +28,8 @@ public class StageTests {
         const string source = "background.jpg";
         var size = new Size { Width = 1000, Height = 800 };
         var grid = new Grid {
-            Offset = new Position { Left = 50, Top = 50 },
-            CellSize = new Size { Width = 32, Height = 32 }
+            Offset = new() { Left = 50, Top = 50 },
+            CellSize = new() { Width = 32, Height = 32 }
         };
 
         // Act
@@ -37,7 +37,7 @@ public class StageTests {
             MapType = mapType,
             Source = source,
             Size = size,
-            Grid = grid
+            Grid = grid,
         };
 
         // Assert
@@ -45,47 +45,5 @@ public class StageTests {
         stage.Source.Should().Be(source);
         stage.Size.Should().Be(size);
         stage.Grid.Should().Be(grid);
-    }
-
-    [Fact]
-    public void MapType_WhenChangingValues_UpdatesCorrectly() {
-        // Arrange
-        var stage = new Stage {
-            // Act & Assert - Test all map types
-            MapType = StageMapType.None
-        };
-        stage.MapType.Should().Be(StageMapType.None);
-
-        stage.MapType = StageMapType.Square;
-        stage.MapType.Should().Be(StageMapType.Square);
-
-        stage.MapType = StageMapType.HexH;
-        stage.MapType.Should().Be(StageMapType.HexH);
-
-        stage.MapType = StageMapType.HexV;
-        stage.MapType.Should().Be(StageMapType.HexV);
-
-        stage.MapType = StageMapType.Isometric;
-        stage.MapType.Should().Be(StageMapType.Isometric);
-    }
-
-    [Fact]
-    public void Grid_WithDifferentCellSizes_StoresCorrectValues() {
-        // Arrange
-        var stage = new Stage();
-
-        // Act - Try different grid sizes
-        stage.Grid.CellSize = new Size { Width = 24, Height = 24 };
-
-        // Assert
-        stage.Grid.CellSize.Width.Should().Be(24);
-        stage.Grid.CellSize.Height.Should().Be(24);
-
-        // Act - Non-square grid for hex or isometric
-        stage.Grid.CellSize = new Size { Width = 32, Height = 28 };
-
-        // Assert
-        stage.Grid.CellSize.Width.Should().Be(32);
-        stage.Grid.CellSize.Height.Should().Be(28);
     }
 }

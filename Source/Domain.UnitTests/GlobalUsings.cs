@@ -1,3 +1,5 @@
+global using System.Collections;
+
 global using FluentAssertions;
 
 global using VttTools.Contracts.Game;

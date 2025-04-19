@@ -1,7 +1,8 @@
 namespace VttTools.Contracts.Game;
 
 public class ResponseTests {
-    private sealed record TestResponse : Response {
+    private sealed record TestResponse
+        : Response {
         public string? Name { get; init; }
     }
 
@@ -12,7 +13,6 @@ public class ResponseTests {
             Name = "Subject",
         };
         const string name = "Other Subject";
-        var episodeId = Guid.NewGuid();
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers
         var data = original with {

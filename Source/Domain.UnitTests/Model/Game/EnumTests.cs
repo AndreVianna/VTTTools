@@ -48,9 +48,9 @@ public class EnumTests {
     [Fact]
     public void ContentType_HasExpectedValues()
         // Assert
-        => Enum.GetValues<ContentType>().Should().Contain([
-            ContentType.Text,
-            ContentType.Command,
+        => Enum.GetValues<MessageType>().Should().Contain([
+            MessageType.Text,
+            MessageType.Command,
         ]);
 
     [Fact]

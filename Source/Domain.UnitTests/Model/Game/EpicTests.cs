@@ -20,46 +20,30 @@ public class EpicTests {
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
         var id = Guid.NewGuid();
+        const string name = "Some Epic";
         var ownerId = Guid.NewGuid();
         var templateId = Guid.NewGuid();
-        var campaigns = new HashSet<Campaign> { new() };
-        const string name = "Test Epic";
         const Visibility visibility = Visibility.Public;
+        var campaign = new Campaign {
+            Id = Guid.NewGuid(),
+        };
 
         // Act
         var epic = new Epic {
             Id = id,
-            OwnerId = ownerId,
-            TemplateId = templateId,
-            Campaigns = campaigns,
             Name = name,
+            OwnerId = ownerId,
             Visibility = visibility,
+            TemplateId = templateId,
+            Campaigns = [campaign],
         };
 
         // Assert
         epic.Id.Should().Be(id);
-        epic.OwnerId.Should().Be(ownerId);
-        epic.TemplateId.Should().Be(templateId);
-        epic.Campaigns.Should().BeSameAs(campaigns);
         epic.Name.Should().Be(name);
+        epic.OwnerId.Should().Be(ownerId);
         epic.Visibility.Should().Be(visibility);
-    }
-
-    [Fact]
-    public void CampaignsCollection_WhenAdded_ContainsAddedCampaign() {
-        // Arrange
-        var epic = new Epic();
-        var campaign = new Campaign {
-            Id = Guid.NewGuid(),
-            Name = "Test Campaign",
-            OwnerId = Guid.NewGuid(),
-        };
-
-        // Act
-        epic.Campaigns.Add(campaign);
-
-        // Assert
-        epic.Campaigns.Should().ContainSingle();
-        epic.Campaigns.Should().Contain(campaign);
+        epic.TemplateId.Should().Be(templateId);
+        epic.Campaigns.Should().ContainSingle(c => c.Equals(campaign));
     }
 }

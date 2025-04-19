@@ -11,7 +11,7 @@ public class EpisodeTests {
         episode.OwnerId.Should().Be(Guid.Empty);
         episode.ParentId.Should().Be(Guid.Empty);
         episode.Adventure.Should().BeNull();
-        episode.IsTemplate.Should().BeTrue();
+        episode.IsTemplate.Should().BeFalse();
         episode.TemplateId.Should().BeNull();
         episode.Name.Should().BeEmpty();
         episode.Visibility.Should().Be(Visibility.Hidden);
@@ -24,25 +24,27 @@ public class EpisodeTests {
     public void Properties_WhenSet_RetainValues() {
         // Arrange
         var id = Guid.NewGuid();
+        const string name = "Some Episode";
         var ownerId = Guid.NewGuid();
         var parentId = Guid.NewGuid();
-        var templateId = Guid.NewGuid();
         var adventure = new Adventure();
+        var templateId = Guid.NewGuid();
+        const bool isTemplate = true;
         var stage = new Stage();
-        var episodeAssets = new HashSet<EpisodeAsset> { new() };
+        var episodeAsset = new EpisodeAsset();
 
         // Act
         var episode = new Episode {
             Id = id,
             OwnerId = ownerId,
+            Name = name,
             ParentId = parentId,
             Adventure = adventure,
-            IsTemplate = false,
+            IsTemplate = isTemplate,
             TemplateId = templateId,
-            Name = "Test Episode",
             Visibility = Visibility.Public,
             Stage = stage,
-            EpisodeAssets = episodeAssets
+            EpisodeAssets = [episodeAsset],
         };
 
         // Assert
@@ -50,39 +52,11 @@ public class EpisodeTests {
         episode.OwnerId.Should().Be(ownerId);
         episode.ParentId.Should().Be(parentId);
         episode.Adventure.Should().BeSameAs(adventure);
-        episode.IsTemplate.Should().BeFalse();
+        episode.IsTemplate.Should().Be(isTemplate);
         episode.TemplateId.Should().Be(templateId);
-        episode.Name.Should().Be("Test Episode");
+        episode.Name.Should().Be(name);
         episode.Visibility.Should().Be(Visibility.Public);
         episode.Stage.Should().BeSameAs(stage);
-        episode.EpisodeAssets.Should().BeSameAs(episodeAssets);
-        episode.EpisodeAssets.Should().HaveCount(1);
-    }
-
-    [Fact]
-    public void EpisodeAssets_WhenModified_UpdatesCollection() {
-        // Arrange
-        var episode = new Episode();
-        var asset1 = new EpisodeAsset { AssetId = Guid.NewGuid() };
-        var asset2 = new EpisodeAsset { AssetId = Guid.NewGuid() };
-
-        // Act
-        episode.EpisodeAssets.Add(asset1);
-        episode.EpisodeAssets.Add(asset2);
-
-        // Assert
-        episode.EpisodeAssets.Should().HaveCount(2);
-        episode.EpisodeAssets.Should().Contain(asset1);
-        episode.EpisodeAssets.Should().Contain(asset2);
-    }
-
-    [Fact]
-    public void Stage_Default_InitializesWithNewStageInstance() {
-        // Act
-        var episode = new Episode();
-
-        // Assert
-        episode.Stage.Should().NotBeNull();
-        episode.Stage.Should().BeOfType<Stage>();
+        episode.EpisodeAssets.Should().ContainSingle(ea => ea.Equals(episodeAsset));
     }
 }

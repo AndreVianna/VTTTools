@@ -22,52 +22,38 @@ public class CampaignTests {
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
         var id = Guid.NewGuid();
+        const string name = "Some Epic";
         var ownerId = Guid.NewGuid();
         var parentId = Guid.NewGuid();
-        var epic = new Epic();
         var templateId = Guid.NewGuid();
-        var adventures = new HashSet<Adventure> { new() };
-        const string name = "Test Campaign";
         const Visibility visibility = Visibility.Public;
+        var epic = new Epic {
+            Id = parentId,
+        };
+        var adventure = new Adventure {
+            Id = Guid.NewGuid(),
+        };
 
         // Act
         var campaign = new Campaign {
             Id = id,
+            Name = name,
             OwnerId = ownerId,
+            Visibility = visibility,
+            TemplateId = templateId,
             ParentId = parentId,
             Epic = epic,
-            TemplateId = templateId,
-            Adventures = adventures,
-            Name = name,
-            Visibility = visibility,
+            Adventures = [adventure],
         };
 
         // Assert
         campaign.Id.Should().Be(id);
+        campaign.Name.Should().Be(name);
         campaign.OwnerId.Should().Be(ownerId);
+        campaign.Visibility.Should().Be(visibility);
+        campaign.TemplateId.Should().Be(templateId);
         campaign.ParentId.Should().Be(parentId);
         campaign.Epic.Should().Be(epic);
-        campaign.TemplateId.Should().Be(templateId);
-        campaign.Adventures.Should().BeSameAs(adventures);
-        campaign.Name.Should().Be(name);
-        campaign.Visibility.Should().Be(visibility);
-    }
-
-    [Fact]
-    public void AdventuresCollection_WhenAdded_ContainsAddedAdventure() {
-        // Arrange
-        var campaign = new Campaign();
-        var adventure = new Adventure {
-            Id = Guid.NewGuid(),
-            Name = "Test Adventure",
-            OwnerId = Guid.NewGuid(),
-        };
-
-        // Act
-        campaign.Adventures.Add(adventure);
-
-        // Assert
-        campaign.Adventures.Should().ContainSingle();
-        campaign.Adventures.Should().Contain(adventure);
+        campaign.Adventures.Should().ContainSingle(c => c.Equals(adventure));
     }
 }

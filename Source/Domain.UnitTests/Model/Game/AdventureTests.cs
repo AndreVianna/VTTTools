@@ -19,30 +19,41 @@ public class AdventureTests {
     }
 
     [Fact]
-    public void EpisodesCollection_WhenAdded_ContainsAddedEpisode() {
+    public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
+        var id = Guid.NewGuid();
+        const string name = "Some Adventure";
+        var ownerId = Guid.NewGuid();
+        var parentId = Guid.NewGuid();
+        var templateId = Guid.NewGuid();
+        const Visibility visibility = Visibility.Public;
         var campaign = new Campaign {
-            Id = Guid.NewGuid(),
-        };
-        var adventure = new Adventure {
-            Id = Guid.NewGuid(),
-            Name = "Test Adventure",
-            OwnerId = Guid.NewGuid(),
-            Visibility = Visibility.Hidden,
-            TemplateId = Guid.NewGuid(),
-            ParentId = campaign.Id,
-            Campaign = campaign,
-            Episodes = [],
+            Id = parentId,
         };
         var episode = new Episode {
             Id = Guid.NewGuid(),
         };
 
         // Act
-        adventure.Episodes.Add(episode);
+        var adventure = new Adventure {
+            Id = id,
+            Name = name,
+            OwnerId = ownerId,
+            Visibility = visibility,
+            TemplateId = templateId,
+            ParentId = parentId,
+            Campaign = campaign,
+            Episodes = [episode],
+        };
 
         // Assert
-        adventure.Episodes.Should().ContainSingle();
-        adventure.Episodes.Should().Contain(episode);
+        adventure.Id.Should().Be(id);
+        adventure.Name.Should().Be(name);
+        adventure.OwnerId.Should().Be(ownerId);
+        adventure.Visibility.Should().Be(visibility);
+        adventure.TemplateId.Should().Be(templateId);
+        adventure.ParentId.Should().Be(parentId);
+        adventure.Campaign.Should().Be(campaign);
+        adventure.Episodes.Should().ContainSingle(e => e.Equals(episode));
     }
 }

@@ -22,78 +22,40 @@ public class MeetingTests {
     [Fact]
     public void Constructor_WhenCalledWithValues_InitializesWithDefaultValues() {
         // Arrange & Act
-        var meeting = new Meeting {
-            Id = Guid.NewGuid(),
-            OwnerId = Guid.Empty,
-            Subject = string.Empty,
-            Players = [],
-            Messages = [],
-            Events = [],
-            EpisodeId = Guid.NewGuid(),
-        };
-
-        // Assert
-        meeting.Id.Should().NotBeEmpty();
-        meeting.OwnerId.Should().BeEmpty();
-        meeting.Subject.Should().BeEmpty();
-        meeting.Players.Should().NotBeNull();
-        meeting.Players.Should().BeEmpty();
-        meeting.EpisodeId.Should().NotBeNull();
-        meeting.Messages.Should().NotBeNull();
-        meeting.Messages.Should().BeEmpty();
-        meeting.Events.Should().NotBeNull();
-        meeting.Events.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void PlayersCollection_WhenAdded_ContainsAddedPlayer() {
-        // Arrange
-        var meeting = new Meeting();
+        var id = Guid.NewGuid();
+        var ownerId = Guid.NewGuid();
+        const string subject = "Some Subject";
+        var episodeId = Guid.NewGuid();
         var player = new MeetingPlayer {
             UserId = Guid.NewGuid(),
             Type = PlayerType.Player,
         };
-
-        // Act
-        meeting.Players.Add(player);
-
-        // Assert
-        meeting.Players.Should().ContainSingle();
-        meeting.Players.Should().Contain(player);
-    }
-
-    [Fact]
-    public void MessagesCollection_WhenAdded_ContainsAddedMessage() {
-        // Arrange
-        var meeting = new Meeting();
         var message = new MeetingMessage {
             SentBy = Guid.NewGuid(),
             Content = "Test message",
             SentAt = DateTime.UtcNow,
         };
-
-        // Act
-        meeting.Messages.Add(message);
-
-        // Assert
-        meeting.Messages.Should().ContainSingle();
-        meeting.Messages.Should().Contain(message);
-    }
-
-    [Fact]
-    public void EventsCollection_WhenAdded_ContainsAddedEvent() {
-        // Arrange
-        var meeting = new Meeting();
-        var meetingEvent = new MeetingEvent {
+        var @event = new MeetingEvent {
             Timestamp = DateTime.UtcNow,
             Description = "Test event",
         };
-
-        // Act
-        meeting.Events.Add(meetingEvent);
+        var meeting = new Meeting {
+            Id = id,
+            OwnerId = ownerId,
+            Subject = subject,
+            EpisodeId = episodeId,
+            Players = [player],
+            Messages = [message],
+            Events = [@event],
+        };
 
         // Assert
-        meeting.Events.Should().ContainSingle();
-        meeting.Events.Should().Contain(meetingEvent);
+        meeting.Id.Should().Be(id);
+        meeting.OwnerId.Should().Be(ownerId);
+        meeting.Subject.Should().Be(subject);
+        meeting.EpisodeId.Should().Be(episodeId);
+        meeting.Players.Should().ContainSingle(p => p.Equals(player));
+        meeting.Messages.Should().Contain(p => p.Equals(message));
+        meeting.Events.Should().Contain(e => e.Equals(@event));
     }
 }

@@ -8,7 +8,7 @@ public class Episode {
     public Guid OwnerId { get; set; }
     public Guid ParentId { get; set; }
     public Adventure Adventure { get; set; } = null!;
-    public bool IsTemplate { get; set; } = true;
+    public bool IsTemplate { get; set; }
     public Guid? TemplateId { get; set; }
     [MaxLength(128)]
     public string Name { get; set; } = string.Empty;
