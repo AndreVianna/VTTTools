@@ -3,8 +3,7 @@ namespace VttTools.Services.Game;
 /// <summary>
 /// Service for retrieving and managing Asset templates.
 /// </summary>
-public interface IAssetService
-{
+public interface IAssetService {
     /// <summary>
     /// Gets all asset templates.
     /// </summary>

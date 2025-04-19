@@ -1,6 +1,6 @@
-﻿namespace GameService.Utilities;
+﻿namespace VttTools.Utilities;
 
-internal static class ErrorCollectionExtensions {
+public static class ErrorCollectionExtensions {
     public static Dictionary<string, string[]> GroupedBySource(this IEnumerable<Error> errors)
         => errors.SelectMany(e => e.Sources.Select(s => new { Source = s, e.Message }))
                  .GroupBy(x => x.Source)

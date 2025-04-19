@@ -4,8 +4,8 @@ public class AddEpisodeAssetDataTests {
     [Fact]
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
-        var original = new AddEpisodeAssetData("Name", new() { Left = 10, Top = 20 }, 1.5);
-        const string name = "Other Name";
+        var original = new AddEpisodeAssetData("Subject", new() { Left = 10, Top = 20 }, 1.5);
+        const string name = "Other Subject";
         var position = new Position { Left = 10, Top = 20 };
         const double scale = 1.5;
 

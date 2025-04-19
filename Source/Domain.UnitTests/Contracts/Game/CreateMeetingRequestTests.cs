@@ -5,21 +5,21 @@ public class CreateMeetingRequestTests {
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
         var original = new CreateMeetingRequest {
-            Name = "Name",
+            Subject = "Subject",
             EpisodeId = Guid.NewGuid(),
         };
-        const string name = "Other Name";
+        const string name = "Other Subject";
         var episodeId = Guid.NewGuid();
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers
         var data = original with {
-            Name = name,
+            Subject = name,
             EpisodeId = episodeId,
         };
 
         // Assert
-        data.Name.Should().Be(name);
+        data.Subject.Should().Be(name);
         data.EpisodeId.Should().Be(episodeId);
     }
 
@@ -27,7 +27,7 @@ public class CreateMeetingRequestTests {
     public void Validate_WithValidData_ReturnsSuccess() {
         // Arrange
         var request = new CreateMeetingRequest {
-            Name = "Test Meeting",
+            Subject = "Test Meeting",
             EpisodeId = Guid.NewGuid(),
         };
 
@@ -38,33 +38,21 @@ public class CreateMeetingRequestTests {
         result.HasErrors.Should().BeFalse();
     }
 
-    [Fact]
-    public void Validate_WithEmptyName_ReturnsSuccess() {
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_WithEmptySubject_ReturnsError(string? subject) {
         // Arrange
         var request = new CreateMeetingRequest {
-            Name = string.Empty,
-            EpisodeId = Guid.NewGuid(),
+            Subject = subject!,
         };
 
         // Act
         var result = request.Validate();
 
         // Assert
-        result.HasErrors.Should().BeFalse();
-    }
-
-    [Fact]
-    public void Validate_WithEmptyEpisodeId_ReturnsSuccess() {
-        // Arrange
-        var request = new CreateMeetingRequest {
-            Name = "Test Meeting",
-            EpisodeId = Guid.Empty,
-        };
-
-        // Act
-        var result = request.Validate();
-
-        // Assert
-        result.HasErrors.Should().BeFalse();
+        result.HasErrors.Should().BeTrue();
+        result.Errors.Should().ContainSingle(e => e.Message == "Meeting subject cannot be null or empty." && e.Sources.Contains(nameof(request.Subject)));
     }
 }

@@ -3,8 +3,7 @@ namespace VttTools.Storage.Game;
 /// <summary>
 /// Storage interface for Episode entities.
 /// </summary>
-public interface IEpisodeStorage
-{
+public interface IEpisodeStorage {
     /// <summary>
     /// Retrieves all episode templates for a given adventure.
     /// </summary>

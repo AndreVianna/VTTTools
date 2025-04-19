@@ -1,4 +1,4 @@
-﻿namespace WebApp.Components.Account.Pages.Manage;
+﻿namespace VttTools.WebApp.Components.Account.Pages.Manage;
 
 public partial class TwoFactorAuthentication {
     private bool _canTrack;

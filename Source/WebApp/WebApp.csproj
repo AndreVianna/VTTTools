@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>d50069b6-abfa-4bed-b3ac-bf9f2d30bcff</UserSecretsId>
+    <RootNamespace>VttTools.WebApp</RootNamespace>
+    <AssemblyName>VttTools.WebApp</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

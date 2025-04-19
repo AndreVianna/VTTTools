@@ -3,8 +3,7 @@ namespace VttTools.Storage.Game;
 /// <summary>
 /// Storage interface for Asset entities.
 /// </summary>
-public interface IAssetStorage
-{
+public interface IAssetStorage {
     /// <summary>
     /// Retrieves all asset templates.
     /// </summary>

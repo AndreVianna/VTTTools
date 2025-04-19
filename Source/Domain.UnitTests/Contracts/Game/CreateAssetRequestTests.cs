@@ -5,12 +5,12 @@ public class CreateAssetRequestTests {
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
         var original = new CreateAssetRequest {
-            Name = "Name",
+            Name = "Subject",
             Type = AssetType.Creature,
             Source = "http://sorce.net/image.png",
             Visibility = Visibility.Private,
         };
-        const string name = "Other Name";
+        const string name = "Other Subject";
         const AssetType type = AssetType.NPC;
         const string source = "http://sorce.net/other-image.png";
         const Visibility visibility = Visibility.Public;

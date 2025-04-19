@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace WebApp.Pages;
+namespace VttTools.WebApp.Pages;
 
 public partial class Error {
     [CascadingParameter]

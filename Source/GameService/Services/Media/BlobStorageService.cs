@@ -1,4 +1,4 @@
-namespace GameService.Services.Media;
+namespace VttTools.GameService.Services.Media;
 
 /// <summary>
 /// Azure Blob Container implementation of IStorageService for development.

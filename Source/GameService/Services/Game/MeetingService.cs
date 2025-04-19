@@ -1,4 +1,4 @@
-﻿namespace GameService.Services.Game;
+﻿namespace VttTools.GameService.Services.Game;
 
 public class MeetingService(IMeetingStorage storage)
     : IMeetingService {
@@ -16,7 +16,7 @@ public class MeetingService(IMeetingStorage storage)
             return Result.Failure(result.Errors);
 
         var meeting = new Meeting {
-            Name = data.Name,
+            Subject = data.Subject,
             OwnerId = userId,
             Players = [new MeetingPlayer { UserId = userId, Type = PlayerType.Master }],
             // Set initial active episode
@@ -39,7 +39,10 @@ public class MeetingService(IMeetingStorage storage)
         if (meeting.OwnerId != userId)
             return TypedResult.As(HttpStatusCode.Forbidden);
 
-        meeting.Name = data.Name;
+        if (data.Subject.IsSet)
+            meeting.Subject = data.Subject.Value;
+        if (data.EpisodeId.IsSet)
+            meeting.EpisodeId = data.EpisodeId.Value;
         await storage.UpdateAsync(meeting, ct);
         return TypedResult.As(HttpStatusCode.NoContent);
     }

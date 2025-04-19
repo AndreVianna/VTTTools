@@ -1,6 +1,6 @@
 ﻿using static System.Reflection.BindingFlags;
 
-namespace GameService.Utilities;
+namespace VttTools.Utilities;
 
 /// <summary>
 /// Factory to create instances of OptionalConverter

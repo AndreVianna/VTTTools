@@ -31,9 +31,7 @@ global using VttTools.Contracts.Game;
 global using VttTools.Data;
 global using VttTools.Model.Game;
 global using VttTools.Model.Identity;
-
-global using WebApp.Components;
-global using WebApp.Components.Account;
-global using WebApp.Components.Account.Pages;
-global using WebApp.Components.Account.Pages.Manage;
-global using WebApp.Services;
+global using VttTools.WebApp.Components;
+global using VttTools.WebApp.Components.Account;
+global using VttTools.WebApp.Components.Account.Pages;
+global using VttTools.WebApp.Components.Account.Pages.Manage;

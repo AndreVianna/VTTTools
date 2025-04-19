@@ -12,7 +12,7 @@ internal static class WebApplicationExtensions {
             [FromServices] IMeetingService meetingService) => {
                 var userId = GetUserId(context.User);
                 var data = new CreateMeetingData {
-                    Name = request.Name,
+                    Subject = request.Subject,
                     EpisodeId = request.EpisodeId,
                 };
                 var result = await meetingService.CreateMeetingAsync(userId, data);
@@ -47,7 +47,7 @@ internal static class WebApplicationExtensions {
                 try {
                     var userId = GetUserId(context.User);
                     var data = new UpdateMeetingData {
-                        Name = request.Name,
+                        Subject = request.Subject,
                     };
                     var result = await meetingService.UpdateMeetingAsync(userId, id, data);
                     return result.Status switch {

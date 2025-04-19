@@ -7,7 +7,7 @@ public class StringHelpersTests {
     [InlineData("user-name@example.com", true, true)]
     [InlineData("user+tag@example.com", true, true)]
     [InlineData("user.name+tag@example-site.co.uk", true, true)]
-    [InlineData("User.Name+Tag@Example-Site.Co.Uk", true, true)] // Test case insensitivity
+    [InlineData("User.Subject+Tag@Example-Site.Co.Uk", true, true)] // Test case insensitivity
     [InlineData("123@example.com", true, true)] // Numeric start
     [InlineData("user@example.technology", true, true)] // Long TLD
     [InlineData("a@b.co", true, true)] // Minimal valid email

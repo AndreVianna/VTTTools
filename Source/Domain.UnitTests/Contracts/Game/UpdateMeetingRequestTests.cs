@@ -5,29 +5,29 @@ public class UpdateMeetingRequestTests {
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
         var original = new UpdateMeetingRequest {
-            Name = "Name",
+            Subject = "Subject",
             EpisodeId = Guid.NewGuid(),
         };
-        const string name = "Other Name";
+        const string name = "Other Subject";
         var episodeId = Guid.NewGuid();
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers
         var data = original with {
-            Name = name,
+            Subject = name,
             EpisodeId = episodeId,
         };
 
         // Assert
-        data.Name.Should().Be(name);
-        data.EpisodeId.Should().Be(episodeId);
+        data.Subject.Value.Should().Be(name);
+        data.EpisodeId.Value.Should().Be(episodeId);
     }
 
     [Fact]
     public void Validate_WithValidData_ReturnsSuccess() {
         // Arrange
         var request = new UpdateMeetingRequest {
-            Name = "Updated Meeting Name",
+            Subject = "Updated Meeting Subject",
         };
 
         // Act
@@ -37,30 +37,31 @@ public class UpdateMeetingRequestTests {
         result.HasErrors.Should().BeFalse();
     }
 
-    [Fact]
-    public void Validate_WithEmptyName_ReturnsSuccess() {
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_WithEmptySubject_ReturnsError(string? subject) {
         // Arrange
         var request = new UpdateMeetingRequest {
-            Name = string.Empty,
+            Subject = subject!,
         };
 
         // Act
         var result = request.Validate();
 
         // Assert
-        result.HasErrors.Should().BeFalse();
+        result.HasErrors.Should().BeTrue();
+        result.Errors.Should().ContainSingle(e => e.Message == "Meeting subject cannot be null or empty." && e.Sources.Contains(nameof(request.Subject)));
     }
 
     [Fact]
-    public void Validate_WithEmptyEpisodeId_ReturnsSuccess() {
+    public void Validate_OptionalValuesNotSet_ReturnsSuccess() {
         // Arrange
-        var data = new UpdateMeetingRequest {
-            Name = "Test Meeting",
-            EpisodeId = Guid.Empty,
-        };
+        var request = new UpdateMeetingRequest();
 
         // Act
-        var result = data.Validate();
+        var result = request.Validate();
 
         // Assert
         result.HasErrors.Should().BeFalse();

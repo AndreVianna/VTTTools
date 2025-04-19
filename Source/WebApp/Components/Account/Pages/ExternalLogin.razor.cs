@@ -1,4 +1,4 @@
-﻿namespace WebApp.Components.Account.Pages;
+﻿namespace VttTools.WebApp.Components.Account.Pages;
 
 public partial class ExternalLogin {
     public const string LoginCallbackAction = "LoginCallback";
@@ -71,7 +71,7 @@ public partial class ExternalLogin {
                                                                   bypassTwoFactor: true);
 
         if (result.Succeeded) {
-            Logger.LogInformation("{Name} logged in with {LoginProvider} provider.",
+            Logger.LogInformation("{Subject} logged in with {LoginProvider} provider.",
                                   _externalLoginInfo.Principal.Identity?.Name,
                                   _externalLoginInfo.LoginProvider);
             RedirectManager.RedirectTo(ReturnUrl);
@@ -102,7 +102,7 @@ public partial class ExternalLogin {
         if (result.Succeeded) {
             result = await UserManager.AddLoginAsync(user, _externalLoginInfo);
             if (result.Succeeded) {
-                Logger.LogInformation("User created an account using {Name} provider.", _externalLoginInfo.LoginProvider);
+                Logger.LogInformation("User created an account using {Subject} provider.", _externalLoginInfo.LoginProvider);
 
                 var userId = await UserManager.GetUserIdAsync(user);
                 var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);

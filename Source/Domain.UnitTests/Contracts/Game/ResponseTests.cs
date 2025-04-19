@@ -9,9 +9,9 @@ public class ResponseTests {
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
         var original = new TestResponse {
-            Name = "Name",
+            Name = "Subject",
         };
-        const string name = "Other Name";
+        const string name = "Other Subject";
         var episodeId = Guid.NewGuid();
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers

@@ -5,21 +5,21 @@ public class CreateMeetingDataTests {
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
         var original = new CreateMeetingData {
-            Name = "Name",
+            Subject = "Subject",
             EpisodeId = Guid.NewGuid(),
         };
-        const string name = "Other Name";
+        const string name = "Other Subject";
         var episodeId = Guid.NewGuid();
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers
         var data = original with {
-            Name = name,
+            Subject = name,
             EpisodeId = episodeId,
         };
 
         // Assert
-        data.Name.Should().Be(name);
+        data.Subject.Should().Be(name);
         data.EpisodeId.Should().Be(episodeId);
     }
 
@@ -27,7 +27,7 @@ public class CreateMeetingDataTests {
     public void Validate_WithValidData_ReturnsSuccess() {
         // Arrange
         var data = new CreateMeetingData {
-            Name = "Test Meeting",
+            Subject = "Test Meeting",
             EpisodeId = Guid.NewGuid(),
         };
 
@@ -42,7 +42,7 @@ public class CreateMeetingDataTests {
     public void Validate_WithEmptyName_ReturnsSuccess() {
         // Arrange
         var data = new CreateMeetingData {
-            Name = string.Empty,
+            Subject = string.Empty,
             EpisodeId = Guid.NewGuid(),
         };
 
@@ -57,7 +57,7 @@ public class CreateMeetingDataTests {
     public void Validate_WithEmptyEpisodeId_ReturnsSuccess() {
         // Arrange
         var data = new CreateMeetingData {
-            Name = "Test Meeting",
+            Subject = "Test Meeting",
             EpisodeId = Guid.Empty,
         };
 

@@ -1,4 +1,4 @@
-﻿namespace WebApp.Components;
+﻿namespace VttTools.WebApp.Components;
 
 public partial class NavMenu {
     private string? _currentUrl;

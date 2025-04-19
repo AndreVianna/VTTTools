@@ -1,4 +1,4 @@
-namespace WebApp.Components.Account;
+namespace VttTools.WebApp.Components.Account;
 
 public sealed class IdentityRedirectManager(NavigationManager navigationManager) {
     public const string StatusCookieName = "Identity.StatusMessage";

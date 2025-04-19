@@ -5,10 +5,10 @@ public class UpdateEpisodeRequestTests {
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
         var original = new UpdateEpisodeRequest {
-            Name = "Name",
+            Name = "Subject",
             Visibility = Visibility.Private,
         };
-        const string name = "Other Name";
+        const string name = "Other Subject";
         const Visibility visibility = Visibility.Public;
 
         // Act
@@ -19,8 +19,8 @@ public class UpdateEpisodeRequestTests {
         };
 
         // Assert
-        data.Name.Should().Be(name);
-        data.Visibility.Should().Be(visibility);
+        data.Name.Value.Should().Be(name);
+        data.Visibility.Value.Should().Be(visibility);
     }
 
     [Fact]
@@ -38,12 +38,14 @@ public class UpdateEpisodeRequestTests {
         result.HasErrors.Should().BeFalse();
     }
 
-    [Fact]
-    public void Validate_WithEmptyName_ReturnsSuccess() {
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_WithInvalidName_ReturnsFailure(string? name) {
         // Arrange
         var request = new UpdateEpisodeRequest {
-            Name = string.Empty,
-            Visibility = Visibility.Private,
+            Name = name!,
         };
 
         // Act
@@ -51,16 +53,13 @@ public class UpdateEpisodeRequestTests {
 
         // Assert
         result.HasErrors.Should().BeTrue();
-        result.Errors.Should().ContainSingle(e => e.Message == "Episode name cannot be empty." && e.Sources.Contains(nameof(request.Name)));
+        result.Errors.Should().ContainSingle(e => e.Message == "Episode name cannot be null or empty." && e.Sources.Contains(nameof(request.Name)));
     }
 
     [Fact]
-    public void Validate_WithNullValues_ReturnsSuccess() {
+    public void Validate_OptionalValuesNotSet_ReturnsSuccess() {
         // Arrange
-        var request = new UpdateEpisodeRequest {
-            Name = null,
-            Visibility = null,
-        };
+        var request = new UpdateEpisodeRequest();
 
         // Act
         var result = request.Validate();

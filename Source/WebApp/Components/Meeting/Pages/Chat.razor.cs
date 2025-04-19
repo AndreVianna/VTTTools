@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 
-namespace WebApp.Components.Meeting.Pages;
+namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public partial class Chat {
     private HubConnection? _hubConnection;

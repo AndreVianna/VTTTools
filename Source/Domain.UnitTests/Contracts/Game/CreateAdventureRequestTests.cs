@@ -5,10 +5,10 @@ public class CreateAdventureRequestTests {
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
         var original = new CreateAdventureRequest {
-            Name = "Name",
+            Name = "Subject",
             Visibility = Visibility.Private,
         };
-        const string name = "Other Name";
+        const string name = "Other Subject";
         const Visibility visibility = Visibility.Public;
 
         // Act

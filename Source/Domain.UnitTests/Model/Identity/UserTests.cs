@@ -41,7 +41,7 @@ public class UserTests {
             TwoFactorEnabled = true,
             LockoutEnabled = true,
             AccessFailedCount = 3,
-            Name = "Some Name",
+            Name = "Some Subject",
             DisplayName = "Some",
         };
 
@@ -54,7 +54,7 @@ public class UserTests {
         user.TwoFactorEnabled.Should().BeTrue();
         user.LockoutEnabled.Should().BeTrue();
         user.AccessFailedCount.Should().Be(3);
-        user.Name.Should().Be("Some Name");
+        user.Name.Should().Be("Some Subject");
         user.DisplayName.Should().Be("Some");
     }
 }

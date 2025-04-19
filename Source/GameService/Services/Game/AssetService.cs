@@ -1,4 +1,4 @@
-namespace GameService.Services.Game;
+namespace VttTools.GameService.Services.Game;
 
 /// <summary>
 /// Implements IAssetService using EF Core storage.
@@ -32,13 +32,13 @@ public class AssetService(
         var asset = await assetStorage.GetByIdAsync(assetId, ct);
         if (asset is null || asset.OwnerId != userId)
             return null;
-        if (!string.IsNullOrWhiteSpace(request.Name))
-            asset.Name = request.Name;
-        if (request.Type.HasValue)
+        if (request.Name.IsSet)
+            asset.Name = request.Name.Value;
+        if (request.Type.IsSet)
             asset.Type = request.Type.Value;
-        if (!string.IsNullOrWhiteSpace(request.Source))
-            asset.Source = request.Source;
-        if (request.Visibility.HasValue)
+        if (request.Source.IsSet)
+            asset.Source = request.Source.Value;
+        if (request.Visibility.IsSet)
             asset.Visibility = request.Visibility.Value;
         return await assetStorage.UpdateAsync(asset, ct);
     }

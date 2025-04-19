@@ -2,6 +2,6 @@
 
 public record UpdateMeetingData
     : Data {
-    public string? Name { get; init; } = string.Empty;
-    public Guid? EpisodeId { get; init; }
+    public Optional<string> Subject { get; init; }
+    public Optional<Guid> EpisodeId { get; init; }
 }

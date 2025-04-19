@@ -1,4 +1,4 @@
-namespace GameService.Middlewares;
+namespace VttTools.GameService.Middlewares;
 
 public sealed class MyAuthorizationMiddleware(RequestDelegate next, IAuthorizationPolicyProvider policyProvider, IServiceProvider services, ILogger<AuthorizationMiddleware> logger) {
     private readonly AuthorizationMiddleware _internal = new(next, policyProvider, services, logger);

@@ -3,7 +3,7 @@
 <h3>Assets</h3>
 
 <div class="mb-3">
-    <input class="form-control mb-1" placeholder="Name" @bind="Input.Name" />
+    <input class="form-control mb-1" placeholder="Subject" @bind="Input.Name" />
     <input class="form-control mb-1" placeholder="Source URL" @bind="Input.Source" />
     <select class="form-select mb-1" @bind="Input.Type">
         @foreach (var t in Enum.GetValues<AssetType>())
@@ -29,7 +29,7 @@ else
     <table class="table">
         <thead>
             <tr>
-                <th>Name</th>
+                <th>Subject</th>
                 <th>Type</th>
                 <th>Source</th>
                 <th>Visibility</th>

@@ -4,8 +4,7 @@ namespace VttTools.Data.Game;
 /// EF Core storage implementation for Asset entities.
 /// </summary>
 public class AssetStorage(ApplicationDbContext context)
-    : IAssetStorage
-{
+    : IAssetStorage {
     /// <inheritdoc />
     public Task<Asset[]> GetAllAsync(CancellationToken ct = default)
         => context.Assets
@@ -19,24 +18,21 @@ public class AssetStorage(ApplicationDbContext context)
                   .FirstOrDefaultAsync(a => a.Id == id, ct);
 
     /// <inheritdoc />
-    public async Task<Asset> AddAsync(Asset asset, CancellationToken ct = default)
-    {
+    public async Task<Asset> AddAsync(Asset asset, CancellationToken ct = default) {
         await context.Assets.AddAsync(asset, ct);
         await context.SaveChangesAsync(ct);
         return asset;
     }
 
     /// <inheritdoc />
-    public async Task<Asset> UpdateAsync(Asset asset, CancellationToken ct = default)
-    {
+    public async Task<Asset> UpdateAsync(Asset asset, CancellationToken ct = default) {
         context.Assets.Update(asset);
         await context.SaveChangesAsync(ct);
         return asset;
     }
 
     /// <inheritdoc />
-    public async Task DeleteAsync(Asset asset, CancellationToken ct = default)
-    {
+    public async Task DeleteAsync(Asset asset, CancellationToken ct = default) {
         context.Assets.Remove(asset);
         await context.SaveChangesAsync(ct);
     }

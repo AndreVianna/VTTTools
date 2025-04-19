@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>VttTools</RootNamespace>
+    <AssemblyName>VttTools.Domain</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

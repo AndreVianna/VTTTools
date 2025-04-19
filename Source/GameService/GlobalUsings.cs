@@ -12,11 +12,6 @@ global using DotNetToolbox;
 global using DotNetToolbox.Results;
 global using DotNetToolbox.Validation;
 
-global using GameService.Middlewares;
-global using GameService.Services.Game;
-global using GameService.Services.Media;
-global using GameService.Utilities;
-
 global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.AspNetCore.Identity;
@@ -35,10 +30,14 @@ global using VttTools.Data;
 global using VttTools.Data.Extensions;
 global using VttTools.Data.Game;
 global using VttTools.Data.Options;
+global using VttTools.GameService.Middlewares;
+global using VttTools.GameService.Services.Game;
+global using VttTools.GameService.Services.Media;
 global using VttTools.Model.Game;
 global using VttTools.Model.Identity;
 global using VttTools.Services.Game;
 global using VttTools.Services.Media;
 global using VttTools.Storage.Game;
+global using VttTools.Utilities;
 
 global using static DotNetToolbox.Ensure;

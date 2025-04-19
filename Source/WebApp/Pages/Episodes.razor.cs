@@ -1,4 +1,6 @@
-﻿namespace WebApp.Pages;
+﻿using VttTools.WebApp.Services;
+
+namespace VttTools.WebApp.Pages;
 
 public partial class Episodes {
     [Parameter]

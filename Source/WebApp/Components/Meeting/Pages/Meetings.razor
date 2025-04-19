@@ -35,7 +35,7 @@
                 <div class="col">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h5 class="card-title">@meeting.Name</h5>
+                            <h5 class="card-title">@meeting.Subject</h5>
                             <p class="card-text">
                                 <small class="text-muted">@meeting.Players.Count player(s)</small>
                             </p>
@@ -68,7 +68,7 @@
                 </div>
                 <div class="modal-body">
     <div class="mb-3">
-        <label for="meetingName" class="form-label">Meeting Name</label>
+        <label for="meetingName" class="form-label">Meeting Subject</label>
         <input type="text" class="form-control" id="meetingName" @bind="_newMeetingName" />
         @if (!string.IsNullOrEmpty(_meetingNameError))
         {

@@ -1,8 +1,9 @@
 <Solution>
   <Project Path="AppHost/AppHost.csproj" />
+  <Project Path="Common/Common.csproj" Id="3389ef06-e439-4b5b-9b8d-20b64d9c4f74" />
   <Project Path="Data/Data.csproj" Id="e19ebaab-72d8-412e-bf00-dfa28a86e96c" />
-  <Project Path="Domain/Domain.csproj" />
   <Project Path="Domain.UnitTests/Domain.UnitTests.csproj" />
+  <Project Path="Domain/Domain.csproj" />
   <Project Path="GameService/GameService.csproj" />
   <Project Path="WebApp/WebApp.csproj" />
 </Solution>

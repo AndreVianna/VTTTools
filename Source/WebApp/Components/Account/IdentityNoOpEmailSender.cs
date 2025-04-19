@@ -1,4 +1,4 @@
-namespace WebApp.Components.Account;
+namespace VttTools.WebApp.Components.Account;
 
 internal sealed class IdentityNoOpEmailSender
     : IEmailSender<User> {

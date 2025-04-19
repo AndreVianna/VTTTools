@@ -1,4 +1,4 @@
-namespace GameService.Services.Game;
+namespace VttTools.GameService.Services.Game;
 
 /// <summary>
 /// Implements IAdventureService using EF Core storage.
@@ -44,9 +44,9 @@ public class AdventureService(
         var episode = await episodeStorage.GetByIdAsync(episodeId, ct);
         if (episode is null || episode.OwnerId != userId)
             return null;
-        if (!string.IsNullOrWhiteSpace(request.Name))
-            episode.Name = request.Name;
-        if (request.Visibility.HasValue)
+        if (request.Name.IsSet)
+            episode.Name = request.Name.Value;
+        if (request.Visibility.IsSet)
             episode.Visibility = request.Visibility.Value;
         return await episodeStorage.UpdateAsync(episode, ct);
     }
@@ -93,9 +93,9 @@ public class AdventureService(
         var adventure = await adventureStorage.GetByIdAsync(adventureId, ct);
         if (adventure is null || adventure.OwnerId != userId)
             return null;
-        if (!string.IsNullOrWhiteSpace(request.Name))
-            adventure.Name = request.Name;
-        if (request.Visibility.HasValue)
+        if (request.Name.IsSet)
+            adventure.Name = request.Name.Value;
+        if (request.Visibility.IsSet)
             adventure.Visibility = request.Visibility.Value;
         return await adventureStorage.UpdateAsync(adventure, ct);
     }

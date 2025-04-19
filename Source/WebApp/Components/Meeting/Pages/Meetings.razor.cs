@@ -1,6 +1,8 @@
+using VttTools.WebApp.Services;
+
 using MeetingModel = VttTools.Model.Game.Meeting;
 
-namespace WebApp.Components.Meeting.Pages;
+namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public partial class Meetings {
     private List<MeetingModel>? _meetings;
@@ -44,7 +46,7 @@ public partial class Meetings {
         catch (Exception ex) {
             _meetings = [new() {
                 Id = Guid.NewGuid(),
-                Name = ex.Message,
+                Subject = ex.Message,
                 OwnerId = _currentUserId,
                 Players = [new() {
                     UserId = _currentUserId,
@@ -83,7 +85,7 @@ public partial class Meetings {
 
         try {
             var request = new CreateMeetingRequest {
-                Name = _newMeetingName,
+                Subject = _newMeetingName,
                 EpisodeId = _selectedEpisodeId.Value,
             };
             var response = await GameApiClient.HttpClient.PostAsJsonAsync("/api/meetings", request);

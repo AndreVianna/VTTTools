@@ -1,4 +1,4 @@
-namespace WebApp.Components.Account;
+namespace VttTools.WebApp.Components.Account;
 
 internal sealed class IdentityUserAccessor(IdentityRedirectManager redirectManager) {
     public async Task<Result<User>> GetRequiredUserOrRedirectAsync(HttpContext context, UserManager<User> userManager) {

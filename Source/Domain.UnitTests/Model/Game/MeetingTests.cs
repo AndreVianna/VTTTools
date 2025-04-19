@@ -9,7 +9,7 @@ public class MeetingTests {
         // Assert
         meeting.Id.Should().NotBeEmpty();
         meeting.OwnerId.Should().BeEmpty();
-        meeting.Name.Should().BeEmpty();
+        meeting.Subject.Should().BeEmpty();
         meeting.Players.Should().NotBeNull();
         meeting.Players.Should().BeEmpty();
         meeting.EpisodeId.Should().BeNull();
@@ -25,7 +25,7 @@ public class MeetingTests {
         var meeting = new Meeting {
             Id = Guid.NewGuid(),
             OwnerId = Guid.Empty,
-            Name = string.Empty,
+            Subject = string.Empty,
             Players = [],
             Messages = [],
             Events = [],
@@ -35,7 +35,7 @@ public class MeetingTests {
         // Assert
         meeting.Id.Should().NotBeEmpty();
         meeting.OwnerId.Should().BeEmpty();
-        meeting.Name.Should().BeEmpty();
+        meeting.Subject.Should().BeEmpty();
         meeting.Players.Should().NotBeNull();
         meeting.Players.Should().BeEmpty();
         meeting.EpisodeId.Should().NotBeNull();

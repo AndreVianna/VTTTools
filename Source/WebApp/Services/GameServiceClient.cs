@@ -1,4 +1,4 @@
-﻿namespace WebApp.Services;
+﻿namespace VttTools.WebApp.Services;
 
 public class GameServiceClient(HttpClient client) {
     public HttpClient HttpClient { get; } = client;

@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>VttTools.Data</RootNamespace>
+    <AssemblyName>VttTools.Data</AssemblyName>
     <OutputType>Library</OutputType>
     <UserSecretsId>a7da29ff-2b87-4d83-8e0f-56e167d923c0</UserSecretsId>
   </PropertyGroup>

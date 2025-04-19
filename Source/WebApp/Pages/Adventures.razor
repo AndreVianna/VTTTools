@@ -3,7 +3,7 @@
 <h3>Adventures</h3>
 
 <div class="mb-3">
-    <input class="form-control mb-1" placeholder="Name" @bind="Input.Name" />
+    <input class="form-control mb-1" placeholder="Subject" @bind="Input.Name" />
     <select class="form-select mb-1" @bind="Input.Visibility">
         <option value="@Visibility.Hidden">Hidden</option>
         <option value="@Visibility.Private">Private</option>
@@ -21,7 +21,7 @@ else
     <table class="table">
         <thead>
             <tr>
-                <th>Name</th>
+                <th>Subject</th>
                 <th>Visibility</th>
                 <th>Actions</th>
             </tr>

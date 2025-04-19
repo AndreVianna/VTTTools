@@ -1,3 +1,5 @@
+using VttTools.WebApp.Services;
+
 using static VttTools.Data.Options.ApplicationDbContextOptions;
 
 var builder = WebApplication.CreateBuilder(args);

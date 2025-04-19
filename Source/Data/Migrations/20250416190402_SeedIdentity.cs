@@ -14,7 +14,7 @@ namespace VttTools.Data.Migrations {
         protected override void Up(MigrationBuilder migrationBuilder) {
             migrationBuilder.InsertData(
                 table: "Roles",
-                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
+                columns: new[] { "Id", "ConcurrencyStamp", "Subject", "NormalizedName" },
                 values: new object[,]
                 {
                     { new Guid("019639ea-c7de-786f-9f95-b397ca9509df"), "11d8a8d1-3a54-4464-890f-5e8c71b46c0b", "User", "USER" },
@@ -23,7 +23,7 @@ namespace VttTools.Data.Migrations {
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "DisplayName", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "Name", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
+                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "DisplayName", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "Subject", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
                 values: new object[] { new Guid("019639ea-c7de-7a01-8548-41edfccde206"), 0, "54c61fbd-4b9f-4a08-a6ce-c46443f8afb8", "Master", "master@host.com", true, false, null, "Master", "MASTER@HOST.COM", "MASTER@HOST.COM", "AQAAAAIAAYagAAAAEGCIPOjKQsg/WIuLEYnhnyHOsif13MaeUlO0J2ZVkMe41HuVFCqudWtLqGMKQXNBNA==", null, false, "QAZB7SA3GUP4I2DQCDEDORPB5Q5ICUQG", false, "master@host.com" });
 
             migrationBuilder.InsertData(

@@ -3,8 +3,7 @@ namespace VttTools.Services.Game;
 /// <summary>
 /// Service for retrieving and managing Adventures and their Episodes.
 /// </summary>
-public interface IAdventureService
-{
+public interface IAdventureService {
     /// <summary>
     /// Gets all adventure templates.
     /// </summary>

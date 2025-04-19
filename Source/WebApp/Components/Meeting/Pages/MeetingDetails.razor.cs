@@ -1,4 +1,6 @@
-namespace WebApp.Components.Meeting.Pages;
+using VttTools.WebApp.Services;
+
+namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public partial class MeetingDetails {
     [Parameter]
@@ -56,7 +58,7 @@ public partial class MeetingDetails {
         if (_meeting == null)
             return;
 
-        _editMeetingName = _meeting.Name;
+        _editMeetingName = _meeting.Subject;
         _meetingNameError = string.Empty;
         _showEditDialog = true;
     }

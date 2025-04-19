@@ -1,4 +1,4 @@
-﻿namespace WebApp.Components.Account.Pages;
+﻿namespace VttTools.WebApp.Components.Account.Pages;
 
 public partial class Register {
     private IEnumerable<IdentityError>? _identityErrors;
@@ -84,7 +84,7 @@ public partial class Register {
 
     private sealed class InputModel {
         [Required]
-        [Display(Name = "Name")]
+        [Display(Name = "Subject")]
         public string Name { get; set; } = "";
 
         [Required]

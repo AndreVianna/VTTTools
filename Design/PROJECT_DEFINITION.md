@@ -1,6 +1,6 @@
-# VTT Game Structure
+# VTT Tools Project Definition
 
-This document outlines the hierarchical organization of game elements and concepts in the VTT Tools platform.
+This document outlines main concepts in the VTT Tools project.
 
 ## Project Objective
 
@@ -9,13 +9,14 @@ This project creates a Virtual Table Top (VTT) RPG Game interface for online pla
 ## Entities Organization Hierarchy
 
 All items in the hierarchy below and the assets have:
-  * Name
-  * Owner
-    * The owner and the administraro can transfer the ownership
-  * Visibility (Hidden, Private, or Public)
-    * Hidden: Only the owner and administrators can see this item.
-    * Private: Owner, participants, and administrators can see this item, but only owner/admin can include it in a meeting.
-    * Public: All users can see and use this item; only owner/admin can edit.
+
+* Name
+* Owner
+  * The owner and the administraro can transfer the ownership
+* Visibility (Hidden, Private, or Public)
+  * Hidden: Only the owner and administrators can see this item.
+  * Private: Owner, participants, and administrators can see this item, but only owner/admin can include it in a meeting.
+  * Public: All users can see and use this item; only owner/admin can edit.
 
 ### 1. Epic
 
@@ -175,16 +176,15 @@ The stage is the place where the interections happens.
 * Has a MapType (None, Square, HexV, HexH, Isometric)
 * Has a Source (string)
 * Owns a Size (Required), that
+  * Has a With (double), and
+  * Has a Heigh (double)
+* Owns a Grid (Optional), that
+  * Owns a Position, that
+    * Has a Let (double), and
+    * Has a Top (double)
+  * Owns a Cell, that
     * Has a With (double), and
     * Has a Heigh (double)
-* Owns a Grid (Optional), that
-    * Owns a Position, that
-        * Has a Let (double), and
-        * Has a Top (double)
-    * Owns a Cell, that
-        * Has a With (double), and
-        * Has a Heigh (double)
-
 
 ## The Assets
 
@@ -207,7 +207,7 @@ Assets fall into two main categories:
   * Overlays
   * PIP (Picture-in-Picture) Videos
   * Localized Sound Effects
- * Users can upload asset files (images, audio) via the UI; stored on the local filesystem in Development and in Azure Blob Storage in Production (connection info in User Secrets, using Aspire blob integration), and referenced by URL in the Source property
+  * Users can upload asset files (images, audio) via the UI; stored on the local filesystem in Development and in Azure Blob Storage in Production (connection info in User Secrets, using Aspire blob integration), and referenced by URL in the Source property
 * Additional metadata for assets (e.g., tags, descriptions) can be added as requirements evolve
 
 ## Notes System
@@ -256,6 +256,7 @@ Maps are a specialized type of image with additional properties:
 This section summarizes implemented features and pending work at the pause point.
 
 ### Completed
+
 - Core Infrastructure and Meeting Management (Phase 1)
 - Basic Game Content Management (Phase 2):
   - Adventure Templates CRUD API & UI
@@ -263,11 +264,13 @@ This section summarizes implemented features and pending work at the pause point
   - Asset Templates CRUD API & UI
 
 ### Pending Phase 2 Tasks
+
 - Support file uploads to blob storage for assets
 - Implement adventure template cloning endpoint (POST /api/adventures/{id}/clone)
 - Transfer ownership functionality for Adventures, Episodes, and Assets
 
 ### Next Steps
+
 - Complete remaining Phase 2 tasks above
 - Begin Phase 3: Interactive Episodes and Tokens
   - Canvas-based episode editor

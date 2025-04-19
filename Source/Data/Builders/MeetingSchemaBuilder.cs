@@ -5,7 +5,7 @@ internal static class MeetingSchemaBuilder {
         => builder.Entity<Meeting>(entity => {
             entity.ToTable("Meetings");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Subject).IsRequired().HasMaxLength(100);
             entity.Property(s => s.OwnerId).IsRequired();
             entity.Property(s => s.EpisodeId);
             entity.OwnsMany(e => e.Players, playerBuilder => {
