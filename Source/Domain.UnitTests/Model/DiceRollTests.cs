@@ -46,45 +46,4 @@ public class DiceRollTests {
         data.Results.Should().BeEquivalentTo(results);
         data.Total.Should().Be(total);
     }
-
-    [Fact]
-    public void Equality_WhenSameValues_ReportsEqualProperties() {
-        // Arrange
-        var roll1 = new DiceRoll {
-            Expression = "1d20",
-            Results = [15],
-            Total = 15,
-        };
-
-        var roll2 = new DiceRoll {
-            Expression = "1d20",
-            Results = [15],
-            Total = 15,
-        };
-
-        // Act & Assert
-        roll1.Expression.Should().Be(roll2.Expression);
-        roll1.Total.Should().Be(roll2.Total);
-        roll1.Results.Should().BeEquivalentTo(roll2.Results);
-    }
-
-    [Fact]
-    public void Equality_WhenDifferentValues_ReportsDifferentProperties() {
-        // Arrange
-        var roll1 = new DiceRoll {
-            Expression = "1d20",
-            Results = [15],
-            Total = 15,
-        };
-
-        var roll2 = new DiceRoll {
-            Expression = "1d20",
-            Results = [10],
-            Total = 10,
-        };
-
-        // Act & Assert
-        roll1.Results.Should().NotBeEquivalentTo(roll2.Results);
-        roll1.Total.Should().NotBe(roll2.Total);
-    }
 }

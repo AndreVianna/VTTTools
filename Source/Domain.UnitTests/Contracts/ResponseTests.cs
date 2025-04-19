@@ -1,4 +1,4 @@
-namespace VttTools.Contracts.Game;
+namespace VttTools.Contracts;
 
 public class ResponseTests {
     private sealed record TestResponse
