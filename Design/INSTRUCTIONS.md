@@ -8,11 +8,11 @@ You are a Senior Software Engineer with extensive knowledge of Table Top RPGs, b
 
 ## Code Style & Standards **IMPORTANT!**
 
+* Using K&R brace style (braces on the same line as declaration)
 * Use file-scoped namespaces for all code files to minimize indentation and improve readability
 * Organize global using directives in dedicated GlobalUsings.cs files at the project root level
 * Use 4-space indentation consistently throughout all code files
 * Remove trailing whitespace between lines and at the end of lines
-* Use K&R code style.
 * Follow `PascalCase` naming for methods, properties, classes, and public members
 * Use `camelCase` naming for parameters and local variables
 * Prefix private fields with underscore and use camelCase: `_camelCaseWithUnderscorePrefix`

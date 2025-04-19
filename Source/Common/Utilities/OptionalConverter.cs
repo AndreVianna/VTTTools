@@ -30,12 +30,5 @@ internal sealed class OptionalConverter<T> : JsonConverter<Optional<T>> {
             // Serialize the actual value if it's present
             JsonSerializer.Serialize(writer, optionalValue.Value, options);
         }
-        else {
-            // Write JSON null if the Optional represents 'None'.
-            // Note: To completely omit the property during serialization,
-            // you would typically configure [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-            // on the property in your DTO and ensure Optional<T>.None is the default value.
-            writer.WriteNullValue();
-        }
     }
 }
