@@ -19,6 +19,12 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 **MVP Goal**: Enable Game Masters to create and manage game content hierarchies.
 
 ### Tasks:
+- [ ] Add Unit Tests to the existing code
+  - [x] Add Unit Test to Domain project.
+  - [x] Add Unit Test to Common project.
+  - [ ] Add Unit Test to Data project.
+  - [ ] Add Unit Test to GameService project.
+  - [ ] Add Unit Test to WebApp project.
 - [ ] Adventure Templates CRUD API & UI
   - [ ] List, create, rename, delete Adventures
   - [ ] Set and update Visibility (Hidden, Private, Public)
