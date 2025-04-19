@@ -22,7 +22,7 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 - [ ] Add Unit Tests to the existing code
   - [x] Add Unit Test to Domain project.
   - [x] Add Unit Test to Common project.
-  - [ ] Add Unit Test to Data project.
+  - [x] Add Unit Test to Data project.
   - [ ] Add Unit Test to GameService project.
   - [ ] Add Unit Test to WebApp project.
 - [ ] Adventure Templates CRUD API & UI

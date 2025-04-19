@@ -25,4 +25,8 @@
     <ProjectReference Include="..\Domain\VttTools.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="VttTools.Data.UnitTests" />
+  </ItemGroup>
+
 </Project>

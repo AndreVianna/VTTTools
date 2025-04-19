@@ -34,11 +34,21 @@ public class MeetingStorage(ApplicationDbContext context)
             .FirstOrDefaultAsync(s => s.Id == meeting.Id, ct)
         ?? throw new KeyNotFoundException($"Meeting with ID {meeting.Id} not found.");
 
-        // Detach the existing entity
-        context.Entry(existingMeeting).State = EntityState.Detached;
+        // Update existing entity properties
+        existingMeeting.Subject = meeting.Subject;
+        existingMeeting.OwnerId = meeting.OwnerId;
+        existingMeeting.EpisodeId = meeting.EpisodeId;
 
-        // Update with new entity
-        context.Meetings.Update(meeting);
+        // Handle players collection - remove existing and add new
+        existingMeeting.Players.Clear();
+        foreach (var player in meeting.Players) {
+            existingMeeting.Players.Add(new MeetingPlayer {
+                UserId = player.UserId,
+                Type = player.Type
+            });
+        }
+
+        // Save changes
         await context.SaveChangesAsync(ct);
     }
 

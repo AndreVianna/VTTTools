@@ -2,6 +2,7 @@
   <Project Path="AppHost/VttTools.AppHost.csproj" Id="82969919-02a7-82fb-319b-bc53da90def4" />
   <Project Path="Common.UnitTests/VttTools.Common.UnitTests.csproj" />
   <Project Path="Common/VttTools.Common.csproj" Id="3389ef06-e439-4b5b-9b8d-20b64d9c4f74" />
+  <Project Path="Data.UnitTests/VttTools.Data.UnitTests.csproj" />
   <Project Path="Data/VttTools.Data.csproj" Id="e19ebaab-72d8-412e-bf00-dfa28a86e96c" />
   <Project Path="Domain.UnitTests/VttTools.Domain.UnitTests.csproj" Id="4120f969-3048-c7de-82f1-7117848e6049" />
   <Project Path="Domain/VttTools.Domain.csproj" Id="e528bbc3-1c26-8c35-f682-23718816adcd" />

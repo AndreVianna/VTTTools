@@ -2,8 +2,6 @@ namespace VttTools.Data;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>(options) {
-    public DbSet<Epic> Epics { get; set; }
-    public DbSet<Campaign> Campaigns { get; set; }
     public DbSet<Adventure> Adventures { get; set; }
     public DbSet<Episode> Episodes { get; set; }
 
