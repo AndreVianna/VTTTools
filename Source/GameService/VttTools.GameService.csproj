@@ -6,8 +6,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>535d121d-8cdb-407a-9769-7481dcf7b4fb</UserSecretsId>
-    <RootNamespace>VttTools.GameService</RootNamespace>
-    <AssemblyName>VttTools.GameService</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,9 +33,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Common\Common.csproj" />
-    <ProjectReference Include="..\Data\Data.csproj" />
-    <ProjectReference Include="..\Domain\Domain.csproj" />
+    <ProjectReference Include="..\Common\VttTools.Common.csproj" />
+    <ProjectReference Include="..\Data\VttTools.Data.csproj" />
+    <ProjectReference Include="..\Domain\VttTools.Domain.csproj" />
   </ItemGroup>
 
 </Project>

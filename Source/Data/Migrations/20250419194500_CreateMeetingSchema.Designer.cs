@@ -12,8 +12,8 @@ using VttTools.Data;
 namespace VttTools.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250417184956_CreateInitialGameSchema")]
-    partial class CreateInitialGameSchema
+    [Migration("20250419194500_CreateMeetingSchema")]
+    partial class CreateMeetingSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -211,13 +211,13 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid?>("EpisodeId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Name")
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Subject")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -715,8 +715,8 @@ namespace VttTools.Data.Migrations
                                 .HasMaxLength(4096)
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<int>("SentBy")
-                                .HasColumnType("int");
+                            b1.Property<Guid>("SentBy")
+                                .HasColumnType("uniqueidentifier");
 
                             b1.PrimitiveCollection<string>("SentTo")
                                 .HasColumnType("nvarchar(max)");

@@ -14,7 +14,7 @@ public class ApplicationDbContextFactory
                             ?? throw new InvalidOperationException($"Connection string '{ApplicationDbContextOptions.ConnectionStringName}' not found.");
 
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-        optionsBuilder.UseSqlServer(connectionString, _ => _.MigrationsAssembly("Data"));
+        optionsBuilder.UseSqlServer(connectionString, _ => _.MigrationsAssembly("VttTools.Data"));
         optionsBuilder.EnableSensitiveDataLogging();
         optionsBuilder.EnableDetailedErrors();
         optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);

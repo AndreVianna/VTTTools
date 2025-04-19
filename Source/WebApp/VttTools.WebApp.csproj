@@ -6,8 +6,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>d50069b6-abfa-4bed-b3ac-bf9f2d30bcff</UserSecretsId>
-    <RootNamespace>VttTools.WebApp</RootNamespace>
-    <AssemblyName>VttTools.WebApp</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,8 +36,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Data\Data.csproj" />
-    <ProjectReference Include="..\Domain\Domain.csproj" />
+    <ProjectReference Include="..\Data\VttTools.Data.csproj" />
+    <ProjectReference Include="..\Domain\VttTools.Domain.csproj" />
   </ItemGroup>
 
 </Project>

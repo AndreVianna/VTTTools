@@ -8,10 +8,7 @@
 
             <ModulePaths>
               <Include>
-                <ModulePath>Domain\.dll$</ModulePath>
-                <ModulePath>Data\.dll$</ModulePath>
-                <ModulePath>GameService\.dll$</ModulePath>
-                <ModulePath>WebApp\.dll$</ModulePath>
+                <ModulePath>.*VttTools.*\.dll$</ModulePath>
               </Include>
               <Exclude>
                 <ModulePath>.*fluentvalidation\..*dll$</ModulePath>

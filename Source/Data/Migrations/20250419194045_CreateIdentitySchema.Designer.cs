@@ -12,7 +12,7 @@ using VttTools.Data;
 namespace VttTools.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250415141432_CreateIdentitySchema")]
+    [Migration("20250419194045_CreateIdentitySchema")]
     partial class CreateIdentitySchema
     {
         /// <inheritdoc />

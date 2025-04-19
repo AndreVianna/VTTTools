@@ -12,8 +12,8 @@ using VttTools.Data;
 namespace VttTools.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250417191703_CreateMeetingSchema")]
-    partial class CreateMeetingSchema
+    [Migration("20250419194214_SeedIdentity")]
+    partial class SeedIdentity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,28 +24,6 @@ namespace VttTools.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("VttTools.Model.Game.Meeting", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("EpisodeId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Meetings", (string)null);
-                });
 
             modelBuilder.Entity("VttTools.Model.Identity.Role", b =>
                 {
@@ -294,86 +272,6 @@ namespace VttTools.Data.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("UserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("VttTools.Model.Game.Meeting", b =>
-                {
-                    b.OwnsMany("VttTools.Model.Game.MeetingEvent", "Events", b1 =>
-                        {
-                            b1.Property<Guid>("MeetingId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<DateTimeOffset>("Timestamp")
-                                .HasColumnType("datetimeoffset");
-
-                            b1.Property<string>("Description")
-                                .IsRequired()
-                                .HasMaxLength(1024)
-                                .HasColumnType("nvarchar(1024)");
-
-                            b1.HasKey("MeetingId", "Timestamp");
-
-                            b1.ToTable("MeetingEvents", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("MeetingId");
-                        });
-
-                    b.OwnsMany("VttTools.Model.Game.MeetingMessage", "Messages", b1 =>
-                        {
-                            b1.Property<Guid>("MeetingId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<DateTimeOffset>("SentAt")
-                                .HasColumnType("datetimeoffset");
-
-                            b1.Property<string>("Content")
-                                .IsRequired()
-                                .HasMaxLength(4096)
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<int>("SentBy")
-                                .HasColumnType("int");
-
-                            b1.PrimitiveCollection<string>("SentTo")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<int>("Type")
-                                .HasColumnType("int");
-
-                            b1.HasKey("MeetingId", "SentAt");
-
-                            b1.ToTable("MeetingMessages", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("MeetingId");
-                        });
-
-                    b.OwnsMany("VttTools.Model.Game.MeetingPlayer", "Players", b1 =>
-                        {
-                            b1.Property<Guid>("MeetingId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<Guid>("UserId")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<int>("Type")
-                                .HasColumnType("int");
-
-                            b1.HasKey("MeetingId", "UserId");
-
-                            b1.ToTable("MeetingPlayers", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("MeetingId");
-                        });
-
-                    b.Navigation("Events");
-
-                    b.Navigation("Messages");
-
-                    b.Navigation("Players");
                 });
 
             modelBuilder.Entity("VttTools.Model.Identity.RoleClaim", b =>

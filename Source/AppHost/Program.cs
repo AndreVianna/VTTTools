@@ -22,14 +22,14 @@ var database = builder.ExecutionContext.IsPublishMode
              .WithHealthCheck("database_health")
     : builder.AddConnectionString("database");
 
-var gameService = builder.AddProject<Projects.GameService>("gameapi")
+var gameService = builder.AddProject<Projects.VttTools_GameService>("gameapi")
     .WithReference(cache).WaitFor(cache)
     .WithReference(database).WaitFor(database)
     .WithReference(storage).WaitFor(storage)
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("health");
 
-builder.AddProject<Projects.WebApp>("webapp")
+builder.AddProject<Projects.VttTools_WebApp>("webapp")
     .WithReference(cache).WaitFor(cache)
     .WithReference(gameService).WaitFor(gameService)
     .WithReference(database).WaitFor(database)

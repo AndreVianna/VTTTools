@@ -8,7 +8,6 @@
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <RootNamespace>VttTools</RootNamespace>
-    <AssemblyName>VttTools.Domain.UnitTests</AssemblyName>
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
@@ -40,7 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Domain\Domain.csproj" />
+    <ProjectReference Include="..\Domain\VttTools.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

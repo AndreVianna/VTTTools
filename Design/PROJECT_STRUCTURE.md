@@ -9,13 +9,13 @@
 - **Source** 
   - VttTools.slnx 
   - **AppHost** 
-    - AppHost.csproj 
     - appsettings.Development.json 
     - appsettings.json 
     - Program.cs 
+    - VttTools.AppHost.csproj 
   - **Common** 
-    - Common.csproj 
     - GlobalUsings.cs 
+    - VttTools.Common.csproj 
     - **Utilities** 
       - ErrorCollectionExtensions.cs 
       - OptionalConverter.cs 
@@ -23,8 +23,8 @@
   - **Data** 
     - ApplicationDbContext.cs 
     - ApplicationDbContextFactory.cs 
-    - Data.csproj 
     - GlobalUsings.cs 
+    - VttTools.Data.csproj 
     - **Builders** 
       - AdventureSchemaBuilder.cs 
       - AssetSchemaBuilder.cs 
@@ -41,21 +41,21 @@
       - EpisodeStorage.cs 
       - MeetingStorage.cs 
     - **Migrations** 
-      - 20250415141432_CreateIdentitySchema.cs 
-      - 20250415141432_CreateIdentitySchema.Designer.cs 
-      - 20250416190402_SeedIdentity.cs 
-      - 20250416190402_SeedIdentity.Designer.cs 
-      - 20250417184956_CreateInitialGameSchema.cs 
-      - 20250417184956_CreateInitialGameSchema.Designer.cs 
-      - 20250417191703_CreateMeetingSchema.cs 
-      - 20250417191703_CreateMeetingSchema.Designer.cs 
+      - 20250419194045_CreateIdentitySchema.cs 
+      - 20250419194045_CreateIdentitySchema.Designer.cs 
+      - 20250419194214_SeedIdentity.cs 
+      - 20250419194214_SeedIdentity.Designer.cs 
+      - 20250419194426_CreateGameHierarchySchema.cs 
+      - 20250419194426_CreateGameHierarchySchema.Designer.cs 
+      - 20250419194500_CreateMeetingSchema.cs 
+      - 20250419194500_CreateMeetingSchema.Designer.cs 
       - ApplicationDbContextModelSnapshot.cs 
     - **Options** 
       - ApplicationDbContextOptions.cs 
       - AzureStorageOptions.cs 
   - **Domain** 
-    - Domain.csproj 
     - GlobalUsings.cs 
+    - VttTools.Domain.csproj 
     - **Contracts** 
       - CreateTemplateRequest.cs 
       - Data.cs 
@@ -86,7 +86,6 @@
         - AssetType.cs 
         - Campaign.cs 
         - CellType.cs 
-        - ContentType.cs 
         - Epic.cs 
         - Episode.cs 
         - EpisodeAsset.cs 
@@ -95,6 +94,7 @@
         - MeetingEvent.cs 
         - MeetingMessage.cs 
         - MeetingPlayer.cs 
+        - MessageType.cs 
         - PlayerType.cs 
         - Position.cs 
         - Size.cs 
@@ -128,11 +128,11 @@
     - **Utilities** 
       - Optional.cs 
   - **Domain.UnitTests** 
-    - Domain.UnitTests.csproj 
     - GlobalUsings.cs 
+    - VttTools.Domain.UnitTests.csproj 
     - xunit.runner.json 
     - **Contracts** 
-      - ValidatableTests.cs 
+      - ResponseTests.cs 
       - **Game** 
         - AddEpisodeAssetDataTests.cs 
         - ChangeEpisodeAssetDataTests.cs 
@@ -142,7 +142,6 @@
         - CreateMeetingDataTests.cs 
         - CreateMeetingRequestTests.cs 
         - JoinMeetingRequestTests.cs 
-        - ResponseTests.cs 
         - UpdateAdventureRequestTests.cs 
         - UpdateAssetRequestTests.cs 
         - UpdateEpisodeRequestTests.cs 
@@ -197,9 +196,9 @@
   - **GameService** 
     - appsettings.Development.json 
     - appsettings.json 
-    - GameService.csproj 
     - GlobalUsings.cs 
     - Program.cs 
+    - VttTools.GameService.csproj 
     - WebApplicationExtensions.cs 
     - **Middlewares** 
       - MyAuthorizationMiddleware.cs 
@@ -216,7 +215,7 @@
     - appsettings.json 
     - GlobalUsings.cs 
     - Program.cs 
-    - WebApp.csproj 
+    - VttTools.WebApp.csproj 
     - **Components** 
       - App.razor 
       - EndpointRouteBuilderExtensions.cs 
