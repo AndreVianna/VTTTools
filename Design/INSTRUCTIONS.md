@@ -88,6 +88,40 @@ You are a Senior Software Engineer with extensive knowledge of Table Top RPGs, b
 - Run single test: `dotnet test --filter "FullyQualifiedName=Tests.WebTests.TestName"`
 - Detailed output: `dotnet test --logger "console;verbosity=detailed"`
 
+## Code Coverage Troubleshooting Guide
+
+Based on challenges encountered running code coverage, here's how to get it working properly:
+
+1. **Tool Path Issues**: If you see "command not found" errors when running tools like `dotnet-coverage` or `reportgenerator`, use the full path to the tools:
+   ```
+   ~/.dotnet/tools/dotnet-coverage
+   ~/.dotnet/tools/reportgenerator
+   ```
+   
+2. **Correct Command Syntax**: For `dotnet-coverage`, use the `collect` subcommand - NOT the `report` subcommand:
+   ```
+   # INCORRECT ❌
+   dotnet-coverage report -f cobertura ...  
+   
+   # CORRECT ✅
+   dotnet-coverage collect -f cobertura ...
+   ```
+
+3. **Working Directory**: Always run coverage commands from the solution root (`/mnt/p/Projects/VTTTools/`), not from subdirectories, to ensure paths resolve correctly.
+
+4. **Single-Step Solution**: Use this exact command to run tests with coverage in one step:
+   ```
+   cd /mnt/p/Projects/VTTTools
+   ~/.dotnet/tools/dotnet-coverage collect -f cobertura -o "Source/TestResults/coverage.cobertura.xml" -- dotnet test Source/Common.UnitTests/VttTools.Common.UnitTests.csproj && ~/.dotnet/tools/reportgenerator "-reports:Source/TestResults/coverage.cobertura.xml" "-targetdir:Source/TestResults/CoverageReport" -reporttypes:Html
+   ```
+
+5. **Common Errors and Solutions**:
+   - "Session already exists" error: Close any running coverage sessions with `dotnet-coverage shutdown <session-id>`
+   - "Could not find file" errors: Double check path references, especially when generating reports
+   - "Required command was not provided" error: You're using the wrong subcommand or syntax
+
+6. **Analyzing Common Project Coverage**: To see the specific coverage of just one project project, look for the section with the project name in the HTML report rather than the overall coverage percentage (which includes Domain and other projects).
+
 ## Data Schema Commands
 
 * Create Migration: `dotnet ef migrations add`
