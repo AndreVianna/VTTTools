@@ -1,8 +1,10 @@
 # Project Structure 
  
 - CLAUDE.md 
+- CODEX.md 
 - README.md 
 - **Design** 
+  - INSTRUCTIONS.md 
   - PROJECT_DEFINITION.md 
   - PROJECT_STRUCTURE.md 
   - ROADMAP.md 
@@ -20,6 +22,14 @@
       - ErrorCollectionExtensions.cs 
       - OptionalConverter.cs 
       - OptionalConverterFactory.cs 
+  - **Common.UnitTests** 
+    - GlobalUsings.cs 
+    - VttTools.Common.UnitTests.csproj 
+    - xunit.runner.json 
+    - **Utilities** 
+      - ErrorCollectionExtensionsTests.cs 
+      - OptionalConverterFactoryTests.cs 
+      - OptionalConverterTests.cs 
   - **Data** 
     - ApplicationDbContext.cs 
     - ApplicationDbContextFactory.cs 
@@ -53,14 +63,33 @@
     - **Options** 
       - ApplicationDbContextOptions.cs 
       - AzureStorageOptions.cs 
+  - **Data.UnitTests** 
+    - ApplicationDbContextTests.cs 
+    - GlobalUsings.cs 
+    - VttTools.Data.UnitTests.csproj 
+    - xunit.runner.json 
+    - **Builders** 
+    - **Extensions** 
+      - HostApplicationBuilderExtensionsTests.cs 
+    - **Game** 
+      - AdventureStorageTests.cs 
+      - AssetStorageTests.cs 
+      - EpisodeStorageTests.cs 
+      - MeetingStorageTests.cs 
+    - **Helpers** 
+      - DbContextHelper.cs 
+    - **Options** 
+      - ApplicationDbContextOptionsTests.cs 
   - **Domain** 
     - GlobalUsings.cs 
     - VttTools.Domain.csproj 
     - **Contracts** 
+      - CreateTemplateData.cs 
       - CreateTemplateRequest.cs 
       - Data.cs 
       - Request.cs 
       - Response.cs 
+      - UpdateTemplateData.cs 
       - UpdateTemplateRequest.cs 
       - **Game** 
         - AddEpisodeAssetData.cs 
@@ -199,7 +228,21 @@
     - GlobalUsings.cs 
     - Program.cs 
     - VttTools.GameService.csproj 
-    - WebApplicationExtensions.cs 
+    - **Endpoints** 
+      - AdventureEndpointsMapper.cs 
+      - AssetEndpointsMapper.cs 
+      - EndpointsMapperHelper.cs 
+      - EpisodesEndpointsMapper.cs 
+      - HealthEndpointsMapper.cs 
+      - MeetingEndpointsMapper.cs 
+    - **Extensions** 
+      - HostApplicationBuilderExtensions.cs 
+      - WebApplicationBuilderExtensions.cs 
+    - **Handlers** 
+      - AdventureHandlers.cs 
+      - AssetHandlers.cs 
+      - EpisodeHandlers.cs 
+      - MeetingHandlers.cs 
     - **Middlewares** 
       - MyAuthorizationMiddleware.cs 
     - **Services** 
@@ -209,6 +252,30 @@
         - MeetingService.cs 
       - **Media** 
         - BlobStorageService.cs 
+  - **GameService.UnitTests** 
+    - GlobalUsings.cs 
+    - VttTools.GameService.UnitTests.csproj 
+    - xunit.runner.json 
+    - **Endpoints** 
+      - AdventureEndpointsMapperTests.cs 
+      - AssetEndpointsMapperTests.cs 
+      - EndpointsMapperHelperTests.cs 
+      - EpisodeEndpointsMapperTests.cs 
+      - MeetingEndpointsMapperTests.cs 
+    - **Handlers** 
+      - AdventureHandlersTests.cs 
+      - AssetHandlersTests.cs 
+      - EpisodeHandlersTests.cs 
+      - MeetingHandlersTests.cs 
+    - **Middlewares** 
+      - MyAuthorizationMiddlewareTests.cs 
+    - **Services** 
+      - **Game** 
+        - AdventureServiceTests.cs 
+        - AssetServiceTests.cs 
+        - MeetingServiceTests.cs 
+      - **Media** 
+        - BlobStorageServiceTests.cs 
   - **WebApp** 
     - _Imports.razor 
     - appsettings.Development.json 
