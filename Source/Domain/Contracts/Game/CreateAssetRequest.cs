@@ -1,8 +1,6 @@
 namespace VttTools.Contracts.Game;
 
-/// <summary>
-/// Request to create a new Asset template.
-/// </summary>
+/// <inheritdoc />
 public record CreateAssetRequest
     : CreateTemplateRequest<Asset> {
     /// <summary>
@@ -17,11 +15,4 @@ public record CreateAssetRequest
     [Url]
     [Required]
     public string Source { get; init; } = string.Empty;
-
-    public override Result Validate(IMap? context = null) {
-        var result = base.Validate(context);
-        if (string.IsNullOrWhiteSpace(Source))
-            result += new Error("Asset source cannot be empty.", nameof(Source));
-        return result;
-    }
 }

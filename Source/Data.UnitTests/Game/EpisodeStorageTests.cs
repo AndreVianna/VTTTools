@@ -108,7 +108,7 @@ public class EpisodeStorageTests : IDisposable {
         result.Name.Should().Be("New Episode");
 
         // Verify it's in the database
-        var dbEpisode = await _context.Episodes.FindAsync([ episode.Id ], TestContext.Current.CancellationToken);
+        var dbEpisode = await _context.Episodes.FindAsync([episode.Id], TestContext.Current.CancellationToken);
         dbEpisode.Should().NotBeNull();
         dbEpisode.Name.Should().Be("New Episode");
     }
@@ -135,7 +135,7 @@ public class EpisodeStorageTests : IDisposable {
         result.Name.Should().Be("Updated Name");
 
         // Verify it's updated in the database
-        var dbEpisode = await _context.Episodes.FindAsync([ episode.Id ], TestContext.Current.CancellationToken);
+        var dbEpisode = await _context.Episodes.FindAsync([episode.Id], TestContext.Current.CancellationToken);
         dbEpisode.Should().NotBeNull();
         dbEpisode.Name.Should().Be("Updated Name");
     }
@@ -155,7 +155,7 @@ public class EpisodeStorageTests : IDisposable {
         await _storage.DeleteAsync(episode, TestContext.Current.CancellationToken);
 
         // Assert
-        var dbEpisode = await _context.Episodes.FindAsync([ episode.Id ], TestContext.Current.CancellationToken);
+        var dbEpisode = await _context.Episodes.FindAsync([episode.Id], TestContext.Current.CancellationToken);
         dbEpisode.Should().BeNull();
     }
 

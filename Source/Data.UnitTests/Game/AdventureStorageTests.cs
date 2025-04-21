@@ -87,7 +87,7 @@ public class AdventureStorageTests : IDisposable {
         result.Id.Should().Be(adventure.Id);
 
         // Verify it's in the database
-        var dbAdventure = await _context.Adventures.FindAsync([ adventure.Id ], TestContext.Current.CancellationToken);
+        var dbAdventure = await _context.Adventures.FindAsync([adventure.Id], TestContext.Current.CancellationToken);
         dbAdventure.Should().NotBeNull();
         dbAdventure.Name.Should().Be("New Adventure");
     }
@@ -111,7 +111,7 @@ public class AdventureStorageTests : IDisposable {
         result.Name.Should().Be("Updated Name");
 
         // Verify it's updated in the database
-        var dbAdventure = await _context.Adventures.FindAsync([ adventure.Id ], TestContext.Current.CancellationToken);
+        var dbAdventure = await _context.Adventures.FindAsync([adventure.Id], TestContext.Current.CancellationToken);
         dbAdventure.Should().NotBeNull();
         dbAdventure.Name.Should().Be("Updated Name");
     }
@@ -128,7 +128,7 @@ public class AdventureStorageTests : IDisposable {
         await _storage.DeleteAsync(adventure, TestContext.Current.CancellationToken);
 
         // Assert
-        var dbAdventure = await _context.Adventures.FindAsync([ adventure.Id ], TestContext.Current.CancellationToken);
+        var dbAdventure = await _context.Adventures.FindAsync([adventure.Id], TestContext.Current.CancellationToken);
         dbAdventure.Should().BeNull();
     }
 

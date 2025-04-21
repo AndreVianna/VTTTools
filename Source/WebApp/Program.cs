@@ -2,104 +2,111 @@ using VttTools.WebApp.Services;
 
 using static VttTools.Data.Options.ApplicationDbContextOptions;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.Host.UseDefaultServiceProvider((_, o) => {
-    o.ValidateScopes = true;
-    o.ValidateOnBuild = true;
-});
+namespace VttTools.WebApp;
 
-builder.Services.AddServiceDiscovery();
-builder.Services.ConfigureHttpClientDefaults(http => {
-    http.AddStandardResilienceHandler();
-    http.AddServiceDiscovery();
-});
+[ExcludeFromCodeCoverage]
+internal static class Program {
+    public static void Main(string[] args) {
+        var builder = WebApplication.CreateBuilder(args);
+        builder.Host.UseDefaultServiceProvider((_, o) => {
+            o.ValidateScopes = true;
+            o.ValidateOnBuild = true;
+        });
 
-builder.Services.AddHttpContextAccessor();
+        builder.Services.AddServiceDiscovery();
+        builder.Services.ConfigureHttpClientDefaults(http => {
+            http.AddStandardResilienceHandler();
+            http.AddServiceDiscovery();
+        });
 
-AddDefaultHealthChecks();
-builder.AddRedisOutputCache("redis");
-builder.AddSqlServerDbContext<ApplicationDbContext>(ConnectionStringName);
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+        builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<IdentityUserAccessor>();
-builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+        AddDefaultHealthChecks();
+        builder.AddRedisOutputCache("redis");
+        builder.AddSqlServerDbContext<ApplicationDbContext>(ConnectionStringName);
+        builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddIdentityCore<User>(opt => {
-    opt.SignIn.RequireConfirmedAccount = true;
-    opt.SignIn.RequireConfirmedEmail = true;
-    opt.SignIn.RequireConfirmedPhoneNumber = false;
-    opt.User.RequireUniqueEmail = true;
-    opt.Password.RequiredLength = 8;
-    opt.Stores.SchemaVersion = IdentitySchemaVersions.Version2;
-}).AddEntityFrameworkStores<ApplicationDbContext>()
-  .AddSignInManager()
-  .AddDefaultTokenProviders();
+        builder.Services.AddCascadingAuthenticationState();
+        builder.Services.AddScoped<IdentityUserAccessor>();
+        builder.Services.AddScoped<IdentityRedirectManager>();
+        builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
-builder.Services.AddSingleton<IEmailSender<User>, IdentityNoOpEmailSender>();
+        builder.Services.AddIdentityCore<User>(opt => {
+            opt.SignIn.RequireConfirmedAccount = true;
+            opt.SignIn.RequireConfirmedEmail = true;
+            opt.SignIn.RequireConfirmedPhoneNumber = false;
+            opt.User.RequireUniqueEmail = true;
+            opt.Password.RequiredLength = 8;
+            opt.Stores.SchemaVersion = IdentitySchemaVersions.Version2;
+        }).AddEntityFrameworkStores<ApplicationDbContext>()
+               .AddSignInManager()
+               .AddDefaultTokenProviders();
 
-builder.Services.AddAuthentication(options => {
-    options.DefaultScheme = IdentityConstants.ExternalScheme;
-    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-}).AddIdentityCookies();
-builder.Services.AddAuthorization();
+        builder.Services.AddSingleton<IEmailSender<User>, IdentityNoOpEmailSender>();
 
-builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents()
-                .AddInteractiveWebAssemblyComponents()
-                .AddAuthenticationStateSerialization();
+        builder.Services.AddAuthentication(options => {
+            options.DefaultScheme = IdentityConstants.ExternalScheme;
+            options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+        }).AddIdentityCookies();
+        builder.Services.AddAuthorization();
 
-builder.Services.AddHttpClient<GameServiceClient>(static (services, client) => {
-    client.BaseAddress = new("https+http://gameapi");
-    SetClientAuthentication(services, client);
-});
+        builder.Services.AddRazorComponents()
+               .AddInteractiveServerComponents()
+               .AddInteractiveWebAssemblyComponents()
+               .AddAuthenticationStateSerialization();
 
-var app = builder.Build();
+        builder.Services.AddHttpClient<GameServiceClient>(static (services, client) => {
+            client.BaseAddress = new("https+http://gameapi");
+            SetClientAuthentication(services, client);
+        });
 
-if (app.Environment.IsDevelopment()) {
-    app.UseWebAssemblyDebugging();
-    app.UseMigrationsEndPoint();
-}
-else {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts();
-}
+        var app = builder.Build();
 
-app.UseAuthentication();
-app.UseAuthorization();
-app.UseHttpsRedirection();
-app.UseAntiforgery();
+        if (app.Environment.IsDevelopment()) {
+            app.UseWebAssemblyDebugging();
+            app.UseMigrationsEndPoint();
+        }
+        else {
+            app.UseExceptionHandler("/Error", createScopeForErrors: true);
+            app.UseHsts();
+        }
 
-app.MapStaticAssets();
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode()
-    .AddInteractiveWebAssemblyRenderMode();
-MapDefaultEndpoints();
-app.MapAdditionalIdentityEndpoints();
-app.MapApiEndpoints();
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseHttpsRedirection();
+        app.UseAntiforgery();
 
-app.Run();
-return;
+        app.MapStaticAssets();
+        app.MapRazorComponents<App>()
+           .AddInteractiveServerRenderMode()
+           .AddInteractiveWebAssemblyRenderMode();
+        MapDefaultEndpoints();
+        app.MapAdditionalIdentityEndpoints();
+        app.MapApiEndpoints();
 
-void AddDefaultHealthChecks()
-    => builder.Services.AddHealthChecks()
-                       .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
-
-void MapDefaultEndpoints() {
-    if (!app.Environment.IsDevelopment())
+        app.Run();
         return;
-    app.MapHealthChecks("/health");
-    app.MapHealthChecks("/alive", new() {
-        Predicate = r => r.Tags.Contains("live"),
-    });
-}
 
-static void SetClientAuthentication(IServiceProvider services, HttpClient client) {
-    var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext!;
-    var identity = httpContext.User?.Identity as ClaimsIdentity;
-    if (identity?.IsAuthenticated != true)
-        return;
-    var userId = identity.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-    client.DefaultRequestHeaders.Authorization = new("Basic", userId);
+        void AddDefaultHealthChecks()
+            => builder.Services.AddHealthChecks()
+                      .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+
+        void MapDefaultEndpoints() {
+            if (!app.Environment.IsDevelopment())
+                return;
+            app.MapHealthChecks("/health");
+            app.MapHealthChecks("/alive", new() {
+                Predicate = r => r.Tags.Contains("live"),
+            });
+        }
+
+        static void SetClientAuthentication(IServiceProvider services, HttpClient client) {
+            var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext!;
+            var identity = httpContext.User?.Identity as ClaimsIdentity;
+            if (identity?.IsAuthenticated != true)
+                return;
+            var userId = identity.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            client.DefaultRequestHeaders.Authorization = new("Basic", userId);
+        }
+    }
 }

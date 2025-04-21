@@ -2,11 +2,12 @@ global using System.Collections;
 global using System.Collections.Generic;
 
 global using FluentAssertions;
-global using NSubstitute;
 
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
+
+global using NSubstitute;
 
 global using VttTools.Data;
 global using VttTools.Data.Game;

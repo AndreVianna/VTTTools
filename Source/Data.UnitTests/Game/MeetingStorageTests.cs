@@ -223,7 +223,7 @@ public class MeetingStorageTests : IDisposable {
             OwnerId = meeting.OwnerId,
             EpisodeId = meeting.EpisodeId,
             Players = [new MeetingPlayer { UserId = userId2, Type = PlayerType.Player }],
-                                         };
+        };
 
         // Act
         await testStorage.UpdateAsync(updatedMeeting, TestContext.Current.CancellationToken);

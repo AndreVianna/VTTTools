@@ -1,75 +1,22 @@
-using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
+namespace VttTools.GameService;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.Host.UseDefaultServiceProvider((_, o) => {
-    o.ValidateScopes = true;
-    o.ValidateOnBuild = true;
-});
-builder.Services.AddServiceDiscovery();
-builder.Services.ConfigureHttpClientDefaults(http => {
-    http.AddStandardResilienceHandler();
-    http.AddServiceDiscovery();
-});
+[ExcludeFromCodeCoverage]
+internal static class Program {
+    public static void Main(string[] args) {
+        var builder = WebApplication.CreateBuilder(args);
+        builder.Host.UseDefaultServiceProvider((_, o) => {
+            o.ValidateScopes = true;
+            o.ValidateOnBuild = true;
+        });
+        builder.AddServiceDiscovery();
+        builder.AddRequiredServices();
+        builder.AddDataStorage();
+        builder.AddApplicationServices();
 
-AddRequiredServices();
+        var app = builder.Build();
+        app.ApplyRequiredConfiguration(app.Environment);
+        app.MapApplicationEndpoints();
 
-builder.AddSqlServerDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
-builder.AddAzureBlobClient(AzureStorageOptions.ConnectionStringName);
-builder.AddGameDataStorage();
-builder.Services.AddScoped<IMeetingService, MeetingService>();
-
-// Add Adventure & Episode services
-builder.Services.AddScoped<IAdventureStorage, AdventureStorage>();
-builder.Services.AddScoped<IEpisodeStorage, EpisodeStorage>();
-builder.Services.AddScoped<IAdventureService, AdventureService>();
-
-var app = builder.Build();
-
-if (!app.Environment.IsDevelopment())
-    app.UseExceptionHandler();
-
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
-app.UseCors();
-app.UseAuthentication();
-app.UseMiddleware<MyAuthorizationMiddleware>();
-
-MapHealthCheckEndpoints();
-app.MapOpenApi();
-app.MapGameMeetingManagementEndpoints();
-app.MapAdventureManagementEndpoints();
-app.MapAssetManagementEndpoints();
-
-app.Run();
-return;
-
-void AddRequiredServices() {
-    builder.Services.AddProblemDetails();
-    builder.Services.AddHttpContextAccessor();
-    builder.Services.AddSingleton(TimeProvider.System);
-    builder.Services.Configure<JsonOptions>(o => o.SerializerOptions.Converters.Add(new OptionalConverterFactory()));
-    builder.Services.AddDistributedMemoryCache();
-
-    builder.Services.AddCors(options
-        => options.AddDefaultPolicy(policy
-            => policy.WithOrigins("https://localhost:5001", "https://localhost:7040")
-                     .AllowAnyMethod()
-                     .AllowAnyHeader()));
-
-    builder.Services.AddAuthentication();
-    builder.Services.AddAuthorization();
-    // register storage service for file uploads
-    builder.Services.AddScoped<IStorageService, BlobStorageService>();
-
-    builder.Services.AddOpenApi();
-    builder.Services.AddHealthChecks()
-                    .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
-}
-
-void MapHealthCheckEndpoints() {
-    app.MapHealthChecks("/health")
-       .WithName("IsHealthy");
-    app.MapHealthChecks("/alive", new() { Predicate = r => r.Tags.Contains("live") })
-       .WithName("IsAlive");
+        app.Run();
+    }
 }

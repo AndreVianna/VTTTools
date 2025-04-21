@@ -51,20 +51,20 @@ public class ApplicationDbContextTests : IDisposable {
         _context.ChangeTracker.Clear();
 
         // Assert
-        var savedAdventure = await _context.Adventures.FindAsync([ adventure.Id ], TestContext.Current.CancellationToken);
+        var savedAdventure = await _context.Adventures.FindAsync([adventure.Id], TestContext.Current.CancellationToken);
         savedAdventure.Should().NotBeNull();
         savedAdventure.Name.Should().Be("Test Adventure");
 
-        var savedEpisode = await _context.Episodes.FindAsync([ episode.Id ], TestContext.Current.CancellationToken);
+        var savedEpisode = await _context.Episodes.FindAsync([episode.Id], TestContext.Current.CancellationToken);
         savedEpisode.Should().NotBeNull();
         savedEpisode.Name.Should().Be("Test Episode");
         savedEpisode.ParentId.Should().Be(adventure.Id);
 
-        var savedAsset = await _context.Assets.FindAsync([ asset.Id ], TestContext.Current.CancellationToken);
+        var savedAsset = await _context.Assets.FindAsync([asset.Id], TestContext.Current.CancellationToken);
         savedAsset.Should().NotBeNull();
         savedAsset.Name.Should().Be("Test Asset");
 
-        var savedMeeting = await _context.Meetings.FindAsync([ meeting.Id ], TestContext.Current.CancellationToken);
+        var savedMeeting = await _context.Meetings.FindAsync([meeting.Id], TestContext.Current.CancellationToken);
         savedMeeting.Should().NotBeNull();
         savedMeeting.Subject.Should().Be("Test Meeting");
     }
@@ -111,10 +111,10 @@ public class ApplicationDbContextTests : IDisposable {
         var meeting = DbContextHelper.CreateTestMeeting(subject: "Meeting with Players");
         var player1 = new MeetingPlayer {
             UserId = Guid.NewGuid(),
-                                        };
+        };
         var player2 = new MeetingPlayer {
             UserId = Guid.NewGuid(),
-                                        };
+        };
 
         meeting.Players.Add(player1);
         meeting.Players.Add(player2);
@@ -160,10 +160,10 @@ public class ApplicationDbContextTests : IDisposable {
         var episodesAfter = await _context.Episodes.CountAsync(cancellationToken: TestContext.Current.CancellationToken);
         episodesAfter.Should().Be(0);
 
-        var retrievedEpisode1 = await _context.Episodes.FindAsync([ episode1.Id ], TestContext.Current.CancellationToken);
+        var retrievedEpisode1 = await _context.Episodes.FindAsync([episode1.Id], TestContext.Current.CancellationToken);
         retrievedEpisode1.Should().BeNull();
 
-        var retrievedEpisode2 = await _context.Episodes.FindAsync([ episode2.Id ], TestContext.Current.CancellationToken);
+        var retrievedEpisode2 = await _context.Episodes.FindAsync([episode2.Id], TestContext.Current.CancellationToken);
         retrievedEpisode2.Should().BeNull();
     }
 
@@ -188,7 +188,7 @@ public class ApplicationDbContextTests : IDisposable {
         await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Assert - Players should be deleted (meeting should be deleted)
-        var meetingAfter = await _context.Meetings.FindAsync([ meeting.Id ], TestContext.Current.CancellationToken);
+        var meetingAfter = await _context.Meetings.FindAsync([meeting.Id], TestContext.Current.CancellationToken);
         meetingAfter.Should().BeNull();
     }
 }

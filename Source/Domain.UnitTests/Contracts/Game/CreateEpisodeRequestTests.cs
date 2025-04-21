@@ -22,35 +22,4 @@ public class CreateEpisodeRequestTests {
         data.Name.Should().Be(name);
         data.Visibility.Should().Be(visibility);
     }
-
-    [Fact]
-    public void Validate_WithValidData_ReturnsSuccess() {
-        // Arrange
-        var request = new CreateEpisodeRequest {
-            Name = "Test Episode",
-            Visibility = Visibility.Private,
-        };
-
-        // Act
-        var result = request.Validate();
-
-        // Assert
-        result.HasErrors.Should().BeFalse();
-    }
-
-    [Fact]
-    public void Validate_WithEmptyName_ReturnsSuccess() {
-        // Arrange
-        var request = new CreateEpisodeRequest {
-            Name = string.Empty,
-            Visibility = Visibility.Hidden,
-        };
-
-        // Act
-        var result = request.Validate();
-
-        // Assert
-        result.HasErrors.Should().BeTrue();
-        result.Errors.Should().ContainSingle(e => e.Message == "Episode name cannot be empty." && e.Sources.Contains(nameof(request.Name)));
-    }
 }

@@ -33,6 +33,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Common\VttTools.Common.csproj" />
     <ProjectReference Include="..\Data\VttTools.Data.csproj" />
     <ProjectReference Include="..\Domain\VttTools.Domain.csproj" />

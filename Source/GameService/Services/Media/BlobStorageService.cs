@@ -31,6 +31,9 @@ public class BlobStorageService(BlobServiceClient client)
         var blobName = Path.GetFileName(imageUrl);
         if (string.IsNullOrEmpty(blobName))
             return;
+        var extension = Path.GetExtension(blobName);
+        if (string.IsNullOrEmpty(extension))
+            return;
 
         var blobClient = await GetBlobClient(blobName, ct);
         await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, null, ct);

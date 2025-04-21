@@ -47,7 +47,7 @@ public interface IAdventureService {
     /// <summary>
     /// Creates a new adventure template.
     /// </summary>
-    Task<Adventure> CreateAdventureAsync(Guid userId, CreateAdventureRequest request, CancellationToken ct = default);
+    Task<Adventure?> CreateAdventureAsync(Guid userId, CreateAdventureRequest request, CancellationToken ct = default);
 
     /// <summary>
     /// Updates an existing adventure template.

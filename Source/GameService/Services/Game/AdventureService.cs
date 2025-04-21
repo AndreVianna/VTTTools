@@ -78,14 +78,16 @@ public class AdventureService(
     }
 
     /// <inheritdoc />
-    public Task<Adventure> CreateAdventureAsync(Guid userId, CreateAdventureRequest request, CancellationToken ct = default) {
+    public async Task<Adventure?> CreateAdventureAsync(Guid userId, CreateAdventureRequest request, CancellationToken ct = default) {
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return null;
         var adventure = new Adventure {
             Id = Guid.NewGuid(),
             OwnerId = userId,
             Name = request.Name,
             Visibility = request.Visibility,
         };
-        return adventureStorage.AddAsync(adventure, ct);
+        return await adventureStorage.AddAsync(adventure, ct);
     }
 
     /// <inheritdoc />

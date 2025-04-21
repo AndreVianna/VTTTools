@@ -10,11 +10,4 @@ public record UpdateMeetingRequest
     /// New episode for the meeting. If not set, episode is unchanged.
     /// </summary>
     public Optional<Guid> EpisodeId { get; init; }
-
-    public override Result Validate(IMap? context = null) {
-        var result = base.Validate(context);
-        if (Subject.IsSet && string.IsNullOrWhiteSpace(Subject.Value))
-            result += new Error("Meeting subject cannot be null or empty.", nameof(Subject));
-        return result;
-    }
 }

@@ -15,11 +15,4 @@ public record CreateTemplateRequest<T>
     /// The visibility setting for the new <typeparamref name="T"/>. If not set, visibility is unchanged.
     /// </summary>
     public Visibility Visibility { get; set; }
-
-    public override Result Validate(IMap? context = null) {
-        var result = base.Validate(context);
-        if (string.IsNullOrWhiteSpace(Name))
-            result += new Error($"{typeof(T).Name} name cannot be empty.", nameof(Name));
-        return result;
-    }
 }

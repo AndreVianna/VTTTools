@@ -1,0 +1,15 @@
+@GameService_HostAddress = https://localhost:7465
+
+GET {{GameService_HostAddress}}/api/adventures/
+Authorization: Basic 019639ea-c7de-7a01-8548-41edfccde206
+
+###
+
+POST {{GameService_HostAddress}}/api/adventures/
+Authorization: Basic 019639ea-c7de-7a01-8548-41edfccde206
+Content-Type: application/json
+
+{
+  "name": "New Adventure",
+  "visibility": 2
+}

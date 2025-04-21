@@ -88,7 +88,7 @@ public class AssetStorageTests : IDisposable {
         result.Id.Should().Be(asset.Id);
 
         // Verify it's in the database
-        var dbAsset = await _context.Assets.FindAsync([ asset.Id ], TestContext.Current.CancellationToken);
+        var dbAsset = await _context.Assets.FindAsync([asset.Id], TestContext.Current.CancellationToken);
         dbAsset.Should().NotBeNull();
         dbAsset.Name.Should().Be("New Asset");
     }
@@ -114,7 +114,7 @@ public class AssetStorageTests : IDisposable {
         result.Type.Should().Be(AssetType.Sound);
 
         // Verify it's updated in the database
-        var dbAsset = await _context.Assets.FindAsync([ asset.Id ], TestContext.Current.CancellationToken);
+        var dbAsset = await _context.Assets.FindAsync([asset.Id], TestContext.Current.CancellationToken);
         dbAsset.Should().NotBeNull();
         dbAsset.Name.Should().Be("Updated Name");
         dbAsset.Type.Should().Be(AssetType.Sound);
@@ -132,7 +132,7 @@ public class AssetStorageTests : IDisposable {
         await _storage.DeleteAsync(asset, TestContext.Current.CancellationToken);
 
         // Assert
-        var dbAsset = await _context.Assets.FindAsync([ asset.Id ], TestContext.Current.CancellationToken);
+        var dbAsset = await _context.Assets.FindAsync([asset.Id], TestContext.Current.CancellationToken);
         dbAsset.Should().BeNull();
     }
 }

@@ -22,49 +22,4 @@ public class CreateMeetingDataTests {
         data.Subject.Should().Be(name);
         data.EpisodeId.Should().Be(episodeId);
     }
-
-    [Fact]
-    public void Validate_WithValidData_ReturnsSuccess() {
-        // Arrange
-        var data = new CreateMeetingData {
-            Subject = "Test Meeting",
-            EpisodeId = Guid.NewGuid(),
-        };
-
-        // Act
-        var result = data.Validate();
-
-        // Assert
-        result.HasErrors.Should().BeFalse();
-    }
-
-    [Fact]
-    public void Validate_WithEmptyName_ReturnsSuccess() {
-        // Arrange
-        var data = new CreateMeetingData {
-            Subject = string.Empty,
-            EpisodeId = Guid.NewGuid(),
-        };
-
-        // Act
-        var result = data.Validate();
-
-        // Assert
-        result.HasErrors.Should().BeFalse();
-    }
-
-    [Fact]
-    public void Validate_WithEmptyEpisodeId_ReturnsSuccess() {
-        // Arrange
-        var data = new CreateMeetingData {
-            Subject = "Test Meeting",
-            EpisodeId = Guid.Empty,
-        };
-
-        // Act
-        var result = data.Validate();
-
-        // Assert
-        result.HasErrors.Should().BeFalse();
-    }
 }
