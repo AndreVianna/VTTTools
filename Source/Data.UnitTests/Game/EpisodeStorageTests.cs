@@ -16,6 +16,37 @@ public class EpisodeStorageTests : IDisposable {
     }
 
     [Fact]
+    public async Task GetAllAsync_WithNoEpisodes_ReturnsEmptyArray() {
+        // Arrange
+
+        // Act
+        var result = await _storage.GetAllAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithEpisodes_ReturnsAllEpisodes() {
+        // Arrange
+        var adventure = DbContextHelper.CreateTestAdventure(name: "Adventure 1");
+        var episode1 = DbContextHelper.CreateTestEpisode(name: "Episode 1", parentId: adventure.Id);
+        var episode2 = DbContextHelper.CreateTestEpisode(name: "Episode 2", parentId: adventure.Id);
+
+        await _context.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
+        await _context.Episodes.AddRangeAsync([episode1, episode2], TestContext.Current.CancellationToken);
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var result = await _storage.GetAllAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().Contain(a => a.Name == "Episode 1");
+        result.Should().Contain(a => a.Name == "Episode 2");
+    }
+
+    [Fact]
     public async Task GetByParentIdAsync_WithNoEpisodes_ReturnsEmptyArray() {
         // Arrange
         var adventureId = Guid.NewGuid();

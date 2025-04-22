@@ -7,7 +7,7 @@ public class AssetTests {
         var asset = new Asset();
 
         // Assert
-        asset.Id.Should().BeEmpty();
+        asset.Id.Should().NotBeEmpty();
         asset.OwnerId.Should().BeEmpty();
         asset.Name.Should().BeEmpty();
         asset.Source.Should().BeEmpty();

@@ -1,39 +1,34 @@
 namespace VttTools.Contracts.Game;
 
-public class AddEpisodeAssetDataTests {
+public class CreateTemplateDataTests {
     [Fact]
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
-        var original = new AddEpisodeAssetData {
+        var original = new CreateTemplateData<Adventure> {
             Name = "Asset Name",
-            Position = new() { Left = 10, Top = 20 },
-            Scale = 1.5,
+            Visibility = Visibility.Public,
         };
         const string name = "Other Name";
-        var position = new Position { Left = 10, Top = 20 };
-        const double scale = 0.5;
+        const Visibility visibility = Visibility.Private;
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers
         var data = original with {
             Name = name,
-            Position = position,
-            Scale = scale,
+            Visibility = visibility,
         };
 
         // Assert
         data.Name.Should().Be(name);
-        data.Position.Should().Be(position);
-        data.Scale.Should().Be(scale);
+        data.Visibility.Should().Be(visibility);
     }
 
     [Fact]
     public void Validate_WithValidData_ReturnsSuccess() {
         // Arrange
-        var data = new AddEpisodeAssetData {
+        var data = new CreateTemplateData<Adventure> {
             Name = "Asset Name",
-            Position = new() { Left = 10, Top = 20 },
-            Scale = 1.5,
+            Visibility = Visibility.Public,
         };
 
         // Act
@@ -43,11 +38,14 @@ public class AddEpisodeAssetDataTests {
         result.HasErrors.Should().BeFalse();
     }
 
-    [Fact]
-    public void Validate_WithInvalidData_ReturnsSuccess() {
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_WithInvalidData_ReturnsSuccess(string? name) {
         // Arrange
-        var data = new AddEpisodeAssetData {
-            Scale = 0,
+        var data = new CreateTemplateData<Adventure> {
+            Name = name!,
         };
 
         // Act
@@ -55,6 +53,6 @@ public class AddEpisodeAssetDataTests {
 
         // Assert
         result.HasErrors.Should().BeTrue();
-        result.Errors.Should().Contain(e => e.Message == "The episode asset scale must be greater than zero.");
+        result.Errors.Should().Contain(e => e.Message == "Adventure name cannot be empty.");
     }
 }

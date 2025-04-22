@@ -32,7 +32,7 @@ public class AdventureStorageTests : IDisposable {
         var adventure1 = DbContextHelper.CreateTestAdventure(name: "Adventure 1");
         var adventure2 = DbContextHelper.CreateTestAdventure(name: "Adventure 2");
 
-        await _context.Adventures.AddRangeAsync(adventure1, adventure2);
+        await _context.Adventures.AddRangeAsync([adventure1, adventure2], TestContext.Current.CancellationToken);
         await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act

@@ -11,9 +11,9 @@
                 <ModulePath>.*VttTools.*\.dll$</ModulePath>
               </Include>
               <Exclude>
-                <ModulePath>.*fluentvalidation\..*dll$</ModulePath>
+                <ModulePath>.*microsoft\..*dll$</ModulePath>
+                <ModulePath>.*aspire\..*dll$</ModulePath>
                 <ModulePath>.*healthchecks\..*dll$</ModulePath>
-                <ModulePath>.*moq\..*dll$</ModulePath>
                 <ModulePath>.*nsubstitute\..*dll$</ModulePath>
                 <ModulePath>.*stackexchange\..*dll$</ModulePath>
                 <ModulePath>.*xunit\..*dll$</ModulePath>

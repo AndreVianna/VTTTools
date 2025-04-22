@@ -1,33 +1,29 @@
 namespace VttTools.Contracts.Game;
 
-public class UpdateMeetingDataTests {
+public class UpdateEpisodeAssetDataTests {
     [Fact]
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
-        var original = new UpdateMeetingData {
-            Subject = "Subject",
-            EpisodeId = Guid.NewGuid(),
+        var original = new UpdateEpisodeAssetData {
+            Position = new Position { Left = 10, Top = 20 },
         };
-        const string name = "Other Subject";
-        var episodeId = Guid.NewGuid();
+        var position = new Position { Left = 5, Top = 30 };
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers
         var data = original with {
-            Subject = name,
-            EpisodeId = episodeId,
+            Position = position,
         };
 
         // Assert
-        data.Subject.Value.Should().Be(name);
-        data.EpisodeId.Value.Should().Be(episodeId);
+        data.Position.Should().Be(Optional<Position>.Some(position));
     }
 
     [Fact]
     public void Validate_WithValidData_ReturnsSuccess() {
         // Arrange
-        var data = new UpdateMeetingData {
-            Subject = "Updated Meeting Subject",
+        var data = new UpdateEpisodeAssetData {
+            Position = new Position { Left = 10, Top = 20 },
         };
 
         // Act
@@ -40,8 +36,8 @@ public class UpdateMeetingDataTests {
     [Fact]
     public void Validate_WithInvalidData_ReturnsSuccess() {
         // Arrange
-        var data = new UpdateMeetingData {
-            Subject = string.Empty,
+        var data = new UpdateEpisodeAssetData {
+            Position = null!,
         };
 
         // Act
@@ -49,13 +45,13 @@ public class UpdateMeetingDataTests {
 
         // Assert
         result.HasErrors.Should().BeTrue();
-        result.Errors.Should().ContainSingle().Which.Message.Should().Be("Meeting subject cannot be null or empty.");
+        result.Errors.Should().ContainSingle().Which.Message.Should().Be("The episode asset position cannot be null.");
     }
 
     [Fact]
     public void Validate_OptionalValuesNotSet_ReturnsSuccess() {
         // Arrange
-        var data = new UpdateMeetingData();
+        var data = new UpdateEpisodeAssetData();
 
         // Act
         var result = data.Validate();

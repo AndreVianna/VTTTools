@@ -1,7 +1,7 @@
 ﻿namespace VttTools.Model.Game;
 
 public class Adventure {
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.CreateVersion7();
     /// <summary>
     /// The owner of this adventure.
     /// </summary>

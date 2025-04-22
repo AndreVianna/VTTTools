@@ -6,6 +6,15 @@ namespace VttTools.Data.Game;
 public class EpisodeStorage(ApplicationDbContext context)
     : IEpisodeStorage {
     /// <inheritdoc />
+    public Task<Episode[]> GetAllAsync(CancellationToken ct = default)
+        => context.Episodes
+                  .Include(e => e.Adventure)
+                  .Include(e => e.EpisodeAssets)
+                    .ThenInclude(ea => ea.Asset)
+                  .AsNoTrackingWithIdentityResolution()
+                  .ToArrayAsync(ct);
+
+    /// <inheritdoc />
     public Task<Episode[]> GetByParentIdAsync(Guid adventureId, CancellationToken ct = default)
         => context.Episodes
                   .Include(e => e.Adventure)

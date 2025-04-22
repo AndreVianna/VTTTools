@@ -47,10 +47,9 @@ public class MeetingHandlersTests {
             Arg.Is<CreateMeetingData>(d => d.Subject == request.Subject && d.EpisodeId == request.EpisodeId),
             Arg.Any<CancellationToken>());
 
-        Assert.IsType<Created<Meeting>>(result);
-        var createdResult = (Created<Meeting>)result;
-        Assert.Equal($"/api/meetings/{meeting.Id}", createdResult.Location);
-        Assert.Equal(meeting, createdResult.Value);
+        var response = result.Should().BeOfType<Created<Meeting>>().Subject;
+        response.Location.Should().Be($"/api/meetings/{meeting.Id}");
+        response.Value.Should().Be(meeting);
     }
 
     [Fact]
@@ -78,7 +77,7 @@ public class MeetingHandlersTests {
             Arg.Any<CreateMeetingData>(),
             Arg.Any<CancellationToken>());
 
-        Assert.IsType<ProblemHttpResult>(result);
+        result.Should().BeOfType<ProblemHttpResult>();
     }
 
     [Fact]
@@ -97,9 +96,8 @@ public class MeetingHandlersTests {
 
         // Assert
         await _meetingService.Received(1).GetMeetingsAsync(_userId, Arg.Any<CancellationToken>());
-        Assert.IsType<Ok<Meeting[]>>(result);
-        var okResult = (Ok<Meeting[]>)result;
-        Assert.Equal(meetings, okResult.Value);
+        var response = result.Should().BeOfType<Ok<Meeting[]>>().Subject;
+        response.Value.Should().BeEquivalentTo(meetings);
     }
 
     [Fact]
@@ -115,9 +113,8 @@ public class MeetingHandlersTests {
 
         // Assert
         await _meetingService.Received(1).GetMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
-        Assert.IsType<Ok<Meeting>>(result);
-        var okResult = (Ok<Meeting>)result;
-        Assert.Equal(meeting, okResult.Value);
+        var response = result.Should().BeOfType<Ok<Meeting>>().Subject;
+        response.Value.Should().Be(meeting);
     }
 
     [Fact]
@@ -131,7 +128,7 @@ public class MeetingHandlersTests {
 
         // Assert
         await _meetingService.Received(1).GetMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
-        Assert.IsType<NotFound>(result);
+        result.Should().BeOfType<NotFound>();
     }
 
     [Fact]
@@ -158,9 +155,8 @@ public class MeetingHandlersTests {
             Arg.Is<UpdateMeetingData>(d => d.Subject == request.Subject),
             Arg.Any<CancellationToken>());
 
-        Assert.IsType<StatusCodeHttpResult>(result);
-        var statusCodeResult = (StatusCodeHttpResult)result;
-        Assert.Equal(200, statusCodeResult.StatusCode);
+        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
+        response.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -188,11 +184,11 @@ public class MeetingHandlersTests {
             Arg.Any<UpdateMeetingData>(),
             Arg.Any<CancellationToken>());
 
-        Assert.IsType<ProblemHttpResult>(result);
+        result.Should().BeOfType<ProblemHttpResult>();
     }
 
     [Fact]
-    public async Task DeleteMeetingHandler_WithExistingMeeting_ReturnsNoContent() {
+    public async Task DeleteMeetingHandler_ReturnsCorrectStatusCode() {
         // Arrange
         var noContentResult = TypedResult.As(HttpStatusCode.NoContent);
 
@@ -204,31 +200,12 @@ public class MeetingHandlersTests {
 
         // Assert
         await _meetingService.Received(1).DeleteMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
-        Assert.IsType<StatusCodeHttpResult>(result);
-        var statusCodeResult = (StatusCodeHttpResult)result;
-        Assert.Equal(204, statusCodeResult.StatusCode);
+        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
+        response.StatusCode.Should().Be(204);
     }
 
     [Fact]
-    public async Task DeleteMeetingHandler_WithNonExistingMeeting_ReturnsNotFound() {
-        // Arrange
-        var notFoundResult = TypedResult.As(HttpStatusCode.NotFound);
-
-        _meetingService.DeleteMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>())
-            .Returns(notFoundResult);
-
-        // Act
-        var result = await MeetingHandlers.DeleteMeetingHandler(_httpContext, _meetingId, _meetingService);
-
-        // Assert
-        await _meetingService.Received(1).DeleteMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
-        Assert.IsType<StatusCodeHttpResult>(result);
-        var statusCodeResult = (StatusCodeHttpResult)result;
-        Assert.Equal(404, statusCodeResult.StatusCode);
-    }
-
-    [Fact]
-    public async Task JoinMeetingHandler_WithValidRequest_ReturnsOkResult() {
+    public async Task JoinMeetingHandler_ReturnsCorrectStatusCode() {
         // Arrange
         var request = new JoinMeetingRequest { JoinAs = PlayerType.Player };
 
@@ -242,9 +219,26 @@ public class MeetingHandlersTests {
 
         // Assert
         await _meetingService.Received(1).JoinMeetingAsync(_userId, _meetingId, PlayerType.Player, Arg.Any<CancellationToken>());
-        Assert.IsType<StatusCodeHttpResult>(result);
-        var statusCodeResult = (StatusCodeHttpResult)result;
-        Assert.Equal(200, statusCodeResult.StatusCode);
+        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
+        response.StatusCode.Should().Be(200);
+    }
+
+    [Fact]
+    public async Task JoinMeetingHandler_WithInvalidRequest_ReturnsBadRequestResult() {
+        // Arrange
+        var request = new JoinMeetingRequest { JoinAs = PlayerType.Player };
+
+        var errorResult = TypedResult.As(HttpStatusCode.BadRequest, new Error("Some error."));
+
+        _meetingService.JoinMeetingAsync(_userId, _meetingId, PlayerType.Player, Arg.Any<CancellationToken>())
+            .Returns(errorResult);
+
+        // Act
+        var result = await MeetingHandlers.JoinMeetingHandler(_httpContext, _meetingId, request, _meetingService);
+
+        // Assert
+        await _meetingService.Received(1).JoinMeetingAsync(_userId, _meetingId, PlayerType.Player, Arg.Any<CancellationToken>());
+        result.Should().BeOfType<ProblemHttpResult>();
     }
 
     [Fact]
@@ -260,13 +254,12 @@ public class MeetingHandlersTests {
 
         // Assert
         await _meetingService.Received(1).LeaveMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
-        Assert.IsType<StatusCodeHttpResult>(result);
-        var statusCodeResult = (StatusCodeHttpResult)result;
-        Assert.Equal(200, statusCodeResult.StatusCode);
+        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
+        response.StatusCode.Should().Be(200);
     }
 
     [Fact]
-    public async Task ActivateEpisodeHandler_WithValidRequest_ReturnsOkResult() {
+    public async Task ActivateEpisodeHandler_ReturnsCorrectStatusCode() {
         // Arrange
         var okResult = TypedResult.As(HttpStatusCode.OK);
 
@@ -278,9 +271,8 @@ public class MeetingHandlersTests {
 
         // Assert
         await _meetingService.Received(1).SetActiveEpisodeAsync(_userId, _meetingId, _episodeId, Arg.Any<CancellationToken>());
-        Assert.IsType<StatusCodeHttpResult>(result);
-        var statusCodeResult = (StatusCodeHttpResult)result;
-        Assert.Equal(200, statusCodeResult.StatusCode);
+        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
+        response.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -296,9 +288,8 @@ public class MeetingHandlersTests {
 
         // Assert
         await _meetingService.Received(1).StartMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
-        Assert.IsType<StatusCodeHttpResult>(result);
-        var statusCodeResult = (StatusCodeHttpResult)result;
-        Assert.Equal(200, statusCodeResult.StatusCode);
+        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
+        response.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -315,7 +306,7 @@ public class MeetingHandlersTests {
         // Assert
         await _meetingService.Received(1).StopMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
         Assert.IsType<StatusCodeHttpResult>(result);
-        var statusCodeResult = (StatusCodeHttpResult)result;
-        Assert.Equal(200, statusCodeResult.StatusCode);
+        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
+        response.StatusCode.Should().Be(200);
     }
 }

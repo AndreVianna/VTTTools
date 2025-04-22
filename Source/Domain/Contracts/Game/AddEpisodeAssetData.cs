@@ -1,3 +1,15 @@
 ﻿namespace VttTools.Contracts.Game;
 
-public record AddEpisodeAssetData(string Name, Position Position, double Scale);
+public record AddEpisodeAssetData
+    : Data {
+    public string Name { get; init; } = string.Empty;
+    public Position Position { get; init; } = new();
+    public double Scale { get; init; } = 1.0;
+
+    public override Result Validate(IMap? context = null) {
+        var result = base.Validate(context);
+        if (Scale <= 0)
+            result += new Error("The episode asset scale must be greater than zero.", nameof(Scale));
+        return result;
+    }
+}

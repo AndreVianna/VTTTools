@@ -13,30 +13,33 @@ internal static class HostApplicationBuilderExtensions {
 
     internal static void AddRequiredServices(this IHostApplicationBuilder builder) {
         builder.Services.AddProblemDetails();
+        builder.Services.AddExceptionHandler<LoggedExceptionHandler>();
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.Configure<JsonOptions>(o => {
-            o.SerializerOptions.PropertyNameCaseInsensitive = true;
-            o.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-            o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            o.SerializerOptions.Converters.Add(new OptionalConverterFactory());
-        });
+        builder.Services.Configure<JsonOptions>(ConfigureJsonOptions);
         builder.Services.AddDistributedMemoryCache();
 
-        builder.Services.AddCors(options
-            => options.AddDefaultPolicy(policy
-                => policy.WithOrigins("https://localhost:5001", "https://localhost:7040")
-                         .AllowAnyMethod()
-                         .AllowAnyHeader()));
+        builder.Services.AddCors(ConfigureCorsOptions);
+        builder.Services.AddOpenApi();
+        builder.Services.AddHealthChecks();
 
         builder.Services.AddAuthentication();
         builder.Services.AddAuthorization();
-        // register storage service for file uploads
-        builder.Services.AddScoped<IStorageService, BlobStorageService>();
+    }
 
-        builder.Services.AddOpenApi();
-        builder.Services.AddHealthChecks()
-               .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+    internal static void ConfigureCorsOptions(CorsOptions options)
+        => options.AddDefaultPolicy(ConfigureCorsPolicy);
+
+    internal static void ConfigureCorsPolicy(CorsPolicyBuilder builder)
+        => builder.WithOrigins("https://localhost:5001", "https://localhost:7040")
+                 .AllowAnyMethod()
+                 .AllowAnyHeader();
+
+    internal static void ConfigureJsonOptions(JsonOptions options) {
+        options.SerializerOptions.PropertyNameCaseInsensitive = true;
+        options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.SerializerOptions.Converters.Add(new OptionalConverterFactory());
     }
 
     internal static void AddDataStorage(this IHostApplicationBuilder builder) {
@@ -44,11 +47,9 @@ internal static class HostApplicationBuilderExtensions {
         builder.AddAzureBlobClient(AzureStorageOptions.ConnectionStringName);
         builder.AddGameDataStorage();
         builder.Services.AddScoped<IMeetingService, MeetingService>();
-    }
-
-    internal static void AddApplicationServices(this IHostApplicationBuilder builder) {
         builder.Services.AddScoped<IAdventureStorage, AdventureStorage>();
         builder.Services.AddScoped<IEpisodeStorage, EpisodeStorage>();
         builder.Services.AddScoped<IAdventureService, AdventureService>();
+        builder.Services.AddScoped<IStorageService, BlobStorageService>();
     }
 }

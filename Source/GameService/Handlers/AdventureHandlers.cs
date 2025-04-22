@@ -7,19 +7,9 @@ internal static class AdventureHandlers {
         => Results.Ok(await adventureService.GetAdventuresAsync());
 
     internal static async Task<IResult> GetAdventureByIdHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService)
-        => await adventureService.GetAdventureAsync(id) is { } adv
+        => await adventureService.GetAdventureByIdAsync(id) is { } adv
                ? Results.Ok(adv)
                : Results.NotFound();
-
-    internal static async Task<IResult> GetEpisodesHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService) => Results.Ok(await adventureService.GetEpisodesAsync(id));
-
-    internal static async Task<IResult> CreateEpisodeHandler(HttpContext context, [FromRoute] Guid id, [FromBody] CreateEpisodeRequest request, [FromServices] IAdventureService adventureService) {
-        var userId = EndpointsMapperHelper.GetUserId(context.User);
-        var created = await adventureService.CreateEpisodeAsync(userId, id, request);
-        return created != null
-                   ? Results.Created($"/api/episodes/{created.Id}", created)
-                   : Results.BadRequest();
-    }
 
     internal static async Task<IResult> CreateAdventureHandler(HttpContext context, [FromBody] CreateAdventureRequest request, [FromServices] IAdventureService adventureService) {
         var userId = EndpointsMapperHelper.GetUserId(context.User);
@@ -47,5 +37,20 @@ internal static class AdventureHandlers {
         return clone != null
                    ? Results.Created($"/api/adventures/{clone.Id}", clone)
                    : Results.NotFound();
+    }
+
+    internal static async Task<IResult> GetEpisodesHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService)
+        => Results.Ok(await adventureService.GetEpisodesAsync(id));
+
+    internal static async Task<IResult> AddEpisodeHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid episodeId, [FromServices] IAdventureService adventureService) {
+        var userId = EndpointsMapperHelper.GetUserId(context.User);
+        var added = await adventureService.AddEpisodeAsync(userId, id, episodeId);
+        return added ? Results.NoContent() : Results.BadRequest();
+    }
+
+    internal static async Task<IResult> RemoveEpisodeHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid episodeId, [FromServices] IAdventureService adventureService) {
+        var userId = EndpointsMapperHelper.GetUserId(context.User);
+        var removed = await adventureService.RemoveEpisodeAsync(userId, id, episodeId);
+        return removed ? Results.NoContent() : Results.NotFound();
     }
 }

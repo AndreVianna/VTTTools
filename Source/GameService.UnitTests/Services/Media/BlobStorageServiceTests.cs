@@ -81,13 +81,14 @@ public class BlobStorageServiceTests {
             Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task DeleteImageAsync_WithInvalidUrl_DoesNothing() {
-        // Arrange
-        const string imageUrl = "/invalid-path-with-no-filename";
-
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("/path/filename-without-extension")]
+    [InlineData("/path/end-in-separator/")]
+    public async Task DeleteImageAsync_WithInvalidUrl_DoesNothing(string? imageUrl) {
         // Act
-        await _service.DeleteImageAsync(imageUrl, TestContext.Current.CancellationToken);
+        await _service.DeleteImageAsync(imageUrl!, TestContext.Current.CancellationToken);
 
         // Assert
         await _blobClient.DidNotReceive().DeleteIfExistsAsync(

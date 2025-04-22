@@ -32,9 +32,8 @@ public class AssetHandlersTests {
 
         // Assert
         await _assetService.Received(1).GetAssetsAsync(Arg.Any<CancellationToken>());
-        Assert.IsType<Ok<Asset[]>>(result);
-        var okResult = (Ok<Asset[]>)result;
-        Assert.Equal(assets, okResult.Value);
+        var response = result.Should().BeOfType<Ok<Asset[]>>().Subject;
+        response.Value.Should().BeEquivalentTo(assets);
     }
 
     [Fact]
@@ -51,9 +50,8 @@ public class AssetHandlersTests {
 
         // Assert
         await _assetService.Received(1).GetAssetAsync(assetId, Arg.Any<CancellationToken>());
-        Assert.IsType<Ok<Asset>>(result);
-        var okResult = (Ok<Asset>)result;
-        Assert.Equal(asset, okResult.Value);
+        var response = result.Should().BeOfType<Ok<Asset>>().Subject;
+        response.Value.Should().BeEquivalentTo(asset);
     }
 
     [Fact]
@@ -69,7 +67,7 @@ public class AssetHandlersTests {
 
         // Assert
         await _assetService.Received(1).GetAssetAsync(assetId, Arg.Any<CancellationToken>());
-        Assert.IsType<NotFound>(result);
+        result.Should().BeOfType<NotFound>();
     }
 
     [Fact]
@@ -86,10 +84,9 @@ public class AssetHandlersTests {
 
         // Assert
         await _assetService.Received(1).CreateAssetAsync(_userId, request, Arg.Any<CancellationToken>());
-        Assert.IsType<Created<Asset>>(result);
-        var createdResult = (Created<Asset>)result;
-        Assert.Equal($"/api/assets/{asset.Id}", createdResult.Location);
-        Assert.Equal(asset, createdResult.Value);
+        var response = result.Should().BeOfType<Created<Asset>>().Subject;
+        response.Location.Should().Be($"/api/assets/{asset.Id}");
+        response.Value.Should().BeEquivalentTo(asset);
     }
 
     [Fact]
@@ -107,9 +104,8 @@ public class AssetHandlersTests {
 
         // Assert
         await _assetService.Received(1).UpdateAssetAsync(_userId, assetId, request, Arg.Any<CancellationToken>());
-        Assert.IsType<Ok<Asset>>(result);
-        var okResult = (Ok<Asset>)result;
-        Assert.Equal(asset, okResult.Value);
+        var response = result.Should().BeOfType<Ok<Asset>>().Subject;
+        response.Value.Should().BeEquivalentTo(asset);
     }
 
     [Fact]
@@ -126,7 +122,7 @@ public class AssetHandlersTests {
 
         // Assert
         await _assetService.Received(1).UpdateAssetAsync(_userId, assetId, request, Arg.Any<CancellationToken>());
-        Assert.IsType<NotFound>(result);
+        result.Should().BeOfType<NotFound>();
     }
 
     [Fact]
@@ -142,7 +138,7 @@ public class AssetHandlersTests {
 
         // Assert
         await _assetService.Received(1).DeleteAssetAsync(_userId, assetId, Arg.Any<CancellationToken>());
-        Assert.IsType<NoContent>(result);
+        result.Should().BeOfType<NoContent>();
     }
 
     [Fact]
@@ -158,7 +154,7 @@ public class AssetHandlersTests {
 
         // Assert
         await _assetService.Received(1).DeleteAssetAsync(_userId, assetId, Arg.Any<CancellationToken>());
-        Assert.IsType<NotFound>(result);
+        result.Should().BeOfType<NotFound>();
     }
 
     [Fact]
@@ -191,9 +187,8 @@ public class AssetHandlersTests {
             Arg.Is<UpdateAssetRequest>(r => r.Source == "https://storage.example.com/image.png"),
             Arg.Any<CancellationToken>());
 
-        Assert.IsType<Ok<Asset>>(result);
-        var okResult = (Ok<Asset>)result;
-        Assert.Equal(updatedAsset, okResult.Value);
+        var response = result.Should().BeOfType<Ok<Asset>>().Subject;
+        response.Value.Should().BeEquivalentTo(updatedAsset);
     }
 
     [Fact]
@@ -216,7 +211,7 @@ public class AssetHandlersTests {
             Arg.Any<UpdateAssetRequest>(),
             Arg.Any<CancellationToken>());
 
-        Assert.IsType<NotFound>(result);
+        result.Should().BeOfType<NotFound>();
     }
 
     [Fact]
@@ -241,7 +236,7 @@ public class AssetHandlersTests {
             Arg.Any<UpdateAssetRequest>(),
             Arg.Any<CancellationToken>());
 
-        Assert.IsType<NotFound>(result);
+        result.Should().BeOfType<NotFound>();
     }
 
     [Fact]
@@ -273,6 +268,6 @@ public class AssetHandlersTests {
             Arg.Any<UpdateAssetRequest>(),
             Arg.Any<CancellationToken>());
 
-        Assert.IsType<BadRequest>(result);
+        result.Should().BeOfType<BadRequest>();
     }
 }

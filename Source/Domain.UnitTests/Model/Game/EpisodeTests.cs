@@ -7,9 +7,9 @@ public class EpisodeTests {
         var episode = new Episode();
 
         // Assert
-        episode.Id.Should().Be(Guid.Empty);
-        episode.OwnerId.Should().Be(Guid.Empty);
-        episode.ParentId.Should().Be(Guid.Empty);
+        episode.Id.Should().NotBeEmpty();
+        episode.OwnerId.Should().BeEmpty();
+        episode.ParentId.Should().BeEmpty();
         episode.Adventure.Should().BeNull();
         episode.IsTemplate.Should().BeFalse();
         episode.TemplateId.Should().BeNull();

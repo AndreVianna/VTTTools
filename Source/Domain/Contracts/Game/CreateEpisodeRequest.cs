@@ -2,4 +2,9 @@ namespace VttTools.Contracts.Game;
 
 /// <inheritdoc />
 public record CreateEpisodeRequest
-    : CreateTemplateRequest<Episode>;
+    : CreateTemplateRequest<Episode> {
+    /// <summary>
+    /// The ID of the adventure to which this episode belongs.
+    /// </summary>
+    public Guid? AdventureId { get; init; }
+}

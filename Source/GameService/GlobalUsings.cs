@@ -11,6 +11,8 @@ global using Azure.Storage.Blobs.Models;
 global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Cors.Infrastructure;
+global using Microsoft.AspNetCore.Diagnostics;
 global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;

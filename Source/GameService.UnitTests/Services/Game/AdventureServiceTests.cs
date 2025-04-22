@@ -30,36 +30,18 @@ public class AdventureServiceTests {
     }
 
     [Fact]
-    public async Task GetAdventureAsync_CallsStorage() {
+    public async Task GetAdventureByIdAsync_CallsStorage() {
         // Arrange
         var adventureId = Guid.NewGuid();
         var adventure = new Adventure { Id = adventureId, Name = "Test Adventure" };
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
 
         // Act
-        var result = await _service.GetAdventureAsync(adventureId, TestContext.Current.CancellationToken);
+        var result = await _service.GetAdventureByIdAsync(adventureId, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeEquivalentTo(adventure);
         await _adventureStorage.Received(1).GetByIdAsync(adventureId, Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task GetEpisodesAsync_CallsStorage() {
-        // Arrange
-        var adventureId = Guid.NewGuid();
-        var episodes = new Episode[] {
-            new() { Id = Guid.NewGuid(), Name = "Test Episode 1", ParentId = adventureId },
-            new() { Id = Guid.NewGuid(), Name = "Test Episode 2", ParentId = adventureId },
-                                     };
-        _episodeStorage.GetByParentIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(episodes);
-
-        // Act
-        var result = await _service.GetEpisodesAsync(adventureId, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Should().BeEquivalentTo(episodes);
-        await _episodeStorage.Received(1).GetByParentIdAsync(adventureId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -193,26 +175,26 @@ public class AdventureServiceTests {
                 Id = Guid.NewGuid(),
                 Name = "Episode 1",
                 ParentId = adventureId,
-                Stage = new Stage {
+                Stage = new() {
                     MapType = StageMapType.Square,
                     Source = "source1",
-                    Size = new Size { Width = 10, Height = 10 },
-                    Grid = new Grid {
-                        Offset = new Position { Left = 0, Top = 0 },
-                        CellSize = new Size { Width = 1, Height = 1 },
-                                    },
-                                  },
+                    Size = new() { Width = 10, Height = 10 },
+                    Grid = new() {
+                        Offset = new() { Left = 0, Top = 0 },
+                        CellSize = new() { Width = 1, Height = 1 },
+                    },
+                },
                 EpisodeAssets = [
                     new EpisodeAsset {
                         AssetId = Guid.NewGuid(),
                         Name = "Asset 1",
-                        Position = new Position { Left = 1, Top = 1 },
+                        Position = new() { Left = 1, Top = 1 },
                         Scale = 1.0f,
                         IsLocked = false,
-                                     },
-                                ],
-                        },
-                             };
+                    },
+                ],
+            },
+        };
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
         _episodeStorage.GetByParentIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(episodes);
@@ -238,138 +220,20 @@ public class AdventureServiceTests {
     }
 
     [Fact]
-    public async Task CreateEpisodeAsync_WithOwner_CreatesEpisode() {
+    public async Task GetEpisodesAsync_CallsStorage() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var adventure = new Adventure {
-            Id = adventureId,
-            Name = "Adventure",
-            OwnerId = _userId,
-        };
-
-        var request = new CreateEpisodeRequest {
-            Name = "New Episode",
-            Visibility = Visibility.Public,
-        };
-
-        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
-        _episodeStorage.AddAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>())
-            .Returns(x => x.Arg<Episode>());
+        var episodes = new Episode[] {
+            new() { Id = Guid.NewGuid(), Name = "Test Episode 1", ParentId = adventureId },
+            new() { Id = Guid.NewGuid(), Name = "Test Episode 2", ParentId = adventureId },
+                                     };
+        _episodeStorage.GetByParentIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(episodes);
 
         // Act
-        var result = await _service.CreateEpisodeAsync(_userId, adventureId, request, TestContext.Current.CancellationToken);
+        var result = await _service.GetEpisodesAsync(adventureId, TestContext.Current.CancellationToken);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Name.Should().Be(request.Name);
-        result.Visibility.Should().Be(request.Visibility);
-        result.OwnerId.Should().Be(_userId);
-        result.ParentId.Should().Be(adventureId);
-        await _episodeStorage.Received(1).AddAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task CreateEpisodeAsync_WithNonOwner_ReturnsNull() {
-        // Arrange
-        var adventureId = Guid.NewGuid();
-        var nonOwnerId = Guid.NewGuid();
-        var adventure = new Adventure {
-            Id = adventureId,
-            Name = "Adventure",
-            OwnerId = _userId,
-        };
-
-        var request = new CreateEpisodeRequest {
-            Name = "New Episode",
-            Visibility = Visibility.Public,
-        };
-
-        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
-
-        // Act
-        var result = await _service.CreateEpisodeAsync(nonOwnerId, adventureId, request, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Should().BeNull();
-        await _episodeStorage.DidNotReceive().AddAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task UpdateEpisodeAsync_WithOwner_UpdatesEpisode() {
-        // Arrange
-        var episodeId = Guid.NewGuid();
-        var episode = new Episode {
-            Id = episodeId,
-            Name = "Old Name",
-            OwnerId = _userId,
-            Visibility = Visibility.Private,
-        };
-
-        var request = new UpdateEpisodeRequest {
-            Name = "Updated Name",
-            Visibility = Visibility.Public,
-        };
-
-        _episodeStorage.GetByIdAsync(episodeId, Arg.Any<CancellationToken>()).Returns(episode);
-        _episodeStorage.UpdateAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>())
-            .Returns(x => x.Arg<Episode>());
-
-        // Act
-        var result = await _service.UpdateEpisodeAsync(_userId, episodeId, request, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Name.Should().Be(request.Name.Value);
-        result.Visibility.Should().Be(request.Visibility.Value);
-        await _episodeStorage.Received(1).UpdateAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task DeleteEpisodeAsync_WithOwner_DeletesEpisode() {
-        // Arrange
-        var episodeId = Guid.NewGuid();
-        var episode = new Episode {
-            Id = episodeId,
-            Name = "Episode",
-            OwnerId = _userId,
-        };
-
-        _episodeStorage.GetByIdAsync(episodeId, Arg.Any<CancellationToken>()).Returns(episode);
-
-        // Act
-        var result = await _service.DeleteEpisodeAsync(_userId, episodeId, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Should().BeTrue();
-        await _episodeStorage.Received(1).DeleteAsync(episode, Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task CloneEpisodeAsync_WithOwner_ClonesEpisode() {
-        // Arrange
-        var episodeId = Guid.NewGuid();
-        var episode = new Episode {
-            Id = episodeId,
-            Name = "Episode",
-            OwnerId = _userId,
-            Visibility = Visibility.Public,
-            ParentId = Guid.NewGuid(),
-        };
-
-        _episodeStorage.GetByIdAsync(episodeId, Arg.Any<CancellationToken>()).Returns(episode);
-        _episodeStorage.AddAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>())
-            .Returns(x => x.Arg<Episode>());
-
-        // Act
-        var result = await _service.CloneEpisodeAsync(_userId, episodeId, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Name.Should().Be(episode.Name);
-        result.Visibility.Should().Be(episode.Visibility);
-        result.OwnerId.Should().Be(_userId);
-        result.ParentId.Should().Be(episode.ParentId);
-        result.TemplateId.Should().Be(episodeId);
-        await _episodeStorage.Received(1).AddAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>());
+        result.Should().BeEquivalentTo(episodes);
+        await _episodeStorage.Received(1).GetByParentIdAsync(adventureId, Arg.Any<CancellationToken>());
     }
 }

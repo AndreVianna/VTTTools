@@ -1,21 +1,18 @@
 ﻿namespace VttTools.GameService.Middlewares;
 
-public class MyAuthorizationMiddlewareTests {
+public class UserAuthorizationMiddlewareTests {
     private readonly RequestDelegate _next;
-    private readonly MyAuthorizationMiddleware _middleware;
+    private readonly UserAuthorizationMiddleware _middleware;
     private readonly HttpContext _httpContext;
-    private readonly IAuthorizationPolicyProvider _policyProvider;
-    private readonly ILogger<AuthorizationMiddleware> _logger;
-    private readonly IServiceProvider _serviceProvider;
 
-    public MyAuthorizationMiddlewareTests() {
-        _policyProvider = Substitute.For<IAuthorizationPolicyProvider>();
-        _logger = Substitute.For<ILogger<AuthorizationMiddleware>>();
+    public UserAuthorizationMiddlewareTests() {
+        var policyProvider = Substitute.For<IAuthorizationPolicyProvider>();
+        var logger = Substitute.For<ILogger<AuthorizationMiddleware>>();
         _next = Substitute.For<RequestDelegate>();
 
         // Create the middleware with a ServiceProvider that can resolve the AuthorizationMiddleware
-        _serviceProvider = Substitute.For<IServiceProvider>();
-        _middleware = new MyAuthorizationMiddleware(_next, _policyProvider, _serviceProvider, _logger);
+        var serviceProvider = Substitute.For<IServiceProvider>();
+        _middleware = new(_next, policyProvider, serviceProvider, logger);
 
         // Setup mock http context
         _httpContext = new DefaultHttpContext();

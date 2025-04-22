@@ -5,7 +5,12 @@ namespace VttTools.Storage.Game;
 /// </summary>
 public interface IEpisodeStorage {
     /// <summary>
-    /// Retrieves all episode templates for a given adventure.
+    /// Retrieves all episodes
+    /// </summary>
+    Task<Episode[]> GetAllAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves all episodes
     /// </summary>
     Task<Episode[]> GetByParentIdAsync(Guid adventureId, CancellationToken ct = default);
 

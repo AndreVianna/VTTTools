@@ -7,7 +7,7 @@ public class AdventureTests {
         var adventure = new Adventure();
 
         // Assert
-        adventure.Id.Should().BeEmpty();
+        adventure.Id.Should().NotBeEmpty();
         adventure.OwnerId.Should().BeEmpty();
         adventure.ParentId.Should().BeNull();
         adventure.Campaign.Should().BeNull();

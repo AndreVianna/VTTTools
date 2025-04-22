@@ -7,7 +7,7 @@ public class CampaignTests {
         var campaign = new Campaign();
 
         // Assert
-        campaign.Id.Should().BeEmpty();
+        campaign.Id.Should().NotBeEmpty();
         campaign.OwnerId.Should().BeEmpty();
         campaign.ParentId.Should().BeNull();
         campaign.Epic.Should().BeNull();

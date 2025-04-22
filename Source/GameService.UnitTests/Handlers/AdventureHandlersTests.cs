@@ -31,9 +31,8 @@ public class AdventureHandlersTests {
 
         // Assert
         await _adventureService.Received(1).GetAdventuresAsync(Arg.Any<CancellationToken>());
-        Assert.IsType<Ok<Adventure[]>>(result);
-        var okResult = (Ok<Adventure[]>)result;
-        Assert.Equal(adventures, okResult.Value);
+        var response = result.Should().BeOfType<Ok<Adventure[]>>().Subject;
+        response.Value.Should().BeEquivalentTo(adventures);
     }
 
     [Fact]
@@ -42,17 +41,16 @@ public class AdventureHandlersTests {
         var adventureId = Guid.NewGuid();
         var adventure = new Adventure { Id = adventureId, Name = "Test Adventure", OwnerId = _userId };
 
-        _adventureService.GetAdventureAsync(adventureId, Arg.Any<CancellationToken>())
+        _adventureService.GetAdventureByIdAsync(adventureId, Arg.Any<CancellationToken>())
             .Returns(adventure);
 
         // Act
         var result = await AdventureHandlers.GetAdventureByIdHandler(adventureId, _adventureService);
 
         // Assert
-        await _adventureService.Received(1).GetAdventureAsync(adventureId, Arg.Any<CancellationToken>());
-        Assert.IsType<Ok<Adventure>>(result);
-        var okResult = (Ok<Adventure>)result;
-        Assert.Equal(adventure, okResult.Value);
+        await _adventureService.Received(1).GetAdventureByIdAsync(adventureId, Arg.Any<CancellationToken>());
+        var response = result.Should().BeOfType<Ok<Adventure>>().Subject;
+        response.Value.Should().BeEquivalentTo(adventure);
     }
 
     [Fact]
@@ -60,15 +58,153 @@ public class AdventureHandlersTests {
         // Arrange
         var adventureId = Guid.NewGuid();
 
-        _adventureService.GetAdventureAsync(adventureId, Arg.Any<CancellationToken>())
-            .Returns((Adventure)null!);
+        _adventureService.GetAdventureByIdAsync(adventureId, Arg.Any<CancellationToken>())
+            .Returns((Adventure?)null);
 
         // Act
         var result = await AdventureHandlers.GetAdventureByIdHandler(adventureId, _adventureService);
 
         // Assert
-        await _adventureService.Received(1).GetAdventureAsync(adventureId, Arg.Any<CancellationToken>());
-        Assert.IsType<NotFound>(result);
+        await _adventureService.Received(1).GetAdventureByIdAsync(adventureId, Arg.Any<CancellationToken>());
+        result.Should().BeOfType<NotFound>();
+    }
+
+    [Fact]
+    public async Task CreateAdventureHandler_WithValidRequest_ReturnsCreatedResult() {
+        // Arrange
+        var request = new CreateAdventureRequest { Name = "New Adventure" };
+        var adventure = new Adventure { Id = Guid.NewGuid(), Name = "New Adventure", OwnerId = _userId };
+
+        _adventureService.CreateAdventureAsync(_userId, request, Arg.Any<CancellationToken>())
+            .Returns(adventure);
+
+        // Act
+        var result = await AdventureHandlers.CreateAdventureHandler(_httpContext, request, _adventureService);
+
+        // Assert
+        await _adventureService.Received(1).CreateAdventureAsync(_userId, request, Arg.Any<CancellationToken>());
+        var response = result.Should().BeOfType<Created<Adventure>>().Subject;
+        response.Location.Should().Be($"/api/adventures/{adventure.Id}");
+        response.Value.Should().BeEquivalentTo(adventure);
+    }
+
+    [Fact]
+    public async Task CreateAdventureHandler_WithInvalidRequest_ReturnsBadRequest() {
+        // Arrange
+        var request = new CreateAdventureRequest { Name = "New Adventure" };
+
+        _adventureService.CreateAdventureAsync(_userId, request, Arg.Any<CancellationToken>())
+            .Returns((Adventure?)null);
+
+        // Act
+        var result = await AdventureHandlers.CreateAdventureHandler(_httpContext, request, _adventureService);
+
+        // Assert
+        await _adventureService.Received(1).CreateAdventureAsync(_userId, request, Arg.Any<CancellationToken>());
+        result.Should().BeOfType<BadRequest>();
+    }
+
+    [Fact]
+    public async Task UpdateAdventureHandler_WithValidRequest_ReturnsOkResult() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var request = new UpdateAdventureRequest { Name = "Updated Adventure" };
+        var adventure = new Adventure { Id = adventureId, Name = "Updated Adventure", OwnerId = _userId };
+
+        _adventureService.UpdateAdventureAsync(_userId, adventureId, request, Arg.Any<CancellationToken>())
+            .Returns(adventure);
+
+        // Act
+        var result = await AdventureHandlers.UpdateAdventureHandler(_httpContext, adventureId, request, _adventureService);
+
+        // Assert
+        await _adventureService.Received(1).UpdateAdventureAsync(_userId, adventureId, request, Arg.Any<CancellationToken>());
+        var response = result.Should().BeOfType<Ok<Adventure>>().Subject;
+        response.Value.Should().BeEquivalentTo(adventure);
+    }
+
+    [Fact]
+    public async Task UpdateAdventureHandler_WithNonExistingId_ReturnsNotFound() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var request = new UpdateAdventureRequest { Name = "Updated Adventure" };
+
+        _adventureService.UpdateAdventureAsync(_userId, adventureId, request, Arg.Any<CancellationToken>())
+            .Returns((Adventure?)null);
+
+        // Act
+        var result = await AdventureHandlers.UpdateAdventureHandler(_httpContext, adventureId, request, _adventureService);
+
+        // Assert
+        await _adventureService.Received(1).UpdateAdventureAsync(_userId, adventureId, request, Arg.Any<CancellationToken>());
+        result.Should().BeOfType<NotFound>();
+    }
+
+    [Fact]
+    public async Task DeleteAdventureHandler_WithExistingId_ReturnsNoContent() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+
+        _adventureService.DeleteAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>())
+            .Returns(true);
+
+        // Act
+        var result = await AdventureHandlers.DeleteAdventureHandler(_httpContext, adventureId, _adventureService);
+
+        // Assert
+        await _adventureService.Received(1).DeleteAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>());
+        result.Should().BeOfType<NoContent>();
+    }
+
+    [Fact]
+    public async Task DeleteAdventureHandler_WithNonExistingId_ReturnsNotFound() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+
+        _adventureService.DeleteAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        // Act
+        var result = await AdventureHandlers.DeleteAdventureHandler(_httpContext, adventureId, _adventureService);
+
+        // Assert
+        await _adventureService.Received(1).DeleteAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>());
+        result.Should().BeOfType<NotFound>();
+    }
+
+    [Fact]
+    public async Task CloneAdventureHandler_WithExistingId_ReturnsCreatedResult() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var clonedAdventure = new Adventure { Id = Guid.NewGuid(), Name = "Cloned Adventure", OwnerId = _userId };
+
+        _adventureService.CloneAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>())
+            .Returns(clonedAdventure);
+
+        // Act
+        var result = await AdventureHandlers.CloneAdventureHandler(_httpContext, adventureId, _adventureService);
+
+        // Assert
+        await _adventureService.Received(1).CloneAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>());
+        var response = result.Should().BeOfType<Created<Adventure>>().Subject;
+        response.Location.Should().Be($"/api/adventures/{clonedAdventure.Id}");
+        response.Value.Should().Be(clonedAdventure);
+    }
+
+    [Fact]
+    public async Task CloneAdventureHandler_WithNonExistingId_ReturnsNotFound() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+
+        _adventureService.CloneAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>())
+            .Returns((Adventure?)null);
+
+        // Act
+        var result = await AdventureHandlers.CloneAdventureHandler(_httpContext, adventureId, _adventureService);
+
+        // Assert
+        await _adventureService.Received(1).CloneAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>());
+        result.Should().BeOfType<NotFound>();
     }
 
     [Fact]
@@ -88,187 +224,75 @@ public class AdventureHandlersTests {
 
         // Assert
         await _adventureService.Received(1).GetEpisodesAsync(adventureId, Arg.Any<CancellationToken>());
-        Assert.IsType<Ok<Episode[]>>(result);
-        var okResult = (Ok<Episode[]>)result;
-        Assert.Equal(episodes, okResult.Value);
+        var response = result.Should().BeOfType<Ok<Episode[]>>().Subject;
+        response.Value.Should().BeEquivalentTo(episodes);
     }
 
     [Fact]
-    public async Task CreateEpisodeHandler_WithValidRequest_ReturnsCreatedResult() {
+    public async Task AddEpisodeHandler_WithValidRequest_ReturnsCreatedResult() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var request = new CreateEpisodeRequest { Name = "New Episode" };
-        var episode = new Episode { Id = Guid.NewGuid(), Name = "New Episode", ParentId = adventureId };
+        var episodeId = Guid.NewGuid();
 
-        _adventureService.CreateEpisodeAsync(_userId, adventureId, request, Arg.Any<CancellationToken>())
-            .Returns(episode);
-
-        // Act
-        var result = await AdventureHandlers.CreateEpisodeHandler(_httpContext, adventureId, request, _adventureService);
-
-        // Assert
-        await _adventureService.Received(1).CreateEpisodeAsync(_userId, adventureId, request, Arg.Any<CancellationToken>());
-        Assert.IsType<Created<Episode>>(result);
-        var createdResult = (Created<Episode>)result;
-        Assert.Equal($"/api/episodes/{episode.Id}", createdResult.Location);
-        Assert.Equal(episode, createdResult.Value);
-    }
-
-    [Fact]
-    public async Task CreateEpisodeHandler_WithInvalidRequest_ReturnsBadRequest() {
-        // Arrange
-        var adventureId = Guid.NewGuid();
-        var request = new CreateEpisodeRequest { Name = "New Episode" };
-
-        _adventureService.CreateEpisodeAsync(_userId, adventureId, request, Arg.Any<CancellationToken>())
-            .Returns((Episode)null!);
-
-        // Act
-        var result = await AdventureHandlers.CreateEpisodeHandler(_httpContext, adventureId, request, _adventureService);
-
-        // Assert
-        await _adventureService.Received(1).CreateEpisodeAsync(_userId, adventureId, request, Arg.Any<CancellationToken>());
-        Assert.IsType<BadRequest>(result);
-    }
-
-    [Fact]
-    public async Task CreateAdventureHandler_WithValidRequest_ReturnsCreatedResult() {
-        // Arrange
-        var request = new CreateAdventureRequest { Name = "New Adventure" };
-        var adventure = new Adventure { Id = Guid.NewGuid(), Name = "New Adventure", OwnerId = _userId };
-
-        _adventureService.CreateAdventureAsync(_userId, request, Arg.Any<CancellationToken>())
-            .Returns(adventure);
-
-        // Act
-        var result = await AdventureHandlers.CreateAdventureHandler(_httpContext, request, _adventureService);
-
-        // Assert
-        await _adventureService.Received(1).CreateAdventureAsync(_userId, request, Arg.Any<CancellationToken>());
-        Assert.IsType<Created<Adventure>>(result);
-        var createdResult = (Created<Adventure>)result;
-        Assert.Equal($"/api/adventures/{adventure.Id}", createdResult.Location);
-        Assert.Equal(adventure, createdResult.Value);
-    }
-
-    [Fact]
-    public async Task CreateAdventureHandler_WithInvalidRequest_ReturnsBadRequest() {
-        // Arrange
-        var request = new CreateAdventureRequest { Name = "New Adventure" };
-
-        _adventureService.CreateAdventureAsync(_userId, request, Arg.Any<CancellationToken>())
-            .Returns((Adventure)null!);
-
-        // Act
-        var result = await AdventureHandlers.CreateAdventureHandler(_httpContext, request, _adventureService);
-
-        // Assert
-        await _adventureService.Received(1).CreateAdventureAsync(_userId, request, Arg.Any<CancellationToken>());
-        Assert.IsType<BadRequest>(result);
-    }
-
-    [Fact]
-    public async Task UpdateAdventureHandler_WithValidRequest_ReturnsOkResult() {
-        // Arrange
-        var adventureId = Guid.NewGuid();
-        var request = new UpdateAdventureRequest { Name = "Updated Adventure" };
-        var adventure = new Adventure { Id = adventureId, Name = "Updated Adventure", OwnerId = _userId };
-
-        _adventureService.UpdateAdventureAsync(_userId, adventureId, request, Arg.Any<CancellationToken>())
-            .Returns(adventure);
-
-        // Act
-        var result = await AdventureHandlers.UpdateAdventureHandler(_httpContext, adventureId, request, _adventureService);
-
-        // Assert
-        await _adventureService.Received(1).UpdateAdventureAsync(_userId, adventureId, request, Arg.Any<CancellationToken>());
-        Assert.IsType<Ok<Adventure>>(result);
-        var okResult = (Ok<Adventure>)result;
-        Assert.Equal(adventure, okResult.Value);
-    }
-
-    [Fact]
-    public async Task UpdateAdventureHandler_WithNonExistingId_ReturnsNotFound() {
-        // Arrange
-        var adventureId = Guid.NewGuid();
-        var request = new UpdateAdventureRequest { Name = "Updated Adventure" };
-
-        _adventureService.UpdateAdventureAsync(_userId, adventureId, request, Arg.Any<CancellationToken>())
-            .Returns((Adventure)null!);
-
-        // Act
-        var result = await AdventureHandlers.UpdateAdventureHandler(_httpContext, adventureId, request, _adventureService);
-
-        // Assert
-        await _adventureService.Received(1).UpdateAdventureAsync(_userId, adventureId, request, Arg.Any<CancellationToken>());
-        Assert.IsType<NotFound>(result);
-    }
-
-    [Fact]
-    public async Task DeleteAdventureHandler_WithExistingId_ReturnsNoContent() {
-        // Arrange
-        var adventureId = Guid.NewGuid();
-
-        _adventureService.DeleteAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>())
+        _adventureService.AddEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>())
             .Returns(true);
 
         // Act
-        var result = await AdventureHandlers.DeleteAdventureHandler(_httpContext, adventureId, _adventureService);
+        var result = await AdventureHandlers.AddEpisodeHandler(_httpContext, adventureId, episodeId, _adventureService);
 
         // Assert
-        await _adventureService.Received(1).DeleteAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>());
-        Assert.IsType<NoContent>(result);
+        await _adventureService.Received(1).AddEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>());
+        result.Should().BeOfType<NoContent>();
     }
 
     [Fact]
-    public async Task DeleteAdventureHandler_WithNonExistingId_ReturnsNotFound() {
+    public async Task AddEpisodeHandler_WithInvalidEpisode_ReturnsBadRequest() {
         // Arrange
         var adventureId = Guid.NewGuid();
+        var episodeId = Guid.NewGuid();
 
-        _adventureService.DeleteAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>())
+        _adventureService.AddEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>())
             .Returns(false);
 
         // Act
-        var result = await AdventureHandlers.DeleteAdventureHandler(_httpContext, adventureId, _adventureService);
+        var result = await AdventureHandlers.AddEpisodeHandler(_httpContext, adventureId, episodeId, _adventureService);
 
         // Assert
-        await _adventureService.Received(1).DeleteAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>());
-        Assert.IsType<NotFound>(result);
+        await _adventureService.Received(1).AddEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>());
+        result.Should().BeOfType<BadRequest>();
     }
 
     [Fact]
-    public async Task CloneAdventureHandler_WithExistingId_ReturnsCreatedResult() {
+    public async Task RemoveEpisodeHandler_WithValidRequest_ReturnsCreatedResult() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var clonedAdventure = new Adventure { Id = Guid.NewGuid(), Name = "Cloned Adventure", OwnerId = _userId };
+        var episodeId = Guid.NewGuid();
 
-        _adventureService.CloneAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>())
-            .Returns(clonedAdventure);
+        _adventureService.RemoveEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>())
+            .Returns(true);
 
         // Act
-        var result = await AdventureHandlers.CloneAdventureHandler(_httpContext, adventureId, _adventureService);
+        var result = await AdventureHandlers.RemoveEpisodeHandler(_httpContext, adventureId, episodeId, _adventureService);
 
         // Assert
-        await _adventureService.Received(1).CloneAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>());
-        Assert.IsType<Created<Adventure>>(result);
-        var createdResult = (Created<Adventure>)result;
-        Assert.Equal($"/api/adventures/{clonedAdventure.Id}", createdResult.Location);
-        Assert.Equal(clonedAdventure, createdResult.Value);
+        await _adventureService.Received(1).RemoveEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>());
+        result.Should().BeOfType<NoContent>();
     }
 
     [Fact]
-    public async Task CloneAdventureHandler_WithNonExistingId_ReturnsNotFound() {
+    public async Task RemoveEpisodeHandler_WithInvalidEpisode_ReturnsBadRequest() {
         // Arrange
         var adventureId = Guid.NewGuid();
+        var episodeId = Guid.NewGuid();
 
-        _adventureService.CloneAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>())
-            .Returns((Adventure)null!);
+        _adventureService.RemoveEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>())
+            .Returns(false);
 
         // Act
-        var result = await AdventureHandlers.CloneAdventureHandler(_httpContext, adventureId, _adventureService);
+        var result = await AdventureHandlers.RemoveEpisodeHandler(_httpContext, adventureId, episodeId, _adventureService);
 
         // Assert
-        await _adventureService.Received(1).CloneAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>());
-        Assert.IsType<NotFound>(result);
+        await _adventureService.Received(1).RemoveEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>());
+        result.Should().BeOfType<NotFound>();
     }
 }

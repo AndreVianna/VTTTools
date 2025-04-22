@@ -17,7 +17,6 @@ public class AssetService(
     /// <inheritdoc />
     public async Task<Asset> CreateAssetAsync(Guid userId, CreateAssetRequest request, CancellationToken ct = default) {
         var asset = new Asset {
-            Id = Guid.NewGuid(),
             OwnerId = userId,
             Name = request.Name,
             Type = request.Type,

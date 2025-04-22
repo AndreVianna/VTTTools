@@ -41,37 +41,24 @@ internal static class MeetingHandlers {
         [FromRoute] Guid id,
         [FromBody] UpdateMeetingRequest request,
         [FromServices] IMeetingService meetingService) {
-        try {
-            var userId = EndpointsMapperHelper.GetUserId(context.User);
-            var data = new UpdateMeetingData {
-                Subject = request.Subject,
-            };
-            var result = await meetingService.UpdateMeetingAsync(userId, id, data);
-            return result.Status switch {
-                HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
-                _ => Results.StatusCode((int)result.Status),
-            };
-        }
-        catch (Exception ex) {
-            return Results.InternalServerError(ex);
-        }
+        var userId = EndpointsMapperHelper.GetUserId(context.User);
+        var data = new UpdateMeetingData {
+            Subject = request.Subject,
+        };
+        var result = await meetingService.UpdateMeetingAsync(userId, id, data);
+        return result.Status switch {
+            HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
+            _ => Results.StatusCode((int)result.Status),
+        };
     }
 
     internal static async Task<IResult> DeleteMeetingHandler(
         HttpContext context,
         [FromRoute] Guid id,
         [FromServices] IMeetingService meetingService) {
-        try {
-            var userId = EndpointsMapperHelper.GetUserId(context.User);
-            var result = await meetingService.DeleteMeetingAsync(userId, id);
-            return result.Status switch {
-                HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
-                _ => Results.StatusCode((int)result.Status),
-            };
-        }
-        catch (Exception ex) {
-            return Results.InternalServerError(ex);
-        }
+        var userId = EndpointsMapperHelper.GetUserId(context.User);
+        var result = await meetingService.DeleteMeetingAsync(userId, id);
+        return Results.StatusCode((int)result.Status);
     }
 
     internal static async Task<IResult> JoinMeetingHandler(
@@ -79,31 +66,21 @@ internal static class MeetingHandlers {
         [FromRoute] Guid id,
         [FromBody] JoinMeetingRequest request,
         [FromServices] IMeetingService meetingService) {
-        try {
-            var userId = EndpointsMapperHelper.GetUserId(context.User);
-            var result = await meetingService.JoinMeetingAsync(userId, id, request.JoinAs);
-            return result.Status switch {
-                HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
-                _ => Results.StatusCode((int)result.Status),
-            };
-        }
-        catch (Exception ex) {
-            return Results.InternalServerError(ex);
-        }
+        var userId = EndpointsMapperHelper.GetUserId(context.User);
+        var result = await meetingService.JoinMeetingAsync(userId, id, request.JoinAs);
+        return result.Status switch {
+            HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
+            _ => Results.StatusCode((int)result.Status),
+        };
     }
 
     internal static async Task<IResult> LeaveMeetingHandler(
         HttpContext context,
         [FromRoute] Guid id,
         [FromServices] IMeetingService meetingService) {
-        try {
-            var userId = EndpointsMapperHelper.GetUserId(context.User);
-            var result = await meetingService.LeaveMeetingAsync(userId, id);
-            return Results.StatusCode((int)result.Status);
-        }
-        catch (Exception ex) {
-            return Results.InternalServerError(ex);
-        }
+        var userId = EndpointsMapperHelper.GetUserId(context.User);
+        var result = await meetingService.LeaveMeetingAsync(userId, id);
+        return Results.StatusCode((int)result.Status);
     }
 
     internal static async Task<IResult> ActivateEpisodeHandler(
@@ -111,44 +88,26 @@ internal static class MeetingHandlers {
         [FromRoute] Guid id,
         [FromRoute] Guid episode,
         [FromServices] IMeetingService meetingService) {
-        try {
-            var userId = EndpointsMapperHelper.GetUserId(context.User);
-            var result = await meetingService.SetActiveEpisodeAsync(userId, id, episode);
-            return result.Status switch {
-                HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
-                _ => Results.StatusCode((int)result.Status),
-            };
-        }
-        catch (Exception ex) {
-            return Results.InternalServerError(ex);
-        }
+        var userId = EndpointsMapperHelper.GetUserId(context.User);
+        var result = await meetingService.SetActiveEpisodeAsync(userId, id, episode);
+        return Results.StatusCode((int)result.Status);
     }
 
     internal static async Task<IResult> StartMeetingHandler(
         HttpContext context,
         [FromRoute] Guid id,
         [FromServices] IMeetingService meetingService) {
-        try {
-            var userId = EndpointsMapperHelper.GetUserId(context.User);
-            var result = await meetingService.StartMeetingAsync(userId, id);
-            return Results.StatusCode((int)result.Status);
-        }
-        catch (Exception ex) {
-            return Results.InternalServerError(ex);
-        }
+        var userId = EndpointsMapperHelper.GetUserId(context.User);
+        var result = await meetingService.StartMeetingAsync(userId, id);
+        return Results.StatusCode((int)result.Status);
     }
 
     internal static async Task<IResult> StopMeetingHandler(
         HttpContext context,
         [FromRoute] Guid id,
         [FromServices] IMeetingService meetingService) {
-        try {
-            var userId = EndpointsMapperHelper.GetUserId(context.User);
-            var result = await meetingService.StopMeetingAsync(userId, id);
-            return Results.StatusCode((int)result.Status);
-        }
-        catch (Exception ex) {
-            return Results.InternalServerError(ex);
-        }
+        var userId = EndpointsMapperHelper.GetUserId(context.User);
+        var result = await meetingService.StopMeetingAsync(userId, id);
+        return Results.StatusCode((int)result.Status);
     }
 }

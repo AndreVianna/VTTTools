@@ -7,7 +7,7 @@ public class EpicTests {
         var epic = new Epic();
 
         // Assert
-        epic.Id.Should().BeEmpty();
+        epic.Id.Should().NotBeEmpty();
         epic.OwnerId.Should().BeEmpty();
         epic.TemplateId.Should().BeNull();
         epic.Campaigns.Should().NotBeNull();

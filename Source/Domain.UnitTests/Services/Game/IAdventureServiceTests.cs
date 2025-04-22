@@ -14,7 +14,7 @@ public class IAdventureServiceTests {
                                       m.ReturnType.IsGenericType &&
                                       m.ReturnType.GetGenericTypeDefinition() == typeof(Task<>));
 
-        methods.Should().Contain(m => m.Name == "GetAdventureAsync" &&
+        methods.Should().Contain(m => m.Name == "GetAdventureByIdAsync" &&
                                       m.GetParameters().Length == 2 &&
                                       m.ReturnType.IsGenericType &&
                                       m.ReturnType.GetGenericTypeDefinition() == typeof(Task<>));

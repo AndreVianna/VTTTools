@@ -2,7 +2,7 @@ namespace VttTools.GameService.Extensions;
 
 internal static class WebApplicationBuilderExtensions {
     internal static void ApplyRequiredConfiguration(this IApplicationBuilder app, IWebHostEnvironment environment) {
-        if (!environment.IsDevelopment())
+        if (environment.IsProduction())
             app.UseExceptionHandler();
 
         app.UseHttpsRedirection();
@@ -10,7 +10,7 @@ internal static class WebApplicationBuilderExtensions {
         app.UseRouting();
         app.UseCors();
         app.UseAuthentication();
-        app.UseMiddleware<MyAuthorizationMiddleware>();
+        app.UseMiddleware<UserAuthorizationMiddleware>();
 
         if (environment.IsProduction())
             app.UseHttpsRedirection();

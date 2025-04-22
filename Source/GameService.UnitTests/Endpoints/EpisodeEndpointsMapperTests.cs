@@ -18,10 +18,13 @@ public class EpisodeEndpointsMapperTests {
         _app.Received(1).MapGroup("/api/episodes");
         _app.DataSources.Should().HaveCount(1);
         var groupDataSource = _app.DataSources.First();
-        groupDataSource.Endpoints.Should().HaveCount(4);
+        groupDataSource.Endpoints.Should().HaveCount(7);
         groupDataSource.Endpoints[0].DisplayName.Should().Be("HTTP: GET /api/episodes/{id:guid} => GetEpisodeByIdHandler");
         groupDataSource.Endpoints[1].DisplayName.Should().Be("HTTP: PATCH /api/episodes/{id:guid} => UpdateEpisodeHandler");
         groupDataSource.Endpoints[2].DisplayName.Should().Be("HTTP: DELETE /api/episodes/{id:guid} => DeleteEpisodeHandler");
         groupDataSource.Endpoints[3].DisplayName.Should().Be("HTTP: POST /api/episodes/{id:guid}/clone => CloneEpisodeHandler");
+        groupDataSource.Endpoints[4].DisplayName.Should().Be("HTTP: GET /api/episodes/{id:guid}/assets => GetAssetsHandler");
+        groupDataSource.Endpoints[5].DisplayName.Should().Be("HTTP: POST /api/episodes/{id:guid}/assets/{assetId:guid} => AddAssetHandler");
+        groupDataSource.Endpoints[6].DisplayName.Should().Be("HTTP: DELETE /api/episodes/{id:guid}/assets/{assetId:guid} => RemoveAssetHandler");
     }
 }
