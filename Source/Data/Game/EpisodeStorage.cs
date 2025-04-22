@@ -8,7 +8,6 @@ public class EpisodeStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public Task<Episode[]> GetAllAsync(CancellationToken ct = default)
         => context.Episodes
-                  .Include(e => e.Adventure)
                   .Include(e => e.EpisodeAssets)
                     .ThenInclude(ea => ea.Asset)
                   .AsNoTrackingWithIdentityResolution()
@@ -17,7 +16,6 @@ public class EpisodeStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public Task<Episode[]> GetByParentIdAsync(Guid adventureId, CancellationToken ct = default)
         => context.Episodes
-                  .Include(e => e.Adventure)
                   .Include(e => e.EpisodeAssets)
                     .ThenInclude(ea => ea.Asset)
                   .Where(e => e.ParentId == adventureId)
@@ -27,7 +25,6 @@ public class EpisodeStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public Task<Episode?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => context.Episodes
-                  .Include(e => e.Adventure)
                   .Include(e => e.EpisodeAssets)
                     .ThenInclude(ea => ea.Asset)
                   .AsNoTrackingWithIdentityResolution()

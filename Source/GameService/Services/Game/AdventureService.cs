@@ -57,10 +57,8 @@ public class AdventureService(IAdventureStorage adventureStorage, IEpisodeStorag
     }
 
     /// <inheritdoc />
-    public async Task<Episode[]> GetEpisodesAsync(Guid id, CancellationToken ct = default) {
-        var adventure = await adventureStorage.GetByIdAsync(id, ct);
-        return adventure?.Episodes.ToArray() ?? [];
-    }
+    public Task<Episode[]> GetEpisodesAsync(Guid id, CancellationToken ct = default)
+        => episodeStorage.GetByParentIdAsync(id, ct);
 
     /// <inheritdoc />
     public async Task<bool> AddEpisodeAsync(Guid userId, Guid id, Guid episodeId, CancellationToken ct = default) {

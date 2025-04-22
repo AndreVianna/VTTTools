@@ -189,27 +189,4 @@ public class EpisodeStorageTests : IDisposable {
         var dbEpisode = await _context.Episodes.FindAsync([episode.Id], TestContext.Current.CancellationToken);
         dbEpisode.Should().BeNull();
     }
-
-    [Fact]
-    public async Task GetByIdAsync_IncludesAdventure_ReturnsEpisodeWithAdventure() {
-        // Arrange
-        var adventureId = Guid.NewGuid();
-        var adventure = DbContextHelper.CreateTestAdventure(id: adventureId, name: "Parent Adventure");
-
-        var episodeId = Guid.NewGuid();
-        var episode = DbContextHelper.CreateTestEpisode(id: episodeId, parentId: adventureId);
-
-        await _context.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _context.Episodes.AddAsync(episode, TestContext.Current.CancellationToken);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        // Act
-        var result = await _storage.GetByIdAsync(episodeId, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Adventure.Should().NotBeNull();
-        result.Adventure.Id.Should().Be(adventureId);
-        result.Adventure.Name.Should().Be("Parent Adventure");
-    }
 }
