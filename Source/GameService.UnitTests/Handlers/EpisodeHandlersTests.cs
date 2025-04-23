@@ -236,7 +236,7 @@ public class EpisodeHandlersTests {
         var assetId = Guid.NewGuid();
         var request = new AddEpisodeAssetRequest {
             Name = "Asset Name",
-            Position = new () { Left = 20, Top = 30 },
+            Position = new() { Left = 20, Top = 30 },
             Scale = 1,
         };
 

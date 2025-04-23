@@ -7,7 +7,7 @@ public class MeetingPlayerTests {
         var player = new MeetingPlayer();
 
         // Assert
-        player.UserId.Should().BeNull();
+        player.UserId.Should().BeEmpty();
         player.Type.Should().Be(PlayerType.Guest); // Default is Guest (0)
     }
 

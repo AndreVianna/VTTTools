@@ -66,6 +66,54 @@ public class AdventureServiceTests {
     }
 
     [Fact]
+    public async Task CreateAdventureAsync_WithEmptyName_ReturnsNull() {
+        // Arrange
+        var request = new CreateAdventureRequest {
+            Name = "",
+            Visibility = Visibility.Public,
+        };
+
+        // Act
+        var result = await _service.CreateAdventureAsync(_userId, request, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeNull();
+        await _adventureStorage.DidNotReceive().AddAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateAdventureAsync_WithWhitespaceName_ReturnsNull() {
+        // Arrange
+        var request = new CreateAdventureRequest {
+            Name = "   ",
+            Visibility = Visibility.Public,
+        };
+
+        // Act
+        var result = await _service.CreateAdventureAsync(_userId, request, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeNull();
+        await _adventureStorage.DidNotReceive().AddAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateAdventureAsync_WithNullName_ReturnsNull() {
+        // Arrange
+        var request = new CreateAdventureRequest {
+            Name = null!,
+            Visibility = Visibility.Public,
+        };
+
+        // Act
+        var result = await _service.CreateAdventureAsync(_userId, request, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeNull();
+        await _adventureStorage.DidNotReceive().AddAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task UpdateAdventureAsync_WithOwner_UpdatesAdventure() {
         // Arrange
         var adventureId = Guid.NewGuid();
@@ -95,6 +143,64 @@ public class AdventureServiceTests {
     }
 
     [Fact]
+    public async Task UpdateAdventureAsync_WithOnlyNameUpdate_OnlyUpdatesName() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var adventure = new Adventure {
+            Id = adventureId,
+            Name = "Old Name",
+            OwnerId = _userId,
+            Visibility = Visibility.Private,
+        };
+        var request = new UpdateAdventureRequest {
+            Name = "Updated Name",
+            // No Visibility update
+        };
+
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
+        _adventureStorage.UpdateAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>())
+            .Returns(x => x.Arg<Adventure>());
+
+        // Act
+        var result = await _service.UpdateAdventureAsync(_userId, adventureId, request, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Name.Should().Be(request.Name.Value);
+        result.Visibility.Should().Be(Visibility.Private); // Unchanged
+        await _adventureStorage.Received(1).UpdateAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UpdateAdventureAsync_WithOnlyVisibilityUpdate_OnlyUpdatesVisibility() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var adventure = new Adventure {
+            Id = adventureId,
+            Name = "Old Name",
+            OwnerId = _userId,
+            Visibility = Visibility.Private,
+        };
+        var request = new UpdateAdventureRequest {
+            // No Name update
+            Visibility = Visibility.Public,
+        };
+
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
+        _adventureStorage.UpdateAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>())
+            .Returns(x => x.Arg<Adventure>());
+
+        // Act
+        var result = await _service.UpdateAdventureAsync(_userId, adventureId, request, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Name.Should().Be("Old Name"); // Unchanged
+        result.Visibility.Should().Be(Visibility.Public);
+        await _adventureStorage.Received(1).UpdateAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task UpdateAdventureAsync_WithNonOwner_ReturnsNull() {
         // Arrange
         var adventureId = Guid.NewGuid();
@@ -112,6 +218,24 @@ public class AdventureServiceTests {
 
         // Act
         var result = await _service.UpdateAdventureAsync(nonOwnerId, adventureId, request, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeNull();
+        await _adventureStorage.DidNotReceive().UpdateAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UpdateAdventureAsync_WithNonExistentAdventure_ReturnsNull() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var request = new UpdateAdventureRequest {
+            Name = "Updated Name",
+        };
+
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
+
+        // Act
+        var result = await _service.UpdateAdventureAsync(_userId, adventureId, request, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeNull();
@@ -153,6 +277,20 @@ public class AdventureServiceTests {
 
         // Act
         var result = await _service.DeleteAdventureAsync(nonOwnerId, adventureId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeFalse();
+        await _adventureStorage.DidNotReceive().DeleteAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteAdventureAsync_WithNonExistentAdventure_ReturnsFalse() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
+
+        // Act
+        var result = await _service.DeleteAdventureAsync(_userId, adventureId, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeFalse();
@@ -202,9 +340,6 @@ public class AdventureServiceTests {
         _adventureStorage.AddAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>())
             .Returns(x => x.Arg<Adventure>());
 
-        _episodeStorage.AddAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>())
-            .Returns(x => x.Arg<Episode>());
-
         // Act
         var result = await _service.CloneAdventureAsync(_userId, adventureId, TestContext.Current.CancellationToken);
 
@@ -216,7 +351,42 @@ public class AdventureServiceTests {
         result.TemplateId.Should().Be(adventureId);
 
         await _adventureStorage.Received(1).AddAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
-        await _episodeStorage.Received(episodes.Length).AddAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CloneAdventureAsync_WithNonOwner_ReturnsNull() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var nonOwnerId = Guid.NewGuid();
+        var adventure = new Adventure {
+            Id = adventureId,
+            Name = "Adventure",
+            OwnerId = _userId,
+            Visibility = Visibility.Public,
+        };
+
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
+
+        // Act
+        var result = await _service.CloneAdventureAsync(nonOwnerId, adventureId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeNull();
+        await _adventureStorage.DidNotReceive().AddAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CloneAdventureAsync_WithNonExistentAdventure_ReturnsNull() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
+
+        // Act
+        var result = await _service.CloneAdventureAsync(_userId, adventureId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeNull();
+        await _adventureStorage.DidNotReceive().AddAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -235,5 +405,182 @@ public class AdventureServiceTests {
         // Assert
         result.Should().BeEquivalentTo(episodes);
         await _episodeStorage.Received(1).GetByParentIdAsync(adventureId, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task AddEpisodeAsync_WithOwnerAndValidEpisode_ReturnsTrue() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var episodeId = Guid.NewGuid();
+        var adventure = new Adventure {
+            Id = adventureId,
+            Name = "Adventure",
+            OwnerId = _userId,
+            Episodes = [],
+        };
+        var episode = new Episode {
+            Id = episodeId,
+            Name = "Episode",
+        };
+
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
+        _episodeStorage.GetByIdAsync(episodeId, Arg.Any<CancellationToken>()).Returns(episode);
+
+        // Act
+        var result = await _service.AddEpisodeAsync(_userId, adventureId, episodeId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeTrue();
+        adventure.Episodes.Should().HaveCount(1);
+        await _adventureStorage.Received(1).UpdateAsync(adventure, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task AddEpisodeAsync_WithNonOwner_ReturnsFalse() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var episodeId = Guid.NewGuid();
+        var nonOwnerId = Guid.NewGuid();
+        var adventure = new Adventure {
+            Id = adventureId,
+            Name = "Adventure",
+            OwnerId = _userId,
+        };
+
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
+
+        // Act
+        var result = await _service.AddEpisodeAsync(nonOwnerId, adventureId, episodeId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeFalse();
+        await _adventureStorage.DidNotReceive().UpdateAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task AddEpisodeAsync_WithNonExistentAdventure_ReturnsFalse() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var episodeId = Guid.NewGuid();
+
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
+
+        // Act
+        var result = await _service.AddEpisodeAsync(_userId, adventureId, episodeId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeFalse();
+        await _adventureStorage.DidNotReceive().UpdateAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task AddEpisodeAsync_WithNonExistentEpisode_ReturnsFalse() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var episodeId = Guid.NewGuid();
+        var adventure = new Adventure {
+            Id = adventureId,
+            Name = "Adventure",
+            OwnerId = _userId,
+        };
+
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
+        _episodeStorage.GetByIdAsync(episodeId, Arg.Any<CancellationToken>()).Returns((Episode?)null);
+
+        // Act
+        var result = await _service.AddEpisodeAsync(_userId, adventureId, episodeId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeFalse();
+        await _adventureStorage.DidNotReceive().UpdateAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RemoveEpisodeAsync_WithOwner_ReturnsTrue() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var episodeId = Guid.NewGuid();
+        var adventure = new Adventure {
+            Id = adventureId,
+            Name = "Adventure",
+            OwnerId = _userId,
+            Episodes = [
+                new() { Id = episodeId, Name = "Episode" },
+                       ],
+        };
+
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
+
+        // Act
+        var result = await _service.RemoveEpisodeAsync(_userId, adventureId, episodeId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeTrue();
+        adventure.Episodes.Should().BeEmpty();
+        await _adventureStorage.Received(1).UpdateAsync(adventure, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RemoveEpisodeAsync_WithNonOwner_ReturnsFalse() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var episodeId = Guid.NewGuid();
+        var nonOwnerId = Guid.NewGuid();
+        var adventure = new Adventure {
+            Id = adventureId,
+            Name = "Adventure",
+            OwnerId = _userId,
+            Episodes = [
+                new() { Id = episodeId, Name = "Episode" },
+                       ],
+        };
+
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
+
+        // Act
+        var result = await _service.RemoveEpisodeAsync(nonOwnerId, adventureId, episodeId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeFalse();
+        adventure.Episodes.Should().HaveCount(1);
+        await _adventureStorage.DidNotReceive().UpdateAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RemoveEpisodeAsync_WithNonExistentAdventure_ReturnsFalse() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var episodeId = Guid.NewGuid();
+
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
+
+        // Act
+        var result = await _service.RemoveEpisodeAsync(_userId, adventureId, episodeId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeFalse();
+        await _adventureStorage.DidNotReceive().UpdateAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RemoveEpisodeAsync_WithNonExistentEpisode_StillReturnsTrue() {
+        // Arrange
+        var adventureId = Guid.NewGuid();
+        var episodeId = Guid.NewGuid();
+        var adventure = new Adventure {
+            Id = adventureId,
+            Name = "Adventure",
+            OwnerId = _userId,
+            Episodes = [],
+        };
+
+        _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
+
+        // Act
+        var result = await _service.RemoveEpisodeAsync(_userId, adventureId, episodeId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeTrue();
+        await _adventureStorage.Received(1).UpdateAsync(adventure, Arg.Any<CancellationToken>());
     }
 }

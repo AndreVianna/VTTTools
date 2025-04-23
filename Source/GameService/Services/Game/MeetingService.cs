@@ -64,7 +64,7 @@ public class MeetingService(IMeetingStorage storage)
         if (meeting is null)
             return TypedResult.As(HttpStatusCode.NotFound);
 
-        if (meeting.Players.Any(p => p.UserId == userId))
+        if (meeting.Players.Any(p => IsInMeeting(p, userId)))
             return TypedResult.As(HttpStatusCode.NoContent);
 
         meeting.Players.Add(new() { UserId = userId, Type = joinAs });
@@ -77,7 +77,7 @@ public class MeetingService(IMeetingStorage storage)
         if (meeting is null)
             return TypedResult.As(HttpStatusCode.NotFound);
 
-        meeting.Players.RemoveWhere(p => p.UserId == userId);
+        meeting.Players.RemoveWhere(p => IsInMeeting(p, userId));
         await storage.UpdateAsync(meeting, ct);
         return TypedResult.As(HttpStatusCode.NoContent);
     }
@@ -87,8 +87,7 @@ public class MeetingService(IMeetingStorage storage)
         if (meeting is null)
             return TypedResult.As(HttpStatusCode.NotFound);
 
-        var isGameMaster = meeting.OwnerId == userId ||
-                           meeting.Players.Any(p => p.UserId == userId && p.Type == PlayerType.Master);
+        var isGameMaster = meeting.Players.Any(p => IsMeetingGameMaster(p, userId));
         if (!isGameMaster)
             return TypedResult.As(HttpStatusCode.Forbidden);
 
@@ -102,8 +101,7 @@ public class MeetingService(IMeetingStorage storage)
         if (meeting is null)
             return TypedResult.As(HttpStatusCode.NotFound);
 
-        var isGameMaster = meeting.OwnerId == userId ||
-                           meeting.Players.Any(p => p.UserId == userId && p.Type == PlayerType.Master);
+        var isGameMaster = meeting.Players.Any(p => IsMeetingGameMaster(p, userId));
         if (!isGameMaster)
             return TypedResult.As(HttpStatusCode.Forbidden);
 
@@ -117,8 +115,7 @@ public class MeetingService(IMeetingStorage storage)
         if (meeting is null)
             return TypedResult.As(HttpStatusCode.NotFound);
 
-        var isGameMaster = meeting.OwnerId == userId ||
-                           meeting.Players.Any(p => p.UserId == userId && p.Type == PlayerType.Master);
+        var isGameMaster = meeting.Players.Any(p => IsMeetingGameMaster(p, userId));
         if (!isGameMaster)
             return TypedResult.As(HttpStatusCode.Forbidden);
 
@@ -126,4 +123,9 @@ public class MeetingService(IMeetingStorage storage)
         // For now this is just a placeholder
         return TypedResult.As(HttpStatusCode.NoContent);
     }
+
+    private static bool IsInMeeting(MeetingPlayer player, Guid userId)
+        => player.UserId == userId;
+    private static bool IsMeetingGameMaster(MeetingPlayer player, Guid userId)
+        => IsInMeeting(player, userId) && player.Type == PlayerType.Master;
 }

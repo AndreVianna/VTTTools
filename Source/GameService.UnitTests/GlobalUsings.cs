@@ -1,5 +1,6 @@
 ﻿global using System.Diagnostics.CodeAnalysis;
 global using System.Net;
+global using System.Reflection;
 global using System.Security.Claims;
 global using System.Text;
 global using System.Text.Json;
@@ -16,6 +17,7 @@ global using FluentAssertions;
 
 global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Builder;
+global using Microsoft.AspNetCore.Diagnostics;
 global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Http.HttpResults;
@@ -28,6 +30,7 @@ global using Microsoft.Extensions.Logging.Abstractions;
 global using Microsoft.Extensions.Primitives;
 
 global using NSubstitute;
+global using NSubstitute.Core;
 
 global using VttTools.Contracts.Game;
 global using VttTools.Data.Game;

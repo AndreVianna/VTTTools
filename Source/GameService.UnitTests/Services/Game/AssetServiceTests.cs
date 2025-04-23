@@ -207,4 +207,36 @@ public class AssetServiceTests {
         result.Should().BeFalse();
         await _assetStorage.DidNotReceive().DeleteAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task DeleteAssetAsync_WithNonExistentAsset_ReturnsFalse() {
+        // Arrange
+        var assetId = Guid.NewGuid();
+        _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns((Asset?)null);
+
+        // Act
+        var result = await _service.DeleteAssetAsync(_userId, assetId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeFalse();
+        await _assetStorage.DidNotReceive().DeleteAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UpdateAssetAsync_WithNonExistentAsset_ReturnsNull() {
+        // Arrange
+        var assetId = Guid.NewGuid();
+        var request = new UpdateAssetRequest {
+            Name = "Updated Name",
+        };
+
+        _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns((Asset?)null);
+
+        // Act
+        var result = await _service.UpdateAssetAsync(_userId, assetId, request, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().BeNull();
+        await _assetStorage.DidNotReceive().UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
+    }
 }

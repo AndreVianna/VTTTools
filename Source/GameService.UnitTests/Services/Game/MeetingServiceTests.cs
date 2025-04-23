@@ -304,6 +304,337 @@ public class MeetingServiceTests {
     }
 
     [Fact]
+    public async Task LeaveMeetingAsync_WithNonExistentMeeting_ReturnsNotFound() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns((Meeting?)null);
+
+        // Act
+        var result = await _service.LeaveMeetingAsync(_userId, meetingId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task JoinMeetingAsync_WithNonExistentMeeting_ReturnsNotFound() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns((Meeting?)null);
+
+        // Act
+        var result = await _service.JoinMeetingAsync(_userId, meetingId, PlayerType.Player, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task UpdateMeetingAsync_WithEmptyData_ForNonExistentMeeting_ReturnsNotFound() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        var data = new UpdateMeetingData();
+
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns((Meeting?)null);
+
+        // Act
+        var result = await _service.UpdateMeetingAsync(_userId, meetingId, data, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.NotFound);
+        await _meetingStorage.DidNotReceive().UpdateAsync(Arg.Any<Meeting>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UpdateMeetingAsync_WithValidData_OnlyUpdatesSetFields() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        var episodeId = Guid.NewGuid();
+        var meeting = new Meeting {
+            Id = meetingId,
+            Subject = "Original Subject",
+            OwnerId = _userId,
+            EpisodeId = episodeId,
+        };
+
+        // Empty update data with nothing set
+        var data = new UpdateMeetingData();
+
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
+
+        // Act
+        var result = await _service.UpdateMeetingAsync(_userId, meetingId, data, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.NoContent);
+
+        // Verify no properties were changed
+        meeting.Subject.Should().Be("Original Subject");
+        meeting.EpisodeId.Should().Be(episodeId);
+
+        await _meetingStorage.Received(1).UpdateAsync(meeting, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task LeaveMeetingAsync_WithPlayerNotInMeeting_StillReturnsSuccess() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        var otherPlayerId = Guid.NewGuid();
+        var nonMemberPlayerId = Guid.NewGuid(); // This user is not in the meeting
+        var meeting = new Meeting {
+            Id = meetingId,
+            Subject = "Meeting",
+            OwnerId = _userId,
+            Players = [
+                new MeetingPlayer { UserId = _userId, Type = PlayerType.Master },
+                new MeetingPlayer { UserId = otherPlayerId, Type = PlayerType.Player },
+            ],
+        };
+
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
+
+        // Act
+        var result = await _service.LeaveMeetingAsync(nonMemberPlayerId, meetingId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.NoContent);
+        meeting.Players.Should().HaveCount(2); // Players unchanged
+        await _meetingStorage.Received(1).UpdateAsync(meeting, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteMeetingAsync_WithNonExistentMeeting_ReturnsNotFound() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns((Meeting?)null);
+
+        // Act
+        var result = await _service.DeleteMeetingAsync(_userId, meetingId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.NotFound);
+        await _meetingStorage.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task LeaveMeetingAsync_WithPlayerInMeeting_RemovesPlayer() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        var playerIdToRemove = Guid.NewGuid();
+        var anotherPlayerId = Guid.NewGuid();
+        var meeting = new Meeting {
+            Id = meetingId,
+            Subject = "Meeting",
+            OwnerId = _userId,
+            Players = [
+                new MeetingPlayer { UserId = _userId, Type = PlayerType.Master },
+                new MeetingPlayer { UserId = playerIdToRemove, Type = PlayerType.Player },
+                new MeetingPlayer { UserId = anotherPlayerId, Type = PlayerType.Player },
+            ],
+        };
+
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
+
+        // Act
+        var result = await _service.LeaveMeetingAsync(playerIdToRemove, meetingId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.NoContent);
+        meeting.Players.Should().HaveCount(2);
+        meeting.Players.Should().NotContain(p => p.UserId == playerIdToRemove);
+        meeting.Players.Should().Contain(p => p.UserId == _userId);
+        meeting.Players.Should().Contain(p => p.UserId == anotherPlayerId);
+        await _meetingStorage.Received(1).UpdateAsync(meeting, Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task UpdateMeetingAsync_WithInvalidData_ReturnsBadRequest(string? subject) {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        var data = new UpdateMeetingData {
+            Subject = subject!,
+        };
+
+        // Act
+        var result = await _service.UpdateMeetingAsync(_userId, meetingId, data, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.BadRequest);
+        // The validation errors are in the result
+        await _meetingStorage.DidNotReceive().GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        await _meetingStorage.DidNotReceive().UpdateAsync(Arg.Any<Meeting>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task StartMeetingAsync_AsGameMaster_Succeeds() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        var meeting = new Meeting {
+            Id = meetingId,
+            Subject = "Meeting",
+            OwnerId = _userId,
+            Players = [
+                new MeetingPlayer { UserId = _userId, Type = PlayerType.Master },
+                new MeetingPlayer { UserId = Guid.NewGuid(), Type = PlayerType.Player }],
+        };
+
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
+
+        // Act
+        var result = await _service.StartMeetingAsync(_userId, meetingId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task StopMeetingAsync_AsGameMaster_Succeeds() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        var meeting = new Meeting {
+            Id = meetingId,
+            Subject = "Meeting",
+            OwnerId = _userId,
+            Players = [
+                new MeetingPlayer { UserId = _userId, Type = PlayerType.Master },
+                new MeetingPlayer { UserId = Guid.NewGuid(), Type = PlayerType.Player }],
+        };
+
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
+
+        // Act
+        var result = await _service.StopMeetingAsync(_userId, meetingId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task StartMeetingAsync_WithNonExistentMeeting_ReturnsNotFound() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns((Meeting?)null);
+
+        // Act
+        var result = await _service.StartMeetingAsync(_userId, meetingId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task StartMeetingAsync_AsNonGameMaster_ReturnsForbidden() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        var nonGmId = Guid.NewGuid();
+        var meeting = new Meeting {
+            Id = meetingId,
+            Subject = "Meeting",
+            OwnerId = _userId,
+            Players = [
+                new MeetingPlayer { UserId = _userId, Type = PlayerType.Master },
+                new MeetingPlayer { UserId = nonGmId, Type = PlayerType.Player },
+            ],
+        };
+
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
+
+        // Act
+        var result = await _service.StartMeetingAsync(nonGmId, meetingId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task StartMeetingAsync_PlayerNotInMeeting_ReturnsForbidden() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        var gmId = Guid.NewGuid();
+        var meeting = new Meeting {
+            Id = meetingId,
+            Subject = "Meeting",
+            OwnerId = _userId, // Different from the game master
+            Players = [
+                new MeetingPlayer { UserId = gmId, Type = PlayerType.Master },
+                new MeetingPlayer { UserId = _userId, Type = PlayerType.Player },
+            ],
+        };
+
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
+
+        // Act
+        var result = await _service.StartMeetingAsync(_userId, meetingId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task StopMeetingAsync_WithNonExistentMeeting_ReturnsNotFound() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns((Meeting?)null);
+
+        // Act
+        var result = await _service.StopMeetingAsync(_userId, meetingId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task StopMeetingAsync_AsNonGameMaster_ReturnsForbidden() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        var nonGmId = Guid.NewGuid();
+        var meeting = new Meeting {
+            Id = meetingId,
+            Subject = "Meeting",
+            OwnerId = _userId,
+            Players = [
+                new MeetingPlayer { UserId = _userId, Type = PlayerType.Master },
+                new MeetingPlayer { UserId = nonGmId, Type = PlayerType.Player },
+                      ],
+        };
+
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
+
+        // Act
+        var result = await _service.StopMeetingAsync(nonGmId, meetingId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task StopMeetingAsync_PlayerNotInMeeting_ReturnsForbidden() {
+        // Arrange
+        var meetingId = Guid.NewGuid();
+        var gmId = Guid.NewGuid();
+        var meeting = new Meeting {
+            Id = meetingId,
+            Subject = "Meeting",
+            OwnerId = _userId, // Different from the game master
+            Players = [
+                new MeetingPlayer { UserId = gmId, Type = PlayerType.Master },
+                new MeetingPlayer { UserId = _userId, Type = PlayerType.Player },
+            ],
+        };
+
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
+
+        // Act
+        var result = await _service.StopMeetingAsync(_userId, meetingId, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Status.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
     public async Task SetActiveEpisodeAsync_AsGameMaster_UpdatesEpisode() {
         // Arrange
         var meetingId = Guid.NewGuid();
@@ -341,7 +672,7 @@ public class MeetingServiceTests {
             Players = [
                 new MeetingPlayer { UserId = _userId, Type = PlayerType.Master },
                 new MeetingPlayer { UserId = playerId, Type = PlayerType.Player },
-                      ],
+            ],
         };
 
         _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
@@ -355,42 +686,43 @@ public class MeetingServiceTests {
     }
 
     [Fact]
-    public async Task StartMeetingAsync_AsGameMaster_Succeeds() {
+    public async Task SetActiveEpisodeAsync_WithNonExistingMeeting_ReturnsNotFound() {
         // Arrange
         var meetingId = Guid.NewGuid();
-        var meeting = new Meeting {
-            Id = meetingId,
-            Subject = "Meeting",
-            OwnerId = _userId,
-            Players = [new MeetingPlayer { UserId = _userId, Type = PlayerType.Master }],
-        };
-
-        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
+        var episodeId = Guid.NewGuid();
+        _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns((Meeting?)null);
 
         // Act
-        var result = await _service.StartMeetingAsync(_userId, meetingId, TestContext.Current.CancellationToken);
+        var result = await _service.SetActiveEpisodeAsync(_userId, meetingId, episodeId, TestContext.Current.CancellationToken);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NoContent);
+        result.Status.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
-    public async Task StopMeetingAsync_AsGameMaster_Succeeds() {
+    public async Task SetActiveEpisodeAsync_AsPlayerNotInMeeting_ReturnsNotFound() {
         // Arrange
         var meetingId = Guid.NewGuid();
+        var newEpisodeId = Guid.NewGuid();
+        var playerId = Guid.NewGuid();
         var meeting = new Meeting {
             Id = meetingId,
             Subject = "Meeting",
             OwnerId = _userId,
-            Players = [new MeetingPlayer { UserId = _userId, Type = PlayerType.Master }],
+            EpisodeId = Guid.NewGuid(),
+            Players = [
+                new MeetingPlayer { UserId = _userId, Type = PlayerType.Master },
+                new MeetingPlayer { UserId = Guid.NewGuid(), Type = PlayerType.Player },
+            ],
         };
 
         _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
 
         // Act
-        var result = await _service.StopMeetingAsync(_userId, meetingId, TestContext.Current.CancellationToken);
+        var result = await _service.SetActiveEpisodeAsync(playerId, meetingId, newEpisodeId, TestContext.Current.CancellationToken);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NoContent);
+        result.Status.Should().Be(HttpStatusCode.Forbidden);
+        await _meetingStorage.DidNotReceive().UpdateAsync(Arg.Any<Meeting>(), Arg.Any<CancellationToken>());
     }
 }

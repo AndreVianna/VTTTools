@@ -5,10 +5,10 @@ public class AddEpisodeAssetRequestTests {
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
         var original = new AddEpisodeAssetRequest {
-                                                      Name = "Asset Name",
-                                                      Position = new() { Left = 10, Top = 20 },
-                                                      Scale = 1.5,
-                                                  };
+            Name = "Asset Name",
+            Position = new() { Left = 10, Top = 20 },
+            Scale = 1.5,
+        };
         const string name = "Other Name";
         var position = new Position { Left = 10, Top = 20 };
         const double scale = 0.5;
@@ -16,10 +16,10 @@ public class AddEpisodeAssetRequestTests {
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers
         var data = original with {
-                                     Name = name,
-                                     Position = position,
-                                     Scale = scale,
-                                 };
+            Name = name,
+            Position = position,
+            Scale = scale,
+        };
 
         // Assert
         data.Name.Should().Be(name);
