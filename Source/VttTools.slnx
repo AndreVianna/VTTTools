@@ -8,5 +8,6 @@
   <Project Path="Domain/VttTools.Domain.csproj" Id="e528bbc3-1c26-8c35-f682-23718816adcd" />
   <Project Path="GameService.UnitTests/VttTools.GameService.UnitTests.csproj" Id="c78bee63-1af2-4e6f-8d7d-56ca4f6213af" />
   <Project Path="GameService/VttTools.GameService.csproj" Id="8b0f618c-e22e-3656-a10e-5e15ca8d75e1" />
+  <Project Path="WebApp.UnitTests/VttTools.WebApp.UnitTests.csproj" Id="d9c7ce93-8a8e-49a0-a8f5-17fbbde7993a" />
   <Project Path="WebApp/VttTools.WebApp.csproj" Id="3215f6cf-a442-1c21-6ad3-94ed23f4eba5" />
 </Solution>

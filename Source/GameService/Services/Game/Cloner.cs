@@ -1,30 +1,30 @@
 namespace VttTools.GameService.Services.Game;
 
 public static class Cloner {
-    internal static Adventure CloneAdventure(Adventure original, Guid? campaignId, Guid ownerId) {
+    internal static Adventure CloneAdventure(Adventure original, Guid ownerId) {
         var clone = new Adventure {
             OwnerId = ownerId,
-            ParentId = campaignId,
+            ParentId = original.ParentId,
             Name = original.Name,
             Visibility = original.Visibility,
             TemplateId = original.Id,
         };
         foreach (var ep in original.Episodes)
-            clone.Episodes.Add(CloneEpisode(ep, clone.Id, ownerId));
+            clone.Episodes.Add(CloneEpisode(ep, ownerId, clone.Id));
         return clone;
     }
 
-    internal static Episode CloneEpisode(Episode original, Guid adventureId, Guid ownerId) {
+    internal static Episode CloneEpisode(Episode original, Guid ownerId, Guid? parentId = null) {
         var clone = new Episode {
             OwnerId = ownerId,
-            ParentId = adventureId,
+            ParentId = parentId ?? original.ParentId,
             Name = original.Name,
             Visibility = original.Visibility,
             TemplateId = original.Id,
             Stage = CloneStage(original.Stage),
         };
         foreach (var ea in original.EpisodeAssets)
-            clone.EpisodeAssets.Add(CloneEpisodeAsset(original, ea));
+            clone.EpisodeAssets.Add(CloneEpisodeAsset(ea, clone.Id));
         return clone;
     }
 
@@ -54,14 +54,14 @@ public static class Cloner {
             Top = original.Top,
         };
 
-    internal static EpisodeAsset CloneEpisodeAsset(Episode ep, EpisodeAsset ea)
+    internal static EpisodeAsset CloneEpisodeAsset(EpisodeAsset original, Guid? episodeId = null)
         => new() {
-            EpisodeId = ep.Id,
-            AssetId = ea.AssetId,
-            Name = ea.Name,
-            Position = ClonePosition(ea.Position),
-            Scale = ea.Scale,
-            IsLocked = ea.IsLocked,
-            ControlledBy = ea.ControlledBy,
+            EpisodeId = episodeId ?? original.EpisodeId,
+            AssetId = original.AssetId,
+            Name = original.Name,
+            Position = ClonePosition(original.Position),
+            Scale = original.Scale,
+            IsLocked = original.IsLocked,
+            ControlledBy = original.ControlledBy,
         };
 }

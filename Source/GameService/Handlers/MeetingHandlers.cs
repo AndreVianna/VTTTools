@@ -31,7 +31,7 @@ internal static class MeetingHandlers {
         [FromRoute] Guid id,
         [FromServices] IMeetingService meetingService) {
         var userId = EndpointsMapperHelper.GetUserId(context.User);
-        return await meetingService.GetMeetingAsync(userId, id) is { } meeting
+        return await meetingService.GetMeetingByIdAsync(userId, id) is { } meeting
             ? Results.Ok(meeting)
             : Results.NotFound();
     }

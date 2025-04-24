@@ -1,4 +1,5 @@
-using VttTools.WebApp.Services;
+using VttTools.WebApp.Extensions;
+using VttTools.WebApp.Utilities;
 
 using static VttTools.Data.Options.ApplicationDbContextOptions;
 
@@ -20,6 +21,7 @@ internal static class Program {
         });
 
         builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<IGameServiceClient, GameServiceClient>();
 
         AddDefaultHealthChecks();
         builder.AddRedisOutputCache("redis");

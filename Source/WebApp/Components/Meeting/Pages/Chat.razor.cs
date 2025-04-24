@@ -1,38 +1,18 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
-
 namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public partial class Chat {
-    private HubConnection? _hubConnection;
-    private readonly List<string> _messages = [];
-    private string? _newMessage;
+    private readonly Handler _handler = new();
 
-    [Inject]
-    private NavigationManager NavigationManager { get; set; } = null!;
+    internal PageState State { get; init; } = new();
 
     protected override async Task OnInitializedAsync() {
-        _hubConnection = new HubConnectionBuilder()
-                       .WithUrl(NavigationManager.ToAbsoluteUri("/hubs/chat"))
-                       .Build();
-
-        _hubConnection.On<string>("ReceiveMessage",
-                                 (message) => {
-                                     _messages.Add(message);
-                                     InvokeAsync(StateHasChanged);
-                                 });
-
-        await _hubConnection.StartAsync();
+        await base.OnInitializedAsync();
+        await _handler.InitializeAsync(GetAbsolutePath("/hubs/chat"), State, RefreshAsync);
     }
 
-    private async Task SendMessage() {
-        if (!string.IsNullOrEmpty(_newMessage)) {
-            await _hubConnection!.SendAsync("SendMessage", _newMessage);
-            _newMessage = string.Empty;
-        }
-    }
+    internal Task SendMessage()
+        => _handler.SendMessage();
 
-    public async ValueTask DisposeAsync() {
-        if (_hubConnection is not null)
-            await _hubConnection.DisposeAsync();
-    }
+    public ValueTask DisposeAsync()
+        => _handler.DisposeAsync();
 }

@@ -11,27 +11,39 @@ public class EpisodeService(IEpisodeStorage episodeStorage)
         => episodeStorage.GetByIdAsync(id, ct);
 
     /// <inheritdoc />
-    public async Task<Episode?> CreateEpisodeAsync(Guid userId, CreateEpisodeRequest request, CancellationToken ct = default) {
+    public async Task<Episode?> CreateEpisodeAsync(Guid userId, CreateEpisodeRequest data, CancellationToken ct = default) {
         var episode = new Episode {
-            Id = Guid.NewGuid(),
             OwnerId = userId,
-            ParentId = request.AdventureId ?? Guid.Empty,
-            Name = request.Name,
-            Visibility = request.Visibility,
+            ParentId = data.AdventureId,
+            Name = data.Name,
+            Visibility = data.Visibility,
             IsTemplate = true,
         };
         return await episodeStorage.AddAsync(episode, ct);
     }
 
     /// <inheritdoc />
-    public async Task<Episode?> UpdateEpisodeAsync(Guid userId, Guid id, UpdateEpisodeRequest request, CancellationToken ct = default) {
+    public async Task<Episode?> CloneEpisodeAsync(Guid userId, Guid templateId, CloneEpisodeRequest data, CancellationToken ct = default) {
+        var original = await episodeStorage.GetByIdAsync(templateId, ct);
+        if (original is null || original.OwnerId != userId)
+            return null;
+        var clone = Cloner.CloneEpisode(original, userId);
+        if (data.AdventureId.IsSet)
+            clone.ParentId = data.AdventureId.Value;
+        if (data.Name.IsSet)
+            clone.Name = data.Name.Value;
+        return await episodeStorage.AddAsync(clone, ct);
+    }
+
+    /// <inheritdoc />
+    public async Task<Episode?> UpdateEpisodeAsync(Guid userId, Guid id, UpdateEpisodeRequest data, CancellationToken ct = default) {
         var episode = await episodeStorage.GetByIdAsync(id, ct);
         if (episode is null || episode.OwnerId != userId)
             return null;
-        if (request.Name.IsSet)
-            episode.Name = request.Name.Value;
-        if (request.Visibility.IsSet)
-            episode.Visibility = request.Visibility.Value;
+        if (data.Name.IsSet)
+            episode.Name = data.Name.Value;
+        if (data.Visibility.IsSet)
+            episode.Visibility = data.Visibility.Value;
         return await episodeStorage.UpdateAsync(episode, ct);
     }
 
@@ -42,15 +54,6 @@ public class EpisodeService(IEpisodeStorage episodeStorage)
             return false;
         await episodeStorage.DeleteAsync(episode, ct);
         return true;
-    }
-
-    /// <inheritdoc />
-    public async Task<Episode?> CloneEpisodeAsync(Guid userId, Guid id, CancellationToken ct = default) {
-        var original = await episodeStorage.GetByIdAsync(id, ct);
-        if (original is null || original.OwnerId != userId)
-            return null;
-        var clone = Cloner.CloneEpisode(original, id, userId);
-        return await episodeStorage.AddAsync(clone, ct);
     }
 
     /// <inheritdoc />

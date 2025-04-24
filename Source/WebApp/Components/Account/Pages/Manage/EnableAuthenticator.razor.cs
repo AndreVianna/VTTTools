@@ -1,4 +1,6 @@
-﻿namespace VttTools.WebApp.Components.Account.Pages.Manage;
+﻿using VttTools.WebApp.Utilities;
+
+namespace VttTools.WebApp.Components.Account.Pages.Manage;
 
 public partial class EnableAuthenticator {
     private static readonly CompositeFormat _authenticatorUriFormat = CompositeFormat.Parse("otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6");

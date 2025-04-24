@@ -15,7 +15,7 @@ public class AssetService(
         => assetStorage.GetByIdAsync(assetId, ct);
 
     /// <inheritdoc />
-    public async Task<Asset> CreateAssetAsync(Guid userId, CreateAssetRequest request, CancellationToken ct = default) {
+    public Task<Asset> CreateAssetAsync(Guid userId, CreateAssetRequest request, CancellationToken ct = default) {
         var asset = new Asset {
             OwnerId = userId,
             Name = request.Name,
@@ -23,7 +23,7 @@ public class AssetService(
             Source = request.Source,
             Visibility = request.Visibility
         };
-        return await assetStorage.AddAsync(asset, ct);
+        return assetStorage.AddAsync(asset, ct);
     }
 
     /// <inheritdoc />

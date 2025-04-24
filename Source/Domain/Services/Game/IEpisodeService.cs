@@ -14,12 +14,12 @@ public interface IEpisodeService {
     /// <summary>
     /// Creates a new episode template.
     /// </summary>
-    Task<Episode?> CreateEpisodeAsync(Guid userId, CreateEpisodeRequest request, CancellationToken ct = default);
+    Task<Episode?> CreateEpisodeAsync(Guid userId, CreateEpisodeRequest data, CancellationToken ct = default);
 
     /// <summary>
     /// Updates an existing episode template.
     /// </summary>
-    Task<Episode?> UpdateEpisodeAsync(Guid userId, Guid id, UpdateEpisodeRequest request, CancellationToken ct = default);
+    Task<Episode?> UpdateEpisodeAsync(Guid userId, Guid id, UpdateEpisodeRequest data, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes an episode template.
@@ -29,7 +29,7 @@ public interface IEpisodeService {
     /// <summary>
     /// Clones an existing episode template.
     /// </summary>
-    Task<Episode?> CloneEpisodeAsync(Guid userId, Guid id, CancellationToken ct = default);
+    Task<Episode?> CloneEpisodeAsync(Guid userId, Guid templateId, CloneEpisodeRequest data, CancellationToken ct = default);
 
     Task<EpisodeAsset[]> GetAssetsAsync(Guid id, CancellationToken ct = default);
 

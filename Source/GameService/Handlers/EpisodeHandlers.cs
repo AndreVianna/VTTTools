@@ -33,9 +33,9 @@ internal static class EpisodeHandlers {
                    : Results.NotFound();
     }
 
-    internal static async Task<IResult> CloneEpisodeHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IEpisodeService episodeService) {
+    internal static async Task<IResult> CloneEpisodeHandler(HttpContext context, [FromRoute] Guid id, [FromBody] CloneEpisodeRequest request, [FromServices] IEpisodeService episodeService) {
         var userId = EndpointsMapperHelper.GetUserId(context.User);
-        return await episodeService.CloneEpisodeAsync(userId, id) is { } clone
+        return await episodeService.CloneEpisodeAsync(userId, id, request) is { } clone
                    ? Results.Created($"/api/episodes/{clone.Id}", clone)
                    : Results.NotFound();
     }

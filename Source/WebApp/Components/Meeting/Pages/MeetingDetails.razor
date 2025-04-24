@@ -1,9 +1,10 @@
 @page "/meeting/{MeetingId:guid}"
+@inherits ExtendedComponent
 @rendermode InteractiveAuto
 
-<PageTitle>Game Meeting: @(_meeting?.Subject ?? "Loading...")</PageTitle>
+<PageTitle>Game Meeting: @(State.Meeting?.Subject ?? "Loading...")</PageTitle>
 
-@if (_meeting == null)
+@if (State.Meeting == null)
 {
     <div class="d-flex justify-content-center">
         <div class="spinner-border" role="status">
@@ -16,10 +17,10 @@ else
     <div class="container">
         <div class="row mb-4 align-items-center">
             <div class="col">
-                <h1>@_meeting.Subject</h1>
+                <h1>@State.Meeting.Subject</h1>
             </div>
             <div class="col-auto">
-                @if (_isGameMaster)
+                @if (State.IsGameMaster)
                 {
                     <button class="btn btn-primary me-2" @onclick="OpenEditMeetingDialog">Edit Meeting</button>
                     <button class="btn btn-success me-2" @onclick="StartMeeting">Start Meeting</button>
@@ -33,7 +34,7 @@ else
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Maps</h5>
-                        @if (_isGameMaster)
+                        @if (State.IsGameMaster)
                         {
                             <button class="btn btn-sm btn-outline-primary">Add Map</button>
                         }
@@ -44,13 +45,13 @@ else
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Players</h5>
-                        @if (_isGameMaster)
+                        @if (State.IsGameMaster)
                         {
                             <button class="btn btn-sm btn-outline-primary">Invite Player</button>
                         }
                     </div>
                     <div class="card-body">
-                        @if (!_meeting.Players.Any())
+                        @if (!State.Meeting.Players.Any())
                         {
                             <div class="alert alert-info">
                                 No players have joined this meeting.
@@ -59,10 +60,10 @@ else
                         else
                         {
                             <ul class="list-group">
-                                @foreach (var player in _meeting.Players)
+                                @foreach (var player in State.Meeting.Players)
                                 {
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        @(player.UserId == _currentUserId ? "You" : player.UserId.ToString()![..8])
+                                        @(player.UserId == CurrentUser.Id ? "You" : player.UserId.ToString()[..8])
                                         <span class="badge bg-@(player.Type == PlayerType.Master ? "danger" : "primary")">
                                             @player.Type
                                         </span>
@@ -77,7 +78,7 @@ else
     </div>
 }
 
-@if (_showEditDialog)
+@if (State.ShowEditDialog)
 {
     <div class="modal fade show" style="display: block;" tabindex="-1">
         <div class="modal-dialog">
@@ -89,10 +90,10 @@ else
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="meetingName" class="form-label">Meeting Subject</label>
-                        <input type="text" class="form-control" id="meetingName" @bind="_editMeetingName">
-                        @if (!string.IsNullOrEmpty(_meetingNameError))
+                        <input type="text" class="form-control" id="meetingName" @bind="State.EditMeetingSubject">
+                        @if (!string.IsNullOrEmpty(State.MeetingSubjectError))
                         {
-                            <div class="text-danger mt-1">@_meetingNameError</div>
+                            <div class="text-danger mt-1">@State.MeetingSubjectError</div>
                         }
                     </div>
                 </div>

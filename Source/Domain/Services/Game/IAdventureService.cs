@@ -23,20 +23,20 @@ public interface IAdventureService {
     /// Creates a new adventure template.
     /// </summary>
     /// <param name="userId">The ID of the user requesting the creation.</param>
-    /// <param name="request">The request containing adventure details.</param>
+    /// <param name="data">The data containing adventure details.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>An adventure associated with the specified ID.</returns>
-    Task<Adventure?> CreateAdventureAsync(Guid userId, CreateAdventureRequest request, CancellationToken ct = default);
+    Task<Adventure?> CreateAdventureAsync(Guid userId, CreateAdventureRequest data, CancellationToken ct = default);
 
     /// <summary>
     /// Updates an existing adventure template.
     /// </summary>
     /// <param name="userId">The ID of the user requesting the update.</param>
     /// <param name="id">The ID of the adventure.</param>
-    /// <param name="request">The request containing adventure details.</param>
+    /// <param name="data">The data containing adventure details.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>An adventure associated with the specified ID.</returns>
-    Task<Adventure?> UpdateAdventureAsync(Guid userId, Guid id, UpdateAdventureRequest request, CancellationToken ct = default);
+    Task<Adventure?> UpdateAdventureAsync(Guid userId, Guid id, UpdateAdventureRequest data, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes an adventure template.
@@ -54,7 +54,7 @@ public interface IAdventureService {
     /// <param name="templateId">The ID of the adventure to clone.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>The new cloned adventure.</returns>
-    Task<Adventure?> CloneAdventureAsync(Guid userId, Guid templateId, CancellationToken ct = default);
+    Task<Adventure?> CloneAdventureAsync(Guid userId, Guid templateId, CloneAdventureRequest data, CancellationToken ct = default);
 
     /// <summary>
     /// Gets all episodes for a specific adventure by ID.

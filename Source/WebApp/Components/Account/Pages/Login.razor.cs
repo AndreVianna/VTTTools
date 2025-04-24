@@ -1,4 +1,6 @@
-﻿namespace VttTools.WebApp.Components.Account.Pages;
+﻿using VttTools.WebApp.Utilities;
+
+namespace VttTools.WebApp.Components.Account.Pages;
 
 public partial class Login {
     private string? _errorMessage;

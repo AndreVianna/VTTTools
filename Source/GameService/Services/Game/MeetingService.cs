@@ -2,12 +2,10 @@
 
 public class MeetingService(IMeetingStorage storage)
     : IMeetingService {
-    public async Task<Meeting[]> GetMeetingsAsync(Guid userId, CancellationToken ct = default) {
-        var data = await storage.GetByUserIdAsync(userId, ct);
-        return data;
-    }
+    public Task<Meeting[]> GetMeetingsAsync(Guid userId, CancellationToken ct = default)
+        => storage.GetByUserIdAsync(userId, ct);
 
-    public Task<Meeting?> GetMeetingAsync(Guid userId, Guid meetingId, CancellationToken ct = default)
+    public Task<Meeting?> GetMeetingByIdAsync(Guid userId, Guid meetingId, CancellationToken ct = default)
         => storage.GetByIdAsync(meetingId, ct);
 
     public async Task<Result<Meeting>> CreateMeetingAsync(Guid userId, CreateMeetingData data, CancellationToken ct = default) {
@@ -19,7 +17,6 @@ public class MeetingService(IMeetingStorage storage)
             Subject = data.Subject,
             OwnerId = userId,
             Players = [new MeetingPlayer { UserId = userId, Type = PlayerType.Master }],
-            // Set initial active episode
             EpisodeId = data.EpisodeId,
         };
 
@@ -28,16 +25,16 @@ public class MeetingService(IMeetingStorage storage)
     }
 
     public async Task<TypedResult<HttpStatusCode>> UpdateMeetingAsync(Guid userId, Guid meetingId, UpdateMeetingData data, CancellationToken ct = default) {
-        var result = data.Validate();
-        if (result.HasErrors)
-            return TypedResult.As(HttpStatusCode.BadRequest, result.Errors);
-
         var meeting = await storage.GetByIdAsync(meetingId, ct);
         if (meeting is null)
             return TypedResult.As(HttpStatusCode.NotFound);
 
         if (meeting.OwnerId != userId)
             return TypedResult.As(HttpStatusCode.Forbidden);
+
+        var result = data.Validate();
+        if (result.HasErrors)
+            return TypedResult.As(HttpStatusCode.BadRequest, result.Errors);
 
         if (data.Subject.IsSet)
             meeting.Subject = data.Subject.Value;
@@ -105,8 +102,7 @@ public class MeetingService(IMeetingStorage storage)
         if (!isGameMaster)
             return TypedResult.As(HttpStatusCode.Forbidden);
 
-        // Additional meeting start logic would go here
-        // For now this is just a placeholder
+        meeting.Status = MeetingStatus.InProgress;
         return TypedResult.As(HttpStatusCode.NoContent);
     }
 
@@ -119,8 +115,7 @@ public class MeetingService(IMeetingStorage storage)
         if (!isGameMaster)
             return TypedResult.As(HttpStatusCode.Forbidden);
 
-        // Additional meeting end logic would go here
-        // For now this is just a placeholder
+        meeting.Status = MeetingStatus.Finished;
         return TypedResult.As(HttpStatusCode.NoContent);
     }
 

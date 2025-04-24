@@ -1,136 +1,133 @@
 ﻿namespace VttTools.WebApp.Services;
 
-public class GameServiceClient(HttpClient client) {
-    public HttpClient HttpClient { get; } = client;
-    /// <summary>
-    /// Retrieves all adventure templates.
-    /// </summary>
+internal class GameServiceClient(HttpClient client)
+    : IGameServiceClient {
     public async Task<Adventure[]> GetAdventuresAsync() {
-        var adventures = await HttpClient.GetFromJsonAsync<Adventure[]>("/api/adventures");
+        var adventures = await client.GetFromJsonAsync<Adventure[]>("/api/adventures");
         return adventures ?? [];
     }
 
-    /// <summary>
-    /// Creates a new adventure template.
-    /// </summary>
-    public async Task<Result<Guid>> CreateAdventureAsync(CreateAdventureRequest request) {
-        var response = await HttpClient.PostAsJsonAsync("/api/adventures", request);
-        return !response.IsSuccessStatusCode
-            || !Guid.TryParse(await response.Content.ReadAsStringAsync(), out var adventureId)
-                   ? Result.Failure("Failed to create adventure.")
-                   : adventureId;
+    public async Task<Result<Adventure>> CreateAdventureAsync(CreateAdventureRequest request) {
+        var response = await client.PostAsJsonAsync("/api/adventures", request);
+        if (!response.IsSuccessStatusCode)
+            return Result.Failure("Failed to create adventure.");
+        var adventure = await response.Content.ReadFromJsonAsync<Adventure>();
+        return adventure!;
     }
 
-    /// <summary>
-    /// Updates an existing adventure template.
-    /// </summary>
-    public async Task<Result> UpdateAdventureAsync(Guid adventureId, UpdateAdventureRequest request) {
-        var response = await HttpClient.PutAsJsonAsync($"/api/adventures/{adventureId}", request);
+    public async Task<Result<Adventure>> CloneAdventureAsync(Guid id, CloneAdventureRequest request) {
+        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/clone", request);
+        if (!response.IsSuccessStatusCode)
+            return Result.Failure("Failed to clone adventure.");
+        var adventure = await response.Content.ReadFromJsonAsync<Adventure>();
+        return adventure!;
+    }
+
+    public async Task<Result> UpdateAdventureAsync(Guid id, UpdateAdventureRequest request) {
+        var response = await client.PutAsJsonAsync($"/api/adventures/{id}", request);
         return response.IsSuccessStatusCode
                    ? Result.Success()
                    : Result.Failure("Failed to update adventure.");
     }
 
-    /// <summary>
-    /// Deletes an adventure template.
-    /// </summary>
-    public async Task<bool> DeleteAdventureAsync(Guid adventureId) {
-        var response = await HttpClient.DeleteAsync($"/api/adventures/{adventureId}");
+    public async Task<bool> DeleteAdventureAsync(Guid id) {
+        var response = await client.DeleteAsync($"/api/adventures/{id}");
         return response.IsSuccessStatusCode;
     }
-    /// <summary>
-    /// Retrieves all episodes for a given adventure.
-    /// </summary>
+
     public async Task<Episode[]> GetEpisodesAsync(Guid adventureId) {
-        var episodes = await HttpClient.GetFromJsonAsync<Episode[]>($"/api/adventures/{adventureId}/episodes");
+        var episodes = await client.GetFromJsonAsync<Episode[]>($"/api/adventures/{adventureId}/episodes");
         return episodes ?? [];
     }
 
-    /// <summary>
-    /// Creates a new episode template under an adventure.
-    /// </summary>
-    public async Task<Result<Guid>> CreateEpisodeAsync(Guid adventureId, CreateEpisodeRequest request) {
-        var response = await HttpClient.PostAsJsonAsync($"/api/adventures/{adventureId}/episodes", request);
-        return !response.IsSuccessStatusCode
-         || !Guid.TryParse(await response.Content.ReadAsStringAsync(), out var assetId)
-            ? Result.Failure("Failed to create episode.")
-            : assetId;
+    public async Task<Result<Episode>> CreateEpisodeAsync(CreateEpisodeRequest request) {
+        var response = await client.PostAsJsonAsync($"/api/adventures/{request.AdventureId}/episodes", request);
+        if (!response.IsSuccessStatusCode)
+            return Result.Failure("Failed to create episode.");
+        var episode = await response.Content.ReadFromJsonAsync<Episode>();
+        return episode!;
     }
 
-    /// <summary>
-    /// Updates an existing episode template.
-    /// </summary>
-    public async Task<Result> UpdateEpisodeAsync(Guid episodeId, UpdateEpisodeRequest request) {
-        var response = await HttpClient.PutAsJsonAsync($"/api/episodes/{episodeId}", request);
+    public async Task<Result<Episode>> CloneEpisodeAsync(Guid id, CloneEpisodeRequest request) {
+        var response = await client.PostAsJsonAsync($"/api/episodes/{id}/clone", request);
+        if (!response.IsSuccessStatusCode)
+            return Result.Failure("Failed to clone episode.");
+        var episode = await response.Content.ReadFromJsonAsync<Episode>();
+        return episode!;
+    }
+
+    public async Task<Result> UpdateEpisodeAsync(Guid id, UpdateEpisodeRequest request) {
+        var response = await client.PutAsJsonAsync($"/api/episodes/{id}", request);
         return response.IsSuccessStatusCode
                    ? Result.Success()
                    : Result.Failure("Failed to update episode.");
     }
 
-    /// <summary>
-    /// Deletes an episode template.
-    /// </summary>
-    public async Task<bool> DeleteEpisodeAsync(Guid episodeId) {
-        var response = await HttpClient.DeleteAsync($"/api/episodes/{episodeId}");
+    public async Task<bool> DeleteEpisodeAsync(Guid id) {
+        var response = await client.DeleteAsync($"/api/episodes/{id}");
         return response.IsSuccessStatusCode;
     }
 
-    /// <summary>
-    /// Clones an episode template.
-    /// </summary>
-    public async Task<Result<Guid>> CloneEpisodeAsync(Guid episodeId) {
-        var response = await HttpClient.PostAsync($"/api/episodes/{episodeId}/clone", null);
-        return !response.IsSuccessStatusCode
-         || !Guid.TryParse(await response.Content.ReadAsStringAsync(), out var clonedEpisodeId)
-            ? Result.Failure("Failed to clone episode.")
-            : clonedEpisodeId;
-    }
-
-    /// <summary>
-    /// Retrieves all asset templates.
-    /// </summary>
     public async Task<Asset[]> GetAssetsAsync() {
-        var assets = await HttpClient.GetFromJsonAsync<Asset[]>("/api/assets");
+        var assets = await client.GetFromJsonAsync<Asset[]>("/api/assets");
         return assets ?? [];
     }
 
-    /// <summary>
-    /// Creates a new asset template.
-    /// </summary>
-    public async Task<Result<Guid>> CreateAssetAsync(CreateAssetRequest request) {
-        var response = await HttpClient.PostAsJsonAsync("/api/assets", request);
-        return !response.IsSuccessStatusCode
-         || !Guid.TryParse(await response.Content.ReadAsStringAsync(), out var assetId)
-            ? Result.Failure("Failed to create asset.")
-            : assetId;
+    public async Task<Result<Asset>> CreateAssetAsync(CreateAssetRequest request) {
+        var response = await client.PostAsJsonAsync("/api/assets", request);
+        if (!response.IsSuccessStatusCode)
+            return Result.Failure("Failed to create asset.");
+        var asset = await response.Content.ReadFromJsonAsync<Asset>();
+        return asset!;
     }
 
-    /// <summary>
-    /// Updates an existing asset template.
-    /// </summary>
-    public async Task<Result> UpdateAssetAsync(Guid assetId, UpdateAssetRequest request) {
-        var response = await HttpClient.PutAsJsonAsync($"/api/assets/{assetId}", request);
+    public async Task<Result> UpdateAssetAsync(Guid id, UpdateAssetRequest request) {
+        var response = await client.PutAsJsonAsync($"/api/assets/{id}", request);
         return response.IsSuccessStatusCode
                    ? Result.Success()
                    : Result.Failure("Failed to update adventure.");
     }
 
-    /// <summary>
-    /// Deletes an asset template.
-    /// </summary>
-    public async Task<bool> DeleteAssetAsync(Guid assetId) {
-        var response = await HttpClient.DeleteAsync($"/api/assets/{assetId}");
+    public async Task<bool> DeleteAssetAsync(Guid id) {
+        var response = await client.DeleteAsync($"/api/assets/{id}");
         return response.IsSuccessStatusCode;
     }
 
-    /// <summary>
-    /// Clones an adventure template.
-    /// </summary>
-    public async Task<Result<Guid>> CloneAdventureAsync(Guid adventureId) {
-        var response = await HttpClient.PostAsync($"/api/adventures/{adventureId}/clone", null);
-        return !response.IsSuccessStatusCode
-         || !Guid.TryParse(await response.Content.ReadAsStringAsync(), out var clonedAdventureId)
-            ? Result.Failure("Failed to clone adventure.")
-            : clonedAdventureId;
+    public async Task<Meeting[]> GetMeetingsAsync() {
+        var meetings = await client.GetFromJsonAsync<Meeting[]>("/api/meetings");
+        return meetings ?? [];
+    }
+
+    public async Task<Meeting?> GetMeetingByIdAsync(Guid id) {
+        var meeting = await client.GetFromJsonAsync<Meeting>($"/api/meetings/{id}");
+        return meeting;
+    }
+
+    public async Task<Result<Meeting>> CreateMeetingAsync(CreateMeetingRequest request) {
+        var response = await client.PostAsJsonAsync("/api/meetings", request);
+        if (!response.IsSuccessStatusCode)
+            return Result.Failure("Failed to create meeting.");
+        var meeting = await response.Content.ReadFromJsonAsync<Meeting>();
+        return meeting!;
+    }
+
+    public async Task<bool> UpdateMeetingAsync(Guid id, UpdateMeetingRequest request) {
+        var response = await client.PutAsJsonAsync($"/api/meetings/{id}", request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteMeetingAsync(Guid id) {
+        var response = await client.DeleteAsync($"/api/meetings/{id}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> JoinMeetingAsync(Guid id) {
+        var response = await client.PostAsync($"/api/meetings/{id}/join", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> StartMeetingAsync(Guid id) {
+        var response = await client.PostAsync($"/api/meetings/{id}/start", null);
+        return response.IsSuccessStatusCode;
     }
 }

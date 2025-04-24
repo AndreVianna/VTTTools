@@ -10,6 +10,7 @@ public class MeetingTests {
         meeting.Id.Should().NotBeEmpty();
         meeting.OwnerId.Should().BeEmpty();
         meeting.Subject.Should().BeEmpty();
+        meeting.Status.Should().Be(MeetingStatus.Draft);
         meeting.Players.Should().NotBeNull();
         meeting.Players.Should().BeEmpty();
         meeting.EpisodeId.Should().BeNull();
@@ -25,6 +26,7 @@ public class MeetingTests {
         var id = Guid.NewGuid();
         var ownerId = Guid.NewGuid();
         const string subject = "Some Subject";
+        const MeetingStatus status = MeetingStatus.Scheduled;
         var episodeId = Guid.NewGuid();
         var player = new MeetingPlayer {
             UserId = Guid.NewGuid(),
@@ -43,6 +45,7 @@ public class MeetingTests {
             Id = id,
             OwnerId = ownerId,
             Subject = subject,
+            Status = status,
             EpisodeId = episodeId,
             Players = [player],
             Messages = [message],
@@ -53,6 +56,7 @@ public class MeetingTests {
         meeting.Id.Should().Be(id);
         meeting.OwnerId.Should().Be(ownerId);
         meeting.Subject.Should().Be(subject);
+        meeting.Status.Should().Be(status);
         meeting.EpisodeId.Should().Be(episodeId);
         meeting.Players.Should().ContainSingle(p => p.Equals(player));
         meeting.Messages.Should().Contain(p => p.Equals(message));

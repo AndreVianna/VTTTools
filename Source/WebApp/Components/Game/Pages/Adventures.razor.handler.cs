@@ -1,0 +1,64 @@
+namespace VttTools.WebApp.Components.Game.Pages;
+
+public partial class Adventures {
+    internal class Handler {
+        private GameServiceClient _gameServiceClient = null!;
+
+        internal async Task<PageState> InitializeAsync(GameServiceClient gameServiceClient) {
+            _gameServiceClient = gameServiceClient;
+            var state = new PageState();
+            await LoadAdventuresAsync(state);
+            return state;
+        }
+
+        internal async Task LoadAdventuresAsync(PageState state) => state.Adventures = await _gameServiceClient.GetAdventuresAsync();
+
+        internal async Task CreateAdventureAsync(PageState state) {
+            var request = new CreateAdventureRequest {
+                Name = state.Input.Name,
+                Visibility = state.Input.Visibility,
+            };
+
+            var result = await _gameServiceClient.CreateAdventureAsync(request);
+
+            if (result.IsSuccessful) {
+                state.Input = new();
+                await LoadAdventuresAsync(state);
+            }
+        }
+
+        internal async Task DeleteAdventureAsync(PageState state, Guid id) {
+            await _gameServiceClient.DeleteAdventureAsync(id);
+            await LoadAdventuresAsync(state);
+        }
+
+        internal static void StartEdit(PageState state, Adventure adv) {
+            state.IsEditing = true;
+            state.EditingAdventureId = adv.Id;
+            state.Input = new() {
+                Name = adv.Name,
+                Visibility = adv.Visibility,
+            };
+        }
+
+        internal static void CancelEdit(PageState state) => state.IsEditing = false;
+
+        internal async Task SaveEditAsync(PageState state) {
+            var request = new UpdateAdventureRequest {
+                Name = state.Input.Name,
+                Visibility = state.Input.Visibility,
+            };
+            var result = await _gameServiceClient.UpdateAdventureAsync(state.EditingAdventureId, request);
+            if (result.IsSuccessful) {
+                state.IsEditing = false;
+                await LoadAdventuresAsync(state);
+            }
+        }
+
+        internal async Task CloneAdventureAsync(PageState state, Guid id) {
+            var request = new CloneAdventureRequest();
+            var result = await _gameServiceClient.CloneAdventureAsync(id, request);
+            if (result.IsSuccessful) await LoadAdventuresAsync(state);
+        }
+    }
+}

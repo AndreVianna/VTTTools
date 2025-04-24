@@ -1,13 +1,20 @@
-﻿@page "/chat"
+@page "/chat"
+@inherits ExtendedComponent
+@rendermode InteractiveAuto
+
+<PageTitle>Chat</PageTitle>
 
 <h1>Chat</h1>
 
 <ul>
-  @foreach (var message in _messages)
+  @foreach (var message in State.Messages)
   {
-    <li>@message</li>
+    <li>
+      @message.Timestamp: (@message.Direction)
+      <p>@message.Text</p>
+    </li>
   }
 </ul>
 
-<input @bind="_newMessage" @bind:event="oninput" />
+<input @bind="State.NewMessage" @bind:event="oninput" />
 <button @onclick="SendMessage">Send</button>

@@ -6,5 +6,5 @@ public record CreateEpisodeRequest
     /// <summary>
     /// The ID of the adventure to which this episode belongs.
     /// </summary>
-    public Guid? AdventureId { get; init; }
+    public required Guid AdventureId { get; init; }
 }

@@ -1,4 +1,6 @@
-﻿namespace VttTools.WebApp.Components.Account.Pages.Manage;
+﻿using VttTools.WebApp.Utilities;
+
+namespace VttTools.WebApp.Components.Account.Pages.Manage;
 
 public partial class DeletePersonalData {
     private string? _message;

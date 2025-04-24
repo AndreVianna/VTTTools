@@ -20,7 +20,7 @@ public interface IMeetingService {
     /// <param name="meetingId">ID of the meeting to get the meeting's details</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>The game meeting if found, null otherwise</returns>
-    Task<Meeting?> GetMeetingAsync(Guid userId, Guid meetingId, CancellationToken ct = default);
+    Task<Meeting?> GetMeetingByIdAsync(Guid userId, Guid meetingId, CancellationToken ct = default);
 
     /// <summary>
     /// Gets all meetings a user is part of

@@ -14,7 +14,7 @@ public class IMeetingServiceTests {
                                       m.ReturnType.IsGenericType &&
                                       m.ReturnType.GetGenericTypeDefinition() == typeof(Task<>));
 
-        methods.Should().Contain(m => m.Name == "GetMeetingAsync" &&
+        methods.Should().Contain(m => m.Name == "GetMeetingByIdAsync" &&
                                       m.GetParameters().Length == 3 &&
                                       m.ReturnType.IsGenericType &&
                                       m.ReturnType.GetGenericTypeDefinition() == typeof(Task<>));

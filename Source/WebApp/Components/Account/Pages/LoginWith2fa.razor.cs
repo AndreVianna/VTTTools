@@ -1,4 +1,6 @@
-﻿namespace VttTools.WebApp.Components.Account.Pages;
+﻿using VttTools.WebApp.Utilities;
+
+namespace VttTools.WebApp.Components.Account.Pages;
 
 // ReSharper disable once InconsistentNaming
 public partial class LoginWith2fa {

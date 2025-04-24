@@ -71,5 +71,6 @@ public static class DbContextHelper {
             Subject = subject,
             OwnerId = ownerId ?? Guid.NewGuid(),
             Players = [],
+            Status = MeetingStatus.Scheduled,
         };
 }

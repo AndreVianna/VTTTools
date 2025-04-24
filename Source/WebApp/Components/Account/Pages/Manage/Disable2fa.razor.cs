@@ -1,4 +1,6 @@
-﻿namespace VttTools.WebApp.Components.Account.Pages.Manage;
+﻿using VttTools.WebApp.Utilities;
+
+namespace VttTools.WebApp.Components.Account.Pages.Manage;
 
 // ReSharper disable once InconsistentNaming
 public partial class Disable2fa {

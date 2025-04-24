@@ -105,14 +105,14 @@ public class MeetingHandlersTests {
         // Arrange
         var meeting = new Meeting { Id = _meetingId, Subject = "Test Meeting", OwnerId = _userId };
 
-        _meetingService.GetMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>())
+        _meetingService.GetMeetingByIdAsync(_userId, _meetingId, Arg.Any<CancellationToken>())
             .Returns(meeting);
 
         // Act
         var result = await MeetingHandlers.GetMeetingByIdHandler(_httpContext, _meetingId, _meetingService);
 
         // Assert
-        await _meetingService.Received(1).GetMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
+        await _meetingService.Received(1).GetMeetingByIdAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Ok<Meeting>>().Subject;
         response.Value.Should().Be(meeting);
     }
@@ -120,14 +120,14 @@ public class MeetingHandlersTests {
     [Fact]
     public async Task GetMeetingByIdHandler_WithNonExistingId_ReturnsNotFound() {
         // Arrange
-        _meetingService.GetMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>())
+        _meetingService.GetMeetingByIdAsync(_userId, _meetingId, Arg.Any<CancellationToken>())
             .Returns((Meeting?)null);
 
         // Act
         var result = await MeetingHandlers.GetMeetingByIdHandler(_httpContext, _meetingId, _meetingService);
 
         // Assert
-        await _meetingService.Received(1).GetMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
+        await _meetingService.Received(1).GetMeetingByIdAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NotFound>();
     }
 

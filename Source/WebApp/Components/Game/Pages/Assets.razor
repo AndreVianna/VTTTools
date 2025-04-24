@@ -1,0 +1,56 @@
+@page "/Assets"
+@inherits ExtendedComponent
+@rendermode InteractiveAuto
+
+<PageTitle>Assets</PageTitle>
+
+<div class="mb-3">
+    <input class="form-control mb-1" placeholder="Subject" @bind="State!.Input.Name" />
+    <input class="form-control mb-1" placeholder="Source URL" @bind="State!.Input.Source" />
+    <select class="form-select mb-1" @bind="State!.Input.Type">
+        @foreach (var t in Enum.GetValues<AssetType>())
+        {
+            <option value="@t">@t</option>
+        }
+    </select>
+    <select class="form-select mb-1" @bind="State!.Input.Visibility">
+        @foreach (var v in Enum.GetValues<Visibility>())
+        {
+            <option value="@v">@v</option>
+        }
+    </select>
+    <button class="btn btn-primary" @onclick="CreateAsset">Create</button>
+</div>
+
+@if (State?.Assets is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Type</th>
+                <th>Source</th>
+                <th>Visibility</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var asset in State.Assets)
+            {
+                <tr>
+                    <td>@asset.Name</td>
+                    <td>@asset.Type</td>
+                    <td><a href="@asset.Source" target="_blank">Link</a></td>
+                    <td>@asset.Visibility</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteAsset(asset.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

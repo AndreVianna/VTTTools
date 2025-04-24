@@ -31,9 +31,9 @@ internal static class AdventureHandlers {
         return deleted ? Results.NoContent() : Results.NotFound();
     }
 
-    internal static async Task<IResult> CloneAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IAdventureService adventureService) {
+    internal static async Task<IResult> CloneAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromBody] CloneAdventureRequest request, [FromServices] IAdventureService adventureService) {
         var userId = EndpointsMapperHelper.GetUserId(context.User);
-        var clone = await adventureService.CloneAdventureAsync(userId, id);
+        var clone = await adventureService.CloneAdventureAsync(userId, id, request);
         return clone != null
                    ? Results.Created($"/api/adventures/{clone.Id}", clone)
                    : Results.NotFound();

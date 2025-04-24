@@ -1,6 +1,7 @@
 ﻿namespace VttTools.Model.Game;
 
 public class EpisodeAsset {
+    public Guid Id { get; set; } = Guid.CreateVersion7();
     public Guid EpisodeId { get; set; }
     public Guid AssetId { get; set; }
     public Episode Episode { get; set; } = null!;

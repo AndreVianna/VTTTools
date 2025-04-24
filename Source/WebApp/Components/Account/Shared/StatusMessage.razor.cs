@@ -1,4 +1,6 @@
-﻿namespace VttTools.WebApp.Components.Account.Shared;
+﻿using VttTools.WebApp.Utilities;
+
+namespace VttTools.WebApp.Components.Account.Shared;
 
 public partial class StatusMessage {
     private string? _messageFromCookie;
