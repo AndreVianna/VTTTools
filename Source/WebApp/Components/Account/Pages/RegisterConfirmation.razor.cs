@@ -12,8 +12,6 @@ public partial class RegisterConfirmation {
     private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
     private IEmailSender<User> EmailSender { get; set; } = null!;
-    [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = null!;
@@ -26,7 +24,7 @@ public partial class RegisterConfirmation {
 
     protected override async Task OnInitializedAsync() {
         if (Email is null)
-            RedirectManager.RedirectTo("");
+            NavigationManager.RedirectTo("");
 
         var user = await UserManager.FindByEmailAsync(Email);
         if (user is null) {

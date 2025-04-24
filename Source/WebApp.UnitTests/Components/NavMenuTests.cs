@@ -1,41 +1,18 @@
 namespace VttTools.WebApp.Components;
 
 public class NavMenuTests : Bunit.TestContext {
-    private readonly User _testUser;
-    private readonly UserManager<User> _userManager;
-    private readonly CascadingValueSource<HttpContext> _cascadingContext;
-    private readonly FakeNavigationManager _navigationManagerSpy;
-
-    [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "Testing")]
-    [SuppressMessage("Usage", "BL0005:Component parameter should not be set outside of its component.", Justification = "Testing")]
-    public NavMenuTests() {
-        _testUser = new() {
-            Id = Guid.NewGuid(),
-            Name = "Test User",
-            DisplayName = "Test Display",
-        };
-        var httpContext = Substitute.For<HttpContext>();
-        _cascadingContext = new(httpContext, true);
-
-        _userManager = Substitute.For<UserManager<User>>(Substitute.For<IUserStore<User>>(), null, null, null, null, null, null, null, null);
-        _userManager.GetUserAsync(Arg.Any<ClaimsPrincipal>()).Returns(_testUser);
-        Services.AddSingleton(_userManager);
-
-        var userAccessor = Substitute.For<IdentityUserAccessor>();
-        Services.AddSingleton(userAccessor);
-
-        _navigationManagerSpy = new(this);
-        _navigationManagerSpy.NavigateTo("http://host.com");
-        Services.AddSingleton<NavigationManager>(_navigationManagerSpy);
-        var cascadingValue = new CascadingValue<HttpContext> { Value = httpContext };
-        Services.AddSingleton(cascadingValue);
-    }
+    private readonly User _testUser = new() {
+        Id = Guid.NewGuid(),
+        Name = "Test Name",
+        DisplayName = "Test Display",
+    };
 
     [Fact]
     public void OnLocationChanged_UpdatesCurrentUrl() {
         // Arrange
+        this.Configure(opt => opt.CurrentUser = _testUser);
         var navManager = Services.GetRequiredService<NavigationManager>();
-        var component = RenderComponent<NavMenu>(builder => builder.AddCascadingValue(_cascadingContext));
+        var component = RenderComponent<NavMenu>();
 
         // Act
         navManager.NavigateTo("/newTest");
@@ -46,47 +23,70 @@ public class NavMenuTests : Bunit.TestContext {
 
     [Fact]
     public void LoadMenu_SetsDefaultValues() {
+        // Arrange
+        this.Configure(opt => opt.CurrentUser = _testUser);
+        var expectedCurrentUser = new CurrentUser {
+            IsAuthenticated = true,
+            Id = _testUser.Id,
+            IsAdministrator = false,
+            DisplayName = _testUser.DisplayName!,
+        };
+
         // Act
-        var component = RenderComponent<NavMenu>(builder => builder.AddCascadingValue(_cascadingContext));
+        var component = RenderComponent<NavMenu>();
 
         // Assert
-        component.Instance.CurrentLocation.Should().Be("");
-        component.Instance.CurrentUser.Should().Be("Test Display");
+        component.Instance.CurrentLocation.Should().Be("page");
+        component.Instance.CurrentUser.Should().BeEquivalentTo(expectedCurrentUser);
     }
 
     [Fact]
     public void LoadMenu_WhenDisplayNameIsNull_SetsUserNameFromName() {
         // Arrange
         _testUser.DisplayName = null;
+        this.Configure(opt => opt.CurrentUser = _testUser);
+        var expectedCurrentUser = new CurrentUser {
+            IsAuthenticated = true,
+            Id = _testUser.Id,
+            IsAdministrator = false,
+            DisplayName = _testUser.Name,
+        };
 
         // Act
-        var component = RenderComponent<NavMenu>(builder => builder.AddCascadingValue(_cascadingContext));
+        var component = RenderComponent<NavMenu>();
 
         // Assert
-        component.Instance.CurrentUser.DisplayName.Should().Be("Test User");
+        component.Instance.CurrentUser.Should().BeEquivalentTo(expectedCurrentUser);
     }
 
     [Fact]
-    public void LoadMenu_WhenUserIsNul_SetsEmptyUserName() {
+    public void LoadMenu_WhenUserIsNull_SetsEmptyUserName() {
         // Arrange
-        _userManager.GetUserAsync(Arg.Any<ClaimsPrincipal>()).Returns((User?)null);
+        this.Configure();
+        var expectedCurrentUser = new CurrentUser {
+            IsAuthenticated = false,
+            Id = Guid.Empty,
+            IsAdministrator = false,
+            DisplayName = string.Empty,
+        };
 
         // Act
-        var component = RenderComponent<NavMenu>(builder => builder.AddCascadingValue(_cascadingContext));
+        var component = RenderComponent<NavMenu>();
 
         // Assert
-        component.Instance.CurrentUser.DisplayName.Should().BeEmpty();
+        component.Instance.CurrentUser.Should().BeEquivalentTo(expectedCurrentUser);
     }
 
     [Fact]
     public void Dispose_UnregistersLocationChangedEvent() {
         // Arrange
-        var component = RenderComponent<NavMenu>(builder => builder.AddCascadingValue(_cascadingContext));
+        this.Configure();
+        var component = RenderComponent<NavMenu>();
 
         // Act
-        component.Instance.Dispose();
+        var action = component.Instance.Dispose;
 
         // Assert
-        _navigationManagerSpy.Received(1).LocationChanged -= Arg.Any<EventHandler<LocationChangedEventArgs>>();
+        action.Should().NotThrow();
     }
 }

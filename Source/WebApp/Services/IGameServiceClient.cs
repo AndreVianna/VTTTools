@@ -1,6 +1,6 @@
 ﻿namespace VttTools.WebApp.Services;
 
-internal interface IGameServiceClient {
+public interface IGameServiceClient {
     Task<Adventure[]> GetAdventuresAsync();
     Task<Result<Adventure>> CreateAdventureAsync(CreateAdventureRequest request);
     Task<Result<Adventure>> CloneAdventureAsync(Guid id, CloneAdventureRequest request);

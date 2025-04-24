@@ -8,7 +8,7 @@ public partial class ResetPassword {
     [Inject]
     private UserManager<User> UserManager { get; set; } = null!;
     [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    private NavigationManager NavigationManager { get; set; } = null!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
@@ -20,7 +20,7 @@ public partial class ResetPassword {
 
     protected override void OnInitialized() {
         if (Code is null)
-            RedirectManager.RedirectTo("Account/InvalidPasswordReset");
+            NavigationManager.RedirectTo("Account/InvalidPasswordReset");
 
         Input.Code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
     }
@@ -29,12 +29,12 @@ public partial class ResetPassword {
         var user = await UserManager.FindByEmailAsync(Input.Email);
         if (user is null) {
             // Don't reveal that the user does not exist
-            RedirectManager.RedirectTo("Account/ResetPasswordConfirmation");
+            NavigationManager.RedirectTo("Account/ResetPasswordConfirmation");
         }
 
         var result = await UserManager.ResetPasswordAsync(user, Input.Code, Input.Password);
         if (result.Succeeded)
-            RedirectManager.RedirectTo("Account/ResetPasswordConfirmation");
+            NavigationManager.RedirectTo("Account/ResetPasswordConfirmation");
 
         _identityErrors = result.Errors;
     }

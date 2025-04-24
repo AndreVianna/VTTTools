@@ -42,5 +42,6 @@ global using VttTools.WebApp.Components;
 global using VttTools.WebApp.Components.Account;
 global using VttTools.WebApp.Components.Account.Pages;
 global using VttTools.WebApp.Components.Account.Pages.Manage;
+global using VttTools.WebApp.Extensions;
 global using VttTools.WebApp.Services;
 global using VttTools.WebApp.ViewModels;

@@ -2,10 +2,10 @@ namespace VttTools.WebApp.Components.Game.Pages;
 
 public partial class Assets {
     internal class Handler {
-        private GameServiceClient _gameServiceClient = null!;
+        private IGameServiceClient _client = null!;
 
-        internal async Task<PageState> InitializeAsync(GameServiceClient gameServiceClient) {
-            _gameServiceClient = gameServiceClient;
+        internal async Task<PageState> InitializeAsync(IGameServiceClient client) {
+            _client = client;
 
             var state = new PageState();
 
@@ -14,7 +14,7 @@ public partial class Assets {
             return state;
         }
 
-        internal async Task LoadAssetsAsync(PageState state) => state.Assets = await _gameServiceClient.GetAssetsAsync();
+        internal async Task LoadAssetsAsync(PageState state) => state.Assets = await _client.GetAssetsAsync();
 
         internal async Task CreateAssetAsync(PageState state) {
             var request = new CreateAssetRequest {
@@ -27,7 +27,7 @@ public partial class Assets {
                 Visibility = state.Input.Visibility,
             };
 
-            var result = await _gameServiceClient.CreateAssetAsync(request);
+            var result = await _client.CreateAssetAsync(request);
 
             if (result.IsSuccessful) {
                 state.Input = new();
@@ -37,7 +37,7 @@ public partial class Assets {
         }
 
         internal async Task DeleteAssetAsync(PageState state, Guid id) {
-            await _gameServiceClient.DeleteAssetAsync(id);
+            await _client.DeleteAssetAsync(id);
 
             await LoadAssetsAsync(state);
         }

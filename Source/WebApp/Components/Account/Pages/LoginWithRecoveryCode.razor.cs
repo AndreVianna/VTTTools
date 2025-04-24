@@ -11,7 +11,7 @@ public partial class LoginWithRecoveryCode {
     [Inject]
     private SignInManager<User> SignInManager { get; set; } = null!;
     [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
     private ILogger<LoginWithRecoveryCode> Logger { get; set; } = null!;
 
@@ -35,11 +35,11 @@ public partial class LoginWithRecoveryCode {
 
         if (result.Succeeded) {
             Logger.LogInformation("User with ID '{UserId}' logged in with a recovery code.", userId);
-            RedirectManager.RedirectTo(ReturnUrl);
+            NavigationManager.RedirectTo(ReturnUrl);
         }
         else if (result.IsLockedOut) {
             Logger.LogWarning("User account locked out.");
-            RedirectManager.RedirectTo("Account/Lockout");
+            NavigationManager.RedirectTo("Account/Lockout");
         }
         else {
             Logger.LogWarning("Invalid recovery code entered for user with ID '{UserId}' ", userId);

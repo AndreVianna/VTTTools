@@ -11,13 +11,14 @@ public class ClonerTests {
         var original = new Adventure {
             Id = originalId,
             OwnerId = Guid.NewGuid(), // Different owner
+            ParentId = _campaignId,
             Name = "Original Adventure",
             Visibility = Visibility.Public,
             Episodes = [],
         };
 
         // Act
-        var clone = Cloner.CloneAdventure(original, _campaignId, _userId);
+        var clone = Cloner.CloneAdventure(original, _userId);
 
         // Assert
         clone.Should().NotBeNull();
@@ -40,25 +41,25 @@ public class ClonerTests {
             Name = "Original Adventure",
             Visibility = Visibility.Public,
             Episodes = [
-                           new() {
-                                     Id = episodeId,
-                                     Name = "Original Episode",
-                                     Visibility = Visibility.Private,
-                                     Stage = new() {
-                                                       MapType = StageMapType.Square,
-                                                       Source = "map.png",
-                                                       Size = new() { Width = 10, Height = 20 },
-                                                       Grid = new() {
-                                                                        Offset = new() { Left = 5, Top = 5 },
-                                                                        CellSize = new() { Width = 1, Height = 1 },
-                                                                    },
-                                                   },
-                                 },
-                       ],
+                new() {
+                    Id = episodeId,
+                    Name = "Original Episode",
+                    Visibility = Visibility.Private,
+                    Stage = new() {
+                        MapType = StageMapType.Square,
+                        Source = "map.png",
+                        Size = new() { Width = 10, Height = 20 },
+                        Grid = new() {
+                            Offset = new() { Left = 5, Top = 5 },
+                            CellSize = new() { Width = 1, Height = 1 },
+                        },
+                    },
+                },
+            ],
         };
 
         // Act
-        var clone = Cloner.CloneAdventure(original, _campaignId, _userId);
+        var clone = Cloner.CloneAdventure(original, _userId);
 
         // Assert
         clone.Episodes.Should().HaveCount(1);
@@ -93,7 +94,7 @@ public class ClonerTests {
         };
 
         // Act
-        var clone = Cloner.CloneEpisode(original, adventureId, _userId);
+        var clone = Cloner.CloneEpisode(original, _userId, adventureId);
 
         // Assert
         clone.Should().NotBeNull();
@@ -161,7 +162,7 @@ public class ClonerTests {
         // Arrange
         var original = new Stage {
             MapType = StageMapType.HexV,
-            Source = "hexmap.png",
+            Source = "map.png",
             Size = new() { Width = 30, Height = 40 },
             Grid = new() {
                 Offset = new() { Left = 2, Top = 3 },
@@ -175,7 +176,7 @@ public class ClonerTests {
         // Assert
         clone.Should().NotBeNull();
         clone.MapType.Should().Be(StageMapType.HexV);
-        clone.Source.Should().Be("hexmap.png");
+        clone.Source.Should().Be("map.png");
         clone.Size.Width.Should().Be(30);
         clone.Size.Height.Should().Be(40);
         clone.Grid.Offset.Left.Should().Be(2);
@@ -237,11 +238,8 @@ public class ClonerTests {
         var episodeId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
         var controlledById = Guid.NewGuid();
-        var episode = new Episode {
-            Id = episodeId,
-        };
         var original = new EpisodeAsset {
-            EpisodeId = Guid.NewGuid(), // Different episode ID
+            EpisodeId = episodeId, // Different episode ID
             AssetId = assetId,
             Name = "Original Asset",
             Position = new() { Left = 8, Top = 9 },
@@ -251,7 +249,7 @@ public class ClonerTests {
         };
 
         // Act
-        var clone = Cloner.CloneEpisodeAsset(episode, original);
+        var clone = Cloner.CloneEpisodeAsset(original);
 
         // Assert
         clone.Should().NotBeNull();

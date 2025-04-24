@@ -2,16 +2,16 @@ namespace VttTools.WebApp.Components.Game.Pages;
 
 public partial class Adventures {
     internal class Handler {
-        private GameServiceClient _gameServiceClient = null!;
+        private IGameServiceClient _client = null!;
 
-        internal async Task<PageState> InitializeAsync(GameServiceClient gameServiceClient) {
-            _gameServiceClient = gameServiceClient;
+        internal async Task<PageState> InitializeAsync(IGameServiceClient client) {
+            _client = client;
             var state = new PageState();
             await LoadAdventuresAsync(state);
             return state;
         }
 
-        internal async Task LoadAdventuresAsync(PageState state) => state.Adventures = await _gameServiceClient.GetAdventuresAsync();
+        internal async Task LoadAdventuresAsync(PageState state) => state.Adventures = await _client.GetAdventuresAsync();
 
         internal async Task CreateAdventureAsync(PageState state) {
             var request = new CreateAdventureRequest {
@@ -19,7 +19,7 @@ public partial class Adventures {
                 Visibility = state.Input.Visibility,
             };
 
-            var result = await _gameServiceClient.CreateAdventureAsync(request);
+            var result = await _client.CreateAdventureAsync(request);
 
             if (result.IsSuccessful) {
                 state.Input = new();
@@ -28,7 +28,7 @@ public partial class Adventures {
         }
 
         internal async Task DeleteAdventureAsync(PageState state, Guid id) {
-            await _gameServiceClient.DeleteAdventureAsync(id);
+            await _client.DeleteAdventureAsync(id);
             await LoadAdventuresAsync(state);
         }
 
@@ -48,7 +48,7 @@ public partial class Adventures {
                 Name = state.Input.Name,
                 Visibility = state.Input.Visibility,
             };
-            var result = await _gameServiceClient.UpdateAdventureAsync(state.EditingAdventureId, request);
+            var result = await _client.UpdateAdventureAsync(state.EditingAdventureId, request);
             if (result.IsSuccessful) {
                 state.IsEditing = false;
                 await LoadAdventuresAsync(state);
@@ -57,7 +57,7 @@ public partial class Adventures {
 
         internal async Task CloneAdventureAsync(PageState state, Guid id) {
             var request = new CloneAdventureRequest();
-            var result = await _gameServiceClient.CloneAdventureAsync(id, request);
+            var result = await _client.CloneAdventureAsync(id, request);
             if (result.IsSuccessful) await LoadAdventuresAsync(state);
         }
     }

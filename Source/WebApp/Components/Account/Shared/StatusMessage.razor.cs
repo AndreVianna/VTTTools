@@ -1,6 +1,4 @@
-﻿using VttTools.WebApp.Utilities;
-
-namespace VttTools.WebApp.Components.Account.Shared;
+﻿namespace VttTools.WebApp.Components.Account.Shared;
 
 public partial class StatusMessage {
     private string? _messageFromCookie;
@@ -10,13 +8,16 @@ public partial class StatusMessage {
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = null!;
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
 
     private string? DisplayMessage => Message ?? _messageFromCookie;
 
     protected override void OnInitialized() {
-        _messageFromCookie = HttpContext.Request.Cookies[IdentityRedirectManager.StatusCookieName];
+        var statusCookieName = NavigationManager.GetStatusCookieName();
+        _messageFromCookie = HttpContext.Request.Cookies[statusCookieName];
 
         if (_messageFromCookie is not null)
-            HttpContext.Response.Cookies.Delete(IdentityRedirectManager.StatusCookieName);
+            HttpContext.Response.Cookies.Delete(statusCookieName);
     }
 }

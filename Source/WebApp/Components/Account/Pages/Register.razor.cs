@@ -16,8 +16,6 @@ public partial class Register {
     [Inject]
     private IEmailSender<User> EmailSender { get; set; } = null!;
     [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
-    [Inject]
     private ILogger<Register> Logger { get; set; } = null!;
 
     [SupplyParameterFromForm]
@@ -62,12 +60,12 @@ public partial class Register {
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
         if (UserManager.Options.SignIn.RequireConfirmedAccount) {
-            RedirectManager.RedirectTo("Account/RegisterConfirmation",
+            NavigationManager.RedirectTo("Account/RegisterConfirmation",
                                        new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
         }
 
         await SignInManager.SignInAsync(user, isPersistent: false);
-        RedirectManager.RedirectTo(ReturnUrl);
+        NavigationManager.RedirectTo(ReturnUrl);
     }
 
     private static User CreateUser() {

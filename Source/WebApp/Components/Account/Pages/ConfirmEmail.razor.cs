@@ -11,7 +11,7 @@ public partial class ConfirmEmail {
     [Inject]
     private UserManager<User> UserManager { get; set; } = null!;
     [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    private NavigationManager NavigationManager { get; set; } = null!;
 
     [SupplyParameterFromQuery]
     private string? UserId { get; set; }
@@ -21,7 +21,7 @@ public partial class ConfirmEmail {
 
     protected override async Task OnInitializedAsync() {
         if (UserId is null || Code is null) {
-            RedirectManager.RedirectTo("");
+            NavigationManager.RedirectTo("");
             return;
         }
 

@@ -1,6 +1,4 @@
-﻿using VttTools.WebApp.Utilities;
-
-namespace VttTools.WebApp.Components.Account.Pages;
+﻿namespace VttTools.WebApp.Components.Account.Pages;
 
 public partial class ForgotPassword {
     [Inject]
@@ -9,8 +7,6 @@ public partial class ForgotPassword {
     private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
     private IEmailSender<User> EmailSender { get; set; } = null!;
-    [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
@@ -19,7 +15,7 @@ public partial class ForgotPassword {
         var user = await UserManager.FindByEmailAsync(Input.Email);
         if (user is null || !await UserManager.IsEmailConfirmedAsync(user)) {
             // Don't reveal that the user does not exist or is not confirmed
-            RedirectManager.RedirectTo("Account/ForgotPasswordConfirmation");
+            NavigationManager.RedirectTo("Account/ForgotPasswordConfirmation");
         }
 
         // For more information on how to enable account confirmation and password reset please
@@ -32,7 +28,7 @@ public partial class ForgotPassword {
 
         await EmailSender.SendPasswordResetLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
-        RedirectManager.RedirectTo("Account/ForgotPasswordConfirmation");
+        NavigationManager.RedirectTo("Account/ForgotPasswordConfirmation");
     }
 
     private sealed class InputModel {

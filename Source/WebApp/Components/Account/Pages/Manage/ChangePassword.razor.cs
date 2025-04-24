@@ -13,11 +13,11 @@ public partial class ChangePassword {
     [Inject]
     private UserManager<User> UserManager { get; set; } = null!;
     [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject]
     private SignInManager<User> SignInManager { get; set; } = null!;
     [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
-    [Inject]
-    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    private IIdentityUserAccessor UserAccessor { get; set; } = null!;
     [Inject]
     private ILogger<ChangePassword> Logger { get; set; } = null!;
 
@@ -25,13 +25,13 @@ public partial class ChangePassword {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
         if (result.IsFailure)
             return;
         _user = result.Value;
         _hasPassword = await UserManager.HasPasswordAsync(_user);
         if (!_hasPassword)
-            RedirectManager.RedirectTo("Account/Manage/SetPassword");
+            NavigationManager.RedirectTo("Account/Manage/SetPassword");
     }
 
     private async Task OnValidSubmitAsync() {
@@ -44,7 +44,7 @@ public partial class ChangePassword {
         await SignInManager.RefreshSignInAsync(_user);
         Logger.LogInformation("User changed their password successfully.");
 
-        RedirectManager.RedirectToCurrentPageWithStatus("Your password has been changed", HttpContext);
+        NavigationManager.ReloadPageWithStatus("Your password has been changed", HttpContext);
     }
 
     private sealed class InputModel {

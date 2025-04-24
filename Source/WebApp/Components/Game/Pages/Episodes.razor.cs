@@ -12,7 +12,7 @@ public partial class Episodes() {
     public Guid AdventureId { get; set; }
 
     [Inject]
-    internal GameServiceClient GameServiceClient { get; set; } = null!;
+    internal IGameServiceClient GameServiceClient { get; set; } = null!;
 
     internal PageState? State { get; set; }
 

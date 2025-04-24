@@ -12,14 +12,14 @@ public partial class Disable2fa {
     [Inject]
     private UserManager<User> UserManager { get; set; } = null!;
     [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
-    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    private IIdentityUserAccessor UserAccessor { get; set; } = null!;
     [Inject]
     private ILogger<Disable2fa> Logger { get; set; } = null!;
 
     protected override async Task OnInitializedAsync() {
-        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
         if (result.IsFailure)
             return;
         _user = result.Value;
@@ -34,7 +34,7 @@ public partial class Disable2fa {
 
         var userId = await UserManager.GetUserIdAsync(_user);
         Logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", userId);
-        RedirectManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication",
+        NavigationManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication",
                                              "2fa has been disabled. You can reenable 2fa when you setup an authenticator app",
                                              HttpContext);
     }

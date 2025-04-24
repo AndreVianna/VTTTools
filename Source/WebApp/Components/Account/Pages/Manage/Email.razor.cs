@@ -16,7 +16,7 @@ public partial class Email {
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
-    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    private IIdentityUserAccessor UserAccessor { get; set; } = null!;
     [Inject]
     private IEmailSender<User> EmailSender { get; set; } = null!;
     [Inject]
@@ -26,7 +26,7 @@ public partial class Email {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
         if (result.IsFailure)
             return;
         _user = result.Value;

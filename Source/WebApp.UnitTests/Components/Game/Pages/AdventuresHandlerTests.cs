@@ -1,14 +1,8 @@
 namespace VttTools.WebApp.Components.Game.Pages;
 
 public class AdventuresHandlerTests {
-    private readonly GameServiceClient _gameServiceClient = Substitute.For<GameServiceClient>();
-    private readonly HttpClient _httpClient = Substitute.For<HttpClient>();
-    private readonly Adventures.Handler _handler;
-
-    public AdventuresHandlerTests() {
-        _gameServiceClient.Api.Returns(_httpClient);
-        _handler = new();
-    }
+    private readonly IGameServiceClient _client = Substitute.For<IGameServiceClient>();
+    private readonly Adventures.Handler _handler = new();
 
     [Fact]
     public async Task InitializeAsync_LoadsAdventures_And_ReturnsPageState() {
@@ -18,15 +12,15 @@ public class AdventuresHandlerTests {
             new Adventure { Id = Guid.NewGuid(), Name = "Adventure 2", Visibility = Visibility.Private },
                                };
 
-        _gameServiceClient.GetAdventuresAsync().Returns(adventures);
+        _client.GetAdventuresAsync().Returns(adventures);
 
         // Act
-        var state = await _handler.InitializeAsync(_gameServiceClient);
+        var state = await _handler.InitializeAsync(_client);
 
         // Assert
         state.Should().NotBeNull();
         state.Adventures.Should().BeEquivalentTo(adventures);
-        await _gameServiceClient.Received(1).GetAdventuresAsync();
+        await _client.Received(1).GetAdventuresAsync();
     }
 
     [Fact]
@@ -38,14 +32,14 @@ public class AdventuresHandlerTests {
             new Adventure { Id = Guid.NewGuid(), Name = "Adventure 2", Visibility = Visibility.Private },
                                };
 
-        _gameServiceClient.GetAdventuresAsync().Returns(adventures);
+        _client.GetAdventuresAsync().Returns(adventures);
 
         // Act
         await _handler.LoadAdventuresAsync(state);
 
         // Assert
         state.Adventures.Should().BeEquivalentTo(adventures);
-        await _gameServiceClient.Received(1).GetAdventuresAsync();
+        await _client.Received(1).GetAdventuresAsync();
     }
 
     [Fact]
@@ -53,22 +47,22 @@ public class AdventuresHandlerTests {
         // Arrange
         var state = new Adventures.PageState {
             Input = new() {
-                              Name = "New Adventure",
-                              Visibility = Visibility.Private,
-                          },
-                                             };
+                Name = "New Adventure",
+                Visibility = Visibility.Private,
+            },
+        };
 
-        _gameServiceClient.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>())
+        _client.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>())
             .Returns(Result.Success());
 
         var adventures = new[] { new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1" } };
-        _gameServiceClient.GetAdventuresAsync().Returns(adventures);
+        _client.GetAdventuresAsync().Returns(adventures);
 
         // Act
         await _handler.CreateAdventureAsync(state);
 
         // Assert
-        await _gameServiceClient.Received(1).CreateAdventureAsync(Arg.Is<CreateAdventureRequest>(r =>
+        await _client.Received(1).CreateAdventureAsync(Arg.Is<CreateAdventureRequest>(r =>
             r.Name == "New Adventure" && r.Visibility == Visibility.Private));
 
         state.Input.Name.Should().BeEmpty();
@@ -83,14 +77,14 @@ public class AdventuresHandlerTests {
         var state = new Adventures.PageState();
 
         var adventuresAfterDelete = new[] { new Adventure { Id = Guid.NewGuid(), Name = "Adventure 2" } };
-        _gameServiceClient.GetAdventuresAsync().Returns(adventuresAfterDelete);
+        _client.GetAdventuresAsync().Returns(adventuresAfterDelete);
 
         // Act
         await _handler.DeleteAdventureAsync(state, adventureId);
 
         // Assert
-        await _gameServiceClient.Received(1).DeleteAdventureAsync(adventureId);
-        await _gameServiceClient.Received(1).GetAdventuresAsync();
+        await _client.Received(1).DeleteAdventureAsync(adventureId);
+        await _client.Received(1).GetAdventuresAsync();
         state.Adventures.Should().BeEquivalentTo(adventuresAfterDelete);
     }
 
@@ -102,7 +96,7 @@ public class AdventuresHandlerTests {
             Id = Guid.NewGuid(),
             Name = "Adventure to Edit",
             Visibility = Visibility.Public,
-                                      };
+        };
 
         // Act
         Adventures.Handler.StartEdit(state, adventure);
@@ -120,7 +114,7 @@ public class AdventuresHandlerTests {
         var state = new Adventures.PageState {
             IsEditing = true,
             EditingAdventureId = Guid.NewGuid(),
-                                             };
+        };
 
         // Act
         Adventures.Handler.CancelEdit(state);
@@ -137,24 +131,24 @@ public class AdventuresHandlerTests {
             IsEditing = true,
             EditingAdventureId = adventureId,
             Input = new() {
-                              Name = "Updated Adventure",
-                              Visibility = Visibility.Public,
-                          },
-                                             };
+                Name = "Updated Adventure",
+                Visibility = Visibility.Public,
+            },
+        };
 
-        _gameServiceClient.UpdateAdventureAsync(Arg.Any<Guid>(), Arg.Any<UpdateAdventureRequest>())
+        _client.UpdateAdventureAsync(Arg.Any<Guid>(), Arg.Any<UpdateAdventureRequest>())
             .Returns(Result.Success());
 
         var adventures = new[] {
             new Adventure { Id = adventureId, Name = "Updated Adventure", Visibility = Visibility.Public },
                                };
-        _gameServiceClient.GetAdventuresAsync().Returns(adventures);
+        _client.GetAdventuresAsync().Returns(adventures);
 
         // Act
         await _handler.SaveEditAsync(state);
 
         // Assert
-        await _gameServiceClient.Received(1).UpdateAdventureAsync(
+        await _client.Received(1).UpdateAdventureAsync(
             adventureId,
             Arg.Is<UpdateAdventureRequest>(r =>
                 r.Name == "Updated Adventure" && r.Visibility == Visibility.Public)
@@ -170,20 +164,20 @@ public class AdventuresHandlerTests {
         var adventureId = Guid.NewGuid();
         var state = new Adventures.PageState();
 
-        _gameServiceClient.CloneAdventureAsync(adventureId).Returns(Result.Success());
+        _client.CloneAdventureAsync(adventureId, Arg.Any<CloneAdventureRequest>()).Returns(Result.Success());
 
         var adventuresAfterClone = new[] {
             new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1" },
             new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1 (Copy)" },
                                          };
-        _gameServiceClient.GetAdventuresAsync().Returns(adventuresAfterClone);
+        _client.GetAdventuresAsync().Returns(adventuresAfterClone);
 
         // Act
         await _handler.CloneAdventureAsync(state, adventureId);
 
         // Assert
-        await _gameServiceClient.Received(1).CloneAdventureAsync(adventureId);
-        await _gameServiceClient.Received(1).GetAdventuresAsync();
+        await _client.Received(1).CloneAdventureAsync(adventureId, Arg.Any<CloneAdventureRequest>());
+        await _client.Received(1).GetAdventuresAsync();
         state.Adventures.Should().BeEquivalentTo(adventuresAfterClone);
     }
 }

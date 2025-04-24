@@ -17,12 +17,12 @@ public partial class TwoFactorAuthentication {
     [Inject]
     private SignInManager<User> SignInManager { get; set; } = null!;
     [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
-    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    private IIdentityUserAccessor UserAccessor { get; set; } = null!;
 
     protected override async Task OnInitializedAsync() {
-        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
         if (result.IsFailure)
             return;
         _canTrack = HttpContext.Features.Get<ITrackingConsentFeature>()?.CanTrack ?? true;
@@ -35,7 +35,7 @@ public partial class TwoFactorAuthentication {
     private async Task OnSubmitForgetBrowserAsync() {
         await SignInManager.ForgetTwoFactorClientAsync();
 
-        RedirectManager.RedirectToCurrentPageWithStatus("The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.",
+        NavigationManager.ReloadPageWithStatus("The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.",
                                                         HttpContext);
     }
 }

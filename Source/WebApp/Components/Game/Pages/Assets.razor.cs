@@ -4,7 +4,7 @@ public partial class Assets {
     private readonly Handler _handler = new();
 
     [Inject]
-    internal GameServiceClient GameServiceClient { get; set; } = null!;
+    internal IGameServiceClient GameServiceClient { get; set; } = null!;
 
     internal PageState? State { get; set; }
 

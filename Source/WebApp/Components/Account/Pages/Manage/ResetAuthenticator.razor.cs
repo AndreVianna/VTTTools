@@ -11,14 +11,14 @@ public partial class ResetAuthenticator {
     [Inject]
     private SignInManager<User> SignInManager { get; set; } = null!;
     [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
-    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    private IIdentityUserAccessor UserAccessor { get; set; } = null!;
     [Inject]
     private ILogger<ResetAuthenticator> Logger { get; set; } = null!;
 
     private async Task OnSubmitAsync() {
-        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
         if (result.IsFailure)
             return;
         await UserManager.SetTwoFactorEnabledAsync(result.Value, false);
@@ -26,7 +26,7 @@ public partial class ResetAuthenticator {
         var userId = await UserManager.GetUserIdAsync(result.Value);
         Logger.LogInformation("User with ID '{UserId}' has reset their authentication app key.", userId);
         await SignInManager.RefreshSignInAsync(result.Value);
-        RedirectManager.RedirectToWithStatus("Account/Manage/EnableAuthenticator",
+        NavigationManager.RedirectToWithStatus("Account/Manage/EnableAuthenticator",
                                              "Your authenticator app key has been reset, you will need to configure your authenticator app using the new key.",
                                              HttpContext);
     }

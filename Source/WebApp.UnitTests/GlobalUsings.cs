@@ -12,6 +12,8 @@ global using Bunit.TestDoubles;
 
 global using DotNetToolbox.Results;
 global using FluentAssertions;
+
+global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Components;
 global using Microsoft.AspNetCore.Components.Authorization;
 global using Microsoft.AspNetCore.Components.Routing;
@@ -22,6 +24,7 @@ global using Microsoft.AspNetCore.SignalR.Client;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Logging.Abstractions;
+global using Microsoft.Extensions.Options;
 global using Microsoft.JSInterop;
 
 global using NSubstitute;
@@ -32,8 +35,10 @@ global using VttTools.Model.Game;
 global using VttTools.Model.Identity;
 global using VttTools.WebApp.Components;
 global using VttTools.WebApp.Components.Meeting.Pages;
+global using VttTools.WebApp.Extensions;
 global using VttTools.WebApp.ViewModels;
 global using VttTools.WebApp.Services;
+global using VttTools.WebApp.TestUtilities;
 global using VttTools.WebApp.Utilities;
 
 global using Xunit;

@@ -3,7 +3,7 @@ namespace VttTools.WebApp.Components;
 public class ExtendedComponent
     : ComponentBase {
     [Inject]
-    internal HttpContextAccessor HttpContextAccessor { get; set; } = null!;
+    internal IHttpContextAccessor HttpContextAccessor { get; set; } = null!;
     [Inject]
     internal NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
@@ -32,6 +32,7 @@ public class ExtendedComponent
         var user = await UserManager.GetUserAsync(HttpContextAccessor.HttpContext.User);
         if (user is null)
             return;
+        CurrentUser.IsAuthenticated = true;
         CurrentUser.Id = user.Id;
         CurrentUser.DisplayName = user.DisplayName ?? user.Name;
         CurrentUser.IsAdministrator = await UserManager.IsInRoleAsync(user, "Administrator");

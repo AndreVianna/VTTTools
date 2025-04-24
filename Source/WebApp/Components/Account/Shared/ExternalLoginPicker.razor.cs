@@ -9,7 +9,7 @@ public partial class ExternalLoginPicker {
     protected SignInManager<User> SignInManager { get; init; } = null!;
 
     [Inject]
-    protected IdentityRedirectManager RedirectManager { get; set; } = null!;
+    protected NavigationManager NavigationManager { get; set; } = null!;
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }

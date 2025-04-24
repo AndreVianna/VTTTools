@@ -1,6 +1,4 @@
-﻿using VttTools.WebApp.Utilities;
-
-namespace VttTools.WebApp.Components.Account.Pages;
+﻿namespace VttTools.WebApp.Components.Account.Pages;
 
 public partial class ResendEmailConfirmation {
     private string? _message;
@@ -11,8 +9,6 @@ public partial class ResendEmailConfirmation {
     private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
     private IEmailSender<User> EmailSender { get; set; } = null!;
-    [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();

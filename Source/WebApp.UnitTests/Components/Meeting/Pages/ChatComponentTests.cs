@@ -1,15 +1,10 @@
 namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public class ChatComponentTests : Bunit.TestContext {
-    private readonly NavigationManager _navigationManager;
-
-    public ChatComponentTests() {
-        _navigationManager = Services.GetRequiredService<NavigationManager>();
-    }
-
     [Fact]
     public void Chat_RendersCorrectly() {
         // Act
+        this.Configure();
         var cut = RenderComponent<Chat>();
 
         // Assert
@@ -20,7 +15,7 @@ public class ChatComponentTests : Bunit.TestContext {
 
     [Fact]
     public void Chat_DisplaysMessages() {
-        // Act
+        this.Configure();
         var cut = RenderComponent<Chat>();
 
         // Manually add messages to the state
@@ -31,7 +26,7 @@ public class ChatComponentTests : Bunit.TestContext {
         // Assert
         var messages = cut.FindAll("li");
         messages.Count.Should().Be(2);
-        messages[0].TextContent.Should().Be("Test message 1");
-        messages[1].TextContent.Should().Be("Test message 2");
+        messages[0].TextContent.Should().Contain(": (Sent)\n      Test message 1");
+        messages[1].TextContent.Should().Contain(": (Received)\n      Test message 2");
     }
 }

@@ -15,8 +15,6 @@ public partial class Login {
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
-    [Inject]
     private ILogger<Login> Logger { get; set; } = null!;
 
     [SupplyParameterFromForm]
@@ -42,19 +40,19 @@ public partial class Login {
             var principal = await SignInManager.ClaimsFactory.CreateAsync(user!);
             await HttpContext.SignInAsync(IdentityConstants.ExternalScheme, principal);
             Logger.LogInformation("User logged in.");
-            RedirectManager.RedirectTo(ReturnUrl);
+            NavigationManager.RedirectTo(ReturnUrl);
             return;
         }
 
         if (result.RequiresTwoFactor) {
-            RedirectManager.RedirectTo("Account/LoginWith2fa",
+            NavigationManager.RedirectTo("Account/LoginWith2fa",
                                        new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
             return;
         }
 
         if (result.IsLockedOut) {
             Logger.LogWarning("User account locked out.");
-            RedirectManager.RedirectTo("Account/Lockout");
+            NavigationManager.RedirectTo("Account/Lockout");
             return;
         }
 

@@ -2,10 +2,10 @@ namespace VttTools.WebApp.Components.Game.Pages;
 
 public partial class Episodes {
     internal class Handler {
-        private GameServiceClient _gameServiceClient = null!;
+        private IGameServiceClient _client = null!;
 
-        internal async Task<PageState> InitializeAsync(GameServiceClient gameServiceClient, Guid adventureId) {
-            _gameServiceClient = gameServiceClient;
+        internal async Task<PageState> InitializeAsync(IGameServiceClient client, Guid adventureId) {
+            _client = client;
             var state = new PageState {
                 AdventureId = adventureId,
             };
@@ -13,7 +13,7 @@ public partial class Episodes {
             return state;
         }
 
-        internal async Task LoadEpisodesAsync(PageState state) => state.Episodes = await _gameServiceClient.GetEpisodesAsync(state.AdventureId);
+        internal async Task LoadEpisodesAsync(PageState state) => state.Episodes = await _client.GetEpisodesAsync(state.AdventureId);
 
         internal async Task CreateEpisodeAsync(PageState state) {
             var request = new CreateEpisodeRequest {
@@ -21,7 +21,7 @@ public partial class Episodes {
                 Name = state.Input.Name,
                 Visibility = state.Input.Visibility,
             };
-            var result = await _gameServiceClient.CreateEpisodeAsync(request);
+            var result = await _client.CreateEpisodeAsync(request);
             if (result.IsSuccessful) {
                 state.Input = new();
                 await LoadEpisodesAsync(state);
@@ -44,7 +44,7 @@ public partial class Episodes {
                 Name = state.Input.Name,
                 Visibility = state.Input.Visibility,
             };
-            var result = await _gameServiceClient.UpdateEpisodeAsync(state.EditingEpisodeId, request);
+            var result = await _client.UpdateEpisodeAsync(state.EditingEpisodeId, request);
             if (result.IsSuccessful) {
                 state.IsEditing = false;
                 await LoadEpisodesAsync(state);
@@ -52,13 +52,13 @@ public partial class Episodes {
         }
 
         internal async Task DeleteEpisodeAsync(PageState state, Guid id) {
-            await _gameServiceClient.DeleteEpisodeAsync(id);
+            await _client.DeleteEpisodeAsync(id);
             await LoadEpisodesAsync(state);
         }
 
         internal async Task CloneEpisodeAsync(PageState state, Guid id) {
             var request = new CloneEpisodeRequest();
-            var result = await _gameServiceClient.CloneEpisodeAsync(id, request);
+            var result = await _client.CloneEpisodeAsync(id, request);
             if (result.IsSuccessful) await LoadEpisodesAsync(state);
         }
     }

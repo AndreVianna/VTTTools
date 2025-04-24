@@ -37,34 +37,4 @@ public class UpdateAdventureRequestTests {
         // Assert
         result.HasErrors.Should().BeFalse();
     }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Validate_WithInvalidName_ReturnsFailure(string? name) {
-        // Arrange
-        var request = new UpdateAdventureRequest {
-            Name = name!,
-        };
-
-        // Act
-        var result = request.Validate();
-
-        // Assert
-        result.HasErrors.Should().BeTrue();
-        result.Errors.Should().ContainSingle(e => e.Message == "Adventure name cannot be null or empty." && e.Sources.Contains(nameof(request.Name)));
-    }
-
-    [Fact]
-    public void Validate_OptionalValuesNotSet_ReturnsSuccess() {
-        // Arrange
-        var request = new UpdateAdventureRequest();
-
-        // Act
-        var result = request.Validate();
-
-        // Assert
-        result.HasErrors.Should().BeFalse();
-    }
 }

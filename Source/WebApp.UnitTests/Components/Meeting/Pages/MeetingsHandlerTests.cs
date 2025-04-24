@@ -1,29 +1,24 @@
-using MeetingModel = VttTools.Model.Game.Meeting;
+using NSubstitute.ExceptionExtensions;
 
 namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public class MeetingsHandlerTests {
-    private readonly GameServiceClient _gameServiceClient = Substitute.For<GameServiceClient>();
+    private readonly IGameServiceClient _client = Substitute.For<IGameServiceClient>();
     private readonly HttpClient _httpClient = Substitute.For<HttpClient>();
-    private readonly Meetings.Handler _handler;
-
-    public MeetingsHandlerTests() {
-        _gameServiceClient.Api.Returns(_httpClient);
-        _handler = new();
-    }
+    private readonly Meetings.Handler _handler = new();
 
     [Fact]
     public async Task InitializeAsync_LoadsMeetings_And_ReturnsPageState() {
         // Arrange
         var meetings = new[] {
-            new MeetingModel { Id = Guid.NewGuid(), Subject = "Meeting 1" },
-            new MeetingModel { Id = Guid.NewGuid(), Subject = "Meeting 2" },
-                             };
+            new Model.Game.Meeting { Id = Guid.NewGuid(), Subject = "Meeting 1" },
+            new Model.Game.Meeting { Id = Guid.NewGuid(), Subject = "Meeting 2" },
+        };
 
-        _httpClient.GetFromJsonAsync<MeetingModel[]>("/api/meetings", cancellationToken: Xunit.TestContext.Current.CancellationToken).Returns(meetings);
+        _httpClient.GetFromJsonAsync<Model.Game.Meeting[]>("/api/meetings", cancellationToken: Xunit.TestContext.Current.CancellationToken).Returns(meetings);
 
         // Act
-        var state = await _handler.InitializeAsync(_gameServiceClient);
+        var state = await _handler.InitializeAsync(_client);
 
         // Assert
         state.Should().NotBeNull();
@@ -37,7 +32,7 @@ public class MeetingsHandlerTests {
 
         var adventures = new[] {
             new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1" },
-                               };
+        };
 
         _httpClient.GetFromJsonAsync<Adventure[]>("/api/adventures", cancellationToken: Xunit.TestContext.Current.CancellationToken).Returns(adventures);
 
@@ -60,7 +55,7 @@ public class MeetingsHandlerTests {
         // Arrange
         var state = new Meetings.PageState {
             ShowCreateDialog = true,
-                                           };
+        };
 
         // Act
         Meetings.Handler.CloseCreateMeetingDialog(state);
@@ -77,13 +72,13 @@ public class MeetingsHandlerTests {
             ShowCreateDialog = true,
             NewMeetingSubject = "New Meeting",
             SelectedEpisodeId = episodeId,
-                                           };
+        };
 
         // Setup response
-        var meeting = new MeetingModel { Id = Guid.NewGuid(), Subject = "New Meeting" };
+        var meeting = new Model.Game.Meeting { Id = Guid.NewGuid(), Subject = "New Meeting" };
         var successResponse = new HttpResponseMessage(HttpStatusCode.Created) {
             Content = JsonContent.Create(meeting),
-                                                                              };
+        };
 
         _httpClient.PostAsJsonAsync("/api/meetings", Arg.Any<CreateMeetingRequest>(), cancellationToken: Xunit.TestContext.Current.CancellationToken).Returns(successResponse);
 
@@ -109,7 +104,7 @@ public class MeetingsHandlerTests {
             ShowCreateDialog = true,
             NewMeetingSubject = "",  // Empty subject
             SelectedEpisodeId = episodeId,
-                                           };
+        };
 
         // Act
         await _handler.CreateMeeting(state);
@@ -159,7 +154,8 @@ public class MeetingsHandlerTests {
         // Arrange
         var meetingId = Guid.NewGuid();
 
-        _httpClient.PostAsync($"/api/meetings/{meetingId}/join", null, Xunit.TestContext.Current.CancellationToken).Returns<HttpResponseMessage>(x => throw new HttpRequestException("Test error"));
+        _httpClient.PostAsync($"/api/meetings/{meetingId}/join", null, Xunit.TestContext.Current.CancellationToken)
+                   .ThrowsAsync(new HttpRequestException("Test error"));
 
         // Act
         var result = await _handler.TryJoinMeeting(meetingId);
@@ -172,18 +168,18 @@ public class MeetingsHandlerTests {
     public async Task DeleteMeeting_RemovesMeetingAndReloadsState() {
         // Arrange
         var meetingId = Guid.NewGuid();
-        var meeting = new MeetingModel { Id = meetingId, Subject = "Meeting to Delete" };
+        var meeting = new Model.Game.Meeting { Id = meetingId, Subject = "Meeting to Delete" };
 
         var state = new Meetings.PageState {
             Meetings = [meeting],
-                                           };
+        };
 
         var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
         _httpClient.DeleteAsync($"/api/meetings/{meetingId}", Xunit.TestContext.Current.CancellationToken).Returns(successResponse);
 
         // Set up mock for DisplayConfirmation
         typeof(Meetings).GetMethod("DisplayConfirmation", BindingFlags.NonPublic | BindingFlags.Static)!
-            .Invoke(null, [ "Are you sure you want to delete this meeting?" ]);
+            .Invoke(null, ["Are you sure you want to delete this meeting?"]);
 
         // Act
         await _handler.DeleteMeeting(state, meetingId);
@@ -219,7 +215,7 @@ public class MeetingsHandlerTests {
         // Arrange
         var state = new Meetings.PageState {
             SelectedAdventureId = Guid.NewGuid(),
-                                           };
+        };
 
         // Act
         await _handler.ReloadAdventureEpisodes(state, "invalid-guid");

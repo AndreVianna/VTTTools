@@ -12,7 +12,7 @@ public partial class LoginWith2fa {
     [Inject]
     private SignInManager<User> SignInManager { get; set; } = null!;
     [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
     private ILogger<LoginWith2fa> Logger { get; set; } = null!;
 
@@ -37,11 +37,11 @@ public partial class LoginWith2fa {
 
         if (result.Succeeded) {
             Logger.LogInformation("User with ID '{UserId}' logged in with 2fa.", userId);
-            RedirectManager.RedirectTo(ReturnUrl);
+            NavigationManager.RedirectTo(ReturnUrl);
         }
         else if (result.IsLockedOut) {
             Logger.LogWarning("User with ID '{UserId}' account locked out.", userId);
-            RedirectManager.RedirectTo("Account/Lockout");
+            NavigationManager.RedirectTo("Account/Lockout");
         }
         else {
             Logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", userId);

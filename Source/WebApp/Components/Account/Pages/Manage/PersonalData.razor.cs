@@ -10,8 +10,8 @@ public partial class PersonalData {
     private UserManager<User> UserManager { get; set; } = null!;
 
     [Inject]
-    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    private IIdentityUserAccessor UserAccessor { get; set; } = null!;
 
     protected override Task OnInitializedAsync()
-        => UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        => UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
 }

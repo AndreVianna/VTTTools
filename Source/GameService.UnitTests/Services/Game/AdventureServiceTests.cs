@@ -307,7 +307,6 @@ public class AdventureServiceTests {
             OwnerId = _userId,
             Visibility = Visibility.Public,
         };
-
         var episodes = new[] {
             new Episode {
                 Id = Guid.NewGuid(),
@@ -333,15 +332,15 @@ public class AdventureServiceTests {
                 ],
             },
         };
+        var request = new CloneAdventureRequest();
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
         _episodeStorage.GetByParentIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(episodes);
-
         _adventureStorage.AddAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>())
             .Returns(x => x.Arg<Adventure>());
 
         // Act
-        var result = await _service.CloneAdventureAsync(_userId, adventureId, TestContext.Current.CancellationToken);
+        var result = await _service.CloneAdventureAsync(_userId, adventureId, request, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -364,11 +363,12 @@ public class AdventureServiceTests {
             OwnerId = _userId,
             Visibility = Visibility.Public,
         };
+        var request = new CloneAdventureRequest();
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
 
         // Act
-        var result = await _service.CloneAdventureAsync(nonOwnerId, adventureId, TestContext.Current.CancellationToken);
+        var result = await _service.CloneAdventureAsync(nonOwnerId, adventureId, request, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeNull();
@@ -380,9 +380,10 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
+        var request = new CloneAdventureRequest();
 
         // Act
-        var result = await _service.CloneAdventureAsync(_userId, adventureId, TestContext.Current.CancellationToken);
+        var result = await _service.CloneAdventureAsync(_userId, adventureId, request, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeNull();

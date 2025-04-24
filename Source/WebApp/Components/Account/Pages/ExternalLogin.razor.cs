@@ -21,8 +21,6 @@ public partial class ExternalLogin {
     [Inject]
     private IEmailSender<User> EmailSender { get; set; } = null!;
     [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
-    [Inject]
     private ILogger<ExternalLogin> Logger { get; set; } = null!;
 
     [SupplyParameterFromForm]
@@ -41,11 +39,11 @@ public partial class ExternalLogin {
 
     protected override async Task OnInitializedAsync() {
         if (RemoteError is not null)
-            RedirectManager.RedirectToWithStatus("Account/Login", $"Error from external provider: {RemoteError}", HttpContext);
+            NavigationManager.RedirectToWithStatus("Account/Login", $"Error from external provider: {RemoteError}", HttpContext);
 
         var info = await SignInManager.GetExternalLoginInfoAsync();
         if (info is null)
-            RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information.", HttpContext);
+            NavigationManager.RedirectToWithStatus("Account/Login", "Error loading external login information.", HttpContext);
 
         _externalLoginInfo = info;
 
@@ -57,13 +55,13 @@ public partial class ExternalLogin {
 
             // We should only reach this page via the login callback, so redirect back to
             // the login page if we get here some other way.
-            RedirectManager.RedirectTo("Account/Login");
+            NavigationManager.RedirectTo("Account/Login");
         }
     }
 
     private async Task OnLoginCallbackAsync() {
         if (_externalLoginInfo is null) {
-            RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information.", HttpContext);
+            NavigationManager.RedirectToWithStatus("Account/Login", "Error loading external login information.", HttpContext);
             return;
         }
 
@@ -76,12 +74,12 @@ public partial class ExternalLogin {
             Logger.LogInformation("{Subject} logged in with {LoginProvider} provider.",
                                   _externalLoginInfo.Principal.Identity?.Name,
                                   _externalLoginInfo.LoginProvider);
-            RedirectManager.RedirectTo(ReturnUrl);
+            NavigationManager.RedirectTo(ReturnUrl);
             return;
         }
 
         if (result.IsLockedOut) {
-            RedirectManager.RedirectTo("Account/Lockout");
+            NavigationManager.RedirectTo("Account/Lockout");
             return;
         }
 
@@ -92,7 +90,7 @@ public partial class ExternalLogin {
 
     private async Task OnValidSubmitAsync() {
         if (_externalLoginInfo is null)
-            RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information during confirmation.", HttpContext);
+            NavigationManager.RedirectToWithStatus("Account/Login", "Error loading external login information during confirmation.", HttpContext);
 
         var emailStore = GetEmailStore();
         var user = CreateUser();
@@ -117,10 +115,10 @@ public partial class ExternalLogin {
 
                 // If account confirmation is required, we need to show the link if we don't have a real email sender
                 if (UserManager.Options.SignIn.RequireConfirmedAccount)
-                    RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
+                    NavigationManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
 
                 await SignInManager.SignInAsync(user, isPersistent: false, _externalLoginInfo.LoginProvider);
-                RedirectManager.RedirectTo(ReturnUrl);
+                NavigationManager.RedirectTo(ReturnUrl);
             }
         }
 

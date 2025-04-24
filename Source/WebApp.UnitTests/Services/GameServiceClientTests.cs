@@ -136,7 +136,7 @@ public class GameServiceClientTests {
         // Assert
         result.IsSuccessful.Should().BeFalse();
         result.Errors.Should().HaveCount(1);
-        result.Errors.First().Message.Should().Be("Failed to create adventure.");
+        result.Errors[0].Message.Should().Be("Failed to create adventure.");
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class GameServiceClientTests {
         // Assert
         result.IsSuccessful.Should().BeFalse();
         result.Errors.Should().HaveCount(1);
-        result.Errors.First().Message.Should().Be("Failed to update adventure.");
+        result.Errors[0].Message.Should().Be("Failed to update adventure.");
     }
 
     [Fact]

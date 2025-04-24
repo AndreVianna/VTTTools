@@ -1,14 +1,8 @@
 namespace VttTools.WebApp.Components.Game.Pages;
 
 public class AssetsHandlerTests {
-    private readonly GameServiceClient _gameServiceClient = Substitute.For<GameServiceClient>();
-    private readonly HttpClient _httpClient = Substitute.For<HttpClient>();
-    private readonly Assets.Handler _handler;
-
-    public AssetsHandlerTests() {
-        _gameServiceClient.Api.Returns(_httpClient);
-        _handler = new();
-    }
+    private readonly IGameServiceClient _client = Substitute.For<IGameServiceClient>();
+    private readonly Assets.Handler _handler = new();
 
     [Fact]
     public async Task InitializeAsync_LoadsAssets_And_ReturnsPageState() {
@@ -30,15 +24,15 @@ public class AssetsHandlerTests {
                       },
                            };
 
-        _gameServiceClient.GetAssetsAsync().Returns(assets);
+        _client.GetAssetsAsync().Returns(assets);
 
         // Act
-        var state = await _handler.InitializeAsync(_gameServiceClient);
+        var state = await _handler.InitializeAsync(_client);
 
         // Assert
         state.Should().NotBeNull();
         state.Assets.Should().BeEquivalentTo(assets);
-        await _gameServiceClient.Received(1).GetAssetsAsync();
+        await _client.Received(1).GetAssetsAsync();
     }
 
     [Fact]
@@ -55,14 +49,14 @@ public class AssetsHandlerTests {
                       },
                            };
 
-        _gameServiceClient.GetAssetsAsync().Returns(assets);
+        _client.GetAssetsAsync().Returns(assets);
 
         // Act
         await _handler.LoadAssetsAsync(state);
 
         // Assert
         state.Assets.Should().BeEquivalentTo(assets);
-        await _gameServiceClient.Received(1).GetAssetsAsync();
+        await _client.Received(1).GetAssetsAsync();
     }
 
     [Fact]
@@ -77,7 +71,7 @@ public class AssetsHandlerTests {
                           },
                                          };
 
-        _gameServiceClient.CreateAssetAsync(Arg.Any<CreateAssetRequest>())
+        _client.CreateAssetAsync(Arg.Any<CreateAssetRequest>())
             .Returns(Result.Success());
 
         var assets = new[] {
@@ -89,13 +83,13 @@ public class AssetsHandlerTests {
                 Visibility = Visibility.Private,
                       },
                            };
-        _gameServiceClient.GetAssetsAsync().Returns(assets);
+        _client.GetAssetsAsync().Returns(assets);
 
         // Act
         await _handler.CreateAssetAsync(state);
 
         // Assert
-        await _gameServiceClient.Received(1).CreateAssetAsync(Arg.Is<CreateAssetRequest>(r =>
+        await _client.Received(1).CreateAssetAsync(Arg.Is<CreateAssetRequest>(r =>
             r.Name == "New Asset" &&
             r.Source == "https://example.com/newasset" &&
             r.Type == AssetType.Character &&
@@ -115,14 +109,14 @@ public class AssetsHandlerTests {
         var state = new Assets.PageState();
 
         var assetsAfterDelete = new Asset[] { };
-        _gameServiceClient.GetAssetsAsync().Returns(assetsAfterDelete);
+        _client.GetAssetsAsync().Returns(assetsAfterDelete);
 
         // Act
         await _handler.DeleteAssetAsync(state, assetId);
 
         // Assert
-        await _gameServiceClient.Received(1).DeleteAssetAsync(assetId);
-        await _gameServiceClient.Received(1).GetAssetsAsync();
+        await _client.Received(1).DeleteAssetAsync(assetId);
+        await _client.Received(1).GetAssetsAsync();
         state.Assets.Should().BeEquivalentTo(assetsAfterDelete);
     }
 }

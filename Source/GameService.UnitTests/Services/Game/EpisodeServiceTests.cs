@@ -62,6 +62,7 @@ public class EpisodeServiceTests {
         var request = new CreateEpisodeRequest {
             Name = "New Episode",
             Visibility = Visibility.Public,
+            AdventureId = Guid.NewGuid(),
         };
         _episodeStorage.AddAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>())
             .Returns(x => x.Arg<Episode>());
@@ -98,29 +99,6 @@ public class EpisodeServiceTests {
         result.Visibility.Should().Be(request.Visibility);
         result.OwnerId.Should().Be(_userId);
         result.ParentId.Should().Be(adventureId);
-        await _episodeStorage.Received(1).AddAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task CreateEpisodeAsync_WithoutAdventureId_SetsParentIdToEmpty() {
-        // Arrange
-        var request = new CreateEpisodeRequest {
-            Name = "New Episode",
-            Visibility = Visibility.Public,
-            AdventureId = null,
-        };
-        _episodeStorage.AddAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>())
-            .Returns(x => x.Arg<Episode>());
-
-        // Act
-        var result = await _service.CreateEpisodeAsync(_userId, request, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Name.Should().Be(request.Name);
-        result.Visibility.Should().Be(request.Visibility);
-        result.OwnerId.Should().Be(_userId);
-        result.ParentId.Should().Be(Guid.Empty);
         await _episodeStorage.Received(1).AddAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>());
     }
 
@@ -315,6 +293,7 @@ public class EpisodeServiceTests {
                 ],
             },
         };
+        var request = new CloneEpisodeRequest();
 
         _episodeStorage.GetByIdAsync(episodeId, Arg.Any<CancellationToken>()).Returns(episode);
         _episodeStorage.GetByParentIdAsync(episodeId, Arg.Any<CancellationToken>()).Returns(episodes);
@@ -326,7 +305,7 @@ public class EpisodeServiceTests {
             .Returns(x => x.Arg<Episode>());
 
         // Act
-        var result = await _service.CloneEpisodeAsync(_userId, episodeId, TestContext.Current.CancellationToken);
+        var result = await _service.CloneEpisodeAsync(_userId, episodeId, request, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -349,11 +328,12 @@ public class EpisodeServiceTests {
             Name = "Episode",
             OwnerId = _userId,
         };
+        var request = new CloneEpisodeRequest();
 
         _episodeStorage.GetByIdAsync(episodeId, Arg.Any<CancellationToken>()).Returns(episode);
 
         // Act
-        var result = await _service.CloneEpisodeAsync(nonOwnerId, episodeId, TestContext.Current.CancellationToken);
+        var result = await _service.CloneEpisodeAsync(nonOwnerId, episodeId, request, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeNull();
@@ -365,9 +345,10 @@ public class EpisodeServiceTests {
         // Arrange
         var episodeId = Guid.NewGuid();
         _episodeStorage.GetByIdAsync(episodeId, Arg.Any<CancellationToken>()).Returns((Episode?)null);
+        var request = new CloneEpisodeRequest();
 
         // Act
-        var result = await _service.CloneEpisodeAsync(_userId, episodeId, TestContext.Current.CancellationToken);
+        var result = await _service.CloneEpisodeAsync(_userId, episodeId, request, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeNull();

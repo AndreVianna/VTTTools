@@ -13,12 +13,12 @@ public partial class GenerateRecoveryCodes {
     [Inject]
     private UserManager<User> UserManager { get; set; } = null!;
     [Inject]
-    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    private IIdentityUserAccessor UserAccessor { get; set; } = null!;
     [Inject]
     private ILogger<GenerateRecoveryCodes> Logger { get; set; } = null!;
 
     protected override async Task OnInitializedAsync() {
-        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
         if (result.IsFailure)
             return;
         _user = result.Value;

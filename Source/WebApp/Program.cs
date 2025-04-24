@@ -1,4 +1,3 @@
-using VttTools.WebApp.Extensions;
 using VttTools.WebApp.Utilities;
 
 using static VttTools.Data.Options.ApplicationDbContextOptions;
@@ -29,8 +28,7 @@ internal static class Program {
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
         builder.Services.AddCascadingAuthenticationState();
-        builder.Services.AddScoped<IdentityUserAccessor>();
-        builder.Services.AddScoped<IdentityRedirectManager>();
+        builder.Services.AddScoped<IIdentityUserAccessor, IdentityUserAccessor>();
         builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
         builder.Services.AddIdentityCore<User>(opt => {

@@ -16,9 +16,9 @@ public partial class EnableAuthenticator {
     [Inject]
     private UserManager<User> UserManager { get; set; } = null!;
     [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
-    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    private IIdentityUserAccessor UserAccessor { get; set; } = null!;
     [Inject]
     private UrlEncoder UrlEncoder { get; set; } = null!;
     [Inject]
@@ -28,7 +28,7 @@ public partial class EnableAuthenticator {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
         if (result.IsFailure)
             return;
         _user = result.Value;
@@ -56,7 +56,7 @@ public partial class EnableAuthenticator {
         if (await UserManager.CountRecoveryCodesAsync(_user) == 0)
             _recoveryCodes = await UserManager.GenerateNewTwoFactorRecoveryCodesAsync(_user, 10);
         else
-            RedirectManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication", _message, HttpContext);
+            NavigationManager.RedirectToWithStatus("Account/Manage/TwoFactorAuthentication", _message, HttpContext);
     }
 
     private async ValueTask LoadSharedKeyAndQrCodeUriAsync(User user) {

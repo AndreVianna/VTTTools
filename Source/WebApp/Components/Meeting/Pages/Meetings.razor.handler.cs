@@ -45,7 +45,7 @@ public partial class Meetings {
                 };
                 var result = await _client.CreateMeetingAsync(request);
                 if (!result.IsSuccessful) {
-                    state.MeetingSubjectError = result.Errors.First().Message;
+                    state.MeetingSubjectError = result.Errors[0].Message;
                     return;
                 }
                 state.Meetings.Add(result.Value);

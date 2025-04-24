@@ -15,9 +15,9 @@ public partial class Index {
     [Inject]
     private SignInManager<User> SignInManager { get; set; } = null!;
     [Inject]
-    private IdentityRedirectManager RedirectManager { get; set; } = null!;
+    private NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
-    private IdentityUserAccessor UserAccessor { get; set; } = null!;
+    private IIdentityUserAccessor UserAccessor { get; set; } = null!;
     [Inject]
     private ILogger<Index> Logger { get; set; } = null!;
 
@@ -25,7 +25,7 @@ public partial class Index {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        var result = await UserAccessor.GetRequiredUserOrRedirectAsync(HttpContext, UserManager);
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
         if (result.IsFailure)
             return;
         _user = result.Value;
@@ -40,13 +40,13 @@ public partial class Index {
             var setPhoneResult = await UserManager.SetPhoneNumberAsync(_user, Input.PhoneNumber);
             if (!setPhoneResult.Succeeded) {
                 Logger.LogWarning("Failed to update the phone number for the user with ID {UserId}.", _user.Id);
-                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to set phone number.", HttpContext);
+                NavigationManager.ReloadPageWithStatus("Error: Failed to set phone number.", HttpContext);
             }
         }
 
         await SignInManager.RefreshSignInAsync(_user);
         Logger.LogInformation("The profile of user with ID {UserId} was updated.", _user.Id);
-        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
+        NavigationManager.ReloadPageWithStatus("Your profile has been updated", HttpContext);
     }
 
     private sealed class InputModel {

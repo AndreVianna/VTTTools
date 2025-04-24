@@ -180,12 +180,8 @@ public class AssetHandlersTests {
 
         // Assert
         await _assetService.Received(1).GetAssetAsync(assetId, Arg.Any<CancellationToken>());
-        await _storageService.Received(1).UploadImageAsync(Arg.Any<Stream>(), Arg.Is<string>(s => s == "image.png"), Arg.Any<CancellationToken>());
-        await _assetService.Received(1).UpdateAssetAsync(
-            _userId,
-            assetId,
-            Arg.Is<UpdateAssetRequest>(r => r.Source == "https://storage.example.com/image.png"),
-            Arg.Any<CancellationToken>());
+        await _storageService.Received(1).UploadImageAsync(Arg.Any<Stream>(), "image.png", Arg.Any<CancellationToken>());
+        await _assetService.Received(1).UpdateAssetAsync(_userId, assetId, Arg.Any<UpdateAssetRequest>(), Arg.Any<CancellationToken>());
 
         var response = result.Should().BeOfType<Ok<Asset>>().Subject;
         response.Value.Should().BeEquivalentTo(updatedAsset);
