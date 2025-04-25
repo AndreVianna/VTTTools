@@ -1,54 +1,61 @@
 namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public partial class MeetingDetails {
-    internal class Handler {
-        private IGameService _service = null!;
-        private Guid _userId;
+    internal class Handler() {
+        private readonly Guid _userId;
+        private readonly IGameService _service = null!;
 
-        internal async Task<PageState?> InitializeState(Guid meetingId, Guid userId, IGameService service) {
-            _service = service;
+        internal PageState State { get; } = new();
+
+        internal Handler(Guid meetingId, Guid userId, IGameService service)
+            : this() {
             _userId = userId;
-            var state = new PageState(meetingId);
-            return !await TryLoadMeetingDetails(state) ? null : state;
+            _service = service;
+            State.Id = meetingId;
         }
 
-        internal async Task<bool> TryLoadMeetingDetails(PageState state) {
-            var meeting = await _service.GetMeetingByIdAsync(state.Id);
+        internal static async Task<Handler?> InitializeAsync(Guid meetingId, Guid userId, IGameService service) {
+            var handler = new Handler(meetingId, userId, service);
+            return await handler.TryLoadMeetingDetails() ? handler : null;
+        }
+
+        internal async Task<bool> TryLoadMeetingDetails() {
+            var meeting = await _service.GetMeetingByIdAsync(State.Id);
             if (meeting == null)
                 return false;
-            state.Meeting = meeting;
-            state.CanEdit = meeting.OwnerId == _userId;
-            state.CanStart = meeting.Players.FirstOrDefault(p => p.UserId == _userId)?.Type == PlayerType.Master;
+            State.Meeting = meeting;
+            State.CanEdit = meeting.OwnerId == _userId;
+            State.CanStart = meeting.Players.FirstOrDefault(p => p.UserId == _userId)?.Type == PlayerType.Master;
             return true;
         }
 
-        internal static void OpenEditMeetingDialog(PageState state) {
-            state.Input = new() { Subject = state.Meeting.Subject };
-            state.Errors = [];
-            state.ShowEditDialog = true;
+        internal void OpenEditMeetingDialog() {
+            State.Input = new() { Subject = State.Meeting.Subject };
+            State.Errors = [];
+            State.ShowEditDialog = true;
         }
 
-        internal static void CloseEditMeetingDialog(PageState state)
-            => state.ShowEditDialog = false;
+        internal void CloseEditMeetingDialog()
+            => State.ShowEditDialog = false;
 
-        internal async Task UpdateMeeting(PageState state) {
-            state.Errors = [];
+        internal async Task UpdateMeeting() {
+            State.Errors = [];
             var request = new UpdateMeetingRequest {
-                Subject = state.Input.Subject,
+                Subject = State.Input.Subject,
             };
-            var result = await _service.UpdateMeetingAsync(state.Id, request);
+            var result = await _service.UpdateMeetingAsync(State.Id, request);
             if (result.HasErrors) {
-                state.Errors = [.. result.Errors];
+                State.Errors = [.. result.Errors];
                 return;
             }
 
-            state.Meeting = result.Value;
-            state.CanEdit = state.Meeting.OwnerId == _userId;
-            state.CanStart = state.Meeting.Players.FirstOrDefault(p => p.UserId == _userId)?.Type == PlayerType.Master;
-            CloseEditMeetingDialog(state);
+            State.Meeting = result.Value;
+            State.CanEdit = State.Meeting.OwnerId == _userId;
+            State.CanStart = State.Meeting.Players.FirstOrDefault(p => p.UserId == _userId)?.Type == PlayerType.Master;
+            CloseEditMeetingDialog();
         }
 
-        internal Task<bool> TryStartMeeting(PageState state)
-            => _service.StartMeetingAsync(state.Id);
+        internal Task<bool> TryStartMeeting()
+            => _service.StartMeetingAsync(State.Id);
     }
 }

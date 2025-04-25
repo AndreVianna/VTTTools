@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public partial class MeetingDetails {
-    private readonly Handler _handler = new();
+    private Handler _handler = null!;
 
     [Parameter]
     public Guid MeetingId { get; set; }
@@ -9,29 +9,34 @@ public partial class MeetingDetails {
     [Inject]
     internal IGameService GameService { get; set; } = null!;
 
-    internal PageState? State { get; set; }
+    internal bool IsLoading { get; set; } = true;
+    internal PageState State => _handler.State;
 
     protected override async Task OnParametersSetAsync() {
-        State = await _handler.InitializeState(MeetingId, CurrentUser.Id, GameService);
-        if (State is null)
+        var handler = await Handler.InitializeAsync(MeetingId, CurrentUser.Id, GameService);
+        if (handler is null) {
             NavigateToMeetings();
+            return;
+        }
+        _handler = handler;
+        IsLoading = false;
     }
 
     internal void NavigateToMeetings()
         => NavigateTo("/meetings");
 
     internal void OpenEditMeetingDialog()
-        => Handler.OpenEditMeetingDialog(State!);
+        => _handler.OpenEditMeetingDialog();
 
     private void CloseEditMeetingDialog()
-        => Handler.CloseEditMeetingDialog(State!);
+        => _handler.CloseEditMeetingDialog();
 
     internal Task UpdateMeeting()
-        => _handler.UpdateMeeting(State!);
+        => _handler.UpdateMeeting();
 
     internal async Task StartMeeting() {
-        if (!await _handler.TryStartMeeting(State!))
+        if (!await _handler.TryStartMeeting())
             return;
-        NavigateTo($"/game/{State!.Id}");
+        NavigateTo($"/game/{State.Id}");
     }
 }

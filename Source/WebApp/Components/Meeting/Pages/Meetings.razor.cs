@@ -1,30 +1,32 @@
 namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public partial class Meetings {
-    private readonly Handler _handler = new();
+    private Handler _handler = new();
 
     [Inject]
     internal IGameService GameService { get; set; } = null!;
 
-    internal PageState? State { get; set; }
+    internal bool IsLoading { get; set; } = true;
+    internal PageState State => _handler.State;
 
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync();
-        State = await _handler.InitializeAsync(GameService);
+        _handler = await Handler.InitializeAsync(GameService);
+        IsLoading = false;
     }
     internal void NavigateToMeeting(Guid meetingId)
         => NavigateTo($"/meeting/{meetingId}");
 
     internal Task OpenCreateMeetingDialog()
-        => _handler.OpenCreateMeetingDialog(State!);
+        => _handler.OpenCreateMeetingDialog();
     internal void CloseCreateMeetingDialog()
-        => Handler.CloseCreateMeetingDialog(State!);
+        => _handler.CloseCreateMeetingDialog();
 
     internal Task CreateMeeting()
-        => _handler.CreateMeeting(State!);
+        => _handler.CreateMeeting();
 
     internal Task DeleteMeeting(Guid meetingId)
-        => _handler.DeleteMeeting(State!, meetingId);
+        => _handler.DeleteMeeting(meetingId);
 
     internal async Task JoinMeeting(Guid meetingId) {
         if (!await _handler.TryJoinMeeting(meetingId))
@@ -34,7 +36,7 @@ public partial class Meetings {
 
     // Handle selection of an adventure: load its episodes
     internal Task OnAdventureChanged(ChangeEventArgs e)
-        => _handler.ReloadAdventureEpisodes(State!, (Guid?)e.Value);
+        => _handler.ReloadAdventureEpisodes((Guid?)e.Value);
 
     internal static Task<bool> DisplayConfirmation(string _)
         // JavaScript confirmation isn't ideal, but we'll use it for this example

@@ -4,7 +4,7 @@
 
 <PageTitle>Game Meeting: @(State?.Meeting?.Subject ?? "Loading...")</PageTitle>
 
-@if (State == null)
+@if (IsLoading)
 {
     <div class="d-flex justify-content-center">
         <div class="spinner-border" role="status">
@@ -77,7 +77,7 @@ else
     </div>
 }
 
-@if (State?.ShowEditDialog ?? false)
+@if (!IsLoading && State.ShowEditDialog)
 {
     <div class="modal fade show" style="display: block;" tabindex="-1">
         <div class="modal-dialog">

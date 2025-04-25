@@ -1,6 +1,6 @@
 namespace VttTools.WebApp.Components.Meeting.Pages;
 
-public partial class Chat {
+public partial class Chat : IAsyncDisposable {
     private readonly Handler _handler = new();
 
     internal PageState State { get; init; } = new();

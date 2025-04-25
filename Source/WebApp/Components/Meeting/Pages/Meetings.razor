@@ -14,7 +14,7 @@
         </div>
     </div>
 
-    @if (State == null)
+    @if (IsLoading)
     {
         <div class="d-flex justify-content-center">
             <div class="spinner-border" role="status">
@@ -58,7 +58,7 @@
     }
 </div>
 
-@if (State!.ShowCreateDialog)
+@if (!IsLoading && State.ShowCreateDialog)
 {
     <div class="modal fade show" style="display: block;" tabindex="-1">
         <div class="modal-dialog">
@@ -70,34 +70,34 @@
                 <div class="modal-body">
     <div class="mb-3">
         <label for="meetingName" class="form-label">Meeting Subject</label>
-        <input type="text" class="form-control" id="meetingName" @bind="State!.NewMeetingSubject" />
-        @if (!string.IsNullOrEmpty(State!.MeetingSubjectError))
+        <input type="text" class="form-control" id="meetingName" @bind="State.NewMeetingSubject" />
+        @if (!string.IsNullOrEmpty(State.MeetingSubjectError))
         {
-            <div class="text-danger mt-1">@State!.MeetingSubjectError</div>
+            <div class="text-danger mt-1">@State.MeetingSubjectError</div>
         }
     </div>
     <div class="mb-3">
         <label for="adventureSelect" class="form-label">Adventure</label>
         <select id="adventureSelect" class="form-select" @onchange="OnAdventureChanged">
             <option value="">-- Select an adventure --</option>
-            @foreach (var adv in State!.Adventures)
+            @foreach (var adv in State.Adventures)
             {
-                <option value="@adv.Id" selected="@(adv.Id == State!.SelectedAdventureId)">@adv.Name</option>
+                <option value="@adv.Id" selected="@(adv.Id == State.SelectedAdventureId)">@adv.Name</option>
             }
         </select>
     </div>
-    @if (State!.Episodes.Count == 0)
+    @if (State.Episodes.Count == 0)
     {
         <div class="mb-3">
             <label for="episodeSelect" class="form-label">Initial Episode</label>
-            <select id="episodeSelect" class="form-select" @bind="State!.SelectedEpisodeId">
+            <select id="episodeSelect" class="form-select" @bind="State.SelectedEpisodeId">
                 <option value="">-- Select an episode --</option>
-                @foreach (var ep in State!.Episodes)
+                @foreach (var ep in State.Episodes)
                 {
                     <option value="@ep.Id">@ep.Name</option>
                 }
             </select>
-            @if (State!.ShowEpisodeError)
+            @if (State.ShowEpisodeError)
             {
                 <div class="text-danger mt-1">Episode selection is required</div>
             }
