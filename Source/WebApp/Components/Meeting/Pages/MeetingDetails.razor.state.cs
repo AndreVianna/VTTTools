@@ -3,17 +3,16 @@ using MeetingModel = VttTools.Model.Game.Meeting;
 namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public partial class MeetingDetails {
-    internal class PageState {
-        public Guid Id { get; set; }
+    internal class PageState(Guid id) {
+        public Guid Id { get; set; } = id;
+        public MeetingModel Meeting { get; set; } = null!;
 
-        public MeetingModel? Meeting { get; set; }
+        public bool CanStart { get; set; }
 
-        public bool IsGameMaster { get; set; }
-
+        public bool CanEdit { get; set; }
         public bool ShowEditDialog { get; set; }
+        public InputModel Input { get; set; } = new();
 
-        public string EditMeetingSubject { get; set; } = string.Empty;
-
-        public string MeetingSubjectError { get; set; } = string.Empty;
+        public IEnumerable<Error> Errors { get; set; } = [];
     }
 }

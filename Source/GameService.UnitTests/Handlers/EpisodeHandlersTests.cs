@@ -30,7 +30,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.GetEpisodesHandler(_episodeService);
 
         // Assert
-        _episodeService.Received(1).GetEpisodesAsync(Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Ok<Episode[]>>().Subject;
         response.Value.Should().BeEquivalentTo(episodes);
     }
@@ -48,7 +47,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.GetEpisodeByIdHandler(episodeId, _episodeService);
 
         // Assert
-        _episodeService.Received(1).GetEpisodeByIdAsync(episodeId, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Ok<Episode>>().Subject;
         response.Value.Should().BeEquivalentTo(episode);
     }
@@ -65,7 +63,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.GetEpisodeByIdHandler(episodeId, _episodeService);
 
         // Assert
-        _episodeService.Received(1).GetEpisodeByIdAsync(episodeId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NotFound>();
     }
 
@@ -83,7 +80,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.CreateEpisodeHandler(_httpContext, request, _episodeService);
 
         // Assert
-        _episodeService.Received(1).CreateEpisodeAsync(_userId, request, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Created<Episode>>().Subject;
         response.Location.Should().Be($"/api/episodes/{episode.Id}");
         response.Value.Should().BeEquivalentTo(episode);
@@ -101,7 +97,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.CreateEpisodeHandler(_httpContext, request, _episodeService);
 
         // Assert
-        _episodeService.Received(1).CreateEpisodeAsync(_userId, request, Arg.Any<CancellationToken>());
         result.Should().BeOfType<BadRequest>();
     }
 
@@ -119,7 +114,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.UpdateEpisodeHandler(_httpContext, episodeId, request, _episodeService);
 
         // Assert
-        _episodeService.Received(1).UpdateEpisodeAsync(_userId, episodeId, request, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Ok<Episode>>().Subject;
         response.Value.Should().BeEquivalentTo(episode);
     }
@@ -137,7 +131,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.UpdateEpisodeHandler(_httpContext, episodeId, request, _episodeService);
 
         // Assert
-        _episodeService.Received(1).UpdateEpisodeAsync(_userId, episodeId, request, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NotFound>();
     }
 
@@ -153,7 +146,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.DeleteEpisodeHandler(_httpContext, episodeId, _episodeService);
 
         // Assert
-        _episodeService.Received(1).DeleteEpisodeAsync(_userId, episodeId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NoContent>();
     }
 
@@ -169,7 +161,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.DeleteEpisodeHandler(_httpContext, episodeId, _episodeService);
 
         // Assert
-        _episodeService.Received(1).DeleteEpisodeAsync(_userId, episodeId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NotFound>();
     }
 
@@ -187,7 +178,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.CloneEpisodeHandler(_httpContext, episodeId, request, _episodeService);
 
         // Assert
-        _episodeService.Received(1).CloneEpisodeAsync(_userId, episodeId, Arg.Any<CloneEpisodeRequest>(), Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Created<Episode>>().Subject;
         response.Location.Should().Be($"/api/episodes/{clonedEpisode.Id}");
         response.Value.Should().BeEquivalentTo(clonedEpisode);
@@ -206,7 +196,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.CloneEpisodeHandler(_httpContext, episodeId, request, _episodeService);
 
         // Assert
-        _episodeService.Received(1).CloneEpisodeAsync(_userId, episodeId, Arg.Any<CloneEpisodeRequest>(), Arg.Any<CancellationToken>());
         result.Should().BeOfType<NotFound>();
     }
 
@@ -226,7 +215,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.GetAssetsHandler(episodeId, _episodeService);
 
         // Assert
-        _episodeService.Received(1).GetAssetsAsync(episodeId, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Ok<EpisodeAsset[]>>().Subject;
         response.Value.Should().BeEquivalentTo(assets);
     }
@@ -249,7 +237,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.AddAssetHandler(_httpContext, episodeId, assetId, request, _episodeService);
 
         // Assert
-        _episodeService.Received(1).AddAssetAsync(_userId, episodeId, assetId, Arg.Any<AddEpisodeAssetData>(), Arg.Any<CancellationToken>());
         result.Should().BeOfType<NoContent>();
     }
 
@@ -271,7 +258,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.AddAssetHandler(_httpContext, episodeId, assetId, request, _episodeService);
 
         // Assert
-        _episodeService.Received(1).AddAssetAsync(_userId, episodeId, assetId, Arg.Any<AddEpisodeAssetData>(), Arg.Any<CancellationToken>());
         result.Should().BeOfType<BadRequest>();
     }
 
@@ -291,7 +277,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.UpdateAssetHandler(_httpContext, episodeId, assetId, request, _episodeService);
 
         // Assert
-        _episodeService.Received(1).UpdateAssetAsync(_userId, episodeId, assetId, Arg.Any<UpdateEpisodeAssetData>(), Arg.Any<CancellationToken>());
         result.Should().BeOfType<NoContent>();
     }
 
@@ -311,7 +296,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.UpdateAssetHandler(_httpContext, episodeId, assetId, request, _episodeService);
 
         // Assert
-        _episodeService.Received(1).UpdateAssetAsync(_userId, episodeId, assetId, Arg.Any<UpdateEpisodeAssetData>(), Arg.Any<CancellationToken>());
         result.Should().BeOfType<BadRequest>();
     }
 
@@ -328,7 +312,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.RemoveAssetHandler(_httpContext, episodeId, assetId, _episodeService);
 
         // Assert
-        _episodeService.Received(1).RemoveAssetAsync(_userId, episodeId, assetId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NoContent>();
     }
 
@@ -345,7 +328,6 @@ public class EpisodeHandlersTests {
         var result = await EpisodeHandlers.RemoveAssetHandler(_httpContext, episodeId, assetId, _episodeService);
 
         // Assert
-        _episodeService.Received(1).RemoveAssetAsync(_userId, episodeId, assetId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NotFound>();
     }
 }

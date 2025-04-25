@@ -2,9 +2,9 @@ namespace VttTools.WebApp.Components.Game.Pages;
 
 public partial class Episodes {
     internal class Handler {
-        private IGameServiceClient _client = null!;
+        private IGameService _client = null!;
 
-        internal async Task<PageState> InitializeAsync(IGameServiceClient client, Guid adventureId) {
+        internal async Task<PageState> InitializeAsync(IGameService client, Guid adventureId) {
             _client = client;
             var state = new PageState {
                 AdventureId = adventureId,

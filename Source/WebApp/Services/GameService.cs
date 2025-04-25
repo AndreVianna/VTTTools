@@ -1,7 +1,7 @@
 ﻿namespace VttTools.WebApp.Services;
 
-internal class GameServiceClient(HttpClient client)
-    : IGameServiceClient {
+internal class GameService(HttpClient client)
+    : IGameService {
     public async Task<Adventure[]> GetAdventuresAsync() {
         var adventures = await client.GetFromJsonAsync<Adventure[]>("/api/adventures");
         return adventures ?? [];
@@ -111,9 +111,12 @@ internal class GameServiceClient(HttpClient client)
         return meeting!;
     }
 
-    public async Task<bool> UpdateMeetingAsync(Guid id, UpdateMeetingRequest request) {
+    public async Task<Result<Meeting>> UpdateMeetingAsync(Guid id, UpdateMeetingRequest request) {
         var response = await client.PutAsJsonAsync($"/api/meetings/{id}", request);
-        return response.IsSuccessStatusCode;
+        if (!response.IsSuccessStatusCode)
+            return Result.Failure("Failed to create meeting.");
+        var meeting = await response.Content.ReadFromJsonAsync<Meeting>();
+        return meeting!;
     }
 
     public async Task<bool> DeleteMeetingAsync(Guid id) {

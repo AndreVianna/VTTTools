@@ -155,6 +155,12 @@ public class MeetingServiceTests {
             Subject = "Updated Subject",
             EpisodeId = newEpisodeId,
         };
+        var expectedMeeting = new Meeting {
+            Id = meetingId,
+            Subject = data.Subject.Value,
+            OwnerId = _userId,
+            EpisodeId = data.EpisodeId.Value,
+        };
 
         _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
 
@@ -162,14 +168,8 @@ public class MeetingServiceTests {
         var result = await _service.UpdateMeetingAsync(_userId, meetingId, data, TestContext.Current.CancellationToken);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NoContent);
-
-        meeting.Subject.Should().Be(data.Subject.Value);
-        meeting.EpisodeId.Should().Be(newEpisodeId);
-
-        await _meetingStorage.Received(1).UpdateAsync(
-            Arg.Is<Meeting>(m => m.Id == meetingId && m.Subject == data.Subject.Value && m.EpisodeId == newEpisodeId),
-            Arg.Any<CancellationToken>());
+        result.Status.Should().Be(HttpStatusCode.OK);
+        result.Value.Should().BeEquivalentTo(expectedMeeting);
     }
 
     [Fact]
@@ -184,10 +184,15 @@ public class MeetingServiceTests {
             OwnerId = _userId,
             EpisodeId = episodeId,
         };
-
         var data = new UpdateMeetingData {
             Subject = "Updated Subject",
             // EpisodeId not set
+        };
+        var expectedMeeting = new Meeting {
+            Id = meetingId,
+            Subject = data.Subject.Value,
+            OwnerId = _userId,
+            EpisodeId = episodeId,
         };
 
         _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
@@ -196,14 +201,8 @@ public class MeetingServiceTests {
         var result = await _service.UpdateMeetingAsync(_userId, meetingId, data, TestContext.Current.CancellationToken);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NoContent);
-
-        meeting.Subject.Should().Be(data.Subject.Value);
-        meeting.EpisodeId.Should().Be(episodeId); // Unchanged
-
-        await _meetingStorage.Received(1).UpdateAsync(
-            Arg.Is<Meeting>(m => m.Id == meetingId && m.Subject == data.Subject.Value && m.EpisodeId == episodeId),
-            Arg.Any<CancellationToken>());
+        result.Status.Should().Be(HttpStatusCode.OK);
+        result.Value.Should().BeEquivalentTo(expectedMeeting);
     }
 
     [Fact]
@@ -221,22 +220,14 @@ public class MeetingServiceTests {
 
         // Empty update data with nothing set
         var data = new UpdateMeetingData();
-
         _meetingStorage.GetByIdAsync(meetingId, Arg.Any<CancellationToken>()).Returns(meeting);
 
         // Act
         var result = await _service.UpdateMeetingAsync(_userId, meetingId, data, TestContext.Current.CancellationToken);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NoContent);
-
-        // Verify no properties were changed
-        meeting.Subject.Should().Be(originalSubject);
-        meeting.EpisodeId.Should().Be(episodeId);
-
-        await _meetingStorage.Received(1).UpdateAsync(
-            Arg.Is<Meeting>(m => m.Id == meetingId && m.Subject == originalSubject && m.EpisodeId == episodeId),
-            Arg.Any<CancellationToken>());
+        result.Status.Should().Be(HttpStatusCode.OK);
+        result.Value.Should().BeEquivalentTo(meeting);
     }
 
     [Fact]

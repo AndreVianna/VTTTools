@@ -31,6 +31,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Components\Meeting\Pages\MeetingDetails.razor.handler.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Data\VttTools.Data.csproj" />
     <ProjectReference Include="..\Domain\VttTools.Domain.csproj" />
   </ItemGroup>

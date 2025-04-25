@@ -8,7 +8,9 @@ global using System.Text;
 global using System.Text.Encodings.Web;
 global using System.Text.Json;
 
+global using DotNetToolbox;
 global using DotNetToolbox.Results;
+global using DotNetToolbox.Validation;
 
 global using Microsoft.AspNetCore.Antiforgery;
 global using Microsoft.AspNetCore.Authentication;

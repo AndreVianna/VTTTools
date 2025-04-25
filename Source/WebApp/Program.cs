@@ -20,7 +20,7 @@ internal static class Program {
         });
 
         builder.Services.AddHttpContextAccessor();
-        builder.Services.AddScoped<IGameServiceClient, GameServiceClient>();
+        builder.Services.AddScoped<IGameService, GameService>();
 
         AddDefaultHealthChecks();
         builder.AddRedisOutputCache("redis");
@@ -55,7 +55,7 @@ internal static class Program {
                .AddInteractiveWebAssemblyComponents()
                .AddAuthenticationStateSerialization();
 
-        builder.Services.AddHttpClient<GameServiceClient>(static (services, client) => {
+        builder.Services.AddHttpClient<GameService>(static (services, client) => {
             client.BaseAddress = new("https+http://gameapi");
             SetClientAuthentication(services, client);
         });

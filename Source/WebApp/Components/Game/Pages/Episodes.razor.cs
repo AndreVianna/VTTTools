@@ -12,13 +12,13 @@ public partial class Episodes() {
     public Guid AdventureId { get; set; }
 
     [Inject]
-    internal IGameServiceClient GameServiceClient { get; set; } = null!;
+    internal IGameService GameService { get; set; } = null!;
 
     internal PageState? State { get; set; }
 
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync();
-        State = await _handler.InitializeAsync(GameServiceClient, AdventureId);
+        State = await _handler.InitializeAsync(GameService, AdventureId);
     }
 
     internal Task CreateEpisode()

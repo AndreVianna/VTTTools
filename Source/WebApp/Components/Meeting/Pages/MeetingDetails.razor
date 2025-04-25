@@ -2,9 +2,9 @@
 @inherits ExtendedComponent
 @rendermode InteractiveAuto
 
-<PageTitle>Game Meeting: @(State.Meeting?.Subject ?? "Loading...")</PageTitle>
+<PageTitle>Game Meeting: @(State?.Meeting?.Subject ?? "Loading...")</PageTitle>
 
-@if (State.Meeting == null)
+@if (State == null)
 {
     <div class="d-flex justify-content-center">
         <div class="spinner-border" role="status">
@@ -20,9 +20,12 @@ else
                 <h1>@State.Meeting.Subject</h1>
             </div>
             <div class="col-auto">
-                @if (State.IsGameMaster)
+                @if (State.CanEdit)
                 {
                     <button class="btn btn-primary me-2" @onclick="OpenEditMeetingDialog">Edit Meeting</button>
+                }
+                @if (State.CanStart)
+                {
                     <button class="btn btn-success me-2" @onclick="StartMeeting">Start Meeting</button>
                 }
                 <button class="btn btn-secondary" @onclick="NavigateToMeetings">Back to Meetings</button>
@@ -34,8 +37,7 @@ else
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Maps</h5>
-                        @if (State.IsGameMaster)
-                        {
+                        @if (State.CanEdit) {
                             <button class="btn btn-sm btn-outline-primary">Add Map</button>
                         }
                     </div>
@@ -45,20 +47,17 @@ else
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Players</h5>
-                        @if (State.IsGameMaster)
-                        {
+                        @if (State.CanEdit) {
                             <button class="btn btn-sm btn-outline-primary">Invite Player</button>
                         }
                     </div>
                     <div class="card-body">
-                        @if (!State.Meeting.Players.Any())
-                        {
+                        @if (!State.Meeting.Players.Any()) {
                             <div class="alert alert-info">
                                 No players have joined this meeting.
                             </div>
                         }
-                        else
-                        {
+                        else {
                             <ul class="list-group">
                                 @foreach (var player in State.Meeting.Players)
                                 {
@@ -78,7 +77,7 @@ else
     </div>
 }
 
-@if (State.ShowEditDialog)
+@if (State?.ShowEditDialog ?? false)
 {
     <div class="modal fade show" style="display: block;" tabindex="-1">
         <div class="modal-dialog">
@@ -90,10 +89,15 @@ else
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="meetingName" class="form-label">Meeting Subject</label>
-                        <input type="text" class="form-control" id="meetingName" @bind="State.EditMeetingSubject">
-                        @if (!string.IsNullOrEmpty(State.MeetingSubjectError))
+                        <input type="text" class="form-control" id="meetingName" @bind="State.Input.Subject">
+                        @if (State.Errors.Any())
                         {
-                            <div class="text-danger mt-1">@State.MeetingSubjectError</div>
+                            <ul>
+                                @foreach (var error in State.Errors)
+                                {
+                                    <li class="text-danger mt-1">@error.Message</li>
+                                }
+                            </ul>
                         }
                     </div>
                 </div>

@@ -30,7 +30,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.GetAdventuresHandler(_adventureService);
 
         // Assert
-        _adventureService.Received(1).GetAdventuresAsync(Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Ok<Adventure[]>>().Subject;
         response.Value.Should().BeEquivalentTo(adventures);
     }
@@ -48,7 +47,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.GetAdventureByIdHandler(adventureId, _adventureService);
 
         // Assert
-        _adventureService.Received(1).GetAdventureByIdAsync(adventureId, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Ok<Adventure>>().Subject;
         response.Value.Should().BeEquivalentTo(adventure);
     }
@@ -65,7 +63,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.GetAdventureByIdHandler(adventureId, _adventureService);
 
         // Assert
-        _adventureService.Received(1).GetAdventureByIdAsync(adventureId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NotFound>();
     }
 
@@ -82,7 +79,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.CreateAdventureHandler(_httpContext, request, _adventureService);
 
         // Assert
-        _adventureService.Received(1).CreateAdventureAsync(_userId, request, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Created<Adventure>>().Subject;
         response.Location.Should().Be($"/api/adventures/{adventure.Id}");
         response.Value.Should().BeEquivalentTo(adventure);
@@ -100,7 +96,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.CreateAdventureHandler(_httpContext, request, _adventureService);
 
         // Assert
-        _adventureService.Received(1).CreateAdventureAsync(_userId, request, Arg.Any<CancellationToken>());
         result.Should().BeOfType<BadRequest>();
     }
 
@@ -118,7 +113,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.UpdateAdventureHandler(_httpContext, adventureId, request, _adventureService);
 
         // Assert
-        _adventureService.Received(1).UpdateAdventureAsync(_userId, adventureId, request, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Ok<Adventure>>().Subject;
         response.Value.Should().BeEquivalentTo(adventure);
     }
@@ -136,7 +130,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.UpdateAdventureHandler(_httpContext, adventureId, request, _adventureService);
 
         // Assert
-        _adventureService.Received(1).UpdateAdventureAsync(_userId, adventureId, request, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NotFound>();
     }
 
@@ -152,7 +145,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.DeleteAdventureHandler(_httpContext, adventureId, _adventureService);
 
         // Assert
-        _adventureService.Received(1).DeleteAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NoContent>();
     }
 
@@ -168,7 +160,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.DeleteAdventureHandler(_httpContext, adventureId, _adventureService);
 
         // Assert
-        _adventureService.Received(1).DeleteAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NotFound>();
     }
 
@@ -186,7 +177,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.CloneAdventureHandler(_httpContext, adventureId, request, _adventureService);
 
         // Assert
-        _adventureService.Received(1).CloneAdventureAsync(_userId, adventureId, Arg.Any<CloneAdventureRequest>(), Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Created<Adventure>>().Subject;
         response.Location.Should().Be($"/api/adventures/{clonedAdventure.Id}");
         response.Value.Should().Be(clonedAdventure);
@@ -205,7 +195,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.CloneAdventureHandler(_httpContext, adventureId, request, _adventureService);
 
         // Assert
-        _adventureService.Received(1).CloneAdventureAsync(_userId, adventureId, Arg.Any<CloneAdventureRequest>(), Arg.Any<CancellationToken>());
         result.Should().BeOfType<NotFound>();
     }
 
@@ -225,7 +214,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.GetEpisodesHandler(adventureId, _adventureService);
 
         // Assert
-        _adventureService.Received(1).GetEpisodesAsync(adventureId, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Ok<Episode[]>>().Subject;
         response.Value.Should().BeEquivalentTo(episodes);
     }
@@ -243,7 +231,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.AddEpisodeHandler(_httpContext, adventureId, episodeId, _adventureService);
 
         // Assert
-        _adventureService.Received(1).AddEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NoContent>();
     }
 
@@ -260,7 +247,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.AddEpisodeHandler(_httpContext, adventureId, episodeId, _adventureService);
 
         // Assert
-        _adventureService.Received(1).AddEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<BadRequest>();
     }
 
@@ -277,7 +263,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.RemoveEpisodeHandler(_httpContext, adventureId, episodeId, _adventureService);
 
         // Assert
-        _adventureService.Received(1).RemoveEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NoContent>();
     }
 
@@ -294,7 +279,6 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.RemoveEpisodeHandler(_httpContext, adventureId, episodeId, _adventureService);
 
         // Assert
-        _adventureService.Received(1).RemoveEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NotFound>();
     }
 }

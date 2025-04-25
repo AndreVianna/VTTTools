@@ -4,13 +4,13 @@ public partial class Assets {
     private readonly Handler _handler = new();
 
     [Inject]
-    internal IGameServiceClient GameServiceClient { get; set; } = null!;
+    internal IGameService GameService { get; set; } = null!;
 
     internal PageState? State { get; set; }
 
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync();
-        State = await _handler.InitializeAsync(GameServiceClient);
+        State = await _handler.InitializeAsync(GameService);
     }
 
     internal Task CreateAsset()

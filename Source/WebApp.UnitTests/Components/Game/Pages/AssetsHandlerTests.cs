@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Components.Game.Pages;
 
 public class AssetsHandlerTests {
-    private readonly IGameServiceClient _client = Substitute.For<IGameServiceClient>();
+    private readonly IGameService _client = Substitute.For<IGameService>();
     private readonly Assets.Handler _handler = new();
 
     [Fact]

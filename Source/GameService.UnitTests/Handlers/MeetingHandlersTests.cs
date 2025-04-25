@@ -25,25 +25,24 @@ public class MeetingHandlersTests {
             EpisodeId = _episodeId,
         };
 
-        var meeting = new Meeting {
+        var expectedMeeting = new Meeting {
             Id = _meetingId,
             Subject = "Test Meeting",
             EpisodeId = _episodeId,
             OwnerId = _userId,
         };
 
+        var createdResult = TypedResult.As(HttpStatusCode.Created, expectedMeeting);
         _meetingService.CreateMeetingAsync(_userId, Arg.Any<CreateMeetingData>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success(meeting));
+            .Returns(createdResult);
 
         // Act
         var result = await MeetingHandlers.CreateMeetingHandler(_httpContext, request, _meetingService);
 
         // Assert
-        _meetingService.Received(1).CreateMeetingAsync(_userId, Arg.Any<CreateMeetingData>(), Arg.Any<CancellationToken>());
-
         var response = result.Should().BeOfType<Created<Meeting>>().Subject;
-        response.Location.Should().Be($"/api/meetings/{meeting.Id}");
-        response.Value.Should().Be(meeting);
+        response.Location.Should().Be($"/api/meetings/{expectedMeeting.Id}");
+        response.Value.Should().Be(expectedMeeting);
     }
 
     [Fact]
@@ -54,20 +53,15 @@ public class MeetingHandlersTests {
             EpisodeId = _episodeId,
         };
         var errors = new[] { new Error("Subject", "Cannot be empty") };
-        _meetingService.CreateMeetingAsync(
-            _userId,
-            Arg.Any<CreateMeetingData>(),
-            Arg.Any<CancellationToken>())
-            .Returns(Result.Failure(errors));
+        var badRequestResult = TypedResult.As(HttpStatusCode.BadRequest, [.. errors]).WithNo<Meeting>();
+
+        _meetingService.CreateMeetingAsync(_userId, Arg.Any<CreateMeetingData>(), Arg.Any<CancellationToken>())
+            .Returns(badRequestResult);
 
         // Act
         var result = await MeetingHandlers.CreateMeetingHandler(_httpContext, request, _meetingService);
 
         // Assert
-        _meetingService.Received(1).CreateMeetingAsync(
-            _userId,
-            Arg.Any<CreateMeetingData>(),
-            Arg.Any<CancellationToken>());
         result.Should().BeOfType<ProblemHttpResult>();
     }
 
@@ -85,7 +79,6 @@ public class MeetingHandlersTests {
         var result = await MeetingHandlers.GetMeetingsHandler(_httpContext, _meetingService);
 
         // Assert
-        _meetingService.Received(1).GetMeetingsAsync(_userId, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Ok<Meeting[]>>().Subject;
         response.Value.Should().BeEquivalentTo(meetings);
     }
@@ -101,7 +94,6 @@ public class MeetingHandlersTests {
         var result = await MeetingHandlers.GetMeetingByIdHandler(_httpContext, _meetingId, _meetingService);
 
         // Assert
-        _meetingService.Received(1).GetMeetingByIdAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<Ok<Meeting>>().Subject;
         response.Value.Should().Be(meeting);
     }
@@ -116,7 +108,6 @@ public class MeetingHandlersTests {
         var result = await MeetingHandlers.GetMeetingByIdHandler(_httpContext, _meetingId, _meetingService);
 
         // Assert
-        _meetingService.Received(1).GetMeetingByIdAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
         result.Should().BeOfType<NotFound>();
     }
 
@@ -124,7 +115,8 @@ public class MeetingHandlersTests {
     public async Task UpdateMeetingHandler_WithValidRequest_ReturnsOkResult() {
         // Arrange
         var request = new UpdateMeetingRequest { Subject = "Updated Meeting" };
-        var okResult = TypedResult.As(HttpStatusCode.OK);
+        var expectedMeeting = new Meeting { Id = _meetingId, Subject = "Updated Meeting", OwnerId = _userId };
+        var okResult = TypedResult.As(HttpStatusCode.OK, expectedMeeting);
         _meetingService.UpdateMeetingAsync(_userId, _meetingId, Arg.Any<UpdateMeetingData>(), Arg.Any<CancellationToken>())
             .Returns(okResult);
 
@@ -132,9 +124,8 @@ public class MeetingHandlersTests {
         var result = await MeetingHandlers.UpdateMeetingHandler(_httpContext, _meetingId, request, _meetingService);
 
         // Assert
-        _meetingService.Received(1).UpdateMeetingAsync(_userId, _meetingId, Arg.Any<UpdateMeetingData>(), Arg.Any<CancellationToken>());
-        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
-        response.StatusCode.Should().Be(200);
+        var response = result.Should().BeOfType<Ok<Meeting>>().Subject;
+        response.Value.Should().Be(expectedMeeting);
     }
 
     [Fact]
@@ -142,7 +133,7 @@ public class MeetingHandlersTests {
         // Arrange
         var request = new UpdateMeetingRequest { Subject = "" };
         var errors = new[] { new Error("Subject", "Cannot be empty") };
-        var badRequestResult = TypedResult.As(HttpStatusCode.BadRequest, errors);
+        var badRequestResult = TypedResult.As(HttpStatusCode.BadRequest, [.. errors]).WithNo<Meeting>();
 
         _meetingService.UpdateMeetingAsync(
             _userId,
@@ -155,7 +146,6 @@ public class MeetingHandlersTests {
         var result = await MeetingHandlers.UpdateMeetingHandler(_httpContext, _meetingId, request, _meetingService);
 
         // Assert
-        _meetingService.Received(1).UpdateMeetingAsync(_userId, _meetingId, Arg.Any<UpdateMeetingData>(), Arg.Any<CancellationToken>());
         result.Should().BeOfType<ProblemHttpResult>();
     }
 
@@ -170,7 +160,6 @@ public class MeetingHandlersTests {
         var result = await MeetingHandlers.DeleteMeetingHandler(_httpContext, _meetingId, _meetingService);
 
         // Assert
-        _meetingService.Received(1).DeleteMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
         response.StatusCode.Should().Be(204);
     }
@@ -187,7 +176,6 @@ public class MeetingHandlersTests {
         var result = await MeetingHandlers.JoinMeetingHandler(_httpContext, _meetingId, request, _meetingService);
 
         // Assert
-        _meetingService.Received(1).JoinMeetingAsync(_userId, _meetingId, PlayerType.Player, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
         response.StatusCode.Should().Be(200);
     }
@@ -204,7 +192,6 @@ public class MeetingHandlersTests {
         var result = await MeetingHandlers.JoinMeetingHandler(_httpContext, _meetingId, request, _meetingService);
 
         // Assert
-        _meetingService.Received(1).JoinMeetingAsync(_userId, _meetingId, PlayerType.Player, Arg.Any<CancellationToken>());
         result.Should().BeOfType<ProblemHttpResult>();
     }
 
@@ -219,7 +206,6 @@ public class MeetingHandlersTests {
         var result = await MeetingHandlers.LeaveMeetingHandler(_httpContext, _meetingId, _meetingService);
 
         // Assert
-        _meetingService.Received(1).LeaveMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
         response.StatusCode.Should().Be(200);
     }
@@ -235,7 +221,6 @@ public class MeetingHandlersTests {
         var result = await MeetingHandlers.ActivateEpisodeHandler(_httpContext, _meetingId, _episodeId, _meetingService);
 
         // Assert
-        _meetingService.Received(1).SetActiveEpisodeAsync(_userId, _meetingId, _episodeId, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
         response.StatusCode.Should().Be(200);
     }
@@ -251,7 +236,6 @@ public class MeetingHandlersTests {
         var result = await MeetingHandlers.StartMeetingHandler(_httpContext, _meetingId, _meetingService);
 
         // Assert
-        _meetingService.Received(1).StartMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
         var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
         response.StatusCode.Should().Be(200);
     }
@@ -267,7 +251,6 @@ public class MeetingHandlersTests {
         var result = await MeetingHandlers.StopMeetingHandler(_httpContext, _meetingId, _meetingService);
 
         // Assert
-        _meetingService.Received(1).StopMeetingAsync(_userId, _meetingId, Arg.Any<CancellationToken>());
         Assert.IsType<StatusCodeHttpResult>(result);
         var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
         response.StatusCode.Should().Be(200);

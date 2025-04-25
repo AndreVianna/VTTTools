@@ -5,13 +5,12 @@
 /// </summary>
 public interface IMeetingService {
     /// <summary>
-    /// Creates a new game meeting
+    /// Gets all meetings a user is part of
     /// </summary>
     /// <param name="userId">ID of the user making the request</param>
-    /// <param name="data">The data to create the meeting</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>The created game meeting</returns>
-    Task<Result<Meeting>> CreateMeetingAsync(Guid userId, CreateMeetingData data, CancellationToken ct = default);
+    /// <returns>Collection of game meetings the user is part of</returns>
+    Task<Meeting[]> GetMeetingsAsync(Guid userId, CancellationToken ct = default);
 
     /// <summary>
     /// Gets a game meeting by ID
@@ -23,12 +22,13 @@ public interface IMeetingService {
     Task<Meeting?> GetMeetingByIdAsync(Guid userId, Guid meetingId, CancellationToken ct = default);
 
     /// <summary>
-    /// Gets all meetings a user is part of
+    /// Creates a new game meeting
     /// </summary>
     /// <param name="userId">ID of the user making the request</param>
+    /// <param name="data">The data to create the meeting</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>Collection of game meetings the user is part of</returns>
-    Task<Meeting[]> GetMeetingsAsync(Guid userId, CancellationToken ct = default);
+    /// <returns>The created game meeting</returns>
+    Task<TypedResult<HttpStatusCode, Meeting>> CreateMeetingAsync(Guid userId, CreateMeetingData data, CancellationToken ct = default);
 
     /// <summary>
     /// Updates a game meeting's details
@@ -37,7 +37,7 @@ public interface IMeetingService {
     /// <param name="meetingId">ID of the meeting to update</param>
     /// <param name="data">The data to create the meeting</param>
     /// <param name="ct">Cancellation token</param>
-    Task<TypedResult<HttpStatusCode>> UpdateMeetingAsync(Guid userId, Guid meetingId, UpdateMeetingData data, CancellationToken ct = default);
+    Task<TypedResult<HttpStatusCode, Meeting>> UpdateMeetingAsync(Guid userId, Guid meetingId, UpdateMeetingData data, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes a game meeting
@@ -48,13 +48,21 @@ public interface IMeetingService {
     Task<TypedResult<HttpStatusCode>> DeleteMeetingAsync(Guid userId, Guid meetingId, CancellationToken ct = default);
 
     /// <summary>
-    /// Sets the active episode for a game meeting
+    /// Adds a user to a game meeting
     /// </summary>
     /// <param name="userId">ID of the user making the request</param>
-    /// <param name="meetingId">ID of the meeting to update</param>
-    /// <param name="episodeId">ID of the episode to set as active</param>
+    /// <param name="meetingId">ID of the meeting to join</param>
+    /// <param name="joinAs">The type of player the user will be in the meeting</param>
     /// <param name="ct">Cancellation token</param>
-    Task<TypedResult<HttpStatusCode>> SetActiveEpisodeAsync(Guid userId, Guid meetingId, Guid episodeId, CancellationToken ct = default);
+    Task<TypedResult<HttpStatusCode>> JoinMeetingAsync(Guid userId, Guid meetingId, PlayerType joinAs, CancellationToken ct = default);
+
+    /// <summary>
+    /// Removes a user from a game meeting
+    /// </summary>
+    /// <param name="userId">ID of the user making the request</param>
+    /// <param name="meetingId">ID of the meeting to leave</param>
+    /// <param name="ct">Cancellation token</param>
+    Task<TypedResult<HttpStatusCode>> LeaveMeetingAsync(Guid userId, Guid meetingId, CancellationToken ct = default);
 
     /// <summary>
     /// Starts a game meeting
@@ -73,19 +81,11 @@ public interface IMeetingService {
     Task<TypedResult<HttpStatusCode>> StopMeetingAsync(Guid userId, Guid meetingId, CancellationToken ct = default);
 
     /// <summary>
-    /// Adds a user to a game meeting
+    /// Sets the active episode for a game meeting
     /// </summary>
     /// <param name="userId">ID of the user making the request</param>
-    /// <param name="meetingId">ID of the meeting to join</param>
-    /// <param name="joinAs">The type of player the user will be in the meeting</param>
+    /// <param name="meetingId">ID of the meeting to update</param>
+    /// <param name="episodeId">ID of the episode to set as active</param>
     /// <param name="ct">Cancellation token</param>
-    Task<TypedResult<HttpStatusCode>> JoinMeetingAsync(Guid userId, Guid meetingId, PlayerType joinAs, CancellationToken ct = default);
-
-    /// <summary>
-    /// Removes a user from a game meeting
-    /// </summary>
-    /// <param name="userId">ID of the user making the request</param>
-    /// <param name="meetingId">ID of the meeting to leave</param>
-    /// <param name="ct">Cancellation token</param>
-    Task<TypedResult<HttpStatusCode>> LeaveMeetingAsync(Guid userId, Guid meetingId, CancellationToken ct = default);
+    Task<TypedResult<HttpStatusCode>> SetActiveEpisodeAsync(Guid userId, Guid meetingId, Guid episodeId, CancellationToken ct = default);
 }

@@ -28,6 +28,7 @@ global using Microsoft.Extensions.Options;
 global using Microsoft.JSInterop;
 
 global using NSubstitute;
+global using NSubstitute.ExceptionExtensions;
 global using NSubstitute.ReturnsExtensions;
 
 global using VttTools.Contracts.Game;

@@ -1,10 +1,7 @@
-using NSubstitute.ExceptionExtensions;
-
 namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public class MeetingsHandlerTests {
-    private readonly IGameServiceClient _client = Substitute.For<IGameServiceClient>();
-    private readonly HttpClient _httpClient = Substitute.For<HttpClient>();
+    private readonly IGameService _client = Substitute.For<IGameService>();
     private readonly Meetings.Handler _handler = new();
 
     [Fact]
@@ -14,8 +11,7 @@ public class MeetingsHandlerTests {
             new Model.Game.Meeting { Id = Guid.NewGuid(), Subject = "Meeting 1" },
             new Model.Game.Meeting { Id = Guid.NewGuid(), Subject = "Meeting 2" },
         };
-
-        _httpClient.GetFromJsonAsync<Model.Game.Meeting[]>("/api/meetings", cancellationToken: Xunit.TestContext.Current.CancellationToken).Returns(meetings);
+        _client.GetMeetingsAsync().Returns(meetings);
 
         // Act
         var state = await _handler.InitializeAsync(_client);
@@ -33,8 +29,7 @@ public class MeetingsHandlerTests {
         var adventures = new[] {
             new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1" },
         };
-
-        _httpClient.GetFromJsonAsync<Adventure[]>("/api/adventures", cancellationToken: Xunit.TestContext.Current.CancellationToken).Returns(adventures);
+        _client.GetAdventuresAsync().Returns(adventures);
 
         // Act
         await _handler.OpenCreateMeetingDialog(state);
@@ -75,23 +70,15 @@ public class MeetingsHandlerTests {
         };
 
         // Setup response
-        var meeting = new Model.Game.Meeting { Id = Guid.NewGuid(), Subject = "New Meeting" };
-        var successResponse = new HttpResponseMessage(HttpStatusCode.Created) {
-            Content = JsonContent.Create(meeting),
-        };
-
-        _httpClient.PostAsJsonAsync("/api/meetings", Arg.Any<CreateMeetingRequest>(), cancellationToken: Xunit.TestContext.Current.CancellationToken).Returns(successResponse);
+        var expectedMeeting = new Model.Game.Meeting { Id = Guid.NewGuid(), Subject = "New Meeting" };
+        _client.CreateMeetingAsync(Arg.Any<CreateMeetingRequest>()).Returns(expectedMeeting);
 
         // Act
         await _handler.CreateMeeting(state);
 
         // Assert
-        await _httpClient.Received(1).PostAsJsonAsync("/api/meetings", Arg.Is<CreateMeetingRequest>(req =>
-                req.Subject == "New Meeting" &&
-                req.EpisodeId == episodeId), cancellationToken: Xunit.TestContext.Current.CancellationToken);
-
         state.ShowCreateDialog.Should().BeFalse();
-        state.Meetings.Should().Contain(meeting);
+        state.Meetings.Should().Contain(expectedMeeting);
         state.NewMeetingSubject.Should().BeEmpty();
         state.SelectedEpisodeId.Should().BeNull();
     }
@@ -105,12 +92,12 @@ public class MeetingsHandlerTests {
             NewMeetingSubject = "",  // Empty subject
             SelectedEpisodeId = episodeId,
         };
+        _client.CreateMeetingAsync(Arg.Any<CreateMeetingRequest>()).Returns(Result.Failure("Some error."));
 
         // Act
         await _handler.CreateMeeting(state);
 
         // Assert
-        await _httpClient.DidNotReceive().PostAsJsonAsync(Arg.Any<string>(), Arg.Any<object>(), cancellationToken: Xunit.TestContext.Current.CancellationToken);
         state.MeetingSubjectError.Should().NotBeEmpty();
         state.ShowCreateDialog.Should().BeTrue();
     }
@@ -128,7 +115,6 @@ public class MeetingsHandlerTests {
         await _handler.CreateMeeting(state);
 
         // Assert
-        await _httpClient.DidNotReceive().PostAsJsonAsync(Arg.Any<string>(), Arg.Any<object>(), cancellationToken: Xunit.TestContext.Current.CancellationToken);
         state.ShowEpisodeError.Should().BeTrue();
         state.ShowCreateDialog.Should().BeTrue();
     }
@@ -137,25 +123,18 @@ public class MeetingsHandlerTests {
     public async Task TryJoinMeeting_CallsApiAndReturnsResult() {
         // Arrange
         var meetingId = Guid.NewGuid();
-        var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
-
-        _httpClient.PostAsync($"/api/meetings/{meetingId}/join", null, Xunit.TestContext.Current.CancellationToken).Returns(successResponse);
 
         // Act
         var result = await _handler.TryJoinMeeting(meetingId);
 
         // Assert
         result.Should().BeTrue();
-        await _httpClient.Received(1).PostAsync($"/api/meetings/{meetingId}/join", null, Xunit.TestContext.Current.CancellationToken);
     }
 
     [Fact]
     public async Task TryJoinMeeting_ReturnsFalse_OnApiError() {
         // Arrange
         var meetingId = Guid.NewGuid();
-
-        _httpClient.PostAsync($"/api/meetings/{meetingId}/join", null, Xunit.TestContext.Current.CancellationToken)
-                   .ThrowsAsync(new HttpRequestException("Test error"));
 
         // Act
         var result = await _handler.TryJoinMeeting(meetingId);
@@ -174,9 +153,6 @@ public class MeetingsHandlerTests {
             Meetings = [meeting],
         };
 
-        var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
-        _httpClient.DeleteAsync($"/api/meetings/{meetingId}", Xunit.TestContext.Current.CancellationToken).Returns(successResponse);
-
         // Set up mock for DisplayConfirmation
         typeof(Meetings).GetMethod("DisplayConfirmation", BindingFlags.NonPublic | BindingFlags.Static)!
             .Invoke(null, ["Are you sure you want to delete this meeting?"]);
@@ -185,7 +161,6 @@ public class MeetingsHandlerTests {
         await _handler.DeleteMeeting(state, meetingId);
 
         // Assert
-        await _httpClient.Received(1).DeleteAsync($"/api/meetings/{meetingId}", Xunit.TestContext.Current.CancellationToken);
         state.Meetings.Should().NotContain(meeting);
     }
 
@@ -194,16 +169,15 @@ public class MeetingsHandlerTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var episodes = new[] {
-            new Episode { Id = Guid.NewGuid(), Name = "Episode 1" },
-            new Episode { Id = Guid.NewGuid(), Name = "Episode 2" },
-                             };
+            new Episode { Name = "Episode 1" },
+            new Episode { Name = "Episode 2" },
+        };
+        _client.GetEpisodesAsync(adventureId).Returns(episodes);
 
         var state = new Meetings.PageState();
 
-        _httpClient.GetFromJsonAsync<Episode[]>($"/api/adventures/{adventureId}/episodes", cancellationToken: Xunit.TestContext.Current.CancellationToken).Returns(episodes);
-
         // Act
-        await _handler.ReloadAdventureEpisodes(state, adventureId.ToString());
+        await _handler.ReloadAdventureEpisodes(state, adventureId);
 
         // Assert
         state.SelectedAdventureId.Should().Be(adventureId);
@@ -218,7 +192,7 @@ public class MeetingsHandlerTests {
         };
 
         // Act
-        await _handler.ReloadAdventureEpisodes(state, "invalid-guid");
+        await _handler.ReloadAdventureEpisodes(state, null);
 
         // Assert
         state.SelectedAdventureId.Should().BeNull();

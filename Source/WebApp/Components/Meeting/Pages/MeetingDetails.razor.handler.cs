@@ -2,41 +2,29 @@ namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public partial class MeetingDetails {
     internal class Handler {
-        private IGameServiceClient _client = null!;
-        private CurrentUser _currentUser = null!;
+        private IGameService _service = null!;
+        private Guid _userId;
 
-        internal void Initialize(CurrentUser currentUser, IGameServiceClient client, Guid meetingId, PageState state) {
-            _currentUser = currentUser;
-            _client = client;
-            state.Id = meetingId;
+        internal async Task<PageState?> InitializeState(Guid meetingId, Guid userId, IGameService service) {
+            _service = service;
+            _userId = userId;
+            var state = new PageState(meetingId);
+            return !await TryLoadMeetingDetails(state) ? null : state;
         }
 
         internal async Task<bool> TryLoadMeetingDetails(PageState state) {
-            try {
-                state.Meeting = await _client.GetMeetingByIdAsync(state.Id);
-                if (state.Meeting == null)
-                    return false;
-                state.IsGameMaster = state.Meeting.OwnerId == _currentUser.Id
-                                  || state.Meeting.Players.Any(p => IsGameMaster(_currentUser.Id, p));
-                return true;
-            }
-            catch (Exception ex) {
-                await Console.Error.WriteLineAsync($"Error loading meeting: {ex.Message}");
+            var meeting = await _service.GetMeetingByIdAsync(state.Id);
+            if (meeting == null)
                 return false;
-            }
+            state.Meeting = meeting;
+            state.CanEdit = meeting.OwnerId == _userId;
+            state.CanStart = meeting.Players.FirstOrDefault(p => p.UserId == _userId)?.Type == PlayerType.Master;
+            return true;
         }
 
-        private static bool IsGameMaster(Guid userId, MeetingPlayer player)
-
-            => player.UserId == userId
-            && player.Type == PlayerType.Master;
-
         internal static void OpenEditMeetingDialog(PageState state) {
-            if (state.Meeting == null)
-                return;
-
-            state.EditMeetingSubject = state.Meeting.Subject;
-            state.MeetingSubjectError = string.Empty;
+            state.Input = new() { Subject = state.Meeting.Subject };
+            state.Errors = [];
             state.ShowEditDialog = true;
         }
 
@@ -44,33 +32,23 @@ public partial class MeetingDetails {
             => state.ShowEditDialog = false;
 
         internal async Task UpdateMeeting(PageState state) {
-            if (string.IsNullOrWhiteSpace(state.EditMeetingSubject)) {
-                state.MeetingSubjectError = "Meeting name is required";
+            state.Errors = [];
+            var request = new UpdateMeetingRequest {
+                Subject = state.Input.Subject,
+            };
+            var result = await _service.UpdateMeetingAsync(state.Id, request);
+            if (result.HasErrors) {
+                state.Errors = [.. result.Errors];
                 return;
             }
 
-            try {
-                var request = new UpdateMeetingRequest {
-                    Subject = state.EditMeetingSubject,
-                };
-                await _client.UpdateMeetingAsync(state.Id, request);
-                await TryLoadMeetingDetails(state);
-                state.ShowEditDialog = false;
-            }
-            catch (Exception ex) {
-                state.MeetingSubjectError = $"Error updating meeting: {ex.Message}";
-            }
+            state.Meeting = result.Value;
+            state.CanEdit = state.Meeting.OwnerId == _userId;
+            state.CanStart = state.Meeting.Players.FirstOrDefault(p => p.UserId == _userId)?.Type == PlayerType.Master;
+            CloseEditMeetingDialog(state);
         }
 
-        internal async Task<bool> TryStartMeeting(PageState state) {
-            try {
-                await _client.StartMeetingAsync(state.Id);
-                return true;
-            }
-            catch (Exception ex) {
-                await Console.Error.WriteLineAsync($"Error starting meeting: {ex.Message}");
-                return false;
-            }
-        }
+        internal Task<bool> TryStartMeeting(PageState state)
+            => _service.StartMeetingAsync(state.Id);
     }
 }

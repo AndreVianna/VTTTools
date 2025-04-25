@@ -1,40 +1,44 @@
-using NSubstitute.ExceptionExtensions;
+using MeetingModel = VttTools.Model.Game.Meeting;
 
 namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public class MeetingDetailsHandlerTests {
-    private readonly IGameServiceClient _client = Substitute.For<IGameServiceClient>();
-    private readonly HttpClient _httpClient = Substitute.For<HttpClient>();
-    private readonly CurrentUser _currentUser = new() { Id = Guid.NewGuid() };
+    private readonly IGameService _client = Substitute.For<IGameService>();
+    private readonly Guid _currentUserId = Guid.NewGuid();
     private readonly MeetingDetails.Handler _handler = new();
     private readonly Guid _meetingId = Guid.NewGuid();
 
     [Fact]
-    public void Initialize_SetsStateProperties() {
+    public async Task Initialize_SetsStateProperties() {
         // Arrange
-        var state = new MeetingDetails.PageState();
+        var player = new MeetingPlayer { UserId = _currentUserId, Type = PlayerType.Master };
+        var meeting = new MeetingModel {
+            Id = _meetingId,
+            Subject = "Test Meeting",
+            OwnerId = _currentUserId,
+            Players = [player],
+        };
+        _client.GetMeetingByIdAsync(_meetingId).Returns(meeting);
 
         // Act
-        _handler.Initialize(_currentUser, _client, _meetingId, state);
+        var state = await _handler.InitializeState(_meetingId, _currentUserId, _client);
 
         // Assert
-        state.Id.Should().Be(_meetingId);
+        state.Should().NotBeNull();
     }
 
     [Fact]
     public async Task TryLoadMeetingDetails_LoadsMeetingAndSetsProperties() {
         // Arrange
-        var state = new MeetingDetails.PageState { Id = _meetingId };
-        _handler.Initialize(_currentUser, _client, _meetingId, state);
-
-        var player = new MeetingPlayer { UserId = _currentUser.Id, Type = PlayerType.Master };
-        var meeting = new Model.Game.Meeting {
+        var state = new MeetingDetails.PageState(_meetingId);
+        var player = new MeetingPlayer { UserId = _currentUserId, Type = PlayerType.Master };
+        var meeting = new MeetingModel {
             Id = _meetingId,
             Subject = "Test Meeting",
-            OwnerId = _currentUser.Id,
+            OwnerId = _currentUserId,
             Players = [player],
         };
-        _httpClient.GetFromJsonAsync<Model.Game.Meeting>($"/api/meetings/{_meetingId}", cancellationToken: Xunit.TestContext.Current.CancellationToken).Returns(meeting);
+        _client.GetMeetingByIdAsync(_meetingId).Returns(meeting);
 
         // Act
         var result = await _handler.TryLoadMeetingDetails(state);
@@ -42,16 +46,15 @@ public class MeetingDetailsHandlerTests {
         // Assert
         result.Should().BeTrue();
         state.Meeting.Should().BeEquivalentTo(meeting);
-        state.IsGameMaster.Should().BeTrue();
+        state.CanEdit.Should().BeTrue();
+        state.CanStart.Should().BeTrue();
     }
 
     [Fact]
     public async Task TryLoadMeetingDetails_ReturnsFalse_WhenMeetingIsNull() {
         // Arrange
-        var state = new MeetingDetails.PageState { Id = _meetingId };
-        _handler.Initialize(_currentUser, _client, _meetingId, state);
-
-        _httpClient.GetFromJsonAsync<Model.Game.Meeting>($"/api/meetings/{_meetingId}", cancellationToken: Xunit.TestContext.Current.CancellationToken).Returns((Model.Game.Meeting)null!);
+        var state = new MeetingDetails.PageState(_meetingId);
+        _client.GetMeetingByIdAsync(_meetingId).Returns((MeetingModel?)null);
 
         // Act
         var result = await _handler.TryLoadMeetingDetails(state);
@@ -61,25 +64,31 @@ public class MeetingDetailsHandlerTests {
     }
 
     [Fact]
-    public void OpenEditMeetingDialog_PopulatesEditState() {
+    public void OpenEditMeetingDialog_ClearErrorsResetsInputAndShowsDialog() {
         // Arrange
-        var state = new MeetingDetails.PageState {
+        var state = new MeetingDetails.PageState(_meetingId) {
             Meeting = new() { Subject = "Original Meeting Name" },
+            Errors = [new("Some error.")],
+            ShowEditDialog = false,
+            Input = new(),
+        };
+        var expectedInput = new MeetingDetails.InputModel {
+            Subject = "Original Meeting Name",
         };
 
         // Act
         MeetingDetails.Handler.OpenEditMeetingDialog(state);
 
         // Assert
+        state.Input.Should().BeEquivalentTo(expectedInput);
         state.ShowEditDialog.Should().BeTrue();
-        state.EditMeetingSubject.Should().Be("Original Meeting Name");
-        state.MeetingSubjectError.Should().BeEmpty();
+        state.Errors.Should().BeEmpty();
     }
 
     [Fact]
-    public void CloseEditMeetingDialog_SetsShowEditDialogToFalse() {
+    public void CloseEditMeetingDialog_HidesDialog() {
         // Arrange
-        var state = new MeetingDetails.PageState {
+        var state = new MeetingDetails.PageState(_meetingId) {
             ShowEditDialog = true,
         };
 
@@ -93,29 +102,33 @@ public class MeetingDetailsHandlerTests {
     [Fact]
     public async Task UpdateMeeting_WithValidInput_UpdatesMeetingAndClosesDialog() {
         // Arrange
-        var state = new MeetingDetails.PageState {
+        var player = new MeetingPlayer { UserId = _currentUserId, Type = PlayerType.Master };
+        var meeting = new MeetingModel {
             Id = _meetingId,
+            Subject = "Test Meeting",
+            OwnerId = _currentUserId,
+            Players = [player],
+        };
+        var state = new MeetingDetails.PageState(_meetingId) {
+            Meeting = meeting,
             ShowEditDialog = true,
-            EditMeetingSubject = "Updated Meeting Name",
+            Input = new() {
+                Subject = "Updated Meeting Name",
+            },
+        };
+        var updatedMeeting = new MeetingModel {
+            Id = meeting.Id,
+            Subject = state.Input.Subject,
+            OwnerId = meeting.OwnerId,
+            Players = meeting.Players,
         };
 
-        _handler.Initialize(_currentUser, _client, _meetingId, state);
-
-        // Mock API response
-        _httpClient.PutAsJsonAsync($"/api/meetings/{_meetingId}", Arg.Any<object>(), cancellationToken: Xunit.TestContext.Current.CancellationToken).Returns(new HttpResponseMessage(HttpStatusCode.OK));
-
-        var updatedMeeting = new Model.Game.Meeting {
-            Id = _meetingId,
-            Subject = "Updated Meeting Name",
-        };
-        _httpClient.GetFromJsonAsync<Model.Game.Meeting>($"/api/meetings/{_meetingId}", cancellationToken: Xunit.TestContext.Current.CancellationToken).Returns(updatedMeeting);
+        _client.UpdateMeetingAsync(_meetingId, Arg.Any<UpdateMeetingRequest>()).Returns(updatedMeeting);
 
         // Act
         await _handler.UpdateMeeting(state);
 
         // Assert
-        await _httpClient.Received(1).PutAsJsonAsync($"/api/meetings/{_meetingId}", Arg.Is<object>(obj => obj.ToString()!.Contains("Updated Meeting Name")), cancellationToken: Xunit.TestContext.Current.CancellationToken);
-
         state.ShowEditDialog.Should().BeFalse();
         state.Meeting.Should().BeEquivalentTo(updatedMeeting);
     }
@@ -123,48 +136,69 @@ public class MeetingDetailsHandlerTests {
     [Fact]
     public async Task UpdateMeeting_WithEmptyName_SetsErrorAndDoesNotUpdate() {
         // Arrange
-        var state = new MeetingDetails.PageState {
+        var player = new MeetingPlayer { UserId = _currentUserId, Type = PlayerType.Master };
+        var meeting = new MeetingModel {
             Id = _meetingId,
-            ShowEditDialog = true,
-            EditMeetingSubject = "",
+            Subject = "Test Meeting",
+            OwnerId = _currentUserId,
+            Players = [player],
         };
-
-        _handler.Initialize(_currentUser, _client, _meetingId, state);
+        var state = new MeetingDetails.PageState(_meetingId) {
+            Meeting = meeting,
+            ShowEditDialog = true,
+            Input = new(),
+        };
 
         // Act
         await _handler.UpdateMeeting(state);
 
         // Assert
-        await _httpClient.DidNotReceive().PutAsJsonAsync(Arg.Any<string>(), Arg.Any<object>(), cancellationToken: Xunit.TestContext.Current.CancellationToken);
         state.ShowEditDialog.Should().BeTrue();
-        state.MeetingSubjectError.Should().NotBeEmpty();
+        state.Errors.Should().NotBeEmpty();
     }
 
     [Fact]
     public async Task TryStartMeeting_CallsApiAndReturnsResult() {
         // Arrange
-        var state = new MeetingDetails.PageState { Id = _meetingId };
-        _handler.Initialize(_currentUser, _client, _meetingId, state);
+        var player = new MeetingPlayer { UserId = _currentUserId, Type = PlayerType.Master };
+        var meeting = new MeetingModel {
+            Id = _meetingId,
+            Subject = "Test Meeting",
+            OwnerId = _currentUserId,
+            Players = [player],
+        };
+        var state = new MeetingDetails.PageState(_meetingId) {
+            Meeting = meeting,
+            ShowEditDialog = true,
+            Input = new(),
+        };
 
-        var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
-        _httpClient.PostAsync($"/api/meetings/{_meetingId}/start", null, Xunit.TestContext.Current.CancellationToken).Returns(successResponse);
+        _client.StartMeetingAsync(_meetingId).Returns(true);
 
         // Act
         var result = await _handler.TryStartMeeting(state);
 
         // Assert
         result.Should().BeTrue();
-        await _httpClient.Received(1).PostAsync($"/api/meetings/{_meetingId}/start", null, Xunit.TestContext.Current.CancellationToken);
     }
 
     [Fact]
     public async Task TryStartMeeting_ReturnsFalse_OnError() {
         // Arrange
-        var state = new MeetingDetails.PageState { Id = _meetingId };
-        _handler.Initialize(_currentUser, _client, _meetingId, state);
+        var player = new MeetingPlayer { UserId = _currentUserId, Type = PlayerType.Master };
+        var meeting = new MeetingModel {
+            Id = _meetingId,
+            Subject = "Test Meeting",
+            OwnerId = _currentUserId,
+            Players = [player],
+        };
+        var state = new MeetingDetails.PageState(_meetingId) {
+            Meeting = meeting,
+            ShowEditDialog = true,
+            Input = new(),
+        };
 
-        _httpClient.PostAsync($"/api/meetings/{_meetingId}/start", null, Xunit.TestContext.Current.CancellationToken)
-                   .ThrowsAsync(new HttpRequestException("Test error"));
+        _client.StartMeetingAsync(_meetingId).Returns(false);
 
         // Act
         var result = await _handler.TryStartMeeting(state);

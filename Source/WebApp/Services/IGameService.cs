@@ -1,6 +1,6 @@
 ﻿namespace VttTools.WebApp.Services;
 
-public interface IGameServiceClient {
+public interface IGameService {
     Task<Adventure[]> GetAdventuresAsync();
     Task<Result<Adventure>> CreateAdventureAsync(CreateAdventureRequest request);
     Task<Result<Adventure>> CloneAdventureAsync(Guid id, CloneAdventureRequest request);
@@ -21,7 +21,7 @@ public interface IGameServiceClient {
     Task<Meeting[]> GetMeetingsAsync();
     Task<Meeting?> GetMeetingByIdAsync(Guid id);
     Task<Result<Meeting>> CreateMeetingAsync(CreateMeetingRequest request);
-    Task<bool> UpdateMeetingAsync(Guid id, UpdateMeetingRequest request);
+    Task<Result<Meeting>> UpdateMeetingAsync(Guid id, UpdateMeetingRequest request);
     Task<bool> DeleteMeetingAsync(Guid id);
     Task<bool> JoinMeetingAsync(Guid id);
     Task<bool> StartMeetingAsync(Guid id);

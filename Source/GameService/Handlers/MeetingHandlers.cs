@@ -48,6 +48,7 @@ internal static class MeetingHandlers {
         var result = await meetingService.UpdateMeetingAsync(userId, id, data);
         return result.Status switch {
             HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
+            HttpStatusCode.OK => Results.Ok(result.Value),
             _ => Results.StatusCode((int)result.Status),
         };
     }

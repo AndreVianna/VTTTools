@@ -1,12 +1,12 @@
 //namespace VttTools.WebApp.Components.Game.Pages;
 
 //public class AssetsComponentTests : Bunit.TestContext {
-//    private readonly GameServiceClient _gameServiceClient = Substitute.For<GameServiceClient>();
+//    private readonly GameService _gameServiceClient = Substitute.For<GameService>();
 //    private readonly HttpClient _httpClient = Substitute.For<HttpClient>();
 
 //    public AssetsComponentTests() {
 //        _gameServiceClient.Api.Returns(_httpClient);
-//        Services.AddSingleton<GameServiceClient>(_gameServiceClient);
+//        Services.AddSingleton<GameService>(_gameServiceClient);
 //    }
 
 //    [Fact]

@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Components.Game.Pages;
 
 public class EpisodesHandlerTests {
-    private readonly IGameServiceClient _client = Substitute.For<IGameServiceClient>();
+    private readonly IGameService _client = Substitute.For<IGameService>();
     private readonly Episodes.Handler _handler = new();
     private readonly Guid _adventureId = Guid.NewGuid();
 

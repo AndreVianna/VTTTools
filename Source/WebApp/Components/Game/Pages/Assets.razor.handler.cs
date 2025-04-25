@@ -2,9 +2,9 @@ namespace VttTools.WebApp.Components.Game.Pages;
 
 public partial class Assets {
     internal class Handler {
-        private IGameServiceClient _client = null!;
+        private IGameService _client = null!;
 
-        internal async Task<PageState> InitializeAsync(IGameServiceClient client) {
+        internal async Task<PageState> InitializeAsync(IGameService client) {
             _client = client;
 
             var state = new PageState();
