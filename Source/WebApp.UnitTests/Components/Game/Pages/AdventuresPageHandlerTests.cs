@@ -123,12 +123,23 @@ public class AdventuresPageHandlerTests {
         // Arrange
         _handler.State.ShowEditDialog = true;
         var adventureId = Guid.NewGuid();
+        var adventureBeforeEdit = new Adventure {
+            Id = adventureId,
+            Name = "Adventure 1",
+            Visibility = Visibility.Hidden,
+        };
+        var adventuresBeforeEdit = new List<Adventure> { adventureBeforeEdit };
         _handler.State.EditInput = new() {
             Id = adventureId,
             Name = "Updated Adventure",
             Visibility = Visibility.Public,
         };
-        _handler.State.Adventures = [new Adventure { Id = adventureId, Name = "Adventure 1", Visibility = Visibility.Hidden }];
+        _handler.State.EditInput = new() {
+            Id = adventureId,
+            Name = "Updated Adventure",
+            Visibility = Visibility.Public,
+        };
+        _handler.State.Adventures = adventuresBeforeEdit;
         var adventuresAfterEdit = new[] {
             new Adventure { Id = adventureId, Name = "Updated Adventure", Visibility = Visibility.Public },
         };
@@ -149,12 +160,23 @@ public class AdventuresPageHandlerTests {
         // Arrange
         _handler.State.ShowEditDialog = true;
         var adventureId = Guid.NewGuid();
+        var adventureBeforeEdit = new Adventure {
+            Id = adventureId,
+            Name = "Adventure 1",
+            Visibility = Visibility.Hidden,
+        };
+        var adventuresBeforeEdit = new List<Adventure> { adventureBeforeEdit };
         _handler.State.EditInput = new() {
             Id = adventureId,
             Name = "Updated Adventure",
             Visibility = Visibility.Public,
         };
-        _handler.State.Adventures = [new Adventure { Id = adventureId, Name = "Adventure 1", Visibility = Visibility.Hidden }];
+        _handler.State.EditInput = new() {
+            Id = adventureId,
+            Name = "Updated Adventure",
+            Visibility = Visibility.Public,
+        };
+        _handler.State.Adventures = adventuresBeforeEdit;
 
         _service.UpdateAdventureAsync(Arg.Any<Guid>(), Arg.Any<UpdateAdventureRequest>())
             .Returns(Result.Failure("Some errors."));
@@ -165,7 +187,7 @@ public class AdventuresPageHandlerTests {
         // Assert
         _handler.State.ShowEditDialog.Should().BeTrue();
         _handler.State.EditInput.Errors.Should().NotBeEmpty();
-        _handler.State.EditInput.Errors[0].Should().Be("Some errors.");
-        _handler.State.Adventures.Should().BeEmpty();
+        _handler.State.EditInput.Errors[0].Message.Should().Be("Some errors.");
+        _handler.State.Adventures.Should().BeEquivalentTo(adventuresBeforeEdit);
     }
 }

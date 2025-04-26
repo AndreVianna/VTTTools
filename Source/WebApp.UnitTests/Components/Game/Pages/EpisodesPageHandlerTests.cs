@@ -144,12 +144,23 @@ public class EpisodesPageHandlerTests {
         // Arrange
         _handler.State.ShowEditDialog = true;
         var episodeId = Guid.NewGuid();
+        var episodeBeforeEdit = new Episode {
+            Id = episodeId,
+            Name = "Episode 1",
+            Visibility = Visibility.Hidden,
+        };
+        var episodesBeforeEdit = new List<Episode> { episodeBeforeEdit };
         _handler.State.EditInput = new() {
             Id = episodeId,
             Name = "Updated Episode",
             Visibility = Visibility.Public,
         };
-        _handler.State.Episodes = [new Episode { Id = episodeId, Name = "Episode 1", Visibility = Visibility.Hidden }];
+        _handler.State.EditInput = new() {
+            Id = episodeId,
+            Name = "Updated Episode",
+            Visibility = Visibility.Public,
+        };
+        _handler.State.Episodes = episodesBeforeEdit;
         var episodesAfterEdit = new[] {
             new Episode { Id = episodeId, Name = "Updated Episode", Visibility = Visibility.Public },
         };
@@ -170,12 +181,18 @@ public class EpisodesPageHandlerTests {
         // Arrange
         _handler.State.ShowEditDialog = true;
         var episodeId = Guid.NewGuid();
+        var episodeBeforeEdit = new Episode {
+            Id = episodeId,
+            Name = "Episode 1",
+            Visibility = Visibility.Hidden,
+        };
+        var episodesBeforeEdit = new List<Episode> { episodeBeforeEdit };
         _handler.State.EditInput = new() {
             Id = episodeId,
             Name = "Updated Episode",
             Visibility = Visibility.Public,
         };
-        _handler.State.Episodes = [new Episode { Id = episodeId, Name = "Episode 1", Visibility = Visibility.Hidden }];
+        _handler.State.Episodes = episodesBeforeEdit;
 
         _service.UpdateEpisodeAsync(Arg.Any<Guid>(), Arg.Any<UpdateEpisodeRequest>())
             .Returns(Result.Failure("Some errors."));
@@ -186,7 +203,7 @@ public class EpisodesPageHandlerTests {
         // Assert
         _handler.State.ShowEditDialog.Should().BeTrue();
         _handler.State.EditInput.Errors.Should().NotBeEmpty();
-        _handler.State.EditInput.Errors[0].Should().Be("Some errors.");
-        _handler.State.Episodes.Should().BeEmpty();
+        _handler.State.EditInput.Errors[0].Message.Should().Be("Some errors.");
+        _handler.State.Episodes.Should().BeEquivalentTo(episodesBeforeEdit);
     }
 }
