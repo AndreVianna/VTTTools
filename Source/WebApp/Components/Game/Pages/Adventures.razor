@@ -4,22 +4,17 @@
 
 <PageTitle>Adventures</PageTitle>
 
-<div class="mb-3">
-    <input class="form-control mb-1" placeholder="Subject" @bind="State!.Input.Name" />
-    <select class="form-select mb-1" @bind="State!.Input.Visibility">
-        <option value="@Visibility.Hidden">Hidden</option>
-        <option value="@Visibility.Private">Private</option>
-        <option value="@Visibility.Public">Public</option>
-    </select>
-    <button class="btn btn-primary" @onclick="CreateAdventure">Create</button>
-</div>
-
-@if (State?.Adventures is null)
+@if (IsLoading)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
+    <div class="mb-3">
+        <input class="form-control mb-1" placeholder="Subject" @bind="State.CreateInput.Name" />
+        <button class="btn btn-primary" @onclick="CreateAdventure">Create</button>
+    </div>
+
     <table class="table">
         <thead>
             <tr>
@@ -46,8 +41,7 @@ else
     </table>
 }
 
-@* Edit Adventure Modal *@
-@if (State!.IsEditing)
+@if (!IsLoading && State.ShowEditDialog)
 {
     <div class="modal show d-block" tabindex="-1">
         <div class="modal-dialog">
@@ -57,8 +51,8 @@ else
                     <button type="button" class="btn-close" @onclick="CancelEdit"></button>
                 </div>
                 <div class="modal-body">
-                    <input class="form-control mb-1" @bind="State.Input.Name" />
-                    <select class="form-select mb-1" @bind="State.Input.Visibility">
+                    <input class="form-control mb-1" @bind="State.EditInput.Name" />
+                    <select class="form-select mb-1" @bind="State.EditInput.Visibility">
                         <option value="@Visibility.Hidden">Hidden</option>
                         <option value="@Visibility.Private">Private</option>
                         <option value="@Visibility.Public">Public</option>

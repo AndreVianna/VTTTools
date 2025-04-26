@@ -1,64 +1,80 @@
 namespace VttTools.WebApp.Components.Game.Pages;
 
 public partial class Adventures {
-    internal class Handler {
-        private IGameService _client = null!;
+    internal class Handler() {
+        private readonly IGameService _service = null!;
 
-        internal async Task<PageState> InitializeAsync(IGameService client) {
-            _client = client;
-            var state = new PageState();
-            await LoadAdventuresAsync(state);
-            return state;
+        internal Handler(IGameService service)
+            : this() {
+            _service = service;
         }
 
-        internal async Task LoadAdventuresAsync(PageState state) => state.Adventures = await _client.GetAdventuresAsync();
+        internal PageState State { get; } = new();
 
-        internal async Task CreateAdventureAsync(PageState state) {
+        public static async Task<Handler> InitializeAsync(IGameService service) {
+            var handler = new Handler(service);
+            await handler.LoadAdventuresAsync();
+            return handler;
+        }
+
+        public async Task LoadAdventuresAsync()
+            => State.Adventures = [.. await _service.GetAdventuresAsync()];
+
+        public async Task CreateAdventureAsync() {
             var request = new CreateAdventureRequest {
-                Name = state.Input.Name,
-                Visibility = state.Input.Visibility,
+                Name = State.CreateInput.Name,
+                Visibility = State.CreateInput.Visibility,
             };
 
-            var result = await _client.CreateAdventureAsync(request);
-
-            if (result.IsSuccessful) {
-                state.Input = new();
-                await LoadAdventuresAsync(state);
-            }
+            var result = await _service.CreateAdventureAsync(request);
+            if (!result.IsSuccessful)
+                return;
+            State.CreateInput = new();
+            State.Adventures.Add(result.Value);
+            State.Adventures.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase));
         }
 
-        internal async Task DeleteAdventureAsync(PageState state, Guid id) {
-            await _client.DeleteAdventureAsync(id);
-            await LoadAdventuresAsync(state);
+        public async Task DeleteAdventureAsync(Guid id) {
+            var deleted = await _service.DeleteAdventureAsync(id);
+            if (!deleted)
+                return;
+            State.Adventures.RemoveAll(e => e.Id == State.EditInput.Id);
         }
 
-        internal static void StartEdit(PageState state, Adventure adv) {
-            state.IsEditing = true;
-            state.EditingAdventureId = adv.Id;
-            state.Input = new() {
-                Name = adv.Name,
-                Visibility = adv.Visibility,
+        public void StartEdit(Adventure adventure) {
+            State.ShowEditDialog = true;
+            State.EditInput = new() {
+                Id = adventure.Id,
+                Name = adventure.Name,
+                Visibility = adventure.Visibility,
             };
         }
 
-        internal static void CancelEdit(PageState state) => state.IsEditing = false;
+        public void CancelEdit()
+            => State.ShowEditDialog = false;
 
-        internal async Task SaveEditAsync(PageState state) {
+        public async Task SaveEditAsync() {
             var request = new UpdateAdventureRequest {
-                Name = state.Input.Name,
-                Visibility = state.Input.Visibility,
+                Name = State.EditInput.Name,
+                Visibility = State.EditInput.Visibility,
             };
-            var result = await _client.UpdateAdventureAsync(state.EditingAdventureId, request);
-            if (result.IsSuccessful) {
-                state.IsEditing = false;
-                await LoadAdventuresAsync(state);
-            }
+            var result = await _service.UpdateAdventureAsync(State.EditInput.Id, request);
+            if (!result.IsSuccessful)
+                return;
+            var adventure = State.Adventures.Find(e => e.Id == State.EditInput.Id)!;
+            adventure.Name = State.EditInput.Name;
+            adventure.Visibility = State.EditInput.Visibility;
+            State.Adventures.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase));
+            State.ShowEditDialog = false;
         }
 
-        internal async Task CloneAdventureAsync(PageState state, Guid id) {
+        public async Task CloneAdventureAsync(Guid id) {
             var request = new CloneAdventureRequest();
-            var result = await _client.CloneAdventureAsync(id, request);
-            if (result.IsSuccessful) await LoadAdventuresAsync(state);
+            var result = await _service.CloneAdventureAsync(id, request);
+            if (!result.IsSuccessful)
+                return;
+            State.Adventures.Add(result.Value);
+            State.Adventures.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

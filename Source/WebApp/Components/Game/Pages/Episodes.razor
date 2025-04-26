@@ -11,12 +11,7 @@
 else
 {
     <div class="mb-3">
-        <input class="form-control mb-1" placeholder="Subject" @bind="State.CreateInput.Name"/>
-        <select class="form-select mb-1" @bind="State.CreateInput.Visibility">
-            <option value="@Visibility.Hidden">Hidden</option>
-            <option value="@Visibility.Private">Private</option>
-            <option value="@Visibility.Public">Public</option>
-        </select>
+        <input class="form-control mb-1" placeholder="Name" @bind="State.CreateInput.Name"/>
         <button class="btn btn-primary" @onclick="CreateEpisode">Create</button>
         <button class="btn btn-secondary ms-2" @onclick='() => NavigationManager.NavigateTo("/Adventures")'>Back to Adventures</button>
     </div>

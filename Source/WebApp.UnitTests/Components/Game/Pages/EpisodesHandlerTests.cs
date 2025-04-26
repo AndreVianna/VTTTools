@@ -118,7 +118,7 @@ public class EpisodesHandlerTests {
         // Arrange
         var episodeId = Guid.NewGuid();
 
-        var episodesAfterDelete = new Episode[] { };
+        var episodesAfterDelete = Array.Empty<Episode>();
         _service.GetEpisodesAsync(_adventureId).Returns(episodesAfterDelete);
 
         // Act

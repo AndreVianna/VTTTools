@@ -1,7 +1,6 @@
 namespace VttTools.WebApp.Components.Game.Pages;
 
 public class ErrorHandlerTests {
-    private readonly Error.Handler _handler = new();
     private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
 
     public ErrorHandlerTests() {

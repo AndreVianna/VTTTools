@@ -18,10 +18,10 @@ public partial class Episodes {
             return handler;
         }
 
-        internal async Task LoadEpisodesAsync()
+        public async Task LoadEpisodesAsync()
             => State.Episodes = [.. await _service.GetEpisodesAsync(State.AdventureId)];
 
-        internal async Task CreateEpisodeAsync() {
+        public async Task CreateEpisodeAsync() {
             var request = new CreateEpisodeRequest {
                 AdventureId = State.AdventureId,
                 Name = State.CreateInput.Name,
@@ -35,7 +35,14 @@ public partial class Episodes {
             State.Episodes.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase));
         }
 
-        internal void StartEdit(Episode ep) {
+        public async Task DeleteEpisodeAsync(Guid id) {
+            var deleted = await _service.DeleteEpisodeAsync(id);
+            if (!deleted)
+                return;
+            State.Episodes.RemoveAll(e => e.Id == State.EditInput.Id);
+        }
+
+        public void StartEdit(Episode ep) {
             State.EditInput = new() {
                 Id = ep.Id,
                 Name = ep.Name,
@@ -44,10 +51,10 @@ public partial class Episodes {
             State.ShowEditDialog = true;
         }
 
-        internal void CancelEdit()
+        public void CancelEdit()
             => State.ShowEditDialog = false;
 
-        internal async Task SaveEditAsync() {
+        public async Task SaveEditAsync() {
             var request = new UpdateEpisodeRequest {
                 Name = State.EditInput.Name,
                 Visibility = State.EditInput.Visibility,
@@ -62,14 +69,7 @@ public partial class Episodes {
             State.ShowEditDialog = false;
         }
 
-        internal async Task DeleteEpisodeAsync(Guid id) {
-            var deleted = await _service.DeleteEpisodeAsync(id);
-            if (!deleted)
-                return;
-            State.Episodes.RemoveAll(e => e.Id == State.EditInput.Id);
-        }
-
-        internal async Task CloneEpisodeAsync(Guid id) {
+        public async Task CloneEpisodeAsync(Guid id) {
             var request = new CloneEpisodeRequest();
             var result = await _service.CloneEpisodeAsync(id, request);
             if (!result.IsSuccessful)

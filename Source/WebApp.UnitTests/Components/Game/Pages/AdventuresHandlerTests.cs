@@ -1,183 +1,148 @@
 namespace VttTools.WebApp.Components.Game.Pages;
 
 public class AdventuresHandlerTests {
-    private readonly IGameService _client = Substitute.For<IGameService>();
-    private readonly Adventures.Handler _handler = new();
+    private readonly IGameService _service = Substitute.For<IGameService>();
+    private readonly Adventures.Handler _handler;
+    private readonly Adventure[] _adventures = [
+        new() { Name = "Adventure 1", Visibility = Visibility.Public },
+        new() { Name = "Adventure 2", Visibility = Visibility.Private },
+    ];
+
+    public AdventuresHandlerTests() {
+        _handler = new(_service);
+    }
 
     [Fact]
     public async Task InitializeAsync_LoadsAdventures_And_ReturnsPageState() {
         // Arrange
-        var adventures = new[] {
-            new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1", Visibility = Visibility.Public },
-            new Adventure { Id = Guid.NewGuid(), Name = "Adventure 2", Visibility = Visibility.Private },
-                               };
-
-        _client.GetAdventuresAsync().Returns(adventures);
+        _service.GetAdventuresAsync().Returns(_adventures);
 
         // Act
-        var state = await _handler.InitializeAsync(_client);
+        var handler = await Adventures.Handler.InitializeAsync(_service);
 
         // Assert
-        state.Should().NotBeNull();
-        state.Adventures.Should().BeEquivalentTo(adventures);
-        await _client.Received(1).GetAdventuresAsync();
-    }
-
-    [Fact]
-    public async Task LoadAdventuresAsync_UpdatesStateWithAdventures() {
-        // Arrange
-        var state = new Adventures.PageState();
-        var adventures = new[] {
-            new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1", Visibility = Visibility.Public },
-            new Adventure { Id = Guid.NewGuid(), Name = "Adventure 2", Visibility = Visibility.Private },
-                               };
-
-        _client.GetAdventuresAsync().Returns(adventures);
-
-        // Act
-        await _handler.LoadAdventuresAsync(state);
-
-        // Assert
-        state.Adventures.Should().BeEquivalentTo(adventures);
-        await _client.Received(1).GetAdventuresAsync();
+        handler.Should().NotBeNull();
+        handler.State.Adventures.Should().BeEquivalentTo(_adventures);
     }
 
     [Fact]
     public async Task CreateAdventureAsync_WithValidInput_CreatesAdventureAndResetsInput() {
         // Arrange
-        var state = new Adventures.PageState {
-            Input = new() {
-                Name = "New Adventure",
-                Visibility = Visibility.Private,
-            },
+        _handler.State.CreateInput = new() {
+            Name = "New Adventure",
+            Visibility = Visibility.Private,
         };
+        var newAdventure = new Adventure {
+            Name = "New Adventure",
+            Visibility = Visibility.Private,
+        };
+        var adventuresAfterCreate = new[] { newAdventure };
 
-        _client.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>())
-            .Returns(Result.Success());
-
-        var adventures = new[] { new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1" } };
-        _client.GetAdventuresAsync().Returns(adventures);
+        _service.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>()).Returns(newAdventure);
 
         // Act
-        await _handler.CreateAdventureAsync(state);
+        await _handler.CreateAdventureAsync();
 
         // Assert
-        await _client.Received(1).CreateAdventureAsync(Arg.Is<CreateAdventureRequest>(r =>
-            r.Name == "New Adventure" && r.Visibility == Visibility.Private));
+        _handler.State.Adventures.Should().BeEquivalentTo(adventuresAfterCreate);
+        _handler.State.ShowEditDialog = false;
+    }
 
-        state.Input.Name.Should().BeEmpty();
-        state.Input.Visibility.Should().Be(Visibility.Hidden);
-        state.Adventures.Should().BeEquivalentTo(adventures);
+    [Fact]
+    public void StartEdit_SetsEditingStateAndPopulatesInput() {
+        // Arrange
+        var adventure = new Adventure {
+            Name = "Adventure to Edit",
+            Visibility = Visibility.Public,
+        };
+
+        // Act
+        _handler.StartEdit(adventure);
+
+        // Assert
+        _handler.State.ShowEditDialog.Should().BeTrue();
+        _handler.State.EditInput.Id.Should().Be(adventure.Id);
+        _handler.State.EditInput.Name.Should().Be(adventure.Name);
+        _handler.State.EditInput.Visibility.Should().Be(adventure.Visibility);
+    }
+
+    [Fact]
+    public void CancelEdit_ResetIsEditingFlag() {
+        // Arrange
+        _handler.State.ShowEditDialog = true;
+        _handler.State.EditInput = new() {
+            Id = Guid.NewGuid(),
+            Name = "Updated Adventure",
+            Visibility = Visibility.Public,
+        };
+
+        // Act
+        _handler.CancelEdit();
+
+        // Assert
+        _handler.State.ShowEditDialog.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SaveEditAsync_WithValidInput_UpdatesAdventureAndReloadsAdventures() {
+        // Arrange
+        _handler.State.ShowEditDialog = true;
+        var adventureId = Guid.NewGuid();
+        _handler.State.EditInput = new() {
+            Id = adventureId,
+            Name = "Updated Adventure",
+            Visibility = Visibility.Public,
+        };
+        _handler.State.Adventures = [new Adventure { Id = adventureId, Name = "Adventure 1", Visibility = Visibility.Hidden }];
+        var adventuresAfterEdit = new[] {
+            new Adventure { Id = adventureId, Name = "Updated Adventure", Visibility = Visibility.Public },
+        };
+
+        _service.UpdateAdventureAsync(Arg.Any<Guid>(), Arg.Any<UpdateAdventureRequest>())
+            .Returns(Result.Success());
+
+        // Act
+        await _handler.SaveEditAsync();
+
+        // Assert
+        await _service.Received(1).UpdateAdventureAsync(adventureId, Arg.Any<UpdateAdventureRequest>());
+
+        _handler.State.ShowEditDialog.Should().BeFalse();
+        _handler.State.Adventures.Should().BeEquivalentTo(adventuresAfterEdit);
     }
 
     [Fact]
     public async Task DeleteAdventureAsync_RemovesAdventureAndReloadsAdventures() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var state = new Adventures.PageState();
 
-        var adventuresAfterDelete = new[] { new Adventure { Id = Guid.NewGuid(), Name = "Adventure 2" } };
-        _client.GetAdventuresAsync().Returns(adventuresAfterDelete);
-
-        // Act
-        await _handler.DeleteAdventureAsync(state, adventureId);
-
-        // Assert
-        await _client.Received(1).DeleteAdventureAsync(adventureId);
-        await _client.Received(1).GetAdventuresAsync();
-        state.Adventures.Should().BeEquivalentTo(adventuresAfterDelete);
-    }
-
-    [Fact]
-    public void StartEdit_SetsEditingStateAndPopulatesInput() {
-        // Arrange
-        var state = new Adventures.PageState();
-        var adventure = new Adventure {
-            Id = Guid.NewGuid(),
-            Name = "Adventure to Edit",
-            Visibility = Visibility.Public,
-        };
+        var adventuresAfterDelete = Array.Empty<Adventure>();
+        _service.GetAdventuresAsync().Returns(adventuresAfterDelete);
 
         // Act
-        Adventures.Handler.StartEdit(state, adventure);
+        await _handler.DeleteAdventureAsync(adventureId);
 
         // Assert
-        state.IsEditing.Should().BeTrue();
-        state.EditingAdventureId.Should().Be(adventure.Id);
-        state.Input.Name.Should().Be(adventure.Name);
-        state.Input.Visibility.Should().Be(adventure.Visibility);
-    }
-
-    [Fact]
-    public void CancelEdit_ResetIsEditingFlag() {
-        // Arrange
-        var state = new Adventures.PageState {
-            IsEditing = true,
-            EditingAdventureId = Guid.NewGuid(),
-        };
-
-        // Act
-        Adventures.Handler.CancelEdit(state);
-
-        // Assert
-        state.IsEditing.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task SaveEditAsync_WithValidInput_UpdatesAdventureAndReloadsAdventures() {
-        // Arrange
-        var adventureId = Guid.NewGuid();
-        var state = new Adventures.PageState {
-            IsEditing = true,
-            EditingAdventureId = adventureId,
-            Input = new() {
-                Name = "Updated Adventure",
-                Visibility = Visibility.Public,
-            },
-        };
-
-        _client.UpdateAdventureAsync(Arg.Any<Guid>(), Arg.Any<UpdateAdventureRequest>())
-            .Returns(Result.Success());
-
-        var adventures = new[] {
-            new Adventure { Id = adventureId, Name = "Updated Adventure", Visibility = Visibility.Public },
-                               };
-        _client.GetAdventuresAsync().Returns(adventures);
-
-        // Act
-        await _handler.SaveEditAsync(state);
-
-        // Assert
-        await _client.Received(1).UpdateAdventureAsync(
-            adventureId,
-            Arg.Is<UpdateAdventureRequest>(r =>
-                r.Name == "Updated Adventure" && r.Visibility == Visibility.Public)
-        );
-
-        state.IsEditing.Should().BeFalse();
-        state.Adventures.Should().BeEquivalentTo(adventures);
+        _handler.State.Adventures.Should().BeEquivalentTo(adventuresAfterDelete);
     }
 
     [Fact]
     public async Task CloneAdventureAsync_ClonesAdventureAndReloadsAdventures() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var state = new Adventures.PageState();
-
-        _client.CloneAdventureAsync(adventureId, Arg.Any<CloneAdventureRequest>()).Returns(Result.Success());
-
+        _handler.State.Adventures = [new Adventure { Id = adventureId, Name = "Adventure 1" }];
+        var clonedAdventure = new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1 (Copy)" };
         var adventuresAfterClone = new[] {
-            new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1" },
-            new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1 (Copy)" },
-                                         };
-        _client.GetAdventuresAsync().Returns(adventuresAfterClone);
+            new Adventure { Id = adventureId, Name = "Adventure 1" },
+            clonedAdventure,
+        };
+
+        _service.CloneAdventureAsync(adventureId, Arg.Any<CloneAdventureRequest>()).Returns(clonedAdventure);
 
         // Act
-        await _handler.CloneAdventureAsync(state, adventureId);
+        await _handler.CloneAdventureAsync(adventureId);
 
         // Assert
-        await _client.Received(1).CloneAdventureAsync(adventureId, Arg.Any<CloneAdventureRequest>());
-        await _client.Received(1).GetAdventuresAsync();
-        state.Adventures.Should().BeEquivalentTo(adventuresAfterClone);
+        _handler.State.Adventures.Should().BeEquivalentTo(adventuresAfterClone);
     }
 }

@@ -1,33 +1,34 @@
 ﻿namespace VttTools.WebApp.Components.Game.Pages;
 
 public partial class Adventures {
-    private readonly Handler _handler = new();
+    private Handler _handler = null!;
 
     [Inject]
     internal IGameService GameService { get; set; } = null!;
 
-    internal PageState? State { get; set; }
+    internal bool IsLoading { get; set; } = true;
+    internal PageState State => _handler.State;
 
-    protected override async Task OnInitializedAsync() {
-        await base.OnInitializedAsync();
-        State = await _handler.InitializeAsync(GameService);
+    protected override async Task OnParametersSetAsync() {
+        _handler = await Handler.InitializeAsync(GameService);
+        IsLoading = false;
     }
 
     internal Task CreateAdventure()
-        => _handler.CreateAdventureAsync(State!);
-
-    internal Task DeleteAdventure(Guid id)
-        => _handler.DeleteAdventureAsync(State!, id);
+        => _handler.CreateAdventureAsync();
 
     internal void StartEdit(Adventure adv)
-        => Handler.StartEdit(State!, adv);
+        => _handler.StartEdit(adv);
 
     internal void CancelEdit()
-        => Handler.CancelEdit(State!);
+        => _handler.CancelEdit();
 
     internal Task SaveEdit()
-        => _handler.SaveEditAsync(State!);
+        => _handler.SaveEditAsync();
+
+    internal Task DeleteAdventure(Guid id)
+        => _handler.DeleteAdventureAsync(id);
 
     internal Task CloneAdventure(Guid id)
-        => _handler.CloneAdventureAsync(State!, id);
+        => _handler.CloneAdventureAsync(id);
 }
