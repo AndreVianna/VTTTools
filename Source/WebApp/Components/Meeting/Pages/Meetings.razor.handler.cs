@@ -1,69 +1,54 @@
 namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public partial class Meetings {
-    internal class Handler() {
+    internal sealed class Handler() {
         private readonly IGameService _service = null!;
-
-        internal PageState State { get; } = new();
 
         internal Handler(IGameService service)
             : this() {
             _service = service;
         }
 
-        internal static async Task<Handler> InitializeAsync(IGameService service) {
+        internal PageState State { get; } = new();
+
+        public static async Task<Handler> InitializeAsync(IGameService service) {
             var handler = new Handler(service);
             var data = await service.GetMeetingsAsync();
             handler.State.Meetings = [.. data];
             return handler;
         }
 
-        internal async Task OpenCreateMeetingDialog() {
+        public async Task OpenCreateMeetingDialog() {
+            var adventures = await _service.GetAdventuresAsync();
+            State.Input = new() {
+                Adventures = [..adventures],
+                AdventureId = adventures.FirstOrDefault()?.Id ?? Guid.Empty,
+            };
+            await LoadEpisodes(State.Input.AdventureId);
             State.ShowCreateDialog = true;
-            State.NewMeetingSubject = string.Empty;
-            State.MeetingSubjectError = string.Empty;
-            State.Adventures = [.. await _service.GetAdventuresAsync()];
-            State.SelectedAdventureId = null;
-            State.Episodes = [];
-            State.SelectedEpisodeId = null;
-            State.ShowEpisodeError = false;
         }
 
-        internal void CloseCreateMeetingDialog()
+        public void CloseCreateMeetingDialog()
             => State.ShowCreateDialog = false;
 
-        internal async Task CreateMeeting() {
-            State.MeetingSubjectError = string.Empty;
-            State.ShowEpisodeError = false;
-            if (string.IsNullOrWhiteSpace(State.NewMeetingSubject)) {
-                State.MeetingSubjectError = "Meeting name is required";
-                return;
-            }
-            if (!State.SelectedEpisodeId.HasValue) {
-                State.ShowEpisodeError = true;
-                return;
-            }
-
+        public async Task CreateMeeting() {
             var request = new CreateMeetingRequest {
-                Subject = State.NewMeetingSubject,
-                EpisodeId = State.SelectedEpisodeId.Value,
+                Subject = State.Input.Subject,
+                EpisodeId = State.Input.EpisodeId,
             };
             var result = await _service.CreateMeetingAsync(request);
             if (!result.IsSuccessful) {
-                State.MeetingSubjectError = result.Errors[0].Message;
+                State.Input.Errors = [..result.Errors];
                 return;
             }
-            State.Meetings.Add(result.Value);
-            State.MeetingSubjectError = string.Empty;
             State.ShowCreateDialog = false;
-            State.NewMeetingSubject = string.Empty;
-            State.SelectedEpisodeId = null;
+            State.Meetings.Add(result.Value);
         }
 
-        internal Task<bool> TryJoinMeeting(Guid meetingId)
+        public Task<bool> TryJoinMeeting(Guid meetingId)
             => _service.JoinMeetingAsync(meetingId);
 
-        internal async Task DeleteMeeting(Guid meetingId) {
+        public async Task DeleteMeeting(Guid meetingId) {
             if (!await DisplayConfirmation("Are you sure you want to delete this meeting?"))
                 return;
 
@@ -75,15 +60,13 @@ public partial class Meetings {
         }
 
         // Handle selection of an adventure: load its episodes
-        internal async Task ReloadAdventureEpisodes(Guid? adventureId) {
-            if (!adventureId.HasValue) {
-                State.SelectedAdventureId = null;
-                return;
-            }
-
-            State.SelectedAdventureId = adventureId;
-            var data = await _service.GetEpisodesAsync(adventureId.Value);
-            State.Episodes = [.. data];
+        public async Task LoadEpisodes(Guid adventureId) {
+            State.Input.Episodes = [];
+            State.Input.EpisodeId = Guid.Empty;
+            if (adventureId == Guid.Empty) return;
+            var episodes = await _service.GetEpisodesAsync(adventureId);
+            State.Input.Episodes = [..episodes];
+            State.Input.EpisodeId = episodes.FirstOrDefault()?.Id ?? Guid.Empty;
         }
     }
 }

@@ -1,12 +1,7 @@
 namespace VttTools.WebApp.Components.Game.Pages;
 
-public partial class Episodes() {
-    private readonly Handler _handler = new();
-
-    internal Episodes(Guid adventureId)
-        : this() {
-        AdventureId = adventureId;
-    }
+public partial class Episodes {
+    private Handler _handler = null!;
 
     [Parameter]
     public Guid AdventureId { get; set; }
@@ -14,28 +9,29 @@ public partial class Episodes() {
     [Inject]
     internal IGameService GameService { get; set; } = null!;
 
-    internal PageState? State { get; set; }
+    internal bool IsLoading { get; set; } = true;
+    internal PageState State => _handler.State;
 
-    protected override async Task OnInitializedAsync() {
-        await base.OnInitializedAsync();
-        State = await _handler.InitializeAsync(GameService, AdventureId);
+    protected override async Task OnParametersSetAsync() {
+        _handler = await Handler.InitializeAsync(AdventureId, GameService);
+        IsLoading = false;
     }
 
     internal Task CreateEpisode()
-        => _handler.CreateEpisodeAsync(State!);
+        => _handler.CreateEpisodeAsync();
 
     internal void StartEdit(Episode ep)
-        => Handler.StartEdit(State!, ep);
+        => _handler.StartEdit(ep);
 
     internal void CancelEdit()
-        => Handler.CancelEdit(State!);
+        => _handler.CancelEdit();
 
     internal Task SaveEdit()
-        => _handler.SaveEditAsync(State!);
+        => _handler.SaveEditAsync();
 
     internal Task DeleteEpisode(Guid id)
-        => _handler.DeleteEpisodeAsync(State!, id);
+        => _handler.DeleteEpisodeAsync(id);
 
     internal Task CloneEpisode(Guid id)
-        => _handler.CloneEpisodeAsync(State!, id);
+        => _handler.CloneEpisodeAsync(id);
 }

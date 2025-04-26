@@ -1,3 +1,5 @@
+using MeetingModel = VttTools.Model.Game.Meeting;
+
 namespace VttTools.WebApp.Components.Meeting.Pages;
 
 public class MeetingsHandlerTests {
@@ -12,8 +14,8 @@ public class MeetingsHandlerTests {
     public async Task InitializeAsync_LoadsMeetings_And_ReturnsPageState() {
         // Arrange
         var meetings = new[] {
-            new Model.Game.Meeting { Id = Guid.NewGuid(), Subject = "Meeting 1" },
-            new Model.Game.Meeting { Id = Guid.NewGuid(), Subject = "Meeting 2" },
+            new MeetingModel { Subject = "Meeting 1" },
+            new MeetingModel { Subject = "Meeting 2" },
         };
         _service.GetMeetingsAsync().Returns(meetings);
 
@@ -29,7 +31,7 @@ public class MeetingsHandlerTests {
     public async Task OpenCreateMeetingDialog_LoadsAdventuresAndResetState() {
         // Arrange
         var adventures = new[] {
-            new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1" },
+            new Adventure { Name = "Adventure 1" },
         };
         _service.GetAdventuresAsync().Returns(adventures);
 
@@ -38,13 +40,12 @@ public class MeetingsHandlerTests {
 
         // Assert
         _handler.State.ShowCreateDialog.Should().BeTrue();
-        _handler.State.NewMeetingSubject.Should().BeEmpty();
-        _handler.State.MeetingSubjectError.Should().BeEmpty();
-        _handler.State.SelectedAdventureId.Should().BeNull();
-        _handler.State.Episodes.Should().BeEmpty();
-        _handler.State.SelectedEpisodeId.Should().BeNull();
-        _handler.State.ShowEpisodeError.Should().BeFalse();
-        _handler.State.Adventures.Should().BeEquivalentTo(adventures);
+        _handler.State.Input.Subject.Should().BeEmpty();
+        _handler.State.Input.AdventureId.Should().Be(adventures.First().Id);
+        _handler.State.Input.Episodes.Should().BeEmpty();
+        _handler.State.Input.EpisodeId.Should().BeEmpty();
+        _handler.State.Input.Adventures.Should().BeEquivalentTo(adventures);
+        _handler.State.Input.Errors.Should().BeEmpty();
     }
 
     [Fact]
@@ -64,11 +65,11 @@ public class MeetingsHandlerTests {
         // Arrange
         var episodeId = Guid.NewGuid();
         _handler.State.ShowCreateDialog = true;
-        _handler.State.NewMeetingSubject = "New Meeting";
-        _handler.State.SelectedEpisodeId = episodeId;
+        _handler.State.Input.Subject = "New Meeting";
+        _handler.State.Input.EpisodeId = episodeId;
 
         // Setup response
-        var expectedMeeting = new Model.Game.Meeting { Id = Guid.NewGuid(), Subject = "New Meeting" };
+        var expectedMeeting = new MeetingModel { Id = Guid.NewGuid(), Subject = "New Meeting" };
         _service.CreateMeetingAsync(Arg.Any<CreateMeetingRequest>()).Returns(expectedMeeting);
 
         // Act
@@ -77,40 +78,24 @@ public class MeetingsHandlerTests {
         // Assert
         _handler.State.ShowCreateDialog.Should().BeFalse();
         _handler.State.Meetings.Should().Contain(expectedMeeting);
-        _handler.State.NewMeetingSubject.Should().BeEmpty();
-        _handler.State.SelectedEpisodeId.Should().BeNull();
     }
 
     [Fact]
-    public async Task CreateMeeting_WithMissingSubject_SetsErrorAndDoesNotCreate() {
+    public async Task CreateMeeting_WithValidationError_SetsErrorAndDoesNotCreate() {
         // Arrange
         var episodeId = Guid.NewGuid();
         _handler.State.ShowCreateDialog = true;
-        _handler.State.NewMeetingSubject = string.Empty;
-        _handler.State.SelectedEpisodeId = episodeId;
+        _handler.State.Input.Subject = string.Empty;
+        _handler.State.Input.EpisodeId = episodeId;
         _service.CreateMeetingAsync(Arg.Any<CreateMeetingRequest>()).Returns(Result.Failure("Some error."));
 
         // Act
         await _handler.CreateMeeting();
 
         // Assert
-        _handler.State.MeetingSubjectError.Should().NotBeEmpty();
         _handler.State.ShowCreateDialog.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task CreateMeeting_WithMissingEpisode_SetsErrorAndDoesNotCreate() {
-        // Arrange
-        _handler.State.ShowCreateDialog = true;
-        _handler.State.NewMeetingSubject = "Valid Subject";
-        _handler.State.SelectedEpisodeId = null;
-
-        // Act
-        await _handler.CreateMeeting();
-
-        // Assert
-        _handler.State.ShowEpisodeError.Should().BeTrue();
-        _handler.State.ShowCreateDialog.Should().BeTrue();
+        _handler.State.Input.Errors.Should().NotBeEmpty();
+        _handler.State.Input.Errors[0].Message.Should().Be("Some error.");
     }
 
     [Fact]
@@ -143,7 +128,7 @@ public class MeetingsHandlerTests {
     public async Task DeleteMeeting_RemovesMeetingAndReloadsState() {
         // Arrange
         var meetingId = Guid.NewGuid();
-        var meeting = new Model.Game.Meeting { Id = meetingId, Subject = "Meeting to Delete" };
+        var meeting = new MeetingModel { Id = meetingId, Subject = "Meeting to Delete" };
 
         _handler.State.Meetings = [meeting];
 
@@ -169,22 +154,23 @@ public class MeetingsHandlerTests {
         _service.GetEpisodesAsync(adventureId).Returns(episodes);
 
         // Act
-        await _handler.ReloadAdventureEpisodes(adventureId);
+        await _handler.LoadEpisodes(adventureId);
 
         // Assert
-        _handler.State.SelectedAdventureId.Should().Be(adventureId);
-        _handler.State.Episodes.Should().BeEquivalentTo(episodes);
+        _handler.State.Input.Episodes.Should().BeEquivalentTo(episodes);
+        _handler.State.Input.EpisodeId.Should().Be(episodes.First().Id);
     }
 
     [Fact]
     public async Task ReloadAdventureEpisodes_WithInvalidAdventureId_ClearSelectedId() {
         // Arrange
-        _handler.State.SelectedAdventureId = Guid.NewGuid();
+        _handler.State.Input.AdventureId = Guid.NewGuid();
 
         // Act
-        await _handler.ReloadAdventureEpisodes(null);
+        await _handler.LoadEpisodes(Guid.Empty);
 
         // Assert
-        _handler.State.SelectedAdventureId.Should().BeNull();
+        _handler.State.Input.Episodes.Should().BeEmpty();
+        _handler.State.Input.EpisodeId.Should().BeEmpty();
     }
 }

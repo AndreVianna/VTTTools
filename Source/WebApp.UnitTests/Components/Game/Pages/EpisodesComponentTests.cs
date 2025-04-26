@@ -115,7 +115,7 @@
 //        visibilitySelect.GetAttribute("value").Should().Be(Visibility.Public.ToString());
 
 //        // Verify that edit state is set
-//        cut.Instance.State.IsEditing.Should().BeTrue();
+//        cut.Instance.State.ShowEditDialog.Should().BeTrue();
 //        cut.Instance.State.EditingEpisodeId.Should().Be(episodeId);
 //    }
 

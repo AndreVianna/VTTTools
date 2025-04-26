@@ -36,7 +36,7 @@ public partial class Meetings {
 
     // Handle selection of an adventure: load its episodes
     internal Task OnAdventureChanged(ChangeEventArgs e)
-        => _handler.ReloadAdventureEpisodes((Guid?)e.Value);
+        => _handler.LoadEpisodes((Guid)e.Value!);
 
     internal static Task<bool> DisplayConfirmation(string _)
         // JavaScript confirmation isn't ideal, but we'll use it for this example

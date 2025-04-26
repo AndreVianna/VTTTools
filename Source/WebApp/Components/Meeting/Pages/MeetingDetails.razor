@@ -2,7 +2,7 @@
 @inherits ExtendedComponent
 @rendermode InteractiveAuto
 
-<PageTitle>Game Meeting: @(State?.Meeting?.Subject ?? "Loading...")</PageTitle>
+<PageTitle>Game Meeting: @(IsLoading ? "Loading..." : State.Meeting.Subject)</PageTitle>
 
 @if (IsLoading)
 {
@@ -90,10 +90,10 @@ else
                     <div class="mb-3">
                         <label for="meetingName" class="form-label">Meeting Subject</label>
                         <input type="text" class="form-control" id="meetingName" @bind="State.Input.Subject">
-                        @if (State.Errors.Any())
+                        @if (State.Input.Errors.Length != 0)
                         {
                             <ul>
-                                @foreach (var error in State.Errors)
+                                @foreach (var error in State.Input.Errors)
                                 {
                                     <li class="text-danger mt-1">@error.Message</li>
                                 }

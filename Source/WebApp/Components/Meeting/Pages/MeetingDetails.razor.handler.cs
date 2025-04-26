@@ -7,19 +7,19 @@ public partial class MeetingDetails {
 
         internal PageState State { get; } = new();
 
-        internal Handler(Guid meetingId, Guid userId, IGameService service)
+        public Handler(Guid meetingId, Guid userId, IGameService service)
             : this() {
             _userId = userId;
             _service = service;
             State.Id = meetingId;
         }
 
-        internal static async Task<Handler?> InitializeAsync(Guid meetingId, Guid userId, IGameService service) {
+        public static async Task<Handler?> InitializeAsync(Guid meetingId, Guid userId, IGameService service) {
             var handler = new Handler(meetingId, userId, service);
             return await handler.TryLoadMeetingDetails() ? handler : null;
         }
 
-        internal async Task<bool> TryLoadMeetingDetails() {
+        public async Task<bool> TryLoadMeetingDetails() {
             var meeting = await _service.GetMeetingByIdAsync(State.Id);
             if (meeting == null)
                 return false;
@@ -29,23 +29,21 @@ public partial class MeetingDetails {
             return true;
         }
 
-        internal void OpenEditMeetingDialog() {
+        public void OpenEditMeetingDialog() {
             State.Input = new() { Subject = State.Meeting.Subject };
-            State.Errors = [];
             State.ShowEditDialog = true;
         }
 
-        internal void CloseEditMeetingDialog()
+        public void CloseEditMeetingDialog()
             => State.ShowEditDialog = false;
 
-        internal async Task UpdateMeeting() {
-            State.Errors = [];
+        public async Task UpdateMeeting() {
             var request = new UpdateMeetingRequest {
                 Subject = State.Input.Subject,
             };
             var result = await _service.UpdateMeetingAsync(State.Id, request);
             if (result.HasErrors) {
-                State.Errors = [.. result.Errors];
+                State.Input.Errors = [.. result.Errors];
                 return;
             }
 
@@ -55,7 +53,7 @@ public partial class MeetingDetails {
             CloseEditMeetingDialog();
         }
 
-        internal Task<bool> TryStartMeeting()
+        public Task<bool> TryStartMeeting()
             => _service.StartMeetingAsync(State.Id);
     }
 }

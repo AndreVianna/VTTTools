@@ -10,6 +10,5 @@ public partial class MeetingDetails {
         public bool CanEdit { get; set; }
         public bool ShowEditDialog { get; set; }
         public InputModel Input { get; set; } = new();
-        public IEnumerable<Error> Errors { get; set; } = [];
     }
 }

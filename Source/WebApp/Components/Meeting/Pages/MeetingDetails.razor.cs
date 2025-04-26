@@ -13,6 +13,7 @@ public partial class MeetingDetails {
     internal PageState State => _handler.State;
 
     protected override async Task OnParametersSetAsync() {
+        await base.OnInitializedAsync();
         var handler = await Handler.InitializeAsync(MeetingId, CurrentUser.Id, GameService);
         if (handler is null) {
             NavigateToMeetings();

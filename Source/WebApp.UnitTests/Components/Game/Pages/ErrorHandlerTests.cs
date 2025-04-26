@@ -1,55 +1,45 @@
 namespace VttTools.WebApp.Components.Game.Pages;
 
 public class ErrorHandlerTests {
+    private readonly Error.Handler _handler = new();
+    private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
+
+    public ErrorHandlerTests() {
+        _httpContext.TraceIdentifier.Returns("test-trace-id");
+    }
+
     [Fact]
     public void Initialize_SetsRequestIdFromHttpContext() {
-        // Arrange
-        var state = new Error.PageState();
-        var httpContext = Substitute.For<HttpContext>();
-        httpContext.TraceIdentifier.Returns("test-trace-id");
-
         // Act
-        Error.Handler.Initialize(httpContext, state);
+        var handler = Error.Handler.Initialize(_httpContext);
 
         // Assert
-        state.RequestId.Should().Be("test-trace-id");
-        state.ShowRequestId.Should().BeTrue();
+        handler.State.ShowRequestId.Should().BeTrue();
+        handler.State.RequestId.Should().Be("test-trace-id");
     }
 
     [Fact]
     public void Initialize_SetsRequestIdFromActivityCurrent_WhenAvailable() {
         // Arrange
-        var state = new Error.PageState();
-        var httpContext = Substitute.For<HttpContext>();
-        httpContext.TraceIdentifier.Returns("http-trace-id");
-
-        var activity = new Activity("TestActivity");
+        using var activity = new Activity("TestActivity");
         activity.Start();
         activity.SetIdFormat(ActivityIdFormat.W3C);
 
-        try {
-            // Act
-            Error.Handler.Initialize(httpContext, state);
+        // Act
+        var handler = Error.Handler.Initialize(_httpContext);
 
-            // Assert
-            state.RequestId.Should().Be(activity.Id);
-            state.ShowRequestId.Should().BeTrue();
-        }
-        finally {
-            activity.Stop();
-        }
+        // Assert
+        handler.State.ShowRequestId.Should().BeTrue();
+        handler.State.RequestId.Should().Be(activity.Id);
     }
 
     [Fact]
     public void Initialize_ShowRequestId_IsFalse_WhenRequestIdIsNull() {
-        // Arrange
-        var state = new Error.PageState();
-
         // Act
-        Error.Handler.Initialize(null, state);
+        var handler = Error.Handler.Initialize(null);
 
         // Assert
-        state.RequestId.Should().BeNull();
-        state.ShowRequestId.Should().BeFalse();
+        handler.State.ShowRequestId.Should().BeFalse();
+        handler.State.RequestId.Should().BeNull();
     }
 }

@@ -21,6 +21,7 @@ internal static class Program {
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IGameService, GameService>();
+        builder.Services.AddScoped<IHubConnectionBuilder, HubConnectionBuilder>();
 
         AddDefaultHealthChecks();
         builder.AddRedisOutputCache("redis");

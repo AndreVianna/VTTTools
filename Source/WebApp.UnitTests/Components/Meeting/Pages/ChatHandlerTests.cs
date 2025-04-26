@@ -1,13 +1,25 @@
 namespace VttTools.WebApp.Components.Meeting.Pages;
 
-public sealed class ChatHandlerTests
-    : IAsyncDisposable {
+public sealed class ChatHandlerTests {
+    private readonly IHubConnectionBuilder _builder = Substitute.For<IHubConnectionBuilder>();
+    private readonly HubConnection _hubConnectionSpy = Substitute.For<HubConnection>(Substitute.For<IConnectionFactory>(),
+                                                                                     Substitute.For<IHubProtocol>(),
+                                                                                     Substitute.For<EndPoint>(),
+                                                                                     Substitute.For<IServiceProvider>(),
+                                                                                     NullLoggerFactory.Instance);
     private readonly Uri _chatUri = new("https://example.com/hubs/chat");
-    private readonly Chat.Handler _handler = new();
-    private readonly Chat.PageState _state = new();
+    private bool _hubStarted;
     private bool _refreshCalled;
 
-    public ValueTask DisposeAsync() => _handler.DisposeAsync();
+    public ChatHandlerTests() {
+        _builder.Build().Returns(_hubConnectionSpy);
+        _hubConnectionSpy.When(x => x.StartAsync())
+            .Do(_ => _hubStarted = true);
+        _hubConnectionSpy.When(x => x.SendCoreAsync(Arg.Any<string>(), Arg.Any<object?[]>(), Arg.Any<CancellationToken>()))
+            .DoNotCallBase();
+        _hubConnectionSpy.On(Arg.Any<string>(), Arg.Any<Type[]>(), Arg.Any<Func<object?[], object, Task>>(), Arg.Any<object>())
+            .Returns(Substitute.For<IDisposable>());
+    }
 
     private Task RefreshAsync() {
         _refreshCalled = true;
@@ -17,29 +29,31 @@ public sealed class ChatHandlerTests
     [Fact]
     public async Task OnMessageReceived_AddsMessageToStateAndCallsRefresh() {
         // Arrange
-        await _handler.InitializeAsync(_chatUri, _state, RefreshAsync);
+        await using var handler = await Chat.Handler.InitializeAsync(_builder, _chatUri, RefreshAsync);
 
         // Act
-        await _handler.OnMessageReceived("Test message");
+        await handler.OnMessageReceived("Test message");
 
         // Assert
-        _state.Messages.Should().ContainSingle().Which.Text.Should().Be("Test message");
-        _state.Messages.Should().ContainSingle().Which.Direction.Should().Be(ChatMessageDirection.Received);
+        _hubStarted.Should().BeTrue();
+        handler.State.Messages.Should().ContainSingle().Which.Text.Should().Be("Test message");
+        handler.State.Messages.Should().ContainSingle().Which.Direction.Should().Be(ChatMessageDirection.Received);
         _refreshCalled.Should().BeTrue();
     }
 
     [Fact]
     public async Task SendMessage_WithNonEmptyMessage_SendsMessageAndClearsInput() {
         // Arrange
-        await _handler.InitializeAsync(_chatUri, _state, RefreshAsync);
-        _state.NewMessage = "Test message";
+        await using var handler = await Chat.Handler.InitializeAsync(_builder, _chatUri, RefreshAsync);
+        handler.State.NewMessage = "Test message";
 
         // Act
-        await _handler.SendMessage();
+        await handler.SendMessage();
 
         // Assert
-        _state.Messages.Should().ContainSingle().Which.Text.Should().Be("Test message");
-        _state.Messages.Should().ContainSingle().Which.Direction.Should().Be(ChatMessageDirection.Sent);
+        _hubStarted.Should().BeTrue();
+        handler.State.Messages.Should().ContainSingle().Which.Text.Should().Be("Test message");
+        handler.State.Messages.Should().ContainSingle().Which.Direction.Should().Be(ChatMessageDirection.Sent);
         _refreshCalled.Should().BeTrue();
     }
 
@@ -49,14 +63,15 @@ public sealed class ChatHandlerTests
     [InlineData("   ")]
     public async Task SendMessage_WithEmptyMessage_DoesNotSendMessageAndReturnsEmpty(string? message) {
         // Arrange
-        await _handler.InitializeAsync(_chatUri, _state, RefreshAsync);
-        _state.NewMessage = message!;
+        await using var handler = await Chat.Handler.InitializeAsync(_builder, _chatUri, RefreshAsync);
+        handler.State.NewMessage = message!;
 
         // Act
-        await _handler.SendMessage();
+        await handler.SendMessage();
 
         // Assert
-        _state.Messages.Should().BeEmpty();
+        _hubStarted.Should().BeTrue();
+        handler.State.Messages.Should().BeEmpty();
         _refreshCalled.Should().BeFalse();
     }
 }
