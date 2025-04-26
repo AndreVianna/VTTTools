@@ -1,0 +1,69 @@
+@page "/adventures"
+@inherits ExtendedComponent
+@rendermode InteractiveAuto
+
+<PageTitle>Adventures</PageTitle>
+
+@if (IsLoading)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="mb-3">
+        <input class="form-control mb-1" placeholder="Subject" @bind="State.CreateInput.Name" />
+        <button class="btn btn-primary" @onclick="CreateAdventure">Create</button>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Visibility</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var adv in State.Adventures)
+            {
+                <tr>
+                    <td>@adv.Name</td>
+                    <td>@adv.Visibility</td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm me-1" @onclick='() => NavigationManager.NavigateTo($"/adventures/{adv.Id}/episodes")'>Episodes</button>
+                        <button class="btn btn-secondary btn-sm me-1" @onclick="() => StartEdit(adv)">Edit</button>
+                        <button class="btn btn-info btn-sm me-1" @onclick="() => CloneAdventure(adv.Id)">Clone</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteAdventure(adv.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (!IsLoading && State.ShowEditDialog)
+{
+    <div class="modal show d-block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Adventure</h5>
+                    <button type="button" class="btn-close" @onclick="CancelEdit"></button>
+                </div>
+                <div class="modal-body">
+                    <input class="form-control mb-1" @bind="State.EditInput.Name" />
+                    <select class="form-select mb-1" @bind="State.EditInput.Visibility">
+                        <option value="@Visibility.Hidden">Hidden</option>
+                        <option value="@Visibility.Private">Private</option>
+                        <option value="@Visibility.Public">Public</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveEdit">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}

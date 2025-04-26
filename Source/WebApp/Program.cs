@@ -1,5 +1,3 @@
-using VttTools.WebApp.Utilities;
-
 using static VttTools.Data.Options.ApplicationDbContextOptions;
 
 namespace VttTools.WebApp;
@@ -68,7 +66,7 @@ internal static class Program {
             app.UseMigrationsEndPoint();
         }
         else {
-            app.UseExceptionHandler("/Error", createScopeForErrors: true);
+            app.UseExceptionHandler("/error", createScopeForErrors: true);
             app.UseHsts();
         }
 
@@ -83,7 +81,6 @@ internal static class Program {
            .AddInteractiveWebAssemblyRenderMode();
         MapDefaultEndpoints();
         app.MapAdditionalIdentityEndpoints();
-        app.MapApiEndpoints();
 
         app.Run();
         return;

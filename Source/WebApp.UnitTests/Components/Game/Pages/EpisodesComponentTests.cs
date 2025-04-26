@@ -17,7 +17,7 @@
 //    [Fact]
 //    public void Episodes_RendersLoadingState_WhenStateIsNull() {
 //        // Act
-//        var cut = RenderComponent<Episodes>(parameters =>
+//        var cut = RenderComponent<EpisodesPage>(parameters =>
 //            parameters.Add(p => p.AdventureId, _adventureId));
 
 //        // Assert
@@ -35,11 +35,11 @@
 //        _gameServiceClient.GetEpisodesAsync(_adventureId).Returns(episodes);
 
 //        // Act
-//        var cut = RenderComponent<Episodes>(parameters =>
+//        var cut = RenderComponent<EpisodesPage>(parameters =>
 //            parameters.Add(p => p.AdventureId, _adventureId));
 
 //        // Allow the component to initialize asynchronously
-//        WaitForState(() => cut.Instance.State?.Episodes != null);
+//        WaitForState(() => cut.Instance.State?.EpisodesPage != null);
 
 //        // Assert
 //        var rows = cut.FindAll("tbody tr");
@@ -60,7 +60,7 @@
 //        _gameServiceClient.GetEpisodesAsync(_adventureId).Returns([]);
 
 //        // Act
-//        var cut = RenderComponent<Episodes>(parameters =>
+//        var cut = RenderComponent<EpisodesPage>(parameters =>
 //            parameters.Add(p => p.AdventureId, _adventureId));
 
 //        // Fill in the form
@@ -93,11 +93,11 @@
 //        _gameServiceClient.GetEpisodesAsync(_adventureId).Returns(episodes);
 
 //        // Act
-//        var cut = RenderComponent<Episodes>(parameters =>
+//        var cut = RenderComponent<EpisodesPage>(parameters =>
 //            parameters.Add(p => p.AdventureId, _adventureId));
 
 //        // Wait for component to initialize
-//        WaitForState(() => cut.Instance.State?.Episodes != null);
+//        WaitForState(() => cut.Instance.State?.EpisodesPage != null);
 
 //        // Click edit button
 //        var editButton = cut.Find("button.btn-secondary");
@@ -130,11 +130,11 @@
 //        _gameServiceClient.GetEpisodesAsync(_adventureId).Returns(episodes);
 
 //        // Act
-//        var cut = RenderComponent<Episodes>(parameters =>
+//        var cut = RenderComponent<EpisodesPage>(parameters =>
 //            parameters.Add(p => p.AdventureId, _adventureId));
 
 //        // Wait for component to initialize
-//        WaitForState(() => cut.Instance.State?.Episodes != null);
+//        WaitForState(() => cut.Instance.State?.EpisodesPage != null);
 
 //        // Click delete button
 //        var deleteButton = cut.Find("button.btn-danger");
@@ -155,11 +155,11 @@
 //        _gameServiceClient.GetEpisodesAsync(_adventureId).Returns(episodes);
 
 //        // Act
-//        var cut = RenderComponent<Episodes>(parameters =>
+//        var cut = RenderComponent<EpisodesPage>(parameters =>
 //            parameters.Add(p => p.AdventureId, _adventureId));
 
 //        // Wait for component to initialize
-//        WaitForState(() => cut.Instance.State?.Episodes != null);
+//        WaitForState(() => cut.Instance.State?.EpisodesPage != null);
 
 //        // Click clone button
 //        var cloneButton = cut.Find("button.btn-info");

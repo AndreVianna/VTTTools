@@ -12,7 +12,7 @@
 //        // Arrange
 //        this.Configure(opt => opt.CurrentUser = _testUser);
 //        var navManager = Services.GetRequiredService<NavigationManager>();
-//        var component = RenderComponent<NavMenu>();
+//        var component = RenderComponent<NavMenuComponent>();
 
 //        // Act
 //        navManager.NavigateTo("/newTest");
@@ -33,7 +33,7 @@
 //        };
 
 //        // Act
-//        var component = RenderComponent<NavMenu>();
+//        var component = RenderComponent<NavMenuComponent>();
 
 //        // Assert
 //        component.Instance.CurrentLocation.Should().Be("page");
@@ -53,7 +53,7 @@
 //        };
 
 //        // Act
-//        var component = RenderComponent<NavMenu>();
+//        var component = RenderComponent<NavMenuComponent>();
 
 //        // Assert
 //        component.Instance.CurrentUser.Should().BeEquivalentTo(expectedCurrentUser);
@@ -71,7 +71,7 @@
 //        };
 
 //        // Act
-//        var component = RenderComponent<NavMenu>();
+//        var component = RenderComponent<NavMenuComponent>();
 
 //        // Assert
 //        component.Instance.CurrentUser.Should().BeEquivalentTo(expectedCurrentUser);
@@ -81,7 +81,7 @@
 //    public void Dispose_UnregistersLocationChangedEvent() {
 //        // Arrange
 //        this.Configure();
-//        var component = RenderComponent<NavMenu>();
+//        var component = RenderComponent<NavMenuComponent>();
 
 //        // Act
 //        var action = component.Instance.Dispose;

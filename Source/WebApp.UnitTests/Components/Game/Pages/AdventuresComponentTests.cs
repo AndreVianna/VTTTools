@@ -18,7 +18,7 @@
 //    [Fact]
 //    public void Adventures_RendersLoadingState_WhenStateIsNull() {
 //        // Act
-//        var cut = RenderComponent<Adventures>();
+//        var cut = RenderComponent<AdventuresPage>();
 
 //        // Assert
 //        cut.Find("p").TextContent.Should().Contain("Loading");
@@ -35,10 +35,10 @@
 //        _gameServiceClient.GetAdventuresAsync().Returns(adventures);
 
 //        // Act
-//        var cut = RenderComponent<Adventures>();
+//        var cut = RenderComponent<AdventuresPage>();
 
 //        // Allow the component to initialize asynchronously
-//        WaitForState(() => cut.Instance.State?.Adventures != null);
+//        WaitForState(() => cut.Instance.State?.AdventuresPage != null);
 
 //        // Assert
 //        var rows = cut.FindAll("tbody tr");
@@ -59,7 +59,7 @@
 //        _gameServiceClient.GetAdventuresAsync().Returns([]);
 
 //        // Act
-//        var cut = RenderComponent<Adventures>();
+//        var cut = RenderComponent<AdventuresPage>();
 
 //        // Fill in the form
 //        var nameInput = cut.Find("input[placeholder='Subject']");
@@ -88,10 +88,10 @@
 //        _gameServiceClient.GetAdventuresAsync().Returns(adventures);
 
 //        // Act
-//        var cut = RenderComponent<Adventures>();
+//        var cut = RenderComponent<AdventuresPage>();
 
 //        // Wait for component to initialize
-//        WaitForState(() => cut.Instance.State?.Adventures != null);
+//        WaitForState(() => cut.Instance.State?.AdventuresPage != null);
 
 //        // Click edit button
 //        var editButton = cut.Find("button.btn-secondary");
@@ -124,10 +124,10 @@
 //        _gameServiceClient.GetAdventuresAsync().Returns(adventures);
 
 //        // Act
-//        var cut = RenderComponent<Adventures>();
+//        var cut = RenderComponent<AdventuresPage>();
 
 //        // Wait for component to initialize
-//        WaitForState(() => cut.Instance.State?.Adventures != null);
+//        WaitForState(() => cut.Instance.State?.AdventuresPage != null);
 
 //        // Click delete button
 //        var deleteButton = cut.Find("button.btn-danger");
@@ -148,10 +148,10 @@
 //        _gameServiceClient.GetAdventuresAsync().Returns(adventures);
 
 //        // Act
-//        var cut = RenderComponent<Adventures>();
+//        var cut = RenderComponent<AdventuresPage>();
 
 //        // Wait for component to initialize
-//        WaitForState(() => cut.Instance.State?.Adventures != null);
+//        WaitForState(() => cut.Instance.State?.AdventuresPage != null);
 
 //        // Click clone button
 //        var cloneButton = cut.Find("button.btn-info");

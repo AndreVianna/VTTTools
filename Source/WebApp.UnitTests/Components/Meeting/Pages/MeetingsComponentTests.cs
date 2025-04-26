@@ -20,7 +20,7 @@
 //    [Fact]
 //    public void Meetings_RendersLoadingState_WhenStateIsNull() {
 //        // Act
-//        var cut = RenderComponent<Meetings>();
+//        var cut = RenderComponent<MeetingsPage>();
 
 //        // Assert
 //        cut.Find(".spinner-border").Should().NotBeNull();
@@ -33,7 +33,7 @@
 //        _httpClient.GetFromJsonAsync<MeetingModel[]>("/api/meetings").Returns(meetings);
 
 //        // Act
-//        var cut = RenderComponent<Meetings>();
+//        var cut = RenderComponent<MeetingsPage>();
 
 //        // Set state manually
 //        cut.Instance.State = new() { Meetings = [] };
@@ -63,7 +63,7 @@
 //                                              };
 
 //        // Act
-//        var cut = RenderComponent<Meetings>();
+//        var cut = RenderComponent<MeetingsPage>();
 
 //        // Set state and current user manually
 //        cut.Instance.State = new() { Meetings = meetings };
@@ -96,7 +96,7 @@
 //        _httpClient.GetFromJsonAsync<Adventure[]>("/api/adventures").Returns(adventures);
 
 //        // Act
-//        var cut = RenderComponent<Meetings>();
+//        var cut = RenderComponent<MeetingsPage>();
 
 //        // Set state manually
 //        cut.Instance.State = new() { Meetings = [] };
@@ -124,7 +124,7 @@
 //        _httpClient.PostAsync($"/api/meetings/{meetingId}/join", null).Returns(successResponse);
 
 //        // Act
-//        var cut = RenderComponent<Meetings>();
+//        var cut = RenderComponent<MeetingsPage>();
 
 //        // Set state manually
 //        cut.Instance.State = new() { Meetings = meetings };
@@ -151,7 +151,7 @@
 //                                              };
 
 //        // Act
-//        var cut = RenderComponent<Meetings>();
+//        var cut = RenderComponent<MeetingsPage>();
 
 //        // Set state manually
 //        cut.Instance.State = new() { Meetings = meetings };

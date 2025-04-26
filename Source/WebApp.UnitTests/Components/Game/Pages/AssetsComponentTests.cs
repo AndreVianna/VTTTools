@@ -12,7 +12,7 @@
 //    [Fact]
 //    public void Assets_RendersLoadingState_WhenStateIsNull() {
 //        // Act
-//        var cut = RenderComponent<Assets>();
+//        var cut = RenderComponent<AssetsPage>();
 
 //        // Assert
 //        cut.Find("p").TextContent.Should().Contain("Loading");
@@ -41,10 +41,10 @@
 //        _gameServiceClient.GetAssetsAsync().Returns(assets);
 
 //        // Act
-//        var cut = RenderComponent<Assets>();
+//        var cut = RenderComponent<AssetsPage>();
 
 //        // Allow the component to initialize asynchronously
-//        WaitForState(() => cut.Instance.State?.Assets != null);
+//        WaitForState(() => cut.Instance.State?.AssetsPage != null);
 
 //        // Assert
 //        var rows = cut.FindAll("tbody tr");
@@ -67,7 +67,7 @@
 //        _gameServiceClient.GetAssetsAsync().Returns([]);
 
 //        // Act
-//        var cut = RenderComponent<Assets>();
+//        var cut = RenderComponent<AssetsPage>();
 
 //        // Fill in the form
 //        var nameInput = cut.Find("input[placeholder='Subject']");
@@ -111,10 +111,10 @@
 //        _gameServiceClient.GetAssetsAsync().Returns(assets);
 
 //        // Act
-//        var cut = RenderComponent<Assets>();
+//        var cut = RenderComponent<AssetsPage>();
 
 //        // Wait for component to initialize
-//        WaitForState(() => cut.Instance.State?.Assets != null);
+//        WaitForState(() => cut.Instance.State?.AssetsPage != null);
 
 //        // Click delete button
 //        var deleteButton = cut.Find("button.btn-danger");

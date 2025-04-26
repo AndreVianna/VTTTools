@@ -25,7 +25,7 @@
 //            .Returns(Task.FromResult<MeetingModel>(null!));
 
 //        // Act
-//        var cut = RenderComponent<MeetingDetails>(parameters =>
+//        var cut = RenderComponent<MeetingDetailsPage>(parameters =>
 //            parameters.Add(p => p.MeetingId, _meetingId));
 
 //        // Initially the component will show loading
@@ -47,7 +47,7 @@
 //            .Returns(meeting);
 
 //        // Act
-//        var cut = RenderComponent<MeetingDetails>(parameters =>
+//        var cut = RenderComponent<MeetingDetailsPage>(parameters =>
 //            parameters.Add(p => p.MeetingId, _meetingId));
 
 //        // Set state manually since we can't wait for the async operation
@@ -73,7 +73,7 @@
 //            .Returns(meeting);
 
 //        // Act
-//        var cut = RenderComponent<MeetingDetails>(parameters =>
+//        var cut = RenderComponent<MeetingDetailsPage>(parameters =>
 //            parameters.Add(p => p.MeetingId, _meetingId));
 
 //        // Set state manually
@@ -87,7 +87,7 @@
 //    }
 
 //    [Fact]
-//    public void Clicking_BackToMeetings_NavigatesToMeetingsPage() {
+//    public void Clicking_BackToMeetings_NavigatesToMeetings() {
 //        // Arrange
 //        var meeting = new MeetingModel {
 //            Id = _meetingId,
@@ -100,7 +100,7 @@
 //            .Returns(meeting);
 
 //        // Act
-//        var cut = RenderComponent<MeetingDetails>(parameters =>
+//        var cut = RenderComponent<MeetingDetailsPage>(parameters =>
 //            parameters.Add(p => p.MeetingId, _meetingId));
 
 //        // Set state manually
@@ -129,7 +129,7 @@
 //            .Returns(meeting);
 
 //        // Act
-//        var cut = RenderComponent<MeetingDetails>(parameters =>
+//        var cut = RenderComponent<MeetingDetailsPage>(parameters =>
 //            parameters.Add(p => p.MeetingId, _meetingId));
 
 //        // Set state manually

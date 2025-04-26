@@ -5,7 +5,7 @@
 //    public void Chat_RendersCorrectly() {
 //        // Act
 //        this.Configure();
-//        var cut = RenderComponent<Chat>();
+//        var cut = RenderComponent<ChatPage>();
 
 //        // Assert
 //        cut.Find("h1").TextContent.Should().Be("Chat");
@@ -16,7 +16,7 @@
 //    [Fact]
 //    public void Chat_DisplaysMessages() {
 //        this.Configure();
-//        var cut = RenderComponent<Chat>();
+//        var cut = RenderComponent<ChatPage>();
 
 //        // Manually add messages to the state
 //        cut.Instance.State.Messages.Add(new(ChatMessageDirection.Sent, "Test message 1"));
