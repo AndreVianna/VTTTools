@@ -4,12 +4,20 @@
 
 <PageTitle>Adventures</PageTitle>
 
-@if (IsLoading)
-{
-    <p><em>Loading...</em></p>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Adventures</h1>
+        </div>
+    </div>
+@if (!IsReady) {
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
 }
-else
-{
+else {
     <div class="mb-3">
         <input class="form-control mb-1" placeholder="Subject" @bind="State.CreateInput.Name" />
         <button class="btn btn-primary" @onclick="CreateAdventure">Create</button>
@@ -24,25 +32,23 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var adv in State.Adventures)
-            {
-                <tr>
-                    <td>@adv.Name</td>
-                    <td>@adv.Visibility</td>
-                    <td>
-                        <button class="btn btn-secondary btn-sm me-1" @onclick='() => NavigationManager.NavigateTo($"/adventures/{adv.Id}/episodes")'>Episodes</button>
-                        <button class="btn btn-secondary btn-sm me-1" @onclick="() => StartEdit(adv)">Edit</button>
-                        <button class="btn btn-info btn-sm me-1" @onclick="() => CloneAdventure(adv.Id)">Clone</button>
-                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteAdventure(adv.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
+        @foreach (var adv in State.Adventures) {
+            <tr>
+                <td>@adv.Name</td>
+                <td>@adv.Visibility</td>
+                <td>
+                    <button class="btn btn-secondary btn-sm me-1" @onclick='() => NavigationManager.NavigateTo($"/adventures/{adv.Id}/episodes")'>Episodes</button>
+                    <button class="btn btn-secondary btn-sm me-1" @onclick="() => StartEdit(adv)">Edit</button>
+                    <button class="btn btn-info btn-sm me-1" @onclick="() => CloneAdventure(adv.Id)">Clone</button>
+                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteAdventure(adv.Id)">Delete</button>
+                </td>
+            </tr>
+        }
         </tbody>
     </table>
 }
 
-@if (!IsLoading && State.ShowEditDialog)
-{
+@if (IsReady && State.ShowEditDialog) {
     <div class="modal show d-block" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -67,3 +73,4 @@ else
     </div>
     <div class="modal-backdrop fade show"></div>
 }
+</div>

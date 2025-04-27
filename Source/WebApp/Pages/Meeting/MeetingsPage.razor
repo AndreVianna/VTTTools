@@ -13,102 +13,91 @@
             <button class="btn btn-primary" @onclick="OpenCreateMeetingDialog">Create New Meeting</button>
         </div>
     </div>
-
-    @if (IsLoading)
-    {
-        <div class="d-flex justify-content-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
+@if (!IsReady) {
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
-    }
-    else if (!State.Meetings.Any())
-    {
-        <div class="alert alert-info">
-            You don't have any game meetings yet. Create a new meeting to get started!
-        </div>
-    }
-    else
-    {
-        <div class="row row-cols-1 row-cols-md-3 g-4">
-            @foreach (var meeting in State.Meetings)
-            {
-                <div class="col">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">@meeting.Subject</h5>
-                            <p class="card-text">
-                                <small class="text-muted">@meeting.Players.Count player(s)</small>
-                            </p>
-                        </div>
-                        <div class="card-footer">
-                            <div class="d-flex justify-content-between">
-                                <button class="btn btn-sm btn-primary" @onclick="() => JoinMeeting(meeting.Id)">Join</button>
-                                <button class="btn btn-sm btn-primary" @onclick="() => NavigateToMeeting(meeting.Id)">Edit</button>
-                                @if (meeting.OwnerId == CurrentUser.Id)
-                                {
-                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteMeeting(meeting.Id)">Delete</button>
-                                }
-                            </div>
+    </div>
+}
+else if (State.Meetings.Count == 0) {
+    <div class="alert alert-info">
+        You don't have any game meetings yet. Create a new meeting to get started!
+    </div>
+}
+else {
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var meeting in State.Meetings) {
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@meeting.Subject</h5>
+                        <p class="card-text">
+                            <small class="text-muted">@meeting.Players.Count player(s)</small>
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-sm btn-primary" @onclick="() => JoinMeeting(meeting.Id)">Join</button>
+                            <button class="btn btn-sm btn-primary" @onclick="() => NavigateToMeeting(meeting.Id)">Edit</button>
+                            @if (meeting.OwnerId == CurrentUser.Id) {
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteMeeting(meeting.Id)">Delete</button>
+                            }
                         </div>
                     </div>
                 </div>
-            }
-        </div>
-    }
+            </div>
+        }
+    </div>
+}
+
 </div>
 
-@if (!IsLoading && State.ShowCreateDialog)
-{
-    <div class="modal fade show" style="display: block;" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Create New Meeting</h5>
-                    <button type="button" class="btn-close" @onclick="CloseCreateMeetingDialog"></button>
+@if (IsReady && State.ShowCreateDialog) {
+<div class="modal fade show" style="display: block;" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Meeting</h5>
+                <button type="button" class="btn-close" @onclick="CloseCreateMeetingDialog"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="meetingName" class="form-label">Meeting Subject</label>
+                    <input type="text" class="form-control" id="meetingName" @bind="State.Input.Subject" />
+                    @if (State.Input.Errors.Any(e => e.Sources.Contains(nameof(State.Input.Subject)))) {
+                        <div class="text-danger mt-1">@State.Input.Errors.First(e => e.Sources.Contains(nameof(State.Input.Subject))).Message</div>
+                    }
                 </div>
-                <div class="modal-body">
+                @if (State.Input.Adventures.Count == 0) {
                     <div class="mb-3">
-                        <label for="meetingName" class="form-label">Meeting Subject</label>
-                        <input type="text" class="form-control" id="meetingName" @bind="State.Input.Subject" />
-                        @if (State.Input.Errors.Any(e => e.Sources.Contains(nameof(State.Input.Subject))))
-                        {
-                            <div class="text-danger mt-1">@State.Input.Errors.First(e => e.Sources.Contains(nameof(State.Input.Subject))).Message</div>
-                        }
+                        <label for="adventureSelect" class="form-label">Adventure</label>
+                        <select id="adventureSelect" class="form-select" @onchange="OnAdventureChanged">
+                            <option value="@Guid.Empty">-- Select an adventure --</option>
+                            @foreach (var adv in State.Input.Adventures) {
+                              <option value="@adv.Id" selected="@(adv.Id == State.Input.AdventureId)">@adv.Name</option>
+                            }
+                        </select>
                     </div>
-                    @if (State.Input.Adventures.Count == 0)
-                    {
-                        <div class="mb-3">
-                            <label for="adventureSelect" class="form-label">Adventure</label>
-                            <select id="adventureSelect" class="form-select" @onchange="OnAdventureChanged">
-                                <option value="@Guid.Empty">-- Select an adventure --</option>
-                                @foreach (var adv in State.Input.Adventures)
-                                {
-                                  <option value="@adv.Id" selected="@(adv.Id == State.Input.AdventureId)">@adv.Name</option>
-                                }
-                            </select>
-                        </div>
-                    }
-                    @if (State.Input.Episodes.Count == 0)
-                    {
-                        <div class="mb-3">
-                            <label for="episodeSelect" class="form-label">Initial Episode</label>
-                            <select id="episodeSelect" class="form-select" @bind="State.Input.EpisodeId">
-                                <option value="@Guid.Empty">-- Select an episode --</option>
-                                @foreach (var ep in State.Input.Episodes)
-                                {
-                                    <option value="@ep.Id">@ep.Name</option>
-                                }
-                            </select>
-                        </div>
-                    }
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CloseCreateMeetingDialog">Cancel</button>
-                    <button type="button" class="btn btn-primary" @onclick="CreateMeeting">Create</button>
-                </div>
+                }
+                @if (State.Input.Episodes.Count == 0) {
+                    <div class="mb-3">
+                        <label for="episodeSelect" class="form-label">Initial Episode</label>
+                        <select id="episodeSelect" class="form-select" @bind="State.Input.EpisodeId">
+                            <option value="@Guid.Empty">-- Select an episode --</option>
+                            @foreach (var ep in State.Input.Episodes) {
+                                <option value="@ep.Id">@ep.Name</option>
+                            }
+                        </select>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CloseCreateMeetingDialog">Cancel</button>
+                <button type="button" class="btn btn-primary" @onclick="CreateMeeting">Create</button>
             </div>
         </div>
     </div>
-    <div class="modal-backdrop fade show"></div>
+</div>
+<div class="modal-backdrop fade show"></div>
 }

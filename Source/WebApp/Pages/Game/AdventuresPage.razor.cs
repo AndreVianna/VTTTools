@@ -6,12 +6,12 @@ public partial class AdventuresPage {
     [Inject]
     internal IGameService GameService { get; set; } = null!;
 
-    internal bool IsLoading { get; set; } = true;
+    internal bool IsReady { get; set; }
     internal PageState State => _handler.State;
 
     protected override async Task OnParametersSetAsync() {
         _handler = await Handler.InitializeAsync(GameService);
-        IsLoading = false;
+        IsReady = true;
     }
 
     internal Task CreateAdventure()

@@ -83,12 +83,12 @@ public class WebAppTestContext : TestContext {
         Options.IsAuthenticated = Options.IsAuthenticated || Options.IsAdministrator;
         Options.CurrentUser = Options.IsAuthenticated
                                   ? Options.CurrentUser ?? WebAppTestContextOptions.DefaultUser
-                                  : null!;
+                                  : null;
         Options.CurrentUserRole = Options.IsAdministrator ? "Administrator"
                                 : Options.IsAuthenticated ? "User"
                                 : Options.CurrentUserRole ?? "Guest";
         _identities.Clear();
-        if (Options.IsAuthenticated) {
+        if (Options.CurrentUser is not null) {
             var identityClaim = new Claim(ClaimTypes.NameIdentifier, Options.CurrentUser.Id.ToString());
             var nameClaim = new Claim(ClaimTypes.GivenName, Options.CurrentUser.DisplayName ?? Options.CurrentUser.Name);
             var emailClaim = new Claim(ClaimTypes.Email, Options.CurrentUser.Email!);
@@ -111,41 +111,5 @@ public class WebAppTestContext : TestContext {
     protected void SetCurrentLocation(string? location = null) {
         if (location is not null && Uri.IsWellFormedUriString(location, UriKind.Relative))
             _navigationManager.NavigateTo(location);
-    }
-
-    protected void ConfigureTestContext() {
-        Options.IsAuthenticated = Options.IsAuthenticated || Options.IsAdministrator;
-        Options.CurrentUser = Options.IsAuthenticated
-                                  ? Options.CurrentUser
-                                  : null!;
-        var role = Options.IsAdministrator
-                       ? "Administrator"
-                       : Options.IsAuthenticated
-                           ? "User"
-                           : "Guest";
-        if (Options.IsAuthenticated) {
-            var identityClaim = new Claim(ClaimTypes.NameIdentifier, Options.CurrentUser.Id.ToString());
-            var nameClaim = new Claim(ClaimTypes.GivenName, Options.CurrentUser.DisplayName ?? Options.CurrentUser.Name);
-            var emailClaim = new Claim(ClaimTypes.Email, Options.CurrentUser.Email!);
-            var roleClaim = new Claim(ClaimTypes.Role, role);
-            var identity = new ClaimsIdentity([identityClaim, emailClaim, nameClaim, roleClaim]);
-            _identities.Add(identity);
-        }
-
-        var authResult = Options.IsAuthenticated ? AuthorizationResult.Success() : AuthorizationResult.Failed();
-        _authService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object?>(), Arg.Any<IEnumerable<IAuthorizationRequirement>>())
-                    .Returns(authResult);
-        _userManager.GetUserAsync(Arg.Any<ClaimsPrincipal>())
-                    .Returns(Options.CurrentUser);
-        _userManager.IsInRoleAsync(Arg.Any<User>(), role)
-                    .Returns(true);
-    }
-
-    protected static void WaitForState(Func<bool> predicate, int timeoutMs = 1000) {
-        var startTime = DateTime.Now;
-        while (!predicate() && (DateTime.Now - startTime).TotalMilliseconds < timeoutMs)
-            Thread.Sleep(10);
-
-        predicate().Should().BeTrue($"Timed out waiting for state to update within {timeoutMs}ms");
     }
 }

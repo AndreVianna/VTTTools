@@ -2,18 +2,16 @@
 @inherits ExtendedComponent
 @rendermode InteractiveAuto
 
-<PageTitle>Game Meeting: @(IsLoading ? "Loading..." : State.Meeting.Subject)</PageTitle>
+<PageTitle>Game Meeting: @(IsReady ? "Loading..." : State.Meeting.Subject)</PageTitle>
 
-@if (IsLoading)
-{
+@if (!IsReady) {
     <div class="d-flex justify-content-center">
         <div class="spinner-border" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
     </div>
 }
-else
-{
+else {
     <div class="container">
         <div class="row mb-4 align-items-center">
             <div class="col">
@@ -77,8 +75,7 @@ else
     </div>
 }
 
-@if (!IsLoading && State.ShowEditDialog)
-{
+@if (IsReady && State.ShowEditDialog) {
     <div class="modal fade show" style="display: block;" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -90,11 +87,9 @@ else
                     <div class="mb-3">
                         <label for="meetingName" class="form-label">Meeting Subject</label>
                         <input type="text" class="form-control" id="meetingName" @bind="State.Input.Subject">
-                        @if (State.Input.Errors.Length != 0)
-                        {
+                        @if (State.Input.Errors.Length != 0) {
                             <ul>
-                                @foreach (var error in State.Input.Errors)
-                                {
+                                @foreach (var error in State.Input.Errors) {
                                     <li class="text-danger mt-1">@error.Message</li>
                                 }
                             </ul>

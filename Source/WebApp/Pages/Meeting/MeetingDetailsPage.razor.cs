@@ -9,7 +9,7 @@ public partial class MeetingDetailsPage {
     [Inject]
     internal IGameService GameService { get; set; } = null!;
 
-    internal bool IsLoading { get; set; } = true;
+    internal bool IsReady { get; set; }
     internal PageState State => _handler.State;
 
     protected override async Task OnParametersSetAsync() {
@@ -20,7 +20,7 @@ public partial class MeetingDetailsPage {
             return;
         }
         _handler = handler;
-        IsLoading = false;
+        IsReady = true;
     }
 
     internal void NavigateToMeetings()

@@ -2,20 +2,33 @@ namespace VttTools.WebApp.Pages.Meeting;
 
 public class ChatPageTests : WebAppTestContext {
     private readonly IHubConnectionBuilder _builder = Substitute.For<IHubConnectionBuilder>();
-    private readonly HubConnection _hubConnectionSpy = Substitute.For<HubConnection>(Substitute.For<IConnectionFactory>(),
-                                                                                     Substitute.For<IHubProtocol>(),
-                                                                                     Substitute.For<EndPoint>(),
-                                                                                     Substitute.For<IServiceProvider>(),
-                                                                                     NullLoggerFactory.Instance);
+    private readonly HubConnection _hubConnection = Substitute.For<HubConnection>(Substitute.For<IConnectionFactory>(),
+                                                                                  Substitute.For<IHubProtocol>(),
+                                                                                  Substitute.For<EndPoint>(),
+                                                                                  Substitute.For<IServiceProvider>(),
+                                                                                  NullLoggerFactory.Instance);
     public ChatPageTests() {
-        _builder.Build().Returns(_hubConnectionSpy);
+        _builder.Build().Returns(_hubConnection);
         Services.AddSingleton(_builder);
+    }
+
+    [Fact]
+    public void Chat_WhenIsLoading_RendersLoadingState() {
+        // Arrange
+        _hubConnection.StartAsync().Returns(Task.Delay(1000));
+
+        // Act
+        var cut = RenderComponent<ChatPage>();
+
+        // Assert
+        cut.Markup.Should().Contain("""<span class="visually-hidden">Loading...</span>""");
     }
 
     [Fact]
     public void Chat_RendersCorrectly() {
         // Act
         var cut = RenderComponent<ChatPage>();
+        cut.WaitForState(() => cut.Instance.IsReady);
 
         // Assert
         cut.Find("h1").TextContent.Should().Be("Chat");
@@ -29,6 +42,7 @@ public class ChatPageTests : WebAppTestContext {
         var cut = RenderComponent<ChatPage>();
         cut.Instance.State.Messages.Add(new(ChatMessageDirection.Sent, "Test message 1"));
         cut.Instance.State.Messages.Add(new(ChatMessageDirection.Received, "Test message 2"));
+        cut.WaitForState(() => cut.Instance.IsReady);
 
         // Act
         cut.SetParametersAndRender();
@@ -36,7 +50,11 @@ public class ChatPageTests : WebAppTestContext {
         // Assert
         var messages = cut.FindAll("li");
         messages.Count.Should().Be(2);
-        messages[0].TextContent.Should().Contain(": (Sent)\n      Test message 1");
-        messages[1].TextContent.Should().Contain(": (Received)\n      Test message 2");
+        messages[0].TextContent.Should().Contain("""
+                                                 : (Sent) Test message 1
+                                                 """);
+        messages[1].TextContent.Should().Contain("""
+                                                 : (Received) Test message 2
+                                                 """);
     }
 }

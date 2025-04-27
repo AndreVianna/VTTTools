@@ -10,11 +10,13 @@ public class AssetsPageTests : WebAppTestContext {
 
     [Fact]
     public void Assets_WhenIsLoading_RendersLoadingState() {
+        _service.GetAssetsAsync().Returns(Task.Delay(1000).ContinueWith(_ => Array.Empty<Asset>()));
+
         // Act
         var cut = RenderComponent<AssetsPage>();
 
         // Assert
-        cut.Find("p").TextContent.Should().Contain("Loading");
+        cut.Markup.Should().Contain("""<span class="visually-hidden">Loading...</span>""");
     }
 
     [Fact]
@@ -41,11 +43,11 @@ public class AssetsPageTests : WebAppTestContext {
 
         // Act
         var cut = RenderComponent<AssetsPage>();
-
-        // Allow the component to initialize asynchronously
-        WaitForState(() => !cut.Instance.IsLoading);
+        cut.WaitForState(() => cut.Instance.IsReady);
 
         // Assert
+        cut.Markup.Should().NotContain("""<span class="visually-hidden">Loading...</span>""");
+
         var rows = cut.FindAll("tbody tr");
         rows.Count.Should().Be(2);
 
@@ -75,8 +77,8 @@ public class AssetsPageTests : WebAppTestContext {
         };
 
         var cut = RenderComponent<AssetsPage>();
-
-        // Fill in the form
+        cut.WaitForState(() => cut.Instance.IsReady);
+        cut.Markup.Should().NotContain("""<span class="visually-hidden">Loading...</span>""");
         var nameInput = cut.Find("input[placeholder='Subject']");
         nameInput.Change(newAsset.Name);
         var sourceInput = cut.Find("input[placeholder='Source URL']");
@@ -112,14 +114,12 @@ public class AssetsPageTests : WebAppTestContext {
 
         _service.GetAssetsAsync().Returns(assets);
 
-        // Act
         var cut = RenderComponent<AssetsPage>();
-
-        // Wait for component to initialize
-        WaitForState(() => !cut.Instance.IsLoading);
-
-        // Click delete button
+        cut.WaitForState(() => cut.Instance.IsReady);
+        cut.Markup.Should().NotContain("""<span class="visually-hidden">Loading...</span>""");
         var deleteButton = cut.Find("button.btn-danger");
+
+        // Act
         deleteButton.Click();
 
         // Assert

@@ -6,13 +6,13 @@ public partial class ChatPage : IAsyncDisposable {
     [Inject]
     internal IHubConnectionBuilder HubConnectionBuilder { get; set; } = null!;
 
-    internal bool IsLoading { get; set; } = true;
+    internal bool IsReady { get; set; }
     internal PageState State => _handler?.State ?? new();
 
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync();
         _handler = await Handler.InitializeAsync(HubConnectionBuilder, GetAbsolutePath("/hubs/chat"), RefreshAsync);
-        IsLoading = false;
+        IsReady = true;
     }
 
     public Task SendMessage()

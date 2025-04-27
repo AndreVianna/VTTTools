@@ -6,12 +6,8 @@ public partial class ErrorPage {
     [CascadingParameter]
     internal HttpContext? HttpContext { get; set; }
 
-    internal bool IsLoading { get; set; } = true;
-    internal PageState State => _handler.State;
+    internal PageState State => _handler?.State ?? new();
 
-    protected override void OnInitialized() {
-        base.OnInitialized();
-        _handler = Handler.Initialize(HttpContext);
-        IsLoading = false;
-    }
+    protected override void OnInitialized()
+        => _handler = Handler.Initialize(HttpContext);
 }
