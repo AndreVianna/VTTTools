@@ -1,7 +1,4 @@
-using VttTools.WebApp.Pages;
-using VttTools.WebApp.Pages.Game;
-
-namespace VttTools.WebApp.Components.Game.Pages;
+namespace VttTools.WebApp.Pages;
 
 public class ErrorPageHandlerTests {
     private readonly HttpContext _httpContext = Substitute.For<HttpContext>();

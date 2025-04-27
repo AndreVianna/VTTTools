@@ -9,6 +9,11 @@ public partial class AssetsPage {
     internal bool IsLoading { get; set; } = true;
     internal PageState State => _handler.State;
 
+    protected override async Task OnInitializedAsync() {
+        await base.OnInitializedAsync();
+        IsLoading = false;
+    }
+
     protected override async Task OnParametersSetAsync() {
         _handler = await Handler.InitializeAsync(GameService);
         IsLoading = false;

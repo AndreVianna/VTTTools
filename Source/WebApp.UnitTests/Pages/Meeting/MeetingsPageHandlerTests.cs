@@ -1,8 +1,6 @@
-using VttTools.WebApp.Pages.Meeting;
-
 using MeetingModel = VttTools.Model.Game.Meeting;
 
-namespace VttTools.WebApp.Components.Meeting.Pages;
+namespace VttTools.WebApp.Pages.Meeting;
 
 public class MeetingsPageHandlerTests {
     private readonly IGameService _service = Substitute.For<IGameService>();

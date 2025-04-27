@@ -7,7 +7,7 @@ public partial class ChatPage : IAsyncDisposable {
     internal IHubConnectionBuilder HubConnectionBuilder { get; set; } = null!;
 
     internal bool IsLoading { get; set; } = true;
-    internal PageState State => _handler.State;
+    internal PageState State => _handler?.State ?? new();
 
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync();

@@ -1,6 +1,6 @@
 //using MeetingModel = VttTools.Model.Game.Meeting;
 
-//namespace VttTools.WebApp.Components.Meeting.Pages;
+namespace VttTools.WebApp.Pages.Meeting;
 
 //public class MeetingDetailsComponentTests : Bunit.TestContext {
 //    private readonly GameService _gameServiceClient = Substitute.For<GameService>();

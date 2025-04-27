@@ -1,15 +1,8 @@
 namespace VttTools.WebApp.Extensions;
 
 public static class NavigationManagerExtensions {
-    public static string GetStatusCookieName(this NavigationManager _)
-        => "Identity.StatusMessage";
-
-    private static readonly CookieBuilder _statusCookieBuilder = new() {
-        SameSite = SameSiteMode.Strict,
-        HttpOnly = true,
-        IsEssential = true,
-        MaxAge = TimeSpan.FromSeconds(5),
-    };
+    public static string GetCurrentPath(this NavigationManager navigationManager)
+        => navigationManager.ToAbsoluteUri(navigationManager.Uri).GetLeftPart(UriPartial.Path);
 
     [DoesNotReturn]
     public static void RedirectTo(this NavigationManager navigationManager, string? uri) {
@@ -29,12 +22,9 @@ public static class NavigationManagerExtensions {
 
     [DoesNotReturn]
     public static void RedirectToWithStatus(this NavigationManager navigationManager, string uri, string message, HttpContext context) {
-        context.Response.Cookies.Append(navigationManager.GetStatusCookieName(), message, _statusCookieBuilder.Build(context));
+        context.SetStatusMessage(message);
         navigationManager.RedirectTo(uri);
     }
-
-    public static string GetCurrentPath(this NavigationManager navigationManager)
-        => navigationManager.ToAbsoluteUri(navigationManager.Uri).GetLeftPart(UriPartial.Path);
 
     [DoesNotReturn]
     public static void ReloadPage(this NavigationManager navigationManager)

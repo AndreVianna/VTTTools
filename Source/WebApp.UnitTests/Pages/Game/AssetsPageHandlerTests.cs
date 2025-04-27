@@ -1,6 +1,4 @@
-using VttTools.WebApp.Pages.Game;
-
-namespace VttTools.WebApp.Components.Game.Pages;
+namespace VttTools.WebApp.Pages.Game;
 
 public class AssetsPageHandlerTests {
     private readonly IGameService _service = Substitute.For<IGameService>();

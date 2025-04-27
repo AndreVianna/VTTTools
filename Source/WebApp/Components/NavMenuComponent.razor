@@ -20,6 +20,15 @@
     <AuthorizeView>
       <Authorized>
         <div class="nav-item px-3">
+          <form action="account/logout" method="post">
+            <AntiforgeryToken/>
+            <input type="hidden" name="ReturnUrl" value="@CurrentLocation"/>
+            <button type="submit" class="nav-link">
+              <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+            </button>
+          </form>
+        </div>
+        <div class="nav-item px-3">
           <NavLink class="nav-link" href="account/manage">
             <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @CurrentUser.DisplayName
           </NavLink>
@@ -38,15 +47,6 @@
           <NavLink class="nav-link" href="assets">
             <span class="bi bi-collection-fill" aria-hidden="true"></span> Assets
           </NavLink>
-        </div>
-        <div class="nav-item px-3">
-          <form action="account/logout" method="post">
-            <AntiforgeryToken />
-            <input type="hidden" name="ReturnUrl" value="@CurrentLocation" />
-            <button type="submit" class="nav-link">
-              <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
-            </button>
-          </form>
         </div>
       </Authorized>
       <NotAuthorized>

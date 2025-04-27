@@ -1,6 +1,4 @@
-using VttTools.WebApp.Pages.Meeting;
-
-namespace VttTools.WebApp.Components.Meeting.Pages;
+namespace VttTools.WebApp.Pages.Meeting;
 
 public sealed class ChatPageHandlerTests {
     private readonly IHubConnectionBuilder _builder = Substitute.For<IHubConnectionBuilder>();

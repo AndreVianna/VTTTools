@@ -1,4 +1,4 @@
-//namespace VttTools.WebApp.Components.Game.Pages;
+namespace VttTools.WebApp.Pages.Game;
 
 //public class EpisodesComponentTests : Bunit.TestContext {
 //    private readonly GameService _gameServiceClient = Substitute.For<GameService>();

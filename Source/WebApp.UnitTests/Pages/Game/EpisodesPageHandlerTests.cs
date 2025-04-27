@@ -1,6 +1,4 @@
-using VttTools.WebApp.Pages.Game;
-
-namespace VttTools.WebApp.Components.Game.Pages;
+namespace VttTools.WebApp.Pages.Game;
 
 public class EpisodesPageHandlerTests {
     private readonly Guid _adventureId = Guid.NewGuid();
