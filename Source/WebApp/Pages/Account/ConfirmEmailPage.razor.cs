@@ -19,7 +19,7 @@ public partial class ConfirmEmailPage {
 
     protected override async Task OnInitializedAsync() {
         if (UserId is null || Code is null) {
-            NavigationManager.RedirectTo("");
+            NavigationManager.RedirectToHome();
             return;
         }
 

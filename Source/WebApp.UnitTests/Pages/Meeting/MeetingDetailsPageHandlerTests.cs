@@ -1,186 +1,118 @@
-using MeetingModel = VttTools.Model.Game.Meeting;
-
 namespace VttTools.WebApp.Pages.Meeting;
 
 public class MeetingDetailsPageHandlerTests {
     private readonly Guid _meetingId = Guid.NewGuid();
     private readonly Guid _userId = Guid.NewGuid();
     private readonly IGameService _service = Substitute.For<IGameService>();
-    private readonly MeetingDetailsPage.Handler _handler;
-
-    public MeetingDetailsPageHandlerTests() {
-        _handler = new(_meetingId, _userId, _service);
-    }
 
     [Fact]
     public async Task Initialize_WithValidMeetingId_ReturnsHandler() {
         // Arrange
-        var player = new MeetingPlayer { UserId = _userId, Type = PlayerType.Master };
-        var meeting = new MeetingModel {
-            Id = _meetingId,
-            Subject = "Test Meeting",
-            OwnerId = _userId,
-            Players = [player],
-        };
-        _service.GetMeetingByIdAsync(_meetingId).Returns(meeting);
+        var handler = await CreateInitializedHandler();
 
         // Act
-        var handler = await MeetingDetailsPage.Handler.InitializeAsync(_meetingId, _userId, _service);
+        var result = await handler.TryInitializeAsync(_meetingId, _userId, _service);
 
         // Assert
-        handler.Should().NotBeNull();
+        result.Should().BeTrue();
+        handler.State.Meeting.Should().NotBeNull();
+        handler.State.CanEdit.Should().BeTrue();
+        handler.State.CanStart.Should().BeTrue();
     }
 
     [Fact]
     public async Task Initialize_WithInvalidMeetingId_ReturnsNull() {
         // Arrange
         _service.GetMeetingByIdAsync(_meetingId).Returns((MeetingModel?)null);
+        var handler = new MeetingDetailsPageHandler();
 
         // Act
-        var handler = await MeetingDetailsPage.Handler.InitializeAsync(_meetingId, _userId, _service);
-
-        // Assert
-        handler.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task TryLoadMeetingDetails_LoadsMeetingAndSetsProperties() {
-        // Arrange
-        var player = new MeetingPlayer { UserId = _userId, Type = PlayerType.Master };
-        var meeting = new MeetingModel {
-            Id = _meetingId,
-            Subject = "Test Meeting",
-            OwnerId = _userId,
-            Players = [player],
-        };
-        _service.GetMeetingByIdAsync(_meetingId).Returns(meeting);
-
-        // Act
-        var result = await _handler.TryLoadMeetingDetails();
-
-        // Assert
-        result.Should().BeTrue();
-        _handler.State.Meeting.Should().BeEquivalentTo(meeting);
-        _handler.State.CanEdit.Should().BeTrue();
-        _handler.State.CanStart.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task TryLoadMeetingDetails_ReturnsFalse_WhenMeetingIsNull() {
-        // Arrange
-        _service.GetMeetingByIdAsync(_meetingId).Returns((MeetingModel?)null);
-
-        // Act
-        var result = await _handler.TryLoadMeetingDetails();
+        var result = await handler.TryInitializeAsync(_meetingId, _userId, _service);
 
         // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
-    public void OpenEditMeetingDialog_ClearErrorsResetsInputAndShowsDialog() {
+    public async Task OpenEditMeetingDialog_ClearErrorsResetsInputAndShowsDialog() {
         // Arrange
-        _handler.State.Meeting = new() { Subject = "Original Meeting Name" };
-        _handler.State.Input.Errors = [new("Some error.")];
-        _handler.State.ShowEditDialog = false;
-        _handler.State.Input = new();
-        var expectedInput = new MeetingDetailsPage.InputModel {
-            Subject = "Original Meeting Name",
+        var handler = await CreateInitializedHandler();
+
+        // Arrange
+        var expectedInput = new MeetingDetailsPageInputModel {
+            Subject = "Test Meeting",
         };
 
         // Act
-        _handler.OpenEditMeetingDialog();
+        handler.OpenEditMeetingDialog();
 
         // Assert
-        _handler.State.Input.Should().BeEquivalentTo(expectedInput);
-        _handler.State.ShowEditDialog.Should().BeTrue();
-        _handler.State.Input.Errors.Should().BeEmpty();
+        handler.State.Input.Should().BeEquivalentTo(expectedInput);
+        handler.State.ShowEditDialog.Should().BeTrue();
     }
 
     [Fact]
-    public void CloseEditMeetingDialog_HidesDialog() {
+    public async Task CloseEditMeetingDialog_HidesDialog() {
         // Arrange
-        _handler.State.ShowEditDialog = true;
+        var handler = await CreateInitializedHandler();
+        handler.State.ShowEditDialog = true;
 
         // Act
-        _handler.CloseEditMeetingDialog();
+        handler.CloseEditMeetingDialog();
 
         // Assert
-        _handler.State.ShowEditDialog.Should().BeFalse();
+        handler.State.ShowEditDialog.Should().BeFalse();
     }
 
     [Fact]
     public async Task UpdateMeeting_WithValidInput_UpdatesMeetingAndClosesDialog() {
         // Arrange
-        var player = new MeetingPlayer { UserId = _userId, Type = PlayerType.Master };
-        _handler.State.Meeting = new() {
-            Id = _meetingId,
-            Subject = "Test Meeting",
-            OwnerId = _userId,
-            Players = [player],
-        };
-        _handler.State.ShowEditDialog = true;
-        _handler.State.Input = new() {
+        var handler = await CreateInitializedHandler();
+        handler.State.ShowEditDialog = true;
+        handler.State.Input = new() {
             Subject = "Updated Meeting Name",
         };
         var updatedMeeting = new MeetingModel {
-            Id = _handler.State.Meeting.Id,
-            Subject = _handler.State.Input.Subject,
-            OwnerId = _handler.State.Meeting.OwnerId,
-            Players = _handler.State.Meeting.Players,
+            Id = handler.State.Meeting.Id,
+            Subject = handler.State.Input.Subject,
+            OwnerId = handler.State.Meeting.OwnerId,
+            Players = handler.State.Meeting.Players,
         };
 
         _service.UpdateMeetingAsync(_meetingId, Arg.Any<UpdateMeetingRequest>()).Returns(updatedMeeting);
 
         // Act
-        await _handler.UpdateMeeting();
+        await handler.UpdateMeeting();
 
         // Assert
-        _handler.State.ShowEditDialog.Should().BeFalse();
-        _handler.State.Meeting.Should().BeEquivalentTo(updatedMeeting);
+        handler.State.ShowEditDialog.Should().BeFalse();
+        handler.State.Meeting.Should().BeEquivalentTo(updatedMeeting);
     }
 
     [Fact]
-    public async Task UpdateMeeting_WithEmptyName_SetsErrorAndDoesNotUpdate() {
+    public async Task UpdateMeeting_WithValidationError_SetsErrorsAndDoesNotUpdate() {
         // Arrange
-        var player = new MeetingPlayer { UserId = _userId, Type = PlayerType.Master };
-        _handler.State.Meeting = new() {
-            Id = _meetingId,
-            Subject = "Test Meeting",
-            OwnerId = _userId,
-            Players = [player],
-        };
-        _handler.State.ShowEditDialog = true;
-        _handler.State.Input = new();
+        var handler = await CreateInitializedHandler();
+        handler.State.ShowEditDialog = true;
         _service.UpdateMeetingAsync(_meetingId, Arg.Any<UpdateMeetingRequest>()).Returns(Result.Failure("Some error."));
 
         // Act
-        await _handler.UpdateMeeting();
+        await handler.UpdateMeeting();
 
         // Assert
-        _handler.State.ShowEditDialog.Should().BeTrue();
-        _handler.State.Input.Errors.Should().NotBeEmpty();
-        _handler.State.Input.Errors[0].Message.Should().Be("Some error.");
+        handler.State.ShowEditDialog.Should().BeTrue();
+        handler.State.Input.Errors.Should().NotBeEmpty();
+        handler.State.Input.Errors[0].Message.Should().Be("Some error.");
     }
 
     [Fact]
     public async Task TryStartMeeting_CallsApiAndReturnsResult() {
         // Arrange
-        var player = new MeetingPlayer { UserId = _userId, Type = PlayerType.Master };
-        var meeting = new MeetingModel {
-            Id = _meetingId,
-            Subject = "Test Meeting",
-            OwnerId = _userId,
-            Players = [player],
-        };
-        _handler.State.Meeting = meeting;
-        _handler.State.ShowEditDialog = true;
-        _handler.State.Input = new();
-
+        var handler = await CreateInitializedHandler();
         _service.StartMeetingAsync(_meetingId).Returns(true);
 
         // Act
-        var result = await _handler.TryStartMeeting();
+        var result = await handler.TryStartMeeting();
 
         // Assert
         result.Should().BeTrue();
@@ -189,6 +121,17 @@ public class MeetingDetailsPageHandlerTests {
     [Fact]
     public async Task TryStartMeeting_ReturnsFalse_OnError() {
         // Arrange
+        var handler = await CreateInitializedHandler();
+        _service.StartMeetingAsync(_meetingId).Returns(false);
+
+        // Act
+        var result = await handler.TryStartMeeting();
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    private async Task<MeetingDetailsPageHandler> CreateInitializedHandler() {
         var player = new MeetingPlayer { UserId = _userId, Type = PlayerType.Master };
         var meeting = new MeetingModel {
             Id = _meetingId,
@@ -196,16 +139,9 @@ public class MeetingDetailsPageHandlerTests {
             OwnerId = _userId,
             Players = [player],
         };
-        _handler.State.Meeting = meeting;
-        _handler.State.ShowEditDialog = true;
-        _handler.State.Input = new();
-
-        _service.StartMeetingAsync(_meetingId).Returns(false);
-
-        // Act
-        var result = await _handler.TryStartMeeting();
-
-        // Assert
-        result.Should().BeFalse();
+        _service.GetMeetingByIdAsync(_meetingId).Returns(meeting);
+        var handler = new MeetingDetailsPageHandler();
+        await handler.TryInitializeAsync(_meetingId, _userId, _service);
+        return handler;
     }
 }

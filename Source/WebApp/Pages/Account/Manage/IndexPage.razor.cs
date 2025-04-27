@@ -38,13 +38,15 @@ public partial class IndexPage {
             var setPhoneResult = await UserManager.SetPhoneNumberAsync(_user, Input.PhoneNumber);
             if (!setPhoneResult.Succeeded) {
                 Logger.LogWarning("Failed to update the phone number for the user with ID {UserId}.", _user.Id);
-                NavigationManager.ReloadPageWithStatus("Error: Failed to set phone number.", HttpContext);
+                HttpContext.SetStatusMessage("Error: Failed to set phone number.");
+                NavigationManager.ReloadPage();
             }
         }
 
         await SignInManager.RefreshSignInAsync(_user);
         Logger.LogInformation("The profile of user with ID {UserId} was updated.", _user.Id);
-        NavigationManager.ReloadPageWithStatus("Your profile has been updated", HttpContext);
+        HttpContext.SetStatusMessage("Your profile has been updated.");
+        NavigationManager.ReloadPage();
     }
 
     private sealed class InputModel {

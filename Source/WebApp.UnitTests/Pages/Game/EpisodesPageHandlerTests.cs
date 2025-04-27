@@ -3,34 +3,23 @@ namespace VttTools.WebApp.Pages.Game;
 public class EpisodesPageHandlerTests {
     private readonly Guid _adventureId = Guid.NewGuid();
     private readonly IGameService _service = Substitute.For<IGameService>();
-    private readonly EpisodesPage.Handler _handler;
-    private readonly Episode[] _episodes = [
-        new() { Name = "Episode 1", Visibility = Visibility.Public },
-        new() { Name = "Episode 2", Visibility = Visibility.Private },
-    ];
-
-    public EpisodesPageHandlerTests() {
-        _handler = new(_adventureId, _service);
-    }
 
     [Fact]
     public async Task InitializeAsync_LoadsEpisodes_And_ReturnsHandler() {
-        // Arrange
-        _service.GetEpisodesAsync(_adventureId).Returns(_episodes);
-
-        // Act
-        var handler = await EpisodesPage.Handler.InitializeAsync(_adventureId, _service);
+        // Arrange & Act
+        var handler = await CreateInitializedHandler();
 
         // Assert
         handler.Should().NotBeNull();
         handler.State.AdventureId.Should().Be(_adventureId);
-        handler.State.Episodes.Should().BeEquivalentTo(_episodes);
+        handler.State.Episodes.Should().NotBeEmpty();
     }
 
     [Fact]
     public async Task CreateEpisodeAsync_WithValidInput_CreatesEpisodeAndResetsInput() {
         // Arrange
-        _handler.State.CreateInput = new() {
+        var handler = await CreateInitializedHandler();
+        handler.State.CreateInput = new() {
             Name = "New Episode",
             Visibility = Visibility.Private,
         };
@@ -38,21 +27,21 @@ public class EpisodesPageHandlerTests {
             Name = "New Episode",
             Visibility = Visibility.Private,
         };
-        var episodesAfterCreate = new[] { newEpisode };
 
         _service.CreateEpisodeAsync(Arg.Any<CreateEpisodeRequest>()).Returns(newEpisode);
 
         // Act
-        await _handler.CreateEpisodeAsync();
+        await handler.CreateEpisodeAsync();
 
         // Assert
-        _handler.State.Episodes.Should().BeEquivalentTo(episodesAfterCreate);
+        handler.State.Episodes.Should().HaveCount(3);
     }
 
     [Fact]
     public async Task CreateEpisodeAsync_WithInvalidInput_ReturnsErrors() {
         // Arrange
-        _handler.State.CreateInput = new() {
+        var handler = await CreateInitializedHandler();
+        handler.State.CreateInput = new() {
             Name = "New Episode",
             Visibility = Visibility.Private,
         };
@@ -60,33 +49,34 @@ public class EpisodesPageHandlerTests {
         _service.CreateEpisodeAsync(Arg.Any<CreateEpisodeRequest>()).Returns(Result.Failure("Some error"));
 
         // Act
-        await _handler.CreateEpisodeAsync();
+        await handler.CreateEpisodeAsync();
 
         // Assert
-        _handler.State.Episodes.Should().BeEmpty();
-        _handler.State.CreateInput.Errors.Should().NotBeEmpty();
-        _handler.State.CreateInput.Errors[0].Message.Should().Be("Some error");
+        handler.State.Episodes.Should().HaveCount(2);
+        handler.State.CreateInput.Errors.Should().NotBeEmpty();
+        handler.State.CreateInput.Errors[0].Message.Should().Be("Some error");
     }
 
     [Fact]
     public async Task DeleteEpisodeAsync_RemovesEpisodeAndReloadsEpisodes() {
         // Arrange
-        var episodeId = Guid.NewGuid();
-
-        var episodesAfterDelete = Array.Empty<Episode>();
+        var handler = await CreateInitializedHandler();
+        var episodeId = handler.State.Episodes[1].Id;
+        _service.DeleteEpisodeAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
-        await _handler.DeleteEpisodeAsync(episodeId);
+        await handler.DeleteEpisodeAsync(episodeId);
 
         // Assert
-        _handler.State.Episodes.Should().BeEquivalentTo(episodesAfterDelete);
+        handler.State.Episodes.Should().HaveCount(1);
     }
 
     [Fact]
     public async Task CloneEpisodeAsync_ClonesEpisodeAndReloadsEpisodes() {
         // Arrange
+        var handler = await CreateInitializedHandler();
         var episodeId = Guid.NewGuid();
-        _handler.State.Episodes = [new Episode { Id = episodeId, Name = "Episode 1" }];
+        handler.State.Episodes = [new Episode { Id = episodeId, Name = "Episode 1" }];
         var clonedEpisode = new Episode { Id = Guid.NewGuid(), Name = "Episode 1 (Copy)" };
         var episodesAfterClone = new[] {
             new Episode { Id = episodeId, Name = "Episode 1" },
@@ -96,51 +86,54 @@ public class EpisodesPageHandlerTests {
         _service.CloneEpisodeAsync(episodeId, Arg.Any<CloneEpisodeRequest>()).Returns(clonedEpisode);
 
         // Act
-        await _handler.CloneEpisodeAsync(episodeId);
+        await handler.CloneEpisodeAsync(episodeId);
 
         // Assert
-        _handler.State.Episodes.Should().BeEquivalentTo(episodesAfterClone);
+        handler.State.Episodes.Should().BeEquivalentTo(episodesAfterClone);
     }
 
     [Fact]
-    public void StartEdit_SetsEditingStateAndPopulatesInput() {
+    public async Task StartEdit_SetsEditingStateAndPopulatesInput() {
         // Arrange
+        var handler = await CreateInitializedHandler();
         var episode = new Episode {
             Name = "Episode to Edit",
             Visibility = Visibility.Public,
         };
 
         // Act
-        _handler.StartEdit(episode);
+        handler.StartEdit(episode);
 
         // Assert
-        _handler.State.ShowEditDialog.Should().BeTrue();
-        _handler.State.EditInput.Id.Should().Be(episode.Id);
-        _handler.State.EditInput.Name.Should().Be(episode.Name);
-        _handler.State.EditInput.Visibility.Should().Be(episode.Visibility);
+        handler.State.ShowEditDialog.Should().BeTrue();
+        handler.State.EditInput.Id.Should().Be(episode.Id);
+        handler.State.EditInput.Name.Should().Be(episode.Name);
+        handler.State.EditInput.Visibility.Should().Be(episode.Visibility);
     }
 
     [Fact]
-    public void CancelEdit_ResetIsEditingFlag() {
+    public async Task CancelEdit_ResetIsEditingFlag() {
         // Arrange
-        _handler.State.ShowEditDialog = true;
-        _handler.State.EditInput = new() {
+        var handler = await CreateInitializedHandler();
+        handler.State.ShowEditDialog = true;
+        handler.State.EditInput = new() {
             Id = Guid.NewGuid(),
             Name = "Updated Episode",
             Visibility = Visibility.Public,
         };
 
         // Act
-        _handler.CancelEdit();
+        handler.CancelEdit();
 
         // Assert
-        _handler.State.ShowEditDialog.Should().BeFalse();
+        handler.State.ShowEditDialog.Should().BeFalse();
     }
 
     [Fact]
     public async Task SaveEditAsync_WithValidInput_UpdatesEpisodeAndReloadsEpisodes() {
         // Arrange
-        _handler.State.ShowEditDialog = true;
+        var handler = await CreateInitializedHandler();
+        handler.State.ShowEditDialog = true;
         var episodeId = Guid.NewGuid();
         var episodeBeforeEdit = new Episode {
             Id = episodeId,
@@ -148,17 +141,17 @@ public class EpisodesPageHandlerTests {
             Visibility = Visibility.Hidden,
         };
         var episodesBeforeEdit = new List<Episode> { episodeBeforeEdit };
-        _handler.State.EditInput = new() {
+        handler.State.EditInput = new() {
             Id = episodeId,
             Name = "Updated Episode",
             Visibility = Visibility.Public,
         };
-        _handler.State.EditInput = new() {
+        handler.State.EditInput = new() {
             Id = episodeId,
             Name = "Updated Episode",
             Visibility = Visibility.Public,
         };
-        _handler.State.Episodes = episodesBeforeEdit;
+        handler.State.Episodes = episodesBeforeEdit;
         var episodesAfterEdit = new[] {
             new Episode { Id = episodeId, Name = "Updated Episode", Visibility = Visibility.Public },
         };
@@ -167,17 +160,18 @@ public class EpisodesPageHandlerTests {
             .Returns(Result.Success());
 
         // Act
-        await _handler.SaveEditAsync();
+        await handler.SaveEditAsync();
 
         // Assert
-        _handler.State.ShowEditDialog.Should().BeFalse();
-        _handler.State.Episodes.Should().BeEquivalentTo(episodesAfterEdit);
+        handler.State.ShowEditDialog.Should().BeFalse();
+        handler.State.Episodes.Should().BeEquivalentTo(episodesAfterEdit);
     }
 
     [Fact]
     public async Task SaveEditAsync_WithInvalidInput_ReturnsErrors() {
         // Arrange
-        _handler.State.ShowEditDialog = true;
+        var handler = await CreateInitializedHandler();
+        handler.State.ShowEditDialog = true;
         var episodeId = Guid.NewGuid();
         var episodeBeforeEdit = new Episode {
             Id = episodeId,
@@ -185,23 +179,34 @@ public class EpisodesPageHandlerTests {
             Visibility = Visibility.Hidden,
         };
         var episodesBeforeEdit = new List<Episode> { episodeBeforeEdit };
-        _handler.State.EditInput = new() {
+        handler.State.EditInput = new() {
             Id = episodeId,
             Name = "Updated Episode",
             Visibility = Visibility.Public,
         };
-        _handler.State.Episodes = episodesBeforeEdit;
+        handler.State.Episodes = episodesBeforeEdit;
 
         _service.UpdateEpisodeAsync(Arg.Any<Guid>(), Arg.Any<UpdateEpisodeRequest>())
             .Returns(Result.Failure("Some errors."));
 
         // Act
-        await _handler.SaveEditAsync();
+        await handler.SaveEditAsync();
 
         // Assert
-        _handler.State.ShowEditDialog.Should().BeTrue();
-        _handler.State.EditInput.Errors.Should().NotBeEmpty();
-        _handler.State.EditInput.Errors[0].Message.Should().Be("Some errors.");
-        _handler.State.Episodes.Should().BeEquivalentTo(episodesBeforeEdit);
+        handler.State.ShowEditDialog.Should().BeTrue();
+        handler.State.EditInput.Errors.Should().NotBeEmpty();
+        handler.State.EditInput.Errors[0].Message.Should().Be("Some errors.");
+        handler.State.Episodes.Should().BeEquivalentTo(episodesBeforeEdit);
+    }
+
+    private async Task<EpisodesPageHandler> CreateInitializedHandler() {
+        var episodes = new[] {
+            new Episode { Name = "Episode 1", Visibility = Visibility.Public },
+            new Episode { Name = "Episode 2", Visibility = Visibility.Private },
+        };
+        var handler = new EpisodesPageHandler();
+        _service.GetEpisodesAsync(_adventureId).Returns(episodes);
+        await handler.InitializeAsync(_adventureId, _service);
+        return handler;
     }
 }

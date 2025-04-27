@@ -34,7 +34,7 @@ public class MeetingService(IMeetingStorage storage)
 
         var result = data.Validate();
         if (result.HasErrors)
-            return TypedResult.As(HttpStatusCode.BadRequest, [..result.Errors]).WithNo<Meeting>();
+            return TypedResult.As(HttpStatusCode.BadRequest, [.. result.Errors]).WithNo<Meeting>();
 
         if (data.Subject.IsSet)
             meeting.Subject = data.Subject.Value;

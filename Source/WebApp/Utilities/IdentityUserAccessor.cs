@@ -6,7 +6,8 @@ internal sealed class IdentityUserAccessor(NavigationManager navigationManager)
         var user = await userManager.GetUserAsync(context.User);
         if (user is not null)
             return user;
-        navigationManager.RedirectToWithStatus("account/invalid_user", $"Error: Unable to load user with ID '{context.User.Identity!.Name}'.", context);
+        context.SetStatusMessage($"Error: Unable to load user with ID '{context.User.Identity!.Name}'.");
+        navigationManager.NavigateTo("account/invalid_user");
         return Result.Failure("Invalid user.");
     }
 }

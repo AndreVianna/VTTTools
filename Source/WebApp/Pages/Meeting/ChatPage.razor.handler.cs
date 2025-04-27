@@ -1,41 +1,33 @@
 namespace VttTools.WebApp.Pages.Meeting;
 
-public partial class ChatPage {
-    internal sealed class Handler()
-        : IAsyncDisposable {
-        private readonly HubConnection _hubConnection = null!;
-        private readonly Func<Task> _refresh = () => Task.CompletedTask;
+public sealed class ChatPageHandler
+    : IAsyncDisposable {
+    private HubConnection _hubConnection = null!;
+    private Func<Task> _refreshPage = () => Task.CompletedTask;
 
-        internal Handler(IHubConnectionBuilder builder, Uri chatUri, Func<Task> refresh)
-            : this() {
-            _hubConnection = builder.WithUrl(chatUri).Build();
-            _hubConnection.On<string>("ReceiveMessage", OnMessageReceived);
-            _refresh = refresh;
-        }
+    internal ChatPageState State { get; } = new();
 
-        internal PageState State { get; } = new();
+    public ValueTask DisposeAsync()
+        => _hubConnection.DisposeAsync();
 
-        public ValueTask DisposeAsync()
-            => _hubConnection.DisposeAsync();
+    public Task InitializeAsync(IHubConnectionBuilder builder, Uri chatUri, Func<Task> refresh) {
+        _refreshPage = refresh;
+        _hubConnection = builder.WithUrl(chatUri).Build();
+        _hubConnection.On<string>("ReceiveMessage", OnMessageReceived);
+        return _hubConnection.StartAsync();
+    }
 
-        public static async Task<Handler> InitializeAsync(IHubConnectionBuilder builder, Uri chatUri, Func<Task> refresh) {
-            var handler = new Handler(builder, chatUri, refresh);
-            await handler._hubConnection.StartAsync();
-            return handler;
-        }
+    public Task OnMessageReceived(string message) {
+        State.Messages.Add(new(ChatMessageDirection.Received, message));
+        return _refreshPage();
+    }
 
-        public Task OnMessageReceived(string message) {
-            State.Messages.Add(new(ChatMessageDirection.Received, message));
-            return _refresh();
-        }
-
-        public async Task SendMessage() {
-            if (string.IsNullOrWhiteSpace(State.NewMessage))
-                return;
-            await _hubConnection.SendAsync("SendMessage", State.NewMessage);
-            State.Messages.Add(new(ChatMessageDirection.Sent, State.NewMessage));
-            State.NewMessage = string.Empty;
-            await _refresh();
-        }
+    public async Task SendMessage() {
+        if (string.IsNullOrWhiteSpace(State.Input.Message))
+            return;
+        await _hubConnection.SendAsync("SendMessage", State.Input.Message);
+        State.Messages.Add(new(ChatMessageDirection.Sent, State.Input.Message));
+        State.Input.Message = string.Empty;
+        await _refreshPage();
     }
 }

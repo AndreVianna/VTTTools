@@ -1,9 +1,7 @@
 namespace VttTools.WebApp.Pages.Game;
 
-public partial class AssetsPage {
-    internal class PageState {
-        internal List<Asset> Assets { get; set; } = [];
+internal class AssetsPageState {
+    internal List<Asset> Assets { get; set; } = [];
 
-        internal InputModel Input { get; set; } = new();
-    }
+    internal AssetsPageInputModel Input { get; set; } = new();
 }

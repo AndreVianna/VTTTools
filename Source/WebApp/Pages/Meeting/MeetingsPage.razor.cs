@@ -1,42 +1,39 @@
 namespace VttTools.WebApp.Pages.Meeting;
 
 public partial class MeetingsPage {
-    private Handler _handler = new();
-
     [Inject]
     internal IGameService GameService { get; set; } = null!;
 
-    internal bool IsReady { get; set; }
-    internal PageState State => _handler.State;
+    internal MeetingsPageState State => Handler.State;
+    internal MeetingsPageInputModel Input => Handler.State.Input;
 
-    protected override async Task OnInitializedAsync() {
-        await base.OnInitializedAsync();
-        _handler = await Handler.InitializeAsync(GameService);
-        IsReady = true;
+    protected override async Task OnParametersSetAsync() {
+        await Handler.InitializeAsync(GameService);
+        await base.OnParametersSetAsync();
     }
+
     internal void NavigateToMeeting(Guid meetingId)
         => NavigateTo($"/meeting/{meetingId}");
 
     internal Task OpenCreateMeetingDialog()
-        => _handler.OpenCreateMeetingDialog();
+        => Handler.OpenCreateMeetingDialog();
     internal void CloseCreateMeetingDialog()
-        => _handler.CloseCreateMeetingDialog();
+        => Handler.CloseCreateMeetingDialog();
 
     internal Task CreateMeeting()
-        => _handler.CreateMeeting();
+        => Handler.CreateMeeting();
 
     internal Task DeleteMeeting(Guid meetingId)
-        => _handler.DeleteMeeting(meetingId);
+        => Handler.DeleteMeeting(meetingId);
 
     internal async Task JoinMeeting(Guid meetingId) {
-        if (!await _handler.TryJoinMeeting(meetingId))
+        if (!await Handler.TryJoinMeeting(meetingId))
             return;
         NavigateTo($"/game/{meetingId}");
     }
 
-    // Handle selection of an adventure: load its episodes
     internal Task OnAdventureChanged(ChangeEventArgs e)
-        => _handler.LoadEpisodes((Guid)e.Value!);
+        => Handler.LoadEpisodes((Guid)e.Value!);
 
     internal static Task<bool> DisplayConfirmation(string _)
         // JavaScript confirmation isn't ideal, but we'll use it for this example

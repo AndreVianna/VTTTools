@@ -35,3 +35,5 @@ global using VttTools.WebApp.Services;
 global using VttTools.WebApp.TestUtilities;
 global using VttTools.WebApp.Utilities;
 global using VttTools.WebApp.ViewModels;
+
+global using MeetingModel = VttTools.Model.Game.Meeting;

@@ -58,8 +58,11 @@ public partial class RegisterPage {
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
         if (UserManager.Options.SignIn.RequireConfirmedAccount) {
-            NavigationManager.RedirectTo("account/register_confirmation",
-                                       new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
+            var queryParameters = new Dictionary<string, object?> {
+                ["email"] = Input.Email,
+                ["returnUrl"] = ReturnUrl
+            };
+            NavigationManager.RedirectTo("account/register_confirmation", queryParameters);
         }
 
         await SignInManager.SignInAsync(user, isPersistent: false);

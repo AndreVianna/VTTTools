@@ -13,7 +13,7 @@ public class ChatPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void Chat_WhenIsLoading_RendersLoadingState() {
+    public void WhenIsLoading_RendersLoadingState() {
         // Arrange
         _hubConnection.StartAsync().Returns(Task.Delay(1000));
 
@@ -25,7 +25,7 @@ public class ChatPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void Chat_RendersCorrectly() {
+    public void WhenIsReady_RendersCorrectly() {
         // Act
         var cut = RenderComponent<ChatPage>();
         cut.WaitForState(() => cut.Instance.IsReady);
@@ -37,7 +37,7 @@ public class ChatPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void Chat_DisplaysMessages() {
+    public void WhenHaveMessages_DisplaysMessages() {
         // Arrange
         var cut = RenderComponent<ChatPage>();
         cut.Instance.State.Messages.Add(new(ChatMessageDirection.Sent, "Test message 1"));

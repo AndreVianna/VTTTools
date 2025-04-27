@@ -2,127 +2,122 @@ namespace VttTools.WebApp.Pages.Game;
 
 public class AssetsPageTests : WebAppTestContext {
     private readonly IGameService _service = Substitute.For<IGameService>();
+    private readonly Asset[] _defaultAssets = [
+        new() {
+            Name = "Asset 1",
+            Type = AssetType.Character,
+            Source = "https://example.com/asset1",
+            Visibility = Visibility.Public,
+        },
+        new() {
+            Name = "Asset 2",
+            Type = AssetType.Creature,
+            Source = "https://example.com/asset2",
+            Visibility = Visibility.Private,
+        }];
 
     public AssetsPageTests() {
         Services.AddScoped<IGameService>(_ => _service);
+        _service.GetAssetsAsync().Returns(_defaultAssets);
         UseDefaultUser();
     }
 
     [Fact]
-    public void Assets_WhenIsLoading_RendersLoadingState() {
-        _service.GetAssetsAsync().Returns(Task.Delay(1000).ContinueWith(_ => Array.Empty<Asset>()));
+    public void BeforeIsReady_RendersLoadingState() {
+        // Arrange
+        _service.GetAssetsAsync().Returns(Task.Delay(1000).ContinueWith(_ => _defaultAssets));
 
         // Act
         var cut = RenderComponent<AssetsPage>();
 
         // Assert
+        cut.Markup.Should().Contain("<h1>Assets</h1>");
         cut.Markup.Should().Contain("""<span class="visually-hidden">Loading...</span>""");
     }
 
     [Fact]
-    public void Assets_RendersAssetsList_WhenStateHasAssets() {
-        // Arrange
-        var assets = new[] {
-            new Asset {
-                Id = Guid.NewGuid(),
-                Name = "Asset 1",
-                Type = AssetType.Character,
-                Source = "https://example.com/asset1",
-                Visibility = Visibility.Public,
-            },
-            new Asset {
-                Id = Guid.NewGuid(),
-                Name = "Asset 2",
-                Type = AssetType.Creature,
-                Source = "https://example.com/asset2",
-                Visibility = Visibility.Private,
-            },
-        };
-
-        _service.GetAssetsAsync().Returns(assets);
-
+    public void WhenIsReady_DoesNotRenderLoadingState() {
         // Act
         var cut = RenderComponent<AssetsPage>();
         cut.WaitForState(() => cut.Instance.IsReady);
 
         // Assert
+        cut.Markup.Should().Contain("<h1>Assets</h1>");
         cut.Markup.Should().NotContain("""<span class="visually-hidden">Loading...</span>""");
-
-        var rows = cut.FindAll("tbody tr");
-        rows.Count.Should().Be(2);
-
-        var firstRowCells = rows[0].QuerySelectorAll("td");
-        firstRowCells[0].TextContent.Should().Be("Asset 1");
-        firstRowCells[1].TextContent.Should().Be(nameof(AssetType.Character));
-        firstRowCells[2].TextContent.Should().Be("Link");
-        firstRowCells[3].TextContent.Should().Be(nameof(Visibility.Public));
-        firstRowCells[4].TextContent.Should().Be("Delete");
-
-        var secondRowCells = rows[1].QuerySelectorAll("td");
-        secondRowCells[0].TextContent.Should().Be("Asset 2");
-        secondRowCells[1].TextContent.Should().Be(nameof(AssetType.Creature));
-        secondRowCells[2].TextContent.Should().Be("Link");
-        secondRowCells[3].TextContent.Should().Be(nameof(Visibility.Private));
-        secondRowCells[4].TextContent.Should().Be("Delete");
     }
 
     [Fact]
-    public void Creating_Asset_CallsCreateAssetMethod() {
+    public void WhenStateHasAsset_RendersAssetsLists() {
+        // Act
+        var cut = RenderComponent<AssetsPage>();
+        cut.WaitForState(() => cut.Instance.IsReady);
+
+        // Assert
+        var rows = cut.FindAll("#assets-table tr");
+        rows.Count.Should().Be(3);
+
+        cut.Find("#assets-name-header").TextContent.Should().Be(nameof(Asset.Name));
+        cut.Find("#assets-type-header").TextContent.Should().Be(nameof(Asset.Type));
+        cut.Find("#assets-source-header").TextContent.Should().Be(nameof(Asset.Source));
+        cut.Find("#assets-visibility-header").TextContent.Should().Be(nameof(Asset.Visibility));
+        cut.Find("#assets-action-header").TextContent.Should().Be("Actions");
+
+        cut.Find($"#asset-{_defaultAssets[0].Id}-name").TextContent.Should().Be(_defaultAssets[0].Name);
+        cut.Find($"#asset-{_defaultAssets[0].Id}-type").TextContent.Should().Be(_defaultAssets[0].Type.ToString());
+        cut.Find($"#asset-{_defaultAssets[0].Id}-source").InnerHtml.Should().Be($"""<a href="{_defaultAssets[0].Source}" target="_blank">Link</a>""");
+        cut.Find($"#asset-{_defaultAssets[0].Id}-visibility").TextContent.Should().Be(_defaultAssets[0].Visibility.ToString());
+        cut.Find($"#asset-{_defaultAssets[0].Id}-actions").TextContent.Should().Be("Delete");
+
+        cut.Find($"#asset-{_defaultAssets[1].Id}-name").TextContent.Should().Be(_defaultAssets[1].Name);
+        cut.Find($"#asset-{_defaultAssets[1].Id}-type").TextContent.Should().Be(_defaultAssets[1].Type.ToString());
+        cut.Find($"#asset-{_defaultAssets[1].Id}-source").InnerHtml.Should().Be($"""<a href="{_defaultAssets[1].Source}" target="_blank">Link</a>""");
+        cut.Find($"#asset-{_defaultAssets[1].Id}-visibility").TextContent.Should().Be(_defaultAssets[1].Visibility.ToString());
+        cut.Find($"#asset-{_defaultAssets[1].Id}-actions").TextContent.Should().Be("Delete");
+    }
+
+    [Fact]
+    public void WhenClickCreate_CallsCreateAssetMethod() {
         // Arrange
         var newAsset = new Asset {
             Name = "New Test Asset",
-            Source = "https://example.com/newasset",
+            Source = "https://example.com/new-asset",
             Type = AssetType.NPC,
-            Visibility = Visibility.Public,
         };
+        _service.CreateAssetAsync(Arg.Any<CreateAssetRequest>()).Returns(newAsset);
 
         var cut = RenderComponent<AssetsPage>();
         cut.WaitForState(() => cut.Instance.IsReady);
-        cut.Markup.Should().NotContain("""<span class="visually-hidden">Loading...</span>""");
-        var nameInput = cut.Find("input[placeholder='Subject']");
-        nameInput.Change(newAsset.Name);
-        var sourceInput = cut.Find("input[placeholder='Source URL']");
-        sourceInput.Change(newAsset.Source);
-        var typeSelect = cut.FindAll("select")[0];
-        typeSelect.Change(newAsset.Type.ToString());
-        var visibilitySelect = cut.FindAll("select")[1];
-        visibilitySelect.Change(newAsset.Visibility.ToString());
-        var createButton = cut.Find("button.btn-primary");
-
-        _service.CreateAssetAsync(Arg.Any<CreateAssetRequest>()).Returns(newAsset);
+        cut.Find("#name-input").Change(newAsset.Name);
+        cut.Find("#source-input").Change(newAsset.Source);
+        cut.Find("#type-input").Change(newAsset.Type.ToString());
 
         // Act
-        createButton.Click();
+        cut.Find("#create-asset").Click();
 
         // Assert
-        _service.Received(1).CreateAssetAsync(Arg.Any<CreateAssetRequest>());
+        var rows = cut.FindAll("#assets-table tr");
+        rows.Count.Should().Be(4);
+        cut.Find($"#asset-{newAsset.Id}-name").TextContent.Should().Be(newAsset.Name);
+        cut.Find($"#asset-{newAsset.Id}-type").TextContent.Should().Be(newAsset.Type.ToString());
+        cut.Find($"#asset-{newAsset.Id}-source").InnerHtml.Should().Be($"""<a href="{newAsset.Source}" target="_blank">Link</a>""");
+        cut.Find($"#asset-{newAsset.Id}-visibility").TextContent.Should().Be(newAsset.Visibility.ToString());
+        cut.Find($"#asset-{newAsset.Id}-actions").TextContent.Should().Be("Delete");
     }
 
     [Fact]
-    public void Clicking_DeleteButton_CallsDeleteAsset() {
+    public void WhenClickDeleteButton_CallsDeleteAsset() {
         // Arrange
-        var assetId = Guid.NewGuid();
-        var assets = new[] {
-            new Asset {
-                Id = assetId,
-                Name = "Asset to Delete",
-                Type = AssetType.NPC,
-                Source = "https://example.com/delete",
-                Visibility = Visibility.Public,
-            },
-        };
-
-        _service.GetAssetsAsync().Returns(assets);
+        var assetId = _defaultAssets[0].Id;
+        _service.DeleteAssetAsync(Arg.Any<Guid>()).Returns(true);
 
         var cut = RenderComponent<AssetsPage>();
         cut.WaitForState(() => cut.Instance.IsReady);
-        cut.Markup.Should().NotContain("""<span class="visually-hidden">Loading...</span>""");
-        var deleteButton = cut.Find("button.btn-danger");
 
         // Act
-        deleteButton.Click();
+        cut.Find($"#delete-asset-{assetId}").Click();
 
         // Assert
-        _service.Received(1).DeleteAssetAsync(assetId);
+        var rows = cut.FindAll("#assets-table tr");
+        rows.Count.Should().Be(2);
     }
 }

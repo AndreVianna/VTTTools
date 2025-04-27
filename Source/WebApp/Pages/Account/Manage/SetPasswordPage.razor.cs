@@ -41,7 +41,8 @@ public partial class SetPasswordPage {
 
         await SignInManager.RefreshSignInAsync(_user);
         Logger.LogInformation("The password for the user with Id {UserId} was set.", _user.Id);
-        NavigationManager.ReloadPageWithStatus("Your password has been set.", HttpContext);
+        HttpContext.SetStatusMessage("Your password has been set.");
+        NavigationManager.ReloadPage();
     }
 
     private sealed class InputModel {

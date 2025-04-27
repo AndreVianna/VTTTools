@@ -33,7 +33,7 @@ public partial class TwoFactorAuthenticationPage {
     private async Task OnSubmitForgetBrowserAsync() {
         await SignInManager.ForgetTwoFactorClientAsync();
 
-        NavigationManager.ReloadPageWithStatus("The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.",
-                                                        HttpContext);
+        HttpContext.SetStatusMessage("The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.");
+        NavigationManager.ReloadPage();
     }
 }

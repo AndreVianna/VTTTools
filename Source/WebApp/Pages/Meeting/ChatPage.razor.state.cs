@@ -1,8 +1,6 @@
 namespace VttTools.WebApp.Pages.Meeting;
 
-public partial class ChatPage {
-    internal class PageState {
-        internal List<ChatMessage> Messages { get; init; } = [];
-        internal string? NewMessage { get; set; }
-    }
+internal class ChatPageState {
+    internal List<ChatMessage> Messages { get; init; } = [];
+    internal ChatPageInputModel Input { get; set; } = new();
 }

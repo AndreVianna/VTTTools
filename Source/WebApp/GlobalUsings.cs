@@ -1,4 +1,5 @@
 global using System.ComponentModel.DataAnnotations;
+global using System.Diagnostics;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Globalization;
 global using System.Net.Http;
@@ -8,6 +9,7 @@ global using System.Text;
 global using System.Text.Encodings.Web;
 global using System.Text.Json;
 
+global using DotNetToolbox;
 global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Antiforgery;
@@ -42,3 +44,4 @@ global using VttTools.WebApp.Utilities;
 global using VttTools.WebApp.ViewModels;
 
 global using InputError = DotNetToolbox.Error;
+global using MeetingModel = VttTools.Model.Game.Meeting;

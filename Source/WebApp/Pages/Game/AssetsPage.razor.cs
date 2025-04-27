@@ -1,22 +1,24 @@
 namespace VttTools.WebApp.Pages.Game;
 
 public partial class AssetsPage {
-    private Handler _handler = null!;
-
     [Inject]
     internal IGameService GameService { get; set; } = null!;
 
-    internal bool IsReady { get; set; }
-    internal PageState State => _handler?.State ?? new();
+    internal AssetsPageState State => Handler.State;
+    internal AssetsPageInputModel Input => Handler.State.Input;
 
     protected override async Task OnParametersSetAsync() {
-        _handler = await Handler.InitializeAsync(GameService);
-        IsReady = true;
+        await Handler.InitializeAsync(GameService);
+        await base.OnParametersSetAsync();
     }
 
-    internal Task CreateAsset()
-        => _handler.CreateAssetAsync();
+    internal async Task CreateAsset() {
+        await Handler.CreateAssetAsync();
+        StateHasChanged();
+    }
 
-    internal Task DeleteAsset(Guid id)
-        => _handler.DeleteAssetAsync(id);
+    internal async Task DeleteAsset(Guid id) {
+        await Handler.DeleteAssetAsync(id);
+        StateHasChanged();
+    }
 }

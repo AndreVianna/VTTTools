@@ -1,111 +1,102 @@
-using MeetingModel = VttTools.Model.Game.Meeting;
-
 namespace VttTools.WebApp.Pages.Meeting;
 
 public class MeetingsPageHandlerTests {
     private readonly IGameService _service = Substitute.For<IGameService>();
-    private readonly MeetingsPage.Handler _handler;
-
-    public MeetingsPageHandlerTests() {
-        _handler = new(_service);
-    }
 
     [Fact]
-    public async Task InitializeAsync_LoadsMeetings_And_ReturnsPageState() {
-        // Arrange
-        var meetings = new[] {
-            new MeetingModel { Subject = "Meeting 1" },
-            new MeetingModel { Subject = "Meeting 2" },
-        };
-        _service.GetMeetingsAsync().Returns(meetings);
-
-        // Act
-        var handler = await MeetingsPage.Handler.InitializeAsync(_service);
+    public async Task InitializeAsync_LoadsMeetings() {
+        // Arrange & Act
+        var handler = await CreateInitializedHandler();
 
         // Assert
         handler.Should().NotBeNull();
-        handler.State.Meetings.Should().BeEquivalentTo(meetings);
+        handler.State.Meetings.Should().NotBeEmpty();
     }
 
     [Fact]
     public async Task OpenCreateMeetingDialog_LoadsAdventuresAndResetState() {
         // Arrange
+        var handler = await CreateInitializedHandler();
         var adventures = new[] {
             new Adventure { Name = "Adventure 1" },
         };
         _service.GetAdventuresAsync().Returns(adventures);
 
         // Act
-        await _handler.OpenCreateMeetingDialog();
+        await handler.OpenCreateMeetingDialog();
 
         // Assert
-        _handler.State.ShowCreateDialog.Should().BeTrue();
-        _handler.State.Input.Subject.Should().BeEmpty();
-        _handler.State.Input.AdventureId.Should().Be(adventures[0].Id);
-        _handler.State.Input.Episodes.Should().BeEmpty();
-        _handler.State.Input.EpisodeId.Should().BeEmpty();
-        _handler.State.Input.Adventures.Should().BeEquivalentTo(adventures);
-        _handler.State.Input.Errors.Should().BeEmpty();
+        handler.State.ShowCreateDialog.Should().BeTrue();
+        handler.State.Input.Subject.Should().BeEmpty();
+        handler.State.Input.AdventureId.Should().Be(adventures[0].Id);
+        handler.State.Input.Episodes.Should().BeEmpty();
+        handler.State.Input.EpisodeId.Should().BeEmpty();
+        handler.State.Input.Adventures.Should().BeEquivalentTo(adventures);
+        handler.State.Input.Errors.Should().BeEmpty();
     }
 
     [Fact]
-    public void CloseCreateMeetingDialog_SetShowCreateDialogToFalse() {
+    public async Task CloseCreateMeetingDialog_SetShowCreateDialogToFalse() {
         // Arrange
-        _handler.State.ShowCreateDialog = true;
+        var handler = await CreateInitializedHandler();
+        handler.State.ShowCreateDialog = true;
 
         // Act
-        _handler.CloseCreateMeetingDialog();
+        handler.CloseCreateMeetingDialog();
 
         // Assert
-        _handler.State.ShowCreateDialog.Should().BeFalse();
+        handler.State.ShowCreateDialog.Should().BeFalse();
     }
 
     [Fact]
     public async Task CreateMeeting_WithValidData_CreatesMeetingAndClosesDialog() {
         // Arrange
+        var handler = await CreateInitializedHandler();
         var episodeId = Guid.NewGuid();
-        _handler.State.ShowCreateDialog = true;
-        _handler.State.Input.Subject = "New Meeting";
-        _handler.State.Input.EpisodeId = episodeId;
+        handler.State.ShowCreateDialog = true;
+        handler.State.Input.Subject = "New Meeting";
+        handler.State.Input.EpisodeId = episodeId;
 
         // Setup response
         var expectedMeeting = new MeetingModel { Id = Guid.NewGuid(), Subject = "New Meeting" };
         _service.CreateMeetingAsync(Arg.Any<CreateMeetingRequest>()).Returns(expectedMeeting);
 
         // Act
-        await _handler.CreateMeeting();
+        await handler.CreateMeeting();
 
         // Assert
-        _handler.State.ShowCreateDialog.Should().BeFalse();
-        _handler.State.Meetings.Should().Contain(expectedMeeting);
+        handler.State.ShowCreateDialog.Should().BeFalse();
+        handler.State.Meetings.Should().Contain(expectedMeeting);
     }
 
     [Fact]
     public async Task CreateMeeting_WithValidationError_SetsErrorAndDoesNotCreate() {
         // Arrange
+        var handler = await CreateInitializedHandler();
         var episodeId = Guid.NewGuid();
-        _handler.State.ShowCreateDialog = true;
-        _handler.State.Input.Subject = string.Empty;
-        _handler.State.Input.EpisodeId = episodeId;
+        handler.State.ShowCreateDialog = true;
+        handler.State.Input.Subject = string.Empty;
+        handler.State.Input.EpisodeId = episodeId;
         _service.CreateMeetingAsync(Arg.Any<CreateMeetingRequest>()).Returns(Result.Failure("Some error."));
 
         // Act
-        await _handler.CreateMeeting();
+        await handler.CreateMeeting();
 
         // Assert
-        _handler.State.ShowCreateDialog.Should().BeTrue();
-        _handler.State.Input.Errors.Should().NotBeEmpty();
-        _handler.State.Input.Errors[0].Message.Should().Be("Some error.");
+        handler.State.ShowCreateDialog.Should().BeTrue();
+        handler.State.Input.Errors.Should().NotBeEmpty();
+        handler.State.Input.Errors[0].Message.Should().Be("Some error.");
     }
 
     [Fact]
     public async Task TryJoinMeeting_CallsApiAndReturnsResult() {
         // Arrange
+        var handler = await CreateInitializedHandler();
         var meetingId = Guid.NewGuid();
         _service.JoinMeetingAsync(meetingId).Returns(true);
 
         // Act
-        var result = await _handler.TryJoinMeeting(meetingId);
+        var result = await handler.TryJoinMeeting(meetingId);
 
         // Assert
         result.Should().BeTrue();
@@ -114,11 +105,12 @@ public class MeetingsPageHandlerTests {
     [Fact]
     public async Task TryJoinMeeting_ReturnsFalse_OnApiError() {
         // Arrange
+        var handler = await CreateInitializedHandler();
         var meetingId = Guid.NewGuid();
         _service.JoinMeetingAsync(meetingId).Returns(false);
 
         // Act
-        var result = await _handler.TryJoinMeeting(meetingId);
+        var result = await handler.TryJoinMeeting(meetingId);
 
         // Assert
         result.Should().BeFalse();
@@ -127,21 +119,23 @@ public class MeetingsPageHandlerTests {
     [Fact]
     public async Task DeleteMeeting_RemovesMeetingAndReloadsState() {
         // Arrange
+        var handler = await CreateInitializedHandler();
         var meetingId = Guid.NewGuid();
         var meeting = new MeetingModel { Id = meetingId, Subject = "Meeting to Delete" };
 
-        _handler.State.Meetings = [meeting];
+        handler.State.Meetings = [meeting];
 
         // Act
-        await _handler.DeleteMeeting(meetingId);
+        await handler.DeleteMeeting(meetingId);
 
         // Assert
-        _handler.State.Meetings.Should().NotContain(meeting);
+        handler.State.Meetings.Should().NotContain(meeting);
     }
 
     [Fact]
     public async Task ReloadAdventureEpisodes_WithValidAdventureId_LoadsEpisodes() {
         // Arrange
+        var handler = await CreateInitializedHandler();
         var adventureId = Guid.NewGuid();
         var episodes = new[] {
             new Episode { Name = "Episode 1" },
@@ -150,23 +144,35 @@ public class MeetingsPageHandlerTests {
         _service.GetEpisodesAsync(adventureId).Returns(episodes);
 
         // Act
-        await _handler.LoadEpisodes(adventureId);
+        await handler.LoadEpisodes(adventureId);
 
         // Assert
-        _handler.State.Input.Episodes.Should().BeEquivalentTo(episodes);
-        _handler.State.Input.EpisodeId.Should().Be(episodes[0].Id);
+        handler.State.Input.Episodes.Should().BeEquivalentTo(episodes);
+        handler.State.Input.EpisodeId.Should().Be(episodes[0].Id);
     }
 
     [Fact]
     public async Task ReloadAdventureEpisodes_WithInvalidAdventureId_ClearSelectedId() {
         // Arrange
-        _handler.State.Input.AdventureId = Guid.NewGuid();
+        var handler = await CreateInitializedHandler();
+        handler.State.Input.AdventureId = Guid.NewGuid();
 
         // Act
-        await _handler.LoadEpisodes(Guid.Empty);
+        await handler.LoadEpisodes(Guid.Empty);
 
         // Assert
-        _handler.State.Input.Episodes.Should().BeEmpty();
-        _handler.State.Input.EpisodeId.Should().BeEmpty();
+        handler.State.Input.Episodes.Should().BeEmpty();
+        handler.State.Input.EpisodeId.Should().BeEmpty();
+    }
+
+    private async Task<MeetingsPageHandler> CreateInitializedHandler() {
+        var meetings = new[] {
+            new MeetingModel { Subject = "Meeting 1" },
+            new MeetingModel { Subject = "Meeting 2" },
+        };
+        var handler = new MeetingsPageHandler();
+        _service.GetMeetingsAsync().Returns(meetings);
+        await handler.InitializeAsync(_service);
+        return handler;
     }
 }

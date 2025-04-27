@@ -24,7 +24,8 @@ public partial class ConfirmEmailChange {
 
     protected override async Task OnInitializedAsync() {
         if (UserId is null || Email is null || Code is null) {
-            NavigationManager.RedirectToWithStatus("account/login", "Error: Invalid email change confirmation link.", HttpContext);
+            HttpContext.SetStatusMessage("Error: Invalid email change confirmation link.");
+            NavigationManager.ReloadPage();
             return;
         }
 

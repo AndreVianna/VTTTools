@@ -29,7 +29,8 @@ public sealed class ChatPageHandlerTests {
     [Fact]
     public async Task OnMessageReceived_AddsMessageToStateAndCallsRefresh() {
         // Arrange
-        await using var handler = await ChatPage.Handler.InitializeAsync(_builder, _chatUri, RefreshAsync);
+        var handler = new ChatPageHandler();
+        await handler.InitializeAsync(_builder, _chatUri, RefreshAsync);
 
         // Act
         await handler.OnMessageReceived("Test message");
@@ -44,8 +45,9 @@ public sealed class ChatPageHandlerTests {
     [Fact]
     public async Task SendMessage_WithNonEmptyMessage_SendsMessageAndClearsInput() {
         // Arrange
-        await using var handler = await ChatPage.Handler.InitializeAsync(_builder, _chatUri, RefreshAsync);
-        handler.State.NewMessage = "Test message";
+        var handler = new ChatPageHandler();
+        await handler.InitializeAsync(_builder, _chatUri, RefreshAsync);
+        handler.State.Input.Message = "Test message";
 
         // Act
         await handler.SendMessage();
@@ -63,8 +65,9 @@ public sealed class ChatPageHandlerTests {
     [InlineData("   ")]
     public async Task SendMessage_WithEmptyMessage_DoesNotSendMessageAndReturnsEmpty(string? message) {
         // Arrange
-        await using var handler = await ChatPage.Handler.InitializeAsync(_builder, _chatUri, RefreshAsync);
-        handler.State.NewMessage = message!;
+        var handler = new ChatPageHandler();
+        await handler.InitializeAsync(_builder, _chatUri, RefreshAsync);
+        handler.State.Input.Message = message!;
 
         // Act
         await handler.SendMessage();

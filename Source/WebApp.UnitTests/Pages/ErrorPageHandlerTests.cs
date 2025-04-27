@@ -10,7 +10,7 @@ public class ErrorPageHandlerTests {
     [Fact]
     public void Initialize_SetsRequestIdFromHttpContext() {
         // Act
-        var handler = ErrorPage.Handler.Initialize(_httpContext);
+        var handler = ErrorPageHandler.Initialize(_httpContext);
 
         // Assert
         handler.State.ShowRequestId.Should().BeTrue();
@@ -25,7 +25,7 @@ public class ErrorPageHandlerTests {
         activity.SetIdFormat(ActivityIdFormat.W3C);
 
         // Act
-        var handler = ErrorPage.Handler.Initialize(_httpContext);
+        var handler = ErrorPageHandler.Initialize(_httpContext);
 
         // Assert
         handler.State.ShowRequestId.Should().BeTrue();
@@ -35,7 +35,7 @@ public class ErrorPageHandlerTests {
     [Fact]
     public void Initialize_ShowRequestId_IsFalse_WhenRequestIdIsNull() {
         // Act
-        var handler = ErrorPage.Handler.Initialize(null);
+        var handler = ErrorPageHandler.Initialize(null);
 
         // Assert
         handler.State.ShowRequestId.Should().BeFalse();

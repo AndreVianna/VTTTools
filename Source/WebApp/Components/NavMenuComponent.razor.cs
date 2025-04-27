@@ -7,8 +7,8 @@ public partial class NavMenuComponent {
     }
 
     internal void OnLocationChanged(object? sender, LocationChangedEventArgs e) {
-        CurrentLocation = GetRelativePath(e.Location);
-        Refresh();
+        CurrentLocation = GetUrlRelativeToBase(e.Location);
+        RefreshPage();
     }
 
     public void Dispose() {

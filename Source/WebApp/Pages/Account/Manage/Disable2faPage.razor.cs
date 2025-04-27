@@ -32,8 +32,7 @@ public partial class Disable2faPage {
 
         var userId = await UserManager.GetUserIdAsync(_user);
         Logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", userId);
-        NavigationManager.RedirectToWithStatus("account/manage/2fa",
-                                             "2fa has been disabled. You can reenable 2fa when you setup an authenticator app",
-                                             HttpContext);
+        HttpContext.SetStatusMessage("2fa has been disabled. You can reenable 2fa when you setup an authenticator app");
+        NavigationManager.RedirectTo("account/manage/2fa");
     }
 }

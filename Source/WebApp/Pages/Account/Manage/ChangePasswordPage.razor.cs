@@ -42,7 +42,8 @@ public partial class ChangePasswordPage {
         await SignInManager.RefreshSignInAsync(_user);
         Logger.LogInformation("User changed their password successfully.");
 
-        NavigationManager.ReloadPageWithStatus("Your password has been changed", HttpContext);
+        HttpContext.SetStatusMessage("Your password has been changed");
+        NavigationManager.ReloadPage();
     }
 
     private sealed class InputModel {

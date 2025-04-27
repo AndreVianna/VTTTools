@@ -11,20 +11,22 @@ public class ExtendedComponent
 
     public string? CurrentLocation { get; protected set; }
     public CurrentUser CurrentUser { get; set; } = new();
+    public bool IsReady { get; protected set; }
 
     public event EventHandler<LocationChangedEventArgs> LocationChanged {
         add => NavigationManager.LocationChanged += value;
         remove => NavigationManager.LocationChanged -= value;
     }
-
     protected override async Task OnInitializedAsync() {
-        CurrentLocation = GetRelativePath(NavigationManager.Uri);
         await base.OnInitializedAsync();
+        CurrentLocation = GetUrlRelativeToBase(NavigationManager.Uri);
         await SetCurrentUserAsync();
     }
 
-    protected virtual Task RefreshAsync() => InvokeAsync(StateHasChanged);
-    protected virtual void Refresh() => StateHasChanged();
+    protected override async Task OnParametersSetAsync() {
+        await base.OnParametersSetAsync();
+        IsReady = true;
+    }
 
     private async Task SetCurrentUserAsync() {
         if (HttpContextAccessor.HttpContext is null)
@@ -38,8 +40,98 @@ public class ExtendedComponent
         CurrentUser.IsAdministrator = await UserManager.IsInRoleAsync(user, "Administrator");
     }
 
-    protected virtual string GetRelativePath(string uri) => NavigationManager.ToBaseRelativePath(uri);
-    protected virtual Uri GetAbsolutePath(string? relativeUri) => NavigationManager.ToAbsoluteUri(relativeUri);
-    public virtual void NavigateTo([StringSyntax(StringSyntaxAttribute.Uri)] string uri, bool forceLoad = false, bool replace = false)
-        => NavigationManager.NavigateTo(uri, forceLoad, replace);
+    protected virtual string GetUrlRelativeToBase(string url) => NavigationManager.ToBaseRelativePath(url);
+    protected virtual Uri GetAbsoluteUri(string url) => NavigationManager.ToAbsoluteUri(Ensure.IsNotNull(url).Trim());
+
+    public virtual Task StateHasChangedAsync() => InvokeAsync(StateHasChanged);
+
+    [DoesNotReturn]
+    public virtual void NavigateTo([StringSyntax(StringSyntaxAttribute.Uri)] string relativePath, IReadOnlyDictionary<string, object?>? queryParameters = null) {
+        relativePath = GetRelativeToBaseUrl(Ensure.IsNotNull(relativePath).Trim(), queryParameters);
+        NavigationManager.NavigateTo(relativePath);
+        throw new InvalidOperationException($"{nameof(NavigationManager)} can only be used during static rendering.");
+    }
+
+    [DoesNotReturn]
+    public virtual void NavigateToWithStatus(string status, [StringSyntax(StringSyntaxAttribute.Uri)] string relativePath, IReadOnlyDictionary<string, object?>? queryParameters = null) {
+        HttpContextAccessor.HttpContext!.SetStatusMessage(status);
+        NavigateTo(relativePath, queryParameters);
+    }
+
+    [DoesNotReturn]
+    public virtual void RefreshPage(IReadOnlyDictionary<string, object?>? queryParameters = null) {
+        var url = GetRelativeToBaseUrl(NavigationManager.Uri, queryParameters);
+        NavigationManager.NavigateTo(url);
+        throw new InvalidOperationException($"{nameof(NavigationManager)} can only be used during static rendering.");
+    }
+
+    [DoesNotReturn]
+    public virtual void RefreshPageWithStatus(string status, IReadOnlyDictionary<string, object?>? queryParameters = null) {
+        HttpContextAccessor.HttpContext!.SetStatusMessage(status);
+        RefreshPage(queryParameters);
+    }
+
+    [DoesNotReturn]
+    public virtual void ReloadPage(IReadOnlyDictionary<string, object?>? queryParameters = null) {
+        var url = GetRelativeToBaseUrl(NavigationManager.Uri, queryParameters);
+        NavigationManager.NavigateTo(url, true);
+        throw new InvalidOperationException($"{nameof(NavigationManager)} can only be used during static rendering.");
+    }
+
+    [DoesNotReturn]
+    public virtual void ReloadPageWithStatus(string status, IReadOnlyDictionary<string, object?>? queryParameters = null) {
+        HttpContextAccessor.HttpContext!.SetStatusMessage(status);
+        ReloadPage(queryParameters);
+    }
+
+    [DoesNotReturn]
+    public virtual void ReplacePage([StringSyntax(StringSyntaxAttribute.Uri)] string relativePath, IReadOnlyDictionary<string, object?>? queryParameters = null) {
+        relativePath = GetRelativeToBaseUrl(relativePath, queryParameters);
+        NavigationManager.NavigateTo(relativePath, true, true);
+        throw new InvalidOperationException($"{nameof(NavigationManager)} can only be used during static rendering.");
+    }
+
+    [DoesNotReturn]
+    public virtual void ReplacePageWithStatus(string status, [StringSyntax(StringSyntaxAttribute.Uri)] string relativePath, IReadOnlyDictionary<string, object?>? queryParameters = null) {
+        HttpContextAccessor.HttpContext!.SetStatusMessage(status);
+        ReplacePage(relativePath, queryParameters);
+    }
+
+    private string GetRelativeToBaseUrl(string url, IReadOnlyDictionary<string, object?>? queryParameters) {
+        if (!Uri.TryCreate(Ensure.IsNotNull(url).Trim(), UriKind.RelativeOrAbsolute, out var uri))
+            return "not-found";
+        if (uri.IsAbsoluteUri)
+            url = GetUrlRelativeToBase(uri.AbsoluteUri);
+        if (queryParameters is not null)
+            url = NavigationManager.GetUriWithQueryParameters(url, queryParameters);
+        return url;
+    }
+}
+
+public class ExtendedComponent<THandler>
+    : ExtendedComponent, IDisposable, IAsyncDisposable
+    where THandler : class, new() {
+    protected virtual THandler Handler { get; } = new();
+
+    protected virtual void Dispose(bool disposing) {
+        if (!disposing)
+            return;
+        if (Handler is IDisposable disposable)
+            disposable.Dispose();
+    }
+
+    public void Dispose() {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual ValueTask DisposeAsyncCore()
+        => Handler is IAsyncDisposable disposable
+               ? disposable.DisposeAsync()
+               : ValueTask.CompletedTask;
+
+    public async ValueTask DisposeAsync() {
+        await DisposeAsyncCore();
+        GC.SuppressFinalize(this);
+    }
 }

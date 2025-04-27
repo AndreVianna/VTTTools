@@ -24,8 +24,7 @@ public partial class ResetAuthenticatorPage {
         var userId = await UserManager.GetUserIdAsync(result.Value);
         Logger.LogInformation("User with ID '{UserId}' has reset their authentication app key.", userId);
         await SignInManager.RefreshSignInAsync(result.Value);
-        NavigationManager.RedirectToWithStatus("account/manage/enable_authenticator",
-                                               "Your authenticator app key has been reset, you will need to configure your authenticator app using the new key.",
-                                               HttpContext);
+        HttpContext.SetStatusMessage("Your authenticator app key has been reset, you will need to configure your authenticator app using the new key.");
+        NavigationManager.RedirectTo("account/manage/enable_authenticator");
     }
 }

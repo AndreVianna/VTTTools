@@ -43,8 +43,11 @@ public partial class LoginPage {
         }
 
         if (result.RequiresTwoFactor) {
-            NavigationManager.RedirectTo("account/login_with_2fa",
-                                       new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+            var queryParameters = new Dictionary<string, object?> {
+                ["returnUrl"] = ReturnUrl,
+                ["rememberMe"] = Input.RememberMe,
+            };
+            NavigationManager.RedirectTo("account/login_with_2fa", queryParameters);
             return;
         }
 

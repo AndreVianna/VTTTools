@@ -51,10 +51,13 @@ public partial class EnableAuthenticatorPage {
 
         _message = "Your authenticator app has been verified.";
 
-        if (await UserManager.CountRecoveryCodesAsync(_user) == 0)
+        if (await UserManager.CountRecoveryCodesAsync(_user) == 0) {
             _recoveryCodes = await UserManager.GenerateNewTwoFactorRecoveryCodesAsync(_user, 10);
-        else
-            NavigationManager.RedirectToWithStatus("account/manage/2fa", _message, HttpContext);
+            return;
+        }
+
+        HttpContext.SetStatusMessage(_message);
+        NavigationManager.RedirectTo("account/manage/2fa");
     }
 
     private async ValueTask LoadSharedKeyAndQrCodeUriAsync(User user) {

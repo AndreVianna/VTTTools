@@ -36,12 +36,16 @@ public partial class ExternalLoginPage {
     private string? ProviderDisplayName => _externalLoginInfo?.ProviderDisplayName;
 
     protected override async Task OnInitializedAsync() {
-        if (RemoteError is not null)
-            NavigationManager.RedirectToWithStatus("account/login", $"Error from external provider: {RemoteError}", HttpContext);
+        if (RemoteError is not null) {
+            HttpContext.SetStatusMessage($"Error from external provider: {RemoteError}");
+            NavigationManager.RedirectTo("account/login");
+        }
 
         var info = await SignInManager.GetExternalLoginInfoAsync();
-        if (info is null)
-            NavigationManager.RedirectToWithStatus("account/login", "Error loading external login information.", HttpContext);
+        if (info is null) {
+            HttpContext.SetStatusMessage("Error loading external login information.");
+            NavigationManager.RedirectTo("account/login");
+        }
 
         _externalLoginInfo = info;
 
@@ -59,7 +63,8 @@ public partial class ExternalLoginPage {
 
     private async Task OnLoginCallbackAsync() {
         if (_externalLoginInfo is null) {
-            NavigationManager.RedirectToWithStatus("account/login", "Error loading external login information.", HttpContext);
+            HttpContext.SetStatusMessage("Error loading external login information.");
+            NavigationManager.RedirectTo("account/login");
             return;
         }
 
@@ -87,8 +92,11 @@ public partial class ExternalLoginPage {
     }
 
     private async Task OnValidSubmitAsync() {
-        if (_externalLoginInfo is null)
-            NavigationManager.RedirectToWithStatus("account/login", "Error loading external login information during confirmation.", HttpContext);
+        if (_externalLoginInfo is null) {
+            HttpContext.SetStatusMessage("Error loading external login information during confirmation.");
+            NavigationManager.RedirectTo("account/login");
+            return;
+        }
 
         var emailStore = GetEmailStore();
         var user = CreateUser();
@@ -111,8 +119,12 @@ public partial class ExternalLoginPage {
                 await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
                 // If account confirmation is required, we need to show the link if we don't have a real email sender
-                if (UserManager.Options.SignIn.RequireConfirmedAccount)
-                    NavigationManager.RedirectTo("account/register_confirmation", new() { ["email"] = Input.Email });
+                if (UserManager.Options.SignIn.RequireConfirmedAccount) {
+                    var queryParameters = new Dictionary<string, object?> {
+                        ["email"] = Input.Email,
+                    };
+                    NavigationManager.RedirectTo("account/register_confirmation", queryParameters);
+                }
 
                 await SignInManager.SignInAsync(user, isPersistent: false, _externalLoginInfo.LoginProvider);
                 NavigationManager.RedirectTo(ReturnUrl);

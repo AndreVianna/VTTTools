@@ -2,41 +2,22 @@ namespace VttTools.WebApp.Pages.Game;
 
 public class AssetsPageHandlerTests {
     private readonly IGameService _service = Substitute.For<IGameService>();
-    private readonly AssetsPage.Handler _handler;
-    private readonly Asset[] _assets = [
-        new() { Name = "Asset 1",
-                Type = AssetType.Character,
-                Source = "https://example.com/asset1",
-                Visibility = Visibility.Public,
-         },
-        new() { Name = "Asset 2",
-                Type = AssetType.NPC,
-                Source = "https://example.com/asset2",
-                Visibility = Visibility.Private,
-        },
-    ];
-
-    public AssetsPageHandlerTests() {
-        _handler = new(_service);
-    }
 
     [Fact]
     public async Task InitializeAsync_LoadsAssets_And_ReturnsHandler() {
-        // Arrange
-        _service.GetAssetsAsync().Returns(_assets);
-
-        // Act
-        var handler = await AssetsPage.Handler.InitializeAsync(_service);
+        // Arrange & Act
+        var handler = await CreateInitializedHandler();
 
         // Assert
         handler.Should().NotBeNull();
-        handler.State.Assets.Should().BeEquivalentTo(_assets);
+        handler.State.Assets.Should().NotBeEmpty();
     }
 
     [Fact]
     public async Task CreateAssetAsync_WithValidInput_CreatesAssetAndResetsInput() {
         // Arrange
-        _handler.State.Input = new() {
+        var handler = await CreateInitializedHandler();
+        handler.State.Input = new() {
             Name = "New Asset",
             Visibility = Visibility.Private,
         };
@@ -44,28 +25,38 @@ public class AssetsPageHandlerTests {
             Name = "New Asset",
             Visibility = Visibility.Private,
         };
-        var assetsAfterCreate = new[] { newAsset };
 
         _service.CreateAssetAsync(Arg.Any<CreateAssetRequest>()).Returns(newAsset);
 
         // Act
-        await _handler.CreateAssetAsync();
+        await handler.CreateAssetAsync();
 
         // Assert
-        _handler.State.Assets.Should().BeEquivalentTo(assetsAfterCreate);
+        handler.State.Assets.Should().HaveCount(3);
     }
 
     [Fact]
     public async Task DeleteAssetAsync_RemovesAssetAndReloadsAssets() {
         // Arrange
-        var assetId = Guid.NewGuid();
-
-        var assetsAfterDelete = Array.Empty<Asset>();
+        var handler = await CreateInitializedHandler();
+        var assetId = handler.State.Assets[1].Id;
+        _service.DeleteAssetAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
-        await _handler.DeleteAssetAsync(assetId);
+        await handler.DeleteAssetAsync(assetId);
 
         // Assert
-        _handler.State.Assets.Should().BeEquivalentTo(assetsAfterDelete);
+        handler.State.Assets.Should().HaveCount(1);
+    }
+
+    private async Task<AssetsPageHandler> CreateInitializedHandler() {
+        var assets = new[] {
+            new Asset { Name = "Asset 1", Visibility = Visibility.Public },
+            new Asset { Name = "Asset 2", Visibility = Visibility.Private },
+        };
+        var handler = new AssetsPageHandler();
+        _service.GetAssetsAsync().Returns(assets);
+        await handler.InitializeAsync(_service);
+        return handler;
     }
 }

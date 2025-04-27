@@ -1,62 +1,71 @@
 @page "/assets"
-@inherits ExtendedComponent
+@inherits ExtendedComponent<AssetsPageHandler>
 @rendermode InteractiveAuto
 
 <PageTitle>Assets</PageTitle>
 
 <div class="container">
-    <div class="row mb-4">
-        <div class="col">
-            <h1>Assets</h1>
-        </div>
+  <div id="page-header" class="row mb-4">
+    <div class="col">
+      <h1>Assets</h1>
     </div>
+  </div>
 @if (!IsReady) {
-    <div class="d-flex justify-content-center">
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
+  <div id="loading-panel" class="d-flex justify-content-center">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
     </div>
-}
-else {
-    <div class="mb-3">
-        <input class="form-control mb-1" placeholder="Subject" @bind="State.Input.Name" />
-        <input class="form-control mb-1" placeholder="Source URL" @bind="State.Input.Source" />
-        <select class="form-select mb-1" @bind="State.Input.Type">
-        @foreach (var t in Enum.GetValues<AssetType>()) {
-            <option value="@t">@t</option>
-        }
-        </select>
-        <select class="form-select mb-1" @bind="State.Input.Visibility">
-        @foreach (var v in Enum.GetValues<Visibility>()) {
-            <option value="@v">@v</option>
-        }
-        </select>
-        <button class="btn btn-primary" @onclick="CreateAsset">Create</button>
+  </div>
+} else {
+  <EditForm Model="Input" FormName="create" id="asset-create-form" OnValidSubmit="CreateAsset" method="post">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert" />
+    <div class="form-floating mb-3">
+      <InputText @bind-Value="Input.Name" id="name-input" class="form-control mb-1" placeholder="Name" />
+      <label for="name-input" class="form-label">nameof(Input.Name)</label>
+      <ValidationMessage For="() => Input.Name" class="text-danger" />
     </div>
+    <div class="form-floating mb-3">
+      <InputText @bind-Value="Input.Source" id="source-input" class="form-control mb-1" placeholder="Source URL" />
+      <label for="source-input" class="form-label">nameof(Input.Source)</label>
+      <ValidationMessage For="() => Input.Source" class="text-danger" />
+    </div>
+    <div class="form-floating mb-3">
+      <InputSelect @bind-Value="Input.Type" id="type-input" class="form-select mb-1">
+        <option value="">Select the asset type ...</option>
+      @foreach (var type in Enum.GetValues<AssetType>()) {
+        <option value="@type">@type</option>
+      }
+      </InputSelect>
+      <label for="type-input" class="form-label">typeof(Input.Type)</label>
+      <ValidationMessage For="() => Input.Type" class="text-danger" />
+    </div>
+    <button id="create-asset" type="submit" class="btn btn-primary">Create</button>
+  </EditForm>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Subject</th>
-                <th>Type</th>
-                <th>Source</th>
-                <th>Visibility</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var asset in State.Assets) {
-            <tr>
-                <td>@asset.Name</td>
-                <td>@asset.Type</td>
-                <td><a href="@asset.Source" target="_blank">Link</a></td>
-                <td>@asset.Visibility</td>
-                <td>
-                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteAsset(asset.Id)">Delete</button>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+  <table id="assets-table" class="table">
+  <thead>
+    <tr>
+      <th id="assets-name-header">@nameof(Asset.Name)</th>
+      <th id="assets-type-header">@nameof(Asset.Type)</th>
+      <th id="assets-source-header">@nameof(Asset.Source)</th>
+      <th id="assets-visibility-header">@nameof(Asset.Visibility)</th>
+      <th id="assets-action-header">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+  @foreach (var asset in State.Assets) {
+    <tr>
+      <td id="@($"asset-{asset.Id}-name")">@asset.Name</td>
+      <td id="@($"asset-{asset.Id}-type")">@asset.Type</td>
+      <td id="@($"asset-{asset.Id}-source")"><a href="@asset.Source" target="_blank">Link</a></td>
+      <td id="@($"asset-{asset.Id}-visibility")">@asset.Visibility</td>
+      <td id="@($"asset-{asset.Id}-actions")">
+        <button id="@($"delete-asset-{asset.Id}")" class="btn btn-danger btn-sm" @onclick="() => DeleteAsset(asset.Id)">Delete</button>
+      </td>
+    </tr>
+  }
+  </tbody>
+  </table>
 }
 </div>

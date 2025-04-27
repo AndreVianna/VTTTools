@@ -55,12 +55,14 @@ public partial class ExternalLoginsPage {
         var result = await UserManager.RemoveLoginAsync(_user, LoginProvider!, ProviderKey!);
         if (!result.Succeeded) {
             Logger.LogWarning("Failed to remove the {LoginProvider} external login for user with ID {UserId}.", LoginProvider, _user.Id);
-            NavigationManager.ReloadPageWithStatus("Error: The external login was not removed.", HttpContext);
+            HttpContext.SetStatusMessage("Error: The external login was not removed.");
+            NavigationManager.ReloadPage();
         }
 
         await SignInManager.RefreshSignInAsync(_user);
         Logger.LogInformation("The {LoginProvider} external login was removed for user with ID {UserId}.", LoginProvider, _user.Id);
-        NavigationManager.ReloadPageWithStatus("The external login was removed.", HttpContext);
+        HttpContext.SetStatusMessage("The external login was removed.");
+        NavigationManager.ReloadPage();
     }
 
     private async Task OnGetLinkLoginCallbackAsync() {
@@ -68,19 +70,22 @@ public partial class ExternalLoginsPage {
         var info = await SignInManager.GetExternalLoginInfoAsync(userId);
         if (info is null) {
             Logger.LogWarning("The {LoginProvider} external login was not found.", LoginProvider);
-            NavigationManager.ReloadPageWithStatus("Error: Could not load external login info.", HttpContext);
+            HttpContext.SetStatusMessage("Error: Could not load external login info.");
+            NavigationManager.ReloadPage();
         }
 
         var result = await UserManager.AddLoginAsync(_user, info);
         if (!result.Succeeded) {
             Logger.LogWarning("Failed to add the {LoginProvider} external login for user with ID {UserId}.", LoginProvider, _user.Id);
-            NavigationManager.ReloadPageWithStatus("Error: The external login was not added. External logins can only be associated with one account.", HttpContext);
+            HttpContext.SetStatusMessage("Error: The external login was not added. External logins can only be associated with one account.");
+            NavigationManager.ReloadPage();
         }
 
         // Clear the existing external cookie to ensure a clean login process
         await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
         Logger.LogInformation("The {LoginProvider} external login was add for user with ID {UserId}.", LoginProvider, _user.Id);
-        NavigationManager.ReloadPageWithStatus("The external login was added.", HttpContext);
+        HttpContext.SetStatusMessage("The external login was added.");
+        NavigationManager.ReloadPage();
     }
 }
