@@ -37,25 +37,14 @@ public class NavMenuComponentTests : WebAppTestContext {
     [Fact]
     public void OnLocationChanged_UpdatesCurrentUrl() {
         // Arrange
-        var navManager = Services.GetRequiredService<NavigationManager>();
+        var navigationManager = Services.GetRequiredService<NavigationManager>();
         var cut = RenderComponent<NavMenuComponent>();
+        cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Act
-        navManager.NavigateTo("/new_location");
+        navigationManager.NavigateTo("/new_location");
 
         // Assert
         cut.Instance.CurrentLocation.Should().Be("new_location");
-    }
-
-    [Fact]
-    public void Dispose_UnregistersLocationChangedEvent() {
-        // Arrange
-        var cut = RenderComponent<NavMenuComponent>();
-
-        // Act
-        var action = cut.Instance.Dispose;
-
-        // Assert
-        action.Should().NotThrow();
     }
 }

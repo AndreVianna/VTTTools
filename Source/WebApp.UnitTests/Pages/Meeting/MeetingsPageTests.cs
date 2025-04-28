@@ -69,7 +69,7 @@ public class MeetingsPageTests : WebAppTestContext {
 
         // Act
         createButton.Click();
-        cut.WaitForState(() => cut.Instance.State.ShowCreateDialog);
+        cut.WaitForState(() => cut.Instance.State.ShowCreateDialog, TimeSpan.FromMilliseconds(500));
 
         // Assert
         cut.Find("#create-meeting-dialog").Should().NotBeNull();
@@ -80,16 +80,16 @@ public class MeetingsPageTests : WebAppTestContext {
         // Arrange
         _service.GetMeetingsAsync().Returns(_defaultMeetings);
         var cut = RenderComponent<MeetingsPage>();
+        var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
         var meetingId = _defaultMeetings[0].Id;
         var joinButton = cut.Find($"#meeting-{meetingId} .join");
-        using var navigationSpy = new NavigationManagerSpy(cut.Instance.NavigationManager);
         _service.JoinMeetingAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
         joinButton.Click();
 
         // Assert
-        navigationSpy.NewLocation.Should().Be($"game/{meetingId}");
+        navigationSpy.History.Should().ContainSingle(x => x.Uri == $"/game/{meetingId}");
     }
 
     [Fact]
@@ -97,14 +97,14 @@ public class MeetingsPageTests : WebAppTestContext {
         // Arrange
         _service.GetMeetingsAsync().Returns(_defaultMeetings);
         var cut = RenderComponent<MeetingsPage>();
+        var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
         var meetingId = _defaultMeetings[0].Id;
         var editButton = cut.Find($"#meeting-{meetingId} .edit");
-        using var navigationSpy = new NavigationManagerSpy(cut.Instance.NavigationManager);
 
         // Act
         editButton.Click();
 
         // Assert
-        navigationSpy.NewLocation.Should().Be($"meeting/{meetingId}");
+        navigationSpy.History.Should().ContainSingle(x => x.Uri == $"/meeting/{meetingId}");
     }
 }

@@ -28,7 +28,7 @@ public class ChatPageTests : WebAppTestContext {
     public void WhenIsReady_RendersCorrectly() {
         // Act
         var cut = RenderComponent<ChatPage>();
-        cut.WaitForState(() => cut.Instance.IsReady);
+        cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Assert
         cut.Find("h1").TextContent.Should().Be("Chat");
@@ -42,7 +42,7 @@ public class ChatPageTests : WebAppTestContext {
         var cut = RenderComponent<ChatPage>();
         cut.Instance.State.Messages.Add(new(ChatMessageDirection.Sent, "Test message 1"));
         cut.Instance.State.Messages.Add(new(ChatMessageDirection.Received, "Test message 2"));
-        cut.WaitForState(() => cut.Instance.IsReady);
+        cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Act
         cut.SetParametersAndRender();

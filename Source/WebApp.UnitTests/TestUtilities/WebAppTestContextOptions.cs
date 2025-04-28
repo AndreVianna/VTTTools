@@ -6,10 +6,10 @@ public class WebAppTestContextOptions {
     public static readonly User DefaultUser = new() {
         Name = "Name",
         DisplayName = "Display Name",
-        UserName = "TEST.USER@HOST.COM",
+        UserName = "test.user@host.com",
         NormalizedUserName = "TEST.USER@HOST.COM",
         Email = "test.user@host.com",
-        NormalizedEmail = "test.user@host.com",
+        NormalizedEmail = "TEST.USER@HOST.COM",
         EmailConfirmed = true,
         PhoneNumber = "212-555-1234",
         PhoneNumberConfirmed = true,
@@ -21,41 +21,40 @@ public class WebAppTestContextOptions {
     };
 
     public User? CurrentUser { get; set; }
-    public string? CurrentUserRole { get; set; }
-    public bool IsAuthenticated { get; set; }
     public bool IsAdministrator { get; set; }
 
-    public void UseAnonymousUser() {
-        IsAdministrator = false;
-        IsAuthenticated = false;
-        CurrentUser = null;
-    }
-
-    [MemberNotNull(nameof(CurrentUser))]
-    public void UseDefaultUser() {
-        IsAuthenticated = true;
-        CurrentUser = DefaultUser;
-    }
-
-    [MemberNotNull(nameof(CurrentUser))]
-    public void UseDefaultAdministrator() {
-        IsAdministrator = true;
-        IsAuthenticated = true;
-        CurrentUser = DefaultUser;
-    }
+    public void UseAnonymousUser()
+        => CurrentUser = null;
 
     [MemberNotNull(nameof(CurrentUser))]
     public void SetCurrentUser(User user, bool isAdministrator = false) {
+        CurrentUser = new() {
+            Id = user.Id,
+            Name = user.Name,
+            DisplayName = user.DisplayName,
+            UserName = user.UserName,
+            NormalizedUserName = user.NormalizedUserName,
+            Email = user.Email,
+            NormalizedEmail = user.NormalizedEmail,
+            EmailConfirmed = user.EmailConfirmed,
+            PhoneNumber = user.PhoneNumber,
+            PhoneNumberConfirmed = user.PhoneNumberConfirmed,
+            PasswordHash = user.PasswordHash,
+            TwoFactorEnabled = user.TwoFactorEnabled,
+            LockoutEnabled = user.LockoutEnabled,
+            ConcurrencyStamp = user.ConcurrencyStamp,
+            SecurityStamp = user.SecurityStamp,
+        };
         IsAdministrator = isAdministrator;
-        IsAuthenticated = true;
-        CurrentUser = Ensure.IsNotNull(user);
     }
 
     [MemberNotNull(nameof(CurrentUser))]
+    public void UseDefaultUser(bool isAdministrator = false)
+        => SetCurrentUser(DefaultUser, isAdministrator);
+
+    [MemberNotNull(nameof(CurrentUser))]
     public void SetCurrentUser(Action<User> setup, bool isAdministrator = false) {
-        IsAdministrator = isAdministrator;
-        IsAuthenticated = true;
-        CurrentUser = DefaultUser;
+        UseDefaultUser(isAdministrator);
         setup(CurrentUser);
     }
 }

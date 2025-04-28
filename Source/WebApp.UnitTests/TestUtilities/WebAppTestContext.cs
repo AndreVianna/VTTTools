@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.TestUtilities;
 
-public class WebAppTestContext : TestContext {
+public class WebAppTestContext
+    : Bunit.TestContext {
     private readonly IAuthorizationService _authService;
     private readonly UserManager<User> _userManager;
     private readonly List<ClaimsIdentity> _identities = [];
@@ -65,7 +66,7 @@ public class WebAppTestContext : TestContext {
     }
 
     protected void UseDefaultAdministrator() {
-        Options.UseDefaultAdministrator();
+        Options.UseDefaultUser(true);
         SetAuthentication();
     }
 
@@ -80,36 +81,35 @@ public class WebAppTestContext : TestContext {
     }
 
     private void SetAuthentication() {
-        Options.IsAuthenticated = Options.IsAuthenticated || Options.IsAdministrator;
-        Options.CurrentUser = Options.IsAuthenticated
-                                  ? Options.CurrentUser ?? WebAppTestContextOptions.DefaultUser
-                                  : null;
-        Options.CurrentUserRole = Options.IsAdministrator ? "Administrator"
-                                : Options.IsAuthenticated ? "User"
-                                : Options.CurrentUserRole ?? "Guest";
+        var authResult = AuthorizationResult.Failed();
         _identities.Clear();
         if (Options.CurrentUser is not null) {
             var identityClaim = new Claim(ClaimTypes.NameIdentifier, Options.CurrentUser.Id.ToString());
             var nameClaim = new Claim(ClaimTypes.GivenName, Options.CurrentUser.DisplayName ?? Options.CurrentUser.Name);
-            var emailClaim = new Claim(ClaimTypes.Email, Options.CurrentUser.Email!);
-            var roleClaim = new Claim(ClaimTypes.Role, Options.CurrentUserRole);
+            var emailClaim = new Claim(ClaimTypes.Email, Options.CurrentUser.Email ?? string.Empty);
+            var roleClaim = new Claim(ClaimTypes.Role, Options.IsAdministrator ? "Administrator" : "User");
             var identity = new ClaimsIdentity([identityClaim, emailClaim, nameClaim, roleClaim]);
             _identities.Add(identity);
+            authResult = AuthorizationResult.Success();
         }
 
-        var authResult = Options.IsAuthenticated ? AuthorizationResult.Success() : AuthorizationResult.Failed();
         _authService.ClearSubstitute(ClearOptions.ReturnValues);
         _authService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object?>(), Arg.Any<IEnumerable<IAuthorizationRequirement>>())
                     .Returns(authResult);
         _userManager.ClearSubstitute(ClearOptions.ReturnValues);
-        _userManager.GetUserAsync(Arg.Any<ClaimsPrincipal>())
-                    .Returns(Options.CurrentUser);
-        _userManager.IsInRoleAsync(Arg.Any<User>(), Options.CurrentUserRole)
-                    .Returns(true);
+        _userManager.GetUserAsync(Arg.Any<ClaimsPrincipal>()).Returns(Options.CurrentUser);
+        _userManager.IsInRoleAsync(Arg.Any<User>(), "User").Returns(Options.CurrentUser is not null);
+        _userManager.IsInRoleAsync(Arg.Any<User>(), "Administrator").Returns(Options.IsAdministrator);
     }
 
     protected void SetCurrentLocation(string? location = null) {
         if (location is not null && Uri.IsWellFormedUriString(location, UriKind.Relative))
             _navigationManager.NavigateTo(location);
+    }
+
+    protected override void Dispose(bool disposing) {
+        if (disposing)
+            _userManager.Dispose();
+        base.Dispose(disposing);
     }
 }

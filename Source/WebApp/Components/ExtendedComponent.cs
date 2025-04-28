@@ -17,6 +17,7 @@ public class ExtendedComponent
         add => NavigationManager.LocationChanged += value;
         remove => NavigationManager.LocationChanged -= value;
     }
+
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync();
         CurrentLocation = GetUrlRelativeToBase(NavigationManager.Uri);

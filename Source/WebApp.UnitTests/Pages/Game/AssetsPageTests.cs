@@ -39,7 +39,7 @@ public class AssetsPageTests : WebAppTestContext {
     public void WhenIsReady_DoesNotRenderLoadingState() {
         // Act
         var cut = RenderComponent<AssetsPage>();
-        cut.WaitForState(() => cut.Instance.IsReady);
+        cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Assert
         cut.Markup.Should().Contain("<h1>Assets</h1>");
@@ -50,7 +50,7 @@ public class AssetsPageTests : WebAppTestContext {
     public void WhenStateHasAsset_RendersAssetsLists() {
         // Act
         var cut = RenderComponent<AssetsPage>();
-        cut.WaitForState(() => cut.Instance.IsReady);
+        cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Assert
         var rows = cut.FindAll("#assets-table tr");
@@ -86,7 +86,7 @@ public class AssetsPageTests : WebAppTestContext {
         _service.CreateAssetAsync(Arg.Any<CreateAssetRequest>()).Returns(newAsset);
 
         var cut = RenderComponent<AssetsPage>();
-        cut.WaitForState(() => cut.Instance.IsReady);
+        cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
         cut.Find("#name-input").Change(newAsset.Name);
         cut.Find("#source-input").Change(newAsset.Source);
         cut.Find("#type-input").Change(newAsset.Type.ToString());
@@ -111,7 +111,7 @@ public class AssetsPageTests : WebAppTestContext {
         _service.DeleteAssetAsync(Arg.Any<Guid>()).Returns(true);
 
         var cut = RenderComponent<AssetsPage>();
-        cut.WaitForState(() => cut.Instance.IsReady);
+        cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Act
         cut.Find($"#delete-asset-{assetId}").Click();
