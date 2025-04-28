@@ -5,23 +5,23 @@
 <PageTitle>Game Meetings</PageTitle>
 
 <div class="container">
-  <div class="row mb-4">
+  <div id="page-header" class="row mb-4">
     <div class="col">
       <h1>Game Meetings</h1>
     </div>
     <div class="col-auto">
-      <button class="btn btn-primary" @onclick="OpenCreateMeetingDialog">Create New Meeting</button>
+      <button id="create-meeting" class="btn btn-primary" @onclick="OpenCreateMeetingDialog">Create New Meeting</button>
     </div>
   </div>
 @if (!IsReady) {
-  <div class="d-flex justify-content-center">
+  <div id="loading-message" class="d-flex justify-content-center">
     <div class="spinner-border" role="status">
       <span class="visually-hidden">Loading...</span>
     </div>
   </div>
 }
 else if (State.Meetings.Count == 0) {
-  <div class="alert alert-info">
+  <div id="no-items-message" class="alert alert-info">
     You don't have any meetings yet. Create a new meeting to get started!
   </div>
 }
@@ -29,7 +29,7 @@ else {
   <div class="row row-cols-1 row-cols-md-3 g-4">
   @foreach (var meeting in State.Meetings) {
     <div class="col">
-      <div class="card h-100">
+      <div id="@($"meeting-{meeting.Id}")" class="card h-100">
         <div class="card-body">
           <h5 class="card-title">@meeting.Subject</h5>
           <p class="card-text">
@@ -38,10 +38,10 @@ else {
         </div>
         <div class="card-footer">
           <div class="d-flex justify-content-between">
-            <button class="btn btn-sm btn-primary" @onclick="() => JoinMeeting(meeting.Id)">Join</button>
-            <button class="btn btn-sm btn-primary" @onclick="() => NavigateToMeeting(meeting.Id)">Edit</button>
+            <button class="btn btn-sm btn-primary join" @onclick="() => JoinMeeting(meeting.Id)">Join</button>
+            <button class="btn btn-sm btn-primary edit" @onclick="() => NavigateToMeeting(meeting.Id)">Edit</button>
           @if (meeting.OwnerId == CurrentUser.Id) {
-            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteMeeting(meeting.Id)">Delete</button>
+            <button class="btn btn-sm btn-outline-danger delete" @onclick="() => DeleteMeeting(meeting.Id)">Delete</button>
           }
           </div>
         </div>
@@ -54,54 +54,53 @@ else {
 </div>
 
 @if (IsReady && State.ShowCreateDialog) {
-<div class="modal fade show" style="display: block;" tabindex="-1">
+<div id="create-meeting-dialog" class="modal fade show" style="display: block;" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <EditForm Model="Input" FormName="create" id="asset-create-form" OnValidSubmit="CreateMeeting" method="post">
+      <EditForm Model="Input" FormName="create" id="create-meeting-form" OnValidSubmit="CreateMeeting" method="post">
         <div class="modal-header">
           <h5 class="modal-title">New Meeting</h5>
-          <button adventureid="button" class="btn-close" @onclick="CloseCreateMeetingDialog"></button>
+          <button id="create-meeting-dialog-close" adventureid="button" class="btn-close" @onclick="CloseCreateMeetingDialog"></button>
         </div>
         <div class="modal-body">
           <DataAnnotationsValidator />
           <ValidationSummary class="text-danger" role="alert" />
           <div class="form-floating mb-3">
-            <InputText @bind-Value="Input.Subject" id="subject-input" class="form-control mb-1" placeholder="Subject" />
-            <label for="subject-input" class="form-label">nameof(Input.Subject)</label>
+            <InputText @bind-Value="Input.Subject" id="create-meeting-subject-input" class="form-control mb-1" placeholder="Subject" />
+            <label for="create-meeting-subject-input" class="form-label">nameof(Input.Subject)</label>
             <ValidationMessage For="() => Input.Subject" class="text-danger" />
           </div>
         @if (Input.Adventures.Count > 0) {
         } else {
           <div class="form-floating mb-3">
-            <InputSelect @bind-Value="Input.AdventureId" id="adventure-input" class="form-select mb-1">
+            <InputSelect @bind-Value="Input.AdventureId" id="create-meeting-adventure-input" class="form-select mb-1">
               <option value="">Select an adventure...</option>
-              @foreach (var adventure in Input.Adventures)
-              {
-                <option value="@adventure.Id">@adventure.Name</option>
-              }
+            @foreach (var adventure in Input.Adventures)
+            {
+              <option value="@adventure.Id">@adventure.Name</option>
+            }
             </InputSelect>
-            <label for="adventure-input" class="form-label">Adventure</label>
+            <label for="create-meeting-adventure-input" class="form-label">Adventure</label>
             <ValidationMessage For="() => Input.AdventureId" class="text-danger" />
           </div>
         }
         @if (Input.Episodes.Count > 0) {
           <div class="form-floating mb-3">
-            <InputSelect @bind-Value="Input.EpisodeId" id="episode-input" class="form-select mb-1">
+            <InputSelect @bind-Value="Input.EpisodeId" id="create-meeting-episode-input" class="form-select mb-1">
               <option value="">Select an episode...</option>
-              @foreach (var episode in Input.Episodes)
-              {
-                <option value="@episode.Id">@episode.Name</option>
-              }
+            @foreach (var episode in Input.Episodes)
+            {
+              <option value="@episode.Id">@episode.Name</option>
+            }
             </InputSelect>
-            <label for="episode-input" class="form-label">Episode</label>
+            <label for="create-meeting-episode-input" class="form-label">Episode</label>
             <ValidationMessage For="() => Input.EpisodeId" class="text-danger" />
           </div>
-          <button id="create-asset" adventureid="submit" class="btn btn-primary">Create</button>
         }
         </div>
         <div class="modal-footer">
-          <button adventureid="button" class="btn btn-secondary" @onclick="CloseCreateMeetingDialog">Cancel</button>
-          <button adventureid="submit" class="btn btn-primary">Create</button>
+          <button id="create-meeting-cancel"adventureid="button" class="btn btn-secondary" @onclick="CloseCreateMeetingDialog">Cancel</button>
+          <button id="create-meeting-submit" adventureid="submit" class="btn btn-primary">Create</button>
         </div>
       </EditForm>
     </div>

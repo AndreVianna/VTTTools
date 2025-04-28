@@ -19,9 +19,9 @@ public sealed class MeetingsPageHandler() {
     public async Task OpenCreateMeetingDialog() {
         var adventures = await _service.GetAdventuresAsync();
         State.Input = new() {
-                                Adventures = [.. adventures],
-                                AdventureId = adventures.FirstOrDefault()?.Id ?? Guid.Empty,
-                            };
+            Adventures = [.. adventures],
+            AdventureId = adventures.FirstOrDefault()?.Id ?? Guid.Empty,
+        };
         await LoadEpisodes(State.Input.AdventureId);
         State.ShowCreateDialog = true;
     }
@@ -31,9 +31,9 @@ public sealed class MeetingsPageHandler() {
 
     public async Task CreateMeeting() {
         var request = new CreateMeetingRequest {
-                                                   Subject = State.Input.Subject,
-                                                   EpisodeId = State.Input.EpisodeId,
-                                               };
+            Subject = State.Input.Subject,
+            EpisodeId = State.Input.EpisodeId,
+        };
         var result = await _service.CreateMeetingAsync(request);
         if (!result.IsSuccessful) {
             State.Input.Errors = [.. result.Errors];

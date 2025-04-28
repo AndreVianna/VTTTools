@@ -45,53 +45,41 @@ public class ExtendedComponent
 
     public virtual Task StateHasChangedAsync() => InvokeAsync(StateHasChanged);
 
-    [DoesNotReturn]
     public virtual void NavigateTo([StringSyntax(StringSyntaxAttribute.Uri)] string relativePath, IReadOnlyDictionary<string, object?>? queryParameters = null) {
         relativePath = GetRelativeToBaseUrl(Ensure.IsNotNull(relativePath).Trim(), queryParameters);
         NavigationManager.NavigateTo(relativePath);
-        throw new InvalidOperationException($"{nameof(NavigationManager)} can only be used during static rendering.");
     }
 
-    [DoesNotReturn]
     public virtual void NavigateToWithStatus(string status, [StringSyntax(StringSyntaxAttribute.Uri)] string relativePath, IReadOnlyDictionary<string, object?>? queryParameters = null) {
         HttpContextAccessor.HttpContext!.SetStatusMessage(status);
         NavigateTo(relativePath, queryParameters);
     }
 
-    [DoesNotReturn]
     public virtual void RefreshPage(IReadOnlyDictionary<string, object?>? queryParameters = null) {
         var url = GetRelativeToBaseUrl(NavigationManager.Uri, queryParameters);
         NavigationManager.NavigateTo(url);
-        throw new InvalidOperationException($"{nameof(NavigationManager)} can only be used during static rendering.");
     }
 
-    [DoesNotReturn]
     public virtual void RefreshPageWithStatus(string status, IReadOnlyDictionary<string, object?>? queryParameters = null) {
         HttpContextAccessor.HttpContext!.SetStatusMessage(status);
         RefreshPage(queryParameters);
     }
 
-    [DoesNotReturn]
     public virtual void ReloadPage(IReadOnlyDictionary<string, object?>? queryParameters = null) {
         var url = GetRelativeToBaseUrl(NavigationManager.Uri, queryParameters);
         NavigationManager.NavigateTo(url, true);
-        throw new InvalidOperationException($"{nameof(NavigationManager)} can only be used during static rendering.");
     }
 
-    [DoesNotReturn]
     public virtual void ReloadPageWithStatus(string status, IReadOnlyDictionary<string, object?>? queryParameters = null) {
         HttpContextAccessor.HttpContext!.SetStatusMessage(status);
         ReloadPage(queryParameters);
     }
 
-    [DoesNotReturn]
     public virtual void ReplacePage([StringSyntax(StringSyntaxAttribute.Uri)] string relativePath, IReadOnlyDictionary<string, object?>? queryParameters = null) {
         relativePath = GetRelativeToBaseUrl(relativePath, queryParameters);
         NavigationManager.NavigateTo(relativePath, true, true);
-        throw new InvalidOperationException($"{nameof(NavigationManager)} can only be used during static rendering.");
     }
 
-    [DoesNotReturn]
     public virtual void ReplacePageWithStatus(string status, [StringSyntax(StringSyntaxAttribute.Uri)] string relativePath, IReadOnlyDictionary<string, object?>? queryParameters = null) {
         HttpContextAccessor.HttpContext!.SetStatusMessage(status);
         ReplacePage(relativePath, queryParameters);

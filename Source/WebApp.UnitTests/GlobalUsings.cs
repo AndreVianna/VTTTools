@@ -14,6 +14,7 @@ global using FluentAssertions;
 global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Components;
 global using Microsoft.AspNetCore.Components.Authorization;
+global using Microsoft.AspNetCore.Components.Routing;
 global using Microsoft.AspNetCore.Connections;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Identity;

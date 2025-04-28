@@ -2,21 +2,15 @@ namespace VttTools.WebApp.Pages.Meeting;
 
 public class MeetingsPageTests : WebAppTestContext {
     private readonly IGameService _service = Substitute.For<IGameService>();
-    private readonly MeetingModel[] _defaultMeetings = [
-            new() {
-                Id = Guid.NewGuid(),
-                Subject = "Meeting 1",
-                OwnerId = Guid.NewGuid(),
-            },
-            new() {
-                Id = Guid.NewGuid(),
-                Subject = "Meeting 2",
-                OwnerId = Guid.NewGuid(),
-            }];
+    private readonly MeetingModel[] _defaultMeetings;
 
     public MeetingsPageTests() {
         Services.AddScoped<IGameService>(_ => _service);
         UseDefaultUser();
+        _defaultMeetings = [
+            new() { Subject = "Meeting 1", OwnerId = Options.CurrentUser!.Id },
+            new() { Subject = "Meeting 2", OwnerId = Guid.NewGuid() },
+        ];
     }
 
     [Fact]
@@ -31,162 +25,86 @@ public class MeetingsPageTests : WebAppTestContext {
         cut.Markup.Should().Contain("""<span class="visually-hidden">Loading...</span>""");
     }
 
-    //[Fact]
-    //public void Meetings_RendersEmptyState_WhenNoMeetingsExist() {
-    //    // Arrange
-    //    var meetings = Array.Empty<MeetingModel>();
-    //    _httpClient.GetFromJsonAsync<MeetingModel[]>("/api/meetings").Returns(meetings);
+    [Fact]
+    public void WhenNoMeetingsExist_RendersEmptyState() {
+        // Arrange
+        _service.GetMeetingsAsync().Returns([]);
 
-    //    // Act
-    //    var cut = RenderComponent<MeetingsPage>();
+        // Act
+        var cut = RenderComponent<MeetingsPage>();
 
-    //    // Set state manually
-    //    cut.Instance.State = new() { Meetings = [] };
-    //    cut.SetParametersAndRender();
+        // Assert
+        cut.Markup.Should().Contain("You don't have any meetings yet. Create a new meeting to get started!");
+    }
 
-    //    // Assert
-    //    cut.Find(".alert-info").TextContent.Should().Contain("You don't have any game meetings yet");
-    //}
+    [Fact]
+    public void WhenStateHasMeetings_RendersMeetings() {
+        // Arrange
+        _service.GetMeetingsAsync().Returns(_defaultMeetings);
 
-    //[Fact]
-    //public void Meetings_RendersMeetingsList_WhenStateHasMeetings() {
-    //    // Arrange
-    //    var currentUserId = Guid.NewGuid();
-    //    var meetings = new List<MeetingModel> {
-    //        new() {
-    //            Id = Guid.NewGuid(),
-    //            Subject = "Meeting 1",
-    //            OwnerId = currentUserId,
-    //            Players = new List<MeetingPlayer>(),
-    //              },
-    //        new() {
-    //            Id = Guid.NewGuid(),
-    //            Subject = "Meeting 2",
-    //            OwnerId = Guid.NewGuid(),
-    //            Players = new List<MeetingPlayer>(),
-    //              },
-    //                                          };
+        // Act
+        var cut = RenderComponent<MeetingsPage>();
 
-    //    // Act
-    //    var cut = RenderComponent<MeetingsPage>();
+        // Assert
+        var cards = cut.FindAll(".card");
+        cards.Count.Should().Be(2);
 
-    //    // Set state and current user manually
-    //    cut.Instance.State = new() { Meetings = meetings };
-    //    cut.Instance.CurrentUser.Id = currentUserId;
-    //    cut.SetParametersAndRender();
+        cards[0].QuerySelector(".card-title")!.TextContent.Should().Be("Meeting 1");
+        cards[0].QuerySelector(".join").Should().NotBeNull();
+        cards[0].QuerySelector(".edit").Should().NotBeNull();
+        cards[0].QuerySelector(".delete").Should().NotBeNull();
 
-    //    // Assert
-    //    var cards = cut.FindAll(".card");
-    //    cards.Count.Should().Be(2);
+        cards[1].QuerySelector(".card-title")!.TextContent.Should().Be("Meeting 2");
+        cards[1].QuerySelector(".join").Should().NotBeNull();
+        cards[1].QuerySelector(".edit").Should().NotBeNull();
+        cards[1].QuerySelector(".delete").Should().BeNull();
+    }
 
-    //    cards[0].QuerySelector(".card-title").TextContent.Should().Be("Meeting 1");
-    //    cards[1].QuerySelector(".card-title").TextContent.Should().Be("Meeting 2");
+    [Fact]
+    public void WhenCreateButtonIsClicked_OpensCreateDialog() {
+        // Arrange
+        _service.GetMeetingsAsync().Returns(_defaultMeetings);
+        var cut = RenderComponent<MeetingsPage>();
+        var createButton = cut.Find("#create-meeting");
 
-    //    // Owner should have delete button
-    //    var deleteButtons = cards[0].QuerySelectorAll(".btn-outline-danger");
-    //    deleteButtons.Count.Should().Be(1);
+        // Act
+        createButton.Click();
+        cut.WaitForState(() => cut.Instance.State.ShowCreateDialog);
 
-    //    // Non-owner should not have delete button
-    //    var deleteButtons2 = cards[1].QuerySelectorAll(".btn-outline-danger");
-    //    deleteButtons2.Count.Should().Be(0);
-    //}
+        // Assert
+        cut.Find("#create-meeting-dialog").Should().NotBeNull();
+    }
 
-    //[Fact]
-    //public void Clicking_CreateButton_OpensCreateDialog() {
-    //    // Arrange
-    //    var adventures = new Adventure[] {
-    //        new() { Id = Guid.NewGuid(), Name = "Adventure 1" },
-    //                                     };
+    [Fact]
+    public void WhenJoinButtonIsClicked_NavigatesToMeeting() {
+        // Arrange
+        _service.GetMeetingsAsync().Returns(_defaultMeetings);
+        var cut = RenderComponent<MeetingsPage>();
+        var meetingId = _defaultMeetings[0].Id;
+        var joinButton = cut.Find($"#meeting-{meetingId} .join");
+        using var navigationSpy = new NavigationManagerSpy(cut.Instance.NavigationManager);
+        _service.JoinMeetingAsync(Arg.Any<Guid>()).Returns(true);
 
-    //    _httpClient.GetFromJsonAsync<Adventure[]>("/api/adventures").Returns(adventures);
+        // Act
+        joinButton.Click();
 
-    //    // Act
-    //    var cut = RenderComponent<MeetingsPage>();
+        // Assert
+        navigationSpy.NewLocation.Should().Be($"game/{meetingId}");
+    }
 
-    //    // Set state manually
-    //    cut.Instance.State = new() { Meetings = [] };
-    //    cut.SetParametersAndRender();
+    [Fact]
+    public void WhenEditButtonIsClicked_NavigatesToMeetingDetails() {
+        // Arrange
+        _service.GetMeetingsAsync().Returns(_defaultMeetings);
+        var cut = RenderComponent<MeetingsPage>();
+        var meetingId = _defaultMeetings[0].Id;
+        var editButton = cut.Find($"#meeting-{meetingId} .edit");
+        using var navigationSpy = new NavigationManagerSpy(cut.Instance.NavigationManager);
 
-    //    // Click create button
-    //    var createButton = cut.Find("button.btn-primary");
-    //    createButton.Click();
+        // Act
+        editButton.Click();
 
-    //    // Assert
-    //    cut.Find(".modal.show").Should().NotBeNull();
-    //    cut.Instance.State.ShowCreateDialog.Should().BeTrue();
-    //}
-
-    //[Fact]
-    //public void Clicking_JoinButton_NavigatesToGame() {
-    //    // Arrange
-    //    var meetingId = Guid.NewGuid();
-    //    var meetings = new List<MeetingModel> {
-    //        new() { Id = meetingId, Subject = "Meeting to Join", Players = [] },
-    //                                          };
-
-    //    // Setup successful join
-    //    var successResponse = new HttpResponseMessage(HttpStatusCode.OK);
-    //    _httpClient.PostAsync($"/api/meetings/{meetingId}/join", null).Returns(successResponse);
-
-    //    // Act
-    //    var cut = RenderComponent<MeetingsPage>();
-
-    //    // Set state manually
-    //    cut.Instance.State = new() { Meetings = meetings };
-    //    cut.SetParametersAndRender();
-
-    //    // Click join button
-    //    var joinButton = cut.FindAll("button.btn-primary").First(b => b.TextContent == "Join");
-
-    //    // Record expected navigation
-    //    _navigationInterceptor.ExpectedNavigationTarget = $"/game/{meetingId}";
-
-    //    joinButton.Click();
-
-    //    // Assert
-    //    _navigationInterceptor.WasNavigatedTo.Should().BeTrue();
-    //}
-
-    //[Fact]
-    //public void Clicking_EditButton_NavigatesToMeetingDetails() {
-    //    // Arrange
-    //    var meetingId = Guid.NewGuid();
-    //    var meetings = new List<MeetingModel> {
-    //        new() { Id = meetingId, Subject = "Meeting to Edit", Players = [] },
-    //                                          };
-
-    //    // Act
-    //    var cut = RenderComponent<MeetingsPage>();
-
-    //    // Set state manually
-    //    cut.Instance.State = new() { Meetings = meetings };
-    //    cut.SetParametersAndRender();
-
-    //    // Click edit button
-    //    var editButton = cut.FindAll("button.btn-primary").First(b => b.TextContent == "Edit");
-
-    //    // Record expected navigation
-    //    _navigationInterceptor.ExpectedNavigationTarget = $"/meeting/{meetingId}";
-
-    //    editButton.Click();
-
-    //    // Assert
-    //    _navigationInterceptor.WasNavigatedTo.Should().BeTrue();
-    //}
-
-    //private class TestNavigationInterceptor {
-    //    public string? ExpectedNavigationTarget { get; set; }
-    //    public bool WasNavigatedTo { get; private set; }
-
-    //    // Use LocationChanged instead of NavigationRequested
-    //    public void Init(NavigationManager navigationManager) {
-    //        navigationManager.LocationChanged += OnLocationChanged;
-    //    }
-
-    //    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) {
-    //        if (e.Location == ExpectedNavigationTarget) {
-    //            WasNavigatedTo = true;
-    //        }
-    //    }
-    //}
+        // Assert
+        navigationSpy.NewLocation.Should().Be($"meeting/{meetingId}");
+    }
 }
