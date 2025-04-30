@@ -26,7 +26,7 @@ public class AssetsPageTests
     [Fact]
     public void BeforeIsReady_RendersLoadingState() {
         // Arrange
-        _service.GetAssetsAsync().Returns(Task.Delay(1000/*, Context.CancellationToken*/).ContinueWith(_ => _defaultAssets));
+        _service.GetAssetsAsync().Returns(Task.Delay(1000, Context.CancellationToken).ContinueWith(_ => _defaultAssets));
 
         // Act
         var cut = RenderComponent<AssetsPage>();

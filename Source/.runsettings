@@ -17,6 +17,8 @@
                 <ModulePath>.*nsubstitute\..*dll$</ModulePath>
                 <ModulePath>.*stackexchange\..*dll$</ModulePath>
                 <ModulePath>.*xunit\..*dll$</ModulePath>
+                <ModulePath>.*bunit\..*dll$</ModulePath>
+                <ModulePath>.*DotnetToolbox\..*dll$</ModulePath>
                 <ModulePath>.*\.views\.dll$</ModulePath>
                 <ModulePath>.*\.resources\.dll$</ModulePath>
                 <ModulePath>.*\.tests\.dll$</ModulePath>

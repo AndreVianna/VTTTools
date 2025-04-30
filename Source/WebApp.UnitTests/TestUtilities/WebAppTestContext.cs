@@ -10,7 +10,7 @@ public class WebAppTestContext
     private readonly FakeNavigationManager _navigationManager;
 
     public WebAppTestContext() {
-        //Context = Xunit.TestContext.Current;
+        Context = Xunit.TestContext.Current;
         Options = new();
         var httpContext = Substitute.For<HttpContext>();
         Services.AddCascadingValue(_ => httpContext);
@@ -63,7 +63,7 @@ public class WebAppTestContext
 
     public WebAppTestContextOptions Options { get; }
     public CurrentUser? CurrentUser { get; private set; }
-    //protected ITestContext Context { get; }
+    protected ITestContext Context { get; }
 
     [MemberNotNull(nameof(CurrentUser))]
     protected void UseDefaultUser() {
