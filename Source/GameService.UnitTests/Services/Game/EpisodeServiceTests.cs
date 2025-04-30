@@ -213,13 +213,14 @@ public class EpisodeServiceTests {
         };
 
         _episodeStorage.GetByIdAsync(episodeId, Arg.Any<CancellationToken>()).Returns(episode);
+        _episodeStorage.DeleteAsync(episodeId, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
         var result = await _service.DeleteEpisodeAsync(_userId, episodeId, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeTrue();
-        await _episodeStorage.Received(1).DeleteAsync(episode, Arg.Any<CancellationToken>());
+        await _episodeStorage.Received(1).DeleteAsync(episodeId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -240,7 +241,7 @@ public class EpisodeServiceTests {
 
         // Assert
         result.Should().BeFalse();
-        await _episodeStorage.DidNotReceive().DeleteAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>());
+        await _episodeStorage.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -254,7 +255,7 @@ public class EpisodeServiceTests {
 
         // Assert
         result.Should().BeFalse();
-        await _episodeStorage.DidNotReceive().DeleteAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>());
+        await _episodeStorage.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -421,7 +422,7 @@ public class EpisodeServiceTests {
         // Assert
         result.Should().BeTrue();
         episode.EpisodeAssets.Should().ContainSingle();
-        var addedAsset = episode.EpisodeAssets.First();
+        var addedAsset = episode.EpisodeAssets[0];
         addedAsset.AssetId.Should().Be(assetId);
         addedAsset.Name.Should().Be(data.Name);
         addedAsset.Position.Should().BeEquivalentTo(data.Position);
@@ -587,7 +588,7 @@ public class EpisodeServiceTests {
 
         // Assert
         result.Should().BeTrue();
-        var updatedAsset = episode.EpisodeAssets.First();
+        var updatedAsset = episode.EpisodeAssets[0];
         updatedAsset.Position.Should().BeEquivalentTo(data.Position.Value);
         await _episodeStorage.Received(1).UpdateAsync(episode, Arg.Any<CancellationToken>());
     }
@@ -621,7 +622,7 @@ public class EpisodeServiceTests {
 
         // Assert
         result.Should().BeFalse();
-        var unchangedAsset = episode.EpisodeAssets.First();
+        var unchangedAsset = episode.EpisodeAssets[0];
         unchangedAsset.Position.Left.Should().Be(1);
         unchangedAsset.Position.Top.Should().Be(1);
         await _episodeStorage.DidNotReceive().UpdateAsync(Arg.Any<Episode>(), Arg.Any<CancellationToken>());

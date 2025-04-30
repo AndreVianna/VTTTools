@@ -22,10 +22,10 @@ public interface IAssetService {
     /// <summary>
     /// Updates an existing asset template.
     /// </summary>
-    Task<Asset?> UpdateAssetAsync(Guid userId, Guid assetId, UpdateAssetRequest request, CancellationToken ct = default);
+    Task<Asset?> UpdateAssetAsync(Guid userId, Guid id, UpdateAssetRequest request, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes an asset template.
     /// </summary>
-    Task<bool> DeleteAssetAsync(Guid userId, Guid assetId, CancellationToken ct = default);
+    Task<bool> DeleteAssetAsync(Guid userId, Guid id, CancellationToken ct = default);
 }

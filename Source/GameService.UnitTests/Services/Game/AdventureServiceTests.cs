@@ -253,13 +253,14 @@ public class AdventureServiceTests {
         };
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
+        _adventureStorage.DeleteAsync(adventureId, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
         var result = await _service.DeleteAdventureAsync(_userId, adventureId, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeTrue();
-        await _adventureStorage.Received(1).DeleteAsync(adventure, Arg.Any<CancellationToken>());
+        await _adventureStorage.Received(1).DeleteAsync(adventureId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -280,7 +281,7 @@ public class AdventureServiceTests {
 
         // Assert
         result.Should().BeFalse();
-        await _adventureStorage.DidNotReceive().DeleteAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+        await _adventureStorage.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -294,7 +295,7 @@ public class AdventureServiceTests {
 
         // Assert
         result.Should().BeFalse();
-        await _adventureStorage.DidNotReceive().DeleteAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
+        await _adventureStorage.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

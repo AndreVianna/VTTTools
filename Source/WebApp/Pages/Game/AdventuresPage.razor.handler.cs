@@ -10,7 +10,7 @@ public class AdventuresPageHandler {
         State.Adventures = [.. await _service.GetAdventuresAsync()];
     }
 
-    public async Task CreateAdventureAsync() {
+    public async Task SaveCreatedAdventure() {
         var request = new CreateAdventureRequest {
             Name = State.CreateInput.Name,
             Visibility = State.CreateInput.Visibility,
@@ -26,26 +26,26 @@ public class AdventuresPageHandler {
         State.Adventures.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase));
     }
 
-    public async Task DeleteAdventureAsync(Guid id) {
+    public async Task DeleteAdventure(Guid id) {
         var deleted = await _service.DeleteAdventureAsync(id);
         if (!deleted)
             return;
         State.Adventures.RemoveAll(e => e.Id == id);
     }
 
-    public void StartEdit(Adventure adventure) {
-        State.ShowEditDialog = true;
+    public void StartAdventureEditing(Adventure adventure) {
         State.EditInput = new() {
             Id = adventure.Id,
             Name = adventure.Name,
             Visibility = adventure.Visibility,
         };
+        State.IsEditing = true;
     }
 
-    public void CancelEdit()
-        => State.ShowEditDialog = false;
+    public void EndAdventureEditing()
+        => State.IsEditing = false;
 
-    public async Task SaveEditAsync() {
+    public async Task SaveEditedAdventure() {
         var request = new UpdateAdventureRequest {
             Name = State.EditInput.Name,
             Visibility = State.EditInput.Visibility,
@@ -59,10 +59,10 @@ public class AdventuresPageHandler {
         adventure.Name = State.EditInput.Name;
         adventure.Visibility = State.EditInput.Visibility;
         State.Adventures.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase));
-        State.ShowEditDialog = false;
+        EndAdventureEditing();
     }
 
-    public async Task CloneAdventureAsync(Guid id) {
+    public async Task CloneAdventure(Guid id) {
         var request = new CloneAdventureRequest();
         var result = await _service.CloneAdventureAsync(id, request);
         State.Adventures.Add(result.Value);

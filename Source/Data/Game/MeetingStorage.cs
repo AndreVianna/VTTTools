@@ -22,42 +22,24 @@ public class MeetingStorage(ApplicationDbContext context)
         return query.ToArrayAsync(ct);
     }
 
-    public async Task AddAsync(Meeting meeting, CancellationToken ct = default) {
+    public async Task<Meeting> AddAsync(Meeting meeting, CancellationToken ct = default) {
         await context.Meetings.AddAsync(meeting, ct);
         await context.SaveChangesAsync(ct);
+        return meeting;
     }
 
-    public async Task UpdateAsync(Meeting meeting, CancellationToken ct = default) {
-        // Check if the meeting exists
-        var existingMeeting = await context.Meetings
-            .Include(s => s.Players)
-            .FirstOrDefaultAsync(s => s.Id == meeting.Id, ct)
-        ?? throw new KeyNotFoundException($"Meeting with ID {meeting.Id} not found.");
-
-        // Update existing entity properties
-        existingMeeting.Subject = meeting.Subject;
-        existingMeeting.OwnerId = meeting.OwnerId;
-        existingMeeting.EpisodeId = meeting.EpisodeId;
-
-        // Handle players collection - remove existing and add new
-        existingMeeting.Players.Clear();
-        foreach (var player in meeting.Players) {
-            existingMeeting.Players.Add(new MeetingPlayer {
-                UserId = player.UserId,
-                Type = player.Type
-            });
-        }
-
-        // Save changes
-        await context.SaveChangesAsync(ct);
+    public async Task<Meeting?> UpdateAsync(Meeting meeting, CancellationToken ct = default) {
+        context.Meetings.Update(meeting);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0 ? meeting : null;
     }
 
-    public async Task DeleteAsync(Guid id, CancellationToken ct = default) {
-        var meeting = await context.Meetings
-            .FirstOrDefaultAsync(s => s.Id == id, ct)
-        ?? throw new KeyNotFoundException($"Meeting with ID {id} not found.");
-
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default) {
+        var meeting = await context.Meetings.FindAsync([id], ct);
+        if (meeting == null)
+            return false;
         context.Meetings.Remove(meeting);
-        await context.SaveChangesAsync(ct);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
     }
 }

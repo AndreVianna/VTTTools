@@ -38,15 +38,19 @@ public class EpisodeStorage(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
-    public async Task<Episode> UpdateAsync(Episode episode, CancellationToken ct = default) {
+    public async Task<Episode?> UpdateAsync(Episode episode, CancellationToken ct = default) {
         context.Episodes.Update(episode);
-        await context.SaveChangesAsync(ct);
-        return episode;
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0 ? episode : null;
     }
 
     /// <inheritdoc />
-    public async Task DeleteAsync(Episode episode, CancellationToken ct = default) {
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default) {
+        var episode = await context.Episodes.FindAsync([id], ct);
+        if (episode == null)
+            return false;
         context.Episodes.Remove(episode);
-        await context.SaveChangesAsync(ct);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
     }
 }

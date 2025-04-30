@@ -26,7 +26,7 @@ internal static class EpisodeSchemaBuilder {
         });
         builder.Entity<EpisodeAsset>(entity => {
             entity.ToTable("EpisodeAssets");
-            entity.HasKey(ea => new { ea.EpisodeId, ea.AssetId });
+            entity.HasKey(ea => ea.Id);
             entity.Property(ea => ea.Name).IsRequired().HasMaxLength(128);
             entity.Property(ea => ea.IsLocked);
             entity.Property(ea => ea.ControlledBy);

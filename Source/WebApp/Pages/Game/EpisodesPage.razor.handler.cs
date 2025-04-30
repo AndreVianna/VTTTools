@@ -11,7 +11,7 @@ public sealed class EpisodesPageHandler {
         State.Episodes = [.. await _service.GetEpisodesAsync(State.AdventureId)];
     }
 
-    public async Task CreateEpisodeAsync() {
+    public async Task SaveCreatedEpisode() {
         var request = new CreateEpisodeRequest {
             AdventureId = State.AdventureId,
             Name = State.CreateInput.Name,
@@ -27,26 +27,26 @@ public sealed class EpisodesPageHandler {
         State.Episodes.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase));
     }
 
-    public async Task DeleteEpisodeAsync(Guid id) {
+    public async Task DeleteEpisode(Guid id) {
         var deleted = await _service.DeleteEpisodeAsync(id);
         if (!deleted)
             return;
         State.Episodes.RemoveAll(e => e.Id == id);
     }
 
-    public void StartEdit(Episode ep) {
+    public void StartEpisodeEditing(Episode ep) {
         State.EditInput = new() {
             Id = ep.Id,
             Name = ep.Name,
             Visibility = ep.Visibility,
         };
-        State.ShowEditDialog = true;
+        State.IsEditing = true;
     }
 
-    public void CancelEdit()
-        => State.ShowEditDialog = false;
+    public void EndEpisodeEditing()
+        => State.IsEditing = false;
 
-    public async Task SaveEditAsync() {
+    public async Task SaveEditedEpisode() {
         var request = new UpdateEpisodeRequest {
             Name = State.EditInput.Name,
             Visibility = State.EditInput.Visibility,
@@ -60,10 +60,10 @@ public sealed class EpisodesPageHandler {
         episode.Name = State.EditInput.Name;
         episode.Visibility = State.EditInput.Visibility;
         State.Episodes.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase));
-        State.ShowEditDialog = false;
+        EndEpisodeEditing();
     }
 
-    public async Task CloneEpisodeAsync(Guid id) {
+    public async Task CloneEpisode(Guid id) {
         var request = new CloneEpisodeRequest();
         var result = await _service.CloneEpisodeAsync(id, request);
         if (!result.IsSuccessful)

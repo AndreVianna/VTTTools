@@ -17,5 +17,5 @@ public class Episode {
     /// </summary>
     public Visibility Visibility { get; set; } = Visibility.Hidden;
     public Stage Stage { get; set; } = new();
-    public HashSet<EpisodeAsset> EpisodeAssets { get; set; } = [];
+    public List<EpisodeAsset> EpisodeAssets { get; set; } = [];
 }

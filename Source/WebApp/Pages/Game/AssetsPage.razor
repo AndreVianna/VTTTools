@@ -42,7 +42,12 @@
     </div>
     <button id="create-asset" type="submit" class="btn btn-primary">Create</button>
   </EditForm>
-
+  if (State.Assets.Count == 0) {
+  <div id="no-items-message" class="alert alert-info">
+    You don't have any assets yet. Create a new one to get started!
+  </div>
+  }
+  else {
   <table id="assets-table" class="table">
   <thead>
     <tr>
@@ -67,5 +72,6 @@
   }
   </tbody>
   </table>
+  }
 }
 </div>

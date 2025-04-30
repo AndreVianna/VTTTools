@@ -27,9 +27,9 @@ public class AssetService(
     }
 
     /// <inheritdoc />
-    public async Task<Asset?> UpdateAssetAsync(Guid userId, Guid assetId, UpdateAssetRequest request, CancellationToken ct = default) {
-        var asset = await assetStorage.GetByIdAsync(assetId, ct);
-        if (asset is null || asset.OwnerId != userId)
+    public async Task<Asset?> UpdateAssetAsync(Guid userId, Guid id, UpdateAssetRequest request, CancellationToken ct = default) {
+        var asset = await assetStorage.GetByIdAsync(id, ct);
+        if (asset?.OwnerId != userId)
             return null;
         if (request.Name.IsSet)
             asset.Name = request.Name.Value;
@@ -43,11 +43,9 @@ public class AssetService(
     }
 
     /// <inheritdoc />
-    public async Task<bool> DeleteAssetAsync(Guid userId, Guid assetId, CancellationToken ct = default) {
-        var asset = await assetStorage.GetByIdAsync(assetId, ct);
-        if (asset is null || asset.OwnerId != userId)
-            return false;
-        await assetStorage.DeleteAsync(asset, ct);
-        return true;
+    public async Task<bool> DeleteAssetAsync(Guid userId, Guid id, CancellationToken ct = default) {
+        var asset = await assetStorage.GetByIdAsync(id, ct);
+        return asset?.OwnerId == userId
+            && await assetStorage.DeleteAsync(id, ct);
     }
 }

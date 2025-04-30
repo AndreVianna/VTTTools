@@ -31,7 +31,7 @@ public class EpisodesPageHandlerTests {
         _service.CreateEpisodeAsync(Arg.Any<CreateEpisodeRequest>()).Returns(newEpisode);
 
         // Act
-        await handler.CreateEpisodeAsync();
+        await handler.SaveCreatedEpisode();
 
         // Assert
         handler.State.Episodes.Should().HaveCount(3);
@@ -49,7 +49,7 @@ public class EpisodesPageHandlerTests {
         _service.CreateEpisodeAsync(Arg.Any<CreateEpisodeRequest>()).Returns(Result.Failure("Some error"));
 
         // Act
-        await handler.CreateEpisodeAsync();
+        await handler.SaveCreatedEpisode();
 
         // Assert
         handler.State.Episodes.Should().HaveCount(2);
@@ -65,7 +65,7 @@ public class EpisodesPageHandlerTests {
         _service.DeleteEpisodeAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
-        await handler.DeleteEpisodeAsync(episodeId);
+        await handler.DeleteEpisode(episodeId);
 
         // Assert
         handler.State.Episodes.Should().HaveCount(1);
@@ -86,7 +86,7 @@ public class EpisodesPageHandlerTests {
         _service.CloneEpisodeAsync(episodeId, Arg.Any<CloneEpisodeRequest>()).Returns(clonedEpisode);
 
         // Act
-        await handler.CloneEpisodeAsync(episodeId);
+        await handler.CloneEpisode(episodeId);
 
         // Assert
         handler.State.Episodes.Should().BeEquivalentTo(episodesAfterClone);
@@ -102,10 +102,10 @@ public class EpisodesPageHandlerTests {
         };
 
         // Act
-        handler.StartEdit(episode);
+        handler.StartEpisodeEditing(episode);
 
         // Assert
-        handler.State.ShowEditDialog.Should().BeTrue();
+        handler.State.IsEditing.Should().BeTrue();
         handler.State.EditInput.Id.Should().Be(episode.Id);
         handler.State.EditInput.Name.Should().Be(episode.Name);
         handler.State.EditInput.Visibility.Should().Be(episode.Visibility);
@@ -115,7 +115,7 @@ public class EpisodesPageHandlerTests {
     public async Task CancelEdit_ResetIsEditingFlag() {
         // Arrange
         var handler = await CreateInitializedHandler();
-        handler.State.ShowEditDialog = true;
+        handler.State.IsEditing = true;
         handler.State.EditInput = new() {
             Id = Guid.NewGuid(),
             Name = "Updated Episode",
@@ -123,17 +123,17 @@ public class EpisodesPageHandlerTests {
         };
 
         // Act
-        handler.CancelEdit();
+        handler.EndEpisodeEditing();
 
         // Assert
-        handler.State.ShowEditDialog.Should().BeFalse();
+        handler.State.IsEditing.Should().BeFalse();
     }
 
     [Fact]
     public async Task SaveEditAsync_WithValidInput_UpdatesEpisodeAndReloadsEpisodes() {
         // Arrange
         var handler = await CreateInitializedHandler();
-        handler.State.ShowEditDialog = true;
+        handler.State.IsEditing = true;
         var episodeId = Guid.NewGuid();
         var episodeBeforeEdit = new Episode {
             Id = episodeId,
@@ -160,10 +160,10 @@ public class EpisodesPageHandlerTests {
             .Returns(Result.Success());
 
         // Act
-        await handler.SaveEditAsync();
+        await handler.SaveEditedEpisode();
 
         // Assert
-        handler.State.ShowEditDialog.Should().BeFalse();
+        handler.State.IsEditing.Should().BeFalse();
         handler.State.Episodes.Should().BeEquivalentTo(episodesAfterEdit);
     }
 
@@ -171,7 +171,7 @@ public class EpisodesPageHandlerTests {
     public async Task SaveEditAsync_WithInvalidInput_ReturnsErrors() {
         // Arrange
         var handler = await CreateInitializedHandler();
-        handler.State.ShowEditDialog = true;
+        handler.State.IsEditing = true;
         var episodeId = Guid.NewGuid();
         var episodeBeforeEdit = new Episode {
             Id = episodeId,
@@ -190,10 +190,10 @@ public class EpisodesPageHandlerTests {
             .Returns(Result.Failure("Some errors."));
 
         // Act
-        await handler.SaveEditAsync();
+        await handler.SaveEditedEpisode();
 
         // Assert
-        handler.State.ShowEditDialog.Should().BeTrue();
+        handler.State.IsEditing.Should().BeTrue();
         handler.State.EditInput.Errors.Should().NotBeEmpty();
         handler.State.EditInput.Errors[0].Message.Should().Be("Some errors.");
         handler.State.Episodes.Should().BeEquivalentTo(episodesBeforeEdit);

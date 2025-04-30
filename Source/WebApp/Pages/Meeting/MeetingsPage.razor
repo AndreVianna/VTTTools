@@ -2,15 +2,15 @@
 @inherits ExtendedComponent<MeetingsPageHandler>
 @rendermode InteractiveAuto
 
-<PageTitle>Game Meetings</PageTitle>
+<PageTitle>Schedule</PageTitle>
 
 <div class="container">
   <div id="page-header" class="row mb-4">
     <div class="col">
-      <h1>Game Meetings</h1>
+      <h1>Schedule</h1>
     </div>
     <div class="col-auto">
-      <button id="create-meeting" class="btn btn-primary" @onclick="OpenCreateMeetingDialog">Create New Meeting</button>
+      <button id="create-meeting" class="btn btn-primary" @onclick="ShowCreateDialog">Create New Meeting</button>
     </div>
   </div>
 @if (!IsReady) {
@@ -53,14 +53,14 @@ else {
 
 </div>
 
-@if (IsReady && State.ShowCreateDialog) {
+@if (IsReady && State.IsCreating) {
 <div id="create-meeting-dialog" class="modal fade show" style="display: block;" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <EditForm Model="Input" FormName="create" id="create-meeting-form" OnValidSubmit="CreateMeeting" method="post">
         <div class="modal-header">
           <h5 class="modal-title">New Meeting</h5>
-          <button id="create-meeting-dialog-close" adventureid="button" class="btn-close" @onclick="CloseCreateMeetingDialog"></button>
+          <button id="create-meeting-dialog-close" adventureid="button" class="btn-close" @onclick="HideCreateDialog"></button>
         </div>
         <div class="modal-body">
           <DataAnnotationsValidator />
@@ -99,7 +99,7 @@ else {
         }
         </div>
         <div class="modal-footer">
-          <button id="create-meeting-cancel"adventureid="button" class="btn btn-secondary" @onclick="CloseCreateMeetingDialog">Cancel</button>
+          <button id="create-meeting-cancel"adventureid="button" class="btn btn-secondary" @onclick="HideCreateDialog">Cancel</button>
           <button id="create-meeting-submit" adventureid="submit" class="btn btn-primary">Create</button>
         </div>
       </EditForm>

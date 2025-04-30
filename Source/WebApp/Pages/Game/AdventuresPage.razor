@@ -17,57 +17,80 @@
     </div>
   </div>
 }
-else {
-  <div class="mb-3">
-    <input class="form-control mb-1" placeholder="Subject" @bind="CreateInput.Name" />
-    <button class="btn btn-primary" @onclick="CreateAdventure">Create</button>
+  <EditForm Model="CreateInput" FormName="create" id="adventure-create-form" OnValidSubmit="CreateAdventure" method="post">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert" />
+    <div class="form-floating mb-3">
+      <InputText @bind-Value="CreateInput.Name" id="name-input" class="form-control mb-1" placeholder="Name" />
+      <label for="name-input" class="form-label">@nameof(Adventure.Name)</label>
+      <ValidationMessage For="() => CreateInput.Name" class="text-danger" />
+    </div>
+    <button id="create-adventure" type="submit" class="btn btn-primary">Create</button>
+  </EditForm>
+  @if (State.Adventures.Count == 0) {
+  <div id="no-items-message" class="alert alert-info">
+    You don't have any adventures yet. Create a new one to get started!
   </div>
-
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Subject</th>
-        <th>Visibility</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-    @foreach (var adv in State.Adventures) {
-      <tr>
-        <td>@adv.Name</td>
-        <td>@adv.Visibility</td>
-        <td>
-          <button class="btn btn-secondary btn-sm me-1" @onclick='() => NavigateTo($"/adventures/{adv.Id}/episodes")'>Episodes</button>
-          <button class="btn btn-secondary btn-sm me-1" @onclick="() => StartEdit(adv)">Edit</button>
-          <button class="btn btn-info btn-sm me-1" @onclick="() => CloneAdventure(adv.Id)">Clone</button>
-          <button class="btn btn-danger btn-sm" @onclick="() => DeleteAdventure(adv.Id)">Delete</button>
-        </td>
-      </tr>
-    }
-    </tbody>
+  }
+  else {
+  <table id="adventures-table" class="table">
+  <thead>
+    <tr>
+      <th id="adventures-name-header">@nameof(Adventure.Name)</th>
+      <th id="adventures-visibility-header">@nameof(Adventure.Visibility)</th>
+      <th id="adventures-action-header">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+  @foreach (var adventure in State.Adventures) {
+    <tr>
+      <td id="@($"adventure-{adventure.Id}-name")">@adventure.Name</td>
+      <td id="@($"adventure-{adventure.Id}-visibility")">@adventure.Visibility</td>
+      <td id="@($"adventure-{adventure.Id}-actions")">
+        <button id="@($"view-adventure-{adventure.Id}")" class="btn btn-secondary btn-sm me-1" @onclick='() => NavigateTo($"/adventures/{adventure.Id}/episodes")'>Episodes</button>
+        <button id="@($"edit-adventure-{adventure.Id}")" class="btn btn-secondary btn-sm me-1" @onclick="() => ShowEditDialog(adventure)">Edit</button>
+        <button id="@($"clone-adventure-{adventure.Id}")" class="btn btn-info btn-sm me-1" @onclick="() => CloneAdventure(adventure.Id)">Clone</button>
+        <button id="@($"delete-adventure-{adventure.Id}")" class="btn btn-danger btn-sm" @onclick="() => DeleteAdventure(adventure.Id)">Delete</button>
+      </td>
+    </tr>
+  }
+  </tbody>
   </table>
+  }
 }
 
-@if (IsReady && State.ShowEditDialog) {
-  <div class="modal show d-block" tabindex="-1">
+@if (IsReady && State.IsEditing) {
+  <div id="edit-adventure-dialog" class="modal fade show" style="display: block;" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
+      <EditForm Model="EditInput" FormName="edit" id="edit-adventure-form" OnValidSubmit="SaveEdit" method="post">
         <div class="modal-header">
           <h5 class="modal-title">Edit Adventure</h5>
-          <button type="button" class="btn-close" @onclick="CancelEdit"></button>
+          <button id="edit-adventure-dialog-close" adventureid="button" class="btn-close" @onclick="HideEditDialog"></button>
         </div>
         <div class="modal-body">
-          <input class="form-control mb-1" @bind="EditInput.Name" />
-          <select class="form-select mb-1" @bind="EditInput.Visibility">
-            <option value="@Visibility.Hidden">Hidden</option>
-            <option value="@Visibility.Private">Private</option>
-            <option value="@Visibility.Public">Public</option>
-          </select>
+          <DataAnnotationsValidator />
+          <ValidationSummary class="text-danger" role="alert" />
+          <div class="form-floating mb-3">
+            <InputText @bind-Value="EditInput.Name" id="edit-adventure-name-input" class="form-control mb-1" placeholder="Name" />
+            <label for="edit-adventure-name-input" class="form-label">@nameof(Adventure.Name)</label>
+            <ValidationMessage For="() => EditInput.Name" class="text-danger" />
+          </div>
+          <div class="form-floating mb-3">
+            <InputSelect @bind-Value="EditInput.Visibility" id="edit-adventure-visibility-input" class="form-select mb-1">
+              <option value="@Visibility.Hidden">Hidden</option>
+              <option value="@Visibility.Private">Private</option>
+              <option value="@Visibility.Public">Public</option>
+            </InputSelect>
+            <label for="edit-adventure-visibility-input" class="form-label">@nameof(Adventure.Visibility)</label>
+            <ValidationMessage For="() => EditInput.Visibility" class="text-danger" />
+          </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
-          <button class="btn btn-primary" @onclick="SaveEdit">Save</button>
+          <button id="edit-adventure-cancel" type="button" class="btn btn-secondary" @onclick="HideEditDialog">Cancel</button>
+          <button id="edit-adventure-submit" type="submit" class="btn btn-primary">Edit</button>
         </div>
+      </EditForm>
       </div>
     </div>
   </div>

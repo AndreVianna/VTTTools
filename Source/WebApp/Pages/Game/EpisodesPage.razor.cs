@@ -17,20 +17,20 @@ public partial class EpisodesPage {
     }
 
     internal Task CreateEpisode()
-        => Handler.CreateEpisodeAsync();
+        => Handler.SaveCreatedEpisode();
 
     internal void StartEdit(Episode ep)
-        => Handler.StartEdit(ep);
+        => Handler.StartEpisodeEditing(ep);
 
     internal void CancelEdit()
-        => Handler.CancelEdit();
+        => Handler.EndEpisodeEditing();
 
     internal Task SaveEdit()
-        => Handler.SaveEditAsync();
+        => Handler.SaveEditedEpisode();
 
     internal Task DeleteEpisode(Guid id)
-        => Handler.DeleteEpisodeAsync(id);
+        => Handler.DeleteEpisode(id);
 
     internal Task CloneEpisode(Guid id)
-        => Handler.CloneEpisodeAsync(id);
+        => Handler.CloneEpisode(id);
 }

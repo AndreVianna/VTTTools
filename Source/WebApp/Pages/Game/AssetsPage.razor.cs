@@ -13,12 +13,12 @@ public partial class AssetsPage {
     }
 
     internal async Task CreateAsset() {
-        await Handler.CreateAssetAsync();
+        await Handler.SaveCreatedAsset();
         StateHasChanged();
     }
 
     internal async Task DeleteAsset(Guid id) {
-        await Handler.DeleteAssetAsync(id);
+        await Handler.DeleteAsset(id);
         StateHasChanged();
     }
 }

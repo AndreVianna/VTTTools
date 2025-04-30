@@ -74,9 +74,15 @@ public class MeetingServiceTests {
             Subject = "New Meeting",
             EpisodeId = episodeId,
         };
+        var createdMeeting = new Meeting {
+            Subject = "New Meeting",
+            EpisodeId = episodeId,
+            OwnerId = _userId,
+            Players = [new() { UserId = _userId, Type = PlayerType.Master }],
+        };
 
         _meetingStorage.AddAsync(Arg.Any<Meeting>(), Arg.Any<CancellationToken>())
-            .Returns(Task.CompletedTask);
+            .Returns(createdMeeting);
 
         // Act
         var result = await _service.CreateMeetingAsync(_userId, data, TestContext.Current.CancellationToken);

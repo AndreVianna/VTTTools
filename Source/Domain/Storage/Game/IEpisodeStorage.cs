@@ -27,10 +27,10 @@ public interface IEpisodeStorage {
     /// <summary>
     /// Updates an existing episode template.
     /// </summary>
-    Task<Episode> UpdateAsync(Episode episode, CancellationToken ct = default);
+    Task<Episode?> UpdateAsync(Episode episode, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes an episode template.
     /// </summary>
-    Task DeleteAsync(Episode episode, CancellationToken ct = default);
+    Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 }

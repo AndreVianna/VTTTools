@@ -29,7 +29,7 @@ public class AdventureService(IAdventureStorage adventureStorage, IEpisodeStorag
     /// <inheritdoc />
     public async Task<Adventure?> CloneAdventureAsync(Guid userId, Guid templateId, CloneAdventureRequest data, CancellationToken ct = default) {
         var original = await adventureStorage.GetByIdAsync(templateId, ct);
-        if (original is null || original.OwnerId != userId)
+        if (original?.OwnerId != userId)
             return null;
         var clone = Cloner.CloneAdventure(original, userId);
         if (data.CampaignId.IsSet)
@@ -43,7 +43,7 @@ public class AdventureService(IAdventureStorage adventureStorage, IEpisodeStorag
     /// <inheritdoc />
     public async Task<Adventure?> UpdateAdventureAsync(Guid userId, Guid id, UpdateAdventureRequest data, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
-        if (adventure is null || adventure.OwnerId != userId)
+        if (adventure?.OwnerId != userId)
             return null;
         if (data.Name.IsSet)
             adventure.Name = data.Name.Value;
@@ -55,10 +55,8 @@ public class AdventureService(IAdventureStorage adventureStorage, IEpisodeStorag
     /// <inheritdoc />
     public async Task<bool> DeleteAdventureAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
-        if (adventure is null || adventure.OwnerId != userId)
-            return false;
-        await adventureStorage.DeleteAsync(adventure, ct);
-        return true;
+        return adventure?.OwnerId == userId
+            && await adventureStorage.DeleteAsync(id, ct);
     }
 
     /// <inheritdoc />
@@ -68,7 +66,7 @@ public class AdventureService(IAdventureStorage adventureStorage, IEpisodeStorag
     /// <inheritdoc />
     public async Task<bool> AddEpisodeAsync(Guid userId, Guid id, Guid episodeId, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
-        if (adventure is null || adventure.OwnerId != userId)
+        if (adventure?.OwnerId != userId)
             return false;
         var episode = await episodeStorage.GetByIdAsync(episodeId, ct);
         if (episode is null)
@@ -82,9 +80,9 @@ public class AdventureService(IAdventureStorage adventureStorage, IEpisodeStorag
     /// <inheritdoc />
     public async Task<bool> RemoveEpisodeAsync(Guid userId, Guid id, Guid episodeId, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
-        if (adventure is null || adventure.OwnerId != userId)
+        if (adventure?.OwnerId != userId)
             return false;
-        adventure.Episodes.RemoveWhere(e => e.Id == episodeId);
+        adventure.Episodes.RemoveAll(e => e.Id == episodeId);
         await adventureStorage.UpdateAsync(adventure, ct);
         return true;
     }

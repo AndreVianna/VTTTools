@@ -74,7 +74,7 @@ public class MeetingService(IMeetingStorage storage)
         if (meeting is null)
             return TypedResult.As(HttpStatusCode.NotFound);
 
-        meeting.Players.RemoveWhere(p => IsInMeeting(p, userId));
+        meeting.Players.RemoveAll(p => IsInMeeting(p, userId));
         await storage.UpdateAsync(meeting, ct);
         return TypedResult.As(HttpStatusCode.NoContent);
     }

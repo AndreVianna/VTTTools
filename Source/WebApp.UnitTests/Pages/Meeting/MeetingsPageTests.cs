@@ -16,7 +16,7 @@ public class MeetingsPageTests : WebAppTestContext {
     [Fact]
     public void RendersLoadingState_WhenStateIsNull() {
         // Arrange
-        _service.GetMeetingsAsync().Returns(Task.Delay(1000).ContinueWith(_ => _defaultMeetings));
+        _service.GetMeetingsAsync().Returns(Task.Delay(1000/*, Context.CancellationToken*/).ContinueWith(_ => _defaultMeetings));
 
         // Act
         var cut = RenderComponent<MeetingsPage>();
@@ -69,7 +69,7 @@ public class MeetingsPageTests : WebAppTestContext {
 
         // Act
         createButton.Click();
-        cut.WaitForState(() => cut.Instance.State.ShowCreateDialog, TimeSpan.FromMilliseconds(500));
+        cut.WaitForState(() => cut.Instance.State.IsCreating, TimeSpan.FromMilliseconds(500));
 
         // Assert
         cut.Find("#create-meeting-dialog").Should().NotBeNull();

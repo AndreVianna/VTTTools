@@ -6,8 +6,8 @@ public class Meeting {
     [MaxLength(128)]
     public string Subject { get; set; } = string.Empty;
     public MeetingStatus Status { get; set; } = MeetingStatus.Draft;
-    public HashSet<MeetingPlayer> Players { get; set; } = [];
+    public List<MeetingPlayer> Players { get; set; } = [];
     public Guid? EpisodeId { get; set; }
-    public HashSet<MeetingMessage> Messages { get; set; } = [];
-    public HashSet<MeetingEvent> Events { get; set; } = [];
+    public List<MeetingMessage> Messages { get; set; } = [];
+    public List<MeetingEvent> Events { get; set; } = [];
 }

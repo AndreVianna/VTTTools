@@ -8,7 +8,28 @@ public class ExtendedComponentTests
         UseDefaultUser();
         var expectedCurrentUser = new CurrentUser {
             Id = Options.CurrentUser!.Id,
-            DisplayName = Options.CurrentUser.DisplayName,
+            DisplayName = Options.CurrentUser.DisplayName!,
+            IsAuthenticated = true,
+            IsAdministrator = false,
+        };
+
+        // Act
+        var component = RenderComponent<ExtendedComponent>();
+        component.WaitForState(() => component.Instance.IsReady, TimeSpan.FromMilliseconds(500));
+
+        // Assert
+        component.Instance.CurrentLocation.Should().Be("");
+        component.Instance.CurrentUser.Should().BeEquivalentTo(expectedCurrentUser);
+    }
+
+    [Fact]
+    public void OnInitializedAsync_WithNoDisplayName_UserUserName() {
+        // Arrange
+        UseDefaultUser();
+        Options.CurrentUser!.DisplayName = null;
+        var expectedCurrentUser = new CurrentUser {
+            Id = Options.CurrentUser!.Id,
+            DisplayName = Options.CurrentUser.Name,
             IsAuthenticated = true,
             IsAdministrator = false,
         };
@@ -46,7 +67,7 @@ public class ExtendedComponentTests
         UseDefaultAdministrator();
         var expectedCurrentUser = new CurrentUser {
             Id = Options.CurrentUser!.Id,
-            DisplayName = Options.CurrentUser.DisplayName,
+            DisplayName = Options.CurrentUser.DisplayName!,
             IsAuthenticated = true,
             IsAdministrator = true,
         };

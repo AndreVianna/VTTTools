@@ -25,15 +25,19 @@ public class AssetStorage(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
-    public async Task<Asset> UpdateAsync(Asset asset, CancellationToken ct = default) {
+    public async Task<Asset?> UpdateAsync(Asset asset, CancellationToken ct = default) {
         context.Assets.Update(asset);
-        await context.SaveChangesAsync(ct);
-        return asset;
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0 ? asset : null;
     }
 
     /// <inheritdoc />
-    public async Task DeleteAsync(Asset asset, CancellationToken ct = default) {
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default) {
+        var asset = await context.Assets.FindAsync([id], ct);
+        if (asset == null)
+            return false;
         context.Assets.Remove(asset);
-        await context.SaveChangesAsync(ct);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
     }
 }

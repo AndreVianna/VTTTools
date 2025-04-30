@@ -178,13 +178,14 @@ public class AssetServiceTests {
         };
 
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
+        _assetStorage.DeleteAsync(assetId, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
         var result = await _service.DeleteAssetAsync(_userId, assetId, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeTrue();
-        await _assetStorage.Received(1).DeleteAsync(asset, Arg.Any<CancellationToken>());
+        await _assetStorage.Received(1).DeleteAsync(assetId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -205,7 +206,7 @@ public class AssetServiceTests {
 
         // Assert
         result.Should().BeFalse();
-        await _assetStorage.DidNotReceive().DeleteAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
+        await _assetStorage.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -219,7 +220,7 @@ public class AssetServiceTests {
 
         // Assert
         result.Should().BeFalse();
-        await _assetStorage.DidNotReceive().DeleteAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
+        await _assetStorage.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

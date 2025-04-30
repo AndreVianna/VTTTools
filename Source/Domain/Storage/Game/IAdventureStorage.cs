@@ -22,10 +22,10 @@ public interface IAdventureStorage {
     /// <summary>
     /// Updates an existing adventure template.
     /// </summary>
-    Task<Adventure> UpdateAsync(Adventure adventure, CancellationToken ct = default);
+    Task<Adventure?> UpdateAsync(Adventure adventure, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes an adventure template.
     /// </summary>
-    Task DeleteAsync(Adventure adventure, CancellationToken ct = default);
+    Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 }

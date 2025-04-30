@@ -9,7 +9,7 @@ public class Adventure {
     public Guid? ParentId { get; set; }
     public Campaign? Campaign { get; set; }
     public Guid? TemplateId { get; set; }
-    public HashSet<Episode> Episodes { get; set; } = [];
+    public List<Episode> Episodes { get; set; } = [];
     [MaxLength(128)]
     public string Name { get; set; } = string.Empty;
     /// <summary>

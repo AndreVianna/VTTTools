@@ -15,7 +15,7 @@ public class ChatPageTests : WebAppTestContext {
     [Fact]
     public void WhenIsLoading_RendersLoadingState() {
         // Arrange
-        _hubConnection.StartAsync().Returns(Task.Delay(1000));
+        _hubConnection.StartAsync(Arg.Any<CancellationToken>()).Returns(Task.Delay(1000/*, Context.CancellationToken*/));
 
         // Act
         var cut = RenderComponent<ChatPage>();

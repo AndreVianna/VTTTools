@@ -29,7 +29,7 @@ public class AdventuresPageHandlerTests {
         _service.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>()).Returns(newAdventure);
 
         // Act
-        await handler.CreateAdventureAsync();
+        await handler.SaveCreatedAdventure();
 
         // Assert
         handler.State.Adventures.Should().HaveCount(3);
@@ -43,7 +43,7 @@ public class AdventuresPageHandlerTests {
         _service.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
-        await handler.DeleteAdventureAsync(adventureId);
+        await handler.DeleteAdventure(adventureId);
 
         // Assert
         handler.State.Adventures.Should().HaveCount(1);
@@ -64,7 +64,7 @@ public class AdventuresPageHandlerTests {
         _service.CloneAdventureAsync(adventureId, Arg.Any<CloneAdventureRequest>()).Returns(clonedAdventure);
 
         // Act
-        await handler.CloneAdventureAsync(adventureId);
+        await handler.CloneAdventure(adventureId);
 
         // Assert
         handler.State.Adventures.Should().BeEquivalentTo(adventuresAfterClone);
@@ -80,10 +80,10 @@ public class AdventuresPageHandlerTests {
         };
 
         // Act
-        handler.StartEdit(adventure);
+        handler.StartAdventureEditing(adventure);
 
         // Assert
-        handler.State.ShowEditDialog.Should().BeTrue();
+        handler.State.IsEditing.Should().BeTrue();
         handler.State.EditInput.Id.Should().Be(adventure.Id);
         handler.State.EditInput.Name.Should().Be(adventure.Name);
         handler.State.EditInput.Visibility.Should().Be(adventure.Visibility);
@@ -93,7 +93,7 @@ public class AdventuresPageHandlerTests {
     public async Task CancelEdit_ResetIsEditingFlag() {
         // Arrange
         var handler = await CreateInitializedHandler();
-        handler.State.ShowEditDialog = true;
+        handler.State.IsEditing = true;
         handler.State.EditInput = new() {
             Id = Guid.NewGuid(),
             Name = "Updated Adventure",
@@ -101,17 +101,17 @@ public class AdventuresPageHandlerTests {
         };
 
         // Act
-        handler.CancelEdit();
+        handler.EndAdventureEditing();
 
         // Assert
-        handler.State.ShowEditDialog.Should().BeFalse();
+        handler.State.IsEditing.Should().BeFalse();
     }
 
     [Fact]
     public async Task SaveEditAsync_WithValidInput_UpdatesAdventureAndReloadsAdventures() {
         // Arrange
         var handler = await CreateInitializedHandler();
-        handler.State.ShowEditDialog = true;
+        handler.State.IsEditing = true;
         var adventureId = Guid.NewGuid();
         var adventureBeforeEdit = new Adventure {
             Id = adventureId,
@@ -138,10 +138,10 @@ public class AdventuresPageHandlerTests {
             .Returns(Result.Success());
 
         // Act
-        await handler.SaveEditAsync();
+        await handler.SaveEditedAdventure();
 
         // Assert
-        handler.State.ShowEditDialog.Should().BeFalse();
+        handler.State.IsEditing.Should().BeFalse();
         handler.State.Adventures.Should().BeEquivalentTo(adventuresAfterEdit);
     }
 
@@ -149,7 +149,7 @@ public class AdventuresPageHandlerTests {
     public async Task SaveEditAsync_WithInvalidInput_ReturnsErrors() {
         // Arrange
         var handler = await CreateInitializedHandler();
-        handler.State.ShowEditDialog = true;
+        handler.State.IsEditing = true;
         var adventureId = Guid.NewGuid();
         var adventureBeforeEdit = new Adventure {
             Id = adventureId,
@@ -173,10 +173,10 @@ public class AdventuresPageHandlerTests {
             .Returns(Result.Failure("Some errors."));
 
         // Act
-        await handler.SaveEditAsync();
+        await handler.SaveEditedAdventure();
 
         // Assert
-        handler.State.ShowEditDialog.Should().BeTrue();
+        handler.State.IsEditing.Should().BeTrue();
         handler.State.EditInput.Errors.Should().NotBeEmpty();
         handler.State.EditInput.Errors[0].Message.Should().Be("Some errors.");
         handler.State.Adventures.Should().BeEquivalentTo(adventuresBeforeEdit);

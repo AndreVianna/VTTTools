@@ -5,6 +5,6 @@ internal class AdventuresPageState {
 
     internal AdventuresPageInputModel CreateInput { get; set; } = new();
 
-    internal bool ShowEditDialog { get; set; }
+    internal bool IsEditing { get; set; }
     internal AdventuresPageInputModel EditInput { get; set; } = new();
 }

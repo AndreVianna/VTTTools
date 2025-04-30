@@ -1,4 +1,4 @@
-@page "/adventures/{AdventureId:guid}/episodes"
+@page "/episodes/{EpisodeId:guid}/episodes"
 @inherits ExtendedComponent<EpisodesPageHandler>
 @rendermode InteractiveAuto
 
@@ -9,8 +9,11 @@
     <div class="col">
       <h1>Episodes</h1>
     </div>
+    <div class="col-auto">
+      <button class="btn btn-secondary ms-2" @onclick='() => NavigateTo("/episodes")'>Back to your Episodes</button>
+    </div>
   </div>
-@if (IsReady) {
+@if (!IsReady) {
   <div id="loading-message" class="d-flex justify-content-center">
     <div class="spinner-border" role="status">
       <span class="visually-hidden">Loading...</span>
@@ -18,56 +21,79 @@
   </div>
 }
 else {
-  <div class="mb-3">
-    <input class="form-control mb-1" placeholder="Name" @bind="CreateInput.Name"/>
-    <button class="btn btn-primary" @onclick="CreateEpisode">Create</button>
-    <button class="btn btn-secondary ms-2" @onclick='() => NavigateTo("/adventures")'>Back to Adventures</button>
-  </div>
-
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Subject</th>
-        <th>Visibility</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      @foreach (var ep in State.Episodes) {
-        <tr>
-          <td>@ep.Name</td>
-          <td>@ep.Visibility</td>
-          <td>
-            <button class="btn btn-secondary btn-sm me-1" @onclick="() => StartEdit(ep)">Edit</button>
-            <button class="btn btn-danger btn-sm me-1" @onclick="() => DeleteEpisode(ep.Id)">Delete</button>
-            <button class="btn btn-info btn-sm" @onclick="() => CloneEpisode(ep.Id)">Clone</button>
-          </td>
-        </tr>
-      }
-    </tbody>
+  <EditForm Model="CreateInput" FormName="create" id="episode-create-form" OnValidSubmit="CreateEpisode" method="post">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert" />
+    <div class="form-floating mb-3">
+      <InputText @bind-Value="CreateInput.Name" id="name-input" class="form-control mb-1" placeholder="Name" />
+      <label for="name-input" class="form-label">@nameof(Episode.Name)</label>
+      <ValidationMessage For="() => CreateInput.Name" class="text-danger" />
+    </div>
+    <button id="create-episode" type="submit" class="btn btn-primary">Create</button>
+  </EditForm>
+  @if (State.Episodes.Count == 0) {
+    <div id="no-items-message" class="alert alert-info">
+      You don't have any episodes yet. Create a new one to get started!
+    </div>
+  }
+  else {
+  <table id="episodes-table" class="table">
+  <thead>
+    <tr>
+      <th id="episodes-name-header">@nameof(Episode.Name)</th>
+      <th id="episodes-visibility-header">@nameof(Episode.Visibility)</th>
+      <th id="episodes-action-header">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+  @foreach (var episode in State.Episodes) {
+    <tr>
+      <td id="@($"episode-{episode.Id}-name")">@episode.Name</td>
+      <td id="@($"episode-{episode.Id}-visibility")">@episode.Visibility</td>
+      <td id="@($"episode-{episode.Id}-actions")">
+        <button id="@($"edit-episode-{episode.Id}")" class="btn btn-secondary btn-sm me-1" @onclick="() => StartEdit(episode)">Edit</button>
+        <button id="@($"delete-episode-{episode.Id}")" class="btn btn-danger btn-sm me-1" @onclick="() => DeleteEpisode(episode.Id)">Delete</button>
+        <button id="@($"clone-episode-{episode.Id}")" class="btn btn-info btn-sm" @onclick="() => CloneEpisode(episode.Id)">Clone</button>
+      </td>
+    </tr>
+  }
+  </tbody>
   </table>
+  }
 }
 
-@if (!IsReady && State.ShowEditDialog) {
-  <div class="modal show d-block" tabindex="-1">
+@if (IsReady && State.IsEditing) {
+  <div id="edit-episode-dialog" class="modal fade show" style="display: block;" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
+      <EditForm Model="EditInput" FormName="edit" id="edit-episode-form" OnValidSubmit="SaveEdit" method="post">
         <div class="modal-header">
           <h5 class="modal-title">Edit Episode</h5>
-          <button type="button" class="btn-close" @onclick="CancelEdit"></button>
+          <button id="edit-episode-dialog-close" episodeid="button" class="btn-close" @onclick="CancelEdit"></button>
         </div>
         <div class="modal-body">
-          <input class="form-control mb-1" @bind="EditInput.Name" />
-          <select class="form-select mb-1" @bind="EditInput.Visibility">
-            <option value="@Visibility.Hidden">Hidden</option>
-            <option value="@Visibility.Private">Private</option>
-            <option value="@Visibility.Public">Public</option>
-          </select>
+          <DataAnnotationsValidator />
+          <ValidationSummary class="text-danger" role="alert" />
+          <div class="form-floating mb-3">
+            <InputText @bind-Value="EditInput.Name" id="edit-episode-name-input" class="form-control mb-1" placeholder="Name" />
+            <label for="edit-episode-name-input" class="form-label">@nameof(Episode.Name)</label>
+            <ValidationMessage For="() => EditInput.Name" class="text-danger" />
+          </div>
+          <div class="form-floating mb-3">
+            <InputSelect @bind-Value="EditInput.Visibility" id="edit-episode-visibility-input" class="form-select mb-1">
+              <option value="@Visibility.Hidden">Hidden</option>
+              <option value="@Visibility.Private">Private</option>
+              <option value="@Visibility.Public">Public</option>
+            </InputSelect>
+            <label for="edit-episode-visibility-input" class="form-label">@nameof(Episode.Visibility)</label>
+            <ValidationMessage For="() => EditInput.Visibility" class="text-danger" />
+          </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
-          <button class="btn btn-primary" @onclick="SaveEdit">Save</button>
+          <button id="edit-episode-cancel"episodeid="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+          <button id="edit-episode-submit" episodeid="submit" class="btn btn-primary">Edit</button>
         </div>
+      </EditForm>
       </div>
     </div>
   </div>

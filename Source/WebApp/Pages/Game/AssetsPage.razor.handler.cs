@@ -10,7 +10,7 @@ public class AssetsPageHandler {
         State.Assets = [.. await _service.GetAssetsAsync()];
     }
 
-    public async Task CreateAssetAsync() {
+    public async Task SaveCreatedAsset() {
         var request = new CreateAssetRequest {
             Name = State.Input.Name,
             Source = State.Input.Source,
@@ -29,7 +29,7 @@ public class AssetsPageHandler {
         State.Assets.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase));
     }
 
-    public async Task DeleteAssetAsync(Guid id) {
+    public async Task DeleteAsset(Guid id) {
         var deleted = await _service.DeleteAssetAsync(id);
         if (!deleted)
             return;

@@ -15,5 +15,5 @@ public class Campaign {
     /// The visibility setting for this campaign.
     /// </summary>
     public Visibility Visibility { get; set; } = Visibility.Hidden;
-    public HashSet<Adventure> Adventures { get; set; } = [];
+    public List<Adventure> Adventures { get; set; } = [];
 }

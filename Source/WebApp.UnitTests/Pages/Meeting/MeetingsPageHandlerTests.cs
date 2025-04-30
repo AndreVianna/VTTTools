@@ -23,10 +23,10 @@ public class MeetingsPageHandlerTests {
         _service.GetAdventuresAsync().Returns(adventures);
 
         // Act
-        await handler.OpenCreateMeetingDialog();
+        await handler.StartMeetingCreating();
 
         // Assert
-        handler.State.ShowCreateDialog.Should().BeTrue();
+        handler.State.IsCreating.Should().BeTrue();
         handler.State.Input.Subject.Should().BeEmpty();
         handler.State.Input.AdventureId.Should().Be(adventures[0].Id);
         handler.State.Input.Episodes.Should().BeEmpty();
@@ -39,13 +39,13 @@ public class MeetingsPageHandlerTests {
     public async Task CloseCreateMeetingDialog_SetShowCreateDialogToFalse() {
         // Arrange
         var handler = await CreateInitializedHandler();
-        handler.State.ShowCreateDialog = true;
+        handler.State.IsCreating = true;
 
         // Act
-        handler.CloseCreateMeetingDialog();
+        handler.EndMeetingCreating();
 
         // Assert
-        handler.State.ShowCreateDialog.Should().BeFalse();
+        handler.State.IsCreating.Should().BeFalse();
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class MeetingsPageHandlerTests {
         // Arrange
         var handler = await CreateInitializedHandler();
         var episodeId = Guid.NewGuid();
-        handler.State.ShowCreateDialog = true;
+        handler.State.IsCreating = true;
         handler.State.Input.Subject = "New Meeting";
         handler.State.Input.EpisodeId = episodeId;
 
@@ -62,10 +62,10 @@ public class MeetingsPageHandlerTests {
         _service.CreateMeetingAsync(Arg.Any<CreateMeetingRequest>()).Returns(expectedMeeting);
 
         // Act
-        await handler.CreateMeeting();
+        await handler.SaveCreatedMeeting();
 
         // Assert
-        handler.State.ShowCreateDialog.Should().BeFalse();
+        handler.State.IsCreating.Should().BeFalse();
         handler.State.Meetings.Should().Contain(expectedMeeting);
     }
 
@@ -74,16 +74,16 @@ public class MeetingsPageHandlerTests {
         // Arrange
         var handler = await CreateInitializedHandler();
         var episodeId = Guid.NewGuid();
-        handler.State.ShowCreateDialog = true;
+        handler.State.IsCreating = true;
         handler.State.Input.Subject = string.Empty;
         handler.State.Input.EpisodeId = episodeId;
         _service.CreateMeetingAsync(Arg.Any<CreateMeetingRequest>()).Returns(Result.Failure("Some error."));
 
         // Act
-        await handler.CreateMeeting();
+        await handler.SaveCreatedMeeting();
 
         // Assert
-        handler.State.ShowCreateDialog.Should().BeTrue();
+        handler.State.IsCreating.Should().BeTrue();
         handler.State.Input.Errors.Should().NotBeEmpty();
         handler.State.Input.Errors[0].Message.Should().Be("Some error.");
     }

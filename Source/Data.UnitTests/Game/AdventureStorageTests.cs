@@ -1,65 +1,42 @@
 namespace VttTools.Data.Game;
 
-public class AdventureStorageTests : IDisposable {
-    private readonly ApplicationDbContext _context;
+public class AdventureStorageTests
+    : IDisposable {
     private readonly AdventureStorage _storage;
+    private readonly ApplicationDbContext _context;
+    private readonly CancellationToken _ct;
 
     public AdventureStorageTests() {
-        var dbName = $"AdventureTestDb_{Guid.NewGuid()}";
-        _context = DbContextHelper.CreateInMemoryContext(dbName);
+        _context = DbContextHelper.CreateInMemoryContext(Guid.NewGuid());
         _storage = new(_context);
+        _ct = TestContext.Current.CancellationToken;
     }
 
     public void Dispose() {
-        _context.Dispose();
+        DbContextHelper.Dispose(_context);
         GC.SuppressFinalize(this);
     }
 
     [Fact]
-    public async Task GetAllAsync_WithNoAdventures_ReturnsEmptyArray() {
-        // Arrange
-
+    public async Task GetAllAsync_ReturnsAllAdventures() {
         // Act
-        var result = await _storage.GetAllAsync(TestContext.Current.CancellationToken);
+        var result = await _storage.GetAllAsync(_ct);
 
         // Assert
-        result.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task GetAllAsync_WithAdventures_ReturnsAllAdventures() {
-        // Arrange
-        var adventure1 = DbContextHelper.CreateTestAdventure(name: "Adventure 1");
-        var adventure2 = DbContextHelper.CreateTestAdventure(name: "Adventure 2");
-
-        await _context.Adventures.AddRangeAsync([adventure1, adventure2], TestContext.Current.CancellationToken);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        // Act
-        var result = await _storage.GetAllAsync(TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Should().HaveCount(2);
+        result.Should().HaveCount(3);
         result.Should().Contain(a => a.Name == "Adventure 1");
         result.Should().Contain(a => a.Name == "Adventure 2");
+        result.Should().Contain(a => a.Name == "Adventure 3");
     }
 
     [Fact]
     public async Task GetByIdAsync_WithExistingId_ReturnsAdventure() {
-        // Arrange
-        var adventureId = Guid.NewGuid();
-        var adventure = DbContextHelper.CreateTestAdventure(id: adventureId, name: "Test Adventure");
-
-        await _context.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-
         // Act
-        var result = await _storage.GetByIdAsync(adventureId, TestContext.Current.CancellationToken);
+        var result = await _storage.GetByIdAsync(_context.Adventures.First().Id, _ct);
 
         // Assert
         result.Should().NotBeNull();
-        result.Id.Should().Be(adventureId);
-        result.Name.Should().Be("Test Adventure");
+        result.Id.Should().Be(_context.Adventures.First().Id);
     }
 
     [Fact]
@@ -68,7 +45,7 @@ public class AdventureStorageTests : IDisposable {
         var nonExistingId = Guid.NewGuid();
 
         // Act
-        var result = await _storage.GetByIdAsync(nonExistingId, TestContext.Current.CancellationToken);
+        var result = await _storage.GetByIdAsync(nonExistingId, _ct);
 
         // Assert
         result.Should().BeNull();
@@ -77,81 +54,61 @@ public class AdventureStorageTests : IDisposable {
     [Fact]
     public async Task AddAsync_WithValidAdventure_AddsToDatabase() {
         // Arrange
-        var adventure = DbContextHelper.CreateTestAdventure(name: "New Adventure");
+        var adventure = DbContextHelper.CreateTestAdventure("New Adventure");
 
         // Act
-        var result = await _storage.AddAsync(adventure, TestContext.Current.CancellationToken);
+        var result = await _storage.AddAsync(adventure, _ct);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Id.Should().Be(adventure.Id);
-
-        // Verify it's in the database
-        var dbAdventure = await _context.Adventures.FindAsync([adventure.Id], TestContext.Current.CancellationToken);
-        dbAdventure.Should().NotBeNull();
-        dbAdventure.Name.Should().Be("New Adventure");
+        result.Should().BeEquivalentTo(adventure);
+        var storedAdventure = await _context.Adventures.FindAsync([adventure.Id], _ct);
+        storedAdventure.Should().BeEquivalentTo(adventure);
     }
 
     [Fact]
     public async Task UpdateAsync_WithExistingAdventure_UpdatesInDatabase() {
         // Arrange
-        var adventure = DbContextHelper.CreateTestAdventure(name: "Original Name");
-
-        await _context.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        // Modify the adventure
+        var adventure = DbContextHelper.CreateTestAdventure("Adventure To Update");
+        await _context.Adventures.AddAsync(adventure, _ct);
+        await _context.SaveChangesAsync(_ct);
         adventure.Name = "Updated Name";
 
         // Act
-        var result = await _storage.UpdateAsync(adventure, TestContext.Current.CancellationToken);
+        var result = await _storage.UpdateAsync(adventure, _ct);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Name.Should().Be("Updated Name");
-
-        // Verify it's updated in the database
-        var dbAdventure = await _context.Adventures.FindAsync([adventure.Id], TestContext.Current.CancellationToken);
-        dbAdventure.Should().NotBeNull();
-        dbAdventure.Name.Should().Be("Updated Name");
+        result.Should().BeEquivalentTo(adventure);
+        var storedAdventure = await _context.Adventures.FindAsync([adventure.Id], _ct);
+        storedAdventure.Should().BeEquivalentTo(adventure);
     }
 
     [Fact]
     public async Task DeleteAsync_WithExistingAdventure_RemovesFromDatabase() {
         // Arrange
-        var adventure = DbContextHelper.CreateTestAdventure();
-
-        await _context.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var adventure = DbContextHelper.CreateTestAdventure("Adventure To Delete");
+        await _context.Adventures.AddAsync(adventure, _ct);
+        await _context.SaveChangesAsync(_ct);
 
         // Act
-        await _storage.DeleteAsync(adventure, TestContext.Current.CancellationToken);
+        await _storage.DeleteAsync(adventure.Id, _ct);
 
         // Assert
-        var dbAdventure = await _context.Adventures.FindAsync([adventure.Id], TestContext.Current.CancellationToken);
+        var dbAdventure = await _context.Adventures.FindAsync([adventure.Id], _ct);
         dbAdventure.Should().BeNull();
     }
 
     [Fact]
     public async Task GetByIdAsync_IncludesEpisodes_WhenAdventureHasEpisodes() {
         // Arrange
-        var adventureId = Guid.NewGuid();
-        var adventure = DbContextHelper.CreateTestAdventure(id: adventureId);
-
-        var episode1 = DbContextHelper.CreateTestEpisode(name: "Episode 1", parentId: adventureId);
-        var episode2 = DbContextHelper.CreateTestEpisode(name: "Episode 2", parentId: adventureId);
-
-        await _context.Adventures.AddAsync(adventure, TestContext.Current.CancellationToken);
-        await _context.Episodes.AddRangeAsync(episode1, episode2);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var adventureId = _context.Adventures.First().Id;
 
         // Act
-        var result = await _storage.GetByIdAsync(adventureId, TestContext.Current.CancellationToken);
+        var result = await _storage.GetByIdAsync(adventureId, _ct);
 
         // Assert
         result.Should().NotBeNull();
         result.Episodes.Should().HaveCount(2);
-        result.Episodes.Should().Contain(e => e.Name == "Episode 1");
-        result.Episodes.Should().Contain(e => e.Name == "Episode 2");
+        result.Episodes.Should().Contain(e => e.Name == "Episode 1.1");
+        result.Episodes.Should().Contain(e => e.Name == "Episode 1.2");
     }
 }

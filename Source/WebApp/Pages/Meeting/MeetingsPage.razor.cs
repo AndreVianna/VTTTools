@@ -15,13 +15,14 @@ public partial class MeetingsPage {
     internal void NavigateToMeeting(Guid meetingId)
         => NavigateTo($"/meeting/{meetingId}");
 
-    internal Task OpenCreateMeetingDialog()
-        => Handler.OpenCreateMeetingDialog();
-    internal void CloseCreateMeetingDialog()
-        => Handler.CloseCreateMeetingDialog();
+    internal Task ShowCreateDialog()
+        => Handler.StartMeetingCreating();
+
+    internal void HideCreateDialog()
+        => Handler.EndMeetingCreating();
 
     internal Task CreateMeeting()
-        => Handler.CreateMeeting();
+        => Handler.SaveCreatedMeeting();
 
     internal Task DeleteMeeting(Guid meetingId)
         => Handler.DeleteMeeting(meetingId);

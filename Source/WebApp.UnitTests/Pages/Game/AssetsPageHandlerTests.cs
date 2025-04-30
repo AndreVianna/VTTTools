@@ -29,7 +29,7 @@ public class AssetsPageHandlerTests {
         _service.CreateAssetAsync(Arg.Any<CreateAssetRequest>()).Returns(newAsset);
 
         // Act
-        await handler.CreateAssetAsync();
+        await handler.SaveCreatedAsset();
 
         // Assert
         handler.State.Assets.Should().HaveCount(3);
@@ -43,7 +43,7 @@ public class AssetsPageHandlerTests {
         _service.DeleteAssetAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
-        await handler.DeleteAssetAsync(assetId);
+        await handler.DeleteAsset(assetId);
 
         // Assert
         handler.State.Assets.Should().HaveCount(1);

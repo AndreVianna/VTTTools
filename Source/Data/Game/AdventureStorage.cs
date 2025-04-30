@@ -27,15 +27,19 @@ public class AdventureStorage(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
-    public async Task<Adventure> UpdateAsync(Adventure adventure, CancellationToken ct = default) {
+    public async Task<Adventure?> UpdateAsync(Adventure adventure, CancellationToken ct = default) {
         context.Adventures.Update(adventure);
-        await context.SaveChangesAsync(ct);
-        return adventure;
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0 ? adventure : null;
     }
 
     /// <inheritdoc />
-    public async Task DeleteAsync(Adventure adventure, CancellationToken ct = default) {
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default) {
+        var adventure = await context.Adventures.FindAsync([id], ct);
+        if (adventure == null)
+            return false;
         context.Adventures.Remove(adventure);
-        await context.SaveChangesAsync(ct);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
     }
 }

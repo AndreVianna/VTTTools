@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace VttTools.WebApp.TestUtilities;
 
 public class WebAppTestContext
@@ -8,6 +10,7 @@ public class WebAppTestContext
     private readonly FakeNavigationManager _navigationManager;
 
     public WebAppTestContext() {
+        //Context = Xunit.TestContext.Current;
         Options = new();
         var httpContext = Substitute.For<HttpContext>();
         Services.AddCascadingValue(_ => httpContext);
@@ -59,26 +62,31 @@ public class WebAppTestContext
     }
 
     public WebAppTestContextOptions Options { get; }
+    public CurrentUser? CurrentUser { get; private set; }
+    //protected ITestContext Context { get; }
 
+    [MemberNotNull(nameof(CurrentUser))]
     protected void UseDefaultUser() {
         Options.UseDefaultUser();
         SetAuthentication();
+        SetCurrentUser();
     }
 
+    [MemberNotNull(nameof(CurrentUser))]
     protected void UseDefaultAdministrator() {
         Options.UseDefaultUser(true);
         SetAuthentication();
+        SetCurrentUser();
     }
 
-    protected void SetCurrentUser(User user, bool isAdministrator = false) {
-        Options.SetCurrentUser(user, isAdministrator);
-        SetAuthentication();
-    }
-
-    protected void SetCurrentUser(Action<User> setup, bool isAdministrator = false) {
-        Options.SetCurrentUser(setup, isAdministrator);
-        SetAuthentication();
-    }
+    [MemberNotNull(nameof(CurrentUser))]
+    private void SetCurrentUser() => CurrentUser = new() {
+        Id = Options.CurrentUser!.Id,
+        DisplayName = Options.CurrentUser.DisplayName ?? Options.CurrentUser.Name,
+        Email = Options.CurrentUser.Email!,
+        IsAuthenticated = true,
+        IsAdministrator = Options.IsAdministrator,
+    };
 
     private void SetAuthentication() {
         var authResult = AuthorizationResult.Failed();

@@ -13,13 +13,6 @@ public interface IMeetingStorage {
     Task<Meeting?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
-    /// Retrieves all meetings
-    /// </summary>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Collection of all game meetings</returns>
-    Task<Meeting[]> GetAllAsync(CancellationToken ct = default);
-
-    /// <summary>
     /// Retrieves all meetings for a specific user
     /// </summary>
     /// <param name="userId">The user ID</param>
@@ -32,19 +25,19 @@ public interface IMeetingStorage {
     /// </summary>
     /// <param name="meeting">The meeting to add</param>
     /// <param name="ct">Cancellation token</param>
-    Task AddAsync(Meeting meeting, CancellationToken ct = default);
+    Task<Meeting> AddAsync(Meeting meeting, CancellationToken ct = default);
 
     /// <summary>
     /// Updates an existing meeting
     /// </summary>
     /// <param name="meeting">The meeting with updated data</param>
     /// <param name="ct">Cancellation token</param>
-    Task UpdateAsync(Meeting meeting, CancellationToken ct = default);
+    Task<Meeting?> UpdateAsync(Meeting meeting, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes a meeting
     /// </summary>
     /// <param name="id">The ID of the meeting to delete</param>
     /// <param name="ct">Cancellation token</param>
-    Task DeleteAsync(Guid id, CancellationToken ct = default);
+    Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 }

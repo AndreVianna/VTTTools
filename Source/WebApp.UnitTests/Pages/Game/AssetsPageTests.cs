@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Pages.Game;
 
-public class AssetsPageTests : WebAppTestContext {
+public class AssetsPageTests
+    : WebAppTestContext {
     private readonly IGameService _service = Substitute.For<IGameService>();
     private readonly Asset[] _defaultAssets = [
         new() {
@@ -25,7 +26,7 @@ public class AssetsPageTests : WebAppTestContext {
     [Fact]
     public void BeforeIsReady_RendersLoadingState() {
         // Arrange
-        _service.GetAssetsAsync().Returns(Task.Delay(1000).ContinueWith(_ => _defaultAssets));
+        _service.GetAssetsAsync().Returns(Task.Delay(1000/*, Context.CancellationToken*/).ContinueWith(_ => _defaultAssets));
 
         // Act
         var cut = RenderComponent<AssetsPage>();
@@ -36,7 +37,10 @@ public class AssetsPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void WhenIsReady_DoesNotRenderLoadingState() {
+    public void WhenIsReady_WithNoAssets_RendersAsEmpty() {
+        // Arrange
+        _service.GetAssetsAsync().Returns([]);
+
         // Act
         var cut = RenderComponent<AssetsPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
@@ -44,15 +48,18 @@ public class AssetsPageTests : WebAppTestContext {
         // Assert
         cut.Markup.Should().Contain("<h1>Assets</h1>");
         cut.Markup.Should().NotContain("""<span class="visually-hidden">Loading...</span>""");
+        cut.Markup.Should().Contain("You don't have any assets yet. Create a new one to get started!");
     }
 
     [Fact]
-    public void WhenStateHasAsset_RendersAssetsLists() {
+    public void WhenIsReady_RendersAssetList() {
         // Act
         var cut = RenderComponent<AssetsPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Assert
+        cut.Markup.Should().Contain("<h1>Assets</h1>");
+        cut.Markup.Should().NotContain("""<span class="visually-hidden">Loading...</span>""");
         var rows = cut.FindAll("#assets-table tr");
         rows.Count.Should().Be(3);
 
@@ -79,7 +86,7 @@ public class AssetsPageTests : WebAppTestContext {
     public void WhenClickCreate_CallsCreateAssetMethod() {
         // Arrange
         var newAsset = new Asset {
-            Name = "New Test Asset",
+            Name = "New Asset",
             Source = "https://example.com/new-asset",
             Type = AssetType.NPC,
         };

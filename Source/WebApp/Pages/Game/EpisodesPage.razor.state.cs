@@ -6,6 +6,6 @@ internal class EpisodesPageState {
 
     internal EpisodesPageInputModel CreateInput { get; set; } = new();
 
-    internal bool ShowEditDialog { get; set; }
+    internal bool IsEditing { get; set; }
     internal EpisodesPageInputModel EditInput { get; set; } = new();
 }

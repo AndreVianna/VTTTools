@@ -14,20 +14,20 @@ public partial class AdventuresPage {
     }
 
     internal Task CreateAdventure()
-        => Handler.CreateAdventureAsync();
+        => Handler.SaveCreatedAdventure();
 
-    internal void StartEdit(Adventure adv)
-        => Handler.StartEdit(adv);
+    internal void ShowEditDialog(Adventure adv)
+        => Handler.StartAdventureEditing(adv);
 
-    internal void CancelEdit()
-        => Handler.CancelEdit();
+    internal void HideEditDialog()
+        => Handler.EndAdventureEditing();
 
     internal Task SaveEdit()
-        => Handler.SaveEditAsync();
+        => Handler.SaveEditedAdventure();
 
     internal Task DeleteAdventure(Guid id)
-        => Handler.DeleteAdventureAsync(id);
+        => Handler.DeleteAdventure(id);
 
     internal Task CloneAdventure(Guid id)
-        => Handler.CloneAdventureAsync(id);
+        => Handler.CloneAdventure(id);
 }

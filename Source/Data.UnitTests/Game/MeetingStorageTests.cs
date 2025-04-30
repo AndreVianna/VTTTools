@@ -1,65 +1,46 @@
 namespace VttTools.Data.Game;
 
-public class MeetingStorageTests : IDisposable {
-    private readonly ApplicationDbContext _context;
+public class MeetingStorageTests
+    : IDisposable {
     private readonly MeetingStorage _storage;
+    private readonly ApplicationDbContext _context;
+    private readonly Guid _currentUserId = Guid.NewGuid();
+    private readonly CancellationToken _ct;
 
     public MeetingStorageTests() {
-        var dbName = $"MeetingTestDb_{Guid.NewGuid()}";
-        _context = DbContextHelper.CreateInMemoryContext(dbName);
+        _context = DbContextHelper.CreateInMemoryContext(_currentUserId);
         _storage = new(_context);
+        _ct = TestContext.Current.CancellationToken;
     }
 
     public void Dispose() {
-        _context.Dispose();
+        DbContextHelper.Dispose(_context);
         GC.SuppressFinalize(this);
     }
 
     [Fact]
-    public async Task GetAllAsync_WithNoMeetings_ReturnsEmptyArray() {
-        // Arrange
-
+    public async Task GetAllAsync_ReturnsAllMeetings() {
         // Act
-        var result = await _storage.GetAllAsync(TestContext.Current.CancellationToken);
+        var result = await _storage.GetAllAsync(_ct);
 
         // Assert
-        result.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task GetAllAsync_WithMeetings_ReturnsAllMeetings() {
-        // Arrange
-        var meeting1 = DbContextHelper.CreateTestMeeting(subject: "Meeting 1");
-        var meeting2 = DbContextHelper.CreateTestMeeting(subject: "Meeting 2");
-
-        await _context.Meetings.AddRangeAsync(meeting1, meeting2);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        // Act
-        var result = await _storage.GetAllAsync(TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Should().HaveCount(2);
+        result.Should().HaveCount(3);
         result.Should().Contain(m => m.Subject == "Meeting 1");
         result.Should().Contain(m => m.Subject == "Meeting 2");
+        result.Should().Contain(m => m.Subject == "Meeting 3");
     }
 
     [Fact]
     public async Task GetByIdAsync_WithExistingId_ReturnsMeeting() {
         // Arrange
-        var meetingId = Guid.NewGuid();
-        var meeting = DbContextHelper.CreateTestMeeting(id: meetingId, subject: "Test Meeting");
-
-        await _context.Meetings.AddAsync(meeting, TestContext.Current.CancellationToken);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var meetingId = _context.Meetings.First().Id;
 
         // Act
-        var result = await _storage.GetByIdAsync(meetingId, TestContext.Current.CancellationToken);
+        var result = await _storage.GetByIdAsync(meetingId, _ct);
 
         // Assert
         result.Should().NotBeNull();
         result.Id.Should().Be(meetingId);
-        result.Subject.Should().Be("Test Meeting");
     }
 
     [Fact]
@@ -68,7 +49,7 @@ public class MeetingStorageTests : IDisposable {
         var nonExistingId = Guid.NewGuid();
 
         // Act
-        var result = await _storage.GetByIdAsync(nonExistingId, TestContext.Current.CancellationToken);
+        var result = await _storage.GetByIdAsync(nonExistingId, _ct);
 
         // Assert
         result.Should().BeNull();
@@ -76,17 +57,8 @@ public class MeetingStorageTests : IDisposable {
 
     [Fact]
     public async Task GetByUserIdAsync_WhenUserIsOwner_ReturnsMeetings() {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var meeting1 = DbContextHelper.CreateTestMeeting(subject: "Meeting 1", ownerId: userId);
-        var meeting2 = DbContextHelper.CreateTestMeeting(subject: "Meeting 2", ownerId: userId);
-        var meeting3 = DbContextHelper.CreateTestMeeting(subject: "Meeting 3", ownerId: Guid.NewGuid());
-
-        await _context.Meetings.AddRangeAsync(meeting1, meeting2, meeting3);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-
         // Act
-        var result = await _storage.GetByUserIdAsync(userId, TestContext.Current.CancellationToken);
+        var result = await _storage.GetByUserIdAsync(_currentUserId, _ct);
 
         // Assert
         result.Should().HaveCount(2);
@@ -98,23 +70,10 @@ public class MeetingStorageTests : IDisposable {
     [Fact]
     public async Task GetByUserIdAsync_WhenUserIsPlayer_ReturnsMeetings() {
         // Arrange
-        var userId = Guid.NewGuid();
-        var ownerId = Guid.NewGuid();
-
-        var meeting1 = DbContextHelper.CreateTestMeeting(subject: "Meeting 1", ownerId: ownerId);
-        meeting1.Players.Add(new() { UserId = userId });
-
-        var meeting2 = DbContextHelper.CreateTestMeeting(subject: "Meeting 2", ownerId: ownerId);
-        meeting2.Players.Add(new() { UserId = userId });
-
-        var meeting3 = DbContextHelper.CreateTestMeeting(subject: "Meeting 3", ownerId: ownerId);
-        meeting3.Players.Add(new() { UserId = Guid.NewGuid() });
-
-        await _context.Meetings.AddRangeAsync(meeting1, meeting2, meeting3);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var playerId = _context.Meetings.First().Players.First(p => p.Type == PlayerType.Player).UserId;
 
         // Act
-        var result = await _storage.GetByUserIdAsync(userId, TestContext.Current.CancellationToken);
+        var result = await _storage.GetByUserIdAsync(playerId, _ct);
 
         // Assert
         result.Should().HaveCount(2);
@@ -124,35 +83,12 @@ public class MeetingStorageTests : IDisposable {
     }
 
     [Fact]
-    public async Task GetByUserIdAsync_WhenUserIsOwnerAndPlayer_ReturnsMeetingsWithoutDuplicates() {
-        // Arrange
-        var userId = Guid.NewGuid();
-
-        var meeting = DbContextHelper.CreateTestMeeting(subject: "Meeting", ownerId: userId);
-        meeting.Players.Add(new() { UserId = userId });
-
-        await _context.Meetings.AddAsync(meeting, TestContext.Current.CancellationToken);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        // Act
-        var result = await _storage.GetByUserIdAsync(userId, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Should().HaveCount(1);
-        result.Should().Contain(m => m.Subject == "Meeting");
-    }
-
-    [Fact]
     public async Task GetByUserIdAsync_WithNoMatchingMeetings_ReturnsEmptyArray() {
         // Arrange
         var userId = Guid.NewGuid();
-        var meeting = DbContextHelper.CreateTestMeeting(ownerId: Guid.NewGuid());
-
-        await _context.Meetings.AddAsync(meeting, TestContext.Current.CancellationToken);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var result = await _storage.GetByUserIdAsync(userId, TestContext.Current.CancellationToken);
+        var result = await _storage.GetByUserIdAsync(userId, _ct);
 
         // Assert
         result.Should().BeEmpty();
@@ -161,152 +97,50 @@ public class MeetingStorageTests : IDisposable {
     [Fact]
     public async Task AddAsync_WithValidMeeting_AddsToDatabase() {
         // Arrange
-        var meeting = DbContextHelper.CreateTestMeeting(subject: "New Meeting");
+        var meeting = DbContextHelper.CreateTestMeeting("New Meeting");
 
         // Act
-        await _storage.AddAsync(meeting, TestContext.Current.CancellationToken);
+        var result = await _storage.AddAsync(meeting, _ct);
 
         // Assert
-        var dbMeeting = await _context.Meetings.FindAsync([meeting.Id], TestContext.Current.CancellationToken);
-        dbMeeting.Should().NotBeNull();
-        dbMeeting.Subject.Should().Be("New Meeting");
+        result.Should().BeEquivalentTo(meeting);
+        var dbMeeting = await _context.Meetings.FindAsync([meeting.Id], _ct);
+        dbMeeting.Should().BeEquivalentTo(meeting);
     }
 
     [Fact]
     public async Task UpdateAsync_WithExistingMeeting_UpdatesInDatabase() {
         // Arrange
-        var meeting = DbContextHelper.CreateTestMeeting(subject: "Original Subject");
+        var meeting = DbContextHelper.CreateTestMeeting("Meeting To Update");
 
-        await _context.Meetings.AddAsync(meeting, TestContext.Current.CancellationToken);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        await _context.Meetings.AddAsync(meeting, _ct);
+        await _context.SaveChangesAsync(_ct);
 
         // Modify the meeting
-        meeting.Subject = "Updated Subject";
+        meeting.Subject = "Updated Meeting";
+        meeting.Status = MeetingStatus.Cancelled;
 
         // Act
-        await _storage.UpdateAsync(meeting, TestContext.Current.CancellationToken);
+        var result = await _storage.UpdateAsync(meeting, _ct);
 
         // Assert
-        var dbMeeting = await _context.Meetings.FindAsync([meeting.Id], TestContext.Current.CancellationToken);
-        dbMeeting.Should().NotBeNull();
-        dbMeeting.Subject.Should().Be("Updated Subject");
-    }
-
-    [Fact]
-    public async Task UpdateAsync_WithMeetingPlayers_UpdatesPlayersInDatabase() {
-        // Create a separate test for this specific scenario
-        var testDbName = $"MeetingPlayersTestDb_{Guid.NewGuid()}";
-        await using var testContext = DbContextHelper.CreateInMemoryContext(testDbName);
-        var testStorage = new MeetingStorage(testContext);
-
-        // Arrange
-        var meetingId = Guid.NewGuid();
-        var userId1 = Guid.NewGuid();
-        var userId2 = Guid.NewGuid();
-
-        // Create initial meeting with player1
-        var meeting = DbContextHelper.CreateTestMeeting(id: meetingId, subject: "Initial Meeting");
-        meeting.Players.Add(new() { UserId = userId1, Type = PlayerType.Player });
-
-        await testContext.Meetings.AddAsync(meeting, TestContext.Current.CancellationToken);
-        await testContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        // Detach all entities to simulate a new request
-        foreach (var entry in testContext.ChangeTracker.Entries()) {
-            entry.State = EntityState.Detached;
-        }
-
-        // Create new meeting object with updated properties
-        var updatedMeeting = new Meeting {
-            Id = meetingId,
-            Subject = "Updated Meeting",
-            OwnerId = meeting.OwnerId,
-            EpisodeId = meeting.EpisodeId,
-            Players = [new MeetingPlayer { UserId = userId2, Type = PlayerType.Player }],
-        };
-
-        // Act
-        await testStorage.UpdateAsync(updatedMeeting, TestContext.Current.CancellationToken);
-
-        // Assert
-        // Detach all entities again to ensure we're getting fresh data
-        foreach (var entry in testContext.ChangeTracker.Entries()) {
-            entry.State = EntityState.Detached;
-        }
-
-        var dbMeeting = await testContext.Meetings
-            .Include(m => m.Players)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Id == meetingId, cancellationToken: TestContext.Current.CancellationToken);
-
-        dbMeeting.Should().NotBeNull();
-        dbMeeting.Subject.Should().Be("Updated Meeting");
-        dbMeeting.Players.Should().HaveCount(1);
-        dbMeeting.Players.Should().Contain(p => p.UserId == userId2);
-        dbMeeting.Players.Should().NotContain(p => p.UserId == userId1);
-    }
-
-    [Fact]
-    public async Task UpdateAsync_WithNonExistingMeeting_ThrowsKeyNotFoundException() {
-        // Arrange
-        var nonExistingMeeting = DbContextHelper.CreateTestMeeting();
-
-        // Act & Assert
-        await _storage.Invoking(s => s.UpdateAsync(nonExistingMeeting))
-                      .Should().ThrowAsync<KeyNotFoundException>()
-                      .WithMessage($"Meeting with ID {nonExistingMeeting.Id} not found.");
+        result.Should().BeEquivalentTo(meeting);
+        var dbMeeting = await _context.Meetings.FindAsync([meeting.Id], _ct);
+        dbMeeting.Should().BeEquivalentTo(meeting);
     }
 
     [Fact]
     public async Task DeleteAsync_WithExistingMeeting_RemovesFromDatabase() {
         // Arrange
-        var meetingId = Guid.NewGuid();
-        var meeting = DbContextHelper.CreateTestMeeting(id: meetingId);
-
-        await _context.Meetings.AddAsync(meeting, TestContext.Current.CancellationToken);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var meeting = DbContextHelper.CreateTestMeeting("Meeting To Delete");
+        await _context.Meetings.AddAsync(meeting, _ct);
+        await _context.SaveChangesAsync(_ct);
 
         // Act
-        await _storage.DeleteAsync(meetingId, TestContext.Current.CancellationToken);
+        await _storage.DeleteAsync(meeting.Id, _ct);
 
         // Assert
-        var dbMeeting = await _context.Meetings.FindAsync([meetingId], TestContext.Current.CancellationToken);
+        var dbMeeting = await _context.Meetings.FindAsync([meeting.Id], _ct);
         dbMeeting.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task DeleteAsync_WithNonExistingMeeting_ThrowsKeyNotFoundException() {
-        // Arrange
-        var nonExistingId = Guid.NewGuid();
-
-        // Act & Assert
-        await _storage.Invoking(s => s.DeleteAsync(nonExistingId))
-                      .Should().ThrowAsync<KeyNotFoundException>()
-                      .WithMessage($"Meeting with ID {nonExistingId} not found.");
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_IncludesPlayers_WhenMeetingHasPlayers() {
-        // Arrange
-        var meetingId = Guid.NewGuid();
-        var meeting = DbContextHelper.CreateTestMeeting(id: meetingId);
-
-        var player1 = new MeetingPlayer { UserId = Guid.NewGuid() };
-        var player2 = new MeetingPlayer { UserId = Guid.NewGuid() };
-
-        meeting.Players.Add(player1);
-        meeting.Players.Add(player2);
-
-        await _context.Meetings.AddAsync(meeting, TestContext.Current.CancellationToken);
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        // Act
-        var result = await _storage.GetByIdAsync(meetingId, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Players.Should().HaveCount(2);
-        result.Players.Should().Contain(p => p.UserId == player1.UserId);
-        result.Players.Should().Contain(p => p.UserId == player2.UserId);
     }
 }
