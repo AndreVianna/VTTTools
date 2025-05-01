@@ -1,8 +1,6 @@
 ﻿namespace VttTools.WebApp.Pages.Account;
 
 public partial class LoginPage {
-    private string? _errorMessage;
-
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = null!;
 
@@ -15,61 +13,19 @@ public partial class LoginPage {
     [Inject]
     private ILogger<LoginPage> Logger { get; set; } = null!;
 
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
-
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private bool HasExternalLoginProviders { get; set; }
+    internal LoginPageHandler Handler { get; } = new();
 
-    protected override async Task OnInitializedAsync() {
-        if (!HttpMethods.IsGet(HttpContext.Request.Method))
-            return;
-        await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-        var externalLogins = await SignInManager.GetExternalAuthenticationSchemesAsync();
-        HasExternalLoginProviders = externalLogins.Any();
-    }
+    internal LoginPageState State => Handler.State;
 
-    public async Task LoginUser() {
-        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
-        if (result.Succeeded) {
-            var user = await UserManager.FindByEmailAsync(Input.Email);
-            var principal = await SignInManager.ClaimsFactory.CreateAsync(user!);
-            await HttpContext.SignInAsync(IdentityConstants.ExternalScheme, principal);
-            Logger.LogInformation("User logged in.");
-            NavigationManager.RedirectTo(ReturnUrl);
-            return;
-        }
+    protected override async Task OnInitializedAsync() => await Handler.InitializeAsync(
+                                                                                        HttpContext,
+                                                                                        UserManager,
+                                                                                        SignInManager,
+                                                                                        NavigationManager,
+                                                                                        Logger);
 
-        if (result.RequiresTwoFactor) {
-            var queryParameters = new Dictionary<string, object?> {
-                ["returnUrl"] = ReturnUrl,
-                ["rememberMe"] = Input.RememberMe,
-            };
-            NavigationManager.RedirectTo("account/login_with_2fa", queryParameters);
-            return;
-        }
-
-        if (result.IsLockedOut) {
-            Logger.LogWarning("User account locked out.");
-            NavigationManager.RedirectTo("account/lockout");
-            return;
-        }
-
-        _errorMessage = "Error: Invalid login attempt.";
-    }
-
-    private sealed class InputModel {
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = "";
-
-        [Required]
-        [DataType(DataType.Password)]
-        public string Password { get; set; } = "";
-
-        [Display(Name = "Remember me?")]
-        public bool RememberMe { get; set; }
-    }
+    public async Task LoginUser() => await Handler.LoginUserAsync(ReturnUrl);
 }

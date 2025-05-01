@@ -6,25 +6,25 @@
 <div class="row">
   <div class="col-lg-6">
   <section>
-    <StatusMessageComponent Message="@_errorMessage" />
-    <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+    <StatusMessageComponent Message="@State.ErrorMessage" />
+    <EditForm Model="State.Input" method="post" OnValidSubmit="LoginUser" FormName="login">
     <DataAnnotationsValidator />
     <h2>Use a local account to log in.</h2>
     <hr />
     <ValidationSummary class="text-danger" role="alert" />
     <div class="form-floating mb-3">
-      <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+      <InputText @bind-Value="State.Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
       <label for="Input.Email" class="form-label">Email</label>
-      <ValidationMessage For="() => Input.Email" class="text-danger" />
+      <ValidationMessage For="() => State.Input.Email" class="text-danger" />
     </div>
     <div class="form-floating mb-3">
-      <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
+      <InputText type="password" @bind-Value="State.Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
       <label for="Input.Password" class="form-label">Password</label>
-      <ValidationMessage For="() => Input.Password" class="text-danger" />
+      <ValidationMessage For="() => State.Input.Password" class="text-danger" />
     </div>
     <div class="checkbox mb-3">
       <label class="form-label">
-      <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
+      <InputCheckbox @bind-Value="State.Input.RememberMe" class="darker-border-checkbox form-check-input" />
       Remember me
       </label>
     </div>
@@ -45,7 +45,7 @@
     </EditForm>
   </section>
   </div>
-  @if (HasExternalLoginProviders) {
+  @if (State.HasExternalLoginProviders) {
   <div class="col-lg-4 col-lg-offset-2">
     <section>
     <h3>Use another service to log in.</h3>
