@@ -24,7 +24,7 @@ public class EpisodesPageTests : WebAppTestContext {
     [Fact]
     public void BeforeIsReady_RendersLoadingState() {
         // Arrange
-        _service.GetEpisodesAsync(Arg.Any<Guid>()).Returns(Task.Delay(1000, Context.CancellationToken).ContinueWith(_ => _defaultEpisodes));
+        _service.GetEpisodesAsync(Arg.Any<Guid>()).Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultEpisodes));
 
         // Act
         var cut = RenderComponent<EpisodesPage>();

@@ -10,16 +10,13 @@ public partial class MeetingDetailsPage {
     internal MeetingDetailsPageState State => Handler.State;
     internal MeetingDetailsPageInputModel Input => Handler.State.Input;
 
-    protected override async Task OnParametersSetAsync() {
-        if (!await Handler.TryInitializeAsync(MeetingId, CurrentUser.Id, GameService)) {
+    protected override async Task ConfigureComponentAsync() {
+        if (!await Handler.TryInitializeAsync(MeetingId, CurrentUser.Id, GameService))
             NavigateToMeetings();
-            return;
-        }
-        await base.OnParametersSetAsync();
     }
 
     internal void NavigateToMeetings()
-        => NavigateTo("/meetings");
+        => RedirectTo("/meetings");
 
     internal void OpenEditMeetingDialog()
         => Handler.OpenEditMeetingDialog();
@@ -33,6 +30,6 @@ public partial class MeetingDetailsPage {
     internal async Task StartMeeting() {
         if (!await Handler.TryStartMeeting())
             return;
-        NavigateTo($"/game/{State.Meeting.Id}");
+        RedirectTo($"/game/{State.Meeting.Id}");
     }
 }

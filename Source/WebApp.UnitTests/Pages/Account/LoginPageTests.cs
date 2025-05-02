@@ -138,8 +138,8 @@ public class LoginPageTests : WebAppTestContext {
         // Arrange
         _httpContext.Request.Method.Returns("GET");
         _signInManager.GetExternalAuthenticationSchemesAsync().Returns([]);
-        var navigationManager = Services.GetRequiredService<NavigationManager>() as FakeNavigationManager;
         var cut = RenderComponent<LoginPage>();
+        var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
 
         // Fill in form values
         cut.Find("#Input\\.Email").Change("locked@example.com");
@@ -157,7 +157,7 @@ public class LoginPageTests : WebAppTestContext {
         cut.Find("form").Submit();
 
         // Assert
-        navigationManager!.History.Should().ContainSingle(x => x.Uri == "account/lockout");
+        navigationSpy.History.Should().ContainSingle(x => x.Uri == "account/lockout");
     }
 
     [Fact]
@@ -165,8 +165,8 @@ public class LoginPageTests : WebAppTestContext {
         // Arrange
         _httpContext.Request.Method.Returns("GET");
         _signInManager.GetExternalAuthenticationSchemesAsync().Returns([]);
-        var navigationManager = Services.GetRequiredService<NavigationManager>() as FakeNavigationManager;
         var cut = RenderComponent<LoginPage>();
+        var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
 
         // Fill in form values
         cut.Find("#Input\\.Email").Change("2fa@example.com");
@@ -184,6 +184,6 @@ public class LoginPageTests : WebAppTestContext {
         cut.Find("form").Submit();
 
         // Assert
-        navigationManager!.History.Should().ContainSingle(x => x.Uri == "/account/login_with_2fa");
+        navigationSpy.History.Should().ContainSingle(x => x.Uri == "/account/login_with_2fa");
     }
 }

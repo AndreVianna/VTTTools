@@ -10,6 +10,7 @@
     <RootNamespace>VttTools.GameService</RootNamespace>
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <Configurations>Debug;Release;XUnitV3</Configurations>
   </PropertyGroup>
 
 

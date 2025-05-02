@@ -45,7 +45,7 @@ public partial class DeletePersonalDataPage {
         var userId = await UserManager.GetUserIdAsync(_user);
         Logger.LogInformation("User with ID '{UserId}' deleted themselves.", userId);
 
-        NavigationManager.ReloadPage();
+        NavigationManager.Reload();
     }
 
     private sealed class InputModel {

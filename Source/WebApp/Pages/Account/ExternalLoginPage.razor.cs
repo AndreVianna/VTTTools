@@ -119,12 +119,8 @@ public partial class ExternalLoginPage {
                 await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
                 // If account confirmation is required, we need to show the link if we don't have a real email sender
-                if (UserManager.Options.SignIn.RequireConfirmedAccount) {
-                    var queryParameters = new Dictionary<string, object?> {
-                        ["email"] = Input.Email,
-                    };
-                    NavigationManager.RedirectTo("account/register_confirmation", queryParameters);
-                }
+                if (UserManager.Options.SignIn.RequireConfirmedAccount)
+                    NavigationManager.RedirectTo("account/register_confirmation", ps => ps.Add("email", Input.Email));
 
                 await SignInManager.SignInAsync(user, isPersistent: false, _externalLoginInfo.LoginProvider);
                 NavigationManager.RedirectTo(ReturnUrl);

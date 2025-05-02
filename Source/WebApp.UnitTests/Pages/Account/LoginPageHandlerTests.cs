@@ -165,6 +165,6 @@ public class LoginPageHandlerTests {
 
         // Assert
         result.Should().BeTrue();
-        _navigationManager.Received(1).RedirectTo("account/login_with_2fa", Arg.Any<Dictionary<string, object?>>());
+        _navigationManager.Received(1).RedirectTo("account/login_with_2fa", Arg.Any<Action<IDictionary<string, object?>>?>());
     }
 }

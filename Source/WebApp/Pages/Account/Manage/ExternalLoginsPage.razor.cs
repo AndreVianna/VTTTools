@@ -56,13 +56,13 @@ public partial class ExternalLoginsPage {
         if (!result.Succeeded) {
             Logger.LogWarning("Failed to remove the {LoginProvider} external login for user with ID {UserId}.", LoginProvider, _user.Id);
             HttpContext.SetStatusMessage("Error: The external login was not removed.");
-            NavigationManager.ReloadPage();
+            NavigationManager.Reload();
         }
 
         await SignInManager.RefreshSignInAsync(_user);
         Logger.LogInformation("The {LoginProvider} external login was removed for user with ID {UserId}.", LoginProvider, _user.Id);
         HttpContext.SetStatusMessage("The external login was removed.");
-        NavigationManager.ReloadPage();
+        NavigationManager.Reload();
     }
 
     private async Task OnGetLinkLoginCallbackAsync() {
@@ -71,14 +71,16 @@ public partial class ExternalLoginsPage {
         if (info is null) {
             Logger.LogWarning("The {LoginProvider} external login was not found.", LoginProvider);
             HttpContext.SetStatusMessage("Error: Could not load external login info.");
-            NavigationManager.ReloadPage();
+            NavigationManager.Reload();
+            return;
         }
 
         var result = await UserManager.AddLoginAsync(_user, info);
         if (!result.Succeeded) {
             Logger.LogWarning("Failed to add the {LoginProvider} external login for user with ID {UserId}.", LoginProvider, _user.Id);
             HttpContext.SetStatusMessage("Error: The external login was not added. External logins can only be associated with one account.");
-            NavigationManager.ReloadPage();
+            NavigationManager.Reload();
+            return;
         }
 
         // Clear the existing external cookie to ensure a clean login process
@@ -86,6 +88,6 @@ public partial class ExternalLoginsPage {
 
         Logger.LogInformation("The {LoginProvider} external login was add for user with ID {UserId}.", LoginProvider, _user.Id);
         HttpContext.SetStatusMessage("The external login was added.");
-        NavigationManager.ReloadPage();
+        NavigationManager.Reload();
     }
 }

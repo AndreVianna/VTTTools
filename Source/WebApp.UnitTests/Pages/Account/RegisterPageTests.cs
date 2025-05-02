@@ -82,8 +82,8 @@ public class RegisterPageTests : WebAppTestContext {
     [Fact]
     public void SubmittingForm_WhenCreateSucceeds_RedirectsUser() {
         // Arrange
-        var navigationManager = Services.GetRequiredService<NavigationManager>() as FakeNavigationManager;
         var cut = RenderComponent<RegisterPage>();
+        var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
 
         // Fill in the form
         cut.Find("#Input\\.Name").Change("Test User");
@@ -114,7 +114,7 @@ public class RegisterPageTests : WebAppTestContext {
         _signInManager.Received(1).SignInAsync(Arg.Any<User>(), Arg.Is<bool>(b => !b), Arg.Any<string>());
         _emailSender.Received(1).SendConfirmationLinkAsync(Arg.Any<User>(), Arg.Is<string>(s => s == "test@example.com"), Arg.Any<string>());
 
-        navigationManager!.History.Should().ContainSingle(x => x.Uri == "/");
+        navigationSpy.History.Should().ContainSingle(x => x.Uri == "/");
     }
 
     [Fact]
@@ -143,8 +143,8 @@ public class RegisterPageTests : WebAppTestContext {
     [Fact]
     public void SubmittingForm_WhenRequireConfirmedAccount_RedirectsToConfirmationPage() {
         // Arrange
-        var navigationManager = Services.GetRequiredService<NavigationManager>() as FakeNavigationManager;
         var cut = RenderComponent<RegisterPage>();
+        var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
 
         // Fill in the form
         cut.Find("#Input\\.Name").Change("Test User");
@@ -170,6 +170,6 @@ public class RegisterPageTests : WebAppTestContext {
 
         // Assert
         _signInManager.DidNotReceive().SignInAsync(Arg.Any<User>(), Arg.Any<bool>(), Arg.Any<string>());
-        navigationManager!.History.Should().ContainSingle(x => x.Uri == "/account/register_confirmation");
+        navigationSpy.History.Should().ContainSingle(x => x.Uri == "/account/register_confirmation");
     }
 }

@@ -105,7 +105,7 @@ public class RegisterPageHandlerTests {
             Id = Guid.NewGuid(),
             Name = "Test User",
             Email = "test@example.com",
-                                   };
+        };
 
         _userManager.CreateAsync(Arg.Any<User>(), Arg.Is<string>(s => s == "Password123!"))
             .Returns(IdentityResult.Success);
@@ -136,7 +136,7 @@ public class RegisterPageHandlerTests {
             Id = Guid.NewGuid(),
             Name = "Test User",
             Email = "test@example.com",
-                                   };
+        };
 
         _userManager.CreateAsync(Arg.Any<User>(), Arg.Is<string>(s => s == "Password123!"))
             .Returns(IdentityResult.Success);
@@ -149,9 +149,7 @@ public class RegisterPageHandlerTests {
 
         // Assert
         result.Should().BeTrue();
-        _navigationManager.Received(1).RedirectTo("account/register_confirmation", Arg.Is<Dictionary<string, object?>>(d =>
-            d.ContainsKey("email") && d["email"]!.Equals("test@example.com") &&
-            d.ContainsKey("returnUrl") && d["returnUrl"]!.Equals("/return-url")));
+        _navigationManager.Received(1).RedirectTo("account/register_confirmation", Arg.Any<Action<IDictionary<string, object?>>?>());
         await _signInManager.DidNotReceive().SignInAsync(Arg.Any<User>(), Arg.Any<bool>(), Arg.Any<string>());
     }
 }

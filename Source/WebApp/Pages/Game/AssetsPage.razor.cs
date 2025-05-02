@@ -7,10 +7,8 @@ public partial class AssetsPage {
     internal AssetsPageState State => Handler.State;
     internal AssetsPageInputModel Input => Handler.State.Input;
 
-    protected override async Task OnParametersSetAsync() {
-        await Handler.InitializeAsync(GameService);
-        await base.OnParametersSetAsync();
-    }
+    protected override Task ConfigureComponentAsync()
+        => Handler.InitializeAsync(GameService);
 
     internal async Task CreateAsset() {
         await Handler.SaveCreatedAsset();

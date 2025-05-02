@@ -53,7 +53,7 @@ public class ChangePasswordPageHandlerTests {
     [Fact]
     public async Task TryInitializeAsync_WhenUserHasPassword_SetsStateAndReturnsTrue() {
         // Act
-        var result = await _handler.TryInitializeAsync(
+        var result = await _handler.InitializeAsync(
             _httpContext,
             _userManager,
             _navigationManager,
@@ -73,7 +73,7 @@ public class ChangePasswordPageHandlerTests {
         _userManager.HasPasswordAsync(_defaultUser).Returns(false);
 
         // Act
-        var result = await _handler.TryInitializeAsync(
+        var result = await _handler.InitializeAsync(
             _httpContext,
             _userManager,
             _navigationManager,
@@ -93,7 +93,7 @@ public class ChangePasswordPageHandlerTests {
             .Returns(Result.Failure("User not found"));
 
         // Act
-        var result = await _handler.TryInitializeAsync(
+        var result = await _handler.InitializeAsync(
             _httpContext,
             _userManager,
             _navigationManager,
@@ -108,7 +108,7 @@ public class ChangePasswordPageHandlerTests {
     [Fact]
     public async Task ChangePasswordAsync_WithSuccessfulChange_RefreshesSignIn() {
         // Arrange
-        await _handler.TryInitializeAsync(
+        await _handler.InitializeAsync(
             _httpContext,
             _userManager,
             _navigationManager,
@@ -139,7 +139,7 @@ public class ChangePasswordPageHandlerTests {
     [Fact]
     public async Task ChangePasswordAsync_WithFailure_SetsErrorMessage() {
         // Arrange
-        await _handler.TryInitializeAsync(
+        await _handler.InitializeAsync(
             _httpContext,
             _userManager,
             _navigationManager,

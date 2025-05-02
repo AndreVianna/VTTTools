@@ -3,12 +3,9 @@ namespace VttTools.WebApp.TestUtilities;
 public class WebAppTestContext
     : Bunit.TestContext {
     private readonly IAuthorizationService _authService;
-    private readonly UserManager<User> _userManager;
     private readonly List<ClaimsIdentity> _identities = [];
-    private readonly FakeNavigationManager _navigationManager;
 
     public WebAppTestContext() {
-        Context = Xunit.TestContext.Current;
         Options = new();
         var httpContext = Substitute.For<HttpContext>();
         Services.AddCascadingValue(_ => httpContext);
@@ -17,13 +14,14 @@ public class WebAppTestContext
         var authenticationState = new AuthenticationState(principal);
         Services.AddCascadingValue(_ => Task.FromResult(authenticationState));
 
-        var authorizationPolicyProvider = Substitute.For<IAuthorizationPolicyProvider>();
         var requirement = Substitute.For<IAuthorizationRequirement>();
         var requirements = new List<IAuthorizationRequirement> { requirement };
         const string defaultSchemeName = "Default";
         var schemes = new List<string> { defaultSchemeName };
         var policy = new AuthorizationPolicy(requirements, schemes);
-        authorizationPolicyProvider.GetDefaultPolicyAsync().Returns(policy);
+
+        var authorizationPolicyProvider = Substitute.For<IAuthorizationPolicyProvider>();
+        authorizationPolicyProvider.GetDefaultPolicyAsync().Returns(Task.FromResult(policy));
 
         Services.AddSingleton(authorizationPolicyProvider);
 
@@ -44,15 +42,22 @@ public class WebAppTestContext
         var passwordValidators = new List<IPasswordValidator<User>> { passwordValidator };
         var lookupNormalizer = Substitute.For<ILookupNormalizer>();
         var identityErrorDescriber = new IdentityErrorDescriber();
-        var logger = Substitute.For<ILogger<UserManager<User>>>();
-        _userManager = Substitute.For<UserManager<User>>(userStore, options, passwordHasher, userValidators, passwordValidators, lookupNormalizer, identityErrorDescriber, Services, logger);
-        Services.AddSingleton(_userManager);
+        var umLogger = Substitute.For<ILogger<UserManager<User>>>();
+        UserManager = Substitute.For<UserManager<User>>(userStore, options, passwordHasher, userValidators, passwordValidators, lookupNormalizer, identityErrorDescriber, Services, umLogger);
+        Services.AddScoped<UserManager<User>>(_ => UserManager);
+
+        var principalFactory = Substitute.For<IUserClaimsPrincipalFactory<User>>();
+        var smLogger = Substitute.For<ILogger<SignInManager<User>>>();
+        var authProvider = Substitute.For<IAuthenticationSchemeProvider>();
+        var userChecker = Substitute.For<IUserConfirmation<User>>();
+        SignInManager = Substitute.For<SignInManager<User>>(UserManager, httpContextAccessor, principalFactory, options, smLogger, authProvider, userChecker);
+        Services.AddScoped<SignInManager<User>>(_ => SignInManager);
 
         var userAccessor = Substitute.For<IIdentityUserAccessor>();
         Services.AddSingleton(userAccessor);
 
-        _navigationManager = new(this);
-        Services.AddSingleton<NavigationManager>(_navigationManager);
+        NavigationManager = new(this);
+        Services.AddSingleton<NavigationManager>(_ => NavigationManager);
 
         Options.UseAnonymousUser();
         SetAuthentication();
@@ -61,7 +66,15 @@ public class WebAppTestContext
 
     public WebAppTestContextOptions Options { get; }
     public CurrentUser? CurrentUser { get; private set; }
-    protected ITestContext Context { get; }
+    protected UserManager<User> UserManager { get; }
+    protected SignInManager<User> SignInManager { get; }
+    protected FakeNavigationManager NavigationManager { get; }
+
+#if XUNITV3
+    protected static CancellationToken CancellationToken => Xunit.TestContext.Current.CancellationToken;
+#else
+    protected static CancellationToken CancellationToken => CancellationToken.None;
+#endif
 
     [MemberNotNull(nameof(CurrentUser))]
     protected void UseDefaultUser() {
@@ -102,20 +115,20 @@ public class WebAppTestContext
         _authService.ClearSubstitute(ClearOptions.ReturnValues);
         _authService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object?>(), Arg.Any<IEnumerable<IAuthorizationRequirement>>())
                     .Returns(authResult);
-        _userManager.ClearSubstitute(ClearOptions.ReturnValues);
-        _userManager.GetUserAsync(Arg.Any<ClaimsPrincipal>()).Returns(Options.CurrentUser);
-        _userManager.IsInRoleAsync(Arg.Any<User>(), "User").Returns(Options.CurrentUser is not null);
-        _userManager.IsInRoleAsync(Arg.Any<User>(), "Administrator").Returns(Options.IsAdministrator);
+        UserManager.ClearSubstitute(ClearOptions.ReturnValues);
+        UserManager.GetUserAsync(Arg.Any<ClaimsPrincipal>()).Returns(Options.CurrentUser);
+        UserManager.IsInRoleAsync(Arg.Any<User>(), "User").Returns(Options.CurrentUser is not null);
+        UserManager.IsInRoleAsync(Arg.Any<User>(), "Administrator").Returns(Options.IsAdministrator);
     }
 
     protected void SetCurrentLocation(string? location = null) {
         if (location is not null && Uri.IsWellFormedUriString(location, UriKind.Relative))
-            _navigationManager.NavigateTo(location);
+            NavigationManager.NavigateTo(location);
     }
 
     protected override void Dispose(bool disposing) {
         if (disposing)
-            _userManager.Dispose();
+            UserManager.Dispose();
         base.Dispose(disposing);
     }
 }

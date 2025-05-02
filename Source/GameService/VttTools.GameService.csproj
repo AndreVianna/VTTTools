@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>535d121d-8cdb-407a-9769-7481dcf7b4fb</UserSecretsId>
+    <Configurations>Debug;Release;XUnitV3</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

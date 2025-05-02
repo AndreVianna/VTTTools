@@ -7,13 +7,11 @@ public partial class MeetingsPage {
     internal MeetingsPageState State => Handler.State;
     internal MeetingsPageInputModel Input => Handler.State.Input;
 
-    protected override async Task OnParametersSetAsync() {
-        await Handler.InitializeAsync(GameService);
-        await base.OnParametersSetAsync();
-    }
+    protected override Task ConfigureComponentAsync()
+        => Handler.InitializeAsync(GameService);
 
     internal void NavigateToMeeting(Guid meetingId)
-        => NavigateTo($"/meeting/{meetingId}");
+        => RedirectTo($"/meeting/{meetingId}");
 
     internal Task ShowCreateDialog()
         => Handler.StartMeetingCreating();
@@ -30,7 +28,7 @@ public partial class MeetingsPage {
     internal async Task JoinMeeting(Guid meetingId) {
         if (!await Handler.TryJoinMeeting(meetingId))
             return;
-        NavigateTo($"/game/{meetingId}");
+        RedirectTo($"/game/{meetingId}");
     }
 
     internal Task OnAdventureChanged(ChangeEventArgs e)

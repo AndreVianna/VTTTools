@@ -43,7 +43,7 @@ public class IndexPageHandler {
             if (!setPhoneResult.Succeeded) {
                 _logger.LogWarning("Failed to update the phone number for the user with ID {UserId}.", _user.Id);
                 _httpContext.SetStatusMessage("Error: Failed to set phone number.");
-                _navigationManager.ReloadPage();
+                _navigationManager.Reload();
                 return false;
             }
         }
@@ -51,7 +51,7 @@ public class IndexPageHandler {
         await _signInManager.RefreshSignInAsync(_user);
         _logger.LogInformation("The profile of user with ID {UserId} was updated.", _user.Id);
         _httpContext.SetStatusMessage("Your profile has been updated.");
-        _navigationManager.ReloadPage();
+        _navigationManager.Reload();
         return true;
     }
 }

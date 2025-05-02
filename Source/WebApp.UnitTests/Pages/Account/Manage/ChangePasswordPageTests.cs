@@ -73,13 +73,13 @@ public class ChangePasswordPageTests : WebAppTestContext {
     public void ChangePasswordPage_WithNoPassword_RedirectsToSetPassword() {
         // Arrange
         _userManager.HasPasswordAsync(_defaultUser).Returns(false);
-        var navigationManager = Services.GetRequiredService<NavigationManager>() as FakeNavigationManager;
 
         // Act
         var cut = RenderComponent<ChangePasswordPage>();
+        var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
 
         // Assert
-        navigationManager!.History.Should().ContainSingle(x => x.Uri == "account/manage/set_password");
+        navigationSpy.History.Should().ContainSingle(x => x.Uri == "account/manage/set_password");
     }
 
     [Fact]

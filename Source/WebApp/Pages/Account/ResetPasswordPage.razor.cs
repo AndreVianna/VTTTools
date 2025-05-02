@@ -17,8 +17,10 @@ public partial class ResetPasswordPage {
     private string? Message => _identityErrors is null ? null : $"Error: {string.Join(", ", _identityErrors.Select(error => error.Description))}";
 
     protected override void OnInitialized() {
-        if (Code is null)
+        if (Code is null) {
             NavigationManager.RedirectTo("account/invalid_password_reset");
+            return;
+        }
 
         Input.Code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
     }
@@ -28,11 +30,14 @@ public partial class ResetPasswordPage {
         if (user is null) {
             // Don't reveal that the user does not exist
             NavigationManager.RedirectTo("account/reset_password_confirmation");
+            return;
         }
 
         var result = await UserManager.ResetPasswordAsync(user, Input.Code, Input.Password);
-        if (result.Succeeded)
+        if (result.Succeeded) {
             NavigationManager.RedirectTo("account/reset_password_confirmation");
+            return;
+        }
 
         _identityErrors = result.Errors;
     }

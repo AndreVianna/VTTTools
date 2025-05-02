@@ -1,28 +1,19 @@
 ﻿namespace VttTools.WebApp.Pages.Account;
 
 public partial class ConfirmEmailPage {
-    [CascadingParameter]
-    internal HttpContext HttpContext { get; set; } = null!;
-
-    [Inject]
-    internal UserManager<User> UserManager { get; set; } = null!;
-    [Inject]
-    internal NavigationManager NavigationManager { get; set; } = null!;
-
     [SupplyParameterFromQuery]
     internal string? UserId { get; set; }
 
     [SupplyParameterFromQuery]
     internal string? Code { get; set; }
 
-    internal ConfirmEmailPageHandler Handler { get; } = new();
-
     internal ConfirmEmailPageState State => Handler.State;
 
-    protected override async Task OnInitializedAsync() => await Handler.InitializeAsync(
-            UserId,
-            Code,
-            UserManager,
-            NavigationManager,
-            HttpContext);
+    protected override async Task ConfigureComponentAsync() {
+        await Handler.InitializeAsync(UserManager, UserId, Code);
+        if (State.IsConfirmed)
+            return;
+        HttpContext.SetStatusMessage("The email confirmation code is invalid, please try again.");
+        NavigationManager.ReplaceWith(string.Empty);
+    }
 }

@@ -9,6 +9,7 @@ public class ExtendedComponent
     [Inject]
     internal UserManager<User> UserManager { get; set; } = null!;
 
+    public HttpContext HttpContext { get; private set; } = null!;
     public string? CurrentLocation { get; protected set; }
     public CurrentUser CurrentUser { get; set; } = new();
     public bool IsReady { get; protected set; }
@@ -18,16 +19,22 @@ public class ExtendedComponent
         remove => NavigationManager.LocationChanged -= value;
     }
 
-    protected override async Task OnInitializedAsync() {
-        await base.OnInitializedAsync();
+    protected override async Task OnParametersSetAsync() {
+        await base.OnParametersSetAsync();
+        HttpContext = HttpContextAccessor.HttpContext!;
         CurrentLocation = GetUrlRelativeToBase(NavigationManager.Uri);
         await SetCurrentUserAsync();
     }
 
-    protected override async Task OnParametersSetAsync() {
-        await base.OnParametersSetAsync();
+    public override async Task SetParametersAsync(ParameterView parameters) {
+        await base.SetParametersAsync(parameters);
+        // ReSharper disable once MethodHasAsyncOverload - Need to call both methods.
+        ConfigureComponent();
+        await ConfigureComponentAsync();
         IsReady = true;
     }
+    protected virtual Task ConfigureComponentAsync() => Task.CompletedTask;
+    protected virtual void ConfigureComponent() { }
 
     private async Task SetCurrentUserAsync() {
         if (HttpContextAccessor.HttpContext is null)
@@ -46,55 +53,20 @@ public class ExtendedComponent
 
     public virtual Task StateHasChangedAsync() => InvokeAsync(StateHasChanged);
 
-    public virtual void NavigateTo([StringSyntax(StringSyntaxAttribute.Uri)] string relativePath, IReadOnlyDictionary<string, object?>? queryParameters = null) {
-        relativePath = GetRelativeToBaseUrl(Ensure.IsNotNull(relativePath).Trim(), queryParameters);
-        NavigationManager.NavigateTo(relativePath);
-    }
+    public virtual void RedirectTo([StringSyntax(StringSyntaxAttribute.Uri)] string? location, Action<IDictionary<string, object?>>? setQueryParameters = null)
+        => NavigationManager.RedirectTo(location ?? string.Empty, setQueryParameters);
 
-    public virtual void NavigateToWithStatus(string status, [StringSyntax(StringSyntaxAttribute.Uri)] string relativePath, IReadOnlyDictionary<string, object?>? queryParameters = null) {
-        HttpContextAccessor.HttpContext!.SetStatusMessage(status);
-        NavigateTo(relativePath, queryParameters);
-    }
+    public virtual void GoHome(Action<IDictionary<string, object?>>? setQueryParameters = null)
+        => NavigationManager.GoHome(setQueryParameters);
 
-    public virtual void RefreshPage(IReadOnlyDictionary<string, object?>? queryParameters = null) {
-        var url = GetRelativeToBaseUrl(NavigationManager.Uri, queryParameters);
-        NavigationManager.NavigateTo(url);
-    }
+    public virtual void Refresh(Action<IDictionary<string, object?>>? setQueryParameters = null)
+        => NavigationManager.Refresh(setQueryParameters);
 
-    public virtual void RefreshPageWithStatus(string status, IReadOnlyDictionary<string, object?>? queryParameters = null) {
-        HttpContextAccessor.HttpContext!.SetStatusMessage(status);
-        RefreshPage(queryParameters);
-    }
+    public virtual void Reload(Action<IDictionary<string, object?>>? setQueryParameters = null)
+        => NavigationManager.Reload(setQueryParameters);
 
-    public virtual void ReloadPage(IReadOnlyDictionary<string, object?>? queryParameters = null) {
-        var url = GetRelativeToBaseUrl(NavigationManager.Uri, queryParameters);
-        NavigationManager.NavigateTo(url, true);
-    }
-
-    public virtual void ReloadPageWithStatus(string status, IReadOnlyDictionary<string, object?>? queryParameters = null) {
-        HttpContextAccessor.HttpContext!.SetStatusMessage(status);
-        ReloadPage(queryParameters);
-    }
-
-    public virtual void ReplacePage([StringSyntax(StringSyntaxAttribute.Uri)] string relativePath, IReadOnlyDictionary<string, object?>? queryParameters = null) {
-        relativePath = GetRelativeToBaseUrl(relativePath, queryParameters);
-        NavigationManager.NavigateTo(relativePath, true, true);
-    }
-
-    public virtual void ReplacePageWithStatus(string status, [StringSyntax(StringSyntaxAttribute.Uri)] string relativePath, IReadOnlyDictionary<string, object?>? queryParameters = null) {
-        HttpContextAccessor.HttpContext!.SetStatusMessage(status);
-        ReplacePage(relativePath, queryParameters);
-    }
-
-    private string GetRelativeToBaseUrl(string url, IReadOnlyDictionary<string, object?>? queryParameters) {
-        if (!Uri.TryCreate(Ensure.IsNotNull(url).Trim(), UriKind.RelativeOrAbsolute, out var uri))
-            return "not-found";
-        if (uri.IsAbsoluteUri)
-            url = GetUrlRelativeToBase(uri.AbsoluteUri);
-        if (queryParameters is not null)
-            url = NavigationManager.GetUriWithQueryParameters(url, queryParameters);
-        return url;
-    }
+    public virtual void ReplaceWith([StringSyntax(StringSyntaxAttribute.Uri)] string location, Action<IDictionary<string, object?>>? setQueryParameters = null)
+        => NavigationManager.ReplaceWith(location, setQueryParameters);
 }
 
 public class ExtendedComponent<THandler>

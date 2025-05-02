@@ -1,12 +1,14 @@
 namespace VttTools.WebApp.Pages.Meeting;
 
-public class ChatPageTests : WebAppTestContext {
+public class ChatPageTests
+    : WebAppTestContext {
     private readonly IHubConnectionBuilder _builder = Substitute.For<IHubConnectionBuilder>();
-    private readonly HubConnection _hubConnection = Substitute.For<HubConnection>(Substitute.For<IConnectionFactory>(),
-                                                                                  Substitute.For<IHubProtocol>(),
-                                                                                  Substitute.For<EndPoint>(),
-                                                                                  Substitute.For<IServiceProvider>(),
-                                                                                  NullLoggerFactory.Instance);
+    private readonly HubConnection _hubConnection
+        = Substitute.For<HubConnection>(Substitute.For<IConnectionFactory>(),
+                                        Substitute.For<IHubProtocol>(),
+                                        Substitute.For<EndPoint>(),
+                                        Substitute.For<IServiceProvider>(),
+                                        NullLoggerFactory.Instance);
     public ChatPageTests() {
         _builder.Build().Returns(_hubConnection);
         Services.AddSingleton(_builder);
@@ -15,7 +17,7 @@ public class ChatPageTests : WebAppTestContext {
     [Fact]
     public void WhenIsLoading_RendersLoadingState() {
         // Arrange
-        _hubConnection.StartAsync(Arg.Any<CancellationToken>()).Returns(Task.Delay(1000, Context.CancellationToken));
+        _hubConnection.StartAsync(Arg.Any<CancellationToken>()).Returns(Task.Delay(1000, CancellationToken));
 
         // Act
         var cut = RenderComponent<ChatPage>();

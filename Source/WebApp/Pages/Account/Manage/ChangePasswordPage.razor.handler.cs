@@ -10,7 +10,7 @@ public class ChangePasswordPageHandler {
 
     internal ChangePasswordPageState State { get; } = new();
 
-    public async Task<bool> TryInitializeAsync(
+    public async Task<bool> InitializeAsync(
         HttpContext httpContext,
         UserManager<User> userManager,
         NavigationManager navigationManager,
@@ -54,7 +54,7 @@ public class ChangePasswordPageHandler {
         _logger.LogInformation("User changed their password successfully.");
 
         _httpContext.SetStatusMessage("Your password has been changed");
-        _navigationManager.ReloadPage();
+        _navigationManager.Reload();
         return true;
     }
 }

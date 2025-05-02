@@ -16,7 +16,7 @@ public class MeetingsPageTests : WebAppTestContext {
     [Fact]
     public void RendersLoadingState_WhenStateIsNull() {
         // Arrange
-        _service.GetMeetingsAsync().Returns(Task.Delay(1000, Context.CancellationToken).ContinueWith(_ => _defaultMeetings));
+        _service.GetMeetingsAsync().Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultMeetings));
 
         // Act
         var cut = RenderComponent<MeetingsPage>();

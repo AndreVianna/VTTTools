@@ -21,8 +21,10 @@ public partial class RegisterConfirmationPage {
     private string? ReturnUrl { get; set; }
 
     protected override async Task OnInitializedAsync() {
-        if (Email is null)
+        if (Email is null) {
             NavigationManager.RedirectTo("");
+            return;
+        }
 
         var user = await UserManager.FindByEmailAsync(Email);
         if (user is null) {

@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>VttTools</RootNamespace>
+    <Configurations>Debug;Release;XUnitV3</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

@@ -2,7 +2,7 @@ namespace VttTools.WebApp.Pages;
 
 public class ErrorPageTests : WebAppTestContext {
     [Fact]
-    public void Error_DoesNotShowRequestId_WhenRequestIdIsEmpty() {
+    public void WhenRequestIdIsEmpty_DoesNotShowRequestId() {
         // Act
         var cut = RenderComponent<ErrorPage>();
 
@@ -16,7 +16,7 @@ public class ErrorPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void Error_ShowsRequestId_WhenRequestIdIsSet() {
+    public void WhenRequestIdIsSet_ShowsRequestId() {
         // Act
         var cut = RenderComponent<ErrorPage>();
 
@@ -31,7 +31,7 @@ public class ErrorPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void Error_ShowsErrorMessage() {
+    public void WhenHasErrorMessage_ShowsErrorMessage() {
         // Act
         var cut = RenderComponent<ErrorPage>();
 

@@ -12,7 +12,7 @@ public partial class NavMenuComponent
         if (CurrentLocation == newLocation)
             return;
         CurrentLocation = GetUrlRelativeToBase(e.Location);
-        RefreshPage();
+        Refresh();
     }
 
     public ValueTask DisposeAsync() {

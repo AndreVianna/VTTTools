@@ -6,17 +6,16 @@ public class RegisterPageHandler {
     private SignInManager<User> _signInManager = null!;
     private NavigationManager _navigationManager = null!;
     private IEmailSender<User> _emailSender = null!;
-    private ILogger<RegisterPage> _logger = null!;
+    private ILogger _logger = null!;
 
     internal RegisterPageState State { get; } = new();
 
-    public async Task InitializeAsync(
-        UserManager<User> userManager,
-        IUserStore<User> userStore,
-        SignInManager<User> signInManager,
-        NavigationManager navigationManager,
-        IEmailSender<User> emailSender,
-        ILogger<RegisterPage> logger) {
+    public async Task InitializeAsync(UserManager<User> userManager,
+                                      IUserStore<User> userStore,
+                                      SignInManager<User> signInManager,
+                                      NavigationManager navigationManager,
+                                      IEmailSender<User> emailSender,
+                                      ILogger logger) {
         _userManager = userManager;
         _userStore = userStore;
         _signInManager = signInManager;
@@ -47,18 +46,18 @@ public class RegisterPageHandler {
         var userId = await _userManager.GetUserIdAsync(user);
         var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var callbackUrl = _navigationManager.GetUriWithQueryParameters(
-            _navigationManager.ToAbsoluteUri("account/confirm_email").AbsoluteUri,
-            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = returnUrl });
-
+        var callbackUrl = _navigationManager.GetAbsoluteUri("account/confirm_email", ps => {
+            ps.Add("userId", userId);
+            ps.Add("code", code);
+            ps.Add("returnUrl", returnUrl);
+        });
         await _emailSender.SendConfirmationLinkAsync(user, State.Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
         if (_userManager.Options.SignIn.RequireConfirmedAccount) {
-            var queryParameters = new Dictionary<string, object?> {
-                ["email"] = State.Input.Email,
-                ["returnUrl"] = returnUrl
-            };
-            _navigationManager.RedirectTo("account/register_confirmation", queryParameters);
+            _navigationManager.RedirectTo("account/register_confirmation", ps => {
+                ps.Add("email", State.Input.Email);
+                ps.Add("returnUrl", returnUrl);
+            });
         }
         else {
             await _signInManager.SignInAsync(user, isPersistent: false);
@@ -73,8 +72,9 @@ public class RegisterPageHandler {
             return Activator.CreateInstance<User>();
         }
         catch {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(User)}'. " +
-                                              $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor.");
+            throw new InvalidOperationException(
+                $"Can't create an instance of '{nameof(User)}'. " +
+                $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor.");
         }
     }
 

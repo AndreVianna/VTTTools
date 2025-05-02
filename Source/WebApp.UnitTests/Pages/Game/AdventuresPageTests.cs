@@ -24,7 +24,7 @@ public class AdventuresPageTests : WebAppTestContext {
     [Fact]
     public void BeforeIsReady_RendersLoadingState() {
         // Arrange
-        _service.GetAdventuresAsync().Returns(Task.Delay(1000, Context.CancellationToken).ContinueWith(_ => _defaultAdventures));
+        _service.GetAdventuresAsync().Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultAdventures));
 
         // Act
         var cut = RenderComponent<AdventuresPage>();
