@@ -31,7 +31,7 @@ public partial class Disable2faPage {
             throw new InvalidOperationException("Unexpected error occurred disabling 2FA.");
 
         var userId = await UserManager.GetUserIdAsync(_user);
-        Logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", userId);
+        Logger.LogInformation("CurrentUser with ID '{UserId}' has disabled 2fa.", userId);
         HttpContext.SetStatusMessage("2fa has been disabled. You can reenable 2fa when you setup an authenticator app");
         NavigationManager.RedirectTo("account/manage/2fa");
     }

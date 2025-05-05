@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Meeting;
 
-public sealed class ChatPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
-    : AuthorizedComponentHandler<ChatPageHandler, ChatPage>(httpContext, navigationManager, currentUser, loggerFactory) {
+public sealed class ChatPageHandler(HttpContext httpContext, NavigationManager navigationManager, User user, ILoggerFactory loggerFactory)
+    : PrivateComponentHandler<ChatPageHandler>(httpContext, navigationManager, user, loggerFactory) {
     private HubConnection _hubConnection = null!;
     private Func<Task> _onStateChangedAsync = () => Task.CompletedTask;
 

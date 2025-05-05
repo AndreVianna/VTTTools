@@ -9,7 +9,7 @@ public class ConfirmEmailPageTests
         var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
 
         // Assert
-        navigationSpy.History.Should().ContainSingle(x => x.Uri == string.Empty);
+        navigationSpy.History.First().Uri.Should().Be(string.Empty);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class ConfirmEmailPageTests
         // Assert
         var cut = RenderComponent<ConfirmEmailPage>();
         var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
-        navigationSpy.History.Should().ContainSingle(x => x.Uri == string.Empty);
+        navigationSpy.History.First().Uri.Should().Be(string.Empty);
     }
 
     [Fact]
@@ -85,6 +85,6 @@ public class ConfirmEmailPageTests
         // Assert
         var cut = RenderComponent<ConfirmEmailPage>();
         var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
-        navigationSpy.History.Should().ContainSingle(x => x.Uri == string.Empty);
+        navigationSpy.History.First().Uri.Should().Be(string.Empty);
     }
 }

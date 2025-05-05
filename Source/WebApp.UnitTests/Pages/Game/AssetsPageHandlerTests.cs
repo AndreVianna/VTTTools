@@ -59,7 +59,7 @@ public class AssetsPageHandlerTests
     }
 
     private async Task<AssetsPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) UseDefaultUser();
+        if (isAuthorized) EnsureAuthenticated();
         var handler = new AssetsPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
         if (isConfigured) await handler.ConfigureAsync(_service);
         return handler;

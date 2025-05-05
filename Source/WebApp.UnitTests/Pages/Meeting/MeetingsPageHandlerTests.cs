@@ -171,7 +171,7 @@ public class MeetingsPageHandlerTests
             new MeetingModel { Subject = "Meeting 1" },
             new MeetingModel { Subject = "Meeting 2" },
         };
-        if (isAuthorized) UseDefaultUser();
+        if (isAuthorized) EnsureAuthenticated();
         var handler = new MeetingsPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
         _service.GetMeetingsAsync().Returns(meetings);
         if (isConfigured) await handler.ConfigureAsync(_service);

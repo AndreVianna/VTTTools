@@ -1,5 +1,5 @@
 ﻿@page "/account/login"
-@inherits ExtendedComponent<LoginPage, LoginPageHandler>
+@inherits PublicComponent<LoginPageHandler>
 
 <PageTitle>Log in</PageTitle>
 
@@ -8,7 +8,7 @@
   <div class="col-lg-6">
   <section>
     <StatusMessageComponent Message="@State.ErrorMessage" />
-    <EditForm Model="State.Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+    <EditForm id="login-form" Model="State.Input" method="post" OnValidSubmit="LoginUser" FormName="login">
       <DataAnnotationsValidator />
       <ValidationSummary class="text-danger" role="alert" />
       <div class="form-floating mb-3">

@@ -47,7 +47,7 @@ public partial class EnableAuthenticatorPage {
 
         await UserManager.SetTwoFactorEnabledAsync(_user, true);
         var userId = await UserManager.GetUserIdAsync(_user);
-        Logger.LogInformation("User with ID '{UserId}' has enabled 2FA with an authenticator app.", userId);
+        Logger.LogInformation("CurrentUser with ID '{UserId}' has enabled 2FA with an authenticator app.", userId);
 
         _message = "Your authenticator app has been verified.";
 

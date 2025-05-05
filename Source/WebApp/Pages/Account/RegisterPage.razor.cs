@@ -16,6 +16,8 @@ public partial class RegisterPage {
         return true;
     }
 
-    public Task RegisterUser(EditContext _)
-        => Handler.RegisterUserAsync(ReturnUrl);
+    public async Task RegisterUser(EditContext _) {
+        await Handler.RegisterUserAsync(ReturnUrl);
+        await StateHasChangedAsync();
+    }
 }

@@ -5,7 +5,9 @@ public partial class EmailPage {
     private IEmailSender<User> EmailSender { get; set; } = null!;
 
     internal EmailPageState State => Handler.State;
-    internal EmailPageInputModel Input => Handler.State.Input;
+    internal ChangeEmailInputModel ChangeEmailInput => Handler.State.ChangeEmailInput
+        ;
+    internal VerifyEmailInputModel VerifyEmailInput => Handler.State.VerifyEmailInput;
 
     protected override bool ConfigureComponent() {
         Handler.Configure(UserManager, EmailSender);

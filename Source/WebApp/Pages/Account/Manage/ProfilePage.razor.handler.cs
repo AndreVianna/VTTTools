@@ -1,10 +1,10 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
-public class IndexPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
-    : AuthorizedComponentHandler<IndexPageHandler, IndexPage>(httpContext, navigationManager, currentUser, loggerFactory) {
+public class ProfilePageHandler(HttpContext httpContext, NavigationManager navigationManager, User user, ILoggerFactory loggerFactory)
+    : PrivateComponentHandler<ProfilePageHandler>(httpContext, navigationManager, user, loggerFactory) {
     private UserManager<User> _userManager = null!;
 
-    internal IndexPageState State { get; } = new();
+    internal ProfilePageState State { get; } = new();
 
     public void Configure(UserManager<User> userManager) {
         _userManager = userManager;
@@ -29,8 +29,7 @@ public class IndexPageHandler(HttpContext httpContext, NavigationManager navigat
         NavigationManager.Reload();
     }
 
-    private async Task<bool> TryUpdateUser()
-    {
+    private async Task<bool> TryUpdateUser() {
         var updateResult = await _userManager.UpdateAsync(CurrentUser);
         if (!updateResult.Succeeded) {
             State.Input.Errors = updateResult.Errors.ToArray(e => new InputError(e.Description));

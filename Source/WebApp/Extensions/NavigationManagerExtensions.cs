@@ -19,7 +19,7 @@ public static class NavigationManagerExtensions {
     public static void GoHome(this NavigationManager navigationManager)
         => navigationManager.RedirectTo(string.Empty);
 
-    public static void GoToSigIn(this NavigationManager navigationManager, string? returnUrl = null)
+    public static void GoToSignIn(this NavigationManager navigationManager, string? returnUrl = null)
         => navigationManager.RedirectTo("account/login", ps => {
             if (!string.IsNullOrWhiteSpace(returnUrl))
                 ps.Add("ReturnUrl", UrlEncoder.Default.Encode(returnUrl));

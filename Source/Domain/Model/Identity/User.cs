@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace VttTools.Model.Identity;
 
 // Add profile data for application users by adding properties to the User class
@@ -15,6 +17,15 @@ public class User
     [Required(AllowEmptyStrings = false)]
     public string Name { get; set; } = null!;
 
+    [NotNull]
     [MaxLength(32)]
-    public string? DisplayName { get; set; }
+    public string? DisplayName {
+        get => string.IsNullOrEmpty(field) ? Name : field;
+        set;
+    }
+
+    [NotMapped]
+    public bool IsAdministrator { get; set; }
+    [NotMapped]
+    public bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
 }

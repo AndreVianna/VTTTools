@@ -37,7 +37,7 @@ public class ForgotPasswordPageTests
         cut.Find("#forgot-password-submit").Click();
 
         // Assert
-        navigationSpy.History.Should().ContainSingle(x => x.Uri == "account/forgot_password_confirmation");
+        navigationSpy.History.First().Uri.Should().Be("account/forgot_password_confirmation");
         _emailSender.DidNotReceive().SendPasswordResetLinkAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
     }
 
@@ -57,7 +57,7 @@ public class ForgotPasswordPageTests
         cut.Find("#forgot-password-submit").Click();
 
         // Assert
-        navigationSpy.History.Should().ContainSingle(x => x.Uri == "account/forgot_password_confirmation");
+        navigationSpy.History.First().Uri.Should().Be("account/forgot_password_confirmation");
         _emailSender.DidNotReceive().SendPasswordResetLinkAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
     }
 
@@ -78,7 +78,7 @@ public class ForgotPasswordPageTests
         cut.Find("#forgot-password-submit").Click();
 
         // Assert
-        navigationSpy.History.Should().ContainSingle(x => x.Uri == "account/forgot_password_confirmation");
+        navigationSpy.History.First().Uri.Should().Be("account/forgot_password_confirmation");
         _emailSender.Received(1).SendPasswordResetLinkAsync(
             Arg.Is<User>(u => u.Email == "valid@example.com"),
             Arg.Is<string>(s => s == "valid@example.com"),

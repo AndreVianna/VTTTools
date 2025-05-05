@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Game;
 
-public class AssetsPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
-    : AuthorizedComponentHandler<AssetsPageHandler, AssetsPage>(httpContext, navigationManager, currentUser, loggerFactory) {
+public class AssetsPageHandler(HttpContext httpContext, NavigationManager navigationManager, User user, ILoggerFactory loggerFactory)
+    : PrivateComponentHandler<AssetsPageHandler>(httpContext, navigationManager, user, loggerFactory) {
     private IGameService _service = null!;
 
     internal AssetsPageState State { get; } = new();

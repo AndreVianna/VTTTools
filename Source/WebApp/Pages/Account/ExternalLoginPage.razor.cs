@@ -38,13 +38,13 @@ public partial class ExternalLoginPage {
     protected override async Task OnInitializedAsync() {
         if (RemoteError is not null) {
             HttpContext.SetStatusMessage($"Error from external provider: {RemoteError}");
-            NavigationManager.GoToSigIn();
+            NavigationManager.GoToSignIn();
         }
 
         var info = await SignInManager.GetExternalLoginInfoAsync();
         if (info is null) {
             HttpContext.SetStatusMessage("Error loading external login information.");
-            NavigationManager.GoToSigIn();
+            NavigationManager.GoToSignIn();
         }
 
         _externalLoginInfo = info;
@@ -57,14 +57,14 @@ public partial class ExternalLoginPage {
 
             // We should only reach this page via the login callback, so redirect back to
             // the login page if we get here some other way.
-            NavigationManager.GoToSigIn();
+            NavigationManager.GoToSignIn();
         }
     }
 
     private async Task OnLoginCallbackAsync() {
         if (_externalLoginInfo is null) {
             HttpContext.SetStatusMessage("Error loading external login information.");
-            NavigationManager.GoToSigIn();
+            NavigationManager.GoToSignIn();
             return;
         }
 
@@ -82,7 +82,7 @@ public partial class ExternalLoginPage {
         }
 
         if (result.IsLockedOut) {
-            NavigationManager.GoToSigIn();
+            NavigationManager.GoToSignIn();
             return;
         }
 
@@ -94,7 +94,7 @@ public partial class ExternalLoginPage {
     private async Task OnValidSubmitAsync() {
         if (_externalLoginInfo is null) {
             HttpContext.SetStatusMessage("Error loading external login information during confirmation.");
-            NavigationManager.GoToSigIn();
+            NavigationManager.GoToSignIn();
             return;
         }
 
@@ -108,7 +108,7 @@ public partial class ExternalLoginPage {
         if (result.Succeeded) {
             result = await UserManager.AddLoginAsync(user, _externalLoginInfo);
             if (result.Succeeded) {
-                Logger.LogInformation("User created an account using {Subject} provider.", _externalLoginInfo.LoginProvider);
+                Logger.LogInformation("CurrentUser created an account using {Subject} provider.", _externalLoginInfo.LoginProvider);
 
                 var userId = await UserManager.GetUserIdAsync(user);
                 var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);

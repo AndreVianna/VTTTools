@@ -3,19 +3,7 @@ namespace VttTools.WebApp.Pages.Meeting;
 public class MeetingDetailsPageHandlerTests
     : WebAppTestContext {
     private readonly Guid _meetingId = Guid.NewGuid();
-    private readonly Guid _userId = Guid.NewGuid();
     private readonly IGameService _service = Substitute.For<IGameService>();
-
-    public MeetingDetailsPageHandlerTests() {
-        var player = new MeetingPlayer { UserId = _userId, Type = PlayerType.Master };
-        var meeting = new MeetingModel {
-            Id = _meetingId,
-            Subject = "Test Meeting",
-            OwnerId = _userId,
-            Players = [player],
-        };
-        _service.GetMeetingByIdAsync(_meetingId).Returns(meeting);
-    }
 
     [Fact]
     public async Task TryConfigureAsync_WithValidMeetingId_ReturnsTrue() {
@@ -144,9 +132,20 @@ public class MeetingDetailsPageHandlerTests
     }
 
     private async Task<MeetingDetailsPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) UseDefaultUser();
+        if (isAuthorized)
+            EnsureAuthenticated();
+        var userId = CurrentUser?.Id ?? Guid.NewGuid();
+        var player = new MeetingPlayer { UserId = userId, Type = PlayerType.Master };
+        var meeting = new MeetingModel {
+            Id = _meetingId,
+            Subject = "Test Meeting",
+            OwnerId = userId,
+            Players = [player],
+        };
+        _service.GetMeetingByIdAsync(_meetingId).Returns(meeting);
         var handler = new MeetingDetailsPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
-        if (isConfigured) await handler.TryConfigureAsync(_service, _meetingId);
+        if (isConfigured)
+            await handler.TryConfigureAsync(_service, _meetingId);
         return handler;
     }
 }

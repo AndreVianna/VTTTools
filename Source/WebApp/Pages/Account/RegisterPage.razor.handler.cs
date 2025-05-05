@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account;
 
 public class RegisterPageHandler(HttpContext httpContext, NavigationManager navigationManager, ILoggerFactory loggerFactory)
-    : ComponentHandler<RegisterPageHandler, RegisterPage>(httpContext, navigationManager, loggerFactory) {
+    : PublicComponentHandler<RegisterPageHandler>(httpContext, navigationManager, loggerFactory) {
     private UserManager<User> _userManager = null!;
     private SignInManager<User> _signInManager = null!;
     private IEmailSender<User> _emailSender = null!;
@@ -27,13 +27,12 @@ public class RegisterPageHandler(HttpContext httpContext, NavigationManager navi
         user.Email = State.Input.Email;
         user.NormalizedEmail = State.Input.Email.ToUpperInvariant();
         var result = await _userManager.CreateAsync(user, State.Input.Password);
-
         if (!result.Succeeded) {
             State.IdentityErrors = result.Errors;
             return false;
         }
 
-        Logger.LogInformation("User created a new account with password.");
+        Logger.LogInformation("CurrentUser created a new account with password.");
 
         var userId = await _userManager.GetUserIdAsync(user);
         var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -65,8 +64,8 @@ public class RegisterPageHandler(HttpContext httpContext, NavigationManager navi
         }
         catch {
             throw new InvalidOperationException(
-                $"Can't create an instance of '{nameof(User)}'. " +
-                $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor.");
+                $"Can't create an instance of '{nameof(CurrentUser)}'. " +
+                $"Ensure that '{nameof(CurrentUser)}' is not an abstract class and has a parameterless constructor.");
         }
     }
 }

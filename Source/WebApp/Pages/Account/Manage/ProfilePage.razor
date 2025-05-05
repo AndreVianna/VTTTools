@@ -1,5 +1,5 @@
 ﻿@page "/account/manage"
-@inherits ExtendedComponent<IndexPage, IndexPageHandler>
+@inherits PrivateComponent<ProfilePageHandler>
 
 <PageTitle>Profile</PageTitle>
 
@@ -12,7 +12,7 @@
       <DataAnnotationsValidator />
       <ValidationSummary class="text-danger" role="alert" />
       <div class="form-floating mb-3">
-        <InputText id="display-name-input" value="@Input.DisplayName" class="form-control" placeholder="Choose your player name." disabled />
+        <InputText id="display-name-input" @bind-Value="Input.DisplayName" class="form-control" placeholder="Choose your player name." disabled />
         <label for="display-name-input" class="form-label">Player name</label>
       </div>
       <button id="update-profile-submit" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>

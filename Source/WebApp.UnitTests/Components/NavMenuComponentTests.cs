@@ -4,13 +4,13 @@ public class NavMenuComponentTests : WebAppTestContext {
     [Fact]
     public void WithAuthenticatedUser_ShowsUserMenu() {
         // Arrange
-        UseDefaultUser();
+        EnsureAuthenticated();
 
         // Act
         var cut = RenderComponent<NavMenuComponent>();
 
         // Assert
-        var displayName = cut.Instance.CurrentUser.DisplayName;
+        var displayName = cut.Instance.CurrentUser?.DisplayName;
         var tagId = ((IHtmlDivElement)cut.Nodes[0]).Attributes[1]!.Name;
         cut.Markup.Should().Contain($"""<span class="bi bi-house-door-fill-nav-menu" aria-hidden="true" {tagId}></span> Home""");
         cut.Markup.Should().Contain($"""<span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true" {tagId}></span> Logout""");

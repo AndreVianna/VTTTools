@@ -5,28 +5,28 @@ public class EmailPageTests
     private readonly IEmailSender<User> _emailSender;
 
     public EmailPageTests() {
-        UseDefaultUser();
+        EnsureAuthenticated();
         _emailSender = Substitute.For<IEmailSender<User>>();
         Services.AddSingleton(_emailSender);
     }
 
     [Fact]
-    public void WhenDisplayed_WithConfirmedEmail_ShowsEmailChangeForm() {
+    public void WhenRendered_WithConfirmedEmail_ShowsEmailChangeForm() {
         // Act
         var cut = RenderComponent<EmailPage>();
 
         // Assert
         cut.Markup.Should().Contain("<h3>Manage email</h3>");
         cut.Find("#change-email-form").Should().NotBeNull();
-        cut.Find("#current-email-input").GetAttribute("value").Should().Be(CurrentUser!.DisplayName);
-        cut.Find("#new-email-input").GetAttribute("value").Should().Be(string.Empty);
+        cut.Find("#current-email").GetAttribute("value").Should().Be(CurrentUser!.Email);
+        cut.Find("#email-input").GetAttribute("value").Should().BeNull();
         cut.Find("#change-email-submit").TextContent.Should().Be("Change email");
     }
 
     [Fact]
-    public void WhenDisplayed_WithUnconfirmedEmail_ShowsVerificationForm() {
+    public void WhenRendered_WithUnconfirmedEmail_ShowsVerificationForm() {
         // Arrange
-        UserManager.IsEmailConfirmedAsync(CurrentUser!).Returns(false);
+        CurrentUser!.EmailConfirmed = false;
 
         // Act
         var cut = RenderComponent<EmailPage>();
@@ -34,7 +34,7 @@ public class EmailPageTests
         // Assert
         cut.Markup.Should().Contain("<h3>Manage email</h3>");
         cut.Find("#verify-email-form").Should().NotBeNull();
-        cut.Find("#email-input").GetAttribute("value").Should().Be(CurrentUser!.DisplayName);
+        cut.Find("#current-email").GetAttribute("value").Should().Be(CurrentUser!.Email);
         cut.Find("#verify-email-submit").TextContent.Should().Be("Verify email");
     }
 
@@ -47,7 +47,7 @@ public class EmailPageTests
         cut.Find("#change-email-submit").Click();
 
         // Assert
-        cut.Markup.Should().Contain("Error: The new email cannot be empty.");
+        HttpContext.Received().SetStatusMessage("Error: The new email cannot be empty.");
         UserManager.DidNotReceive().GenerateChangeEmailTokenAsync(Arg.Any<User>(), Arg.Any<string>());
     }
 
@@ -55,14 +55,14 @@ public class EmailPageTests
     public void ChangeEmailButtonIsClicked_WithSameEmail_ShowsUnchangedMessage() {
         // Arrange
         var cut = RenderComponent<EmailPage>();
-        var newEmailInput = cut.Find("#new-email-input");
+        var newEmailInput = cut.Find("#email-input");
         newEmailInput.Change(CurrentUser!.Email);
 
         // Act
         cut.Find("#change-email-submit").Click();
 
         // Assert
-        cut.Markup.Should().Contain("Your email was not changed.");
+        HttpContext.Received().SetStatusMessage("Your email was not changed.");
         UserManager.DidNotReceive().GenerateChangeEmailTokenAsync(Arg.Any<User>(), Arg.Any<string>());
     }
 
@@ -70,7 +70,7 @@ public class EmailPageTests
     public void ChangeEmailButtonIsClicked_WithNewEmail_SendsConfirmationEmail() {
         // Arrange
         var cut = RenderComponent<EmailPage>();
-        var newEmailInput = cut.Find("#new-email-input");
+        var newEmailInput = cut.Find("#email-input");
         newEmailInput.Change("new@example.com");
 
         UserManager.GenerateChangeEmailTokenAsync(Arg.Any<User>(), Arg.Any<string>()).Returns("token");
@@ -79,14 +79,14 @@ public class EmailPageTests
         cut.Find("#change-email-submit").Click();
 
         // Assert
-        cut.Markup.Should().Contain("A confirmation link was sent to the new email. Please check your email.");
+        HttpContext.Received().SetStatusMessage("A confirmation link was sent to the new email. Please check your email.");
         _emailSender.Received(1).SendConfirmationLinkAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
     }
 
     [Fact]
     public void VerifyEmailButtonIsClicked_SendsVerificationEmail() {
         // Arrange
-        UserManager.IsEmailConfirmedAsync(CurrentUser!).Returns(false);
+        CurrentUser!.EmailConfirmed = false;
         var cut = RenderComponent<EmailPage>();
 
         UserManager.GenerateEmailConfirmationTokenAsync(Arg.Any<User>()).Returns("token");
@@ -95,7 +95,7 @@ public class EmailPageTests
         cut.Find("#verify-email-submit").Click();
 
         // Assert
-        cut.Markup.Should().Contain("A confirmation link was sent to the email. Please check your email.");
+        HttpContext.Received().SetStatusMessage("A confirmation link was sent to the email. Please check your email.");
         _emailSender.Received(1).SendConfirmationLinkAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
     }
 }

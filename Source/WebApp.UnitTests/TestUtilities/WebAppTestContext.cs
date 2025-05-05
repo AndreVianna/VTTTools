@@ -4,11 +4,26 @@ namespace VttTools.WebApp.TestUtilities;
 
 public class WebAppTestContext
     : BUnitContext {
+    public static readonly User DefaultUser = new() {
+        Name = "Name",
+        DisplayName = "Display Name",
+        UserName = "test.user@host.com",
+        NormalizedUserName = "TEST.USER@HOST.COM",
+        Email = "test.user@host.com",
+        NormalizedEmail = "TEST.USER@HOST.COM",
+        EmailConfirmed = true,
+        PhoneNumber = "212-555-1234",
+        PhoneNumberConfirmed = true,
+        PasswordHash = "[SomeFakePasswordHash]",
+        TwoFactorEnabled = false,
+        LockoutEnabled = true,
+        ConcurrencyStamp = "d23847f6-5241-4656-85de-d3c3ee2d66b8",
+        SecurityStamp = "f0d0bd5d-8e64-419c-a856-e0e6364d26a1",
+    };
+
     private readonly List<ClaimsIdentity> _identities = [];
 
     public WebAppTestContext() {
-        Options = new();
-
         var principal = new ClaimsPrincipal(_identities);
         var authenticationState = new AuthenticationState(principal);
         Services.AddCascadingValue(_ => Task.FromResult(authenticationState));
@@ -64,13 +79,11 @@ public class WebAppTestContext
         NavigationManager = new(this);
         Services.AddSingleton<NavigationManager>(_ => NavigationManager);
 
-        Options.UseAnonymousUser();
         SetAuthorization();
         SetCurrentLocation();
     }
 
-    protected WebAppTestContextOptions Options { get; }
-    protected CurrentUser? CurrentUser { get; private set; }
+    protected User? CurrentUser { get; private set; }
     protected HttpContext HttpContext { get; }
     protected UserManager<User> UserManager { get; }
     protected SignInManager<User> SignInManager { get; }
@@ -85,36 +98,38 @@ public class WebAppTestContext
 #endif
 
     [MemberNotNull(nameof(CurrentUser))]
-    protected void UseDefaultUser() {
-        Options.UseDefaultUser();
+    protected void EnsureAuthenticated(bool asAdministrator = false) {
+        CurrentUser = CloneUser(DefaultUser, asAdministrator);
         SetAuthorization();
-        SetCurrentUser();
     }
 
-    [MemberNotNull(nameof(CurrentUser))]
-    protected void UseDefaultAdministrator() {
-        Options.UseDefaultUser(true);
-        SetAuthorization();
-        SetCurrentUser();
-    }
-
-    [MemberNotNull(nameof(CurrentUser))]
-    private void SetCurrentUser() => CurrentUser = new() {
-        Id = Options.CurrentUser!.Id,
-        DisplayName = Options.CurrentUser.DisplayName ?? Options.CurrentUser.Name,
-        Email = Options.CurrentUser.Email!,
-        IsAuthenticated = true,
-        IsAdministrator = Options.IsAdministrator,
+    private static User CloneUser(User user, bool isAdministrator) => new() {
+        Id = user.Id,
+        Name = user.Name,
+        DisplayName = user.DisplayName,
+        UserName = user.UserName,
+        NormalizedUserName = user.NormalizedUserName,
+        Email = user.Email,
+        NormalizedEmail = user.NormalizedEmail,
+        EmailConfirmed = user.EmailConfirmed,
+        PhoneNumber = user.PhoneNumber,
+        PhoneNumberConfirmed = user.PhoneNumberConfirmed,
+        PasswordHash = user.PasswordHash,
+        TwoFactorEnabled = user.TwoFactorEnabled,
+        LockoutEnabled = user.LockoutEnabled,
+        ConcurrencyStamp = user.ConcurrencyStamp,
+        SecurityStamp = user.SecurityStamp,
+        IsAdministrator = isAdministrator,
     };
 
     private void SetAuthorization() {
         var authResult = AuthorizationResult.Failed();
         _identities.Clear();
-        if (Options.CurrentUser is not null) {
-            var identityClaim = new Claim(ClaimTypes.NameIdentifier, Options.CurrentUser.Id.ToString());
-            var nameClaim = new Claim(ClaimTypes.GivenName, Options.CurrentUser.DisplayName ?? Options.CurrentUser.Name);
-            var emailClaim = new Claim(ClaimTypes.Email, Options.CurrentUser.Email ?? string.Empty);
-            var roleClaim = new Claim(ClaimTypes.Role, Options.IsAdministrator ? "Administrator" : "User");
+        if (CurrentUser is not null) {
+            var identityClaim = new Claim(ClaimTypes.NameIdentifier, CurrentUser.Id.ToString());
+            var nameClaim = new Claim(ClaimTypes.GivenName, CurrentUser.DisplayName);
+            var emailClaim = new Claim(ClaimTypes.Email, CurrentUser.Email);
+            var roleClaim = new Claim(ClaimTypes.Role, CurrentUser.IsAdministrator ? "Administrator" : "User");
             var identity = new ClaimsIdentity([identityClaim, emailClaim, nameClaim, roleClaim]);
             _identities.Add(identity);
             authResult = AuthorizationResult.Success();
@@ -123,9 +138,9 @@ public class WebAppTestContext
         Authorization.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object?>(), Arg.Any<IEnumerable<IAuthorizationRequirement>>())
                      .Returns(authResult);
         UserManager.ClearSubstitute(ClearOptions.ReturnValues);
-        UserManager.GetUserAsync(Arg.Any<ClaimsPrincipal>()).Returns(Options.CurrentUser);
-        UserManager.IsInRoleAsync(Arg.Any<User>(), "User").Returns(Options.CurrentUser is not null);
-        UserManager.IsInRoleAsync(Arg.Any<User>(), "Administrator").Returns(Options.IsAdministrator);
+        UserManager.GetUserAsync(Arg.Any<ClaimsPrincipal>()).Returns(CurrentUser);
+        UserManager.IsInRoleAsync(Arg.Any<User>(), "User").Returns(CurrentUser is not null);
+        UserManager.IsInRoleAsync(Arg.Any<User>(), "Administrator").Returns(CurrentUser?.IsAdministrator ?? false);
     }
 
     protected void SetCurrentLocation(string? location = null) {

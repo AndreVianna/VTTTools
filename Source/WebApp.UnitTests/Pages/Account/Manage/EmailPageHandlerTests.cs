@@ -3,8 +3,12 @@ namespace VttTools.WebApp.Pages.Account.Manage;
 public class EmailPageHandlerTests
     : WebAppTestContext {
     private readonly IEmailSender<User> _emailSender = Substitute.For<IEmailSender<User>>();
+    public EmailPageHandlerTests() {
+        EnsureAuthenticated();
+    }
+
     [Fact]
-    public void Configure_LoadsUserData() {
+    public void WhenConfigured_EmailInputIsNull() {
         // Arrange
         var handler = CreateHandler(isConfigured: false);
 
@@ -12,14 +16,15 @@ public class EmailPageHandlerTests
         handler.Configure(UserManager, _emailSender);
 
         // Assert
-        handler.State.Input.Email.Should().Be(CurrentUser!.Email);
+        handler.State.ChangeEmailInput.CurrentEmail.Should().Be(CurrentUser!.Email);
+        handler.State.ChangeEmailInput.Email.Should().BeNull();
     }
 
     [Fact]
     public async Task ChangeEmailAsync_WithSameEmail_SetsUnchangedMessage() {
         // Arrange
-        var handler = CreateHandler(isConfigured: false);
-        handler.State.Input.Email = CurrentUser!.Email;
+        var handler = CreateHandler();
+        handler.State.ChangeEmailInput.Email = CurrentUser!.Email;
 
         // Act
         await handler.SendEmailChangeConfirmationAsync();
@@ -32,8 +37,8 @@ public class EmailPageHandlerTests
     [Fact]
     public async Task ChangeEmailAsync_WithNewEmail_SendsConfirmationEmail() {
         // Arrange
-        var handler = CreateHandler(isConfigured: false);
-        handler.State.Input.Email = "some.email@host.com";
+        var handler = CreateHandler();
+        handler.State.ChangeEmailInput.Email = "some.email@host.com";
 
         // Act
         await handler.SendEmailChangeConfirmationAsync();
@@ -46,8 +51,7 @@ public class EmailPageHandlerTests
     [Fact]
     public async Task SendEmailVerificationAsync_SendsVerificationEmail() {
         // Arrange
-        var handler = CreateHandler(isConfigured: false);
-        handler.State.Input.Email = "some.email@host.com";
+        var handler = CreateHandler();
 
         // Act
         await handler.SendEmailVerificationAsync();
@@ -58,9 +62,11 @@ public class EmailPageHandlerTests
     }
 
     private EmailPageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) UseDefaultUser();
+        if (isAuthorized)
+            EnsureAuthenticated();
         var handler = new EmailPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
-        if (isConfigured) handler.Configure(UserManager, _emailSender);
+        if (isConfigured)
+            handler.Configure(UserManager, _emailSender);
         return handler;
     }
 }

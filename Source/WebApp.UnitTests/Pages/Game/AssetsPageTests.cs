@@ -20,7 +20,7 @@ public class AssetsPageTests
     public AssetsPageTests() {
         Services.AddScoped<IGameService>(_ => _service);
         _service.GetAssetsAsync().Returns(_defaultAssets);
-        UseDefaultUser();
+        EnsureAuthenticated();
     }
 
     [Fact]

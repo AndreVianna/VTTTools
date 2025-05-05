@@ -32,11 +32,11 @@ public partial class LoginWithRecoveryCodePage {
         var userId = await UserManager.GetUserIdAsync(_user);
 
         if (result.Succeeded) {
-            Logger.LogInformation("User with ID '{UserId}' logged in with a recovery code.", userId);
+            Logger.LogInformation("CurrentUser with ID '{UserId}' logged in with a recovery code.", userId);
             NavigationManager.RedirectTo(ReturnUrl);
         }
         else if (result.IsLockedOut) {
-            Logger.LogWarning("User account locked out.");
+            Logger.LogWarning("CurrentUser account locked out.");
             NavigationManager.RedirectTo("account/lockout");
         }
         else {

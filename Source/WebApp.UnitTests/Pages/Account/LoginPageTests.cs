@@ -93,7 +93,7 @@ public class LoginPageTests
         cut.Find("#login-submit").Click();
 
         // Assert
-        navigationSpy.History.Should().ContainSingle(x => x.Uri == "account/lockout");
+        navigationSpy.History.First().Uri.Should().Be("account/lockout");
     }
 
     [Fact]
@@ -112,6 +112,6 @@ public class LoginPageTests
         cut.Find("#login-submit").Click();
 
         // Assert
-        navigationSpy.History.Should().ContainSingle(x => x.Uri == "/account/login_with_2fa");
+        navigationSpy.History.First().Uri.Should().Be("account/login_with_2fa?rememberMe=False");
     }
 }

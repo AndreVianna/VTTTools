@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
-public class ChangePasswordPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
-    : AuthorizedComponentHandler<ChangePasswordPageHandler, ChangePasswordPage>(httpContext, navigationManager, currentUser, loggerFactory) {
+public class ChangePasswordPageHandler(HttpContext httpContext, NavigationManager navigationManager, User user, ILoggerFactory loggerFactory)
+    : PrivateComponentHandler<ChangePasswordPageHandler>(httpContext, navigationManager, user, loggerFactory) {
     private UserManager<User> _userManager = null!;
     private SignInManager<User> _signInManager = null!;
 
@@ -16,7 +16,7 @@ public class ChangePasswordPageHandler(HttpContext httpContext, NavigationManage
         return false;
     }
 
-    public async Task<bool> ChangePasswordAsync() {
+    public async Task ChangePasswordAsync() {
         var changePasswordResult = await _userManager.ChangePasswordAsync(
             CurrentUser,
             State.Input.CurrentPassword,
@@ -25,13 +25,11 @@ public class ChangePasswordPageHandler(HttpContext httpContext, NavigationManage
         if (!changePasswordResult.Succeeded) {
             State.Input.Errors = changePasswordResult.Errors.ToArray(error => new InputError(error.Description));
             HttpContext.SetStatusMessage("Error: Failed to change the password.");
-            return false;
+            return;
         }
 
         await _signInManager.RefreshSignInAsync(CurrentUser);
-        Logger.LogInformation("User changed their password successfully.");
+        Logger.LogInformation("Current user changed the password successfully.");
         HttpContext.SetStatusMessage("Your password has been changed.");
-        NavigationManager.Reload();
-        return true;
     }
 }

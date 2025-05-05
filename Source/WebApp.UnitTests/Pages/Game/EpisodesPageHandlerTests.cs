@@ -209,7 +209,7 @@ public class EpisodesPageHandlerTests
     }
 
     private async Task<EpisodesPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) UseDefaultUser();
+        if (isAuthorized) EnsureAuthenticated();
         var handler = new EpisodesPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
         if (isConfigured) await handler.ConfigureAsync(_adventureId, _service);
         return handler;

@@ -7,14 +7,9 @@ public partial class ConfirmEmailPage {
     [SupplyParameterFromQuery]
     internal string? Code { get; set; }
 
-    protected override async Task<bool> ConfigureComponentAsync() {
-        HttpContext.SetStatusMessage("The email confirmation code is invalid, please try again.");
-        var isConfirmed = await Handler.ConfigureAsync(UserManager, UserId, Code);
-        if (!isConfirmed) return false;
-        HttpContext.SetStatusMessage("Thank you for confirming your email.");
-        return true;
-    }
+    protected override Task<bool> ConfigureComponentAsync()
+        => Handler.ConfigureAsync(UserManager, UserId, Code);
 
     internal void GoToSignInPage()
-        => NavigationManager.GoToSigIn();
+        => NavigationManager.GoToSignIn();
 }

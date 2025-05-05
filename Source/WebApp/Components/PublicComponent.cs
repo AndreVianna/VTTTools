@@ -1,6 +1,6 @@
 namespace VttTools.WebApp.Components;
 
-public class ExtendedComponent
+public class PublicComponent
     : ComponentBase {
     [Inject]
     internal IHttpContextAccessor HttpContextAccessor { get; set; } = null!;
@@ -13,7 +13,10 @@ public class ExtendedComponent
 
     public HttpContext HttpContext { get; private set; } = null!;
     public string? CurrentLocation { get; protected set; }
-    public CurrentUser CurrentUser { get; set; } = new();
+    public virtual User? CurrentUser { get; set; }
+    [MemberNotNullWhen(true, nameof(CurrentUser))]
+    public bool IsAuthenticated => (HttpContext.User.Identity?.IsAuthenticated ?? false)
+                                && CurrentUser is not null;
     public bool IsReady { get; protected set; }
 
     public event EventHandler<LocationChangedEventArgs> LocationChanged {
@@ -27,41 +30,23 @@ public class ExtendedComponent
         CurrentLocation = GetUrlRelativeToBase(NavigationManager.Uri);
     }
 
-    protected override async Task OnInitializedAsync() {
-        await base.OnInitializedAsync();
-        await SetCurrentUserAsync();
-    }
+    protected override Task OnInitializedAsync()
+        => SetCurrentUserAsync();
 
     public override async Task SetParametersAsync(ParameterView parameters) {
         await base.SetParametersAsync(parameters);
-        // ReSharper disable once MethodHasAsyncOverload - Need to call both methods.
-        IsReady = ConfigureComponent() && await ConfigureComponentAsync();
+        IsReady = await ConfigureComponentAsync();
+        await StateHasChangedAsync();
     }
     protected virtual bool ConfigureComponent() => true;
-    protected virtual Task<bool> ConfigureComponentAsync() => Task.FromResult(true);
+    protected virtual Task<bool> ConfigureComponentAsync()
+        => Task.FromResult(ConfigureComponent());
 
     private async Task SetCurrentUserAsync() {
-        CurrentUser.IsAuthenticated = HttpContext.User.Identity?.IsAuthenticated ?? false;
-        var user = await UserManager.GetUserAsync(HttpContext.User);
-        if (user is null)
+        CurrentUser = await UserManager.GetUserAsync(HttpContext.User);
+        if (CurrentUser is null)
             return;
-        CurrentUser.Id = user.Id;
-        CurrentUser.PasswordHash = null;
-        CurrentUser.UserName = user.UserName;
-        CurrentUser.NormalizedUserName = user.NormalizedUserName;
-        CurrentUser.Name = user.Name;
-        CurrentUser.DisplayName = user.DisplayName ?? user.Name;
-        CurrentUser.Email = user.Email;
-        CurrentUser.NormalizedEmail = user.NormalizedEmail;
-        CurrentUser.PhoneNumber = user.PhoneNumber;
-        CurrentUser.EmailConfirmed = user.EmailConfirmed;
-        CurrentUser.PhoneNumberConfirmed = user.PhoneNumberConfirmed;
-        CurrentUser.TwoFactorEnabled = user.TwoFactorEnabled;
-        CurrentUser.LockoutEnabled = user.LockoutEnabled;
-        CurrentUser.LockoutEnd = user.LockoutEnd?.DateTime;
-        CurrentUser.AccessFailedCount = user.AccessFailedCount;
-        CurrentUser.IsAdministrator = await UserManager.IsInRoleAsync(user, "Administrator");
-        CurrentUser.HasPassword = string.IsNullOrEmpty(user.PasswordHash);
+        CurrentUser.IsAdministrator = await UserManager.IsInRoleAsync(CurrentUser, "Administrator");
     }
 
     protected virtual string GetUrlRelativeToBase(string url) => NavigationManager.ToBaseRelativePath(url);
@@ -76,7 +61,7 @@ public class ExtendedComponent
         => NavigationManager.GoHome();
 
     public virtual void GoSignIn(string? returnUrl = null)
-        => NavigationManager.GoToSigIn(returnUrl);
+        => NavigationManager.GoToSignIn(returnUrl);
 
     public virtual void Refresh(Action<IDictionary<string, object?>>? setQueryParameters = null)
         => NavigationManager.Refresh(setQueryParameters);
@@ -88,22 +73,26 @@ public class ExtendedComponent
         => NavigationManager.ReplaceWith(location, setQueryParameters);
 }
 
-public class ExtendedComponent<TComponent, THandler>
-    : ExtendedComponent, IDisposable, IAsyncDisposable
-    where TComponent : ExtendedComponent<TComponent, THandler>
-    where THandler : ComponentHandler<THandler, TComponent> {
+public class PublicComponent<THandler>
+    : PublicComponent, IDisposable, IAsyncDisposable
+    where THandler : PublicComponentHandler<THandler> {
     private bool _isDisposed;
 
-    public ExtendedComponent() {
-        Handler = InstanceFactory.Create<THandler>(HttpContext, NavigationManager, LoggerFactory);
+    protected override async Task OnInitializedAsync() {
+        await base.OnInitializedAsync();
+        SetHandler();
     }
 
-    protected THandler Handler { get; }
+    [MemberNotNull(nameof(Handler))]
+    protected virtual void SetHandler()
+        => Handler = InstanceFactory.Create<THandler>(HttpContext, NavigationManager, LoggerFactory);
+
+    protected THandler Handler { get; set; } = null!;
 
     protected virtual void Dispose(bool disposing) {
         if (!disposing)
             return;
-        Handler.Dispose();
+        ((THandler?)Handler)?.Dispose();
     }
 
     public void Dispose() {
@@ -115,7 +104,7 @@ public class ExtendedComponent<TComponent, THandler>
     }
 
     protected virtual ValueTask DisposeAsyncCore()
-        => Handler.DisposeAsync();
+        => ((THandler?)Handler)?.DisposeAsync() ?? ValueTask.CompletedTask;
 
     public async ValueTask DisposeAsync() {
         await DisposeAsyncCore();

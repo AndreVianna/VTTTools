@@ -7,10 +7,6 @@ public class ErrorPageTests
         // Act
         var cut = RenderComponent<ErrorPage>();
 
-        // Mocking HttpContext is not easy in bUnit, so will directly modify the state
-        cut.Instance.State.RequestId = null;
-        cut.SetParametersAndRender();
-
         // Assert
         var requestIdElement = cut.FindAll("p").FirstOrDefault(p => p.TextContent.Contains("Request ID"));
         requestIdElement.Should().BeNull();
@@ -19,16 +15,13 @@ public class ErrorPageTests
     [Fact]
     public void WhenRequestIdIsSet_ShowsRequestId() {
         // Act
+        HttpContext.TraceIdentifier.Returns("test-trace-id");
         var cut = RenderComponent<ErrorPage>();
-
-        // Mocking HttpContext is not easy in bUnit, so will directly modify the state
-        cut.Instance.State.RequestId = "test-request-id";
-        cut.SetParametersAndRender();
 
         // Assert
         var requestIdElement = cut.FindAll("p").FirstOrDefault(p => p.TextContent.Contains("Request ID"));
         requestIdElement.Should().NotBeNull();
-        requestIdElement.TextContent.Should().Contain("test-request-id");
+        requestIdElement.TextContent.Should().Contain("test-trace-id");
     }
 
     [Fact]

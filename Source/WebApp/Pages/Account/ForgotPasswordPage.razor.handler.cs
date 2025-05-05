@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account;
 
 public class ForgotPasswordPageHandler(HttpContext httpContext, NavigationManager navigationManager, ILoggerFactory loggerFactory)
-    : ComponentHandler<ForgotPasswordPageHandler, ForgotPasswordPage>(httpContext, navigationManager, loggerFactory) {
+    : PublicComponentHandler<ForgotPasswordPageHandler>(httpContext, navigationManager, loggerFactory) {
     private UserManager<User> _userManager = null!;
     private IEmailSender<User> _emailSender = null!;
 

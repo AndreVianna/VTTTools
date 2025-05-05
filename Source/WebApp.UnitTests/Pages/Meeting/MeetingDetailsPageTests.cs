@@ -8,8 +8,8 @@ public class MeetingDetailsPageTests
 
     public MeetingDetailsPageTests() {
         Services.AddScoped<IGameService>(_ => _service);
-        UseDefaultUser();
-        _defaultMeeting = new() { Subject = "Meeting 1", OwnerId = Options.CurrentUser!.Id };
+        EnsureAuthenticated();
+        _defaultMeeting = new() { Subject = "Meeting 1", OwnerId = CurrentUser!.Id };
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class MeetingDetailsPageTests
         cut.Find("button.btn-secondary").Click();
 
         // Assert
-        navigationSpy.History.Should().ContainSingle(x => x.Uri == "/meetings");
+        navigationSpy.History.First().Uri.Should().Be("/meetings");
     }
 
     [Fact]

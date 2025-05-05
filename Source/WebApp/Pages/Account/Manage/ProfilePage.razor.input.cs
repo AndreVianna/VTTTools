@@ -1,6 +1,6 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
-internal class IndexPageInputModel {
+internal class ProfilePageInputModel {
     [MaxLength(128)]
     [Display(Name = "Display name")]
     public string? DisplayName { get; set; }

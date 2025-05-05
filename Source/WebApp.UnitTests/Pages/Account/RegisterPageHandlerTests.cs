@@ -58,7 +58,6 @@ public class RegisterPageHandlerTests
             .Returns(IdentityResult.Success);
         UserManager.GetUserIdAsync(Arg.Any<User>()).Returns(createdUser.Id.ToString());
         UserManager.GenerateEmailConfirmationTokenAsync(Arg.Any<User>()).Returns("ConfirmationToken");
-        UserManager.Options.SignIn.RequireConfirmedAccount.Returns(false);
 
         // Act
         var result = await handler.RegisterUserAsync(null);
@@ -88,14 +87,14 @@ public class RegisterPageHandlerTests
             .Returns(IdentityResult.Success);
         UserManager.GetUserIdAsync(Arg.Any<User>()).Returns(createdUser.Id.ToString());
         UserManager.GenerateEmailConfirmationTokenAsync(Arg.Any<User>()).Returns("ConfirmationToken");
-        UserManager.Options.SignIn.RequireConfirmedAccount.Returns(true);
+        UserManager.Options.SignIn.RequireConfirmedAccount = true;
 
         // Act
         var result = await handler.RegisterUserAsync("/return-url");
 
         // Assert
         result.Should().BeTrue();
-        NavigationManager.Received(1).RedirectTo("account/register_confirmation", Arg.Any<Action<IDictionary<string, object?>>?>());
+        NavigationManager.History.First().Uri.Should().Be("account/register_confirmation?email=test%40example.com&returnUrl=%2Freturn-url");
         await SignInManager.DidNotReceive().SignInAsync(Arg.Any<User>(), Arg.Any<bool>(), Arg.Any<string>());
     }
 

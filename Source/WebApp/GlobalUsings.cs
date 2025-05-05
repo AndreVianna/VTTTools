@@ -12,14 +12,12 @@ global using System.Text.Json;
 global using DotNetToolbox;
 global using DotNetToolbox.Results;
 
-global using Microsoft.AspNetCore.Antiforgery;
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Components;
 global using Microsoft.AspNetCore.Components.Authorization;
 global using Microsoft.AspNetCore.Components.Forms;
 global using Microsoft.AspNetCore.Components.Routing;
 global using Microsoft.AspNetCore.Components.Server;
-global using Microsoft.AspNetCore.Components.Web;
 global using Microsoft.AspNetCore.Http.Extensions;
 global using Microsoft.AspNetCore.Http.Features;
 global using Microsoft.AspNetCore.Identity;
@@ -28,6 +26,7 @@ global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.SignalR.Client;
 global using Microsoft.AspNetCore.WebUtilities;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
+global using Microsoft.Extensions.Logging.Abstractions;
 global using Microsoft.Extensions.Options;
 global using Microsoft.Extensions.Primitives;
 

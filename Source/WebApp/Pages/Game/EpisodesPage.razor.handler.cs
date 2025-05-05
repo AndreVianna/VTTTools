@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Game;
 
-public sealed class EpisodesPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
-    : AuthorizedComponentHandler<EpisodesPageHandler, EpisodesPage>(httpContext, navigationManager, currentUser, loggerFactory) {
+public sealed class EpisodesPageHandler(HttpContext httpContext, NavigationManager navigationManager, User user, ILoggerFactory loggerFactory)
+    : PrivateComponentHandler<EpisodesPageHandler>(httpContext, navigationManager, user, loggerFactory) {
     private IGameService _service = null!;
 
     internal EpisodesPageState State { get; } = new();

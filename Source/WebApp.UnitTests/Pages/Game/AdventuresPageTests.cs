@@ -6,7 +6,7 @@ public class AdventuresPageTests
     private readonly Adventure[] _defaultAdventures;
 
     public AdventuresPageTests() {
-        UseDefaultUser();
+        EnsureAuthenticated();
         Services.AddScoped<IGameService>(_ => _service);
         _defaultAdventures = [
         new() {
@@ -97,7 +97,7 @@ public class AdventuresPageTests
         cut.Find($"#view-adventure-{adventureId}").Click();
 
         // Assert
-        navigationSpy.History.Should().ContainSingle(x => x.Uri == $"/adventures/{adventureId}/episodes");
+        navigationSpy.History.First().Uri.Should().Be($"/adventures/{adventureId}/episodes");
     }
 
     [Fact]

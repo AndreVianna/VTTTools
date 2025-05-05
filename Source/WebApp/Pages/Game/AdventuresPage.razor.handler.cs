@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Game;
 
-public class AdventuresPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
-    : AuthorizedComponentHandler<AdventuresPageHandler, AdventuresPage>(httpContext, navigationManager, currentUser, loggerFactory) {
+public class AdventuresPageHandler(HttpContext httpContext, NavigationManager navigationManager, User user, ILoggerFactory loggerFactory)
+    : PrivateComponentHandler<AdventuresPageHandler>(httpContext, navigationManager, user, loggerFactory) {
     private IGameService _service = null!;
 
     internal AdventuresPageState State { get; } = new();

@@ -34,11 +34,11 @@ public partial class LoginWith2faPage {
         var userId = await UserManager.GetUserIdAsync(_user);
 
         if (result.Succeeded) {
-            Logger.LogInformation("User with ID '{UserId}' logged in with 2fa.", userId);
+            Logger.LogInformation("CurrentUser with ID '{UserId}' logged in with 2fa.", userId);
             NavigationManager.RedirectTo(ReturnUrl);
         }
         else if (result.IsLockedOut) {
-            Logger.LogWarning("User with ID '{UserId}' account locked out.", userId);
+            Logger.LogWarning("CurrentUser with ID '{UserId}' account locked out.", userId);
             NavigationManager.RedirectTo("account/lockout");
         }
         else {

@@ -1,7 +1,11 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
-public class IndexPageHandlerTests
+public class ProfilePageHandlerTests
     : WebAppTestContext {
+    public ProfilePageHandlerTests() {
+        EnsureAuthenticated();
+    }
+
     [Fact]
     public void Configure_LoadsUserData() {
         // Arrange
@@ -65,9 +69,9 @@ public class IndexPageHandlerTests
         HttpContext.Received(1).SetStatusMessage("Error: Failed to update user profile.");
     }
 
-    private IndexPageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) UseDefaultUser();
-        var handler = new IndexPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
+    private ProfilePageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
+        if (isAuthorized) EnsureAuthenticated();
+        var handler = new ProfilePageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
         if (isConfigured) handler.Configure(UserManager);
         return handler;
     }

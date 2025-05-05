@@ -77,7 +77,7 @@ public sealed class ChatPageHandlerTests
     }
 
     private async Task<ChatPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) UseDefaultUser();
+        if (isAuthorized) EnsureAuthenticated();
         var handler = new ChatPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
         if (isConfigured) await handler.ConfigureAsync(_builder, _chatUri, RefreshAsync);
         return handler;

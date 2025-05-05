@@ -2,21 +2,20 @@ namespace VttTools.WebApp.Pages;
 
 public class ErrorPageHandlerTests
     : WebAppTestContext {
-    private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
-
     public ErrorPageHandlerTests() {
-        _httpContext.TraceIdentifier.Returns("test-trace-id");
+        HttpContext.TraceIdentifier.Returns("test-trace-id");
     }
 
     [Fact]
-    public void WhenDoesNotHaveTraceIdentifier_ShowsDefaultRequestId() {
+    public void WhenDoesNotHaveTraceIdentifier_DoesNotShowRequestId() {
+        // Arrange
+        HttpContext.TraceIdentifier.Returns((string)null!);
+
         // Act
         var handler = CreateHandler();
-        _httpContext.TraceIdentifier.Returns((string)null!);
 
         // Assert
-        handler.State.ShowRequestId.Should().BeTrue();
-        handler.State.RequestId.Should().Be("test-trace-id");
+        handler.State.ShowRequestId.Should().BeFalse();
     }
 
     [Fact]
@@ -44,19 +43,10 @@ public class ErrorPageHandlerTests
         handler.State.RequestId.Should().Be(activity.Id);
     }
 
-    [Fact]
-    public void WhenShowRequestIdIsFalse_WhenRequestIdIsNull() {
-        // Act
-        var handler = CreateHandler();
-
-        // Assert
-        handler.State.ShowRequestId.Should().BeFalse();
-        handler.State.RequestId.Should().BeNull();
-    }
-
     private ErrorPageHandler CreateHandler(bool isConfigured = true) {
-        var handler = new ErrorPageHandler(HttpContext, NavigationManager, NullLoggerFactory.Instance);
-        if (isConfigured) handler.Configure();
+        var handler = new ErrorPageHandler(HttpContext, NavigationManager);
+        if (isConfigured)
+            handler.Configure();
         return handler;
     }
 }

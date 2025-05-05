@@ -1,5 +1,5 @@
 ﻿@page "/account/manage/email"
-@inherits ExtendedComponent<EmailPage, EmailPageHandler>
+@inherits PrivateComponent<EmailPageHandler>
 
 <PageTitle>Manage email</PageTitle>
 
@@ -10,30 +10,30 @@
   <div class="col-xl-6">
   @if (CurrentUser.EmailConfirmed)
   {
-    <EditForm id="change-email-form" Model="Input" FormName="change-email" OnValidSubmit="SendEmailChangeConfirmationAsync" method="post">
+    <EditForm id="change-email-form" Model="ChangeEmailInput" FormName="change-email" OnValidSubmit="SendEmailChangeConfirmationAsync" method="post">
       <DataAnnotationsValidator />
       <ValidationSummary class="text-danger" role="alert" />
       <div class="form-floating mb-3 input-group">
-        <InputText id="current-email-input" type="email" @bind-Value="CurrentUser.Email" class="form-control" disabled />
+        <InputText id="current-email" type="email" @bind-Value="ChangeEmailInput.CurrentEmail" class="form-control" disabled />
         <div class="input-group-append"><span class="h-100 input-group-text text-success font-weight-bold">✓</span></div>
-        <label for="current-email-input" class="form-label">Current Email</label>
+        <label for="current-email" class="form-label">Current Email</label>
       </div>
       <div class="form-floating mb-3">
-        <InputText id="new-email-input" @bind-Value="Input.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="Enter a new email" />
-        <label for="new-email-input" class="form-label">New email</label>
-        <ValidationMessage For="() => Input.Email" class="text-danger" />
+        <InputText id="email-input" @bind-Value="ChangeEmailInput.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="Enter a new email" />
+        <label for="email-input" class="form-label">New email</label>
+        <ValidationMessage For="() => ChangeEmailInput.Email" class="text-danger" />
       </div>
       <button id="change-email-submit" type="submit" class="w-100 btn btn-lg btn-primary">Change email</button>
     </EditForm>
   }
   else
   {
-    <EditForm id="verify-email-form" Model="Input" FormName="verify-email" OnValidSubmit="SendEmailVerificationAsync" method="post">
+    <EditForm id="verify-email-form" Model="VerifyEmailInput" FormName="verify-email" OnValidSubmit="SendEmailVerificationAsync" method="post">
       <DataAnnotationsValidator />
       <ValidationSummary class="text-danger" role="alert" />
       <div class="form-floating mb-3 input-group">
-        <InputText id="email-input" type="email" @bind-Value="CurrentUser.Email" class="form-control" disabled />
-        <label for="email-input" class="form-label">Email</label>
+        <InputText id="current-email" type="email" @bind-Value="VerifyEmailInput.CurrentEmail" class="form-control" disabled />
+        <label for="current-email" class="form-label">Email</label>
       </div>
       <button id="verify-email-submit" type="submit" class="w-100 btn btn-lg btn-primary">Verify email</button>
     </EditForm>

@@ -12,6 +12,7 @@ public class ChatPageTests
     public ChatPageTests() {
         _builder.Build().Returns(_hubConnection);
         Services.AddSingleton(_builder);
+        EnsureAuthenticated();
     }
 
     [Fact]

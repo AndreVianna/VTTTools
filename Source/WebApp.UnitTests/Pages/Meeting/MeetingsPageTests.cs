@@ -7,9 +7,9 @@ public class MeetingsPageTests
 
     public MeetingsPageTests() {
         Services.AddScoped<IGameService>(_ => _service);
-        UseDefaultUser();
+        EnsureAuthenticated();
         _defaultMeetings = [
-            new() { Subject = "Meeting 1", OwnerId = Options.CurrentUser!.Id },
+            new() { Subject = "Meeting 1", OwnerId = CurrentUser!.Id },
             new() { Subject = "Meeting 2", OwnerId = Guid.NewGuid() },
         ];
     }
@@ -90,7 +90,7 @@ public class MeetingsPageTests
         joinButton.Click();
 
         // Assert
-        navigationSpy.History.Should().ContainSingle(x => x.Uri == $"/game/{meetingId}");
+        navigationSpy.History.First().Uri.Should().Be($"/game/{meetingId}");
     }
 
     [Fact]
@@ -106,6 +106,6 @@ public class MeetingsPageTests
         editButton.Click();
 
         // Assert
-        navigationSpy.History.Should().ContainSingle(x => x.Uri == $"/meeting/{meetingId}");
+        navigationSpy.History.First().Uri.Should().Be($"/meeting/{meetingId}");
     }
 }

@@ -12,6 +12,8 @@ public partial class ChangePasswordPage {
         return Handler.Configure(UserManager, SignInManager);
     }
 
-    private Task ChangePasswordAsync()
-        => Handler.ChangePasswordAsync();
+    private async Task ChangePasswordAsync() {
+        await Handler.ChangePasswordAsync();
+        await StateHasChangedAsync();
+    }
 }

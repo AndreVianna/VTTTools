@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Meeting;
 
-public class MeetingDetailsPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
-    : AuthorizedComponentHandler<MeetingDetailsPageHandler, MeetingDetailsPage>(httpContext, navigationManager, currentUser, loggerFactory) {
+public class MeetingDetailsPageHandler(HttpContext httpContext, NavigationManager navigationManager, User user, ILoggerFactory loggerFactory)
+    : PrivateComponentHandler<MeetingDetailsPageHandler>(httpContext, navigationManager, user, loggerFactory) {
     private IGameService _service = null!;
 
     internal MeetingDetailsPageState State { get; } = new();

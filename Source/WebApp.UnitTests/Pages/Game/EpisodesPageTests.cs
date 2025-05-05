@@ -19,7 +19,7 @@ public class EpisodesPageTests
     public EpisodesPageTests() {
         Services.AddScoped<IGameService>(_ => _service);
         _service.GetEpisodesAsync(Arg.Any<Guid>()).Returns(_defaultEpisodes);
-        UseDefaultUser();
+        EnsureAuthenticated();
     }
 
     [Fact]

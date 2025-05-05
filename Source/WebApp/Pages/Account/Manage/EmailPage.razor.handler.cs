@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
-public class EmailPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
-    : AuthorizedComponentHandler<EmailPageHandler, EmailPage>(httpContext, navigationManager, currentUser, loggerFactory) {
+public class EmailPageHandler(HttpContext httpContext, NavigationManager navigationManager, User user, ILoggerFactory loggerFactory)
+    : PrivateComponentHandler<EmailPageHandler>(httpContext, navigationManager, user, loggerFactory) {
     private const string _confirmEmailChangePage = "account/confirm_email_change";
     private const string _confirmEmailPage = "account/confirm_email";
     private static readonly HtmlEncoder _htmlEncoder = HtmlEncoder.Default;
@@ -13,31 +13,30 @@ public class EmailPageHandler(HttpContext httpContext, NavigationManager navigat
     public void Configure(UserManager<User> userManager, IEmailSender<User> emailSender) {
         _userManager = userManager;
         _emailSender = emailSender;
-        State.Input.Email = CurrentUser.EmailConfirmed
-            ? string.Empty
-            : CurrentUser.Email;
+        State.ChangeEmailInput.CurrentEmail = CurrentUser.Email;
+        State.VerifyEmailInput.CurrentEmail = CurrentUser.Email;
     }
 
     public async Task SendEmailChangeConfirmationAsync() {
-        if (string.IsNullOrWhiteSpace(State.Input.Email)) {
+        if (string.IsNullOrWhiteSpace(State.ChangeEmailInput.Email)) {
             HttpContext.SetStatusMessage("Error: The new email cannot be empty.");
             return;
         }
 
-        if (State.Input.Email == CurrentUser.Email) {
+        if (State.ChangeEmailInput.Email == State.ChangeEmailInput.CurrentEmail) {
             HttpContext.SetStatusMessage("Your email was not changed.");
             return;
         }
 
-        var code = await _userManager.GenerateChangeEmailTokenAsync(CurrentUser, State.Input.Email);
+        var code = await _userManager.GenerateChangeEmailTokenAsync(CurrentUser, State.ChangeEmailInput.Email);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         var link = _htmlEncoder.Encode(NavigationManager.GetRelativeUrl(_confirmEmailChangePage, ps => {
             ps.Add("userId", CurrentUser.Id);
-            ps.Add("email", State.Input.Email);
+            ps.Add("email", State.ChangeEmailInput.Email);
             ps.Add("code", code);
         }));
 
-        await _emailSender.SendConfirmationLinkAsync(CurrentUser, State.Input.Email, link);
+        await _emailSender.SendConfirmationLinkAsync(CurrentUser, State.ChangeEmailInput.Email, link);
         Logger.LogInformation("Change email link sent to user with ID {UserId}", CurrentUser.Id);
         HttpContext.SetStatusMessage("A confirmation link was sent to the new email. Please check your inbox.");
     }

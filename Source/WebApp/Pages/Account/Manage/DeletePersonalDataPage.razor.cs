@@ -42,7 +42,7 @@ public partial class DeletePersonalDataPage {
         await SignInManager.SignOutAsync();
 
         var userId = await UserManager.GetUserIdAsync(_user);
-        Logger.LogInformation("User with ID '{UserId}' deleted themselves.", userId);
+        Logger.LogInformation("CurrentUser with ID '{UserId}' deleted themselves.", userId);
 
         NavigationManager.Reload();
     }
