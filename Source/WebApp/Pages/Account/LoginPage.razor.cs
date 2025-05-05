@@ -2,20 +2,18 @@
 
 public partial class LoginPage {
     [Inject]
-    private SignInManager<User> SignInManager { get; set; } = null!;
-
-    [Inject]
-    private ILogger<LoginPage> Logger { get; set; } = null!;
+    internal SignInManager<User> SignInManager { get; set; } = null!;
 
     [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; }
+    internal string? ReturnUrl { get; set; }
 
     internal LoginPageState State => Handler.State;
 
-    protected override async Task OnInitializedAsync() {
-        await base.OnInitializedAsync();
-        await Handler.InitializeAsync(HttpContext, UserManager, SignInManager, NavigationManager, Logger);
+    protected override async Task<bool> ConfigureComponentAsync() {
+        await Handler.ConfigureAsync(UserManager, SignInManager);
+        return true;
     }
 
-    public async Task LoginUser() => await Handler.LoginUserAsync(ReturnUrl);
+    public Task LoginUser()
+        => Handler.LoginUserAsync(ReturnUrl);
 }

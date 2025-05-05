@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Pages.Meeting;
 
-public class MeetingsPageTests : WebAppTestContext {
+public class MeetingsPageTests
+    : WebAppTestContext {
     private readonly IGameService _service = Substitute.For<IGameService>();
     private readonly MeetingModel[] _defaultMeetings;
 
@@ -14,7 +15,7 @@ public class MeetingsPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void RendersLoadingState_WhenStateIsNull() {
+    public void BeforeIsReady_RendersLoadingState() {
         // Arrange
         _service.GetMeetingsAsync().Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultMeetings));
 
@@ -26,7 +27,7 @@ public class MeetingsPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void WhenNoMeetingsExist_RendersEmptyState() {
+    public void WhenIsReady_WithNoMeetings_RendersEmptyState() {
         // Arrange
         _service.GetMeetingsAsync().Returns([]);
 
@@ -38,7 +39,7 @@ public class MeetingsPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void WhenStateHasMeetings_RendersMeetings() {
+    public void WhenIsReady_WithMeetings_RendersMeetings() {
         // Arrange
         _service.GetMeetingsAsync().Returns(_defaultMeetings);
 

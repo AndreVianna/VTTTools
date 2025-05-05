@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Pages.Meeting;
 
-public class MeetingDetailsPageTests : WebAppTestContext {
+public class MeetingDetailsPageTests
+    : WebAppTestContext {
     private readonly IGameService _service = Substitute.For<IGameService>();
     private readonly Guid _meetingId = Guid.NewGuid();
     private readonly MeetingModel? _defaultMeeting;
@@ -12,7 +13,7 @@ public class MeetingDetailsPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void MeetingDetails_RendersLoadingState_WhenMeetingIsNull() {
+    public void BeforeIsReady_RendersLoadingState() {
         // Arrange
         _service.GetMeetingByIdAsync(Arg.Any<Guid>()).Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultMeeting));
 
@@ -24,7 +25,7 @@ public class MeetingDetailsPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void MeetingDetails_RendersCorrectly_WhenMeetingIsLoaded() {
+    public void WhenIsReady_RendersCorrectly() {
         // Arrange
         _service.GetMeetingByIdAsync(Arg.Any<Guid>()).Returns(_defaultMeeting);
 
@@ -37,7 +38,7 @@ public class MeetingDetailsPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void MeetingDetails_ShowsEditButton_WhenUserIsGameMaster() {
+    public void WhenIsReady_ForGameMaster_ShowsEditButton() {
         // Arrange
         _service.GetMeetingByIdAsync(Arg.Any<Guid>()).Returns(_defaultMeeting);
 
@@ -50,7 +51,7 @@ public class MeetingDetailsPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void Clicking_BackToMeetings_NavigatesToMeetings() {
+    public void WhenBackToMeetingsButtonIsClicked_NavigatesToMeetings() {
         // Arrange
         _service.GetMeetingByIdAsync(Arg.Any<Guid>()).Returns(_defaultMeeting);
         var cut = RenderComponent<MeetingDetailsPage>(ps => ps.Add(p => p.MeetingId, _meetingId));
@@ -64,7 +65,7 @@ public class MeetingDetailsPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void Clicking_EditButton_ShowsEditDialog() {
+    public void WhenEditButtonIsClicked_ShowsEditDialog() {
         // Arrange
         _service.GetMeetingByIdAsync(Arg.Any<Guid>()).Returns(_defaultMeeting);
         var cut = RenderComponent<MeetingDetailsPage>(ps => ps.Add(p => p.MeetingId, _meetingId));

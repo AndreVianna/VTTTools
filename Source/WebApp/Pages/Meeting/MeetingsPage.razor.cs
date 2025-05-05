@@ -7,8 +7,10 @@ public partial class MeetingsPage {
     internal MeetingsPageState State => Handler.State;
     internal MeetingsPageInputModel Input => Handler.State.Input;
 
-    protected override Task ConfigureComponentAsync()
-        => Handler.InitializeAsync(GameService);
+    protected override async Task<bool> ConfigureComponentAsync() {
+        await Handler.ConfigureAsync(GameService);
+        return true;
+    }
 
     internal void NavigateToMeeting(Guid meetingId)
         => RedirectTo($"/meeting/{meetingId}");

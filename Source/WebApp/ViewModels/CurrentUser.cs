@@ -1,9 +1,7 @@
 namespace VttTools.WebApp.ViewModels;
 
-public class CurrentUser {
-    public Guid Id { get; set; } = Guid.Empty;
-    public string DisplayName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
+public class CurrentUser : User {
     public bool IsAuthenticated { get; set; }
     public bool IsAdministrator { get; set; }
+    public bool HasPassword { get; set; }
 }

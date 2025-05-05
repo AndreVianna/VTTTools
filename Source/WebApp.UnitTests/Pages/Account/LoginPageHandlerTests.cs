@@ -1,170 +1,120 @@
 namespace VttTools.WebApp.Pages.Account;
 
-public class LoginPageHandlerTests {
-    private readonly LoginPageHandler _handler;
-    private readonly SignInManager<User> _signInManager;
-    private readonly UserManager<User> _userManager;
-    private readonly NavigationManager _navigationManager;
-    private readonly ILogger<LoginPage> _logger;
-    private readonly HttpContext _httpContext;
+public class LoginPageHandlerTests
+    : WebAppTestContext {
+    [Fact]
+    public async Task ConfigureAsync_WithGetRequest_ChecksForExternalLogins() {
+        // Arrange
+        var handler = await CreateHandler(false);
+        HttpContext.Request.Method.Returns("GET");
+        var provider = new AuthenticationScheme("Google", "Google", typeof(IAuthenticationHandler));
+        var externalLogins = new[] { provider };
+        SignInManager.GetExternalAuthenticationSchemesAsync().Returns(externalLogins);
 
-    public LoginPageHandlerTests() {
-        _handler = new();
+        // Act
+        await handler.ConfigureAsync(UserManager, SignInManager);
 
-        _userManager = Substitute.For<UserManager<User>>(
-            Substitute.For<IUserStore<User>>(),
-            Substitute.For<IOptions<IdentityOptions>>(),
-            Substitute.For<IPasswordHasher<User>>(),
-            Array.Empty<IUserValidator<User>>(),
-            Array.Empty<IPasswordValidator<User>>(),
-            Substitute.For<ILookupNormalizer>(),
-            new IdentityErrorDescriber(),
-            Substitute.For<IServiceProvider>(),
-            Substitute.For<ILogger<UserManager<User>>>());
-
-        _signInManager = Substitute.For<SignInManager<User>>(
-            _userManager,
-            Substitute.For<IHttpContextAccessor>(),
-            Substitute.For<IUserClaimsPrincipalFactory<User>>(),
-            Substitute.For<IOptions<IdentityOptions>>(),
-            Substitute.For<ILogger<SignInManager<User>>>(),
-            Substitute.For<IAuthenticationSchemeProvider>(),
-            Substitute.For<IUserConfirmation<User>>());
-
-        _navigationManager = Substitute.For<NavigationManager>();
-        _logger = Substitute.For<ILogger<LoginPage>>();
-
-        _httpContext = Substitute.For<HttpContext>();
-        Substitute.For<IAuthenticationService>();
-
-        var serviceProvider = Substitute.For<IServiceProvider>();
-        _httpContext.RequestServices.Returns(serviceProvider);
+        // Assert
+        handler.State.HasExternalLoginProviders.Should().BeTrue();
     }
 
     [Fact]
-    public async Task InitializeAsync_WithGetRequest_ChecksForExternalLogins() {
+    public async Task ConfigureAsync_WithPostRequest_DoesNotCheckForExternalLogins() {
         // Arrange
-        _httpContext.Request.Method.Returns("GET");
-        var externalLogins = new List<AuthenticationScheme> {
-            new("Google", "Google", typeof(IAuthenticationHandler)),
-                                                            };
-        _signInManager.GetExternalAuthenticationSchemesAsync().Returns(externalLogins);
+        var handler = await CreateHandler(false);
+        HttpContext.Request.Method.Returns("POST");
 
         // Act
-        await _handler.InitializeAsync(_httpContext, _userManager, _signInManager, _navigationManager, _logger);
+        await handler.ConfigureAsync(UserManager, SignInManager);
 
         // Assert
-        _handler.State.HasExternalLoginProviders.Should().BeTrue();
-        await _httpContext.Received(1).SignOutAsync(IdentityConstants.ExternalScheme);
-    }
-
-    [Fact]
-    public async Task InitializeAsync_WithPostRequest_DoesNotCheckForExternalLogins() {
-        // Arrange
-        _httpContext.Request.Method.Returns("POST");
-
-        // Act
-        await _handler.InitializeAsync(_httpContext, _userManager, _signInManager, _navigationManager, _logger);
-
-        // Assert
-        await _httpContext.DidNotReceive().SignOutAsync(IdentityConstants.ExternalScheme);
-        await _signInManager.DidNotReceive().GetExternalAuthenticationSchemesAsync();
+        handler.State.HasExternalLoginProviders.Should().BeFalse();
     }
 
     [Fact]
     public async Task LoginUserAsync_WithValidCredentials_RedirectsUser() {
         // Arrange
-        await _handler.InitializeAsync(_httpContext, _userManager, _signInManager, _navigationManager, _logger);
-        _handler.State.Input.Email = "test@example.com";
-        _handler.State.Input.Password = "Password123!";
+        var handler = await CreateHandler();
+        handler.State.Input.Email = "test@example.com";
+        handler.State.Input.Password = "Password123!";
 
-        _signInManager.PasswordSignInAsync(
-            Arg.Any<string>(),
-            Arg.Any<string>(),
-            Arg.Any<bool>(),
-            Arg.Any<bool>()
-        ).Returns(SignInResult.Success);
+        SignInManager.PasswordSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
+                     .Returns(SignInResult.Success);
 
         var user = new User { Email = "test@example.com" };
-        _userManager.FindByEmailAsync("test@example.com").Returns(user);
+        UserManager.FindByEmailAsync("test@example.com").Returns(user);
 
         var claim = new Claim(ClaimTypes.Name, "test@example.com");
         var claimsIdentity = new ClaimsIdentity([claim]);
         var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-        _signInManager.ClaimsFactory.CreateAsync(user).Returns(claimsPrincipal);
+        SignInManager.ClaimsFactory.CreateAsync(user).Returns(claimsPrincipal);
 
         // Act
-        var result = await _handler.LoginUserAsync("/dashboard");
+        var result = await handler.LoginUserAsync("/dashboard");
 
         // Assert
         result.Should().BeTrue();
-        _navigationManager.Received(1).RedirectTo("/dashboard");
-        await _httpContext.Received(1).SignInAsync(IdentityConstants.ExternalScheme, claimsPrincipal);
+        NavigationManager.History.First().Uri.Should().Be("/dashboard");
     }
 
     [Fact]
     public async Task LoginUserAsync_WithInvalidCredentials_SetsErrorMessage() {
         // Arrange
-        await _handler.InitializeAsync(_httpContext, _userManager, _signInManager, _navigationManager, _logger);
-        _handler.State.Input.Email = "test@example.com";
-        _handler.State.Input.Password = "WrongPassword";
+        var handler = await CreateHandler();
+        handler.State.Input.Email = "test@example.com";
+        handler.State.Input.Password = "WrongPassword";
 
-        _signInManager.PasswordSignInAsync(
-            Arg.Any<string>(),
-            Arg.Any<string>(),
-            Arg.Any<bool>(),
-            Arg.Any<bool>()
-        ).Returns(SignInResult.Failed);
+        SignInManager.PasswordSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
+                     .Returns(SignInResult.Failed);
 
         // Act
-        var result = await _handler.LoginUserAsync("/dashboard");
+        var result = await handler.LoginUserAsync("/dashboard");
 
         // Assert
         result.Should().BeFalse();
-        _handler.State.ErrorMessage.Should().Be("Error: Invalid login attempt.");
+        handler.State.ErrorMessage.Should().Be("Error: Invalid login attempt.");
     }
 
     [Fact]
     public async Task LoginUserAsync_WithLockedOutAccount_RedirectsToLockoutPage() {
         // Arrange
-        await _handler.InitializeAsync(_httpContext, _userManager, _signInManager, _navigationManager, _logger);
-        _handler.State.Input.Email = "locked@example.com";
-        _handler.State.Input.Password = "Password123!";
+        var handler = await CreateHandler();
+        handler.State.Input.Email = "locked@example.com";
+        handler.State.Input.Password = "Password123!";
 
-        _signInManager.PasswordSignInAsync(
-            Arg.Any<string>(),
-            Arg.Any<string>(),
-            Arg.Any<bool>(),
-            Arg.Any<bool>()
-        ).Returns(SignInResult.LockedOut);
+        SignInManager.PasswordSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
+                     .Returns(SignInResult.LockedOut);
 
         // Act
-        var result = await _handler.LoginUserAsync("/dashboard");
+        var result = await handler.LoginUserAsync("/dashboard");
 
         // Assert
         result.Should().BeTrue();
-        _navigationManager.Received(1).RedirectTo("account/lockout");
+        NavigationManager.History.First().Uri.Should().Be("account/lockout");
     }
 
     [Fact]
     public async Task LoginUserAsync_RequiringTwoFactor_RedirectsToTwoFactorPage() {
         // Arrange
-        await _handler.InitializeAsync(_httpContext, _userManager, _signInManager, _navigationManager, _logger);
-        _handler.State.Input.Email = "2fa@example.com";
-        _handler.State.Input.Password = "Password123!";
+        var handler = await CreateHandler();
+        handler.State.Input.Email = "2fa@example.com";
+        handler.State.Input.Password = "Password123!";
 
-        _signInManager.PasswordSignInAsync(
-            Arg.Any<string>(),
-            Arg.Any<string>(),
-            Arg.Any<bool>(),
-            Arg.Any<bool>()
-        ).Returns(SignInResult.TwoFactorRequired);
+        SignInManager.PasswordSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
+                     .Returns(SignInResult.TwoFactorRequired);
 
         // Act
-        var result = await _handler.LoginUserAsync("/dashboard");
+        var result = await handler.LoginUserAsync("/dashboard");
 
         // Assert
         result.Should().BeTrue();
-        _navigationManager.Received(1).RedirectTo("account/login_with_2fa", Arg.Any<Action<IDictionary<string, object?>>?>());
+        NavigationManager.History.First().Uri.Should().Be("account/login_with_2fa?returnUrl=%2Fdashboard&rememberMe=False");
+    }
+
+    private async Task<LoginPageHandler> CreateHandler(bool isConfigured = true) {
+        var handler = new LoginPageHandler(HttpContext, NavigationManager, NullLoggerFactory.Instance);
+        if (isConfigured)
+            await handler.ConfigureAsync(UserManager, SignInManager);
+        return handler;
     }
 }

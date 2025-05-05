@@ -11,5 +11,5 @@ public partial class PersonalDataPage {
     private IIdentityUserAccessor UserAccessor { get; set; } = null!;
 
     protected override Task OnInitializedAsync()
-        => UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
+        => UserAccessor.GetCurrentUserOrRedirectAsync();
 }

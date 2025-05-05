@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Pages;
 
-public class ErrorPageHandlerTests {
+public class ErrorPageHandlerTests
+    : WebAppTestContext {
     private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
 
     public ErrorPageHandlerTests() {
@@ -8,9 +9,10 @@ public class ErrorPageHandlerTests {
     }
 
     [Fact]
-    public void Initialize_SetsRequestIdFromHttpContext() {
+    public void WhenDoesNotHaveTraceIdentifier_ShowsDefaultRequestId() {
         // Act
-        var handler = ErrorPageHandler.Initialize(_httpContext);
+        var handler = CreateHandler();
+        _httpContext.TraceIdentifier.Returns((string)null!);
 
         // Assert
         handler.State.ShowRequestId.Should().BeTrue();
@@ -18,14 +20,24 @@ public class ErrorPageHandlerTests {
     }
 
     [Fact]
-    public void Initialize_SetsRequestIdFromActivityCurrent_WhenAvailable() {
+    public void WhenHasTraceIdentifier_ShowsTestTraceId() {
+        // Act
+        var handler = CreateHandler();
+
+        // Assert
+        handler.State.ShowRequestId.Should().BeTrue();
+        handler.State.RequestId.Should().Be("test-trace-id");
+    }
+
+    [Fact]
+    public void WhenHasActivity_ShowsActivityId() {
         // Arrange
         using var activity = new Activity("TestActivity");
         activity.Start();
         activity.SetIdFormat(ActivityIdFormat.W3C);
 
         // Act
-        var handler = ErrorPageHandler.Initialize(_httpContext);
+        var handler = CreateHandler();
 
         // Assert
         handler.State.ShowRequestId.Should().BeTrue();
@@ -33,12 +45,18 @@ public class ErrorPageHandlerTests {
     }
 
     [Fact]
-    public void Initialize_ShowRequestId_IsFalse_WhenRequestIdIsNull() {
+    public void WhenShowRequestIdIsFalse_WhenRequestIdIsNull() {
         // Act
-        var handler = ErrorPageHandler.Initialize(null);
+        var handler = CreateHandler();
 
         // Assert
         handler.State.ShowRequestId.Should().BeFalse();
         handler.State.RequestId.Should().BeNull();
+    }
+
+    private ErrorPageHandler CreateHandler(bool isConfigured = true) {
+        var handler = new ErrorPageHandler(HttpContext, NavigationManager, NullLoggerFactory.Instance);
+        if (isConfigured) handler.Configure();
+        return handler;
     }
 }

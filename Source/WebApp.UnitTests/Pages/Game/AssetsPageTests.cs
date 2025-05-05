@@ -83,7 +83,7 @@ public class AssetsPageTests
     }
 
     [Fact]
-    public void WhenClickCreate_CallsCreateAssetMethod() {
+    public void WhenCreateButtonIsClicked_CreatesAssetMethod() {
         // Arrange
         var newAsset = new Asset {
             Name = "New Asset",
@@ -112,7 +112,7 @@ public class AssetsPageTests
     }
 
     [Fact]
-    public void WhenClickDeleteButton_CallsDeleteAsset() {
+    public void WhenDeleteButtonIsClicked_DeletesAsset() {
         // Arrange
         var assetId = _defaultAssets[0].Id;
         _service.DeleteAssetAsync(Arg.Any<Guid>()).Returns(true);

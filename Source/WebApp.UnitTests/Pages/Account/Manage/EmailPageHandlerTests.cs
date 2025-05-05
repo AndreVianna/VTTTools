@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
-public class EmailPageHandlerTests {
+public class EmailPageHandlerTests
+    : WebAppTestContext {
     private readonly EmailPageHandler _handler;
     private readonly UserManager<User> _userManager;
     private readonly NavigationManager _navigationManager;
@@ -69,7 +70,7 @@ public class EmailPageHandlerTests {
         _handler.State.User.Should().Be(_defaultUser);
         _handler.State.Email.Should().Be("test@example.com");
         _handler.State.IsEmailConfirmed.Should().BeTrue();
-        _handler.State.Input.NewEmail.Should().Be("test@example.com");
+        _handler.State.Input.Email.Should().Be("test@example.com");
     }
 
     [Fact]
@@ -105,7 +106,7 @@ public class EmailPageHandlerTests {
         // Input.NewEmail is already set to "test@example.com" which is the same as the current email
 
         // Act
-        await _handler.ChangeEmailAsync();
+        await _handler.SendEmailChangeConfirmationAsync();
 
         // Assert
         _handler.State.Message.Should().Be("Your email is unchanged.");
@@ -123,13 +124,13 @@ public class EmailPageHandlerTests {
             _emailSender,
             _logger);
 
-        _handler.State.Input.NewEmail = "new@example.com";
+        _handler.State.Input.Email = "new@example.com";
 
         _userManager.GetUserIdAsync(_defaultUser).Returns(_defaultUser.Id.ToString());
         _userManager.GenerateChangeEmailTokenAsync(_defaultUser, "new@example.com").Returns("token");
 
         // Act
-        await _handler.ChangeEmailAsync();
+        await _handler.SendEmailChangeConfirmationAsync();
 
         // Assert
         _handler.State.Message.Should().Be("Confirmation link to change email sent. Please check your email.");

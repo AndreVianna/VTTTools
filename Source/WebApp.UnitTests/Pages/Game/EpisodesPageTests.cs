@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Pages.Game;
 
-public class EpisodesPageTests : WebAppTestContext {
+public class EpisodesPageTests
+    : WebAppTestContext {
     private readonly IGameService _service = Substitute.For<IGameService>();
     private static readonly Guid _adventureId = Guid.NewGuid();
     private readonly Episode[] _defaultEpisodes = [
@@ -63,7 +64,7 @@ public class EpisodesPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void WhenClickCreateButton_CallsCreateEpisodeMethod() {
+    public void WhenCreateButtonIsClicked_CreatesEpisodeMethod() {
         // Arrange
         var cut = RenderComponent<EpisodesPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
@@ -84,7 +85,7 @@ public class EpisodesPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void WhenClickEditButton_ShowsEditModal() {
+    public void WhenEditButtonIsClicked_ShowsEditModal() {
         // Arrange
         var episodeId = _defaultEpisodes[0].Id;
         var cut = RenderComponent<EpisodesPage>();
@@ -105,7 +106,7 @@ public class EpisodesPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void WhenClickDeleteButton_CallsDeleteEpisode() {
+    public void WhenDeleteButtonIsClicked_DeletesEpisode() {
         // Arrange
         var episodeId = _defaultEpisodes[0].Id;
         var cut = RenderComponent<EpisodesPage>();
@@ -120,7 +121,7 @@ public class EpisodesPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void WhenClickCloneButton_CallsCloneEpisode() {
+    public void WhenCloneButtonIsClicked_ClonesEpisode() {
         // Act
         var episodeId = _defaultEpisodes[0].Id;
         var cut = RenderComponent<EpisodesPage>();

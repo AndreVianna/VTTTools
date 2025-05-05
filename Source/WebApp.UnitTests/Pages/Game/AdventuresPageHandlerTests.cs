@@ -1,12 +1,21 @@
 namespace VttTools.WebApp.Pages.Game;
 
-public class AdventuresPageHandlerTests {
+public class AdventuresPageHandlerTests
+    : WebAppTestContext {
     private readonly IGameService _service = Substitute.For<IGameService>();
+
+    public AdventuresPageHandlerTests() {
+        var adventures = new[] {
+            new Adventure { Name = "Adventure 1", Visibility = Visibility.Public },
+            new Adventure { Name = "Adventure 2", Visibility = Visibility.Private },
+        };
+        _service.GetAdventuresAsync().Returns(adventures);
+    }
 
     [Fact]
     public async Task InitializeAsync_LoadsAdventures_And_ReturnsPageState() {
         // Arrange & Act
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
 
         // Assert
         handler.Should().NotBeNull();
@@ -16,7 +25,7 @@ public class AdventuresPageHandlerTests {
     [Fact]
     public async Task CreateAdventureAsync_WithValidInput_CreatesAdventureAndResetsInput() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         handler.State.CreateInput = new() {
             Name = "New Adventure",
             Visibility = Visibility.Private,
@@ -38,7 +47,7 @@ public class AdventuresPageHandlerTests {
     [Fact]
     public async Task DeleteAdventureAsync_RemovesAdventureAndReloadsAdventures() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         var adventureId = handler.State.Adventures[1].Id;
         _service.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
 
@@ -52,7 +61,7 @@ public class AdventuresPageHandlerTests {
     [Fact]
     public async Task CloneAdventureAsync_ClonesAdventureAndReloadsAdventures() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         var adventureId = Guid.NewGuid();
         handler.State.Adventures = [new Adventure { Id = adventureId, Name = "Adventure 1" }];
         var clonedAdventure = new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1 (Copy)" };
@@ -73,7 +82,7 @@ public class AdventuresPageHandlerTests {
     [Fact]
     public async Task StartEdit_SetsEditingStateAndPopulatesInput() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         var adventure = new Adventure {
             Name = "Adventure to Edit",
             Visibility = Visibility.Public,
@@ -92,7 +101,7 @@ public class AdventuresPageHandlerTests {
     [Fact]
     public async Task CancelEdit_ResetIsEditingFlag() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         handler.State.IsEditing = true;
         handler.State.EditInput = new() {
             Id = Guid.NewGuid(),
@@ -110,7 +119,7 @@ public class AdventuresPageHandlerTests {
     [Fact]
     public async Task SaveEditAsync_WithValidInput_UpdatesAdventureAndReloadsAdventures() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         handler.State.IsEditing = true;
         var adventureId = Guid.NewGuid();
         var adventureBeforeEdit = new Adventure {
@@ -148,7 +157,7 @@ public class AdventuresPageHandlerTests {
     [Fact]
     public async Task SaveEditAsync_WithInvalidInput_ReturnsErrors() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         handler.State.IsEditing = true;
         var adventureId = Guid.NewGuid();
         var adventureBeforeEdit = new Adventure {
@@ -182,14 +191,10 @@ public class AdventuresPageHandlerTests {
         handler.State.Adventures.Should().BeEquivalentTo(adventuresBeforeEdit);
     }
 
-    private async Task<AdventuresPageHandler> CreateInitializedHandler() {
-        var adventures = new[] {
-            new Adventure { Name = "Adventure 1", Visibility = Visibility.Public },
-            new Adventure { Name = "Adventure 2", Visibility = Visibility.Private },
-        };
-        var handler = new AdventuresPageHandler();
-        _service.GetAdventuresAsync().Returns(adventures);
-        await handler.InitializeAsync(_service);
+    private async Task<AdventuresPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
+        if (isAuthorized) UseDefaultUser();
+        var handler = new AdventuresPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
+        if (isConfigured) await handler.ConfigureAsync(_service);
         return handler;
     }
 }

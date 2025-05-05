@@ -1,6 +1,11 @@
 namespace VttTools.WebApp.Pages;
 
-internal class ErrorPageState {
-    internal string? RequestId { get; set; }
-    internal bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+internal class ErrorPageState() {
+    public ErrorPageState(string? requestId)
+        : this() {
+        RequestId = requestId;
+    }
+
+    public string? RequestId { get; set; }
+    public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
 }

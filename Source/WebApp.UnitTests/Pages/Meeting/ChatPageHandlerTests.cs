@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Pages.Meeting;
 
-public sealed class ChatPageHandlerTests {
+public sealed class ChatPageHandlerTests
+    : WebAppTestContext {
     private readonly IHubConnectionBuilder _builder = Substitute.For<IHubConnectionBuilder>();
     private readonly HubConnection _hubConnectionSpy = Substitute.For<HubConnection>(Substitute.For<IConnectionFactory>(),
                                                                                      Substitute.For<IHubProtocol>(),
@@ -29,8 +30,7 @@ public sealed class ChatPageHandlerTests {
     [Fact]
     public async Task OnMessageReceived_AddsMessageToStateAndCallsRefresh() {
         // Arrange
-        var handler = new ChatPageHandler();
-        await handler.InitializeAsync(_builder, _chatUri, RefreshAsync);
+        var handler = await CreateHandler();
 
         // Act
         await handler.OnMessageReceived("Test message");
@@ -45,8 +45,7 @@ public sealed class ChatPageHandlerTests {
     [Fact]
     public async Task SendMessage_WithNonEmptyMessage_SendsMessageAndClearsInput() {
         // Arrange
-        var handler = new ChatPageHandler();
-        await handler.InitializeAsync(_builder, _chatUri, RefreshAsync);
+        var handler = await CreateHandler();
         handler.State.Input.Message = "Test message";
 
         // Act
@@ -65,8 +64,7 @@ public sealed class ChatPageHandlerTests {
     [InlineData("   ")]
     public async Task SendMessage_WithEmptyMessage_DoesNotSendMessageAndReturnsEmpty(string? message) {
         // Arrange
-        var handler = new ChatPageHandler();
-        await handler.InitializeAsync(_builder, _chatUri, RefreshAsync);
+        var handler = await CreateHandler();
         handler.State.Input.Message = message!;
 
         // Act
@@ -76,5 +74,12 @@ public sealed class ChatPageHandlerTests {
         _hubStarted.Should().BeTrue();
         handler.State.Messages.Should().BeEmpty();
         _refreshCalled.Should().BeFalse();
+    }
+
+    private async Task<ChatPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
+        if (isAuthorized) UseDefaultUser();
+        var handler = new ChatPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
+        if (isConfigured) await handler.ConfigureAsync(_builder, _chatUri, RefreshAsync);
+        return handler;
     }
 }

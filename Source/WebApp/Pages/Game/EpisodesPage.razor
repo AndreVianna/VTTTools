@@ -1,5 +1,5 @@
 @page "/episodes/{EpisodeId:guid}/episodes"
-@inherits ExtendedComponent<EpisodesPageHandler>
+@inherits AuthorizedComponent<EpisodesPage, EpisodesPageHandler>
 @rendermode InteractiveAuto
 
 <PageTitle>Episodes</PageTitle>

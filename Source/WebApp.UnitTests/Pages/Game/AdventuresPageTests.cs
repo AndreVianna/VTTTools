@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Pages.Game;
 
-public class AdventuresPageTests : WebAppTestContext {
+public class AdventuresPageTests
+    : WebAppTestContext {
     private readonly IGameService _service = Substitute.For<IGameService>();
     private readonly Adventure[] _defaultAdventures;
 
@@ -63,7 +64,7 @@ public class AdventuresPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void WhenClickCreateButton_CallsCreateAdventureMethod() {
+    public void WhenCreateButtonIsClicked_CreatesAdventureMethod() {
         // Arrange
         var cut = RenderComponent<AdventuresPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
@@ -84,7 +85,7 @@ public class AdventuresPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void WhenClickViewButton_NavigatesToAdventureEpisodes() {
+    public void WhenViewButtonIsClicked_NavigatesToAdventureEpisodes() {
         // Arrange
         var adventureId = _defaultAdventures[0].Id;
         var cut = RenderComponent<AdventuresPage>();
@@ -100,7 +101,7 @@ public class AdventuresPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void WhenClickEditButton_ShowsEditModal() {
+    public void WhenEditButtonIsClicked_ShowsEditModal() {
         // Arrange
         var adventureId = _defaultAdventures[0].Id;
         var cut = RenderComponent<AdventuresPage>();
@@ -121,7 +122,7 @@ public class AdventuresPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void WhenClickDeleteButton_CallsDeleteAdventure() {
+    public void WhenDeleteButtonIsClicked_DeletesAdventure() {
         // Arrange
         var adventureId = _defaultAdventures[0].Id;
         var cut = RenderComponent<AdventuresPage>();
@@ -136,7 +137,7 @@ public class AdventuresPageTests : WebAppTestContext {
     }
 
     [Fact]
-    public void WhenClickCloneButton_CallsCloneAdventure() {
+    public void WhenCloneButtonIsClicked_ClonesAdventure() {
         // Act
         var adventureId = _defaultAdventures[0].Id;
         var cut = RenderComponent<AdventuresPage>();

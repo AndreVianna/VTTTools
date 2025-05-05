@@ -3,6 +3,6 @@ namespace VttTools.WebApp.Pages.Account.Manage;
 internal class EmailPageInputModel {
     [Required]
     [EmailAddress]
-    [Display(Name = "New email")]
-    public string? NewEmail { get; set; }
+    public string? Email { get; set; }
+    public InputError[] Errors { get; set; } = [];
 }

@@ -1,11 +1,12 @@
 namespace VttTools.WebApp.Pages.Game;
 
-public class AdventuresPageHandler {
+public class AdventuresPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
+    : AuthorizedComponentHandler<AdventuresPageHandler, AdventuresPage>(httpContext, navigationManager, currentUser, loggerFactory) {
     private IGameService _service = null!;
 
     internal AdventuresPageState State { get; } = new();
 
-    public async Task InitializeAsync(IGameService service) {
+    public async Task ConfigureAsync(IGameService service) {
         _service = service;
         State.Adventures = [.. await _service.GetAdventuresAsync()];
     }

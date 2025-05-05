@@ -15,7 +15,7 @@ public class ChatPageTests
     }
 
     [Fact]
-    public void WhenIsLoading_RendersLoadingState() {
+    public void BeforeIsReady_RendersLoadingState() {
         // Arrange
         _hubConnection.StartAsync(Arg.Any<CancellationToken>()).Returns(Task.Delay(1000, CancellationToken));
 

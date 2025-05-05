@@ -16,7 +16,7 @@ public partial class ResetAuthenticatorPage {
     private ILogger<ResetAuthenticatorPage> Logger { get; set; } = null!;
 
     private async Task OnSubmitAsync() {
-        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync();
         if (result.IsFailure)
             return;
         await UserManager.SetTwoFactorEnabledAsync(result.Value, false);

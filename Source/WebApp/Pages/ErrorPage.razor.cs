@@ -1,10 +1,10 @@
 namespace VttTools.WebApp.Pages;
 
 public partial class ErrorPage {
-    private ErrorPageHandler _handler = null!;
+    internal ErrorPageState State => Handler.State;
 
-    internal ErrorPageState State => _handler?.State ?? new();
-
-    protected override void OnInitialized()
-        => _handler = ErrorPageHandler.Initialize(HttpContext);
+    protected override bool ConfigureComponent() {
+        Handler.Configure();
+        return base.ConfigureComponent();
+    }
 }

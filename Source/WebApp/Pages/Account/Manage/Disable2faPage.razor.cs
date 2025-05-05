@@ -17,7 +17,7 @@ public partial class Disable2faPage {
     private ILogger<Disable2faPage> Logger { get; set; } = null!;
 
     protected override async Task OnInitializedAsync() {
-        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync();
         if (result.IsFailure)
             return;
         _user = result.Value;

@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Pages.Meeting;
 
-public class MeetingsPageHandlerTests {
+public class MeetingsPageHandlerTests
+    : WebAppTestContext {
     private readonly IGameService _service = Substitute.For<IGameService>();
 
     [Fact]
@@ -165,14 +166,15 @@ public class MeetingsPageHandlerTests {
         handler.State.Input.EpisodeId.Should().BeEmpty();
     }
 
-    private async Task<MeetingsPageHandler> CreateInitializedHandler() {
+    private async Task<MeetingsPageHandler> CreateInitializedHandler(bool isAuthorized = true, bool isConfigured = true) {
         var meetings = new[] {
             new MeetingModel { Subject = "Meeting 1" },
             new MeetingModel { Subject = "Meeting 2" },
         };
-        var handler = new MeetingsPageHandler();
+        if (isAuthorized) UseDefaultUser();
+        var handler = new MeetingsPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
         _service.GetMeetingsAsync().Returns(meetings);
-        await handler.InitializeAsync(_service);
+        if (isConfigured) await handler.ConfigureAsync(_service);
         return handler;
     }
 }

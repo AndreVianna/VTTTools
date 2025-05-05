@@ -1,5 +1,5 @@
 @page "/meetings/{MeetingId:guid}"
-@inherits ExtendedComponent<MeetingDetailsPageHandler>
+@inherits AuthorizedComponent<MeetingDetailsPage, MeetingDetailsPageHandler>
 @rendermode InteractiveAuto
 
 <PageTitle>Game Meeting: @(IsReady ? "Loading..." : State.Meeting.Subject)</PageTitle>

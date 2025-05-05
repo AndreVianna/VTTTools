@@ -23,9 +23,8 @@ public partial class DeletePersonalDataPage {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
-        if (result.IsFailure)
-            return;
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync();
+        if (result.IsFailure) return;
         _user = result.Value;
         _requirePassword = await UserManager.HasPasswordAsync(_user);
     }

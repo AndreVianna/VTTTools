@@ -38,13 +38,13 @@ public partial class ExternalLoginPage {
     protected override async Task OnInitializedAsync() {
         if (RemoteError is not null) {
             HttpContext.SetStatusMessage($"Error from external provider: {RemoteError}");
-            NavigationManager.RedirectTo("account/login");
+            NavigationManager.GoToSigIn();
         }
 
         var info = await SignInManager.GetExternalLoginInfoAsync();
         if (info is null) {
             HttpContext.SetStatusMessage("Error loading external login information.");
-            NavigationManager.RedirectTo("account/login");
+            NavigationManager.GoToSigIn();
         }
 
         _externalLoginInfo = info;
@@ -57,14 +57,14 @@ public partial class ExternalLoginPage {
 
             // We should only reach this page via the login callback, so redirect back to
             // the login page if we get here some other way.
-            NavigationManager.RedirectTo("account/login");
+            NavigationManager.GoToSigIn();
         }
     }
 
     private async Task OnLoginCallbackAsync() {
         if (_externalLoginInfo is null) {
             HttpContext.SetStatusMessage("Error loading external login information.");
-            NavigationManager.RedirectTo("account/login");
+            NavigationManager.GoToSigIn();
             return;
         }
 
@@ -82,7 +82,7 @@ public partial class ExternalLoginPage {
         }
 
         if (result.IsLockedOut) {
-            NavigationManager.RedirectTo("account/lockout");
+            NavigationManager.GoToSigIn();
             return;
         }
 
@@ -94,7 +94,7 @@ public partial class ExternalLoginPage {
     private async Task OnValidSubmitAsync() {
         if (_externalLoginInfo is null) {
             HttpContext.SetStatusMessage("Error loading external login information during confirmation.");
-            NavigationManager.RedirectTo("account/login");
+            NavigationManager.GoToSigIn();
             return;
         }
 

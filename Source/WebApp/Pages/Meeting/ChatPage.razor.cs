@@ -7,8 +7,10 @@ public partial class ChatPage {
     internal ChatPageState State => Handler.State;
     internal ChatPageInputModel Input => Handler.State.Input;
 
-    protected override Task ConfigureComponentAsync()
-        => Handler.InitializeAsync(HubConnectionBuilder, GetAbsoluteUri("/hubs/chat"), StateHasChangedAsync);
+    protected override async Task<bool> ConfigureComponentAsync() {
+        await Handler.ConfigureAsync(HubConnectionBuilder, GetAbsoluteUri("/hubs/chat"), StateHasChangedAsync);
+        return true;
+    }
 
     public Task SendMessage()
         => Handler.SendMessage();

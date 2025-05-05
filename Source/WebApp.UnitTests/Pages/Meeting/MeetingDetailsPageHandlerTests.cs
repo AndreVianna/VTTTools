@@ -1,17 +1,29 @@
 namespace VttTools.WebApp.Pages.Meeting;
 
-public class MeetingDetailsPageHandlerTests {
+public class MeetingDetailsPageHandlerTests
+    : WebAppTestContext {
     private readonly Guid _meetingId = Guid.NewGuid();
     private readonly Guid _userId = Guid.NewGuid();
     private readonly IGameService _service = Substitute.For<IGameService>();
 
+    public MeetingDetailsPageHandlerTests() {
+        var player = new MeetingPlayer { UserId = _userId, Type = PlayerType.Master };
+        var meeting = new MeetingModel {
+            Id = _meetingId,
+            Subject = "Test Meeting",
+            OwnerId = _userId,
+            Players = [player],
+        };
+        _service.GetMeetingByIdAsync(_meetingId).Returns(meeting);
+    }
+
     [Fact]
-    public async Task Initialize_WithValidMeetingId_ReturnsHandler() {
+    public async Task TryConfigureAsync_WithValidMeetingId_ReturnsTrue() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
 
         // Act
-        var result = await handler.TryInitializeAsync(_meetingId, _userId, _service);
+        var result = await handler.TryConfigureAsync(_service, _meetingId);
 
         // Assert
         result.Should().BeTrue();
@@ -21,13 +33,13 @@ public class MeetingDetailsPageHandlerTests {
     }
 
     [Fact]
-    public async Task Initialize_WithInvalidMeetingId_ReturnsNull() {
+    public async Task TryConfigureAsync_WithInvalidMeetingId_ReturnsFalse() {
         // Arrange
+        var handler = await CreateHandler();
         _service.GetMeetingByIdAsync(_meetingId).Returns((MeetingModel?)null);
-        var handler = new MeetingDetailsPageHandler();
 
         // Act
-        var result = await handler.TryInitializeAsync(_meetingId, _userId, _service);
+        var result = await handler.TryConfigureAsync(_service, _meetingId);
 
         // Assert
         result.Should().BeFalse();
@@ -36,7 +48,7 @@ public class MeetingDetailsPageHandlerTests {
     [Fact]
     public async Task OpenEditMeetingDialog_ClearErrorsResetsInputAndShowsDialog() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
 
         // Arrange
         var expectedInput = new MeetingDetailsPageInputModel {
@@ -54,7 +66,7 @@ public class MeetingDetailsPageHandlerTests {
     [Fact]
     public async Task CloseEditMeetingDialog_HidesDialog() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         handler.State.ShowEditDialog = true;
 
         // Act
@@ -67,7 +79,7 @@ public class MeetingDetailsPageHandlerTests {
     [Fact]
     public async Task UpdateMeeting_WithValidInput_UpdatesMeetingAndClosesDialog() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         handler.State.ShowEditDialog = true;
         handler.State.Input = new() {
             Subject = "Updated Meeting Name",
@@ -92,7 +104,7 @@ public class MeetingDetailsPageHandlerTests {
     [Fact]
     public async Task UpdateMeeting_WithValidationError_SetsErrorsAndDoesNotUpdate() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         handler.State.ShowEditDialog = true;
         _service.UpdateMeetingAsync(_meetingId, Arg.Any<UpdateMeetingRequest>()).Returns(Result.Failure("Some error."));
 
@@ -108,7 +120,7 @@ public class MeetingDetailsPageHandlerTests {
     [Fact]
     public async Task TryStartMeeting_CallsApiAndReturnsResult() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         _service.StartMeetingAsync(_meetingId).Returns(true);
 
         // Act
@@ -121,7 +133,7 @@ public class MeetingDetailsPageHandlerTests {
     [Fact]
     public async Task TryStartMeeting_ReturnsFalse_OnError() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         _service.StartMeetingAsync(_meetingId).Returns(false);
 
         // Act
@@ -131,17 +143,10 @@ public class MeetingDetailsPageHandlerTests {
         result.Should().BeFalse();
     }
 
-    private async Task<MeetingDetailsPageHandler> CreateInitializedHandler() {
-        var player = new MeetingPlayer { UserId = _userId, Type = PlayerType.Master };
-        var meeting = new MeetingModel {
-            Id = _meetingId,
-            Subject = "Test Meeting",
-            OwnerId = _userId,
-            Players = [player],
-        };
-        _service.GetMeetingByIdAsync(_meetingId).Returns(meeting);
-        var handler = new MeetingDetailsPageHandler();
-        await handler.TryInitializeAsync(_meetingId, _userId, _service);
+    private async Task<MeetingDetailsPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
+        if (isAuthorized) UseDefaultUser();
+        var handler = new MeetingDetailsPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
+        if (isConfigured) await handler.TryConfigureAsync(_service, _meetingId);
         return handler;
     }
 }

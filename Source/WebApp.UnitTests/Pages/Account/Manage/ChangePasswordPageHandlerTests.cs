@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
-public class ChangePasswordPageHandlerTests {
+public class ChangePasswordPageHandlerTests
+    : WebAppTestContext {
     private readonly ChangePasswordPageHandler _handler;
     private readonly UserManager<User> _userManager;
     private readonly NavigationManager _navigationManager;
@@ -116,9 +117,9 @@ public class ChangePasswordPageHandlerTests {
             _userAccessor,
             _logger);
 
-        _handler.State.Input.OldPassword = "OldPassword123!";
+        _handler.State.Input.CurrentPassword = "OldPassword123!";
         _handler.State.Input.NewPassword = "NewPassword123!";
-        _handler.State.Input.ConfirmPassword = "NewPassword123!";
+        _handler.State.Input.ConfirmNewPassword = "NewPassword123!";
 
         _userManager.ChangePasswordAsync(
             _defaultUser,
@@ -147,9 +148,9 @@ public class ChangePasswordPageHandlerTests {
             _userAccessor,
             _logger);
 
-        _handler.State.Input.OldPassword = "WrongPassword";
+        _handler.State.Input.CurrentPassword = "WrongPassword";
         _handler.State.Input.NewPassword = "NewPassword123!";
-        _handler.State.Input.ConfirmPassword = "NewPassword123!";
+        _handler.State.Input.ConfirmNewPassword = "NewPassword123!";
 
         var errors = new IdentityError[] { new() { Description = "Incorrect password." } };
         _userManager.ChangePasswordAsync(

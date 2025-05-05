@@ -1,9 +1,9 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
 internal class IndexPageInputModel {
-    [Phone]
-    [Display(Name = "Phone number")]
-    public string? PhoneNumber { get; set; }
+    [MaxLength(128)]
+    [Display(Name = "Display name")]
+    public string? DisplayName { get; set; }
 
     public InputError[] Errors { get; set; } = [];
 }

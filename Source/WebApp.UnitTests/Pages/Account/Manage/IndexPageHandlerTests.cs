@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
-public class IndexPageHandlerTests {
+public class IndexPageHandlerTests
+    : WebAppTestContext {
     private readonly IndexPageHandler _handler;
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;

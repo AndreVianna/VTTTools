@@ -10,7 +10,7 @@ public class ForgotPasswordPageTests
     }
 
     [Fact]
-    public void ForgotPasswordPage_RendersCorrectly() {
+    public void WhenRequested_RendersCorrectly() {
         // Act
         var cut = RenderComponent<ForgotPasswordPage>();
 
@@ -18,11 +18,9 @@ public class ForgotPasswordPageTests
         cut.Markup.Should().Contain("<h1>Forgot your password?</h1>");
         cut.Markup.Should().Contain("<h2>Enter your email.</h2>");
 
-        var emailInput = cut.Find("#Input\\.Email");
-        emailInput.Should().NotBeNull();
-
-        var submitButton = cut.Find("button[type=submit]");
-        submitButton.TextContent.Should().Be("Reset password");
+        cut.Find("#forgot-password-form").Should().NotBeNull();
+        cut.Find("#email-input").Should().NotBeNull();
+        cut.Find("#forgot-password-submit").TextContent.Should().Be("Reset password");
     }
 
     [Fact]
@@ -30,15 +28,13 @@ public class ForgotPasswordPageTests
         // Arrange
         var cut = RenderComponent<ForgotPasswordPage>();
         var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
-
-        // Fill in the email
-        var emailInput = cut.Find("#Input\\.Email");
+        var emailInput = cut.Find("#email-input");
         emailInput.Change("nonexistent@example.com");
 
         UserManager.FindByEmailAsync("nonexistent@example.com").Returns((User?)null);
 
         // Act
-        cut.Find("form").Submit();
+        cut.Find("#forgot-password-submit").Click();
 
         // Assert
         navigationSpy.History.Should().ContainSingle(x => x.Uri == "account/forgot_password_confirmation");
@@ -50,9 +46,7 @@ public class ForgotPasswordPageTests
         // Arrange
         var cut = RenderComponent<ForgotPasswordPage>();
         var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
-
-        // Fill in the email
-        var emailInput = cut.Find("#Input\\.Email");
+        var emailInput = cut.Find("#email-input");
         emailInput.Change("unconfirmed@example.com");
 
         var user = new User { Email = "unconfirmed@example.com" };
@@ -60,7 +54,7 @@ public class ForgotPasswordPageTests
         UserManager.IsEmailConfirmedAsync(user).Returns(false);
 
         // Act
-        cut.Find("form").Submit();
+        cut.Find("#forgot-password-submit").Click();
 
         // Assert
         navigationSpy.History.Should().ContainSingle(x => x.Uri == "account/forgot_password_confirmation");
@@ -72,9 +66,7 @@ public class ForgotPasswordPageTests
         // Arrange
         var cut = RenderComponent<ForgotPasswordPage>();
         var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
-
-        // Fill in the email
-        var emailInput = cut.Find("#Input\\.Email");
+        var emailInput = cut.Find("#email-input");
         emailInput.Change("valid@example.com");
 
         var user = new User { Email = "valid@example.com" };
@@ -83,7 +75,7 @@ public class ForgotPasswordPageTests
         UserManager.GeneratePasswordResetTokenAsync(user).Returns("ResetToken");
 
         // Act
-        cut.Find("form").Submit();
+        cut.Find("#forgot-password-submit").Click();
 
         // Assert
         navigationSpy.History.Should().ContainSingle(x => x.Uri == "account/forgot_password_confirmation");

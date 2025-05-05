@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Pages;
 
-public class ErrorPageTests : WebAppTestContext {
+public class ErrorPageTests
+    : WebAppTestContext {
     [Fact]
     public void WhenRequestIdIsEmpty_DoesNotShowRequestId() {
         // Act

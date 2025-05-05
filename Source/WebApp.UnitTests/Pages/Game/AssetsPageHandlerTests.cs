@@ -1,12 +1,21 @@
 namespace VttTools.WebApp.Pages.Game;
 
-public class AssetsPageHandlerTests {
+public class AssetsPageHandlerTests
+    : WebAppTestContext {
     private readonly IGameService _service = Substitute.For<IGameService>();
+
+    public AssetsPageHandlerTests() {
+        var assets = new[] {
+            new Asset { Name = "Asset 1", Visibility = Visibility.Public },
+            new Asset { Name = "Asset 2", Visibility = Visibility.Private },
+        };
+        _service.GetAssetsAsync().Returns(assets);
+    }
 
     [Fact]
     public async Task InitializeAsync_LoadsAssets_And_ReturnsHandler() {
         // Arrange & Act
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
 
         // Assert
         handler.Should().NotBeNull();
@@ -16,7 +25,7 @@ public class AssetsPageHandlerTests {
     [Fact]
     public async Task CreateAssetAsync_WithValidInput_CreatesAssetAndResetsInput() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         handler.State.Input = new() {
             Name = "New Asset",
             Visibility = Visibility.Private,
@@ -38,7 +47,7 @@ public class AssetsPageHandlerTests {
     [Fact]
     public async Task DeleteAssetAsync_RemovesAssetAndReloadsAssets() {
         // Arrange
-        var handler = await CreateInitializedHandler();
+        var handler = await CreateHandler();
         var assetId = handler.State.Assets[1].Id;
         _service.DeleteAssetAsync(Arg.Any<Guid>()).Returns(true);
 
@@ -49,14 +58,10 @@ public class AssetsPageHandlerTests {
         handler.State.Assets.Should().HaveCount(1);
     }
 
-    private async Task<AssetsPageHandler> CreateInitializedHandler() {
-        var assets = new[] {
-            new Asset { Name = "Asset 1", Visibility = Visibility.Public },
-            new Asset { Name = "Asset 2", Visibility = Visibility.Private },
-        };
-        var handler = new AssetsPageHandler();
-        _service.GetAssetsAsync().Returns(assets);
-        await handler.InitializeAsync(_service);
+    private async Task<AssetsPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
+        if (isAuthorized) UseDefaultUser();
+        var handler = new AssetsPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
+        if (isConfigured) await handler.ConfigureAsync(_service);
         return handler;
     }
 }

@@ -1,25 +1,13 @@
 ﻿namespace VttTools.WebApp.Pages.Account.Manage;
 
 public partial class IndexPage {
-    [Inject]
-    private SignInManager<User> SignInManager { get; set; } = null!;
-    [Inject]
-    private IIdentityUserAccessor UserAccessor { get; set; } = null!;
-    [Inject]
-    private ILogger<IndexPage> Logger { get; set; } = null!;
-
     internal IndexPageState State => Handler.State;
+    internal IndexPageInputModel Input => Handler.State.Input;
 
-    protected override async Task OnInitializedAsync() {
-        await base.OnInitializedAsync();
-        await Handler.TryInitializeAsync(
-            HttpContextAccessor.HttpContext!,
-            UserManager,
-            SignInManager,
-            NavigationManager,
-            UserAccessor,
-            Logger);
+    protected override bool ConfigureComponent() {
+        Handler.Configure(UserManager);
+        return true;
     }
 
-    private async Task OnValidSubmitAsync() => await Handler.UpdateProfileAsync();
+    private Task UpdateProfileAsync() => Handler.UpdateProfileAsync();
 }

@@ -33,7 +33,7 @@ public partial class ExternalLoginsPage {
     private string? Action { get; set; }
 
     protected override async Task OnInitializedAsync() {
-        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync();
         if (result.IsFailure)
             return;
         _user = result.Value;

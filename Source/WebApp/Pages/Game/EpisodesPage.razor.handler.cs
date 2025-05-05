@@ -1,11 +1,12 @@
 namespace VttTools.WebApp.Pages.Game;
 
-public sealed class EpisodesPageHandler {
+public sealed class EpisodesPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
+    : AuthorizedComponentHandler<EpisodesPageHandler, EpisodesPage>(httpContext, navigationManager, currentUser, loggerFactory) {
     private IGameService _service = null!;
 
     internal EpisodesPageState State { get; } = new();
 
-    public async Task InitializeAsync(Guid adventureId, IGameService service) {
+    public async Task ConfigureAsync(Guid adventureId, IGameService service) {
         _service = service;
         State.AdventureId = adventureId;
         State.Episodes = [.. await _service.GetEpisodesAsync(State.AdventureId)];

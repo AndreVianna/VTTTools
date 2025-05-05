@@ -22,7 +22,7 @@ public partial class SetPasswordPage {
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync() {
-        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync();
         if (result.IsFailure)
             return;
         _user = result.Value;

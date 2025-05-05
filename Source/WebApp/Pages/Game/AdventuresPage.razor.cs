@@ -8,8 +8,10 @@ public partial class AdventuresPage {
     internal AdventuresPageInputModel CreateInput => Handler.State.CreateInput;
     internal AdventuresPageInputModel EditInput => Handler.State.EditInput;
 
-    protected override Task ConfigureComponentAsync()
-        => Handler.InitializeAsync(GameService);
+    protected override async Task<bool> ConfigureComponentAsync() {
+        await Handler.ConfigureAsync(GameService);
+        return true;
+    }
 
     internal Task CreateAdventure()
         => Handler.SaveCreatedAdventure();

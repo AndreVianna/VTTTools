@@ -11,8 +11,10 @@ public partial class EpisodesPage {
     internal EpisodesPageInputModel CreateInput => Handler.State.CreateInput;
     internal EpisodesPageInputModel EditInput => Handler.State.EditInput;
 
-    protected override Task ConfigureComponentAsync()
-        => Handler.InitializeAsync(AdventureId, GameService);
+    protected override async Task<bool> ConfigureComponentAsync() {
+        await Handler.ConfigureAsync(AdventureId, GameService);
+        return true;
+    }
 
     internal Task CreateEpisode()
         => Handler.SaveCreatedEpisode();

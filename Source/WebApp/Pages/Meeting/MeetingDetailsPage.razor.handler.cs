@@ -1,13 +1,12 @@
 namespace VttTools.WebApp.Pages.Meeting;
 
-public class MeetingDetailsPageHandler {
-    private Guid _userId;
+public class MeetingDetailsPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
+    : AuthorizedComponentHandler<MeetingDetailsPageHandler, MeetingDetailsPage>(httpContext, navigationManager, currentUser, loggerFactory) {
     private IGameService _service = null!;
 
     internal MeetingDetailsPageState State { get; } = new();
 
-    public Task<bool> TryInitializeAsync(Guid meetingId, Guid userId, IGameService service) {
-        _userId = userId;
+    public Task<bool> TryConfigureAsync(IGameService service, Guid meetingId) {
         _service = service;
         return TryLoadMeetingDetails(meetingId);
     }
@@ -17,8 +16,8 @@ public class MeetingDetailsPageHandler {
         if (meeting == null)
             return false;
         State.Meeting = meeting;
-        State.CanEdit = meeting.OwnerId == _userId;
-        State.CanStart = meeting.Players.FirstOrDefault(p => p.UserId == _userId)?.Type == PlayerType.Master;
+        State.CanEdit = meeting.OwnerId == CurrentUser.Id;
+        State.CanStart = meeting.Players.FirstOrDefault(p => p.UserId == CurrentUser.Id)?.Type == PlayerType.Master;
         return true;
     }
 
@@ -40,8 +39,8 @@ public class MeetingDetailsPageHandler {
             return;
         }
         State.Meeting = result.Value;
-        State.CanEdit = State.Meeting.OwnerId == _userId;
-        State.CanStart = State.Meeting.Players.FirstOrDefault(p => p.UserId == _userId)?.Type == PlayerType.Master;
+        State.CanEdit = State.Meeting.OwnerId == CurrentUser.Id;
+        State.CanStart = State.Meeting.Players.FirstOrDefault(p => p.UserId == CurrentUser.Id)?.Type == PlayerType.Master;
         CloseEditMeetingDialog();
     }
 

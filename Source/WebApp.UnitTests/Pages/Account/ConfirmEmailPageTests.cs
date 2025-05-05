@@ -3,7 +3,7 @@ namespace VttTools.WebApp.Pages.Account;
 public class ConfirmEmailPageTests
     : WebAppTestContext {
     [Fact]
-    public void WithNoParameters_RedirectsToHome() {
+    public void WhenRequested_WithNoParameters_RedirectsToHome() {
         // Act
         var cut = RenderComponent<ConfirmEmailPage>();
         var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
@@ -13,7 +13,7 @@ public class ConfirmEmailPageTests
     }
 
     [Fact]
-    public void WithValidParameters_ConfirmsEmail() {
+    public void WhenRequested_WithValidParameters_ConfirmsEmail() {
         // Arrange
         var userId = Guid.NewGuid().ToString();
         var code = WebEncoders.Base64UrlEncode("SomeValidationCode"u8.ToArray());
@@ -39,7 +39,7 @@ public class ConfirmEmailPageTests
     }
 
     [Fact]
-    public void WithInvalidUser_RedirectsHomeWithStatus() {
+    public void WhenRequested_WithInvalidUser_RedirectsHomeWithStatus() {
         // Arrange
         var userId = Guid.NewGuid().ToString();
         var code = WebEncoders.Base64UrlEncode("SomeValidationCode"u8.ToArray());
@@ -63,7 +63,7 @@ public class ConfirmEmailPageTests
     }
 
     [Fact]
-    public void WithInvalidCode_RedirectsHomeWithStatus() {
+    public void WhenRequested_WithInvalidCode_RedirectsHomeWithStatus() {
         // Arrange
         var userId = Guid.NewGuid().ToString();
         var code = WebEncoders.Base64UrlEncode("InvalidCode"u8.ToArray());

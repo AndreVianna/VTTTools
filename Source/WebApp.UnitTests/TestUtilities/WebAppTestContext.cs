@@ -1,14 +1,13 @@
+using BUnitContext = Bunit.TestContext;
+
 namespace VttTools.WebApp.TestUtilities;
 
 public class WebAppTestContext
-    : Bunit.TestContext {
-    private readonly IAuthorizationService _authService;
+    : BUnitContext {
     private readonly List<ClaimsIdentity> _identities = [];
 
     public WebAppTestContext() {
         Options = new();
-        var httpContext = Substitute.For<HttpContext>();
-        Services.AddCascadingValue(_ => httpContext);
 
         var principal = new ClaimsPrincipal(_identities);
         var authenticationState = new AuthenticationState(principal);
@@ -25,11 +24,17 @@ public class WebAppTestContext
 
         Services.AddSingleton(authorizationPolicyProvider);
 
-        _authService = Substitute.For<IAuthorizationService>();
-        Services.AddSingleton(_authService);
+        Authentication = Substitute.For<IAuthenticationService>();
+        Services.AddSingleton(Authentication);
+        Authorization = Substitute.For<IAuthorizationService>();
+        Services.AddSingleton(Authorization);
 
         var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
+        HttpContext = Substitute.For<HttpContext>();
+        HttpContext.RequestServices = Services;
+        httpContextAccessor.HttpContext.Returns(HttpContext);
         Services.AddSingleton(httpContextAccessor);
+        Services.AddCascadingValue(_ => HttpContext);
 
         var userStore = Substitute.For<IUserStore<User>>();
         var options = Substitute.For<IOptions<IdentityOptions>>();
@@ -60,15 +65,18 @@ public class WebAppTestContext
         Services.AddSingleton<NavigationManager>(_ => NavigationManager);
 
         Options.UseAnonymousUser();
-        SetAuthentication();
+        SetAuthorization();
         SetCurrentLocation();
     }
 
-    public WebAppTestContextOptions Options { get; }
-    public CurrentUser? CurrentUser { get; private set; }
+    protected WebAppTestContextOptions Options { get; }
+    protected CurrentUser? CurrentUser { get; private set; }
+    protected HttpContext HttpContext { get; }
     protected UserManager<User> UserManager { get; }
     protected SignInManager<User> SignInManager { get; }
     protected FakeNavigationManager NavigationManager { get; }
+    protected IAuthenticationService Authentication { get; }
+    protected IAuthorizationService Authorization { get; }
 
 #if XUNITV3
     protected static CancellationToken CancellationToken => Xunit.TestContext.Current.CancellationToken;
@@ -79,14 +87,14 @@ public class WebAppTestContext
     [MemberNotNull(nameof(CurrentUser))]
     protected void UseDefaultUser() {
         Options.UseDefaultUser();
-        SetAuthentication();
+        SetAuthorization();
         SetCurrentUser();
     }
 
     [MemberNotNull(nameof(CurrentUser))]
     protected void UseDefaultAdministrator() {
         Options.UseDefaultUser(true);
-        SetAuthentication();
+        SetAuthorization();
         SetCurrentUser();
     }
 
@@ -99,7 +107,7 @@ public class WebAppTestContext
         IsAdministrator = Options.IsAdministrator,
     };
 
-    private void SetAuthentication() {
+    private void SetAuthorization() {
         var authResult = AuthorizationResult.Failed();
         _identities.Clear();
         if (Options.CurrentUser is not null) {
@@ -112,9 +120,8 @@ public class WebAppTestContext
             authResult = AuthorizationResult.Success();
         }
 
-        _authService.ClearSubstitute(ClearOptions.ReturnValues);
-        _authService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object?>(), Arg.Any<IEnumerable<IAuthorizationRequirement>>())
-                    .Returns(authResult);
+        Authorization.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object?>(), Arg.Any<IEnumerable<IAuthorizationRequirement>>())
+                     .Returns(authResult);
         UserManager.ClearSubstitute(ClearOptions.ReturnValues);
         UserManager.GetUserAsync(Arg.Any<ClaimsPrincipal>()).Returns(Options.CurrentUser);
         UserManager.IsInRoleAsync(Arg.Any<User>(), "User").Returns(Options.CurrentUser is not null);

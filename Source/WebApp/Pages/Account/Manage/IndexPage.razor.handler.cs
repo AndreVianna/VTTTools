@@ -1,57 +1,43 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
-public class IndexPageHandler {
-    private User _user = null!;
-    private HttpContext _httpContext = null!;
+public class IndexPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
+    : AuthorizedComponentHandler<IndexPageHandler, IndexPage>(httpContext, navigationManager, currentUser, loggerFactory) {
     private UserManager<User> _userManager = null!;
-    private SignInManager<User> _signInManager = null!;
-    private NavigationManager _navigationManager = null!;
-    private IIdentityUserAccessor _userAccessor = null!;
-    private ILogger<IndexPage> _logger = null!;
 
     internal IndexPageState State { get; } = new();
 
-    public async Task<bool> TryInitializeAsync(
-        HttpContext httpContext,
-        UserManager<User> userManager,
-        SignInManager<User> signInManager,
-        NavigationManager navigationManager,
-        IIdentityUserAccessor userAccessor,
-        ILogger<IndexPage> logger) {
-        _httpContext = httpContext;
+    public void Configure(UserManager<User> userManager) {
         _userManager = userManager;
-        _signInManager = signInManager;
-        _navigationManager = navigationManager;
-        _userAccessor = userAccessor;
-        _logger = logger;
-
-        var result = await userAccessor.GetCurrentUserOrRedirectAsync(httpContext, userManager);
-        if (result.IsFailure)
-            return false;
-
-        _user = result.Value;
-        State.Username = await userManager.GetUserNameAsync(_user);
-        State.PhoneNumber = await userManager.GetPhoneNumberAsync(_user);
-
-        State.Input.PhoneNumber ??= State.PhoneNumber;
-        return true;
+        State.Input.DisplayName = CurrentUser.DisplayName;
     }
 
-    public async Task<bool> UpdateProfileAsync() {
-        if (State.Input.PhoneNumber != State.PhoneNumber) {
-            var setPhoneResult = await _userManager.SetPhoneNumberAsync(_user, State.Input.PhoneNumber);
-            if (!setPhoneResult.Succeeded) {
-                _logger.LogWarning("Failed to update the phone number for the user with ID {UserId}.", _user.Id);
-                _httpContext.SetStatusMessage("Error: Failed to set phone number.");
-                _navigationManager.Reload();
-                return false;
-            }
+    public async Task UpdateProfileAsync() {
+        var message = "No changes were made to your profile.";
+        var hasUpdates = false;
+        if (State.Input.DisplayName != CurrentUser.DisplayName) {
+            CurrentUser.DisplayName = State.Input.DisplayName;
+            hasUpdates = true;
         }
 
-        await _signInManager.RefreshSignInAsync(_user);
-        _logger.LogInformation("The profile of user with ID {UserId} was updated.", _user.Id);
-        _httpContext.SetStatusMessage("Your profile has been updated.");
-        _navigationManager.Reload();
+        if (hasUpdates) {
+            message = await TryUpdateUser()
+                          ? "Your profile has been updated."
+                          : "Error: Failed to update user profile.";
+        }
+
+        HttpContext.SetStatusMessage(message);
+        NavigationManager.Reload();
+    }
+
+    private async Task<bool> TryUpdateUser()
+    {
+        var updateResult = await _userManager.UpdateAsync(CurrentUser);
+        if (!updateResult.Succeeded) {
+            Logger.LogWarning("Failed to update the display name for the user with ID {UserId}.", CurrentUser.Id);
+            return false;
+        }
+
+        Logger.LogInformation("The profile of user with ID {UserId} was updated.", CurrentUser.Id);
         return true;
     }
 }

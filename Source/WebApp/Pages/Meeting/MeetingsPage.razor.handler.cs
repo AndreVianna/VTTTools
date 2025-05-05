@@ -1,16 +1,12 @@
 namespace VttTools.WebApp.Pages.Meeting;
 
-public sealed class MeetingsPageHandler() {
+public sealed class MeetingsPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
+    : AuthorizedComponentHandler<MeetingsPageHandler, MeetingsPage>(httpContext, navigationManager, currentUser, loggerFactory) {
     private IGameService _service = null!;
-
-    internal MeetingsPageHandler(IGameService service)
-        : this() {
-        _service = service;
-    }
 
     internal MeetingsPageState State { get; } = new();
 
-    public async Task InitializeAsync(IGameService service) {
+    public async Task ConfigureAsync(IGameService service) {
         _service = service;
         var data = await service.GetMeetingsAsync();
         State.Meetings = [.. data];

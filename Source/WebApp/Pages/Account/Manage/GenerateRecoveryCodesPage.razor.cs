@@ -16,7 +16,7 @@ public partial class GenerateRecoveryCodesPage {
     private ILogger<GenerateRecoveryCodesPage> Logger { get; set; } = null!;
 
     protected override async Task OnInitializedAsync() {
-        var result = await UserAccessor.GetCurrentUserOrRedirectAsync(HttpContext, UserManager);
+        var result = await UserAccessor.GetCurrentUserOrRedirectAsync();
         if (result.IsFailure)
             return;
         _user = result.Value;

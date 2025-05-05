@@ -1,5 +1,5 @@
 ﻿@page "/account/register"
-@inherits ExtendedComponent<RegisterPageHandler>
+@inherits ExtendedComponent<RegisterPage, RegisterPageHandler>
 
 <PageTitle>Register</PageTitle>
 
@@ -8,32 +8,32 @@
 <div class="row">
   <div class="col-lg-6">
     <StatusMessageComponent Message="@State.Message" />
-    <EditForm Model="State.Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
+    <EditForm id="register-form" Model="State.Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
       <DataAnnotationsValidator />
       <h2>Create a new account.</h2>
       <hr />
       <ValidationSummary class="text-danger" role="alert" />
       <div class="form-floating mb-3">
-        <InputText @bind-Value="State.Input.Name" id="Input.Name" class="form-control" aria-required="true" placeholder="Your name" />
-        <label for="Input.Name">Subject</label>
+        <InputText id="name-input" @bind-Value="State.Input.Name" class="form-control" aria-required="true" placeholder="Your name" />
+        <label for="name-input">Subject</label>
         <ValidationMessage For="() => State.Input.Name" class="text-danger"/>
       </div>
       <div class="form-floating mb-3">
-        <InputText @bind-Value="State.Input.Email" id="Input.Email" class="form-control" aria-required="true" placeholder="name@example.com" />
-        <label for="Input.Email">Email</label>
+        <InputText id="email-input" @bind-Value="State.Input.Email" class="form-control" aria-required="true" placeholder="name@example.com" />
+        <label for="email-input">Email</label>
         <ValidationMessage For="() => State.Input.Email" class="text-danger" />
       </div>
       <div class="form-floating mb-3">
-        <InputText type="password" @bind-Value="State.Input.Password" id="Input.Password" class="form-control" aria-required="true" placeholder="password" />
-        <label for="Input.Password">Password</label>
+        <InputText id="password-input"type="password" @bind-Value="State.Input.Password" class="form-control" aria-required="true" placeholder="password" />
+        <label for="password-input">Password</label>
         <ValidationMessage For="() => State.Input.Password" class="text-danger" />
       </div>
       <div class="form-floating mb-3">
-        <InputText type="password" @bind-Value="State.Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" aria-required="true" placeholder="password" />
-        <label for="Input.ConfirmPassword">Confirm Password</label>
+        <InputText id="confirm-password-input" type="password" @bind-Value="State.Input.ConfirmPassword" class="form-control" aria-required="true" placeholder="password" />
+        <label for="confirm-password-input">Confirm Password</label>
         <ValidationMessage For="() => State.Input.ConfirmPassword" class="text-danger" />
       </div>
-      <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+      <button id="register-submit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
     </EditForm>
   </div>
   @if (State.HasExternalLoginProviders) {

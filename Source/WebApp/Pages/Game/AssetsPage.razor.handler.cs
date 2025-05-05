@@ -1,11 +1,12 @@
 namespace VttTools.WebApp.Pages.Game;
 
-public class AssetsPageHandler {
+public class AssetsPageHandler(HttpContext httpContext, NavigationManager navigationManager, CurrentUser currentUser, ILoggerFactory loggerFactory)
+    : AuthorizedComponentHandler<AssetsPageHandler, AssetsPage>(httpContext, navigationManager, currentUser, loggerFactory) {
     private IGameService _service = null!;
 
     internal AssetsPageState State { get; } = new();
 
-    public async Task InitializeAsync(IGameService service) {
+    public async Task ConfigureAsync(IGameService service) {
         _service = service;
         State.Assets = [.. await _service.GetAssetsAsync()];
     }

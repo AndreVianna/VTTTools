@@ -1,27 +1,19 @@
 namespace VttTools.WebApp.Pages.Account;
 
-public class RegisterPageHandler {
+public class RegisterPageHandler(HttpContext httpContext, NavigationManager navigationManager, ILoggerFactory loggerFactory)
+    : ComponentHandler<RegisterPageHandler, RegisterPage>(httpContext, navigationManager, loggerFactory) {
     private UserManager<User> _userManager = null!;
-    private IUserStore<User> _userStore = null!;
     private SignInManager<User> _signInManager = null!;
-    private NavigationManager _navigationManager = null!;
     private IEmailSender<User> _emailSender = null!;
-    private ILogger _logger = null!;
 
     internal RegisterPageState State { get; } = new();
 
-    public async Task InitializeAsync(UserManager<User> userManager,
-                                      IUserStore<User> userStore,
+    public async Task ConfigureAsync(UserManager<User> userManager,
                                       SignInManager<User> signInManager,
-                                      NavigationManager navigationManager,
-                                      IEmailSender<User> emailSender,
-                                      ILogger logger) {
+                                      IEmailSender<User> emailSender) {
         _userManager = userManager;
-        _userStore = userStore;
         _signInManager = signInManager;
-        _navigationManager = navigationManager;
         _emailSender = emailSender;
-        _logger = logger;
 
         var externalLogins = await _signInManager.GetExternalAuthenticationSchemesAsync();
         State.HasExternalLoginProviders = externalLogins.Any();
@@ -29,11 +21,11 @@ public class RegisterPageHandler {
 
     public async Task<bool> RegisterUserAsync(string? returnUrl) {
         var user = CreateUser();
-
         user.Name = State.Input.Name;
-        await _userStore.SetUserNameAsync(user, State.Input.Email, CancellationToken.None);
-        var emailStore = GetEmailStore();
-        await emailStore.SetEmailAsync(user, State.Input.Email, CancellationToken.None);
+        user.UserName = State.Input.Email;
+        user.NormalizedUserName = State.Input.Email.ToUpperInvariant();
+        user.Email = State.Input.Email;
+        user.NormalizedEmail = State.Input.Email.ToUpperInvariant();
         var result = await _userManager.CreateAsync(user, State.Input.Password);
 
         if (!result.Succeeded) {
@@ -41,12 +33,12 @@ public class RegisterPageHandler {
             return false;
         }
 
-        _logger.LogInformation("User created a new account with password.");
+        Logger.LogInformation("User created a new account with password.");
 
         var userId = await _userManager.GetUserIdAsync(user);
         var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var callbackUrl = _navigationManager.GetAbsoluteUri("account/confirm_email", ps => {
+        var callbackUrl = NavigationManager.GetAbsoluteUrl("account/confirm_email", ps => {
             ps.Add("userId", userId);
             ps.Add("code", code);
             ps.Add("returnUrl", returnUrl);
@@ -54,14 +46,14 @@ public class RegisterPageHandler {
         await _emailSender.SendConfirmationLinkAsync(user, State.Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
         if (_userManager.Options.SignIn.RequireConfirmedAccount) {
-            _navigationManager.RedirectTo("account/register_confirmation", ps => {
+            NavigationManager.RedirectTo("account/register_confirmation", ps => {
                 ps.Add("email", State.Input.Email);
                 ps.Add("returnUrl", returnUrl);
             });
         }
         else {
             await _signInManager.SignInAsync(user, isPersistent: false);
-            _navigationManager.RedirectTo(returnUrl);
+            NavigationManager.RedirectTo(returnUrl);
         }
 
         return true;
@@ -77,8 +69,4 @@ public class RegisterPageHandler {
                 $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor.");
         }
     }
-
-    private IUserEmailStore<User> GetEmailStore() => !_userManager.SupportsUserEmail
-        ? throw new NotSupportedException("The default UI requires a user store with email support.")
-        : (IUserEmailStore<User>)_userStore;
 }
