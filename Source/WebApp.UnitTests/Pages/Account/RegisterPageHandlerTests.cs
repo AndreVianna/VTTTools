@@ -21,7 +21,7 @@ public class RegisterPageHandlerTests
     [Fact]
     public async Task RegisterUserAsync_WhenCreateFails_SetsErrors() {
         // Arrange
-        var handler = await CreateHandler(false);
+        var handler = await CreateHandler();
         handler.State.Input.Name = "Test User";
         handler.State.Input.Email = "test@example.com";
         handler.State.Input.Password = "weak";
@@ -42,7 +42,7 @@ public class RegisterPageHandlerTests
     [Fact]
     public async Task RegisterUserAsync_WhenCreateSucceeds_ReturnsTrue() {
         // Arrange
-        var handler = await CreateHandler(false);
+        var handler = await CreateHandler();
         handler.State.Input.Name = "Test User";
         handler.State.Input.Email = "test@example.com";
         handler.State.Input.Password = "Password123!";
@@ -72,7 +72,7 @@ public class RegisterPageHandlerTests
     [Fact]
     public async Task RegisterUserAsync_WhenRequireConfirmedAccount_RedirectsToConfirmation() {
         // Arrange
-        var handler = await CreateHandler(false);
+        var handler = await CreateHandler();
         handler.State.Input.Name = "Test User";
         handler.State.Input.Email = "test@example.com";
         handler.State.Input.Password = "Password123!";
@@ -101,7 +101,8 @@ public class RegisterPageHandlerTests
 
     private async Task<RegisterPageHandler> CreateHandler(bool isConfigured = true) {
         var handler = new RegisterPageHandler(HttpContext, NavigationManager, NullLoggerFactory.Instance);
-        if (isConfigured) await handler.ConfigureAsync(UserManager, SignInManager, _emailSender);
+        if (isConfigured)
+            await handler.ConfigureAsync(UserManager, SignInManager, _emailSender);
         return handler;
     }
 }

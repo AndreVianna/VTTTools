@@ -33,6 +33,7 @@ public class IndexPageHandler(HttpContext httpContext, NavigationManager navigat
     {
         var updateResult = await _userManager.UpdateAsync(CurrentUser);
         if (!updateResult.Succeeded) {
+            State.Input.Errors = updateResult.Errors.ToArray(e => new InputError(e.Description));
             Logger.LogWarning("Failed to update the display name for the user with ID {UserId}.", CurrentUser.Id);
             return false;
         }

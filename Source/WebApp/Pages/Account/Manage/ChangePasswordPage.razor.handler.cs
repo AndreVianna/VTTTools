@@ -10,7 +10,8 @@ public class ChangePasswordPageHandler(HttpContext httpContext, NavigationManage
     public bool Configure(UserManager<User> userManager, SignInManager<User> signInManager) {
         _userManager = userManager;
         _signInManager = signInManager;
-        if (CurrentUser.HasPassword) return true;
+        if (CurrentUser.HasPassword)
+            return true;
         NavigationManager.RedirectTo("account/manage/set_password");
         return false;
     }
@@ -22,14 +23,14 @@ public class ChangePasswordPageHandler(HttpContext httpContext, NavigationManage
             State.Input.NewPassword);
 
         if (!changePasswordResult.Succeeded) {
-            State.Message = $"Error: {string.Join(",", changePasswordResult.Errors.Select(error => error.Description))}";
+            State.Input.Errors = changePasswordResult.Errors.ToArray(error => new InputError(error.Description));
+            HttpContext.SetStatusMessage("Error: Failed to change the password.");
             return false;
         }
 
         await _signInManager.RefreshSignInAsync(CurrentUser);
         Logger.LogInformation("User changed their password successfully.");
-
-        HttpContext.SetStatusMessage("Your password has been changed");
+        HttpContext.SetStatusMessage("Your password has been changed.");
         NavigationManager.Reload();
         return true;
     }

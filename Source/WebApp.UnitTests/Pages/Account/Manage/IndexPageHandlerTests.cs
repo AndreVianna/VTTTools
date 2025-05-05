@@ -2,162 +2,73 @@ namespace VttTools.WebApp.Pages.Account.Manage;
 
 public class IndexPageHandlerTests
     : WebAppTestContext {
-    private readonly IndexPageHandler _handler;
-    private readonly UserManager<User> _userManager;
-    private readonly SignInManager<User> _signInManager;
-    private readonly NavigationManager _navigationManager;
-    private readonly IIdentityUserAccessor _userAccessor;
-    private readonly ILogger<IndexPage> _logger;
-    private readonly HttpContext _httpContext;
-    private readonly User _defaultUser;
-
-    public IndexPageHandlerTests() {
-        _handler = new();
-
-        _defaultUser = new() {
-            Id = Guid.NewGuid(),
-            UserName = "test@example.com",
-            PhoneNumber = "555-123-4567",
-                             };
-
-        _userManager = Substitute.For<UserManager<User>>(
-            Substitute.For<IUserStore<User>>(),
-            Substitute.For<IOptions<IdentityOptions>>(),
-            Substitute.For<IPasswordHasher<User>>(),
-            Array.Empty<IUserValidator<User>>(),
-            Array.Empty<IPasswordValidator<User>>(),
-            Substitute.For<ILookupNormalizer>(),
-            new IdentityErrorDescriber(),
-            Substitute.For<IServiceProvider>(),
-            Substitute.For<ILogger<UserManager<User>>>());
-
-        _signInManager = Substitute.For<SignInManager<User>>(
-            _userManager,
-            Substitute.For<IHttpContextAccessor>(),
-            Substitute.For<IUserClaimsPrincipalFactory<User>>(),
-            Substitute.For<IOptions<IdentityOptions>>(),
-            Substitute.For<ILogger<SignInManager<User>>>(),
-            Substitute.For<IAuthenticationSchemeProvider>(),
-            Substitute.For<IUserConfirmation<User>>());
-
-        _navigationManager = Substitute.For<NavigationManager>();
-        _userAccessor = Substitute.For<IIdentityUserAccessor>();
-        _logger = Substitute.For<ILogger<IndexPage>>();
-        _httpContext = Substitute.For<HttpContext>();
-
-        _userAccessor.GetCurrentUserOrRedirectAsync(Arg.Any<HttpContext>(), Arg.Any<UserManager<User>>())
-            .Returns(Result.Success(_defaultUser));
-
-        _userManager.GetUserNameAsync(_defaultUser).Returns("test@example.com");
-        _userManager.GetPhoneNumberAsync(_defaultUser).Returns("555-123-4567");
-    }
-
     [Fact]
-    public async Task TryInitializeAsync_LoadsUserData() {
-        // Act
-        var result = await _handler.TryInitializeAsync(
-            _httpContext,
-            _userManager,
-            _signInManager,
-            _navigationManager,
-            _userAccessor,
-            _logger);
-
-        // Assert
-        result.Should().BeTrue();
-        _handler.State.Username.Should().Be("test@example.com");
-        _handler.State.PhoneNumber.Should().Be("555-123-4567");
-        _handler.State.Input.PhoneNumber.Should().Be("555-123-4567");
-    }
-
-    [Fact]
-    public async Task TryInitializeAsync_WhenUserNotFound_ReturnsFalse() {
+    public void Configure_LoadsUserData() {
         // Arrange
-        _userAccessor.GetCurrentUserOrRedirectAsync(Arg.Any<HttpContext>(), Arg.Any<UserManager<User>>())
-            .Returns(Result.Failure("User not found"));
+        var handler = CreateHandler(isConfigured: false);
 
         // Act
-        var result = await _handler.TryInitializeAsync(
-            _httpContext,
-            _userManager,
-            _signInManager,
-            _navigationManager,
-            _userAccessor,
-            _logger);
+        handler.Configure(UserManager);
 
         // Assert
-        result.Should().BeFalse();
+        handler.State.Input.DisplayName.Should().Be(CurrentUser!.DisplayName);
+        handler.State.Input.Errors.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task UpdateProfileAsync_WithChangedPhoneNumber_UpdatesPhoneNumber() {
+    public async Task UpdateProfileAsync_WithValidData_UpdatesUser() {
         // Arrange
-        await _handler.TryInitializeAsync(
-            _httpContext,
-            _userManager,
-            _signInManager,
-            _navigationManager,
-            _userAccessor,
-            _logger);
+        var handler = CreateHandler();
+        handler.State.Input.DisplayName = "Other Name";
 
-        _handler.State.Input.PhoneNumber = "555-987-6543";
-
-        _userManager.SetPhoneNumberAsync(_defaultUser, "555-987-6543")
+        UserManager.UpdateAsync(Arg.Any<User>())
             .Returns(IdentityResult.Success);
 
         // Act
-        var result = await _handler.UpdateProfileAsync();
+        await handler.UpdateProfileAsync();
 
         // Assert
-        result.Should().BeTrue();
-        await _userManager.Received(1).SetPhoneNumberAsync(_defaultUser, "555-987-6543");
-        await _signInManager.Received(1).RefreshSignInAsync(_defaultUser);
+        await UserManager.Received(1).UpdateAsync(Arg.Any<User>());
+        HttpContext.Received(1).SetStatusMessage("Your profile has been updated.");
     }
 
     [Fact]
-    public async Task UpdateProfileAsync_WithSamePhoneNumber_DoesNotUpdatePhoneNumber() {
+    public async Task UpdateProfileAsync_WithSameData_DoesNotUpdateUser() {
         // Arrange
-        await _handler.TryInitializeAsync(
-            _httpContext,
-            _userManager,
-            _signInManager,
-            _navigationManager,
-            _userAccessor,
-            _logger);
-
-        // Phone number is already "555-123-4567" in both state and input
+        var handler = CreateHandler();
 
         // Act
-        var result = await _handler.UpdateProfileAsync();
+        await handler.UpdateProfileAsync();
 
         // Assert
-        result.Should().BeTrue();
-        await _userManager.DidNotReceive().SetPhoneNumberAsync(Arg.Any<User>(), Arg.Any<string>());
-        await _signInManager.Received(1).RefreshSignInAsync(_defaultUser);
+        await UserManager.DidNotReceive().UpdateAsync(Arg.Any<User>());
+        HttpContext.Received(1).SetStatusMessage("No changes were made to your profile.");
     }
 
     [Fact]
-    public async Task UpdateProfileAsync_WithFailedPhoneNumberUpdate_ReturnsFalse() {
+    public async Task UpdateProfileAsync_WithInvalidData_ContainErrors() {
         // Arrange
-        await _handler.TryInitializeAsync(
-            _httpContext,
-            _userManager,
-            _signInManager,
-            _navigationManager,
-            _userAccessor,
-            _logger);
+        var handler = CreateHandler();
 
-        _handler.State.Input.PhoneNumber = "invalid-number";
+        handler.State.Input.DisplayName = "Invalid Name";
 
-        _userManager.SetPhoneNumberAsync(_defaultUser, "invalid-number")
-            .Returns(IdentityResult.Failed(new IdentityError { Description = "Invalid phone number" }));
+        var error = new IdentityError { Description = "Invalid display name." };
+        UserManager.UpdateAsync(Arg.Any<User>())
+            .Returns(IdentityResult.Failed(error));
 
         // Act
-        var result = await _handler.UpdateProfileAsync();
+        await handler.UpdateProfileAsync();
 
         // Assert
-        result.Should().BeFalse();
-        await _userManager.Received(1).SetPhoneNumberAsync(_defaultUser, "invalid-number");
-        _httpContext.Received(1).SetStatusMessage("Error: Failed to set phone number.");
+        await UserManager.Received(1).UpdateAsync(Arg.Any<User>());
+        handler.State.Input.Errors.Should().ContainSingle().Which.Message.Should().Be("Invalid display name.");
+        HttpContext.Received(1).SetStatusMessage("Error: Failed to update user profile.");
+    }
+
+    private IndexPageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
+        if (isAuthorized) UseDefaultUser();
+        var handler = new IndexPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
+        if (isConfigured) handler.Configure(UserManager);
+        return handler;
     }
 }

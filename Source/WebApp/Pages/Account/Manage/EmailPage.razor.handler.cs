@@ -39,7 +39,7 @@ public class EmailPageHandler(HttpContext httpContext, NavigationManager navigat
 
         await _emailSender.SendConfirmationLinkAsync(CurrentUser, State.Input.Email, link);
         Logger.LogInformation("Change email link sent to user with ID {UserId}", CurrentUser.Id);
-        HttpContext.SetStatusMessage("A confirmation link was sent to the new email. Please check your email.");
+        HttpContext.SetStatusMessage("A confirmation link was sent to the new email. Please check your inbox.");
     }
 
     public async Task SendEmailVerificationAsync() {
@@ -52,6 +52,6 @@ public class EmailPageHandler(HttpContext httpContext, NavigationManager navigat
 
         await _emailSender.SendConfirmationLinkAsync(CurrentUser, CurrentUser.Email, link);
         Logger.LogInformation("Verification email sent to user with ID {UserId}", CurrentUser.Id);
-        HttpContext.SetStatusMessage("A confirmation link was sent to the email. Please check your email.");
+        HttpContext.SetStatusMessage("A confirmation link was sent to the informed email. Please check your inbox.");
     }
 }
