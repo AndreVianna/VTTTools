@@ -7,10 +7,8 @@ internal static class EpisodeEndpointsMapper {
 
         episodes.MapGet("/{id:guid}", EpisodeHandlers.GetEpisodeByIdHandler);
         episodes.MapPatch("/{id:guid}", EpisodeHandlers.UpdateEpisodeHandler);
-        episodes.MapDelete("/{id:guid}", EpisodeHandlers.DeleteEpisodeHandler);
-        episodes.MapPost("/{id:guid}/clone", EpisodeHandlers.CloneEpisodeHandler);
         episodes.MapGet("/{id:guid}/assets", EpisodeHandlers.GetAssetsHandler);
-        episodes.MapPost("/{id:guid}/assets/{assetId:guid}", EpisodeHandlers.AddAssetHandler);
+        episodes.MapPost("/{id:guid}/assets", EpisodeHandlers.AddAssetHandler);
         episodes.MapDelete("/{id:guid}/assets/{assetId:guid}", EpisodeHandlers.RemoveAssetHandler);
     }
 }

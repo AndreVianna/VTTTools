@@ -10,14 +10,14 @@ public interface IAssetService {
     Task<Asset[]> GetAssetsAsync(CancellationToken ct = default);
 
     /// <summary>
-    /// Gets a specific asset by ID.
-    /// </summary>
-    Task<Asset?> GetAssetAsync(Guid assetId, CancellationToken ct = default);
-
-    /// <summary>
     /// Creates a new asset template.
     /// </summary>
     Task<Asset> CreateAssetAsync(Guid userId, CreateAssetRequest request, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets a specific asset by ID.
+    /// </summary>
+    Task<Asset?> GetAssetAsync(Guid assetId, CancellationToken ct = default);
 
     /// <summary>
     /// Updates an existing asset template.

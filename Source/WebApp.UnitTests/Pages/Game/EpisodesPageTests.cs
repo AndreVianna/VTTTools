@@ -75,13 +75,13 @@ public class EpisodesPageTests
             OwnerId = CurrentUser!.Id,
             Visibility = Visibility.Hidden,
         };
-        _service.CreateEpisodeAsync(Arg.Any<CreateEpisodeRequest>()).Returns(newEpisode);
+        _service.CreateEpisodeAsync(Arg.Any<Guid>(), Arg.Any<CreateEpisodeRequest>()).Returns(newEpisode);
 
         // Act
         cut.Find("#create-episode").Click();
 
         // Assert
-        _service.Received(1).CreateEpisodeAsync(Arg.Any<CreateEpisodeRequest>());
+        _service.Received(1).CreateEpisodeAsync(Arg.Any<Guid>(), Arg.Any<CreateEpisodeRequest>());
     }
 
     [Fact]
@@ -111,13 +111,13 @@ public class EpisodesPageTests
         var episodeId = _defaultEpisodes[0].Id;
         var cut = RenderComponent<EpisodesPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        _service.DeleteEpisodeAsync(Arg.Any<Guid>()).Returns(true);
+        _service.RemoveEpisodeAsync(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
 
         // Act
         cut.Find($"#delete-episode-{episodeId}").Click();
 
         // Assert
-        _service.Received(1).DeleteEpisodeAsync(_defaultEpisodes[0].Id);
+        _service.Received(1).RemoveEpisodeAsync(_adventureId, _defaultEpisodes[0].Id);
     }
 
     [Fact]
@@ -131,12 +131,12 @@ public class EpisodesPageTests
             OwnerId = CurrentUser!.Id,
             Visibility = Visibility.Hidden,
         };
-        _service.CloneEpisodeAsync(Arg.Any<Guid>(), Arg.Any<CloneEpisodeRequest>()).Returns(clonedEpisode);
+        _service.CloneEpisodeAsync(Arg.Any<Guid>(), Arg.Any<AddClonedEpisodeRequest>()).Returns(clonedEpisode);
 
         // Act
         cut.Find($"#clone-episode-{episodeId}").Click();
 
         // Assert
-        _service.Received(1).CloneEpisodeAsync(Arg.Any<Guid>(), Arg.Any<CloneEpisodeRequest>());
+        _service.Received(1).CloneEpisodeAsync(Arg.Any<Guid>(), Arg.Any<AddClonedEpisodeRequest>());
     }
 }

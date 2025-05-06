@@ -14,11 +14,9 @@ public sealed class EpisodesPageHandler(HttpContext httpContext, NavigationManag
 
     public async Task SaveCreatedEpisode() {
         var request = new CreateEpisodeRequest {
-            AdventureId = State.AdventureId,
             Name = State.CreateInput.Name,
-            Visibility = State.CreateInput.Visibility,
         };
-        var result = await _service.CreateEpisodeAsync(request);
+        var result = await _service.CreateEpisodeAsync(State.AdventureId, request);
         if (!result.IsSuccessful) {
             State.CreateInput.Errors = [.. result.Errors];
             return;
@@ -28,11 +26,11 @@ public sealed class EpisodesPageHandler(HttpContext httpContext, NavigationManag
         State.Episodes.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase));
     }
 
-    public async Task DeleteEpisode(Guid id) {
-        var deleted = await _service.DeleteEpisodeAsync(id);
+    public async Task DeleteEpisode(Guid episodeId) {
+        var deleted = await _service.RemoveEpisodeAsync(State.AdventureId, episodeId);
         if (!deleted)
             return;
-        State.Episodes.RemoveAll(e => e.Id == id);
+        State.Episodes.RemoveAll(e => e.Id == episodeId);
     }
 
     public void StartEpisodeEditing(Episode ep) {
@@ -65,8 +63,11 @@ public sealed class EpisodesPageHandler(HttpContext httpContext, NavigationManag
     }
 
     public async Task CloneEpisode(Guid id) {
-        var request = new CloneEpisodeRequest();
-        var result = await _service.CloneEpisodeAsync(id, request);
+        var request = new AddClonedEpisodeRequest {
+            Id = id,
+            Name = State.CreateInput.Name,
+        };
+        var result = await _service.CloneEpisodeAsync(State.AdventureId, request);
         if (!result.IsSuccessful)
             return;
         State.Episodes.Add(result.Value);

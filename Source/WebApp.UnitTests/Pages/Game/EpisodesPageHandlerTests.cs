@@ -37,7 +37,7 @@ public class EpisodesPageHandlerTests
             Visibility = Visibility.Private,
         };
 
-        _service.CreateEpisodeAsync(Arg.Any<CreateEpisodeRequest>()).Returns(newEpisode);
+        _service.CreateEpisodeAsync(Arg.Any<Guid>(), Arg.Any<CreateEpisodeRequest>()).Returns(newEpisode);
 
         // Act
         await handler.SaveCreatedEpisode();
@@ -55,7 +55,7 @@ public class EpisodesPageHandlerTests
             Visibility = Visibility.Private,
         };
 
-        _service.CreateEpisodeAsync(Arg.Any<CreateEpisodeRequest>()).Returns(Result.Failure("Some error"));
+        _service.CreateEpisodeAsync(Arg.Any<Guid>(), Arg.Any<CreateEpisodeRequest>()).Returns(Result.Failure("Some error"));
 
         // Act
         await handler.SaveCreatedEpisode();
@@ -71,7 +71,7 @@ public class EpisodesPageHandlerTests
         // Arrange
         var handler = await CreateHandler();
         var episodeId = handler.State.Episodes[1].Id;
-        _service.DeleteEpisodeAsync(Arg.Any<Guid>()).Returns(true);
+        _service.RemoveEpisodeAsync(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
 
         // Act
         await handler.DeleteEpisode(episodeId);
@@ -84,18 +84,20 @@ public class EpisodesPageHandlerTests
     public async Task CloneEpisodeAsync_ClonesEpisodeAndReloadsEpisodes() {
         // Arrange
         var handler = await CreateHandler();
+        var adventureId = Guid.NewGuid();
         var episodeId = Guid.NewGuid();
-        handler.State.Episodes = [new Episode { Id = episodeId, Name = "Episode 1" }];
+        var originalEpisode = new Episode { Id = episodeId, Name = "Episode 1" };
+        handler.State.Episodes = [originalEpisode];
         var clonedEpisode = new Episode { Id = Guid.NewGuid(), Name = "Episode 1 (Copy)" };
         var episodesAfterClone = new[] {
-            new Episode { Id = episodeId, Name = "Episode 1" },
+            originalEpisode,
             clonedEpisode,
         };
 
-        _service.CloneEpisodeAsync(episodeId, Arg.Any<CloneEpisodeRequest>()).Returns(clonedEpisode);
+        _service.CloneEpisodeAsync(Arg.Any<Guid>(), Arg.Any<AddClonedEpisodeRequest>()).Returns(clonedEpisode);
 
         // Act
-        await handler.CloneEpisode(episodeId);
+        await handler.CloneEpisode(adventureId);
 
         // Assert
         handler.State.Episodes.Should().BeEquivalentTo(episodesAfterClone);

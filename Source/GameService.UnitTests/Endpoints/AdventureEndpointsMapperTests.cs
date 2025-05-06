@@ -29,7 +29,7 @@ public class AdventureEndpointsMapperTests {
         groupDataSource.Endpoints[4].DisplayName.Should().Be("HTTP: DELETE /api/adventures/{id:guid} => DeleteAdventureHandler");
         groupDataSource.Endpoints[5].DisplayName.Should().Be("HTTP: POST /api/adventures/{id:guid}/clone => CloneAdventureHandler");
         groupDataSource.Endpoints[6].DisplayName.Should().Be("HTTP: GET /api/adventures/{id:guid}/episodes => GetEpisodesHandler");
-        groupDataSource.Endpoints[7].DisplayName.Should().Be("HTTP: POST /api/adventures/{id:guid}/episodes/{episodeId:guid} => AddEpisodeHandler");
+        groupDataSource.Endpoints[7].DisplayName.Should().Be("HTTP: POST /api/adventures/{id:guid}/episodes/{episodeId:guid} => AddClonedEpisodeHandler");
         groupDataSource.Endpoints[8].DisplayName.Should().Be("HTTP: DELETE /api/adventures/{id:guid}/episodes/{episodeId:guid} => RemoveEpisodeHandler");
     }
 }

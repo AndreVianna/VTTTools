@@ -42,9 +42,15 @@ internal static class AdventureHandlers {
     internal static async Task<IResult> GetEpisodesHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService)
         => Results.Ok(await adventureService.GetEpisodesAsync(id));
 
-    internal static async Task<IResult> AddEpisodeHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid episodeId, [FromServices] IAdventureService adventureService) {
+    internal static async Task<IResult> CreateEpisodeHandler(HttpContext context, [FromRoute] Guid id, [FromBody] CreateEpisodeRequest request, [FromServices] IAdventureService adventureService) {
         var userId = EndpointsMapperHelper.GetUserId(context.User);
-        var added = await adventureService.AddEpisodeAsync(userId, id, episodeId);
+        var added = await adventureService.CreateEpisodeAsync(userId, id, request);
+        return added ? Results.NoContent() : Results.BadRequest();
+    }
+
+    internal static async Task<IResult> AddClonedEpisodeHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddClonedEpisodeRequest request, [FromServices] IAdventureService adventureService) {
+        var userId = EndpointsMapperHelper.GetUserId(context.User);
+        var added = await adventureService.AddClonedEpisodeAsync(userId, id, request);
         return added ? Results.NoContent() : Results.BadRequest();
     }
 

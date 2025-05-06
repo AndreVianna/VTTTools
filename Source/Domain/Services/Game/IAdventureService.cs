@@ -52,6 +52,7 @@ public interface IAdventureService {
     /// </summary>
     /// <param name="userId">The ID of the user requesting the clone.</param>
     /// <param name="templateId">The ID of the adventure to clone.</param>
+    /// <param name="data">The data for cloned adventure.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>The new cloned adventure.</returns>
     Task<Adventure?> CloneAdventureAsync(Guid userId, Guid templateId, CloneAdventureRequest data, CancellationToken ct = default);
@@ -65,14 +66,24 @@ public interface IAdventureService {
     Task<Episode[]> GetEpisodesAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
-    /// Adds an episode to a specific adventure by ID.
+    /// Creates a new episode to a specific adventure by ID.
     /// </summary>
     /// <param name="userId">The ID of the user requesting the clone.</param>
     /// <param name="id">The ID of the adventure.</param>
-    /// <param name="episodeId">The ID of the episode.</param>
+    /// <param name="data">The data for the new episode.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>True if the episode was added; otherwise, false.</returns>
-    Task<bool> AddEpisodeAsync(Guid userId, Guid id, Guid episodeId, CancellationToken ct = default);
+    Task<bool> CreateEpisodeAsync(Guid userId, Guid id, CreateEpisodeRequest data, CancellationToken ct = default);
+
+    /// <summary>
+    /// Adds a cloned episode to a specific adventure by ID.
+    /// </summary>
+    /// <param name="userId">The ID of the user requesting the clone.</param>
+    /// <param name="id">The ID of the adventure.</param>
+    /// <param name="data">The data for the cloned episode.</param>
+    /// <param name="ct">Cancellation token for async operations.</param>
+    /// <returns>True if the episode was added; otherwise, false.</returns>
+    Task<bool> AddClonedEpisodeAsync(Guid userId, Guid id, AddClonedEpisodeRequest data, CancellationToken ct = default);
 
     /// <summary>
     /// Removes an episode to a specific adventure by ID.

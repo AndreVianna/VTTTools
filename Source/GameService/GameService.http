@@ -1,4 +1,88 @@
 ###################################
+# Health Endpoints
+###################################
+
+### GET Health Check
+GET {{baseUrl}}/health HTTP/1.1
+Accept: application/json
+
+### GET Alive Check
+GET {{baseUrl}}/alive HTTP/1.1
+Accept: application/json
+
+###################################
+# Meeting Endpoints
+###################################
+
+### GET All Meetings
+GET {{baseUrl}}/api/meetings/ HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
+### POST Create Meeting
+# @name meeting
+POST {{baseUrl}}/api/meetings/ HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "subject": "New Meeting",
+}
+
+### GET Meeting by Id
+GET {{baseUrl}}/api/meetings/{{meeting.response.body.$.id}} HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
+### PATCH Update Meeting
+PATCH {{baseUrl}}/api/meetings/{{meeting.response.body.$.id}} HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "subject": "Updated Meeting"
+}
+
+### DELETE Meeting
+DELETE {{baseUrl}}/api/meetings/{{meeting.response.body.$.id}} HTTP/1.1
+X-USER: {{x-user}}
+
+### POST Join Meeting
+POST {{baseUrl}}/api/meetings/{{meeting.response.body.$.id}}/join HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}
+
+### POST Leave Meeting
+POST {{baseUrl}}/api/meetings/{{meeting.response.body.$.id}}/leave HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}
+
+### POST Activate Episode in Meeting
+POST {{baseUrl}}/api/meetings/{{meeting.response.body.$.id}}/episodes/{{episode.response.body.$.id}}/activate HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}
+
+### POST Start Meeting
+POST {{baseUrl}}/api/meetings/{{meeting.response.body.$.id}}/start HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}
+
+### POST Stop Meeting
+POST {{baseUrl}}/api/meetings/{{meeting.response.body.$.id}}/stop HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}
+
+###################################
 # Asset Endpoints
 ###################################
 
@@ -7,36 +91,37 @@ GET {{baseUrl}}/api/assets/ HTTP/1.1
 Accept: application/json
 X-USER: {{x-user}}
 
-### GET Asset by Id
-GET {{baseUrl}}/api/assets/00000000-0000-0000-0000-000000000001 HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
-
 ### POST Create Asset
+# @name asset
 POST {{baseUrl}}/api/assets/ HTTP/1.1
 Content-Type: application/json
 X-USER: {{x-user}}
 
 {
-    "name": "New Asset",
-    "description": "Description for new asset"
+  "name": "New Asset",
+  "description": "Description for new asset"
 }
 
+### GET Asset by Id
+GET {{baseUrl}}/api/assets/{{asset.response.body.$.id}} HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
 ### PATCH Update Asset
-PATCH {{baseUrl}}/api/assets/00000000-0000-0000-0000-000000000001 HTTP/1.1
+PATCH {{baseUrl}}/api/assets/{{asset.response.body.$.id}} HTTP/1.1
 Content-Type: application/json
 X-USER: {{x-user}}
 
 {
-    "name": "Updated Asset Name"
+  "name": "Updated Asset"
 }
 
 ### DELETE Asset
-DELETE {{baseUrl}}/api/assets/00000000-0000-0000-0000-000000000001 HTTP/1.1
+DELETE {{baseUrl}}/api/assets/{{asset.response.body.$.id}} HTTP/1.1
 X-USER: {{x-user}}
 
 ### POST Upload Asset File
-POST {{baseUrl}}/api/assets/00000000-0000-0000-0000-000000000001/upload HTTP/1.1
+POST {{baseUrl}}/api/assets/{{asset.response.body.$.id}}/upload HTTP/1.1
 Content-Type: multipart/form-data; boundary=---011000010111000001101001
 X-USER: {{x-user}}
 
@@ -48,137 +133,6 @@ Test file content
 ---011000010111000001101001--
 
 ###################################
-# Episode Endpoints
-###################################
-
-### GET Episode by Id
-GET {{baseUrl}}/api/episodes/00000000-0000-0000-0000-000000000002 HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
-
-### PATCH Update Episode
-PATCH {{baseUrl}}/api/episodes/00000000-0000-0000-0000-000000000002 HTTP/1.1
-Content-Type: application/json
-X-USER: {{x-user}}
-
-{
-    "title": "Updated Episode Title"
-}
-
-### DELETE Episode
-DELETE {{baseUrl}}/api/episodes/00000000-0000-0000-0000-000000000002 HTTP/1.1
-X-USER: {{x-user}}
-
-### POST Clone Episode
-POST {{baseUrl}}/api/episodes/00000000-0000-0000-0000-000000000002/clone HTTP/1.1
-Content-Type: application/json
-X-USER: {{x-user}}
-
-{}
-
-### GET Episode Assets
-GET {{baseUrl}}/api/episodes/00000000-0000-0000-0000-000000000002/assets HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
-
-### POST Add Asset to Episode
-POST {{baseUrl}}/api/episodes/00000000-0000-0000-0000-000000000002/assets/00000000-0000-0000-0000-000000000003 HTTP/1.1
-Content-Type: application/json
-X-USER: {{x-user}}
-
-{}
-
-### DELETE Remove Asset from Episode
-DELETE {{baseUrl}}/api/episodes/00000000-0000-0000-0000-000000000002/assets/00000000-0000-0000-0000-000000000003 HTTP/1.1
-X-USER: {{x-user}}
-
-###################################
-# Meeting Endpoints
-###################################
-
-### GET All Meetings
-GET {{baseUrl}}/api/meetings/ HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
-
-### GET Meeting by Id
-GET {{baseUrl}}/api/meetings/00000000-0000-0000-0000-000000000004 HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
-
-### POST Create Meeting
-POST {{baseUrl}}/api/meetings/ HTTP/1.1
-Content-Type: application/json
-X-USER: {{x-user}}
-
-{
-    "title": "New Meeting",
-    "description": "Meeting description"
-}
-
-### PATCH Update Meeting
-PATCH {{baseUrl}}/api/meetings/00000000-0000-0000-0000-000000000004 HTTP/1.1
-Content-Type: application/json
-X-USER: {{x-user}}
-
-{
-    "title": "Updated Meeting Title"
-}
-
-### DELETE Meeting
-DELETE {{baseUrl}}/api/meetings/00000000-0000-0000-0000-000000000004 HTTP/1.1
-X-USER: {{x-user}}
-
-### POST Join Meeting
-POST {{baseUrl}}/api/meetings/00000000-0000-0000-0000-000000000004/join HTTP/1.1
-Content-Type: application/json
-X-USER: {{x-user}}
-
-{}
-
-### POST Leave Meeting
-POST {{baseUrl}}/api/meetings/00000000-0000-0000-0000-000000000004/leave HTTP/1.1
-Content-Type: application/json
-X-USER: {{x-user}}
-
-{}
-
-### POST Activate Episode in Meeting
-POST {{baseUrl}}/api/meetings/00000000-0000-0000-0000-000000000004/episodes/00000000-0000-0000-0000-000000000002/activate HTTP/1.1
-Content-Type: application/json
-X-USER: {{x-user}}
-
-{}
-
-### POST Start Meeting
-POST {{baseUrl}}/api/meetings/00000000-0000-0000-0000-000000000004/start HTTP/1.1
-Content-Type: application/json
-X-USER: {{x-user}}
-
-{}
-
-### POST Stop Meeting
-POST {{baseUrl}}/api/meetings/00000000-0000-0000-0000-000000000004/stop HTTP/1.1
-Content-Type: application/json
-X-USER: {{x-user}}
-
-{}
-
-###################################
-# Health Endpoints
-###################################
-
-### GET Health Check
-GET {{baseUrl}}/health HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
-
-### GET Alive Check
-GET {{baseUrl}}/alive HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
-
-###################################
 # Adventure Endpoints
 ###################################
 
@@ -187,53 +141,110 @@ GET {{baseUrl}}/api/adventures/ HTTP/1.1
 Accept: application/json
 X-USER: {{x-user}}
 
-### GET Adventure by Id
-GET {{baseUrl}}/api/adventures/00000000-0000-0000-0000-000000000005 HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
-
 ### POST Create Adventure
+# @name adventure
 POST {{baseUrl}}/api/adventures/ HTTP/1.1
 Content-Type: application/json
 X-USER: {{x-user}}
 
 {
-    "name": "New Adventure",
-    "description": "Adventure description"
+  "name": "New Adventure",
 }
 
+### GET Adventure by Id
+GET {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}} HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
 ### PATCH Update Adventure
-PATCH {{baseUrl}}/api/adventures/00000000-0000-0000-0000-000000000005 HTTP/1.1
+PATCH {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}} HTTP/1.1
 Content-Type: application/json
 X-USER: {{x-user}}
 
 {
-    "name": "Updated Adventure Name"
+  "name": "Updated Adventure Name"
 }
 
 ### DELETE Adventure
-DELETE {{baseUrl}}/api/adventures/00000000-0000-0000-0000-000000000005 HTTP/1.1
+DELETE {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}} HTTP/1.1
 X-USER: {{x-user}}
 
 ### POST Clone Adventure
-POST {{baseUrl}}/api/adventures/00000000-0000-0000-0000-000000000005/clone HTTP/1.1
+POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/clone HTTP/1.1
 Content-Type: application/json
 X-USER: {{x-user}}
 
 {}
 
 ### GET Adventure Episodes
-GET {{baseUrl}}/api/adventures/00000000-0000-0000-0000-000000000005/episodes HTTP/1.1
+GET {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/episodes HTTP/1.1
 Accept: application/json
 X-USER: {{x-user}}
 
-### POST Add Episode to Adventure
-POST {{baseUrl}}/api/adventures/00000000-0000-0000-0000-000000000005/episodes/00000000-0000-0000-0000-000000000002 HTTP/1.1
+### POST Create Episode
+# @name episode
+POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/episodes HTTP/1.1
 Content-Type: application/json
 X-USER: {{x-user}}
 
 {}
 
+### POST Add cloned Episode
+POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/episodes/clone HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "id": "{{episode.response.body.$.id}}"
+}
+
 ### DELETE Remove Episode from Adventure
-DELETE {{baseUrl}}/api/adventures/00000000-0000-0000-0000-000000000005/episodes/00000000-0000-0000-0000-000000000002 HTTP/1.1
+DELETE {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/episodes/{{episode.response.body.$.id}} HTTP/1.1
+X-USER: {{x-user}}
+
+###################################
+# Episode Endpoints
+###################################
+
+### GET Episode by Id
+GET {{baseUrl}}/api/episodes/{{episode.response.body.$.id}} HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
+### PATCH Update Episode
+PATCH {{baseUrl}}/api/episodes/{{episode.response.body.$.id}} HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "name": "Updated Episode"
+}
+
+### DELETE Episode
+DELETE {{baseUrl}}/api/episodes/{{episode.response.body.$.id}} HTTP/1.1
+X-USER: {{x-user}}
+
+### POST Clone Episode
+POST {{baseUrl}}/api/episodes/{{episode.response.body.$.id}}/clone HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}
+
+### GET Episode Assets
+GET {{baseUrl}}/api/episodes/{{episode.response.body.$.id}}/assets HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
+### POST Add Asset to Episode
+POST {{baseUrl}}/api/episodes/{{episode.response.body.$.id}}/assets HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "Id": "{{asset.response.body.$.id}}"
+}
+
+### DELETE Remove Asset from Episode
+DELETE {{baseUrl}}/api/episodes/{{episode.response.body.$.id}}/assets/{{asset.response.body.$.id}} HTTP/1.1
 X-USER: {{x-user}}

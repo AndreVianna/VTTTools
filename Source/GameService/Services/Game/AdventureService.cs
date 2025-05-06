@@ -64,14 +64,34 @@ public class AdventureService(IAdventureStorage adventureStorage, IEpisodeStorag
         => episodeStorage.GetByParentIdAsync(id, ct);
 
     /// <inheritdoc />
-    public async Task<bool> AddEpisodeAsync(Guid userId, Guid id, Guid episodeId, CancellationToken ct = default) {
+    public async Task<bool> CreateEpisodeAsync(Guid userId, Guid id, CreateEpisodeRequest data, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
         if (adventure?.OwnerId != userId)
             return false;
-        var episode = await episodeStorage.GetByIdAsync(episodeId, ct);
+        var episode = new Episode {
+            OwnerId = userId,
+            ParentId = id,
+            Name = data.Name,
+            Visibility = data.Visibility,
+            IsTemplate = true,
+        };
+        await episodeStorage.AddAsync(episode, ct);
+        adventure.Episodes.Add(episode);
+        await adventureStorage.UpdateAsync(adventure, ct);
+        return true;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> AddClonedEpisodeAsync(Guid userId, Guid id, AddClonedEpisodeRequest data, CancellationToken ct = default) {
+        var adventure = await adventureStorage.GetByIdAsync(id, ct);
+        if (adventure?.OwnerId != userId)
+            return false;
+        var episode = await episodeStorage.GetByIdAsync(data.Id, ct);
         if (episode is null)
             return false;
         var clone = Cloner.CloneEpisode(episode, adventure.Id, userId);
+        if (data.Name.IsSet)
+            clone.Name = data.Name.Value;
         adventure.Episodes.Add(clone);
         await adventureStorage.UpdateAsync(adventure, ct);
         return true;

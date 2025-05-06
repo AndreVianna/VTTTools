@@ -67,40 +67,6 @@ public class EpisodeHandlersTests {
     }
 
     [Fact]
-    public async Task CreateEpisodeHandler_WithValidRequest_ReturnsCreatedResult() {
-        // Arrange
-        var episodeId = Guid.NewGuid();
-        var request = new CreateEpisodeRequest { Name = "Created Episode", AdventureId = Guid.NewGuid() };
-        var episode = new Episode { Id = episodeId, Name = "Created Episode", ParentId = episodeId };
-
-        _episodeService.CreateEpisodeAsync(_userId, request, Arg.Any<CancellationToken>())
-            .Returns(episode);
-
-        // Act
-        var result = await EpisodeHandlers.CreateEpisodeHandler(_httpContext, request, _episodeService);
-
-        // Assert
-        var response = result.Should().BeOfType<Created<Episode>>().Subject;
-        response.Location.Should().Be($"/api/episodes/{episode.Id}");
-        response.Value.Should().BeEquivalentTo(episode);
-    }
-
-    [Fact]
-    public async Task CreateEpisodeHandler_WithInvalidRequest_ReturnsBadRequest() {
-        // Arrange
-        var request = new CreateEpisodeRequest { Name = "Created Episode", AdventureId = Guid.NewGuid() };
-
-        _episodeService.CreateEpisodeAsync(_userId, request, Arg.Any<CancellationToken>())
-            .Returns((Episode?)null);
-
-        // Act
-        var result = await EpisodeHandlers.CreateEpisodeHandler(_httpContext, request, _episodeService);
-
-        // Assert
-        result.Should().BeOfType<BadRequest>();
-    }
-
-    [Fact]
     public async Task UpdateEpisodeHandler_WithValidRequest_ReturnsOkResult() {
         // Arrange
         var episodeId = Guid.NewGuid();
@@ -135,71 +101,6 @@ public class EpisodeHandlersTests {
     }
 
     [Fact]
-    public async Task DeleteEpisodeHandler_WithExistingId_ReturnsNoContent() {
-        // Arrange
-        var episodeId = Guid.NewGuid();
-
-        _episodeService.DeleteEpisodeAsync(_userId, episodeId, Arg.Any<CancellationToken>())
-            .Returns(true);
-
-        // Act
-        var result = await EpisodeHandlers.DeleteEpisodeHandler(_httpContext, episodeId, _episodeService);
-
-        // Assert
-        result.Should().BeOfType<NoContent>();
-    }
-
-    [Fact]
-    public async Task DeleteEpisodeHandler_WithNonExistingId_ReturnsNotFound() {
-        // Arrange
-        var episodeId = Guid.NewGuid();
-
-        _episodeService.DeleteEpisodeAsync(_userId, episodeId, Arg.Any<CancellationToken>())
-            .Returns(false);
-
-        // Act
-        var result = await EpisodeHandlers.DeleteEpisodeHandler(_httpContext, episodeId, _episodeService);
-
-        // Assert
-        result.Should().BeOfType<NotFound>();
-    }
-
-    [Fact]
-    public async Task CloneEpisodeHandler_WithExistingId_ReturnsCreatedResult() {
-        // Arrange
-        var episodeId = Guid.NewGuid();
-        var clonedEpisode = new Episode { Id = Guid.NewGuid(), Name = "Cloned Episode", ParentId = episodeId };
-        var request = new CloneEpisodeRequest();
-
-        _episodeService.CloneEpisodeAsync(_userId, episodeId, Arg.Any<CloneEpisodeRequest>(), Arg.Any<CancellationToken>())
-                        .Returns(clonedEpisode);
-
-        // Act
-        var result = await EpisodeHandlers.CloneEpisodeHandler(_httpContext, episodeId, request, _episodeService);
-
-        // Assert
-        var response = result.Should().BeOfType<Created<Episode>>().Subject;
-        response.Location.Should().Be($"/api/episodes/{clonedEpisode.Id}");
-        response.Value.Should().BeEquivalentTo(clonedEpisode);
-    }
-
-    [Fact]
-    public async Task CloneEpisodeHandler_WithNonExistingId_ReturnsNotFound() {
-        // Arrange
-        var episodeId = Guid.NewGuid();
-        var request = new CloneEpisodeRequest();
-
-        _episodeService.CloneEpisodeAsync(_userId, episodeId, Arg.Any<CloneEpisodeRequest>(), Arg.Any<CancellationToken>())
-            .Returns((Episode?)null);
-
-        // Act
-        var result = await EpisodeHandlers.CloneEpisodeHandler(_httpContext, episodeId, request, _episodeService);
-
-        // Assert
-        result.Should().BeOfType<NotFound>();
-    }
-
-    [Fact]
     public async Task GetAssetsHandler_ReturnsOkResult() {
         // Arrange
         var episodeId = Guid.NewGuid();
@@ -225,16 +126,17 @@ public class EpisodeHandlersTests {
         var episodeId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
         var request = new AddEpisodeAssetRequest {
+            Id = assetId,
             Name = "Asset Name",
             Position = new() { Left = 20, Top = 30 },
             Scale = 1,
         };
 
-        _episodeService.AddAssetAsync(_userId, episodeId, assetId, Arg.Any<AddEpisodeAssetData>(), Arg.Any<CancellationToken>())
+        _episodeService.AddAssetAsync(_userId, episodeId, Arg.Any<AddEpisodeAssetData>(), Arg.Any<CancellationToken>())
             .Returns(true);
 
         // Act
-        var result = await EpisodeHandlers.AddAssetHandler(_httpContext, episodeId, assetId, request, _episodeService);
+        var result = await EpisodeHandlers.AddAssetHandler(_httpContext, episodeId, request, _episodeService);
 
         // Assert
         result.Should().BeOfType<NoContent>();
@@ -246,16 +148,17 @@ public class EpisodeHandlersTests {
         var episodeId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
         var request = new AddEpisodeAssetRequest {
+            Id = assetId,
             Name = "Asset Name",
             Position = new() { Left = 20, Top = 30 },
             Scale = 1,
         };
 
-        _episodeService.AddAssetAsync(_userId, episodeId, assetId, Arg.Any<AddEpisodeAssetData>(), Arg.Any<CancellationToken>())
+        _episodeService.AddAssetAsync(_userId, episodeId, Arg.Any<AddEpisodeAssetData>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
         // Act
-        var result = await EpisodeHandlers.AddAssetHandler(_httpContext, episodeId, assetId, request, _episodeService);
+        var result = await EpisodeHandlers.AddAssetHandler(_httpContext, episodeId, request, _episodeService);
 
         // Assert
         result.Should().BeOfType<BadRequest>();

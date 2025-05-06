@@ -35,21 +35,21 @@ internal class GameService(HttpClient client)
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<Episode[]> GetEpisodesAsync(Guid adventureId) {
-        var episodes = await client.GetFromJsonAsync<Episode[]>($"/api/adventures/{adventureId}/episodes");
+    public async Task<Episode[]> GetEpisodesAsync(Guid id) {
+        var episodes = await client.GetFromJsonAsync<Episode[]>($"/api/adventures/{id}/episodes");
         return episodes ?? [];
     }
 
-    public async Task<Result<Episode>> CreateEpisodeAsync(CreateEpisodeRequest request) {
-        var response = await client.PostAsJsonAsync($"/api/adventures/{request.AdventureId}/episodes", request);
+    public async Task<Result<Episode>> CreateEpisodeAsync(Guid id, CreateEpisodeRequest request) {
+        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/episodes", request);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to create episode.");
         var episode = await response.Content.ReadFromJsonAsync<Episode>();
         return episode!;
     }
 
-    public async Task<Result<Episode>> CloneEpisodeAsync(Guid id, CloneEpisodeRequest request) {
-        var response = await client.PostAsJsonAsync($"/api/episodes/{id}/clone", request);
+    public async Task<Result<Episode>> CloneEpisodeAsync(Guid id, AddClonedEpisodeRequest request) {
+        var response = await client.PostAsJsonAsync($"/api/adventures/clone", request);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to clone episode.");
         var episode = await response.Content.ReadFromJsonAsync<Episode>();
@@ -63,8 +63,8 @@ internal class GameService(HttpClient client)
                    : Result.Failure("Failed to update episode.");
     }
 
-    public async Task<bool> DeleteEpisodeAsync(Guid id) {
-        var response = await client.DeleteAsync($"/api/episodes/{id}");
+    public async Task<bool> RemoveEpisodeAsync(Guid id, Guid episodeId) {
+        var response = await client.DeleteAsync($"/api/adventures/{id}episodes/{episodeId}");
         return response.IsSuccessStatusCode;
     }
 

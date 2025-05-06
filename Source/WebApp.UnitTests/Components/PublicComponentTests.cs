@@ -2,7 +2,6 @@ namespace VttTools.WebApp.Components;
 
 public class PublicComponentTests
     : WebAppTestContext {
-
     private sealed class TestComponent : PublicComponent {
         protected override async Task<bool> ConfigureComponentAsync() {
             await Task.Delay(200);

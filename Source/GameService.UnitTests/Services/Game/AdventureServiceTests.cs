@@ -414,6 +414,10 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var episodeId = Guid.NewGuid();
+        var request = new AddClonedEpisodeRequest {
+            Id = episodeId,
+            Name = "New Episode",
+        };
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
@@ -429,7 +433,7 @@ public class AdventureServiceTests {
         _episodeStorage.GetByIdAsync(episodeId, Arg.Any<CancellationToken>()).Returns(episode);
 
         // Act
-        var result = await _service.AddEpisodeAsync(_userId, adventureId, episodeId, TestContext.Current.CancellationToken);
+        var result = await _service.AddClonedEpisodeAsync(_userId, adventureId, request, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeTrue();
@@ -442,6 +446,10 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var episodeId = Guid.NewGuid();
+        var request = new AddClonedEpisodeRequest {
+            Id = episodeId,
+            Name = "New Episode",
+        };
         var nonOwnerId = Guid.NewGuid();
         var adventure = new Adventure {
             Id = adventureId,
@@ -452,7 +460,7 @@ public class AdventureServiceTests {
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
 
         // Act
-        var result = await _service.AddEpisodeAsync(nonOwnerId, adventureId, episodeId, TestContext.Current.CancellationToken);
+        var result = await _service.AddClonedEpisodeAsync(nonOwnerId, adventureId, request, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeFalse();
@@ -464,11 +472,15 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var episodeId = Guid.NewGuid();
+        var request = new AddClonedEpisodeRequest {
+            Id = episodeId,
+            Name = "New Episode",
+        };
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
 
         // Act
-        var result = await _service.AddEpisodeAsync(_userId, adventureId, episodeId, TestContext.Current.CancellationToken);
+        var result = await _service.AddClonedEpisodeAsync(_userId, adventureId, request, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeFalse();
@@ -480,6 +492,10 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var episodeId = Guid.NewGuid();
+        var request = new AddClonedEpisodeRequest {
+            Id = episodeId,
+            Name = "New Episode",
+        };
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
@@ -490,7 +506,7 @@ public class AdventureServiceTests {
         _episodeStorage.GetByIdAsync(episodeId, Arg.Any<CancellationToken>()).Returns((Episode?)null);
 
         // Act
-        var result = await _service.AddEpisodeAsync(_userId, adventureId, episodeId, TestContext.Current.CancellationToken);
+        var result = await _service.AddClonedEpisodeAsync(_userId, adventureId, request, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeFalse();

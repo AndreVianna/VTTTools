@@ -222,13 +222,14 @@ public class AdventureHandlersTests {
     public async Task AddEpisodeHandler_WithValidRequest_ReturnsCreatedResult() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var episodeId = Guid.NewGuid();
+        var clonedEpisode = new Episode { Id = Guid.NewGuid(), Name = "Cloned Episode", ParentId = adventureId };
+        var request = new AddClonedEpisodeRequest();
 
-        _adventureService.AddEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>())
+        _adventureService.AddClonedEpisodeAsync(_userId, adventureId, Arg.Any<AddClonedEpisodeRequest>(), Arg.Any<CancellationToken>())
             .Returns(true);
 
         // Act
-        var result = await AdventureHandlers.AddEpisodeHandler(_httpContext, adventureId, episodeId, _adventureService);
+        var result = await AdventureHandlers.AddClonedEpisodeHandler(_httpContext, adventureId, request, _adventureService);
 
         // Assert
         result.Should().BeOfType<NoContent>();
@@ -238,13 +239,13 @@ public class AdventureHandlersTests {
     public async Task AddEpisodeHandler_WithInvalidEpisode_ReturnsBadRequest() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var episodeId = Guid.NewGuid();
+        var request = new AddClonedEpisodeRequest();
 
-        _adventureService.AddEpisodeAsync(_userId, adventureId, episodeId, Arg.Any<CancellationToken>())
+        _adventureService.AddClonedEpisodeAsync(_userId, adventureId, Arg.Any<AddClonedEpisodeRequest>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
         // Act
-        var result = await AdventureHandlers.AddEpisodeHandler(_httpContext, adventureId, episodeId, _adventureService);
+        var result = await AdventureHandlers.AddClonedEpisodeHandler(_httpContext, adventureId, request, _adventureService);
 
         // Assert
         result.Should().BeOfType<BadRequest>();

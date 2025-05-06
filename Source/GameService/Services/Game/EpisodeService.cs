@@ -11,31 +11,6 @@ public class EpisodeService(IEpisodeStorage episodeStorage)
         => episodeStorage.GetByIdAsync(id, ct);
 
     /// <inheritdoc />
-    public async Task<Episode?> CreateEpisodeAsync(Guid userId, CreateEpisodeRequest data, CancellationToken ct = default) {
-        var episode = new Episode {
-            OwnerId = userId,
-            ParentId = data.AdventureId,
-            Name = data.Name,
-            Visibility = data.Visibility,
-            IsTemplate = true,
-        };
-        return await episodeStorage.AddAsync(episode, ct);
-    }
-
-    /// <inheritdoc />
-    public async Task<Episode?> CloneEpisodeAsync(Guid userId, Guid templateId, CloneEpisodeRequest data, CancellationToken ct = default) {
-        var episode = await episodeStorage.GetByIdAsync(templateId, ct);
-        if (episode?.OwnerId != userId)
-            return null;
-        var clone = Cloner.CloneEpisode(episode, userId);
-        if (data.AdventureId.IsSet)
-            clone.ParentId = data.AdventureId.Value;
-        if (data.Name.IsSet)
-            clone.Name = data.Name.Value;
-        return await episodeStorage.AddAsync(clone, ct);
-    }
-
-    /// <inheritdoc />
     public async Task<Episode?> UpdateEpisodeAsync(Guid userId, Guid id, UpdateEpisodeRequest data, CancellationToken ct = default) {
         var episode = await episodeStorage.GetByIdAsync(id, ct);
         if (episode?.OwnerId != userId)
@@ -48,25 +23,18 @@ public class EpisodeService(IEpisodeStorage episodeStorage)
     }
 
     /// <inheritdoc />
-    public async Task<bool> DeleteEpisodeAsync(Guid userId, Guid id, CancellationToken ct = default) {
-        var episode = await episodeStorage.GetByIdAsync(id, ct);
-        return episode?.OwnerId == userId
-            && await episodeStorage.DeleteAsync(id, ct);
-    }
-
-    /// <inheritdoc />
     public async Task<EpisodeAsset[]> GetAssetsAsync(Guid id, CancellationToken ct = default) {
         var episode = await episodeStorage.GetByIdAsync(id, ct);
         return episode?.EpisodeAssets.ToArray() ?? [];
     }
 
     /// <inheritdoc />
-    public async Task<bool> AddAssetAsync(Guid userId, Guid id, Guid assetId, AddEpisodeAssetData data, CancellationToken ct = default) {
+    public async Task<bool> AddAssetAsync(Guid userId, Guid id, AddEpisodeAssetData data, CancellationToken ct = default) {
         var episode = await episodeStorage.GetByIdAsync(id, ct);
         if (episode?.OwnerId != userId)
             return false;
         var episodeAsset = new EpisodeAsset {
-            AssetId = assetId,
+            AssetId = data.Id,
             Name = data.Name,
             Position = data.Position,
             Scale = data.Scale,
