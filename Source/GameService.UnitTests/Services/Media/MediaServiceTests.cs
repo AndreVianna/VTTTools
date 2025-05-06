@@ -1,14 +1,14 @@
 ﻿namespace VttTools.GameService.Services.Media;
 
-public class BlobStorageServiceTests {
+public class MediaServiceTests {
     private readonly BlobServiceClient _blobServiceClient = Substitute.For<BlobServiceClient>();
     private readonly BlobContainerClient _blobContainerClient = Substitute.For<BlobContainerClient>();
     private readonly BlobClient _blobClient = Substitute.For<BlobClient>();
-    private readonly BlobStorageService _service;
+    private readonly MediaService _service;
     private readonly BlobContentInfo _blobContentInfo = Substitute.For<BlobContentInfo>();
     private readonly Response _response = Substitute.For<Response>();
 
-    public BlobStorageServiceTests() {
+    public MediaServiceTests() {
         _blobServiceClient.GetBlobContainerClient("images").Returns(_blobContainerClient);
         _blobServiceClient.CreateBlobContainerAsync("images", PublicAccessType.BlobContainer, null, Arg.Any<CancellationToken>())
                           .Returns(Response.FromValue(_blobContainerClient, _response));

@@ -35,7 +35,7 @@ internal static class AssetHandlers {
         HttpContext context,
         [FromRoute] Guid id,
         [FromForm] IFormFile file,
-        [FromServices] IStorageService storage,
+        [FromServices] IMediaService storage,
         [FromServices] IAssetService assetService) {
         var userId = EndpointsMapperHelper.GetUserId(context.User);
         // ensure asset exists and belongs to user or admin

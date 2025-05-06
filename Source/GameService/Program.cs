@@ -10,7 +10,8 @@ internal static class Program {
         });
         builder.AddServiceDiscovery();
         builder.AddRequiredServices();
-        builder.AddDataStorage();
+        builder.AddStorage();
+        builder.AddServices();
 
         var app = builder.Build();
         app.ApplyRequiredConfiguration(app.Environment);

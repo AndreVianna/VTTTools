@@ -2,7 +2,7 @@ namespace VttTools.GameService.Handlers;
 
 public class AssetHandlersTests {
     private readonly IAssetService _assetService = Substitute.For<IAssetService>();
-    private readonly IStorageService _storageService = Substitute.For<IStorageService>();
+    private readonly IMediaService _service = Substitute.For<IMediaService>();
     private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
     private readonly ClaimsPrincipal _user = Substitute.For<ClaimsPrincipal>();
     private static readonly Guid _userId = Guid.NewGuid();
@@ -170,17 +170,17 @@ public class AssetHandlersTests {
         file.OpenReadStream().Returns(stream);
 
         _assetService.GetAssetAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
-        _storageService.UploadImageAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _service.UploadImageAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns("https://storage.example.com/image.png");
         _assetService.UpdateAssetAsync(_userId, assetId, Arg.Any<UpdateAssetRequest>(), Arg.Any<CancellationToken>())
             .Returns(updatedAsset);
 
         // Act
-        var result = await AssetHandlers.UploadAssetFileHandler(_httpContext, assetId, file, _storageService, _assetService);
+        var result = await AssetHandlers.UploadAssetFileHandler(_httpContext, assetId, file, _service, _assetService);
 
         // Assert
         await _assetService.Received(1).GetAssetAsync(assetId, Arg.Any<CancellationToken>());
-        await _storageService.Received(1).UploadImageAsync(Arg.Any<Stream>(), "image.png", Arg.Any<CancellationToken>());
+        await _service.Received(1).UploadImageAsync(Arg.Any<Stream>(), "image.png", Arg.Any<CancellationToken>());
         await _assetService.Received(1).UpdateAssetAsync(_userId, assetId, Arg.Any<UpdateAssetRequest>(), Arg.Any<CancellationToken>());
 
         var response = result.Should().BeOfType<Ok<Asset>>().Subject;
@@ -196,11 +196,11 @@ public class AssetHandlersTests {
         _assetService.GetAssetAsync(assetId, Arg.Any<CancellationToken>()).Returns((Asset?)null);
 
         // Act
-        var result = await AssetHandlers.UploadAssetFileHandler(_httpContext, assetId, file, _storageService, _assetService);
+        var result = await AssetHandlers.UploadAssetFileHandler(_httpContext, assetId, file, _service, _assetService);
 
         // Assert
         await _assetService.Received(1).GetAssetAsync(assetId, Arg.Any<CancellationToken>());
-        await _storageService.DidNotReceive().UploadImageAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _service.DidNotReceive().UploadImageAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         await _assetService.DidNotReceive().UpdateAssetAsync(
             Arg.Any<Guid>(),
             Arg.Any<Guid>(),
@@ -221,11 +221,11 @@ public class AssetHandlersTests {
         _assetService.GetAssetAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
 
         // Act
-        var result = await AssetHandlers.UploadAssetFileHandler(_httpContext, assetId, file, _storageService, _assetService);
+        var result = await AssetHandlers.UploadAssetFileHandler(_httpContext, assetId, file, _service, _assetService);
 
         // Assert
         await _assetService.Received(1).GetAssetAsync(assetId, Arg.Any<CancellationToken>());
-        await _storageService.DidNotReceive().UploadImageAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _service.DidNotReceive().UploadImageAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         await _assetService.DidNotReceive().UpdateAssetAsync(
             Arg.Any<Guid>(),
             Arg.Any<Guid>(),
@@ -247,17 +247,17 @@ public class AssetHandlersTests {
         file.OpenReadStream().Returns(stream);
 
         _assetService.GetAssetAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
-        _storageService.UploadImageAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _service.UploadImageAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns("https://storage.example.com/image.png");
         _assetService.UpdateAssetAsync(_userId, assetId, Arg.Any<UpdateAssetRequest>(), Arg.Any<CancellationToken>())
             .Returns((Asset?)null);
 
         // Act
-        var result = await AssetHandlers.UploadAssetFileHandler(_httpContext, assetId, file, _storageService, _assetService);
+        var result = await AssetHandlers.UploadAssetFileHandler(_httpContext, assetId, file, _service, _assetService);
 
         // Assert
         await _assetService.Received(1).GetAssetAsync(assetId, Arg.Any<CancellationToken>());
-        await _storageService.Received(1).UploadImageAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _service.Received(1).UploadImageAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         await _assetService.Received(1).UpdateAssetAsync(
             _userId,
             assetId,

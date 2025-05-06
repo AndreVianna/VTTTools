@@ -1,3 +1,5 @@
+using static VttTools.GameService.Middlewares.BasicUserAuthenticationOptions;
+
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 namespace VttTools.GameService.Extensions;
@@ -23,7 +25,8 @@ internal static class HostApplicationBuilderExtensions {
         builder.Services.AddOpenApi();
         builder.Services.AddHealthChecks();
 
-        builder.Services.AddAuthentication();
+        builder.Services.AddAuthentication(DefaultScheme)
+            .AddScheme<BasicUserAuthenticationOptions, BasicUserAuthenticationHandler>(DefaultScheme, _ => { });
         builder.Services.AddAuthorization();
     }
 
@@ -42,14 +45,17 @@ internal static class HostApplicationBuilderExtensions {
         options.SerializerOptions.Converters.Add(new OptionalConverterFactory());
     }
 
-    internal static void AddDataStorage(this IHostApplicationBuilder builder) {
+    internal static void AddStorage(this IHostApplicationBuilder builder) {
         builder.AddSqlServerDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
         builder.AddAzureBlobClient(AzureStorageOptions.ConnectionStringName);
         builder.AddGameDataStorage();
+    }
+
+    internal static void AddServices(this IHostApplicationBuilder builder) {
         builder.Services.AddScoped<IMeetingService, MeetingService>();
         builder.Services.AddScoped<IAdventureStorage, AdventureStorage>();
         builder.Services.AddScoped<IEpisodeStorage, EpisodeStorage>();
-        builder.Services.AddScoped<IAdventureService, AdventureService>();
-        builder.Services.AddScoped<IStorageService, BlobStorageService>();
+        builder.Services.AddScoped<IAssetService, AssetService>();
+        builder.Services.AddScoped<IMediaService, MediaService>();
     }
 }

@@ -1,6 +1,6 @@
 namespace VttTools.GameService.Endpoints;
 
-internal static class EpisodesEndpointsMapper {
+internal static class EpisodeEndpointsMapper {
     public static void MapEpisodeEndpoints(this IEndpointRouteBuilder app) {
         var episodes = app.MapGroup("/api/episodes")
                           .RequireAuthorization();

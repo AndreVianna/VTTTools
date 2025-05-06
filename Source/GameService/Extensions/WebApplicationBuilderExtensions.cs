@@ -10,7 +10,7 @@ internal static class WebApplicationBuilderExtensions {
         app.UseRouting();
         app.UseCors();
         app.UseAuthentication();
-        app.UseMiddleware<UserAuthorizationMiddleware>();
+        app.UseAuthorization();
 
         if (environment.IsProduction())
             app.UseHttpsRedirection();

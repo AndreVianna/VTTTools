@@ -1,10 +1,10 @@
 namespace VttTools.GameService.Services.Media;
 
 /// <summary>
-/// Azure Blob Container implementation of IStorageService for development.
+/// Azure Blob Container implementation of IMediaService for development.
 /// </summary>
-public class BlobStorageService(BlobServiceClient client)
-    : IStorageService {
+public class MediaService(BlobServiceClient client)
+    : IMediaService {
     /// <inheritdoc />
     public async Task<string> UploadImageAsync(Stream imageStream, string fileName, CancellationToken ct = default) {
         // generate a unique file name

@@ -54,9 +54,9 @@ public class HostApplicationBuilderExtensionsTests {
     }
 
     [Fact]
-    public void AddDataStorage_RegistersStorageServices() {
+    public void AddStorage_RegistersStorageServices() {
         var builder = new HostApplicationBuilder();
-        builder.AddDataStorage();
+        builder.AddStorage();
 
         var services = builder.Services;
         services.Should().Contain(sd =>
@@ -69,7 +69,30 @@ public class HostApplicationBuilderExtensionsTests {
             sd.ServiceType == typeof(IAdventureService) &&
             sd.ImplementationType == typeof(AdventureService));
         services.Should().Contain(sd =>
-            sd.ServiceType == typeof(IStorageService) &&
-            sd.ImplementationType == typeof(BlobStorageService));
+            sd.ServiceType == typeof(IAssetStorage) &&
+            sd.ImplementationType == typeof(AssetStorage));
+    }
+
+    [Fact]
+    public void AddService_RegistersStorageServices() {
+        var builder = new HostApplicationBuilder();
+        builder.AddServices();
+
+        var services = builder.Services;
+        services.Should().Contain(sd =>
+            sd.ServiceType == typeof(IAdventureService) &&
+            sd.ImplementationType == typeof(AdventureService));
+        services.Should().Contain(sd =>
+            sd.ServiceType == typeof(IEpisodeService) &&
+            sd.ImplementationType == typeof(EpisodeService));
+        services.Should().Contain(sd =>
+            sd.ServiceType == typeof(IAdventureService) &&
+            sd.ImplementationType == typeof(AdventureService));
+        services.Should().Contain(sd =>
+            sd.ServiceType == typeof(IAssetService) &&
+            sd.ImplementationType == typeof(AssetService));
+        services.Should().Contain(sd =>
+            sd.ServiceType == typeof(IMediaService) &&
+            sd.ImplementationType == typeof(MediaService));
     }
 }
