@@ -30,17 +30,23 @@ global using Microsoft.Extensions.Logging.Abstractions;
 global using Microsoft.Extensions.Options;
 global using Microsoft.Extensions.Primitives;
 
-global using VttTools.Contracts.Game;
+global using VttTools.Assets.ApiContracts;
+global using VttTools.Assets.Model;
 global using VttTools.Data;
-global using VttTools.Model.Game;
-global using VttTools.Model.Identity;
+global using VttTools.Game.Sessions.ApiContracts;
+global using VttTools.Game.Sessions.Model;
+global using VttTools.Identity.Model;
+global using VttTools.Library.Adventures.ApiContracts;
+global using VttTools.Library.Adventures.Model;
+global using VttTools.Library.Scenes.ApiContracts;
+global using VttTools.Library.Scenes.Model;
 global using VttTools.WebApp.Components;
 global using VttTools.WebApp.Extensions;
 global using VttTools.WebApp.Pages.Account;
 global using VttTools.WebApp.Pages.Account.Manage;
 global using VttTools.WebApp.Services;
 global using VttTools.WebApp.Utilities;
-global using VttTools.WebApp.ViewModels;
+global using VttTools.WebApp.InputModels;
 
+global using GameSession = VttTools.Game.Sessions.Model.GameSession;
 global using InputError = DotNetToolbox.Error;
-global using MeetingModel = VttTools.Model.Game.Meeting;

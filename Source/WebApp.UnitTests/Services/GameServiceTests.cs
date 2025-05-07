@@ -250,20 +250,20 @@ public class GameServiceTests {
     }
 
     [Fact]
-    public async Task GetEpisodesAsync_WhenApiReturnsEpisodes_ReturnsEpisodeArray() {
+    public async Task GetScenesAsync_WhenApiReturnsScenes_ReturnsSceneArray() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var expectedEpisodes = new Episode[]
+        var expectedScenes = new Scene[]
         {
-            new() { Id = Guid.NewGuid(), Name = "Episode 1", ParentId = adventureId },
-            new() { Id = Guid.NewGuid(), Name = "Episode 2", ParentId = adventureId },
+            new() { Id = Guid.NewGuid(), Name = "Scene 1", ParentId = adventureId },
+            new() { Id = Guid.NewGuid(), Name = "Scene 2", ParentId = adventureId },
         };
 
         var mockHandler = new MockHttpMessageHandler((request, _) => {
             request.Method.Should().Be(HttpMethod.Get);
-            request.RequestUri!.PathAndQuery.Should().Be($"/api/adventures/{adventureId}/episodes");
+            request.RequestUri!.PathAndQuery.Should().Be($"/api/adventures/{adventureId}/scenes");
             var response = new HttpResponseMessage(HttpStatusCode.OK) {
-                Content = JsonContent.Create(expectedEpisodes),
+                Content = JsonContent.Create(expectedScenes),
             };
             return Task.FromResult(response);
         });
@@ -274,32 +274,32 @@ public class GameServiceTests {
         var client = new GameService(httpClient);
 
         // Act
-        var result = await client.GetEpisodesAsync(adventureId);
+        var result = await client.GetScenesAsync(adventureId);
 
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(2);
-        result.Should().BeEquivalentTo(expectedEpisodes);
+        result.Should().BeEquivalentTo(expectedScenes);
     }
 
     [Fact]
-    public async Task CreateEpisodeAsync_WhenSuccessful_ReturnsEpisodeId() {
+    public async Task CreateSceneAsync_WhenSuccessful_ReturnsSceneId() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var episodeId = Guid.NewGuid();
-        var request = new CreateEpisodeRequest {
-            Name = "New Episode",
+        var sceneId = Guid.NewGuid();
+        var request = new CreateSceneRequest {
+            Name = "New Scene",
         };
-        var expectedResponse = new Episode {
-            Id = episodeId,
-            Name = "New Episode",
+        var expectedResponse = new Scene {
+            Id = sceneId,
+            Name = "New Scene",
             OwnerId = Guid.NewGuid(),
             ParentId = adventureId,
         };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
             requestMessage.Method.Should().Be(HttpMethod.Post);
-            requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/adventures/{adventureId}/episodes");
+            requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/adventures/{adventureId}/scenes");
 
             var response = new HttpResponseMessage(HttpStatusCode.Created) {
                 Content = JsonContent.Create(expectedResponse),
@@ -313,7 +313,7 @@ public class GameServiceTests {
         var client = new GameService(httpClient);
 
         // Act
-        var result = await client.CreateEpisodeAsync(adventureId, request);
+        var result = await client.CreateSceneAsync(adventureId, request);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
@@ -321,17 +321,17 @@ public class GameServiceTests {
     }
 
     [Fact]
-    public async Task UpdateEpisodeAsync_WhenSuccessful_ReturnsSuccessResult() {
+    public async Task UpdateSceneAsync_WhenSuccessful_ReturnsSuccessResult() {
         // Arrange
-        var episodeId = Guid.NewGuid();
-        var request = new UpdateEpisodeRequest {
-            Name = "Updated Episode",
+        var sceneId = Guid.NewGuid();
+        var request = new UpdateSceneRequest {
+            Name = "Updated Scene",
             Visibility = Visibility.Public,
         };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
             requestMessage.Method.Should().Be(HttpMethod.Put);
-            requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/episodes/{episodeId}");
+            requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/scenes/{sceneId}");
 
             var response = new HttpResponseMessage(HttpStatusCode.OK);
             return Task.FromResult(response);
@@ -343,21 +343,21 @@ public class GameServiceTests {
         var client = new GameService(httpClient);
 
         // Act
-        var result = await client.UpdateEpisodeAsync(episodeId, request);
+        var result = await client.UpdateSceneAsync(sceneId, request);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
     }
 
     [Fact]
-    public async Task DeleteEpisodeAsync_WhenSuccessful_ReturnsTrue() {
+    public async Task RemoveSceneAsync_WhenSuccessful_ReturnsTrue() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var episodeId = Guid.NewGuid();
+        var sceneId = Guid.NewGuid();
 
         var mockHandler = new MockHttpMessageHandler((request, _) => {
             request.Method.Should().Be(HttpMethod.Delete);
-            request.RequestUri!.PathAndQuery.Should().Be($"/api/adventures/{adventureId}/episodes/{episodeId}");
+            request.RequestUri!.PathAndQuery.Should().Be($"/api/adventures/{adventureId}/scenes/{sceneId}");
 
             var response = new HttpResponseMessage(HttpStatusCode.OK);
             return Task.FromResult(response);
@@ -369,32 +369,32 @@ public class GameServiceTests {
         var client = new GameService(httpClient);
 
         // Act
-        var result = await client.RemoveEpisodeAsync(adventureId, episodeId);
+        var result = await client.RemoveSceneAsync(adventureId, sceneId);
 
         // Assert
         result.Should().BeTrue();
     }
 
     [Fact]
-    public async Task CloneEpisodeAsync_WhenSuccessful_ReturnsClonedEpisodeId() {
+    public async Task CloneSceneAsync_WhenSuccessful_ReturnsClonedSceneId() {
         // Arrange
         var adventureId = Guid.NewGuid();
         var originalId = Guid.NewGuid();
-        var episodeId = Guid.NewGuid();
-        var request = new AddClonedEpisodeRequest {
+        var sceneId = Guid.NewGuid();
+        var request = new AddClonedSceneRequest {
             Id = originalId,
-            Name = "Updated Episode",
+            Name = "Updated Scene",
         };
-        var expectedResponse = new Episode {
-            Id = episodeId,
-            Name = "Updated Episode",
+        var expectedResponse = new Scene {
+            Id = sceneId,
+            Name = "Updated Scene",
             ParentId = adventureId,
             OwnerId = Guid.NewGuid(),
         };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
             requestMessage.Method.Should().Be(HttpMethod.Post);
-            requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/adventures/{adventureId}/episodes/clone");
+            requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/adventures/{adventureId}/scenes/clone");
 
             var response = new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = JsonContent.Create(expectedResponse),
@@ -408,7 +408,7 @@ public class GameServiceTests {
         var client = new GameService(httpClient);
 
         // Act
-        var result = await client.CloneEpisodeAsync(adventureId, request);
+        var result = await client.CloneSceneAsync(adventureId, request);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();

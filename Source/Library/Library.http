@@ -1,0 +1,128 @@
+###################################
+# Health Endpoints
+###################################
+
+### GET Health Check
+GET {{baseUrl}}/health HTTP/1.1
+Accept: application/json
+
+### GET Alive Check
+GET {{baseUrl}}/alive HTTP/1.1
+Accept: application/json
+
+###################################
+# Adventure Endpoints
+###################################
+
+### GET All Adventures
+GET {{baseUrl}}/api/adventures/ HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
+### POST Create Adventure
+# @name adventure
+POST {{baseUrl}}/api/adventures/ HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "name": "New Adventure",
+}
+
+### GET Adventure by Id
+GET {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}} HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
+### PATCH Update Adventure
+PATCH {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}} HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "name": "Updated Adventure Name"
+}
+
+### DELETE Adventure
+DELETE {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}} HTTP/1.1
+X-USER: {{x-user}}
+
+### POST Clone Adventure
+POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/clone HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}
+
+### GET Adventure Scenes
+GET {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
+### POST Create Scene
+# @name scene
+POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}
+
+### POST Add cloned Scene
+POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes/clone HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "id": "{{scene.response.body.$.id}}"
+}
+
+### DELETE Remove Scene from Adventure
+DELETE {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes/{{scene.response.body.$.id}} HTTP/1.1
+X-USER: {{x-user}}
+
+###################################
+# Scene Endpoints
+###################################
+
+### GET Scene by Id
+GET {{baseUrl}}/api/scenes/{{scene.response.body.$.id}} HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
+### PATCH Update Scene
+PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}} HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "name": "Updated Scene"
+}
+
+### DELETE Scene
+DELETE {{baseUrl}}/api/scenes/{{scene.response.body.$.id}} HTTP/1.1
+X-USER: {{x-user}}
+
+### POST Clone Scene
+POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/clone HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}
+
+### GET Scene Assets
+GET {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
+### POST Add Asset to Scene
+POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "Id": "{{asset.response.body.$.id}}"
+}
+
+### DELETE Remove Asset from Scene
+DELETE {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/{{asset.response.body.$.id}} HTTP/1.1
+X-USER: {{x-user}}

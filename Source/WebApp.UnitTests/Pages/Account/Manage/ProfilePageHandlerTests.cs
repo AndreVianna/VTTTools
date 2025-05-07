@@ -70,9 +70,11 @@ public class ProfilePageHandlerTests
     }
 
     private ProfilePageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) EnsureAuthenticated();
+        if (isAuthorized)
+            EnsureAuthenticated();
         var handler = new ProfilePageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
-        if (isConfigured) handler.Configure(UserManager);
+        if (isConfigured)
+            handler.Configure(UserManager);
         return handler;
     }
 }

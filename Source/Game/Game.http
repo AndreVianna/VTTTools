@@ -1,0 +1,83 @@
+###################################
+# Health Endpoints
+###################################
+
+### GET Health Check
+GET {{baseUrl}}/health HTTP/1.1
+Accept: application/json
+
+### GET Alive Check
+GET {{baseUrl}}/alive HTTP/1.1
+Accept: application/json
+
+###################################
+# GameSession Endpoints
+###################################
+
+### GET All Game Sessions
+GET {{baseUrl}}/api/sessions/ HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
+### POST Create Game Session
+# @name session
+POST {{baseUrl}}/api/sessions/ HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "title": "New Game Session",
+}
+
+### GET GameSession by Id
+GET {{baseUrl}}/api/sessions/{{session.response.body.$.id}} HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
+### PATCH Update Game Session
+PATCH {{baseUrl}}/api/sessions/{{session.response.body.$.id}} HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "title": "Updated Game Session"
+}
+
+### DELETE Game Session
+DELETE {{baseUrl}}/api/sessions/{{session.response.body.$.id}} HTTP/1.1
+X-USER: {{x-user}}
+
+### POST Join Game Session
+POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/join HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}
+
+### POST Leave Game Session
+POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/leave HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}
+
+### POST Activate Scene in Game Session
+POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/scenes/{{scene.response.body.$.id}}/activate HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}
+
+### POST Start Game Session
+POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/start HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}
+
+### POST Stop Game Session
+POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/stop HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{}

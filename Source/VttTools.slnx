@@ -1,13 +1,27 @@
 <Solution>
-  <Project Path="AppHost/VttTools.AppHost.csproj" Id="82969919-02a7-82fb-319b-bc53da90def4" />
-  <Project Path="Common.UnitTests/VttTools.Common.UnitTests.csproj" Id="14dd9c04-327d-4379-80a5-7d221239f42d" />
-  <Project Path="Common/VttTools.Common.csproj" Id="3389ef06-e439-4b5b-9b8d-20b64d9c4f74" />
-  <Project Path="Data.UnitTests/VttTools.Data.UnitTests.csproj" Id="ff41c768-938a-4794-8fc6-00ba3d4b9ad4" />
-  <Project Path="Data/VttTools.Data.csproj" Id="e19ebaab-72d8-412e-bf00-dfa28a86e96c" />
-  <Project Path="Domain.UnitTests/VttTools.Domain.UnitTests.csproj" Id="ad1c50b0-8271-4b90-8085-df223cb744b6" />
-  <Project Path="Domain/VttTools.Domain.csproj" Id="e528bbc3-1c26-8c35-f682-23718816adcd" />
-  <Project Path="GameService.UnitTests/VttTools.GameService.UnitTests.csproj" Id="c78bee63-1af2-4e6f-8d7d-56ca4f6213af" />
-  <Project Path="GameService/VttTools.GameService.csproj" Id="8b0f618c-e22e-3656-a10e-5e15ca8d75e1" />
-  <Project Path="WebApp.UnitTests/VttTools.WebApp.UnitTests.csproj" Id="d9c7ce93-8a8e-49a0-a8f5-17fbbde7993a" />
-  <Project Path="WebApp/VttTools.WebApp.csproj" Id="3215f6cf-a442-1c21-6ad3-94ed23f4eba5" />
+  <Folder Name="/0 Common/">
+    <Project Path="Common.UnitTests/VttTools.Common.UnitTests.csproj" />
+    <Project Path="Common/VttTools.Common.csproj" />
+    <Project Path="Domain.UnitTests/VttTools.Domain.UnitTests.csproj" />
+    <Project Path="Domain/VttTools.Domain.csproj" />
+  </Folder>
+  <Folder Name="/1 Storage/">
+    <Project Path="Data.UnitTests/VttTools.Data.UnitTests.csproj" />
+    <Project Path="Data/VttTools.Data.csproj" />
+  </Folder>
+  <Folder Name="/2 Services/">
+    <Project Path="Assets.UnitTests/VttTools.Assets.UnitTests.csproj" />
+    <Project Path="Assets/VttTools.Assets.csproj" />
+    <Project Path="Game.UnitTests/VttTools.Game.UnitTests.csproj" />
+    <Project Path="Game/VttTools.Game.csproj" />
+    <Project Path="Library.UnitTests/VttTools.Library.UnitTests.csproj" />
+    <Project Path="Library/VttTools.Library.csproj" />
+  </Folder>
+  <Folder Name="/3 WebApp/">
+    <Project Path="WebApp.UnitTests/VttTools.WebApp.UnitTests.csproj" />
+    <Project Path="WebApp/VttTools.WebApp.csproj" />
+  </Folder>
+  <Folder Name="/4 Hosting/">
+    <Project Path="AppHost/VttTools.AppHost.csproj" />
+  </Folder>
 </Solution>

@@ -1,6 +1,6 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
-internal class ChangePasswordPageInputModel {
+internal class ChangePasswordInputModel {
     [Required]
     [DataType(DataType.Password)]
     [Display(Name = "Current password")]

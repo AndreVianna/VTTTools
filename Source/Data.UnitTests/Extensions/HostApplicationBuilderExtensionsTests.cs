@@ -13,8 +13,8 @@ public class HostApplicationBuilderExtensionsTests {
 
         // Assert
         mockServiceCollection.Should().Contain(sd => sd.ServiceType == typeof(IAdventureStorage) && sd.ImplementationType == typeof(AdventureStorage));
-        mockServiceCollection.Should().Contain(sd => sd.ServiceType == typeof(IEpisodeStorage) && sd.ImplementationType == typeof(EpisodeStorage));
-        mockServiceCollection.Should().Contain(sd => sd.ServiceType == typeof(IMeetingStorage) && sd.ImplementationType == typeof(MeetingStorage));
+        mockServiceCollection.Should().Contain(sd => sd.ServiceType == typeof(ISceneStorage) && sd.ImplementationType == typeof(SceneStorage));
+        mockServiceCollection.Should().Contain(sd => sd.ServiceType == typeof(IGameSessionStorage) && sd.ImplementationType == typeof(GameSessionStorage));
     }
 
     private sealed class TestServiceCollection

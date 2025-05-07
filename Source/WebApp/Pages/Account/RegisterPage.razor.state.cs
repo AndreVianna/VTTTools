@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account;
 
 internal class RegisterPageState {
-    public RegisterPageInputModel Input { get; set; } = new();
+    public RegisterInputModel Input { get; set; } = new();
     public IEnumerable<IdentityError>? IdentityErrors { get; set; }
     public bool HasExternalLoginProviders { get; set; }
 

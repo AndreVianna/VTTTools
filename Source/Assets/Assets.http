@@ -1,0 +1,61 @@
+###################################
+# Health Endpoints
+###################################
+
+### GET Health Check
+GET {{baseUrl}}/health HTTP/1.1
+Accept: application/json
+
+### GET Alive Check
+GET {{baseUrl}}/alive HTTP/1.1
+Accept: application/json
+
+###################################
+# Asset Endpoints
+###################################
+
+### GET All Assets
+GET {{baseUrl}}/api/assets/ HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
+### POST Create Asset
+# @name asset
+POST {{baseUrl}}/api/assets/ HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "name": "New Asset",
+  "description": "Description for new asset"
+}
+
+### GET Asset by Id
+GET {{baseUrl}}/api/assets/{{asset.response.body.$.id}} HTTP/1.1
+Accept: application/json
+X-USER: {{x-user}}
+
+### PATCH Update Asset
+PATCH {{baseUrl}}/api/assets/{{asset.response.body.$.id}} HTTP/1.1
+Content-Type: application/json
+X-USER: {{x-user}}
+
+{
+  "name": "Updated Asset"
+}
+
+### DELETE Asset
+DELETE {{baseUrl}}/api/assets/{{asset.response.body.$.id}} HTTP/1.1
+X-USER: {{x-user}}
+
+### POST Upload Asset File
+POST {{baseUrl}}/api/assets/{{asset.response.body.$.id}}/upload HTTP/1.1
+Content-Type: multipart/form-data; boundary=---011000010111000001101001
+X-USER: {{x-user}}
+
+---011000010111000001101001
+Content-Disposition: form-data; name="file"; filename="test.txt"
+Content-Type: text/plain
+
+Test file content
+---011000010111000001101001--

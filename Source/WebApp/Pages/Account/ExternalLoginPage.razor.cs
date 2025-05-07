@@ -74,7 +74,7 @@ public partial class ExternalLoginPage {
                                                                   bypassTwoFactor: true);
 
         if (result.Succeeded) {
-            Logger.LogInformation("{Subject} logged in with {LoginProvider} provider.",
+            Logger.LogInformation("{Title} logged in with {LoginProvider} provider.",
                                   _externalLoginInfo.Principal.Identity?.Name,
                                   _externalLoginInfo.LoginProvider);
             NavigationManager.RedirectTo(ReturnUrl);
@@ -108,7 +108,7 @@ public partial class ExternalLoginPage {
         if (result.Succeeded) {
             result = await UserManager.AddLoginAsync(user, _externalLoginInfo);
             if (result.Succeeded) {
-                Logger.LogInformation("CurrentUser created an account using {Subject} provider.", _externalLoginInfo.LoginProvider);
+                Logger.LogInformation("CurrentUser created an account using {Title} provider.", _externalLoginInfo.LoginProvider);
 
                 var userId = await UserManager.GetUserIdAsync(user);
                 var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);

@@ -1,6 +1,6 @@
 namespace VttTools.WebApp.Pages.Account;
 
-internal class LoginPageInputModel {
+internal class LoginInputModel {
     [Required]
     [EmailAddress]
     public string Email { get; set; } = "";

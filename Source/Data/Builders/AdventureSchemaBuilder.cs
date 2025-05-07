@@ -13,7 +13,7 @@ internal static class AdventureSchemaBuilder {
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.ParentId);
             entity.Property(e => e.TemplateId);
-            entity.HasMany(e => e.Episodes).WithOne(e => e.Adventure).IsRequired()
+            entity.HasMany(e => e.Scenes).WithOne(e => e.Adventure).IsRequired()
                                            .HasForeignKey(ep => ep.ParentId)
                                            .OnDelete(DeleteBehavior.Cascade);
         });

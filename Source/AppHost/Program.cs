@@ -22,17 +22,33 @@ var database = builder.ExecutionContext.IsPublishMode
              .WithHealthCheck("database_health")
     : builder.AddConnectionString("database");
 
-var gameService = builder.AddProject<Projects.VttTools_GameService>("gameapi")
+var assets = builder.AddProject<Projects.VttTools_Assets>("assetsapi")
     .WithReference(cache).WaitFor(cache)
     .WithReference(database).WaitFor(database)
     .WithReference(storage).WaitFor(storage)
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("health");
 
+var library = builder.AddProject<Projects.VttTools_Library>("libraryapi")
+    .WithReference(cache).WaitFor(cache)
+    .WithReference(database).WaitFor(database)
+    .WithReference(storage).WaitFor(storage)
+    .WithReference(database).WaitFor(assets)
+    .WithExternalHttpEndpoints()
+    .WithHttpHealthCheck("health");
+
+var game = builder.AddProject<Projects.VttTools_Game>("gameapi")
+    .WithReference(cache).WaitFor(cache)
+    .WithReference(database).WaitFor(database)
+    .WithReference(storage).WaitFor(storage)
+    .WithReference(storage).WaitFor(library)
+    .WithExternalHttpEndpoints()
+    .WithHttpHealthCheck("health");
+
 builder.AddProject<Projects.VttTools_WebApp>("webapp")
     .WithReference(cache).WaitFor(cache)
-    .WithReference(gameService).WaitFor(gameService)
     .WithReference(database).WaitFor(database)
+    .WithReference(game).WaitFor(game)
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("health");
 

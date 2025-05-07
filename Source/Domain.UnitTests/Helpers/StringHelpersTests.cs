@@ -12,7 +12,7 @@ public class StringHelpersTests {
             yield return new("user-name@example.com", true, true);
             yield return new("user+tag@example.com", true, true);
             yield return new("user.name+tag@example-site.co.uk", true, true);
-            yield return new("User.Subject+Tag@Example-Site.Co.Uk", true, true);
+            yield return new("User.Title+Tag@Example-Site.Co.Uk", true, true);
             yield return new("123@example.com", true, true);
             yield return new("user@example.technology", true, true);
             yield return new("a@b.co", true, true);

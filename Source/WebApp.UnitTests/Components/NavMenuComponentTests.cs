@@ -15,7 +15,7 @@ public class NavMenuComponentTests : WebAppTestContext {
         cut.Markup.Should().Contain($"""<span class="bi bi-house-door-fill-nav-menu" aria-hidden="true" {tagId}></span> Home""");
         cut.Markup.Should().Contain($"""<span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true" {tagId}></span> Logout""");
         cut.Markup.Should().Contain($"""<span class="bi bi-person-fill-nav-menu" aria-hidden="true" {tagId}></span> {displayName}""");
-        cut.Markup.Should().Contain($"""<span class="bi bi-people-fill" aria-hidden="true" {tagId}></span> Meetings""");
+        cut.Markup.Should().Contain($"""<span class="bi bi-people-fill" aria-hidden="true" {tagId}></span> Game Sessions""");
         cut.Markup.Should().Contain($"""<span class="bi bi-book-fill" aria-hidden="true" {tagId}></span> Adventures""");
         cut.Markup.Should().Contain($"""<span class="bi bi-collection-fill" aria-hidden="true" {tagId}></span> Assets""");
     }

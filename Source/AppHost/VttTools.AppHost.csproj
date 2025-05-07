@@ -20,7 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GameService\VttTools.GameService.csproj" />
+    <ProjectReference Include="..\Assets\VttTools.Assets.csproj" />
+    <ProjectReference Include="..\Library\VttTools.Library.csproj" />
+    <ProjectReference Include="..\Game\VttTools.Game.csproj" />
     <ProjectReference Include="..\WebApp\VttTools.WebApp.csproj" />
   </ItemGroup>
 

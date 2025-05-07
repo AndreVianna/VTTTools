@@ -58,7 +58,8 @@ public class ForgotPasswordPageHandlerTests
 
     private ForgotPasswordPageHandler CreateHandler(bool isConfigured = true) {
         var handler = new ForgotPasswordPageHandler(HttpContext, NavigationManager, NullLoggerFactory.Instance);
-        if (isConfigured) handler.Configure(UserManager, _emailSender);
+        if (isConfigured)
+            handler.Configure(UserManager, _emailSender);
         return handler;
     }
 }

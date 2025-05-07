@@ -6,23 +6,23 @@ public interface IGameService {
     Task<Result<Adventure>> CloneAdventureAsync(Guid id, CloneAdventureRequest request);
     Task<Result> UpdateAdventureAsync(Guid id, UpdateAdventureRequest request);
     Task<bool> DeleteAdventureAsync(Guid id);
-    Task<Result<Episode>> CreateEpisodeAsync(Guid id, CreateEpisodeRequest request);
-    Task<Result<Episode>> CloneEpisodeAsync(Guid id, AddClonedEpisodeRequest request);
-    Task<bool> RemoveEpisodeAsync(Guid id, Guid episodeId);
+    Task<Result<Scene>> CreateSceneAsync(Guid id, CreateSceneRequest request);
+    Task<Result<Scene>> CloneSceneAsync(Guid id, AddClonedSceneRequest request);
+    Task<bool> RemoveSceneAsync(Guid id, Guid sceneId);
 
-    Task<Episode[]> GetEpisodesAsync(Guid id);
-    Task<Result> UpdateEpisodeAsync(Guid id, UpdateEpisodeRequest request);
+    Task<Scene[]> GetScenesAsync(Guid id);
+    Task<Result> UpdateSceneAsync(Guid id, UpdateSceneRequest request);
 
     Task<Asset[]> GetAssetsAsync();
     Task<Result<Asset>> CreateAssetAsync(CreateAssetRequest request);
     Task<Result> UpdateAssetAsync(Guid id, UpdateAssetRequest request);
     Task<bool> DeleteAssetAsync(Guid id);
 
-    Task<MeetingModel[]> GetMeetingsAsync();
-    Task<MeetingModel?> GetMeetingByIdAsync(Guid id);
-    Task<Result<MeetingModel>> CreateMeetingAsync(CreateMeetingRequest request);
-    Task<Result<MeetingModel>> UpdateMeetingAsync(Guid id, UpdateMeetingRequest request);
-    Task<bool> DeleteMeetingAsync(Guid id);
-    Task<bool> JoinMeetingAsync(Guid id);
-    Task<bool> StartMeetingAsync(Guid id);
+    Task<GameSession[]> GetGameSessionsAsync();
+    Task<GameSession?> GetGameSessionByIdAsync(Guid id);
+    Task<Result<GameSession>> CreateGameSessionAsync(CreateGameSessionRequest request);
+    Task<Result<GameSession>> UpdateGameSessionAsync(Guid id, UpdateGameSessionRequest request);
+    Task<bool> DeleteGameSessionAsync(Guid id);
+    Task<bool> JoinGameSessionAsync(Guid id);
+    Task<bool> StartGameSessionAsync(Guid id);
 }

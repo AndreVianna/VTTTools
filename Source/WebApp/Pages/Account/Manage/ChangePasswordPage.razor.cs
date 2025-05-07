@@ -5,7 +5,7 @@ public partial class ChangePasswordPage {
     private SignInManager<User> SignInManager { get; set; } = null!;
 
     internal ChangePasswordPageState State => Handler.State;
-    internal ChangePasswordPageInputModel Input => Handler.State.Input;
+    internal ChangePasswordInputModel Input => Handler.State.Input;
 
     protected override bool ConfigureComponent() {
         base.ConfigureComponent();

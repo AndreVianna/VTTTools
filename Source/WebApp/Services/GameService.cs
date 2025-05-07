@@ -35,36 +35,36 @@ internal class GameService(HttpClient client)
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<Episode[]> GetEpisodesAsync(Guid id) {
-        var episodes = await client.GetFromJsonAsync<Episode[]>($"/api/adventures/{id}/episodes");
-        return episodes ?? [];
+    public async Task<Scene[]> GetScenesAsync(Guid id) {
+        var scenes = await client.GetFromJsonAsync<Scene[]>($"/api/adventures/{id}/scenes");
+        return scenes ?? [];
     }
 
-    public async Task<Result<Episode>> CreateEpisodeAsync(Guid id, CreateEpisodeRequest request) {
-        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/episodes", request);
+    public async Task<Result<Scene>> CreateSceneAsync(Guid id, CreateSceneRequest request) {
+        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/scenes", request);
         if (!response.IsSuccessStatusCode)
-            return Result.Failure("Failed to create episode.");
-        var episode = await response.Content.ReadFromJsonAsync<Episode>();
-        return episode!;
+            return Result.Failure("Failed to create scene.");
+        var scene = await response.Content.ReadFromJsonAsync<Scene>();
+        return scene!;
     }
 
-    public async Task<Result<Episode>> CloneEpisodeAsync(Guid id, AddClonedEpisodeRequest request) {
-        var response = await client.PostAsJsonAsync($"/api/adventures/clone", request);
+    public async Task<Result<Scene>> CloneSceneAsync(Guid id, AddClonedSceneRequest request) {
+        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/scenes/clone", request);
         if (!response.IsSuccessStatusCode)
-            return Result.Failure("Failed to clone episode.");
-        var episode = await response.Content.ReadFromJsonAsync<Episode>();
-        return episode!;
+            return Result.Failure("Failed to clone scene.");
+        var scene = await response.Content.ReadFromJsonAsync<Scene>();
+        return scene!;
     }
 
-    public async Task<Result> UpdateEpisodeAsync(Guid id, UpdateEpisodeRequest request) {
-        var response = await client.PutAsJsonAsync($"/api/episodes/{id}", request);
+    public async Task<Result> UpdateSceneAsync(Guid id, UpdateSceneRequest request) {
+        var response = await client.PutAsJsonAsync($"/api/scenes/{id}", request);
         return response.IsSuccessStatusCode
                    ? Result.Success()
-                   : Result.Failure("Failed to update episode.");
+                   : Result.Failure("Failed to update scene.");
     }
 
-    public async Task<bool> RemoveEpisodeAsync(Guid id, Guid episodeId) {
-        var response = await client.DeleteAsync($"/api/adventures/{id}episodes/{episodeId}");
+    public async Task<bool> RemoveSceneAsync(Guid id, Guid sceneId) {
+        var response = await client.DeleteAsync($"/api/adventures/{id}/scenes/{sceneId}");
         return response.IsSuccessStatusCode;
     }
 
@@ -93,44 +93,44 @@ internal class GameService(HttpClient client)
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<Meeting[]> GetMeetingsAsync() {
-        var meetings = await client.GetFromJsonAsync<Meeting[]>("/api/meetings");
-        return meetings ?? [];
+    public async Task<GameSession[]> GetGameSessionsAsync() {
+        var sessions = await client.GetFromJsonAsync<GameSession[]>("/api/sessions");
+        return sessions ?? [];
     }
 
-    public async Task<Meeting?> GetMeetingByIdAsync(Guid id) {
-        var meeting = await client.GetFromJsonAsync<Meeting>($"/api/meetings/{id}");
-        return meeting;
+    public async Task<GameSession?> GetGameSessionByIdAsync(Guid id) {
+        var session = await client.GetFromJsonAsync<GameSession>($"/api/sessions/{id}");
+        return session;
     }
 
-    public async Task<Result<Meeting>> CreateMeetingAsync(CreateMeetingRequest request) {
-        var response = await client.PostAsJsonAsync("/api/meetings", request);
+    public async Task<Result<GameSession>> CreateGameSessionAsync(CreateGameSessionRequest request) {
+        var response = await client.PostAsJsonAsync("/api/sessions", request);
         if (!response.IsSuccessStatusCode)
-            return Result.Failure("Failed to create meeting.");
-        var meeting = await response.Content.ReadFromJsonAsync<Meeting>();
-        return meeting!;
+            return Result.Failure("Failed to create session.");
+        var session = await response.Content.ReadFromJsonAsync<GameSession>();
+        return session!;
     }
 
-    public async Task<Result<Meeting>> UpdateMeetingAsync(Guid id, UpdateMeetingRequest request) {
-        var response = await client.PutAsJsonAsync($"/api/meetings/{id}", request);
+    public async Task<Result<GameSession>> UpdateGameSessionAsync(Guid id, UpdateGameSessionRequest request) {
+        var response = await client.PutAsJsonAsync($"/api/sessions/{id}", request);
         if (!response.IsSuccessStatusCode)
-            return Result.Failure("Failed to create meeting.");
-        var meeting = await response.Content.ReadFromJsonAsync<Meeting>();
-        return meeting!;
+            return Result.Failure("Failed to create session.");
+        var session = await response.Content.ReadFromJsonAsync<GameSession>();
+        return session!;
     }
 
-    public async Task<bool> DeleteMeetingAsync(Guid id) {
-        var response = await client.DeleteAsync($"/api/meetings/{id}");
+    public async Task<bool> DeleteGameSessionAsync(Guid id) {
+        var response = await client.DeleteAsync($"/api/sessions/{id}");
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<bool> JoinMeetingAsync(Guid id) {
-        var response = await client.PostAsync($"/api/meetings/{id}/join", null);
+    public async Task<bool> JoinGameSessionAsync(Guid id) {
+        var response = await client.PostAsync($"/api/sessions/{id}/join", null);
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<bool> StartMeetingAsync(Guid id) {
-        var response = await client.PostAsync($"/api/meetings/{id}/start", null);
+    public async Task<bool> StartGameSessionAsync(Guid id) {
+        var response = await client.PostAsync($"/api/sessions/{id}/start", null);
         return response.IsSuccessStatusCode;
     }
 }

@@ -1,8 +1,8 @@
 namespace VttTools.WebApp.Pages.Account;
 
-internal class RegisterPageInputModel {
+internal class RegisterInputModel {
     [Required]
-    [Display(Name = "Subject")]
+    [Display(Name = "Title")]
     public string Name { get; set; } = "";
 
     [Required]
