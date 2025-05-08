@@ -8,24 +8,24 @@
 <p>Your login is protected with an authenticator app. Enter your authenticator code below.</p>
 <div class="row">
   <div class="col-md-4">
-    <EditForm Model="Input" FormName="login-with-2fa" OnValidSubmit="OnValidSubmitAsync" method="post">
+    <EditForm id="2fa-login-form" Model="Input" FormName="login-with-2fa" OnValidSubmit="OnValidSubmitAsync" method="post">
       <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
       <input type="hidden" name="RememberMe" value="@RememberMe" />
       <DataAnnotationsValidator />
       <ValidationSummary class="text-danger" role="alert" />
       <div class="form-floating mb-3">
-        <InputText @bind-Value="Input.TwoFactorCode" id="Input.TwoFactorCode" class="form-control" autocomplete="off" />
-        <label for="Input.TwoFactorCode" class="form-label">Authenticator code</label>
-        <ValidationMessage For="() => Input.TwoFactorCode" class="text-danger" />
+        <InputText id="code-input" @bind-Value="Input.Code" class="form-control" autocomplete="off" />
+        <label for="code-input" class="form-label">Authenticator code</label>
+        <ValidationMessage For="() => Input.Code" class="text-danger" />
       </div>
       <div class="checkbox mb-3">
         <label for="remember-machine" class="form-label">
-          <InputCheckbox @bind-Value="Input.RememberMachine" />
+          <InputCheckbox id="remember-machine" @bind-Value="Input.RememberMachine" />
           Remember this machine
         </label>
       </div>
       <div>
-        <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+        <button id="2fa-login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
       </div>
     </EditForm>
   </div>

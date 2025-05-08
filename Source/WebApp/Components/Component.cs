@@ -18,6 +18,7 @@ public class Component
     public override async Task SetParametersAsync(ParameterView parameters) {
         await base.SetParametersAsync(parameters);
         IsReady = await ConfigureAsync();
+        await StateHasChangedAsync();
     }
 
     protected virtual bool Configure() => true;

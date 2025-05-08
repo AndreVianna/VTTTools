@@ -16,7 +16,7 @@ public class ChangePasswordPageTests
         cut.Find("#change-password-form").Should().NotBeNull();
         cut.Find("#current-password-input").Should().NotBeNull();
         cut.Find("#new-password-input").Should().NotBeNull();
-        cut.Find("#confirm-password-input").Should().NotBeNull();
+        cut.Find("#confirmation-input").Should().NotBeNull();
         cut.Find("#change-password-submit").TextContent.Should().Be("Change password");
     }
 
@@ -41,7 +41,7 @@ public class ChangePasswordPageTests
         // Fill form
         cut.Find("#current-password-input").Change("OldPassword123!");
         cut.Find("#new-password-input").Change("NewPassword123!");
-        cut.Find("#confirm-password-input").Change("NewPassword123!");
+        cut.Find("#confirmation-input").Change("NewPassword123!");
 
         UserManager.ChangePasswordAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>())
                    .Returns(IdentityResult.Success);
@@ -62,7 +62,7 @@ public class ChangePasswordPageTests
         // Fill form
         cut.Find("#current-password-input").Change("WrongPassword");
         cut.Find("#new-password-input").Change("NewPassword123!");
-        cut.Find("#confirm-password-input").Change("NewPassword123!");
+        cut.Find("#confirmation-input").Change("NewPassword123!");
 
         var errors = new IdentityError[] { new() { Description = "Incorrect password." } };
         UserManager.ChangePasswordAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>())

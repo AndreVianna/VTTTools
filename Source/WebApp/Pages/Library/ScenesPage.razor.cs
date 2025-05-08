@@ -12,6 +12,8 @@ public partial class ScenesPage {
     internal ScenesInputModel EditInput => Handler.State.EditInput;
 
     protected override async Task<bool> ConfigureAsync() {
+        if (!await base.ConfigureAsync())
+            return false;
         await Handler.LoadScenesAsync(AdventureId, LibraryClient);
         return true;
     }

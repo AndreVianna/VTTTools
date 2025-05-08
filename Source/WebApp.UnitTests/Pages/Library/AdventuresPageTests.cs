@@ -70,8 +70,7 @@ public class AdventuresPageTests
         // Arrange
         var cut = RenderComponent<AdventuresPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        var nameInput = cut.Find("input[placeholder='Name']");
-        nameInput.Change("New Adventure");
+        cut.Find("#create-adventure-name-input").Change("New Adventure");
         var newAdventure = new Adventure {
             Name = "New Adventure",
             OwnerId = CurrentUser!.Id,

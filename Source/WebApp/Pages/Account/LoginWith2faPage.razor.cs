@@ -29,7 +29,7 @@ public partial class LoginWith2faPage {
                 ?? throw new InvalidOperationException("Unable to load two-factor authentication user.");
 
     private async Task OnValidSubmitAsync() {
-        var authenticatorCode = Input.TwoFactorCode!.Replace(" ", string.Empty).Replace("-", string.Empty);
+        var authenticatorCode = Input.Code!.Replace(" ", string.Empty).Replace("-", string.Empty);
         var result = await SignInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, RememberMe, Input.RememberMachine);
         var userId = await UserManager.GetUserIdAsync(_user);
 
@@ -52,7 +52,7 @@ public partial class LoginWith2faPage {
         [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
         [DataType(DataType.Text)]
         [Display(Name = "Authenticator code")]
-        public string? TwoFactorCode { get; set; }
+        public string? Code { get; set; }
 
         [Display(Name = "Remember this machine")]
         public bool RememberMachine { get; set; }

@@ -72,8 +72,7 @@ public class ScenesPageTests
         // Arrange
         var cut = RenderComponent<ScenesPage>(ps => ps.Add(p => p.AdventureId, _adventureId));
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        var nameInput = cut.Find("input[placeholder='Name']");
-        nameInput.Change("New Scene");
+        cut.Find("#create-scene-name-input").Change("New Scene");
         var newScene = new Scene {
             Name = "New Scene",
             OwnerId = CurrentUser!.Id,

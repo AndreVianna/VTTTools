@@ -18,7 +18,6 @@ public class LoginPageHandler(IPublicPage page)
     }
 
     internal async Task<bool> LoginUserAsync(LoginInputModel input, string? returnUrl) {
-        State.ErrorMessage = null;
         var signInManager = Page.HttpContext.RequestServices.GetRequiredService<SignInManager<User>>();
         var result = await signInManager.PasswordSignInAsync(
             input.Email,
@@ -29,9 +28,11 @@ public class LoginPageHandler(IPublicPage page)
         if (result.Succeeded) {
             var userManager = Page.HttpContext.RequestServices.GetRequiredService<UserManager<User>>();
             var user = await userManager.FindByEmailAsync(input.Email);
-            var principal = await signInManager.ClaimsFactory.CreateAsync(user!);
+            Ensure.IsNotNull(user);
+            var principal = await signInManager.ClaimsFactory.CreateAsync(user);
+            ((ClaimsIdentity)principal.Identity!).AddClaim(new(ClaimTypes.GivenName, user.DisplayName));
             await Page.HttpContext.SignInAsync(IdentityConstants.ExternalScheme, principal);
-            Page.Logger.LogInformation("CurrentUser logged in.");
+            Page.Logger.LogInformation("User {UserId} logged in.", user.Id);
             Page.RedirectTo(returnUrl);
             return true;
         }
@@ -45,12 +46,12 @@ public class LoginPageHandler(IPublicPage page)
         }
 
         if (result.IsLockedOut) {
-            Page.Logger.LogWarning("CurrentUser account locked out.");
+            Page.Logger.LogWarning("User {Email} account locked out.", input.Email);
             Page.RedirectTo("account/lockout");
             return true;
         }
 
-        State.ErrorMessage = "Error: Invalid login attempt.";
+        Page.SetStatusMessage("Error: Invalid login attempt.");
         return false;
     }
 }

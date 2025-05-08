@@ -19,7 +19,7 @@ public class EmailPageTests
         cut.Markup.Should().Contain("<h3>Manage email</h3>");
         cut.Find("#change-email-form").Should().NotBeNull();
         cut.Find("#current-email").GetAttribute("value").Should().Be(CurrentUser!.Email);
-        cut.Find("#email-input").GetAttribute("value").Should().BeNull();
+        cut.Find("#new-email-input").GetAttribute("value").Should().BeNull();
         cut.Find("#change-email-submit").TextContent.Should().Be("Change email");
     }
 
@@ -55,7 +55,7 @@ public class EmailPageTests
     public void ChangeEmailButtonIsClicked_WithSameEmail_ShowsUnchangedMessage() {
         // Arrange
         var cut = RenderComponent<EmailPage>();
-        var newEmailInput = cut.Find("#email-input");
+        var newEmailInput = cut.Find("#new-email-input");
         newEmailInput.Change(CurrentUser!.Email);
 
         // Act
@@ -70,7 +70,7 @@ public class EmailPageTests
     public void ChangeEmailButtonIsClicked_WithNewEmail_SendsConfirmationEmail() {
         // Arrange
         var cut = RenderComponent<EmailPage>();
-        var newEmailInput = cut.Find("#email-input");
+        var newEmailInput = cut.Find("#new-email-input");
         newEmailInput.Change("new@example.com");
 
         UserManager.GenerateChangeEmailTokenAsync(Arg.Any<User>(), Arg.Any<string>()).Returns("token");

@@ -17,21 +17,21 @@
     </div>
   </div>
 } else {
-  <EditForm Model="Input" FormName="create" id="asset-create-form" OnValidSubmit="CreateAsset" method="post">
+  <EditForm id="asset-create-form" Model="Input" FormName="create" OnValidSubmit="CreateAsset" method="post">
     <DataAnnotationsValidator />
     <ValidationSummary class="text-danger" role="alert" />
     <div class="form-floating mb-3">
-      <InputText @bind-Value="Input.Name" id="name-input" class="form-control mb-1" placeholder="Name" />
+      <InputText id="name-input" @bind-Value="Input.Name" class="form-control mb-1" />
       <label for="name-input" class="form-label">nameof(Input.Name)</label>
       <ValidationMessage For="() => Input.Name" class="text-danger" />
     </div>
     <div class="form-floating mb-3">
-      <InputText @bind-Value="Input.Source" id="source-input" class="form-control mb-1" placeholder="Source URL" />
-      <label for="source-input" class="form-label">nameof(Input.Source)</label>
+      <InputText id="source-input" @bind-Value="Input.Source" class="form-control mb-1" />
+      <label for="source-input" class="form-label"></label>
       <ValidationMessage For="() => Input.Source" class="text-danger" />
     </div>
     <div class="form-floating mb-3">
-      <InputSelect @bind-Value="Input.Type" id="type-input" class="form-select mb-1">
+      <InputSelect id="type-input" @bind-Value="Input.Type" class="form-select mb-1">
         <option value="">Select the asset type ...</option>
       @foreach (var type in Enum.GetValues<AssetType>()) {
         <option value="@type">@type</option>

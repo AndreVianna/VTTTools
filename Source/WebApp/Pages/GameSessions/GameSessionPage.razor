@@ -84,7 +84,7 @@ else {
         <div class="modal-body">
           <div class="mb-3">
             <label for="session-title-input" class="form-label">Session Title</label>
-            <input type="text" class="form-control" id="session-title-input" @bind="Input.Title">
+            <input id="session-title-input" type="text" class="form-control" @bind="Input.Title">
             @if (Input.Errors.Length != 0) {
               <ul>
               @foreach (var error in Input.Errors) {

@@ -12,12 +12,12 @@
       <DataAnnotationsValidator />
       <ValidationSummary class="text-danger" role="alert" />
       <div class="form-floating mb-3">
-        <InputText id="email-input" @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+        <InputText id="email-input" @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="Enter your email" />
         <label for="email-input" class="form-label">Email</label>
         <ValidationMessage For="() => Input.Email" class="text-danger" />
       </div>
       <div class="form-floating mb-3">
-        <InputText id="password-input" type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
+        <InputText id="password-input" type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Enter your password" />
         <label for="password-input" class="form-label">Password</label>
         <ValidationMessage For="() => Input.Password" class="text-danger" />
       </div>

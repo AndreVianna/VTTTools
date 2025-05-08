@@ -76,7 +76,7 @@ public class LoginPageHandlerTests
 
         // Assert
         result.Should().BeFalse();
-        handler.State.ErrorMessage.Should().Be("Error: Invalid login attempt.");
+        HttpContext.Received(1).SetStatusMessage("Error: Invalid login attempt.");
     }
 
     [Fact]

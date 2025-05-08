@@ -56,17 +56,17 @@ internal static class Program {
                .AddInteractiveWebAssemblyComponents()
                .AddAuthenticationStateSerialization();
 
-        builder.Services.AddHttpClient<AssetsClient>(static (services, client) => {
+        builder.Services.AddHttpClient<IAssetsClient, AssetsClient>(static (services, client) => {
             client.BaseAddress = new("https+http://assets-api");
-            SetRequestingUserId(services, client);
+            SetRequestUserId(services, client);
         });
-        builder.Services.AddHttpClient<LibraryClient>(static (services, client) => {
+        builder.Services.AddHttpClient<ILibraryClient, LibraryClient>(static (services, client) => {
             client.BaseAddress = new("https+http://library-api");
-            SetRequestingUserId(services, client);
+            SetRequestUserId(services, client);
         });
-        builder.Services.AddHttpClient<GameClient>(static (services, client) => {
+        builder.Services.AddHttpClient<IGameClient, GameClient>(static (services, client) => {
             client.BaseAddress = new("https+http://game-api");
-            SetRequestingUserId(services, client);
+            SetRequestUserId(services, client);
         });
 
         var app = builder.Build();
@@ -110,12 +110,12 @@ internal static class Program {
         app.MapAdditionalIdentityEndpoints();
     }
 
-    internal static void SetRequestingUserId(IServiceProvider services, HttpClient client) {
+    internal static void SetRequestUserId(IServiceProvider services, HttpClient client) {
         var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext!;
-        var identity = httpContext.User?.Identity as ClaimsIdentity;
-        if (identity?.IsAuthenticated != true)
+        var identity = (ClaimsIdentity)httpContext.User.Identity!;
+        if (!identity.IsAuthenticated)
             return;
-        var token = Base64UrlEncoder.Encode(Guid.Parse(identity.FindFirst(ClaimTypes.NameIdentifier)!.Value).ToByteArray());
+        var token = Base64UrlEncoder.Encode(httpContext.User.GetUserId().ToByteArray());
         client.DefaultRequestHeaders.Add(UserHeader, token);
     }
 }

@@ -21,15 +21,17 @@
   </div>
 }
 else {
-  <EditForm Model="CreateInput" FormName="create" id="scene-create-form" OnValidSubmit="CreateScene" method="post">
+  <EditForm id="scene-create-form" Model="CreateInput" FormName="create" OnValidSubmit="CreateScene" method="post">
     <DataAnnotationsValidator />
     <ValidationSummary class="text-danger" role="alert" />
     <div class="form-floating mb-3">
-      <InputText @bind-Value="CreateInput.Name" id="name-input" class="form-control mb-1" placeholder="Name" />
-      <label for="name-input" class="form-label">@nameof(Scene.Name)</label>
+      <InputText id="create-scene-name-input" @bind-Value="CreateInput.Name" class="form-control mb-1" />
+      <label for="create-scene-name-input" class="form-label">@nameof(Scene.Name)</label>
       <ValidationMessage For="() => CreateInput.Name" class="text-danger" />
     </div>
-    <button id="create-scene" type="submit" class="btn btn-primary">Create</button>
+    <div class="form-floating mb-3">
+      <button id="create-scene" type="submit" class="btn btn-primary">Create</button>
+    </div>
   </EditForm>
   @if (State.Scenes.Count == 0) {
     <div id="no-items-message" class="alert alert-info">
@@ -66,7 +68,7 @@ else {
   <div id="edit-scene-dialog" class="modal fade show" style="display: block;" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
-      <EditForm Model="EditInput" FormName="edit" id="edit-scene-form" OnValidSubmit="SaveEdit" method="post">
+      <EditForm id="edit-scene-form" Model="EditInput" FormName="edit" OnValidSubmit="SaveEdit" method="post">
         <div class="modal-header">
           <h5 class="modal-title">Edit Scene</h5>
           <button id="edit-scene-dialog-close" sceneid="button" class="btn-close" @onclick="CancelEdit"></button>
@@ -75,12 +77,12 @@ else {
           <DataAnnotationsValidator />
           <ValidationSummary class="text-danger" role="alert" />
           <div class="form-floating mb-3">
-            <InputText @bind-Value="EditInput.Name" id="edit-scene-name-input" class="form-control mb-1" placeholder="Name" />
+            <InputText id="edit-scene-name-input" @bind-Value="EditInput.Name" class="form-control mb-1" />
             <label for="edit-scene-name-input" class="form-label">@nameof(Scene.Name)</label>
             <ValidationMessage For="() => EditInput.Name" class="text-danger" />
           </div>
           <div class="form-floating mb-3">
-            <InputSelect @bind-Value="EditInput.Visibility" id="edit-scene-visibility-input" class="form-select mb-1">
+            <InputSelect id="edit-scene-visibility-input" @bind-Value="EditInput.Visibility" class="form-select mb-1">
               <option value="@Visibility.Hidden">Hidden</option>
               <option value="@Visibility.Private">Private</option>
               <option value="@Visibility.Public">Public</option>

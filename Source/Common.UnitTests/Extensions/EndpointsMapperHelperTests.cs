@@ -11,14 +11,14 @@ public class ClaimsPrincipalExtensionsTests {
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.ExtractUserId();
+        var result = principal.GetUserId();
 
         // Assert
         result.Should().Be(userId);
     }
 
     [Fact]
-    public void GetUserId_WithInvalidId_ReturnsEmptyGuid() {
+    public void GetUserId_WithInvalidId_ReturnsNull() {
         // Create claims principal with non-guid NameIdentifier claim
         var claim = new Claim(ClaimTypes.NameIdentifier, "not-a-guid");
         var claims = new List<Claim> { claim };
@@ -26,10 +26,10 @@ public class ClaimsPrincipalExtensionsTests {
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.ExtractUserId();
+        var result = principal.GetUserId();
 
         // Assert
-        result.Should().Be(Guid.Empty);
+        result.Should().BeEmpty();
     }
 
     [Fact]
@@ -39,9 +39,9 @@ public class ClaimsPrincipalExtensionsTests {
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.ExtractUserId();
+        var result = principal.GetUserId();
 
         // Assert
-        result.Should().Be(Guid.Empty);
+        result.Should().BeEmpty();
     }
 }

@@ -14,24 +14,24 @@
       <hr />
       <ValidationSummary class="text-danger" role="alert" />
       <div class="form-floating mb-3">
-        <InputText id="name-input" @bind-Value="State.Input.Name" class="form-control" aria-required="true" placeholder="Your name" />
+        <InputText id="name-input" @bind-Value="State.Input.Name" class="form-control" aria-required="true" placeholder="Choose your player name" />
         <label for="name-input">Title</label>
         <ValidationMessage For="() => State.Input.Name" class="text-danger"/>
       </div>
       <div class="form-floating mb-3">
-        <InputText id="email-input" @bind-Value="State.Input.Email" class="form-control" aria-required="true" placeholder="name@example.com" />
+        <InputText id="email-input" @bind-Value="State.Input.Email" class="form-control" aria-required="true" placeholder="Enter your email" />
         <label for="email-input">Email</label>
         <ValidationMessage For="() => State.Input.Email" class="text-danger" />
       </div>
       <div class="form-floating mb-3">
-        <InputText id="password-input"type="password" @bind-Value="State.Input.Password" class="form-control" aria-required="true" placeholder="password" />
+        <InputText id="password-input" type="password" @bind-Value="State.Input.Password" class="form-control" aria-required="true" placeholder="Choose your password" />
         <label for="password-input">Password</label>
         <ValidationMessage For="() => State.Input.Password" class="text-danger" />
       </div>
       <div class="form-floating mb-3">
-        <InputText id="confirm-password-input" type="password" @bind-Value="State.Input.ConfirmPassword" class="form-control" aria-required="true" placeholder="password" />
-        <label for="confirm-password-input">Confirm Password</label>
-        <ValidationMessage For="() => State.Input.ConfirmPassword" class="text-danger" />
+        <InputText id="confirmation-input" type="password" @bind-Value="State.Input.PasswordConfirmation" class="form-control" aria-required="true" placeholder="Confirm your password" />
+        <label for="confirmation-input">Confirm Password</label>
+        <ValidationMessage For="() => State.Input.PasswordConfirmation" class="text-danger" />
       </div>
       <button id="register-submit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
     </EditForm>

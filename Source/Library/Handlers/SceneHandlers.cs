@@ -12,7 +12,7 @@ internal static class SceneHandlers {
                : Results.NotFound();
 
     internal static async Task<IResult> UpdateSceneHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateSceneRequest request, [FromServices] ISceneService sceneService) {
-        var userId = context.User.ExtractUserId();
+        var userId = context.User.GetUserId();
         return await sceneService.UpdateSceneAsync(userId, id, request) is { } ep
                    ? Results.Ok(ep)
                    : Results.NotFound();
@@ -22,7 +22,7 @@ internal static class SceneHandlers {
         => Results.Ok(await sceneService.GetAssetsAsync(id));
 
     internal static async Task<IResult> AddAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddSceneAssetRequest request, [FromServices] ISceneService sceneService) {
-        var userId = context.User.ExtractUserId();
+        var userId = context.User.GetUserId();
         var data = new AddSceneAssetData {
             Id = request.Id,
             Position = request.Position,
@@ -32,7 +32,7 @@ internal static class SceneHandlers {
     }
 
     internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromBody] UpdateSceneAssetRequest request, [FromServices] ISceneService sceneService) {
-        var userId = context.User.ExtractUserId();
+        var userId = context.User.GetUserId();
         var data = new UpdateSceneAssetData {
             Position = request.Position,
         };
@@ -41,7 +41,7 @@ internal static class SceneHandlers {
     }
 
     internal static async Task<IResult> RemoveAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromServices] ISceneService sceneService) {
-        var userId = context.User.ExtractUserId();
+        var userId = context.User.GetUserId();
         var removed = await sceneService.RemoveAssetAsync(userId, id, assetId);
         return removed ? Results.NoContent() : Results.NotFound();
     }

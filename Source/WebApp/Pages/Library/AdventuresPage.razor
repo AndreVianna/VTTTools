@@ -1,7 +1,6 @@
 @page "/adventures"
 @inherits AuthenticatedPage<AdventuresPageHandler>
 @rendermode InteractiveAuto
-
 <PageTitle>Adventures</PageTitle>
 
 <div class="container">
@@ -17,15 +16,17 @@
     </div>
   </div>
 }
-  <EditForm Model="CreateInput" FormName="create" id="adventure-create-form" OnValidSubmit="CreateAdventure" method="post">
+  <EditForm id="adventure-create-form" Model="CreateInput" FormName="create" OnValidSubmit="CreateAdventure" method="post">
     <DataAnnotationsValidator />
     <ValidationSummary class="text-danger" role="alert" />
     <div class="form-floating mb-3">
-      <InputText @bind-Value="CreateInput.Name" id="name-input" class="form-control mb-1" placeholder="Name" />
-      <label for="name-input" class="form-label">@nameof(Adventure.Name)</label>
+      <InputText id="create-adventure-name-input" @bind-Value="CreateInput.Name" class="form-control mb-1" />
+      <label for="create-adventure-name-input" class="form-label">@nameof(Adventure.Name)</label>
       <ValidationMessage For="() => CreateInput.Name" class="text-danger" />
     </div>
-    <button id="create-adventure" type="submit" class="btn btn-primary">Create</button>
+    <div class="form-floating mb-3">
+      <button id="create-adventure" type="submit" class="btn btn-primary">Create</button>
+    </div>
   </EditForm>
   @if (State.Adventures.Count == 0) {
   <div id="no-items-message" class="alert alert-info">
@@ -57,13 +58,12 @@
   </tbody>
   </table>
   }
-}
 
 @if (IsReady && State.IsEditing) {
   <div id="edit-adventure-dialog" class="modal fade show" style="display: block;" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
-      <EditForm Model="EditInput" FormName="edit" id="edit-adventure-form" OnValidSubmit="SaveEdit" method="post">
+      <EditForm id="edit-adventure-form" Model="EditInput" FormName="edit" OnValidSubmit="SaveEdit" method="post">
         <div class="modal-header">
           <h5 class="modal-title">Edit Adventure</h5>
           <button id="edit-adventure-dialog-close" adventureid="button" class="btn-close" @onclick="HideEditDialog"></button>
@@ -72,12 +72,12 @@
           <DataAnnotationsValidator />
           <ValidationSummary class="text-danger" role="alert" />
           <div class="form-floating mb-3">
-            <InputText @bind-Value="EditInput.Name" id="edit-adventure-name-input" class="form-control mb-1" placeholder="Name" />
+            <InputText id="edit-adventure-name-input" @bind-Value="EditInput.Name" class="form-control mb-1" />
             <label for="edit-adventure-name-input" class="form-label">@nameof(Adventure.Name)</label>
             <ValidationMessage For="() => EditInput.Name" class="text-danger" />
           </div>
           <div class="form-floating mb-3">
-            <InputSelect @bind-Value="EditInput.Visibility" id="edit-adventure-visibility-input" class="form-select mb-1">
+            <InputSelect id="edit-adventure-visibility-input" @bind-Value="EditInput.Visibility" class="form-select mb-1">
               <option value="@Visibility.Hidden">Hidden</option>
               <option value="@Visibility.Private">Private</option>
               <option value="@Visibility.Public">Public</option>

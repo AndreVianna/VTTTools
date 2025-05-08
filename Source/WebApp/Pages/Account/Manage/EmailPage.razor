@@ -19,8 +19,8 @@
         <label for="current-email" class="form-label">Current Email</label>
       </div>
       <div class="form-floating mb-3">
-        <InputText id="email-input" @bind-Value="ChangeEmailInput.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="Enter a new email" />
-        <label for="email-input" class="form-label">New email</label>
+        <InputText id="new-email-input" @bind-Value="ChangeEmailInput.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="Enter your new email" />
+        <label for="new-email-input" class="form-label">New email</label>
         <ValidationMessage For="() => ChangeEmailInput.Email" class="text-danger" />
       </div>
       <button id="change-email-submit" type="submit" class="w-100 btn btn-lg btn-primary">Change email</button>

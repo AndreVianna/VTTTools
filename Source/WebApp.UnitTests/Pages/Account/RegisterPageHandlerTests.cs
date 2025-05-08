@@ -23,7 +23,7 @@ public class RegisterPageHandlerTests
         handler.State.Input.Name = "Test User";
         handler.State.Input.Email = "test@example.com";
         handler.State.Input.Password = "weak";
-        handler.State.Input.ConfirmPassword = "weak";
+        handler.State.Input.PasswordConfirmation = "weak";
 
         var identityErrors = new IdentityError[] { new() { Description = "Password too weak" } };
         UserManager.CreateAsync(Arg.Any<User>(), Arg.Any<string>())
@@ -44,7 +44,7 @@ public class RegisterPageHandlerTests
         handler.State.Input.Name = "Test User";
         handler.State.Input.Email = "test@example.com";
         handler.State.Input.Password = "Password123!";
-        handler.State.Input.ConfirmPassword = "Password123!";
+        handler.State.Input.PasswordConfirmation = "Password123!";
 
         var createdUser = new User {
             Id = Guid.NewGuid(),
@@ -73,7 +73,7 @@ public class RegisterPageHandlerTests
         handler.State.Input.Name = "Test User";
         handler.State.Input.Email = "test@example.com";
         handler.State.Input.Password = "Password123!";
-        handler.State.Input.ConfirmPassword = "Password123!";
+        handler.State.Input.PasswordConfirmation = "Password123!";
 
         var createdUser = new User {
             Id = Guid.NewGuid(),

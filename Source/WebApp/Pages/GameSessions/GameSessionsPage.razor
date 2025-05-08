@@ -57,7 +57,7 @@ else {
 <div id="create-session-dialog" class="modal fade show" style="display: block;" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <EditForm Model="Input" FormName="create" id="create-session-form" OnValidSubmit="CreateGameSession" method="post">
+      <EditForm id="create-session-form" Model="Input" FormName="create" OnValidSubmit="CreateGameSession" method="post">
         <div class="modal-header">
           <h5 class="modal-title">New GameSession</h5>
           <button id="create-session-dialog-close" adventureid="button" class="btn-close" @onclick="HideCreateDialog"></button>
@@ -66,14 +66,14 @@ else {
           <DataAnnotationsValidator />
           <ValidationSummary class="text-danger" role="alert" />
           <div class="form-floating mb-3">
-            <InputText @bind-Value="Input.Subject" id="create-session-subject-input" class="form-control mb-1" placeholder="Title" />
+            <InputText id="create-session-subject-input" @bind-Value="Input.Subject" class="form-control mb-1" />
             <label for="create-session-subject-input" class="form-label">nameof(Input.Title)</label>
             <ValidationMessage For="() => Input.Subject" class="text-danger" />
           </div>
         @if (Input.Adventures.Count > 0) {
         } else {
           <div class="form-floating mb-3">
-            <InputSelect @bind-Value="Input.AdventureId" id="create-session-adventure-input" class="form-select mb-1">
+            <InputSelect id="create-session-adventure-input" @bind-Value="Input.AdventureId" class="form-select mb-1">
               <option value="">Select an adventure...</option>
             @foreach (var adventure in Input.Adventures)
             {
@@ -86,7 +86,7 @@ else {
         }
         @if (Input.Scenes.Count > 0) {
           <div class="form-floating mb-3">
-            <InputSelect @bind-Value="Input.SceneId" id="create-session-scene-input" class="form-select mb-1">
+            <InputSelect id="create-session-scene-input" @bind-Value="Input.SceneId" class="form-select mb-1">
               <option value="">Select an scene...</option>
             @foreach (var scene in Input.Scenes)
             {

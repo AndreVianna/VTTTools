@@ -25,7 +25,7 @@ public partial class LoginWithRecoveryCodePage {
                 ?? throw new InvalidOperationException("Unable to load two-factor authentication user.");
 
     private async Task OnValidSubmitAsync() {
-        var recoveryCode = Input.RecoveryCode.Replace(" ", string.Empty);
+        var recoveryCode = Input.Code.Replace(" ", string.Empty);
 
         var result = await SignInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
 
@@ -49,6 +49,6 @@ public partial class LoginWithRecoveryCodePage {
         [Required]
         [DataType(DataType.Text)]
         [Display(Name = "Recovery Code")]
-        public string RecoveryCode { get; set; } = "";
+        public string Code { get; set; } = "";
     }
 }

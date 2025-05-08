@@ -73,8 +73,7 @@ public class LoginPageTests
         cut.Find("#login-submit").Click();
 
         // Assert
-        cut.WaitForState(() => cut.Instance.State.ErrorMessage != null, TimeSpan.FromMilliseconds(500));
-        cut.Instance.State.ErrorMessage.Should().Be("Error: Invalid login attempt.");
+        HttpContext.Received(1).SetStatusMessage("Error: Invalid login attempt.");
     }
 
     [Fact]

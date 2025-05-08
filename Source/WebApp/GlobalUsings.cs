@@ -40,6 +40,7 @@ global using VttTools.Assets.Model;
 global using VttTools.Common.ApiContracts;
 global using VttTools.Common.Model;
 global using VttTools.Data;
+global using VttTools.Extensions;
 global using VttTools.Game.Sessions.ApiContracts;
 global using VttTools.Game.Sessions.Model;
 global using VttTools.Identity.Model;

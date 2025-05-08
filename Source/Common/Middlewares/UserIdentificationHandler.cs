@@ -26,6 +26,6 @@ public partial class UserIdentificationHandler(IOptionsMonitor<UserIdentificatio
         => !string.IsNullOrWhiteSpace(userId)
         && ValidUserId().IsMatch(userId);
 
-    [GeneratedRegex("^[a-zA-Z0-9]+$")]
+    [GeneratedRegex("^[a-zA-Z0-9_-]+$")]
     private static partial Regex ValidUserId();
 }

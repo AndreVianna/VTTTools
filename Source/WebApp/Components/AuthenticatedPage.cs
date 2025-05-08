@@ -14,7 +14,8 @@ public class AuthenticatedPage
             GoToSignIn();
             return false;
         }
-        UserId = Guid.Parse(user.Identity!.Name!);
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        UserId = Guid.Parse(userId);
         UserDisplayName = GetUserDisplayName(user);
         return true;
     }
@@ -29,14 +30,16 @@ public class AuthenticatedPage<THandler>
     : AuthenticatedPage
     where THandler : AuthenticatedPageHandler<THandler> {
     protected override async Task<bool> ConfigureAsync() {
-        if (!await base.ConfigureAsync()) return false;
+        if (!await base.ConfigureAsync())
+            return false;
         await SetHandlerAsync();
         return true;
     }
 
     [MemberNotNull(nameof(Handler))]
     protected async Task SetHandlerAsync() {
-        if (Handler is not null) return;
+        if (Handler is not null)
+            return;
         Handler = InstanceFactory.Create<THandler>(this);
         await Handler.ConfigureAsync();
     }

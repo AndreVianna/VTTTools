@@ -10,6 +10,8 @@ public partial class GameSessionsPage {
     internal GameSessionsInputModel Input => Handler.State.Input;
 
     protected override async Task<bool> ConfigureAsync() {
+        if (!await base.ConfigureAsync())
+            return false;
         await Handler.LoadGameSessionAsync(GameClient, LibraryClient);
         return true;
     }

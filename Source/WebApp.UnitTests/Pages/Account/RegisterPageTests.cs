@@ -22,7 +22,7 @@ public class RegisterPageTests
         cut.Find("#name-input").Should().NotBeNull();
         cut.Find("#email-input").Should().NotBeNull();
         cut.Find("#password-input").Should().NotBeNull();
-        cut.Find("#confirm-password-input").Should().NotBeNull();
+        cut.Find("#confirmation-input").Should().NotBeNull();
         cut.Find("#register-submit").TextContent.Should().Be("Register");
     }
 
@@ -49,7 +49,7 @@ public class RegisterPageTests
         cut.Find("#name-input").Change("Test User");
         cut.Find("#email-input").Change("test@example.com");
         cut.Find("#password-input").Change("Password123!");
-        cut.Find("#confirm-password-input").Change("Password123!");
+        cut.Find("#confirmation-input").Change("Password123!");
 
         var createdUser = new User {
             Id = Guid.NewGuid(),
@@ -82,7 +82,7 @@ public class RegisterPageTests
         cut.Find("#name-input").Change("Test User");
         cut.Find("#email-input").Change("test@example.com");
         cut.Find("#password-input").Change("weak");
-        cut.Find("#confirm-password-input").Change("weak");
+        cut.Find("#confirmation-input").Change("weak");
 
         // Act
         cut.Find("#register-submit").Click();
@@ -101,7 +101,7 @@ public class RegisterPageTests
         cut.Find("#name-input").Change("Test User");
         cut.Find("#email-input").Change("test@example.com");
         cut.Find("#password-input").Change("Password123!");
-        cut.Find("#confirm-password-input").Change("Password123!");
+        cut.Find("#confirmation-input").Change("Password123!");
 
         var createdUser = new User {
             Id = Guid.NewGuid(),

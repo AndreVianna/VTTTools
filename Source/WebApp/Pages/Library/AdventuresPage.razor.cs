@@ -9,6 +9,8 @@ public partial class AdventuresPage {
     internal AdventuresInputModel EditInput => Handler.State.EditInput;
 
     protected override async Task<bool> ConfigureAsync() {
+        if (!await base.ConfigureAsync())
+            return false;
         await Handler.LoadAdventuresAsync(LibraryClient);
         return true;
     }

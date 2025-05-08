@@ -9,6 +9,13 @@ dotnet_diagnostic.DV1003.severity = warning
 dotnet_diagnostic.DV2001.severity = none
 dotnet_diagnostic.DV2002.severity = none
 
+# razor files
+[*.razor,*.cshtml,*.html,*.css,*.json,*.xml,*.csproj,*.sln,*.slnx]
+# Indentation and spacing
+indent_size = 2
+indent_style = space
+tab_width = 2
+
 # C# files
 [*.cs]
 
