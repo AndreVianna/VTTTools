@@ -44,7 +44,11 @@ public class ErrorPageHandlerTests
     }
 
     private ErrorPageHandler CreateHandler(bool isConfigured = true) {
-        var handler = new ErrorPageHandler(HttpContext, NavigationManager);
+        var page = Substitute.For<IPublicPage>();
+        page.HttpContext.Returns(HttpContext);
+        page.NavigationManager.Returns(NavigationManager);
+        page.Logger.Returns(NullLogger.Instance);
+        var handler = new ErrorPageHandler(page);
         if (isConfigured)
             handler.Configure();
         return handler;

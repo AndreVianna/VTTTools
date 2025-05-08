@@ -9,7 +9,7 @@ public class HostApplicationBuilderExtensionsTests {
         mockBuilder.Services.Returns(mockServiceCollection);
 
         // Act
-        mockBuilder.AddGameDataStorage();
+        mockBuilder.AddDataStorage();
 
         // Assert
         mockServiceCollection.Should().Contain(sd => sd.ServiceType == typeof(IAdventureStorage) && sd.ImplementationType == typeof(AdventureStorage));

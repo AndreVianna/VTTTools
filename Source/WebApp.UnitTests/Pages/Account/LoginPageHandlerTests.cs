@@ -12,7 +12,7 @@ public class LoginPageHandlerTests
         SignInManager.GetExternalAuthenticationSchemesAsync().Returns(externalLogins);
 
         // Act
-        await handler.ConfigureAsync(UserManager, SignInManager);
+        await handler.ConfigureAsync();
 
         // Assert
         handler.State.HasExternalLoginProviders.Should().BeTrue();
@@ -25,7 +25,7 @@ public class LoginPageHandlerTests
         HttpContext.Request.Method.Returns("POST");
 
         // Act
-        await handler.ConfigureAsync(UserManager, SignInManager);
+        await handler.ConfigureAsync();
 
         // Assert
         handler.State.HasExternalLoginProviders.Should().BeFalse();
@@ -35,8 +35,10 @@ public class LoginPageHandlerTests
     public async Task LoginUserAsync_WithValidCredentials_RedirectsUser() {
         // Arrange
         var handler = await CreateHandler();
-        handler.State.Input.Email = "test@example.com";
-        handler.State.Input.Password = "Password123!";
+        var input = new LoginInputModel {
+            Email = "test@example.com",
+            Password = "Password123!",
+        };
 
         SignInManager.PasswordSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
                      .Returns(SignInResult.Success);
@@ -50,7 +52,7 @@ public class LoginPageHandlerTests
         SignInManager.ClaimsFactory.CreateAsync(user).Returns(claimsPrincipal);
 
         // Act
-        var result = await handler.LoginUserAsync("/dashboard");
+        var result = await handler.LoginUserAsync(input, "/dashboard");
 
         // Assert
         result.Should().BeTrue();
@@ -61,14 +63,16 @@ public class LoginPageHandlerTests
     public async Task LoginUserAsync_WithInvalidCredentials_SetsErrorMessage() {
         // Arrange
         var handler = await CreateHandler();
-        handler.State.Input.Email = "test@example.com";
-        handler.State.Input.Password = "WrongPassword";
+        var input = new LoginInputModel {
+            Email = "test@example.com",
+            Password = "WrongPassword",
+        };
 
         SignInManager.PasswordSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
                      .Returns(SignInResult.Failed);
 
         // Act
-        var result = await handler.LoginUserAsync("/dashboard");
+        var result = await handler.LoginUserAsync(input, "/dashboard");
 
         // Assert
         result.Should().BeFalse();
@@ -79,14 +83,16 @@ public class LoginPageHandlerTests
     public async Task LoginUserAsync_WithLockedOutAccount_RedirectsToLockoutPage() {
         // Arrange
         var handler = await CreateHandler();
-        handler.State.Input.Email = "locked@example.com";
-        handler.State.Input.Password = "Password123!";
+        var input = new LoginInputModel {
+            Email = "locked@example.com",
+            Password = "Password123!",
+        };
 
         SignInManager.PasswordSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
                      .Returns(SignInResult.LockedOut);
 
         // Act
-        var result = await handler.LoginUserAsync("/dashboard");
+        var result = await handler.LoginUserAsync(input, "/dashboard");
 
         // Assert
         result.Should().BeTrue();
@@ -97,14 +103,16 @@ public class LoginPageHandlerTests
     public async Task LoginUserAsync_RequiringTwoFactor_RedirectsToTwoFactorPage() {
         // Arrange
         var handler = await CreateHandler();
-        handler.State.Input.Email = "2fa@example.com";
-        handler.State.Input.Password = "Password123!";
+        var input = new LoginInputModel {
+            Email = "2fa@example.com",
+            Password = "Password123!",
+        };
 
         SignInManager.PasswordSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
                      .Returns(SignInResult.TwoFactorRequired);
 
         // Act
-        var result = await handler.LoginUserAsync("/dashboard");
+        var result = await handler.LoginUserAsync(input, "/dashboard");
 
         // Assert
         result.Should().BeTrue();
@@ -112,9 +120,13 @@ public class LoginPageHandlerTests
     }
 
     private async Task<LoginPageHandler> CreateHandler(bool isConfigured = true) {
-        var handler = new LoginPageHandler(HttpContext, NavigationManager, NullLoggerFactory.Instance);
+        var page = Substitute.For<IPublicPage>();
+        page.HttpContext.Returns(HttpContext);
+        page.NavigationManager.Returns(NavigationManager);
+        page.Logger.Returns(NullLogger.Instance);
+        var handler = new LoginPageHandler(page);
         if (isConfigured)
-            await handler.ConfigureAsync(UserManager, SignInManager);
+            await handler.ConfigureAsync();
         return handler;
     }
 }

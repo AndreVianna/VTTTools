@@ -1,5 +1,3 @@
-using VttTools.Common.Model;
-
 namespace VttTools.WebApp.Pages.Assets;
 
 internal sealed class AssetsInputModel {

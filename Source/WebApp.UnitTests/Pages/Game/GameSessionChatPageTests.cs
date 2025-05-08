@@ -1,4 +1,5 @@
 using VttTools.WebApp.Pages.GameSessions;
+using VttTools.WebApp.ViewModels;
 
 namespace VttTools.WebApp.Pages.Game;
 

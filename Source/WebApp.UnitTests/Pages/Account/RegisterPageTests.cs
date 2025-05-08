@@ -36,7 +36,7 @@ public class RegisterPageTests
         var cut = RenderComponent<RegisterPage>();
 
         // Assert
-        cut.Markup.Should().Contain("<h3>Use another service to register.</h3>");
+        cut.Markup.Should().Contain("<h3>Use another client to register.</h3>");
     }
 
     [Fact]

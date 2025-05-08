@@ -6,11 +6,6 @@ public partial class ForgotPasswordPage {
 
     internal ForgotPasswordPageState State => Handler.State;
 
-    protected override bool ConfigureComponent() {
-        Handler.Configure(UserManager, EmailSender);
-        return true;
-    }
-
     private Task ResetPasswordAsync()
         => Handler.RequestPasswordResetAsync();
 }

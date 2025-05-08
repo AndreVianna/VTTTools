@@ -3,7 +3,7 @@ namespace VttTools.WebApp.Components;
 public class PublicComponentTests
     : WebAppTestContext {
     private sealed class TestComponent : PublicComponent {
-        protected override async Task<bool> ConfigureComponentAsync() {
+        protected override async Task<bool> ConfigureAsync() {
             await Task.Delay(200);
             return true;
         }
@@ -17,7 +17,9 @@ public class PublicComponentTests
         // Assert
         component.Instance.IsReady.Should().BeFalse();
         component.Instance.CurrentLocation.Should().Be("");
-        component.Instance.CurrentUser.Should().BeNull();
+        component.Instance.UserId.Should().BeNull();
+        component.Instance.UserDisplayName.Should().BeNull();
+        component.Instance.UserIsAdministrator.Should().BeFalse();
     }
 
     [Fact]
@@ -29,10 +31,9 @@ public class PublicComponentTests
         var component = RenderComponent<TestComponent>();
 
         // Assert
-        component.Instance.CurrentUser.Should().NotBeNull();
-        component.Instance.CurrentUser.Id.Should().Be(CurrentUser!.Id);
-        component.Instance.CurrentUser.IsAdministrator.Should().BeFalse();
-        component.Instance.CurrentUser.HasPassword.Should().BeTrue();
+        component.Instance.UserId.Should().Be(CurrentUser!.Id);
+        component.Instance.UserDisplayName.Should().Be(CurrentUser!.DisplayName);
+        component.Instance.UserIsAdministrator.Should().BeFalse();
     }
 
     [Fact]
@@ -44,8 +45,8 @@ public class PublicComponentTests
         var component = RenderComponent<TestComponent>();
 
         // Assert
-        component.Instance.CurrentUser.Should().NotBeNull();
-        component.Instance.CurrentUser.IsAdministrator.Should().BeTrue();
+        component.Instance.UserId.Should().NotBeNull();
+        component.Instance.UserIsAdministrator.Should().BeTrue();
     }
 
     [Fact]
@@ -68,6 +69,6 @@ public class PublicComponentTests
         var component = RenderComponent<TestComponent>();
 
         // Assert
-        component.Instance.CurrentUser!.DisplayName.Should().Be(CurrentUser!.Name);
+        component.Instance.UserDisplayName.Should().Be(CurrentUser!.Name);
     }
 }

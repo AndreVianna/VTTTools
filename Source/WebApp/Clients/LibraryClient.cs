@@ -1,7 +1,7 @@
-﻿namespace VttTools.WebApp.Services;
+﻿namespace VttTools.WebApp.Clients;
 
-internal class GameService(HttpClient client)
-    : IGameService {
+internal class LibraryClient(HttpClient client)
+    : ILibraryClient {
     public async Task<Adventure[]> GetAdventuresAsync() {
         var adventures = await client.GetFromJsonAsync<Adventure[]>("/api/adventures");
         return adventures ?? [];
@@ -71,66 +71,5 @@ internal class GameService(HttpClient client)
     public async Task<Asset[]> GetAssetsAsync() {
         var assets = await client.GetFromJsonAsync<Asset[]>("/api/assets");
         return assets ?? [];
-    }
-
-    public async Task<Result<Asset>> CreateAssetAsync(CreateAssetRequest request) {
-        var response = await client.PostAsJsonAsync("/api/assets", request);
-        if (!response.IsSuccessStatusCode)
-            return Result.Failure("Failed to create asset.");
-        var asset = await response.Content.ReadFromJsonAsync<Asset>();
-        return asset!;
-    }
-
-    public async Task<Result> UpdateAssetAsync(Guid id, UpdateAssetRequest request) {
-        var response = await client.PutAsJsonAsync($"/api/assets/{id}", request);
-        return response.IsSuccessStatusCode
-                   ? Result.Success()
-                   : Result.Failure("Failed to update adventure.");
-    }
-
-    public async Task<bool> DeleteAssetAsync(Guid id) {
-        var response = await client.DeleteAsync($"/api/assets/{id}");
-        return response.IsSuccessStatusCode;
-    }
-
-    public async Task<GameSession[]> GetGameSessionsAsync() {
-        var sessions = await client.GetFromJsonAsync<GameSession[]>("/api/sessions");
-        return sessions ?? [];
-    }
-
-    public async Task<GameSession?> GetGameSessionByIdAsync(Guid id) {
-        var session = await client.GetFromJsonAsync<GameSession>($"/api/sessions/{id}");
-        return session;
-    }
-
-    public async Task<Result<GameSession>> CreateGameSessionAsync(CreateGameSessionRequest request) {
-        var response = await client.PostAsJsonAsync("/api/sessions", request);
-        if (!response.IsSuccessStatusCode)
-            return Result.Failure("Failed to create session.");
-        var session = await response.Content.ReadFromJsonAsync<GameSession>();
-        return session!;
-    }
-
-    public async Task<Result<GameSession>> UpdateGameSessionAsync(Guid id, UpdateGameSessionRequest request) {
-        var response = await client.PutAsJsonAsync($"/api/sessions/{id}", request);
-        if (!response.IsSuccessStatusCode)
-            return Result.Failure("Failed to create session.");
-        var session = await response.Content.ReadFromJsonAsync<GameSession>();
-        return session!;
-    }
-
-    public async Task<bool> DeleteGameSessionAsync(Guid id) {
-        var response = await client.DeleteAsync($"/api/sessions/{id}");
-        return response.IsSuccessStatusCode;
-    }
-
-    public async Task<bool> JoinGameSessionAsync(Guid id) {
-        var response = await client.PostAsync($"/api/sessions/{id}/join", null);
-        return response.IsSuccessStatusCode;
-    }
-
-    public async Task<bool> StartGameSessionAsync(Guid id) {
-        var response = await client.PostAsync($"/api/sessions/{id}/start", null);
-        return response.IsSuccessStatusCode;
     }
 }

@@ -41,10 +41,9 @@ global using VttTools.Library.Adventures.ApiContracts;
 global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Scenes.ApiContracts;
 global using VttTools.Library.Scenes.Model;
+global using VttTools.WebApp.Components;
 global using VttTools.WebApp.Extensions;
-global using VttTools.WebApp.Services;
 global using VttTools.WebApp.TestUtilities;
 global using VttTools.WebApp.Utilities;
-global using VttTools.WebApp.InputModels;
 
 global using BUnitContext = Bunit.TestContext;

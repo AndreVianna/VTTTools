@@ -1,4 +1,5 @@
 using VttTools.WebApp.Pages.GameSessions;
+using VttTools.WebApp.ViewModels;
 
 namespace VttTools.WebApp.Pages.Game;
 
@@ -81,9 +82,13 @@ public sealed class GameSessionChatPageHandlerTests
     private async Task<GameSessionChatPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
         if (isAuthorized)
             EnsureAuthenticated();
-        var handler = new GameSessionChatPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
+        var page = Substitute.For<IAuthenticatedPage>();
+        page.HttpContext.Returns(HttpContext);
+        page.NavigationManager.Returns(NavigationManager);
+        page.Logger.Returns(NullLogger.Instance);
+        var handler = new GameSessionChatPageHandler(page);
         if (isConfigured)
-            await handler.ConfigureAsync(_builder, _chatUri, RefreshAsync);
+            await handler.SetHubConnectionAsync(_builder, _chatUri, RefreshAsync);
         return handler;
     }
 }

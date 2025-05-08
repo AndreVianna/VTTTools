@@ -13,7 +13,7 @@ public class ChangePasswordPageHandlerTests
         CurrentUser!.PasswordHash = null;
 
         // Act
-        handler.Configure(UserManager, SignInManager);
+        handler.Configure();
 
         // Assert
         NavigationManager.History.First().Uri.Should().Be("account/manage/set_password");
@@ -63,9 +63,13 @@ public class ChangePasswordPageHandlerTests
     private ChangePasswordPageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
         if (isAuthorized)
             EnsureAuthenticated();
-        var handler = new ChangePasswordPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
+        var page = Substitute.For<IAccountPage>();
+        page.HttpContext.Returns(HttpContext);
+        page.NavigationManager.Returns(NavigationManager);
+        page.Logger.Returns(NullLogger.Instance);
+        var handler = new ChangePasswordPageHandler(page);
         if (isConfigured)
-            handler.Configure(UserManager, SignInManager);
+            handler.Configure();
         return handler;
     }
 }

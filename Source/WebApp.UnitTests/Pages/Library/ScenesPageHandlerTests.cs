@@ -1,16 +1,18 @@
+using VttTools.WebApp.Clients;
+
 namespace VttTools.WebApp.Pages.Library;
 
 public class ScenesPageHandlerTests
     : WebAppTestContext {
     private readonly Guid _adventureId = Guid.NewGuid();
-    private readonly IGameService _service = Substitute.For<IGameService>();
+    private readonly ILibraryClient _client = Substitute.For<ILibraryClient>();
 
     public ScenesPageHandlerTests() {
         var scenes = new[] {
             new Scene { Name = "Scene 1", Visibility = Visibility.Public },
             new Scene { Name = "Scene 2", Visibility = Visibility.Private },
         };
-        _service.GetScenesAsync(_adventureId).Returns(scenes);
+        _client.GetScenesAsync(_adventureId).Returns(scenes);
     }
 
     [Fact]
@@ -37,7 +39,7 @@ public class ScenesPageHandlerTests
             Visibility = Visibility.Private,
         };
 
-        _service.CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<CreateSceneRequest>()).Returns(newScene);
+        _client.CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<CreateSceneRequest>()).Returns(newScene);
 
         // Act
         await handler.SaveCreatedScene();
@@ -55,7 +57,7 @@ public class ScenesPageHandlerTests
             Visibility = Visibility.Private,
         };
 
-        _service.CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<CreateSceneRequest>()).Returns(Result.Failure("Some error"));
+        _client.CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<CreateSceneRequest>()).Returns(Result.Failure("Some error"));
 
         // Act
         await handler.SaveCreatedScene();
@@ -71,7 +73,7 @@ public class ScenesPageHandlerTests
         // Arrange
         var handler = await CreateHandler();
         var sceneId = handler.State.Scenes[1].Id;
-        _service.RemoveSceneAsync(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
+        _client.RemoveSceneAsync(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
 
         // Act
         await handler.DeleteScene(sceneId);
@@ -94,7 +96,7 @@ public class ScenesPageHandlerTests
             clonedScene,
         };
 
-        _service.CloneSceneAsync(Arg.Any<Guid>(), Arg.Any<AddClonedSceneRequest>()).Returns(clonedScene);
+        _client.CloneSceneAsync(Arg.Any<Guid>(), Arg.Any<AddClonedSceneRequest>()).Returns(clonedScene);
 
         // Act
         await handler.CloneScene(adventureId);
@@ -167,7 +169,7 @@ public class ScenesPageHandlerTests
             new Scene { Id = sceneId, Name = "Updated Scene", Visibility = Visibility.Public },
         };
 
-        _service.UpdateSceneAsync(Arg.Any<Guid>(), Arg.Any<UpdateSceneRequest>())
+        _client.UpdateSceneAsync(Arg.Any<Guid>(), Arg.Any<UpdateSceneRequest>())
             .Returns(Result.Success());
 
         // Act
@@ -197,7 +199,7 @@ public class ScenesPageHandlerTests
         };
         handler.State.Scenes = scenesBeforeEdit;
 
-        _service.UpdateSceneAsync(Arg.Any<Guid>(), Arg.Any<UpdateSceneRequest>())
+        _client.UpdateSceneAsync(Arg.Any<Guid>(), Arg.Any<UpdateSceneRequest>())
             .Returns(Result.Failure("Some errors."));
 
         // Act
@@ -213,9 +215,13 @@ public class ScenesPageHandlerTests
     private async Task<ScenesPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
         if (isAuthorized)
             EnsureAuthenticated();
-        var handler = new ScenesPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
+        var page = Substitute.For<IAuthenticatedPage>();
+        page.HttpContext.Returns(HttpContext);
+        page.NavigationManager.Returns(NavigationManager);
+        page.Logger.Returns(NullLogger.Instance);
+        var handler = new ScenesPageHandler(page);
         if (isConfigured)
-            await handler.ConfigureAsync(_adventureId, _service);
+            await handler.LoadScenesAsync(_adventureId, _client);
         return handler;
     }
 }

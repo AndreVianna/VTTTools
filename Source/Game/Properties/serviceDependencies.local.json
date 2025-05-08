@@ -1,10 +1,5 @@
 {
   "dependencies": {
-    "storage1": {
-      "secretStore": "LocalSecretsFile",
-      "type": "storage.emulator",
-      "connectionId": "blobs"
-    },
     "mssql1": {
       "secretStore": "LocalSecretsFile",
       "type": "mssql.local",

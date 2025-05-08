@@ -1,14 +1,14 @@
 namespace VttTools.WebApp.Pages.Library;
 
-public class AdventuresPageHandler(HttpContext httpContext, NavigationManager navigationManager, User user, ILoggerFactory loggerFactory)
-    : PrivateComponentHandler<AdventuresPageHandler>(httpContext, navigationManager, user, loggerFactory) {
-    private IGameService _service = null!;
+public class AdventuresPageHandler(IAuthenticatedPage page)
+    : AuthenticatedPageHandler<AdventuresPageHandler>(page) {
+    private ILibraryClient _client = null!;
 
     internal AdventuresPageState State { get; } = new();
 
-    public async Task ConfigureAsync(IGameService service) {
-        _service = service;
-        State.Adventures = [.. await _service.GetAdventuresAsync()];
+    public async Task LoadAdventuresAsync(ILibraryClient client) {
+        _client = client;
+        State.Adventures = [.. await _client.GetAdventuresAsync()];
     }
 
     public async Task SaveCreatedAdventure() {
@@ -17,7 +17,7 @@ public class AdventuresPageHandler(HttpContext httpContext, NavigationManager na
             Visibility = State.CreateInput.Visibility,
         };
 
-        var result = await _service.CreateAdventureAsync(request);
+        var result = await _client.CreateAdventureAsync(request);
         if (!result.IsSuccessful) {
             State.CreateInput.Errors = [.. result.Errors];
             return;
@@ -28,7 +28,7 @@ public class AdventuresPageHandler(HttpContext httpContext, NavigationManager na
     }
 
     public async Task DeleteAdventure(Guid id) {
-        var deleted = await _service.DeleteAdventureAsync(id);
+        var deleted = await _client.DeleteAdventureAsync(id);
         if (!deleted)
             return;
         State.Adventures.RemoveAll(e => e.Id == id);
@@ -51,7 +51,7 @@ public class AdventuresPageHandler(HttpContext httpContext, NavigationManager na
             Name = State.EditInput.Name,
             Visibility = State.EditInput.Visibility,
         };
-        var result = await _service.UpdateAdventureAsync(State.EditInput.Id, request);
+        var result = await _client.UpdateAdventureAsync(State.EditInput.Id, request);
         if (!result.IsSuccessful) {
             State.EditInput.Errors = [.. result.Errors];
             return;
@@ -65,7 +65,7 @@ public class AdventuresPageHandler(HttpContext httpContext, NavigationManager na
 
     public async Task CloneAdventure(Guid id) {
         var request = new CloneAdventureRequest();
-        var result = await _service.CloneAdventureAsync(id, request);
+        var result = await _client.CloneAdventureAsync(id, request);
         State.Adventures.Add(result.Value);
         State.Adventures.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase));
     }

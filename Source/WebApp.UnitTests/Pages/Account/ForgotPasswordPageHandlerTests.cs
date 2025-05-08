@@ -56,10 +56,12 @@ public class ForgotPasswordPageHandlerTests
         await _emailSender.Received(1).SendPasswordResetLinkAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
     }
 
-    private ForgotPasswordPageHandler CreateHandler(bool isConfigured = true) {
-        var handler = new ForgotPasswordPageHandler(HttpContext, NavigationManager, NullLoggerFactory.Instance);
-        if (isConfigured)
-            handler.Configure(UserManager, _emailSender);
-        return handler;
+    private ForgotPasswordPageHandler CreateHandler() {
+        var page = Substitute.For<IPublicPage>();
+        page.HttpContext.Returns(HttpContext);
+        page.NavigationManager.Returns(NavigationManager);
+        page.Logger.Returns(NullLogger.Instance);
+        page.HttpContext.RequestServices.GetRequiredService<IEmailSender<User>>().Returns(_emailSender);
+        return new ForgotPasswordPageHandler(page);
     }
 }

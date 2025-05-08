@@ -1,5 +1,5 @@
 ﻿@page "/sessions"
-@inherits PrivateComponent<GameSessionsPageHandler>
+@inherits AuthenticatedPage<GameSessionsPageHandler>
 @rendermode InteractiveAuto
 
 <PageTitle>Schedule</PageTitle>
@@ -40,7 +40,7 @@ else {
           <div class="d-flex justify-content-between">
             <button class="btn btn-sm btn-primary join" @onclick="() => JoinGameSession(session.Id)">Join</button>
             <button class="btn btn-sm btn-primary edit" @onclick="() => NavigateToGameSession(session.Id)">Edit</button>
-          @if (session.OwnerId == CurrentUser.Id) {
+          @if (session.OwnerId == UserId) {
             <button class="btn btn-sm btn-outline-danger delete" @onclick="() => DeleteGameSession(session.Id)">Delete</button>
           }
           </div>

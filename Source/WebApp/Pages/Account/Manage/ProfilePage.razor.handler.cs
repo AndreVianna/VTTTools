@@ -1,21 +1,20 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
-public class ProfilePageHandler(HttpContext httpContext, NavigationManager navigationManager, User user, ILoggerFactory loggerFactory)
-    : PrivateComponentHandler<ProfilePageHandler>(httpContext, navigationManager, user, loggerFactory) {
-    private UserManager<User> _userManager = null!;
-
+public class ProfilePageHandler(IAccountPage page)
+    : AccountPageHandler<ProfilePageHandler>(page) {
     internal ProfilePageState State { get; } = new();
 
-    public void Configure(UserManager<User> userManager) {
-        _userManager = userManager;
-        State.Input.DisplayName = CurrentUser.DisplayName;
+    public override bool Configure() {
+        if (!base.Configure()) return false;
+        State.Input.DisplayName = Page.CurrentUser.DisplayName;
+        return true;
     }
 
     public async Task UpdateProfileAsync() {
         var message = "No changes were made to your profile.";
         var hasUpdates = false;
-        if (State.Input.DisplayName != CurrentUser.DisplayName) {
-            CurrentUser.DisplayName = State.Input.DisplayName;
+        if (State.Input.DisplayName != Page.CurrentUser.DisplayName) {
+            Page.CurrentUser.DisplayName = State.Input.DisplayName;
             hasUpdates = true;
         }
 
@@ -25,19 +24,20 @@ public class ProfilePageHandler(HttpContext httpContext, NavigationManager navig
                           : "Error: Failed to update user profile.";
         }
 
-        HttpContext.SetStatusMessage(message);
-        NavigationManager.Reload();
+        Page.SetStatusMessage(message);
+        Page.Reload();
     }
 
     private async Task<bool> TryUpdateUser() {
-        var updateResult = await _userManager.UpdateAsync(CurrentUser);
+        var userManager = Page.HttpContext.RequestServices.GetRequiredService<UserManager<User>>();
+        var updateResult = await userManager.UpdateAsync(Page.CurrentUser);
         if (!updateResult.Succeeded) {
             State.Input.Errors = updateResult.Errors.ToArray(e => new InputError(e.Description));
-            Logger.LogWarning("Failed to update the display name for the user with ID {UserId}.", CurrentUser.Id);
+            Page.Logger.LogWarning("Failed to update the display name for the user with ID {UserId}.", Page.CurrentUser.Id);
             return false;
         }
 
-        Logger.LogInformation("The profile of user with ID {UserId} was updated.", CurrentUser.Id);
+        Page.Logger.LogInformation("The profile of user with ID {UserId} was updated.", Page.CurrentUser.Id);
         return true;
     }
 }

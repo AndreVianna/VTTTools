@@ -2,7 +2,6 @@ namespace VttTools.WebApp.Pages.Account.Manage;
 
 public class EmailPageHandlerTests
     : WebAppTestContext {
-    private readonly IEmailSender<User> _emailSender = Substitute.For<IEmailSender<User>>();
     public EmailPageHandlerTests() {
         EnsureAuthenticated();
     }
@@ -13,7 +12,7 @@ public class EmailPageHandlerTests
         var handler = CreateHandler(isConfigured: false);
 
         // Act
-        handler.Configure(UserManager, _emailSender);
+        handler.Configure();
 
         // Assert
         handler.State.ChangeEmailInput.CurrentEmail.Should().Be(CurrentUser!.Email);
@@ -64,9 +63,13 @@ public class EmailPageHandlerTests
     private EmailPageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
         if (isAuthorized)
             EnsureAuthenticated();
-        var handler = new EmailPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
+        var page = Substitute.For<IAccountPage>();
+        page.HttpContext.Returns(HttpContext);
+        page.NavigationManager.Returns(NavigationManager);
+        page.Logger.Returns(NullLogger.Instance);
+        var handler = new EmailPageHandler(page);
         if (isConfigured)
-            handler.Configure(UserManager, _emailSender);
+            handler.Configure();
         return handler;
     }
 }

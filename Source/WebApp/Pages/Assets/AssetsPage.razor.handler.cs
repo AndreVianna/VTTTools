@@ -1,14 +1,14 @@
 namespace VttTools.WebApp.Pages.Assets;
 
-public class AssetsPageHandler(HttpContext httpContext, NavigationManager navigationManager, User user, ILoggerFactory loggerFactory)
-    : PrivateComponentHandler<AssetsPageHandler>(httpContext, navigationManager, user, loggerFactory) {
-    private IGameService _service = null!;
+public class AssetsPageHandler(IAuthenticatedPage component)
+    : AuthenticatedPageHandler<AssetsPageHandler>(component) {
+    private IAssetsClient _client = null!;
 
     internal AssetsPageState State { get; } = new();
 
-    public async Task ConfigureAsync(IGameService service) {
-        _service = service;
-        State.Assets = [.. await _service.GetAssetsAsync()];
+    public async Task LoadAssetsAsync(IAssetsClient client) {
+        _client = client;
+        State.Assets = [.. await _client.GetAssetsAsync()];
     }
 
     public async Task SaveCreatedAsset() {
@@ -19,7 +19,7 @@ public class AssetsPageHandler(HttpContext httpContext, NavigationManager naviga
             Visibility = State.Input.Visibility,
         };
 
-        var result = await _service.CreateAssetAsync(request);
+        var result = await _client.CreateAssetAsync(request);
 
         if (!result.IsSuccessful) {
             State.Input.Errors = [.. result.Errors];
@@ -31,7 +31,7 @@ public class AssetsPageHandler(HttpContext httpContext, NavigationManager naviga
     }
 
     public async Task DeleteAsset(Guid id) {
-        var deleted = await _service.DeleteAssetAsync(id);
+        var deleted = await _client.DeleteAssetAsync(id);
         if (!deleted)
             return;
         State.Assets.RemoveAll(e => e.Id == id);

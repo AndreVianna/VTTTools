@@ -2,8 +2,6 @@ namespace VttTools.WebApp.Pages.Account;
 
 public class RegisterPageHandlerTests
     : WebAppTestContext {
-    private readonly IEmailSender<User> _emailSender = Substitute.For<IEmailSender<User>>();
-
     [Fact]
     public async Task ConfigureAsync_SetsExternalLoginProviders() {
         // Arrange
@@ -12,7 +10,7 @@ public class RegisterPageHandlerTests
         SignInManager.GetExternalAuthenticationSchemesAsync().Returns([scheme]);
 
         // Act
-        await handler.ConfigureAsync(UserManager, SignInManager, _emailSender);
+        await handler.ConfigureAsync();
 
         // Assert
         handler.State.HasExternalLoginProviders.Should().BeTrue();
@@ -99,9 +97,13 @@ public class RegisterPageHandlerTests
     }
 
     private async Task<RegisterPageHandler> CreateHandler(bool isConfigured = true) {
-        var handler = new RegisterPageHandler(HttpContext, NavigationManager, NullLoggerFactory.Instance);
+        var page = Substitute.For<IPublicPage>();
+        page.HttpContext.Returns(HttpContext);
+        page.NavigationManager.Returns(NavigationManager);
+        page.Logger.Returns(NullLogger.Instance);
+        var handler = new RegisterPageHandler(page);
         if (isConfigured)
-            await handler.ConfigureAsync(UserManager, SignInManager, _emailSender);
+            await handler.ConfigureAsync();
         return handler;
     }
 }

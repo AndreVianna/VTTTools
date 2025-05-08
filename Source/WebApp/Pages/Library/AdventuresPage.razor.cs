@@ -2,14 +2,14 @@
 
 public partial class AdventuresPage {
     [Inject]
-    internal IGameService GameService { get; set; } = null!;
+    internal ILibraryClient LibraryClient { get; set; } = null!;
 
     internal AdventuresPageState State => Handler.State;
     internal AdventuresInputModel CreateInput => Handler.State.CreateInput;
     internal AdventuresInputModel EditInput => Handler.State.EditInput;
 
-    protected override async Task<bool> ConfigureComponentAsync() {
-        await Handler.ConfigureAsync(GameService);
+    protected override async Task<bool> ConfigureAsync() {
+        await Handler.LoadAdventuresAsync(LibraryClient);
         return true;
     }
 

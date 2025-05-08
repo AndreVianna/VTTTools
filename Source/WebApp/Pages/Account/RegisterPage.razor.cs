@@ -11,11 +11,6 @@ public partial class RegisterPage {
 
     internal RegisterPageState State => Handler.State;
 
-    protected override async Task<bool> ConfigureComponentAsync() {
-        await Handler.ConfigureAsync(UserManager, SignInManager, EmailSender);
-        return true;
-    }
-
     public async Task RegisterUser(EditContext _) {
         await Handler.RegisterUserAsync(ReturnUrl);
         await StateHasChangedAsync();

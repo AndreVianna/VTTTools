@@ -1,22 +1,22 @@
-﻿using static VttTools.Middlewares.BasicUserAuthenticationOptions;
+﻿using static VttTools.Middlewares.UserIdentificationOptions;
 
 namespace VttTools.Middlewares;
 
-public class BasicUserAuthenticationHandlerTests {
+public class UserIdentificationHandlerTests {
     private readonly TestHandler _handler;
     private readonly HttpContext _httpContext;
 
-    private sealed class TestHandler(IOptionsMonitor<BasicUserAuthenticationOptions> options)
-        : BasicUserAuthenticationHandler(options, NullLoggerFactory.Instance) {
+    private sealed class TestHandler(IOptionsMonitor<UserIdentificationOptions> options)
+        : UserIdentificationHandler(options, NullLoggerFactory.Instance) {
         public Task<AuthenticateResult> CallHandleAuthenticateAsync()
             => HandleAuthenticateAsync();
     }
 
-    public BasicUserAuthenticationHandlerTests() {
-        var options = new BasicUserAuthenticationOptions();
-        var optionsMonitor = Substitute.For<IOptionsMonitor<BasicUserAuthenticationOptions>>();
+    public UserIdentificationHandlerTests() {
+        var options = new UserIdentificationOptions();
+        var optionsMonitor = Substitute.For<IOptionsMonitor<UserIdentificationOptions>>();
         optionsMonitor.CurrentValue.Returns(options);
-        optionsMonitor.Get(DefaultScheme).Returns(options);
+        optionsMonitor.Get(Scheme).Returns(options);
         _handler = new(optionsMonitor);
         _httpContext = new DefaultHttpContext();
     }
@@ -26,7 +26,7 @@ public class BasicUserAuthenticationHandlerTests {
         // Arrange
         var userId = Guid.NewGuid();
         _httpContext.Request.Headers[UserHeader] = Base64UrlTextEncoder.Encode(userId.ToByteArray());
-        await _handler.InitializeAsync(new(DefaultScheme, "User Authentication", typeof(BasicUserAuthenticationHandler)), _httpContext);
+        await _handler.InitializeAsync(new(Scheme, "User Authentication", typeof(UserIdentificationHandler)), _httpContext);
 
         // Act
         var result = await _handler.CallHandleAuthenticateAsync();
@@ -42,7 +42,7 @@ public class BasicUserAuthenticationHandlerTests {
 
     [Fact]
     public async Task HandleAuthenticateAsync_WithInvalidHeader_ReturnsFail() {
-        await _handler.InitializeAsync(new(DefaultScheme, "User Authentication", typeof(BasicUserAuthenticationHandler)), _httpContext);
+        await _handler.InitializeAsync(new(Scheme, "User Authentication", typeof(UserIdentificationHandler)), _httpContext);
 
         // Act
         var result = await _handler.CallHandleAuthenticateAsync();

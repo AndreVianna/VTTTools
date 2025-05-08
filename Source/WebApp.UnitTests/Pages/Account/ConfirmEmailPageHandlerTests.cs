@@ -14,7 +14,7 @@ public class ConfirmEmailPageHandlerTests
         UserManager.ConfirmEmailAsync(Arg.Any<User>(), Arg.Any<string>()).Returns(IdentityResult.Success);
 
         // Act
-        var result = await handler.ConfigureAsync(UserManager, userId, code);
+        var result = await handler.VerifyAsync(userId, code);
 
         // Assert
         result.Should().BeTrue();
@@ -26,7 +26,7 @@ public class ConfirmEmailPageHandlerTests
         var handler = CreateHandler();
 
         // Act
-        var result = await handler.ConfigureAsync(UserManager, null, null);
+        var result = await handler.VerifyAsync(null, null);
 
         // Assert
         result.Should().BeFalse();
@@ -42,7 +42,7 @@ public class ConfirmEmailPageHandlerTests
         UserManager.FindByIdAsync(Arg.Any<string>()).Returns((User?)null);
 
         // Act
-        var result = await handler.ConfigureAsync(UserManager, userId, code);
+        var result = await handler.VerifyAsync(userId, code);
 
         // Assert
         result.Should().BeFalse();
@@ -60,12 +60,17 @@ public class ConfirmEmailPageHandlerTests
         UserManager.ConfirmEmailAsync(Arg.Any<User>(), Arg.Any<string>()).Returns(IdentityResult.Failed(new IdentityError { Description = "Invalid token." }));
 
         // Act
-        var result = await handler.ConfigureAsync(UserManager, userId, code);
+        var result = await handler.VerifyAsync(userId, code);
 
         // Assert
         result.Should().BeFalse();
     }
 
-    private ConfirmEmailPageHandler CreateHandler()
-        => new(HttpContext, NavigationManager, NullLoggerFactory.Instance);
+    private ConfirmEmailPageHandler CreateHandler() {
+        var page = Substitute.For<IPublicPage>();
+        page.HttpContext.Returns(HttpContext);
+        page.NavigationManager.Returns(NavigationManager);
+        page.Logger.Returns(NullLogger.Instance);
+        return new ConfirmEmailPageHandler(page);
+    }
 }

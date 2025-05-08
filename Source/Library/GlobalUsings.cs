@@ -14,7 +14,6 @@ global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Adventures.Services;
 global using VttTools.Library.Adventures.Storage;
 global using VttTools.Library.EndpointMappers;
-global using VttTools.Library.Extensions;
 global using VttTools.Library.Handlers;
 global using VttTools.Library.Scenes.ApiContracts;
 global using VttTools.Library.Scenes.Model;

@@ -5,14 +5,10 @@ public static class ApplicationBuilderExtensions {
         if (environment.IsProduction())
             app.UseExceptionHandler();
 
-        app.UseHttpsRedirection();
-        app.UseStaticFiles();
-        app.UseRouting();
-        app.UseCors();
-        app.UseAuthentication();
-        app.UseAuthorization();
-
         if (environment.IsProduction())
             app.UseHttpsRedirection();
+        app.UseRouting();
+        app.UseAuthentication();
+        app.UseAuthorization();
     }
 }

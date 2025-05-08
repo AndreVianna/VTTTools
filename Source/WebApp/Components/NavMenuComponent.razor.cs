@@ -2,6 +2,11 @@ namespace VttTools.WebApp.Components;
 
 public partial class NavMenuComponent
     : IAsyncDisposable {
+    public event EventHandler<LocationChangedEventArgs> LocationChanged {
+        add => NavigationManager.LocationChanged += value;
+        remove => NavigationManager.LocationChanged -= value;
+    }
+
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync();
         LocationChanged += OnLocationChanged;
@@ -9,10 +14,8 @@ public partial class NavMenuComponent
 
     internal void OnLocationChanged(object? sender, LocationChangedEventArgs e) {
         var newLocation = GetUrlRelativeToBase(e.Location);
-        if (CurrentLocation == newLocation)
-            return;
-        CurrentLocation = GetUrlRelativeToBase(e.Location);
-        Refresh();
+        if (CurrentLocation != newLocation)
+            CurrentLocation = newLocation;
     }
 
     public ValueTask DisposeAsync() {

@@ -1,3 +1,5 @@
+using VttTools.WebApp.ViewModels;
+
 namespace VttTools.WebApp.Pages.GameSessions;
 
 internal class GameSessionChatPageState {

@@ -7,8 +7,10 @@ public partial class GameSessionChatPage {
     internal GameSessionChatPageState State => Handler.State;
     internal GameSessionChatInputModel Input => Handler.State.Input;
 
-    protected override async Task<bool> ConfigureComponentAsync() {
-        await Handler.ConfigureAsync(HubConnectionBuilder, GetAbsoluteUri("/hubs/chat"), StateHasChangedAsync);
+    protected override async Task<bool> ConfigureAsync() {
+        if (!await base.ConfigureAsync())
+            return false;
+        await Handler.SetHubConnectionAsync(HubConnectionBuilder, GetAbsoluteUri("/hubs/chat"), StateHasChangedAsync);
         return true;
     }
 

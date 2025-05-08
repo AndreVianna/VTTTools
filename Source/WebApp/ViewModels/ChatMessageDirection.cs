@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.InputModels;
+namespace VttTools.WebApp.ViewModels;
 
 public enum ChatMessageDirection {
     Sent,

@@ -1,7 +1,7 @@
 namespace VttTools.Middlewares;
 
-public class BasicUserAuthenticationOptions :
+public class UserIdentificationOptions :
     AuthenticationSchemeOptions {
-    public const string DefaultScheme = "BasicUser";
+    public const string Scheme = "User";
     public const string UserHeader = "x-user";
 }

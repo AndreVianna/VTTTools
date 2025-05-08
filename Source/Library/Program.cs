@@ -18,4 +18,21 @@ internal static class Program {
 
         app.Run();
     }
+
+    internal static void AddStorage(this IHostApplicationBuilder builder) {
+        builder.AddSqlServerDbContext<ApplicationDbContext>(ApplicationDbContextOptions.Name);
+        builder.AddDataStorage();
+    }
+
+    internal static void AddServices(this IHostApplicationBuilder builder) {
+        builder.Services.AddScoped<IAdventureService, AdventureService>();
+        builder.Services.AddScoped<ISceneService, SceneService>();
+    }
+
+    internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {
+        app.MapOpenApi();
+        app.MapHealthCheckEndpoints();
+        app.MapAdventureEndpoints();
+        app.MapSceneEndpoints();
+    }
 }

@@ -1,49 +1,52 @@
 namespace VttTools.WebApp.Pages.Account;
 
-public class LoginPageHandler(HttpContext httpContext, NavigationManager navigationManager, ILoggerFactory loggerFactory)
-    : PublicComponentHandler<LoginPageHandler>(httpContext, navigationManager, loggerFactory) {
-    private UserManager<User> _userManager = null!;
-    private SignInManager<User> _signInManager = null!;
+public class LoginPageHandler(IPublicPage page)
+    : PublicPageHandler<LoginPageHandler>(page) {
     internal LoginPageState State { get; } = new();
 
-    public async Task ConfigureAsync(UserManager<User> userManager,
-                                     SignInManager<User> signInManager) {
-        _userManager = userManager;
-        _signInManager = signInManager;
-        if (!HttpMethods.IsGet(HttpContext.Request.Method))
-            return;
-        await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+    public override async Task<bool> ConfigureAsync() {
+        if (!await base.ConfigureAsync())
+            return false;
+        if (!HttpMethods.IsGet(Page.HttpContext.Request.Method)) {
+            return false;
+        }
+        await Page.HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        var signInManager = Page.HttpContext.RequestServices.GetRequiredService<SignInManager<User>>();
         var externalLogins = await signInManager.GetExternalAuthenticationSchemesAsync();
         State.HasExternalLoginProviders = externalLogins.Any();
+        return true;
     }
-    public async Task<bool> LoginUserAsync(string? returnUrl) {
+
+    internal async Task<bool> LoginUserAsync(LoginInputModel input, string? returnUrl) {
         State.ErrorMessage = null;
-        var result = await _signInManager.PasswordSignInAsync(
-            State.Input.Email,
-            State.Input.Password,
-            State.Input.RememberMe,
+        var signInManager = Page.HttpContext.RequestServices.GetRequiredService<SignInManager<User>>();
+        var result = await signInManager.PasswordSignInAsync(
+            input.Email,
+            input.Password,
+            input.RememberMe,
             lockoutOnFailure: true);
 
         if (result.Succeeded) {
-            var user = await _userManager.FindByEmailAsync(State.Input.Email);
-            var principal = await _signInManager.ClaimsFactory.CreateAsync(user!);
-            await HttpContext.SignInAsync(IdentityConstants.ExternalScheme, principal);
-            Logger.LogInformation("CurrentUser logged in.");
-            NavigationManager.RedirectTo(returnUrl);
+            var userManager = Page.HttpContext.RequestServices.GetRequiredService<UserManager<User>>();
+            var user = await userManager.FindByEmailAsync(input.Email);
+            var principal = await signInManager.ClaimsFactory.CreateAsync(user!);
+            await Page.HttpContext.SignInAsync(IdentityConstants.ExternalScheme, principal);
+            Page.Logger.LogInformation("CurrentUser logged in.");
+            Page.RedirectTo(returnUrl);
             return true;
         }
 
         if (result.RequiresTwoFactor) {
-            NavigationManager.RedirectTo("account/login_with_2fa", ps => {
+            Page.RedirectTo("account/login_with_2fa", ps => {
                 ps.Add("returnUrl", returnUrl);
-                ps.Add("rememberMe", State.Input.RememberMe);
+                ps.Add("rememberMe", input.RememberMe);
             });
             return true;
         }
 
         if (result.IsLockedOut) {
-            Logger.LogWarning("CurrentUser account locked out.");
-            NavigationManager.RedirectTo("account/lockout");
+            Page.Logger.LogWarning("CurrentUser account locked out.");
+            Page.RedirectTo("account/lockout");
             return true;
         }
 

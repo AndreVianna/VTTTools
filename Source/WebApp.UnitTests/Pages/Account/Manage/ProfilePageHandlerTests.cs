@@ -12,7 +12,7 @@ public class ProfilePageHandlerTests
         var handler = CreateHandler(isConfigured: false);
 
         // Act
-        handler.Configure(UserManager);
+        handler.Configure();
 
         // Assert
         handler.State.Input.DisplayName.Should().Be(CurrentUser!.DisplayName);
@@ -72,9 +72,13 @@ public class ProfilePageHandlerTests
     private ProfilePageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
         if (isAuthorized)
             EnsureAuthenticated();
-        var handler = new ProfilePageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
+        var page = Substitute.For<IAccountPage>();
+        page.HttpContext.Returns(HttpContext);
+        page.NavigationManager.Returns(NavigationManager);
+        page.Logger.Returns(NullLogger.Instance);
+        var handler = new ProfilePageHandler(page);
         if (isConfigured)
-            handler.Configure(UserManager);
+            handler.Configure();
         return handler;
     }
 }

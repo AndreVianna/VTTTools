@@ -1,9 +1,13 @@
 namespace VttTools.WebApp.Pages;
 
-public sealed class ErrorPageHandler(HttpContext httpContext, NavigationManager navigationManager, ILoggerFactory? loggerFactory = null)
-    : PublicComponentHandler<ErrorPageHandler>(httpContext, navigationManager, loggerFactory) {
+public sealed class ErrorPageHandler(IPublicPage page)
+    : PublicPageHandler<ErrorPageHandler>(page) {
     internal ErrorPageState State { get; } = new();
 
-    public void Configure()
-        => State.RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+    public override bool Configure() {
+        if (!base.Configure())
+            return false;
+        State.RequestId = Activity.Current?.Id ?? Page.HttpContext?.TraceIdentifier;
+        return true;
+    }
 }

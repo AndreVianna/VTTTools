@@ -1,8 +1,9 @@
 namespace VttTools.WebApp.Utilities;
 
-internal sealed class IdentityUserAccessor(HttpContext context, UserManager<User> userManager, NavigationManager navigationManager)
+internal sealed class IdentityUserAccessor(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, NavigationManager navigationManager)
     : IIdentityUserAccessor {
     public async Task<Result<User>> GetCurrentUserOrRedirectAsync() {
+        var context = httpContextAccessor.HttpContext!;
         var user = await userManager.GetUserAsync(context.User);
         if (user is not null)
             return user;

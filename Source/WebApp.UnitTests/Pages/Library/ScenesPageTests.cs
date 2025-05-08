@@ -1,8 +1,10 @@
+using VttTools.WebApp.Clients;
+
 namespace VttTools.WebApp.Pages.Library;
 
 public class ScenesPageTests
     : WebAppTestContext {
-    private readonly IGameService _service = Substitute.For<IGameService>();
+    private readonly ILibraryClient _client = Substitute.For<ILibraryClient>();
     private static readonly Guid _adventureId = Guid.NewGuid();
     private readonly Scene[] _defaultScenes = [
         new() {
@@ -17,15 +19,15 @@ public class ScenesPageTests
         }];
 
     public ScenesPageTests() {
-        Services.AddScoped(_ => _service);
-        _service.GetScenesAsync(Arg.Any<Guid>()).Returns(_defaultScenes);
+        Services.AddScoped(_ => _client);
+        _client.GetScenesAsync(Arg.Any<Guid>()).Returns(_defaultScenes);
         EnsureAuthenticated();
     }
 
     [Fact]
     public void BeforeIsReady_RendersLoadingState() {
         // Arrange
-        _service.GetScenesAsync(Arg.Any<Guid>()).Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultScenes));
+        _client.GetScenesAsync(Arg.Any<Guid>()).Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultScenes));
 
         // Act
         var cut = RenderComponent<ScenesPage>(ps => ps.Add(p => p.AdventureId, _adventureId));
@@ -39,7 +41,7 @@ public class ScenesPageTests
     [Fact]
     public void WhenIsReady_WithNoScenes_RendersAsEmpty() {
         // Arrange
-        _service.GetScenesAsync(Arg.Any<Guid>()).Returns([]);
+        _client.GetScenesAsync(Arg.Any<Guid>()).Returns([]);
 
         // Act
         var cut = RenderComponent<ScenesPage>(ps => ps.Add(p => p.AdventureId, _adventureId));
@@ -77,13 +79,13 @@ public class ScenesPageTests
             OwnerId = CurrentUser!.Id,
             Visibility = Visibility.Hidden,
         };
-        _service.CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<CreateSceneRequest>()).Returns(newScene);
+        _client.CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<CreateSceneRequest>()).Returns(newScene);
 
         // Act
         cut.Find("#create-scene").Click();
 
         // Assert
-        _service.Received(1).CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<CreateSceneRequest>());
+        _client.Received(1).CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<CreateSceneRequest>());
     }
 
     [Fact]
@@ -92,7 +94,7 @@ public class ScenesPageTests
         var sceneId = _defaultScenes[0].Id;
         var cut = RenderComponent<ScenesPage>(ps => ps.Add(p => p.AdventureId, _adventureId));
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        _service.UpdateSceneAsync(Arg.Any<Guid>(), Arg.Any<UpdateSceneRequest>()).Returns(Result.Success());
+        _client.UpdateSceneAsync(Arg.Any<Guid>(), Arg.Any<UpdateSceneRequest>()).Returns(Result.Success());
 
         // Act
         cut.Find($"#edit-scene-{sceneId}").Click();
@@ -113,13 +115,13 @@ public class ScenesPageTests
         var sceneId = _defaultScenes[0].Id;
         var cut = RenderComponent<ScenesPage>(ps => ps.Add(p => p.AdventureId, _adventureId));
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        _service.RemoveSceneAsync(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
+        _client.RemoveSceneAsync(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
 
         // Act
         cut.Find($"#delete-scene-{sceneId}").Click();
 
         // Assert
-        _service.Received(1).RemoveSceneAsync(_adventureId, _defaultScenes[0].Id);
+        _client.Received(1).RemoveSceneAsync(_adventureId, _defaultScenes[0].Id);
     }
 
     [Fact]
@@ -133,12 +135,12 @@ public class ScenesPageTests
             OwnerId = CurrentUser!.Id,
             Visibility = Visibility.Hidden,
         };
-        _service.CloneSceneAsync(Arg.Any<Guid>(), Arg.Any<AddClonedSceneRequest>()).Returns(clonedScene);
+        _client.CloneSceneAsync(Arg.Any<Guid>(), Arg.Any<AddClonedSceneRequest>()).Returns(clonedScene);
 
         // Act
         cut.Find($"#clone-scene-{sceneId}").Click();
 
         // Assert
-        _service.Received(1).CloneSceneAsync(Arg.Any<Guid>(), Arg.Any<AddClonedSceneRequest>());
+        _client.Received(1).CloneSceneAsync(Arg.Any<Guid>(), Arg.Any<AddClonedSceneRequest>());
     }
 }

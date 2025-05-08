@@ -1,4 +1,5 @@
 using static VttTools.Data.Options.ApplicationDbContextOptions;
+using static VttTools.Middlewares.UserIdentificationOptions;
 
 namespace VttTools.WebApp;
 
@@ -17,13 +18,14 @@ internal static class Program {
             http.AddServiceDiscovery();
         });
 
+        builder.Services.AddCors();
         builder.Services.AddHttpContextAccessor();
-        builder.Services.AddScoped<IGameService, GameService>();
+        builder.Services.AddScoped<IGameClient, GameClient>();
         builder.Services.AddScoped<IHubConnectionBuilder, HubConnectionBuilder>();
 
-        AddDefaultHealthChecks();
+        AddDefaultHealthChecks(builder);
         builder.AddRedisOutputCache("redis");
-        builder.AddSqlServerDbContext<ApplicationDbContext>(ConnectionStringName);
+        builder.AddSqlServerDbContext<ApplicationDbContext>(Name);
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
         builder.Services.AddCascadingAuthenticationState();
@@ -54,9 +56,17 @@ internal static class Program {
                .AddInteractiveWebAssemblyComponents()
                .AddAuthenticationStateSerialization();
 
-        builder.Services.AddHttpClient<GameService>(static (services, client) => {
-            client.BaseAddress = new("https+http://gameapi");
-            SetClientAuthentication(services, client);
+        builder.Services.AddHttpClient<AssetsClient>(static (services, client) => {
+            client.BaseAddress = new("https+http://assets-api");
+            SetRequestingUserId(services, client);
+        });
+        builder.Services.AddHttpClient<LibraryClient>(static (services, client) => {
+            client.BaseAddress = new("https+http://library-api");
+            SetRequestingUserId(services, client);
+        });
+        builder.Services.AddHttpClient<GameClient>(static (services, client) => {
+            client.BaseAddress = new("https+http://game-api");
+            SetRequestingUserId(services, client);
         });
 
         var app = builder.Build();
@@ -67,44 +77,45 @@ internal static class Program {
         }
         else {
             app.UseExceptionHandler("/error", createScopeForErrors: true);
+            app.UseStatusCodePagesWithReExecute("/error/{0}");
             app.UseHsts();
         }
 
+        app.UseHttpsRedirection();
+        app.MapStaticAssets();
+
+        app.UseRouting();
+        app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();
-        app.UseHttpsRedirection();
         app.UseAntiforgery();
 
-        app.MapStaticAssets();
         app.MapRazorComponents<App>()
            .AddInteractiveServerRenderMode()
            .AddInteractiveWebAssemblyRenderMode();
-        MapDefaultEndpoints();
-        app.MapAdditionalIdentityEndpoints();
+        MapEndpoints(app);
 
         app.Run();
-        return;
+    }
 
-        void AddDefaultHealthChecks()
-            => builder.Services.AddHealthChecks()
-                      .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+    internal static void AddDefaultHealthChecks(WebApplicationBuilder builder)
+        => builder.Services.AddHealthChecks()
+                  .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
-        void MapDefaultEndpoints() {
-            if (!app.Environment.IsDevelopment())
-                return;
-            app.MapHealthChecks("/health");
-            app.MapHealthChecks("/alive", new() {
-                Predicate = r => r.Tags.Contains("live"),
-            });
-        }
+    internal static void MapEndpoints(WebApplication app) {
+        app.MapHealthChecks("/health");
+        app.MapHealthChecks("/alive", new() {
+            Predicate = r => r.Tags.Contains("live"),
+        });
+        app.MapAdditionalIdentityEndpoints();
+    }
 
-        static void SetClientAuthentication(IServiceProvider services, HttpClient client) {
-            var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext!;
-            var identity = httpContext.User?.Identity as ClaimsIdentity;
-            if (identity?.IsAuthenticated != true)
-                return;
-            var userId = identity.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-            client.DefaultRequestHeaders.Authorization = new("Basic", userId);
-        }
+    internal static void SetRequestingUserId(IServiceProvider services, HttpClient client) {
+        var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext!;
+        var identity = httpContext.User?.Identity as ClaimsIdentity;
+        if (identity?.IsAuthenticated != true)
+            return;
+        var token = Base64UrlEncoder.Encode(Guid.Parse(identity.FindFirst(ClaimTypes.NameIdentifier)!.Value).ToByteArray());
+        client.DefaultRequestHeaders.Add(UserHeader, token);
     }
 }

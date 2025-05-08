@@ -4,10 +4,6 @@ public partial class ProfilePage {
     internal ProfilePageState State => Handler.State;
     internal ProfileInputModel Input => Handler.State.Input;
 
-    protected override bool ConfigureComponent() {
-        Handler.Configure(UserManager);
-        return true;
-    }
-
-    private Task UpdateProfileAsync() => Handler.UpdateProfileAsync();
+    private Task UpdateProfileAsync()
+        => Handler.UpdateProfileAsync();
 }

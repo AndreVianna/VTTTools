@@ -29,7 +29,7 @@ public class LoginPageTests
         var cut = RenderComponent<LoginPage>();
 
         // Assert
-        cut.Markup.Should().Contain("<h3>Use another service to log in.</h3>");
+        cut.Markup.Should().Contain("<h3>Use another client to log in.</h3>");
     }
 
     [Fact]

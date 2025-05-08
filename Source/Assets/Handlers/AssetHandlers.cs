@@ -12,20 +12,20 @@ internal static class AssetHandlers {
                : Results.NotFound();
 
     internal static async Task<IResult> CreateAssetHandler(HttpContext context, [FromBody] CreateAssetRequest request, [FromServices] IAssetService assetService) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         var created = await assetService.CreateAssetAsync(userId, request);
         return Results.Created($"/api/assets/{created.Id}", created);
     }
 
     internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateAssetRequest request, [FromServices] IAssetService assetService) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         return await assetService.UpdateAssetAsync(userId, id, request) is { } asset
                    ? Results.Ok(asset)
                    : Results.NotFound();
     }
 
     internal static async Task<IResult> DeleteAssetHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IAssetService assetService) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         return await assetService.DeleteAssetAsync(userId, id)
                    ? Results.NoContent()
                    : Results.NotFound();
@@ -37,7 +37,7 @@ internal static class AssetHandlers {
         [FromForm] IFormFile file,
         [FromServices] IMediaService storage,
         [FromServices] IAssetService assetService) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         // ensure asset exists and belongs to user or admin
         var asset = await assetService.GetAssetAsync(id);
         if (asset is null || asset.OwnerId != userId)

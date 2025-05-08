@@ -7,7 +7,7 @@ internal static class GameSessionHandlers {
         HttpContext context,
         [FromBody] CreateGameSessionRequest request,
         [FromServices] IGameSessionService service) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         var data = new CreateGameSessionData {
             Title = request.Title,
             SceneId = request.SceneId,
@@ -21,7 +21,7 @@ internal static class GameSessionHandlers {
     internal static async Task<IResult> GetGameSessionsHandler(
         HttpContext context,
         [FromServices] IGameSessionService service) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         var userGameSessions = await service.GetGameSessionsAsync(userId);
         return Results.Ok(userGameSessions);
     }
@@ -30,7 +30,7 @@ internal static class GameSessionHandlers {
         HttpContext context,
         [FromRoute] Guid id,
         [FromServices] IGameSessionService service) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         return await service.GetGameSessionByIdAsync(userId, id) is { } session
             ? Results.Ok(session)
             : Results.NotFound();
@@ -41,7 +41,7 @@ internal static class GameSessionHandlers {
         [FromRoute] Guid id,
         [FromBody] UpdateGameSessionRequest request,
         [FromServices] IGameSessionService service) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         var data = new UpdateGameSessionData {
             Title = request.Title,
         };
@@ -57,7 +57,7 @@ internal static class GameSessionHandlers {
         HttpContext context,
         [FromRoute] Guid id,
         [FromServices] IGameSessionService service) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         var result = await service.DeleteGameSessionAsync(userId, id);
         return Results.StatusCode((int)result.Status);
     }
@@ -67,7 +67,7 @@ internal static class GameSessionHandlers {
         [FromRoute] Guid id,
         [FromBody] JoinGameSessionRequest request,
         [FromServices] IGameSessionService service) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         var result = await service.JoinGameSessionAsync(userId, id, request.JoinAs);
         return result.Status switch {
             HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
@@ -79,7 +79,7 @@ internal static class GameSessionHandlers {
         HttpContext context,
         [FromRoute] Guid id,
         [FromServices] IGameSessionService service) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         var result = await service.LeaveGameSessionAsync(userId, id);
         return Results.StatusCode((int)result.Status);
     }
@@ -89,7 +89,7 @@ internal static class GameSessionHandlers {
         [FromRoute] Guid id,
         [FromRoute] Guid scene,
         [FromServices] IGameSessionService service) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         var result = await service.SetActiveSceneAsync(userId, id, scene);
         return Results.StatusCode((int)result.Status);
     }
@@ -98,7 +98,7 @@ internal static class GameSessionHandlers {
         HttpContext context,
         [FromRoute] Guid id,
         [FromServices] IGameSessionService service) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         var result = await service.StartGameSessionAsync(userId, id);
         return Results.StatusCode((int)result.Status);
     }
@@ -107,7 +107,7 @@ internal static class GameSessionHandlers {
         HttpContext context,
         [FromRoute] Guid id,
         [FromServices] IGameSessionService service) {
-        var userId = context.User.GetUserId();
+        var userId = context.User.ExtractUserId();
         var result = await service.StopGameSessionAsync(userId, id);
         return Results.StatusCode((int)result.Status);
     }

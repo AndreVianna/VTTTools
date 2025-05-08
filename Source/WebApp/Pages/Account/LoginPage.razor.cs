@@ -1,19 +1,14 @@
 ﻿namespace VttTools.WebApp.Pages.Account;
 
 public partial class LoginPage {
-    [Inject]
-    internal SignInManager<User> SignInManager { get; set; } = null!;
-
     [SupplyParameterFromQuery]
     internal string? ReturnUrl { get; set; }
 
+    [SupplyParameterFromForm]
+    private LoginInputModel Input { get; set; } = new();
+
     internal LoginPageState State => Handler.State;
 
-    protected override async Task<bool> ConfigureComponentAsync() {
-        await Handler.ConfigureAsync(UserManager, SignInManager);
-        return true;
-    }
-
     public Task LoginUser()
-        => Handler.LoginUserAsync(ReturnUrl);
+        => Handler.LoginUserAsync(Input, ReturnUrl);
 }

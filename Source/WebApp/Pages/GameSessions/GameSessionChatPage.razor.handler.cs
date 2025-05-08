@@ -1,18 +1,19 @@
+using VttTools.WebApp.ViewModels;
+
 namespace VttTools.WebApp.Pages.GameSessions;
 
-public sealed class GameSessionChatPageHandler(HttpContext httpContext, NavigationManager navigationManager, User user, ILoggerFactory loggerFactory)
-    : PrivateComponentHandler<GameSessionChatPageHandler>(httpContext, navigationManager, user, loggerFactory) {
+public sealed class GameSessionChatPageHandler(IAuthenticatedPage component)
+    : AuthenticatedPageHandler<GameSessionChatPageHandler>(component)
+    , IAsyncDisposable {
     private HubConnection _hubConnection = null!;
     private Func<Task> _onStateChangedAsync = () => Task.CompletedTask;
 
     internal GameSessionChatPageState State { get; } = new();
 
-    protected override async ValueTask DisposeAsyncCore() {
-        await _hubConnection.DisposeAsync();
-        await base.DisposeAsyncCore();
-    }
+    public async ValueTask DisposeAsync()
+        => await _hubConnection.DisposeAsync();
 
-    public Task ConfigureAsync(IHubConnectionBuilder builder, Uri chatUri, Func<Task> onStateChangeAsync) {
+    public Task SetHubConnectionAsync(IHubConnectionBuilder builder, Uri chatUri, Func<Task> onStateChangeAsync) {
         _onStateChangedAsync = onStateChangeAsync;
         _hubConnection = builder.WithUrl(chatUri).Build();
         _hubConnection.On<string>("ReceiveMessage", OnMessageReceived);

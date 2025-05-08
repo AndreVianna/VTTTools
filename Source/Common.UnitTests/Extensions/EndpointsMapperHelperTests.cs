@@ -11,7 +11,7 @@ public class ClaimsPrincipalExtensionsTests {
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.GetUserId();
+        var result = principal.ExtractUserId();
 
         // Assert
         result.Should().Be(userId);
@@ -26,7 +26,7 @@ public class ClaimsPrincipalExtensionsTests {
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.GetUserId();
+        var result = principal.ExtractUserId();
 
         // Assert
         result.Should().Be(Guid.Empty);
@@ -39,7 +39,7 @@ public class ClaimsPrincipalExtensionsTests {
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.GetUserId();
+        var result = principal.ExtractUserId();
 
         // Assert
         result.Should().Be(Guid.Empty);

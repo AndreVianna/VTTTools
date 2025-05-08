@@ -1,4 +1,4 @@
-using static VttTools.Middlewares.BasicUserAuthenticationOptions;
+using static VttTools.Middlewares.UserIdentificationOptions;
 
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
@@ -21,22 +21,13 @@ public static class HostApplicationBuilderExtensions {
         builder.Services.Configure<JsonOptions>(ConfigureJsonOptions);
         builder.Services.AddDistributedMemoryCache();
 
-        builder.Services.AddCors(ConfigureCorsOptions);
         builder.Services.AddOpenApi();
         builder.Services.AddHealthChecks();
 
-        builder.Services.AddAuthentication(DefaultScheme)
-            .AddScheme<BasicUserAuthenticationOptions, BasicUserAuthenticationHandler>(DefaultScheme, _ => { });
+        builder.Services.AddAuthentication(Scheme)
+            .AddScheme<UserIdentificationOptions, UserIdentificationHandler>(Scheme, _ => { });
         builder.Services.AddAuthorization();
     }
-
-    internal static void ConfigureCorsOptions(CorsOptions options)
-        => options.AddDefaultPolicy(ConfigureCorsPolicy);
-
-    internal static void ConfigureCorsPolicy(CorsPolicyBuilder builder)
-        => builder.WithOrigins("https://localhost:5001", "https://localhost:7040")
-                 .AllowAnyMethod()
-                 .AllowAnyHeader();
 
     internal static void ConfigureJsonOptions(JsonOptions options) {
         options.SerializerOptions.PropertyNameCaseInsensitive = true;

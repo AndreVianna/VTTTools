@@ -5,14 +5,14 @@ public partial class ScenesPage {
     public Guid AdventureId { get; set; }
 
     [Inject]
-    internal IGameService GameService { get; set; } = null!;
+    internal ILibraryClient LibraryClient { get; set; } = null!;
 
     internal ScenesPageState State => Handler.State;
     internal ScenesInputModel CreateInput => Handler.State.CreateInput;
     internal ScenesInputModel EditInput => Handler.State.EditInput;
 
-    protected override async Task<bool> ConfigureComponentAsync() {
-        await Handler.ConfigureAsync(AdventureId, GameService);
+    protected override async Task<bool> ConfigureAsync() {
+        await Handler.LoadScenesAsync(AdventureId, LibraryClient);
         return true;
     }
 

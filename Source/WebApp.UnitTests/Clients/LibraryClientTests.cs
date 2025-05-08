@@ -1,19 +1,14 @@
-namespace VttTools.WebApp.Services;
+namespace VttTools.WebApp.Clients;
 
-internal sealed class MockHttpMessageHandler(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handler)
-    : HttpMessageHandler {
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => handler(request, cancellationToken);
-}
-
-public class GameServiceTests {
+public class LibraryClientTests {
     [Fact]
     public async Task GetAdventuresAsync_WhenApiReturnsAdventures_ReturnsAdventureArray() {
         // Arrange
         var expectedAdventures = new Adventure[]
-        {
-            new() { Name = "Adventure 1", OwnerId = Guid.NewGuid() },
-            new() { Name = "Adventure 2", OwnerId = Guid.NewGuid() },
-        };
+                                 {
+                                     new() { Name = "Adventure 1", OwnerId = Guid.NewGuid() },
+                                     new() { Name = "Adventure 2", OwnerId = Guid.NewGuid() },
+                                 };
 
         var mockHandler = new MockHttpMessageHandler((request, _) => {
             request.Method.Should().Be(HttpMethod.Get);
@@ -27,7 +22,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.GetAdventuresAsync();
@@ -53,7 +48,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.GetAdventuresAsync();
@@ -71,7 +66,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act & Assert
         var act = client.GetAdventuresAsync;
@@ -106,7 +101,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.CreateAdventureAsync(request);
@@ -134,7 +129,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.CreateAdventureAsync(request);
@@ -165,7 +160,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.UpdateAdventureAsync(adventureId, request);
@@ -191,7 +186,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.UpdateAdventureAsync(adventureId, request);
@@ -218,7 +213,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.DeleteAdventureAsync(adventureId);
@@ -240,7 +235,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.DeleteAdventureAsync(adventureId);
@@ -254,10 +249,10 @@ public class GameServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var expectedScenes = new Scene[]
-        {
-            new() { Id = Guid.NewGuid(), Name = "Scene 1", ParentId = adventureId },
-            new() { Id = Guid.NewGuid(), Name = "Scene 2", ParentId = adventureId },
-        };
+                             {
+                                 new() { Id = Guid.NewGuid(), Name = "Scene 1", ParentId = adventureId },
+                                 new() { Id = Guid.NewGuid(), Name = "Scene 2", ParentId = adventureId },
+                             };
 
         var mockHandler = new MockHttpMessageHandler((request, _) => {
             request.Method.Should().Be(HttpMethod.Get);
@@ -271,7 +266,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.GetScenesAsync(adventureId);
@@ -310,7 +305,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.CreateSceneAsync(adventureId, request);
@@ -340,7 +335,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.UpdateSceneAsync(sceneId, request);
@@ -366,7 +361,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.RemoveSceneAsync(adventureId, sceneId);
@@ -405,7 +400,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.CloneSceneAsync(adventureId, request);
@@ -419,10 +414,10 @@ public class GameServiceTests {
     public async Task GetAssetsAsync_WhenApiReturnsAssets_ReturnsAssetArray() {
         // Arrange
         var expectedAssets = new Asset[]
-        {
-            new() { Id = Guid.NewGuid(), Name = "Asset 1", OwnerId = Guid.NewGuid() },
-            new() { Id = Guid.NewGuid(), Name = "Asset 2", OwnerId = Guid.NewGuid() },
-        };
+                             {
+                                 new() { Id = Guid.NewGuid(), Name = "Asset 1", OwnerId = Guid.NewGuid() },
+                                 new() { Id = Guid.NewGuid(), Name = "Asset 2", OwnerId = Guid.NewGuid() },
+                             };
 
         var mockHandler = new MockHttpMessageHandler((request, _) => {
             request.Method.Should().Be(HttpMethod.Get);
@@ -436,7 +431,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.GetAssetsAsync();
@@ -445,94 +440,6 @@ public class GameServiceTests {
         result.Should().NotBeNull();
         result.Should().HaveCount(2);
         result.Should().BeEquivalentTo(expectedAssets);
-    }
-
-    [Fact]
-    public async Task CreateAssetAsync_WhenSuccessful_ReturnsAssetId() {
-        // Arrange
-        var assetId = Guid.NewGuid();
-        var request = new CreateAssetRequest {
-            Name = "New Asset",
-        };
-        var expectedResponse = new Asset {
-            Id = assetId,
-            Name = "New Asset",
-        };
-
-        var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
-            requestMessage.Method.Should().Be(HttpMethod.Post);
-            requestMessage.RequestUri!.PathAndQuery.Should().Be("/api/assets");
-
-            var response = new HttpResponseMessage(HttpStatusCode.Created) {
-                Content = JsonContent.Create(expectedResponse),
-            };
-            return Task.FromResult(response);
-        });
-
-        var httpClient = new HttpClient(mockHandler) {
-            BaseAddress = new("http://host.com"),
-        };
-        var client = new GameService(httpClient);
-
-        // Act
-        var result = await client.CreateAssetAsync(request);
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo(expectedResponse);
-    }
-
-    [Fact]
-    public async Task UpdateAssetAsync_WhenSuccessful_ReturnsSuccessResult() {
-        // Arrange
-        var assetId = Guid.NewGuid();
-        var request = new UpdateAssetRequest {
-            Name = "Updated Asset",
-        };
-
-        var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
-            requestMessage.Method.Should().Be(HttpMethod.Put);
-            requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/assets/{assetId}");
-
-            var response = new HttpResponseMessage(HttpStatusCode.OK);
-            return Task.FromResult(response);
-        });
-
-        var httpClient = new HttpClient(mockHandler) {
-            BaseAddress = new("http://host.com"),
-        };
-        var client = new GameService(httpClient);
-
-        // Act
-        var result = await client.UpdateAssetAsync(assetId, request);
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task DeleteAssetAsync_WhenSuccessful_ReturnsTrue() {
-        // Arrange
-        var assetId = Guid.NewGuid();
-
-        var mockHandler = new MockHttpMessageHandler((request, _) => {
-            request.Method.Should().Be(HttpMethod.Delete);
-            request.RequestUri!.PathAndQuery.Should().Be($"/api/assets/{assetId}");
-
-            var response = new HttpResponseMessage(HttpStatusCode.OK);
-            return Task.FromResult(response);
-        });
-
-        var httpClient = new HttpClient(mockHandler) {
-            BaseAddress = new("http://host.com"),
-        };
-        var client = new GameService(httpClient);
-
-        // Act
-        var result = await client.DeleteAssetAsync(assetId);
-
-        // Assert
-        result.Should().BeTrue();
     }
 
     [Fact]
@@ -559,7 +466,7 @@ public class GameServiceTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameService(httpClient);
+        var client = new LibraryClient(httpClient);
 
         // Act
         var result = await client.CloneAdventureAsync(adventureId, request);

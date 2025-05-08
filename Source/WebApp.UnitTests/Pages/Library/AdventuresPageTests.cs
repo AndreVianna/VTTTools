@@ -1,13 +1,15 @@
+using VttTools.WebApp.Clients;
+
 namespace VttTools.WebApp.Pages.Library;
 
 public class AdventuresPageTests
     : WebAppTestContext {
-    private readonly IGameService _service = Substitute.For<IGameService>();
+    private readonly ILibraryClient _client = Substitute.For<ILibraryClient>();
     private readonly Adventure[] _defaultAdventures;
 
     public AdventuresPageTests() {
         EnsureAuthenticated();
-        Services.AddScoped(_ => _service);
+        Services.AddScoped(_ => _client);
         _defaultAdventures = [
         new() {
             Name = "Adventure 1",
@@ -19,13 +21,13 @@ public class AdventuresPageTests
             Visibility = Visibility.Private,
             OwnerId = Guid.NewGuid(),
         }];
-        _service.GetAdventuresAsync().Returns(_defaultAdventures);
+        _client.GetAdventuresAsync().Returns(_defaultAdventures);
     }
 
     [Fact]
     public void BeforeIsReady_RendersLoadingState() {
         // Arrange
-        _service.GetAdventuresAsync().Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultAdventures));
+        _client.GetAdventuresAsync().Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultAdventures));
 
         // Act
         var cut = RenderComponent<AdventuresPage>();
@@ -38,7 +40,7 @@ public class AdventuresPageTests
     [Fact]
     public void WhenIsReady_WithNoAdventures_RendersAsEmpty() {
         // Arrange
-        _service.GetAdventuresAsync().Returns([]);
+        _client.GetAdventuresAsync().Returns([]);
 
         // Act
         var cut = RenderComponent<AdventuresPage>();
@@ -75,13 +77,13 @@ public class AdventuresPageTests
             OwnerId = CurrentUser!.Id,
             Visibility = Visibility.Hidden,
         };
-        _service.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>()).Returns(newAdventure);
+        _client.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>()).Returns(newAdventure);
 
         // Act
         cut.Find("#create-adventure").Click();
 
         // Assert
-        _service.Received(1).CreateAdventureAsync(Arg.Any<CreateAdventureRequest>());
+        _client.Received(1).CreateAdventureAsync(Arg.Any<CreateAdventureRequest>());
     }
 
     [Fact]
@@ -91,7 +93,7 @@ public class AdventuresPageTests
         var cut = RenderComponent<AdventuresPage>();
         var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        _service.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
+        _client.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
         cut.Find($"#view-adventure-{adventureId}").Click();
@@ -106,7 +108,7 @@ public class AdventuresPageTests
         var adventureId = _defaultAdventures[0].Id;
         var cut = RenderComponent<AdventuresPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        _service.UpdateAdventureAsync(Arg.Any<Guid>(), Arg.Any<UpdateAdventureRequest>()).Returns(Result.Success());
+        _client.UpdateAdventureAsync(Arg.Any<Guid>(), Arg.Any<UpdateAdventureRequest>()).Returns(Result.Success());
 
         // Act
         cut.Find($"#edit-adventure-{adventureId}").Click();
@@ -127,13 +129,13 @@ public class AdventuresPageTests
         var adventureId = _defaultAdventures[0].Id;
         var cut = RenderComponent<AdventuresPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        _service.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
+        _client.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
         cut.Find($"#delete-adventure-{adventureId}").Click();
 
         // Assert
-        _service.Received(1).DeleteAdventureAsync(_defaultAdventures[0].Id);
+        _client.Received(1).DeleteAdventureAsync(_defaultAdventures[0].Id);
     }
 
     [Fact]
@@ -147,12 +149,12 @@ public class AdventuresPageTests
             OwnerId = CurrentUser!.Id,
             Visibility = Visibility.Hidden,
         };
-        _service.CloneAdventureAsync(Arg.Any<Guid>(), Arg.Any<CloneAdventureRequest>()).Returns(clonedAdventure);
+        _client.CloneAdventureAsync(Arg.Any<Guid>(), Arg.Any<CloneAdventureRequest>()).Returns(clonedAdventure);
 
         // Act
         cut.Find($"#clone-adventure-{adventureId}").Click();
 
         // Assert
-        _service.Received(1).CloneAdventureAsync(Arg.Any<Guid>(), Arg.Any<CloneAdventureRequest>());
+        _client.Received(1).CloneAdventureAsync(Arg.Any<Guid>(), Arg.Any<CloneAdventureRequest>());
     }
 }

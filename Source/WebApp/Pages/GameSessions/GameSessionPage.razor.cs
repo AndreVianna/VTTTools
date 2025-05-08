@@ -2,7 +2,7 @@ namespace VttTools.WebApp.Pages.GameSessions;
 
 public partial class GameSessionPage {
     [Inject]
-    internal IGameService GameService { get; set; } = null!;
+    internal IGameClient GameClient { get; set; } = null!;
 
     [Parameter]
     public Guid GameSessionId { get; set; }
@@ -10,10 +10,11 @@ public partial class GameSessionPage {
     internal GameSessionPageState State => Handler.State;
     internal GameSessionInputModel Input => Handler.State.Input;
 
-    protected override async Task<bool> ConfigureComponentAsync() {
-        if (await Handler.TryConfigureAsync(GameService, GameSessionId))
+    protected override async Task<bool> ConfigureAsync() {
+        if (!await base.ConfigureAsync())
+            return false;
+        if (await Handler.TryLoadSessionAsync(GameClient, GameSessionId))
             return true;
-
         NavigateToGameSessions();
         return false;
     }

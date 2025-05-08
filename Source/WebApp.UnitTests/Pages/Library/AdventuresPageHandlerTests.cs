@@ -1,15 +1,17 @@
+using VttTools.WebApp.Clients;
+
 namespace VttTools.WebApp.Pages.Library;
 
 public class AdventuresPageHandlerTests
     : WebAppTestContext {
-    private readonly IGameService _service = Substitute.For<IGameService>();
+    private readonly ILibraryClient _client = Substitute.For<ILibraryClient>();
 
     public AdventuresPageHandlerTests() {
         var adventures = new[] {
             new Adventure { Name = "Adventure 1", Visibility = Visibility.Public },
             new Adventure { Name = "Adventure 2", Visibility = Visibility.Private },
         };
-        _service.GetAdventuresAsync().Returns(adventures);
+        _client.GetAdventuresAsync().Returns(adventures);
     }
 
     [Fact]
@@ -35,7 +37,7 @@ public class AdventuresPageHandlerTests
             Visibility = Visibility.Private,
         };
 
-        _service.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>()).Returns(newAdventure);
+        _client.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>()).Returns(newAdventure);
 
         // Act
         await handler.SaveCreatedAdventure();
@@ -49,7 +51,7 @@ public class AdventuresPageHandlerTests
         // Arrange
         var handler = await CreateHandler();
         var adventureId = handler.State.Adventures[1].Id;
-        _service.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
+        _client.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
         await handler.DeleteAdventure(adventureId);
@@ -70,7 +72,7 @@ public class AdventuresPageHandlerTests
             clonedAdventure,
         };
 
-        _service.CloneAdventureAsync(adventureId, Arg.Any<CloneAdventureRequest>()).Returns(clonedAdventure);
+        _client.CloneAdventureAsync(adventureId, Arg.Any<CloneAdventureRequest>()).Returns(clonedAdventure);
 
         // Act
         await handler.CloneAdventure(adventureId);
@@ -143,7 +145,7 @@ public class AdventuresPageHandlerTests
             new Adventure { Id = adventureId, Name = "Updated Adventure", Visibility = Visibility.Public },
         };
 
-        _service.UpdateAdventureAsync(Arg.Any<Guid>(), Arg.Any<UpdateAdventureRequest>())
+        _client.UpdateAdventureAsync(Arg.Any<Guid>(), Arg.Any<UpdateAdventureRequest>())
             .Returns(Result.Success());
 
         // Act
@@ -178,7 +180,7 @@ public class AdventuresPageHandlerTests
         };
         handler.State.Adventures = adventuresBeforeEdit;
 
-        _service.UpdateAdventureAsync(Arg.Any<Guid>(), Arg.Any<UpdateAdventureRequest>())
+        _client.UpdateAdventureAsync(Arg.Any<Guid>(), Arg.Any<UpdateAdventureRequest>())
             .Returns(Result.Failure("Some errors."));
 
         // Act
@@ -192,11 +194,14 @@ public class AdventuresPageHandlerTests
     }
 
     private async Task<AdventuresPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized)
-            EnsureAuthenticated();
-        var handler = new AdventuresPageHandler(HttpContext, NavigationManager, CurrentUser!, NullLoggerFactory.Instance);
+        if (isAuthorized) EnsureAuthenticated();
+        var page = Substitute.For<IAuthenticatedPage>();
+        page.HttpContext.Returns(HttpContext);
+        page.NavigationManager.Returns(NavigationManager);
+        page.Logger.Returns(NullLogger.Instance);
+        var handler = new AdventuresPageHandler(page);
         if (isConfigured)
-            await handler.ConfigureAsync(_service);
+            await handler.LoadAdventuresAsync(_client);
         return handler;
     }
 }

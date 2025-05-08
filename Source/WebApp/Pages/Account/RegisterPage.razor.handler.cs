@@ -1,22 +1,16 @@
 namespace VttTools.WebApp.Pages.Account;
 
-public class RegisterPageHandler(HttpContext httpContext, NavigationManager navigationManager, ILoggerFactory loggerFactory)
-    : PublicComponentHandler<RegisterPageHandler>(httpContext, navigationManager, loggerFactory) {
-    private UserManager<User> _userManager = null!;
-    private SignInManager<User> _signInManager = null!;
-    private IEmailSender<User> _emailSender = null!;
-
+public class RegisterPageHandler(IPublicPage page)
+    : PublicPageHandler<RegisterPageHandler>(page) {
     internal RegisterPageState State { get; } = new();
 
-    public async Task ConfigureAsync(UserManager<User> userManager,
-                                      SignInManager<User> signInManager,
-                                      IEmailSender<User> emailSender) {
-        _userManager = userManager;
-        _signInManager = signInManager;
-        _emailSender = emailSender;
-
-        var externalLogins = await _signInManager.GetExternalAuthenticationSchemesAsync();
+    public override async Task<bool> ConfigureAsync() {
+        if (!await base.ConfigureAsync())
+            return false;
+        var signInManager = Page.HttpContext.RequestServices.GetRequiredService<SignInManager<User>>();
+        var externalLogins = await signInManager.GetExternalAuthenticationSchemesAsync();
         State.HasExternalLoginProviders = externalLogins.Any();
+        return true;
     }
 
     public async Task<bool> RegisterUserAsync(string? returnUrl) {
@@ -26,33 +20,36 @@ public class RegisterPageHandler(HttpContext httpContext, NavigationManager navi
         user.NormalizedUserName = State.Input.Email.ToUpperInvariant();
         user.Email = State.Input.Email;
         user.NormalizedEmail = State.Input.Email.ToUpperInvariant();
-        var result = await _userManager.CreateAsync(user, State.Input.Password);
+        var userManager = Page.HttpContext.RequestServices.GetRequiredService<UserManager<User>>();
+        var result = await userManager.CreateAsync(user, State.Input.Password);
         if (!result.Succeeded) {
             State.IdentityErrors = result.Errors;
             return false;
         }
 
-        Logger.LogInformation("CurrentUser created a new account with password.");
+        Page.Logger.LogInformation("CurrentUser created a new account with password.");
 
-        var userId = await _userManager.GetUserIdAsync(user);
-        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        var userId = await userManager.GetUserIdAsync(user);
+        var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var callbackUrl = NavigationManager.GetAbsoluteUrl("account/confirm_email", ps => {
+        var callbackUrl = Page.NavigationManager.GetAbsoluteUrl("account/confirm_email", ps => {
             ps.Add("userId", userId);
             ps.Add("code", code);
             ps.Add("returnUrl", returnUrl);
         });
-        await _emailSender.SendConfirmationLinkAsync(user, State.Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+        var emailSender = Page.HttpContext.RequestServices.GetRequiredService<IEmailSender<User>>();
+        await emailSender.SendConfirmationLinkAsync(user, State.Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
-        if (_userManager.Options.SignIn.RequireConfirmedAccount) {
-            NavigationManager.RedirectTo("account/register_confirmation", ps => {
+        if (userManager.Options.SignIn.RequireConfirmedAccount) {
+            Page.RedirectTo("account/register_confirmation", ps => {
                 ps.Add("email", State.Input.Email);
                 ps.Add("returnUrl", returnUrl);
             });
         }
         else {
-            await _signInManager.SignInAsync(user, isPersistent: false);
-            NavigationManager.RedirectTo(returnUrl);
+            var signInManager = Page.HttpContext.RequestServices.GetRequiredService<SignInManager<User>>();
+            await signInManager.SignInAsync(user, isPersistent: false);
+            Page.RedirectTo(returnUrl);
         }
 
         return true;
@@ -64,8 +61,8 @@ public class RegisterPageHandler(HttpContext httpContext, NavigationManager navi
         }
         catch {
             throw new InvalidOperationException(
-                $"Can't create an instance of '{nameof(CurrentUser)}'. " +
-                $"Ensure that '{nameof(CurrentUser)}' is not an abstract class and has a parameterless constructor.");
+                $"Can't create an instance of '{nameof(User)}'. " +
+                $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor.");
         }
     }
 }

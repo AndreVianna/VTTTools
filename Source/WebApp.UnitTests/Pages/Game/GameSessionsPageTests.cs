@@ -1,14 +1,15 @@
+using VttTools.WebApp.Clients;
 using VttTools.WebApp.Pages.GameSessions;
 
 namespace VttTools.WebApp.Pages.Game;
 
 public class GameSessionsPageTests
     : WebAppTestContext {
-    private readonly IGameService _service = Substitute.For<IGameService>();
+    private readonly IGameClient _client = Substitute.For<IGameClient>();
     private readonly GameSession[] _defaultGameSessions;
 
     public GameSessionsPageTests() {
-        Services.AddScoped<IGameService>(_ => _service);
+        Services.AddScoped<IGameClient>(_ => _client);
         EnsureAuthenticated();
         _defaultGameSessions = [
             new() { Title = "Session 1", OwnerId = CurrentUser!.Id },
@@ -19,7 +20,7 @@ public class GameSessionsPageTests
     [Fact]
     public void BeforeIsReady_RendersLoadingState() {
         // Arrange
-        _service.GetGameSessionsAsync().Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultGameSessions));
+        _client.GetGameSessionsAsync().Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultGameSessions));
 
         // Act
         var cut = RenderComponent<GameSessionsPage>();
@@ -31,7 +32,7 @@ public class GameSessionsPageTests
     [Fact]
     public void WhenIsReady_WithNoGameSessions_RendersEmptyState() {
         // Arrange
-        _service.GetGameSessionsAsync().Returns([]);
+        _client.GetGameSessionsAsync().Returns([]);
 
         // Act
         var cut = RenderComponent<GameSessionsPage>();
@@ -43,7 +44,7 @@ public class GameSessionsPageTests
     [Fact]
     public void WhenIsReady_WithGameSessions_RendersGameSessions() {
         // Arrange
-        _service.GetGameSessionsAsync().Returns(_defaultGameSessions);
+        _client.GetGameSessionsAsync().Returns(_defaultGameSessions);
 
         // Act
         var cut = RenderComponent<GameSessionsPage>();
@@ -66,7 +67,7 @@ public class GameSessionsPageTests
     [Fact]
     public void WhenCreateButtonIsClicked_OpensCreateDialog() {
         // Arrange
-        _service.GetGameSessionsAsync().Returns(_defaultGameSessions);
+        _client.GetGameSessionsAsync().Returns(_defaultGameSessions);
         var cut = RenderComponent<GameSessionsPage>();
         var createButton = cut.Find("#create-session");
 
@@ -81,12 +82,12 @@ public class GameSessionsPageTests
     [Fact]
     public void WhenJoinButtonIsClicked_NavigatesToGameSession() {
         // Arrange
-        _service.GetGameSessionsAsync().Returns(_defaultGameSessions);
+        _client.GetGameSessionsAsync().Returns(_defaultGameSessions);
         var cut = RenderComponent<GameSessionsPage>();
         var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
         var sessionId = _defaultGameSessions[0].Id;
         var joinButton = cut.Find($"#session-{sessionId} .join");
-        _service.JoinGameSessionAsync(Arg.Any<Guid>()).Returns(true);
+        _client.JoinGameSessionAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
         joinButton.Click();
@@ -98,7 +99,7 @@ public class GameSessionsPageTests
     [Fact]
     public void WhenEditButtonIsClicked_NavigatesToGameSessionDetails() {
         // Arrange
-        _service.GetGameSessionsAsync().Returns(_defaultGameSessions);
+        _client.GetGameSessionsAsync().Returns(_defaultGameSessions);
         var cut = RenderComponent<GameSessionsPage>();
         var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
         var sessionId = _defaultGameSessions[0].Id;

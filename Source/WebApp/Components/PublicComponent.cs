@@ -1,113 +1,56 @@
 namespace VttTools.WebApp.Components;
 
 public class PublicComponent
-    : ComponentBase {
-    [Inject]
-    internal IHttpContextAccessor HttpContextAccessor { get; set; } = null!;
-    [Inject]
-    internal NavigationManager NavigationManager { get; set; } = null!;
-    [Inject]
-    internal UserManager<User> UserManager { get; set; } = null!;
-    [Inject]
-    internal ILoggerFactory LoggerFactory { get; set; } = null!;
+    : Component
+    , IPublicComponent {
+    [CascadingParameter]
+    public bool IsAuthenticated { get; private set; }
+    public Guid? UserId { get; private set; }
+    public string? UserDisplayName { get; private set; }
+    public bool UserIsAdministrator { get; private set; }
 
-    public HttpContext HttpContext { get; private set; } = null!;
-    public string? CurrentLocation { get; protected set; }
-    public virtual User? CurrentUser { get; set; }
-    [MemberNotNullWhen(true, nameof(CurrentUser))]
-    public bool IsAuthenticated => (HttpContext.User.Identity?.IsAuthenticated ?? false)
-                                && CurrentUser is not null;
-    public bool IsReady { get; protected set; }
-
-    public event EventHandler<LocationChangedEventArgs> LocationChanged {
-        add => NavigationManager.LocationChanged += value;
-        remove => NavigationManager.LocationChanged -= value;
+    protected override bool Configure() {
+        if (!base.Configure()) return false;
+        IsAuthenticated = HttpContext.User.Identity?.IsAuthenticated ?? false;
+        UserId = GetUserIdOrDefault();
+        UserDisplayName = GetUserDisplayNameOrDefault();
+        UserIsAdministrator = HttpContext.User.IsInRole("Administrator");
+        return true;
     }
 
-    protected override void OnInitialized() {
-        base.OnInitialized();
-        HttpContext = HttpContextAccessor.HttpContext!;
-        CurrentLocation = GetUrlRelativeToBase(NavigationManager.Uri);
-    }
+    private string? GetUserDisplayNameOrDefault()
+        => IsAuthenticated
+            ? HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value
+                ?? HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value
+                ?? "User"
+            : null;
 
-    protected override Task OnInitializedAsync()
-        => SetCurrentUserAsync();
+    private Guid? GetUserIdOrDefault()
+        => IsAuthenticated
+        && Guid.TryParse(HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value, out var id)
+            ? id
+            : null;
 
-    public override async Task SetParametersAsync(ParameterView parameters) {
-        await base.SetParametersAsync(parameters);
-        IsReady = await ConfigureComponentAsync();
-        await StateHasChangedAsync();
-    }
-    protected virtual bool ConfigureComponent() => true;
-    protected virtual Task<bool> ConfigureComponentAsync()
-        => Task.FromResult(ConfigureComponent());
-
-    private async Task SetCurrentUserAsync() {
-        CurrentUser = await UserManager.GetUserAsync(HttpContext.User);
-        if (CurrentUser is null)
-            return;
-        CurrentUser.IsAdministrator = await UserManager.IsInRoleAsync(CurrentUser, "Administrator");
-    }
-
-    protected virtual string GetUrlRelativeToBase(string url) => NavigationManager.ToBaseRelativePath(url);
-    protected virtual Uri GetAbsoluteUri(string url) => NavigationManager.ToAbsoluteUri(Ensure.IsNotNull(url).Trim());
-
-    public virtual Task StateHasChangedAsync() => InvokeAsync(StateHasChanged);
-
-    public virtual void RedirectTo([StringSyntax(StringSyntaxAttribute.Uri)] string? location, Action<IDictionary<string, object?>>? setQueryParameters = null)
-        => NavigationManager.RedirectTo(location ?? string.Empty, setQueryParameters);
-
-    public virtual void GoHome()
-        => NavigationManager.GoHome();
-
-    public virtual void GoSignIn(string? returnUrl = null)
-        => NavigationManager.GoToSignIn(returnUrl);
-
-    public virtual void Refresh(Action<IDictionary<string, object?>>? setQueryParameters = null)
-        => NavigationManager.Refresh(setQueryParameters);
-
-    public virtual void Reload(Action<IDictionary<string, object?>>? setQueryParameters = null)
-        => NavigationManager.Reload(setQueryParameters);
-
-    public virtual void ReplaceWith([StringSyntax(StringSyntaxAttribute.Uri)] string location, Action<IDictionary<string, object?>>? setQueryParameters = null)
-        => NavigationManager.ReplaceWith(location, setQueryParameters);
+    protected override Task<bool> ConfigureAsync()
+        => Task.FromResult(Configure());
 }
 
 public class PublicComponent<THandler>
-    : PublicComponent, IDisposable, IAsyncDisposable
-    where THandler : PublicComponentHandler<THandler> {
-    private bool _isDisposed;
-
-    protected override async Task OnInitializedAsync() {
-        await base.OnInitializedAsync();
-        SetHandler();
+    : PublicComponent
+    where THandler : PageHandler<THandler> {
+    protected override async Task<bool> ConfigureAsync() {
+        if (!await base.ConfigureAsync()) return false;
+        await SetHandlerAsync();
+        return true;
     }
 
     [MemberNotNull(nameof(Handler))]
-    protected virtual void SetHandler()
-        => Handler = InstanceFactory.Create<THandler>(HttpContext, NavigationManager, LoggerFactory);
+    protected async Task SetHandlerAsync() {
+        if (Handler is not null)
+            return;
+        Handler = InstanceFactory.Create<THandler>(this);
+        await Handler.ConfigureAsync();
+    }
 
     protected THandler Handler { get; set; } = null!;
-
-    protected virtual void Dispose(bool disposing) {
-        if (!disposing)
-            return;
-        ((THandler?)Handler)?.Dispose();
-    }
-
-    public void Dispose() {
-        if (_isDisposed)
-            return;
-        Dispose(true);
-        _isDisposed = true;
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual ValueTask DisposeAsyncCore()
-        => ((THandler?)Handler)?.DisposeAsync() ?? ValueTask.CompletedTask;
-
-    public async ValueTask DisposeAsync() {
-        await DisposeAsyncCore();
-        GC.SuppressFinalize(this);
-    }
 }
