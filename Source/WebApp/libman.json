@@ -3,14 +3,6 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "provider": "cdnjs",
-      "library": "material-design-icons@4.0.0",
-      "destination": "wwwroot/lib/material-design-icons/",
-      "files": [
-        "font/MaterialIcons-Regular.ttf"
-      ]
-    },
-    {
       "provider": "jsdelivr",
       "library": "bootstrap@5.3.6",
       "destination": "wwwroot/lib/bootstrap/",

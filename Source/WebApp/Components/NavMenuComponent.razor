@@ -1,15 +1,79 @@
 @inherits PublicComponent
 
-<div class="top-row ps-3 navbar navbar-dark">
+
+<div class="navbar navbar-dark">
   <div class="container-fluid">
-  <a class="navbar-brand" href="">VTT Tools</a>
+    <div class="d-flex">
+      <button class="navbar-toggler small me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon small"></span>
+      </button>
+      <a class="navbar-brand text-white text-decoration-none" href="#">VTT Tools</a>
+    </div>
+    <div class="d-flex align-content-end">
+    <AuthorizeView>
+      <NotAuthorized>
+      <div class="nav-item pe-3">
+        <NavLink class="nav-link" href="account/register">
+          <span class="md-symbol register filled me-1" aria-hidden="true"></span> Register
+        </NavLink>
+      </div>
+      <div class="nav-item pe-3">
+        <NavLink class="nav-link" href="account/login">
+          <span class="md-symbol login filled me-1" aria-hidden="true"></span> Login
+        </NavLink>
+      </div>
+      </NotAuthorized>
+      <Authorized>
+      <div class="nav-item pe-3">
+        <NavLink class="nav-link" href="account/manage">
+          <span class="md-symbol profile filled me-1" aria-hidden="true"></span> @UserDisplayName
+        </NavLink>
+      </div>
+      <div class="nav-item pe-3">
+        <form id="logout-form" action="@LogoutUri" method="post">
+          <AntiforgeryToken />
+          <input type="hidden" name="ReturnUrl" value="@CurrentLocation" />
+          <button id="logout-submit" type="submit" class="nav-link">
+            <span class="md-symbol logout filled me-1" aria-hidden="true"></span> Logout
+          </button>
+        </form>
+      </div>
+      </Authorized>
+    </AuthorizeView>
+    </div>
+    <div class="offcanvas offcanvas-start text-bg-dark" tabindex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasResponsiveLabel">
+      <div class="offcanvas-header">
+        <span class="offcanvas-title" id="offcanvasResponsiveLabel">Options</span>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <AuthorizeView>
+          <Authorized>
+            <div class="nav-item pb-3">
+              <NavLink class="nav-link" href="sessions">
+                <span class="md-symbol schedule me-1" aria-hidden="true"></span> Game Sessions
+              </NavLink>
+            </div>
+            <div class="nav-item pb-3">
+              <NavLink class="nav-link" href="adventures">
+                <span class="md-symbol library filled me-1" aria-hidden="true"></span> Library
+              </NavLink>
+            </div>
+            <div class="nav-item pb-3">
+              <NavLink class="nav-link" href="assets">
+                <span class="md-symbol assets me-1" aria-hidden="true"></span> Assets
+              </NavLink>
+            </div>
+          </Authorized>
+        </AuthorizeView>
+      </div>
+    </div>
   </div>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-  <nav class="nav flex-column">
+@* <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+  <nav class="navbar flex-column">
   <div class="nav-item px-3">
     <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
       <span class="md-symbol home filled" aria-hidden="true"></span> Home
@@ -61,5 +125,11 @@
     </div>
     </Authorized>
   </AuthorizeView>
+  <div class="nav-item px-3">
+    <NavLink class="nav-link" href="about" Match="NavLinkMatch.All">
+      <span class="md-symbol about filled" aria-hidden="true"></span> About
+    </NavLink>
+  </div>
   </nav>
 </div>
+ *@
