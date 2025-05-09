@@ -4,9 +4,13 @@
 <div class="navbar navbar-dark">
   <div class="container-fluid">
     <div class="d-flex">
-      <button class="navbar-toggler small me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon small"></span>
-      </button>
+      <AuthorizeView>
+        <Authorized>
+          <button class="navbar-toggler small me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon small"></span>
+          </button>
+        </Authorized>
+      </AuthorizeView>
       <a class="navbar-brand text-white text-decoration-none" href="#">VTT Tools</a>
     </div>
     <div class="d-flex align-content-end">

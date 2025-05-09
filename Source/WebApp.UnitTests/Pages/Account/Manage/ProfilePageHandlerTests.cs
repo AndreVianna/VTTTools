@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
 public class ProfilePageHandlerTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     public ProfilePageHandlerTests() {
         EnsureAuthenticated();
     }

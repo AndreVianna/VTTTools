@@ -4,7 +4,7 @@ using VttTools.WebApp.ViewModels;
 namespace VttTools.WebApp.Pages.Game;
 
 public class GameSessionChatPageTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     private readonly IHubConnectionBuilder _builder = Substitute.For<IHubConnectionBuilder>();
     private readonly HubConnection _hubConnection
         = Substitute.For<HubConnection>(Substitute.For<IConnectionFactory>(),

@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account;
 
 public class RegisterPageTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     private readonly IEmailSender<User> _emailSender;
 
     public RegisterPageTests() {

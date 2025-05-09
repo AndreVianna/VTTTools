@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Components;
 
 public class PublicComponentTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     private sealed class TestComponent
         : PublicComponent {
         protected override async Task<bool> ConfigureAsync() {

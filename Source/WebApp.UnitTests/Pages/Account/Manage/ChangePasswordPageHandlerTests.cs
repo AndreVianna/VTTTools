@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
 public class ChangePasswordPageHandlerTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     public ChangePasswordPageHandlerTests() {
         EnsureAuthenticated();
     }

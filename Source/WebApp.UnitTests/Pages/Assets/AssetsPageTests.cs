@@ -3,7 +3,7 @@ using VttTools.WebApp.Clients;
 namespace VttTools.WebApp.Pages.Assets;
 
 public class AssetsPageTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     private readonly IAssetsClient _client = Substitute.For<IAssetsClient>();
     private readonly Asset[] _defaultAssets = [
         new() {

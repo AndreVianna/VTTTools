@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
 public class EmailPageHandlerTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     private readonly IEmailSender<User> _emailSender = Substitute.For<IEmailSender<User>>();
 
     public EmailPageHandlerTests() {

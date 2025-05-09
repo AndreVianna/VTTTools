@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account;
 
 public class LoginPageTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     public LoginPageTests() {
         HttpContext.Request.Method.Returns("GET");
         SignInManager.GetExternalAuthenticationSchemesAsync().Returns([]);

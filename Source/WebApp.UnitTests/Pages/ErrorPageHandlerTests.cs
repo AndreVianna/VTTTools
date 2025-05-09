@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages;
 
 public class ErrorPageHandlerTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     public ErrorPageHandlerTests() {
         HttpContext.TraceIdentifier.Returns("test-trace-id");
     }

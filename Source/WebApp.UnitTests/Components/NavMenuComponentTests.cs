@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Components;
 
 public class NavMenuComponentTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     [Fact]
     public void WithAuthenticatedUser_ShowsUserMenu() {
         // Arrange

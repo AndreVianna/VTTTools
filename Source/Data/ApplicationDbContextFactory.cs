@@ -10,8 +10,8 @@ public class ApplicationDbContextFactory
                      .AddUserSecrets<ApplicationDbContextFactory>();
         // Retrieve connection string by alias from configuration
         var config = builder.Build();
-        var connectionString = config.GetConnectionString(ApplicationDbContextOptions.Name)
-                            ?? throw new InvalidOperationException($"Connection string '{ApplicationDbContextOptions.Name}' not found.");
+        var connectionString = config.GetConnectionString(ApplicationDbContextOptions.ConnectionStringName)
+                            ?? throw new InvalidOperationException($"Connection string '{ApplicationDbContextOptions.ConnectionStringName}' not found.");
 
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         optionsBuilder.UseSqlServer(connectionString, _ => _.MigrationsAssembly("VttTools.Data"));

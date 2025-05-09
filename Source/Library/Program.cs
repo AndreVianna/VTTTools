@@ -20,7 +20,7 @@ internal static class Program {
     }
 
     internal static void AddStorage(this IHostApplicationBuilder builder) {
-        builder.AddSqlServerDbContext<ApplicationDbContext>(ApplicationDbContextOptions.Name);
+        builder.AddSqlServerDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
         builder.AddDataStorage();
     }
 

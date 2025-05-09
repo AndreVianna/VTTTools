@@ -1,6 +1,6 @@
 namespace VttTools.WebApp.Utilities;
 
-internal sealed class IdentityUserAccessor(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, NavigationManager navigationManager)
+public sealed class IdentityUserAccessor(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, NavigationManager navigationManager)
     : IIdentityUserAccessor {
     public async Task<Result<User>> GetCurrentUserOrRedirectAsync() {
         var context = httpContextAccessor.HttpContext!;
@@ -9,6 +9,6 @@ internal sealed class IdentityUserAccessor(IHttpContextAccessor httpContextAcces
             return user;
         context.SetStatusMessage($"Error: Unable to load user with ID '{context.User.Identity!.Name}'.");
         navigationManager.ReplaceWith("account/invalid_user");
-        return new Error("User not found.");
+        return new InputError("User not found.");
     }
 }

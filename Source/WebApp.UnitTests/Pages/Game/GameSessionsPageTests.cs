@@ -4,7 +4,7 @@ using VttTools.WebApp.Pages.GameSessions;
 namespace VttTools.WebApp.Pages.Game;
 
 public class GameSessionsPageTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     private readonly IGameClient _gameClient = Substitute.For<IGameClient>();
     private readonly ILibraryClient _libraryClient = Substitute.For<ILibraryClient>();
     private readonly GameSession[] _defaultGameSessions;

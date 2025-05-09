@@ -3,7 +3,7 @@ using VttTools.WebApp.Clients;
 namespace VttTools.WebApp.Pages.Library;
 
 public class ScenesPageTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     private readonly ILibraryClient _client = Substitute.For<ILibraryClient>();
     private static readonly Guid _adventureId = Guid.NewGuid();
     private readonly Scene[] _defaultScenes = [

@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account;
 
 public class ConfirmEmailPageHandlerTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     [Fact]
     public async Task ConfigureAsync_WithValidParameters_ReturnsTrue() {
         // Arrange

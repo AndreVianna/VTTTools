@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account;
 
 public class ConfirmEmailPageTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     [Fact]
     public void WhenRequested_WithNoParameters_RedirectsToHome() {
         // Act

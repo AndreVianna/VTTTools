@@ -3,7 +3,7 @@ using VttTools.WebApp.Clients;
 namespace VttTools.WebApp.Pages.Library;
 
 public class AdventuresPageTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     private readonly ILibraryClient _client = Substitute.For<ILibraryClient>();
     private readonly Adventure[] _defaultAdventures;
 

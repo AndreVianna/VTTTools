@@ -1,6 +1,6 @@
 ﻿namespace VttTools.WebApp.Extensions;
 
-internal static class UserManagerExtensions {
+public static class UserManagerExtensions {
     public static async Task<string> GetCurrentUserDisplayNameAsync(this UserManager<User> userManager, HttpContext httpContext) {
         var user = await userManager.GetUserAsync(httpContext.User);
         return user?.DisplayName ?? user?.Name ?? string.Empty;

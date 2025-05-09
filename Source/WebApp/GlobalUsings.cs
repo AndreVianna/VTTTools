@@ -28,6 +28,7 @@ global using Microsoft.AspNetCore.Identity.UI.Services;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.SignalR.Client;
 global using Microsoft.AspNetCore.WebUtilities;
+global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
 global using Microsoft.Extensions.Logging.Abstractions;
 global using Microsoft.Extensions.Options;

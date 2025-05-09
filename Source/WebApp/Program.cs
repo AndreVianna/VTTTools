@@ -25,7 +25,7 @@ internal static class Program {
 
         AddDefaultHealthChecks(builder);
         builder.AddRedisOutputCache("redis");
-        builder.AddSqlServerDbContext<ApplicationDbContext>(Name);
+        builder.AddSqlServerDbContext<ApplicationDbContext>(ConnectionStringName);
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
         builder.Services.AddCascadingAuthenticationState();
@@ -71,11 +71,10 @@ internal static class Program {
 
         var app = builder.Build();
 
-        if (app.Environment.IsDevelopment()) {
+        if (!app.Environment.IsProduction()) {
             app.UseWebAssemblyDebugging();
-            app.UseMigrationsEndPoint();
         }
-        else {
+        if (!app.Environment.IsDevelopment()) {
             app.UseExceptionHandler("/error", createScopeForErrors: true);
             app.UseStatusCodePagesWithReExecute("/error/{0}");
             app.UseHsts();

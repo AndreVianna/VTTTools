@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account;
 
 public class ForgotPasswordPageHandlerTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     private readonly IEmailSender<User> _emailSender = Substitute.For<IEmailSender<User>>();
 
     public ForgotPasswordPageHandlerTests() {

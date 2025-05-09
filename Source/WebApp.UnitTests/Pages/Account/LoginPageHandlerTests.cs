@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account;
 
 public class LoginPageHandlerTests
-    : WebAppTestContext {
+    : ComponentTestContext {
     [Fact]
     public async Task ConfigureAsync_WithGetRequest_ChecksForExternalLogins() {
         // Arrange
