@@ -35,18 +35,22 @@ public class PublicPage
 public class PublicPage<THandler>
     : PublicPage
     where THandler : PublicPageHandler<THandler> {
+    protected override bool Configure() {
+        SetHandler();
+        return base.Configure();
+    }
     protected override async Task<bool> ConfigureAsync() {
-        if (!await base.ConfigureAsync()) return false;
-        await SetHandlerAsync();
-        return await Handler.ConfigureAsync();
+        if (!await base.ConfigureAsync())
+            return false;
+        await Handler.ConfigureAsync();
+        return true;
     }
 
     [MemberNotNull(nameof(Handler))]
-    protected async Task SetHandlerAsync() {
+    protected void SetHandler() {
         if (Handler is not null)
             return;
         Handler = InstanceFactory.Create<THandler>(this);
-        await Handler.ConfigureAsync();
     }
 
     protected THandler Handler { get; set; } = null!;

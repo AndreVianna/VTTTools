@@ -2,7 +2,7 @@ namespace VttTools.WebApp.TestUtilities;
 
 public class WebAppTestContext
     : BUnitContext {
-    public static readonly User DefaultUser = new() {
+    public User DefaultUser { get; } = new() {
         Name = "Name",
         DisplayName = "Display Name",
         UserName = "test.user@host.com",
@@ -19,13 +19,7 @@ public class WebAppTestContext
         SecurityStamp = "f0d0bd5d-8e64-419c-a856-e0e6364d26a1",
     };
 
-    private readonly List<ClaimsIdentity> _identities = [];
-
     public WebAppTestContext() {
-        var principal = new ClaimsPrincipal(_identities);
-        var authenticationState = new AuthenticationState(principal);
-        Services.AddCascadingValue(_ => Task.FromResult(authenticationState));
-
         var requirement = Substitute.For<IAuthorizationRequirement>();
         var requirements = new List<IAuthorizationRequirement> { requirement };
         const string defaultSchemeName = "Default";
@@ -122,16 +116,19 @@ public class WebAppTestContext
 
     private void SetAuthorization() {
         var authResult = AuthorizationResult.Failed();
-        _identities.Clear();
+        var principal = new ClaimsPrincipal();
         if (CurrentUser is not null) {
             var identityClaim = new Claim(ClaimTypes.NameIdentifier, CurrentUser.Id.ToString());
             var nameClaim = new Claim(ClaimTypes.GivenName, CurrentUser.DisplayName);
             var emailClaim = new Claim(ClaimTypes.Email, CurrentUser.Email);
             var roleClaim = new Claim(ClaimTypes.Role, CurrentUser.IsAdministrator ? "Administrator" : "User");
-            var identity = new ClaimsIdentity([identityClaim, emailClaim, nameClaim, roleClaim]);
-            _identities.Add(identity);
+            var identity = new ClaimsIdentity([identityClaim, emailClaim, nameClaim, roleClaim], "test");
+            principal.AddIdentity(identity);
             authResult = AuthorizationResult.Success();
         }
+        HttpContext.User = principal;
+        var authenticationState = new AuthenticationState(principal);
+        Services.AddCascadingValue(_ => Task.FromResult(authenticationState));
 
         Authorization.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object?>(), Arg.Any<IEnumerable<IAuthorizationRequirement>>())
                      .Returns(authResult);

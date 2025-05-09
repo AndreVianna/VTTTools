@@ -71,6 +71,6 @@ public class ConfirmEmailPageHandlerTests
         page.HttpContext.Returns(HttpContext);
         page.NavigationManager.Returns(NavigationManager);
         page.Logger.Returns(NullLogger.Instance);
-        return new ConfirmEmailPageHandler(page);
+        return new(page);
     }
 }

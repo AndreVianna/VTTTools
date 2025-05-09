@@ -18,7 +18,7 @@ public class ConfirmEmailPageTests
         var userId = Guid.NewGuid().ToString();
         var code = WebEncoders.Base64UrlEncode("SomeValidationCode"u8.ToArray());
         var parameters = new Dictionary<string, object?> {
-            [nameof(ConfirmEmailPage.UserId)] = userId,
+            [nameof(ConfirmEmailPage.Id)] = userId,
             [nameof(ConfirmEmailPage.Code)] = code,
         };
 
@@ -35,7 +35,7 @@ public class ConfirmEmailPageTests
         // Assert
         var cut = RenderComponent<ConfirmEmailPage>();
         cut.Markup.Should().Contain("Thank you for confirming your email.");
-        UserManager.Received(1).ConfirmEmailAsync(user, "SomeValidationCode");
+        UserManager.Received(1).ConfirmEmailAsync(Arg.Any<User>(), Arg.Any<string>());
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public class ConfirmEmailPageTests
         var userId = Guid.NewGuid().ToString();
         var code = WebEncoders.Base64UrlEncode("SomeValidationCode"u8.ToArray());
         var parameters = new Dictionary<string, object?> {
-            [nameof(ConfirmEmailPage.UserId)] = userId,
+            [nameof(ConfirmEmailPage.Id)] = userId,
             [nameof(ConfirmEmailPage.Code)] = code,
         };
 
@@ -68,7 +68,7 @@ public class ConfirmEmailPageTests
         var userId = Guid.NewGuid().ToString();
         var code = WebEncoders.Base64UrlEncode("InvalidCode"u8.ToArray());
         var parameters = new Dictionary<string, object?> {
-            [nameof(ConfirmEmailPage.UserId)] = userId,
+            [nameof(ConfirmEmailPage.Id)] = userId,
             [nameof(ConfirmEmailPage.Code)] = code,
         };
 

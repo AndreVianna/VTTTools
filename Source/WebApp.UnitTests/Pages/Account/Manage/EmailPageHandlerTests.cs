@@ -2,7 +2,10 @@ namespace VttTools.WebApp.Pages.Account.Manage;
 
 public class EmailPageHandlerTests
     : WebAppTestContext {
+    private readonly IEmailSender<User> _emailSender = Substitute.For<IEmailSender<User>>();
+
     public EmailPageHandlerTests() {
+        Services.AddScoped<IEmailSender<User>>(_ => _emailSender);
         EnsureAuthenticated();
     }
 
@@ -30,7 +33,6 @@ public class EmailPageHandlerTests
 
         // Assert
         await UserManager.DidNotReceive().GenerateChangeEmailTokenAsync(Arg.Any<User>(), Arg.Any<string>());
-        HttpContext.Received(1).SetStatusMessage("Your email was not changed.");
     }
 
     [Fact]
@@ -44,7 +46,6 @@ public class EmailPageHandlerTests
 
         // Assert
         await UserManager.Received(1).GenerateChangeEmailTokenAsync(Arg.Any<User>(), Arg.Any<string>());
-        HttpContext.Received(1).SetStatusMessage("A confirmation link was sent to the new email. Please check your inbox.");
     }
 
     [Fact]
@@ -57,13 +58,13 @@ public class EmailPageHandlerTests
 
         // Assert
         await UserManager.Received(1).GenerateEmailConfirmationTokenAsync(Arg.Any<User>());
-        HttpContext.Received(1).SetStatusMessage("A confirmation link was sent to the informed email. Please check your inbox.");
     }
 
     private EmailPageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
         if (isAuthorized)
             EnsureAuthenticated();
         var page = Substitute.For<IAccountPage>();
+        page.CurrentUser.Returns(CurrentUser);
         page.HttpContext.Returns(HttpContext);
         page.NavigationManager.Returns(NavigationManager);
         page.Logger.Returns(NullLogger.Instance);

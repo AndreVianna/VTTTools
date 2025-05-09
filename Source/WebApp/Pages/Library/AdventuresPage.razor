@@ -48,7 +48,7 @@
       <td id="@($"adventure-{adventure.Id}-name")">@adventure.Name</td>
       <td id="@($"adventure-{adventure.Id}-visibility")">@adventure.Visibility</td>
       <td id="@($"adventure-{adventure.Id}-actions")">
-        <button id="@($"view-adventure-{adventure.Id}")" class="btn btn-secondary btn-sm me-1" @onclick='() => RedirectTo($"/adventures/{adventure.Id}/scenes")'>Scenes</button>
+        <button id="@($"view-adventure-{adventure.Id}")" class="btn btn-secondary btn-sm me-1" @onclick='() => this.RedirectTo($"/adventures/{adventure.Id}/scenes")'>Scenes</button>
         <button id="@($"edit-adventure-{adventure.Id}")" class="btn btn-secondary btn-sm me-1" @onclick="() => ShowEditDialog(adventure)">Edit</button>
         <button id="@($"clone-adventure-{adventure.Id}")" class="btn btn-info btn-sm me-1" @onclick="() => CloneAdventure(adventure.Id)">Clone</button>
         <button id="@($"delete-adventure-{adventure.Id}")" class="btn btn-danger btn-sm" @onclick="() => DeleteAdventure(adventure.Id)">Delete</button>

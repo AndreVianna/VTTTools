@@ -43,7 +43,7 @@ public class LoginPageHandlerTests
         SignInManager.PasswordSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
                      .Returns(SignInResult.Success);
 
-        var user = new User { Email = "test@example.com" };
+        var user = new User { Email = "test@example.com", DisplayName = "User" };
         UserManager.FindByEmailAsync("test@example.com").Returns(user);
 
         var claim = new Claim(ClaimTypes.Name, "test@example.com");

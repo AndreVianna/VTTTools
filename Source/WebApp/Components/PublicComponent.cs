@@ -34,23 +34,3 @@ public class PublicComponent
     protected override Task<bool> ConfigureAsync()
         => Task.FromResult(Configure());
 }
-
-public class PublicComponent<THandler>
-    : PublicComponent
-    where THandler : PageHandler<THandler> {
-    protected override async Task<bool> ConfigureAsync() {
-        if (!await base.ConfigureAsync()) return false;
-        await SetHandlerAsync();
-        return true;
-    }
-
-    [MemberNotNull(nameof(Handler))]
-    protected async Task SetHandlerAsync() {
-        if (Handler is not null)
-            return;
-        Handler = InstanceFactory.Create<THandler>(this);
-        await Handler.ConfigureAsync();
-    }
-
-    protected THandler Handler { get; set; } = null!;
-}

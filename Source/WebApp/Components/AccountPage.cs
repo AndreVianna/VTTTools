@@ -14,7 +14,7 @@ public class AccountPage
                        ? await userManager.GetUserAsync(HttpContext.User)
                        : null;
         if (user is null) {
-            GoToSignIn();
+            this.GoToSignIn();
             return false;
         }
         CurrentUser = user;
@@ -25,19 +25,22 @@ public class AccountPage
 public class AccountPage<THandler>
     : AccountPage
     where THandler : AccountPageHandler<THandler> {
+    protected override bool Configure() {
+        SetHandler();
+        return base.Configure();
+    }
     protected override async Task<bool> ConfigureAsync() {
         if (!await base.ConfigureAsync())
             return false;
-        await SetHandlerAsync();
+        await Handler.ConfigureAsync();
         return true;
     }
 
     [MemberNotNull(nameof(Handler))]
-    protected async Task SetHandlerAsync() {
+    protected void SetHandler() {
         if (Handler is not null)
             return;
         Handler = InstanceFactory.Create<THandler>(this);
-        await Handler.ConfigureAsync();
     }
 
     protected THandler Handler { get; set; } = null!;

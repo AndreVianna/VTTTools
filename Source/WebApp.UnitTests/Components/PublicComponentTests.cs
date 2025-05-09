@@ -2,10 +2,11 @@ namespace VttTools.WebApp.Components;
 
 public class PublicComponentTests
     : WebAppTestContext {
-    private sealed class TestComponent : PublicComponent {
+    private sealed class TestComponent
+        : PublicComponent {
         protected override async Task<bool> ConfigureAsync() {
             await Task.Delay(200);
-            return true;
+            return await base.ConfigureAsync();
         }
     }
 
@@ -29,6 +30,7 @@ public class PublicComponentTests
 
         // Act
         var component = RenderComponent<TestComponent>();
+        component.WaitForState(() => component.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Assert
         component.Instance.UserId.Should().Be(CurrentUser!.Id);
@@ -43,6 +45,7 @@ public class PublicComponentTests
 
         // Act
         var component = RenderComponent<TestComponent>();
+        component.WaitForState(() => component.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Assert
         component.Instance.UserId.Should().NotBeNull();
@@ -62,11 +65,12 @@ public class PublicComponentTests
     [Fact]
     public void WhenRendered_WithUserWithNoDisplayName_UsesUserName() {
         // Arrange
+        DefaultUser.DisplayName = null;
         EnsureAuthenticated();
-        CurrentUser!.DisplayName = null;
 
         // Act
         var component = RenderComponent<TestComponent>();
+        component.WaitForState(() => component.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Assert
         component.Instance.UserDisplayName.Should().Be(CurrentUser!.Name);

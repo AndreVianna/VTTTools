@@ -6,7 +6,7 @@ public class LoggedExceptionHandlerTests {
         // Arrange
         var logger = Substitute.For<ILogger<LoggedExceptionHandler>>();
         var environment = Substitute.For<IHostEnvironment>();
-        environment.IsProduction().Returns(false);
+        environment.EnvironmentName.Returns("Development");
         var handler = new LoggedExceptionHandler(environment, logger);
         var httpContext = new DefaultHttpContext();
         var exception = new InvalidOperationException("Test exception");
@@ -27,7 +27,7 @@ public class LoggedExceptionHandlerTests {
         // Arrange
         var logger = Substitute.For<ILogger<LoggedExceptionHandler>>();
         var environment = Substitute.For<IHostEnvironment>();
-        environment.IsProduction().Returns(true);
+        environment.EnvironmentName.Returns("Production");
         var handler = new LoggedExceptionHandler(environment, logger);
         var httpContext = new DefaultHttpContext();
         var exception = new InvalidOperationException("Test exception");

@@ -149,12 +149,19 @@ public class GameClientTests {
             Title = "Updated GameSession",
             SceneId = Guid.NewGuid(),
         };
+        var expectedResponse = new GameSession {
+            Id = sessionId,
+            Title = "Updated GameSession",
+            SceneId = request.SceneId.Value,
+        };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
             requestMessage.Method.Should().Be(HttpMethod.Put);
             requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/sessions/{sessionId}");
 
-            var response = new HttpResponseMessage(HttpStatusCode.OK);
+            var response = new HttpResponseMessage(HttpStatusCode.OK) {
+                Content = JsonContent.Create(expectedResponse),
+            };
             return Task.FromResult(response);
         });
 

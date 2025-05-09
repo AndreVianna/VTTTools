@@ -23,7 +23,7 @@ internal class GameClient(HttpClient client)
     public async Task<Result<GameSession>> UpdateGameSessionAsync(Guid id, UpdateGameSessionRequest request) {
         var response = await client.PutAsJsonAsync($"/api/sessions/{id}", request);
         if (!response.IsSuccessStatusCode)
-            return Result.Failure("Failed to create session.");
+            return Result.Failure("Failed to update session.");
         var session = await response.Content.ReadFromJsonAsync<GameSession>();
         return session!;
     }

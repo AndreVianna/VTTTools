@@ -2,6 +2,12 @@ namespace VttTools.WebApp.Pages.Account;
 
 public class RegisterPageHandlerTests
     : WebAppTestContext {
+    private readonly IEmailSender<User> _emailSender = Substitute.For<IEmailSender<User>>();
+
+    public RegisterPageHandlerTests() {
+        Services.AddScoped(_ => _emailSender);
+    }
+
     [Fact]
     public async Task ConfigureAsync_SetsExternalLoginProviders() {
         // Arrange

@@ -43,7 +43,8 @@ public class LoginPageTests
         SignInManager.PasswordSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
                      .Returns(SignInResult.Success);
 
-        var user = new User { Email = email };
+        var user = new User { Email = email, DisplayName = "User" };
+        UserManager.FindByEmailAsync(Arg.Any<string>()).Returns(user);
         UserManager.FindByEmailAsync(Arg.Any<string>()).Returns(user);
 
         var claim = new Claim(ClaimTypes.Name, email);
@@ -68,6 +69,7 @@ public class LoginPageTests
         cut.Find("#password-input").Change(password);
         SignInManager.PasswordSignInAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<bool>())
                      .Returns(SignInResult.Failed);
+        HttpContext.ClearReceivedCalls();
 
         // Act
         cut.Find("#login-submit").Click();

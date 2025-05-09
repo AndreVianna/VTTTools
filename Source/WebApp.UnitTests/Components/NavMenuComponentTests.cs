@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Components;
 
-public class NavMenuComponentTests : WebAppTestContext {
+public class NavMenuComponentTests
+    : WebAppTestContext {
     [Fact]
     public void WithAuthenticatedUser_ShowsUserMenu() {
         // Arrange
@@ -12,12 +13,11 @@ public class NavMenuComponentTests : WebAppTestContext {
         // Assert
         var displayName = cut.Instance.UserDisplayName;
         var tagId = ((IHtmlDivElement)cut.Nodes[0]).Attributes[1]!.Name;
-        cut.Markup.Should().Contain($"""<span class="bi bi-house-door-fill-nav-menu" aria-hidden="true" {tagId}></span> Home""");
-        cut.Markup.Should().Contain($"""<span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true" {tagId}></span> Logout""");
-        cut.Markup.Should().Contain($"""<span class="bi bi-person-fill-nav-menu" aria-hidden="true" {tagId}></span> {displayName}""");
-        cut.Markup.Should().Contain($"""<span class="bi bi-people-fill" aria-hidden="true" {tagId}></span> Game Sessions""");
-        cut.Markup.Should().Contain($"""<span class="bi bi-book-fill" aria-hidden="true" {tagId}></span> Adventures""");
-        cut.Markup.Should().Contain($"""<span class="bi bi-collection-fill" aria-hidden="true" {tagId}></span> Assets""");
+        cut.Markup.Should().Contain($"""<span class="md-symbol logout filled me-1" aria-hidden="true" {tagId}></span> Logout""");
+        cut.Markup.Should().Contain($"""<span class="md-symbol profile filled me-1" aria-hidden="true" {tagId}></span> {displayName}""");
+        cut.Markup.Should().Contain($"""<span class="md-symbol schedule me-1" aria-hidden="true" {tagId}></span> Events""");
+        cut.Markup.Should().Contain($"""<span class="md-symbol library filled me-1" aria-hidden="true" {tagId}></span> Library""");
+        cut.Markup.Should().Contain($"""<span class="md-symbol assets me-1" aria-hidden="true" {tagId}></span> Assets""");
     }
 
     [Fact]
@@ -27,9 +27,8 @@ public class NavMenuComponentTests : WebAppTestContext {
 
         // Assert
         var tagId = ((IHtmlDivElement)cut.Nodes[0]).Attributes[1]!.Name;
-        cut.Markup.Should().Contain($"""<span class="bi bi-house-door-fill-nav-menu" aria-hidden="true" {tagId}></span> Home""");
-        cut.Markup.Should().Contain($"""<span class="bi bi-person-nav-menu" aria-hidden="true" {tagId}></span> Register""");
-        cut.Markup.Should().Contain($"""<span class="bi bi-person-badge-nav-menu" aria-hidden="true" {tagId}></span> Login""");
+        cut.Markup.Should().Contain($"""<span class="md-symbol register filled me-1" aria-hidden="true" {tagId}></span> Register""");
+        cut.Markup.Should().Contain($"""<span class="md-symbol login filled me-1" aria-hidden="true" {tagId}></span> Login""");
     }
 
     [Fact]

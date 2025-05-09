@@ -147,6 +147,7 @@ public class GameSessionPageHandlerTests
         };
         _client.GetGameSessionByIdAsync(_sessionId).Returns(session);
         var page = Substitute.For<IAuthenticatedPage>();
+        page.UserId.Returns(userId);
         page.HttpContext.Returns(HttpContext);
         page.NavigationManager.Returns(NavigationManager);
         page.Logger.Returns(NullLogger.Instance);

@@ -73,6 +73,7 @@ public class ProfilePageHandlerTests
         if (isAuthorized)
             EnsureAuthenticated();
         var page = Substitute.For<IAccountPage>();
+        page.CurrentUser.Returns(CurrentUser);
         page.HttpContext.Returns(HttpContext);
         page.NavigationManager.Returns(NavigationManager);
         page.Logger.Returns(NullLogger.Instance);

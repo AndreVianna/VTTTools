@@ -4,6 +4,10 @@ public class ForgotPasswordPageHandlerTests
     : WebAppTestContext {
     private readonly IEmailSender<User> _emailSender = Substitute.For<IEmailSender<User>>();
 
+    public ForgotPasswordPageHandlerTests() {
+        Services.AddScoped<IEmailSender<User>>(_ => _emailSender);
+    }
+
     [Fact]
     public async Task RequestPasswordResetAsync_WithNonExistentEmail_RedirectsToConfirmationPage() {
         // Arrange
@@ -61,7 +65,6 @@ public class ForgotPasswordPageHandlerTests
         page.HttpContext.Returns(HttpContext);
         page.NavigationManager.Returns(NavigationManager);
         page.Logger.Returns(NullLogger.Instance);
-        page.HttpContext.RequestServices.GetRequiredService<IEmailSender<User>>().Returns(_emailSender);
-        return new ForgotPasswordPageHandler(page);
+        return new(page);
     }
 }
