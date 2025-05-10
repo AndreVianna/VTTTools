@@ -7,6 +7,7 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 **MVP Goal**: Allow users to create and join game meetings with basic adventure management.
 
 ### Tasks:
+
 - [x] Set up user authentication and authorization (register, sign-in, profile management)
 - [x] Implement basic meeting creation and management
 - [x] Refactor Session concept to Meeting concept according to PROJECT_DEFINITION.md
@@ -19,12 +20,13 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 **MVP Goal**: Enable Game Masters to create and manage game content hierarchies.
 
 ### Tasks:
-- [ ] Add Unit Tests to the existing code
+
+- [x] Add Unit Tests to the existing code
   - [x] Add Unit Test to Domain project.
   - [x] Add Unit Test to Common project.
   - [x] Add Unit Test to Data project.
   - [x] Add Unit Test to GameService project.
-  - [ ] Add Unit Test to WebApp project.
+  - [x] Add Unit Test to WebApp project.
 - [ ] Adventure Templates CRUD API & UI
   - [ ] List, create, rename, delete Adventures
   - [ ] Set and update Visibility (Hidden, Private, Public)
@@ -33,7 +35,7 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
   - [ ] List, create, rename, delete Episodes for a given Adventure
   - [ ] Basic in-place rename/edit; full Canvas editor in Phase 3
   - [ ] Set Visibility and transfer ownership
-  - [x] Endpoint to clone an Episode template (POST /api/episodes/{id}/clone)
+  - [ ] Endpoint to clone an Episode template (POST /api/episodes/{id}/clone)
 - [ ] Asset Templates CRUD API & UI
   - [ ] List, rename, delete Assets
   - [ ] Support file uploads (local FS in Dev, Azure Blob in Prod) via POST /api/assets/{id}/upload
@@ -50,6 +52,7 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 **MVP Goal**: Enable Game Masters to create episodes and place tokens for basic visual representation.
 
 ### Tasks:
+
 - [ ] Implement the basic episode editor with Canvas support
 - [ ] Implement Episode stage management
 - [ ] Create episode storage and retrieval system
@@ -64,6 +67,7 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 **MVP Goal**: Implement a comprehensive chat system with specialized message types and dice rolling.
 
 ### Tasks:
+
 - [ ] Create real-time chat infrastructure with SignalR
 - [ ] Implement normal message support
 - [ ] Add whisper functionality for private messages
@@ -80,6 +84,7 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 **MVP Goal**: Enhance the platform with gameplay mechanics and additional features.
 
 ### Tasks:
+
 - [ ] Add character sheet basic integration
 - [ ] Implement initiative tracker
 - [ ] Create simple combat tracker
@@ -95,6 +100,7 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 **MVP Goal**: Expand meeting functionality and game hierarchy.
 
 ### Tasks:
+
 - [ ] Implement basic player assignment to playable tokens
 - [ ] Add persistent state for game instances across multiple meetings
 - [ ] Create basic Notes system with visibility levels
@@ -109,6 +115,7 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 **MVP Goal**: Scale the platform with community features and optimizations.
 
 ### Tasks:
+
 - [ ] Create marketplace for community-created templates
 - [ ] Add template sharing and importing
 - [ ] Implement API for extensibility and integration with other tools
@@ -129,6 +136,7 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 ## Ongoing Evaluation
 
 At the completion of each phase, we will:
+
 1. Conduct user testing with real TTRPG groups
 2. Gather feedback on implemented features
 3. Refine existing functionality based on feedback
