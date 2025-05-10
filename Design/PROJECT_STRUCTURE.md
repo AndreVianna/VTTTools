@@ -3,21 +3,61 @@
 - CLAUDE.md
 - CODEX.md
 - README.md
+- VTTTools.sln
+- **.claude**
+  - settings.json
 - **Design**
   - INSTRUCTIONS.md
   - PROJECT_DEFINITION.md
   - PROJECT_STRUCTURE.md
   - ROADMAP.md
 - **Source**
+  - VttTools.sln
   - VttTools.slnx
   - **AppHost**
     - appsettings.Development.json
     - appsettings.json
     - Program.cs
     - VttTools.AppHost.csproj
+  - **Assets**
+    - appsettings.Development.json
+    - appsettings.json
+    - GlobalUsings.cs
+    - http-client.env.json
+    - Program.cs
+    - VttTools.Assets.csproj
+    - **EndpointMappers**
+      - AssetEndpointsMapper.cs
+      - HealthEndpointsMapper.cs
+    - **Handlers**
+      - AssetHandlers.cs
+    - **Services**
+      - AssetService.cs
+      - MediaService.cs
+  - **Assets.UnitTests**
+    - GlobalUsings.cs
+    - VttTools.Assets.UnitTests.csproj
+    - xunit.runner.json
+    - **EndpointMappers**
+      - AssetEndpointsMapperTests.cs
+      - HealthEndpointsMapperTests.cs
+    - **Extensions**
+      - EndpointRouteBuilderExtensionsTests.cs
+      - HostApplicationBuilderExtensionsTests.cs
+    - **Services**
+      - AssetServiceTests.cs
+      - MediaServiceTests.cs
   - **Common**
     - GlobalUsings.cs
     - VttTools.Common.csproj
+    - **Extensions**
+      - ApplicationBuilderExtensions.cs
+      - ClaimsPrincipalExtensions.cs
+      - HostApplicationBuilderExtensions.cs
+    - **Middlewares**
+      - LoggedExceptionHandler.cs
+      - UserIdentificationHandler.cs
+      - UserIdentificationOptions.cs
     - **Utilities**
       - ErrorCollectionExtensions.cs
       - OptionalConverter.cs
@@ -26,6 +66,13 @@
     - GlobalUsings.cs
     - VttTools.Common.UnitTests.csproj
     - xunit.runner.json
+    - **Extensions**
+      - ApplicationBuilderExtensionsTests.cs
+      - EndpointsMapperHelperTests.cs
+      - HostApplicationBuilderExtensionsTests.cs
+    - **Middlewares**
+      - LoggedExceptionHandlerTests.cs
+      - UserIdentificationHandlerTests.cs
     - **Utilities**
       - ErrorCollectionExtensionsTests.cs
       - OptionalConverterFactoryTests.cs
@@ -35,31 +82,23 @@
     - ApplicationDbContextFactory.cs
     - GlobalUsings.cs
     - VttTools.Data.csproj
+    - **Assets**
+      - AssetStorage.cs
     - **Builders**
       - AdventureSchemaBuilder.cs
       - AssetSchemaBuilder.cs
       - CampaignSchemaBuilder.cs
       - EpicSchemaBuilder.cs
-      - EpisodeSchemaBuilder.cs
+      - GameSessionSchemaBuilder.cs
       - IdentitySchemaBuilder.cs
-      - MeetingSchemaBuilder.cs
+      - SceneSchemaBuilder.cs
     - **Extensions**
       - HostApplicationBuilderExtensions.cs
     - **Game**
+      - GameSessionStorage.cs
+    - **Library**
       - AdventureStorage.cs
-      - AssetStorage.cs
-      - EpisodeStorage.cs
-      - MeetingStorage.cs
-    - **Migrations**
-      - 20250419194045_CreateIdentitySchema.cs
-      - 20250419194045_CreateIdentitySchema.Designer.cs
-      - 20250419194214_SeedIdentity.cs
-      - 20250419194214_SeedIdentity.Designer.cs
-      - 20250419194426_CreateGameHierarchySchema.cs
-      - 20250419194426_CreateGameHierarchySchema.Designer.cs
-      - 20250419194500_CreateMeetingSchema.cs
-      - 20250419194500_CreateMeetingSchema.Designer.cs
-      - ApplicationDbContextModelSnapshot.cs
+      - SceneStorage.cs
     - **Options**
       - ApplicationDbContextOptions.cs
       - AzureStorageOptions.cs
@@ -72,65 +111,76 @@
     - **Extensions**
       - HostApplicationBuilderExtensionsTests.cs
     - **Game**
-      - AdventureStorageTests.cs
-      - AssetStorageTests.cs
-      - EpisodeStorageTests.cs
-      - MeetingStorageTests.cs
+      - GameSessionStorageTests.cs
     - **Helpers**
       - DbContextHelper.cs
+    - **Library**
+      - AdventureStorageTests.cs
+      - AssetStorageTests.cs
+      - SceneStorageTests.cs
     - **Options**
       - ApplicationDbContextOptionsTests.cs
   - **Domain**
     - GlobalUsings.cs
     - VttTools.Domain.csproj
-    - **Contracts**
-      - CreateTemplateData.cs
-      - CreateTemplateRequest.cs
-      - Data.cs
-      - Request.cs
-      - Response.cs
-      - UpdateTemplateData.cs
-      - UpdateTemplateRequest.cs
-      - **Game**
-        - AddEpisodeAssetData.cs
-        - ChangeEpisodeAssetData.cs
-        - CreateAdventureRequest.cs
+    - **Assets**
+      - **ApiContracts**
         - CreateAssetRequest.cs
-        - CreateEpisodeRequest.cs
-        - CreateMeetingData.cs
-        - CreateMeetingRequest.cs
-        - JoinMeetingRequest.cs
-        - UpdateAdventureRequest.cs
         - UpdateAssetRequest.cs
-        - UpdateEpisodeRequest.cs
-        - UpdateMeetingData.cs
-        - UpdateMeetingRequest.cs
-    - **Helpers**
-      - StringHelpers.cs
-    - **Model**
-      - DiceRoll.cs
-      - **Game**
-        - Adventure.cs
+      - **Model**
         - Asset.cs
         - AssetType.cs
-        - Campaign.cs
+      - **Services**
+        - IAssetService.cs
+        - IMediaService.cs
+      - **Storage**
+        - IAssetStorage.cs
+    - **Common**
+      - **ApiContracts**
+        - CloneTemplateRequest.cs
+        - CreateTemplateRequest.cs
+        - Request.cs
+        - Response.cs
+        - UpdateTemplateRequest.cs
+      - **Model**
         - CellType.cs
-        - Epic.cs
-        - Episode.cs
-        - EpisodeAsset.cs
+        - DiceRoll.cs
         - Grid.cs
-        - Meeting.cs
-        - MeetingEvent.cs
-        - MeetingMessage.cs
-        - MeetingPlayer.cs
-        - MessageType.cs
-        - PlayerType.cs
         - Position.cs
         - Size.cs
         - Stage.cs
         - StageMapType.cs
         - Visibility.cs
-      - **Identity**
+      - **ServiceContracts**
+        - CreateTemplateData.cs
+        - Data.cs
+        - UpdateTemplateData.cs
+    - **Game**
+      - **Sessions**
+        - **ApiContracts**
+          - CreateGameSessionRequest.cs
+          - JoinGameSessionRequest.cs
+          - UpdateGameSessionRequest.cs
+        - **Model**
+          - GameSession.cs
+          - GameSessionEvent.cs
+          - GameSessionMessage.cs
+          - GameSessionStatus.cs
+          - MessageType.cs
+          - Player.cs
+          - PlayerType.cs
+        - **ServiceContracts**
+          - CreateGameSessionData.cs
+          - UpdateGameSessionData.cs
+        - **Services**
+          - IChatService.cs
+          - IGameSessionService.cs
+        - **Storage**
+          - IGameSessionStorage.cs
+    - **Helpers**
+      - StringHelpers.cs
+    - **Identity**
+      - **Model**
         - Role.cs
         - RoleClaim.cs
         - User.cs
@@ -138,65 +188,91 @@
         - UserLogin.cs
         - UserRole.cs
         - UserToken.cs
-    - **Services**
-      - **Chat**
-        - IChatService.cs
-      - **Game**
-        - IAdventureService.cs
-        - IAssetService.cs
-        - IEpisodeService.cs
-        - IMeetingService.cs
-      - **Media**
-        - IStorageService.cs
-    - **Storage**
-      - **Game**
-        - IAdventureStorage.cs
-        - IAssetStorage.cs
-        - IEpisodeStorage.cs
-        - IMeetingStorage.cs
+    - **Library**
+      - **Adventures**
+        - **ApiContracts**
+          - AddClonedSceneRequest.cs
+          - CloneAdventureRequest.cs
+          - CreateAdventureRequest.cs
+          - UpdateAdventureRequest.cs
+        - **Model**
+          - Adventure.cs
+        - **Services**
+          - IAdventureService.cs
+        - **Storage**
+          - IAdventureStorage.cs
+      - **Campaigns**
+        - **Model**
+          - Campaign.cs
+      - **Epics**
+        - **Model**
+          - Epic.cs
+      - **Scenes**
+        - **ApiContracts**
+          - AddSceneAssetRequest.cs
+          - CloneSceneRequest.cs
+          - CreateSceneRequest.cs
+          - UpdateSceneAssetRequest.cs
+          - UpdateSceneRequest.cs
+        - **Model**
+          - Scene.cs
+          - SceneAsset.cs
+        - **ServiceContracts**
+          - AddSceneAssetData.cs
+          - UpdateSceneAssetData.cs
+        - **Services**
+          - ISceneService.cs
+        - **Storage**
+          - ISceneStorage.cs
     - **Utilities**
       - Optional.cs
   - **Domain.UnitTests**
     - GlobalUsings.cs
     - VttTools.Domain.UnitTests.csproj
     - xunit.runner.json
-    - **Contracts**
-      - ResponseTests.cs
-      - **Game**
-        - AddEpisodeAssetDataTests.cs
-        - ChangeEpisodeAssetDataTests.cs
-        - CreateAdventureRequestTests.cs
+    - **Assets**
+      - **ApiContracts**
         - CreateAssetRequestTests.cs
-        - CreateEpisodeRequestTests.cs
-        - CreateMeetingDataTests.cs
-        - CreateMeetingRequestTests.cs
-        - JoinMeetingRequestTests.cs
-        - UpdateAdventureRequestTests.cs
         - UpdateAssetRequestTests.cs
-        - UpdateEpisodeRequestTests.cs
-        - UpdateMeetingDataTests.cs
-        - UpdateMeetingRequestTests.cs
-    - **Helpers**
-      - StringHelpersTests.cs
-    - **Model**
-      - DiceRollTests.cs
-      - **Game**
-        - AdventureTests.cs
+      - **Model**
         - AssetTests.cs
-        - CampaignTests.cs
-        - EnumTests.cs
-        - EpicTests.cs
-        - EpisodeAssetTests.cs
-        - EpisodeTests.cs
+        - AssetTypeTests.cs
+    - **Common**
+      - **ApiContracts**
+        - ResponseTests.cs
+      - **Model**
+        - CellTypeTests.cs
         - GridTests.cs
-        - MeetingEventTests.cs
-        - MeetingMessageTests.cs
-        - MeetingPlayerTests.cs
-        - MeetingTests.cs
         - PositionTests.cs
         - SizeTests.cs
+        - StageMapTypeTests.cs
         - StageTests.cs
-      - **Identity**
+        - VisibilityTests.cs
+      - **ServiceContracts**
+        - CreateTemplateDataTests.cs
+        - UpdateTemplateDataTests.cs
+    - **Game**
+      - **Sessions**
+        - **ApiContracts**
+          - CreateGameSessionRequestTests.cs
+          - JoinGameSessionRequestTests.cs
+          - UpdateGameSessionRequestTests.cs
+        - **Model**
+          - GameSessionEventTests.cs
+          - GameSessionMessageTests.cs
+          - GameSessionTests.cs
+          - MessageTypeTests.cs
+          - PlayerTests.cs
+          - PlayerTypeTests.cs
+        - **ServiceContracts**
+          - CreateGameSessionDataTests.cs
+          - UpdateGameSessionDataTests.cs
+        - **Services**
+        - **Storage**
+    - **Helpers**
+      - StringHelpersTests.cs
+    - **Identity**
+      - **Model**
         - RoleClaimTests.cs
         - RoleTests.cs
         - UserClaimTests.cs
@@ -204,196 +280,347 @@
         - UserRoleTests.cs
         - UserTests.cs
         - UserTokenTests.cs
-    - **Services**
-      - **Chat**
-        - IChatServiceTests.cs
-      - **Game**
-        - IAdventureServiceTests.cs
-        - IAssetServiceTests.cs
-        - IEpisodeServiceTests.cs
-        - IMeetingServiceTests.cs
-      - **Media**
-        - IStorageServiceTests.cs
-    - **Storage**
-      - **Game**
-        - IAdventureStorageTests.cs
-        - IAssetStorageTests.cs
-        - IEpisodeStorageTests.cs
-        - IMeetingStorageTests.cs
+    - **Library**
+      - **Adventures**
+        - **ApiContracts**
+          - CreateAdventureRequestTests.cs
+          - UpdateAdventureRequestTests.cs
+        - **Model**
+          - AdventureTests.cs
+      - **Campaigns**
+        - **Model**
+          - CampaignTests.cs
+      - **Epics**
+        - **Model**
+          - EpicTests.cs
+      - **Scenes**
+        - **ApiContracts**
+          - AddSceneAssetRequestTests.cs
+          - CreateSceneRequestTests.cs
+          - UpdateSceneAssetRequestTests.cs
+          - UpdateSceneRequestTests.cs
+        - **Model**
+          - SceneAssetTests.cs
+          - SceneTests.cs
+        - **ServiceContracts**
+          - AddSceneAssetDataTests.cs
+          - UpdateSceneAssetDataTests.cs
     - **Utilities**
       - OptionalTests.cs
-  - **GameService**
+  - **Game**
     - appsettings.Development.json
     - appsettings.json
     - GlobalUsings.cs
+    - http-client.env.json
     - Program.cs
-    - VttTools.GameService.csproj
-    - **Endpoints**
-      - AdventureEndpointsMapper.cs
-      - AssetEndpointsMapper.cs
-      - EndpointsMapperHelper.cs
-      - EpisodesEndpointsMapper.cs
+    - VttTools.Game.csproj
+    - **EndpointMappers**
+      - GameSessionEndpointsMapper.cs
       - HealthEndpointsMapper.cs
-      - MeetingEndpointsMapper.cs
+    - **Handlers**
+      - GameSessionHandlers.cs
+    - **Services**
+      - GameSessionService.cs
+  - **Game.UnitTests**
+    - GlobalUsings.cs
+    - VttTools.Game.UnitTests.csproj
+    - xunit.runner.json
+    - **EndpointMappers**
+      - GameSessionEndpointsMapperTests.cs
+      - HealthEndpointsMapperTests.cs
     - **Extensions**
-      - HostApplicationBuilderExtensions.cs
-      - WebApplicationBuilderExtensions.cs
+      - EndpointRouteBuilderExtensionsTests.cs
+      - HostApplicationBuilderExtensionsTests.cs
+    - **Handlers**
+      - GameSessionHandlersTests.cs
+    - **Services**
+      - GameSessionServiceTests.cs
+  - **Library**
+    - appsettings.Development.json
+    - appsettings.json
+    - GlobalUsings.cs
+    - http-client.env.json
+    - Program.cs
+    - VttTools.Library.csproj
+    - **EndpointMappers**
+      - AdventureEndpointsMapper.cs
+      - HealthEndpointsMapper.cs
+      - SceneEndpointsMapper.cs
     - **Handlers**
       - AdventureHandlers.cs
-      - AssetHandlers.cs
-      - EpisodeHandlers.cs
-      - MeetingHandlers.cs
-    - **Middlewares**
-      - MyAuthorizationMiddleware.cs
+      - SceneHandlers.cs
     - **Services**
-      - **Game**
-        - AdventureService.cs
-        - AssetService.cs
-        - MeetingService.cs
-      - **Media**
-        - BlobStorageService.cs
-  - **GameService.UnitTests**
+      - AdventureService.cs
+      - Cloner.cs
+      - SceneService.cs
+  - **Library.UnitTests**
     - GlobalUsings.cs
-    - VttTools.GameService.UnitTests.csproj
+    - VttTools.Library.UnitTests.csproj
     - xunit.runner.json
-    - **Endpoints**
+    - **EndpointMappers**
       - AdventureEndpointsMapperTests.cs
-      - AssetEndpointsMapperTests.cs
-      - EndpointsMapperHelperTests.cs
-      - EpisodeEndpointsMapperTests.cs
-      - MeetingEndpointsMapperTests.cs
+      - HealthEndpointsMapperTests.cs
+      - SceneEndpointsMapperTests.cs
+    - **Extensions**
+      - EndpointRouteBuilderExtensionsTests.cs
+      - HostApplicationBuilderExtensionsTests.cs
     - **Handlers**
       - AdventureHandlersTests.cs
-      - AssetHandlersTests.cs
-      - EpisodeHandlersTests.cs
-      - MeetingHandlersTests.cs
-    - **Middlewares**
-      - MyAuthorizationMiddlewareTests.cs
+      - SceneHandlersTests.cs
     - **Services**
-      - **Game**
-        - AdventureServiceTests.cs
-        - AssetServiceTests.cs
-        - MeetingServiceTests.cs
-      - **Media**
-        - BlobStorageServiceTests.cs
+      - AdventureServiceTests.cs
+      - ClonerTests.cs
+      - SceneServiceTests.cs
   - **WebApp**
     - _Imports.razor
     - appsettings.Development.json
     - appsettings.json
     - GlobalUsings.cs
+    - libman.json
     - Program.cs
     - VttTools.WebApp.csproj
+    - **Clients**
+      - AssetsClient.cs
+      - GameClient.cs
+      - IAssetsClient.cs
+      - IGameClient.cs
+      - ILibraryClient.cs
+      - LibraryClient.cs
     - **Components**
       - App.razor
-      - EndpointRouteBuilderExtensions.cs
-      - NavMenu.razor
-      - NavMenu.razor.cs
-      - NavMenu.razor.css
-      - Routes.razor
+      - NavMenuComponent.razor
+      - NavMenuComponent.razor.cs
+      - RoutesComponent.razor
       - **Account**
-        - IdentityComponentsEndpointRouteBuilderExtensions.cs
-        - IdentityNoOpEmailSender.cs
-        - IdentityRedirectManager.cs
-        - IdentityRevalidatingAuthenticationStateProvider.cs
-        - IdentityUserAccessor.cs
-        - **Pages**
-          - _Imports.razor
-          - AccessDenied.razor
-          - ConfirmEmail.razor
-          - ConfirmEmail.razor.cs
-          - ConfirmEmailChange.razor
-          - ConfirmEmailChange.razor.cs
-          - ExternalLogin.razor
-          - ExternalLogin.razor.cs
-          - ForgotPassword.razor
-          - ForgotPassword.razor.cs
-          - ForgotPasswordConfirmation.razor
-          - InvalidPasswordReset.razor
-          - InvalidUser.razor
-          - Lockout.razor
-          - Login.razor
-          - Login.razor.cs
-          - LoginWith2fa.razor
-          - LoginWith2fa.razor.cs
-          - LoginWithRecoveryCode.razor
-          - LoginWithRecoveryCode.razor.cs
-          - Register.razor
-          - Register.razor.cs
-          - RegisterConfirmation.razor
-          - RegisterConfirmation.razor.cs
-          - ResendEmailConfirmation.razor
-          - ResendEmailConfirmation.razor.cs
-          - ResetPassword.razor
-          - ResetPassword.razor.cs
-          - ResetPasswordConfirmation.razor
-          - **Manage**
-            - _Imports.razor
-            - ChangePassword.razor
-            - ChangePassword.razor.cs
-            - DeletePersonalData.razor
-            - DeletePersonalData.razor.cs
-            - Disable2fa.razor
-            - Disable2fa.razor.cs
-            - Email.razor
-            - Email.razor.cs
-            - EnableAuthenticator.razor
-            - EnableAuthenticator.razor.cs
-            - ExternalLogins.razor
-            - ExternalLogins.razor.cs
-            - GenerateRecoveryCodes.razor
-            - GenerateRecoveryCodes.razor.cs
-            - Index.razor
-            - Index.razor.cs
-            - PersonalData.razor
-            - PersonalData.razor.cs
-            - ResetAuthenticator.razor
-            - ResetAuthenticator.razor.cs
-            - SetPassword.razor
-            - SetPassword.razor.cs
-            - TwoFactorAuthentication.razor
-            - TwoFactorAuthentication.razor.cs
-        - **Shared**
-          - ExternalLoginPicker.razor
-          - ExternalLoginPicker.razor.cs
-          - ManageLayout.razor
-          - ManageNavMenu.razor
-          - ManageNavMenu.razor.cs
-          - ShowRecoveryCodes.razor
-          - ShowRecoveryCodes.razor.cs
-          - StatusMessage.razor
-          - StatusMessage.razor.cs
-      - **Meeting**
-        - **Pages**
-          - _Imports.razor
-          - Chat.razor
-          - Chat.razor.cs
-          - MeetingDetails.razor
-          - MeetingDetails.razor.cs
-          - Meetings.razor
-          - Meetings.razor.cs
+        - ExternalLoginPickerComponent.razor
+        - ExternalLoginPickerComponent.razor.cs
+        - ManageNavMenuComponent.razor
+        - ManageNavMenuComponent.razor.cs
+        - RecoveryCodesComponent.razor
+        - RecoveryCodesComponent.razor.cs
+        - StatusMessageComponent.razor
+        - StatusMessageComponent.razor.cs
+    - **Extensions**
+      - AdditionalIdentityEndpointsMapper.cs
     - **Layouts**
       - MainLayout.razor
-      - MainLayout.razor.css
+      - ManageLayout.razor
     - **Pages**
-      - Adventures.razor
-      - Adventures.razor.cs
-      - Assets.razor
-      - Assets.razor.cs
-      - Episodes.razor
-      - Episodes.razor.cs
-      - Error.razor
-      - Error.razor.cs
-      - Index.razor
-    - **Services**
-      - GameServiceClient.cs
+      - ErrorPage.razor
+      - ErrorPage.razor.cs
+      - ErrorPage.razor.handler.cs
+      - ErrorPage.razor.state.cs
+      - HomePage.razor
+      - **Account**
+        - _Imports.razor
+        - AccessDeniedPage.razor
+        - ConfirmEmailChange.razor
+        - ConfirmEmailChange.razor.cs
+        - ConfirmEmailPage.razor
+        - ConfirmEmailPage.razor.cs
+        - ConfirmEmailPage.razor.handler.cs
+        - ExternalLoginPage.razor
+        - ExternalLoginPage.razor.cs
+        - ForgotPasswordConfirmation.razor
+        - ForgotPasswordPage.razor
+        - ForgotPasswordPage.razor.cs
+        - ForgotPasswordPage.razor.handler.cs
+        - ForgotPasswordPage.razor.input.cs
+        - ForgotPasswordPage.razor.state.cs
+        - InvalidPasswordResetPage.razor
+        - InvalidUserPage.razor
+        - LockoutPage.razor
+        - LoginPage.razor
+        - LoginPage.razor.cs
+        - LoginPage.razor.handler.cs
+        - LoginPage.razor.input.cs
+        - LoginPage.razor.state.cs
+        - LoginWith2faPage.razor
+        - LoginWith2faPage.razor.cs
+        - LoginWithRecoveryCodePage.razor
+        - LoginWithRecoveryCodePage.razor.cs
+        - RegisterConfirmationPage.razor
+        - RegisterConfirmationPage.razor.cs
+        - RegisterPage.razor
+        - RegisterPage.razor.cs
+        - RegisterPage.razor.handler.cs
+        - RegisterPage.razor.input.cs
+        - RegisterPage.razor.state.cs
+        - ResendEmailConfirmationPage.razor
+        - ResendEmailConfirmationPage.razor.cs
+        - ResetPasswordConfirmationPage.razor
+        - ResetPasswordPage.razor
+        - ResetPasswordPage.razor.cs
+        - **Manage**
+          - _Imports.razor
+          - ChangePasswordPage.razor
+          - ChangePasswordPage.razor.cs
+          - ChangePasswordPage.razor.handler.cs
+          - ChangePasswordPage.razor.input.cs
+          - ChangePasswordPage.razor.state.cs
+          - DeletePersonalDataPage.razor
+          - DeletePersonalDataPage.razor.cs
+          - Disable2faPage.razor
+          - Disable2faPage.razor.cs
+          - EmailPage.razor
+          - EmailPage.razor.cs
+          - EmailPage.razor.handler.cs
+          - EmailPage.razor.input.cs
+          - EmailPage.razor.state.cs
+          - EnableAuthenticatorPage.razor
+          - EnableAuthenticatorPage.razor.cs
+          - ExternalLoginsPage.razor
+          - ExternalLoginsPage.razor.cs
+          - GenerateRecoveryCodesPage.razor
+          - GenerateRecoveryCodesPage.razor.cs
+          - PersonalDataPage.razor
+          - PersonalDataPage.razor.cs
+          - ProfilePage.razor
+          - ProfilePage.razor.cs
+          - ProfilePage.razor.handler.cs
+          - ProfilePage.razor.input.cs
+          - ProfilePage.razor.state.cs
+          - ResetAuthenticatorPage.razor
+          - ResetAuthenticatorPage.razor.cs
+          - SetPasswordPage.razor
+          - SetPasswordPage.razor.cs
+          - TwoFactorAuthenticationPage.razor
+          - TwoFactorAuthenticationPage.razor.cs
+      - **Assets**
+        - _Imports.razor
+        - AssetsPage.razor
+        - AssetsPage.razor.cs
+        - AssetsPage.razor.handler.cs
+        - AssetsPage.razor.input.cs
+        - AssetsPage.razor.state.cs
+      - **GameSessions**
+        - _Imports.razor
+        - GameSessionChatPage.razor
+        - GameSessionChatPage.razor.cs
+        - GameSessionChatPage.razor.handler.cs
+        - GameSessionChatPage.razor.input.cs
+        - GameSessionChatPage.razor.state.cs
+        - GameSessionPage.razor
+        - GameSessionPage.razor.cs
+        - GameSessionPage.razor.handler.cs
+        - GameSessionPage.razor.input.cs
+        - GameSessionPage.razor.state.cs
+        - GameSessionsPage.razor
+        - GameSessionsPage.razor.cs
+        - GameSessionsPage.razor.handler.cs
+        - GameSessionsPage.razor.input.cs
+        - GameSessionsPage.razor.state.cs
+      - **Library**
+        - _Imports.razor
+        - AdventuresPage.razor
+        - AdventuresPage.razor.cs
+        - AdventuresPage.razor.handler.cs
+        - AdventuresPage.razor.input.cs
+        - AdventuresPage.razor.state.cs
+        - ScenesPage.razor
+        - ScenesPage.razor.cs
+        - ScenesPage.razor.handler.cs
+        - ScenesPage.razor.input.cs
+        - ScenesPage.razor.state.cs
+    - **Utilities**
+      - IdentityNoOpEmailSender.cs
+      - IdentityRevalidatingAuthenticationStateProvider.cs
+    - **ViewModels**
+      - ChatMessage.cs
+      - ChatMessageDirection.cs
     - **wwwroot**
-      - app.css
+  - **WebApp.Abstractions**
+    - GlobalUsings.cs
+    - VttTools.WebApp.Abstractions.csproj
+    - **Components**
+      - AccountPage.cs
+      - AccountPageHandler.cs
+      - AuthenticatedPage.cs
+      - AuthenticatedPageHandler.cs
+      - Component.cs
+      - ComponentExtensions.cs
+      - IAccountPage.cs
+      - IAuthenticatedComponent.cs
+      - IAuthenticatedPage.cs
+      - IComponent.cs
+      - IPage.cs
+      - IPublicComponent.cs
+      - IPublicPage.cs
+      - Page.cs
+      - PageHandler.cs
+      - PublicComponent.cs
+      - PublicPage.cs
+      - PublicPageHandler.cs
+    - **Extensions**
+      - HttpContextExtensions.cs
+      - NavigationManagerExtensions.cs
+      - UserManagerExtensions.cs
+    - **Utilities**
+      - IdentityUserAccessor.cs
+      - IIdentityUserAccessor.cs
+  - **WebApp.Abstractions.UnitTests**
+    - GlobalUsings.cs
+    - VttTools.WebApp.Abstractions.UnitTests.csproj
+    - xunit.runner.json
+    - **Components**
+      - PublicComponentTests.cs
+    - **TestUtilities**
+      - ComponentTestContext.cs
+  - **WebApp.UnitTests**
+    - GlobalUsings.cs
+    - VttTools.WebApp.UnitTests.csproj
+    - xunit.runner.json
+    - **Clients**
+      - AssetsClientTests.cs
+      - GameClientTests.cs
+      - LibraryClientTests.cs
+      - MockHttpMessageHandler.cs
+    - **Components**
+      - NavMenuComponentTests.cs
+    - **Pages**
+      - ErrorPageHandlerTests.cs
+      - ErrorPageTests.cs
+      - **Account**
+        - ConfirmEmailPageHandlerTests.cs
+        - ConfirmEmailPageTests.cs
+        - ForgotPasswordPageHandlerTests.cs
+        - ForgotPasswordPageTests.cs
+        - LoginPageHandlerTests.cs
+        - LoginPageTests.cs
+        - RegisterPageHandlerTests.cs
+        - RegisterPageTests.cs
+        - **Manage**
+          - ChangePasswordPageHandlerTests.cs
+          - ChangePasswordPageTests.cs
+          - EmailPageHandlerTests.cs
+          - EmailPageTests.cs
+          - ProfilePageHandlerTests.cs
+          - ProfilePageTests.cs
+      - **Assets**
+        - AssetsPageHandlerTests.cs
+        - AssetsPageTests.cs
+      - **Game**
+        - GameSessionChatPageHandlerTests.cs
+        - GameSessionChatPageTests.cs
+        - GameSessionPageHandlerTests.cs
+        - GameSessionPageTests.cs
+        - GameSessionsPageHandlerTests.cs
+        - GameSessionsPageTests.cs
+      - **Library**
+        - AdventuresPageHandlerTests.cs
+        - AdventuresPageTests.cs
+        - ScenesPageHandlerTests.cs
+        - ScenesPageTests.cs
+    - **TestUtilities**
+      - ComponentTestContext.cs
 - **Utilities**
+  - clear_artifacts.py
+  - generate_coverage_report.py
   - list_project_structure.py
   - merge_code.py
-  - remove_file_clutter.py
   - **imports**
     - __init__.py
     - csharp_utils.py
     - json_utils.py
     - xml_utils.py
+    - **__pycache__**
