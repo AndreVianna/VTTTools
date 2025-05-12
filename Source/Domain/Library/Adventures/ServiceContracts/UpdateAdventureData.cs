@@ -11,14 +11,46 @@ public record UpdateAdventureData
     public Optional<string> Name { get; init; }
 
     /// <summary>
-    /// New visibility setting for the Adventure. If not set, visibility is unchanged.
+    /// New description for the Adventure. If not set, description is unchanged.
     /// </summary>
-    public Optional<Visibility> Visibility { get; set; }
+    public Optional<string> Description { get; init; }
+
+    /// <summary>
+    /// New type for the Adventure. If not set, type is unchanged.
+    /// </summary>
+    public Optional<AdventureType> Type { get; init; }
+
+    /// <summary>
+    /// New image path for the Adventure. If not set, image path is unchanged.
+    /// </summary>
+    public Optional<string?> ImagePath { get; init; }
+
+    /// <summary>
+    /// Indicates whether the Adventure is published (visible) or not (hidden).
+    /// If not set, visibility status is unchanged.
+    /// </summary>
+    public Optional<bool> IsVisible { get; init; }
+
+    /// <summary>
+    /// Indicates whether the Adventure is publicly accessible.
+    /// If not set, public status is unchanged.
+    /// </summary>
+    public Optional<bool> IsPublic { get; init; }
+
+    /// <summary>
+    /// New campaign ID for the Adventure. If not set, campaign assignment is unchanged.
+    /// </summary>
+    public Optional<Guid?> CampaignId { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
+
         if (Name.IsSet && string.IsNullOrWhiteSpace(Name.Value))
             result += new Error("When set, the adventure name cannot be null or empty.", nameof(Name));
+
+        if (Description.IsSet && string.IsNullOrWhiteSpace(Description.Value))
+            result += new Error("When set, the adventure description cannot be null or empty.", nameof(Description));
+
         return result;
     }
 }

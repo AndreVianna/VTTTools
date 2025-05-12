@@ -6,8 +6,22 @@ public class AdventuresPageHandlerTests
 
     public AdventuresPageHandlerTests() {
         var adventures = new[] {
-            new AdventureListItem { Name = "Adventure 1", Visibility = Visibility.Public },
-            new AdventureListItem { Name = "Adventure 2", Visibility = Visibility.Private },
+            new AdventureListItem {
+                Name = "Adventure 1",
+                Description = "Adventure 1 Description",
+                Type = AdventureType.Survival,
+                ImagePath = "path/to/image1.png",
+                IsVisible = true,
+                IsPublic = true,
+            },
+            new AdventureListItem {
+                Name = "Adventure 2",
+                Description = "Adventure 2 Description",
+                Type = AdventureType.OpenWorld,
+                ImagePath = "path/to/image2.png",
+                IsVisible = false,
+                IsPublic = false,
+            },
         };
         _client.GetAdventuresAsync().Returns(adventures);
     }
@@ -28,11 +42,19 @@ public class AdventuresPageHandlerTests
         var handler = await CreateHandler();
         handler.State.CreateInput = new() {
             Name = "New Adventure",
-            Visibility = Visibility.Private,
+            Description = "Adventure 1 Description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image1.png",
+            IsVisible = true,
+            IsPublic = true,
         };
-        var newAdventure = new AdventureInputModel {
+        var newAdventure = new AdventureListItem {
             Name = "New Adventure",
-            Visibility = Visibility.Private,
+            Description = "Adventure 1 Description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image1.png",
+            IsVisible = true,
+            IsPublic = true,
         };
 
         _client.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>()).Returns(newAdventure);
@@ -64,7 +86,7 @@ public class AdventuresPageHandlerTests
         var handler = await CreateHandler();
         var adventureId = Guid.NewGuid();
         handler.State.Adventures = [new AdventureListItem { Id = adventureId, Name = "Adventure 1" }];
-        var clonedAdventure = new AdventureInputModel { Id = Guid.NewGuid(), Name = "Adventure 1 (Copy)" };
+        var clonedAdventure = new AdventureListItem { Id = Guid.NewGuid(), Name = "Adventure 1 (Copy)" };
         var adventuresAfterClone = new[] {
             new AdventureListItem { Id = adventureId, Name = "Adventure 1" },
             new AdventureListItem { Id = clonedAdventure.Id, Name = clonedAdventure.Name },
@@ -87,7 +109,11 @@ public class AdventuresPageHandlerTests
         var adventure = new AdventureInputModel {
             Id = adventureId,
             Name = "Adventure to Edit",
-            Visibility = Visibility.Public,
+            Description = "Adventure Description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
         _client.GetAdventureByIdAsync(Arg.Any<Guid>()).Returns(adventure);
         // Act
@@ -97,7 +123,15 @@ public class AdventuresPageHandlerTests
         handler.State.IsEditing.Should().BeTrue();
         handler.State.EditInput.Id.Should().Be(adventure.Id);
         handler.State.EditInput.Name.Should().Be(adventure.Name);
-        handler.State.EditInput.Visibility.Should().Be(adventure.Visibility);
+        handler.State.EditInput.Description.Should().Be(adventure.Description);
+        handler.State.EditInput.Type.Should().Be(adventure.Type);
+        handler.State.EditInput.ImagePath.Should().Be(adventure.ImagePath);
+        handler.State.EditInput.IsVisible.Should().Be(adventure.IsVisible);
+        handler.State.EditInput.IsPublic.Should().Be(adventure.IsPublic);
+        handler.State.EditInput.Errors.Should().BeEmpty();
+        handler.State.EditInput.CampaignId.Should().Be(adventure.CampaignId);
+        handler.State.EditInput.OwnerId.Should().Be(adventure.OwnerId);
+        handler.State.EditInput.Scenes.Should().BeEquivalentTo(adventure.Scenes);
     }
 
     [Fact]
@@ -108,7 +142,11 @@ public class AdventuresPageHandlerTests
         var adventure = new AdventureInputModel {
             Id = adventureId,
             Name = "Adventure to Edit",
-            Visibility = Visibility.Public,
+            Description = "Adventure Description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
         _client.GetAdventureByIdAsync(Arg.Any<Guid>()).Returns((AdventureInputModel?)null);
         // Act
@@ -126,7 +164,11 @@ public class AdventuresPageHandlerTests
         handler.State.EditInput = new() {
             Id = Guid.NewGuid(),
             Name = "Updated Adventure",
-            Visibility = Visibility.Public,
+            Description = "Adventure Description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
 
         // Act
@@ -145,22 +187,42 @@ public class AdventuresPageHandlerTests
         var adventureBeforeEdit = new AdventureListItem {
             Id = adventureId,
             Name = "Adventure 1",
-            Visibility = Visibility.Hidden,
+            Description = "Adventure Description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
         var adventuresBeforeEdit = new List<AdventureListItem> { adventureBeforeEdit };
         handler.State.EditInput = new() {
             Id = adventureId,
             Name = "Updated Adventure",
-            Visibility = Visibility.Public,
+            Description = "Adventure Description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
         handler.State.EditInput = new() {
             Id = adventureId,
             Name = "Updated Adventure",
-            Visibility = Visibility.Public,
+            Description = "Adventure Description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
         handler.State.Adventures = adventuresBeforeEdit;
         var adventuresAfterEdit = new[] {
-            new AdventureListItem { Id = adventureId, Name = "Updated Adventure", Visibility = Visibility.Public },
+            new AdventureListItem {
+                Id = adventureId,
+                Name = "Updated Adventure",
+                Description = "Adventure Description",
+                Type = AdventureType.Survival,
+                ImagePath = "path/to/image.png",
+                IsVisible = true,
+                IsPublic = true,
+            },
         };
 
         _client.UpdateAdventureAsync(Arg.Any<Guid>(), Arg.Any<UpdateAdventureRequest>())
@@ -183,18 +245,30 @@ public class AdventuresPageHandlerTests
         var adventureBeforeEdit = new AdventureListItem {
             Id = adventureId,
             Name = "Adventure 1",
-            Visibility = Visibility.Hidden,
+            Description = "Adventure Description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
         var adventuresBeforeEdit = new List<AdventureListItem> { adventureBeforeEdit };
         handler.State.EditInput = new() {
             Id = adventureId,
             Name = "Updated Adventure",
-            Visibility = Visibility.Public,
+            Description = "Adventure Description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
         handler.State.EditInput = new() {
             Id = adventureId,
             Name = "Updated Adventure",
-            Visibility = Visibility.Public,
+            Description = "Adventure Description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
         handler.State.Adventures = adventuresBeforeEdit;
 
@@ -212,7 +286,8 @@ public class AdventuresPageHandlerTests
     }
 
     private async Task<AdventuresHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) EnsureAuthenticated();
+        if (isAuthorized)
+            EnsureAuthenticated();
         var page = Substitute.For<IAuthenticatedPage>();
         page.HttpContext.Returns(HttpContext);
         page.NavigationManager.Returns(NavigationManager);

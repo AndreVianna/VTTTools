@@ -37,9 +37,9 @@ internal static class DbContextHelper {
 
     private static void SeedLibrary(ApplicationDbContext context, Guid currentUserId) {
         var adventures = new[] {
-            CreateTestAdventure("Adventure 1", Visibility.Public, ownerId: currentUserId),
+            CreateTestAdventure("Adventure 1", isVisible: true, isPublic: true, ownerId: currentUserId),
             CreateTestAdventure("Adventure 2", ownerId: currentUserId),
-            CreateTestAdventure("Adventure 3", Visibility.Private, ownerId: Guid.NewGuid()),
+            CreateTestAdventure("Adventure 3", isVisible: true, isPublic: false, ownerId: Guid.NewGuid()),
         };
         var scenes = new[] {
             CreateTestScene(adventures[0].Id, "Scene 1.1", ownerId: currentUserId),
@@ -88,15 +88,18 @@ internal static class DbContextHelper {
         context.SaveChanges();
     }
 
-    public static Adventure CreateTestAdventure(Guid id, string name, Visibility visibility = Visibility.Hidden, Guid? ownerId = null) => new() {
+    public static Adventure CreateTestAdventure(Guid id, string name, bool isVisible = false, bool isPublic = false, AdventureType type = AdventureType.OpenWorld, Guid? ownerId = null) => new() {
         Id = id,
         Name = name,
-        Visibility = visibility,
+        Description = $"Description for {name}",
+        Type = type,
+        IsVisible = isVisible,
+        IsPublic = isPublic,
         OwnerId = ownerId ?? Guid.NewGuid(),
     };
 
-    public static Adventure CreateTestAdventure(string name, Visibility visibility = Visibility.Hidden, Guid? ownerId = null)
-        => CreateTestAdventure(Guid.CreateVersion7(), name, visibility, ownerId);
+    public static Adventure CreateTestAdventure(string name, bool isVisible = false, bool isPublic = false, AdventureType type = AdventureType.OpenWorld, Guid? ownerId = null)
+        => CreateTestAdventure(Guid.CreateVersion7(), name, isVisible, isPublic, type, ownerId);
 
     public static Scene CreateTestScene(Guid id, Guid parentId, string name, Visibility visibility = Visibility.Hidden, Guid? ownerId = null)
         => new() {

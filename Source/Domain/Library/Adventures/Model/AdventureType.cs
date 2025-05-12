@@ -1,12 +1,9 @@
 namespace VttTools.Library.Adventures.Model;
 
-using System.ComponentModel.DataAnnotations;
-
 /// <summary>
 /// Defines the type of adventure.
 /// </summary>
-public enum AdventureType
-{
+public enum AdventureType {
     /// <summary>
     /// Open world adventure with free exploration.
     /// </summary>
@@ -41,5 +38,5 @@ public enum AdventureType
     /// Adventure with procedurally generated content.
     /// </summary>
     [Display(Name = "Randomly Generated")]
-    RandomlyGenerated
+    RandomlyGenerated,
 }

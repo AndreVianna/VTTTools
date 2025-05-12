@@ -3,8 +3,8 @@
 public interface ILibraryClient {
     Task<AdventureListItem[]> GetAdventuresAsync();
     Task<AdventureInputModel?> GetAdventureByIdAsync(Guid id);
-    Task<Result<AdventureInputModel>> CreateAdventureAsync(CreateAdventureRequest request);
-    Task<Result<AdventureInputModel>> CloneAdventureAsync(Guid id, CloneAdventureRequest request);
+    Task<Result<AdventureListItem>> CreateAdventureAsync(CreateAdventureRequest request);
+    Task<Result<AdventureListItem>> CloneAdventureAsync(Guid id, CloneAdventureRequest request);
     Task<Result> UpdateAdventureAsync(Guid id, UpdateAdventureRequest request);
     Task<bool> DeleteAdventureAsync(Guid id);
     Task<Result<Scene>> CreateSceneAsync(Guid id, CreateSceneRequest request);

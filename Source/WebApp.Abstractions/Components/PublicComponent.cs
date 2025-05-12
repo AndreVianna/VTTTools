@@ -10,7 +10,8 @@ public class PublicComponent
     public bool UserIsAdministrator { get; private set; }
 
     protected override bool Configure() {
-        if (!base.Configure()) return false;
+        if (!base.Configure())
+            return false;
         IsAuthenticated = HttpContext.User.Identity?.IsAuthenticated ?? false;
         UserId = GetUserIdOrDefault();
         UserDisplayName = GetUserDisplayNameOrDefault();

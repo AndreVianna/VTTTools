@@ -9,7 +9,8 @@ public class EmailPageHandler(IAccountPage page)
     internal EmailPageState State { get; } = new();
 
     public override bool Configure() {
-        if (!base.Configure()) return false;
+        if (!base.Configure())
+            return false;
         State.ChangeEmailInput.CurrentEmail = Page.CurrentUser.Email;
         State.VerifyEmailInput.CurrentEmail = Page.CurrentUser.Email;
         return true;

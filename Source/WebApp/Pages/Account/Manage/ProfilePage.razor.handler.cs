@@ -5,7 +5,8 @@ public class ProfilePageHandler(IAccountPage page)
     internal ProfilePageState State { get; } = new();
 
     public override bool Configure() {
-        if (!base.Configure()) return false;
+        if (!base.Configure())
+            return false;
         State.Input.DisplayName = Page.CurrentUser.DisplayName;
         return true;
     }

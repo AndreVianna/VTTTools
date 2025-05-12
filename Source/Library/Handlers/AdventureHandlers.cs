@@ -16,7 +16,11 @@ internal static class AdventureHandlers {
         var data = new CreateAdventureData {
             CampaignId = request.CampaignId,
             Name = request.Name,
-            Visibility = request.Visibility,
+            Description = request.Description,
+            Type = request.Type,
+            ImagePath = request.ImagePath,
+            IsVisible = request.IsVisible,
+            IsPublic = request.IsPublic
         };
         var created = await adventureService.CreateAdventureAsync(userId, data);
         return created != null
@@ -28,7 +32,12 @@ internal static class AdventureHandlers {
         var userId = context.User.GetUserId();
         var data = new UpdateAdventureData {
             Name = request.Name,
-            Visibility = request.Visibility,
+            Description = request.Description,
+            Type = request.Type,
+            ImagePath = request.ImagePath,
+            IsVisible = request.IsVisible,
+            IsPublic = request.IsPublic,
+            CampaignId = request.CampaignId
         };
         var updated = await adventureService.UpdateAdventureAsync(userId, id, data);
         return updated != null ? Results.Ok(updated) : Results.NotFound();
@@ -45,6 +54,11 @@ internal static class AdventureHandlers {
         var data = new CloneAdventureData {
             CampaignId = request.CampaignId,
             Name = request.Name,
+            Description = request.Description,
+            Type = request.Type,
+            ImagePath = request.ImagePath,
+            IsVisible = request.IsVisible,
+            IsPublic = request.IsPublic
         };
         var clone = await adventureService.CloneAdventureAsync(userId, id, data);
         return clone != null

@@ -15,7 +15,11 @@ public class AdventureTests {
         adventure.Scenes.Should().NotBeNull();
         adventure.Scenes.Should().BeEmpty();
         adventure.Name.Should().BeEmpty();
-        adventure.Visibility.Should().Be(Visibility.Hidden);
+        adventure.Description.Should().BeEmpty();
+        adventure.Type.Should().Be(AdventureType.OpenWorld);
+        adventure.ImagePath.Should().BeNull();
+        adventure.IsVisible.Should().BeFalse();
+        adventure.IsPublic.Should().BeFalse();
     }
 
     [Fact]
@@ -23,10 +27,14 @@ public class AdventureTests {
         // Arrange
         var id = Guid.NewGuid();
         const string name = "Some Adventure";
+        const string description = "Adventure description";
+        const AdventureType type = AdventureType.DungeonCrawl;
+        const string imagePath = "path/to/image.jpg";
+        const bool isVisible = true;
+        const bool isPublic = true;
         var ownerId = Guid.NewGuid();
         var parentId = Guid.NewGuid();
         var templateId = Guid.NewGuid();
-        const Visibility visibility = Visibility.Public;
         var campaign = new Campaign {
             Id = parentId,
         };
@@ -38,8 +46,12 @@ public class AdventureTests {
         var adventure = new Adventure {
             Id = id,
             Name = name,
+            Description = description,
+            Type = type,
+            ImagePath = imagePath,
+            IsVisible = isVisible,
+            IsPublic = isPublic,
             OwnerId = ownerId,
-            Visibility = visibility,
             TemplateId = templateId,
             ParentId = parentId,
             Campaign = campaign,
@@ -49,8 +61,12 @@ public class AdventureTests {
         // Assert
         adventure.Id.Should().Be(id);
         adventure.Name.Should().Be(name);
+        adventure.Description.Should().Be(description);
+        adventure.Type.Should().Be(type);
+        adventure.ImagePath.Should().Be(imagePath);
+        adventure.IsVisible.Should().Be(isVisible);
+        adventure.IsPublic.Should().Be(isPublic);
         adventure.OwnerId.Should().Be(ownerId);
-        adventure.Visibility.Should().Be(visibility);
         adventure.TemplateId.Should().Be(templateId);
         adventure.ParentId.Should().Be(parentId);
         adventure.Campaign.Should().Be(campaign);

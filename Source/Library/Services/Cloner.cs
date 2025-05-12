@@ -6,11 +6,17 @@ public static class Cloner {
             OwnerId = ownerId,
             ParentId = original.ParentId,
             Name = original.Name,
-            Visibility = original.Visibility,
+            Description = original.Description,
+            Type = original.Type,
+            ImagePath = original.ImagePath,
+            IsVisible = false, // Always set to hidden initially
+            IsPublic = false,  // Always set to private initially
             TemplateId = original.Id,
         };
+
         foreach (var ep in original.Scenes)
             clone.Scenes.Add(CloneScene(ep, ownerId, clone.Id));
+
         return clone;
     }
 

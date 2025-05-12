@@ -5,7 +5,8 @@ public class ChangePasswordPageHandler(IAccountPage page)
     internal ChangePasswordPageState State { get; } = new();
 
     public override bool Configure() {
-        if (Page.CurrentUser.HasPassword) return true;
+        if (Page.CurrentUser.HasPassword)
+            return true;
         Page.RedirectTo("account/manage/set_password");
         return false;
     }

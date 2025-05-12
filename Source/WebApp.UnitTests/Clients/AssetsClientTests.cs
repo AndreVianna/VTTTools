@@ -11,17 +11,17 @@ public class AssetsClientTests {
                              };
 
         var mockHandler = new MockHttpMessageHandler((request, _) => {
-                                                         request.Method.Should().Be(HttpMethod.Get);
-                                                         request.RequestUri!.PathAndQuery.Should().Be("/api/assets");
-                                                         var response = new HttpResponseMessage(HttpStatusCode.OK) {
-                                                                                                                       Content = JsonContent.Create(expectedAssets),
-                                                                                                                   };
-                                                         return Task.FromResult(response);
-                                                     });
+            request.Method.Should().Be(HttpMethod.Get);
+            request.RequestUri!.PathAndQuery.Should().Be("/api/assets");
+            var response = new HttpResponseMessage(HttpStatusCode.OK) {
+                Content = JsonContent.Create(expectedAssets),
+            };
+            return Task.FromResult(response);
+        });
 
         var httpClient = new HttpClient(mockHandler) {
-                                                         BaseAddress = new("http://host.com"),
-                                                     };
+            BaseAddress = new("http://host.com"),
+        };
         var client = new AssetsClient(httpClient);
 
         // Act
@@ -38,26 +38,26 @@ public class AssetsClientTests {
         // Arrange
         var assetId = Guid.NewGuid();
         var request = new CreateAssetRequest {
-                                                 Name = "New Asset",
-                                             };
+            Name = "New Asset",
+        };
         var expectedResponse = new Asset {
-                                             Id = assetId,
-                                             Name = "New Asset",
-                                         };
+            Id = assetId,
+            Name = "New Asset",
+        };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
-                                                         requestMessage.Method.Should().Be(HttpMethod.Post);
-                                                         requestMessage.RequestUri!.PathAndQuery.Should().Be("/api/assets");
+            requestMessage.Method.Should().Be(HttpMethod.Post);
+            requestMessage.RequestUri!.PathAndQuery.Should().Be("/api/assets");
 
-                                                         var response = new HttpResponseMessage(HttpStatusCode.Created) {
-                                                                                                                            Content = JsonContent.Create(expectedResponse),
-                                                                                                                        };
-                                                         return Task.FromResult(response);
-                                                     });
+            var response = new HttpResponseMessage(HttpStatusCode.Created) {
+                Content = JsonContent.Create(expectedResponse),
+            };
+            return Task.FromResult(response);
+        });
 
         var httpClient = new HttpClient(mockHandler) {
-                                                         BaseAddress = new("http://host.com"),
-                                                     };
+            BaseAddress = new("http://host.com"),
+        };
         var client = new AssetsClient(httpClient);
 
         // Act
@@ -73,20 +73,20 @@ public class AssetsClientTests {
         // Arrange
         var assetId = Guid.NewGuid();
         var request = new UpdateAssetRequest {
-                                                 Name = "Updated Asset",
-                                             };
+            Name = "Updated Asset",
+        };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
-                                                         requestMessage.Method.Should().Be(HttpMethod.Put);
-                                                         requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/assets/{assetId}");
+            requestMessage.Method.Should().Be(HttpMethod.Put);
+            requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/assets/{assetId}");
 
-                                                         var response = new HttpResponseMessage(HttpStatusCode.OK);
-                                                         return Task.FromResult(response);
-                                                     });
+            var response = new HttpResponseMessage(HttpStatusCode.OK);
+            return Task.FromResult(response);
+        });
 
         var httpClient = new HttpClient(mockHandler) {
-                                                         BaseAddress = new("http://host.com"),
-                                                     };
+            BaseAddress = new("http://host.com"),
+        };
         var client = new AssetsClient(httpClient);
 
         // Act
@@ -102,16 +102,16 @@ public class AssetsClientTests {
         var assetId = Guid.NewGuid();
 
         var mockHandler = new MockHttpMessageHandler((request, _) => {
-                                                         request.Method.Should().Be(HttpMethod.Delete);
-                                                         request.RequestUri!.PathAndQuery.Should().Be($"/api/assets/{assetId}");
+            request.Method.Should().Be(HttpMethod.Delete);
+            request.RequestUri!.PathAndQuery.Should().Be($"/api/assets/{assetId}");
 
-                                                         var response = new HttpResponseMessage(HttpStatusCode.OK);
-                                                         return Task.FromResult(response);
-                                                     });
+            var response = new HttpResponseMessage(HttpStatusCode.OK);
+            return Task.FromResult(response);
+        });
 
         var httpClient = new HttpClient(mockHandler) {
-                                                         BaseAddress = new("http://host.com"),
-                                                     };
+            BaseAddress = new("http://host.com"),
+        };
         var client = new AssetsClient(httpClient);
 
         // Act

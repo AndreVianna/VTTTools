@@ -79,13 +79,21 @@ public class LibraryClientTests {
         var adventureId = Guid.NewGuid();
         var request = new CreateAdventureRequest {
             Name = "New Adventure",
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
-        var expectedResponse = new Adventure {
+        var expectedResponse = new AdventureListItem {
             Id = adventureId,
             Name = "New Adventure",
             OwnerId = Guid.NewGuid(),
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
@@ -116,7 +124,11 @@ public class LibraryClientTests {
         // Arrange
         var request = new CreateAdventureRequest {
             Name = "New Adventure",
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
 
         var mockHandler = new MockHttpMessageHandler((_, _) => {
@@ -146,7 +158,11 @@ public class LibraryClientTests {
         var adventureId = Guid.NewGuid();
         var request = new UpdateAdventureRequest {
             Name = "Updated Adventure",
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
@@ -175,7 +191,11 @@ public class LibraryClientTests {
         var adventureId = Guid.NewGuid();
         var request = new UpdateAdventureRequest {
             Name = "Updated Adventure",
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
         };
 
         var mockHandler = new MockHttpMessageHandler((_, _) => {

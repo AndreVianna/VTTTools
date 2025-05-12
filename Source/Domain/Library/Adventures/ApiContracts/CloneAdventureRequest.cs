@@ -5,10 +5,38 @@ namespace VttTools.Library.Adventures.ApiContracts;
 /// </summary>
 public record CloneAdventureRequest
     : Request {
-    public Optional<Guid> CampaignId { get; init; }
+    /// <summary>
+    /// Campaign ID for the Adventure. If not set, the adventure is not associated with a campaign.
+    /// </summary>
+    public Optional<Guid?> CampaignId { get; init; }
 
     /// <summary>
     /// New name for the Adventure. If not set, name is unchanged.
     /// </summary>
     public Optional<string> Name { get; init; }
+
+    /// <summary>
+    /// Description for the Adventure. If not set, description is copied from source.
+    /// </summary>
+    public Optional<string> Description { get; init; }
+
+    /// <summary>
+    /// Type of Adventure. If not set, type is copied from source.
+    /// </summary>
+    public Optional<AdventureType> Type { get; init; }
+
+    /// <summary>
+    /// Image path for the Adventure. If not set, image path is copied from source.
+    /// </summary>
+    public Optional<string?> ImagePath { get; init; }
+
+    /// <summary>
+    /// Whether the Adventure is visible. Default is false.
+    /// </summary>
+    public Optional<bool> IsVisible { get; init; }
+
+    /// <summary>
+    /// Whether the Adventure is public. Default is false.
+    /// </summary>
+    public Optional<bool> IsPublic { get; init; }
 }

@@ -55,7 +55,12 @@ public class AdventureServiceTests {
         // Arrange
         var request = new CreateAdventureData {
             Name = "New Adventure",
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
+            CampaignId = Guid.NewGuid(),
         };
         _adventureStorage.AddAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>())
             .Returns(x => x.Arg<Adventure>());
@@ -66,7 +71,15 @@ public class AdventureServiceTests {
         // Assert
         result.Should().NotBeNull();
         result.Name.Should().Be(request.Name);
-        result.Visibility.Should().Be(request.Visibility);
+        result.Description.Should().Be(request.Description);
+        result.Type.Should().Be(request.Type);
+        result.ImagePath.Should().Be(request.ImagePath);
+        result.IsVisible.Should().Be(request.IsVisible);
+        result.IsPublic.Should().Be(request.IsPublic);
+        result.ParentId.Should().Be(request.CampaignId);
+        result.TemplateId.Should().Be(Guid.Empty); // Assuming TemplateId is not set during creation
+        result.Id.Should().NotBe(Guid.Empty); // Assuming id is generated
+        result.Scenes.Should().BeEmpty(); // Assuming no scenes are created initially
         result.OwnerId.Should().Be(_userId);
         await _adventureStorage.Received(1).AddAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
     }
@@ -76,7 +89,12 @@ public class AdventureServiceTests {
         // Arrange
         var request = new CreateAdventureData {
             Name = "",
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
+            CampaignId = Guid.NewGuid(),
         };
 
         // Act
@@ -92,7 +110,12 @@ public class AdventureServiceTests {
         // Arrange
         var request = new CreateAdventureData {
             Name = "   ",
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
+            CampaignId = Guid.NewGuid(),
         };
 
         // Act
@@ -108,7 +131,12 @@ public class AdventureServiceTests {
         // Arrange
         var request = new CreateAdventureData {
             Name = null!,
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
+            CampaignId = Guid.NewGuid(),
         };
 
         // Act
@@ -127,11 +155,21 @@ public class AdventureServiceTests {
             Id = adventureId,
             Name = "Old Name",
             OwnerId = _userId,
-            Visibility = Visibility.Private,
+            Description = "Old description",
+            Type = AdventureType.OpenWorld,
+            ImagePath = "path/to/old-image.png",
+            IsVisible = false,
+            IsPublic = true,
+            ParentId = Guid.NewGuid(),
         };
         var request = new UpdateAdventureData {
             Name = "Updated Name",
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
+            CampaignId = Guid.NewGuid(),
         };
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
@@ -144,7 +182,12 @@ public class AdventureServiceTests {
         // Assert
         result.Should().NotBeNull();
         result.Name.Should().Be(request.Name.Value);
-        result.Visibility.Should().Be(request.Visibility.Value);
+        result.Description.Should().Be(request.Description.Value);
+        result.Type.Should().Be(request.Type.Value);
+        result.ImagePath.Should().Be(request.ImagePath.Value);
+        result.IsVisible.Should().Be(request.IsVisible.Value);
+        result.IsPublic.Should().Be(request.IsPublic.Value);
+        result.ParentId.Should().Be(request.CampaignId.Value);
         await _adventureStorage.Received(1).UpdateAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
     }
 
@@ -156,7 +199,12 @@ public class AdventureServiceTests {
             Id = adventureId,
             Name = "Old Name",
             OwnerId = _userId,
-            Visibility = Visibility.Private,
+            Description = "Old description",
+            Type = AdventureType.OpenWorld,
+            ImagePath = "path/to/old-image.png",
+            IsVisible = false,
+            IsPublic = true,
+            ParentId = Guid.NewGuid(),
         };
         var request = new UpdateAdventureData {
             Name = "Updated Name",
@@ -173,7 +221,13 @@ public class AdventureServiceTests {
         // Assert
         result.Should().NotBeNull();
         result.Name.Should().Be(request.Name.Value);
-        result.Visibility.Should().Be(Visibility.Private); // Unchanged
+        result.Description.Should().Be(adventure.Description);
+        result.Type.Should().Be(adventure.Type);
+        result.ImagePath.Should().Be(adventure.ImagePath);
+        result.IsVisible.Should().Be(adventure.IsVisible);
+        result.IsPublic.Should().Be(adventure.IsPublic);
+        result.ParentId.Should().Be(adventure.ParentId);
+
         await _adventureStorage.Received(1).UpdateAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
     }
 
@@ -185,11 +239,16 @@ public class AdventureServiceTests {
             Id = adventureId,
             Name = "Old Name",
             OwnerId = _userId,
-            Visibility = Visibility.Private,
+            Description = "Old description",
+            Type = AdventureType.OpenWorld,
+            ImagePath = "path/to/old-image.png",
+            IsVisible = false,
+            IsPublic = true,
+            ParentId = Guid.NewGuid(),
         };
         var request = new UpdateAdventureData {
             // No Name update
-            Visibility = Visibility.Public,
+            Description = "New description",
         };
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
@@ -201,8 +260,13 @@ public class AdventureServiceTests {
 
         // Assert
         result.Should().NotBeNull();
-        result.Name.Should().Be("Old Name"); // Unchanged
-        result.Visibility.Should().Be(Visibility.Public);
+        result.Name.Should().Be(adventure.Description); // Unchanged
+        result.Description.Should().Be(request.Description.Value);
+        result.Type.Should().Be(adventure.Type);
+        result.ImagePath.Should().Be(adventure.ImagePath);
+        result.IsVisible.Should().Be(adventure.IsVisible);
+        result.IsPublic.Should().Be(adventure.IsPublic);
+        result.ParentId.Should().Be(adventure.ParentId);
         await _adventureStorage.Received(1).UpdateAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
     }
 
@@ -312,7 +376,12 @@ public class AdventureServiceTests {
             Id = adventureId,
             Name = "Adventure",
             OwnerId = _userId,
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
+            ParentId = Guid.NewGuid(),
         };
         var scenes = new[] {
             new Scene {
@@ -352,7 +421,12 @@ public class AdventureServiceTests {
         // Assert
         result.Should().NotBeNull();
         result.Name.Should().Be(adventure.Name);
-        result.Visibility.Should().Be(adventure.Visibility);
+        result.Description.Should().Be(adventure.Description);
+        result.Type.Should().Be(adventure.Type);
+        result.ImagePath.Should().Be(adventure.ImagePath);
+        result.IsVisible.Should().Be(adventure.IsVisible);
+        result.IsPublic.Should().Be(adventure.IsPublic);
+        result.ParentId.Should().Be(adventure.ParentId);
         result.OwnerId.Should().Be(_userId);
         result.TemplateId.Should().Be(adventureId);
 
@@ -368,7 +442,12 @@ public class AdventureServiceTests {
             Id = adventureId,
             Name = "Adventure",
             OwnerId = _userId,
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
+            ParentId = Guid.NewGuid(),
         };
         var request = new CloneAdventureData();
 

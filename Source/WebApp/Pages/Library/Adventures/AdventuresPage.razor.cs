@@ -11,25 +11,23 @@ public partial class AdventuresPage {
     protected override async Task<bool> ConfigureAsync() {
         if (!await base.ConfigureAsync())
             return false;
+
         await Handler.LoadAdventuresAsync(LibraryClient);
         return true;
     }
 
-    internal Task CreateAdventure()
-        => Handler.SaveCreatedAdventure();
+    internal void GoToCreatePage()
+        => NavigationManager.NavigateTo("/adventure/create");
 
-    internal Task ShowEditDialog(Guid advId)
-        => Handler.StartAdventureEditing(advId);
+    private void ApplySearch() => Handler.SetSearchText(State.SearchText);
 
-    internal void HideEditDialog()
-        => Handler.EndAdventureEditing();
+    private void ClearSearch() {
+        State.SearchText = null;
+        Handler.SetSearchText(null);
+    }
 
-    internal Task SaveEdit()
-        => Handler.SaveEditedAdventure();
+    private void ApplyTypeFilter() => Handler.SetFilterType(State.FilterType);
 
     internal Task DeleteAdventure(Guid id)
         => Handler.DeleteAdventure(id);
-
-    internal Task CloneAdventure(Guid id)
-        => Handler.CloneAdventure(id);
 }

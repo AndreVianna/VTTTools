@@ -15,27 +15,53 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
 
     /// <inheritdoc />
     public async Task<Adventure?> CreateAdventureAsync(Guid userId, CreateAdventureData data, CancellationToken ct = default) {
-        if (string.IsNullOrWhiteSpace(data.Name))
+        if (string.IsNullOrWhiteSpace(data.Name) || string.IsNullOrWhiteSpace(data.Description))
             return null;
+
         var adventure = new Adventure {
             OwnerId = userId,
             ParentId = data.CampaignId,
             Name = data.Name,
-            Visibility = data.Visibility,
+            Description = data.Description,
+            Type = data.Type,
+            ImagePath = data.ImagePath,
+            IsVisible = data.IsVisible,
+            IsPublic = data.IsPublic
         };
+
         return await adventureStorage.AddAsync(adventure, ct);
     }
 
     /// <inheritdoc />
     public async Task<Adventure?> CloneAdventureAsync(Guid userId, Guid templateId, CloneAdventureData data, CancellationToken ct = default) {
         var original = await adventureStorage.GetByIdAsync(templateId, ct);
-        if (original?.OwnerId != userId)
+
+        if (original is null)
             return null;
+
         var clone = Cloner.CloneAdventure(original, userId);
+
         if (data.CampaignId.IsSet)
             clone.ParentId = data.CampaignId.Value;
+
         if (data.Name.IsSet)
             clone.Name = data.Name.Value;
+
+        if (data.Description.IsSet)
+            clone.Description = data.Description.Value;
+
+        if (data.Type.IsSet)
+            clone.Type = data.Type.Value;
+
+        if (data.ImagePath.IsSet)
+            clone.ImagePath = data.ImagePath.Value;
+
+        if (data.IsVisible.IsSet)
+            clone.IsVisible = data.IsVisible.Value;
+
+        if (data.IsPublic.IsSet)
+            clone.IsPublic = data.IsPublic.Value;
+
         await adventureStorage.AddAsync(clone, ct);
         return clone;
     }
@@ -43,12 +69,31 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     /// <inheritdoc />
     public async Task<Adventure?> UpdateAdventureAsync(Guid userId, Guid id, UpdateAdventureData data, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
+
         if (adventure?.OwnerId != userId)
             return null;
+
         if (data.Name.IsSet)
             adventure.Name = data.Name.Value;
-        if (data.Visibility.IsSet)
-            adventure.Visibility = data.Visibility.Value;
+
+        if (data.Description.IsSet)
+            adventure.Description = data.Description.Value;
+
+        if (data.Type.IsSet)
+            adventure.Type = data.Type.Value;
+
+        if (data.ImagePath.IsSet)
+            adventure.ImagePath = data.ImagePath.Value;
+
+        if (data.IsVisible.IsSet)
+            adventure.IsVisible = data.IsVisible.Value;
+
+        if (data.IsPublic.IsSet)
+            adventure.IsPublic = data.IsPublic.Value;
+
+        if (data.CampaignId.IsSet)
+            adventure.ParentId = data.CampaignId.Value;
+
         return await adventureStorage.UpdateAsync(adventure, ct);
     }
 

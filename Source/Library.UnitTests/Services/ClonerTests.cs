@@ -13,7 +13,11 @@ public class ClonerTests {
             OwnerId = Guid.NewGuid(), // Different owner
             ParentId = _campaignId,
             Name = "Original Adventure",
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
             Scenes = [],
         };
 
@@ -26,7 +30,12 @@ public class ClonerTests {
         clone.OwnerId.Should().Be(_userId);
         clone.ParentId.Should().Be(_campaignId);
         clone.Name.Should().Be(original.Name);
-        clone.Visibility.Should().Be(original.Visibility);
+        clone.Description.Should().Be(original.Description);
+        clone.Type.Should().Be(original.Type);
+        clone.ImagePath.Should().Be(original.ImagePath);
+        clone.IsVisible.Should().Be(original.IsVisible);
+        clone.IsPublic.Should().Be(original.IsPublic);
+        clone.ParentId.Should().Be(original.ParentId);
         clone.TemplateId.Should().Be(originalId);
     }
 
@@ -39,7 +48,11 @@ public class ClonerTests {
             Id = originalId,
             OwnerId = Guid.NewGuid(),
             Name = "Original Adventure",
-            Visibility = Visibility.Public,
+            Description = "Adventure description",
+            Type = AdventureType.Survival,
+            ImagePath = "path/to/image.png",
+            IsVisible = true,
+            IsPublic = true,
             Scenes = [
                 new() {
                     Id = sceneId,
