@@ -7,10 +7,11 @@ It creates a Virtual Table Top (VTT) RPG Game interface for online play. It prov
 
 ## Key Files (**IMPORTANT!** YOU MUST READ THESE FILES)
 
-* Design/INSTRUCTIONS.md - Agent instructions and coding standards
-* Design/ROADMAP.md - Project roadmap with implementation phases
-* Design/PROJECT_DEFINITION.md - Project description, structure and design.
-* Design/PROJECT_STRUCTURE.md - Current file/folder structure of the project.
+@Design/INSTRUCTIONS.md - Agent instructions and coding standards
+@Design/ROADMAP.md - Project roadmap with implementation phases
+@Design/PROJECT_DEFINITION.md - Project description, structure and design.
+@Design/PROJECT_STRUCTURE.md - Current file/folder structure of the project.
+@TASK.md - Definition of the current task.
 
 ## Memory
 

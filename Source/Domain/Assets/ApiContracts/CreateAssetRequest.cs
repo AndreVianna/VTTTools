@@ -1,8 +1,20 @@
 namespace VttTools.Assets.ApiContracts;
 
-/// <inheritdoc />
+/// <summary>
+/// Request to create a new Asset template.
+/// </summary>
 public record CreateAssetRequest
-    : CreateTemplateRequest<Asset> {
+    : Request {
+    /// <summary>
+    /// The name for the new Asset. If not set, name is unchanged.
+    /// </summary>
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary>
+    /// The visibility setting for the new Asset. If not set, visibility is unchanged.
+    /// </summary>
+    public Visibility Visibility { get; set; }
+
     /// <summary>
     /// Type of the asset (e.g., Character, Object).
     /// </summary>

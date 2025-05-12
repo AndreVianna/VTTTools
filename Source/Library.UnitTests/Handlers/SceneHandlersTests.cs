@@ -126,7 +126,7 @@ public class SceneHandlersTests {
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
         var request = new AddSceneAssetRequest {
-            Id = assetId,
+            AssetId = assetId,
             Name = "Asset Name",
             Position = new() { Left = 20, Top = 30 },
             Scale = 1,
@@ -148,7 +148,7 @@ public class SceneHandlersTests {
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
         var request = new AddSceneAssetRequest {
-            Id = assetId,
+            AssetId = assetId,
             Name = "Asset Name",
             Position = new() { Left = 20, Top = 30 },
             Scale = 1,

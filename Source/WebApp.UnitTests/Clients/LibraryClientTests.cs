@@ -137,7 +137,7 @@ public class LibraryClientTests {
         // Assert
         result.IsSuccessful.Should().BeFalse();
         result.Errors.Should().HaveCount(1);
-        result.Errors.First().Message.Should().Be("Failed to create adventure.");
+        result.Errors[0].Message.Should().Be("Failed to create adventure.");
     }
 
     [Fact]
@@ -194,7 +194,7 @@ public class LibraryClientTests {
         // Assert
         result.IsSuccessful.Should().BeFalse();
         result.Errors.Should().HaveCount(1);
-        result.Errors.First().Message.Should().Be("Failed to update adventure.");
+        result.Errors[0].Message.Should().Be("Failed to update adventure.");
     }
 
     [Fact]
@@ -377,7 +377,7 @@ public class LibraryClientTests {
         var originalId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
         var request = new AddClonedSceneRequest {
-            Id = originalId,
+            SceneId = originalId,
             Name = "Updated Scene",
         };
         var expectedResponse = new Scene {

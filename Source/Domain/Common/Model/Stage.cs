@@ -1,6 +1,6 @@
 ﻿namespace VttTools.Common.Model;
 
-public class Stage {
+public record Stage {
     public StageMapType MapType { get; set; }
     [MaxLength(512)]
     public string Source { get; set; } = string.Empty;

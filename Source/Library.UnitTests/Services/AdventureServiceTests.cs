@@ -53,7 +53,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CreateAdventureAsync_CreatesNewAdventure() {
         // Arrange
-        var request = new CreateAdventureRequest {
+        var request = new CreateAdventureData {
             Name = "New Adventure",
             Visibility = Visibility.Public,
         };
@@ -74,7 +74,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CreateAdventureAsync_WithEmptyName_ReturnsNull() {
         // Arrange
-        var request = new CreateAdventureRequest {
+        var request = new CreateAdventureData {
             Name = "",
             Visibility = Visibility.Public,
         };
@@ -90,7 +90,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CreateAdventureAsync_WithWhitespaceName_ReturnsNull() {
         // Arrange
-        var request = new CreateAdventureRequest {
+        var request = new CreateAdventureData {
             Name = "   ",
             Visibility = Visibility.Public,
         };
@@ -106,7 +106,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CreateAdventureAsync_WithNullName_ReturnsNull() {
         // Arrange
-        var request = new CreateAdventureRequest {
+        var request = new CreateAdventureData {
             Name = null!,
             Visibility = Visibility.Public,
         };
@@ -129,7 +129,7 @@ public class AdventureServiceTests {
             OwnerId = _userId,
             Visibility = Visibility.Private,
         };
-        var request = new UpdateAdventureRequest {
+        var request = new UpdateAdventureData {
             Name = "Updated Name",
             Visibility = Visibility.Public,
         };
@@ -158,7 +158,7 @@ public class AdventureServiceTests {
             OwnerId = _userId,
             Visibility = Visibility.Private,
         };
-        var request = new UpdateAdventureRequest {
+        var request = new UpdateAdventureData {
             Name = "Updated Name",
             // No Visibility update
         };
@@ -187,7 +187,7 @@ public class AdventureServiceTests {
             OwnerId = _userId,
             Visibility = Visibility.Private,
         };
-        var request = new UpdateAdventureRequest {
+        var request = new UpdateAdventureData {
             // No Name update
             Visibility = Visibility.Public,
         };
@@ -216,7 +216,7 @@ public class AdventureServiceTests {
             Name = "Adventure",
             OwnerId = _userId,
         };
-        var request = new UpdateAdventureRequest {
+        var request = new UpdateAdventureData {
             Name = "Updated Name",
         };
 
@@ -234,7 +234,7 @@ public class AdventureServiceTests {
     public async Task UpdateAdventureAsync_WithNonExistentAdventure_ReturnsNull() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var request = new UpdateAdventureRequest {
+        var request = new UpdateAdventureData {
             Name = "Updated Name",
         };
 
@@ -339,7 +339,7 @@ public class AdventureServiceTests {
                 ],
             },
         };
-        var request = new CloneAdventureRequest();
+        var request = new CloneAdventureData();
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
         _sceneStorage.GetByParentIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(scenes);
@@ -370,7 +370,7 @@ public class AdventureServiceTests {
             OwnerId = _userId,
             Visibility = Visibility.Public,
         };
-        var request = new CloneAdventureRequest();
+        var request = new CloneAdventureData();
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
 
@@ -387,7 +387,7 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
-        var request = new CloneAdventureRequest();
+        var request = new CloneAdventureData();
 
         // Act
         var result = await _service.CloneAdventureAsync(_userId, adventureId, request, _ct);
@@ -420,8 +420,8 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new AddClonedSceneRequest {
-            Id = sceneId,
+        var request = new AddClonedSceneData {
+            SceneId = sceneId,
             Name = "New Scene",
         };
         var adventure = new Adventure {
@@ -452,8 +452,8 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new AddClonedSceneRequest {
-            Id = sceneId,
+        var request = new AddClonedSceneData {
+            SceneId = sceneId,
             Name = "New Scene",
         };
         var nonOwnerId = Guid.NewGuid();
@@ -478,8 +478,8 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new AddClonedSceneRequest {
-            Id = sceneId,
+        var request = new AddClonedSceneData {
+            SceneId = sceneId,
             Name = "New Scene",
         };
 
@@ -498,8 +498,8 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new AddClonedSceneRequest {
-            Id = sceneId,
+        var request = new AddClonedSceneData {
+            SceneId = sceneId,
             Name = "New Scene",
         };
         var adventure = new Adventure {

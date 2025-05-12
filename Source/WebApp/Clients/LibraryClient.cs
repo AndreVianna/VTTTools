@@ -2,25 +2,46 @@
 
 internal class LibraryClient(HttpClient client)
     : ILibraryClient {
-    public async Task<Adventure[]> GetAdventuresAsync() {
-        var adventures = await client.GetFromJsonAsync<Adventure[]>("/api/adventures");
-        return adventures ?? [];
+    public async Task<AdventureListItem[]> GetAdventuresAsync() {
+        var adventures = await client.GetFromJsonAsync<Adventure[]>("/api/adventures") ?? [];
+        return [.. adventures.Select(adventure => new AdventureListItem {
+            Id = adventure.Id,
+            Name = adventure.Name,
+            Visibility = adventure.Visibility,
+        })];
     }
 
-    public async Task<Result<Adventure>> CreateAdventureAsync(CreateAdventureRequest request) {
+    public async Task<AdventureInputModel?> GetAdventureByIdAsync(Guid id) {
+        var adventure = await client.GetFromJsonAsync<Adventure>($"/api/adventures/{id}");
+        return adventure == null ? null : new() {
+            Id = adventure.Id,
+            Name = adventure.Name,
+            Visibility = adventure.Visibility,
+        };
+    }
+
+    public async Task<Result<AdventureInputModel>> CreateAdventureAsync(CreateAdventureRequest request) {
         var response = await client.PostAsJsonAsync("/api/adventures", request);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to create adventure.");
-        var adventure = await response.Content.ReadFromJsonAsync<Adventure>();
-        return adventure!;
+        var adventure = IsNotNull(await response.Content.ReadFromJsonAsync<Adventure>());
+        return new AdventureInputModel {
+            Id = adventure.Id,
+            Name = adventure.Name,
+            Visibility = adventure.Visibility,
+        };
     }
 
-    public async Task<Result<Adventure>> CloneAdventureAsync(Guid id, CloneAdventureRequest request) {
+    public async Task<Result<AdventureInputModel>> CloneAdventureAsync(Guid id, CloneAdventureRequest request) {
         var response = await client.PostAsJsonAsync($"/api/adventures/{id}/clone", request);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to clone adventure.");
         var adventure = await response.Content.ReadFromJsonAsync<Adventure>();
-        return adventure!;
+        return new AdventureInputModel {
+            Id = adventure!.Id,
+            Name = adventure.Name,
+            Visibility = adventure.Visibility,
+        };
     }
 
     public async Task<Result> UpdateAdventureAsync(Guid id, UpdateAdventureRequest request) {

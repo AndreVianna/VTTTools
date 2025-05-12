@@ -14,7 +14,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
         => adventureStorage.GetByIdAsync(id, ct);
 
     /// <inheritdoc />
-    public async Task<Adventure?> CreateAdventureAsync(Guid userId, CreateAdventureRequest data, CancellationToken ct = default) {
+    public async Task<Adventure?> CreateAdventureAsync(Guid userId, CreateAdventureData data, CancellationToken ct = default) {
         if (string.IsNullOrWhiteSpace(data.Name))
             return null;
         var adventure = new Adventure {
@@ -27,7 +27,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     }
 
     /// <inheritdoc />
-    public async Task<Adventure?> CloneAdventureAsync(Guid userId, Guid templateId, CloneAdventureRequest data, CancellationToken ct = default) {
+    public async Task<Adventure?> CloneAdventureAsync(Guid userId, Guid templateId, CloneAdventureData data, CancellationToken ct = default) {
         var original = await adventureStorage.GetByIdAsync(templateId, ct);
         if (original?.OwnerId != userId)
             return null;
@@ -41,7 +41,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     }
 
     /// <inheritdoc />
-    public async Task<Adventure?> UpdateAdventureAsync(Guid userId, Guid id, UpdateAdventureRequest data, CancellationToken ct = default) {
+    public async Task<Adventure?> UpdateAdventureAsync(Guid userId, Guid id, UpdateAdventureData data, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
         if (adventure?.OwnerId != userId)
             return null;
@@ -64,7 +64,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
         => sceneStorage.GetByParentIdAsync(id, ct);
 
     /// <inheritdoc />
-    public async Task<bool> CreateSceneAsync(Guid userId, Guid id, CreateSceneRequest data, CancellationToken ct = default) {
+    public async Task<bool> CreateSceneAsync(Guid userId, Guid id, CreateSceneData data, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
         if (adventure?.OwnerId != userId)
             return false;
@@ -82,11 +82,11 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     }
 
     /// <inheritdoc />
-    public async Task<bool> AddClonedSceneAsync(Guid userId, Guid id, AddClonedSceneRequest data, CancellationToken ct = default) {
+    public async Task<bool> AddClonedSceneAsync(Guid userId, Guid id, AddClonedSceneData data, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
         if (adventure?.OwnerId != userId)
             return false;
-        var scene = await sceneStorage.GetByIdAsync(data.Id, ct);
+        var scene = await sceneStorage.GetByIdAsync(data.SceneId, ct);
         if (scene is null)
             return false;
         var clone = Cloner.CloneScene(scene, adventure.Id, userId);

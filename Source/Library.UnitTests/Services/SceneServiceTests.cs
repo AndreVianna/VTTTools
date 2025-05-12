@@ -213,9 +213,9 @@ public class SceneServiceTests {
             SceneAssets = [],
         };
         var data = new AddSceneAssetData {
-            Id = assetId,
+            AssetId = assetId,
             Name = "New Asset",
-            Position = new() { Left = 5, Top = 5 },
+            Position = new Position { Left = 5, Top = 5 },
             Scale = 1.5f,
         };
 
@@ -231,9 +231,9 @@ public class SceneServiceTests {
         scene.SceneAssets.Should().ContainSingle();
         var addedAsset = scene.SceneAssets[0];
         addedAsset.AssetId.Should().Be(assetId);
-        addedAsset.Name.Should().Be(data.Name);
-        addedAsset.Position.Should().BeEquivalentTo(data.Position);
-        addedAsset.Scale.Should().Be(data.Scale);
+        addedAsset.Name.Should().Be(data.Name.Value);
+        addedAsset.Position.Should().BeEquivalentTo(data.Position.Value);
+        addedAsset.Scale.Should().Be(data.Scale.Value);
         addedAsset.IsLocked.Should().BeFalse();
         await _sceneStorage.Received(1).UpdateAsync(scene, Arg.Any<CancellationToken>());
     }
@@ -251,9 +251,9 @@ public class SceneServiceTests {
             SceneAssets = [],
         };
         var data = new AddSceneAssetData {
-            Id = assetId,
+            AssetId = assetId,
             Name = "New Asset",
-            Position = new() { Left = 5, Top = 5 },
+            Position = new Position { Left = 5, Top = 5 },
             Scale = 1.5f,
         };
 
@@ -274,9 +274,9 @@ public class SceneServiceTests {
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
         var data = new AddSceneAssetData {
-            Id = assetId,
+            AssetId = assetId,
             Name = "New Asset",
-            Position = new() { Left = 5, Top = 5 },
+            Position = new Position { Left = 5, Top = 5 },
             Scale = 1.5f,
         };
 

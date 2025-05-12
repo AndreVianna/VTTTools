@@ -28,6 +28,7 @@ global using VttTools.Data.Library;
 global using VttTools.Extensions;
 global using VttTools.Library.Adventures.ApiContracts;
 global using VttTools.Library.Adventures.Model;
+global using VttTools.Library.Adventures.ServiceContracts;
 global using VttTools.Library.Adventures.Services;
 global using VttTools.Library.Adventures.Storage;
 global using VttTools.Library.Scenes.ApiContracts;

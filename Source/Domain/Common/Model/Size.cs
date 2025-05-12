@@ -1,6 +1,6 @@
 ﻿namespace VttTools.Common.Model;
 
-public class Size {
+public record Size {
     public double Width { get; set; }
     public double Height { get; set; }
 }

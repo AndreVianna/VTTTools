@@ -138,7 +138,7 @@ public class GameClientTests {
         // Assert
         result.IsSuccessful.Should().BeFalse();
         result.Errors.Should().HaveCount(1);
-        result.Errors.First().Message.Should().Be("Failed to create session.");
+        result.Errors[0].Message.Should().Be("Failed to create session.");
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public class GameClientTests {
         // Assert
         result.IsSuccessful.Should().BeFalse();
         result.Errors.Should().HaveCount(1);
-        result.Errors.First().Message.Should().Be("Failed to update session.");
+        result.Errors[0].Message.Should().Be("Failed to update session.");
     }
 
     [Fact]

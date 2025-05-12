@@ -1,9 +1,10 @@
 ﻿namespace VttTools.WebApp.Clients;
 
 public interface ILibraryClient {
-    Task<Adventure[]> GetAdventuresAsync();
-    Task<Result<Adventure>> CreateAdventureAsync(CreateAdventureRequest request);
-    Task<Result<Adventure>> CloneAdventureAsync(Guid id, CloneAdventureRequest request);
+    Task<AdventureListItem[]> GetAdventuresAsync();
+    Task<AdventureInputModel?> GetAdventureByIdAsync(Guid id);
+    Task<Result<AdventureInputModel>> CreateAdventureAsync(CreateAdventureRequest request);
+    Task<Result<AdventureInputModel>> CloneAdventureAsync(Guid id, CloneAdventureRequest request);
     Task<Result> UpdateAdventureAsync(Guid id, UpdateAdventureRequest request);
     Task<bool> DeleteAdventureAsync(Guid id);
     Task<Result<Scene>> CreateSceneAsync(Guid id, CreateSceneRequest request);

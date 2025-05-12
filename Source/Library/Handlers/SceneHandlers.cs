@@ -24,7 +24,7 @@ internal static class SceneHandlers {
     internal static async Task<IResult> AddAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddSceneAssetRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var data = new AddSceneAssetData {
-            Id = request.Id,
+            AssetId = request.AssetId,
             Position = request.Position,
         };
         var added = await sceneService.AddAssetAsync(userId, id, data);

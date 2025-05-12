@@ -6,7 +6,7 @@ public class AddSceneAssetDataTests {
         // Arrange
         var original = new AddSceneAssetData {
             Name = "Asset Name",
-            Position = new() { Left = 10, Top = 20 },
+            Position = new Position() { Left = 10, Top = 20 },
             Scale = 1.5,
         };
         const string name = "Other Name";
@@ -32,7 +32,7 @@ public class AddSceneAssetDataTests {
         // Arrange
         var data = new AddSceneAssetData {
             Name = "Asset Name",
-            Position = new() { Left = 10, Top = 20 },
+            Position = new Position() { Left = 10, Top = 20 },
             Scale = 1.5,
         };
 

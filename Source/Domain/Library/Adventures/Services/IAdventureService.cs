@@ -26,7 +26,7 @@ public interface IAdventureService {
     /// <param name="data">The data containing adventure details.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>An adventure associated with the specified ID.</returns>
-    Task<Adventure?> CreateAdventureAsync(Guid userId, CreateAdventureRequest data, CancellationToken ct = default);
+    Task<Adventure?> CreateAdventureAsync(Guid userId, CreateAdventureData data, CancellationToken ct = default);
 
     /// <summary>
     /// Updates an existing adventure template.
@@ -36,7 +36,7 @@ public interface IAdventureService {
     /// <param name="data">The data containing adventure details.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>An adventure associated with the specified ID.</returns>
-    Task<Adventure?> UpdateAdventureAsync(Guid userId, Guid id, UpdateAdventureRequest data, CancellationToken ct = default);
+    Task<Adventure?> UpdateAdventureAsync(Guid userId, Guid id, UpdateAdventureData data, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes an adventure template.
@@ -55,7 +55,7 @@ public interface IAdventureService {
     /// <param name="data">The data for cloned adventure.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>The new cloned adventure.</returns>
-    Task<Adventure?> CloneAdventureAsync(Guid userId, Guid templateId, CloneAdventureRequest data, CancellationToken ct = default);
+    Task<Adventure?> CloneAdventureAsync(Guid userId, Guid templateId, CloneAdventureData data, CancellationToken ct = default);
 
     /// <summary>
     /// Gets all scenes for a specific adventure by ID.
@@ -73,7 +73,7 @@ public interface IAdventureService {
     /// <param name="data">The data for the new scene.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>True if the scene was added; otherwise, false.</returns>
-    Task<bool> CreateSceneAsync(Guid userId, Guid id, CreateSceneRequest data, CancellationToken ct = default);
+    Task<bool> CreateSceneAsync(Guid userId, Guid id, CreateSceneData data, CancellationToken ct = default);
 
     /// <summary>
     /// Adds a cloned scene to a specific adventure by ID.
@@ -83,7 +83,7 @@ public interface IAdventureService {
     /// <param name="data">The data for the cloned scene.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>True if the scene was added; otherwise, false.</returns>
-    Task<bool> AddClonedSceneAsync(Guid userId, Guid id, AddClonedSceneRequest data, CancellationToken ct = default);
+    Task<bool> AddClonedSceneAsync(Guid userId, Guid id, AddClonedSceneData data, CancellationToken ct = default);
 
     /// <summary>
     /// Removes an scene to a specific adventure by ID.

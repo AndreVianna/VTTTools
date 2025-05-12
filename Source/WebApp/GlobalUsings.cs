@@ -54,7 +54,10 @@ global using VttTools.WebApp.Components;
 global using VttTools.WebApp.Extensions;
 global using VttTools.WebApp.Pages.Account;
 global using VttTools.WebApp.Pages.Account.Manage;
+global using VttTools.WebApp.Pages.Library.Adventures.Models;
 global using VttTools.WebApp.Utilities;
+
+global using static DotNetToolbox.Ensure;
 
 global using GameSession = VttTools.Game.Sessions.Model.GameSession;
 global using InputError = DotNetToolbox.Error;

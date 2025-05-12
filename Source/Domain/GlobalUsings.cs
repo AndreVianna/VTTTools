@@ -19,6 +19,7 @@ global using VttTools.Game.Sessions.Model;
 global using VttTools.Game.Sessions.ServiceContracts;
 global using VttTools.Library.Adventures.ApiContracts;
 global using VttTools.Library.Adventures.Model;
+global using VttTools.Library.Adventures.ServiceContracts;
 global using VttTools.Library.Campaigns.Model;
 global using VttTools.Library.Epics.Model;
 global using VttTools.Library.Scenes.ApiContracts;

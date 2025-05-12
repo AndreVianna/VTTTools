@@ -3,6 +3,7 @@
 - CLAUDE.md
 - CODEX.md
 - README.md
+- TASK.md
 - VTTTools.sln
 - **.claude**
   - settings.json
@@ -130,6 +131,9 @@
       - **Model**
         - Asset.cs
         - AssetType.cs
+      - **ServiceContracts**
+        - CreateAssetData.cs
+        - UpdateAssetData.cs
       - **Services**
         - IAssetService.cs
         - IMediaService.cs
@@ -137,11 +141,8 @@
         - IAssetStorage.cs
     - **Common**
       - **ApiContracts**
-        - CloneTemplateRequest.cs
-        - CreateTemplateRequest.cs
         - Request.cs
         - Response.cs
-        - UpdateTemplateRequest.cs
       - **Model**
         - CellType.cs
         - DiceRoll.cs
@@ -152,9 +153,7 @@
         - StageMapType.cs
         - Visibility.cs
       - **ServiceContracts**
-        - CreateTemplateData.cs
         - Data.cs
-        - UpdateTemplateData.cs
     - **Game**
       - **Sessions**
         - **ApiContracts**
@@ -197,6 +196,11 @@
           - UpdateAdventureRequest.cs
         - **Model**
           - Adventure.cs
+        - **ServiceContracts**
+          - AddClonedSceneData.cs
+          - CloneAdventureData.cs
+          - CreateAdventureData.cs
+          - UpdateAdventureData.cs
         - **Services**
           - IAdventureService.cs
         - **Storage**
@@ -219,7 +223,10 @@
           - SceneAsset.cs
         - **ServiceContracts**
           - AddSceneAssetData.cs
+          - CloneSceneData.cs
+          - CreateSceneData.cs
           - UpdateSceneAssetData.cs
+          - UpdateSceneData.cs
         - **Services**
           - ISceneService.cs
         - **Storage**
@@ -239,6 +246,7 @@
         - AssetTypeTests.cs
     - **Common**
       - **ApiContracts**
+        - RequestTests.cs
         - ResponseTests.cs
       - **Model**
         - CellTypeTests.cs
@@ -249,8 +257,7 @@
         - StageTests.cs
         - VisibilityTests.cs
       - **ServiceContracts**
-        - CreateTemplateDataTests.cs
-        - UpdateTemplateDataTests.cs
+        - DataTests.cs
     - **Game**
       - **Sessions**
         - **ApiContracts**
@@ -493,41 +500,48 @@
         - AssetsPage.razor.handler.cs
         - AssetsPage.razor.input.cs
         - AssetsPage.razor.state.cs
-      - **GameSessions**
+      - **Game**
         - _Imports.razor
-        - GameSessionChatPage.razor
-        - GameSessionChatPage.razor.cs
-        - GameSessionChatPage.razor.handler.cs
-        - GameSessionChatPage.razor.input.cs
-        - GameSessionChatPage.razor.state.cs
-        - GameSessionPage.razor
-        - GameSessionPage.razor.cs
-        - GameSessionPage.razor.handler.cs
-        - GameSessionPage.razor.input.cs
-        - GameSessionPage.razor.state.cs
-        - GameSessionsPage.razor
-        - GameSessionsPage.razor.cs
-        - GameSessionsPage.razor.handler.cs
-        - GameSessionsPage.razor.input.cs
-        - GameSessionsPage.razor.state.cs
+        - **Chat**
+          - GameSessionChatPage.razor
+          - GameSessionChatPage.razor.cs
+          - GameSessionChatPage.razor.handler.cs
+          - GameSessionChatPage.razor.input.cs
+          - GameSessionChatPage.razor.state.cs
+          - **Models**
+            - ChatMessage.cs
+            - ChatMessageDirection.cs
+        - **Schedule**
+          - GameSessionPage.razor
+          - GameSessionPage.razor.cs
+          - GameSessionPage.razor.handler.cs
+          - GameSessionPage.razor.input.cs
+          - GameSessionPage.razor.state.cs
+          - GameSessionsPage.razor
+          - GameSessionsPage.razor.cs
+          - GameSessionsPage.razor.handler.cs
+          - GameSessionsPage.razor.input.cs
+          - GameSessionsPage.razor.state.cs
       - **Library**
         - _Imports.razor
-        - AdventuresPage.razor
-        - AdventuresPage.razor.cs
-        - AdventuresPage.razor.handler.cs
-        - AdventuresPage.razor.input.cs
-        - AdventuresPage.razor.state.cs
-        - ScenesPage.razor
-        - ScenesPage.razor.cs
-        - ScenesPage.razor.handler.cs
-        - ScenesPage.razor.input.cs
-        - ScenesPage.razor.state.cs
+        - **Adventures**
+          - AdventuresPage.razor
+          - AdventuresPage.razor.cs
+          - **Handlers**
+            - AdventuresHandler.cs
+          - **Models**
+            - AdventureInputModel.cs
+            - AdventureListItem.cs
+            - AdventuresPageState.cs
+        - **Scenes**
+          - ScenesPage.razor
+          - ScenesPage.razor.cs
+          - ScenesPage.razor.handler.cs
+          - ScenesPage.razor.input.cs
+          - ScenesPage.razor.state.cs
     - **Utilities**
       - IdentityNoOpEmailSender.cs
       - IdentityRevalidatingAuthenticationStateProvider.cs
-    - **ViewModels**
-      - ChatMessage.cs
-      - ChatMessageDirection.cs
     - **wwwroot**
   - **WebApp.Abstractions**
     - GlobalUsings.cs
@@ -600,17 +614,21 @@
         - AssetsPageHandlerTests.cs
         - AssetsPageTests.cs
       - **Game**
-        - GameSessionChatPageHandlerTests.cs
-        - GameSessionChatPageTests.cs
-        - GameSessionPageHandlerTests.cs
-        - GameSessionPageTests.cs
-        - GameSessionsPageHandlerTests.cs
-        - GameSessionsPageTests.cs
+        - **Chat**
+          - GameSessionChatPageHandlerTests.cs
+          - GameSessionChatPageTests.cs
+        - **Schedule**
+          - GameSessionPageHandlerTests.cs
+          - GameSessionPageTests.cs
+          - GameSessionsPageHandlerTests.cs
+          - GameSessionsPageTests.cs
       - **Library**
-        - AdventuresPageHandlerTests.cs
-        - AdventuresPageTests.cs
-        - ScenesPageHandlerTests.cs
-        - ScenesPageTests.cs
+        - **Adventures**
+          - AdventuresPageHandlerTests.cs
+          - AdventuresPageTests.cs
+        - **Scenes**
+          - ScenesPageHandlerTests.cs
+          - ScenesPageTests.cs
     - **TestUtilities**
       - ComponentTestContext.cs
 - **Utilities**

@@ -72,7 +72,7 @@ public class AdventureHandlersTests {
         var request = new CreateAdventureRequest { Name = "New Adventure" };
         var adventure = new Adventure { Id = Guid.NewGuid(), Name = "New Adventure", OwnerId = _userId };
 
-        _adventureService.CreateAdventureAsync(_userId, request, Arg.Any<CancellationToken>())
+        _adventureService.CreateAdventureAsync(_userId, Arg.Any<CreateAdventureData>(), Arg.Any<CancellationToken>())
             .Returns(adventure);
 
         // Act
@@ -89,7 +89,7 @@ public class AdventureHandlersTests {
         // Arrange
         var request = new CreateAdventureRequest { Name = "New Adventure" };
 
-        _adventureService.CreateAdventureAsync(_userId, request, Arg.Any<CancellationToken>())
+        _adventureService.CreateAdventureAsync(_userId, Arg.Any<CreateAdventureData>(), Arg.Any<CancellationToken>())
             .Returns((Adventure?)null);
 
         // Act
@@ -106,7 +106,7 @@ public class AdventureHandlersTests {
         var request = new UpdateAdventureRequest { Name = "Updated Adventure" };
         var adventure = new Adventure { Id = adventureId, Name = "Updated Adventure", OwnerId = _userId };
 
-        _adventureService.UpdateAdventureAsync(_userId, adventureId, request, Arg.Any<CancellationToken>())
+        _adventureService.UpdateAdventureAsync(_userId, adventureId, Arg.Any<UpdateAdventureData>(), Arg.Any<CancellationToken>())
             .Returns(adventure);
 
         // Act
@@ -123,7 +123,7 @@ public class AdventureHandlersTests {
         var adventureId = Guid.NewGuid();
         var request = new UpdateAdventureRequest { Name = "Updated Adventure" };
 
-        _adventureService.UpdateAdventureAsync(_userId, adventureId, request, Arg.Any<CancellationToken>())
+        _adventureService.UpdateAdventureAsync(_userId, adventureId, Arg.Any<UpdateAdventureData>(), Arg.Any<CancellationToken>())
             .Returns((Adventure?)null);
 
         // Act
@@ -170,7 +170,7 @@ public class AdventureHandlersTests {
         var clonedAdventure = new Adventure { Id = Guid.NewGuid(), Name = "Cloned Adventure", OwnerId = _userId };
         var request = new CloneAdventureRequest();
 
-        _adventureService.CloneAdventureAsync(_userId, adventureId, Arg.Any<CloneAdventureRequest>(), Arg.Any<CancellationToken>())
+        _adventureService.CloneAdventureAsync(_userId, adventureId, Arg.Any<CloneAdventureData>(), Arg.Any<CancellationToken>())
             .Returns(clonedAdventure);
 
         // Act
@@ -188,7 +188,7 @@ public class AdventureHandlersTests {
         var adventureId = Guid.NewGuid();
         var request = new CloneAdventureRequest();
 
-        _adventureService.CloneAdventureAsync(_userId, adventureId, Arg.Any<CloneAdventureRequest>(), Arg.Any<CancellationToken>())
+        _adventureService.CloneAdventureAsync(_userId, adventureId, Arg.Any<CloneAdventureData>(), Arg.Any<CancellationToken>())
             .Returns((Adventure?)null);
 
         // Act
@@ -222,10 +222,9 @@ public class AdventureHandlersTests {
     public async Task AddSceneHandler_WithValidRequest_ReturnsCreatedResult() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var clonedScene = new Scene { Id = Guid.NewGuid(), Name = "Cloned Scene", ParentId = adventureId };
         var request = new AddClonedSceneRequest();
 
-        _adventureService.AddClonedSceneAsync(_userId, adventureId, Arg.Any<AddClonedSceneRequest>(), Arg.Any<CancellationToken>())
+        _adventureService.AddClonedSceneAsync(_userId, adventureId, Arg.Any<AddClonedSceneData>(), Arg.Any<CancellationToken>())
             .Returns(true);
 
         // Act
@@ -241,7 +240,7 @@ public class AdventureHandlersTests {
         var adventureId = Guid.NewGuid();
         var request = new AddClonedSceneRequest();
 
-        _adventureService.AddClonedSceneAsync(_userId, adventureId, Arg.Any<AddClonedSceneRequest>(), Arg.Any<CancellationToken>())
+        _adventureService.AddClonedSceneAsync(_userId, adventureId, Arg.Any<AddClonedSceneData>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
         // Act

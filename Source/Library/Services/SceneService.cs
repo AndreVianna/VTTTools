@@ -34,10 +34,10 @@ public class SceneService(ISceneStorage sceneStorage)
         if (scene?.OwnerId != userId)
             return false;
         var sceneAsset = new SceneAsset {
-            AssetId = data.Id,
-            Name = data.Name,
-            Position = data.Position,
-            Scale = data.Scale,
+            AssetId = data.AssetId,
+            Name = data.Name.IsSet ? data.Name.Value : scene.Name,
+            Position = data.Position.IsSet ? data.Position.Value : new(),
+            Scale = data.Scale.IsSet ? data.Scale.Value : 1.0d,
             IsLocked = false,
         };
         scene.SceneAssets.Add(sceneAsset);
