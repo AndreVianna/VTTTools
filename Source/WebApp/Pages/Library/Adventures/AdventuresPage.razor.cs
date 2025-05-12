@@ -5,8 +5,6 @@ public partial class AdventuresPage {
     internal ILibraryClient LibraryClient { get; set; } = null!;
 
     internal AdventuresPageState State => Handler.State;
-    internal AdventureInputModel CreateInput => Handler.State.CreateInput;
-    internal AdventureInputModel EditInput => Handler.State.EditInput;
 
     protected override async Task<bool> ConfigureAsync() {
         if (!await base.ConfigureAsync())
@@ -26,7 +24,8 @@ public partial class AdventuresPage {
         Handler.SetSearchText(null);
     }
 
-    private void ApplyTypeFilter() => Handler.SetFilterType(State.FilterType);
+    private void ApplyTypeFilter()
+        => Handler.SetFilterType(State.FilterType);
 
     internal Task DeleteAdventure(Guid id)
         => Handler.DeleteAdventure(id);

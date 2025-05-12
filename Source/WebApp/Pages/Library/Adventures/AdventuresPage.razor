@@ -1,6 +1,6 @@
 @page "/adventures"
 @inherits AuthenticatedPage<AdventuresHandler>
-@rendermode InteractiveServer
+@rendermode InteractiveAuto
 
 <PageTitle>Adventures</PageTitle>
 
@@ -35,7 +35,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <select class="form-select" @bind="State.FilterType">
+            <select class="form-select" @bind="State.FilterType" @onchange="ApplyTypeFilter">
                 <option value="">All Adventure Types</option>
                 @foreach (var type in Enum.GetValues<AdventureType>())
                 {
@@ -373,28 +373,6 @@
             }
         </div>
     }
+
 </div>
 
-<style>
-    .adventure-card-img {
-        height: 150px;
-        background-size: cover;
-        background-position: center;
-        position: relative;
-    }
-
-    .adventure-card-placeholder {
-        background-color: #6c757d;
-    }
-
-    .adventure-card-type {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        padding: 0.5rem;
-        background-color: rgba(0, 0, 0, 0.7);
-        color: white;
-        font-size: 0.9rem;
-    }
-</style>
