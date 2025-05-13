@@ -4,12 +4,11 @@ public partial class AssetsPage {
     [Inject]
     internal IAssetsClient AssetsClient { get; set; } = null!;
 
-    internal AssetsPageState State => Handler.State;
-    internal AssetsInputModel Input => Handler.State.Input;
+    internal AssetsPageState State { get; set; } = new();
+    internal AssetsInputModel Input => State.Input;
 
     protected override async Task<bool> ConfigureAsync() {
-        if (!await base.ConfigureAsync())
-            return false;
+        await base.ConfigureAsync();
         await Handler.LoadAssetsAsync(AssetsClient);
         return true;
     }

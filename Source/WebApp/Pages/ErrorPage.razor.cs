@@ -1,5 +1,5 @@
 namespace VttTools.WebApp.Pages;
 
 public partial class ErrorPage {
-    internal ErrorPageState State => Handler.State;
+    internal ErrorPageState State { get; set; } = new();
 }

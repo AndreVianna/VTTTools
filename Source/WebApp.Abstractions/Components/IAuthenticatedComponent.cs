@@ -4,4 +4,5 @@ public interface IAuthenticatedComponent
     : IComponent {
     Guid UserId { get; }
     string UserDisplayName { get; }
+    bool UserIsAdministrator { get; }
 }

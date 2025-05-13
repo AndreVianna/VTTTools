@@ -1,6 +1,6 @@
 namespace VttTools.WebApp.Components;
 
-public partial class NavMenuComponent
+public partial class NavMenu
     : IAsyncDisposable {
     public string LogoutUri => NavigationManager.GetRelativeUrl("account/logout");
 

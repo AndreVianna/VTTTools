@@ -1,3 +1,5 @@
+using VttTools.WebApp.Pages.Library.Scenes.Models;
+
 namespace VttTools.WebApp.Pages.Library.Scenes;
 
 public partial class ScenesPage {
@@ -7,15 +9,13 @@ public partial class ScenesPage {
     [Inject]
     internal ILibraryClient LibraryClient { get; set; } = null!;
 
-    internal ScenesPageState State => Handler.State;
-    internal ScenesInputModel CreateInput => Handler.State.CreateInput;
-    internal ScenesInputModel EditInput => Handler.State.EditInput;
+    internal ScenesPageState State { get; set; } = new();
+    internal ScenesInputModel CreateInput => State.CreateInput;
+    internal ScenesInputModel EditInput => State.EditInput;
 
-    protected override async Task<bool> ConfigureAsync() {
-        if (!await base.ConfigureAsync())
-            return false;
+    protected override async Task ConfigureAsync() {
+        await base.ConfigureAsync();
         await Handler.LoadScenesAsync(AdventureId, LibraryClient);
-        return true;
     }
 
     internal Task CreateScene()

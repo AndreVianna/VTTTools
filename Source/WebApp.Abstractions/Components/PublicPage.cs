@@ -2,17 +2,17 @@ namespace VttTools.WebApp.Components;
 
 public class PublicPage
     : Page, IPublicPage {
-    public string? UserDisplayName { get; private set; }
-    public Guid? UserId { get; private set; }
-    public bool IsAuthenticated { get; private set; }
+    public virtual bool IsAuthenticated { get; private set; }
+    public virtual Guid? UserId { get; private set; }
+    public virtual string? UserDisplayName { get; private set; }
+    public virtual bool UserIsAdministrator { get; private set; }
 
-    protected override bool Configure() {
-        if (!base.Configure())
-            return false;
+    protected override void Configure() {
+        base.Configure();
         IsAuthenticated = HttpContext.User.Identity?.IsAuthenticated ?? false;
-        UserDisplayName = GetUserDisplayNameOrDefault();
         UserId = GetUserIdOrDefault();
-        return true;
+        UserDisplayName = GetUserDisplayNameOrDefault();
+        UserIsAdministrator = HttpContext.User.IsInRole("Administrator");
     }
 
     private string? GetUserDisplayNameOrDefault()
@@ -27,27 +27,23 @@ public class PublicPage
         && Guid.TryParse(HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value, out var id)
             ? id
             : null;
-
-    protected override Task<bool> ConfigureAsync()
-        => Task.FromResult(Configure());
 }
 
-public class PublicPage<THandler>
+public class PublicPage<TPage, THandler>
     : PublicPage
-    where THandler : PublicPageHandler<THandler> {
-    protected override bool Configure() {
-        SetHandler();
-        return base.Configure();
+    where TPage : PublicPage<TPage, THandler>
+    where THandler : PublicPageHandler<THandler, TPage> {
+    public PublicPage() {
+        EnsureHandlerIsCreated();
     }
-    protected override async Task<bool> ConfigureAsync() {
-        if (!await base.ConfigureAsync())
-            return false;
+
+    protected override async Task ConfigureAsync() {
+        await base.ConfigureAsync();
         await Handler.ConfigureAsync();
-        return true;
     }
 
     [MemberNotNull(nameof(Handler))]
-    protected void SetHandler() {
+    protected void EnsureHandlerIsCreated() {
         if (Handler is not null)
             return;
         Handler = InstanceFactory.Create<THandler>(this);

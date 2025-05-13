@@ -7,10 +7,8 @@ namespace VttTools.WebApp;
 internal static class Program {
     public static void Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
-        builder.Host.UseDefaultServiceProvider((_, o) => {
-            o.ValidateScopes = true;
-            o.ValidateOnBuild = true;
-        });
+        builder.Services.AddRazorComponents()
+               .AddInteractiveServerComponents();
 
         builder.Services.AddServiceDiscovery();
         builder.Services.ConfigureHttpClientDefaults(http => {
@@ -18,7 +16,6 @@ internal static class Program {
             http.AddServiceDiscovery();
         });
 
-        builder.Services.AddCors();
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IGameClient, GameClient>();
         builder.Services.AddScoped<IHubConnectionBuilder, HubConnectionBuilder>();
@@ -46,15 +43,10 @@ internal static class Program {
         builder.Services.AddSingleton<IEmailSender<User>, IdentityNoOpEmailSender>();
 
         builder.Services.AddAuthentication(options => {
-            options.DefaultScheme = IdentityConstants.ExternalScheme;
+            options.DefaultScheme = IdentityConstants.ApplicationScheme;
             options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
         }).AddIdentityCookies();
         builder.Services.AddAuthorization();
-
-        builder.Services.AddRazorComponents()
-               .AddInteractiveServerComponents()
-               .AddInteractiveWebAssemblyComponents()
-               .AddAuthenticationStateSerialization();
 
         builder.Services.AddHttpClient<IAssetsClient, AssetsClient>(static (services, client) => {
             client.BaseAddress = new("https+http://assets-api");
@@ -71,9 +63,6 @@ internal static class Program {
 
         var app = builder.Build();
 
-        if (!app.Environment.IsProduction()) {
-            app.UseWebAssemblyDebugging();
-        }
         if (!app.Environment.IsDevelopment()) {
             app.UseExceptionHandler("/error", createScopeForErrors: true);
             app.UseStatusCodePagesWithReExecute("/error/{0}");
@@ -81,17 +70,15 @@ internal static class Program {
         }
 
         app.UseHttpsRedirection();
-        app.MapStaticAssets();
 
         app.UseRouting();
-        app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseAntiforgery();
 
+        app.MapStaticAssets();
         app.MapRazorComponents<App>()
-           .AddInteractiveServerRenderMode()
-           .AddInteractiveWebAssemblyRenderMode();
+           .AddInteractiveServerRenderMode();
         MapEndpoints(app);
 
         app.Run();

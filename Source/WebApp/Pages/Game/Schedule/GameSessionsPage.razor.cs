@@ -6,14 +6,12 @@ public partial class GameSessionsPage {
     [Inject]
     internal ILibraryClient LibraryClient { get; set; } = null!;
 
-    internal GameSessionsPageState State => Handler.State;
-    internal GameSessionsInputModel Input => Handler.State.Input;
+    internal GameSessionsPageState State { get; set; } = new();
+    internal GameSessionsInputModel Input => State.Input;
 
-    protected override async Task<bool> ConfigureAsync() {
-        if (!await base.ConfigureAsync())
-            return false;
+    protected override async Task ConfigureAsync() {
+        await base.ConfigureAsync();
         await Handler.LoadGameSessionAsync(GameClient, LibraryClient);
-        return true;
     }
 
     internal void NavigateToGameSession(Guid sessionId)

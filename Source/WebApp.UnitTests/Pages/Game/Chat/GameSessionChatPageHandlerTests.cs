@@ -2,6 +2,7 @@ namespace VttTools.WebApp.Pages.Game.Chat;
 
 public sealed class GameSessionChatPageHandlerTests
     : ComponentTestContext {
+    private readonly GameSessionChatPage _page = Substitute.For<GameSessionChatPage>();
     private readonly IHubConnectionBuilder _builder = Substitute.For<IHubConnectionBuilder>();
     private readonly HubConnection _hubConnectionSpy = Substitute.For<HubConnection>(Substitute.For<IConnectionFactory>(),
                                                                                      Substitute.For<IHubProtocol>(),
@@ -20,6 +21,9 @@ public sealed class GameSessionChatPageHandlerTests
             .DoNotCallBase();
         _hubConnectionSpy.On(Arg.Any<string>(), Arg.Any<Type[]>(), Arg.Any<Func<object?[], object, Task>>(), Arg.Any<object>())
             .Returns(Substitute.For<IDisposable>());
+        _page.HttpContext.Returns(HttpContext);
+        _page.NavigationManager.Returns(NavigationManager);
+        _page.Logger.Returns(NullLogger.Instance);
     }
 
     private Task RefreshAsync() {
@@ -37,8 +41,8 @@ public sealed class GameSessionChatPageHandlerTests
 
         // Assert
         _hubStarted.Should().BeTrue();
-        handler.State.Messages.Should().ContainSingle().Which.Text.Should().Be("Test message");
-        handler.State.Messages.Should().ContainSingle().Which.Direction.Should().Be(ChatMessageDirection.Received);
+        _page.State.Messages.Should().ContainSingle().Which.Text.Should().Be("Test message");
+        _page.State.Messages.Should().ContainSingle().Which.Direction.Should().Be(ChatMessageDirection.Received);
         _refreshCalled.Should().BeTrue();
     }
 
@@ -46,15 +50,15 @@ public sealed class GameSessionChatPageHandlerTests
     public async Task SendMessage_WithNonEmptyMessage_SendsMessageAndClearsInput() {
         // Arrange
         var handler = await CreateHandler();
-        handler.State.Input.Message = "Test message";
+        _page.State.Input.Message = "Test message";
 
         // Act
         await handler.SendMessage();
 
         // Assert
         _hubStarted.Should().BeTrue();
-        handler.State.Messages.Should().ContainSingle().Which.Text.Should().Be("Test message");
-        handler.State.Messages.Should().ContainSingle().Which.Direction.Should().Be(ChatMessageDirection.Sent);
+        _page.State.Messages.Should().ContainSingle().Which.Text.Should().Be("Test message");
+        _page.State.Messages.Should().ContainSingle().Which.Direction.Should().Be(ChatMessageDirection.Sent);
         _refreshCalled.Should().BeTrue();
     }
 
@@ -65,27 +69,21 @@ public sealed class GameSessionChatPageHandlerTests
     public async Task SendMessage_WithEmptyMessage_DoesNotSendMessageAndReturnsEmpty(string? message) {
         // Arrange
         var handler = await CreateHandler();
-        handler.State.Input.Message = message!;
+        _page.State.Input.Message = message!;
 
         // Act
         await handler.SendMessage();
 
         // Assert
         _hubStarted.Should().BeTrue();
-        handler.State.Messages.Should().BeEmpty();
+        _page.State.Messages.Should().BeEmpty();
         _refreshCalled.Should().BeFalse();
     }
 
     private async Task<GameSessionChatPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized)
-            EnsureAuthenticated();
-        var page = Substitute.For<IAuthenticatedPage>();
-        page.HttpContext.Returns(HttpContext);
-        page.NavigationManager.Returns(NavigationManager);
-        page.Logger.Returns(NullLogger.Instance);
-        var handler = new GameSessionChatPageHandler(page);
-        if (isConfigured)
-            await handler.SetHubConnectionAsync(_builder, _chatUri, RefreshAsync);
+        if (isAuthorized) EnsureAuthenticated();
+        var handler = new GameSessionChatPageHandler(_page);
+        if (isConfigured) await handler.SetHubConnectionAsync(_builder, _chatUri, RefreshAsync);
         return handler;
     }
 }

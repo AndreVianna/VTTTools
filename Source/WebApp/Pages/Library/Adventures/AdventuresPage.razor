@@ -1,378 +1,316 @@
 @page "/adventures"
-@inherits AuthenticatedPage<AdventuresHandler>
-@rendermode InteractiveAuto
+@inherits AuthenticatedPage<AdventuresPage, AdventuresHandler>
+@rendermode InteractiveServer
 
 <PageTitle>Adventures</PageTitle>
 
 <div class="container-fluid">
-    <div id="page-header" class="row mb-4">
-        <div class="col-md-6">
-            <h1>Adventures</h1>
+  <div id="page-header" class="row mb-4">
+    <div class="col-md-6">
+      <h1>Adventures</h1>
+    </div>
+    <div class="col-md-6 d-flex justify-content-md-end align-items-center">
+      <button id="create-adventure-button" class="btn btn-primary me-2" @onclick="GoToCreatePage">
+        <i class="bi bi-plus-circle"></i> Create Adventure
+      </button>
+      <div class="btn-group" role="group">
+        <button type="button" class="btn @(State.ListViewMode == ListViewMode.List ? "btn-primary" : "btn-outline-primary")" @onclick="() => Handler.ToggleViewMode()" title="List View">
+          <i class="bi bi-list-ul"></i>
+        </button>
+        <button type="button" class="btn @(State.ListViewMode == ListViewMode.Card ? "btn-primary" : "btn-outline-primary")" @onclick="() => Handler.ToggleViewMode()" title="Card View">
+          <i class="bi bi-grid-3x3-gap"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search adventures..."
+             @bind="State.SearchText" @bind:event="oninput" @onkeyup="ApplySearch" />
+        <button class="btn btn-outline-secondary" type="button" @onclick="ClearSearch">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <select class="form-select" @bind="State.FilterType" @bind:after="ApplyTypeFilter">
+        <option value="">All Adventure Types</option>
+        @foreach (var type in Enum.GetValues<AdventureType>())
+        {
+          <option value="@type">@type.ToString()</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (!IsReady) {
+    <div id="loading-message" class="d-flex justify-content-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  }
+  else {
+    <!-- Owned Adventures Section -->
+    <div class="mb-5">
+      <h2>My Adventures</h2>
+      @if (State.OwnedAdventures.Count == 0) {
+        <div id="no-owned-adventures" class="alert alert-info">
+          You don't have any adventures yet. Create a new one to get started!
         </div>
-        <div class="col-md-6 d-flex justify-content-md-end align-items-center">
-            <button id="create-adventure-button" class="btn btn-primary me-2" @onclick="GoToCreatePage">
-                <i class="bi bi-plus-circle"></i> Create Adventure
-            </button>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn @(State.CurrentViewMode == AdventuresPageState.ViewMode.List ? "btn-primary" : "btn-outline-primary")" @onclick="() => Handler.ToggleViewMode()" title="List View">
-                    <i class="bi bi-list-ul"></i>
-                </button>
-                <button type="button" class="btn @(State.CurrentViewMode == AdventuresPageState.ViewMode.Card ? "btn-primary" : "btn-outline-primary")" @onclick="() => Handler.ToggleViewMode()" title="Card View">
-                    <i class="bi bi-grid-3x3-gap"></i>
-                </button>
-            </div>
-        </div>
+      }
+      else {
+        @if (State.ListViewMode == ListViewMode.List) {
+          <div class="table-responsive">
+            <table id="owned-adventures-table" class="table table-hover">
+              <thead>
+                <tr>
+                  <th id="adventures-name-header">Name</th>
+                  <th id="adventures-type-header">Type</th>
+                  <th id="adventures-scenes-header">Scenes</th>
+                  <th id="adventures-status-header">Status</th>
+                  <th id="adventures-action-header">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach (var adventure in State.OwnedAdventures) {
+                  <tr>
+                    <td id="@($"adventure-{adventure.Id}-name")">@adventure.Name</td>
+                    <td id="@($"adventure-{adventure.Id}-type")">@adventure.Type.ToString()</td>
+                    <td id="@($"adventure-{adventure.Id}-scenes")">
+                      <span>@adventure.ScenesCount scenes</span>
+                    </td>
+                    <td id="@($"adventure-{adventure.Id}-status")">
+                      @if (adventure.IsVisible) {
+                        <span class="badge bg-success me-1">Published</span>
+                      }
+                      else {
+                        <span class="badge bg-secondary me-1">Draft</span>
+                      }
+
+                      @if (adventure.IsPublic) {
+                        <span class="badge bg-info">Public</span>
+                      }
+                      else {
+                        <span class="badge bg-warning">Private</span>
+                      }
+                    </td>
+                    <td id="@($"adventure-{adventure.Id}-actions")">
+                      <div class="btn-group" role="group">
+                        <button id="@($"view-adventure-{adventure.Id}")" class="btn btn-primary btn-sm"
+                            @onclick='@(() => this.RedirectTo($"/adventure/view/{adventure.Id}"))' title="View Adventure">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button id="@($"edit-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
+                            @onclick='@(() => this.RedirectTo($"/adventure/edit/{adventure.Id}"))' title="Edit Adventure">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button id="@($"scenes-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
+                            @onclick='@(() => this.RedirectTo($"/adventures/{adventure.Id}/scenes"))' title="Manage Scenes">
+                          <i class="bi bi-list-check"></i>
+                        </button>
+                        <button id="@($"clone-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
+                            @onclick='@(() => this.RedirectTo($"/adventure/clone/{adventure.Id}"))' title="Clone Adventure">
+                          <i class="bi bi-files"></i>
+                        </button>
+                        <button id="@($"start-adventure-{adventure.Id}"))" class="btn btn-outline-success btn-sm"
+                            title="Start Adventure" disabled>
+                          <i class="bi bi-play-fill"></i>
+                        </button>
+                        <button id="@($"delete-adventure-{adventure.Id}")" class="btn btn-outline-danger btn-sm"
+                            @onclick="() => DeleteAdventure(adventure.Id)" title="Delete Adventure">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+        else {
+          <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="owned-adventures-cards">
+            @foreach (var adventure in State.OwnedAdventures) {
+              <div class="col">
+                <div class="card h-100">
+                  @if (!string.IsNullOrEmpty(adventure.ImagePath)) {
+                    <div class="card-img-top adventure-card-img" style="background-image: url('@adventure.ImagePath');">
+                      <div class="adventure-card-type">
+                        <span>@adventure.Type.ToString() (@adventure.ScenesCount scenes)</span>
+                      </div>
+                    </div>
+                  }
+                  else {
+                    <div class="card-img-top adventure-card-img adventure-card-placeholder">
+                      <div class="adventure-card-type">
+                        <span>@adventure.Type.ToString() (@adventure.ScenesCount scenes)</span>
+                      </div>
+                    </div>
+                  }
+
+                  <div class="card-body">
+                    <h5 class="card-title">@adventure.Name</h5>
+                    <p class="card-text">@adventure.Description</p>
+                  </div>
+
+                  <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        @if (adventure.IsVisible) {
+                          <span class="badge bg-success me-1">Published</span>
+                        }
+                        else {
+                          <span class="badge bg-secondary me-1">Draft</span>
+                        }
+
+                        @if (adventure.IsPublic) {
+                          <span class="badge bg-info">Public</span>
+                        }
+                        else {
+                          <span class="badge bg-warning">Private</span>
+                        }
+                      </div>
+
+                      <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-primary"
+                            @onclick='() => RedirectTo($"/adventure/view/{adventure.Id}")' title="View Adventure">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary"
+                            @onclick='() => RedirectTo($"/adventure/edit/{adventure.Id}")' title="Edit Adventure">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success"
+                            title="Start Adventure" disabled>
+                          <i class="bi bi-play-fill"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <div class="input-group">
-                <input type="text" class="form-control" placeholder="Search adventures..."
-                       @bind="State.SearchText" @bind:event="oninput" @onkeyup="ApplySearch" />
-                <button class="btn btn-outline-secondary" type="button" @onclick="ClearSearch">
-                    <i class="bi bi-x"></i>
-                </button>
-            </div>
+    <!-- Public Adventures Section -->
+    <div>
+      <h2>Public Adventures</h2>
+      @if (State.PublicAdventures.Count == 0) {
+        <div id="no-public-adventures" class="alert alert-info">
+          No public adventures available.
         </div>
-        <div class="col-md-4">
-            <select class="form-select" @bind="State.FilterType" @onchange="ApplyTypeFilter">
-                <option value="">All Adventure Types</option>
-                @foreach (var type in Enum.GetValues<AdventureType>())
-                {
-                    <option value="@type">@type.ToString()</option>
+      }
+      else {
+        @if (State.ListViewMode == ListViewMode.List) {
+          <div class="table-responsive">
+            <table id="public-adventures-table" class="table table-hover">
+              <thead>
+                <tr>
+                  <th id="public-adventures-name-header">Name</th>
+                  <th id="public-adventures-type-header">Type</th>
+                  <th id="public-adventures-scenes-header">Scenes</th>
+                  <th id="public-adventures-action-header">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach (var adventure in State.PublicAdventures) {
+                  <tr>
+                    <td id="@($"public-adventure-{adventure.Id}-name")">@adventure.Name</td>
+                    <td id="@($"public-adventure-{adventure.Id}-type")">@adventure.Type.ToString()</td>
+                    <td id="@($"public-adventure-{adventure.Id}-scenes")">
+                      <span>@adventure.ScenesCount scenes</span>
+                    </td>
+                    <td id="@($"public-adventure-{adventure.Id}-actions")">
+                      <div class="btn-group" role="group">
+                        <button id="@($"view-public-adventure-{adventure.Id}")" class="btn btn-primary btn-sm"
+                            @onclick='() => this.RedirectTo($"/adventure/view/{adventure.Id}")' title="View Adventure">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button id="@($"scenes-public-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
+                            @onclick='() => this.RedirectTo($"/adventures/{adventure.Id}/scenes")' title="View Scenes">
+                          <i class="bi bi-list-check"></i>
+                        </button>
+                        <button id="@($"clone-public-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
+                            @onclick='() => this.RedirectTo($"/adventure/clone/{adventure.Id}")' title="Clone Adventure">
+                          <i class="bi bi-files"></i>
+                        </button>
+                        <button id="@($"start-public-adventure-{adventure.Id}")" class="btn btn-outline-success btn-sm"
+                            title="Start Adventure" disabled>
+                          <i class="bi bi-play-fill"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
                 }
-            </select>
-        </div>
+              </tbody>
+            </table>
+          </div>
+        }
+        else
+        {
+          <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="public-adventures-cards">
+            @foreach (var adventure in State.PublicAdventures) {
+              <div class="col">
+                <div class="card h-100">
+                  @if (!string.IsNullOrEmpty(adventure.ImagePath)) {
+                    <div class="card-img-top adventure-card-img" style="background-image: url('@adventure.ImagePath');">
+                      <div class="adventure-card-type">
+                        @if (adventure.ScenesCount == 1) {
+                          <span>One-Shot @adventure.Type.ToString()</span>
+                        }
+                        else {
+                          <span>@adventure.Type.ToString() (@adventure.ScenesCount scenes)</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                  else {
+                    <div class="card-img-top adventure-card-img adventure-card-placeholder">
+                      <div class="adventure-card-type">
+                        <span>@adventure.Type.ToString() (@adventure.ScenesCount scenes)</span>
+                      </div>
+                    </div>
+                  }
+
+                  <div class="card-body">
+                    <h5 class="card-title">@adventure.Name</h5>
+                    <p class="card-text">@adventure.Description</p>
+                  </div>
+
+                  <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-primary"
+                            @onclick='() => RedirectTo($"/adventure/view/{adventure.Id}")' title="View Adventure">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary"
+                            @onclick='() => RedirectTo($"/adventure/clone/{adventure.Id}")' title="Clone Adventure">
+                          <i class="bi bi-files"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success"
+                            title="Start Adventure" disabled>
+                          <i class="bi bi-play-fill"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
     </div>
-
-    @if (!IsReady)
-    {
-        <div id="loading-message" class="d-flex justify-content-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    }
-    else
-    {
-        <!-- Owned Adventures Section -->
-        <div class="mb-5">
-            <h2>My Adventures</h2>
-
-            @if (State.OwnedAdventures.Count == 0)
-            {
-                <div id="no-owned-adventures" class="alert alert-info">
-                    You don't have any adventures yet. Create a new one to get started!
-                </div>
-            }
-            else
-            {
-                @if (State.CurrentViewMode == AdventuresPageState.ViewMode.List)
-                {
-                    <div class="table-responsive">
-                        <table id="owned-adventures-table" class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th id="adventures-name-header">Name</th>
-                                    <th id="adventures-type-header">Type</th>
-                                    <th id="adventures-scenes-header">Scenes</th>
-                                    <th id="adventures-status-header">Status</th>
-                                    <th id="adventures-action-header">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var adventure in State.OwnedAdventures)
-                                {
-                                    <tr>
-                                        <td id="@($"adventure-{adventure.Id}-name")">@adventure.Name</td>
-                                        <td id="@($"adventure-{adventure.Id}-type")">@adventure.Type.ToString()</td>
-                                        <td id="@($"adventure-{adventure.Id}-scenes")">
-                                            @if (adventure.ScenesCount == 1)
-                                            {
-                                                <span>One-Shot</span>
-                                            }
-                                            else
-                                            {
-                                                <span>@adventure.ScenesCount scenes</span>
-                                            }
-                                        </td>
-                                        <td id="@($"adventure-{adventure.Id}-status")">
-                                            @if (adventure.IsVisible)
-                                            {
-                                                <span class="badge bg-success me-1">Published</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary me-1">Draft</span>
-                                            }
-
-                                            @if (adventure.IsPublic)
-                                            {
-                                                <span class="badge bg-info">Public</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-warning">Private</span>
-                                            }
-                                        </td>
-                                        <td id="@($"adventure-{adventure.Id}-actions")">
-                                            <div class="btn-group" role="group">
-                                                <button id="@($"view-adventure-{adventure.Id}")" class="btn btn-primary btn-sm"
-                                                        @onclick='@(() => this.RedirectTo($"/adventure/view/{adventure.Id}"))' title="View Adventure">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                                <button id="@($"edit-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                                                        @onclick='@(() => this.RedirectTo($"/adventure/edit/{adventure.Id}"))' title="Edit Adventure">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-                                                <button id="@($"scenes-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                                                        @onclick='@(() => this.RedirectTo($"/adventures/{adventure.Id}/scenes"))' title="Manage Scenes">
-                                                    <i class="bi bi-list-check"></i>
-                                                </button>
-                                                <button id="@($"clone-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                                                        @onclick='@(() => this.RedirectTo($"/adventure/clone/{adventure.Id}"))' title="Clone Adventure">
-                                                    <i class="bi bi-files"></i>
-                                                </button>
-                                                <button id="@($"start-adventure-{adventure.Id}"))" class="btn btn-outline-success btn-sm"
-                                                        title="Start Adventure" disabled>
-                                                    <i class="bi bi-play-fill"></i>
-                                                </button>
-                                                <button id="@($"delete-adventure-{adventure.Id}")" class="btn btn-outline-danger btn-sm"
-                                                        @onclick="() => DeleteAdventure(adventure.Id)" title="Delete Adventure">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-                else
-                {
-                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="owned-adventures-cards">
-                        @foreach (var adventure in State.OwnedAdventures)
-                        {
-                            <div class="col">
-                                <div class="card h-100">
-                                    @if (!string.IsNullOrEmpty(adventure.ImagePath))
-                                    {
-                                        <div class="card-img-top adventure-card-img" style="background-image: url('@adventure.ImagePath');">
-                                            <div class="adventure-card-type">
-                                                @if (adventure.ScenesCount == 1)
-                                                {
-                                                    <span>One-Shot @adventure.Type.ToString()</span>
-                                                }
-                                                else
-                                                {
-                                                    <span>@adventure.Type.ToString() (@adventure.ScenesCount scenes)</span>
-                                                }
-                                            </div>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="card-img-top adventure-card-img adventure-card-placeholder">
-                                            <div class="adventure-card-type">
-                                                @if (adventure.ScenesCount == 1)
-                                                {
-                                                    <span>One-Shot @adventure.Type.ToString()</span>
-                                                }
-                                                else
-                                                {
-                                                    <span>@adventure.Type.ToString() (@adventure.ScenesCount scenes)</span>
-                                                }
-                                            </div>
-                                        </div>
-                                    }
-
-                                    <div class="card-body">
-                                        <h5 class="card-title">@adventure.Name</h5>
-                                        <p class="card-text">@adventure.Description</p>
-                                    </div>
-
-                                    <div class="card-footer">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                @if (adventure.IsVisible)
-                                                {
-                                                    <span class="badge bg-success me-1">Published</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-secondary me-1">Draft</span>
-                                                }
-
-                                                @if (adventure.IsPublic)
-                                                {
-                                                    <span class="badge bg-info">Public</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-warning">Private</span>
-                                                }
-                                            </div>
-
-                                            <div class="btn-group" role="group">
-                                                <button class="btn btn-sm btn-primary"
-                                                        @onclick='() => this.RedirectTo($"/adventure/view/{adventure.Id}")' title="View Adventure">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-primary"
-                                                        @onclick='() => this.RedirectTo($"/adventure/edit/{adventure.Id}")' title="Edit Adventure">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-success"
-                                                        title="Start Adventure" disabled>
-                                                    <i class="bi bi-play-fill"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-            }
-        </div>
-
-        <!-- Public Adventures Section -->
-        <div>
-            <h2>Public Adventures</h2>
-
-            @if (State.PublicAdventures.Count == 0)
-            {
-                <div id="no-public-adventures" class="alert alert-info">
-                    No public adventures available.
-                </div>
-            }
-            else
-            {
-                @if (State.CurrentViewMode == AdventuresPageState.ViewMode.List)
-                {
-                    <div class="table-responsive">
-                        <table id="public-adventures-table" class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th id="public-adventures-name-header">Name</th>
-                                    <th id="public-adventures-type-header">Type</th>
-                                    <th id="public-adventures-scenes-header">Scenes</th>
-                                    <th id="public-adventures-action-header">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var adventure in State.PublicAdventures)
-                                {
-                                    <tr>
-                                        <td id="@($"public-adventure-{adventure.Id}-name")">@adventure.Name</td>
-                                        <td id="@($"public-adventure-{adventure.Id}-type")">@adventure.Type.ToString()</td>
-                                        <td id="@($"public-adventure-{adventure.Id}-scenes")">
-                                            @if (adventure.ScenesCount == 1)
-                                            {
-                                                <span>One-Shot</span>
-                                            }
-                                            else
-                                            {
-                                                <span>@adventure.ScenesCount scenes</span>
-                                            }
-                                        </td>
-                                        <td id="@($"public-adventure-{adventure.Id}-actions")">
-                                            <div class="btn-group" role="group">
-                                                <button id="@($"view-public-adventure-{adventure.Id}")" class="btn btn-primary btn-sm"
-                                                        @onclick='() => this.RedirectTo($"/adventure/view/{adventure.Id}")' title="View Adventure">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                                <button id="@($"scenes-public-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                                                        @onclick='() => this.RedirectTo($"/adventures/{adventure.Id}/scenes")' title="View Scenes">
-                                                    <i class="bi bi-list-check"></i>
-                                                </button>
-                                                <button id="@($"clone-public-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                                                        @onclick='() => this.RedirectTo($"/adventure/clone/{adventure.Id}")' title="Clone Adventure">
-                                                    <i class="bi bi-files"></i>
-                                                </button>
-                                                <button id="@($"start-public-adventure-{adventure.Id}")" class="btn btn-outline-success btn-sm"
-                                                        title="Start Adventure" disabled>
-                                                    <i class="bi bi-play-fill"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-                else
-                {
-                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="public-adventures-cards">
-                        @foreach (var adventure in State.PublicAdventures)
-                        {
-                            <div class="col">
-                                <div class="card h-100">
-                                    @if (!string.IsNullOrEmpty(adventure.ImagePath))
-                                    {
-                                        <div class="card-img-top adventure-card-img" style="background-image: url('@adventure.ImagePath');">
-                                            <div class="adventure-card-type">
-                                                @if (adventure.ScenesCount == 1)
-                                                {
-                                                    <span>One-Shot @adventure.Type.ToString()</span>
-                                                }
-                                                else
-                                                {
-                                                    <span>@adventure.Type.ToString() (@adventure.ScenesCount scenes)</span>
-                                                }
-                                            </div>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="card-img-top adventure-card-img adventure-card-placeholder">
-                                            <div class="adventure-card-type">
-                                                @if (adventure.ScenesCount == 1)
-                                                {
-                                                    <span>One-Shot @adventure.Type.ToString()</span>
-                                                }
-                                                else
-                                                {
-                                                    <span>@adventure.Type.ToString() (@adventure.ScenesCount scenes)</span>
-                                                }
-                                            </div>
-                                        </div>
-                                    }
-
-                                    <div class="card-body">
-                                        <h5 class="card-title">@adventure.Name</h5>
-                                        <p class="card-text">@adventure.Description</p>
-                                    </div>
-
-                                    <div class="card-footer">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div class="btn-group" role="group">
-                                                <button class="btn btn-sm btn-primary"
-                                                        @onclick='() => this.RedirectTo($"/adventure/view/{adventure.Id}")' title="View Adventure">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-primary"
-                                                        @onclick='() => this.RedirectTo($"/adventure/clone/{adventure.Id}")' title="Clone Adventure">
-                                                    <i class="bi bi-files"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-success"
-                                                        title="Start Adventure" disabled>
-                                                    <i class="bi bi-play-fill"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-            }
-        </div>
-    }
+  }
 
 </div>
 

@@ -1,21 +1,19 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
-public class ProfilePageHandler(IAccountPage page)
-    : AccountPageHandler<ProfilePageHandler>(page) {
-    internal ProfilePageState State { get; } = new();
-
+public class ProfilePageHandler(ProfilePage page)
+    : AccountPageHandler<ProfilePageHandler, ProfilePage>(page) {
     public override bool Configure() {
         if (!base.Configure())
             return false;
-        State.Input.DisplayName = Page.CurrentUser.DisplayName;
+        Page.State.Input.DisplayName = Page.CurrentUser.DisplayName;
         return true;
     }
 
     public async Task UpdateProfileAsync() {
         var message = "No changes were made to your profile.";
         var hasUpdates = false;
-        if (State.Input.DisplayName != Page.CurrentUser.DisplayName) {
-            Page.CurrentUser.DisplayName = State.Input.DisplayName;
+        if (Page.State.Input.DisplayName != Page.CurrentUser.DisplayName) {
+            Page.CurrentUser.DisplayName = Page.State.Input.DisplayName;
             hasUpdates = true;
         }
 
@@ -33,7 +31,7 @@ public class ProfilePageHandler(IAccountPage page)
         var userManager = Page.HttpContext.RequestServices.GetRequiredService<UserManager<User>>();
         var updateResult = await userManager.UpdateAsync(Page.CurrentUser);
         if (!updateResult.Succeeded) {
-            State.Input.Errors = updateResult.Errors.ToArray(e => new InputError(e.Description));
+            Page.State.Input.Errors = updateResult.Errors.ToArray(e => new InputError(e.Description));
             Page.Logger.LogWarning("Failed to update the display name for the user with ID {UserId}.", Page.CurrentUser.Id);
             return false;
         }

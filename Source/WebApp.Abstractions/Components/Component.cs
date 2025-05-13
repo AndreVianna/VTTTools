@@ -4,11 +4,11 @@ public class Component
     : ComponentBase
     , IComponent {
     [CascadingParameter]
-    public HttpContext HttpContext { get; set; } = null!;
+    public virtual HttpContext HttpContext { get; set; } = null!;
     [Inject]
-    public NavigationManager NavigationManager { get; set; } = null!;
-    public string? CurrentLocation { get; protected set; }
-    public bool IsReady { get; protected set; }
+    public virtual NavigationManager NavigationManager { get; set; } = null!;
+    public virtual string? CurrentLocation { get; protected set; }
+    public virtual bool IsReady { get; private set; }
 
     protected override void OnInitialized() {
         base.OnInitialized();
@@ -17,12 +17,16 @@ public class Component
 
     public override async Task SetParametersAsync(ParameterView parameters) {
         await base.SetParametersAsync(parameters);
-        IsReady = await ConfigureAsync();
+        await ConfigureAsync();
+        IsReady = true;
         await StateHasChangedAsync();
     }
 
-    protected virtual bool Configure() => true;
-    protected virtual Task<bool> ConfigureAsync() => Task.FromResult(Configure());
+    protected virtual void Configure() { }
+    protected virtual Task ConfigureAsync() {
+        Configure();
+        return Task.CompletedTask;
+    }
 
     protected virtual string GetUrlRelativeToBase(string url) => NavigationManager.ToBaseRelativePath(url);
     protected virtual Uri GetAbsoluteUri(string url) => NavigationManager.ToAbsoluteUri(Ensure.IsNotNull(url).Trim());

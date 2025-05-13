@@ -7,16 +7,12 @@ public partial class GameSessionPage {
     [Parameter]
     public Guid GameSessionId { get; set; }
 
-    internal GameSessionPageState State => Handler.State;
-    internal GameSessionInputModel Input => Handler.State.Input;
+    internal GameSessionPageState State { get; set; } = new();
+    internal GameSessionInputModel Input => State.Input;
 
-    protected override async Task<bool> ConfigureAsync() {
-        if (!await base.ConfigureAsync())
-            return false;
-        if (await Handler.TryLoadSessionAsync(GameClient, GameSessionId))
-            return true;
-        NavigateToGameSessions();
-        return false;
+    protected override async Task ConfigureAsync() {
+        await base.ConfigureAsync();
+        await Handler.LoadSessionAsync(GameClient, GameSessionId);
     }
 
     internal void NavigateToGameSessions()

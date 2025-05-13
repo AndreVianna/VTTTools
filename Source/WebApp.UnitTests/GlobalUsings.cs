@@ -47,7 +47,7 @@ global using VttTools.WebApp.Extensions;
 global using VttTools.WebApp.Pages.Game.Chat;
 global using VttTools.WebApp.Pages.Game.Chat.Models;
 global using VttTools.WebApp.Pages.Game.Schedule;
-global using VttTools.WebApp.Pages.Library.Adventures.Handlers;
+global using VttTools.WebApp.Pages.Library.Adventures;
 global using VttTools.WebApp.Pages.Library.Adventures.Models;
 global using VttTools.WebApp.TestUtilities;
 global using VttTools.WebApp.Utilities;

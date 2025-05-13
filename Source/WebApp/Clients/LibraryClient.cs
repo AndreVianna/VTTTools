@@ -20,19 +20,12 @@ internal class LibraryClient(HttpClient client)
     public async Task<AdventureInputModel?> GetAdventureByIdAsync(Guid id) {
         var adventure = await client.GetFromJsonAsync<Adventure>($"/api/adventures/{id}");
         return adventure == null ? null : new() {
-            Id = adventure.Id,
-            OwnerId = adventure.OwnerId,
             Name = adventure.Name,
             Description = adventure.Description,
             Type = adventure.Type,
             ImagePath = adventure.ImagePath,
             IsVisible = adventure.IsVisible,
             IsPublic = adventure.IsPublic,
-            CampaignId = adventure.ParentId,
-            Scenes = [.. adventure.Scenes.Select(scene => new SceneListItem {
-                Id = scene.Id,
-                Name = scene.Name,
-            })],
         };
     }
 

@@ -3,9 +3,13 @@ namespace VttTools.WebApp.Pages.Account;
 public class RegisterPageHandlerTests
     : ComponentTestContext {
     private readonly IEmailSender<User> _emailSender = Substitute.For<IEmailSender<User>>();
+    private readonly RegisterPage _page = Substitute.For<RegisterPage>();
 
     public RegisterPageHandlerTests() {
         Services.AddScoped(_ => _emailSender);
+        _page.HttpContext.Returns(HttpContext);
+        _page.NavigationManager.Returns(NavigationManager);
+        _page.Logger.Returns(NullLogger.Instance);
     }
 
     [Fact]
@@ -19,17 +23,17 @@ public class RegisterPageHandlerTests
         await handler.ConfigureAsync();
 
         // Assert
-        handler.State.HasExternalLoginProviders.Should().BeTrue();
+        _page.State.HasExternalLoginProviders.Should().BeTrue();
     }
 
     [Fact]
     public async Task RegisterUserAsync_WhenCreateFails_SetsErrors() {
         // Arrange
         var handler = await CreateHandler();
-        handler.State.Input.Name = "Test User";
-        handler.State.Input.Email = "test@example.com";
-        handler.State.Input.Password = "weak";
-        handler.State.Input.PasswordConfirmation = "weak";
+        _page.State.Input.Name = "Test User";
+        _page.State.Input.Email = "test@example.com";
+        _page.State.Input.Password = "weak";
+        _page.State.Input.PasswordConfirmation = "weak";
 
         var identityErrors = new IdentityError[] { new() { Description = "Password too weak" } };
         UserManager.CreateAsync(Arg.Any<User>(), Arg.Any<string>())
@@ -40,17 +44,17 @@ public class RegisterPageHandlerTests
 
         // Assert
         result.Should().BeFalse();
-        handler.State.IdentityErrors.Should().BeEquivalentTo(identityErrors);
+        _page.State.IdentityErrors.Should().BeEquivalentTo(identityErrors);
     }
 
     [Fact]
     public async Task RegisterUserAsync_WhenCreateSucceeds_ReturnsTrue() {
         // Arrange
         var handler = await CreateHandler();
-        handler.State.Input.Name = "Test User";
-        handler.State.Input.Email = "test@example.com";
-        handler.State.Input.Password = "Password123!";
-        handler.State.Input.PasswordConfirmation = "Password123!";
+        _page.State.Input.Name = "Test User";
+        _page.State.Input.Email = "test@example.com";
+        _page.State.Input.Password = "Password123!";
+        _page.State.Input.PasswordConfirmation = "Password123!";
 
         var createdUser = new User {
             Id = Guid.NewGuid(),
@@ -76,10 +80,10 @@ public class RegisterPageHandlerTests
     public async Task RegisterUserAsync_WhenRequireConfirmedAccount_RedirectsToConfirmation() {
         // Arrange
         var handler = await CreateHandler();
-        handler.State.Input.Name = "Test User";
-        handler.State.Input.Email = "test@example.com";
-        handler.State.Input.Password = "Password123!";
-        handler.State.Input.PasswordConfirmation = "Password123!";
+        _page.State.Input.Name = "Test User";
+        _page.State.Input.Email = "test@example.com";
+        _page.State.Input.Password = "Password123!";
+        _page.State.Input.PasswordConfirmation = "Password123!";
 
         var createdUser = new User {
             Id = Guid.NewGuid(),
@@ -103,13 +107,8 @@ public class RegisterPageHandlerTests
     }
 
     private async Task<RegisterPageHandler> CreateHandler(bool isConfigured = true) {
-        var page = Substitute.For<IPublicPage>();
-        page.HttpContext.Returns(HttpContext);
-        page.NavigationManager.Returns(NavigationManager);
-        page.Logger.Returns(NullLogger.Instance);
-        var handler = new RegisterPageHandler(page);
-        if (isConfigured)
-            await handler.ConfigureAsync();
+        var handler = new RegisterPageHandler(_page);
+        if (isConfigured) await handler.ConfigureAsync();
         return handler;
     }
 }

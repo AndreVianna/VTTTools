@@ -3,41 +3,38 @@ namespace VttTools.WebApp.Components;
 public class AccountPage
     : Page, IAccountPage {
     [CascadingParameter]
-    public User CurrentUser { get; private set; } = null!;
+    public virtual User CurrentUser { get; private set; } = null!;
 
-    protected override async Task<bool> ConfigureAsync() {
-        if (!await base.ConfigureAsync())
-            return false;
+    protected override async Task ConfigureAsync() {
+        await base.ConfigureAsync();
         var scope = ScopeFactory.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-        var user = HttpContext?.User is not null
+        var user = HttpContext.User is not null
                        ? await userManager.GetUserAsync(HttpContext.User)
                        : null;
         if (user is null) {
             this.GoToSignIn();
-            return false;
+            return;
         }
         CurrentUser = user;
-        return true;
     }
 }
 
-public class AccountPage<THandler>
+public class AccountPage<TPage, THandler>
     : AccountPage
-    where THandler : AccountPageHandler<THandler> {
-    protected override bool Configure() {
-        SetHandler();
-        return base.Configure();
+    where TPage : AccountPage<TPage, THandler>
+    where THandler : AccountPageHandler<THandler, TPage> {
+    public AccountPage() {
+        EnsureHandlerIsCreated();
     }
-    protected override async Task<bool> ConfigureAsync() {
-        if (!await base.ConfigureAsync())
-            return false;
+
+    protected override async Task ConfigureAsync() {
+        await base.ConfigureAsync();
         await Handler.ConfigureAsync();
-        return true;
     }
 
     [MemberNotNull(nameof(Handler))]
-    protected void SetHandler() {
+    protected void EnsureHandlerIsCreated() {
         if (Handler is not null)
             return;
         Handler = InstanceFactory.Create<THandler>(this);

@@ -1,10 +1,10 @@
 ﻿namespace VttTools.WebApp.Pages.Account.Manage;
 
 public partial class ChangePasswordPage {
-    internal ChangePasswordPageState State => Handler.State;
-    internal ChangePasswordInputModel Input => Handler.State.Input;
+    internal virtual ChangePasswordPageState State { get; set; } = new();
+    internal virtual ChangePasswordInputModel Input => State.Input;
 
-    private async Task ChangePasswordAsync() {
+    internal virtual async Task ChangePasswordAsync() {
         await Handler.ChangePasswordAsync();
         await StateHasChangedAsync();
     }

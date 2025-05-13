@@ -2,8 +2,15 @@ namespace VttTools.WebApp.Pages.Game.Schedule;
 
 public class GameSessionPageHandlerTests
     : ComponentTestContext {
+    private readonly GameSessionPage _page = Substitute.For<GameSessionPage>();
     private readonly Guid _sessionId = Guid.NewGuid();
     private readonly IGameClient _client = Substitute.For<IGameClient>();
+
+    public GameSessionPageHandlerTests() {
+        _page.HttpContext.Returns(HttpContext);
+        _page.NavigationManager.Returns(NavigationManager);
+        _page.Logger.Returns(NullLogger.Instance);
+    }
 
     [Fact]
     public async Task TryConfigureAsync_WithValidGameSessionId_ReturnsTrue() {
@@ -11,13 +18,12 @@ public class GameSessionPageHandlerTests
         var handler = await CreateHandler();
 
         // Act
-        var result = await handler.TryLoadSessionAsync(_client, _sessionId);
+        await handler.LoadSessionAsync(_client, _sessionId);
 
         // Assert
-        result.Should().BeTrue();
-        handler.State.GameSession.Should().NotBeNull();
-        handler.State.CanEdit.Should().BeTrue();
-        handler.State.CanStart.Should().BeTrue();
+        _page.State.GameSession.Should().NotBeNull();
+        _page.State.CanEdit.Should().BeTrue();
+        _page.State.CanStart.Should().BeTrue();
     }
 
     [Fact]
@@ -27,10 +33,7 @@ public class GameSessionPageHandlerTests
         _client.GetGameSessionByIdAsync(_sessionId).Returns((GameSession?)null);
 
         // Act
-        var result = await handler.TryLoadSessionAsync(_client, _sessionId);
-
-        // Assert
-        result.Should().BeFalse();
+        await handler.LoadSessionAsync(_client, _sessionId);
     }
 
     [Fact]
@@ -47,36 +50,36 @@ public class GameSessionPageHandlerTests
         handler.OpenEditGameSessionDialog();
 
         // Assert
-        handler.State.Input.Should().BeEquivalentTo(expectedInput);
-        handler.State.ShowEditDialog.Should().BeTrue();
+        _page.State.Input.Should().BeEquivalentTo(expectedInput);
+        _page.State.ShowEditDialog.Should().BeTrue();
     }
 
     [Fact]
     public async Task CloseEditGameSessionDialog_HidesDialog() {
         // Arrange
         var handler = await CreateHandler();
-        handler.State.ShowEditDialog = true;
+        _page.State.ShowEditDialog = true;
 
         // Act
         handler.CloseEditGameSessionDialog();
 
         // Assert
-        handler.State.ShowEditDialog.Should().BeFalse();
+        _page.State.ShowEditDialog.Should().BeFalse();
     }
 
     [Fact]
     public async Task UpdateGameSession_WithValidInput_UpdatesGameSessionAndClosesDialog() {
         // Arrange
         var handler = await CreateHandler();
-        handler.State.ShowEditDialog = true;
-        handler.State.Input = new() {
+        _page.State.ShowEditDialog = true;
+        _page.State.Input = new() {
             Title = "Updated GameSession Name",
         };
         var updatedGameSession = new GameSession {
-            Id = handler.State.GameSession.Id,
-            Title = handler.State.Input.Title,
-            OwnerId = handler.State.GameSession.OwnerId,
-            Players = handler.State.GameSession.Players,
+            Id = _page.State.GameSession.Id,
+            Title = _page.State.Input.Title,
+            OwnerId = _page.State.GameSession.OwnerId,
+            Players = _page.State.GameSession.Players,
         };
 
         _client.UpdateGameSessionAsync(_sessionId, Arg.Any<UpdateGameSessionRequest>()).Returns(updatedGameSession);
@@ -85,24 +88,24 @@ public class GameSessionPageHandlerTests
         await handler.UpdateGameSession();
 
         // Assert
-        handler.State.ShowEditDialog.Should().BeFalse();
-        handler.State.GameSession.Should().BeEquivalentTo(updatedGameSession);
+        _page.State.ShowEditDialog.Should().BeFalse();
+        _page.State.GameSession.Should().BeEquivalentTo(updatedGameSession);
     }
 
     [Fact]
     public async Task UpdateGameSession_WithValidationError_SetsErrorsAndDoesNotUpdate() {
         // Arrange
         var handler = await CreateHandler();
-        handler.State.ShowEditDialog = true;
+        _page.State.ShowEditDialog = true;
         _client.UpdateGameSessionAsync(_sessionId, Arg.Any<UpdateGameSessionRequest>()).Returns(Result.Failure("Some error."));
 
         // Act
         await handler.UpdateGameSession();
 
         // Assert
-        handler.State.ShowEditDialog.Should().BeTrue();
-        handler.State.Input.Errors.Should().NotBeEmpty();
-        handler.State.Input.Errors[0].Message.Should().Be("Some error.");
+        _page.State.ShowEditDialog.Should().BeTrue();
+        _page.State.Input.Errors.Should().NotBeEmpty();
+        _page.State.Input.Errors[0].Message.Should().Be("Some error.");
     }
 
     [Fact]
@@ -143,14 +146,9 @@ public class GameSessionPageHandlerTests
             Players = [player],
         };
         _client.GetGameSessionByIdAsync(_sessionId).Returns(session);
-        var page = Substitute.For<IAuthenticatedPage>();
-        page.UserId.Returns(userId);
-        page.HttpContext.Returns(HttpContext);
-        page.NavigationManager.Returns(NavigationManager);
-        page.Logger.Returns(NullLogger.Instance);
-        var handler = new GameSessionPageHandler(page);
-        if (isConfigured)
-            await handler.TryLoadSessionAsync(_client, _sessionId);
+        _page.UserId.Returns(userId);
+        var handler = new GameSessionPageHandler(_page);
+        if (isConfigured) await handler.LoadSessionAsync(_client, _sessionId);
         return handler;
     }
 }

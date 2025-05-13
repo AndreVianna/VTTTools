@@ -1,7 +1,8 @@
 namespace VttTools.WebApp.Components;
 
-public class AccountPageHandler<THandler>(IAccountPage page)
+public class AccountPageHandler<THandler, TPage>(TPage page)
     : PageHandler
-    where THandler : AccountPageHandler<THandler> {
-    protected IAccountPage Page => page;
+    where THandler : AccountPageHandler<THandler, TPage>
+    where TPage : IAccountPage {
+    protected TPage Page => page;
 }

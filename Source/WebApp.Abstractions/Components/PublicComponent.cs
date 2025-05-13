@@ -4,19 +4,17 @@ public class PublicComponent
     : Component
     , IPublicComponent {
     [CascadingParameter]
-    public bool IsAuthenticated { get; private set; }
-    public Guid? UserId { get; private set; }
-    public string? UserDisplayName { get; private set; }
-    public bool UserIsAdministrator { get; private set; }
+    public virtual bool IsAuthenticated { get; private set; }
+    public virtual Guid? UserId { get; private set; }
+    public virtual string? UserDisplayName { get; private set; }
+    public virtual bool UserIsAdministrator { get; private set; }
 
-    protected override bool Configure() {
-        if (!base.Configure())
-            return false;
+    protected override void Configure() {
+        base.Configure();
         IsAuthenticated = HttpContext.User.Identity?.IsAuthenticated ?? false;
         UserId = GetUserIdOrDefault();
         UserDisplayName = GetUserDisplayNameOrDefault();
         UserIsAdministrator = HttpContext.User.IsInRole("Administrator");
-        return true;
     }
 
     private string? GetUserDisplayNameOrDefault()
@@ -31,7 +29,4 @@ public class PublicComponent
         && Guid.TryParse(HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value, out var id)
             ? id
             : null;
-
-    protected override Task<bool> ConfigureAsync()
-        => Task.FromResult(Configure());
 }

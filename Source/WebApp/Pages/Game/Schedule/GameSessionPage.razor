@@ -1,6 +1,6 @@
 @page "/sessions/{GameSessionId:guid}"
-@inherits AuthenticatedPage<GameSessionPageHandler>
-@rendermode InteractiveAuto
+@inherits AuthenticatedPage<GameSessionPage, GameSessionPageHandler>
+@rendermode InteractiveServer
 
 <PageTitle>Game GameSession: @(IsReady ? "Loading..." : State.GameSession.Title)</PageTitle>
 

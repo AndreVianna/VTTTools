@@ -2,8 +2,13 @@ namespace VttTools.WebApp.Pages.Account.Manage;
 
 public class ProfilePageHandlerTests
     : ComponentTestContext {
+    private readonly ProfilePage _page = Substitute.For<ProfilePage>();
+
     public ProfilePageHandlerTests() {
-        EnsureAuthenticated();
+        _page.CurrentUser.Returns(CurrentUser);
+        _page.HttpContext.Returns(HttpContext);
+        _page.NavigationManager.Returns(NavigationManager);
+        _page.Logger.Returns(NullLogger.Instance);
     }
 
     [Fact]
@@ -15,15 +20,15 @@ public class ProfilePageHandlerTests
         handler.Configure();
 
         // Assert
-        handler.State.Input.DisplayName.Should().Be(CurrentUser!.DisplayName);
-        handler.State.Input.Errors.Should().BeEmpty();
+        _page.State.Input.DisplayName.Should().Be(CurrentUser!.DisplayName);
+        _page.State.Input.Errors.Should().BeEmpty();
     }
 
     [Fact]
     public async Task UpdateProfileAsync_WithValidData_UpdatesUser() {
         // Arrange
         var handler = CreateHandler();
-        handler.State.Input.DisplayName = "Other Name";
+        _page.State.Input.DisplayName = "Other Name";
 
         UserManager.UpdateAsync(Arg.Any<User>())
             .Returns(IdentityResult.Success);
@@ -54,7 +59,7 @@ public class ProfilePageHandlerTests
         // Arrange
         var handler = CreateHandler();
 
-        handler.State.Input.DisplayName = "Invalid Name";
+        _page.State.Input.DisplayName = "Invalid Name";
 
         var error = new IdentityError { Description = "Invalid display name." };
         UserManager.UpdateAsync(Arg.Any<User>())
@@ -65,21 +70,14 @@ public class ProfilePageHandlerTests
 
         // Assert
         await UserManager.Received(1).UpdateAsync(Arg.Any<User>());
-        handler.State.Input.Errors.Should().ContainSingle().Which.Message.Should().Be("Invalid display name.");
+        _page.State.Input.Errors.Should().ContainSingle().Which.Message.Should().Be("Invalid display name.");
         HttpContext.Received(1).SetStatusMessage("Error: Failed to update user profile.");
     }
 
     private ProfilePageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized)
-            EnsureAuthenticated();
-        var page = Substitute.For<IAccountPage>();
-        page.CurrentUser.Returns(CurrentUser);
-        page.HttpContext.Returns(HttpContext);
-        page.NavigationManager.Returns(NavigationManager);
-        page.Logger.Returns(NullLogger.Instance);
-        var handler = new ProfilePageHandler(page);
-        if (isConfigured)
-            handler.Configure();
+        if (isAuthorized) EnsureAuthenticated();
+        var handler = new ProfilePageHandler(_page);
+        if (isConfigured) handler.Configure();
         return handler;
     }
 }

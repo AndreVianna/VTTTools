@@ -5,4 +5,5 @@ public interface IPublicComponent
     bool IsAuthenticated { get; }
     Guid? UserId { get; }
     string? UserDisplayName { get; }
+    bool UserIsAdministrator { get; }
 }

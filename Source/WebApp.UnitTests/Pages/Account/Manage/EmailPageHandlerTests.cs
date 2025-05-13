@@ -3,10 +3,14 @@ namespace VttTools.WebApp.Pages.Account.Manage;
 public class EmailPageHandlerTests
     : ComponentTestContext {
     private readonly IEmailSender<User> _emailSender = Substitute.For<IEmailSender<User>>();
+    private readonly EmailPage _page = Substitute.For<EmailPage>();
 
     public EmailPageHandlerTests() {
         Services.AddScoped<IEmailSender<User>>(_ => _emailSender);
-        EnsureAuthenticated();
+        _page.CurrentUser.Returns(CurrentUser);
+        _page.HttpContext.Returns(HttpContext);
+        _page.NavigationManager.Returns(NavigationManager);
+        _page.Logger.Returns(NullLogger.Instance);
     }
 
     [Fact]
@@ -18,15 +22,15 @@ public class EmailPageHandlerTests
         handler.Configure();
 
         // Assert
-        handler.State.ChangeEmailInput.CurrentEmail.Should().Be(CurrentUser!.Email);
-        handler.State.ChangeEmailInput.Email.Should().BeNull();
+        _page.State.ChangeEmailInput.CurrentEmail.Should().Be(CurrentUser!.Email);
+        _page.State.ChangeEmailInput.Email.Should().BeNull();
     }
 
     [Fact]
     public async Task ChangeEmailAsync_WithSameEmail_SetsUnchangedMessage() {
         // Arrange
         var handler = CreateHandler();
-        handler.State.ChangeEmailInput.Email = CurrentUser!.Email;
+        _page.State.ChangeEmailInput.Email = CurrentUser!.Email;
 
         // Act
         await handler.SendEmailChangeConfirmationAsync();
@@ -39,7 +43,7 @@ public class EmailPageHandlerTests
     public async Task ChangeEmailAsync_WithNewEmail_SendsConfirmationEmail() {
         // Arrange
         var handler = CreateHandler();
-        handler.State.ChangeEmailInput.Email = "some.email@host.com";
+        _page.State.ChangeEmailInput.Email = "some.email@host.com";
 
         // Act
         await handler.SendEmailChangeConfirmationAsync();
@@ -61,16 +65,9 @@ public class EmailPageHandlerTests
     }
 
     private EmailPageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized)
-            EnsureAuthenticated();
-        var page = Substitute.For<IAccountPage>();
-        page.CurrentUser.Returns(CurrentUser);
-        page.HttpContext.Returns(HttpContext);
-        page.NavigationManager.Returns(NavigationManager);
-        page.Logger.Returns(NullLogger.Instance);
-        var handler = new EmailPageHandler(page);
-        if (isConfigured)
-            handler.Configure();
+        if (isAuthorized) EnsureAuthenticated();
+        var handler = new EmailPageHandler(_page);
+        if (isConfigured) handler.Configure();
         return handler;
     }
 }

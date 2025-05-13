@@ -2,8 +2,13 @@ namespace VttTools.WebApp.Pages.Account.Manage;
 
 public class ChangePasswordPageHandlerTests
     : ComponentTestContext {
+    private readonly ChangePasswordPage _page = Substitute.For<ChangePasswordPage>();
+
     public ChangePasswordPageHandlerTests() {
-        EnsureAuthenticated();
+        _page.CurrentUser.Returns(CurrentUser);
+        _page.HttpContext.Returns(HttpContext);
+        _page.NavigationManager.Returns(NavigationManager);
+        _page.Logger.Returns(NullLogger.Instance);
     }
 
     [Fact]
@@ -24,9 +29,9 @@ public class ChangePasswordPageHandlerTests
         // Arrange
         var handler = CreateHandler();
 
-        handler.State.Input.CurrentPassword = "OldPassword123!";
-        handler.State.Input.NewPassword = "NewPassword123!";
-        handler.State.Input.NewPasswordConfirmation = "NewPassword123!";
+        _page.Input.CurrentPassword = "OldPassword123!";
+        _page.Input.NewPassword = "NewPassword123!";
+        _page.Input.NewPasswordConfirmation = "NewPassword123!";
 
         UserManager.ChangePasswordAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>())
             .Returns(IdentityResult.Success);
@@ -44,9 +49,9 @@ public class ChangePasswordPageHandlerTests
         // Arrange
         var handler = CreateHandler();
 
-        handler.State.Input.CurrentPassword = "OldPassword123!";
-        handler.State.Input.NewPassword = "NewPassword123!";
-        handler.State.Input.NewPasswordConfirmation = "NewPassword123!";
+        _page.Input.CurrentPassword = "OldPassword123!";
+        _page.Input.NewPassword = "NewPassword123!";
+        _page.Input.NewPasswordConfirmation = "NewPassword123!";
 
         var errors = new IdentityError[] { new() { Description = "Incorrect password." } };
         UserManager.ChangePasswordAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>()).Returns(IdentityResult.Failed(errors));
@@ -56,21 +61,14 @@ public class ChangePasswordPageHandlerTests
 
         // Assert
         HttpContext.Received(1).SetStatusMessage("Error: Failed to change the password.");
-        handler.State.Input.Errors.Should().Contain("Incorrect password.");
+        _page.Input.Errors.Should().Contain("Incorrect password.");
         await SignInManager.DidNotReceive().RefreshSignInAsync(Arg.Any<User>());
     }
 
     private ChangePasswordPageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized)
-            EnsureAuthenticated();
-        var page = Substitute.For<IAccountPage>();
-        page.CurrentUser.Returns(CurrentUser);
-        page.HttpContext.Returns(HttpContext);
-        page.NavigationManager.Returns(NavigationManager);
-        page.Logger.Returns(NullLogger.Instance);
-        var handler = new ChangePasswordPageHandler(page);
-        if (isConfigured)
-            handler.Configure();
+        if (isAuthorized) EnsureAuthenticated();
+        var handler = new ChangePasswordPageHandler(_page);
+        if (isConfigured) handler.Configure();
         return handler;
     }
 }

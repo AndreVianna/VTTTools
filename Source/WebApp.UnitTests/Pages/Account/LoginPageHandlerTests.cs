@@ -2,6 +2,14 @@ namespace VttTools.WebApp.Pages.Account;
 
 public class LoginPageHandlerTests
     : ComponentTestContext {
+    private readonly LoginPage _page = Substitute.For<LoginPage>();
+
+    public LoginPageHandlerTests() {
+        _page.HttpContext.Returns(HttpContext);
+        _page.NavigationManager.Returns(NavigationManager);
+        _page.Logger.Returns(NullLogger.Instance);
+    }
+
     [Fact]
     public async Task ConfigureAsync_WithGetRequest_ChecksForExternalLogins() {
         // Arrange
@@ -15,7 +23,7 @@ public class LoginPageHandlerTests
         await handler.ConfigureAsync();
 
         // Assert
-        handler.State.HasExternalLoginProviders.Should().BeTrue();
+        _page.State.HasExternalLoginProviders.Should().BeTrue();
     }
 
     [Fact]
@@ -28,7 +36,7 @@ public class LoginPageHandlerTests
         await handler.ConfigureAsync();
 
         // Assert
-        handler.State.HasExternalLoginProviders.Should().BeFalse();
+        _page.State.HasExternalLoginProviders.Should().BeFalse();
     }
 
     [Fact]
@@ -120,13 +128,8 @@ public class LoginPageHandlerTests
     }
 
     private async Task<LoginPageHandler> CreateHandler(bool isConfigured = true) {
-        var page = Substitute.For<IPublicPage>();
-        page.HttpContext.Returns(HttpContext);
-        page.NavigationManager.Returns(NavigationManager);
-        page.Logger.Returns(NullLogger.Instance);
-        var handler = new LoginPageHandler(page);
-        if (isConfigured)
-            await handler.ConfigureAsync();
+        var handler = new LoginPageHandler(_page);
+        if (isConfigured) await handler.ConfigureAsync();
         return handler;
     }
 }

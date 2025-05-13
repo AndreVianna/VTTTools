@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Library.Scenes;
+namespace VttTools.WebApp.Pages.Library.Scenes.Models;
 
 internal sealed class ScenesInputModel {
     public Guid Id { get; set; }

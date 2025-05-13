@@ -1,43 +1,41 @@
 namespace VttTools.WebApp.Pages.Game.Schedule;
 
-public sealed class GameSessionsPageHandler(IAuthenticatedPage component)
-    : AuthenticatedPageHandler<GameSessionsPageHandler>(component) {
+public sealed class GameSessionsPageHandler(GameSessionsPage page)
+    : AuthenticatedPageHandler<GameSessionsPageHandler, GameSessionsPage>(page) {
     private IGameClient _gameClient = null!;
     private ILibraryClient _libraryClient = null!;
-
-    internal GameSessionsPageState State { get; } = new();
 
     public async Task LoadGameSessionAsync(IGameClient gameClient, ILibraryClient libraryClient) {
         _gameClient = gameClient;
         _libraryClient = libraryClient;
         var data = await gameClient.GetGameSessionsAsync();
-        State.GameSessions = [.. data];
+        Page.State.GameSessions = [.. data];
     }
 
     public async Task StartGameSessionCreating() {
         var adventures = await _libraryClient.GetAdventuresAsync();
-        State.Input = new() {
+        Page.State.Input = new() {
             Adventures = [.. adventures],
             AdventureId = adventures.FirstOrDefault()?.Id ?? Guid.Empty,
         };
-        await LoadScenes(State.Input.AdventureId);
-        State.IsCreating = true;
+        await LoadScenes(Page.State.Input.AdventureId);
+        Page.State.IsCreating = true;
     }
 
     public void EndGameSessionCreating()
-        => State.IsCreating = false;
+        => Page.State.IsCreating = false;
 
     public async Task SaveCreatedGameSession() {
         var request = new CreateGameSessionRequest {
-            Title = State.Input.Subject,
-            SceneId = State.Input.SceneId,
+            Title = Page.State.Input.Subject,
+            SceneId = Page.State.Input.SceneId,
         };
         var result = await _gameClient.CreateGameSessionAsync(request);
         if (!result.IsSuccessful) {
-            State.Input.Errors = [.. result.Errors];
+            Page.State.Input.Errors = [.. result.Errors];
             return;
         }
-        State.GameSessions.Add(result.Value);
+        Page.State.GameSessions.Add(result.Value);
         EndGameSessionCreating();
     }
 
@@ -48,21 +46,21 @@ public sealed class GameSessionsPageHandler(IAuthenticatedPage component)
         if (!await GameSessionsPage.DisplayConfirmation("Are you sure you want to delete this game session?"))
             return;
 
-        var sessionToRemove = State.GameSessions.FirstOrDefault(s => s.Id == sessionId);
+        var sessionToRemove = Page.State.GameSessions.FirstOrDefault(s => s.Id == sessionId);
         if (sessionToRemove == null)
             return;
         await _gameClient.DeleteGameSessionAsync(sessionId);
-        State.GameSessions.Remove(sessionToRemove);
+        Page.State.GameSessions.Remove(sessionToRemove);
     }
 
     // Handle selection of an adventure: load its scenes
     public async Task LoadScenes(Guid adventureId) {
-        State.Input.Scenes = [];
-        State.Input.SceneId = Guid.Empty;
+        Page.State.Input.Scenes = [];
+        Page.State.Input.SceneId = Guid.Empty;
         if (adventureId == Guid.Empty)
             return;
         var scenes = await _libraryClient.GetScenesAsync(adventureId);
-        State.Input.Scenes = [.. scenes];
-        State.Input.SceneId = scenes.FirstOrDefault()?.Id ?? Guid.Empty;
+        Page.State.Input.Scenes = [.. scenes];
+        Page.State.Input.SceneId = scenes.FirstOrDefault()?.Id ?? Guid.Empty;
     }
 }

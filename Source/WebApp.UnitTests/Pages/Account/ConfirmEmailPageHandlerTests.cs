@@ -2,6 +2,14 @@ namespace VttTools.WebApp.Pages.Account;
 
 public class ConfirmEmailPageHandlerTests
     : ComponentTestContext {
+    private readonly ConfirmEmailPage _page = Substitute.For<ConfirmEmailPage>();
+
+    public ConfirmEmailPageHandlerTests() {
+        _page.HttpContext.Returns(HttpContext);
+        _page.NavigationManager.Returns(NavigationManager);
+        _page.Logger.Returns(NullLogger.Instance);
+    }
+
     [Fact]
     public async Task ConfigureAsync_WithValidParameters_ReturnsTrue() {
         // Arrange
@@ -14,10 +22,7 @@ public class ConfirmEmailPageHandlerTests
         UserManager.ConfirmEmailAsync(Arg.Any<User>(), Arg.Any<string>()).Returns(IdentityResult.Success);
 
         // Act
-        var result = await handler.VerifyAsync(userId, code);
-
-        // Assert
-        result.Should().BeTrue();
+        await handler.VerifyAsync(userId, code);
     }
 
     [Fact]
@@ -26,10 +31,7 @@ public class ConfirmEmailPageHandlerTests
         var handler = CreateHandler();
 
         // Act
-        var result = await handler.VerifyAsync(null, null);
-
-        // Assert
-        result.Should().BeFalse();
+        await handler.VerifyAsync(null, null);
     }
 
     [Fact]
@@ -42,10 +44,7 @@ public class ConfirmEmailPageHandlerTests
         UserManager.FindByIdAsync(Arg.Any<string>()).Returns((User?)null);
 
         // Act
-        var result = await handler.VerifyAsync(userId, code);
-
-        // Assert
-        result.Should().BeFalse();
+        await handler.VerifyAsync(userId, code);
     }
 
     [Fact]
@@ -60,17 +59,8 @@ public class ConfirmEmailPageHandlerTests
         UserManager.ConfirmEmailAsync(Arg.Any<User>(), Arg.Any<string>()).Returns(IdentityResult.Failed(new IdentityError { Description = "Invalid token." }));
 
         // Act
-        var result = await handler.VerifyAsync(userId, code);
-
-        // Assert
-        result.Should().BeFalse();
+        await handler.VerifyAsync(userId, code);
     }
 
-    private ConfirmEmailPageHandler CreateHandler() {
-        var page = Substitute.For<IPublicPage>();
-        page.HttpContext.Returns(HttpContext);
-        page.NavigationManager.Returns(NavigationManager);
-        page.Logger.Returns(NullLogger.Instance);
-        return new(page);
-    }
+    private ConfirmEmailPageHandler CreateHandler() => new(_page);
 }

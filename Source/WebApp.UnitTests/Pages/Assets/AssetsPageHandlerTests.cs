@@ -3,6 +3,7 @@ namespace VttTools.WebApp.Pages.Assets;
 public class AssetsPageHandlerTests
     : ComponentTestContext {
     private readonly IAssetsClient _client = Substitute.For<IAssetsClient>();
+    private readonly AssetsPage _page = Substitute.For<AssetsPage>();
 
     public AssetsPageHandlerTests() {
         var assets = new[] {
@@ -10,6 +11,9 @@ public class AssetsPageHandlerTests
             new Asset { Name = "Asset 2", Visibility = Visibility.Private },
         };
         _client.GetAssetsAsync().Returns(assets);
+        _page.HttpContext.Returns(HttpContext);
+        _page.NavigationManager.Returns(NavigationManager);
+        _page.Logger.Returns(NullLogger.Instance);
     }
 
     [Fact]
@@ -19,14 +23,14 @@ public class AssetsPageHandlerTests
 
         // Assert
         handler.Should().NotBeNull();
-        handler.State.Assets.Should().NotBeEmpty();
+        _page.State.Assets.Should().NotBeEmpty();
     }
 
     [Fact]
     public async Task CreateAssetAsync_WithValidInput_CreatesAssetAndResetsInput() {
         // Arrange
         var handler = await CreateHandler();
-        handler.State.Input = new() {
+        _page.State.Input = new() {
             Name = "New Asset",
             Visibility = Visibility.Private,
         };
@@ -41,33 +45,27 @@ public class AssetsPageHandlerTests
         await handler.SaveCreatedAsset();
 
         // Assert
-        handler.State.Assets.Should().HaveCount(3);
+        _page.State.Assets.Should().HaveCount(3);
     }
 
     [Fact]
     public async Task DeleteAssetAsync_RemovesAssetAndReloadsAssets() {
         // Arrange
         var handler = await CreateHandler();
-        var assetId = handler.State.Assets[1].Id;
+        var assetId = _page.State.Assets[1].Id;
         _client.DeleteAssetAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
         await handler.DeleteAsset(assetId);
 
         // Assert
-        handler.State.Assets.Should().HaveCount(1);
+        _page.State.Assets.Should().HaveCount(1);
     }
 
     private async Task<AssetsPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized)
-            EnsureAuthenticated();
-        var page = Substitute.For<IAuthenticatedPage>();
-        page.HttpContext.Returns(HttpContext);
-        page.NavigationManager.Returns(NavigationManager);
-        page.Logger.Returns(NullLogger.Instance);
-        var handler = new AssetsPageHandler(page);
-        if (isConfigured)
-            await handler.LoadAssetsAsync(_client);
+        if (isAuthorized) EnsureAuthenticated();
+        var handler = new AssetsPageHandler(_page);
+        if (isConfigured) await handler.LoadAssetsAsync(_client);
         return handler;
     }
 }

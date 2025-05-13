@@ -1,9 +1,7 @@
 namespace VttTools.WebApp.Pages.Account.Manage;
 
-public class ChangePasswordPageHandler(IAccountPage page)
-    : AccountPageHandler<ChangePasswordPageHandler>(page) {
-    internal ChangePasswordPageState State { get; } = new();
-
+public class ChangePasswordPageHandler(ChangePasswordPage page)
+    : AccountPageHandler<ChangePasswordPageHandler, ChangePasswordPage>(page) {
     public override bool Configure() {
         if (Page.CurrentUser.HasPassword)
             return true;
@@ -15,11 +13,11 @@ public class ChangePasswordPageHandler(IAccountPage page)
         var userManager = Page.HttpContext.RequestServices.GetRequiredService<UserManager<User>>();
         var changePasswordResult = await userManager.ChangePasswordAsync(
             Page.CurrentUser,
-            State.Input.CurrentPassword,
-            State.Input.NewPassword);
+            Page.State.Input.CurrentPassword,
+            Page.State.Input.NewPassword);
 
         if (!changePasswordResult.Succeeded) {
-            State.Input.Errors = changePasswordResult.Errors.ToArray(error => new InputError(error.Description));
+            Page.State.Input.Errors = changePasswordResult.Errors.ToArray(error => new InputError(error.Description));
             Page.SetStatusMessage("Error: Failed to change the password.");
             return;
         }

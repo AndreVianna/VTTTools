@@ -3,16 +3,20 @@ namespace VttTools.WebApp.Pages.Account;
 public class ForgotPasswordPageHandlerTests
     : ComponentTestContext {
     private readonly IEmailSender<User> _emailSender = Substitute.For<IEmailSender<User>>();
+    private readonly ForgotPasswordPage _page = Substitute.For<ForgotPasswordPage>();
 
     public ForgotPasswordPageHandlerTests() {
         Services.AddScoped<IEmailSender<User>>(_ => _emailSender);
+        _page.HttpContext.Returns(HttpContext);
+        _page.NavigationManager.Returns(NavigationManager);
+        _page.Logger.Returns(NullLogger.Instance);
     }
 
     [Fact]
     public async Task RequestPasswordResetAsync_WithNonExistentEmail_RedirectsToConfirmationPage() {
         // Arrange
         var handler = CreateHandler();
-        handler.State.Input.Email = "nonexistent@example.com";
+        _page.State.Input.Email = "nonexistent@example.com";
         UserManager.FindByEmailAsync("nonexistent@example.com").Returns((User?)null);
 
         // Act
@@ -27,7 +31,7 @@ public class ForgotPasswordPageHandlerTests
     public async Task RequestPasswordResetAsync_WithUnconfirmedEmail_RedirectsToConfirmationPage() {
         // Arrange
         var handler = CreateHandler();
-        handler.State.Input.Email = "unconfirmed@example.com";
+        _page.State.Input.Email = "unconfirmed@example.com";
 
         var user = new User { Email = "unconfirmed@example.com" };
         UserManager.FindByEmailAsync("unconfirmed@example.com").Returns(user);
@@ -45,7 +49,7 @@ public class ForgotPasswordPageHandlerTests
     public async Task RequestPasswordResetAsync_WithValidEmail_SendsResetLinkAndRedirects() {
         // Arrange
         var handler = CreateHandler();
-        handler.State.Input.Email = "valid@example.com";
+        _page.State.Input.Email = "valid@example.com";
 
         var user = new User { Email = "valid@example.com" };
         UserManager.FindByEmailAsync("valid@example.com").Returns(user);
@@ -60,11 +64,5 @@ public class ForgotPasswordPageHandlerTests
         await _emailSender.Received(1).SendPasswordResetLinkAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
     }
 
-    private ForgotPasswordPageHandler CreateHandler() {
-        var page = Substitute.For<IPublicPage>();
-        page.HttpContext.Returns(HttpContext);
-        page.NavigationManager.Returns(NavigationManager);
-        page.Logger.Returns(NullLogger.Instance);
-        return new(page);
-    }
+    private ForgotPasswordPageHandler CreateHandler() => new(_page);
 }

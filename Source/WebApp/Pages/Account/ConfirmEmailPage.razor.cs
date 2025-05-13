@@ -2,14 +2,16 @@
 
 public partial class ConfirmEmailPage {
     [SupplyParameterFromQuery]
-    internal string? Id { get; set; }
+    internal virtual string? Id { get; set; }
 
     [SupplyParameterFromQuery]
-    internal string? Code { get; set; }
+    internal virtual string? Code { get; set; }
 
-    protected override async Task<bool> ConfigureAsync()
-        => await base.ConfigureAsync() && await Handler.VerifyAsync(Id, Code);
+    protected override async Task ConfigureAsync() {
+        await base.ConfigureAsync();
+        await Handler.VerifyAsync(Id, Code);
+    }
 
-    internal void GoToSignInPage()
+    internal virtual void GoToSignInPage()
         => NavigationManager.GoToSignIn();
 }

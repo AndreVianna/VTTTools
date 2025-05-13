@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Library.Scenes;
+namespace VttTools.WebApp.Pages.Library.Scenes.Models;
 
 internal class ScenesPageState {
     internal Guid AdventureId { get; set; }

@@ -2,8 +2,15 @@ namespace VttTools.WebApp.Pages.Game.Schedule;
 
 public class GameSessionsPageHandlerTests
     : ComponentTestContext {
+    private readonly GameSessionsPage _page = Substitute.For<GameSessionsPage>();
     private readonly IGameClient _gameClient = Substitute.For<IGameClient>();
     private readonly ILibraryClient _libraryClient = Substitute.For<ILibraryClient>();
+
+    public GameSessionsPageHandlerTests() {
+        _page.HttpContext.Returns(HttpContext);
+        _page.NavigationManager.Returns(NavigationManager);
+        _page.Logger.Returns(NullLogger.Instance);
+    }
 
     [Fact]
     public async Task InitializeAsync_LoadsGameSessions() {
@@ -12,7 +19,7 @@ public class GameSessionsPageHandlerTests
 
         // Assert
         handler.Should().NotBeNull();
-        handler.State.GameSessions.Should().NotBeEmpty();
+        _page.State.GameSessions.Should().NotBeEmpty();
     }
 
     [Fact]
@@ -28,26 +35,26 @@ public class GameSessionsPageHandlerTests
         await handler.StartGameSessionCreating();
 
         // Assert
-        handler.State.IsCreating.Should().BeTrue();
-        handler.State.Input.Subject.Should().BeEmpty();
-        handler.State.Input.AdventureId.Should().Be(adventures[0].Id);
-        handler.State.Input.Scenes.Should().BeEmpty();
-        handler.State.Input.SceneId.Should().BeEmpty();
-        handler.State.Input.Adventures.Should().BeEquivalentTo(adventures);
-        handler.State.Input.Errors.Should().BeEmpty();
+        _page.State.IsCreating.Should().BeTrue();
+        _page.State.Input.Subject.Should().BeEmpty();
+        _page.State.Input.AdventureId.Should().Be(adventures[0].Id);
+        _page.State.Input.Scenes.Should().BeEmpty();
+        _page.State.Input.SceneId.Should().BeEmpty();
+        _page.State.Input.Adventures.Should().BeEquivalentTo(adventures);
+        _page.State.Input.Errors.Should().BeEmpty();
     }
 
     [Fact]
     public async Task CloseCreateGameSessionDialog_SetShowCreateDialogToFalse() {
         // Arrange
         var handler = await CreateInitializedHandler();
-        handler.State.IsCreating = true;
+        _page.State.IsCreating = true;
 
         // Act
         handler.EndGameSessionCreating();
 
         // Assert
-        handler.State.IsCreating.Should().BeFalse();
+        _page.State.IsCreating.Should().BeFalse();
     }
 
     [Fact]
@@ -55,9 +62,9 @@ public class GameSessionsPageHandlerTests
         // Arrange
         var handler = await CreateInitializedHandler();
         var sceneId = Guid.NewGuid();
-        handler.State.IsCreating = true;
-        handler.State.Input.Subject = "New GameSession";
-        handler.State.Input.SceneId = sceneId;
+        _page.State.IsCreating = true;
+        _page.State.Input.Subject = "New GameSession";
+        _page.State.Input.SceneId = sceneId;
 
         // Setup response
         var expectedGameSession = new GameSession { Id = Guid.NewGuid(), Title = "New GameSession" };
@@ -67,8 +74,8 @@ public class GameSessionsPageHandlerTests
         await handler.SaveCreatedGameSession();
 
         // Assert
-        handler.State.IsCreating.Should().BeFalse();
-        handler.State.GameSessions.Should().Contain(expectedGameSession);
+        _page.State.IsCreating.Should().BeFalse();
+        _page.State.GameSessions.Should().Contain(expectedGameSession);
     }
 
     [Fact]
@@ -76,18 +83,18 @@ public class GameSessionsPageHandlerTests
         // Arrange
         var handler = await CreateInitializedHandler();
         var sceneId = Guid.NewGuid();
-        handler.State.IsCreating = true;
-        handler.State.Input.Subject = string.Empty;
-        handler.State.Input.SceneId = sceneId;
+        _page.State.IsCreating = true;
+        _page.State.Input.Subject = string.Empty;
+        _page.State.Input.SceneId = sceneId;
         _gameClient.CreateGameSessionAsync(Arg.Any<CreateGameSessionRequest>()).Returns(Result.Failure("Some error."));
 
         // Act
         await handler.SaveCreatedGameSession();
 
         // Assert
-        handler.State.IsCreating.Should().BeTrue();
-        handler.State.Input.Errors.Should().NotBeEmpty();
-        handler.State.Input.Errors[0].Message.Should().Be("Some error.");
+        _page.State.IsCreating.Should().BeTrue();
+        _page.State.Input.Errors.Should().NotBeEmpty();
+        _page.State.Input.Errors[0].Message.Should().Be("Some error.");
     }
 
     [Fact]
@@ -125,13 +132,13 @@ public class GameSessionsPageHandlerTests
         var sessionId = Guid.NewGuid();
         var session = new GameSession { Id = sessionId, Title = "Session to Delete" };
 
-        handler.State.GameSessions = [session];
+        _page.State.GameSessions = [session];
 
         // Act
         await handler.DeleteGameSession(sessionId);
 
         // Assert
-        handler.State.GameSessions.Should().NotContain(session);
+        _page.State.GameSessions.Should().NotContain(session);
     }
 
     [Fact]
@@ -149,22 +156,22 @@ public class GameSessionsPageHandlerTests
         await handler.LoadScenes(adventureId);
 
         // Assert
-        handler.State.Input.Scenes.Should().BeEquivalentTo(scenes);
-        handler.State.Input.SceneId.Should().Be(scenes[0].Id);
+        _page.State.Input.Scenes.Should().BeEquivalentTo(scenes);
+        _page.State.Input.SceneId.Should().Be(scenes[0].Id);
     }
 
     [Fact]
     public async Task ReloadAdventureScenes_WithInvalidAdventureId_ClearSelectedId() {
         // Arrange
         var handler = await CreateInitializedHandler();
-        handler.State.Input.AdventureId = Guid.NewGuid();
+        _page.State.Input.AdventureId = Guid.NewGuid();
 
         // Act
         await handler.LoadScenes(Guid.Empty);
 
         // Assert
-        handler.State.Input.Scenes.Should().BeEmpty();
-        handler.State.Input.SceneId.Should().BeEmpty();
+        _page.State.Input.Scenes.Should().BeEmpty();
+        _page.State.Input.SceneId.Should().BeEmpty();
     }
 
     private async Task<GameSessionsPageHandler> CreateInitializedHandler(bool isAuthorized = true, bool isConfigured = true) {
@@ -172,16 +179,10 @@ public class GameSessionsPageHandlerTests
             new GameSession { Title = "Session 1" },
             new GameSession { Title = "Session 2" },
         };
-        if (isAuthorized)
-            EnsureAuthenticated();
-        var page = Substitute.For<IAuthenticatedPage>();
-        page.HttpContext.Returns(HttpContext);
-        page.NavigationManager.Returns(NavigationManager);
-        page.Logger.Returns(NullLogger.Instance);
-        var handler = new GameSessionsPageHandler(page);
+        if (isAuthorized) EnsureAuthenticated();
+        var handler = new GameSessionsPageHandler(_page);
         _gameClient.GetGameSessionsAsync().Returns(sessions);
-        if (isConfigured)
-            await handler.LoadGameSessionAsync(_gameClient, _libraryClient);
+        if (isConfigured) await handler.LoadGameSessionAsync(_gameClient, _libraryClient);
         return handler;
     }
 }

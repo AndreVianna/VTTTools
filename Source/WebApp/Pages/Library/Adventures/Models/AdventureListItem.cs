@@ -10,5 +10,4 @@ public sealed class AdventureListItem {
     public bool IsPublic { get; set; }
     public int ScenesCount { get; set; }
     public Guid OwnerId { get; set; }
-    public bool IsOwned => OwnerId == Guid.Empty; // This will be set properly in handler
 }

@@ -4,9 +4,9 @@ public class PublicComponentTests
     : ComponentTestContext {
     private sealed class TestComponent
         : PublicComponent {
-        protected override async Task<bool> ConfigureAsync() {
+        protected override async Task ConfigureAsync() {
             await Task.Delay(200);
-            return await base.ConfigureAsync();
+            await base.ConfigureAsync();
         }
     }
 

@@ -1,29 +1,27 @@
 namespace VttTools.WebApp.Pages.Account;
 
-public class RegisterPageHandler(IPublicPage page)
-    : PublicPageHandler<RegisterPageHandler>(page) {
-    internal RegisterPageState State { get; } = new();
-
+public class RegisterPageHandler(RegisterPage page)
+    : PublicPageHandler<RegisterPageHandler, RegisterPage>(page) {
     public override async Task<bool> ConfigureAsync() {
         if (!await base.ConfigureAsync())
             return false;
         var signInManager = Page.HttpContext.RequestServices.GetRequiredService<SignInManager<User>>();
         var externalLogins = await signInManager.GetExternalAuthenticationSchemesAsync();
-        State.HasExternalLoginProviders = externalLogins.Any();
+        Page.State.HasExternalLoginProviders = externalLogins.Any();
         return true;
     }
 
     public async Task<bool> RegisterUserAsync(string? returnUrl) {
         var user = CreateUser();
-        user.Name = State.Input.Name;
-        user.UserName = State.Input.Email;
-        user.NormalizedUserName = State.Input.Email.ToUpperInvariant();
-        user.Email = State.Input.Email;
-        user.NormalizedEmail = State.Input.Email.ToUpperInvariant();
+        user.Name = Page.State.Input.Name;
+        user.UserName = Page.State.Input.Email;
+        user.NormalizedUserName = Page.State.Input.Email.ToUpperInvariant();
+        user.Email = Page.State.Input.Email;
+        user.NormalizedEmail = Page.State.Input.Email.ToUpperInvariant();
         var userManager = Page.HttpContext.RequestServices.GetRequiredService<UserManager<User>>();
-        var result = await userManager.CreateAsync(user, State.Input.Password);
+        var result = await userManager.CreateAsync(user, Page.State.Input.Password);
         if (!result.Succeeded) {
-            State.IdentityErrors = result.Errors;
+            Page.State.IdentityErrors = result.Errors;
             return false;
         }
 
@@ -38,11 +36,11 @@ public class RegisterPageHandler(IPublicPage page)
             ps.Add("returnUrl", returnUrl);
         });
         var emailSender = Page.HttpContext.RequestServices.GetRequiredService<IEmailSender<User>>();
-        await emailSender.SendConfirmationLinkAsync(user, State.Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+        await emailSender.SendConfirmationLinkAsync(user, Page.State.Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
         if (userManager.Options.SignIn.RequireConfirmedAccount) {
             Page.RedirectTo("account/register_confirmation", ps => {
-                ps.Add("email", State.Input.Email);
+                ps.Add("email", Page.State.Input.Email);
                 ps.Add("returnUrl", returnUrl);
             });
         }

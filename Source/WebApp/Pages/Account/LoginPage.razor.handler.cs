@@ -1,9 +1,7 @@
 namespace VttTools.WebApp.Pages.Account;
 
-public class LoginPageHandler(IPublicPage page)
-    : PublicPageHandler<LoginPageHandler>(page) {
-    internal LoginPageState State { get; } = new();
-
+public class LoginPageHandler(LoginPage page)
+    : PublicPageHandler<LoginPageHandler, LoginPage>(page) {
     public override async Task<bool> ConfigureAsync() {
         if (!await base.ConfigureAsync())
             return false;
@@ -13,7 +11,7 @@ public class LoginPageHandler(IPublicPage page)
         await Page.HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
         var signInManager = Page.HttpContext.RequestServices.GetRequiredService<SignInManager<User>>();
         var externalLogins = await signInManager.GetExternalAuthenticationSchemesAsync();
-        State.HasExternalLoginProviders = externalLogins.Any();
+        Page.State.HasExternalLoginProviders = externalLogins.Any();
         return true;
     }
 
@@ -27,8 +25,7 @@ public class LoginPageHandler(IPublicPage page)
 
         if (result.Succeeded) {
             var userManager = Page.HttpContext.RequestServices.GetRequiredService<UserManager<User>>();
-            var user = await userManager.FindByEmailAsync(input.Email);
-            Ensure.IsNotNull(user);
+            var user = IsNotNull(await userManager.FindByEmailAsync(input.Email));
             var principal = await signInManager.ClaimsFactory.CreateAsync(user);
             ((ClaimsIdentity)principal.Identity!).AddClaim(new(ClaimTypes.GivenName, user.DisplayName));
             await Page.HttpContext.SignInAsync(IdentityConstants.ExternalScheme, principal);

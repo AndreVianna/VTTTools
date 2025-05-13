@@ -1,12 +1,12 @@
 namespace VttTools.WebApp.Pages.Account;
 
-public class ConfirmEmailPageHandler(IPublicPage page)
-    : PublicPageHandler<ConfirmEmailPageHandler>(page) {
-    public async Task<bool> VerifyAsync(string? userId, string? code) {
+public class ConfirmEmailPageHandler(ConfirmEmailPage page)
+    : PublicPageHandler<ConfirmEmailPageHandler, ConfirmEmailPage>(page) {
+    public async Task VerifyAsync(string? userId, string? code) {
         if (userId is null || code is null) {
             Page.SetStatusMessage("The email confirmation code is missing, please try again.");
             Page.GoHome();
-            return false;
+            return;
         }
 
         var userManager = Page.HttpContext.RequestServices.GetRequiredService<UserManager<User>>();
@@ -14,16 +14,14 @@ public class ConfirmEmailPageHandler(IPublicPage page)
         if (user is null) {
             Page.SetStatusMessage("The email confirmation code is invalid, please try again.");
             Page.GoHome();
-            return false;
+            return;
         }
 
         var decodedCode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
         var result = await userManager.ConfirmEmailAsync(user, decodedCode);
-        if (result.Succeeded)
-            return true;
+        if (result.Succeeded) return;
 
         Page.SetStatusMessage("The email confirmation code is invalid, please try again.");
         Page.GoHome();
-        return false;
     }
 }

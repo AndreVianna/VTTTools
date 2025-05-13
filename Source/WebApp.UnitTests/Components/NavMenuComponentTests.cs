@@ -1,6 +1,6 @@
 namespace VttTools.WebApp.Components;
 
-public class NavMenuComponentTests
+public class NavMenuTests
     : ComponentTestContext {
     [Fact]
     public void WithAuthenticatedUser_ShowsUserMenu() {
@@ -8,7 +8,7 @@ public class NavMenuComponentTests
         EnsureAuthenticated();
 
         // Act
-        var cut = RenderComponent<NavMenuComponent>();
+        var cut = RenderComponent<NavMenu>();
 
         // Assert
         var displayName = cut.Instance.UserDisplayName;
@@ -23,7 +23,7 @@ public class NavMenuComponentTests
     [Fact]
     public void WithNotAuthenticatedUser_ShowsGuestMenu() {
         // Act
-        var cut = RenderComponent<NavMenuComponent>();
+        var cut = RenderComponent<NavMenu>();
 
         // Assert
         var tagId = ((IHtmlDivElement)cut.Nodes[0]).Attributes[1]!.Name;
@@ -35,7 +35,7 @@ public class NavMenuComponentTests
     public void OnLocationChanged_UpdatesCurrentUrl() {
         // Arrange
         var navigationManager = Services.GetRequiredService<NavigationManager>();
-        var cut = RenderComponent<NavMenuComponent>();
+        var cut = RenderComponent<NavMenu>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Act

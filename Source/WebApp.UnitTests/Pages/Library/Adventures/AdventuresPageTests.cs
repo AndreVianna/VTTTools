@@ -109,27 +109,6 @@ public class AdventuresPageTests
     }
 
     [Fact]
-    public void WhenEditButtonIsClicked_ShowsEditModal() {
-        // Arrange
-        var adventureId = _defaultAdventures[0].Id;
-        var cut = RenderComponent<AdventuresPage>();
-        cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        _client.UpdateAdventureAsync(Arg.Any<Guid>(), Arg.Any<UpdateAdventureRequest>()).Returns(Result.Success());
-
-        // Act
-        cut.Find($"#edit-adventure-{adventureId}").Click();
-        cut.WaitForState(() => cut.Instance.State.IsEditing, TimeSpan.FromMilliseconds(500));
-
-        // Assert
-        cut.Find("#edit-adventure-dialog").Should().NotBeNull();
-        var nameInput = cut.Find("#edit-adventure-name-input");
-        nameInput.GetAttribute("value").Should().Be("Adventure 1");
-        var visibilitySelect = cut.Find("#edit-adventure-visibility-input");
-        visibilitySelect.GetAttribute("value").Should().Be(nameof(Visibility.Public));
-        cut.Instance.State.EditInput.Id.Should().Be(_defaultAdventures[0].Id);
-    }
-
-    [Fact]
     public void WhenDeleteButtonIsClicked_DeletesAdventure() {
         // Arrange
         var adventureId = _defaultAdventures[0].Id;

@@ -4,7 +4,9 @@ public partial class ForgotPasswordPage {
     [Inject]
     private IEmailSender<User> EmailSender { get; set; } = null!;
 
-    internal ForgotPasswordPageState State => Handler.State;
+    internal ForgotPasswordPageState State { get; set; } = new();
+
+    internal ForgotPasswordInputModel Input => State.Input;
 
     private Task ResetPasswordAsync()
         => Handler.RequestPasswordResetAsync();

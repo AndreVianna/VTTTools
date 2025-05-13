@@ -1,49 +1,41 @@
 namespace VttTools.WebApp.Pages.Game.Schedule;
 
-public class GameSessionPageHandler(IAuthenticatedPage component)
-    : AuthenticatedPageHandler<GameSessionPageHandler>(component) {
+public class GameSessionPageHandler(GameSessionPage page)
+    : AuthenticatedPageHandler<GameSessionPageHandler, GameSessionPage>(page) {
     private IGameClient _client = null!;
 
-    internal GameSessionPageState State { get; } = new();
-
-    public Task<bool> TryLoadSessionAsync(IGameClient client, Guid sessionId) {
+    public async Task LoadSessionAsync(IGameClient client, Guid sessionId) {
         _client = client;
-        return TryLoadGameSessionDetails(sessionId);
-    }
-
-    private async Task<bool> TryLoadGameSessionDetails(Guid sessionId) {
         var session = await _client.GetGameSessionByIdAsync(sessionId);
-        if (session == null)
-            return false;
-        State.GameSession = session;
-        State.CanEdit = session.OwnerId == Page.UserId;
-        State.CanStart = session.Players.FirstOrDefault(p => p.UserId == Page.UserId)?.Type == PlayerType.Master;
-        return true;
+        if (session == null) return;
+        Page.State.GameSession = session;
+        Page.State.CanEdit = session.OwnerId == Page.UserId;
+        Page.State.CanStart = session.Players.FirstOrDefault(p => p.UserId == Page.UserId)?.Type == PlayerType.Master;
     }
 
     public void OpenEditGameSessionDialog() {
-        State.Input = new() { Title = State.GameSession.Title };
-        State.ShowEditDialog = true;
+        Page.State.Input = new() { Title = Page.State.GameSession.Title };
+        Page.State.ShowEditDialog = true;
     }
 
     public void CloseEditGameSessionDialog()
-        => State.ShowEditDialog = false;
+        => Page.State.ShowEditDialog = false;
 
     public async Task UpdateGameSession() {
         var request = new UpdateGameSessionRequest {
-            Title = State.Input.Title,
+            Title = Page.State.Input.Title,
         };
-        var result = await _client.UpdateGameSessionAsync(State.GameSession.Id, request);
+        var result = await _client.UpdateGameSessionAsync(Page.State.GameSession.Id, request);
         if (result.HasErrors) {
-            State.Input.Errors = [.. result.Errors];
+            Page.State.Input.Errors = [.. result.Errors];
             return;
         }
-        State.GameSession = result.Value;
-        State.CanEdit = State.GameSession.OwnerId == Page.UserId;
-        State.CanStart = State.GameSession.Players.FirstOrDefault(p => p.UserId == Page.UserId)?.Type == PlayerType.Master;
+        Page.State.GameSession = result.Value;
+        Page.State.CanEdit = Page.State.GameSession.OwnerId == Page.UserId;
+        Page.State.CanStart = Page.State.GameSession.Players.FirstOrDefault(p => p.UserId == Page.UserId)?.Type == PlayerType.Master;
         CloseEditGameSessionDialog();
     }
 
     public Task<bool> TryStartGameSession()
-        => _client.StartGameSessionAsync(State.GameSession.Id);
+        => _client.StartGameSessionAsync(Page.State.GameSession.Id);
 }

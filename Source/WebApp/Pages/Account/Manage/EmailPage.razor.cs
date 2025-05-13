@@ -1,10 +1,9 @@
 ﻿namespace VttTools.WebApp.Pages.Account.Manage;
 
 public partial class EmailPage {
-    internal EmailPageState State => Handler.State;
-    internal ChangeEmailInputModel ChangeEmailInput => Handler.State.ChangeEmailInput
-        ;
-    internal VerifyEmailInputModel VerifyEmailInput => Handler.State.VerifyEmailInput;
+    internal EmailPageState State { get; set; } = new();
+    internal ChangeEmailInputModel ChangeEmailInput => State.ChangeEmailInput;
+    internal VerifyEmailInputModel VerifyEmailInput => State.VerifyEmailInput;
 
     private Task SendEmailChangeConfirmationAsync()
         => Handler.SendEmailChangeConfirmationAsync();

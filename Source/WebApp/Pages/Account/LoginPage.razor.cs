@@ -5,9 +5,9 @@ public partial class LoginPage {
     internal string? ReturnUrl { get; set; }
 
     [SupplyParameterFromForm]
-    private LoginInputModel Input { get; set; } = new();
+    internal LoginInputModel Input { get; set; } = new();
 
-    internal LoginPageState State => Handler.State;
+    internal LoginPageState State { get; set; } = new();
 
     public Task LoginUser()
         => Handler.LoginUserAsync(Input, ReturnUrl);

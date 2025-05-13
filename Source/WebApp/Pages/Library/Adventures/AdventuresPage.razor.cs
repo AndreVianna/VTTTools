@@ -4,18 +4,18 @@ public partial class AdventuresPage {
     [Inject]
     internal ILibraryClient LibraryClient { get; set; } = null!;
 
-    internal AdventuresPageState State => Handler.State;
+    internal AdventuresPageState State { get; set; } = new();
 
-    protected override async Task<bool> ConfigureAsync() {
-        if (!await base.ConfigureAsync())
-            return false;
-
+    protected override async Task ConfigureAsync() {
+        await base.ConfigureAsync();
         await Handler.LoadAdventuresAsync(LibraryClient);
-        return true;
     }
 
     internal void GoToCreatePage()
         => NavigationManager.NavigateTo("/adventure/create");
+
+    internal void RedirectTo(string url)
+        => NavigationManager.NavigateTo(url);
 
     private void ApplySearch() => Handler.SetSearchText(State.SearchText);
 

@@ -5,12 +5,11 @@ public class Page
     [Inject]
     private ILoggerFactory LoggerFactory { get; set; } = null!;
     [Inject]
-    public IServiceScopeFactory ScopeFactory { get; set; } = null!;
+    public virtual IServiceScopeFactory ScopeFactory { get; set; } = null!;
 
-    public ILogger Logger { get; private set; } = null!;
+    public virtual ILogger Logger { get; }
 
-    protected override void OnInitialized() {
-        base.OnInitialized();
+    public Page() {
         Logger = LoggerFactory.CreateLogger(GetType());
     }
 }
