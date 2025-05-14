@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Game.Schedule;
 
 public class GameSessionPageHandler(GameSessionPage page)
-    : AuthenticatedPageHandler<GameSessionPageHandler, GameSessionPage>(page) {
+    : PageHandler<GameSessionPageHandler, GameSessionPage>(page) {
     private IGameClient _client = null!;
 
     public async Task LoadSessionAsync(IGameClient client, Guid sessionId) {
@@ -9,8 +9,8 @@ public class GameSessionPageHandler(GameSessionPage page)
         var session = await _client.GetGameSessionByIdAsync(sessionId);
         if (session == null) return;
         Page.State.GameSession = session;
-        Page.State.CanEdit = session.OwnerId == Page.UserId;
-        Page.State.CanStart = session.Players.FirstOrDefault(p => p.UserId == Page.UserId)?.Type == PlayerType.Master;
+        Page.State.CanEdit = session.OwnerId == Page.User!.Id;
+        Page.State.CanStart = session.Players.FirstOrDefault(p => p.UserId == Page.User.Id)?.Type == PlayerType.Master;
     }
 
     public void OpenEditGameSessionDialog() {
@@ -31,8 +31,8 @@ public class GameSessionPageHandler(GameSessionPage page)
             return;
         }
         Page.State.GameSession = result.Value;
-        Page.State.CanEdit = Page.State.GameSession.OwnerId == Page.UserId;
-        Page.State.CanStart = Page.State.GameSession.Players.FirstOrDefault(p => p.UserId == Page.UserId)?.Type == PlayerType.Master;
+        Page.State.CanEdit = Page.State.GameSession.OwnerId == Page.User!.Id;
+        Page.State.CanStart = Page.State.GameSession.Players.FirstOrDefault(p => p.UserId == Page.User.Id)?.Type == PlayerType.Master;
         CloseEditGameSessionDialog();
     }
 

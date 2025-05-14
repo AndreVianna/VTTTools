@@ -7,7 +7,7 @@ public class EmailPageHandlerTests
 
     public EmailPageHandlerTests() {
         Services.AddScoped<IEmailSender<User>>(_ => _emailSender);
-        _page.CurrentUser.Returns(CurrentUser);
+        _page.AccountOwner.Returns(CurrentUser);
         _page.HttpContext.Returns(HttpContext);
         _page.NavigationManager.Returns(NavigationManager);
         _page.Logger.Returns(NullLogger.Instance);

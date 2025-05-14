@@ -11,7 +11,7 @@ public class NavMenuTests
         var cut = RenderComponent<NavMenu>();
 
         // Assert
-        var displayName = cut.Instance.UserDisplayName;
+        var displayName = cut.Instance.User!.DisplayName;
         var tagId = ((IHtmlDivElement)cut.Nodes[0]).Attributes[1]!.Name;
         cut.Markup.Should().Contain($"""<span class="md-symbol logout filled me-1" aria-hidden="true" {tagId}></span> Logout""");
         cut.Markup.Should().Contain($"""<span class="md-symbol profile filled me-1" aria-hidden="true" {tagId}></span> {displayName}""");

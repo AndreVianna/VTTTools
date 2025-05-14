@@ -135,8 +135,7 @@ public class GameSessionPageHandlerTests
     }
 
     private async Task<GameSessionPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized)
-            EnsureAuthenticated();
+        if (isAuthorized) EnsureAuthenticated();
         var userId = CurrentUser?.Id ?? Guid.NewGuid();
         var player = new Player { UserId = userId, Type = PlayerType.Master };
         var session = new GameSession {
@@ -146,7 +145,8 @@ public class GameSessionPageHandlerTests
             Players = [player],
         };
         _client.GetGameSessionByIdAsync(_sessionId).Returns(session);
-        _page.UserId.Returns(userId);
+        var user = new LoggedUser(userId, CurrentUser?.DisplayName ?? "Test User", CurrentUser?.IsAdministrator ?? false);
+        _page.User.Returns(user);
         var handler = new GameSessionPageHandler(_page);
         if (isConfigured) await handler.LoadSessionAsync(_client, _sessionId);
         return handler;

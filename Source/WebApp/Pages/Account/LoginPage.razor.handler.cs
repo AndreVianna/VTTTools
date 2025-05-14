@@ -1,18 +1,14 @@
 namespace VttTools.WebApp.Pages.Account;
 
 public class LoginPageHandler(LoginPage page)
-    : PublicPageHandler<LoginPageHandler, LoginPage>(page) {
-    public override async Task<bool> ConfigureAsync() {
-        if (!await base.ConfigureAsync())
-            return false;
-        if (!HttpMethods.IsGet(Page.HttpContext.Request.Method)) {
-            return false;
-        }
+    : PageHandler<LoginPageHandler, LoginPage>(page) {
+    public override async Task ConfigureAsync() {
+        await base.ConfigureAsync();
+        if (!HttpMethods.IsGet(Page.HttpContext.Request.Method)) return;
         await Page.HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
         var signInManager = Page.HttpContext.RequestServices.GetRequiredService<SignInManager<User>>();
         var externalLogins = await signInManager.GetExternalAuthenticationSchemesAsync();
         Page.State.HasExternalLoginProviders = externalLogins.Any();
-        return true;
     }
 
     internal async Task<bool> LoginUserAsync(LoginInputModel input, string? returnUrl) {

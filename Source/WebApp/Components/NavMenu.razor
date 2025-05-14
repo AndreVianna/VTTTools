@@ -1,4 +1,4 @@
-@inherits PublicComponent
+@inherits Component
 
 
 <div class="navbar navbar-dark">
@@ -30,7 +30,7 @@
       <Authorized>
       <div class="nav-item pe-3">
         <NavLink class="nav-link" href="account/manage">
-          <span class="md-symbol profile filled me-1" aria-hidden="true"></span> @UserDisplayName
+          <span class="md-symbol profile filled me-1" aria-hidden="true"></span> @User!.DisplayName
         </NavLink>
       </div>
       <div class="nav-item pe-3">

@@ -3,27 +3,27 @@ namespace VttTools.WebApp.Components;
 public class AccountPage
     : Page, IAccountPage {
     [CascadingParameter]
-    public virtual User CurrentUser { get; private set; } = null!;
+    public virtual User AccountOwner { get; private set; } = null!;
 
     protected override async Task ConfigureAsync() {
         await base.ConfigureAsync();
         var scope = ScopeFactory.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-        var user = HttpContext.User is not null
+        var user = HttpContext?.User is not null
                        ? await userManager.GetUserAsync(HttpContext.User)
                        : null;
         if (user is null) {
-            this.GoToSignIn();
+            GoToSignIn();
             return;
         }
-        CurrentUser = user;
+        AccountOwner = user;
     }
 }
 
 public class AccountPage<TPage, THandler>
     : AccountPage
     where TPage : AccountPage<TPage, THandler>
-    where THandler : AccountPageHandler<THandler, TPage> {
+    where THandler : PageHandler<THandler, TPage> {
     public AccountPage() {
         EnsureHandlerIsCreated();
     }

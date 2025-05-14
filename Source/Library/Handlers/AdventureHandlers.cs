@@ -20,8 +20,8 @@ internal static class AdventureHandlers {
             Type = request.Type,
             ImagePath = request.ImagePath,
             IsVisible = request.IsVisible,
-            IsPublic = request.IsPublic
-        };
+            IsPublic = request.IsPublic,
+                                           };
         var created = await adventureService.CreateAdventureAsync(userId, data);
         return created != null
                    ? Results.Created($"/api/adventures/{created.Id}", created)
@@ -37,8 +37,8 @@ internal static class AdventureHandlers {
             ImagePath = request.ImagePath,
             IsVisible = request.IsVisible,
             IsPublic = request.IsPublic,
-            CampaignId = request.CampaignId
-        };
+            CampaignId = request.CampaignId,
+                                           };
         var updated = await adventureService.UpdateAdventureAsync(userId, id, data);
         return updated != null ? Results.Ok(updated) : Results.NotFound();
     }
@@ -58,8 +58,8 @@ internal static class AdventureHandlers {
             Type = request.Type,
             ImagePath = request.ImagePath,
             IsVisible = request.IsVisible,
-            IsPublic = request.IsPublic
-        };
+            IsPublic = request.IsPublic,
+                                          };
         var clone = await adventureService.CloneAdventureAsync(userId, id, data);
         return clone != null
                    ? Results.Created($"/api/adventures/{clone.Id}", clone)

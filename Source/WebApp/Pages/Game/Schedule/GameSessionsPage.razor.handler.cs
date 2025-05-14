@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Game.Schedule;
 
 public sealed class GameSessionsPageHandler(GameSessionsPage page)
-    : AuthenticatedPageHandler<GameSessionsPageHandler, GameSessionsPage>(page) {
+    : PageHandler<GameSessionsPageHandler, GameSessionsPage>(page) {
     private IGameClient _gameClient = null!;
     private ILibraryClient _libraryClient = null!;
 

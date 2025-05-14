@@ -3,7 +3,7 @@ using static System.StringComparison;
 namespace VttTools.WebApp.Pages.Library.Adventures;
 
 public class AdventuresHandler(AdventuresPage page)
-    : AuthenticatedPageHandler<AdventuresHandler, AdventuresPage>(page) {
+    : PageHandler<AdventuresHandler, AdventuresPage>(page) {
     private ILibraryClient _client = null!;
 
     public async Task LoadAdventuresAsync(ILibraryClient client) {
@@ -24,8 +24,8 @@ public class AdventuresHandler(AdventuresPage page)
                             || a.Description.Contains(search, InvariantCultureIgnoreCase))
             : query;
 
-        var ownedFiltered = query.Where(a => a.OwnerId == Page.UserId).OrderBy(a => a.Name);
-        var publicFiltered = query.Where(a => a.OwnerId != Page.UserId).OrderBy(a => a.Name);
+        var ownedFiltered = query.Where(a => a.OwnerId == Page.User!.Id).OrderBy(a => a.Name);
+        var publicFiltered = query.Where(a => a.OwnerId != Page.User!.Id).OrderBy(a => a.Name);
 
         Page.State.OwnedAdventures = [..ownedFiltered];
         Page.State.PublicAdventures = [..publicFiltered];

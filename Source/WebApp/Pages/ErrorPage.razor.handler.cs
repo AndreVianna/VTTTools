@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages;
 
 public sealed class ErrorPageHandler(ErrorPage page)
-    : PublicPageHandler<ErrorPageHandler, ErrorPage>(page) {
+    : PageHandler<ErrorPageHandler, ErrorPage>(page) {
     public override bool Configure() {
         if (!base.Configure())
             return false;

@@ -3,7 +3,7 @@ using VttTools.WebApp.Pages.Game.Chat.Models;
 namespace VttTools.WebApp.Pages.Game.Chat;
 
 public sealed class GameSessionChatPageHandler(GameSessionChatPage page)
-    : AuthenticatedPageHandler<GameSessionChatPageHandler, GameSessionChatPage>(page)
+    : PageHandler<GameSessionChatPageHandler, GameSessionChatPage>(page)
     , IAsyncDisposable {
     private HubConnection _hubConnection = null!;
     private Func<Task> _onStateChangedAsync = () => Task.CompletedTask;

@@ -15,7 +15,7 @@ public partial class GameSessionsPage {
     }
 
     internal void NavigateToGameSession(Guid sessionId)
-        => this.RedirectTo($"/sessions/{sessionId}");
+        => RedirectTo($"/sessions/{sessionId}");
 
     internal Task ShowCreateDialog()
         => Handler.StartGameSessionCreating();
@@ -32,7 +32,7 @@ public partial class GameSessionsPage {
     internal async Task JoinGameSession(Guid sessionId) {
         if (!await Handler.TryJoinGameSession(sessionId))
             return;
-        this.RedirectTo($"/sessions/{sessionId}/join");
+        RedirectTo($"/sessions/{sessionId}/join");
     }
 
     internal Task OnAdventureChanged(ChangeEventArgs e)

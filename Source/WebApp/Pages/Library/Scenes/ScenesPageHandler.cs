@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Library.Scenes;
 
 public sealed class ScenesPageHandler(ScenesPage page)
-    : AuthenticatedPageHandler<ScenesPageHandler, ScenesPage>(page) {
+    : PageHandler<ScenesPageHandler, ScenesPage>(page) {
     private ILibraryClient _client = null!;
 
     public async Task LoadScenesAsync(Guid adventureId, ILibraryClient client) {

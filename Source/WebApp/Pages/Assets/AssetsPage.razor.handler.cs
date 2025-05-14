@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Assets;
 
 public class AssetsPageHandler(AssetsPage page)
-    : AuthenticatedPageHandler<AssetsPageHandler, AssetsPage>(page) {
+    : PageHandler<AssetsPageHandler, AssetsPage>(page) {
     private IAssetsClient _client = null!;
 
     public async Task LoadAssetsAsync(IAssetsClient client) {

@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Library.Adventures;
 
 public class AdventureHandler(AdventurePage page)
-    : AuthenticatedPageHandler<AdventureHandler, AdventurePage>(page) {
+    : PageHandler<AdventureHandler, AdventurePage>(page) {
     private ILibraryClient _client = null!;
 
     public async Task<bool> LoadAdventureAsync(ILibraryClient client) {
@@ -37,11 +37,11 @@ public class AdventureHandler(AdventurePage page)
         return true;
     }
 
-    internal Task SaveChangesAsync() {
+    internal Task SaveChangesAsync(bool continueEdit) {
         Page.State.Errors = [];
         return Page.State.Mode switch {
-            DetailsPageMode.Create or DetailsPageMode.Clone => CreateAdventureAsync(),
-            DetailsPageMode.Edit => UpdateAdventureAsync(),
+            DetailsPageMode.Create or DetailsPageMode.Clone => CreateAdventureAsync(continueEdit),
+            DetailsPageMode.Edit => UpdateAdventureAsync(continueEdit),
             _ => Task.CompletedTask,
         };
     }
@@ -58,10 +58,11 @@ public class AdventureHandler(AdventurePage page)
 
     internal async Task DeleteAdventureAsync() {
         var deleted = await _client.DeleteAdventureAsync(Page.Id);
-        if (deleted) Page.NavigationManager.NavigateTo("/adventures");
+        if (deleted)
+            Page.NavigationManager.NavigateTo("/adventures");
     }
 
-    private async Task UpdateAdventureAsync() {
+    private async Task UpdateAdventureAsync(bool continueEdit) {
         var request = new UpdateAdventureRequest {
             Name = Page.Input.Name != Page.State.Original.Name ? Page.Input.Name : VttTools.Utilities.Optional<string>.None,
             Description = Page.Input.Description != Page.State.Original.Description ? Page.Input.Description : VttTools.Utilities.Optional<string>.None,
@@ -76,13 +77,15 @@ public class AdventureHandler(AdventurePage page)
             return;
         }
 
-        var url = !string.IsNullOrEmpty(Page.State.PendingNavigationUrl)
-                        ? Page.State.PendingNavigationUrl
-                        : $"/adventure/view/{Page.Id}";
+        var url = continueEdit
+            ? $"/adventure/edit/{Page.Id}"
+            : !string.IsNullOrEmpty(Page.State.PendingNavigationUrl)
+                ? Page.State.PendingNavigationUrl
+                : $"/adventure/view/{Page.Id}";
         Page.NavigationManager.NavigateTo(url);
     }
 
-    private async Task CreateAdventureAsync() {
+    private async Task CreateAdventureAsync(bool continueEdit) {
         var request = new CreateAdventureRequest {
             Name = Page.Input.Name,
             Description = Page.Input.Description,
@@ -98,9 +101,11 @@ public class AdventureHandler(AdventurePage page)
             return;
         }
 
-        var url = !string.IsNullOrEmpty(Page.State.PendingNavigationUrl)
-                        ? Page.State.PendingNavigationUrl
-                        : $"/adventure/view/{Page.Id}";
+        var url = continueEdit
+            ? $"/adventure/edit/{result.Value.Id}"
+            : !string.IsNullOrEmpty(Page.State.PendingNavigationUrl)
+                ? Page.State.PendingNavigationUrl
+                : $"/adventure/view/{result.Value.Id}";
         Page.NavigationManager.NavigateTo(url);
     }
 }

@@ -3,7 +3,7 @@ namespace VttTools.WebApp.Components;
 public class PublicComponentTests
     : ComponentTestContext {
     private sealed class TestComponent
-        : PublicComponent {
+        : Component {
         protected override async Task ConfigureAsync() {
             await Task.Delay(200);
             await base.ConfigureAsync();
@@ -18,9 +18,7 @@ public class PublicComponentTests
         // Assert
         component.Instance.IsReady.Should().BeFalse();
         component.Instance.CurrentLocation.Should().Be("");
-        component.Instance.UserId.Should().BeNull();
-        component.Instance.UserDisplayName.Should().BeNull();
-        component.Instance.UserIsAdministrator.Should().BeFalse();
+        component.Instance.User.Should().BeNull();
     }
 
     [Fact]
@@ -33,9 +31,10 @@ public class PublicComponentTests
         component.WaitForState(() => component.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Assert
-        component.Instance.UserId.Should().Be(CurrentUser!.Id);
-        component.Instance.UserDisplayName.Should().Be(CurrentUser!.DisplayName);
-        component.Instance.UserIsAdministrator.Should().BeFalse();
+        component.Instance.User.Should().NotBeNull();
+        component.Instance.User.Id.Should().Be(CurrentUser!.Id);
+        component.Instance.User.DisplayName.Should().Be(CurrentUser!.DisplayName);
+        component.Instance.User.IsAdministrator.Should().BeFalse();
     }
 
     [Fact]
@@ -48,8 +47,9 @@ public class PublicComponentTests
         component.WaitForState(() => component.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Assert
-        component.Instance.UserId.Should().NotBeNull();
-        component.Instance.UserIsAdministrator.Should().BeTrue();
+        component.Instance.User.Should().NotBeNull();
+        component.Instance.User.Id.Should().NotBeEmpty();
+        component.Instance.User.IsAdministrator.Should().BeTrue();
     }
 
     [Fact]
@@ -73,6 +73,7 @@ public class PublicComponentTests
         component.WaitForState(() => component.Instance.IsReady, TimeSpan.FromMilliseconds(500));
 
         // Assert
-        component.Instance.UserDisplayName.Should().Be(CurrentUser!.Name);
+        component.Instance.User.Should().NotBeNull();
+        component.Instance.User.DisplayName.Should().Be(CurrentUser!.Name);
     }
 }

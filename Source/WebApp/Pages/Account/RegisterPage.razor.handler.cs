@@ -1,14 +1,12 @@
 namespace VttTools.WebApp.Pages.Account;
 
 public class RegisterPageHandler(RegisterPage page)
-    : PublicPageHandler<RegisterPageHandler, RegisterPage>(page) {
-    public override async Task<bool> ConfigureAsync() {
-        if (!await base.ConfigureAsync())
-            return false;
+    : PageHandler<RegisterPageHandler, RegisterPage>(page) {
+    public override async Task ConfigureAsync() {
+        await base.ConfigureAsync();
         var signInManager = Page.HttpContext.RequestServices.GetRequiredService<SignInManager<User>>();
         var externalLogins = await signInManager.GetExternalAuthenticationSchemesAsync();
         Page.State.HasExternalLoginProviders = externalLogins.Any();
-        return true;
     }
 
     public async Task<bool> RegisterUserAsync(string? returnUrl) {

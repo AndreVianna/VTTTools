@@ -5,7 +5,7 @@ public class ProfilePageHandlerTests
     private readonly ProfilePage _page = Substitute.For<ProfilePage>();
 
     public ProfilePageHandlerTests() {
-        _page.CurrentUser.Returns(CurrentUser);
+        _page.AccountOwner.Returns(CurrentUser);
         _page.HttpContext.Returns(HttpContext);
         _page.NavigationManager.Returns(NavigationManager);
         _page.Logger.Returns(NullLogger.Instance);

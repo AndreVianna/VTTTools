@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account;
 
 public class ForgotPasswordPageHandler(ForgotPasswordPage page)
-    : PublicPageHandler<ForgotPasswordPageHandler, ForgotPasswordPage>(page) {
+    : PageHandler<ForgotPasswordPageHandler, ForgotPasswordPage>(page) {
     public async Task RequestPasswordResetAsync() {
         var userManager = Page.HttpContext.RequestServices.GetRequiredService<UserManager<User>>();
         var user = await userManager.FindByEmailAsync(Page.State.Input.Email);

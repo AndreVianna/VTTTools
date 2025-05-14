@@ -1,5 +1,5 @@
 @page "/adventure/{action}/{id:guid?}"
-@inherits AuthenticatedPage<AdventurePage, AdventureHandler>
+@inherits Page<AdventurePage, AdventureHandler>
 @rendermode InteractiveServer
 
 <PageTitle>@(State.Mode == DetailsPageMode.View ? "" : State.Mode.ToString()) Adventure</PageTitle>
@@ -7,7 +7,7 @@
 <div class="container-fluid">
   <div id="page-header" class="row mb-4">
     <div class="col-md-6">
-      <h1>Adventures</h1>
+      <h1>@(State.Mode == DetailsPageMode.View ? "" : State.Mode.ToString()) Adventure</h1>
     </div>
   </div>
 
@@ -22,185 +22,179 @@
     <StatusMessageComponent />
     <EditForm id="login-form" Model="Input" method="post" OnValidSubmit="SaveChanges" FormName="login">
     <div class="card">
+      @if (Input.ImagePath != null) {
+        <img src="@Input.ImagePath" class="card-img-top" alt="@Input.Name" />
+      }
       <div class="card-header">
-        @if (State.Mode == DetailsPageMode.View)
-        {
+        @if (State.Mode == DetailsPageMode.View) {
           <h2>@Input.Name</h2>
         }
-        else
-        {
-            <label for="name" class="form-label">Name</label>
-            <input id="name" type="text" class="form-control" @bind="Input.Name" />
-            <ValidationMessage For="@(() => Input.Name)" />
-        }
-      </div>
-
-      <div class="card-body">
-        <div class="mb-4">
-          @if (Input.ImagePath != null)
-          {
-            <div class="adventure-image mb-3">
-              <img src="@Input.ImagePath" class="img-fluid" alt="@Input.Name" />
-            </div>
-          }
-          else if (State.Mode != DetailsPageMode.View)
-          {
-            <div class="form-group mb-3">
+        else {
+          <div class="row g-3">
+            <div class="col-auto">
               <label for="imagePath" class="form-label">Image URL</label>
               <input id="imagePath" type="text" class="form-control" @bind="Input.ImagePath" placeholder="Enter image URL" />
             </div>
-          }
-
-          @if (State.Mode == DetailsPageMode.View)
-          {
-            <h5>Description</h5>
-            <div class="mb-4">@Input.Description</div>
-
-            <h5>Type</h5>
-            <div class="mb-4">@Input.Type.ToString()</div>
-
-            <h5>Status</h5>
-            <div class="mb-4">
-              @if (Input.IsVisible)
-              {
-                <span class="badge bg-success me-2">Published</span>
-              }
-              else
-              {
-                <span class="badge bg-secondary me-2">Draft</span>
-              }
-
-              @if (Input.IsPublic)
-              {
-                <span class="badge bg-info">Public</span>
-              }
-              else
-              {
-                <span class="badge bg-warning">Private</span>
-              }
+            <div class="col">
+              <label for="name" class="form-label">Name</label>
+              <input id="name" type="text" class="form-control" @bind="Input.Name" />
+              <ValidationMessage For="@(() => Input.Name)" />
             </div>
-          }
-          else
-          {
-            <div class="form-group mb-3">
-              <label for="description" class="form-label">Description</label>
-              <textarea id="description" class="form-control" rows="4" @bind="Input.Description"></textarea>
-              <ValidationMessage For="@(() => Input.Description)" />
-            </div>
-
-            <div class="form-group mb-3">
-              <label for="type" class="form-label">Type</label>
-              <select id="type" class="form-select" @bind="Input.Type">
-                @foreach (var type in Enum.GetValues<AdventureType>())
-                {
-                  <option value="@type">@type.ToString()</option>
-                }
-              </select>
-            </div>
-
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <div class="form-check">
-                  <input id="isVisible" type="checkbox" class="form-check-input" @bind="Input.IsVisible" />
-                  <label for="isVisible" class="form-check-label">Published (Visible to others)</label>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-check">
-                  <input id="isPublic" type="checkbox" class="form-check-input" @bind="Input.IsPublic" />
-                  <label for="isPublic" class="form-check-label">Public (Anyone can use)</label>
-                </div>
-              </div>
-            </div>
-
-          }
-        </div>
-
-        @if (State.Errors.Any())
-        {
-          <div class="alert alert-danger">
-            <ul class="mb-0">
-              @foreach (var error in State.Errors)
-              {
-                <li>@error.Message</li>
-              }
-            </ul>
           </div>
         }
+      </div>
 
-        @if (State.Mode == DetailsPageMode.View)
-        {
+      @if (State.Mode == DetailsPageMode.View) {
+        <div class="card-body">
+          <h5>Type</h5>
+          <div class="mb-4">@Input.Type.ToString()</div>
+
+          <h5>Status</h5>
+          <div class="mb-4">
+            @if (Input.IsVisible) {
+              <span class="badge bg-success me-2">Published</span>
+            }
+            else {
+              <span class="badge bg-secondary me-2">Draft</span>
+            }
+
+            @if (Input.IsPublic) {
+              <span class="badge bg-info">Public</span>
+            }
+            else {
+              <span class="badge bg-warning">Private</span>
+            }
+          </div>
+
+          <h5>Description</h5>
+          <div class="mb-4">@Input.Description</div>
+
           <h4 class="mt-4">Scenes</h4>
 
-          @if (State.Scenes.Any())
-          {
+          @if (State.Scenes.Any()) {
             <div class="table-responsive">
               <table class="table table-hover">
                 <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
+                <tr>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
                 </thead>
                 <tbody>
-                  @foreach (var scene in State.Scenes)
-                  {
-                    <tr>
-                      <td>@scene.Name</td>
-                      <td>
-                        @* TODO: Add scene status badges *@
-                      </td>
-                      <td>
-                        <button class="btn btn-sm btn-primary me-2" @onclick="@(() => NavigateTo($"/scenes/{scene.Id}"))">
-                          <i class="bi bi-eye"></i> View
+                @foreach (var scene in State.Scenes) {
+                  <tr>
+                    <td>@scene.Name</td>
+                    <td>
+                      @* TODO: Add scene status badges *@
+                    </td>
+                    <td>
+                      <button class="btn btn-sm btn-primary me-2" @onclick="@(() => NavigateToViewScene(scene.Id))">
+                        <i class="bi bi-eye"></i> View
+                      </button>
+                      @if (Id == User!.Id) {
+                        <button class="btn btn-sm btn-outline-danger" @onclick="@(() => ShowDeleteSceneConfirmationModal(scene.Id))">
+                          <i class="bi bi-trash"></i> Delete
                         </button>
-                        @if (Id == UserId)
-                        {
-                          <button class="btn btn-sm btn-outline-primary me-2" @onclick="@(() => NavigateTo($"/scenes/edit/{scene.Id}"))">
-                            <i class="bi bi-pencil"></i> Edit
-                          </button>
-                          <button class="btn btn-sm btn-outline-danger" @onclick="@(() => ShowDeleteSceneConfirmation(scene.Id))">
-                            <i class="bi bi-trash"></i> Delete
-                          </button>
-                        }
-                      </td>
-                    </tr>
-                  }
+                      }
+                    </td>
+                  </tr>
+                }
                 </tbody>
               </table>
             </div>
           }
-          else
-          {
+          else {
             <div class="alert alert-info">
               No scenes found for this adventure.
             </div>
           }
 
-          @if (Id == UserId)
-          {
+          @if (Id == User!.Id) {
             <div class="mt-3">
               <button class="btn btn-outline-primary" @onclick="@(() => NavigateTo($"/scenes/create/{Id}"))">
                 <i class="bi bi-plus-circle"></i> Create New Scene
               </button>
             </div>
           }
-        }
-      </div>
-
-      @if (State.Mode == DetailsPageMode.Edit && Id == UserId)
-      {
-        <div class="card-footer bg-danger text-white">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <h5 class="mb-0">Danger Zone</h5>
-              <p class="mb-0">Deleting an adventure cannot be undone</p>
+        </div>
+      }
+      else {
+        <div class="card-body">
+          <div class="row mb-3 g-3 align-items-center">
+            <div class="col-auto">
+              <label for="type" class="form-label">Type</label>
+              <select id="type" class="form-select" @bind="Input.Type">
+                @foreach (var type in Enum.GetValues<AdventureType>()) {
+                  <option value="@type">@($"{type}")</option>
+                }
+              </select>
             </div>
-            <button class="btn btn-outline-light" @onclick="ShowDeleteConfirmationModal">
+
+            <div class="col-auto">
+              <label class="form-label">&nbsp;</label>
+              <div class="form-check">
+                <input id="isVisible" type="checkbox" class="form-check-input" @bind="Input.IsVisible" />
+                <label for="isVisible" class="form-check-label">Published (Visible to others)</label>
+              </div>
+            </div>
+
+            <div class="col-auto">
+              <label class="form-label">&nbsp;</label>
+              <div class="form-check">
+                <input id="isPublic" type="checkbox" class="form-check-input" @bind="Input.IsPublic" />
+                <label for="isPublic" class="form-check-label">Public (Anyone can use)</label>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <label for="description" class="form-label">Description</label>
+              <textarea id="description" class="form-control" rows="4" @bind="Input.Description"></textarea>
+              <ValidationMessage For="@(() => Input.Description)" />
+            </div>
+          </div>
+
+          @if (State.Errors.Any()) {
+            <div class="alert alert-danger my-3">
+              <ul class="mb-0">
+                @foreach (var error in State.Errors) {
+                  <li>@error.Message</li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+
+        <div class="card-footer">
+          @if (State.Mode == DetailsPageMode.View) {
+            <button id="edit-button" class="btn btn-primary me-2" @onclick="NavigateToEditAdventure">
+              <i class="bi bi-pencil"></i> Edit
+            </button>
+            <button id="clone-button" class="btn btn-outline-primary me-2" @onclick="NavigateToCloneAdventure">
+              <i class="bi bi-files"></i> Clone
+            </button>
+            <button id="back-button" class="btn btn-secondary" @onclick="NavigateBack">
+              <i class="bi bi-arrow-left"></i> Return to List
+            </button>
+            <button id="delete-button" class="btn btn-danger" @onclick="ShowDeleteConfirmationModal">
               <i class="bi bi-trash"></i> Delete Adventure
             </button>
-          </div>
+          }
+          else {
+            <button id="save-continue-button" class="btn btn-primary me-2" @onclick="SaveAndContinueEditing">
+              <i class="bi bi-save"></i> Save & Continue
+            </button>
+            <button id="save-finish-button" class="btn btn-outline-primary me-2" @onclick="SaveChanges">
+              <i class="bi bi-save"></i> Save & Finish
+            </button>
+            <button id="discard-button" class="btn btn-outline-warning me-2" @onclick="ShowDiscardChangesModal">
+              <i class="bi bi-arrow-counterclockwise"></i> Discard Changes
+            </button>
+            <button id="cancel-button" class="btn btn-secondary" @onclick="NavigateBack">
+              <i class="bi bi-x-circle"></i> Cancel
+            </button>
+          }
         </div>
       }
     </div>
@@ -208,8 +202,7 @@
   }
 </div>
 
-@if (State.DeleteConfirmationModalIsVisible)
-{
+@if (State.DeleteConfirmationModalIsVisible) {
   <div class="modal fade show" style="display: block;" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -233,8 +226,7 @@
   <div class="modal-backdrop fade show"></div>
 }
 
-@if (State.DeleteSceneConfirmationModalIsVisible)
-{
+@if (State.DeleteSceneConfirmationModalIsVisible) {
   <div class="modal fade show" style="display: block;" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -256,8 +248,7 @@
   <div class="modal-backdrop fade show"></div>
 }
 
-@if (State.UnsavedChangesModalIsVisible)
-{
+@if (State.UnsavedChangesModalIsVisible) {
   <div class="modal fade show" style="display: block;" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">

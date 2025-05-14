@@ -8,7 +8,7 @@
 <StatusMessageComponent />
 <div class="row">
   <div class="col-xl-6">
-  @if (CurrentUser.EmailConfirmed)
+  @if (AccountOwner.EmailConfirmed)
   {
     <EditForm id="change-email-form" Model="ChangeEmailInput" FormName="change-email" OnValidSubmit="SendEmailChangeConfirmationAsync" method="post">
       <DataAnnotationsValidator />

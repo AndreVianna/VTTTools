@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Pages.Account;
 
 public class ConfirmEmailPageHandler(ConfirmEmailPage page)
-    : PublicPageHandler<ConfirmEmailPageHandler, ConfirmEmailPage>(page) {
+    : PageHandler<ConfirmEmailPageHandler, ConfirmEmailPage>(page) {
     public async Task VerifyAsync(string? userId, string? code) {
         if (userId is null || code is null) {
             Page.SetStatusMessage("The email confirmation code is missing, please try again.");

@@ -14,10 +14,10 @@ public static class HttpContextExtensions {
         => context.Response.Cookies.Append(_statusMessageCookieName, message, _statusCookieBuilder.Build(context));
 
     public static string? GetStatusMessage(this HttpContext context) {
-        var message = context.Request.Cookies[_statusMessageCookieName];
+        var message = context?.Request.Cookies[_statusMessageCookieName];
 
         if (message is not null)
-            context.Response.Cookies.Delete(_statusMessageCookieName);
+            context?.Response.Cookies.Delete(_statusMessageCookieName);
 
         return message;
     }

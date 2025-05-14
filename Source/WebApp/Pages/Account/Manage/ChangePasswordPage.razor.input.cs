@@ -16,6 +16,4 @@ internal class ChangePasswordInputModel {
     [Display(Name = "Confirm new password")]
     [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
     public string NewPasswordConfirmation { get; set; } = "";
-
-    public InputError[] Errors { get; set; } = [];
 }

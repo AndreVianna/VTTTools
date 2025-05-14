@@ -9,6 +9,7 @@ global using AngleSharp.Html.Dom;
 global using Bunit;
 global using Bunit.TestDoubles;
 
+global using DotNetToolbox;
 global using DotNetToolbox.Results;
 
 global using FluentAssertions;
@@ -53,3 +54,4 @@ global using VttTools.WebApp.TestUtilities;
 global using VttTools.WebApp.Utilities;
 
 global using BUnitContext = Bunit.TestContext;
+global using InputError = DotNetToolbox.Error;

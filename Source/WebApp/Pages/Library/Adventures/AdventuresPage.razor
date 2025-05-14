@@ -1,5 +1,5 @@
 @page "/adventures"
-@inherits AuthenticatedPage<AdventuresPage, AdventuresHandler>
+@inherits Page<AdventuresPage, AdventuresHandler>
 @rendermode InteractiveServer
 
 <PageTitle>Adventures</PageTitle>
@@ -100,19 +100,19 @@
                     <td id="@($"adventure-{adventure.Id}-actions")">
                       <div class="btn-group" role="group">
                         <button id="@($"view-adventure-{adventure.Id}")" class="btn btn-primary btn-sm"
-                            @onclick='@(() => this.RedirectTo($"/adventure/view/{adventure.Id}"))' title="View Adventure">
+                            @onclick='@(() => RedirectTo($"/adventure/view/{adventure.Id}"))' title="View Adventure">
                           <i class="bi bi-eye"></i>
                         </button>
                         <button id="@($"edit-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                            @onclick='@(() => this.RedirectTo($"/adventure/edit/{adventure.Id}"))' title="Edit Adventure">
+                            @onclick='@(() => RedirectTo($"/adventure/edit/{adventure.Id}"))' title="Edit Adventure">
                           <i class="bi bi-pencil"></i>
                         </button>
                         <button id="@($"scenes-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                            @onclick='@(() => this.RedirectTo($"/adventures/{adventure.Id}/scenes"))' title="Manage Scenes">
+                            @onclick='@(() => RedirectTo($"/adventures/{adventure.Id}/scenes"))' title="Manage Scenes">
                           <i class="bi bi-list-check"></i>
                         </button>
                         <button id="@($"clone-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                            @onclick='@(() => this.RedirectTo($"/adventure/clone/{adventure.Id}"))' title="Clone Adventure">
+                            @onclick='@(() => RedirectTo($"/adventure/clone/{adventure.Id}"))' title="Clone Adventure">
                           <i class="bi bi-files"></i>
                         </button>
                         <button id="@($"start-adventure-{adventure.Id}"))" class="btn btn-outline-success btn-sm"
@@ -230,15 +230,15 @@
                     <td id="@($"public-adventure-{adventure.Id}-actions")">
                       <div class="btn-group" role="group">
                         <button id="@($"view-public-adventure-{adventure.Id}")" class="btn btn-primary btn-sm"
-                            @onclick='() => this.RedirectTo($"/adventure/view/{adventure.Id}")' title="View Adventure">
+                            @onclick='() => RedirectTo($"/adventure/view/{adventure.Id}")' title="View Adventure">
                           <i class="bi bi-eye"></i>
                         </button>
                         <button id="@($"scenes-public-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                            @onclick='() => this.RedirectTo($"/adventures/{adventure.Id}/scenes")' title="View Scenes">
+                            @onclick='() => RedirectTo($"/adventures/{adventure.Id}/scenes")' title="View Scenes">
                           <i class="bi bi-list-check"></i>
                         </button>
                         <button id="@($"clone-public-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                            @onclick='() => this.RedirectTo($"/adventure/clone/{adventure.Id}")' title="Clone Adventure">
+                            @onclick='() => RedirectTo($"/adventure/clone/{adventure.Id}")' title="Clone Adventure">
                           <i class="bi bi-files"></i>
                         </button>
                         <button id="@($"start-public-adventure-{adventure.Id}")" class="btn btn-outline-success btn-sm"

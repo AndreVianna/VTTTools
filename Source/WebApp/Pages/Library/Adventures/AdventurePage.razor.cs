@@ -29,29 +29,45 @@ public partial class AdventurePage {
         NavigationManager.NavigateTo(url);
     }
 
-    private Task SaveChanges() => Handler.SaveChangesAsync();
+    // Convenience methods for navigation
+    private void NavigateToEditAdventure() => NavigateTo($"/adventure/edit/{Id}");
+    private void NavigateToCloneAdventure() => NavigateTo($"/adventure/clone/{Id}");
+    private void NavigateToViewScene(Guid sceneId) => NavigateTo($"/scenes/{sceneId}");
+    private void NavigateToEditScene(Guid sceneId) => NavigateTo($"/scenes/edit/{sceneId}");
+    private void NavigateToCreateScene() => NavigateTo($"/scenes/create/{Id}");
 
-    private void DiscardChanges() => Handler.DiscardChanges();
+    private Task SaveChanges()
+        => Handler.SaveChangesAsync(false);
+    private Task SaveAndContinueEditing()
+        => Handler.SaveChangesAsync(true);
+
+    private void DiscardChanges() {
+        Handler.DiscardChanges();
+        HideDiscardChangesModal();
+    }
 
     private Task DeleteAdventure() {
         HideDeleteConfirmationModal();
         return Handler.DeleteAdventureAsync();
     }
 
-    private void ShowDeleteSceneConfirmation(Guid sceneId) {
-        State.SceneToDelete = sceneId;
-        State.DeleteSceneConfirmationModalIsVisible = true;
-    }
-
     private void ShowUnsavedChangesModal(string url) {
         State.UnsavedChangesModalIsVisible = true;
         State.PendingNavigationUrl = url;
-    }
+   }
     private void HideUnsavedChangesModal() => State.UnsavedChangesModalIsVisible = false;
+
     private void ShowDeleteConfirmationModal() => State.DeleteConfirmationModalIsVisible = true;
     private void HideDeleteConfirmationModal() => State.DeleteConfirmationModalIsVisible = false;
-    private void ShowDeleteSceneConfirmationModal() => State.DeleteSceneConfirmationModalIsVisible = true;
+
+    private void ShowDeleteSceneConfirmationModal(Guid sceneId) {
+        State.SceneToDelete = sceneId;
+        State.DeleteSceneConfirmationModalIsVisible = true;
+    }
     private void HideDeleteSceneConfirmationModal() => State.DeleteSceneConfirmationModalIsVisible = false;
+
+    private void ShowDiscardChangesModal() => State.DiscardChangesModalIsVisible = true;
+    private void HideDiscardChangesModal() => State.DiscardChangesModalIsVisible = false;
 
     private async Task DeleteScene() {
         await StateHasChangedAsync();

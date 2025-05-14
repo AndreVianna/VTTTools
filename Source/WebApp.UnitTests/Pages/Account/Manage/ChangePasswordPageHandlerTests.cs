@@ -5,7 +5,7 @@ public class ChangePasswordPageHandlerTests
     private readonly ChangePasswordPage _page = Substitute.For<ChangePasswordPage>();
 
     public ChangePasswordPageHandlerTests() {
-        _page.CurrentUser.Returns(CurrentUser);
+        _page.AccountOwner.Returns(CurrentUser);
         _page.HttpContext.Returns(HttpContext);
         _page.NavigationManager.Returns(NavigationManager);
         _page.Logger.Returns(NullLogger.Instance);
@@ -61,7 +61,7 @@ public class ChangePasswordPageHandlerTests
 
         // Assert
         HttpContext.Received(1).SetStatusMessage("Error: Failed to change the password.");
-        _page.Input.Errors.Should().Contain("Incorrect password.");
+        _page.State.Errors.Should().Contain("Incorrect password.");
         await SignInManager.DidNotReceive().RefreshSignInAsync(Arg.Any<User>());
     }
 

@@ -16,7 +16,7 @@ public partial class GameSessionPage {
     }
 
     internal void NavigateToGameSessions()
-        => this.RedirectTo("/sessions");
+        => RedirectTo("/sessions");
 
     internal void OpenEditGameSessionDialog()
         => Handler.OpenEditGameSessionDialog();
@@ -30,6 +30,6 @@ public partial class GameSessionPage {
     internal async Task StartGameSession() {
         if (!await Handler.TryStartGameSession())
             return;
-        this.RedirectTo($"/game/{State.GameSession.Id}");
+        RedirectTo($"/game/{State.GameSession.Id}");
     }
 }

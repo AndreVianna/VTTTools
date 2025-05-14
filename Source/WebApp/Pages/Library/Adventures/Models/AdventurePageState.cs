@@ -10,6 +10,7 @@ internal class AdventurePageState {
     public bool UnsavedChangesModalIsVisible { get; set; }
     public bool DeleteConfirmationModalIsVisible { get; set; }
     public bool DeleteSceneConfirmationModalIsVisible { get; set; }
+    public bool DiscardChangesModalIsVisible { get; set; }
 
     public Guid SceneToDelete { get; set; }
     public string? PendingNavigationUrl { get; set; }

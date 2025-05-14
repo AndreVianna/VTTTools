@@ -26,7 +26,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
             Type = data.Type,
             ImagePath = data.ImagePath,
             IsVisible = data.IsVisible,
-            IsPublic = data.IsPublic
+            IsPublic = data.IsPublic,
         };
 
         return await adventureStorage.AddAsync(adventure, ct);
