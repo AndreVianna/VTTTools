@@ -22,23 +22,12 @@ public record CreateAdventureRequest
     /// <summary>
     /// The type of Adventure.
     /// </summary>
-    public AdventureType Type { get; init; } = AdventureType.OpenWorld;
+    public AdventureType Type { get; init; }
 
     /// <summary>
-    /// Path to the Adventure's image.
+    /// The ID of the image file associated with this Adventure.
     /// </summary>
-    [MaxLength(512)]
-    public string? ImagePath { get; init; }
-
-    /// <summary>
-    /// Indicates whether the Adventure is published (visible) or not (hidden).
-    /// </summary>
-    public bool IsVisible { get; init; }
-
-    /// <summary>
-    /// Indicates whether the Adventure is publicly accessible.
-    /// </summary>
-    public bool IsPublic { get; init; }
+    public Guid? ImageId { get; init; }
 
     /// <summary>
     /// The ID of the campaign to which this Adventure belongs.

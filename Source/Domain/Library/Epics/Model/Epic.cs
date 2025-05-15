@@ -2,16 +2,13 @@
 
 public class Epic {
     public Guid Id { get; set; } = Guid.CreateVersion7();
-    /// <summary>
-    /// The owner of this epic.
-    /// </summary>
     public Guid OwnerId { get; set; }
-    public Guid? TemplateId { get; set; }
     [MaxLength(128)]
     public string Name { get; set; } = string.Empty;
-    /// <summary>
-    /// The visibility setting for this epic.
-    /// </summary>
-    public Visibility Visibility { get; set; } = Visibility.Hidden;
+    [MaxLength(4096)]
+    public string Description { get; set; } = string.Empty;
+    public Guid? ImageId { get; set; }
+    public bool IsListed { get; set; }
+    public bool IsPublic { get; set; }
     public HashSet<Campaign> Campaigns { get; set; } = [];
 }

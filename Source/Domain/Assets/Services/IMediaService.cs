@@ -1,6 +1,6 @@
 ﻿namespace VttTools.Assets.Services;
 
 public interface IMediaService {
-    Task<string> UploadImageAsync(Stream imageStream, string fileName, CancellationToken ct = default);
-    Task DeleteImageAsync(string imageUrl, CancellationToken ct = default);
+    Task<Result> UploadImageAsync(Guid id, string fileName, Stream imageStream, CancellationToken ct = default);
+    Task<Result> DeleteImageAsync(Guid id, CancellationToken ct = default);
 }

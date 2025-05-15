@@ -22,8 +22,8 @@
     <StatusMessageComponent />
     <EditForm id="login-form" Model="Input" method="post" OnValidSubmit="SaveChanges" FormName="login">
     <div class="card">
-      @if (Input.ImagePath != null) {
-        <img src="@Input.ImagePath" class="card-img-top" alt="@Input.Name" />
+      @if (State.ImageUrl != null) {
+        <img src="@State.ImageUrl" class="card-img-top" alt="@Input.Name" />
       }
       <div class="card-header">
         @if (State.Mode == DetailsPageMode.View) {
@@ -32,8 +32,8 @@
         else {
           <div class="row g-3">
             <div class="col-auto">
-              <label for="imagePath" class="form-label">Image URL</label>
-              <input id="imagePath" type="text" class="form-control" @bind="Input.ImagePath" placeholder="Enter image URL" />
+              <label for="uploadImage" class="form-label">Change Image</label>
+              <button id="uploadImage" class="btn btn-sm btn-primary">Upload</button>
             </div>
             <div class="col">
               <label for="name" class="form-label">Name</label>
@@ -51,7 +51,7 @@
 
           <h5>Status</h5>
           <div class="mb-4">
-            @if (Input.IsVisible) {
+            @if (Input.IsListed) {
               <span class="badge bg-success me-2">Published</span>
             }
             else {
@@ -134,7 +134,7 @@
             <div class="col-auto">
               <label class="form-label">&nbsp;</label>
               <div class="form-check">
-                <input id="isVisible" type="checkbox" class="form-check-input" @bind="Input.IsVisible" />
+                <input id="isVisible" type="checkbox" class="form-check-input" @bind="Input.IsListed" />
                 <label for="isVisible" class="form-check-label">Published (Visible to others)</label>
               </div>
             </div>

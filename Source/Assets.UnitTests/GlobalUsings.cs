@@ -28,6 +28,7 @@ global using NSubstitute;
 
 global using VttTools.Assets.ApiContracts;
 global using VttTools.Assets.Model;
+global using VttTools.Assets.ServiceContracts;
 global using VttTools.Assets.Services;
 global using VttTools.Assets.Storage;
 global using VttTools.Common.Model;

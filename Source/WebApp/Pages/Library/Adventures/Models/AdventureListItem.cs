@@ -4,10 +4,10 @@ public sealed class AdventureListItem {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public AdventureType Type { get; set; } = AdventureType.OpenWorld;
-    public string? ImagePath { get; set; }
-    public bool IsVisible { get; set; }
+    public AdventureType Type { get; set; }
+    public bool IsListed { get; set; }
     public bool IsPublic { get; set; }
     public int ScenesCount { get; set; }
     public Guid OwnerId { get; set; }
+    public string? ImageUrl { get; set; }
 }

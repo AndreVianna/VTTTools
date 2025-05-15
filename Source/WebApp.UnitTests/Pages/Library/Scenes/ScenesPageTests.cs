@@ -7,13 +7,17 @@ public class ScenesPageTests
     private readonly Scene[] _defaultScenes = [
         new() {
             Name = "Scene 1.1",
-            ParentId = _adventureId,
-            Visibility = Visibility.Public,
+            AdventureId = _adventureId,
+            Description = "Description 1",
+            IsListed = true,
+            IsPublic = true,
         },
         new() {
             Name = "Scene 1.2",
-            ParentId = _adventureId,
-            Visibility = Visibility.Private,
+            AdventureId = _adventureId,
+            Description = "Description 2",
+            IsListed = true,
+            IsPublic = true,
         }];
 
     public ScenesPageTests() {
@@ -74,15 +78,15 @@ public class ScenesPageTests
         var newScene = new Scene {
             Name = "New Scene",
             OwnerId = CurrentUser!.Id,
-            Visibility = Visibility.Hidden,
+            Description = "New Scene Description",
         };
-        _client.CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<CreateSceneRequest>()).Returns(newScene);
+        _client.CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<AddNewSceneRequest>()).Returns(newScene);
 
         // Act
         cut.Find("#create-scene").Click();
 
         // Assert
-        _client.Received(1).CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<CreateSceneRequest>());
+        _client.Received(1).CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<AddNewSceneRequest>());
     }
 
     [Fact]
@@ -101,8 +105,6 @@ public class ScenesPageTests
         cut.Find("#edit-scene-dialog").Should().NotBeNull();
         var nameInput = cut.Find("#edit-scene-name-input");
         nameInput.GetAttribute("value").Should().Be("Scene 1.1");
-        var visibilitySelect = cut.Find("#edit-scene-visibility-input");
-        visibilitySelect.GetAttribute("value").Should().Be(nameof(Visibility.Public));
         cut.Instance.State.EditInput.Id.Should().Be(_defaultScenes[0].Id);
     }
 
@@ -130,7 +132,7 @@ public class ScenesPageTests
         var clonedScene = new Scene {
             Name = _defaultScenes[0].Name,
             OwnerId = CurrentUser!.Id,
-            Visibility = Visibility.Hidden,
+            Description = _defaultScenes[0].Description,
         };
         _client.CloneSceneAsync(Arg.Any<Guid>(), Arg.Any<AddClonedSceneRequest>()).Returns(clonedScene);
 

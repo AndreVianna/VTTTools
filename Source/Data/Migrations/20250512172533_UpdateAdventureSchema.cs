@@ -35,7 +35,7 @@ namespace VttTools.Data.Migrations {
                 defaultValue: false);
 
             migrationBuilder.AddColumn<bool>(
-                name: "IsVisible",
+                name: "IsListed",
                 table: "Adventures",
                 type: "bit",
                 nullable: false,
@@ -64,7 +64,7 @@ namespace VttTools.Data.Migrations {
                 table: "Adventures");
 
             migrationBuilder.DropColumn(
-                name: "IsVisible",
+                name: "IsListed",
                 table: "Adventures");
 
             migrationBuilder.DropColumn(

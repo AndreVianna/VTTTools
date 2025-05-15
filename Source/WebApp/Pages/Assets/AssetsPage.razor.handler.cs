@@ -12,9 +12,8 @@ public class AssetsPageHandler(AssetsPage page)
     public async Task SaveCreatedAsset() {
         var request = new CreateAssetRequest {
             Name = Page.State.Input.Name,
-            Source = Page.State.Input.Source,
+            Description = Page.State.Input.Description,
             Type = Page.State.Input.Type,
-            Visibility = Page.State.Input.Visibility,
         };
 
         var result = await _client.CreateAssetAsync(request);

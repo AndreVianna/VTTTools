@@ -61,7 +61,7 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("SceneId")
+                    b.Property<Guid?>("TemplateId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Status")
@@ -348,7 +348,7 @@ namespace VttTools.Data.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.Property<bool>("IsVisible")
+                    b.Property<bool>("IsListed")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
@@ -361,7 +361,7 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ParentId")
+                    b.Property<Guid?>("AdventureId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("TemplateId")
@@ -373,7 +373,7 @@ namespace VttTools.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentId");
+                    b.HasIndex("AdventureId");
 
                     b.ToTable("Adventures", (string)null);
                 });
@@ -392,7 +392,7 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ParentId")
+                    b.Property<Guid?>("AdventureId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("TemplateId")
@@ -403,7 +403,7 @@ namespace VttTools.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentId");
+                    b.HasIndex("AdventureId");
 
                     b.ToTable("Campaigns", (string)null);
                 });
@@ -450,7 +450,7 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ParentId")
+                    b.Property<Guid>("AdventureId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("TemplateId")
@@ -461,7 +461,7 @@ namespace VttTools.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentId");
+                    b.HasIndex("AdventureId");
 
                     b.ToTable("Scenes", (string)null);
                 });
@@ -491,12 +491,12 @@ namespace VttTools.Data.Migrations
                         .HasColumnType("float")
                         .HasDefaultValue(1.0);
 
-                    b.Property<Guid>("SceneId")
+                    b.Property<Guid>("TemplateId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SceneId");
+                    b.HasIndex("TemplateId");
 
                     b.ToTable("SceneAssets", (string)null);
                 });
@@ -661,7 +661,7 @@ namespace VttTools.Data.Migrations
                 {
                     b.HasOne("VttTools.Library.Campaigns.Model.Campaign", "Campaign")
                         .WithMany("Adventures")
-                        .HasForeignKey("ParentId")
+                        .HasForeignKey("AdventureId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Campaign");
@@ -671,7 +671,7 @@ namespace VttTools.Data.Migrations
                 {
                     b.HasOne("VttTools.Library.Epics.Model.Epic", "Epic")
                         .WithMany("Campaigns")
-                        .HasForeignKey("ParentId")
+                        .HasForeignKey("AdventureId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Epic");
@@ -681,13 +681,13 @@ namespace VttTools.Data.Migrations
                 {
                     b.HasOne("VttTools.Library.Adventures.Model.Adventure", "Adventure")
                         .WithMany("Scenes")
-                        .HasForeignKey("ParentId")
+                        .HasForeignKey("AdventureId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.OwnsOne("VttTools.Common.Model.Stage", "Stage", b1 =>
                         {
-                            b1.Property<Guid>("SceneId")
+                            b1.Property<Guid>("TemplateId")
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<int>("MapType")
@@ -698,12 +698,12 @@ namespace VttTools.Data.Migrations
                                 .HasMaxLength(512)
                                 .HasColumnType("nvarchar(512)");
 
-                            b1.HasKey("SceneId");
+                            b1.HasKey("TemplateId");
 
                             b1.ToTable("Scenes");
 
                             b1.WithOwner()
-                                .HasForeignKey("SceneId");
+                                .HasForeignKey("TemplateId");
 
                             b1.OwnsOne("VttTools.Common.Model.Grid", "Grid", b2 =>
                                 {
@@ -798,13 +798,13 @@ namespace VttTools.Data.Migrations
                 {
                     b.HasOne("VttTools.Assets.Model.Asset", "Asset")
                         .WithMany()
-                        .HasForeignKey("SceneId")
+                        .HasForeignKey("TemplateId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("VttTools.Library.Scenes.Model.Scene", "Scene")
                         .WithMany("SceneAssets")
-                        .HasForeignKey("SceneId")
+                        .HasForeignKey("TemplateId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

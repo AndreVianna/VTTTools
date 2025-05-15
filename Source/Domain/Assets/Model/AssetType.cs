@@ -2,11 +2,12 @@
 
 public enum AssetType {
     Placeholder,
-    Object,
+    Creature,
     Character,
     NPC,
-    Creature,
+    Object,
     Overlay,
-    Sound,
-    Video,
+    Wall,
+    Elevation,
+    Effect,
 }

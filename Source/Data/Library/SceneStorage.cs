@@ -18,7 +18,7 @@ public class SceneStorage(ApplicationDbContext context)
         => context.Scenes
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
-                  .Where(e => e.ParentId == adventureId)
+                  .Where(e => e.AdventureId == adventureId)
                   .AsNoTrackingWithIdentityResolution()
                   .ToArrayAsync(ct);
 

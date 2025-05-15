@@ -11,7 +11,8 @@ public class AssetTypeTests {
             AssetType.NPC,
             AssetType.Creature,
             AssetType.Overlay,
-            AssetType.Sound,
-            AssetType.Video,
+            AssetType.Effect,
+            AssetType.Elevation,
+            AssetType.Wall,
         ]);
 }

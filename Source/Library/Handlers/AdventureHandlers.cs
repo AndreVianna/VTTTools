@@ -18,14 +18,32 @@ internal static class AdventureHandlers {
             Name = request.Name,
             Description = request.Description,
             Type = request.Type,
-            ImagePath = request.ImagePath,
-            IsVisible = request.IsVisible,
-            IsPublic = request.IsPublic,
-                                           };
-        var created = await adventureService.CreateAdventureAsync(userId, data);
-        return created != null
-                   ? Results.Created($"/api/adventures/{created.Id}", created)
-                   : Results.BadRequest();
+            ImageId = request.ImageId,
+        };
+        var result = await adventureService.CreateAdventureAsync(userId, data);
+        return result.IsSuccessful
+            ? Results.Created($"/api/adventures/{result.Value.Id}", result.Value)
+            : Results.BadRequest(result.Errors);
+    }
+
+    internal static async Task<IResult> CloneAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromBody] CloneAdventureRequest request, [FromServices] IAdventureService adventureService) {
+        var userId = context.User.GetUserId();
+        var data = new CloneAdventureData {
+            TemplateId = id,
+            Name = request.Name,
+            Description = request.Description,
+            Type = request.Type,
+            ImageId = request.ImageId,
+            IncludeScenes = request.IncludeScenes,
+        };
+        var result = await adventureService.CloneAdventureAsync(userId, data);
+        return result.IsSuccessful
+            ? Results.Created($"/api/adventures/{result.Value.Id}", result.Value)
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> UpdateAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateAdventureRequest request, [FromServices] IAdventureService adventureService) {
@@ -34,64 +52,79 @@ internal static class AdventureHandlers {
             Name = request.Name,
             Description = request.Description,
             Type = request.Type,
-            ImagePath = request.ImagePath,
-            IsVisible = request.IsVisible,
+            ImageId = request.ImageId,
+            IsListed = request.IsListed,
             IsPublic = request.IsPublic,
             CampaignId = request.CampaignId,
                                            };
-        var updated = await adventureService.UpdateAdventureAsync(userId, id, data);
-        return updated != null ? Results.Ok(updated) : Results.NotFound();
+        var result = await adventureService.UpdateAdventureAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> DeleteAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var deleted = await adventureService.DeleteAdventureAsync(userId, id);
-        return deleted ? Results.NoContent() : Results.NotFound();
-    }
-
-    internal static async Task<IResult> CloneAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromBody] CloneAdventureRequest request, [FromServices] IAdventureService adventureService) {
-        var userId = context.User.GetUserId();
-        var data = new CloneAdventureData {
-            CampaignId = request.CampaignId,
-            Name = request.Name,
-            Description = request.Description,
-            Type = request.Type,
-            ImagePath = request.ImagePath,
-            IsVisible = request.IsVisible,
-            IsPublic = request.IsPublic,
-                                          };
-        var clone = await adventureService.CloneAdventureAsync(userId, id, data);
-        return clone != null
-                   ? Results.Created($"/api/adventures/{clone.Id}", clone)
-                   : Results.NotFound();
+        var result = await adventureService.DeleteAdventureAsync(userId, id);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> GetScenesHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService)
         => Results.Ok(await adventureService.GetScenesAsync(id));
 
-    internal static async Task<IResult> CreateSceneHandler(HttpContext context, [FromRoute] Guid id, [FromBody] CreateSceneRequest request, [FromServices] IAdventureService adventureService) {
+    internal static async Task<IResult> AddNewSceneHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddNewSceneRequest request, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var data = new CreateSceneData {
+        var data = new AddNewSceneData {
             Name = request.Name,
-            Visibility = request.Visibility,
+            Description = request.Description,
+            Stage = request.Stage,
         };
-        var added = await adventureService.CreateSceneAsync(userId, id, data);
-        return added ? Results.NoContent() : Results.BadRequest();
+        var result = await adventureService.AddNewSceneAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.Ok(result.Value)
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> AddClonedSceneHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddClonedSceneRequest request, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
         var data = new AddClonedSceneData {
-            SceneId = request.SceneId,
+            TemplateId = request.TemplateId,
             Name = request.Name,
+            Description = request.Description,
         };
-        var added = await adventureService.AddClonedSceneAsync(userId, id, data);
-        return added ? Results.NoContent() : Results.BadRequest();
+        var result = await adventureService.AddClonedSceneAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.Ok(result.Value)
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> RemoveSceneHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid sceneId, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var removed = await adventureService.RemoveSceneAsync(userId, id, sceneId);
-        return removed ? Results.NoContent() : Results.NotFound();
+        var result = await adventureService.RemoveSceneAsync(userId, id, sceneId);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 }

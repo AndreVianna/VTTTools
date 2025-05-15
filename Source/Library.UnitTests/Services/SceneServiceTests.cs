@@ -2,13 +2,15 @@
 
 public class SceneServiceTests {
     private readonly ISceneStorage _sceneStorage;
+    private readonly IAssetStorage _assetStorage;
     private readonly SceneService _service;
     private readonly Guid _userId = Guid.NewGuid();
     private readonly CancellationToken _ct;
 
     public SceneServiceTests() {
         _sceneStorage = Substitute.For<ISceneStorage>();
-        _service = new(_sceneStorage);
+        _assetStorage = Substitute.For<IAssetStorage>();
+        _service = new(_sceneStorage, _assetStorage);
 #if XUNITV3
         _ct = TestContext.Current.CancellationToken;
 #else
@@ -22,7 +24,7 @@ public class SceneServiceTests {
         var scenes = new Scene[] {
             new() { Id = Guid.NewGuid(), Name = "Test Scene 1" },
             new() { Id = Guid.NewGuid(), Name = "Test Scene 2" },
-                                         };
+        };
         _sceneStorage.GetAllAsync(Arg.Any<CancellationToken>()).Returns(scenes);
 
         // Act
@@ -70,11 +72,11 @@ public class SceneServiceTests {
             Id = sceneId,
             Name = "Old Name",
             OwnerId = _userId,
-            Visibility = Visibility.Private,
+            Description = "Old Description",
         };
-        var request = new UpdateSceneRequest {
+        var data = new UpdateSceneData {
             Name = "Updated Name",
-            Visibility = Visibility.Public,
+            Description = "Updated Description",
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -82,12 +84,12 @@ public class SceneServiceTests {
             .Returns(x => x.Arg<Scene>());
 
         // Act
-        var result = await _service.UpdateSceneAsync(_userId, sceneId, request, _ct);
+        var result = await _service.UpdateSceneAsync(_userId, sceneId, data, _ct);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Name.Should().Be(request.Name.Value);
-        result.Visibility.Should().Be(request.Visibility.Value);
+        result.IsSuccessful.Should().BeTrue();
+        result.Value.Name.Should().Be(data.Name.Value);
+        result.Value.Description.Should().Be(data.Description.Value);
         await _sceneStorage.Received(1).UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 
@@ -99,11 +101,10 @@ public class SceneServiceTests {
             Id = sceneId,
             Name = "Old Name",
             OwnerId = _userId,
-            Visibility = Visibility.Private,
+            Description = "Old Description",
         };
-        var request = new UpdateSceneRequest {
+        var data = new UpdateSceneData {
             Name = "Updated Name",
-            // Visibility not set
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -111,12 +112,12 @@ public class SceneServiceTests {
             .Returns(x => x.Arg<Scene>());
 
         // Act
-        var result = await _service.UpdateSceneAsync(_userId, sceneId, request, _ct);
+        var result = await _service.UpdateSceneAsync(_userId, sceneId, data, _ct);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Name.Should().Be(request.Name.Value);
-        result.Visibility.Should().Be(Visibility.Private); // Should remain unchanged
+        result.IsSuccessful.Should().BeTrue();
+        result.Value.Name.Should().Be(data.Name.Value);
+        result.Value.Description.Should().Be(scene.Description);
         await _sceneStorage.Received(1).UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 
@@ -130,17 +131,17 @@ public class SceneServiceTests {
             Name = "Scene",
             OwnerId = _userId,
         };
-        var request = new UpdateSceneRequest {
+        var data = new UpdateSceneData {
             Name = "Updated Name",
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
 
         // Act
-        var result = await _service.UpdateSceneAsync(nonOwnerId, sceneId, request, _ct);
+        var result = await _service.UpdateSceneAsync(nonOwnerId, sceneId, data, _ct);
 
         // Assert
-        result.Should().BeNull();
+        result.IsSuccessful.Should().BeFalse();
         await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 
@@ -148,17 +149,17 @@ public class SceneServiceTests {
     public async Task UpdateSceneAsync_WithNonexistentScene_ReturnsNull() {
         // Arrange
         var sceneId = Guid.NewGuid();
-        var request = new UpdateSceneRequest {
+        var data = new UpdateSceneData {
             Name = "Updated Name",
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
 
         // Act
-        var result = await _service.UpdateSceneAsync(_userId, sceneId, request, _ct);
+        var result = await _service.UpdateSceneAsync(_userId, sceneId, data, _ct);
 
         // Assert
-        result.Should().BeNull();
+        result.IsSuccessful.Should().BeFalse();
         await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 
@@ -212,10 +213,9 @@ public class SceneServiceTests {
             OwnerId = _userId,
             SceneAssets = [],
         };
-        var data = new AddSceneAssetData {
-            AssetId = assetId,
+        var data = new AddNewAssetData {
             Name = "New Asset",
-            Position = new Position { Left = 5, Top = 5 },
+            Position = new() { Left = 5, Top = 5 },
             Scale = 1.5f,
         };
 
@@ -224,16 +224,16 @@ public class SceneServiceTests {
             .Returns(x => x.Arg<Scene>());
 
         // Act
-        var result = await _service.AddAssetAsync(_userId, sceneId, data, _ct);
+        var result = await _service.AddNewAssetAsync(_userId, sceneId, data, _ct);
 
         // Assert
-        result.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue();
         scene.SceneAssets.Should().ContainSingle();
         var addedAsset = scene.SceneAssets[0];
         addedAsset.AssetId.Should().Be(assetId);
-        addedAsset.Name.Should().Be(data.Name.Value);
-        addedAsset.Position.Should().BeEquivalentTo(data.Position.Value);
-        addedAsset.Scale.Should().Be(data.Scale.Value);
+        addedAsset.Name.Should().Be(data.Name);
+        addedAsset.Position.Should().BeEquivalentTo(data.Position);
+        addedAsset.Scale.Should().Be(data.Scale);
         addedAsset.IsLocked.Should().BeFalse();
         await _sceneStorage.Received(1).UpdateAsync(scene, Arg.Any<CancellationToken>());
     }
@@ -242,7 +242,6 @@ public class SceneServiceTests {
     public async Task AddAssetAsync_WithNonOwner_ReturnsFalse() {
         // Arrange
         var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
         var nonOwnerId = Guid.NewGuid();
         var scene = new Scene {
             Id = sceneId,
@@ -250,20 +249,19 @@ public class SceneServiceTests {
             OwnerId = _userId,
             SceneAssets = [],
         };
-        var data = new AddSceneAssetData {
-            AssetId = assetId,
+        var data = new AddNewAssetData {
             Name = "New Asset",
-            Position = new Position { Left = 5, Top = 5 },
+            Position = new() { Left = 5, Top = 5 },
             Scale = 1.5f,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
 
         // Act
-        var result = await _service.AddAssetAsync(nonOwnerId, sceneId, data, _ct);
+        var result = await _service.AddNewAssetAsync(nonOwnerId, sceneId, data, _ct);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsSuccessful.Should().BeFalse();
         scene.SceneAssets.Should().BeEmpty();
         await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
@@ -272,21 +270,19 @@ public class SceneServiceTests {
     public async Task AddAssetAsync_WithNonexistentScene_ReturnsFalse() {
         // Arrange
         var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
-        var data = new AddSceneAssetData {
-            AssetId = assetId,
+        var data = new AddNewAssetData {
             Name = "New Asset",
-            Position = new Position { Left = 5, Top = 5 },
+            Position = new() { Left = 5, Top = 5 },
             Scale = 1.5f,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
 
         // Act
-        var result = await _service.AddAssetAsync(_userId, sceneId, data, _ct);
+        var result = await _service.AddNewAssetAsync(_userId, sceneId, data, _ct);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsSuccessful.Should().BeFalse();
         await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 
@@ -295,28 +291,28 @@ public class SceneServiceTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
+        const uint number = 1u;
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
             OwnerId = _userId,
             SceneAssets = [
-                                new() {
-                                          AssetId = assetId,
-                                          Name = "Asset to remove",
-                                          Position = new() { Left = 1, Top = 1 },
-                                      },
-                            ],
+                new() {
+                    AssetId = assetId,
+                    Number = number,
+                    Name = "Asset to remove",
+                    Position = new() { Left = 1, Top = 1 },
+                },
+            ],
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
-        _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>())
-            .Returns(x => x.Arg<Scene>());
 
         // Act
-        var result = await _service.RemoveAssetAsync(_userId, sceneId, assetId, _ct);
+        var result = await _service.RemoveAssetAsync(_userId, sceneId, assetId, number, _ct);
 
         // Assert
-        result.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue();
         scene.SceneAssets.Should().BeEmpty();
         await _sceneStorage.Received(1).UpdateAsync(scene, Arg.Any<CancellationToken>());
     }
@@ -326,27 +322,29 @@ public class SceneServiceTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
+        const uint number = 1u;
         var nonOwnerId = Guid.NewGuid();
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
             OwnerId = _userId,
             SceneAssets = [
-                                new() {
-                                          AssetId = assetId,
-                                          Name = "Asset to keep",
-                                          Position = new() { Left = 1, Top = 1 },
-                                      },
-                            ],
+                new() {
+                    AssetId = assetId,
+                    Number = number,
+                    Name = "Asset to keep",
+                    Position = new() { Left = 1, Top = 1 },
+                },
+            ],
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
 
         // Act
-        var result = await _service.RemoveAssetAsync(nonOwnerId, sceneId, assetId, _ct);
+        var result = await _service.RemoveAssetAsync(nonOwnerId, sceneId, assetId, number, _ct);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsSuccessful.Should().BeFalse();
         scene.SceneAssets.Should().ContainSingle();
         await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
@@ -356,14 +354,15 @@ public class SceneServiceTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
+        const uint number = 1u;
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
 
         // Act
-        var result = await _service.RemoveAssetAsync(_userId, sceneId, assetId, _ct);
+        var result = await _service.RemoveAssetAsync(_userId, sceneId, assetId, number, _ct);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsSuccessful.Should().BeFalse();
         await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 
@@ -372,31 +371,32 @@ public class SceneServiceTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
+        const uint number = 1u;
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
             OwnerId = _userId,
             SceneAssets = [
-                                new() {
-                                          AssetId = assetId,
-                                          Name = "Asset to update",
-                                          Position = new() { Left = 1, Top = 1 },
-                                      },
-                            ],
+                new() {
+                    AssetId = assetId,
+                    Name = "Asset to update",
+                    Position = new() { Left = 1, Top = 1 },
+                },
+            ],
         };
         var data = new UpdateSceneAssetData {
+            AssetId = assetId,
+            Number = number,
             Position = new Position { Left = 10, Top = 10 },
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
-        _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>())
-            .Returns(x => x.Arg<Scene>());
 
         // Act
-        var result = await _service.UpdateAssetAsync(_userId, sceneId, assetId, data, _ct);
+        var result = await _service.UpdateAssetAsync(_userId, sceneId, data, _ct);
 
         // Assert
-        result.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue();
         var updatedAsset = scene.SceneAssets[0];
         updatedAsset.Position.Should().BeEquivalentTo(data.Position.Value);
         await _sceneStorage.Received(1).UpdateAsync(scene, Arg.Any<CancellationToken>());
@@ -407,30 +407,34 @@ public class SceneServiceTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
+        const uint number = 1u;
         var nonOwnerId = Guid.NewGuid();
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
             OwnerId = _userId,
             SceneAssets = [
-                                new() {
-                                          AssetId = assetId,
-                                          Name = "Asset to not update",
-                                          Position = new() { Left = 1, Top = 1 },
-                                      },
-                            ],
+                new() {
+                    AssetId = assetId,
+                    Number = number,
+                    Name = "Asset to not update",
+                    Position = new() { Left = 1, Top = 1 },
+                },
+            ],
         };
         var data = new UpdateSceneAssetData {
+            AssetId = assetId,
+            Number = number,
             Position = new Position { Left = 10, Top = 10 },
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
 
         // Act
-        var result = await _service.UpdateAssetAsync(nonOwnerId, sceneId, assetId, data, _ct);
+        var result = await _service.UpdateAssetAsync(nonOwnerId, sceneId, data, _ct);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsSuccessful.Should().BeFalse();
         var unchangedAsset = scene.SceneAssets[0];
         unchangedAsset.Position.Left.Should().Be(1);
         unchangedAsset.Position.Top.Should().Be(1);
@@ -442,17 +446,20 @@ public class SceneServiceTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
+        const uint number = 1u;
         var data = new UpdateSceneAssetData {
+            AssetId = assetId,
+            Number = number,
             Position = new Position { Left = 10, Top = 10 },
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
 
         // Act
-        var result = await _service.UpdateAssetAsync(_userId, sceneId, assetId, data, _ct);
+        var result = await _service.UpdateAssetAsync(_userId, sceneId, data, _ct);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsSuccessful.Should().BeFalse();
         await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 
@@ -461,30 +468,35 @@ public class SceneServiceTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var existingAssetId = Guid.NewGuid();
+        const uint number = 1u;
         var nonexistentAssetId = Guid.NewGuid();
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
             OwnerId = _userId,
             SceneAssets = [
-                                new() {
-                                          AssetId = existingAssetId,
-                                          Name = "Existing Asset",
-                                          Position = new() { Left = 1, Top = 1 },
-                                      },
-                            ],
+                new() {
+                    AssetId = existingAssetId,
+                    Number = number,
+                    Name = "Existing Asset",
+                    Position = new() { Left = 1, Top = 1 },
+                },
+            ],
         };
         var data = new UpdateSceneAssetData {
+            AssetId = nonexistentAssetId,
+            Number = number,
             Position = new Position { Left = 10, Top = 10 },
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
+        _assetStorage.GetByIdAsync(nonexistentAssetId, Arg.Any<CancellationToken>()).Returns((Asset?)null);
 
         // Act
-        var result = await _service.UpdateAssetAsync(_userId, sceneId, nonexistentAssetId, data, _ct);
+        var result = await _service.UpdateAssetAsync(_userId, sceneId, data, _ct);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsSuccessful.Should().BeFalse();
         await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 }

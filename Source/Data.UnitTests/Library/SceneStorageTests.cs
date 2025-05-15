@@ -109,8 +109,7 @@ public class SceneStorageTests
 
         // Modify the scene
         scene.Name = "Updated Scene";
-        scene.Visibility = Visibility.Private;
-
+        scene.Description = "Updated Description";
         // Act
         var result = await _storage.UpdateAsync(scene, _ct);
 

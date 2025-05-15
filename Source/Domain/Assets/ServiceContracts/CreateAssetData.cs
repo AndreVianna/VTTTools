@@ -5,26 +5,17 @@ namespace VttTools.Assets.ServiceContracts;
 /// </summary>
 public record CreateAssetData
     : Data {
-    /// <summary>
-    /// The name for the new Asset. If not set, name is unchanged.
-    /// </summary>
     public string Name { get; init; } = string.Empty;
-
-    /// <summary>
-    /// The visibility setting for the new Asset. If not set, visibility is unchanged.
-    /// </summary>
-    public Visibility Visibility { get; set; }
-
-    /// <summary>
-    /// Type of the asset (e.g., Character, Object).
-    /// </summary>
-    [Required]
+    public string Description { get; init; } = string.Empty;
     public AssetType Type { get; init; }
+    public AssetDisplay Display { get; set; } = new();
 
-    /// <summary>
-    /// Source URL for the asset media.
-    /// </summary>
-    [Url]
-    [Required]
-    public string Source { get; init; } = string.Empty;
+    public override Result Validate(IMap? context = null) {
+        var result = base.Validate(context);
+        if (string.IsNullOrWhiteSpace(Name))
+            result += new Error("The asset name cannot be null or empty.", nameof(Name));
+        if (string.IsNullOrWhiteSpace(Description))
+            result += new Error("The asset description cannot be null or empty.", nameof(Description));
+        return result;
+    }
 }

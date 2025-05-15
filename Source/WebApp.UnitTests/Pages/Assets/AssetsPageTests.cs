@@ -7,14 +7,16 @@ public class AssetsPageTests
         new() {
             Name = "Asset 1",
             Type = AssetType.Character,
-            Source = "https://example.com/asset1",
-            Visibility = Visibility.Public,
+            Description = "Asset 1 Description",
+            IsListed = true,
+            IsPublic = true,
         },
         new() {
             Name = "Asset 2",
             Type = AssetType.Creature,
-            Source = "https://example.com/asset2",
-            Visibility = Visibility.Private,
+            Description = "Asset 2 Description",
+            IsListed = true,
+            IsPublic = true,
         }];
 
     public AssetsPageTests() {
@@ -65,20 +67,14 @@ public class AssetsPageTests
 
         cut.Find("#assets-name-header").TextContent.Should().Be(nameof(Asset.Name));
         cut.Find("#assets-type-header").TextContent.Should().Be(nameof(Asset.Type));
-        cut.Find("#assets-source-header").TextContent.Should().Be(nameof(Asset.Source));
-        cut.Find("#assets-visibility-header").TextContent.Should().Be(nameof(Asset.Visibility));
         cut.Find("#assets-action-header").TextContent.Should().Be("Actions");
 
         cut.Find($"#asset-{_defaultAssets[0].Id}-name").TextContent.Should().Be(_defaultAssets[0].Name);
         cut.Find($"#asset-{_defaultAssets[0].Id}-type").TextContent.Should().Be(_defaultAssets[0].Type.ToString());
-        cut.Find($"#asset-{_defaultAssets[0].Id}-source").InnerHtml.Should().Be($"""<a href="{_defaultAssets[0].Source}" target="_blank">Link</a>""");
-        cut.Find($"#asset-{_defaultAssets[0].Id}-visibility").TextContent.Should().Be(_defaultAssets[0].Visibility.ToString());
         cut.Find($"#asset-{_defaultAssets[0].Id}-actions").TextContent.Should().Be("Delete");
 
         cut.Find($"#asset-{_defaultAssets[1].Id}-name").TextContent.Should().Be(_defaultAssets[1].Name);
         cut.Find($"#asset-{_defaultAssets[1].Id}-type").TextContent.Should().Be(_defaultAssets[1].Type.ToString());
-        cut.Find($"#asset-{_defaultAssets[1].Id}-source").InnerHtml.Should().Be($"""<a href="{_defaultAssets[1].Source}" target="_blank">Link</a>""");
-        cut.Find($"#asset-{_defaultAssets[1].Id}-visibility").TextContent.Should().Be(_defaultAssets[1].Visibility.ToString());
         cut.Find($"#asset-{_defaultAssets[1].Id}-actions").TextContent.Should().Be("Delete");
     }
 
@@ -87,7 +83,7 @@ public class AssetsPageTests
         // Arrange
         var newAsset = new Asset {
             Name = "New Asset",
-            Source = "https://example.com/new-asset",
+            Description = "New Asset Description",
             Type = AssetType.NPC,
         };
         _client.CreateAssetAsync(Arg.Any<CreateAssetRequest>()).Returns(newAsset);
@@ -95,7 +91,7 @@ public class AssetsPageTests
         var cut = RenderComponent<AssetsPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
         cut.Find("#name-input").Change(newAsset.Name);
-        cut.Find("#source-input").Change(newAsset.Source);
+        cut.Find("#source-input").Change(newAsset.Description);
         cut.Find("#type-input").Change(newAsset.Type.ToString());
 
         // Act
@@ -106,8 +102,6 @@ public class AssetsPageTests
         rows.Count.Should().Be(4);
         cut.Find($"#asset-{newAsset.Id}-name").TextContent.Should().Be(newAsset.Name);
         cut.Find($"#asset-{newAsset.Id}-type").TextContent.Should().Be(newAsset.Type.ToString());
-        cut.Find($"#asset-{newAsset.Id}-source").InnerHtml.Should().Be($"""<a href="{newAsset.Source}" target="_blank">Link</a>""");
-        cut.Find($"#asset-{newAsset.Id}-visibility").TextContent.Should().Be(newAsset.Visibility.ToString());
         cut.Find($"#asset-{newAsset.Id}-actions").TextContent.Should().Be("Delete");
     }
 

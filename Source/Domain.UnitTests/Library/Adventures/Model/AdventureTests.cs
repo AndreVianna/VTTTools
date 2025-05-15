@@ -9,16 +9,15 @@ public class AdventureTests {
         // Assert
         adventure.Id.Should().NotBeEmpty();
         adventure.OwnerId.Should().BeEmpty();
-        adventure.ParentId.Should().BeNull();
+        adventure.CampaignId.Should().BeNull();
         adventure.Campaign.Should().BeNull();
-        adventure.TemplateId.Should().BeNull();
         adventure.Scenes.Should().NotBeNull();
         adventure.Scenes.Should().BeEmpty();
         adventure.Name.Should().BeEmpty();
         adventure.Description.Should().BeEmpty();
         adventure.Type.Should().Be(AdventureType.OpenWorld);
-        adventure.ImagePath.Should().BeNull();
-        adventure.IsVisible.Should().BeFalse();
+        adventure.ImageId.Should().BeNull();
+        adventure.IsListed.Should().BeFalse();
         adventure.IsPublic.Should().BeFalse();
     }
 
@@ -29,14 +28,13 @@ public class AdventureTests {
         const string name = "Some Adventure";
         const string description = "Adventure description";
         const AdventureType type = AdventureType.DungeonCrawl;
-        const string imagePath = "path/to/image.jpg";
+        var imageId = Guid.NewGuid();
         const bool isVisible = true;
         const bool isPublic = true;
         var ownerId = Guid.NewGuid();
-        var parentId = Guid.NewGuid();
-        var templateId = Guid.NewGuid();
+        var campaignId = Guid.NewGuid();
         var campaign = new Campaign {
-            Id = parentId,
+            Id = campaignId,
         };
         var scene = new Scene {
             Id = Guid.NewGuid(),
@@ -48,12 +46,11 @@ public class AdventureTests {
             Name = name,
             Description = description,
             Type = type,
-            ImagePath = imagePath,
-            IsVisible = isVisible,
+            ImageId = imageId,
+            IsListed = isVisible,
             IsPublic = isPublic,
             OwnerId = ownerId,
-            TemplateId = templateId,
-            ParentId = parentId,
+            CampaignId = campaignId,
             Campaign = campaign,
             Scenes = [scene],
         };
@@ -63,12 +60,11 @@ public class AdventureTests {
         adventure.Name.Should().Be(name);
         adventure.Description.Should().Be(description);
         adventure.Type.Should().Be(type);
-        adventure.ImagePath.Should().Be(imagePath);
-        adventure.IsVisible.Should().Be(isVisible);
+        adventure.ImageId.Should().Be(imageId);
+        adventure.IsListed.Should().Be(isVisible);
         adventure.IsPublic.Should().Be(isPublic);
         adventure.OwnerId.Should().Be(ownerId);
-        adventure.TemplateId.Should().Be(templateId);
-        adventure.ParentId.Should().Be(parentId);
+        adventure.CampaignId.Should().Be(campaignId);
         adventure.Campaign.Should().Be(campaign);
         adventure.Scenes.Should().ContainSingle(e => e.Equals(scene));
     }

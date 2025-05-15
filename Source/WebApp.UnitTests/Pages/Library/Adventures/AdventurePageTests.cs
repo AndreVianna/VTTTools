@@ -10,9 +10,8 @@ public class AdventurePageTests
         Name = "Test Adventure",
         Description = "Test Description",
         Type = AdventureType.OpenWorld,
-        ImagePath = "path/to/image.png",
-        IsVisible = true,
-        IsPublic = true
+        IsListed = true,
+        IsPublic = true,
     };
 
     public AdventurePageTests() {

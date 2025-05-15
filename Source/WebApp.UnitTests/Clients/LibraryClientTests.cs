@@ -81,9 +81,6 @@ public class LibraryClientTests {
             Name = "New Adventure",
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            ImagePath = "path/to/image.png",
-            IsVisible = true,
-            IsPublic = true,
         };
         var expectedResponse = new AdventureListItem {
             Id = adventureId,
@@ -91,9 +88,8 @@ public class LibraryClientTests {
             OwnerId = Guid.NewGuid(),
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            ImagePath = "path/to/image.png",
-            IsVisible = true,
-            IsPublic = true,
+            IsListed = false,
+            IsPublic = false,
         };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
@@ -126,9 +122,6 @@ public class LibraryClientTests {
             Name = "New Adventure",
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            ImagePath = "path/to/image.png",
-            IsVisible = true,
-            IsPublic = true,
         };
 
         var mockHandler = new MockHttpMessageHandler((_, _) => {
@@ -160,8 +153,7 @@ public class LibraryClientTests {
             Name = "Updated Adventure",
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            ImagePath = "path/to/image.png",
-            IsVisible = true,
+            IsListed = true,
             IsPublic = true,
         };
 
@@ -193,8 +185,7 @@ public class LibraryClientTests {
             Name = "Updated Adventure",
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            ImagePath = "path/to/image.png",
-            IsVisible = true,
+            IsListed = true,
             IsPublic = true,
         };
 
@@ -270,8 +261,8 @@ public class LibraryClientTests {
         var adventureId = Guid.NewGuid();
         var expectedScenes = new Scene[]
                              {
-                                 new() { Id = Guid.NewGuid(), Name = "Scene 1", ParentId = adventureId },
-                                 new() { Id = Guid.NewGuid(), Name = "Scene 2", ParentId = adventureId },
+                                 new() { Id = Guid.NewGuid(), Name = "Scene 1", AdventureId = adventureId },
+                                 new() { Id = Guid.NewGuid(), Name = "Scene 2", AdventureId = adventureId },
                              };
 
         var mockHandler = new MockHttpMessageHandler((request, _) => {
@@ -302,14 +293,16 @@ public class LibraryClientTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new CreateSceneRequest {
+        var request = new AddNewSceneRequest {
             Name = "New Scene",
+            Description = "Scene description",
         };
         var expectedResponse = new Scene {
             Id = sceneId,
             Name = "New Scene",
             OwnerId = Guid.NewGuid(),
-            ParentId = adventureId,
+            AdventureId = adventureId,
+            Description = "Scene description",
         };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
@@ -341,7 +334,7 @@ public class LibraryClientTests {
         var sceneId = Guid.NewGuid();
         var request = new UpdateSceneRequest {
             Name = "Updated Scene",
-            Visibility = Visibility.Public,
+            Description = "Updated description",
         };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
@@ -397,13 +390,13 @@ public class LibraryClientTests {
         var originalId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
         var request = new AddClonedSceneRequest {
-            SceneId = originalId,
+            TemplateId = originalId,
             Name = "Updated Scene",
         };
         var expectedResponse = new Scene {
             Id = sceneId,
             Name = "Updated Scene",
-            ParentId = adventureId,
+            AdventureId = adventureId,
             OwnerId = Guid.NewGuid(),
         };
 

@@ -11,7 +11,7 @@ internal static class AdventureEndpointsMapper {
         adventures.MapDelete("/{id:guid}", AdventureHandlers.DeleteAdventureHandler);
         adventures.MapPost("/{id:guid}/clone", AdventureHandlers.CloneAdventureHandler);
         adventures.MapGet("/{id:guid}/scenes", AdventureHandlers.GetScenesHandler);
-        adventures.MapPost("/{id:guid}/scenes", AdventureHandlers.CreateSceneHandler);
+        adventures.MapPost("/{id:guid}/scenes", AdventureHandlers.AddNewSceneHandler);
         adventures.MapPost("/{id:guid}/scenes/clone", AdventureHandlers.AddClonedSceneHandler);
         adventures.MapDelete("/{id:guid}/scenes/{sceneId:guid}", AdventureHandlers.RemoveSceneHandler);
     }

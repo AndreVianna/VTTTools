@@ -7,8 +7,8 @@ public class AssetsPageHandlerTests
 
     public AssetsPageHandlerTests() {
         var assets = new[] {
-            new Asset { Name = "Asset 1", Visibility = Visibility.Public },
-            new Asset { Name = "Asset 2", Visibility = Visibility.Private },
+            new Asset { Name = "Asset 1", Description = "Asset 1 Description", IsListed = true, IsPublic = true },
+            new Asset { Name = "Asset 2", Description = "Asset 2 Description", IsListed = true, IsPublic = true },
         };
         _client.GetAssetsAsync().Returns(assets);
         _page.HttpContext.Returns(HttpContext);
@@ -32,11 +32,11 @@ public class AssetsPageHandlerTests
         var handler = await CreateHandler();
         _page.State.Input = new() {
             Name = "New Asset",
-            Visibility = Visibility.Private,
+            Description = "New Asset Description",
         };
         var newAsset = new Asset {
             Name = "New Asset",
-            Visibility = Visibility.Private,
+            Description = "New Asset Description",
         };
 
         _client.CreateAssetAsync(Arg.Any<CreateAssetRequest>()).Returns(newAsset);

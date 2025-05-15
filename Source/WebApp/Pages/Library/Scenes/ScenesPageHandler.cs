@@ -11,12 +11,13 @@ public sealed class ScenesPageHandler(ScenesPage page)
     }
 
     public async Task SaveCreatedScene() {
-        var request = new CreateSceneRequest {
+        var request = new AddNewSceneRequest {
             Name = Page.State.CreateInput.Name,
+            Description = Page.State.CreateInput.Description,
         };
         var result = await _client.CreateSceneAsync(Page.State.AdventureId, request);
         if (!result.IsSuccessful) {
-            Page.State.CreateInput.Errors = [.. result.Errors];
+            Page.State.Errors = [.. result.Errors];
             return;
         }
         Page.State.CreateInput = new();
@@ -35,7 +36,7 @@ public sealed class ScenesPageHandler(ScenesPage page)
         Page.State.EditInput = new() {
             Id = ep.Id,
             Name = ep.Name,
-            Visibility = ep.Visibility,
+            Description = ep.Description,
         };
         Page.State.IsEditing = true;
     }
@@ -46,23 +47,25 @@ public sealed class ScenesPageHandler(ScenesPage page)
     public async Task SaveEditedScene() {
         var request = new UpdateSceneRequest {
             Name = Page.State.EditInput.Name,
-            Visibility = Page.State.EditInput.Visibility,
+            Description = Page.State.EditInput.Description,
         };
         var result = await _client.UpdateSceneAsync(Page.State.EditInput.Id, request);
         if (!result.IsSuccessful) {
-            Page.State.EditInput.Errors = [.. result.Errors];
+            Page.State.Errors = [.. result.Errors];
             return;
         }
         var scene = Page.State.Scenes.Find(e => e.Id == Page.State.EditInput.Id)!;
         scene.Name = Page.State.EditInput.Name;
-        scene.Visibility = Page.State.EditInput.Visibility;
+        scene.Description = Page.State.EditInput.Description;
+        scene.IsListed = Page.State.EditInput.IsListed;
+        scene.IsPublic = Page.State.EditInput.IsPublic;
         Page.State.Scenes.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase));
         EndSceneEditing();
     }
 
     public async Task CloneScene(Guid id) {
         var request = new AddClonedSceneRequest {
-            SceneId = id,
+            TemplateId = id,
             Name = Page.State.CreateInput.Name,
         };
         var result = await _client.CloneSceneAsync(Page.State.AdventureId, request);

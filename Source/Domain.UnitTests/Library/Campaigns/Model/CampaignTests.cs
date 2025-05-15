@@ -9,13 +9,14 @@ public class CampaignTests {
         // Assert
         campaign.Id.Should().NotBeEmpty();
         campaign.OwnerId.Should().BeEmpty();
-        campaign.ParentId.Should().BeNull();
+        campaign.EpicId.Should().BeNull();
         campaign.Epic.Should().BeNull();
-        campaign.TemplateId.Should().BeNull();
-        campaign.Adventures.Should().NotBeNull();
         campaign.Adventures.Should().BeEmpty();
         campaign.Name.Should().BeEmpty();
-        campaign.Visibility.Should().Be(Visibility.Hidden);
+        campaign.Description.Should().BeEmpty();
+        campaign.IsListed.Should().BeFalse();
+        campaign.IsPublic.Should().BeFalse();
+        campaign.ImageId.Should().BeNull();
     }
 
     [Fact]
@@ -23,12 +24,13 @@ public class CampaignTests {
         // Arrange
         var id = Guid.NewGuid();
         const string name = "Some Epic";
+        const string description = "Some Description";
         var ownerId = Guid.NewGuid();
-        var parentId = Guid.NewGuid();
+        var epicId = Guid.NewGuid();
         var templateId = Guid.NewGuid();
-        const Visibility visibility = Visibility.Public;
+        var imageId = Guid.NewGuid();
         var epic = new Epic {
-            Id = parentId,
+            Id = epicId,
         };
         var adventure = new Adventure {
             Id = Guid.NewGuid(),
@@ -38,22 +40,26 @@ public class CampaignTests {
         var campaign = new Campaign {
             Id = id,
             Name = name,
+            Description = description,
             OwnerId = ownerId,
-            Visibility = visibility,
-            TemplateId = templateId,
-            ParentId = parentId,
+            EpicId = epicId,
             Epic = epic,
+            ImageId = imageId,
+            IsListed = true,
+            IsPublic = true,
             Adventures = [adventure],
         };
 
         // Assert
         campaign.Id.Should().Be(id);
         campaign.Name.Should().Be(name);
+        campaign.Description.Should().Be(description);
         campaign.OwnerId.Should().Be(ownerId);
-        campaign.Visibility.Should().Be(visibility);
-        campaign.TemplateId.Should().Be(templateId);
-        campaign.ParentId.Should().Be(parentId);
         campaign.Epic.Should().Be(epic);
+        campaign.EpicId.Should().Be(epicId);
+        campaign.ImageId.Should().Be(imageId);
+        campaign.IsListed.Should().BeTrue();
+        campaign.IsPublic.Should().BeTrue();
         campaign.Adventures.Should().ContainSingle(c => c.Equals(adventure));
     }
 }

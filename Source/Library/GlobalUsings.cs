@@ -1,9 +1,14 @@
 ﻿global using System.Diagnostics.CodeAnalysis;
 
+global using DotNetToolbox.Results;
+
 global using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
 
+global using VttTools.Assets.Model;
+global using VttTools.Assets.ServiceContracts;
+global using VttTools.Assets.Storage;
 global using VttTools.Common.Model;
 global using VttTools.Data;
 global using VttTools.Data.Extensions;

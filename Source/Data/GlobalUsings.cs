@@ -1,5 +1,7 @@
 global using System.Diagnostics.CodeAnalysis;
 
+global using DotNetToolbox.Results;
+
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Design;

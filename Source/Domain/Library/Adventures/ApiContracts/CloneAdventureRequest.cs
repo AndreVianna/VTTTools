@@ -28,15 +28,20 @@ public record CloneAdventureRequest
     /// <summary>
     /// Image path for the Adventure. If not set, image path is copied from source.
     /// </summary>
-    public Optional<string?> ImagePath { get; init; }
+    public Optional<Guid?> ImageId { get; init; }
 
     /// <summary>
     /// Whether the Adventure is visible. Default is false.
     /// </summary>
-    public Optional<bool> IsVisible { get; init; }
+    public Optional<bool> IsListed { get; init; }
 
     /// <summary>
     /// Whether the Adventure is public. Default is false.
     /// </summary>
     public Optional<bool> IsPublic { get; init; }
+
+    /// <summary>
+    /// Whether the clone action should also clone the scenes.
+    /// </summary>
+    public bool IncludeScenes { get; init; } = true;
 }

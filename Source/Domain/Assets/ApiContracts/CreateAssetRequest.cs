@@ -6,25 +6,22 @@ namespace VttTools.Assets.ApiContracts;
 public record CreateAssetRequest
     : Request {
     /// <summary>
-    /// The name for the new Asset. If not set, name is unchanged.
+    /// Type of the asset (e.g., Character, Object).
+    /// </summary>
+    public AssetType Type { get; init; }
+
+    /// <summary>
+    /// The name for the new Asset.
     /// </summary>
     public string Name { get; init; } = string.Empty;
 
     /// <summary>
-    /// The visibility setting for the new Asset. If not set, visibility is unchanged.
+    /// The description for the new Asset.
     /// </summary>
-    public Visibility Visibility { get; set; }
+    public string Description { get; init; } = string.Empty;
 
     /// <summary>
-    /// Type of the asset (e.g., Character, Object).
+    /// The display configuration for the new Asset.
     /// </summary>
-    [Required]
-    public AssetType Type { get; init; }
-
-    /// <summary>
-    /// Source URL for the asset media.
-    /// </summary>
-    [Url]
-    [Required]
-    public string Source { get; init; } = string.Empty;
+    public AssetDisplay Display { get; set; } = new();
 }

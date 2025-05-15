@@ -10,12 +10,9 @@ public class AssetTests {
         asset.Id.Should().NotBeEmpty();
         asset.OwnerId.Should().BeEmpty();
         asset.Name.Should().BeEmpty();
-        asset.Source.Should().BeEmpty();
         asset.Type.Should().Be(AssetType.Placeholder);
-        asset.Visibility.Should().Be(Visibility.Hidden);
-        asset.Size.Should().NotBeNull();
-        asset.Size.Width.Should().Be(0);
-        asset.Size.Height.Should().Be(0);
+        asset.Description.Should().BeEmpty();
+        asset.Display.Should().NotBeNull();
     }
 
     [Fact]
@@ -24,29 +21,31 @@ public class AssetTests {
         var id = Guid.NewGuid();
         var ownerId = Guid.NewGuid();
         const string name = "Test Asset";
-        const string source = "test.png";
         const AssetType type = AssetType.Character;
-        const Visibility visibility = Visibility.Public;
+        const string description = "Test Description";
         var size = new Size { Width = 100, Height = 200 };
+        var display = new AssetDisplay {
+            Type = DisplayType.Image,
+            SourceId = Guid.NewGuid(),
+            Size = size,
+        };
 
         // Act
         var asset = new Asset {
             Id = id,
             OwnerId = ownerId,
             Name = name,
-            Source = source,
             Type = type,
-            Visibility = visibility,
-            Size = size,
+            Description = description,
+            Display = display,
         };
 
         // Assert
         asset.Id.Should().Be(id);
         asset.OwnerId.Should().Be(ownerId);
         asset.Name.Should().Be(name);
-        asset.Source.Should().Be(source);
         asset.Type.Should().Be(type);
-        asset.Visibility.Should().Be(visibility);
-        asset.Size.Should().Be(size);
+        asset.Description.Should().Be(description);
+        asset.Display.Should().BeEquivalentTo(display);
     }
 }

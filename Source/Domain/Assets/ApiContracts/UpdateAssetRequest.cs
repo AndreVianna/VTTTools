@@ -5,23 +5,10 @@ namespace VttTools.Assets.ApiContracts;
 /// </summary>
 public record UpdateAssetRequest
     : Request {
-    /// <summary>
-    /// New name for the Asset. If not set, name is unchanged.
-    /// </summary>
     public Optional<string> Name { get; init; }
-
-    /// <summary>
-    /// New visibility setting for the Asset. If not set, visibility is unchanged.
-    /// </summary>
-    public Optional<Visibility> Visibility { get; set; }
-
-    /// <summary>
-    /// New type for the asset. If not set, type is unchanged.
-    /// </summary>
+    public Optional<string> Description { get; init; }
     public Optional<AssetType> Type { get; init; }
-
-    /// <summary>
-    /// New source for the asset. If not set, source is unchanged.
-    /// </summary>
-    public Optional<string> Source { get; init; }
+    public Optional<AssetDisplay> Display { get; set; }
+    public Optional<bool> IsListed { get; set; }
+    public Optional<bool> IsPublic { get; set; }
 }

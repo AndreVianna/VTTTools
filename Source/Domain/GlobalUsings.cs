@@ -12,6 +12,7 @@ global using Microsoft.AspNetCore.Identity;
 
 global using VttTools.Assets.ApiContracts;
 global using VttTools.Assets.Model;
+global using VttTools.Assets.ServiceContracts;
 global using VttTools.Common.ApiContracts;
 global using VttTools.Common.Model;
 global using VttTools.Common.ServiceContracts;

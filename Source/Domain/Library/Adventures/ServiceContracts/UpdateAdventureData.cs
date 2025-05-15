@@ -23,13 +23,13 @@ public record UpdateAdventureData
     /// <summary>
     /// New image path for the Adventure. If not set, image path is unchanged.
     /// </summary>
-    public Optional<string?> ImagePath { get; init; }
+    public Optional<Guid?> ImageId { get; init; }
 
     /// <summary>
     /// Indicates whether the Adventure is published (visible) or not (hidden).
     /// If not set, visibility status is unchanged.
     /// </summary>
-    public Optional<bool> IsVisible { get; init; }
+    public Optional<bool> IsListed { get; init; }
 
     /// <summary>
     /// Indicates whether the Adventure is publicly accessible.

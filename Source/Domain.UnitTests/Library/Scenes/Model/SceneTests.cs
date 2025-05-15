@@ -9,15 +9,14 @@ public class SceneTests {
         // Assert
         scene.Id.Should().NotBeEmpty();
         scene.OwnerId.Should().BeEmpty();
-        scene.ParentId.Should().BeEmpty();
+        scene.AdventureId.Should().BeEmpty();
         scene.Adventure.Should().BeNull();
-        scene.IsTemplate.Should().BeFalse();
-        scene.TemplateId.Should().BeNull();
         scene.Name.Should().BeEmpty();
-        scene.Visibility.Should().Be(Visibility.Hidden);
+        scene.Description.Should().BeEmpty();
         scene.Stage.Should().NotBeNull();
-        scene.SceneAssets.Should().NotBeNull();
         scene.SceneAssets.Should().BeEmpty();
+        scene.IsPublic.Should().BeFalse();
+        scene.IsListed.Should().BeFalse();
     }
 
     [Fact]
@@ -25,11 +24,10 @@ public class SceneTests {
         // Arrange
         var id = Guid.NewGuid();
         const string name = "Some Scene";
+        const string description = "Some Description";
         var ownerId = Guid.NewGuid();
-        var parentId = Guid.NewGuid();
+        var adventureId = Guid.NewGuid();
         var adventure = new Adventure();
-        var templateId = Guid.NewGuid();
-        const bool isTemplate = true;
         var stage = new Stage();
         var sceneAsset = new SceneAsset();
 
@@ -38,25 +36,25 @@ public class SceneTests {
             Id = id,
             OwnerId = ownerId,
             Name = name,
-            ParentId = parentId,
+            Description = description,
+            AdventureId = adventureId,
             Adventure = adventure,
-            IsTemplate = isTemplate,
-            TemplateId = templateId,
-            Visibility = Visibility.Public,
             Stage = stage,
+            IsPublic = true,
+            IsListed = true,
             SceneAssets = [sceneAsset],
         };
 
         // Assert
         scene.Id.Should().Be(id);
         scene.OwnerId.Should().Be(ownerId);
-        scene.ParentId.Should().Be(parentId);
+        scene.AdventureId.Should().Be(adventureId);
         scene.Adventure.Should().BeSameAs(adventure);
-        scene.IsTemplate.Should().Be(isTemplate);
-        scene.TemplateId.Should().Be(templateId);
         scene.Name.Should().Be(name);
-        scene.Visibility.Should().Be(Visibility.Public);
+        scene.Description.Should().Be(description);
         scene.Stage.Should().BeSameAs(stage);
+        scene.IsPublic.Should().BeTrue();
+        scene.IsListed.Should().BeTrue();
         scene.SceneAssets.Should().ContainSingle(ea => ea.Equals(sceneAsset));
     }
 }

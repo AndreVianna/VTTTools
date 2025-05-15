@@ -27,6 +27,7 @@ public class MediaServiceTests {
     [Fact]
     public async Task UploadImageAsync_UploadsFileAndReturnsUrl() {
         // Arrange
+        var id = Guid.NewGuid();
         const string fileName = "test-image.png";
         var content = "test image content"u8.ToArray();
         await using var stream = new MemoryStream(content);
@@ -35,13 +36,10 @@ public class MediaServiceTests {
             .Returns(Response.FromValue(true, Substitute.For<Response>()));
 
         // Act
-        var result = await _service.UploadImageAsync(stream, fileName, _ct);
+        var result = await _service.UploadImageAsync(id, fileName, stream, _ct);
 
         // Assert
-        result.Should().StartWith("/uploads/");
-        result.Should().Contain("test-image_");
-        result.Should().EndWith(".png");
-
+        result.IsSuccessful.Should().BeTrue();
         _blobServiceClient.Received(1).GetBlobContainerClient("images");
         await _blobClient.Received(1).UploadAsync(Arg.Any<Stream>(), true, Arg.Any<CancellationToken>());
     }
@@ -49,6 +47,7 @@ public class MediaServiceTests {
     [Fact]
     public async Task UploadImageAsync_CreatesContainerIfNotExists() {
         // Arrange
+        var id = Guid.NewGuid();
         const string fileName = "test-image.png";
         var content = "test image content"u8.ToArray();
         await using var stream = new MemoryStream(content);
@@ -57,10 +56,10 @@ public class MediaServiceTests {
             .Returns(Response.FromValue(false, _response));
 
         // Act
-        var result = await _service.UploadImageAsync(stream, fileName, _ct);
+        var result = await _service.UploadImageAsync(id, fileName, stream, _ct);
 
         // Assert
-        result.Should().StartWith("/uploads/");
+        result.IsSuccessful.Should().BeTrue();
 
         await _blobServiceClient.Received(1).CreateBlobContainerAsync("images", PublicAccessType.BlobContainer, null, Arg.Any<CancellationToken>());
         await _blobClient.Received(1).UploadAsync(Arg.Any<Stream>(), true, Arg.Any<CancellationToken>());
@@ -69,7 +68,7 @@ public class MediaServiceTests {
     [Fact]
     public async Task DeleteImageAsync_DeletesFileFromBlobStorage() {
         // Arrange
-        const string imageUrl = "/uploads/test-image_abc123.png";
+        var id = Guid.NewGuid();
 
         _blobClient.DeleteIfExistsAsync(
                 DeleteSnapshotsOption.IncludeSnapshots,
@@ -78,7 +77,7 @@ public class MediaServiceTests {
             .Returns(Response.FromValue(true, Substitute.For<Response>()));
 
         // Act
-        await _service.DeleteImageAsync(imageUrl, _ct);
+        await _service.DeleteImageAsync(id, _ct);
 
         // Assert
         await _blobClient.Received(1).DeleteIfExistsAsync(
@@ -87,14 +86,19 @@ public class MediaServiceTests {
             Arg.Any<CancellationToken>());
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("/path/filename-without-extension")]
-    [InlineData("/path/end-in-separator/")]
-    public async Task DeleteImageAsync_WithInvalidUrl_DoesNothing(string? imageUrl) {
+    [Fact]
+    public async Task DeleteImageAsync_WithInvalidId_DoesNothing() {
+        // Arrange
+        var id = Guid.NewGuid();
+
+        _blobClient.DeleteIfExistsAsync(
+                DeleteSnapshotsOption.IncludeSnapshots,
+                null,
+                Arg.Any<CancellationToken>())
+            .Returns(Response.FromValue(false, Substitute.For<Response>()));
+
         // Act
-        await _service.DeleteImageAsync(imageUrl!, _ct);
+        await _service.DeleteImageAsync(id, _ct);
 
         // Assert
         await _blobClient.DidNotReceive().DeleteIfExistsAsync(

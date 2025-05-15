@@ -14,13 +14,14 @@ public interface ISceneService {
     /// <summary>
     /// Updates an existing scene template.
     /// </summary>
-    Task<Scene?> UpdateSceneAsync(Guid userId, Guid id, UpdateSceneRequest data, CancellationToken ct = default);
+    Task<Result<Scene>> UpdateSceneAsync(Guid userId, Guid id, UpdateSceneData data, CancellationToken ct = default);
 
     Task<SceneAsset[]> GetAssetsAsync(Guid id, CancellationToken ct = default);
 
-    Task<bool> AddAssetAsync(Guid userId, Guid id, AddSceneAssetData data, CancellationToken ct = default);
+    Task<Result<SceneAsset>> AddNewAssetAsync(Guid userId, Guid id, AddNewAssetData data, CancellationToken ct = default);
+    Task<Result<SceneAsset>> AddClonedAssetAsync(Guid userId, Guid id, AddClonedAssetData data, CancellationToken ct = default);
 
-    Task<bool> UpdateAssetAsync(Guid userId, Guid id, Guid assetId, UpdateSceneAssetData data, CancellationToken ct = default);
+    Task<Result<SceneAsset>> UpdateAssetAsync(Guid userId, Guid id, UpdateSceneAssetData data, CancellationToken ct = default);
 
-    Task<bool> RemoveAssetAsync(Guid userId, Guid id, Guid assetId, CancellationToken ct = default);
+    Task<Result> RemoveAssetAsync(Guid userId, Guid id, Guid assetId, uint number, CancellationToken ct = default);
 }

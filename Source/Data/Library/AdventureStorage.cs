@@ -3,8 +3,10 @@ namespace VttTools.Data.Library;
 /// <summary>
 /// EF Core storage implementation for Adventure entities.
 /// </summary>
-public class AdventureStorage(ApplicationDbContext context)
+public class AdventureStorage(ApplicationDbContext context, ILoggerFactory loggerFactory)
     : IAdventureStorage {
+    private readonly ILogger _logger =  loggerFactory.CreateLogger<AdventureStorage>();
+
     /// <inheritdoc />
     public Task<Adventure[]> GetAllAsync(CancellationToken ct = default)
         => context.Adventures
@@ -20,26 +22,38 @@ public class AdventureStorage(ApplicationDbContext context)
                   .FirstOrDefaultAsync(a => a.Id == id, ct);
 
     /// <inheritdoc />
-    public async Task<Adventure> AddAsync(Adventure adventure, CancellationToken ct = default) {
-        await context.Adventures.AddAsync(adventure, ct);
-        await context.SaveChangesAsync(ct);
-        return adventure;
+    public async Task AddAsync(Adventure adventure, CancellationToken ct = default) {
+        try {
+            await context.Adventures.AddAsync(adventure, ct);
+            await context.SaveChangesAsync(ct);
+        }
+        catch (Exception ex) {
+            _logger.LogError(ex, "Failed to create an adventure.");
+            throw;
+        }
     }
 
     /// <inheritdoc />
-    public async Task<Adventure?> UpdateAsync(Adventure adventure, CancellationToken ct = default) {
-        context.Adventures.Update(adventure);
-        var result = await context.SaveChangesAsync(ct);
-        return result > 0 ? adventure : null;
+    public async Task UpdateAsync(Adventure adventure, CancellationToken ct = default) {
+        try {
+            context.Adventures.Update(adventure);
+            await context.SaveChangesAsync(ct);
+        }
+        catch (Exception ex) {
+            _logger.LogError(ex, "Failed to update the adventure {AdventureId}.", adventure.Id);
+            throw;
+        }
     }
 
     /// <inheritdoc />
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default) {
-        var adventure = await context.Adventures.FindAsync([id], ct);
-        if (adventure == null)
-            return false;
-        context.Adventures.Remove(adventure);
-        var result = await context.SaveChangesAsync(ct);
-        return result > 0;
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default) {
+        try {
+            context.Adventures.RemoveRange(context.Adventures.Where(a => a.Id == id));
+            await context.SaveChangesAsync(ct);
+        }
+        catch (Exception ex) {
+            _logger.LogError(ex, "Failed to delete the adventure {AdventureId}.", id);
+            throw;
+        }
     }
 }

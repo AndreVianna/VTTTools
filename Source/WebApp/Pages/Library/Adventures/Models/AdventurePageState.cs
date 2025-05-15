@@ -3,6 +3,7 @@ namespace VttTools.WebApp.Pages.Library.Adventures.Models;
 internal class AdventurePageState {
     internal AdventureInputModel Input { get; set; } = new();
     internal AdventureInputModel Original { get; set; } = new();
+    internal string? ImageUrl { get; set; }
 
     public SceneListItem[] Scenes { get; set; } = [];
     public InputError[] Errors { get; set; } = [];
@@ -21,7 +22,6 @@ internal class AdventurePageState {
         => Input.Name != Original.Name
         || Input.Description != Original.Description
         || Input.Type != Original.Type
-        || Input.ImagePath != Original.ImagePath
-        || Input.IsVisible != Original.IsVisible
+        || Input.IsListed != Original.IsListed
         || Input.IsPublic != Original.IsPublic;
 }

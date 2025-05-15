@@ -9,8 +9,7 @@ internal class LibraryClient(HttpClient client)
             Name = adventure.Name,
             Description = adventure.Description,
             Type = adventure.Type,
-            ImagePath = adventure.ImagePath,
-            IsVisible = adventure.IsVisible,
+            IsListed = adventure.IsListed,
             IsPublic = adventure.IsPublic,
             OwnerId = adventure.OwnerId,
             ScenesCount = adventure.Scenes.Count,
@@ -23,8 +22,7 @@ internal class LibraryClient(HttpClient client)
             Name = adventure.Name,
             Description = adventure.Description,
             Type = adventure.Type,
-            ImagePath = adventure.ImagePath,
-            IsVisible = adventure.IsVisible,
+            IsListed = adventure.IsListed,
             IsPublic = adventure.IsPublic,
         };
     }
@@ -39,8 +37,7 @@ internal class LibraryClient(HttpClient client)
             Name = adventure.Name,
             Description = adventure.Description,
             Type = adventure.Type,
-            ImagePath = adventure.ImagePath,
-            IsVisible = adventure.IsVisible,
+            IsListed = adventure.IsListed,
             IsPublic = adventure.IsPublic,
             OwnerId = adventure.OwnerId,
             ScenesCount = adventure.Scenes.Count,
@@ -57,8 +54,7 @@ internal class LibraryClient(HttpClient client)
             Name = adventure.Name,
             Description = adventure.Description,
             Type = adventure.Type,
-            ImagePath = adventure.ImagePath,
-            IsVisible = adventure.IsVisible,
+            IsListed = adventure.IsListed,
             IsPublic = adventure.IsPublic,
             OwnerId = adventure.OwnerId,
             ScenesCount = adventure.Scenes.Count,
@@ -82,7 +78,7 @@ internal class LibraryClient(HttpClient client)
         return scenes ?? [];
     }
 
-    public async Task<Result<Scene>> CreateSceneAsync(Guid id, CreateSceneRequest request) {
+    public async Task<Result<Scene>> CreateSceneAsync(Guid id, AddNewSceneRequest request) {
         var response = await client.PostAsJsonAsync($"/api/adventures/{id}/scenes", request);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to create scene.");

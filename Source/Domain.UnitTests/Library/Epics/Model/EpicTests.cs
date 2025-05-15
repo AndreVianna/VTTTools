@@ -9,11 +9,11 @@ public class EpicTests {
         // Assert
         epic.Id.Should().NotBeEmpty();
         epic.OwnerId.Should().BeEmpty();
-        epic.TemplateId.Should().BeNull();
-        epic.Campaigns.Should().NotBeNull();
         epic.Campaigns.Should().BeEmpty();
         epic.Name.Should().BeEmpty();
-        epic.Visibility.Should().Be(Visibility.Hidden);
+        epic.Description.Should().BeEmpty();
+        epic.IsListed.Should().BeFalse();
+        epic.IsPublic.Should().BeFalse();
     }
 
     [Fact]
@@ -21,9 +21,9 @@ public class EpicTests {
         // Arrange
         var id = Guid.NewGuid();
         const string name = "Some Epic";
+        const string description = "Some Description";
         var ownerId = Guid.NewGuid();
-        var templateId = Guid.NewGuid();
-        const Visibility visibility = Visibility.Public;
+        var imageId = Guid.NewGuid();
         var campaign = new Campaign {
             Id = Guid.NewGuid(),
         };
@@ -32,18 +32,22 @@ public class EpicTests {
         var epic = new Epic {
             Id = id,
             Name = name,
+            Description = description,
             OwnerId = ownerId,
-            Visibility = visibility,
-            TemplateId = templateId,
+            ImageId = imageId,
+            IsListed = true,
+            IsPublic = true,
             Campaigns = [campaign],
         };
 
         // Assert
         epic.Id.Should().Be(id);
         epic.Name.Should().Be(name);
+        epic.Description.Should().Be(description);
         epic.OwnerId.Should().Be(ownerId);
-        epic.Visibility.Should().Be(visibility);
-        epic.TemplateId.Should().Be(templateId);
+        epic.ImageId.Should().Be(imageId);
+        epic.IsListed.Should().BeTrue();
+        epic.IsPublic.Should().BeTrue();
         epic.Campaigns.Should().ContainSingle(c => c.Equals(campaign));
     }
 }

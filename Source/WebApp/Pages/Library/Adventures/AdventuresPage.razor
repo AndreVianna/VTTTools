@@ -83,7 +83,7 @@
                       <span>@adventure.ScenesCount scenes</span>
                     </td>
                     <td id="@($"adventure-{adventure.Id}-status")">
-                      @if (adventure.IsVisible) {
+                      @if (adventure.IsListed) {
                         <span class="badge bg-success me-1">Published</span>
                       }
                       else {
@@ -136,8 +136,8 @@
             @foreach (var adventure in State.OwnedAdventures) {
               <div class="col">
                 <div class="card h-100">
-                  @if (!string.IsNullOrEmpty(adventure.ImagePath)) {
-                    <div class="card-img-top adventure-card-img" style="background-image: url('@adventure.ImagePath');">
+                  @if (!string.IsNullOrEmpty(adventure.ImageUrl)) {
+                    <div class="card-img-top adventure-card-img" style="background-image: url('@adventure.ImageUrl');">
                       <div class="adventure-card-type">
                         <span>@adventure.Type.ToString() (@adventure.ScenesCount scenes)</span>
                       </div>
@@ -159,7 +159,7 @@
                   <div class="card-footer">
                     <div class="d-flex justify-content-between align-items-center">
                       <div>
-                        @if (adventure.IsVisible) {
+                        @if (adventure.IsListed) {
                           <span class="badge bg-success me-1">Published</span>
                         }
                         else {
@@ -259,8 +259,8 @@
             @foreach (var adventure in State.PublicAdventures) {
               <div class="col">
                 <div class="card h-100">
-                  @if (!string.IsNullOrEmpty(adventure.ImagePath)) {
-                    <div class="card-img-top adventure-card-img" style="background-image: url('@adventure.ImagePath');">
+                  @if (!string.IsNullOrEmpty(adventure.ImageUrl)) {
+                    <div class="card-img-top adventure-card-img" style="background-image: url('@adventure.ImageUrl');">
                       <div class="adventure-card-type">
                         @if (adventure.ScenesCount == 1) {
                           <span>One-Shot @adventure.Type.ToString()</span>

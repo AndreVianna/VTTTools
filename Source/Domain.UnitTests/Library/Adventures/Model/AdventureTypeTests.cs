@@ -8,7 +8,7 @@ public class AdventureTypeTests {
         {
             AdventureType.OpenWorld,
             AdventureType.DungeonCrawl,
-            AdventureType.HackAndSlash,
+            AdventureType.HackNSlash,
             AdventureType.Survival,
             AdventureType.GoalDriven,
             AdventureType.RandomlyGenerated

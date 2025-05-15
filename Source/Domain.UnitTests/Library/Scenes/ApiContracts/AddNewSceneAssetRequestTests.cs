@@ -1,10 +1,10 @@
 namespace VttTools.Library.Scenes.ApiContracts;
 
-public class AddSceneAssetRequestTests {
+public class AddNewSceneAssetRequestTests {
     [Fact]
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
-        var original = new AddSceneAssetRequest {
+        var original = new AddNewSceneAssetRequest {
             Name = "Asset Name",
             Position = new() { Left = 10, Top = 20 },
             Scale = 1.5,

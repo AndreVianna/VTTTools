@@ -8,8 +8,8 @@ public class UpdateAdventureRequestTests {
             Name = "Title",
             Description = "Description",
             Type = AdventureType.OpenWorld,
-            ImagePath = "path/to/image.jpg",
-            IsVisible = false,
+            ImageId = Guid.NewGuid(),
+            IsListed = false,
             IsPublic = false,
             CampaignId = Guid.NewGuid(),
         };
@@ -17,7 +17,7 @@ public class UpdateAdventureRequestTests {
         const string name = "Other Title";
         const string description = "Other Description";
         const AdventureType type = AdventureType.DungeonCrawl;
-        const string imagePath = "path/to/other/image.jpg";
+        var imageId = Guid.NewGuid();
         const bool isVisible = true;
         const bool isPublic = true;
         var campaignId = Guid.NewGuid();
@@ -28,8 +28,8 @@ public class UpdateAdventureRequestTests {
             Name = name,
             Description = description,
             Type = type,
-            ImagePath = imagePath,
-            IsVisible = isVisible,
+            ImageId = imageId,
+            IsListed = isVisible,
             IsPublic = isPublic,
             CampaignId = campaignId
         };
@@ -38,58 +38,9 @@ public class UpdateAdventureRequestTests {
         data.Name.Value.Should().Be(name);
         data.Description.Value.Should().Be(description);
         data.Type.Value.Should().Be(type);
-        data.ImagePath.Value.Should().Be(imagePath);
-        data.IsVisible.Value.Should().Be(isVisible);
+        data.ImageId.Value.Should().Be(imageId);
+        data.IsListed.Value.Should().Be(isVisible);
         data.IsPublic.Value.Should().Be(isPublic);
         data.CampaignId.Value.Should().Be(campaignId);
-    }
-
-    [Fact]
-    public void Validate_WithValidData_ReturnsSuccess() {
-        // Arrange
-        var request = new UpdateAdventureRequest {
-            Name = "Updated Adventure",
-            Description = "Updated Description",
-            Type = AdventureType.DungeonCrawl,
-            ImagePath = "path/to/new/image.jpg",
-            IsVisible = true,
-            IsPublic = true,
-        };
-
-        // Act
-        var result = request.Validate();
-
-        // Assert
-        result.HasErrors.Should().BeFalse();
-    }
-
-    [Fact]
-    public void Validate_WithEmptyName_ReturnsValidationError() {
-        // Arrange
-        var request = new UpdateAdventureRequest {
-            Name = string.Empty,
-        };
-
-        // Act
-        var result = request.Validate();
-
-        // Assert
-        result.HasErrors.Should().BeTrue();
-        result.Errors.Should().Contain(e => e.Message.Contains(nameof(UpdateAdventureRequest.Name), StringComparison.OrdinalIgnoreCase));
-    }
-
-    [Fact]
-    public void Validate_WithEmptyDescription_ReturnsValidationError() {
-        // Arrange
-        var request = new UpdateAdventureRequest {
-            Description = string.Empty,
-        };
-
-        // Act
-        var result = request.Validate();
-
-        // Assert
-        result.HasErrors.Should().BeTrue();
-        result.Errors.Should().Contain(e => e.Message.Contains(nameof(UpdateAdventureRequest.Description), StringComparison.OrdinalIgnoreCase));
     }
 }

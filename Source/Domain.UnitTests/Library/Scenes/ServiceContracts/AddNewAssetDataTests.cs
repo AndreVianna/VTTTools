@@ -1,10 +1,10 @@
 namespace VttTools.Library.Scenes.ServiceContracts;
 
-public class AddSceneAssetDataTests {
+public class AddNewAssetDataTests {
     [Fact]
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
-        var original = new AddSceneAssetData {
+        var original = new AddNewAssetData {
             Name = "Asset Name",
             Position = new Position() { Left = 10, Top = 20 },
             Scale = 1.5,
@@ -30,7 +30,7 @@ public class AddSceneAssetDataTests {
     [Fact]
     public void Validate_WithValidData_ReturnsSuccess() {
         // Arrange
-        var data = new AddSceneAssetData {
+        var data = new AddNewAssetData {
             Name = "Asset Name",
             Position = new Position() { Left = 10, Top = 20 },
             Scale = 1.5,
@@ -46,7 +46,7 @@ public class AddSceneAssetDataTests {
     [Fact]
     public void Validate_WithInvalidData_ReturnsSuccess() {
         // Arrange
-        var data = new AddSceneAssetData {
+        var data = new AddNewAssetData {
             Scale = 0,
         };
 

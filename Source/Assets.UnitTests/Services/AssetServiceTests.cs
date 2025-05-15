@@ -40,13 +40,14 @@ public class AssetServiceTests {
         var asset = new Asset {
             Id = assetId,
             Name = "Test Asset",
+            Description = "Test Description",
             Type = AssetType.Character,
-            Source = "path/to/asset",
+            Display = new(),
         };
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
 
         // Act
-        var result = await _service.GetAssetAsync(assetId, _ct);
+        var result = await _service.GetAssetByIdAsync(assetId, _ct);
 
         // Assert
         result.Should().BeEquivalentTo(asset);
@@ -56,25 +57,24 @@ public class AssetServiceTests {
     [Fact]
     public async Task CreateAssetAsync_CreatesNewAsset() {
         // Arrange
-        var request = new CreateAssetRequest {
+        var data = new CreateAssetData {
             Name = "New Asset",
+            Description = "New Description",
             Type = AssetType.Creature,
-            Source = "path/to/asset",
-            Visibility = Visibility.Public,
+            Display = new(),
         };
         _assetStorage.AddAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>())
             .Returns(x => x.Arg<Asset>());
 
         // Act
-        var result = await _service.CreateAssetAsync(_userId, request, _ct);
+        var result = await _service.CreateAssetAsync(_userId, data, _ct);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Name.Should().Be(request.Name);
-        result.Type.Should().Be(request.Type);
-        result.Source.Should().Be(request.Source);
-        result.Visibility.Should().Be(request.Visibility);
-        result.OwnerId.Should().Be(_userId);
+        result.IsSuccessful.Should().BeTrue();
+        result.Value.Name.Should().Be(data.Name);
+        result.Value.Description.Should().Be(data.Description);
+        result.Value.Type.Should().Be(data.Type);
+        result.Value.OwnerId.Should().Be(_userId);
         await _assetStorage.Received(1).AddAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
     }
 
@@ -85,17 +85,19 @@ public class AssetServiceTests {
         var asset = new Asset {
             Id = assetId,
             Name = "Old Name",
+            Description = "Old Description",
             Type = AssetType.Character,
-            Source = "old/path",
             OwnerId = _userId,
-            Visibility = Visibility.Private,
+            Display = new(),
         };
 
-        var request = new UpdateAssetRequest {
+        var data = new UpdateAssetData {
             Name = "Updated Name",
+            Description = "Updated Description",
             Type = AssetType.Creature,
-            Source = "new/path",
-            Visibility = Visibility.Public,
+            Display = new AssetDisplay(),
+            IsListed = true,
+            IsPublic = true,
         };
 
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
@@ -103,14 +105,14 @@ public class AssetServiceTests {
             .Returns(x => x.Arg<Asset>());
 
         // Act
-        var result = await _service.UpdateAssetAsync(_userId, assetId, request, _ct);
+        var result = await _service.UpdateAssetAsync(_userId, assetId, data, _ct);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Name.Should().Be(request.Name.Value);
-        result.Type.Should().Be(request.Type.Value);
-        result.Source.Should().Be(request.Source.Value);
-        result.Visibility.Should().Be(request.Visibility.Value);
+        result.IsSuccessful.Should().BeTrue();
+        result.Value.Name.Should().Be(data.Name.Value);
+        result.Value.Description.Should().Be(data.Description.Value);
+        result.Value.Type.Should().Be(data.Type.Value);
+        result.Value.OwnerId.Should().Be(_userId);
         await _assetStorage.Received(1).UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
     }
 
@@ -125,14 +127,14 @@ public class AssetServiceTests {
             OwnerId = _userId,
         };
 
-        var request = new UpdateAssetRequest {
+        var data = new UpdateAssetData {
             Name = "Updated Name",
         };
 
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
 
         // Act
-        var result = await _service.UpdateAssetAsync(nonOwnerId, assetId, request, _ct);
+        var result = await _service.UpdateAssetAsync(nonOwnerId, assetId, data, _ct);
 
         // Assert
         result.Should().BeNull();
@@ -146,15 +148,13 @@ public class AssetServiceTests {
         var asset = new Asset {
             Id = assetId,
             Name = "Original Name",
+            Description = "Original Description",
             Type = AssetType.Character,
-            Source = "original/path",
             OwnerId = _userId,
-            Visibility = Visibility.Private,
         };
 
-        var request = new UpdateAssetRequest {
+        var data = new UpdateAssetData {
             Name = "Updated Name",
-            // Not setting other properties
         };
 
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
@@ -162,14 +162,13 @@ public class AssetServiceTests {
             .Returns(x => x.Arg<Asset>());
 
         // Act
-        var result = await _service.UpdateAssetAsync(_userId, assetId, request, _ct);
+        var result = await _service.UpdateAssetAsync(_userId, assetId, data, _ct);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Name.Should().Be(request.Name.Value);
-        result.Type.Should().Be(asset.Type); // Unchanged
-        result.Source.Should().Be(asset.Source); // Unchanged
-        result.Visibility.Should().Be(asset.Visibility); // Unchanged
+        result.IsSuccessful.Should().BeTrue();
+        result.Value.Name.Should().Be(data.Name.Value);
+        result.Value.Description.Should().Be(asset.Description);
+        result.Value.Type.Should().Be(asset.Type);
         await _assetStorage.Received(1).UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
     }
 
@@ -190,7 +189,7 @@ public class AssetServiceTests {
         var result = await _service.DeleteAssetAsync(_userId, assetId, _ct);
 
         // Assert
-        result.Should().BeTrue();
+        result.IsSuccessful.Should().BeTrue();
         await _assetStorage.Received(1).DeleteAsync(assetId, Arg.Any<CancellationToken>());
     }
 
@@ -211,7 +210,7 @@ public class AssetServiceTests {
         var result = await _service.DeleteAssetAsync(nonOwnerId, assetId, _ct);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsSuccessful.Should().BeFalse();
         await _assetStorage.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
@@ -225,7 +224,7 @@ public class AssetServiceTests {
         var result = await _service.DeleteAssetAsync(_userId, assetId, _ct);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsSuccessful.Should().BeFalse();
         await _assetStorage.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
@@ -233,14 +232,14 @@ public class AssetServiceTests {
     public async Task UpdateAssetAsync_WithNonExistentAsset_ReturnsNull() {
         // Arrange
         var assetId = Guid.NewGuid();
-        var request = new UpdateAssetRequest {
+        var data = new UpdateAssetData {
             Name = "Updated Name",
         };
 
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns((Asset?)null);
 
         // Act
-        var result = await _service.UpdateAssetAsync(_userId, assetId, request, _ct);
+        var result = await _service.UpdateAssetAsync(_userId, assetId, data, _ct);
 
         // Assert
         result.Should().BeNull();

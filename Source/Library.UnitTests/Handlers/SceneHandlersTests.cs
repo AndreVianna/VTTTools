@@ -38,7 +38,7 @@ public class SceneHandlersTests {
     public async Task GetSceneByIdHandler_WithExistingId_ReturnsOkResult() {
         // Arrange
         var sceneId = Guid.NewGuid();
-        var scene = new Scene { Id = sceneId, Name = "Test Scene", ParentId = sceneId };
+        var scene = new Scene { Id = sceneId, Name = "Test Scene", AdventureId = sceneId };
 
         _sceneService.GetSceneByIdAsync(sceneId, Arg.Any<CancellationToken>())
             .Returns(scene);
@@ -71,9 +71,9 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var request = new UpdateSceneRequest { Name = "Updated Scene" };
-        var scene = new Scene { Id = sceneId, Name = "Updated Scene", ParentId = sceneId };
+        var scene = new Scene { Id = sceneId, Name = "Updated Scene", AdventureId = sceneId };
 
-        _sceneService.UpdateSceneAsync(_userId, sceneId, request, Arg.Any<CancellationToken>())
+        _sceneService.UpdateSceneAsync(_userId, sceneId, Arg.Any<UpdateSceneData>(), Arg.Any<CancellationToken>())
             .Returns(scene);
 
         // Act
@@ -90,8 +90,8 @@ public class SceneHandlersTests {
         var sceneId = Guid.NewGuid();
         var request = new UpdateSceneRequest { Name = "Updated Scene" };
 
-        _sceneService.UpdateSceneAsync(_userId, sceneId, request, Arg.Any<CancellationToken>())
-            .Returns((Scene?)null);
+        _sceneService.UpdateSceneAsync(_userId, sceneId, Arg.Any<UpdateSceneData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Some error."));
 
         // Act
         var result = await SceneHandlers.UpdateSceneHandler(_httpContext, sceneId, request, _sceneService);
@@ -125,15 +125,22 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
-        var request = new AddSceneAssetRequest {
+        var request = new AddNewSceneAssetRequest {
             AssetId = assetId,
             Name = "Asset Name",
             Position = new() { Left = 20, Top = 30 },
             Scale = 1,
         };
+        var sceneAsset = new SceneAsset {
+            AssetId = assetId,
+            Number = 1,
+            Name = "Asset Name",
+            Position = new() { Left = 20, Top = 30 },
+            Scale = 1,
+        };
 
-        _sceneService.AddAssetAsync(_userId, sceneId, Arg.Any<AddSceneAssetData>(), Arg.Any<CancellationToken>())
-            .Returns(true);
+        _sceneService.AddNewAssetAsync(_userId, sceneId, Arg.Any<AddNewAssetData>(), Arg.Any<CancellationToken>())
+            .Returns(sceneAsset);
 
         // Act
         var result = await SceneHandlers.AddAssetHandler(_httpContext, sceneId, request, _sceneService);
@@ -147,15 +154,15 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
-        var request = new AddSceneAssetRequest {
+        var request = new AddNewSceneAssetRequest {
             AssetId = assetId,
             Name = "Asset Name",
             Position = new() { Left = 20, Top = 30 },
             Scale = 1,
         };
 
-        _sceneService.AddAssetAsync(_userId, sceneId, Arg.Any<AddSceneAssetData>(), Arg.Any<CancellationToken>())
-            .Returns(false);
+        _sceneService.AddNewAssetAsync(_userId, sceneId, Arg.Any<AddNewAssetData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Some error."));
 
         // Act
         var result = await SceneHandlers.AddAssetHandler(_httpContext, sceneId, request, _sceneService);
@@ -172,12 +179,19 @@ public class SceneHandlersTests {
         var request = new UpdateSceneAssetRequest {
             Position = new Position { Left = 20, Top = 30 },
         };
+        var sceneAsset = new SceneAsset {
+            AssetId = assetId,
+            Number = 1,
+            Name = "Asset Name",
+            Position = new() { Left = 20, Top = 30 },
+            Scale = 1,
+        };
 
-        _sceneService.UpdateAssetAsync(_userId, sceneId, assetId, Arg.Any<UpdateSceneAssetData>(), Arg.Any<CancellationToken>())
-            .Returns(true);
+        _sceneService.UpdateAssetAsync(_userId, sceneId, Arg.Any<UpdateSceneAssetData>(), Arg.Any<CancellationToken>())
+            .Returns(sceneAsset);
 
         // Act
-        var result = await SceneHandlers.UpdateAssetHandler(_httpContext, sceneId, assetId, request, _sceneService);
+        var result = await SceneHandlers.UpdateAssetHandler(_httpContext, sceneId, request, _sceneService);
 
         // Assert
         result.Should().BeOfType<NoContent>();
@@ -187,16 +201,15 @@ public class SceneHandlersTests {
     public async Task UpdateAssetHandler_WithInvalidAsset_ReturnsBadRequest() {
         // Arrange
         var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
         var request = new UpdateSceneAssetRequest {
             Position = new Position { Left = 20, Top = 30 },
         };
 
-        _sceneService.UpdateAssetAsync(_userId, sceneId, assetId, Arg.Any<UpdateSceneAssetData>(), Arg.Any<CancellationToken>())
-            .Returns(false);
+        _sceneService.UpdateAssetAsync(_userId, sceneId, Arg.Any<UpdateSceneAssetData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Some error."));
 
         // Act
-        var result = await SceneHandlers.UpdateAssetHandler(_httpContext, sceneId, assetId, request, _sceneService);
+        var result = await SceneHandlers.UpdateAssetHandler(_httpContext, sceneId, request, _sceneService);
 
         // Assert
         result.Should().BeOfType<BadRequest>();
@@ -207,12 +220,13 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
+        const uint number = 1u;
 
-        _sceneService.RemoveAssetAsync(_userId, sceneId, assetId, Arg.Any<CancellationToken>())
-            .Returns(true);
+        _sceneService.RemoveAssetAsync(_userId, sceneId, assetId, number, Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
 
         // Act
-        var result = await SceneHandlers.RemoveAssetHandler(_httpContext, sceneId, assetId, _sceneService);
+        var result = await SceneHandlers.RemoveAssetHandler(_httpContext, sceneId, assetId, number, _sceneService);
 
         // Assert
         result.Should().BeOfType<NoContent>();
@@ -223,12 +237,13 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
+        const uint number = 1u;
 
-        _sceneService.RemoveAssetAsync(_userId, sceneId, assetId, Arg.Any<CancellationToken>())
-            .Returns(false);
+        _sceneService.RemoveAssetAsync(_userId, sceneId, assetId, number, Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("NotFound"));
 
         // Act
-        var result = await SceneHandlers.RemoveAssetHandler(_httpContext, sceneId, assetId, _sceneService);
+        var result = await SceneHandlers.RemoveAssetHandler(_httpContext, sceneId, assetId, number, _sceneService);
 
         // Assert
         result.Should().BeOfType<NotFound>();

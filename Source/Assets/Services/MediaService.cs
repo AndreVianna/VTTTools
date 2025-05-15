@@ -6,17 +6,23 @@ namespace VttTools.Assets.Services;
 public class MediaService(BlobServiceClient client)
     : IMediaService {
     /// <inheritdoc />
-    public async Task<string> UploadImageAsync(Stream imageStream, string fileName, CancellationToken ct = default) {
-        // generate a unique file name
-        var extension = Path.GetExtension(fileName);
-        var name = Path.GetFileNameWithoutExtension(fileName);
-        var blobName = $"{name}_{Path.GetRandomFileName()}{extension}";
+    public async Task<Result> UploadImageAsync(Guid id, string fileName, Stream imageStream, CancellationToken ct = default) {
+        var blobClient = await GetBlobClient(id.ToString("N"), ct);
+        var metadata = new Dictionary<string, string> { ["FileName"] = fileName };
+        await blobClient.SetMetadataAsync(metadata, cancellationToken: ct);
+        var response = await blobClient.UploadAsync(imageStream, true, ct);
+        return response.GetRawResponse().IsError
+            ? Result.Failure(response.GetRawResponse().ReasonPhrase)
+            : Result.Success();
+    }
 
-        var blobClient = await GetBlobClient(blobName, ct);
-        await blobClient.UploadAsync(imageStream, true, ct);
-
-        // return URL path
-        return $"/uploads/{blobName}";
+    /// <inheritdoc />
+    public async Task<Result> DeleteImageAsync(Guid id, CancellationToken ct = default) {
+        var blobClient = await GetBlobClient(id.ToString("N"), ct);
+        var response = await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, null, ct);
+        return response.GetRawResponse().IsError
+            ? Result.Failure(response.GetRawResponse().ReasonPhrase)
+            : Result.Success();
     }
 
     private async Task<BlobClient> GetBlobClient(string blobName, CancellationToken ct) {
@@ -24,18 +30,5 @@ public class MediaService(BlobServiceClient client)
         if (!await containerClient.ExistsAsync(ct))
             containerClient = await client.CreateBlobContainerAsync("images", PublicAccessType.BlobContainer, null, ct);
         return containerClient.GetBlobClient(blobName);
-    }
-
-    /// <inheritdoc />
-    public async Task DeleteImageAsync(string imageUrl, CancellationToken ct = default) {
-        var blobName = Path.GetFileName(imageUrl);
-        if (string.IsNullOrEmpty(blobName))
-            return;
-        var extension = Path.GetExtension(blobName);
-        if (string.IsNullOrEmpty(extension))
-            return;
-
-        var blobClient = await GetBlobClient(blobName, ct);
-        await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, null, ct);
     }
 }

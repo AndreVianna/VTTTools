@@ -1,34 +1,20 @@
 namespace VttTools.Assets.ServiceContracts;
 
-/// <summary>
-/// Data to update an existing Asset template.
-/// </summary>
 public record UpdateAssetData
     : Data {
-    /// <summary>
-    /// New name for the Asset. If not set, name is unchanged.
-    /// </summary>
     public Optional<string> Name { get; init; }
-
-    /// <summary>
-    /// New visibility setting for the Asset. If not set, visibility is unchanged.
-    /// </summary>
-    public Optional<Visibility> Visibility { get; set; }
-
-    /// <summary>
-    /// New type for the asset. If not set, type is unchanged.
-    /// </summary>
+    public Optional<string> Description { get; init; }
     public Optional<AssetType> Type { get; init; }
-
-    /// <summary>
-    /// New source for the asset. If not set, source is unchanged.
-    /// </summary>
-    public Optional<string> Source { get; init; }
+    public Optional<AssetDisplay> Display { get; set; }
+    public Optional<bool> IsListed { get; set; }
+    public Optional<bool> IsPublic { get; set; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
-        if (Source.IsSet && string.IsNullOrWhiteSpace(Source.Value))
-            result += new Error("When set, the asset source cannot be null or empty.", nameof(Source));
+        if (Name.IsSet && string.IsNullOrWhiteSpace(Name.Value))
+            result += new Error("When set, the asset name cannot be null or empty.", nameof(Name));
+        if (Description.IsSet && string.IsNullOrWhiteSpace(Description.Value))
+            result += new Error("When set, the asset description cannot be null or empty.", nameof(Description));
         return result;
     }
 }

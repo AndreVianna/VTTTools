@@ -43,7 +43,6 @@ else {
   <thead>
     <tr>
       <th id="scenes-name-header">@nameof(Scene.Name)</th>
-      <th id="scenes-visibility-header">@nameof(Scene.Visibility)</th>
       <th id="scenes-action-header">Actions</th>
     </tr>
   </thead>
@@ -51,7 +50,6 @@ else {
   @foreach (var scene in State.Scenes) {
     <tr>
       <td id="@($"scene-{scene.Id}-name")">@scene.Name</td>
-      <td id="@($"scene-{scene.Id}-visibility")">@scene.Visibility</td>
       <td id="@($"scene-{scene.Id}-actions")">
         <button id="@($"edit-scene-{scene.Id}")" class="btn btn-secondary btn-sm me-1" @onclick="() => StartEdit(scene)">Edit</button>
         <button id="@($"delete-scene-{scene.Id}")" class="btn btn-danger btn-sm me-1" @onclick="() => DeleteScene(scene.Id)">Delete</button>
@@ -80,15 +78,6 @@ else {
             <InputText id="edit-scene-name-input" @bind-Value="EditInput.Name" class="form-control mb-1" />
             <label for="edit-scene-name-input" class="form-label">@nameof(Scene.Name)</label>
             <ValidationMessage For="() => EditInput.Name" class="text-danger" />
-          </div>
-          <div class="form-floating mb-3">
-            <InputSelect id="edit-scene-visibility-input" @bind-Value="EditInput.Visibility" class="form-select mb-1">
-              <option value="@Visibility.Hidden">Hidden</option>
-              <option value="@Visibility.Private">Private</option>
-              <option value="@Visibility.Public">Public</option>
-            </InputSelect>
-            <label for="edit-scene-visibility-input" class="form-label">@nameof(Scene.Visibility)</label>
-            <ValidationMessage For="() => EditInput.Visibility" class="text-danger" />
           </div>
         </div>
         <div class="modal-footer">

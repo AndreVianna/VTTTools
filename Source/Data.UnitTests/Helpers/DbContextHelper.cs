@@ -25,10 +25,10 @@ internal static class DbContextHelper {
 
     private static void SeedAssets(ApplicationDbContext context, Guid currentUserId) {
         var assets = new[] {
-            CreateTestAsset("Asset 1", AssetType.Creature, Visibility.Public, ownerId: currentUserId),
+            CreateTestAsset("Asset 1", AssetType.Creature, isListed: true, isPublic: true, ownerId: currentUserId),
             CreateTestAsset("Asset 2", ownerId: currentUserId),
-            CreateTestAsset("Asset 3", AssetType.Character, Visibility.Public, ownerId: currentUserId),
-            CreateTestAsset("Asset 4", AssetType.Character, Visibility.Private, ownerId: Guid.NewGuid()),
+            CreateTestAsset("Asset 3", AssetType.Character, isListed: true, isPublic: true, ownerId: currentUserId),
+            CreateTestAsset("Asset 4", AssetType.Character, isListed: true, isPublic: false, ownerId: Guid.NewGuid()),
         };
 
         context.Assets.AddRange(assets);
@@ -37,14 +37,14 @@ internal static class DbContextHelper {
 
     private static void SeedLibrary(ApplicationDbContext context, Guid currentUserId) {
         var adventures = new[] {
-            CreateTestAdventure("Adventure 1", isVisible: true, isPublic: true, ownerId: currentUserId),
+            CreateTestAdventure("Adventure 1", isListed: true, isPublic: true, ownerId: currentUserId),
             CreateTestAdventure("Adventure 2", ownerId: currentUserId),
-            CreateTestAdventure("Adventure 3", isVisible: true, isPublic: false, ownerId: Guid.NewGuid()),
+            CreateTestAdventure("Adventure 3", isListed: true, isPublic: false, ownerId: Guid.NewGuid()),
         };
         var scenes = new[] {
             CreateTestScene(adventures[0].Id, "Scene 1.1", ownerId: currentUserId),
             CreateTestScene(adventures[0].Id, "Scene 1.2", ownerId: currentUserId),
-            CreateTestScene(adventures[2].Id, "Scene 3.1", Visibility.Private, adventures[2].OwnerId),
+            CreateTestScene(adventures[2].Id, "Scene 3.1", isPublic: false, ownerId: adventures[2].OwnerId),
         };
         var assets = context.Assets.ToArray();
         scenes[0].SceneAssets.AddRange([
@@ -88,43 +88,72 @@ internal static class DbContextHelper {
         context.SaveChanges();
     }
 
-    public static Adventure CreateTestAdventure(Guid id, string name, bool isVisible = false, bool isPublic = false, AdventureType type = AdventureType.OpenWorld, Guid? ownerId = null) => new() {
+    public static Adventure CreateTestAdventure(Guid id, string name, bool isListed = false, bool isPublic = false, AdventureType type = AdventureType.OpenWorld, Guid? ownerId = null) => new() {
         Id = id,
         Name = name,
         Description = $"Description for {name}",
         Type = type,
-        IsVisible = isVisible,
+        IsListed = isListed,
         IsPublic = isPublic,
         OwnerId = ownerId ?? Guid.NewGuid(),
     };
 
-    public static Adventure CreateTestAdventure(string name, bool isVisible = false, bool isPublic = false, AdventureType type = AdventureType.OpenWorld, Guid? ownerId = null)
-        => CreateTestAdventure(Guid.CreateVersion7(), name, isVisible, isPublic, type, ownerId);
+    public static Adventure CreateTestAdventure(string name, bool isListed = false, bool isPublic = false, AdventureType type = AdventureType.OpenWorld, Guid? ownerId = null)
+        => CreateTestAdventure(Guid.CreateVersion7(), name, isListed, isPublic, type, ownerId);
 
-    public static Scene CreateTestScene(Guid id, Guid parentId, string name, Visibility visibility = Visibility.Hidden, Guid? ownerId = null)
+    public static Scene CreateTestScene(Guid id, Guid parentId, string name, bool isListed = false, bool isPublic = false, Guid? ownerId = null)
         => new() {
             Id = id,
             Name = name,
-            ParentId = parentId,
-            Visibility = visibility,
+            AdventureId = parentId,
+            Description = $"Description for {name}",
+            IsPublic = isPublic,
+            IsListed = isListed,
+            Stage = new() {
+                MapType = StageMapType.Square,
+                Source = "https://example.com/image.png",
+                Size = new() {
+                    Width = 100,
+                    Height = 200,
+                },
+                Grid = new() {
+                    CellSize = new() {
+                        Width = 1.0f,
+                        Height = 1.0f,
+                    },
+                    Offset = new() {
+                        Left = 0.0f,
+                        Top = 0.0f,
+                    },
+                },
+            },
             OwnerId = ownerId ?? Guid.NewGuid(),
         };
 
-    public static Scene CreateTestScene(Guid parentId, string name, Visibility visibility = Visibility.Hidden, Guid? ownerId = null)
-        => CreateTestScene(Guid.CreateVersion7(), parentId, name, visibility, ownerId);
+    public static Scene CreateTestScene(Guid parentId, string name, bool isListed = false, bool isPublic = false, Guid? ownerId = null)
+        => CreateTestScene(Guid.CreateVersion7(), parentId, name, isListed, isPublic, ownerId);
 
-    public static Asset CreateTestAsset(Guid id, string name, AssetType type = AssetType.Placeholder, Visibility visibility = Visibility.Hidden, Guid? ownerId = null)
+    public static Asset CreateTestAsset(Guid id, string name, AssetType type = AssetType.Placeholder, bool isListed = false, bool isPublic = false, Guid? ownerId = null)
         => new() {
             Id = id,
             Name = name,
             Type = type,
-            Visibility = visibility,
+            Description = $"Description for {name}",
+            IsPublic = isPublic,
+            IsListed = isListed,
             OwnerId = ownerId ?? Guid.NewGuid(),
-            Source = $"http://host.com/{name.Trim().Replace(" ", "-").ToLower(CultureInfo.InvariantCulture)}.png",
+            Display = new() {
+                Type = DisplayType.Image,
+                SourceId = Guid.NewGuid(),
+                Size = new() {
+                    Width = 10,
+                    Height = 20,
+                },
+            },
         };
 
-    public static Asset CreateTestAsset(string name, AssetType type = AssetType.Placeholder, Visibility visibility = Visibility.Hidden, Guid? ownerId = null)
-        => CreateTestAsset(Guid.CreateVersion7(), name, type, visibility, ownerId);
+    public static Asset CreateTestAsset(string name, AssetType type = AssetType.Placeholder, bool isListed = false, bool isPublic = false, Guid? ownerId = null)
+        => CreateTestAsset(Guid.CreateVersion7(), name, type, isListed, isPublic, ownerId);
 
     public static GameSession CreateTestGameSession(Guid id, string title, Guid? sceneId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
         => new() {

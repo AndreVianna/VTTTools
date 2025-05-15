@@ -9,11 +9,11 @@ internal static class SceneSchemaBuilder {
             entity.ToTable("Scenes");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.OwnerId).IsRequired();
-            entity.Property(e => e.Visibility).IsRequired();
+            entity.Property(e => e.AdventureId).IsRequired();
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
-            entity.Property(e => e.ParentId).IsRequired();
-            entity.Property(e => e.IsTemplate).IsRequired();
-            entity.Property(e => e.TemplateId);
+            entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
+            entity.Property(e => e.IsListed).IsRequired();
+            entity.Property(e => e.IsPublic).IsRequired();
             entity.OwnsOne(e => e.Stage, stageBuilder => {
                 stageBuilder.Property(s => s.MapType).IsRequired();
                 stageBuilder.Property(s => s.Source).HasMaxLength(512);
@@ -26,18 +26,19 @@ internal static class SceneSchemaBuilder {
         });
         builder.Entity<SceneAsset>(entity => {
             entity.ToTable("SceneAssets");
-            entity.HasKey(ea => ea.Id);
+            entity.HasKey(ea => new { ea.AssetId, ea.SceneId, ea.Number });
+            entity.Property(ea => ea.AssetId).IsRequired();
+            entity.Property(ea => ea.SceneId).IsRequired();
+            entity.Property(ea => ea.Number).IsRequired();
             entity.Property(ea => ea.Name).IsRequired().HasMaxLength(128);
-            entity.Property(ea => ea.IsLocked);
-            entity.Property(ea => ea.ControlledBy);
-            entity.Property(ea => ea.Scale).HasDefaultValue(1);
+            entity.Property(ea => ea.Scale).HasDefaultValue(1.0d);
             entity.OwnsOne(ea => ea.Position);
             entity.HasOne(ea => ea.Scene).WithMany(e => e.SceneAssets).IsRequired()
-                                           .HasForeignKey(ea => ea.SceneId)
-                                           .OnDelete(DeleteBehavior.Cascade);
+                  .HasForeignKey(ea => ea.SceneId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(ea => ea.Asset).WithMany().IsRequired()
-                                         .HasForeignKey(ea => ea.SceneId)
-                                         .OnDelete(DeleteBehavior.Cascade);
+                  .HasForeignKey(ea => ea.SceneId).OnDelete(DeleteBehavior.Cascade);
+            entity.Property(ea => ea.IsLocked);
+            entity.Property(ea => ea.ControlledBy);
         });
     }
 }

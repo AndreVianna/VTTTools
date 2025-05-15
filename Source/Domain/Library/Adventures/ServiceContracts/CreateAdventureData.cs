@@ -23,32 +23,19 @@ public record CreateAdventureData
     /// <summary>
     /// The type of Adventure.
     /// </summary>
-    public AdventureType Type { get; init; } = AdventureType.OpenWorld;
+    public AdventureType Type { get; init; }
 
     /// <summary>
-    /// Path to the Adventure's image.
+    /// The ID of the image file associated with this Adventure. If not set, the ID of the Adventure is used.
     /// </summary>
-    public string? ImagePath { get; init; }
-
-    /// <summary>
-    /// Indicates whether the Adventure is published (visible) or not (hidden).
-    /// </summary>
-    public bool IsVisible { get; init; }
-
-    /// <summary>
-    /// Indicates whether the Adventure is publicly accessible.
-    /// </summary>
-    public bool IsPublic { get; init; }
+    public Guid? ImageId { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
-
         if (string.IsNullOrWhiteSpace(Name))
             result += new Error("The adventure name cannot be null or empty.", nameof(Name));
-
         if (string.IsNullOrWhiteSpace(Description))
             result += new Error("The adventure description cannot be null or empty.", nameof(Description));
-
         return result;
     }
 }

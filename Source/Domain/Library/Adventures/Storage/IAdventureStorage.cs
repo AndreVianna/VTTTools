@@ -17,15 +17,15 @@ public interface IAdventureStorage {
     /// <summary>
     /// Adds a new adventure template.
     /// </summary>
-    Task<Adventure> AddAsync(Adventure adventure, CancellationToken ct = default);
+    Task AddAsync(Adventure adventure, CancellationToken ct = default);
 
     /// <summary>
     /// Updates an existing adventure template.
     /// </summary>
-    Task<Adventure?> UpdateAsync(Adventure adventure, CancellationToken ct = default);
+    Task UpdateAsync(Adventure adventure, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes an adventure template.
     /// </summary>
-    Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

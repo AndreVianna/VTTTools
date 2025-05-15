@@ -18,18 +18,4 @@ public class JoinGameSessionRequestTests {
         // Assert
         data.JoinAs.Should().Be(type);
     }
-
-    [Fact]
-    public void Validate_WithValidData_ReturnsSuccess() {
-        // Arrange
-        var request = new JoinGameSessionRequest {
-            JoinAs = PlayerType.Player,
-        };
-
-        // Act
-        var result = request.Validate();
-
-        // Assert
-        result.HasErrors.Should().BeFalse();
-    }
 }

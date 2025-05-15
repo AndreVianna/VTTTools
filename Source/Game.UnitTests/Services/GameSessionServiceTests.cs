@@ -198,7 +198,7 @@ public class GameSessionServiceTests {
         };
         var data = new UpdateGameSessionData {
             Title = "Updated Title",
-            // SceneId not set
+            // TemplateId not set
         };
         var expectedGameSession = new GameSession {
             Id = sessionId,

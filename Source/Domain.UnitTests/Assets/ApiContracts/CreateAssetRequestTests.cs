@@ -7,27 +7,40 @@ public class CreateAssetRequestTests {
         var original = new CreateAssetRequest {
             Name = "Title",
             Type = AssetType.Creature,
-            Source = "http://sorce.net/image.png",
-            Visibility = Visibility.Private,
+            Description = "Description",
+            Display = new() {
+                Type = DisplayType.Image,
+                SourceId = Guid.NewGuid(),
+                Size = new() {
+                    Width = 10,
+                    Height = 20,
+                },
+            },
         };
         const string name = "Other Title";
         const AssetType type = AssetType.NPC;
-        const string source = "http://sorce.net/other-image.png";
-        const Visibility visibility = Visibility.Public;
+        const string description = "Other Description";
+        var newDisplay = new AssetDisplay {
+            Type = DisplayType.Image,
+            SourceId = Guid.NewGuid(),
+            Size = new() {
+                Width = 30,
+                Height = 40,
+            },
+        };
 
         // Act
-        // ReSharper disable once WithExpressionModifiesAllMembers
         var data = original with {
             Name = name,
             Type = type,
-            Source = source,
-            Visibility = visibility,
+            Description = description,
+            Display = newDisplay,
         };
 
         // Assert
         data.Name.Should().Be(name);
         data.Type.Should().Be(type);
-        data.Source.Should().Be(source);
-        data.Visibility.Should().Be(visibility);
+        data.Description.Should().Be(description);
+        data.Display.Should().BeEquivalentTo(newDisplay);
     }
 }

@@ -26,11 +26,6 @@
       <ValidationMessage For="() => Input.Name" class="text-danger" />
     </div>
     <div class="form-floating mb-3">
-      <InputText id="source-input" @bind-Value="Input.Source" class="form-control mb-1" />
-      <label for="source-input" class="form-label"></label>
-      <ValidationMessage For="() => Input.Source" class="text-danger" />
-    </div>
-    <div class="form-floating mb-3">
       <InputSelect id="type-input" @bind-Value="Input.Type" class="form-select mb-1">
         <option value="">Select the asset type ...</option>
       @foreach (var type in Enum.GetValues<AssetType>()) {
@@ -53,8 +48,6 @@
     <tr>
       <th id="assets-name-header">@nameof(Asset.Name)</th>
       <th id="assets-type-header">@nameof(Asset.Type)</th>
-      <th id="assets-source-header">@nameof(Asset.Source)</th>
-      <th id="assets-visibility-header">@nameof(Asset.Visibility)</th>
       <th id="assets-action-header">Actions</th>
     </tr>
   </thead>
@@ -63,8 +56,6 @@
     <tr>
       <td id="@($"asset-{asset.Id}-name")">@asset.Name</td>
       <td id="@($"asset-{asset.Id}-type")">@asset.Type</td>
-      <td id="@($"asset-{asset.Id}-source")"><a href="@asset.Source" target="_blank">Link</a></td>
-      <td id="@($"asset-{asset.Id}-visibility")">@asset.Visibility</td>
       <td id="@($"asset-{asset.Id}-actions")">
         <button id="@($"delete-asset-{asset.Id}")" class="btn btn-danger btn-sm" @onclick="() => DeleteAsset(asset.Id)">Delete</button>
       </td>

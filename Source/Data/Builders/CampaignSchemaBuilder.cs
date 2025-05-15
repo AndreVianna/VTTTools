@@ -9,11 +9,13 @@ internal static class CampaignSchemaBuilder {
             entity.ToTable("Campaigns");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.OwnerId).IsRequired();
-            entity.Property(e => e.ParentId);
-            entity.Property(e => e.TemplateId);
+            entity.Property(e => e.EpicId);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
-            entity.Property(e => e.Visibility).IsRequired();
+            entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
+            entity.Property(e => e.ImageId);
+            entity.Property(e => e.IsListed).IsRequired();
+            entity.Property(e => e.IsPublic).IsRequired();
             entity.HasMany(e => e.Adventures).WithOne(e => e.Campaign)
-                  .HasForeignKey(a => a.ParentId).OnDelete(DeleteBehavior.Cascade);
+                  .HasForeignKey(a => a.CampaignId).OnDelete(DeleteBehavior.Cascade);
         });
 }

@@ -8,7 +8,8 @@ public class AdventureStorageTests
 
     public AdventureStorageTests() {
         _context = DbContextHelper.CreateInMemoryContext(Guid.NewGuid());
-        _storage = new(_context);
+        var loggerFactory = NullLoggerFactory.Instance;
+        _storage = new(_context, loggerFactory);
 #if XUNITV3
         _ct = TestContext.Current.CancellationToken;
 #else
@@ -61,10 +62,9 @@ public class AdventureStorageTests
         var adventure = DbContextHelper.CreateTestAdventure("New Adventure");
 
         // Act
-        var result = await _storage.AddAsync(adventure, _ct);
+        await _storage.AddAsync(adventure, _ct);
 
         // Assert
-        result.Should().BeEquivalentTo(adventure);
         var storedAdventure = await _context.Adventures.FindAsync([adventure.Id], _ct);
         storedAdventure.Should().BeEquivalentTo(adventure);
     }
@@ -78,10 +78,9 @@ public class AdventureStorageTests
         adventure.Name = "Updated Name";
 
         // Act
-        var result = await _storage.UpdateAsync(adventure, _ct);
+        await _storage.UpdateAsync(adventure, _ct);
 
         // Assert
-        result.Should().BeEquivalentTo(adventure);
         var storedAdventure = await _context.Adventures.FindAsync([adventure.Id], _ct);
         storedAdventure.Should().BeEquivalentTo(adventure);
     }

@@ -122,22 +122,22 @@ public partial class CreateLibrarySchema : Migration {
         migrationBuilder.CreateIndex(
             name: "IX_Adventures_ParentId",
             table: "Adventures",
-            column: "ParentId");
+            column: "AdventureId");
 
         migrationBuilder.CreateIndex(
             name: "IX_Campaigns_ParentId",
             table: "Campaigns",
-            column: "ParentId");
+            column: "AdventureId");
 
         migrationBuilder.CreateIndex(
             name: "IX_SceneAssets_SceneId",
             table: "SceneAssets",
-            column: "SceneId");
+            column: "TemplateId");
 
         migrationBuilder.CreateIndex(
             name: "IX_Scenes_ParentId",
             table: "Scenes",
-            column: "ParentId");
+            column: "AdventureId");
     }
 
     /// <inheritdoc />

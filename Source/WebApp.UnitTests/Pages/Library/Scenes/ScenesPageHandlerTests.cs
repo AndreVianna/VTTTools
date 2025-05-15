@@ -8,8 +8,8 @@ public class ScenesPageHandlerTests
 
     public ScenesPageHandlerTests() {
         var scenes = new[] {
-            new Scene { Name = "Scene 1", Visibility = Visibility.Public },
-            new Scene { Name = "Scene 2", Visibility = Visibility.Private },
+            new Scene { AdventureId = _adventureId, Name = "Scene 1", Description = "Scene 1 Description", IsListed = true, IsPublic = true },
+            new Scene { AdventureId = _adventureId, Name = "Scene 2", Description = "Scene 2 Description", IsListed = true, IsPublic = true },
         };
         _client.GetScenesAsync(_adventureId).Returns(scenes);
         _page.HttpContext.Returns(HttpContext);
@@ -34,14 +34,14 @@ public class ScenesPageHandlerTests
         var handler = await CreateHandler();
         _page.State.CreateInput = new() {
             Name = "New Scene",
-            Visibility = Visibility.Private,
+            Description = "New Scene Description",
         };
         var newScene = new Scene {
             Name = "New Scene",
-            Visibility = Visibility.Private,
+            Description = "New Scene Description",
         };
 
-        _client.CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<CreateSceneRequest>()).Returns(newScene);
+        _client.CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<AddNewSceneRequest>()).Returns(newScene);
 
         // Act
         await handler.SaveCreatedScene();
@@ -56,18 +56,18 @@ public class ScenesPageHandlerTests
         var handler = await CreateHandler();
         _page.State.CreateInput = new() {
             Name = "New Scene",
-            Visibility = Visibility.Private,
+            Description = "New Scene Description",
         };
 
-        _client.CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<CreateSceneRequest>()).Returns(Result.Failure("Some error"));
+        _client.CreateSceneAsync(Arg.Any<Guid>(), Arg.Any<AddNewSceneRequest>()).Returns(Result.Failure("Some error"));
 
         // Act
         await handler.SaveCreatedScene();
 
         // Assert
         _page.State.Scenes.Should().HaveCount(2);
-        _page.State.CreateInput.Errors.Should().NotBeEmpty();
-        _page.State.CreateInput.Errors[0].Message.Should().Be("Some error");
+        _page.State.Errors.Should().NotBeEmpty();
+        _page.State.Errors[0].Message.Should().Be("Some error");
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public class ScenesPageHandlerTests
         var handler = await CreateHandler();
         var scene = new Scene {
             Name = "Scene to Edit",
-            Visibility = Visibility.Public,
+            Description = "Scene Description",
         };
 
         // Act
@@ -123,7 +123,7 @@ public class ScenesPageHandlerTests
         _page.State.IsEditing.Should().BeTrue();
         _page.State.EditInput.Id.Should().Be(scene.Id);
         _page.State.EditInput.Name.Should().Be(scene.Name);
-        _page.State.EditInput.Visibility.Should().Be(scene.Visibility);
+        _page.State.EditInput.Description.Should().Be(scene.Description);
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public class ScenesPageHandlerTests
         _page.State.EditInput = new() {
             Id = Guid.NewGuid(),
             Name = "Updated Scene",
-            Visibility = Visibility.Public,
+            Description = "Updated Scene Description",
         };
 
         // Act
@@ -153,22 +153,21 @@ public class ScenesPageHandlerTests
         var sceneBeforeEdit = new Scene {
             Id = sceneId,
             Name = "Scene 1",
-            Visibility = Visibility.Hidden,
+            Description = "Scene 1 Description",
         };
         var scenesBeforeEdit = new List<Scene> { sceneBeforeEdit };
         _page.State.EditInput = new() {
             Id = sceneId,
             Name = "Updated Scene",
-            Visibility = Visibility.Public,
-        };
-        _page.State.EditInput = new() {
-            Id = sceneId,
-            Name = "Updated Scene",
-            Visibility = Visibility.Public,
+            Description = "Updated Scene Description",
         };
         _page.State.Scenes = scenesBeforeEdit;
         var scenesAfterEdit = new[] {
-            new Scene { Id = sceneId, Name = "Updated Scene", Visibility = Visibility.Public },
+            new Scene {
+                Id = sceneId,
+                Name = "Updated Scene",
+                Description = "Updated Scene Description",
+            },
         };
 
         _client.UpdateSceneAsync(Arg.Any<Guid>(), Arg.Any<UpdateSceneRequest>())
@@ -191,13 +190,13 @@ public class ScenesPageHandlerTests
         var sceneBeforeEdit = new Scene {
             Id = sceneId,
             Name = "Scene 1",
-            Visibility = Visibility.Hidden,
+            Description = "Scene 1 Description",
         };
         var scenesBeforeEdit = new List<Scene> { sceneBeforeEdit };
         _page.State.EditInput = new() {
             Id = sceneId,
             Name = "Updated Scene",
-            Visibility = Visibility.Public,
+            Description = "Updated Scene Description",
         };
         _page.State.Scenes = scenesBeforeEdit;
 
@@ -209,8 +208,8 @@ public class ScenesPageHandlerTests
 
         // Assert
         _page.State.IsEditing.Should().BeTrue();
-        _page.State.EditInput.Errors.Should().NotBeEmpty();
-        _page.State.EditInput.Errors[0].Message.Should().Be("Some errors.");
+        _page.State.Errors.Should().NotBeEmpty();
+        _page.State.Errors[0].Message.Should().Be("Some errors.");
         _page.State.Scenes.Should().BeEquivalentTo(scenesBeforeEdit);
     }
 

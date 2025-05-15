@@ -1,19 +1,16 @@
 ﻿namespace VttTools.Library.Campaigns.Model;
 
 public class Campaign {
-    public Guid Id { get; set; } = Guid.CreateVersion7();
-    /// <summary>
-    /// The owner of this campaign.
-    /// </summary>
-    public Guid OwnerId { get; set; }
-    public Guid? ParentId { get; set; }
+    public Guid? EpicId { get; set; }
     public Epic? Epic { get; set; }
-    public Guid? TemplateId { get; set; }
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid OwnerId { get; set; }
     [MaxLength(128)]
     public string Name { get; set; } = string.Empty;
-    /// <summary>
-    /// The visibility setting for this campaign.
-    /// </summary>
-    public Visibility Visibility { get; set; } = Visibility.Hidden;
+    [MaxLength(4096)]
+    public string Description { get; set; } = string.Empty;
+    public Guid? ImageId { get; set; }
+    public bool IsListed { get; set; }
+    public bool IsPublic { get; set; }
     public List<Adventure> Adventures { get; set; } = [];
 }

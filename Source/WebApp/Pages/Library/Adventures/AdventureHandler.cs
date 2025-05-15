@@ -18,21 +18,19 @@ public class AdventureHandler(AdventurePage page)
         Page.Input.Name = adventure.Name;
         Page.Input.Description = adventure.Description;
         Page.Input.Type = adventure.Type;
-        Page.Input.ImagePath = adventure.ImagePath;
-        Page.Input.IsVisible = adventure.IsVisible;
+        Page.Input.IsListed = adventure.IsListed;
         Page.Input.IsPublic = adventure.IsPublic;
 
         if (Page.State.Mode == DetailsPageMode.Clone) {
             Page.Input.Name += " (Copy)";
-            Page.Input.IsVisible = false;
+            Page.Input.IsListed = false;
             Page.Input.IsPublic = false;
         }
 
         Page.State.Original.Name = Page.Input.Name;
         Page.State.Original.Description = Page.Input.Description;
         Page.State.Original.Type = Page.Input.Type;
-        Page.State.Original.ImagePath = Page.Input.ImagePath;
-        Page.State.Original.IsVisible = Page.Input.IsVisible;
+        Page.State.Original.IsListed = Page.Input.IsListed;
         Page.State.Original.IsPublic = Page.Input.IsPublic;
         return true;
     }
@@ -50,8 +48,7 @@ public class AdventureHandler(AdventurePage page)
         Page.Input.Name = Page.State.Original.Name;
         Page.Input.Description = Page.State.Original.Description;
         Page.Input.Type = Page.State.Original.Type;
-        Page.Input.ImagePath = Page.State.Original.ImagePath;
-        Page.Input.IsVisible = Page.State.Original.IsVisible;
+        Page.Input.IsListed = Page.State.Original.IsListed;
         Page.Input.IsPublic = Page.State.Original.IsPublic;
         Page.State.Errors = [];
     }
@@ -67,7 +64,7 @@ public class AdventureHandler(AdventurePage page)
             Name = Page.Input.Name != Page.State.Original.Name ? Page.Input.Name : VttTools.Utilities.Optional<string>.None,
             Description = Page.Input.Description != Page.State.Original.Description ? Page.Input.Description : VttTools.Utilities.Optional<string>.None,
             Type = Page.Input.Type != Page.State.Original.Type ? Page.Input.Type : VttTools.Utilities.Optional<AdventureType>.None,
-            IsVisible = Page.Input.IsVisible != Page.State.Original.IsVisible ? Page.Input.IsVisible : VttTools.Utilities.Optional<bool>.None,
+            IsListed = Page.Input.IsListed != Page.State.Original.IsListed ? Page.Input.IsListed : VttTools.Utilities.Optional<bool>.None,
             IsPublic = Page.Input.IsPublic != Page.State.Original.IsPublic ? Page.Input.IsPublic : VttTools.Utilities.Optional<bool>.None,
         };
 
@@ -90,9 +87,6 @@ public class AdventureHandler(AdventurePage page)
             Name = Page.Input.Name,
             Description = Page.Input.Description,
             Type = Page.Input.Type,
-            ImagePath = Page.Input.ImagePath,
-            IsVisible = Page.Input.IsVisible,
-            IsPublic = Page.Input.IsPublic,
         };
 
         var result = await _client.CreateAdventureAsync(request);

@@ -2,9 +2,13 @@
 
 public record UpdateSceneAssetData
     : Data {
-    public Optional<string> Name { get; init; } = Optional<string>.None;
-    public Optional<double> Scale { get; init; } = Optional<double>.None;
-    public Optional<Position> Position { get; init; } = Optional<Position>.None;
+    public Guid AssetId { get; init; }
+    public uint Number { get; init; }
+    public Optional<string> Name { get; init; }
+    public Optional<double> Scale { get; init; }
+    public Optional<Position> Position { get; init; }
+    public Optional<bool> IsLocked { get; set; }
+    public Optional<Guid?> ControlledBy { get; set; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);

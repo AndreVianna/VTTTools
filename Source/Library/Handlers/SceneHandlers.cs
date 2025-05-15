@@ -13,36 +13,73 @@ internal static class SceneHandlers {
 
     internal static async Task<IResult> UpdateSceneHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateSceneRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        return await sceneService.UpdateSceneAsync(userId, id, request) is { } ep
-                   ? Results.Ok(ep)
-                   : Results.NotFound();
+        var data = new UpdateSceneData {
+            AdventureId = request.AdventureId,
+            Name = request.Name,
+            Description = request.Description,
+            Stage = request.Stage,
+            IsListed = request.IsListed,
+            IsPublic = request.IsPublic,
+        };
+        var result = await sceneService.UpdateSceneAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> GetAssetsHandler([FromRoute] Guid id, [FromServices] ISceneService sceneService)
         => Results.Ok(await sceneService.GetAssetsAsync(id));
 
-    internal static async Task<IResult> AddAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddSceneAssetRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> AddAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddNewSceneAssetRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var data = new AddSceneAssetData {
-            AssetId = request.AssetId,
+        var data = new AddNewAssetData {
             Position = request.Position,
+            Scale = request.Scale,
         };
-        var added = await sceneService.AddAssetAsync(userId, id, data);
-        return added ? Results.NoContent() : Results.BadRequest();
+        var result = await sceneService.AddNewAssetAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 
-    internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromBody] UpdateSceneAssetRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateSceneAssetRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var data = new UpdateSceneAssetData {
+            AssetId = request.AssetId,
+            Number = request.Number,
+            Name = request.Name,
             Position = request.Position,
+            Scale = request.Scale,
+            IsLocked = request.IsLocked,
+            ControlledBy = request.ControlledBy,
         };
-        var updated = await sceneService.UpdateAssetAsync(userId, id, assetId, data);
-        return updated ? Results.NoContent() : Results.BadRequest();
+        var result = await sceneService.UpdateAssetAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 
-    internal static async Task<IResult> RemoveAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> RemoveAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromRoute] uint number, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var removed = await sceneService.RemoveAssetAsync(userId, id, assetId);
-        return removed ? Results.NoContent() : Results.NotFound();
+        var result = await sceneService.RemoveAssetAsync(userId, id, assetId, number);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 }

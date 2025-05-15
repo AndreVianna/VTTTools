@@ -8,4 +8,5 @@ internal class ScenesPageState {
 
     internal bool IsEditing { get; set; }
     internal ScenesInputModel EditInput { get; set; } = new();
+    public InputError[] Errors { get; set; } = [];
 }

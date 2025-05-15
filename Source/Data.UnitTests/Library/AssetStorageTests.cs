@@ -82,7 +82,7 @@ public class AssetStorageTests
 
         // Modify the asset
         asset.Name = "Updated Asset";
-        asset.Type = AssetType.Sound;
+        asset.Type = AssetType.Overlay;
 
         // Act
         var result = await _storage.UpdateAsync(asset, _ct);
