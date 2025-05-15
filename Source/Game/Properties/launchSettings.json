@@ -18,13 +18,15 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
-    }
-  },
-  "Container (Dockerfile)": {
-    "commandName": "Docker",
-    "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
-    "environmentVariables": {
-      "ASPNETCORE_HTTPS_PORTS": "8083"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "publishAllPorts": true,
+      "useSSL": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "environmentVariables": {
+        "ASPNETCORE_HTTPS_PORTS": "8083"
+      }
     }
   }
 }
