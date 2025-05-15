@@ -8,8 +8,8 @@ public class UpdateAssetRequestTests {
             Name = "Title",
             Type = AssetType.Creature,
             Description = "Description",
-            Display = new AssetDisplay {
-                Type = DisplayType.Image,
+            Format = new Format {
+                Type = FormatType.Image,
                 SourceId = Guid.NewGuid(),
                 Size = new() {
                     Width = 10,
@@ -20,8 +20,8 @@ public class UpdateAssetRequestTests {
         const string name = "Other Title";
         const AssetType type = AssetType.NPC;
         const string description = "Other Description";
-        var newDisplay = new AssetDisplay {
-            Type = DisplayType.Video,
+        var newDisplay = new Format {
+            Type = FormatType.Video,
             SourceId = Guid.NewGuid(),
             Size = new() {
                 Width = 30,
@@ -34,13 +34,13 @@ public class UpdateAssetRequestTests {
             Name = name,
             Type = type,
             Description = description,
-            Display = newDisplay,
+            Format = newDisplay,
         };
 
         // Assert
         data.Name.Value.Should().Be(name);
         data.Type.Value.Should().Be(type);
         data.Description.Value.Should().Be(description);
-        data.Display.Value.Should().BeEquivalentTo(newDisplay);
+        data.Format.Value.Should().BeEquivalentTo(newDisplay);
     }
 }

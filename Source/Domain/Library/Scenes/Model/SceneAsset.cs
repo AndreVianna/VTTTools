@@ -8,7 +8,7 @@ public class SceneAsset {
     public Asset Asset { get; set; } = null!;
     [MaxLength(128)]
     public string Name { get; set; } = string.Empty;
-    public AssetDisplay Display { get; set; } = new();
+    public Format Format { get; set; } = new();
     public Position Position { get; set; } = new();
     public double Scale { get; set; } = 1;
     public bool IsLocked { get; set; }

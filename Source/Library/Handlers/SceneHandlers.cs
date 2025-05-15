@@ -34,7 +34,24 @@ internal static class SceneHandlers {
     internal static async Task<IResult> GetAssetsHandler([FromRoute] Guid id, [FromServices] ISceneService sceneService)
         => Results.Ok(await sceneService.GetAssetsAsync(id));
 
-    internal static async Task<IResult> AddAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddNewSceneAssetRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> AddClonedAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddClonedSceneAssetRequest request, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var data = new AddClonedAssetData {
+            Format = request.Format,
+            Position = request.Position,
+            Scale = request.Scale,
+        };
+        var result = await sceneService.AddClonedAssetAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
+    }
+
+    internal static async Task<IResult> AddNewAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddNewSceneAssetRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var data = new AddNewAssetData {
             Position = request.Position,
@@ -71,7 +88,7 @@ internal static class SceneHandlers {
                     : Results.BadRequest(result.Errors);
     }
 
-    internal static async Task<IResult> RemoveAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromRoute] uint number, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> RemoveAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromRoute] int number, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var result = await sceneService.RemoveAssetAsync(userId, id, assetId, number);
         return result.IsSuccessful

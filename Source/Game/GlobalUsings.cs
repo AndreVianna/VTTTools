@@ -3,16 +3,13 @@ global using System.Net;
 
 global using DotNetToolbox.Results;
 
-global using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 global using Microsoft.AspNetCore.Mvc;
-global using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 global using VttTools.Data;
 global using VttTools.Data.Extensions;
 global using VttTools.Data.Options;
 global using VttTools.Extensions;
 global using VttTools.Game.EndpointMappers;
-global using VttTools.Game.Endpoints;
 global using VttTools.Game.Handlers;
 global using VttTools.Game.Services;
 global using VttTools.Game.Sessions.ApiContracts;

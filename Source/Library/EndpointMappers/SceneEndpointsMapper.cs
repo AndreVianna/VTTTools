@@ -8,7 +8,8 @@ internal static class SceneEndpointsMapper {
         scenes.MapGet("/{id:guid}", SceneHandlers.GetSceneByIdHandler);
         scenes.MapPatch("/{id:guid}", SceneHandlers.UpdateSceneHandler);
         scenes.MapGet("/{id:guid}/assets", SceneHandlers.GetAssetsHandler);
-        scenes.MapPost("/{id:guid}/assets", SceneHandlers.AddAssetHandler);
-        scenes.MapDelete("/{id:guid}/assets/{assetId:guid}", SceneHandlers.RemoveAssetHandler);
+        scenes.MapPost("/{id:guid}/assets", SceneHandlers.AddNewAssetHandler);
+        scenes.MapPost("/{id:guid}/assets/clone", SceneHandlers.AddClonedAssetHandler);
+        scenes.MapDelete("/{id:guid}/assets/{assetId:guid}/{number:int}", SceneHandlers.RemoveAssetHandler);
     }
 }

@@ -3,10 +3,7 @@ namespace VttTools.Library;
 internal static class Program {
     public static void Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
-        builder.Host.UseDefaultServiceProvider((_, o) => {
-            o.ValidateScopes = true;
-            o.ValidateOnBuild = true;
-        });
+        builder.Host.VerifyDependencies();
         builder.AddServiceDiscovery();
         builder.AddRequiredServices();
         builder.AddStorage();
@@ -14,6 +11,7 @@ internal static class Program {
 
         var app = builder.Build();
         app.ApplyRequiredConfiguration(app.Environment);
+        app.MapDefaultEndpoints();
         app.MapApplicationEndpoints();
 
         app.Run();
@@ -30,8 +28,6 @@ internal static class Program {
     }
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {
-        app.MapOpenApi();
-        app.MapHealthCheckEndpoints();
         app.MapAdventureEndpoints();
         app.MapSceneEndpoints();
     }

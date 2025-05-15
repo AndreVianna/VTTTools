@@ -5,7 +5,7 @@ public record UpdateAssetData
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
     public Optional<AssetType> Type { get; init; }
-    public Optional<AssetDisplay> Display { get; set; }
+    public Optional<Format> Format { get; set; }
     public Optional<bool> IsListed { get; set; }
     public Optional<bool> IsPublic { get; set; }
 

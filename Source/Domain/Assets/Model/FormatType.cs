@@ -1,6 +1,6 @@
 ﻿namespace VttTools.Assets.Model;
 
-public enum DisplayType {
+public enum FormatType {
     Placeholder,
     Image,
     Sound,

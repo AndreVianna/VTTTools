@@ -4,7 +4,7 @@ public record AddAssetData
     : Data {
     public Guid AssetId { get; init; }
     public Optional<string> Name { get; init; }
-    public Optional<AssetDisplay> Display { get; set; }
+    public Optional<Format> Format { get; set; }
     public Optional<double> Scale { get; init; }
     public Optional<Position> Position { get; init; }
 

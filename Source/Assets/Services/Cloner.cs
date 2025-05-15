@@ -7,11 +7,11 @@ public static class Cloner {
             Name = $"{original.Name} (Copy)",
             Description = original.Description,
             Type = original.Type,
-            Display = original.Display,
+            Format = original.Format,
         };
         if (data.Name.IsSet) clone.Name = data.Name.Value;
         if (data.Description.IsSet) clone.Description = data.Description.Value;
-        if (data.Display.IsSet) clone.Display = data.Display.Value;
+        if (data.Format.IsSet) clone.Format = data.Format.Value;
         return clone;
     }
 }

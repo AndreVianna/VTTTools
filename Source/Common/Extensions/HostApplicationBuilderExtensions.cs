@@ -5,6 +5,13 @@ using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 namespace VttTools.Extensions;
 
 public static class HostApplicationBuilderExtensions {
+    public static void VerifyDependencies(this IHostBuilder builder)
+        => builder.UseDefaultServiceProvider((ctx, o) => {
+            var isDevelopment = ctx.HostingEnvironment.IsDevelopment();
+            o.ValidateScopes = isDevelopment;
+            o.ValidateOnBuild = isDevelopment;
+        });
+
     public static void AddServiceDiscovery(this IHostApplicationBuilder builder) {
         builder.Services.AddServiceDiscovery();
         builder.Services.ConfigureHttpClientDefaults(http => {
@@ -21,7 +28,7 @@ public static class HostApplicationBuilderExtensions {
         builder.Services.Configure<JsonOptions>(ConfigureJsonOptions);
         builder.Services.AddDistributedMemoryCache();
 
-        builder.Services.AddOpenApi();
+        //builder.Services.AddOpenApi();
         builder.Services.AddHealthChecks();
 
         builder.Services.AddAuthentication(Scheme)

@@ -11,4 +11,9 @@ public static class ApplicationBuilderExtensions {
         app.UseAuthentication();
         app.UseAuthorization();
     }
+
+    public static void MapDefaultEndpoints(this IEndpointRouteBuilder app) {
+        //app.MapOpenApi();
+        app.MapHealthCheckEndpoints();
+    }
 }

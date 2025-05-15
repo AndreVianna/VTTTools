@@ -22,7 +22,7 @@ public class AssetService(IAssetStorage assetStorage)
             Name = data.Name,
             Type = data.Type,
             Description = data.Description,
-            Display = data.Display,
+            Format = data.Format,
         };
         await assetStorage.AddAsync(asset, ct);
         return asset;
@@ -49,7 +49,7 @@ public class AssetService(IAssetStorage assetStorage)
         if (data.Name.IsSet) asset.Name = data.Name.Value;
         if (data.Type.IsSet) asset.Type = data.Type.Value;
         if (data.Description.IsSet) asset.Description = data.Description.Value;
-        if (data.Display.IsSet) asset.Display = data.Display.Value;
+        if (data.Format.IsSet) asset.Format = data.Format.Value;
         if (data.IsListed.IsSet) asset.IsListed = data.IsListed.Value;
         if (data.IsPublic.IsSet) asset.IsPublic = data.IsPublic.Value;
         await assetStorage.UpdateAsync(asset, ct);

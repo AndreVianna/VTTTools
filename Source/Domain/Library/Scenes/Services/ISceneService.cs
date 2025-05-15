@@ -23,5 +23,5 @@ public interface ISceneService {
 
     Task<Result<SceneAsset>> UpdateAssetAsync(Guid userId, Guid id, UpdateSceneAssetData data, CancellationToken ct = default);
 
-    Task<Result> RemoveAssetAsync(Guid userId, Guid id, Guid assetId, uint number, CancellationToken ct = default);
+    Task<Result> RemoveAssetAsync(Guid userId, Guid id, Guid assetId, int number, CancellationToken ct = default);
 }

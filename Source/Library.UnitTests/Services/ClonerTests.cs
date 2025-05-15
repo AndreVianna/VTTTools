@@ -23,10 +23,10 @@ public class ClonerTests {
                     Id = sceneId,
                     Name = "Original Scene",
                     Stage = new() {
-                        MapType = StageMapType.Square,
                         Source = "map.png",
                         Size = new() { Width = 10, Height = 20 },
                         Grid = new() {
+                            Type = GridType.Square,
                             Offset = new() { Left = 5, Top = 5 },
                             CellSize = new() { Width = 1, Height = 1 },
                         },
@@ -71,10 +71,10 @@ public class ClonerTests {
                     Id = originalId,
                     Name = "Original Scene",
                     Stage = new() {
-                        MapType = StageMapType.Square,
                         Source = "map.png",
                         Size = new() { Width = 10, Height = 20 },
                         Grid = new() {
+                            Type = GridType.Square,
                             Offset = new() { Left = 5, Top = 5 },
                             CellSize = new() { Width = 1, Height = 1 },
                         },
@@ -111,10 +111,10 @@ public class ClonerTests {
             Name = "Original Scene",
             Description = "Original scene description",
             Stage = new() {
-                MapType = StageMapType.Square,
                 Source = "map.png",
                 Size = new() { Width = 10, Height = 20 },
                 Grid = new() {
+                    Type = GridType.Square,
                     Offset = new() { Left = 5, Top = 5 },
                     CellSize = new() { Width = 1, Height = 1 },
                 },

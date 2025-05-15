@@ -22,7 +22,7 @@ public class SceneEndpointsMapperTests {
         groupDataSource.Endpoints[0].DisplayName.Should().Be("HTTP: GET /api/scenes/{id:guid} => GetSceneByIdHandler");
         groupDataSource.Endpoints[1].DisplayName.Should().Be("HTTP: PATCH /api/scenes/{id:guid} => UpdateSceneHandler");
         groupDataSource.Endpoints[2].DisplayName.Should().Be("HTTP: GET /api/scenes/{id:guid}/assets => GetAssetsHandler");
-        groupDataSource.Endpoints[3].DisplayName.Should().Be("HTTP: POST /api/scenes/{id:guid}/assets => AddAssetHandler");
+        groupDataSource.Endpoints[3].DisplayName.Should().Be("HTTP: POST /api/scenes/{id:guid}/assets => AddNewAssetHandler");
         groupDataSource.Endpoints[4].DisplayName.Should().Be("HTTP: DELETE /api/scenes/{id:guid}/assets/{assetId:guid} => RemoveAssetHandler");
     }
 }

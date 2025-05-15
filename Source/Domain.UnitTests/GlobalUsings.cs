@@ -3,6 +3,12 @@ global using System.ComponentModel.DataAnnotations;
 
 global using FluentAssertions;
 
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Logging.Abstractions;
+
+global using NSubstitute;
+
 global using VttTools.Assets.Model;
 global using VttTools.Common.Model;
 global using VttTools.Game.Sessions.Model;

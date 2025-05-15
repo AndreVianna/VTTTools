@@ -45,7 +45,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             Name = data.Name,
             Type = data.Type,
             Description = data.Description,
-            Display = data.Display,
+            Format = data.Format,
         };
         await assetStorage.AddAsync(asset, ct);
         var sceneAsset = new SceneAsset {
@@ -76,7 +76,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             AssetId = asset.Id,
             Number = scene.SceneAssets.Where(sa => sa.AssetId == asset.Id).Max(sa => sa.Number) + 1,
             Name = data.Name.IsSet ? data.Name.Value : asset.Name,
-            Display = data.Display.IsSet ? data.Display.Value : asset.Display,
+            Format = data.Format.IsSet ? data.Format.Value : asset.Format,
             Position = data.Position.IsSet ? data.Position.Value : new(),
             Scale = data.Scale.IsSet ? data.Scale.Value : 1.0d,
             ControlledBy = userId,
@@ -102,7 +102,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             AssetId = clone.Id,
             Number = 1,
             Name = clone.Name,
-            Display = clone.Display,
+            Format = clone.Format,
             Position = data.Position.IsSet ? data.Position.Value : new(),
             Scale = data.Scale.IsSet ? data.Scale.Value : 1.0d,
             ControlledBy = userId,
@@ -131,7 +131,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
     }
 
     /// <inheritdoc />
-    public async Task<Result> RemoveAssetAsync(Guid userId, Guid id, Guid assetId, uint number, CancellationToken ct = default) {
+    public async Task<Result> RemoveAssetAsync(Guid userId, Guid id, Guid assetId, int number, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null) return Result.Failure("NotFound");
         if (scene.OwnerId != userId) return Result.Failure("NotAllowed");

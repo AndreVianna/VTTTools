@@ -1,4 +1,4 @@
-namespace VttTools.Game.EndpointMappers;
+namespace VttTools.EndpointMappers;
 
 internal static class HealthEndpointsMapper {
     public static void MapHealthCheckEndpoints(this IEndpointRouteBuilder app) {

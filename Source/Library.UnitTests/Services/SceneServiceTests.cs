@@ -291,7 +291,7 @@ public class SceneServiceTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
-        const uint number = 1u;
+        const int number = 1;
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
@@ -322,7 +322,7 @@ public class SceneServiceTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
-        const uint number = 1u;
+        const int number = 1;
         var nonOwnerId = Guid.NewGuid();
         var scene = new Scene {
             Id = sceneId,
@@ -354,7 +354,7 @@ public class SceneServiceTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
-        const uint number = 1u;
+        const int number = 1;
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
 

@@ -5,9 +5,7 @@ global using Azure.Storage.Blobs.Models;
 
 global using DotNetToolbox.Results;
 
-global using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 global using Microsoft.AspNetCore.Mvc;
-global using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 global using VttTools.Assets.ApiContracts;
 global using VttTools.Assets.EndpointMappers;

@@ -110,13 +110,13 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsListed = isListed,
             Stage = new() {
-                MapType = StageMapType.Square,
                 Source = "https://example.com/image.png",
                 Size = new() {
                     Width = 100,
                     Height = 200,
                 },
                 Grid = new() {
+                    Type = GridType.Square,
                     CellSize = new() {
                         Width = 1.0f,
                         Height = 1.0f,
@@ -142,8 +142,8 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsListed = isListed,
             OwnerId = ownerId ?? Guid.NewGuid(),
-            Display = new() {
-                Type = DisplayType.Image,
+            Format = new() {
+                Type = FormatType.Image,
                 SourceId = Guid.NewGuid(),
                 Size = new() {
                     Width = 10,

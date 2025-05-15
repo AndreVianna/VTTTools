@@ -325,10 +325,10 @@ public class AdventureServiceTests {
                 Name = "Scene 1",
                 AdventureId = adventureId,
                 Stage = new() {
-                    MapType = StageMapType.Square,
                     Source = "source1",
                     Size = new() { Width = 10, Height = 10 },
                     Grid = new() {
+                        Type = GridType.Square,
                         Offset = new() { Left = 0, Top = 0 },
                         CellSize = new() { Width = 1, Height = 1 },
                     },
@@ -437,10 +437,10 @@ public class AdventureServiceTests {
             Name = "New Scene",
             Description = "New scene description",
             Stage = new Stage {
-                MapType = StageMapType.Square,
                 Source = "images/source.png",
                 Size = new() { Width = 10, Height = 10 },
                 Grid = new() {
+                    Type = GridType.Square,
                     Offset = new() { Left = 5, Top = 5 },
                     CellSize = new() { Width = 2, Height = 2 },
                 },

@@ -121,7 +121,7 @@ public class SceneHandlersTests {
     }
 
     [Fact]
-    public async Task AddAssetHandler_WithValidRequest_ReturnsCreatedResult() {
+    public async Task AddNewAssetHandler_WithValidRequest_ReturnsCreatedResult() {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
@@ -143,14 +143,14 @@ public class SceneHandlersTests {
             .Returns(sceneAsset);
 
         // Act
-        var result = await SceneHandlers.AddAssetHandler(_httpContext, sceneId, request, _sceneService);
+        var result = await SceneHandlers.AddNewAssetHandler(_httpContext, sceneId, request, _sceneService);
 
         // Assert
         result.Should().BeOfType<NoContent>();
     }
 
     [Fact]
-    public async Task AddAssetHandler_WithInvalidAsset_ReturnsBadRequest() {
+    public async Task AddNewAssetHandler_WithInvalidAsset_ReturnsBadRequest() {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
@@ -165,7 +165,58 @@ public class SceneHandlersTests {
             .Returns(Result.Failure("Some error."));
 
         // Act
-        var result = await SceneHandlers.AddAssetHandler(_httpContext, sceneId, request, _sceneService);
+        var result = await SceneHandlers.AddNewAssetHandler(_httpContext, sceneId, request, _sceneService);
+
+        // Assert
+        result.Should().BeOfType<BadRequest>();
+    }
+
+    [Fact]
+    public async Task AddClonedAssetHandler_WithValidRequest_ReturnsCreatedResult() {
+        // Arrange
+        var sceneId = Guid.NewGuid();
+        var assetId = Guid.NewGuid();
+        var request = new AddClonedSceneAssetRequest {
+            TemplateId = assetId,
+            Name = "Asset Name",
+            Position = new Position { Left = 20, Top = 30 },
+            Scale = 1,
+        };
+        var sceneAsset = new SceneAsset {
+            AssetId = assetId,
+            Number = 1,
+            Name = "Asset Name",
+            Position = new() { Left = 20, Top = 30 },
+            Scale = 1,
+        };
+
+        _sceneService.AddClonedAssetAsync(_userId, sceneId, Arg.Any<AddClonedAssetData>(), Arg.Any<CancellationToken>())
+            .Returns(sceneAsset);
+
+        // Act
+        var result = await SceneHandlers.AddClonedAssetHandler(_httpContext, sceneId, request, _sceneService);
+
+        // Assert
+        result.Should().BeOfType<NoContent>();
+    }
+
+    [Fact]
+    public async Task AddClonedAssetHandler_WithInvalidAsset_ReturnsBadRequest() {
+        // Arrange
+        var sceneId = Guid.NewGuid();
+        var assetId = Guid.NewGuid();
+        var request = new AddClonedSceneAssetRequest {
+            TemplateId = assetId,
+            Name = "Asset Name",
+            Position = new Position { Left = 20, Top = 30 },
+            Scale = 1,
+        };
+
+        _sceneService.AddClonedAssetAsync(_userId, sceneId, Arg.Any<AddClonedAssetData>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("Some error."));
+
+        // Act
+        var result = await SceneHandlers.AddClonedAssetHandler(_httpContext, sceneId, request, _sceneService);
 
         // Assert
         result.Should().BeOfType<BadRequest>();
@@ -220,7 +271,7 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
-        const uint number = 1u;
+        const int number = 1;
 
         _sceneService.RemoveAssetAsync(_userId, sceneId, assetId, number, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
@@ -237,7 +288,7 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
-        const uint number = 1u;
+        const int number = 1;
 
         _sceneService.RemoveAssetAsync(_userId, sceneId, assetId, number, Arg.Any<CancellationToken>())
             .Returns(Result.Failure("NotFound"));

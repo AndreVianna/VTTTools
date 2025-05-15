@@ -1,6 +1,6 @@
-﻿namespace VttTools.Common.Model;
+﻿namespace VttTools.Library.Scenes.Model;
 
-public enum StageMapType {
+public enum GridType {
     None,
     Square,
     HexV, // Vertically aligned hexagon

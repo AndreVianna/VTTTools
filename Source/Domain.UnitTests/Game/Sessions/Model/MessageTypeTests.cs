@@ -1,4 +1,4 @@
-namespace VttTools.Model.Game;
+namespace VttTools.Game.Sessions.Model;
 
 public class MessageTypeTests {
     [Fact]

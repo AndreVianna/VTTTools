@@ -1,4 +1,4 @@
-namespace VttTools.Model.Game;
+namespace VttTools.Assets.Model;
 
 public class AssetTypeTests {
     [Fact]

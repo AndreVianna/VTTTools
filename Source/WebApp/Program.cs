@@ -7,6 +7,7 @@ namespace VttTools.WebApp;
 internal static class Program {
     public static void Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
+        builder.Host.VerifyDependencies();
         builder.Services.AddRazorComponents()
                .AddInteractiveServerComponents();
 

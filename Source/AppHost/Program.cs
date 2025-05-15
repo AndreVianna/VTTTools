@@ -1,10 +1,11 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
+var isDevelopment = builder.Environment.IsDevelopment();
+
 var cache = builder.AddRedis("redis")
-                   .WithRedisInsight()
                    .WithLifetime(ContainerLifetime.Persistent);
 
-var blobs = builder.ExecutionContext.IsPublishMode
+var blobs = !isDevelopment
     ? builder.AddAzureStorage("storage")
              .AddBlobs("blobs")
     : builder.AddAzureStorage("storage")
@@ -13,7 +14,7 @@ var blobs = builder.ExecutionContext.IsPublishMode
                  e.WithLifetime(ContainerLifetime.Persistent);
              })
              .AddBlobs("blobs");
-var database = builder.ExecutionContext.IsPublishMode
+var database = !isDevelopment
     ? builder.AddSqlServer("sql")
              .WithDataVolume()
              .WithLifetime(ContainerLifetime.Persistent)
@@ -24,22 +25,22 @@ var assets = builder.AddProject<Projects.VttTools_Assets>("assets-api")
     .WithReference(cache).WaitFor(cache)
     .WithReference(database).WaitFor(database)
     .WithReference(blobs).WaitFor(blobs)
-    .WithExternalHttpEndpoints()
-    .WithHttpHealthCheck("health");
+    .WithHttpsHealthCheck("health")
+    .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
 var library = builder.AddProject<Projects.VttTools_Library>("library-api")
     .WithReference(cache).WaitFor(cache)
     .WithReference(database).WaitFor(database)
     .WithReference(assets).WaitFor(assets)
-    .WithExternalHttpEndpoints()
-    .WithHttpHealthCheck("health");
+    .WithHttpsHealthCheck("health")
+    .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
 var game = builder.AddProject<Projects.VttTools_Game>("game-api")
     .WithReference(cache).WaitFor(cache)
     .WithReference(database).WaitFor(database)
     .WithReference(library).WaitFor(library)
-    .WithExternalHttpEndpoints()
-    .WithHttpHealthCheck("health");
+    .WithHttpsHealthCheck("health")
+    .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
 builder.AddProject<Projects.VttTools_WebApp>("webapp")
     .WithReference(cache).WaitFor(cache)
@@ -47,7 +48,7 @@ builder.AddProject<Projects.VttTools_WebApp>("webapp")
     .WithReference(game).WaitFor(game)
     .WithReference(library).WaitFor(library)
     .WithReference(assets).WaitFor(assets)
-    .WithExternalHttpEndpoints()
-    .WithHttpHealthCheck("health");
+    .WithHttpsHealthCheck("health")
+    .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
 builder.Build().Run();

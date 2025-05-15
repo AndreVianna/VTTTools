@@ -1,5 +1,4 @@
-// ReSharper disable once CheckNamespace
-namespace VttTools.Game.Endpoints;
+namespace VttTools.Game.EndpointMappers;
 
 internal static class GameSessionEndpointsMapper {
     public static void MapGameSessionEndpoints(this IEndpointRouteBuilder app) {

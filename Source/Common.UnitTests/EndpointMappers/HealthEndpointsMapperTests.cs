@@ -1,4 +1,7 @@
-namespace VttTools.Library.EndpointMappers;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+
+namespace VttTools.EndpointMappers;
 
 public class HealthEndpointsMapperTests {
     private readonly IEndpointRouteBuilder _app = Substitute.For<IEndpointRouteBuilder>();
