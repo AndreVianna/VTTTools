@@ -1,8 +1,8 @@
 ﻿namespace VttTools.WebApp.Components.Account;
 
-public partial class RecoveryCodesComponent {
+public partial class RecoveryCodes {
     [Parameter]
-    public string[] RecoveryCodes { get; set; } = [];
+    public string[] Codes { get; set; } = [];
 
     [Parameter]
     public string? StatusMessage { get; set; }

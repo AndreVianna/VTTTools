@@ -1,9 +1,11 @@
 ﻿namespace VttTools.WebApp.Clients;
 
-internal class LibraryClient(HttpClient client)
+internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
     : ILibraryClient {
+    private readonly JsonSerializerOptions _options = options.Value.JsonSerializerOptions;
+
     public async Task<AdventureListItem[]> GetAdventuresAsync() {
-        var adventures = await client.GetFromJsonAsync<Adventure[]>("/api/adventures") ?? [];
+        var adventures = await client.GetFromJsonAsync<Adventure[]>("/api/adventures", _options) ?? [];
         return [.. adventures.Select(adventure => new AdventureListItem {
             Id = adventure.Id,
             Name = adventure.Name,
@@ -17,7 +19,7 @@ internal class LibraryClient(HttpClient client)
     }
 
     public async Task<AdventureInputModel?> GetAdventureByIdAsync(Guid id) {
-        var adventure = await client.GetFromJsonAsync<Adventure>($"/api/adventures/{id}");
+        var adventure = await client.GetFromJsonAsync<Adventure>($"/api/adventures/{id}", _options);
         return adventure == null ? null : new() {
             Name = adventure.Name,
             Description = adventure.Description,
@@ -28,10 +30,10 @@ internal class LibraryClient(HttpClient client)
     }
 
     public async Task<Result<AdventureListItem>> CreateAdventureAsync(CreateAdventureRequest request) {
-        var response = await client.PostAsJsonAsync("/api/adventures", request);
+        var response = await client.PostAsJsonAsync("/api/adventures", request, _options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to create adventure.");
-        var adventure = IsNotNull(await response.Content.ReadFromJsonAsync<Adventure>());
+        var adventure = IsNotNull(await response.Content.ReadFromJsonAsync<Adventure>(_options));
         return new AdventureListItem {
             Id = adventure.Id,
             Name = adventure.Name,
@@ -45,10 +47,10 @@ internal class LibraryClient(HttpClient client)
     }
 
     public async Task<Result<AdventureListItem>> CloneAdventureAsync(Guid id, CloneAdventureRequest request) {
-        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/clone", request);
+        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/clone", request, _options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to clone adventure.");
-        var adventure = await response.Content.ReadFromJsonAsync<Adventure>();
+        var adventure = await response.Content.ReadFromJsonAsync<Adventure>(_options);
         return new AdventureListItem {
             Id = adventure!.Id,
             Name = adventure.Name,
@@ -62,7 +64,7 @@ internal class LibraryClient(HttpClient client)
     }
 
     public async Task<Result> UpdateAdventureAsync(Guid id, UpdateAdventureRequest request) {
-        var response = await client.PutAsJsonAsync($"/api/adventures/{id}", request);
+        var response = await client.PutAsJsonAsync($"/api/adventures/{id}", request, _options);
         return response.IsSuccessStatusCode
                    ? Result.Success()
                    : Result.Failure("Failed to update adventure.");
@@ -74,28 +76,28 @@ internal class LibraryClient(HttpClient client)
     }
 
     public async Task<Scene[]> GetScenesAsync(Guid id) {
-        var scenes = await client.GetFromJsonAsync<Scene[]>($"/api/adventures/{id}/scenes");
+        var scenes = await client.GetFromJsonAsync<Scene[]>($"/api/adventures/{id}/scenes", _options);
         return scenes ?? [];
     }
 
     public async Task<Result<Scene>> CreateSceneAsync(Guid id, AddNewSceneRequest request) {
-        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/scenes", request);
+        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/scenes", request, _options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to create scene.");
-        var scene = await response.Content.ReadFromJsonAsync<Scene>();
+        var scene = await response.Content.ReadFromJsonAsync<Scene>(_options);
         return scene!;
     }
 
     public async Task<Result<Scene>> CloneSceneAsync(Guid id, AddClonedSceneRequest request) {
-        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/scenes/clone", request);
+        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/scenes/clone", request, _options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to clone scene.");
-        var scene = await response.Content.ReadFromJsonAsync<Scene>();
+        var scene = await response.Content.ReadFromJsonAsync<Scene>(_options);
         return scene!;
     }
 
     public async Task<Result> UpdateSceneAsync(Guid id, UpdateSceneRequest request) {
-        var response = await client.PutAsJsonAsync($"/api/scenes/{id}", request);
+        var response = await client.PutAsJsonAsync($"/api/scenes/{id}", request, _options);
         return response.IsSuccessStatusCode
                    ? Result.Success()
                    : Result.Failure("Failed to update scene.");
@@ -107,7 +109,7 @@ internal class LibraryClient(HttpClient client)
     }
 
     public async Task<Asset[]> GetAssetsAsync() {
-        var assets = await client.GetFromJsonAsync<Asset[]>("/api/assets");
+        var assets = await client.GetFromJsonAsync<Asset[]>("/api/assets", _options);
         return assets ?? [];
     }
 }

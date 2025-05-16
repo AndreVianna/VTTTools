@@ -7,7 +7,7 @@
 <div class="row">
   <div class="col-lg-6">
   <section>
-    <StatusMessageComponent />
+    <StatusMessage />
     <EditForm id="login-form" Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
       <DataAnnotationsValidator />
       <ValidationSummary class="text-danger" role="alert" />
@@ -41,7 +41,7 @@
     <section>
       <h3>Use another client to log in.</h3>
       <hr />
-      <ExternalLoginPickerComponent />
+      <ExternalLoginPicker />
     </section>
   </div>
   }

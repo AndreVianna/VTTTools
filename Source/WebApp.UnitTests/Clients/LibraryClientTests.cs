@@ -1,14 +1,17 @@
+using JsonOptions = Microsoft.AspNetCore.Mvc.JsonOptions;
+
 namespace VttTools.WebApp.Clients;
 
 public class LibraryClientTests {
+    private readonly IOptions<JsonOptions> _options = Substitute.For<IOptions<JsonOptions>>();
+
     [Fact]
     public async Task GetAdventuresAsync_WhenApiReturnsAdventures_ReturnsAdventureArray() {
         // Arrange
-        var expectedAdventures = new Adventure[]
-                                 {
-                                     new() { Name = "Adventure 1", OwnerId = Guid.NewGuid() },
-                                     new() { Name = "Adventure 2", OwnerId = Guid.NewGuid() },
-                                 };
+        var expectedAdventures = new Adventure[] {
+            new() { Name = "Adventure 1", OwnerId = Guid.NewGuid() },
+            new() { Name = "Adventure 2", OwnerId = Guid.NewGuid() },
+        };
 
         var mockHandler = new MockHttpMessageHandler((request, _) => {
             request.Method.Should().Be(HttpMethod.Get);
@@ -22,7 +25,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.GetAdventuresAsync();
@@ -44,11 +47,10 @@ public class LibraryClientTests {
             };
             return Task.FromResult(response);
         });
-
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.GetAdventuresAsync();
@@ -66,7 +68,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act & Assert
         var act = client.GetAdventuresAsync;
@@ -105,7 +107,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.CreateAdventureAsync(request);
@@ -134,7 +136,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.CreateAdventureAsync(request);
@@ -168,7 +170,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.UpdateAdventureAsync(adventureId, request);
@@ -197,7 +199,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.UpdateAdventureAsync(adventureId, request);
@@ -224,7 +226,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.DeleteAdventureAsync(adventureId);
@@ -246,7 +248,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.DeleteAdventureAsync(adventureId);
@@ -277,7 +279,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.GetScenesAsync(adventureId);
@@ -318,7 +320,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.CreateSceneAsync(adventureId, request);
@@ -348,7 +350,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.UpdateSceneAsync(sceneId, request);
@@ -374,7 +376,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.RemoveSceneAsync(adventureId, sceneId);
@@ -413,7 +415,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.CloneSceneAsync(adventureId, request);
@@ -444,7 +446,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.GetAssetsAsync();
@@ -479,7 +481,7 @@ public class LibraryClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new LibraryClient(httpClient);
+        var client = new LibraryClient(httpClient, _options);
 
         // Act
         var result = await client.CloneAdventureAsync(adventureId, request);

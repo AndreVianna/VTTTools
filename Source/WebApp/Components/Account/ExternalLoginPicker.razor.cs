@@ -1,6 +1,6 @@
 ﻿namespace VttTools.WebApp.Components.Account;
 
-public partial class ExternalLoginPickerComponent {
+public partial class ExternalLoginPicker {
     private AuthenticationScheme[] _externalLogins = [];
 
     [Inject]

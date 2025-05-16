@@ -25,7 +25,7 @@ public static class HostApplicationBuilderExtensions {
         builder.Services.AddExceptionHandler<LoggedExceptionHandler>();
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.Configure<JsonOptions>(ConfigureJsonOptions);
+        builder.Services.ConfigureHttpJsonOptions(ConfigureJsonOptions);
         builder.Services.AddDistributedMemoryCache();
 
         //builder.Services.AddOpenApi();

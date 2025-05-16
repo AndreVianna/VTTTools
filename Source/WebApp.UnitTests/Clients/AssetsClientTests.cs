@@ -1,14 +1,17 @@
+using JsonOptions = Microsoft.AspNetCore.Mvc.JsonOptions;
+
 namespace VttTools.WebApp.Clients;
 
 public class AssetsClientTests {
+    private readonly IOptions<JsonOptions> _options = Substitute.For<IOptions<JsonOptions>>();
+
     [Fact]
     public async Task GetAssetsAsync_WhenApiReturnsAssets_ReturnsAssetArray() {
         // Arrange
-        var expectedAssets = new Asset[]
-                             {
-                                 new() { Id = Guid.NewGuid(), Name = "Asset 1", OwnerId = Guid.NewGuid() },
-                                 new() { Id = Guid.NewGuid(), Name = "Asset 2", OwnerId = Guid.NewGuid() },
-                             };
+        var expectedAssets = new Asset[] {
+            new() { Id = Guid.NewGuid(), Name = "Asset 1", OwnerId = Guid.NewGuid() },
+            new() { Id = Guid.NewGuid(), Name = "Asset 2", OwnerId = Guid.NewGuid() },
+        };
 
         var mockHandler = new MockHttpMessageHandler((request, _) => {
             request.Method.Should().Be(HttpMethod.Get);
@@ -22,7 +25,7 @@ public class AssetsClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new AssetsClient(httpClient);
+        var client = new AssetsClient(httpClient, _options);
 
         // Act
         var result = await client.GetAssetsAsync();
@@ -58,7 +61,7 @@ public class AssetsClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new AssetsClient(httpClient);
+        var client = new AssetsClient(httpClient, _options);
 
         // Act
         var result = await client.CreateAssetAsync(request);
@@ -87,7 +90,7 @@ public class AssetsClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new AssetsClient(httpClient);
+        var client = new AssetsClient(httpClient, _options);
 
         // Act
         var result = await client.UpdateAssetAsync(assetId, request);
@@ -112,7 +115,7 @@ public class AssetsClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new AssetsClient(httpClient);
+        var client = new AssetsClient(httpClient, _options);
 
         // Act
         var result = await client.DeleteAssetAsync(assetId);

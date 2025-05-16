@@ -38,13 +38,13 @@ public partial class ExternalLoginPage {
     protected override async Task OnInitializedAsync() {
         if (RemoteError is not null) {
             HttpContext.SetStatusMessage($"Error from external provider: {RemoteError}");
-            NavigationManager.GoToSignIn();
+            GoToSignIn();
         }
 
         var info = await SignInManager.GetExternalLoginInfoAsync();
         if (info is null) {
             HttpContext.SetStatusMessage("Error loading external login information.");
-            NavigationManager.GoToSignIn();
+            GoToSignIn();
         }
 
         _externalLoginInfo = info;
@@ -57,14 +57,14 @@ public partial class ExternalLoginPage {
 
             // We should only reach this page via the login callback, so redirect back to
             // the login page if we get here some other way.
-            NavigationManager.GoToSignIn();
+            GoToSignIn();
         }
     }
 
     private async Task OnLoginCallbackAsync() {
         if (_externalLoginInfo is null) {
             HttpContext.SetStatusMessage("Error loading external login information.");
-            NavigationManager.GoToSignIn();
+            GoToSignIn();
             return;
         }
 
@@ -82,7 +82,7 @@ public partial class ExternalLoginPage {
         }
 
         if (result.IsLockedOut) {
-            NavigationManager.GoToSignIn();
+            GoToSignIn();
             return;
         }
 
@@ -94,7 +94,7 @@ public partial class ExternalLoginPage {
     private async Task OnValidSubmitAsync() {
         if (_externalLoginInfo is null) {
             HttpContext.SetStatusMessage("Error loading external login information during confirmation.");
-            NavigationManager.GoToSignIn();
+            GoToSignIn();
             return;
         }
 
@@ -139,6 +139,12 @@ public partial class ExternalLoginPage {
                                                 $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor");
         }
     }
+
+    private void GoToSignIn(string? returnUrl = null)
+       => NavigationManager.RedirectTo("account/login", ps => {
+           if (!string.IsNullOrWhiteSpace(returnUrl))
+               ps.Add("ReturnUrl", UrlEncoder.Default.Encode(returnUrl));
+       });
 
     private IUserEmailStore<User> GetEmailStore() => !UserManager.SupportsUserEmail
             ? throw new NotSupportedException("The default UI requires a user store with email support.")

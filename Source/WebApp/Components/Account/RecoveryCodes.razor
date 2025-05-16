@@ -1,4 +1,4 @@
-﻿<StatusMessageComponent Message="@StatusMessage" />
+﻿<StatusMessage Message="@StatusMessage" />
 <h3>Recovery codes</h3>
 <div class="alert alert-warning" role="alert">
   <p>
@@ -10,7 +10,7 @@
 </div>
 <div class="row">
   <div class="col-md-12">
-    @foreach (var recoveryCode in RecoveryCodes)
+    @foreach (var recoveryCode in Codes)
     {
       <div>
         <code class="recovery-code">@recoveryCode</code>

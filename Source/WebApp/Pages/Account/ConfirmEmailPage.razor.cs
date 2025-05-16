@@ -13,5 +13,5 @@ public partial class ConfirmEmailPage {
     }
 
     internal virtual void GoToSignInPage()
-        => NavigationManager.GoToSignIn();
+        => GoToSignIn();
 }

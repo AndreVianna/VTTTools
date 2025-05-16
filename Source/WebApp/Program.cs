@@ -1,6 +1,8 @@
 using static VttTools.Data.Options.ApplicationDbContextOptions;
 using static VttTools.Middlewares.UserIdentificationOptions;
 
+using MvcJsonOptions = Microsoft.AspNetCore.Mvc.JsonOptions;
+using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 namespace VttTools.WebApp;
 
 [ExcludeFromCodeCoverage]
@@ -16,6 +18,8 @@ internal static class Program {
             http.AddStandardResilienceHandler();
             http.AddServiceDiscovery();
         });
+        builder.Services.Configure<MvcJsonOptions>(ConfigureMvcJsonOptions);
+        builder.Services.ConfigureHttpJsonOptions(ConfigureHttpJsonOptions);
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IGameClient, GameClient>();
@@ -104,5 +108,19 @@ internal static class Program {
             return;
         var token = Base64UrlEncoder.Encode(httpContext.User.GetUserId().ToByteArray());
         client.DefaultRequestHeaders.Add(UserHeader, token);
+    }
+
+    internal static void ConfigureHttpJsonOptions(HttpJsonOptions options) {
+        options.SerializerOptions.PropertyNameCaseInsensitive = true;
+        options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.SerializerOptions.Converters.Add(new OptionalConverterFactory());
+    }
+
+    internal static void ConfigureMvcJsonOptions(MvcJsonOptions options) {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new OptionalConverterFactory());
     }
 }

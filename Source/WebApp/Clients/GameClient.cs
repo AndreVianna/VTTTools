@@ -1,30 +1,30 @@
 ﻿namespace VttTools.WebApp.Clients;
 
-internal class GameClient(HttpClient client)
+internal class GameClient(HttpClient client, IOptions<JsonOptions> options)
     : IGameClient {
+    private readonly JsonSerializerOptions _options = options.Value.JsonSerializerOptions;
+
     public async Task<GameSession[]> GetGameSessionsAsync() {
-        var sessions = await client.GetFromJsonAsync<GameSession[]>("/api/sessions");
+        var sessions = await client.GetFromJsonAsync<GameSession[]>("/api/sessions", _options);
         return sessions ?? [];
     }
 
-    public async Task<GameSession?> GetGameSessionByIdAsync(Guid id) {
-        var session = await client.GetFromJsonAsync<GameSession>($"/api/sessions/{id}");
-        return session;
-    }
+    public Task<GameSession?> GetGameSessionByIdAsync(Guid id)
+        => client.GetFromJsonAsync<GameSession>($"/api/sessions/{id}", _options);
 
     public async Task<Result<GameSession>> CreateGameSessionAsync(CreateGameSessionRequest request) {
-        var response = await client.PostAsJsonAsync("/api/sessions", request);
+        var response = await client.PostAsJsonAsync("/api/sessions", request, _options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to create session.");
-        var session = await response.Content.ReadFromJsonAsync<GameSession>();
+        var session = await response.Content.ReadFromJsonAsync<GameSession>(_options);
         return session!;
     }
 
     public async Task<Result<GameSession>> UpdateGameSessionAsync(Guid id, UpdateGameSessionRequest request) {
-        var response = await client.PutAsJsonAsync($"/api/sessions/{id}", request);
+        var response = await client.PutAsJsonAsync($"/api/sessions/{id}", request, _options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to update session.");
-        var session = await response.Content.ReadFromJsonAsync<GameSession>();
+        var session = await response.Content.ReadFromJsonAsync<GameSession>(_options);
         return session!;
     }
 

@@ -1,40 +1,46 @@
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+
 namespace VttTools.WebApp.Components;
 
 public class Component
     : ComponentBase
     , IComponent {
     [Inject]
+    internal ProtectedSessionStorage ProtectedSessionStore {  get; set; } = null!;
+    [Inject]
     internal virtual ILoggerFactory LoggerFactory { get; set; } = null!;
     [Inject]
     internal virtual IServiceScopeFactory ScopeFactory { get; set; } = null!;
     [Inject]
     public virtual NavigationManager NavigationManager { get; set; } = null!;
+    [Inject]
+    internal virtual IHttpContextAccessor HttpContextAccessor { get; set; } = null!;
+    public HttpContext HttpContext => HttpContextAccessor.HttpContext!;
 
-    [CascadingParameter]
-    public virtual HttpContext HttpContext { get; set; } = null!;
-
-    public virtual string? CurrentLocation { get; protected set; }
+    public virtual string? CurrentLocation { get; set; }
     public virtual LoggedUser? User { get; private set; }
     public virtual bool IsReady { get; private set; }
     public ILogger Logger { get; set; } = null!;
 
     protected override void OnInitialized() {
-        Logger = LoggerFactory?.CreateLogger(GetType()) ?? NullLogger.Instance;
+        Logger = LoggerFactory.CreateLogger(GetType());
         base.OnInitialized();
         SetCurrentLocation();
-        SetBasicUserInfo();
     }
+
+    protected override void OnParametersSet()
+        => SetBasicUserInfo();
 
     private void SetCurrentLocation()
         => CurrentLocation ??= GetUrlRelativeToBase(NavigationManager.Uri);
 
     private void SetBasicUserInfo() {
-        var isAuthenticated = HttpContext?.User.Identity?.IsAuthenticated ?? false;
+        var isAuthenticated = HttpContext.User.Identity?.IsAuthenticated ?? false;
         if (!isAuthenticated) return;
-        var id = Guid.TryParse(HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)?.Trim(), out var uuid) ? uuid : Guid.Empty;
+        var id = Guid.TryParse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)?.Trim(), out var uuid) ? uuid : Guid.Empty;
         var displayName = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value
-                       ?? HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value
-                       ?? nameof(User);
+                        ?? HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value
+                        ?? nameof(User);
         var isAdministrator = HttpContext.User.IsInRole(nameof(RoleName.Administrator));
         User = new(id, displayName, isAdministrator);
     }
@@ -53,9 +59,13 @@ public class Component
         return Task.CompletedTask;
     }
 
-    protected virtual string GetUrlRelativeToBase(string url) => NavigationManager.ToBaseRelativePath(url);
-    protected virtual Uri GetAbsoluteUri(string url) => NavigationManager.ToAbsoluteUri(Ensure.IsNotNull(url).Trim());
     public virtual Task StateHasChangedAsync() => InvokeAsync(StateHasChanged);
+
+    public virtual void SetStatusMessage(string message) => HttpContext.SetStatusMessage(message);
+
+    public virtual string GetUrlRelativeToBase(string url) => NavigationManager.ToBaseRelativePath(url);
+
+    public virtual Uri GetAbsoluteUri(string url) => NavigationManager.ToAbsoluteUri(Ensure.IsNotNull(url).Trim());
 
     public virtual void RedirectTo([StringSyntax(StringSyntaxAttribute.Uri)] string? location, Action<IDictionary<string, object?>>? setQueryParameters = null)
         => NavigationManager.RedirectTo(location ?? string.Empty, setQueryParameters);
@@ -63,8 +73,11 @@ public class Component
     public virtual void GoHome()
         => NavigationManager.GoHome();
 
-    public virtual void GoToSignIn(string? returnUrl = null)
-        => NavigationManager.GoToSignIn(returnUrl);
+    protected virtual void GoToSignIn(string? returnUrl = null)
+       => NavigationManager.RedirectTo("account/login", ps => {
+           if (!string.IsNullOrWhiteSpace(returnUrl))
+               ps.Add("ReturnUrl", UrlEncoder.Default.Encode(returnUrl));
+       });
 
     public virtual void Refresh()
         => NavigationManager.Refresh();
@@ -74,7 +87,4 @@ public class Component
 
     public virtual void ReplaceWith([StringSyntax(StringSyntaxAttribute.Uri)] string location, Action<IDictionary<string, object?>>? setQueryParameters = null)
         => NavigationManager.ReplaceWith(location, setQueryParameters);
-
-    public virtual void SetStatusMessage(string message)
-        => HttpContext?.SetStatusMessage(message);
 }

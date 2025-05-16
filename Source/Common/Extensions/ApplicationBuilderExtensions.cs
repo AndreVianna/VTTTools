@@ -12,8 +12,10 @@ public static class ApplicationBuilderExtensions {
         app.UseAuthorization();
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0022:Use expression body for method", Justification = "<Pending>")]
     public static void MapDefaultEndpoints(this IEndpointRouteBuilder app) {
         //app.MapOpenApi();
+        // ReSharper disable once ArrangeMethodOrOperatorBody
         app.MapHealthCheckEndpoints();
     }
 }
