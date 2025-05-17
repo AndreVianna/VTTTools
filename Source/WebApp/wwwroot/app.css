@@ -4,6 +4,7 @@ html, body {
 
 a, .btn-link {
   color: #006bb7;
+  text-decoration: none;
 }
 
 .btn-primary {
@@ -58,41 +59,3 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
-
-.md-symbol {
-  font-family: "Material Symbols Outlined";
-  font-feature-settings: "liga";
-  font-size: 24px;
-  display: block;
-  color: rgba(255, 255, 255, 1);
-  text-size-adjust: 100%;
-}
-
-  .md-symbol.filled {
-    font-variation-settings: 'FILL' 1;
-  }
-
-  .md-symbol:disabled {
-    color: rgba(255, 255, 255, 0.3);
-  }
-
-  .md-symbol.small {
-    font-size: 12px;
-  }
-
-  .md-symbol.large {
-    font-size: 24px;
-  }
-
-  .md-symbol.xlarge {
-    font-size: 32px;
-  }
-
-  /* Rules for using icons as black on a light background. */
-  .md-symbol.dark {
-    color: rgba(0, 0, 0, 0.54);
-  }
-
-  .md-symbol.md-dark:disabled {
-    color: rgba(0, 0, 0, 0.26);
-  }

@@ -1,0 +1,112 @@
+﻿.md-symbol {
+  font-family: "Material Symbols Outlined";
+  font-feature-settings: "liga";
+  font-size: 24px;
+  display: block;
+  color: var(--bs-light);
+  text-size-adjust: 100%;
+}
+
+  .md-symbol.filled {
+    font-variation-settings: 'FILL' 1;
+  }
+
+  .md-symbol:disabled {
+    color: var(--bs-secondary);
+  }
+
+  .md-symbol.small {
+    font-size: 12px;
+  }
+
+  .md-symbol.large {
+    font-size: 24px;
+  }
+
+  .md-symbol.xlarge {
+    font-size: 32px;
+  }
+
+  .md-symbol.dark {
+    color: var(--bs-dark);
+  }
+
+    .md-symbol.dark:disabled {
+      color: var(--bs-secondary);
+    }
+
+  .md-symbol.list:before {
+    content: "list";
+  }
+
+  .md-symbol.grid:before {
+    content: "grid_view";
+  }
+
+  .md-symbol.close:before {
+    content: "close_small";
+  }
+
+  .md-symbol.view:before {
+    content: "visibility";
+  }
+
+  .md-symbol.edit:before {
+    content: "edit";
+  }
+
+  .md-symbol.delete:before {
+    content: "delete_forever";
+  }
+
+  .md-symbol.create:before {
+    content: "add_circle";
+  }
+
+  .md-symbol.clone:before {
+    content: "content_copy";
+  }
+
+  .md-symbol.back:before {
+    content: "arrow_back";
+  }
+
+  .md-symbol.save:before {
+    content: "save";
+  }
+
+  .md-symbol.discard:before {
+    content: "ink_eraser";
+  }
+
+  .md-symbol.cancel:before {
+    content: "cancel";
+  }
+
+  .md-symbol.start:before {
+    content: "play_circle";
+  }
+
+.btn-outline-primary .md-symbol {
+  color: var(--bs-primary);
+}
+
+.btn-outline-primary:hover .md-symbol {
+  color: var(--bs-light);
+}
+
+.btn-outline-danger .md-symbol {
+  color: var(--bs-danger);
+}
+
+.btn-outline-danger:hover .md-symbol {
+  color: var(--bs-light);
+}
+
+.link-primary .md-symbol {
+  color: var(--bs-primary);
+}
+
+.link-danger .md-symbol {
+  color: var(--bs-danger);
+}

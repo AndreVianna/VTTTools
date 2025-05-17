@@ -11,14 +11,14 @@
     </div>
     <div class="col-md-6 d-flex justify-content-md-end align-items-center">
       <button id="create-adventure-button" class="btn btn-primary me-2" @onclick="GoToCreatePage">
-        <i class="bi bi-plus-circle"></i> Create Adventure
+        <span class="md-symbol create me-1" aria-hidden="true"></span> Create Adventure
       </button>
       <div class="btn-group" role="group">
         <button type="button" class="btn @(State.ListViewMode == ListViewMode.List ? "btn-primary" : "btn-outline-primary")" @onclick="() => Handler.ToggleViewMode()" title="List View">
-          <i class="bi bi-list-ul"></i>
+          <span class="md-symbol list" aria-hidden="true"></span>
         </button>
         <button type="button" class="btn @(State.ListViewMode == ListViewMode.Card ? "btn-primary" : "btn-outline-primary")" @onclick="() => Handler.ToggleViewMode()" title="Card View">
-          <i class="bi bi-grid-3x3-gap"></i>
+          <span class="md-symbol grid" aria-hidden="true"></span>
         </button>
       </div>
     </div>
@@ -28,17 +28,16 @@
     <div class="col-md-8">
       <div class="input-group">
         <input type="text" class="form-control" placeholder="Search adventures..."
-             @bind="State.SearchText" @bind:event="oninput" @onkeyup="ApplySearch" />
+          @bind="State.SearchText" @bind:event="oninput" @onkeyup="ApplySearch" />
         <button class="btn btn-outline-secondary" type="button" @onclick="ClearSearch">
-          <i class="bi bi-x"></i>
+          <span class="md-symbol close" aria-hidden="true"></span>
         </button>
       </div>
     </div>
     <div class="col-md-4">
       <select class="form-select" @bind="State.FilterType" @bind:after="ApplyTypeFilter">
         <option value="">All Adventure Types</option>
-        @foreach (var type in Enum.GetValues<AdventureType>())
-        {
+        @foreach (var type in Enum.GetValues<AdventureType>()) {
           <option value="@type">@type.ToString()</option>
         }
       </select>
@@ -77,7 +76,7 @@
               <tbody>
                 @foreach (var adventure in State.OwnedAdventures) {
                   <tr>
-                    <td id="@($"adventure-{adventure.Id}-name")">@adventure.Name</td>
+                    <td id="@($"adventure-{adventure.Id}-name")"><a class="btn btn-link link-primary me-1" href="@($"/adventure/edit/{adventure.Id}")"><span class="md-symbol edit" aria-hidden="true"></span></a> @adventure.Name</td>
                     <td id="@($"adventure-{adventure.Id}-type")">@adventure.Type.ToString()</td>
                     <td id="@($"adventure-{adventure.Id}-scenes")">
                       <span>@adventure.ScenesCount scenes</span>
@@ -98,32 +97,13 @@
                       }
                     </td>
                     <td id="@($"adventure-{adventure.Id}-actions")">
-                      <div class="btn-group" role="group">
-                        <button id="@($"view-adventure-{adventure.Id}")" class="btn btn-primary btn-sm"
-                            @onclick='@(() => RedirectTo($"/adventure/view/{adventure.Id}"))' title="View Adventure">
-                          <i class="bi bi-eye"></i>
-                        </button>
-                        <button id="@($"edit-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                            @onclick='@(() => RedirectTo($"/adventure/edit/{adventure.Id}"))' title="Edit Adventure">
-                          <i class="bi bi-pencil"></i>
-                        </button>
-                        <button id="@($"scenes-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                            @onclick='@(() => RedirectTo($"/adventures/{adventure.Id}/scenes"))' title="Manage Scenes">
-                          <i class="bi bi-list-check"></i>
-                        </button>
-                        <button id="@($"clone-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                            @onclick='@(() => RedirectTo($"/adventure/clone/{adventure.Id}"))' title="Clone Adventure">
-                          <i class="bi bi-files"></i>
-                        </button>
-                        <button id="@($"start-adventure-{adventure.Id}"))" class="btn btn-outline-success btn-sm"
-                            title="Start Adventure" disabled>
-                          <i class="bi bi-play-fill"></i>
-                        </button>
-                        <button id="@($"delete-adventure-{adventure.Id}")" class="btn btn-outline-danger btn-sm"
-                            @onclick="() => DeleteAdventure(adventure.Id)" title="Delete Adventure">
-                          <i class="bi bi-trash"></i>
-                        </button>
-                      </div>
+                      <a class="btn btn-link link-primary me-1" href="@($"/adventure/clone/{adventure.Id}")">
+                        <span class="md-symbol clone" aria-hidden="true"></span>
+                      </a>
+                      <button id="@($"delete-adventure-{adventure.Id}")" class="btn btn-link link-danger"
+                          @onclick="() => DeleteAdventure(adventure.Id)" title="Delete Adventure">
+                        <span class="md-symbol delete" aria-hidden="true"></span>
+                      </button>
                     </td>
                   </tr>
                 }
@@ -152,7 +132,7 @@
                   }
 
                   <div class="card-body">
-                    <h5 class="card-title">@adventure.Name</h5>
+                    <h5 class="card-title">@adventure.Name <a class="btn btn-link link-primary ms-1" href="@($"/adventure/edit/{adventure.Id}")"><span class="md-symbol edit" aria-hidden="true"></span></a></h5>
                     <p class="card-text">@adventure.Description</p>
                   </div>
 
@@ -175,17 +155,13 @@
                       </div>
 
                       <div class="btn-group" role="group">
-                        <button class="btn btn-sm btn-primary"
-                            @onclick='() => RedirectTo($"/adventure/view/{adventure.Id}")' title="View Adventure">
-                          <i class="bi bi-eye"></i>
+                        <button id="@($"clone-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
+                            @onclick='@(() => RedirectTo($"/adventure/clone/{adventure.Id}"))' title="Clone Adventure">
+                          <span class="md-symbol clone" aria-hidden="true"></span>
                         </button>
-                        <button class="btn btn-sm btn-outline-primary"
-                            @onclick='() => RedirectTo($"/adventure/edit/{adventure.Id}")' title="Edit Adventure">
-                          <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-success"
-                            title="Start Adventure" disabled>
-                          <i class="bi bi-play-fill"></i>
+                        <button id="@($"delete-adventure-{adventure.Id}")" class="btn btn-outline-danger btn-sm"
+                            @onclick="() => DeleteAdventure(adventure.Id)" title="Delete Adventure">
+                          <span class="md-symbol delete" aria-hidden="true"></span>
                         </button>
                       </div>
                     </div>
@@ -222,28 +198,16 @@
               <tbody>
                 @foreach (var adventure in State.PublicAdventures) {
                   <tr>
-                    <td id="@($"public-adventure-{adventure.Id}-name")">@adventure.Name</td>
+                    <td id="@($"public-adventure-{adventure.Id}-name")"><a class="btn btn-link link-primary me-1" href="@($"/adventure/view/{adventure.Id}")"><span class="md-symbol view" aria-hidden="true"></span></a> @adventure.Name</td>
                     <td id="@($"public-adventure-{adventure.Id}-type")">@adventure.Type.ToString()</td>
                     <td id="@($"public-adventure-{adventure.Id}-scenes")">
                       <span>@adventure.ScenesCount scenes</span>
                     </td>
                     <td id="@($"public-adventure-{adventure.Id}-actions")">
                       <div class="btn-group" role="group">
-                        <button id="@($"view-public-adventure-{adventure.Id}")" class="btn btn-primary btn-sm"
-                            @onclick='() => RedirectTo($"/adventure/view/{adventure.Id}")' title="View Adventure">
-                          <i class="bi bi-eye"></i>
-                        </button>
-                        <button id="@($"scenes-public-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                            @onclick='() => RedirectTo($"/adventures/{adventure.Id}/scenes")' title="View Scenes">
-                          <i class="bi bi-list-check"></i>
-                        </button>
-                        <button id="@($"clone-public-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
+                        <button id="@($"clone-public-adventure-{adventure.Id}")" class="btn btn-link link-primary"
                             @onclick='() => RedirectTo($"/adventure/clone/{adventure.Id}")' title="Clone Adventure">
-                          <i class="bi bi-files"></i>
-                        </button>
-                        <button id="@($"start-public-adventure-{adventure.Id}")" class="btn btn-outline-success btn-sm"
-                            title="Start Adventure" disabled>
-                          <i class="bi bi-play-fill"></i>
+                          <span class="md-symbol clone" aria-hidden="true"></span>
                         </button>
                       </div>
                     </td>
@@ -280,24 +244,16 @@
                   }
 
                   <div class="card-body">
-                    <h5 class="card-title">@adventure.Name</h5>
+                    <h5 class="card-title">@adventure.Name <a class="btn btn-link link-primary ms-1" href="@($"/adventure/view/{adventure.Id}")"><span class="md-symbol view" aria-hidden="true"></span></a></h5>
                     <p class="card-text">@adventure.Description</p>
                   </div>
 
                   <div class="card-footer">
                     <div class="d-flex justify-content-between align-items-center">
                       <div class="btn-group" role="group">
-                        <button class="btn btn-sm btn-primary"
-                            @onclick='() => RedirectTo($"/adventure/view/{adventure.Id}")' title="View Adventure">
-                          <i class="bi bi-eye"></i>
-                        </button>
                         <button class="btn btn-sm btn-outline-primary"
                             @onclick='() => RedirectTo($"/adventure/clone/{adventure.Id}")' title="Clone Adventure">
-                          <i class="bi bi-files"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-success"
-                            title="Start Adventure" disabled>
-                          <i class="bi bi-play-fill"></i>
+                          <span class="md-symbol clone" aria-hidden="true"></span>
                         </button>
                       </div>
                     </div>

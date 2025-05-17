@@ -90,11 +90,11 @@
                     </td>
                     <td>
                       <button class="btn btn-sm btn-primary me-2" @onclick="@(() => NavigateToViewScene(scene.Id))">
-                        <i class="bi bi-eye"></i> View
+                        <span class="md-symbol view me-1" aria-hidden="true"></span> View
                       </button>
                       @if (Id == User!.Id) {
                         <button class="btn btn-sm btn-outline-danger" @onclick="@(() => ShowDeleteSceneConfirmationModal(scene.Id))">
-                          <i class="bi bi-trash"></i> Delete
+                          <span class="md-symbol delete me-1" aria-hidden="true"></span> Delete
                         </button>
                       }
                     </td>
@@ -113,7 +113,7 @@
           @if (Id == User!.Id) {
             <div class="mt-3">
               <button class="btn btn-outline-primary" @onclick="@(() => NavigateTo($"/scenes/create/{Id}"))">
-                <i class="bi bi-plus-circle"></i> Create New Scene
+                <span class="md-symbol create me-1" aria-hidden="true"></span> Create New Scene
               </button>
             </div>
           }
@@ -169,30 +169,30 @@
         <div class="card-footer">
           @if (State.Mode == DetailsPageMode.View) {
             <button id="edit-button" class="btn btn-primary me-2" @onclick="NavigateToEditAdventure">
-              <i class="bi bi-pencil"></i> Edit
+              <span class="md-symbol edit me-1" aria-hidden="true"></span> Edit
             </button>
             <button id="clone-button" class="btn btn-outline-primary me-2" @onclick="NavigateToCloneAdventure">
-              <i class="bi bi-files"></i> Clone
+              <span class="md-symbol clone me-1" aria-hidden="true"></span> Clone
             </button>
             <button id="back-button" class="btn btn-secondary" @onclick="NavigateBack">
-              <i class="bi bi-arrow-left"></i> Return to List
+              <span class="md-symbol back me-1" aria-hidden="true"></span> Return to List
             </button>
             <button id="delete-button" class="btn btn-danger" @onclick="ShowDeleteConfirmationModal">
-              <i class="bi bi-trash"></i> Delete Adventure
+              <span class="md-symbol delete me-1" aria-hidden="true"></span> Delete Adventure
             </button>
           }
           else {
             <button id="save-continue-button" class="btn btn-primary me-2" @onclick="SaveAndContinueEditing">
-              <i class="bi bi-save"></i> Save & Continue
+              <span class="md-symbol save me-1" aria-hidden="true"></span> Save & Continue
             </button>
             <button id="save-finish-button" class="btn btn-outline-primary me-2" @onclick="SaveChanges">
-              <i class="bi bi-save"></i> Save & Finish
+              <span class="md-symbol save me-1" aria-hidden="true"></span> Save & Finish
             </button>
             <button id="discard-button" class="btn btn-outline-warning me-2" @onclick="ShowDiscardChangesModal">
-              <i class="bi bi-arrow-counterclockwise"></i> Discard Changes
+              <span class="md-symbol discard me-1" aria-hidden="true"></span> Discard Changes
             </button>
             <button id="cancel-button" class="btn btn-secondary" @onclick="NavigateBack">
-              <i class="bi bi-x-circle"></i> Cancel
+              <span class="md-symbol cancel me-1" aria-hidden="true"></span> Cancel
             </button>
           }
         </div>
