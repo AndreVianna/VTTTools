@@ -11,7 +11,7 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
             Name = adventure.Name,
             Description = adventure.Description,
             Type = adventure.Type,
-            IsListed = adventure.IsListed,
+            IsPublished = adventure.IsListed,
             IsPublic = adventure.IsPublic,
             OwnerId = adventure.OwnerId,
             ScenesCount = adventure.Scenes.Count,
@@ -24,8 +24,15 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
             Name = adventure.Name,
             Description = adventure.Description,
             Type = adventure.Type,
-            IsListed = adventure.IsListed,
+            IsPublished = adventure.IsListed,
             IsPublic = adventure.IsPublic,
+            OwnerId = adventure.OwnerId,
+            Scenes = [.. adventure.Scenes.Select(scene => new SceneListItem {
+                Id = scene.Id,
+                Name = scene.Name,
+                IsPublished = scene.IsListed,
+                IsPublic = scene.IsPublic,
+            })],
         };
     }
 
@@ -39,7 +46,7 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
             Name = adventure.Name,
             Description = adventure.Description,
             Type = adventure.Type,
-            IsListed = adventure.IsListed,
+            IsPublished = adventure.IsListed,
             IsPublic = adventure.IsPublic,
             OwnerId = adventure.OwnerId,
             ScenesCount = adventure.Scenes.Count,
@@ -56,7 +63,7 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
             Name = adventure.Name,
             Description = adventure.Description,
             Type = adventure.Type,
-            IsListed = adventure.IsListed,
+            IsPublished = adventure.IsListed,
             IsPublic = adventure.IsPublic,
             OwnerId = adventure.OwnerId,
             ScenesCount = adventure.Scenes.Count,
@@ -75,9 +82,14 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<Scene[]> GetScenesAsync(Guid id) {
-        var scenes = await client.GetFromJsonAsync<Scene[]>($"/api/adventures/{id}/scenes", _options);
-        return scenes ?? [];
+    public async Task<SceneListItem[]> GetScenesAsync(Guid id) {
+        var scenes = await client.GetFromJsonAsync<Scene[]>($"/api/adventures/{id}/scenes", _options) ?? [];
+        return [.. scenes.Select(scene => new SceneListItem {
+            Id = scene.Id,
+            Name = scene.Name,
+            IsPublished = scene.IsListed,
+            IsPublic = scene.IsPublic,
+        })];
     }
 
     public async Task<Result<Scene>> CreateSceneAsync(Guid id, AddNewSceneRequest request) {

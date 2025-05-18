@@ -35,9 +35,9 @@ public class Component
         => CurrentLocation ??= GetUrlRelativeToBase(NavigationManager.Uri);
 
     private void SetBasicUserInfo() {
-        var isAuthenticated = HttpContext.User.Identity?.IsAuthenticated ?? false;
+        var isAuthenticated = HttpContext?.User.Identity?.IsAuthenticated ?? false;
         if (!isAuthenticated) return;
-        var id = Guid.TryParse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)?.Trim(), out var uuid) ? uuid : Guid.Empty;
+        var id = Guid.TryParse(HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)?.Trim(), out var uuid) ? uuid : Guid.Empty;
         var displayName = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value
                         ?? HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value
                         ?? nameof(User);

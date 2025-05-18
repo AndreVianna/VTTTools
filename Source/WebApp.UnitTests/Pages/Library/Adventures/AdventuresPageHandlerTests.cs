@@ -11,14 +11,14 @@ public class AdventuresPageHandlerTests
                 Name = "Adventure 1",
                 Description = "Adventure 1 Description",
                 Type = AdventureType.Survival,
-                IsListed = true,
+                IsPublished = true,
                 IsPublic = true,
             },
             new AdventureListItem {
                 Name = "Adventure 2",
                 Description = "Adventure 2 Description",
                 Type = AdventureType.OpenWorld,
-                IsListed = false,
+                IsPublished = false,
                 IsPublic = false,
             },
         };

@@ -32,7 +32,7 @@
         else {
           <div class="row g-3">
             <div class="col-auto">
-              <label for="uploadImage" class="form-label">Change Image</label>
+              <label for="uploadImage" class="form-label">Change Image</label><br/>
               <button id="uploadImage" class="btn btn-sm btn-primary">Upload</button>
             </div>
             <div class="col">
@@ -51,7 +51,7 @@
 
           <h5>Status</h5>
           <div class="mb-4">
-            @if (Input.IsListed) {
+            @if (Input.IsPublished) {
               <span class="badge bg-success me-2">Published</span>
             }
             else {
@@ -71,32 +71,22 @@
 
           <h4 class="mt-4">Scenes</h4>
 
-          @if (State.Scenes.Any()) {
+          @if (Input.Scenes.Any()) {
             <div class="table-responsive">
               <table class="table table-hover">
                 <thead>
                 <tr>
                   <th>Name</th>
-                  <th>Status</th>
-                  <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
-                @foreach (var scene in State.Scenes) {
+                @foreach (var scene in Input.Scenes) {
                   <tr>
-                    <td>@scene.Name</td>
-                    <td>
-                      @* TODO: Add scene status badges *@
-                    </td>
                     <td>
                       <button class="btn btn-sm btn-primary me-2" @onclick="@(() => NavigateToViewScene(scene.Id))">
-                        <span class="md-symbol view me-1" aria-hidden="true"></span> View
+                        <span class="icon view me-1" aria-hidden="true"></span> View
                       </button>
-                      @if (Id == User!.Id) {
-                        <button class="btn btn-sm btn-outline-danger" @onclick="@(() => ShowDeleteSceneConfirmationModal(scene.Id))">
-                          <span class="md-symbol delete me-1" aria-hidden="true"></span> Delete
-                        </button>
-                      }
+                      @scene.Name
                     </td>
                   </tr>
                 }
@@ -105,16 +95,8 @@
             </div>
           }
           else {
-            <div class="alert alert-info">
-              No scenes found for this adventure.
-            </div>
-          }
-
-          @if (Id == User!.Id) {
-            <div class="mt-3">
-              <button class="btn btn-outline-primary" @onclick="@(() => NavigateTo($"/scenes/create/{Id}"))">
-                <span class="md-symbol create me-1" aria-hidden="true"></span> Create New Scene
-              </button>
+            <div class="alert alert-info mt-3">
+              This adventure does not have any scenes.
             </div>
           }
         </div>
@@ -134,7 +116,7 @@
             <div class="col-auto">
               <label class="form-label">&nbsp;</label>
               <div class="form-check">
-                <input id="isVisible" type="checkbox" class="form-check-input" @bind="Input.IsListed" />
+                <input id="isVisible" type="checkbox" class="form-check-input" @bind="Input.IsPublished" />
                 <label for="isVisible" class="form-check-label">Published (Visible to others)</label>
               </div>
             </div>
@@ -164,35 +146,83 @@
               </ul>
             </div>
           }
+
+          @if (Input.OwnerId == User!.Id) {
+            <div class="mt-3">
+              <button class="btn btn-outline-primary" @onclick="@(() => NavigateTo($"/scenes/create/{Id}"))">
+                <span class="icon create me-1" aria-hidden="true"></span> Create New Scene
+              </button>
+            </div>
+          }
+
+          @if (Input.Scenes.Any()) {
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var scene in Input.Scenes) {
+                  <tr>
+                    <td>@scene.Name</td>
+                    <td>
+                      <span class="badge bg-@(scene.IsPublished ? "success" : "secondary") me-1">@(scene.IsPublished ? "Published" : "Draft")</span>
+                      <span class="badge bg-@(scene.IsPublic ? "info" : "warning") me-1">@(scene.IsPublic ? "Public" : "Private")</span>
+                    </td>
+                    <td>
+                      <button class="btn btn-sm btn-primary me-2" @onclick="@(() => NavigateToViewScene(scene.Id))">
+                        <span class="icon view me-1" aria-hidden="true"></span> View
+                      </button>
+                      @if (Input.OwnerId == User!.Id) {
+                        <button class="btn btn-sm btn-outline-danger" @onclick="@(() => ShowDeleteSceneConfirmationModal(scene.Id))">
+                          <span class="icon delete me-1" aria-hidden="true"></span> Delete
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+                </tbody>
+              </table>
+            </div>
+          }
+          else {
+            <div class="alert alert-info mt-3">
+              This adventure does not have any scenes yet.
+            </div>
+          }
         </div>
 
         <div class="card-footer">
           @if (State.Mode == DetailsPageMode.View) {
             <button id="edit-button" class="btn btn-primary me-2" @onclick="NavigateToEditAdventure">
-              <span class="md-symbol edit me-1" aria-hidden="true"></span> Edit
+              <span class="icon edit me-1" aria-hidden="true"></span> Edit
             </button>
             <button id="clone-button" class="btn btn-outline-primary me-2" @onclick="NavigateToCloneAdventure">
-              <span class="md-symbol clone me-1" aria-hidden="true"></span> Clone
+              <span class="icon clone me-1" aria-hidden="true"></span> Clone
             </button>
             <button id="back-button" class="btn btn-secondary" @onclick="NavigateBack">
-              <span class="md-symbol back me-1" aria-hidden="true"></span> Return to List
+              <span class="icon back me-1" aria-hidden="true"></span> Return to List
             </button>
             <button id="delete-button" class="btn btn-danger" @onclick="ShowDeleteConfirmationModal">
-              <span class="md-symbol delete me-1" aria-hidden="true"></span> Delete Adventure
+              <span class="icon delete me-1" aria-hidden="true"></span> Delete Adventure
             </button>
           }
           else {
             <button id="save-continue-button" class="btn btn-primary me-2" @onclick="SaveAndContinueEditing">
-              <span class="md-symbol save me-1" aria-hidden="true"></span> Save & Continue
+              <span class="icon save me-1" aria-hidden="true"></span> Save & Continue
             </button>
             <button id="save-finish-button" class="btn btn-outline-primary me-2" @onclick="SaveChanges">
-              <span class="md-symbol save me-1" aria-hidden="true"></span> Save & Finish
+              <span class="icon save me-1" aria-hidden="true"></span> Save & Finish
             </button>
             <button id="discard-button" class="btn btn-outline-warning me-2" @onclick="ShowDiscardChangesModal">
-              <span class="md-symbol discard me-1" aria-hidden="true"></span> Discard Changes
+              <span class="icon discard me-1" aria-hidden="true"></span> Discard Changes
             </button>
             <button id="cancel-button" class="btn btn-secondary" @onclick="NavigateBack">
-              <span class="md-symbol cancel me-1" aria-hidden="true"></span> Cancel
+              <span class="icon cancel me-1" aria-hidden="true"></span> Cancel
             </button>
           }
         </div>

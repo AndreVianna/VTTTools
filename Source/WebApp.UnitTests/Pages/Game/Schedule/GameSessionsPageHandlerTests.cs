@@ -146,9 +146,9 @@ public class GameSessionsPageHandlerTests
         // Arrange
         var handler = await CreateInitializedHandler();
         var adventureId = Guid.NewGuid();
-        var scenes = new[] {
-            new Scene { Name = "Scene 1" },
-            new Scene { Name = "Scene 2" },
+        var scenes = new SceneListItem[] {
+            new() { Name = "Scene 1" },
+            new() { Name = "Scene 2" },
         };
         _libraryClient.GetScenesAsync(adventureId).Returns(scenes);
 

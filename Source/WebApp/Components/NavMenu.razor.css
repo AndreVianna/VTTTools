@@ -9,11 +9,11 @@
   background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%) !important;
 }
 
-.md-symbol.toggler .md-symbol:before {
+.icon.toggler .icon:before {
   content: "arrow_menu_close";
 }
 
-.md-symbol.toggler.collapsed .md-symbol:before {
+.icon.toggler.collapsed .icon:before {
   content: "arrow_menu_open";
 }
 
@@ -45,38 +45,38 @@
     color: white;
   }
 
-  .nav-item .md-symbol.home:before {
+  .nav-item .icon.home:before {
     content: "home";
   }
 
-  .nav-item .md-symbol.about:before {
+  .nav-item .icon.about:before {
     content: "info";
   }
 
-  .nav-item .md-symbol.register:before {
+  .nav-item .icon.register:before {
     content: "person_add";
   }
 
-  .nav-item .md-symbol.login:before {
+  .nav-item .icon.login:before {
     content: "login";
   }
 
-  .nav-item .md-symbol.logout:before {
+  .nav-item .icon.logout:before {
     content: "logout";
   }
 
-  .nav-item .md-symbol.profile:before {
+  .nav-item .icon.profile:before {
     content: "person";
   }
 
-  .nav-item .md-symbol.schedule:before {
+  .nav-item .icon.schedule:before {
     content: "event";
   }
 
-  .nav-item .md-symbol.library:before {
+  .nav-item .icon.library:before {
     content: "newsstand";
   }
 
-  .nav-item .md-symbol.assets:before {
+  .nav-item .icon.assets:before {
     content: "category";
   }

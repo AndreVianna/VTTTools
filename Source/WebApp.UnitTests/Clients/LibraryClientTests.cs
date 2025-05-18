@@ -90,7 +90,7 @@ public class LibraryClientTests {
             OwnerId = Guid.NewGuid(),
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            IsListed = false,
+            IsPublished = false,
             IsPublic = false,
         };
 

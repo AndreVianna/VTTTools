@@ -24,7 +24,7 @@ public class AdventureHandlerTests
             Name = "Test Adventure",
             Description = "Test Description",
             Type = AdventureType.OpenWorld,
-            IsListed = true,
+            IsPublished = true,
             IsPublic = true,
         };
         _client.GetAdventureByIdAsync(_adventureId).Returns(adventure);
@@ -38,7 +38,7 @@ public class AdventureHandlerTests
         _page.Input.Name.Should().Be("Test Adventure");
         _page.Input.Description.Should().Be("Test Description");
         _page.Input.Type.Should().Be(AdventureType.OpenWorld);
-        _page.Input.IsListed.Should().BeTrue();
+        _page.Input.IsPublished.Should().BeTrue();
         _page.Input.IsPublic.Should().BeTrue();
         _page.State.Mode.Should().Be(DetailsPageMode.View);
     }
@@ -65,7 +65,7 @@ public class AdventureHandlerTests
             Name = "Test Adventure",
             Description = "Test Description",
             Type = AdventureType.OpenWorld,
-            IsListed = true,
+            IsPublished = true,
             IsPublic = true,
                                                 };
         _client.GetAdventureByIdAsync(_adventureId).Returns(adventure);
@@ -77,7 +77,7 @@ public class AdventureHandlerTests
         // Assert
         result.Should().BeTrue();
         _page.Input.Name.Should().Be("Test Adventure (Copy)");
-        _page.Input.IsListed.Should().BeFalse();
+        _page.Input.IsPublished.Should().BeFalse();
         _page.Input.IsPublic.Should().BeFalse();
         _page.State.Mode.Should().Be(DetailsPageMode.Clone);
     }
@@ -91,7 +91,7 @@ public class AdventureHandlerTests
         _page.Input.Name = "New Adventure";
         _page.Input.Description = "New Description";
         _page.Input.Type = AdventureType.DungeonCrawl;
-        _page.Input.IsListed = true;
+        _page.Input.IsPublished = true;
         _page.Input.IsPublic = false;
 
         var createdAdventure = new AdventureListItem {
@@ -99,7 +99,7 @@ public class AdventureHandlerTests
             Name = "New Adventure",
             Description = "New Description",
             Type = AdventureType.DungeonCrawl,
-            IsListed = true,
+            IsPublished = true,
             IsPublic = false,
                                                      };
 
@@ -127,14 +127,14 @@ public class AdventureHandlerTests
         _page.State.Original.Name = "Original Name";
         _page.State.Original.Description = "Original Description";
         _page.State.Original.Type = AdventureType.OpenWorld;
-        _page.State.Original.IsListed = false;
+        _page.State.Original.IsPublished = false;
         _page.State.Original.IsPublic = false;
 
         // Set up changed values
         _page.Input.Name = "Updated Name";
         _page.Input.Description = "Updated Description";
         _page.Input.Type = AdventureType.DungeonCrawl;
-        _page.Input.IsListed = true;
+        _page.Input.IsPublished = true;
         _page.Input.IsPublic = true;
 
         _client.UpdateAdventureAsync(_adventureId, Arg.Any<UpdateAdventureRequest>())
@@ -243,14 +243,14 @@ public class AdventureHandlerTests
         _page.State.Original.Name = "Original Name";
         _page.State.Original.Description = "Original Description";
         _page.State.Original.Type = AdventureType.OpenWorld;
-        _page.State.Original.IsListed = true;
+        _page.State.Original.IsPublished = true;
         _page.State.Original.IsPublic = false;
 
         // Set changed values
         _page.Input.Name = "Changed Name";
         _page.Input.Description = "Changed Description";
         _page.Input.Type = AdventureType.DungeonCrawl;
-        _page.Input.IsListed = false;
+        _page.Input.IsPublished = false;
         _page.Input.IsPublic = true;
 
         // Act
@@ -260,7 +260,7 @@ public class AdventureHandlerTests
         _page.Input.Name.Should().Be("Original Name");
         _page.Input.Description.Should().Be("Original Description");
         _page.Input.Type.Should().Be(AdventureType.OpenWorld);
-        _page.Input.IsListed.Should().BeTrue();
+        _page.Input.IsPublished.Should().BeTrue();
         _page.Input.IsPublic.Should().BeFalse();
     }
 

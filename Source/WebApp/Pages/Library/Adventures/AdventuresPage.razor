@@ -11,14 +11,15 @@
     </div>
     <div class="col-md-6 d-flex justify-content-md-end align-items-center">
       <button id="create-adventure-button" class="btn btn-primary me-2" @onclick="GoToCreatePage">
-        <span class="md-symbol create me-1" aria-hidden="true"></span> Create Adventure
+        <span class="icon create me-1" aria-hidden="true"></span>
+        Create
       </button>
       <div class="btn-group" role="group">
         <button type="button" class="btn @(State.ListViewMode == ListViewMode.List ? "btn-primary" : "btn-outline-primary")" @onclick="() => Handler.ToggleViewMode()" title="List View">
-          <span class="md-symbol list" aria-hidden="true"></span>
+          <span class="icon list" aria-hidden="true"></span>
         </button>
         <button type="button" class="btn @(State.ListViewMode == ListViewMode.Card ? "btn-primary" : "btn-outline-primary")" @onclick="() => Handler.ToggleViewMode()" title="Card View">
-          <span class="md-symbol grid" aria-hidden="true"></span>
+          <span class="icon grid" aria-hidden="true"></span>
         </button>
       </div>
     </div>
@@ -29,8 +30,8 @@
       <div class="input-group">
         <input type="text" class="form-control" placeholder="Search adventures..."
           @bind="State.SearchText" @bind:event="oninput" @onkeyup="ApplySearch" />
-        <button class="btn btn-outline-secondary" type="button" @onclick="ClearSearch">
-          <span class="md-symbol close" aria-hidden="true"></span>
+        <button class="btn btn-sm btn-outline-secondary" type="button" @onclick="ClearSearch">
+          <span class="icon close" aria-hidden="true"></span>
         </button>
       </div>
     </div>
@@ -74,35 +75,27 @@
                 </tr>
               </thead>
               <tbody>
-                @foreach (var adventure in State.OwnedAdventures) {
+                @foreach (var adv in State.OwnedAdventures) {
                   <tr>
-                    <td id="@($"adventure-{adventure.Id}-name")"><a class="btn btn-link link-primary me-1" href="@($"/adventure/edit/{adventure.Id}")"><span class="md-symbol edit" aria-hidden="true"></span></a> @adventure.Name</td>
-                    <td id="@($"adventure-{adventure.Id}-type")">@adventure.Type.ToString()</td>
-                    <td id="@($"adventure-{adventure.Id}-scenes")">
-                      <span>@adventure.ScenesCount scenes</span>
+                    <td class="align-middle" id="@($"adventure-{adv.Id}-name")">@adv.Name</td>
+                    <td class="align-middle" id="@($"adventure-{adv.Id}-type")">@adv.Type.ToString()</td>
+                    <td class="align-middle" id="@($"adventure-{adv.Id}-scenes")">
+                      @(adv.ScenesCount == 0 ? "no" : adv.ScenesCount) scene@(adv.ScenesCount > 1 ? "s" : "")
                     </td>
-                    <td id="@($"adventure-{adventure.Id}-status")">
-                      @if (adventure.IsListed) {
-                        <span class="badge bg-success me-1">Published</span>
-                      }
-                      else {
-                        <span class="badge bg-secondary me-1">Draft</span>
-                      }
-
-                      @if (adventure.IsPublic) {
-                        <span class="badge bg-info">Public</span>
-                      }
-                      else {
-                        <span class="badge bg-warning">Private</span>
-                      }
+                    <td class="align-middle" id="@($"adventure-{adv.Id}-status")">
+                      <span class="badge bg-@(adv.IsPublished ? "success" : "secondary") me-1">@(adv.IsPublished ? "Published" : "Draft")</span>
+                      <span class="badge bg-@(adv.IsPublic ? "info" : "warning") me-1">@(adv.IsPublic ? "Public" : "Private")</span>
                     </td>
-                    <td id="@($"adventure-{adventure.Id}-actions")">
-                      <a class="btn btn-link link-primary me-1" href="@($"/adventure/clone/{adventure.Id}")">
-                        <span class="md-symbol clone" aria-hidden="true"></span>
+                    <td class="align-middle" id="@($"adventure-{adv.Id}-actions")">
+                      <a class="btn btn-icon icon-primary me-1" href="@($"/adventure/edit/{adv.Id}")">
+                        <span class="icon edit" aria-hidden="true"></span>
                       </a>
-                      <button id="@($"delete-adventure-{adventure.Id}")" class="btn btn-link link-danger"
-                          @onclick="() => DeleteAdventure(adventure.Id)" title="Delete Adventure">
-                        <span class="md-symbol delete" aria-hidden="true"></span>
+                      <a class="btn btn-icon icon-primary me-1" href="@($"/adventure/clone/{adv.Id}")">
+                        <span class="icon clone" aria-hidden="true"></span>
+                      </a>
+                      <button id="@($"delete-adventure-{adv.Id}")" class="btn btn-icon icon-danger"
+                          @onclick="() => DeleteAdventure(adv.Id)" title="Delete Adventure">
+                        <span class="icon delete" aria-hidden="true"></span>
                       </button>
                     </td>
                   </tr>
@@ -113,58 +106,35 @@
         }
         else {
           <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="owned-adventures-cards">
-            @foreach (var adventure in State.OwnedAdventures) {
+            @foreach (var adv in State.OwnedAdventures) {
               <div class="col">
                 <div class="card h-100">
-                  @if (!string.IsNullOrEmpty(adventure.ImageUrl)) {
-                    <div class="card-img-top adventure-card-img" style="background-image: url('@adventure.ImageUrl');">
-                      <div class="adventure-card-type">
-                        <span>@adventure.Type.ToString() (@adventure.ScenesCount scenes)</span>
-                      </div>
-                    </div>
-                  }
-                  else {
-                    <div class="card-img-top adventure-card-img adventure-card-placeholder">
-                      <div class="adventure-card-type">
-                        <span>@adventure.Type.ToString() (@adventure.ScenesCount scenes)</span>
-                      </div>
-                    </div>
-                  }
-
-                  <div class="card-body">
-                    <h5 class="card-title">@adventure.Name <a class="btn btn-link link-primary ms-1" href="@($"/adventure/edit/{adventure.Id}")"><span class="md-symbol edit" aria-hidden="true"></span></a></h5>
-                    <p class="card-text">@adventure.Description</p>
-                  </div>
-
-                  <div class="card-footer">
+                  <div class="card-header" style="@(string.IsNullOrEmpty(adv.ImageUrl) ? null : $"background-image: url('{adv.ImageUrl}');")">
                     <div class="d-flex justify-content-between align-items-center">
-                      <div>
-                        @if (adventure.IsListed) {
-                          <span class="badge bg-success me-1">Published</span>
-                        }
-                        else {
-                          <span class="badge bg-secondary me-1">Draft</span>
-                        }
-
-                        @if (adventure.IsPublic) {
-                          <span class="badge bg-info">Public</span>
-                        }
-                        else {
-                          <span class="badge bg-warning">Private</span>
-                        }
-                      </div>
-
-                      <div class="btn-group" role="group">
-                        <button id="@($"clone-adventure-{adventure.Id}")" class="btn btn-outline-primary btn-sm"
-                            @onclick='@(() => RedirectTo($"/adventure/clone/{adventure.Id}"))' title="Clone Adventure">
-                          <span class="md-symbol clone" aria-hidden="true"></span>
+                      <h5>@adv.Name</h5>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button id="@($"clone-adventure-{adv.Id}")" class="btn btn-outline-primary"
+                                @onclick='@(() => RedirectTo($"/adventure/edit/{adv.Id}"))' title="Edit Adventure">
+                          <span class="icon edit" aria-hidden="true"></span>
                         </button>
-                        <button id="@($"delete-adventure-{adventure.Id}")" class="btn btn-outline-danger btn-sm"
-                            @onclick="() => DeleteAdventure(adventure.Id)" title="Delete Adventure">
-                          <span class="md-symbol delete" aria-hidden="true"></span>
+                        <button id="@($"clone-adventure-{adv.Id}")" class="btn btn-outline-primary"
+                                @onclick='@(() => RedirectTo($"/adventure/clone/{adv.Id}"))' title="Clone Adventure">
+                          <span class="icon clone" aria-hidden="true"></span>
+                        </button>
+                        <button id="@($"delete-adventure-{adv.Id}")" class="btn btn-outline-danger"
+                                @onclick="() => DeleteAdventure(adv.Id)" title="Delete Adventure">
+                          <span class="icon delete" aria-hidden="true"></span>
                         </button>
                       </div>
                     </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="card-title d-flex mb-1 align-items-center">
+                      <span class="badge bg-@(adv.IsPublished ? "success" : "secondary") me-1">@(adv.IsPublished ? "Published" : "Draft")</span>
+                      <span class="badge bg-@(adv.IsPublic ? "info" : "warning") me-1">@(adv.IsPublic ? "Public" : "Private")</span>
+                      @adv.Type.ToString() (@(adv.ScenesCount == 0 ? "no" : adv.ScenesCount) scene@(adv.ScenesCount > 1 ? "s" : ""))
+                    </div>
+                    <p class="card-text">@adv.Description</p>
                   </div>
                 </div>
               </div>
@@ -196,20 +166,19 @@
                 </tr>
               </thead>
               <tbody>
-                @foreach (var adventure in State.PublicAdventures) {
+                @foreach (var adv in State.PublicAdventures) {
                   <tr>
-                    <td id="@($"public-adventure-{adventure.Id}-name")"><a class="btn btn-link link-primary me-1" href="@($"/adventure/view/{adventure.Id}")"><span class="md-symbol view" aria-hidden="true"></span></a> @adventure.Name</td>
-                    <td id="@($"public-adventure-{adventure.Id}-type")">@adventure.Type.ToString()</td>
-                    <td id="@($"public-adventure-{adventure.Id}-scenes")">
-                      <span>@adventure.ScenesCount scenes</span>
-                    </td>
-                    <td id="@($"public-adventure-{adventure.Id}-actions")">
-                      <div class="btn-group" role="group">
-                        <button id="@($"clone-public-adventure-{adventure.Id}")" class="btn btn-link link-primary"
-                            @onclick='() => RedirectTo($"/adventure/clone/{adventure.Id}")' title="Clone Adventure">
-                          <span class="md-symbol clone" aria-hidden="true"></span>
-                        </button>
-                      </div>
+                    <td class="align-middle" id="@($"public-adventure-{adv.Id}-name")">@adv.Name</td>
+                    <td class="align-middle" id="@($"public-adventure-{adv.Id}-type")">@adv.Type.ToString()</td>
+                    <td class="align-middle" id="@($"public-adventure-{adv.Id}-scenes")">@(adv.ScenesCount == 0 ? "no" : adv.ScenesCount) scene@(adv.ScenesCount > 1 ? "s" : "")</td>
+                    <td class="align-middle" id="@($"public-adventure-{adv.Id}-actions")">
+                      <a class="btn btn-icon icon-primary me-1" href="@($"/adventure/view/{adv.Id}")" title="Edit Adventure">
+                        <span class="icon view" aria-hidden="true"></span>
+                      </a>
+                      <button id="@($"clone-public-adventure-{adv.Id}")" class="btn btn-icon icon-primary"
+                              @onclick='() => RedirectTo($"/adventure/clone/{adv.Id}")' title="Clone Adventure">
+                        <span class="icon clone" aria-hidden="true"></span>
+                      </button>
                     </td>
                   </tr>
                 }
@@ -220,43 +189,29 @@
         else
         {
           <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="public-adventures-cards">
-            @foreach (var adventure in State.PublicAdventures) {
+            @foreach (var adv in State.PublicAdventures) {
               <div class="col">
                 <div class="card h-100">
-                  @if (!string.IsNullOrEmpty(adventure.ImageUrl)) {
-                    <div class="card-img-top adventure-card-img" style="background-image: url('@adventure.ImageUrl');">
-                      <div class="adventure-card-type">
-                        @if (adventure.ScenesCount == 1) {
-                          <span>One-Shot @adventure.Type.ToString()</span>
-                        }
-                        else {
-                          <span>@adventure.Type.ToString() (@adventure.ScenesCount scenes)</span>
-                        }
-                      </div>
-                    </div>
-                  }
-                  else {
-                    <div class="card-img-top adventure-card-img adventure-card-placeholder">
-                      <div class="adventure-card-type">
-                        <span>@adventure.Type.ToString() (@adventure.ScenesCount scenes)</span>
-                      </div>
-                    </div>
-                  }
-
-                  <div class="card-body">
-                    <h5 class="card-title">@adventure.Name <a class="btn btn-link link-primary ms-1" href="@($"/adventure/view/{adventure.Id}")"><span class="md-symbol view" aria-hidden="true"></span></a></h5>
-                    <p class="card-text">@adventure.Description</p>
-                  </div>
-
-                  <div class="card-footer">
+                  <div class="card-header" style="@(string.IsNullOrEmpty(adv.ImageUrl) ? null : $"background-image: url('{adv.ImageUrl}');")">
                     <div class="d-flex justify-content-between align-items-center">
-                      <div class="btn-group" role="group">
-                        <button class="btn btn-sm btn-outline-primary"
-                            @onclick='() => RedirectTo($"/adventure/clone/{adventure.Id}")' title="Clone Adventure">
-                          <span class="md-symbol clone" aria-hidden="true"></span>
+                      <h5>@adv.Name</h5>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button id="@($"clone-adventure-{adv.Id}")" class="btn btn-outline-primary"
+                                @onclick='@(() => RedirectTo($"/adventure/view/{adv.Id}"))' title="View Adventure">
+                          <span class="icon view" aria-hidden="true"></span>
+                        </button>
+                        <button id="@($"clone-adventure-{adv.Id}")" class="btn btn-outline-primary"
+                                @onclick='@(() => RedirectTo($"/adventure/clone/{adv.Id}"))' title="Clone Adventure">
+                          <span class="icon clone" aria-hidden="true"></span>
                         </button>
                       </div>
                     </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="card-title d-flex mb-1 align-items-center">
+                      @adv.Type.ToString() (@(adv.ScenesCount == 0 ? "no" : adv.ScenesCount) scene@(adv.ScenesCount > 1 ? "s" : ""))
+                    </div>
+                    <p class="card-text">@adv.Description</p>
                   </div>
                 </div>
               </div>

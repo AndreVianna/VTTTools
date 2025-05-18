@@ -10,7 +10,7 @@ public class AdventurePageTests
         Name = "Test Adventure",
         Description = "Test Description",
         Type = AdventureType.OpenWorld,
-        IsListed = true,
+        IsPublished = true,
         IsPublic = true,
     };
 

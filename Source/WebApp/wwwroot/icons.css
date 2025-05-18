@@ -1,112 +1,179 @@
-﻿.md-symbol {
+﻿.icon {
   font-family: "Material Symbols Outlined";
   font-feature-settings: "liga";
-  font-size: 24px;
-  display: block;
-  color: var(--bs-light);
-  text-size-adjust: 100%;
+  font-size: 1.25rem;
+  display: inline-flex;
 }
 
-  .md-symbol.filled {
+  .icon.filled {
     font-variation-settings: 'FILL' 1;
   }
 
-  .md-symbol:disabled {
-    color: var(--bs-secondary);
+  .icon.x-small {
+    font-size: 0.875rem;
   }
 
-  .md-symbol.small {
-    font-size: 12px;
+  .icon.small {
+    font-size: 1rem;
   }
 
-  .md-symbol.large {
-    font-size: 24px;
+  .icon.large {
+    font-size: 1.5px;
   }
 
-  .md-symbol.xlarge {
-    font-size: 32px;
+  .icon.x-large {
+    font-size: 2px;
   }
 
-  .md-symbol.dark {
-    color: var(--bs-dark);
-  }
-
-    .md-symbol.dark:disabled {
-      color: var(--bs-secondary);
-    }
-
-  .md-symbol.list:before {
+  .icon.list:before {
     content: "list";
   }
 
-  .md-symbol.grid:before {
+  .icon.grid:before {
     content: "grid_view";
   }
 
-  .md-symbol.close:before {
+  .icon.close:before {
     content: "close_small";
   }
 
-  .md-symbol.view:before {
+  .icon.view:before {
     content: "visibility";
   }
 
-  .md-symbol.edit:before {
+  .icon.edit:before {
     content: "edit";
   }
 
-  .md-symbol.delete:before {
+  .icon.delete:before {
     content: "delete_forever";
   }
 
-  .md-symbol.create:before {
-    content: "add_circle";
+  .icon.create:before {
+    content: "add";
   }
 
-  .md-symbol.clone:before {
+  .icon.clone:before {
     content: "content_copy";
   }
 
-  .md-symbol.back:before {
+  .icon.back:before {
     content: "arrow_back";
   }
 
-  .md-symbol.save:before {
+  .icon.save:before {
     content: "save";
   }
 
-  .md-symbol.discard:before {
+  .icon.discard:before {
     content: "ink_eraser";
   }
 
-  .md-symbol.cancel:before {
+  .icon.cancel:before {
     content: "cancel";
   }
 
-  .md-symbol.start:before {
+  .icon.start:before {
     content: "play_circle";
   }
 
-.btn-outline-primary .md-symbol {
+.btn .icon {
+  font-size: 1.25rem;
+}
+
+.btn-lg .icon {
+  font-size: 1.5rem;
+}
+
+.btn-sm .icon {
+  font-size: 1rem;
+}
+
+.btn-icon {
+  --bs-btn-font-weight: 400;
+  --bs-btn-bg: transparent;
+  --bs-btn-border-color: transparent;
+  --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-border-color: transparent;
+  --bs-btn-disabled-border-color: transparent;
+  text-decoration: none;
+  padding: 0;
+}
+
+.icon-primary,
+.icon-primary:hover,
+.btn-outline-primary .icon
+.link-primary .icon {
   color: var(--bs-primary);
 }
 
-.btn-outline-primary:hover .md-symbol {
-  color: var(--bs-light);
+.icon-secondary,
+.icon-secondary:hover,
+.btn-outline-secondary .icon
+.link-secondary .icon {
+  color: var(--bs-secondary);
 }
 
-.btn-outline-danger .md-symbol {
+.icon-success,
+.icon-success:hover,
+.btn-outline-success .icon
+.link-success .icon {
+  color: var(--bs-success);
+}
+
+.icon-danger,
+.icon-danger:hover,
+.btn-outline-danger .icon
+.link-danger .icon {
   color: var(--bs-danger);
 }
 
-.btn-outline-danger:hover .md-symbol {
+.icon-warning,
+.icon-warning:hover,
+.btn-outline-warning .icon
+.link-warning .icon {
+  color: var(--bs-warning);
+}
+
+.icon-info,
+.icon-info:hover,
+.btn-outline-info .icon
+.link-info .icon {
+  color: var(--bs-info);
+}
+
+.icon-light,
+.icon-light:hover,
+.btn-outline-light .icon
+.link-light .icon {
   color: var(--bs-light);
 }
 
-.link-primary .md-symbol {
-  color: var(--bs-primary);
+.icon-dark,
+.icon-dark:hover,
+.btn-outline-dark .icon
+.link-dark .icon {
+  color: var(--bs-dark);
 }
 
-.link-danger .md-symbol {
-  color: var(--bs-danger);
+.btn-primary .icon,
+.btn-outline-primary:hover .icon,
+.btn-secondary .icon,
+.btn-outline-secondary:hover .icon,
+.btn-success .icon,
+.btn-outline-success:hover .icon,
+.btn-danger .icon,
+.btn-outline-danger:hover .icon,
+.btn-dark .icon,
+.btn-outline-dark:hover .icon {
+  color: var(--bs-light);
+}
+
+.btn-warning .icon,
+.btn-outline-warning:hover .icon,
+.btn-info .icon,
+.btn-outline-info:hover .icon,
+.btn-light .icon,
+.btn-outline-light:hover .icon {
+  color: var(--bs-dark);
 }

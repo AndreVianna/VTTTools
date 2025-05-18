@@ -4,8 +4,6 @@ internal class AdventurePageState {
     internal AdventureInputModel Input { get; set; } = new();
     internal AdventureInputModel Original { get; set; } = new();
     internal string? ImageUrl { get; set; }
-
-    public SceneListItem[] Scenes { get; set; } = [];
     public InputError[] Errors { get; set; } = [];
 
     public bool UnsavedChangesModalIsVisible { get; set; }
@@ -22,6 +20,6 @@ internal class AdventurePageState {
         => Input.Name != Original.Name
         || Input.Description != Original.Description
         || Input.Type != Original.Type
-        || Input.IsListed != Original.IsListed
+        || Input.IsPublished != Original.IsPublished
         || Input.IsPublic != Original.IsPublic;
 }

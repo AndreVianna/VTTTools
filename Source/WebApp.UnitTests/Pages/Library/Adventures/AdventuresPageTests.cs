@@ -13,14 +13,14 @@ public class AdventuresPageTests
             Name = "Adventure 1",
             Description = "Adventure 1 Description",
             Type = AdventureType.Survival,
-            IsListed = true,
+            IsPublished = true,
             IsPublic = true,
         },
         new() {
             Name = "Adventure 2",
             Description = "Adventure 2 Description",
             Type = AdventureType.OpenWorld,
-            IsListed = false,
+            IsPublished = false,
             IsPublic = false,
         }];
         _client.GetAdventuresAsync().Returns(_defaultAdventures);
@@ -77,7 +77,7 @@ public class AdventuresPageTests
             Name = "New Adventure",
             Description = "Adventure 1 Description",
             Type = AdventureType.Survival,
-            IsListed = true,
+            IsPublished = true,
             IsPublic = true,
         };
         _client.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>()).Returns(newAdventure);
@@ -130,7 +130,7 @@ public class AdventuresPageTests
             Name = _defaultAdventures[0].Name,
             Description = "Adventure 1 Description",
             Type = AdventureType.Survival,
-            IsListed = true,
+            IsPublished = true,
             IsPublic = true,
         };
         _client.CloneAdventureAsync(Arg.Any<Guid>(), Arg.Any<CloneAdventureRequest>()).Returns(clonedAdventure);

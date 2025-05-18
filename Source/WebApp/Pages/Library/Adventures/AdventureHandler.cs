@@ -7,31 +7,23 @@ public class AdventureHandler(AdventurePage page)
     public async Task<bool> LoadAdventureAsync(ILibraryClient client) {
         _client = client;
         Page.State.Mode = Enum.Parse<DetailsPageMode>(Page.Action ?? "View", true);
-        if (Page.State.Mode == DetailsPageMode.Create)
-            return true;
-        if (Page.Id == Guid.Empty)
-            return false;
+        if (Page.State.Mode == DetailsPageMode.Create) return true;
+        if (Page.Id == Guid.Empty) return false;
         var adventure = await client.GetAdventureByIdAsync(Page.Id);
-        if (adventure == null)
-            return false;
-
-        Page.Input.Name = adventure.Name;
-        Page.Input.Description = adventure.Description;
-        Page.Input.Type = adventure.Type;
-        Page.Input.IsListed = adventure.IsListed;
-        Page.Input.IsPublic = adventure.IsPublic;
-
+        if (adventure == null) return false;
+        Page.State.Input = adventure;
         if (Page.State.Mode == DetailsPageMode.Clone) {
-            Page.Input.Name += " (Copy)";
-            Page.Input.IsListed = false;
-            Page.Input.IsPublic = false;
+            Page.State.Input.Name += " (Copy)";
+            Page.State.Input.IsPublished = false;
+            Page.State.Input.IsPublic = false;
         }
 
-        Page.State.Original.Name = Page.Input.Name;
-        Page.State.Original.Description = Page.Input.Description;
-        Page.State.Original.Type = Page.Input.Type;
-        Page.State.Original.IsListed = Page.Input.IsListed;
-        Page.State.Original.IsPublic = Page.Input.IsPublic;
+        Page.State.Original.Name = Page.State.Input.Name;
+        Page.State.Original.Description = Page.State.Input.Description;
+        Page.State.Original.Type = Page.State.Input.Type;
+        Page.State.Original.IsPublished = Page.State.Input.IsPublished;
+        Page.State.Original.IsPublic = Page.State.Input.IsPublic;
+        Page.State.Original.Scenes = Page.State.Input.Scenes;
         return true;
     }
 
@@ -45,11 +37,11 @@ public class AdventureHandler(AdventurePage page)
     }
 
     public void DiscardChanges() {
-        Page.Input.Name = Page.State.Original.Name;
-        Page.Input.Description = Page.State.Original.Description;
-        Page.Input.Type = Page.State.Original.Type;
-        Page.Input.IsListed = Page.State.Original.IsListed;
-        Page.Input.IsPublic = Page.State.Original.IsPublic;
+        Page.State.Input.Name = Page.State.Original.Name;
+        Page.State.Input.Description = Page.State.Original.Description;
+        Page.State.Input.Type = Page.State.Original.Type;
+        Page.State.Input.IsPublished = Page.State.Original.IsPublished;
+        Page.State.Input.IsPublic = Page.State.Original.IsPublic;
         Page.State.Errors = [];
     }
 
@@ -61,16 +53,17 @@ public class AdventureHandler(AdventurePage page)
 
     private async Task UpdateAdventureAsync(bool continueEdit) {
         var request = new UpdateAdventureRequest {
-            Name = Page.Input.Name != Page.State.Original.Name ? Page.Input.Name : VttTools.Utilities.Optional<string>.None,
-            Description = Page.Input.Description != Page.State.Original.Description ? Page.Input.Description : VttTools.Utilities.Optional<string>.None,
-            Type = Page.Input.Type != Page.State.Original.Type ? Page.Input.Type : VttTools.Utilities.Optional<AdventureType>.None,
-            IsListed = Page.Input.IsListed != Page.State.Original.IsListed ? Page.Input.IsListed : VttTools.Utilities.Optional<bool>.None,
-            IsPublic = Page.Input.IsPublic != Page.State.Original.IsPublic ? Page.Input.IsPublic : VttTools.Utilities.Optional<bool>.None,
+            Name = Page.Input.Name != Page.State.Original.Name ? Page.State.Input.Name : Optional<string>.None,
+            Description = Page.Input.Description != Page.State.Original.Description ? Page.State.Input.Description : Optional<string>.None,
+            Type = Page.Input.Type != Page.State.Original.Type ? Page.State.Input.Type : Optional<AdventureType>.None,
+            IsListed = Page.Input.IsPublished != Page.State.Original.IsPublished ? Page.State.Input.IsPublished : Optional<bool>.None,
+            IsPublic = Page.Input.IsPublic != Page.State.Original.IsPublic ? Page.State.Input.IsPublic : Optional<bool>.None,
         };
 
         var result = await _client.UpdateAdventureAsync(Page.Id, request);
         if (!result.IsSuccessful) {
             Page.State.Errors = [.. result.Errors];
+            await Page.StateHasChangedAsync();
             return;
         }
 
@@ -84,14 +77,15 @@ public class AdventureHandler(AdventurePage page)
 
     private async Task CreateAdventureAsync(bool continueEdit) {
         var request = new CreateAdventureRequest {
-            Name = Page.Input.Name,
-            Description = Page.Input.Description,
-            Type = Page.Input.Type,
+            Name = Page.State.Input.Name,
+            Description = Page.State.Input.Description,
+            Type = Page.State.Input.Type,
         };
 
         var result = await _client.CreateAdventureAsync(request);
         if (!result.IsSuccessful) {
             Page.State.Errors = [.. result.Errors];
+            await Page.StateHasChangedAsync();
             return;
         }
 
