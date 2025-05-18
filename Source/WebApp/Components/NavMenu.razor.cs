@@ -3,6 +3,9 @@ namespace VttTools.WebApp.Components;
 public partial class NavMenu
     : IAsyncDisposable {
     public string LogoutUri => NavigationManager.GetRelativeUrl("account/logout");
+    public string LoginUri => NavigationManager.GetRelativeUrl("account/login");
+    public string ProfileUri => NavigationManager.GetRelativeUrl("account/manage");
+    public string RegisterUri => NavigationManager.GetRelativeUrl("account/manage");
 
     public event EventHandler<LocationChangedEventArgs> LocationChanged {
         add => NavigationManager.LocationChanged += value;

@@ -1,82 +1,44 @@
-.navbar {
+.custom-navbar {
+  background-image: linear-gradient(90deg, rgb(5, 39, 103) 0%, #3a0647 100%);
+}
+
+.custom-dropdown-menu {
   background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
-  position: sticky;
-  flex: 1;
-  color: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
 }
 
-.offcanvas {
-  background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%) !important;
+.nav-item .icon.home:before {
+  content: "home";
 }
 
-.icon.toggler .icon:before {
-  content: "arrow_menu_close";
+.nav-item .icon.about:before {
+  content: "info";
 }
 
-.icon.toggler.collapsed .icon:before {
-  content: "arrow_menu_open";
+.nav-item .icon.register:before {
+  content: "person_add";
 }
 
-.navbar-brand {
-  font-size: 1.1rem;
+.nav-item .icon.login:before {
+  content: "login";
 }
 
-
-.nav-item {
-  font-size: 0.9rem;
+.nav-item .icon.logout:before {
+  content: "logout";
 }
 
-  .nav-item ::deep .nav-link {
-    color: #d7d7d7;
-    background: none;
-    border: none;
-    display: flex;
-    align-items: center;
-    width: 100%;
-  }
+.nav-item .icon.profile:before {
+  content: "person";
+}
 
-  .nav-item ::deep a.active {
-    background-color: rgba(255,255,255,0.37);
-    color: white;
-  }
+.nav-item .icon.schedule:before {
+  content: "event";
+}
 
-  .nav-item ::deep .nav-link:hover {
-    background-color: rgba(255,255,255,0.1);
-    color: white;
-  }
+.nav-item .icon.library:before {
+  content: "newsstand";
+}
 
-  .nav-item .icon.home:before {
-    content: "home";
-  }
-
-  .nav-item .icon.about:before {
-    content: "info";
-  }
-
-  .nav-item .icon.register:before {
-    content: "person_add";
-  }
-
-  .nav-item .icon.login:before {
-    content: "login";
-  }
-
-  .nav-item .icon.logout:before {
-    content: "logout";
-  }
-
-  .nav-item .icon.profile:before {
-    content: "person";
-  }
-
-  .nav-item .icon.schedule:before {
-    content: "event";
-  }
-
-  .nav-item .icon.library:before {
-    content: "newsstand";
-  }
-
-  .nav-item .icon.assets:before {
-    content: "category";
-  }
+.nav-item .icon.assets:before {
+  content: "category";
+}

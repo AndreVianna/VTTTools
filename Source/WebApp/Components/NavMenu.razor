@@ -1,144 +1,74 @@
 @inherits Component
 
-
-<div class="navbar navbar-dark">
+<nav class="navbar navbar-expand-lg navbar-dark custom-navbar fixed-top">
   <div class="container-fluid">
-    <div class="d-flex">
+    <a class="navbar-brand text-light" href="/">VTT Tools</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <AuthorizeView>
         <Authorized>
-          <button class="navbar-toggler small me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon small"></span>
-          </button>
+          <ul class="navbar-nav">
+            <li class="nav-item dropdown">
+              <NavLink class="nav-link dropdown-toggle text-light" role="button" data-bs-toggle="dropdown">
+                Events
+              </NavLink>
+              <ul class="dropdown-menu dropdown-menu-dark custom-dropdown-menu">
+                <li><a class="dropdown-item" href="#">Upcoming Games</a></li>
+                <li><a class="dropdown-item" href="#">Past Games</a></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              <NavLink class="nav-link dropdown-toggle text-light" role="button" data-bs-toggle="dropdown">
+                Library
+              </NavLink>
+              <ul class="dropdown-menu dropdown-menu-dark custom-dropdown-menu">
+                <li><a class="dropdown-item" href="#">Books</a></li>
+                <li><a class="dropdown-item" href="#">Guides</a></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              <NavLink class="nav-link dropdown-toggle text-light" role="button" data-bs-toggle="dropdown">
+                Assets
+              </NavLink>
+              <ul class="dropdown-menu dropdown-menu-dark custom-dropdown-menu">
+                <li><a class="dropdown-item" href="#">Characters</a></li>
+                <li><a class="dropdown-item" href="#">Maps</a></li>
+              </ul>
+            </li>
+          </ul>
+
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <NavLink class="nav-link text-light" href="@ProfileUri">
+                <span class="icon small profile filled me-1" aria-hidden="true"></span>@User!.DisplayName
+              </NavLink>
+            </li>
+            <li class="nav-item">
+              <NavLink class="nav-link text-light" href="@LogoutUri">
+                <span class="icon small logout me-1"></span>Logout
+              </NavLink>
+            </li>
+          </ul>
         </Authorized>
+
+        <NotAuthorized>
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <NavLink class="nav-link text-light" href="@LoginUri">
+                <span class="icon small login"></span> Login
+              </NavLink>
+            </li>
+            <li class="nav-item">
+              <NavLink class="nav-link text-light" href="@RegisterUri">
+                <span class="icon small register"></span> Register
+              </NavLink>
+            </li>
+          </ul>
+        </NotAuthorized>
       </AuthorizeView>
-      <a class="navbar-brand text-white text-decoration-none" href="#">VTT Tools</a>
-    </div>
-    <div class="d-flex align-content-end">
-    <AuthorizeView>
-      <NotAuthorized>
-      <div class="nav-item pe-3">
-        <NavLink class="nav-link" href="account/register">
-          <span class="icon register filled me-1" aria-hidden="true"></span> Register
-        </NavLink>
-      </div>
-      <div class="nav-item pe-3">
-        <NavLink class="nav-link" href="account/login">
-          <span class="icon login filled me-1" aria-hidden="true"></span> Login
-        </NavLink>
-      </div>
-      </NotAuthorized>
-      <Authorized>
-      <div class="nav-item pe-3">
-        <NavLink class="nav-link" href="account/manage">
-          <span class="icon profile filled me-1" aria-hidden="true"></span> @User!.DisplayName
-        </NavLink>
-      </div>
-      <div class="nav-item pe-3">
-        <form id="logout-form" action="@LogoutUri" method="post">
-          <AntiforgeryToken />
-          <input type="hidden" name="ReturnUrl" value="@CurrentLocation" />
-          <button id="logout-submit" type="submit" class="nav-link">
-            <span class="icon logout filled me-1" aria-hidden="true"></span> Logout
-          </button>
-        </form>
-      </div>
-      </Authorized>
-    </AuthorizeView>
-    </div>
-    <div class="offcanvas offcanvas-start text-bg-dark" tabindex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasResponsiveLabel">
-      <div class="offcanvas-header">
-        <span class="offcanvas-title" id="offcanvasResponsiveLabel">Options</span>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-      </div>
-      <div class="offcanvas-body">
-        <AuthorizeView>
-          <Authorized>
-            <div class="nav-item pb-3">
-              <NavLink class="nav-link" href="counter">
-                Counter
-              </NavLink>
-            </div>
-            <div class="nav-item pb-3">
-              <NavLink class="nav-link" href="sessions">
-                <span class="icon schedule me-1" aria-hidden="true"></span> Events
-              </NavLink>
-            </div>
-            <div class="nav-item pb-3">
-              <NavLink class="nav-link" href="adventures">
-                <span class="icon library filled me-1" aria-hidden="true"></span> Library
-              </NavLink>
-            </div>
-            <div class="nav-item pb-3">
-              <NavLink class="nav-link" href="assets">
-                <span class="icon assets me-1" aria-hidden="true"></span> Assets
-              </NavLink>
-            </div>
-          </Authorized>
-        </AuthorizeView>
-      </div>
     </div>
   </div>
-</div>
-
-
-@* <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-  <nav class="navbar flex-column">
-  <div class="nav-item px-3">
-    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-      <span class="icon home filled" aria-hidden="true"></span> Home
-    </NavLink>
-  </div>
-
-  <AuthorizeView>
-    <NotAuthorized>
-      <div class="nav-item px-3">
-        <NavLink class="nav-link" href="account/register">
-          <span class="icon register filled" aria-hidden="true"></span> Register
-        </NavLink>
-      </div>
-      <div class="nav-item px-3">
-        <NavLink class="nav-link" href="account/login">
-          <span class="icon login filled" aria-hidden="true"></span> Login
-        </NavLink>
-      </div>
-    </NotAuthorized>
-    <Authorized>
-    <div class="nav-item px-3">
-      <form id="logout-form" action="@LogoutUri" method="post">
-      <AntiforgeryToken/>
-      <input type="hidden" name="ReturnUrl" value="@CurrentLocation"/>
-      <button id="logout-submit" type="submit" class="nav-link">
-        <span class="icon logout filled" aria-hidden="true"></span> Logout
-      </button>
-      </form>
-    </div>
-    <div class="nav-item px-3">
-      <NavLink class="nav-link" href="account/manage">
-      <span class="icon profile filled" aria-hidden="true"></span> @UserFormatName
-      </NavLink>
-    </div>
-    <div class="nav-item px-3">
-      <NavLink class="nav-link" href="sessions">
-      <span class="icon schedule" aria-hidden="true"></span> Game Sessions
-      </NavLink>
-    </div>
-    <div class="nav-item px-3">
-      <NavLink class="nav-link" href="adventures">
-      <span class="icon library filled" aria-hidden="true"></span> Library
-      </NavLink>
-    </div>
-    <div class="nav-item px-3">
-      <NavLink class="nav-link" href="assets">
-      <span class="icon assets" aria-hidden="true"></span> Assets
-      </NavLink>
-    </div>
-    </Authorized>
-  </AuthorizeView>
-  <div class="nav-item px-3">
-    <NavLink class="nav-link" href="about" Match="NavLinkMatch.All">
-      <span class="icon about filled" aria-hidden="true"></span> About
-    </NavLink>
-  </div>
-  </nav>
-</div>
- *@
+</nav>
