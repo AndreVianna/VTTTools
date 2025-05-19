@@ -1,0 +1,223 @@
+@page "/scenes/builder/{SceneId:guid}"
+@rendermode InteractiveWebAssembly
+@using VttTools.Assets.Model
+@using VttTools.Library.Scenes.Model
+@using VttTools.Common.Model
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using System.Text.Json
+
+<PageTitle>Scene Builder - @(Scene?.Name ?? "Loading...")</PageTitle>
+
+<div class="scene-builder-container">
+    <div class="scene-builder-toolbar">
+        <div class="toolbar-group">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="stageMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    Stage
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="stageMenuButton">
+                    <li><button class="dropdown-item" @onclick="OpenChangeImageModal">Change Image</button></li>
+                    <li><button class="dropdown-item" @onclick="OpenGridSettingsModal">Set Grid</button></li>
+                </ul>
+            </div>
+        </div>
+        <div class="toolbar-group">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="tokensMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    Tokens
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="tokensMenuButton">
+                    <li><button class="dropdown-item" @onclick="() => StartTokenPlacement(AssetType.Creature)">Add Creature</button></li>
+                    <li><button class="dropdown-item" @onclick="() => StartTokenPlacement(AssetType.Character)">Add Character</button></li>
+                    <li><button class="dropdown-item" @onclick="() => StartTokenPlacement(AssetType.NPC)">Add NPC</button></li>
+                    <li><button class="dropdown-item" @onclick="() => StartTokenPlacement(AssetType.Object)">Add Object</button></li>
+                </ul>
+            </div>
+        </div>
+        <div class="toolbar-group">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="structuresMenuButton" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                    Structures
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="structuresMenuButton">
+                    <li><button class="dropdown-item" disabled>Draw Wall</button></li>
+                    <li><button class="dropdown-item" disabled>Draw Door</button></li>
+                    <li><button class="dropdown-item" disabled>Draw Window</button></li>
+                </ul>
+            </div>
+        </div>
+        <div class="toolbar-group ml-auto">
+            <button class="btn btn-primary" @onclick="SaveScene">Save</button>
+            <button class="btn btn-secondary" @onclick="NavigateBack">Back</button>
+        </div>
+    </div>
+
+    <div class="scene-canvas-container" @ref="CanvasContainerRef">
+        <canvas @ref="CanvasRef" 
+                @onmousedown="OnCanvasMouseDown" 
+                @onmousemove="OnCanvasMouseMove" 
+                @onmouseup="OnCanvasMouseUp"
+                @oncontextmenu:preventDefault
+                @oncontextmenu="OnCanvasContextMenu">
+        </canvas>
+    </div>
+</div>
+
+@if (_showChangeImageModal)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Change Background Image</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModals"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="imageUpload" class="form-label">Upload Image</label>
+                        <InputFile id="imageUpload" OnChange="OnImageFileSelected" class="form-control" />
+                    </div>
+                    @if (!string.IsNullOrEmpty(Scene?.Stage.Source))
+                    {
+                        <div class="current-image mb-3">
+                            <p>Current image:</p>
+                            <img src="@Scene.Stage.Source" style="max-width: 100%; max-height: 200px;" />
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModals">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveBackgroundImage">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@if (_showGridSettingsModal)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Grid Settings</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModals"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="gridType" class="form-label">Grid Type</label>
+                        <select id="gridType" class="form-select" @bind="GridSettings.Type">
+                            <option value="@GridType.None">None</option>
+                            <option value="@GridType.Square">Square</option>
+                            <option value="@GridType.HexH">Hex (Horizontal)</option>
+                            <option value="@GridType.HexV">Hex (Vertical)</option>
+                            <option value="@GridType.Isometric">Isometric</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cellWidth" class="form-label">Cell Width</label>
+                        <input type="number" id="cellWidth" class="form-control" @bind="GridSettings.CellSize.Width" min="1" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="cellHeight" class="form-label">Cell Height</label>
+                        <input type="number" id="cellHeight" class="form-control" @bind="GridSettings.CellSize.Height" min="1" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="offsetX" class="form-label">Offset X</label>
+                        <input type="number" id="offsetX" class="form-control" @bind="GridSettings.Offset.Left" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="offsetY" class="form-label">Offset Y</label>
+                        <input type="number" id="offsetY" class="form-control" @bind="GridSettings.Offset.Top" />
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" id="snapToGrid" class="form-check-input" @bind="_snapToGrid" />
+                        <label for="snapToGrid" class="form-check-label">Snap to Grid</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModals">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveGridSettings">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@if (_showAssetSelectorModal)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Asset</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModals"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="assetName" class="form-label">Name</label>
+                        <input type="text" id="assetName" class="form-control" @bind="_newAssetName" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="assetUpload" class="form-label">Upload Image</label>
+                        <InputFile id="assetUpload" OnChange="OnAssetFileSelected" class="form-control" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModals">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="AddTokenToScene">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@if (_showTokenContextMenu)
+{
+    <div class="token-context-menu" style="position: absolute; left: @(_contextMenuPosition.Left)px; top: @(_contextMenuPosition.Top)px; z-index: 1000; background-color: white; border: 1px solid #ccc; border-radius: 4px; padding: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <li><button class="btn btn-sm btn-link w-100 text-start" @onclick="ToggleLockSelectedToken">@(_selectedToken?.IsLocked == true ? "Unlock" : "Lock")</button></li>
+            <li><button class="btn btn-sm btn-link w-100 text-start" @onclick="DeleteSelectedToken">Delete</button></li>
+            <li><button class="btn btn-sm btn-link w-100 text-start" @onclick="CloseContextMenu">Cancel</button></li>
+        </ul>
+    </div>
+}
+
+<style>
+    .scene-builder-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 100px);
+        width: 100%;
+    }
+
+    .scene-builder-toolbar {
+        display: flex;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .toolbar-group {
+        margin-right: 15px;
+    }
+
+    .scene-canvas-container {
+        flex: 1;
+        position: relative;
+        overflow: auto;
+        background-color: #e9ecef;
+    }
+
+    canvas {
+        position: absolute;
+        background-color: white;
+    }
+
+    .ml-auto {
+        margin-left: auto;
+    }
+</style>

@@ -29,6 +29,7 @@
     <ProjectReference Include="..\Data\VttTools.Data.csproj" />
     <ProjectReference Include="..\Domain\VttTools.Domain.csproj" />
     <ProjectReference Include="..\WebApp.Abstractions\VttTools.WebApp.Abstractions.csproj" />
+    <ProjectReference Include="..\WebApp.Client\VttTools.WebApp.Client.csproj" />
   </ItemGroup>
 
 </Project>

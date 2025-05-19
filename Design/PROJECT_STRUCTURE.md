@@ -18,6 +18,7 @@
   - **AppHost**
     - appsettings.Development.json
     - appsettings.json
+    - GlobalUsings.cs
     - Program.cs
     - VttTools.AppHost.csproj
   - **Assets**
@@ -29,11 +30,11 @@
     - VttTools.Assets.csproj
     - **EndpointMappers**
       - AssetEndpointsMapper.cs
-      - HealthEndpointsMapper.cs
     - **Handlers**
       - AssetHandlers.cs
     - **Services**
       - AssetService.cs
+      - Cloner.cs
       - MediaService.cs
   - **Assets.UnitTests**
     - GlobalUsings.cs
@@ -41,7 +42,6 @@
     - xunit.runner.json
     - **EndpointMappers**
       - AssetEndpointsMapperTests.cs
-      - HealthEndpointsMapperTests.cs
     - **Extensions**
       - EndpointRouteBuilderExtensionsTests.cs
       - HostApplicationBuilderExtensionsTests.cs
@@ -51,6 +51,8 @@
   - **Common**
     - GlobalUsings.cs
     - VttTools.Common.csproj
+    - **EndpointMappers**
+      - HealthEndpointsMapper.cs
     - **Extensions**
       - ApplicationBuilderExtensions.cs
       - ClaimsPrincipalExtensions.cs
@@ -67,6 +69,8 @@
     - GlobalUsings.cs
     - VttTools.Common.UnitTests.csproj
     - xunit.runner.json
+    - **EndpointMappers**
+      - HealthEndpointsMapperTests.cs
     - **Extensions**
       - ApplicationBuilderExtensionsTests.cs
       - EndpointsMapperHelperTests.cs
@@ -126,12 +130,16 @@
     - VttTools.Domain.csproj
     - **Assets**
       - **ApiContracts**
+        - CloneAssetRequest.cs
         - CreateAssetRequest.cs
         - UpdateAssetRequest.cs
       - **Model**
         - Asset.cs
         - AssetType.cs
+        - Format.cs
+        - FormatType.cs
       - **ServiceContracts**
+        - CloneAssetData.cs
         - CreateAssetData.cs
         - UpdateAssetData.cs
       - **Services**
@@ -144,14 +152,9 @@
         - Request.cs
         - Response.cs
       - **Model**
-        - CellType.cs
         - DiceRoll.cs
-        - Grid.cs
         - Position.cs
         - Size.cs
-        - Stage.cs
-        - StageMapType.cs
-        - Visibility.cs
       - **ServiceContracts**
         - Data.cs
     - **Game**
@@ -182,6 +185,7 @@
       - **Model**
         - Role.cs
         - RoleClaim.cs
+        - RoleName.cs
         - User.cs
         - UserClaim.cs
         - UserLogin.cs
@@ -191,13 +195,16 @@
       - **Adventures**
         - **ApiContracts**
           - AddClonedSceneRequest.cs
+          - AddNewSceneRequest.cs
           - CloneAdventureRequest.cs
           - CreateAdventureRequest.cs
           - UpdateAdventureRequest.cs
         - **Model**
           - Adventure.cs
+          - AdventureType.cs
         - **ServiceContracts**
           - AddClonedSceneData.cs
+          - AddNewSceneData.cs
           - CloneAdventureData.cs
           - CreateAdventureData.cs
           - UpdateAdventureData.cs
@@ -213,18 +220,20 @@
           - Epic.cs
       - **Scenes**
         - **ApiContracts**
-          - AddSceneAssetRequest.cs
-          - CloneSceneRequest.cs
-          - CreateSceneRequest.cs
+          - AddClonedSceneAssetRequest.cs
+          - AddNewSceneAssetRequest.cs
           - UpdateSceneAssetRequest.cs
           - UpdateSceneRequest.cs
         - **Model**
+          - Grid.cs
+          - GridType.cs
           - Scene.cs
           - SceneAsset.cs
+          - Stage.cs
         - **ServiceContracts**
-          - AddSceneAssetData.cs
-          - CloneSceneData.cs
-          - CreateSceneData.cs
+          - AddAssetData.cs
+          - AddClonedAssetData.cs
+          - AddNewAssetData.cs
           - UpdateSceneAssetData.cs
           - UpdateSceneData.cs
         - **Services**
@@ -249,13 +258,11 @@
         - RequestTests.cs
         - ResponseTests.cs
       - **Model**
-        - CellTypeTests.cs
         - GridTests.cs
         - PositionTests.cs
         - SizeTests.cs
         - StageMapTypeTests.cs
         - StageTests.cs
-        - VisibilityTests.cs
       - **ServiceContracts**
         - DataTests.cs
     - **Game**
@@ -294,6 +301,7 @@
           - UpdateAdventureRequestTests.cs
         - **Model**
           - AdventureTests.cs
+          - AdventureTypeTests.cs
       - **Campaigns**
         - **Model**
           - CampaignTests.cs
@@ -302,15 +310,13 @@
           - EpicTests.cs
       - **Scenes**
         - **ApiContracts**
-          - AddSceneAssetRequestTests.cs
-          - CreateSceneRequestTests.cs
+          - AddNewSceneAssetRequestTests.cs
           - UpdateSceneAssetRequestTests.cs
-          - UpdateSceneRequestTests.cs
         - **Model**
           - SceneAssetTests.cs
           - SceneTests.cs
         - **ServiceContracts**
-          - AddSceneAssetDataTests.cs
+          - AddNewAssetDataTests.cs
           - UpdateSceneAssetDataTests.cs
     - **Utilities**
       - OptionalTests.cs
@@ -323,7 +329,6 @@
     - VttTools.Game.csproj
     - **EndpointMappers**
       - GameSessionEndpointsMapper.cs
-      - HealthEndpointsMapper.cs
     - **Handlers**
       - GameSessionHandlers.cs
     - **Services**
@@ -334,7 +339,6 @@
     - xunit.runner.json
     - **EndpointMappers**
       - GameSessionEndpointsMapperTests.cs
-      - HealthEndpointsMapperTests.cs
     - **Extensions**
       - EndpointRouteBuilderExtensionsTests.cs
       - HostApplicationBuilderExtensionsTests.cs
@@ -351,7 +355,6 @@
     - VttTools.Library.csproj
     - **EndpointMappers**
       - AdventureEndpointsMapper.cs
-      - HealthEndpointsMapper.cs
       - SceneEndpointsMapper.cs
     - **Handlers**
       - AdventureHandlers.cs
@@ -366,7 +369,6 @@
     - xunit.runner.json
     - **EndpointMappers**
       - AdventureEndpointsMapperTests.cs
-      - HealthEndpointsMapperTests.cs
       - SceneEndpointsMapperTests.cs
     - **Extensions**
       - EndpointRouteBuilderExtensionsTests.cs
@@ -395,18 +397,18 @@
       - LibraryClient.cs
     - **Components**
       - App.razor
-      - NavMenuComponent.razor
-      - NavMenuComponent.razor.cs
-      - RoutesComponent.razor
+      - NavMenu.razor
+      - NavMenu.razor.cs
+      - Routes.razor
       - **Account**
-        - ExternalLoginPickerComponent.razor
-        - ExternalLoginPickerComponent.razor.cs
-        - ManageNavMenuComponent.razor
-        - ManageNavMenuComponent.razor.cs
-        - RecoveryCodesComponent.razor
-        - RecoveryCodesComponent.razor.cs
-        - StatusMessageComponent.razor
-        - StatusMessageComponent.razor.cs
+        - ExternalLoginPicker.razor
+        - ExternalLoginPicker.razor.cs
+        - ManageNavMenu.razor
+        - ManageNavMenu.razor.cs
+        - RecoveryCodes.razor
+        - RecoveryCodes.razor.cs
+        - StatusMessage.razor
+        - StatusMessage.razor.cs
     - **Extensions**
       - AdditionalIdentityEndpointsMapper.cs
     - **Layouts**
@@ -525,20 +527,21 @@
       - **Library**
         - _Imports.razor
         - **Adventures**
+          - AdventureHandler.cs
+          - AdventurePage.razor
+          - AdventurePage.razor.cs
+          - AdventuresHandler.cs
           - AdventuresPage.razor
           - AdventuresPage.razor.cs
-          - **Handlers**
-            - AdventuresHandler.cs
           - **Models**
             - AdventureInputModel.cs
             - AdventureListItem.cs
+            - AdventurePageState.cs
             - AdventuresPageState.cs
-        - **Scenes**
-          - ScenesPage.razor
-          - ScenesPage.razor.cs
-          - ScenesPage.razor.handler.cs
-          - ScenesPage.razor.input.cs
-          - ScenesPage.razor.state.cs
+            - DetailsPageMode.cs
+            - ListViewMode.cs
+            - SceneInputModel.cs
+            - SceneListItem.cs
     - **Utilities**
       - IdentityNoOpEmailSender.cs
       - IdentityRevalidatingAuthenticationStateProvider.cs
@@ -548,27 +551,18 @@
     - VttTools.WebApp.Abstractions.csproj
     - **Components**
       - AccountPage.cs
-      - AccountPageHandler.cs
-      - AuthenticatedPage.cs
-      - AuthenticatedPageHandler.cs
       - Component.cs
-      - ComponentExtensions.cs
       - IAccountPage.cs
-      - IAuthenticatedComponent.cs
-      - IAuthenticatedPage.cs
       - IComponent.cs
       - IPage.cs
-      - IPublicComponent.cs
-      - IPublicPage.cs
       - Page.cs
       - PageHandler.cs
-      - PublicComponent.cs
-      - PublicPage.cs
-      - PublicPageHandler.cs
     - **Extensions**
       - HttpContextExtensions.cs
       - NavigationManagerExtensions.cs
       - UserManagerExtensions.cs
+    - **Models**
+      - LoggedUser.cs
     - **Utilities**
       - IdentityUserAccessor.cs
       - IIdentityUserAccessor.cs
@@ -580,6 +574,17 @@
       - PublicComponentTests.cs
     - **TestUtilities**
       - ComponentTestContext.cs
+  - **WebApp.Client**
+    - _Imports.razor
+    - Program.cs
+    - RedirectToLogin.razor
+    - VttTools.WebApp.Client.csproj
+    - **Pages**
+      - Counter.razor
+      - Counter.razor.cs
+    - **wwwroot**
+      - appsettings.Development.json
+      - appsettings.json
   - **WebApp.UnitTests**
     - GlobalUsings.cs
     - VttTools.WebApp.UnitTests.csproj
@@ -590,7 +595,7 @@
       - LibraryClientTests.cs
       - MockHttpMessageHandler.cs
     - **Components**
-      - NavMenuComponentTests.cs
+      - NavMenuTests.cs
     - **Pages**
       - ErrorPageHandlerTests.cs
       - ErrorPageTests.cs
@@ -624,11 +629,10 @@
           - GameSessionsPageTests.cs
       - **Library**
         - **Adventures**
+          - AdventureHandlerTests.cs
+          - AdventurePageTests.cs
           - AdventuresPageHandlerTests.cs
           - AdventuresPageTests.cs
-        - **Scenes**
-          - ScenesPageHandlerTests.cs
-          - ScenesPageTests.cs
     - **TestUtilities**
       - ComponentTestContext.cs
 - **Utilities**

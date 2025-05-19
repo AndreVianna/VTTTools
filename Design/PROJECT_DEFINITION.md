@@ -113,21 +113,8 @@ All items in the hierarchy below and the assets have:
 
 ### 4. Scene
 
-* Owns one Stage
-* Has a collection of Assets (highly reusable, many-to-many)
-* Must belong to an Adventure
-* No explicit connections between Scenes in the model
-* The GM selects the next Scene from the list of available Scenes in the Adventure
-* Various types:
-  * Combat
-  * Exploration
-  * Social
-  * Travel
-  * Chase
-  * Puzzles
-  * Escape
-  * Challenges
-* During Scenes, adventurers interact with monsters, NPCs, environments, and make decisions (see **'Assets'** below)
+* TBD
+
 
 ## Templates and Instances
 

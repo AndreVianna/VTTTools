@@ -11,7 +11,9 @@ internal static class Program {
         var builder = WebApplication.CreateBuilder(args);
         builder.Host.VerifyDependencies();
         builder.Services.AddRazorComponents()
-               .AddInteractiveServerComponents();
+               .AddInteractiveServerComponents()
+               .AddInteractiveWebAssemblyComponents()
+               .AddAuthenticationStateSerialization();
 
         builder.Services.AddServiceDiscovery();
         builder.Services.ConfigureHttpClientDefaults(http => {
@@ -68,7 +70,10 @@ internal static class Program {
 
         var app = builder.Build();
 
-        if (!app.Environment.IsDevelopment()) {
+        if (app.Environment.IsDevelopment()) {
+            app.UseDeveloperExceptionPage();
+            app.UseWebAssemblyDebugging();
+        } else {
             app.UseExceptionHandler("/error", createScopeForErrors: true);
             app.UseStatusCodePagesWithReExecute("/error/{0}");
             app.UseHsts();
@@ -83,7 +88,9 @@ internal static class Program {
 
         app.MapStaticAssets();
         app.MapRazorComponents<App>()
-           .AddInteractiveServerRenderMode();
+           .AddInteractiveServerRenderMode()
+           .AddInteractiveWebAssemblyRenderMode()
+           .AddAdditionalAssemblies(typeof(VttTools.WebApp.Client._Imports).Assembly);
         MapEndpoints(app);
 
         app.Run();

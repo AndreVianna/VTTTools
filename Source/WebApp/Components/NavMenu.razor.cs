@@ -7,6 +7,8 @@ public partial class NavMenu
     public string ProfileUri => NavigationManager.GetRelativeUrl("account/manage");
     public string RegisterUri => NavigationManager.GetRelativeUrl("account/manage");
 
+    public string AdventuresUri => NavigationManager.GetRelativeUrl("/adventures");
+
     public event EventHandler<LocationChangedEventArgs> LocationChanged {
         add => NavigationManager.LocationChanged += value;
         remove => NavigationManager.LocationChanged -= value;
