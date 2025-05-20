@@ -1,7 +1,4 @@
-using VttTools.Library.Adventures.ApiContracts;
-using VttTools.Library.Scenes.ApiContracts;
-using VttTools.Library.Scenes.Model;
-using VttTools.WebApp.Client.Models;
+using UpdateAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateAssetRequest;
 
 namespace VttTools.WebApp.Client.Clients;
 
@@ -9,7 +6,7 @@ public interface ILibraryClient
 {
     Task<Scene?> GetSceneByIdAsync(Guid id);
     Task<Result<Scene>> UpdateSceneAsync(Guid id, UpdateSceneRequest request);
-    Task<Result<SceneAsset>> AddSceneAssetAsync(Guid sceneId, AddNewSceneAssetRequest request);
+    Task<Result<SceneAsset>> AddSceneAssetAsync(Guid sceneId, AddAssetRequest request);
     Task<bool> RemoveSceneAssetAsync(Guid sceneId, Guid assetId, uint number);
-    Task<Result<SceneAsset>> UpdateSceneAssetAsync(Guid sceneId, Guid assetId, uint number, UpdateSceneAssetRequest request);
+    Task<Result<SceneAsset>> UpdateSceneAssetAsync(Guid sceneId, Guid assetId, uint number, UpdateAssetRequest request);
 }

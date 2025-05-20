@@ -27,6 +27,12 @@ public class AdventureHandler(AdventurePage page)
         return true;
     }
 
+    internal async Task DeleteAdventureAsync() {
+        var deleted = await _client.DeleteAdventureAsync(Page.Id);
+        if (deleted)
+            Page.NavigationManager.NavigateTo("/adventures");
+    }
+
     internal Task SaveChangesAsync(bool continueEdit) {
         Page.State.Errors = [];
         return Page.State.Mode switch {
@@ -45,18 +51,12 @@ public class AdventureHandler(AdventurePage page)
         Page.State.Errors = [];
     }
 
-    internal async Task DeleteAdventureAsync() {
-        var deleted = await _client.DeleteAdventureAsync(Page.Id);
-        if (deleted)
-            Page.NavigationManager.NavigateTo("/adventures");
-    }
-
-    private async Task UpdateAdventureAsync(bool continueEdit) {
+    private async Task UpdateAdventureAsync(bool continueEditing) {
         var request = new UpdateAdventureRequest {
             Name = Page.Input.Name != Page.State.Original.Name ? Page.State.Input.Name : Optional<string>.None,
             Description = Page.Input.Description != Page.State.Original.Description ? Page.State.Input.Description : Optional<string>.None,
             Type = Page.Input.Type != Page.State.Original.Type ? Page.State.Input.Type : Optional<AdventureType>.None,
-            IsListed = Page.Input.IsPublished != Page.State.Original.IsPublished ? Page.State.Input.IsPublished : Optional<bool>.None,
+            IsPublished = Page.Input.IsPublished != Page.State.Original.IsPublished ? Page.State.Input.IsPublished : Optional<bool>.None,
             IsPublic = Page.Input.IsPublic != Page.State.Original.IsPublic ? Page.State.Input.IsPublic : Optional<bool>.None,
         };
 
@@ -67,15 +67,13 @@ public class AdventureHandler(AdventurePage page)
             return;
         }
 
-        var url = continueEdit
+        var url = continueEditing
             ? $"/adventure/edit/{Page.Id}"
-            : !string.IsNullOrEmpty(Page.State.PendingNavigationUrl)
-                ? Page.State.PendingNavigationUrl
-                : $"/adventure/view/{Page.Id}";
+            : "/adventures";
         Page.NavigationManager.NavigateTo(url);
     }
 
-    private async Task CreateAdventureAsync(bool continueEdit) {
+    private async Task CreateAdventureAsync(bool continueEditing) {
         var request = new CreateAdventureRequest {
             Name = Page.State.Input.Name,
             Description = Page.State.Input.Description,
@@ -89,11 +87,24 @@ public class AdventureHandler(AdventurePage page)
             return;
         }
 
-        var url = continueEdit
+        var url = continueEditing
             ? $"/adventure/edit/{result.Value.Id}"
-            : !string.IsNullOrEmpty(Page.State.PendingNavigationUrl)
-                ? Page.State.PendingNavigationUrl
-                : $"/adventure/view/{result.Value.Id}";
+            : "/adventures";
         Page.NavigationManager.NavigateTo(url);
+    }
+
+    internal async Task CreateSceneAsync() {
+        var request = new AddNewSceneRequest {
+            Name = "New Scene",
+            Description = "This is a new scene.",
+        };
+        var result = await _client.CreateSceneAsync(Page.Id, request);
+        if (result.IsSuccessful) {
+            Page.RedirectTo($"/scenes/builder/{result.Value.Id}");
+            return;
+        }
+
+        Page.SetStatusMessage("Error: Unable to create scene.");
+        await Page.StateHasChangedAsync();
     }
 }

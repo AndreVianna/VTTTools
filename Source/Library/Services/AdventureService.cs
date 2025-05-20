@@ -33,7 +33,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     public async Task<Result<Adventure>> CloneAdventureAsync(Guid userId, CloneAdventureData data, CancellationToken ct = default) {
         var original = await adventureStorage.GetByIdAsync(data.TemplateId, ct);
         if (original is null) return Result.Failure("NotFound");
-        if (original.OwnerId != userId || original is { IsPublic: true, IsListed: true }) return Result.Failure("NotAllowed");
+        if (original.OwnerId != userId || original is { IsPublic: true, IsPublished: true }) return Result.Failure("NotAllowed");
         var result = data.Validate();
         if (result.HasErrors) return result;
         var clone = Cloner.CloneAdventure(original, userId, data);
@@ -48,13 +48,15 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
         if (adventure.OwnerId != userId) return Result.Failure("NotAllowed");
         var result = data.Validate();
         if (result.HasErrors) return result;
-        if (data.Name.IsSet) adventure.Name = data.Name.Value;
-        if (data.Description.IsSet) adventure.Description = data.Description.Value;
-        if (data.Type.IsSet) adventure.Type = data.Type.Value;
-        if (data.ImageId.IsSet) adventure.ImageId = data.ImageId.Value;
-        if (data.IsListed.IsSet) adventure.IsListed = data.IsListed.Value;
-        if (data.IsPublic.IsSet) adventure.IsPublic = data.IsPublic.Value;
-        if (data.CampaignId.IsSet) adventure.CampaignId = data.CampaignId.Value;
+        adventure = adventure with {
+            Name = data.Name.IsSet ? data.Name.Value : adventure.Name,
+            Description = data.Description.IsSet ? data.Description.Value : adventure.Description,
+            Type = data.Type.IsSet ? data.Type.Value : adventure.Type,
+            ImageId = data.ImageId.IsSet ? data.ImageId.Value : adventure.ImageId,
+            IsPublished = data.IsListed.IsSet ? data.IsListed.Value : adventure.IsPublished,
+            IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : adventure.IsPublic,
+            CampaignId = data.CampaignId.IsSet ? data.CampaignId.Value : adventure.CampaignId,
+        };
         await adventureStorage.UpdateAsync(adventure, ct);
         return adventure;
     }
@@ -80,8 +82,6 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
         var result = data.Validate();
         if (result.HasErrors) return result;
         var scene = new Scene {
-            OwnerId = userId,
-            AdventureId = id,
             Name = data.Name,
             Description = data.Description,
             Stage = data.Stage,
@@ -98,10 +98,9 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
         if (adventure.OwnerId != userId) return Result.Failure("NotAllowed");
         var original = await sceneStorage.GetByIdAsync(data.TemplateId, ct);
         if (original is null) return Result.Failure("NotFound");
-        if (original.OwnerId != userId || original is { IsPublic: true, IsListed: true }) return Result.Failure("NotAllowed");
         var result = data.Validate();
         if (result.HasErrors) return result;
-        var clone = Cloner.CloneScene(original, userId, id, data);
+        var clone = Cloner.CloneScene(original, userId, data);
         await sceneStorage.AddAsync(clone, ct);
         adventure.Scenes.Add(clone);
         return clone;

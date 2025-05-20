@@ -21,7 +21,7 @@ public partial class CreateApplicationSchema : Migration {
                 Format_SourceId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                 Format_Size_Width = table.Column<double>(type: "float", nullable: false),
                 Format_Size_Height = table.Column<double>(type: "float", nullable: false),
-                IsListed = table.Column<bool>(type: "bit", nullable: false),
+                IsPublished = table.Column<bool>(type: "bit", nullable: false),
                 IsPublic = table.Column<bool>(type: "bit", nullable: false)
             },
             constraints: table => table.PrimaryKey("PK_Assets", x => x.Id));
@@ -34,7 +34,7 @@ public partial class CreateApplicationSchema : Migration {
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
                 ImageId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                IsListed = table.Column<bool>(type: "bit", nullable: false),
+                IsPublished = table.Column<bool>(type: "bit", nullable: false),
                 IsPublic = table.Column<bool>(type: "bit", nullable: false)
             },
             constraints: table => table.PrimaryKey("PK_Epics", x => x.Id));
@@ -59,7 +59,7 @@ public partial class CreateApplicationSchema : Migration {
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
                 ImageId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                IsListed = table.Column<bool>(type: "bit", nullable: false),
+                IsPublished = table.Column<bool>(type: "bit", nullable: false),
                 IsPublic = table.Column<bool>(type: "bit", nullable: false)
             },
             constraints: table => {
@@ -136,7 +136,7 @@ public partial class CreateApplicationSchema : Migration {
                 Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                 Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
                 ImageId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                IsListed = table.Column<bool>(type: "bit", nullable: false),
+                IsPublished = table.Column<bool>(type: "bit", nullable: false),
                 IsPublic = table.Column<bool>(type: "bit", nullable: false)
             },
             constraints: table => {
@@ -157,7 +157,7 @@ public partial class CreateApplicationSchema : Migration {
                 OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
-                IsListed = table.Column<bool>(type: "bit", nullable: false),
+                IsPublished = table.Column<bool>(type: "bit", nullable: false),
                 IsPublic = table.Column<bool>(type: "bit", nullable: false),
                 Stage_Source = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
                 Stage_Size_Width = table.Column<double>(type: "float", nullable: false),

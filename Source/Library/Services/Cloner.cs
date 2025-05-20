@@ -4,62 +4,46 @@ public static class Cloner {
     internal static Adventure CloneAdventure(Adventure original, Guid ownerId, CloneAdventureData? data = null) {
         var clone = new Adventure {
             OwnerId = ownerId,
-            CampaignId = original.CampaignId,
-            Name = $"{original.Name} (Copy)",
-            Description = original.Description,
-            Type = original.Type,
-            ImageId = original.ImageId,
+            CampaignId = data?.CampaignId.IsSet ?? false ? data.CampaignId.Value : original.CampaignId,
+            Name = data?.Name.IsSet ?? false ? data.Name.Value : $"{original.Name} (Copy)",
+            Description = data?.Description.IsSet ?? false ? data.Description.Value : original.Description,
+            Type = data?.Type.IsSet ?? false ? data.Type.Value : original.Type,
+            ImageId = data?.ImageId.IsSet ?? false ? data.ImageId.Value : original.ImageId,
         };
-        if (data is null) return clone;
-        if (data.CampaignId.IsSet) clone.CampaignId = data.CampaignId.Value;
-        if (data.Name.IsSet) clone.Name = data.Name.Value;
-        if (data.Description.IsSet) clone.Description = data.Description.Value;
-        if (data.Type.IsSet) clone.Type = data.Type.Value;
-        if (data.ImageId.IsSet) clone.ImageId = data.ImageId.Value;
-        if (!data.IncludeScenes) return clone;
-        clone.Scenes.AddRange(original.Scenes.Select(ep => CloneScene(ep, ownerId, clone.Id)));
+        if (data?.IncludeScenes != true) return clone;
+        clone.Scenes.AddRange(original.Scenes.Select(ep => CloneScene(ep, ownerId)));
         return clone;
     }
 
-    internal static Scene CloneScene(Scene original, Guid ownerId, Guid adventureId, AddClonedSceneData? data = null) {
+    internal static Scene CloneScene(Scene original, Guid ownerId, AddClonedSceneData? data = null) {
         var clone = new Scene {
-            OwnerId = ownerId,
-            AdventureId = adventureId,
-            Name = $"{original.Name} (Copy)",
-            Stage = original.Stage,
+            Name = data?.Name.IsSet ?? false ? data.Name.Value : $"{original.Name} (Copy)",
+            Description = data?.Description.IsSet ?? false ? data.Description.Value : original.Description,
+            Stage = data?.Stage.IsSet ?? false ? data.Stage.Value : original.Stage,
         };
-        clone.SceneAssets.AddRange(original.SceneAssets.Select(sa => CloneSceneAsset(sa, clone.Id, ownerId)));
-        if (data is null) return clone;
-        if (data.Name.IsSet) clone.Name = data.Name.Value;
-        if (data.Description.IsSet) clone.Description = data.Description.Value;
-        if (data.Stage.IsSet) clone.Stage = data.Stage.Value;
+        clone.SceneAssets.AddRange(original.SceneAssets.Select(sa => CloneSceneAsset(sa, ownerId)));
         return clone;
     }
 
-    internal static SceneAsset CloneSceneAsset(SceneAsset original, Guid sceneId, Guid ownerId)
+    internal static SceneAsset CloneSceneAsset(SceneAsset original, Guid ownerId)
         => new() {
-            SceneId = sceneId,
-            AssetId = original.AssetId,
+            Id = original.Id,
             Number = original.Number,
             Name = original.Name,
-            Format = original.Format,
+            Shape = original.Shape,
             Position = original.Position,
             Scale = original.Scale,
+            Rotation = original.Rotation,
+            Elevation = original.Elevation,
             ControlledBy = ownerId,
         };
 
-    internal static Asset CloneAsset(Asset original, Guid ownerId, CloneAssetData data) {
-        var clone = new Asset {
+    internal static Asset CloneAsset(Asset original, Guid ownerId, CloneAssetData data)
+        => new() {
             OwnerId = ownerId,
-            Name = $"{original.Name} (Copy)",
-            Description = original.Description,
+            Name = data.Name.IsSet ? data.Name.Value : $"{original.Name} (Copy)",
+            Description = data.Description.IsSet ? data.Description.Value : original.Description,
             Type = original.Type,
-            Format = original.Format,
+            Shape = data.Shape.IsSet ? data.Shape.Value : original.Shape,
         };
-        if (data.Name.IsSet) clone.Name = data.Name.Value;
-        if (data.Format.IsSet) clone.Format = data.Format.Value;
-        if (data.Description.IsSet) clone.Description = data.Description.Value;
-        if (data.Format.IsSet) clone.Format = data.Format.Value;
-        return clone;
-    }
 }

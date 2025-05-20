@@ -18,11 +18,10 @@ public class AssetService(IAssetStorage assetStorage)
         var result = data.Validate();
         if (result.HasErrors) return result;
         var asset = new Asset {
-            OwnerId = userId,
             Name = data.Name,
             Type = data.Type,
             Description = data.Description,
-            Format = data.Format,
+            Shape = data.Shape,
         };
         await assetStorage.AddAsync(asset, ct);
         return asset;
@@ -31,7 +30,7 @@ public class AssetService(IAssetStorage assetStorage)
     public async Task<Result<Asset>> CloneAssetAsync(Guid userId, CloneAssetData data, CancellationToken ct = default) {
         var original = await assetStorage.GetByIdAsync(data.TemplateId, ct);
         if (original is null) return Result.Failure("NotFound");
-        if (original.OwnerId != userId || original is { IsPublic: true, IsListed: true }) return Result.Failure("NotAllowed");
+        if (original.OwnerId != userId || original is { IsPublic: true, IsPublished: true }) return Result.Failure("NotAllowed");
         var result = data.Validate();
         if (result.HasErrors) return result;
         var clone = Cloner.CloneAsset(original, userId, data);
@@ -46,12 +45,14 @@ public class AssetService(IAssetStorage assetStorage)
         if (asset.OwnerId != userId) return Result.Failure("NotAllowed");
         var result = data.Validate();
         if (result.HasErrors) return result;
-        if (data.Name.IsSet) asset.Name = data.Name.Value;
-        if (data.Type.IsSet) asset.Type = data.Type.Value;
-        if (data.Description.IsSet) asset.Description = data.Description.Value;
-        if (data.Format.IsSet) asset.Format = data.Format.Value;
-        if (data.IsListed.IsSet) asset.IsListed = data.IsListed.Value;
-        if (data.IsPublic.IsSet) asset.IsPublic = data.IsPublic.Value;
+        asset = asset with {
+            Name = data.Name.IsSet ? data.Name.Value : asset.Name,
+            Type = data.Type.IsSet ? data.Type.Value : asset.Type,
+            Description = data.Description.IsSet ? data.Description.Value : asset.Description,
+            Shape = data.Shape.IsSet ? data.Shape.Value : asset.Shape,
+            IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : asset.IsPublished,
+            IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : asset.IsPublic,
+        };
         await assetStorage.UpdateAsync(asset, ct);
         return asset;
     }

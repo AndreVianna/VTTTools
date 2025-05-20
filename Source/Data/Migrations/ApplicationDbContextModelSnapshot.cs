@@ -33,7 +33,7 @@ namespace VttTools.Data.Migrations
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsListed")
+                    b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsPublic")
@@ -349,7 +349,7 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid?>("ImageId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsListed")
+                    b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsPublic")
@@ -391,7 +391,7 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid?>("ImageId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsListed")
+                    b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsPublic")
@@ -426,7 +426,7 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid?>("ImageId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsListed")
+                    b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsPublic")
@@ -459,7 +459,7 @@ namespace VttTools.Data.Migrations
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsListed")
+                    b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsPublic")
@@ -516,7 +516,7 @@ namespace VttTools.Data.Migrations
 
             modelBuilder.Entity("VttTools.Assets.Model.Asset", b =>
                 {
-                    b.OwnsOne("VttTools.Assets.Model.Format", "Format", b1 =>
+                    b.OwnsOne("VttTools.Assets.Model.Shape", "Shape", b1 =>
                         {
                             b1.Property<Guid>("AssetId")
                                 .HasColumnType("uniqueidentifier");
@@ -557,7 +557,7 @@ namespace VttTools.Data.Migrations
                                 .IsRequired();
                         });
 
-                    b.Navigation("Format")
+                    b.Navigation("Shape")
                         .IsRequired();
                 });
 
@@ -776,10 +776,10 @@ namespace VttTools.Data.Migrations
                                             b3.Property<Guid>("GridStageSceneId")
                                                 .HasColumnType("uniqueidentifier");
 
-                                            b3.Property<double>("Left")
+                                            b3.Property<double>("X")
                                                 .HasColumnType("float");
 
-                                            b3.Property<double>("Top")
+                                            b3.Property<double>("Y")
                                                 .HasColumnType("float");
 
                                             b3.HasKey("GridStageSceneId");
@@ -843,7 +843,7 @@ namespace VttTools.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("VttTools.Assets.Model.Format", "Format", b1 =>
+                    b.OwnsOne("VttTools.Assets.Model.Shape", "Shape", b1 =>
                         {
                             b1.Property<Guid>("SceneAssetAssetId")
                                 .HasColumnType("uniqueidentifier");
@@ -907,10 +907,10 @@ namespace VttTools.Data.Migrations
                             b1.Property<long>("SceneAssetNumber")
                                 .HasColumnType("bigint");
 
-                            b1.Property<double>("Left")
+                            b1.Property<double>("X")
                                 .HasColumnType("float");
 
-                            b1.Property<double>("Top")
+                            b1.Property<double>("Y")
                                 .HasColumnType("float");
 
                             b1.HasKey("SceneAssetAssetId", "SceneAssetSceneId", "SceneAssetNumber");
@@ -923,7 +923,7 @@ namespace VttTools.Data.Migrations
 
                     b.Navigation("Asset");
 
-                    b.Navigation("Format")
+                    b.Navigation("Shape")
                         .IsRequired();
 
                     b.Navigation("Position")

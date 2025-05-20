@@ -9,7 +9,7 @@ public class UpdateAdventureRequestTests {
             Description = "Description",
             Type = AdventureType.OpenWorld,
             ImageId = Guid.NewGuid(),
-            IsListed = false,
+            IsPublished = false,
             IsPublic = false,
             CampaignId = Guid.NewGuid(),
         };
@@ -29,7 +29,7 @@ public class UpdateAdventureRequestTests {
             Description = description,
             Type = type,
             ImageId = imageId,
-            IsListed = isVisible,
+            IsPublished = isVisible,
             IsPublic = isPublic,
             CampaignId = campaignId
         };
@@ -39,7 +39,7 @@ public class UpdateAdventureRequestTests {
         data.Description.Value.Should().Be(description);
         data.Type.Value.Should().Be(type);
         data.ImageId.Value.Should().Be(imageId);
-        data.IsListed.Value.Should().Be(isVisible);
+        data.IsPublished.Value.Should().Be(isVisible);
         data.IsPublic.Value.Should().Be(isPublic);
         data.CampaignId.Value.Should().Be(campaignId);
     }

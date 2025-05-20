@@ -1,4 +1,6 @@
-﻿namespace VttTools.WebApp.Clients;
+﻿using UpdateAssetRequest = VttTools.Assets.ApiContracts.UpdateAssetRequest;
+
+namespace VttTools.WebApp.Clients;
 
 public interface IAssetsClient {
     Task<Asset[]> GetAssetsAsync();

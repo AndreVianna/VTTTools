@@ -1,7 +1,7 @@
 ﻿namespace VttTools.Library.Scenes.Model;
 
 public enum GridType {
-    None,
+    NoGrid,
     Square,
     HexV, // Vertically aligned hexagon
     HexH, // Horizontally aligned hexagon

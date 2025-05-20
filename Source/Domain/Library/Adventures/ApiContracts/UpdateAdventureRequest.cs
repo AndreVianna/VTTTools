@@ -31,7 +31,7 @@ public record UpdateAdventureRequest
     /// Indicates whether the Adventure is published (visible) or not (hidden).
     /// If not set, visibility status is unchanged.
     /// </summary>
-    public Optional<bool> IsListed { get; init; }
+    public Optional<bool> IsPublished { get; init; }
 
     /// <summary>
     /// Indicates whether the Adventure is publicly accessible.

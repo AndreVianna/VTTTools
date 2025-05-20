@@ -12,7 +12,7 @@ public class AssetTests {
         asset.Name.Should().BeEmpty();
         asset.Type.Should().Be(AssetType.Placeholder);
         asset.Description.Should().BeEmpty();
-        asset.Format.Should().NotBeNull();
+        asset.Shape.Should().NotBeNull();
     }
 
     [Fact]
@@ -23,9 +23,9 @@ public class AssetTests {
         const string name = "Test Asset";
         const AssetType type = AssetType.Character;
         const string description = "Test Description";
-        var size = new Size { Width = 100, Height = 200 };
-        var format = new Format {
-            Type = FormatType.Image,
+        var size = new Vector2 { X = 100, Y = 200 };
+        var format = new Shape {
+            Type = MediaType.Image,
             SourceId = Guid.NewGuid(),
             Size = size,
         };
@@ -37,7 +37,7 @@ public class AssetTests {
             Name = name,
             Type = type,
             Description = description,
-            Format = format,
+            Shape = format,
         };
 
         // Assert
@@ -46,6 +46,6 @@ public class AssetTests {
         asset.Name.Should().Be(name);
         asset.Type.Should().Be(type);
         asset.Description.Should().Be(description);
-        asset.Format.Should().BeEquivalentTo(format);
+        asset.Shape.Should().BeEquivalentTo(format);
     }
 }

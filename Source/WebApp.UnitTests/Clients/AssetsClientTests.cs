@@ -1,4 +1,5 @@
 using JsonOptions = Microsoft.AspNetCore.Mvc.JsonOptions;
+using UpdateAssetRequest = VttTools.Assets.ApiContracts.UpdateAssetRequest;
 
 namespace VttTools.WebApp.Clients;
 

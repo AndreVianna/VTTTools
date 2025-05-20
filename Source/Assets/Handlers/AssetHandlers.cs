@@ -17,7 +17,7 @@ internal static class AssetHandlers {
             Name = request.Name,
             Type = request.Type,
             Description = request.Description,
-            Format = request.Format,
+            Shape = request.Shape,
         };
         var result = await assetService.CreateAssetAsync(userId, data);
         return result.IsSuccessful
@@ -30,7 +30,7 @@ internal static class AssetHandlers {
         var data = new CloneAssetData {
             Name = request.Name,
             Description = request.Description,
-            Format = request.Format,
+            Shape = request.Shape,
         };
         var result = await assetService.CloneAssetAsync(userId, data);
         return result.IsSuccessful
@@ -48,8 +48,8 @@ internal static class AssetHandlers {
             Name = request.Name,
             Description = request.Description,
             Type = request.Type,
-            Format = request.Format,
-            IsListed = request.IsListed,
+            Shape = request.Shape,
+            IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,
         };
         var result = await assetService.UpdateAssetAsync(userId, id, data);

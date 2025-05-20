@@ -1,0 +1,33 @@
+.scene-builder-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 100px);
+  width: 100%;
+}
+
+.scene-builder-toolbar {
+  display: flex;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.toolbar-group {
+  margin-right: 15px;
+}
+
+.scene-canvas-container {
+  flex: 1;
+  position: relative;
+  overflow: auto;
+  background-color: #e9ecef;
+}
+
+canvas {
+  position: absolute;
+  background-color: white;
+}
+
+.ml-auto {
+  margin-left: auto;
+}

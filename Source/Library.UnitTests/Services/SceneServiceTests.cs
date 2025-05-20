@@ -71,7 +71,6 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Old Name",
-            OwnerId = _userId,
             Description = "Old Description",
         };
         var data = new UpdateSceneData {
@@ -100,7 +99,6 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Old Name",
-            OwnerId = _userId,
             Description = "Old Description",
         };
         var data = new UpdateSceneData {
@@ -129,7 +127,6 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            OwnerId = _userId,
         };
         var data = new UpdateSceneData {
             Name = "Updated Name",
@@ -171,8 +168,8 @@ public class SceneServiceTests {
             Id = sceneId,
             Name = "Scene",
             SceneAssets = [
-                new() { AssetId = Guid.NewGuid(), Name = "Test Asset 1", SceneId = sceneId },
-                new() { AssetId = Guid.NewGuid(), Name = "Test Asset 2", SceneId = sceneId },
+                new() { Number = 1, Name = "Test Asset 1" },
+                new() { Number = 2, Name = "Test Asset 2" },
             ],
         };
 
@@ -210,13 +207,14 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            OwnerId = _userId,
             SceneAssets = [],
         };
         var data = new AddNewAssetData {
             Name = "New Asset",
-            Position = new() { Left = 5, Top = 5 },
-            Scale = 1.5f,
+            Position = new() { X = 20, Y = 30 },
+            Scale = new() { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -230,7 +228,6 @@ public class SceneServiceTests {
         result.IsSuccessful.Should().BeTrue();
         scene.SceneAssets.Should().ContainSingle();
         var addedAsset = scene.SceneAssets[0];
-        addedAsset.AssetId.Should().Be(assetId);
         addedAsset.Name.Should().Be(data.Name);
         addedAsset.Position.Should().BeEquivalentTo(data.Position);
         addedAsset.Scale.Should().Be(data.Scale);
@@ -246,13 +243,14 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            OwnerId = _userId,
             SceneAssets = [],
         };
         var data = new AddNewAssetData {
             Name = "New Asset",
-            Position = new() { Left = 5, Top = 5 },
-            Scale = 1.5f,
+            Position = new() { X = 20, Y = 30 },
+            Scale = new() { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -272,8 +270,10 @@ public class SceneServiceTests {
         var sceneId = Guid.NewGuid();
         var data = new AddNewAssetData {
             Name = "New Asset",
-            Position = new() { Left = 5, Top = 5 },
-            Scale = 1.5f,
+            Position = new() { X = 20, Y = 30 },
+            Scale = new() { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
@@ -295,13 +295,11 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            OwnerId = _userId,
             SceneAssets = [
                 new() {
-                    AssetId = assetId,
                     Number = number,
                     Name = "Asset to remove",
-                    Position = new() { Left = 1, Top = 1 },
+                    Position = new() { X = 1, Y = 1 },
                 },
             ],
         };
@@ -327,13 +325,11 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            OwnerId = _userId,
             SceneAssets = [
                 new() {
-                    AssetId = assetId,
                     Number = number,
                     Name = "Asset to keep",
-                    Position = new() { Left = 1, Top = 1 },
+                    Position = new() { X = 1, Y = 1 },
                 },
             ],
         };
@@ -375,19 +371,20 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            OwnerId = _userId,
             SceneAssets = [
                 new() {
-                    AssetId = assetId,
                     Name = "Asset to update",
-                    Position = new() { Left = 1, Top = 1 },
+                    Position = new() { X = 1, Y = 1 },
                 },
             ],
         };
-        var data = new UpdateSceneAssetData {
+        var data = new UpdateAssetData {
             AssetId = assetId,
             Number = number,
-            Position = new Position { Left = 10, Top = 10 },
+            Position = new Vector2 { X = 20, Y = 30 },
+            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -412,20 +409,21 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            OwnerId = _userId,
             SceneAssets = [
                 new() {
-                    AssetId = assetId,
                     Number = number,
                     Name = "Asset to not update",
-                    Position = new() { Left = 1, Top = 1 },
+                    Position = new() { X = 1, Y = 1 },
                 },
             ],
         };
-        var data = new UpdateSceneAssetData {
+        var data = new UpdateAssetData {
             AssetId = assetId,
             Number = number,
-            Position = new Position { Left = 10, Top = 10 },
+            Position = new Vector2 { X = 20, Y = 30 },
+            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -436,8 +434,8 @@ public class SceneServiceTests {
         // Assert
         result.IsSuccessful.Should().BeFalse();
         var unchangedAsset = scene.SceneAssets[0];
-        unchangedAsset.Position.Left.Should().Be(1);
-        unchangedAsset.Position.Top.Should().Be(1);
+        unchangedAsset.Position.X.Should().Be(1);
+        unchangedAsset.Position.Y.Should().Be(1);
         await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 
@@ -447,10 +445,13 @@ public class SceneServiceTests {
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
         const uint number = 1u;
-        var data = new UpdateSceneAssetData {
+        var data = new UpdateAssetData {
             AssetId = assetId,
             Number = number,
-            Position = new Position { Left = 10, Top = 10 },
+            Position = new Vector2 { X = 20, Y = 30 },
+            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
@@ -467,26 +468,26 @@ public class SceneServiceTests {
     public async Task UpdateAssetAsync_WithNonexistentAsset_ReturnsFalse() {
         // Arrange
         var sceneId = Guid.NewGuid();
-        var existingAssetId = Guid.NewGuid();
         const uint number = 1u;
         var nonexistentAssetId = Guid.NewGuid();
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            OwnerId = _userId,
             SceneAssets = [
                 new() {
-                    AssetId = existingAssetId,
                     Number = number,
                     Name = "Existing Asset",
-                    Position = new() { Left = 1, Top = 1 },
+                    Position = new() { X = 1, Y = 1 },
                 },
             ],
         };
-        var data = new UpdateSceneAssetData {
+        var data = new UpdateAssetData {
             AssetId = nonexistentAssetId,
             Number = number,
-            Position = new Position { Left = 10, Top = 10 },
+            Position = new Vector2 { X = 20, Y = 30 },
+            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);

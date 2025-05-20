@@ -5,13 +5,15 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
     private readonly JsonSerializerOptions _options = options.Value.JsonSerializerOptions;
 
     public async Task<AdventureListItem[]> GetAdventuresAsync() {
+        var json = await client.GetStringAsync("/api/adventures");
+        var test = JsonSerializer.Deserialize<Adventure[]>(json, _options);
         var adventures = await client.GetFromJsonAsync<Adventure[]>("/api/adventures", _options) ?? [];
         return [.. adventures.Select(adventure => new AdventureListItem {
             Id = adventure.Id,
             Name = adventure.Name,
             Description = adventure.Description,
             Type = adventure.Type,
-            IsPublished = adventure.IsListed,
+            IsPublished = adventure.IsPublished,
             IsPublic = adventure.IsPublic,
             OwnerId = adventure.OwnerId,
             ScenesCount = adventure.Scenes.Count,
@@ -24,14 +26,12 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
             Name = adventure.Name,
             Description = adventure.Description,
             Type = adventure.Type,
-            IsPublished = adventure.IsListed,
+            IsPublished = adventure.IsPublished,
             IsPublic = adventure.IsPublic,
             OwnerId = adventure.OwnerId,
             Scenes = [.. adventure.Scenes.Select(scene => new SceneListItem {
                 Id = scene.Id,
                 Name = scene.Name,
-                IsPublished = scene.IsListed,
-                IsPublic = scene.IsPublic,
             })],
         };
     }
@@ -46,7 +46,7 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
             Name = adventure.Name,
             Description = adventure.Description,
             Type = adventure.Type,
-            IsPublished = adventure.IsListed,
+            IsPublished = adventure.IsPublished,
             IsPublic = adventure.IsPublic,
             OwnerId = adventure.OwnerId,
             ScenesCount = adventure.Scenes.Count,
@@ -63,7 +63,7 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
             Name = adventure.Name,
             Description = adventure.Description,
             Type = adventure.Type,
-            IsPublished = adventure.IsListed,
+            IsPublished = adventure.IsPublished,
             IsPublic = adventure.IsPublic,
             OwnerId = adventure.OwnerId,
             ScenesCount = adventure.Scenes.Count,
@@ -87,8 +87,6 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
         return [.. scenes.Select(scene => new SceneListItem {
             Id = scene.Id,
             Name = scene.Name,
-            IsPublished = scene.IsListed,
-            IsPublic = scene.IsPublic,
         })];
     }
 

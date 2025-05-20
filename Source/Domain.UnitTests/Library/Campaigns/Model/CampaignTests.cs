@@ -10,11 +10,10 @@ public class CampaignTests {
         campaign.Id.Should().NotBeEmpty();
         campaign.OwnerId.Should().BeEmpty();
         campaign.EpicId.Should().BeNull();
-        campaign.Epic.Should().BeNull();
         campaign.Adventures.Should().BeEmpty();
         campaign.Name.Should().BeEmpty();
         campaign.Description.Should().BeEmpty();
-        campaign.IsListed.Should().BeFalse();
+        campaign.IsPublished.Should().BeFalse();
         campaign.IsPublic.Should().BeFalse();
         campaign.ImageId.Should().BeNull();
     }
@@ -27,11 +26,7 @@ public class CampaignTests {
         const string description = "Some Description";
         var ownerId = Guid.NewGuid();
         var epicId = Guid.NewGuid();
-        var templateId = Guid.NewGuid();
         var imageId = Guid.NewGuid();
-        var epic = new Epic {
-            Id = epicId,
-        };
         var adventure = new Adventure {
             Id = Guid.NewGuid(),
         };
@@ -43,9 +38,8 @@ public class CampaignTests {
             Description = description,
             OwnerId = ownerId,
             EpicId = epicId,
-            Epic = epic,
             ImageId = imageId,
-            IsListed = true,
+            IsPublished = true,
             IsPublic = true,
             Adventures = [adventure],
         };
@@ -55,10 +49,9 @@ public class CampaignTests {
         campaign.Name.Should().Be(name);
         campaign.Description.Should().Be(description);
         campaign.OwnerId.Should().Be(ownerId);
-        campaign.Epic.Should().Be(epic);
         campaign.EpicId.Should().Be(epicId);
         campaign.ImageId.Should().Be(imageId);
-        campaign.IsListed.Should().BeTrue();
+        campaign.IsPublished.Should().BeTrue();
         campaign.IsPublic.Should().BeTrue();
         campaign.Adventures.Should().ContainSingle(c => c.Equals(adventure));
     }

@@ -150,7 +150,7 @@ public class AdventureHandlerTests
                 req.Name.IsSet && req.Name.Value == "Updated Name" &&
                 req.Description.IsSet && req.Description.Value == "Updated Description" &&
                 req.Type.IsSet && req.Type.Value == AdventureType.DungeonCrawl &&
-                req.IsListed.IsSet && req.IsListed.Value &&
+                req.IsPublished.IsSet && req.IsPublished.Value &&
                 req.IsPublic.IsSet && req.IsPublic.Value));
 
         _page.NavigationManager.Received(1).NavigateTo($"/adventure/view/{_adventureId}");

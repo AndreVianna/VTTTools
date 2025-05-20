@@ -12,7 +12,7 @@ public class EpicTests {
         epic.Campaigns.Should().BeEmpty();
         epic.Name.Should().BeEmpty();
         epic.Description.Should().BeEmpty();
-        epic.IsListed.Should().BeFalse();
+        epic.IsPublished.Should().BeFalse();
         epic.IsPublic.Should().BeFalse();
     }
 
@@ -35,7 +35,7 @@ public class EpicTests {
             Description = description,
             OwnerId = ownerId,
             ImageId = imageId,
-            IsListed = true,
+            IsPublished = true,
             IsPublic = true,
             Campaigns = [campaign],
         };
@@ -46,7 +46,7 @@ public class EpicTests {
         epic.Description.Should().Be(description);
         epic.OwnerId.Should().Be(ownerId);
         epic.ImageId.Should().Be(imageId);
-        epic.IsListed.Should().BeTrue();
+        epic.IsPublished.Should().BeTrue();
         epic.IsPublic.Should().BeTrue();
         epic.Campaigns.Should().ContainSingle(c => c.Equals(campaign));
     }

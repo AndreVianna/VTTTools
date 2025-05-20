@@ -1,4 +1,6 @@
+global using System.ComponentModel.DataAnnotations;
 global using System.Diagnostics.CodeAnalysis;
+global using System.Numerics;
 
 global using DotNetToolbox.Results;
 
@@ -13,6 +15,7 @@ global using Microsoft.Extensions.Logging;
 
 global using VttTools.Assets.Model;
 global using VttTools.Assets.Storage;
+global using VttTools.Common.Model;
 global using VttTools.Data.Assets;
 global using VttTools.Data.Builders;
 global using VttTools.Data.Game;

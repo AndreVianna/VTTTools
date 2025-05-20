@@ -7,8 +7,8 @@ public class AssetsPageHandlerTests
 
     public AssetsPageHandlerTests() {
         var assets = new[] {
-            new Asset { Name = "Asset 1", Description = "Asset 1 Description", IsListed = true, IsPublic = true },
-            new Asset { Name = "Asset 2", Description = "Asset 2 Description", IsListed = true, IsPublic = true },
+            new Asset { Name = "Asset 1", Description = "Asset 1 Description", IsPublished = true, IsPublic = true },
+            new Asset { Name = "Asset 2", Description = "Asset 2 Description", IsPublished = true, IsPublic = true },
         };
         _client.GetAssetsAsync().Returns(assets);
         _page.HttpContext.Returns(HttpContext);

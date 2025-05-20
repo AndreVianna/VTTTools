@@ -1,3 +1,5 @@
+using GameSession = VttTools.Data.Game.Entities.GameSession;
+
 namespace VttTools.Data.Builders;
 
 internal static class GameSessionSchemaBuilder {

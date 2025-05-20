@@ -207,8 +207,8 @@ public class AdventureHandlersTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var scenes = new[] {
-            new Scene { Id = Guid.NewGuid(), Name = "Scene 1", AdventureId = adventureId },
-            new Scene { Id = Guid.NewGuid(), Name = "Scene 2", AdventureId = adventureId },
+            new Scene { Id = Guid.NewGuid(), Name = "Scene 1" },
+            new Scene { Id = Guid.NewGuid(), Name = "Scene 2" },
         };
 
         _adventureService.GetScenesAsync(adventureId, Arg.Any<CancellationToken>())
@@ -230,7 +230,6 @@ public class AdventureHandlersTests {
         var clonedScene = new Scene {
             Id = Guid.NewGuid(),
             Name = "Cloned Adventure",
-            OwnerId = _userId,
         };
 
         _adventureService.AddClonedSceneAsync(_userId, adventureId, Arg.Any<AddClonedSceneData>(), Arg.Any<CancellationToken>())

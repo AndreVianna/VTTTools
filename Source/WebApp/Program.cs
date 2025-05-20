@@ -24,8 +24,22 @@ internal static class Program {
         builder.Services.ConfigureHttpJsonOptions(ConfigureHttpJsonOptions);
 
         builder.Services.AddHttpContextAccessor();
-        builder.Services.AddScoped<IGameClient, GameClient>();
         builder.Services.AddScoped<IHubConnectionBuilder, HubConnectionBuilder>();
+        builder.Services.AddScoped<IAssetsClient, AssetsClient>();
+        builder.Services.AddHttpClient<IAssetsClient, AssetsClient>(static (services, client) => {
+            client.BaseAddress = new("https+http://assets-api");
+            SetRequestUserId(services, client);
+        });
+        builder.Services.AddScoped<ILibraryClient, LibraryClient>();
+        builder.Services.AddHttpClient<ILibraryClient, LibraryClient>(static (services, client) => {
+            client.BaseAddress = new("https+http://library-api");
+            SetRequestUserId(services, client);
+        });
+        builder.Services.AddScoped<IGameClient, GameClient>();
+        builder.Services.AddHttpClient<IGameClient, GameClient>(static (services, client) => {
+            client.BaseAddress = new("https+http://game-api");
+            SetRequestUserId(services, client);
+        });
 
         AddDefaultHealthChecks(builder);
         builder.AddRedisOutputCache("redis");
@@ -55,27 +69,15 @@ internal static class Program {
         }).AddIdentityCookies();
         builder.Services.AddAuthorization();
 
-        builder.Services.AddHttpClient<IAssetsClient, AssetsClient>(static (services, client) => {
-            client.BaseAddress = new("https+http://assets-api");
-            SetRequestUserId(services, client);
-        });
-        builder.Services.AddHttpClient<ILibraryClient, LibraryClient>(static (services, client) => {
-            client.BaseAddress = new("https+http://library-api");
-            SetRequestUserId(services, client);
-        });
-        builder.Services.AddHttpClient<IGameClient, GameClient>(static (services, client) => {
-            client.BaseAddress = new("https+http://game-api");
-            SetRequestUserId(services, client);
-        });
-
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment()) {
-            app.UseDeveloperExceptionPage();
             app.UseWebAssemblyDebugging();
-        } else {
+            app.UseDeveloperExceptionPage();
+        }
+        else {
             app.UseExceptionHandler("/error", createScopeForErrors: true);
-            app.UseStatusCodePagesWithReExecute("/error/{0}");
+            app.UseStatusCodePagesWithReExecute("/status/{0}");
             app.UseHsts();
         }
 

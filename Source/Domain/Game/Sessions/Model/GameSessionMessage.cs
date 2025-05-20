@@ -1,10 +1,10 @@
 ﻿namespace VttTools.Game.Sessions.Model;
 
-public class GameSessionMessage {
-    public DateTimeOffset SentAt { get; set; }
-    public Guid SentBy { get; set; }
-    public Guid[] SentTo { get; set; } = [];
-    public MessageType Type { get; set; }
+public record GameSessionMessage {
+    public DateTimeOffset SentAt { get; init; }
+    public Guid SentBy { get; init; }
+    public Guid[] SentTo { get; init; } = [];
+    public MessageType Type { get; init; }
     [MaxLength(4096)]
-    public string Content { get; set; } = string.Empty;
+    public string Content { get; init; } = string.Empty;
 }

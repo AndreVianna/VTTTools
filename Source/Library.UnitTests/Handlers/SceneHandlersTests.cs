@@ -19,8 +19,8 @@ public class SceneHandlersTests {
     public async Task GetScenesHandler_ReturnsOkResult() {
         // Arrange
         var scenes = new[] {
-            new Scene { Id = Guid.NewGuid(), Name = "Scene 1", OwnerId = _userId },
-            new Scene { Id = Guid.NewGuid(), Name = "Scene 2", OwnerId = _userId },
+            new Scene { Id = Guid.NewGuid(), Name = "Scene 1" },
+            new Scene { Id = Guid.NewGuid(), Name = "Scene 2" },
         };
 
         _sceneService.GetScenesAsync(Arg.Any<CancellationToken>())
@@ -38,7 +38,7 @@ public class SceneHandlersTests {
     public async Task GetSceneByIdHandler_WithExistingId_ReturnsOkResult() {
         // Arrange
         var sceneId = Guid.NewGuid();
-        var scene = new Scene { Id = sceneId, Name = "Test Scene", AdventureId = sceneId };
+        var scene = new Scene { Id = sceneId, Name = "Test Scene" };
 
         _sceneService.GetSceneByIdAsync(sceneId, Arg.Any<CancellationToken>())
             .Returns(scene);
@@ -71,7 +71,7 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var request = new UpdateSceneRequest { Name = "Updated Scene" };
-        var scene = new Scene { Id = sceneId, Name = "Updated Scene", AdventureId = sceneId };
+        var scene = new Scene { Id = sceneId, Name = "Updated Scene" };
 
         _sceneService.UpdateSceneAsync(_userId, sceneId, Arg.Any<UpdateSceneData>(), Arg.Any<CancellationToken>())
             .Returns(scene);
@@ -105,8 +105,8 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assets = new[] {
-            new SceneAsset { SceneId = sceneId, AssetId = Guid.NewGuid(), Name = "Asset 1" },
-            new SceneAsset { SceneId = sceneId, AssetId = Guid.NewGuid(), Name = "Asset 2" },
+            new SceneAsset { Number = 1, Name = "Asset 1" },
+            new SceneAsset { Number = 2, Name = "Asset 2" },
         };
 
         _sceneService.GetAssetsAsync(sceneId, Arg.Any<CancellationToken>())
@@ -125,18 +125,21 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
-        var request = new AddNewSceneAssetRequest {
+        var request = new AddAssetRequest {
             AssetId = assetId,
             Name = "Asset Name",
-            Position = new() { Left = 20, Top = 30 },
-            Scale = 1,
+            Position = new Vector2 { X = 20, Y = 30 },
+            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
         var sceneAsset = new SceneAsset {
-            AssetId = assetId,
             Number = 1,
             Name = "Asset Name",
-            Position = new() { Left = 20, Top = 30 },
-            Scale = 1,
+            Position = new() { X = 20, Y = 30 },
+            Scale = new() { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
 
         _sceneService.AddNewAssetAsync(_userId, sceneId, Arg.Any<AddNewAssetData>(), Arg.Any<CancellationToken>())
@@ -154,11 +157,13 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
-        var request = new AddNewSceneAssetRequest {
+        var request = new AddAssetRequest {
             AssetId = assetId,
             Name = "Asset Name",
-            Position = new() { Left = 20, Top = 30 },
-            Scale = 1,
+            Position = new Vector2 { X = 20, Y = 30 },
+            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
 
         _sceneService.AddNewAssetAsync(_userId, sceneId, Arg.Any<AddNewAssetData>(), Arg.Any<CancellationToken>())
@@ -176,18 +181,21 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
-        var request = new AddClonedSceneAssetRequest {
+        var request = new AddClonedAssetRequest {
             TemplateId = assetId,
             Name = "Asset Name",
-            Position = new Position { Left = 20, Top = 30 },
-            Scale = 1,
+            Position = new Vector2 { X = 20, Y = 30 },
+            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
         var sceneAsset = new SceneAsset {
-            AssetId = assetId,
             Number = 1,
             Name = "Asset Name",
-            Position = new() { Left = 20, Top = 30 },
-            Scale = 1,
+            Position = new() { X = 20, Y = 30 },
+            Scale = new() { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
 
         _sceneService.AddClonedAssetAsync(_userId, sceneId, Arg.Any<AddClonedAssetData>(), Arg.Any<CancellationToken>())
@@ -205,11 +213,13 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
-        var request = new AddClonedSceneAssetRequest {
+        var request = new AddClonedAssetRequest {
             TemplateId = assetId,
             Name = "Asset Name",
-            Position = new Position { Left = 20, Top = 30 },
-            Scale = 1,
+            Position = new Vector2 { X = 20, Y = 30 },
+            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
 
         _sceneService.AddClonedAssetAsync(_userId, sceneId, Arg.Any<AddClonedAssetData>(), Arg.Any<CancellationToken>())
@@ -226,19 +236,22 @@ public class SceneHandlersTests {
     public async Task UpdateAssetHandler_WithValidRequest_ReturnsCreatedResult() {
         // Arrange
         var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
-        var request = new UpdateSceneAssetRequest {
-            Position = new Position { Left = 20, Top = 30 },
+        var request = new UpdateAssetRequest {
+            Position = new Vector2 { X = 20, Y = 30 },
+            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
         var sceneAsset = new SceneAsset {
-            AssetId = assetId,
             Number = 1,
             Name = "Asset Name",
-            Position = new() { Left = 20, Top = 30 },
-            Scale = 1,
+            Position = new() { X = 20, Y = 30 },
+            Scale = new() { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
 
-        _sceneService.UpdateAssetAsync(_userId, sceneId, Arg.Any<UpdateSceneAssetData>(), Arg.Any<CancellationToken>())
+        _sceneService.UpdateAssetAsync(_userId, sceneId, Arg.Any<UpdateAssetData>(), Arg.Any<CancellationToken>())
             .Returns(sceneAsset);
 
         // Act
@@ -252,11 +265,14 @@ public class SceneHandlersTests {
     public async Task UpdateAssetHandler_WithInvalidAsset_ReturnsBadRequest() {
         // Arrange
         var sceneId = Guid.NewGuid();
-        var request = new UpdateSceneAssetRequest {
-            Position = new Position { Left = 20, Top = 30 },
+        var request = new UpdateAssetRequest {
+            Position = new Vector2 { X = 20, Y = 30 },
+            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
+            Elevation = 1f,
+            Rotation = 45f,
         };
 
-        _sceneService.UpdateAssetAsync(_userId, sceneId, Arg.Any<UpdateSceneAssetData>(), Arg.Any<CancellationToken>())
+        _sceneService.UpdateAssetAsync(_userId, sceneId, Arg.Any<UpdateAssetData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Some error."));
 
         // Act

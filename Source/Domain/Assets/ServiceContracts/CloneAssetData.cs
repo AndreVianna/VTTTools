@@ -5,7 +5,7 @@ public record CloneAssetData
     public Guid TemplateId { get; init; }
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
-    public Optional<Format> Format { get; set; }
+    public Optional<Shape> Shape { get; set; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);

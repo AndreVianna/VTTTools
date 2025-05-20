@@ -3,8 +3,10 @@ using IResult = Microsoft.AspNetCore.Http.IResult;
 namespace VttTools.Library.Handlers;
 
 internal static class AdventureHandlers {
-    internal static async Task<IResult> GetAdventuresHandler([FromServices] IAdventureService adventureService)
-        => Results.Ok(await adventureService.GetAdventuresAsync());
+    internal static async Task<IResult> GetAdventuresHandler([FromServices] IAdventureService adventureService) {
+        var adventures = await adventureService.GetAdventuresAsync();
+        return Results.Ok(adventures);
+    }
 
     internal static async Task<IResult> GetAdventureByIdHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService)
         => await adventureService.GetAdventureByIdAsync(id) is { } adv
@@ -53,7 +55,7 @@ internal static class AdventureHandlers {
             Description = request.Description,
             Type = request.Type,
             ImageId = request.ImageId,
-            IsListed = request.IsListed,
+            IsListed = request.IsPublished,
             IsPublic = request.IsPublic,
             CampaignId = request.CampaignId,
                                            };

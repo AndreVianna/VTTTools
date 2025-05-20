@@ -8,8 +8,7 @@ public class AdventureStorageTests
 
     public AdventureStorageTests() {
         _context = DbContextHelper.CreateInMemoryContext(Guid.NewGuid());
-        var loggerFactory = NullLoggerFactory.Instance;
-        _storage = new(_context, loggerFactory);
+        _storage = new(_context);
 #if XUNITV3
         _ct = TestContext.Current.CancellationToken;
 #else
@@ -72,10 +71,18 @@ public class AdventureStorageTests
     [Fact]
     public async Task UpdateAsync_WithExistingAdventure_UpdatesInDatabase() {
         // Arrange
-        var adventure = DbContextHelper.CreateTestAdventure("Adventure To Update");
-        await _context.Adventures.AddAsync(adventure, _ct);
+        var entity = DbContextHelper.CreateTestAdventureEntity("Adventure To Update");
+        await _context.Adventures.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
-        adventure.Name = "Updated Name";
+
+        var adventure = new Adventure {
+            Id = entity.Id,
+            Name = "Updated Name",
+            Description = "Updated Description",
+            Type = AdventureType.OpenWorld,
+            IsPublished = true,
+            IsPublic = false,
+        };
 
         // Act
         await _storage.UpdateAsync(adventure, _ct);
@@ -88,7 +95,7 @@ public class AdventureStorageTests
     [Fact]
     public async Task DeleteAsync_WithExistingAdventure_RemovesFromDatabase() {
         // Arrange
-        var adventure = DbContextHelper.CreateTestAdventure("Adventure To Delete");
+        var adventure = DbContextHelper.CreateTestAdventureEntity("Adventure To Delete");
         await _context.Adventures.AddAsync(adventure, _ct);
         await _context.SaveChangesAsync(_ct);
 

@@ -36,7 +36,7 @@ namespace VttTools.Data.Migrations
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsListed")
+                    b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsPublic")
@@ -352,7 +352,7 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid?>("ImageId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsListed")
+                    b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsPublic")
@@ -394,7 +394,7 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid?>("ImageId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsListed")
+                    b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsPublic")
@@ -429,7 +429,7 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid?>("ImageId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsListed")
+                    b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsPublic")
@@ -462,7 +462,7 @@ namespace VttTools.Data.Migrations
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsListed")
+                    b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsPublic")

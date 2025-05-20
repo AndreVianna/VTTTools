@@ -69,7 +69,7 @@ public class AdventureServiceTests {
         result.Value.Description.Should().Be(request.Description);
         result.Value.Type.Should().Be(request.Type);
         result.Value.ImageId.Should().BeNull();
-        result.Value.IsListed.Should().BeFalse();
+        result.Value.IsPublished.Should().BeFalse();
         result.Value.IsPublic.Should().BeFalse();
         result.Value.CampaignId.Should().Be(request.CampaignId);
         result.Value.Id.Should().NotBe(Guid.Empty);
@@ -162,7 +162,7 @@ public class AdventureServiceTests {
         result.Value.Description.Should().Be(request.Description.Value);
         result.Value.Type.Should().Be(request.Type.Value);
         result.Value.ImageId.Should().BeNull();
-        result.Value.IsListed.Should().BeTrue();
+        result.Value.IsPublished.Should().BeTrue();
         result.Value.IsPublic.Should().BeTrue();
         result.Value.CampaignId.Should().Be(request.CampaignId.Value);
         result.Value.Id.Should().Be(adventureId);
@@ -198,7 +198,7 @@ public class AdventureServiceTests {
         result.Value.Description.Should().Be(adventure.Description);
         result.Value.Type.Should().Be(adventure.Type);
         result.Value.ImageId.Should().BeNull();
-        result.Value.IsListed.Should().BeFalse();
+        result.Value.IsPublished.Should().BeFalse();
         result.Value.IsPublic.Should().BeFalse();
         result.Value.CampaignId.Should().Be(adventure.CampaignId);
         result.Value.Id.Should().Be(adventureId);
@@ -315,7 +315,7 @@ public class AdventureServiceTests {
             OwnerId = _userId,
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            IsListed = true,
+            IsPublished = true,
             IsPublic = true,
             CampaignId = Guid.NewGuid(),
         };
@@ -323,22 +323,20 @@ public class AdventureServiceTests {
             new Scene {
                 Id = Guid.NewGuid(),
                 Name = "Scene 1",
-                AdventureId = adventureId,
                 Stage = new() {
-                    Source = "source1",
-                    Size = new() { Width = 10, Height = 10 },
+                    ZoomLevel = 1f,
                     Grid = new() {
                         Type = GridType.Square,
-                        Offset = new() { Left = 0, Top = 0 },
-                        CellSize = new() { Width = 1, Height = 1 },
+                        Cell = new(),
                     },
                 },
                 SceneAssets = [
                     new SceneAsset {
-                        AssetId = Guid.NewGuid(),
                         Name = "Asset 1",
-                        Position = new() { Left = 1, Top = 1 },
-                        Scale = 1.0f,
+                        Position = new Vector2 { X = 20, Y = 30 },
+                        Scale = new Vector2 { X = 0.5f, Y = 0.5f },
+                        Elevation = 1f,
+                        Rotation = 45f,
                         IsLocked = false,
                     },
                 ],
@@ -358,7 +356,7 @@ public class AdventureServiceTests {
         result.Value.Description.Should().Be(request.Description.Value);
         result.Value.Type.Should().Be(request.Type.Value);
         result.Value.ImageId.Should().BeNull();
-        result.Value.IsListed.Should().BeTrue();
+        result.Value.IsPublished.Should().BeTrue();
         result.Value.IsPublic.Should().BeTrue();
         result.Value.CampaignId.Should().Be(adventure.CampaignId);
         result.Value.Id.Should().NotBe(request.TemplateId);
@@ -378,7 +376,7 @@ public class AdventureServiceTests {
             OwnerId = _userId,
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            IsListed = true,
+            IsPublished = true,
             IsPublic = true,
             CampaignId = Guid.NewGuid(),
         };
@@ -414,8 +412,8 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var scenes = new Scene[] {
-            new() { Id = Guid.NewGuid(), Name = "Test Scene 1", AdventureId = adventureId },
-            new() { Id = Guid.NewGuid(), Name = "Test Scene 2", AdventureId = adventureId },
+            new() { Id = Guid.NewGuid(), Name = "Test Scene 1" },
+            new() { Id = Guid.NewGuid(), Name = "Test Scene 2" },
                                      };
         _sceneStorage.GetByParentIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(scenes);
 
@@ -437,12 +435,10 @@ public class AdventureServiceTests {
             Name = "New Scene",
             Description = "New scene description",
             Stage = new Stage {
-                Source = "images/source.png",
-                Size = new() { Width = 10, Height = 10 },
+                ZoomLevel = 1f,
                 Grid = new() {
                     Type = GridType.Square,
-                    Offset = new() { Left = 5, Top = 5 },
-                    CellSize = new() { Width = 2, Height = 2 },
+                    Cell = new(),
                 },
             },
         };
@@ -456,7 +452,6 @@ public class AdventureServiceTests {
             Id = sceneId,
             Name = "Scene",
             Description = "Scene description",
-            AdventureId = adventureId,
             Stage = new(),
         };
 
@@ -471,10 +466,7 @@ public class AdventureServiceTests {
         result.Value.Name.Should().Be(request.Name.Value);
         result.Value.Description.Should().Be(request.Description.Value);
         result.Value.Stage.Should().BeEquivalentTo(request.Stage);
-        result.Value.IsListed.Should().BeFalse();
-        result.Value.IsPublic.Should().BeFalse();
         result.Value.Id.Should().NotBe(request.TemplateId);
-        result.Value.OwnerId.Should().Be(_userId);
         adventure.Scenes.Should().HaveCount(1);
         await _adventureStorage.Received(1).UpdateAsync(adventure, Arg.Any<CancellationToken>());
     }
@@ -494,7 +486,7 @@ public class AdventureServiceTests {
             Name = "Adventure",
             OwnerId = Guid.NewGuid(),
             IsPublic = false,
-            IsListed = false,
+            IsPublished = false,
         };
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);

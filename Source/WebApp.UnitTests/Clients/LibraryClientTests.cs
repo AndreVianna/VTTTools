@@ -155,7 +155,7 @@ public class LibraryClientTests {
             Name = "Updated Adventure",
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            IsListed = true,
+            IsPublished = true,
             IsPublic = true,
         };
 
@@ -187,7 +187,7 @@ public class LibraryClientTests {
             Name = "Updated Adventure",
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            IsListed = true,
+            IsPublished = true,
             IsPublic = true,
         };
 
@@ -263,8 +263,8 @@ public class LibraryClientTests {
         var adventureId = Guid.NewGuid();
         var expectedScenes = new Scene[]
                              {
-                                 new() { Id = Guid.NewGuid(), Name = "Scene 1", AdventureId = adventureId },
-                                 new() { Id = Guid.NewGuid(), Name = "Scene 2", AdventureId = adventureId },
+                                 new() { Id = Guid.NewGuid(), Name = "Scene 1"},
+                                 new() { Id = Guid.NewGuid(), Name = "Scene 2"},
                              };
 
         var mockHandler = new MockHttpMessageHandler((request, _) => {
@@ -302,8 +302,6 @@ public class LibraryClientTests {
         var expectedResponse = new Scene {
             Id = sceneId,
             Name = "New Scene",
-            OwnerId = Guid.NewGuid(),
-            AdventureId = adventureId,
             Description = "Scene description",
         };
 
@@ -398,8 +396,6 @@ public class LibraryClientTests {
         var expectedResponse = new Scene {
             Id = sceneId,
             Name = "Updated Scene",
-            AdventureId = adventureId,
-            OwnerId = Guid.NewGuid(),
         };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {

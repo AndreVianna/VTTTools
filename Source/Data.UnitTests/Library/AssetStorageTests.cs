@@ -75,14 +75,22 @@ public class AssetStorageTests
     [Fact]
     public async Task UpdateAsync_WithExistingAsset_UpdatesInDatabase() {
         // Arrange
-        var asset = DbContextHelper.CreateTestAsset("Asset To Update");
+        var entity = DbContextHelper.CreateTestAssetEntity("Asset To Update");
 
-        await _context.Assets.AddAsync(asset, _ct);
+        await _context.Assets.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
 
         // Modify the asset
-        asset.Name = "Updated Asset";
-        asset.Type = AssetType.Overlay;
+        var asset = new Asset {
+            Id = entity.Id,
+            OwnerId = entity.OwnerId,
+            Name = "Updated Asset",
+            Type = AssetType.Overlay,
+            Description = "Updated description",
+            Shape = new() { Type = MediaType.Image, SourceId = Guid.NewGuid() },
+            IsPublished = true,
+            IsPublic = true,
+        };
 
         // Act
         var result = await _storage.UpdateAsync(asset, _ct);
@@ -96,7 +104,7 @@ public class AssetStorageTests
     [Fact]
     public async Task DeleteAsync_WithExistingAsset_RemovesFromDatabase() {
         // Arrange
-        var asset = DbContextHelper.CreateTestAsset("Asset To Delete");
+        var asset = DbContextHelper.CreateTestAssetEntity("Asset To Delete");
         await _context.Assets.AddAsync(asset, _ct);
         await _context.SaveChangesAsync(_ct);
 

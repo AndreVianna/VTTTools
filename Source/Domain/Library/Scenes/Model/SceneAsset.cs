@@ -1,16 +1,11 @@
 ﻿namespace VttTools.Library.Scenes.Model;
 
-public class SceneAsset {
-    public Guid SceneId { get; set; }
-    public Scene Scene { get; set; } = null!;
-    public Guid AssetId { get; set; }
-    public uint Number { get; set; }
-    public Asset Asset { get; set; } = null!;
-    [MaxLength(128)]
-    public string Name { get; set; } = string.Empty;
-    public Format Format { get; set; } = new();
-    public Position Position { get; set; } = new();
-    public double Scale { get; set; } = 1;
-    public bool IsLocked { get; set; }
-    public Guid? ControlledBy { get; set; }
+public record SceneAsset : Asset {
+    public uint Number { get; init; }
+    public Vector2 Position { get; init; }
+    public Vector2 Scale { get; init; } = new(1.0f, 1.0f);
+    public float Rotation { get; init; }
+    public float Elevation { get; init; }
+    public bool IsLocked { get; init; }
+    public Guid? ControlledBy { get; init; }
 }

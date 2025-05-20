@@ -18,44 +18,52 @@ public partial class AdventurePage {
         return false;
     }
 
-    private void NavigateBack()
-        => NavigateTo("/adventures");
+    private void NavigateBack() => TryNavigateTo("/adventures");
+    private void NavigateToEditAdventure() => TryNavigateTo($"/adventure/edit/{Id}");
+    private void NavigateToCloneAdventure() => TryNavigateTo($"/adventure/clone/{Id}");
+    private void NavigateToSceneBuilder(Guid sceneId) => TryNavigateTo($"/scenes/builder/{sceneId}");
 
-    private void NavigateTo(string url) {
-        if (State.HasChanges) {
-            ShowUnsavedChangesModal(url);
-            return;
-        }
-        NavigationManager.NavigateTo(url);
-    }
-
-    // Convenience methods for navigation
-    private void NavigateToEditAdventure() => NavigateTo($"/adventure/edit/{Id}");
-    private void NavigateToCloneAdventure() => NavigateTo($"/adventure/clone/{Id}");
-    private void NavigateToViewScene(Guid sceneId) => NavigateTo($"/scenes/{sceneId}");
-    private void NavigateToEditScene(Guid sceneId) => NavigateTo($"/scenes/edit/{sceneId}");
-    private void NavigateToCreateScene() => NavigateTo($"/scenes/create/{Id}");
-
-    private Task SaveChanges()
-        => Handler.SaveChangesAsync(false);
-    private Task SaveAndContinueEditing()
-        => Handler.SaveChangesAsync(true);
-
-    private void DiscardChanges() {
-        Handler.DiscardChanges();
-        HideDiscardChangesModal();
-    }
+    private Task SaveAndGoBack() => Handler.SaveChangesAsync(false);
+    private Task SaveAndContinueEditing() => Handler.SaveChangesAsync(true);
 
     private Task DeleteAdventure() {
         HideDeleteConfirmationModal();
         return Handler.DeleteAdventureAsync();
     }
 
-    private void ShowUnsavedChangesModal(string url) {
-        State.UnsavedChangesModalIsVisible = true;
-        State.PendingNavigationUrl = url;
-   }
-    private void HideUnsavedChangesModal() => State.UnsavedChangesModalIsVisible = false;
+    private void TryNavigateTo(string url)
+        => TryExecute(() => NavigationManager.NavigateTo(url));
+
+    private void TryExecute(Action action) {
+        if (!State.HasChanges) {
+            action();
+            return;
+        }
+        State.PendingAction = () => InvokeAsync(action);
+        ShowUnsavedChangesModal();
+    }
+
+    private async Task TryExecuteAsync(Func<Task> action) {
+        if (!State.HasChanges) {
+            await action();
+            return;
+        }
+        State.PendingAction = action;
+        ShowUnsavedChangesModal();
+    }
+
+    internal void ShowUnsavedChangesModal() => State.PendingChangesModalIsVisible = true;
+
+    private Task HideUnsavedChangesModal(bool executePendingAction) {
+        State.PendingChangesModalIsVisible = false;
+        return executePendingAction ? State.PendingAction() : Task.CompletedTask;
+    }
+    private Task CancelAction() => HideUnsavedChangesModal(executePendingAction: false);
+    private Task ContinueActionWithoutSaving() => HideUnsavedChangesModal(executePendingAction: true);
+    private async Task SaveAndContinueAction() {
+        await SaveAndGoBack();
+        await HideUnsavedChangesModal(true);
+    }
 
     private void ShowDeleteConfirmationModal() => State.DeleteConfirmationModalIsVisible = true;
     private void HideDeleteConfirmationModal() => State.DeleteConfirmationModalIsVisible = false;
@@ -66,21 +74,14 @@ public partial class AdventurePage {
     }
     private void HideDeleteSceneConfirmationModal() => State.DeleteSceneConfirmationModalIsVisible = false;
 
-    private void ShowDiscardChangesModal() => State.DiscardChangesModalIsVisible = true;
-    private void HideDiscardChangesModal() => State.DiscardChangesModalIsVisible = false;
+    private void TryDiscardChanges()
+        => TryExecute(Handler.DiscardChanges);
+
+    private Task TryCreateScene()
+        => TryExecuteAsync(Handler.CreateSceneAsync);
 
     private async Task DeleteScene() {
         await StateHasChangedAsync();
         HideDeleteSceneConfirmationModal();
-    }
-
-    private async Task SaveAndContinue() {
-        await SaveChanges();
-        HideUnsavedChangesModal();
-    }
-
-    private void ContinueWithoutSaving() {
-        NavigationManager.NavigateTo(State.PendingNavigationUrl!);
-        HideUnsavedChangesModal();
     }
 }

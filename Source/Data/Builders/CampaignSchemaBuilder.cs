@@ -5,17 +5,17 @@ namespace VttTools.Data.Builders;
 /// </summary>
 internal static class CampaignSchemaBuilder {
     public static void ConfigureModel(ModelBuilder builder)
-        => builder.Entity<Campaign>(entity => {
-            entity.ToTable("Campaigns");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.OwnerId).IsRequired();
-            entity.Property(e => e.EpicId);
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
-            entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
-            entity.Property(e => e.ImageId);
-            entity.Property(e => e.IsListed).IsRequired();
-            entity.Property(e => e.IsPublic).IsRequired();
-            entity.HasMany(e => e.Adventures).WithOne(e => e.Campaign)
-                  .HasForeignKey(a => a.CampaignId).OnDelete(DeleteBehavior.Cascade);
-        });
+        => builder.Entity<Library.Entities.Campaign>(entity => {
+                                                         entity.ToTable("Campaigns");
+                                                         entity.HasKey(e => e.Id);
+                                                         entity.Property(e => e.OwnerId).IsRequired();
+                                                         entity.Property(e => e.EpicId);
+                                                         entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
+                                                         entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
+                                                         entity.Property(e => e.ImageId);
+                                                         entity.Property(e => e.IsPublished).IsRequired();
+                                                         entity.Property(e => e.IsPublic).IsRequired();
+                                                         entity.HasMany(e => e.Adventures).WithOne(e => e.Campaign)
+                                                               .HasForeignKey(a => a.CampaignId).OnDelete(DeleteBehavior.Cascade);
+                                                     });
 }

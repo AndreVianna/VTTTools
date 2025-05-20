@@ -25,21 +25,21 @@ var assets = builder.AddProject<Projects.VttTools_Assets>("assets-api")
     .WithReference(cache).WaitFor(cache)
     .WithReference(database).WaitFor(database)
     .WithReference(blobs).WaitFor(blobs)
-    .WithHttpsHealthCheck("health")
+    .WithHttpHealthCheck("health")
     .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
 var library = builder.AddProject<Projects.VttTools_Library>("library-api")
     .WithReference(cache).WaitFor(cache)
     .WithReference(database).WaitFor(database)
     .WithReference(assets).WaitFor(assets)
-    .WithHttpsHealthCheck("health")
+    .WithHttpHealthCheck("health")
     .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
 var game = builder.AddProject<Projects.VttTools_Game>("game-api")
     .WithReference(cache).WaitFor(cache)
     .WithReference(database).WaitFor(database)
     .WithReference(library).WaitFor(library)
-    .WithHttpsHealthCheck("health")
+    .WithHttpHealthCheck("health")
     .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
 builder.AddProject<Projects.VttTools_WebApp>("webapp")
@@ -48,7 +48,7 @@ builder.AddProject<Projects.VttTools_WebApp>("webapp")
     .WithReference(game).WaitFor(game)
     .WithReference(library).WaitFor(library)
     .WithReference(assets).WaitFor(assets)
-    .WithHttpsHealthCheck("health")
+    .WithHttpHealthCheck("health")
     .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
 builder.Build().Run();

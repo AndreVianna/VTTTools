@@ -8,24 +8,24 @@ public class UpdateAssetRequestTests {
             Name = "Title",
             Type = AssetType.Creature,
             Description = "Description",
-            Format = new Format {
-                Type = FormatType.Image,
+            Shape = new Shape {
+                Type = MediaType.Image,
                 SourceId = Guid.NewGuid(),
                 Size = new() {
-                    Width = 10,
-                    Height = 20,
+                    X = 10,
+                    Y = 20,
                 },
             },
         };
         const string name = "Other Title";
         const AssetType type = AssetType.NPC;
         const string description = "Other Description";
-        var newDisplay = new Format {
-            Type = FormatType.Video,
+        var newDisplay = new Shape {
+            Type = MediaType.Video,
             SourceId = Guid.NewGuid(),
             Size = new() {
-                Width = 30,
-                Height = 40,
+                X = 30,
+                Y = 40,
             },
         };
 
@@ -34,13 +34,13 @@ public class UpdateAssetRequestTests {
             Name = name,
             Type = type,
             Description = description,
-            Format = newDisplay,
+            Shape = newDisplay,
         };
 
         // Assert
         data.Name.Value.Should().Be(name);
         data.Type.Value.Should().Be(type);
         data.Description.Value.Should().Be(description);
-        data.Format.Value.Should().BeEquivalentTo(newDisplay);
+        data.Shape.Value.Should().BeEquivalentTo(newDisplay);
     }
 }

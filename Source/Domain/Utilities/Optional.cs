@@ -58,5 +58,5 @@ public readonly record struct Optional<T>() {
 
     public override int GetHashCode() => IsSet ? HashCode.Combine(IsSet, _value) : IsSet.GetHashCode();
 
-    public override string ToString() => IsSet ? $"Some({_value?.ToString() ?? "null"})" : "None";
+    public override string ToString() => IsSet ? $"Some({_value?.ToString() ?? "null"})" : "NoGrid";
 }

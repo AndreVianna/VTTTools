@@ -1,4 +1,6 @@
-﻿namespace VttTools.Library.Scenes.Services;
+﻿using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateAssetData;
+
+namespace VttTools.Library.Scenes.Services;
 
 public interface ISceneService {
     /// <summary>
@@ -21,7 +23,7 @@ public interface ISceneService {
     Task<Result<SceneAsset>> AddNewAssetAsync(Guid userId, Guid id, AddNewAssetData data, CancellationToken ct = default);
     Task<Result<SceneAsset>> AddClonedAssetAsync(Guid userId, Guid id, AddClonedAssetData data, CancellationToken ct = default);
 
-    Task<Result<SceneAsset>> UpdateAssetAsync(Guid userId, Guid id, UpdateSceneAssetData data, CancellationToken ct = default);
+    Task<Result<SceneAsset>> UpdateAssetAsync(Guid userId, Guid id, UpdateAssetData data, CancellationToken ct = default);
 
     Task<Result> RemoveAssetAsync(Guid userId, Guid id, Guid assetId, int number, CancellationToken ct = default);
 }

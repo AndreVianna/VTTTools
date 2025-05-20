@@ -102,14 +102,18 @@ public class SceneStorageTests
     [Fact]
     public async Task UpdateAsync_WithExistingScene_UpdatesInDatabase() {
         // Arrange
-        var scene = DbContextHelper.CreateTestScene(_context.Scenes.Skip(1).First().Id, "Scene To Update");
+        var entity = DbContextHelper.CreateTestSceneEntity(_context.Scenes.Skip(1).First().Id, "Scene To Update");
 
-        await _context.Scenes.AddAsync(scene, _ct);
+        await _context.Scenes.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
 
         // Modify the scene
-        scene.Name = "Updated Scene";
-        scene.Description = "Updated Description";
+        var scene = new Scene {
+            Id = entity.Id,
+            Name = "Updated Scene",
+            Description = "Updated Description",
+            Stage = entity.Stage,
+        };
         // Act
         var result = await _storage.UpdateAsync(scene, _ct);
 
@@ -122,7 +126,7 @@ public class SceneStorageTests
     [Fact]
     public async Task DeleteAsync_WithExistingScene_RemovesFromDatabase() {
         // Arrange
-        var scene = DbContextHelper.CreateTestScene(_context.Scenes.Skip(1).First().Id, "Scene To Delete");
+        var scene = DbContextHelper.CreateTestSceneEntity(_context.Scenes.Skip(1).First().Id, "Scene To Delete");
         await _context.Scenes.AddAsync(scene, _ct);
         await _context.SaveChangesAsync(_ct);
 

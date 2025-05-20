@@ -35,11 +35,11 @@ public class GameSessionService(IGameSessionStorage storage)
         var result = data.Validate();
         if (result.HasErrors)
             return TypedResult.As(HttpStatusCode.BadRequest, [.. result.Errors]).WithNo<GameSession>();
+        session = session with {
+            Title = data.Title.IsSet ? data.Title.Value : session.Title,
+            SceneId = data.SceneId.IsSet ? data.SceneId.Value : session.SceneId,
+        };
 
-        if (data.Title.IsSet)
-            session.Title = data.Title.Value;
-        if (data.SceneId.IsSet)
-            session.SceneId = data.SceneId.Value;
         await storage.UpdateAsync(session, ct);
         return TypedResult.As(HttpStatusCode.OK, session);
     }
@@ -88,7 +88,7 @@ public class GameSessionService(IGameSessionStorage storage)
         if (!isGameMaster)
             return TypedResult.As(HttpStatusCode.Forbidden);
 
-        session.SceneId = sceneId;
+        session = session with { SceneId = sceneId };
         await storage.UpdateAsync(session, ct);
         return TypedResult.As(HttpStatusCode.NoContent);
     }
@@ -102,7 +102,8 @@ public class GameSessionService(IGameSessionStorage storage)
         if (!isGameMaster)
             return TypedResult.As(HttpStatusCode.Forbidden);
 
-        session.Status = GameSessionStatus.InProgress;
+        session = session with { Status = GameSessionStatus.InProgress };
+        await storage.UpdateAsync(session, ct);
         return TypedResult.As(HttpStatusCode.NoContent);
     }
 
@@ -115,7 +116,8 @@ public class GameSessionService(IGameSessionStorage storage)
         if (!isGameMaster)
             return TypedResult.As(HttpStatusCode.Forbidden);
 
-        session.Status = GameSessionStatus.Finished;
+        session = session with { Status = GameSessionStatus.Finished };
+        await storage.UpdateAsync(session, ct);
         return TypedResult.As(HttpStatusCode.NoContent);
     }
 

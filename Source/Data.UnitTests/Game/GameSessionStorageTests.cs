@@ -116,14 +116,19 @@ public class GameSessionStorageTests
     [Fact]
     public async Task UpdateAsync_WithExistingGameSession_UpdatesInDatabase() {
         // Arrange
-        var session = DbContextHelper.CreateTestGameSession("Session To Update");
+        var entity = DbContextHelper.CreateTestGameSessionEntity("Session To Update");
 
-        await _context.GameSessions.AddAsync(session, _ct);
+        await _context.GameSessions.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
 
         // Modify the game session
-        session.Title = "Updated GameSession";
-        session.Status = GameSessionStatus.Cancelled;
+        var session = new GameSession {
+            Id = entity.Id,
+            Title = "Updated GameSession",
+            Status = GameSessionStatus.Scheduled,
+            Players = entity.Players,
+            OwnerId = entity.OwnerId,
+        };
 
         // Act
         var result = await _storage.UpdateAsync(session, _ct);
@@ -137,7 +142,7 @@ public class GameSessionStorageTests
     [Fact]
     public async Task DeleteAsync_WithExistingGameSession_RemovesFromDatabase() {
         // Arrange
-        var session = DbContextHelper.CreateTestGameSession("Session To Delete");
+        var session = DbContextHelper.CreateTestGameSessionEntity("Session To Delete");
         await _context.GameSessions.AddAsync(session, _ct);
         await _context.SaveChangesAsync(_ct);
 

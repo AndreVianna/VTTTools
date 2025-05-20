@@ -1,14 +1,14 @@
 ﻿namespace VttTools.Assets.Model;
 
-public class Asset {
-    public Guid Id { get; set; } = Guid.CreateVersion7();
-    public Guid OwnerId { get; set; }
-    public AssetType Type { get; set; }
+public record Asset {
+    public Guid Id { get; init; } = Guid.CreateVersion7();
+    public Guid OwnerId { get; init; }
+    public AssetType Type { get; init; }
     [MaxLength(128)]
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
     [MaxLength(4096)]
-    public string Description { get; set; } = string.Empty;
-    public Format Format { get; set; } = new();
-    public bool IsListed { get; set; }
-    public bool IsPublic { get; set; }
+    public string Description { get; init; } = string.Empty;
+    public Shape Shape { get; init; } = new();
+    public bool IsPublished { get; init; }
+    public bool IsPublic { get; init; }
 }

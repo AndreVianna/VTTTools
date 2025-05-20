@@ -9,7 +9,7 @@ internal sealed class OptionalConverter<T> : JsonConverter<Optional<T>> {
     /// <summary>
     /// Reads the JSON and deserializes it into an Optional&lt;T&gt;.
     /// This method is only called if the property *exists* in the JSON payload.
-    /// If the property is missing, the default Optional&lt;T&gt; (None) will be used.
+    /// If the property is missing, the default Optional&lt;T&gt; (NoGrid) will be used.
     /// </summary>
     public override Optional<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
         // If Read is called, the property was present in the JSON.

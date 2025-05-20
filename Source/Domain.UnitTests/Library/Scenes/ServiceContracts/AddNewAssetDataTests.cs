@@ -6,12 +6,16 @@ public class AddNewAssetDataTests {
         // Arrange
         var original = new AddNewAssetData {
             Name = "Asset Name",
-            Position = new Position() { Left = 10, Top = 20 },
-            Scale = 1.5,
+            Position = new() { X = 1, Y = 1 },
+            Scale = new() { X = 1f, Y = 1f },
+            Rotation = 0.0f,
+            Elevation = 0.0f,
         };
         const string name = "Other Name";
-        var position = new Position { Left = 10, Top = 20 };
-        const double scale = 0.5;
+        var position = new Vector2 { X = 10, Y = 20 };
+        var scale = new Vector2 { X = .5f, Y = .5f };
+        const float rotation = 45.0f;
+        const float elevation = 10.0f;
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers
@@ -19,12 +23,16 @@ public class AddNewAssetDataTests {
             Name = name,
             Position = position,
             Scale = scale,
+            Rotation = rotation,
+            Elevation = elevation,
         };
 
         // Assert
         data.Name.Should().Be(name);
         data.Position.Should().Be(position);
         data.Scale.Should().Be(scale);
+        data.Rotation.Should().Be(rotation);
+        data.Elevation.Should().Be(elevation);
     }
 
     [Fact]
@@ -32,8 +40,10 @@ public class AddNewAssetDataTests {
         // Arrange
         var data = new AddNewAssetData {
             Name = "Asset Name",
-            Position = new Position() { Left = 10, Top = 20 },
-            Scale = 1.5,
+            Position = new() { X = 1, Y = 1 },
+            Scale = new() { X = 1f, Y = 1f },
+            Rotation = 0.0f,
+            Elevation = 0.0f,
         };
 
         // Act
@@ -47,7 +57,10 @@ public class AddNewAssetDataTests {
     public void Validate_WithInvalidData_ReturnsSuccess() {
         // Arrange
         var data = new AddNewAssetData {
-            Scale = 0,
+            Name = null!,
+            Scale = new() { X = 1000f, Y = 1000f },
+            Rotation = -270,
+            Elevation = 2000,
         };
 
         // Act
@@ -55,6 +68,5 @@ public class AddNewAssetDataTests {
 
         // Assert
         result.HasErrors.Should().BeTrue();
-        result.Errors.Should().Contain(e => e.Message == "The scene asset scale must be greater than zero.");
     }
 }

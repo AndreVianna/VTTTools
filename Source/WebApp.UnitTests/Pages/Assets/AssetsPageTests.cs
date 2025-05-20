@@ -8,14 +8,14 @@ public class AssetsPageTests
             Name = "Asset 1",
             Type = AssetType.Character,
             Description = "Asset 1 Description",
-            IsListed = true,
+            IsPublished = true,
             IsPublic = true,
         },
         new() {
             Name = "Asset 2",
             Type = AssetType.Creature,
             Description = "Asset 2 Description",
-            IsListed = true,
+            IsPublished = true,
             IsPublic = true,
         }];
 

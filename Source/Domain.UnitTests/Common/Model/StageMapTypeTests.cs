@@ -5,7 +5,7 @@ public class StageMapTypeTests {
     public void StageMapType_HasExpectedValues()
         // Assert
         => Enum.GetValues<GridType>().Should().Contain([
-            GridType.None,
+            GridType.NoGrid,
             GridType.Square,
             GridType.HexH,
             GridType.HexV,

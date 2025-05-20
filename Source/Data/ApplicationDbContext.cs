@@ -1,3 +1,8 @@
+using Adventure = VttTools.Data.Library.Entities.Adventure;
+using Asset = VttTools.Data.Assets.Entities.Asset;
+using GameSession = VttTools.Data.Game.Entities.GameSession;
+using Scene = VttTools.Data.Library.Entities.Scene;
+
 namespace VttTools.Data;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)

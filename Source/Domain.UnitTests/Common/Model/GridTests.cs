@@ -7,28 +7,28 @@ public class GridTests {
         var grid = new Grid();
 
         // Assert
-        grid.Offset.Should().NotBeNull();
-        grid.Offset.Left.Should().Be(0);
-        grid.Offset.Top.Should().Be(0);
-        grid.CellSize.Should().NotBeNull();
-        grid.CellSize.Width.Should().Be(0);
-        grid.CellSize.Height.Should().Be(0);
+        grid.Type.Should().Be(GridType.NoGrid);
+        grid.Cell.Should().NotBeNull();
     }
 
     [Fact]
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
-        var offset = new Position { Left = 25, Top = 30 };
-        var cellSize = new Size { Width = 40, Height = 40 };
+        const GridType type = GridType.Square;
+        var cell = new Cell {
+            Size = 1.0f,
+            Offset = new() { X = 0, Y = 0 },
+            Scale = new() { X = 1.0f, Y = 1.0f },
+        };
 
         // Act
         var grid = new Grid {
-            Offset = offset,
-            CellSize = cellSize,
+            Type = type,
+            Cell = cell,
         };
 
         // Assert
-        grid.Offset.Should().Be(offset);
-        grid.CellSize.Should().Be(cellSize);
+        grid.Type.Should().Be(type);
+        grid.Cell.Should().BeEquivalentTo(cell);
     }
 }

@@ -24,14 +24,4 @@ public record UpdateSceneRequest
     /// New stage configuration. If not set, the original stage is unchanged.
     /// </summary>
     public Optional<Stage> Stage { get; init; }
-
-    /// <summary>
-    /// New name for the Scene. If not set, name is unchanged.
-    /// </summary>
-    public Optional<bool> IsListed { get; init; }
-
-    /// <summary>
-    /// New name for the Scene. If not set, name is unchanged.
-    /// </summary>
-    public Optional<bool> IsPublic { get; init; }
 }

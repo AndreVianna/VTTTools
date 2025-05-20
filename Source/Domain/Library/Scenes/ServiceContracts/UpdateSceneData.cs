@@ -25,16 +25,6 @@ public record UpdateSceneData
     /// </summary>
     public Optional<Stage> Stage { get; init; }
 
-    /// <summary>
-    /// New name for the Scene. If not set, name is unchanged.
-    /// </summary>
-    public Optional<bool> IsListed { get; init; }
-
-    /// <summary>
-    /// New name for the Scene. If not set, name is unchanged.
-    /// </summary>
-    public Optional<bool> IsPublic { get; init; }
-
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
         if (Name.IsSet && string.IsNullOrWhiteSpace(Name.Value))

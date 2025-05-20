@@ -1,16 +1,11 @@
 ﻿namespace VttTools.Library.Scenes.Model;
 
-public class Scene {
-    public Guid AdventureId { get; set; }
-    public Adventure Adventure { get; set; } = null!;
-    public Guid Id { get; set; } = Guid.CreateVersion7();
-    public Guid OwnerId { get; set; }
+public record Scene {
+    public Guid Id { get; init; } = Guid.CreateVersion7();
     [MaxLength(128)]
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
     [MaxLength(4096)]
-    public string Description { get; set; } = string.Empty;
-    public bool IsListed { get; set; }
-    public bool IsPublic { get; set; }
-    public Stage Stage { get; set; } = new();
-    public List<SceneAsset> SceneAssets { get; set; } = [];
+    public string Description { get; init; } = string.Empty;
+    public Stage Stage { get; init; } = new();
+    public List<SceneAsset> SceneAssets { get; init; } = [];
 }

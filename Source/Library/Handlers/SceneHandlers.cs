@@ -1,4 +1,5 @@
 using IResult = Microsoft.AspNetCore.Http.IResult;
+using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateAssetData;
 
 namespace VttTools.Library.Handlers;
 
@@ -18,8 +19,6 @@ internal static class SceneHandlers {
             Name = request.Name,
             Description = request.Description,
             Stage = request.Stage,
-            IsListed = request.IsListed,
-            IsPublic = request.IsPublic,
         };
         var result = await sceneService.UpdateSceneAsync(userId, id, data);
         return result.IsSuccessful
@@ -34,12 +33,14 @@ internal static class SceneHandlers {
     internal static async Task<IResult> GetAssetsHandler([FromRoute] Guid id, [FromServices] ISceneService sceneService)
         => Results.Ok(await sceneService.GetAssetsAsync(id));
 
-    internal static async Task<IResult> AddClonedAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddClonedSceneAssetRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> AddClonedAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddClonedAssetRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var data = new AddClonedAssetData {
-            Format = request.Format,
+            Shape = request.Shape,
             Position = request.Position,
             Scale = request.Scale,
+            Elevation = request.Elevation.Value,
+            Rotation = request.Rotation.Value,
         };
         var result = await sceneService.AddClonedAssetAsync(userId, id, data);
         return result.IsSuccessful
@@ -51,11 +52,13 @@ internal static class SceneHandlers {
                     : Results.BadRequest(result.Errors);
     }
 
-    internal static async Task<IResult> AddNewAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddNewSceneAssetRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> AddNewAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddAssetRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var data = new AddNewAssetData {
-            Position = request.Position,
-            Scale = request.Scale,
+            Position = request.Position.Value,
+            Scale = request.Scale.Value,
+            Elevation = request.Elevation.Value,
+            Rotation = request.Rotation.Value,
         };
         var result = await sceneService.AddNewAssetAsync(userId, id, data);
         return result.IsSuccessful
@@ -67,14 +70,16 @@ internal static class SceneHandlers {
                     : Results.BadRequest(result.Errors);
     }
 
-    internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateSceneAssetRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateAssetRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var data = new UpdateSceneAssetData {
+        var data = new UpdateAssetData {
             AssetId = request.AssetId,
             Number = request.Number,
             Name = request.Name,
             Position = request.Position,
             Scale = request.Scale,
+            Elevation = request.Elevation.Value,
+            Rotation = request.Rotation.Value,
             IsLocked = request.IsLocked,
             ControlledBy = request.ControlledBy,
         };
