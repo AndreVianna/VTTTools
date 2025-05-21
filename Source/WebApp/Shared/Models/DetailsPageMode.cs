@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Library.Adventures.Models;
+namespace VttTools.WebApp.Shared.Models;
 
 internal enum DetailsPageMode {
     View,

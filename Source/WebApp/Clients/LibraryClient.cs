@@ -20,7 +20,7 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
         })];
     }
 
-    public async Task<AdventureInputModel?> GetAdventureByIdAsync(Guid id) {
+    public async Task<AdventureInput?> GetAdventureByIdAsync(Guid id) {
         var adventure = await client.GetFromJsonAsync<Adventure>($"/api/adventures/{id}", _options);
         return adventure == null ? null : new() {
             Name = adventure.Name,

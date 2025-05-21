@@ -1,3 +1,5 @@
+using VttTools.WebApp.Pages.Library.Adventure.Details;
+
 namespace VttTools.WebApp.Pages.Game.Schedule;
 
 public class GameSessionsPageHandlerTests

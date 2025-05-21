@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Library.Adventures.Models;
+namespace VttTools.WebApp.Pages.Library.Adventure.List;
 
 public sealed record AdventureListItem {
     public Guid Id { get; set; }

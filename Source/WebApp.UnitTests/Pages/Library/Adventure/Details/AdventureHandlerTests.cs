@@ -1,7 +1,7 @@
 #pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable BL0005
 #pragma warning restore IDE0079 // Remove unnecessary suppression
-namespace VttTools.WebApp.Pages.Library.Adventures;
+namespace VttTools.WebApp.Pages.Library.Adventure.Details;
 
 public class AdventureHandlerTests
     : ComponentTestContext {
@@ -20,7 +20,7 @@ public class AdventureHandlerTests
     public async Task LoadAdventureAsync_WithValidId_ReturnsTrue_AndPopulatesState() {
         // Arrange
         var handler = CreateHandler();
-        var adventure = new AdventureInputModel {
+        var adventure = new AdventureInput {
             Name = "Test Adventure",
             Description = "Test Description",
             Type = AdventureType.OpenWorld,
@@ -47,7 +47,7 @@ public class AdventureHandlerTests
     public async Task LoadAdventureAsync_WithInvalidId_ReturnsFalse() {
         // Arrange
         var handler = CreateHandler();
-        _client.GetAdventureByIdAsync(_adventureId).Returns((AdventureInputModel?)null);
+        _client.GetAdventureByIdAsync(_adventureId).Returns((AdventureInput?)null);
         _page.Action = "view";
 
         // Act
@@ -61,13 +61,13 @@ public class AdventureHandlerTests
     public async Task LoadAdventureAsync_InCloneMode_AppendsCloneSuffix_AndChangesVisibility() {
         // Arrange
         var handler = CreateHandler();
-        var adventure = new AdventureInputModel {
+        var adventure = new AdventureInput {
             Name = "Test Adventure",
             Description = "Test Description",
             Type = AdventureType.OpenWorld,
             IsPublished = true,
             IsPublic = true,
-                                                };
+        };
         _client.GetAdventureByIdAsync(_adventureId).Returns(adventure);
         _page.Action = "clone";
 
@@ -101,13 +101,13 @@ public class AdventureHandlerTests
             Type = AdventureType.DungeonCrawl,
             IsPublished = true,
             IsPublic = false,
-                                                     };
+        };
 
         _client.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>())
             .Returns(Result.Success(createdAdventure));
 
         // Act
-        await handler.SaveChangesAsync(false);
+        await handler.SaveChangesAsync();
 
         // Assert
         await _client.Received(1).CreateAdventureAsync(Arg.Any<CreateAdventureRequest>());
@@ -141,7 +141,7 @@ public class AdventureHandlerTests
             .Returns(Result.Success());
 
         // Act
-        await handler.SaveChangesAsync(false);
+        await handler.SaveChangesAsync();
 
         // Assert
         await _client.Received(1).UpdateAdventureAsync(
@@ -168,7 +168,7 @@ public class AdventureHandlerTests
             .Returns(Result.Failure([error]));
 
         // Act
-        await handler.SaveChangesAsync(false);
+        await handler.SaveChangesAsync();
 
         // Assert
         _page.State.Errors.Should().Contain(error);
@@ -189,13 +189,13 @@ public class AdventureHandlerTests
             Id = createdId,
             Name = "New Adventure",
             Description = "New Description",
-                                                     };
+        };
 
         _client.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>())
             .Returns(Result.Success(createdAdventure));
 
         // Act
-        await handler.SaveChangesAsync(true);
+        await handler.SaveChangesAsync();
 
         // Assert
         _page.NavigationManager.Received(1).NavigateTo($"/adventure/edit/{createdId}");
@@ -216,15 +216,15 @@ public class AdventureHandlerTests
         _client.UpdateAdventureAsync(_adventureId, Arg.Any<UpdateAdventureRequest>())
             .Returns(Result.Success());
 
-        var updatedAdventure = new AdventureInputModel {
+        var updatedAdventure = new AdventureInput {
             Name = "Updated Name",
             Description = "Updated Description",
             Type = AdventureType.OpenWorld,
-                                                       };
+        };
         _client.GetAdventureByIdAsync(_adventureId).Returns(updatedAdventure);
 
         // Act
-        await handler.SaveChangesAsync(true);
+        await handler.SaveChangesAsync();
 
         // Assert
         await _client.Received(1).UpdateAdventureAsync(

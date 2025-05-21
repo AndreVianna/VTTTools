@@ -1,13 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Aspire.AppHost.Sdk" Version="9.0.0" />
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.3.0" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <IsAspireHost>true</IsAspireHost>
     <UserSecretsId>73bce350-3cea-4c38-b8c1-3368ba420543</UserSecretsId>
     <Configurations>Debug;Release;XUnitV3</Configurations>
   </PropertyGroup>
@@ -15,9 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="9.3.0" />
     <PackageReference Include="Aspire.Hosting.SqlServer" Version="9.3.0" />
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.3.0">
-      <TreatAsUsed>true</TreatAsUsed>
-    </PackageReference>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.3.0" />
     <PackageReference Include="Aspire.Hosting.Redis" Version="9.3.0" />
   </ItemGroup>
 

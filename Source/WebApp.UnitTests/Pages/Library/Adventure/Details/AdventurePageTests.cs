@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Library.Adventures;
+namespace VttTools.WebApp.Pages.Library.Adventure.Details;
 
 [Trait("Category", "UI")]
 public class AdventurePageTests
@@ -6,7 +6,7 @@ public class AdventurePageTests
     private readonly ILibraryClient _libraryClient = Substitute.For<ILibraryClient>();
     private readonly NavigationManager _navigationManager = Substitute.For<NavigationManager>();
     private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
-    private readonly AdventureInputModel _testAdventure = new() {
+    private readonly AdventureInput _testAdventure = new() {
         Name = "Test Adventure",
         Description = "Test Description",
         Type = AdventureType.OpenWorld,

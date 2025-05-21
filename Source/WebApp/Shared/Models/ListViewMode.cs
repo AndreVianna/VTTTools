@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Library.Adventures.Models;
+namespace VttTools.WebApp.Shared.Models;
 
 /// <summary>
 /// The display mode for the adventures list.

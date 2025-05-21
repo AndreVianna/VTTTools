@@ -20,7 +20,7 @@
   }
   else {
     <StatusMessage />
-    <EditForm id="login-form" Model="Input" method="post" OnValidSubmit="SaveAndGoBack" FormName="login">
+    <EditForm id="login-form" Model="Input" method="post" OnValidSubmit="SubmitForm" FormName="login">
     <div class="card">
       @if (State.ImageUrl != null) {
         <img src="@State.ImageUrl" class="card-img-top" alt="@Input.Name" />
@@ -203,21 +203,21 @@
             <button id="back-button" class="btn btn-secondary" @onclick="NavigateBack">
               <span class="icon back me-1" aria-hidden="true"></span> Return to List
             </button>
-            <button id="delete-button" class="btn btn-danger" @onclick="ShowDeleteConfirmationModal">
-              <span class="icon delete me-1" aria-hidden="true"></span> Delete Adventure
-            </button>
           }
           else {
-            <button id="save-continue-button" class="btn btn-primary me-2" @onclick="SaveAndContinueEditing">
+            <button id="save-continue-button" type="submit" class="btn btn-primary me-2" @onclick="SaveAndContinue">
               <span class="icon save me-1" aria-hidden="true"></span> Save & Continue
             </button>
-            <button id="save-finish-button" class="btn btn-outline-primary me-2" @onclick="SaveAndGoBack">
+            <button id="save-finish-button" type="submit" class="btn btn-outline-primary me-2" @onclick="SaveAndFinish">
               <span class="icon save me-1" aria-hidden="true"></span> Save & Finish
             </button>
-            <button id="discard-button" class="btn btn-outline-warning me-2" @onclick="TryDiscardChanges">
+            <button id="discard-button" type="submit" class="btn btn-outline-warning me-2" @onclick="DiscardChanges">
               <span class="icon discard me-1" aria-hidden="true"></span> Discard Changes
             </button>
-            <button id="cancel-button" class="btn btn-secondary" @onclick="NavigateBack">
+            <button id="delete-button" type="submit" class="btn btn-danger" @onclick="ShowDeleteConfirmationModal">
+              <span class="icon delete me-1" aria-hidden="true"></span> Delete Adventure
+            </button>
+            <button id="cancel-button" type="submit" class="btn btn-secondary" @onclick="TryNavigateBack">
               <span class="icon cancel me-1" aria-hidden="true"></span> Cancel
             </button>
           }
@@ -287,8 +287,8 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" @onclick="CancelAction">Cancel</button>
-          <button type="button" class="btn btn-primary" @onclick="SaveAndContinueAction">Save & Continue</button>
-          <button type="button" class="btn btn-outline-danger" @onclick="ContinueActionWithoutSaving">Continue without saving</button>
+          <button type="button" class="btn btn-primary" @onclick="SaveChangesAndExecuteAction">Save & Continue</button>
+          <button type="button" class="btn btn-outline-danger" @onclick="DiscardChangesAndExecuteAction">Continue without saving</button>
         </div>
       </div>
     </div>

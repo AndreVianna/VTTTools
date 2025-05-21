@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Library.Adventures;
+namespace VttTools.WebApp.Pages.Library.Adventure.Details;
 
 public class AdventureHandler(AdventurePage page)
     : PageHandler<AdventureHandler, AdventurePage>(page) {
@@ -7,10 +7,13 @@ public class AdventureHandler(AdventurePage page)
     public async Task<bool> LoadAdventureAsync(ILibraryClient client) {
         _client = client;
         Page.State.Mode = Enum.Parse<DetailsPageMode>(Page.Action ?? "View", true);
-        if (Page.State.Mode == DetailsPageMode.Create) return true;
-        if (Page.Id == Guid.Empty) return false;
+        if (Page.State.Mode == DetailsPageMode.Create)
+            return true;
+        if (Page.Id == Guid.Empty)
+            return false;
         var adventure = await client.GetAdventureByIdAsync(Page.Id);
-        if (adventure == null) return false;
+        if (adventure == null)
+            return false;
         Page.State.Input = adventure;
         if (Page.State.Mode == DetailsPageMode.Clone) {
             Page.State.Input.Name += " (Copy)";
@@ -33,16 +36,27 @@ public class AdventureHandler(AdventurePage page)
             Page.NavigationManager.NavigateTo("/adventures");
     }
 
-    internal Task SaveChangesAsync(bool continueEdit) {
+    internal async Task SaveChangesAsync() {
+        if (Page.State.Mode == DetailsPageMode.View) return;
+        if (!Page.State.SaveChanges) return;
+
         Page.State.Errors = [];
-        return Page.State.Mode switch {
-            DetailsPageMode.Create or DetailsPageMode.Clone => CreateAdventureAsync(continueEdit),
-            DetailsPageMode.Edit => UpdateAdventureAsync(continueEdit),
-            _ => Task.CompletedTask,
-        };
+        switch (Page.State.Mode)
+        {
+            case DetailsPageMode.Create or DetailsPageMode.Clone:
+                await CreateAdventureAsync();
+                break;
+            case DetailsPageMode.Edit:
+                await UpdateAdventureAsync();
+                break;
+        }
+
+        if (Page.State.Errors.Length > 0)
+            Page.State.ExecutePendingAction = false;
     }
 
     public void DiscardChanges() {
+        Page.State.SaveChanges = false;
         Page.State.Input.Name = Page.State.Original.Name;
         Page.State.Input.Description = Page.State.Original.Description;
         Page.State.Input.Type = Page.State.Original.Type;
@@ -51,7 +65,7 @@ public class AdventureHandler(AdventurePage page)
         Page.State.Errors = [];
     }
 
-    private async Task UpdateAdventureAsync(bool continueEditing) {
+    private async Task UpdateAdventureAsync() {
         var request = new UpdateAdventureRequest {
             Name = Page.Input.Name != Page.State.Original.Name ? Page.State.Input.Name : Optional<string>.None,
             Description = Page.Input.Description != Page.State.Original.Description ? Page.State.Input.Description : Optional<string>.None,
@@ -64,16 +78,10 @@ public class AdventureHandler(AdventurePage page)
         if (!result.IsSuccessful) {
             Page.State.Errors = [.. result.Errors];
             await Page.StateHasChangedAsync();
-            return;
         }
-
-        var url = continueEditing
-            ? $"/adventure/edit/{Page.Id}"
-            : "/adventures";
-        Page.NavigationManager.NavigateTo(url);
     }
 
-    private async Task CreateAdventureAsync(bool continueEditing) {
+    private async Task CreateAdventureAsync() {
         var request = new CreateAdventureRequest {
             Name = Page.State.Input.Name,
             Description = Page.State.Input.Description,
@@ -84,13 +92,7 @@ public class AdventureHandler(AdventurePage page)
         if (!result.IsSuccessful) {
             Page.State.Errors = [.. result.Errors];
             await Page.StateHasChangedAsync();
-            return;
         }
-
-        var url = continueEditing
-            ? $"/adventure/edit/{result.Value.Id}"
-            : "/adventures";
-        Page.NavigationManager.NavigateTo(url);
     }
 
     internal async Task CreateSceneAsync() {

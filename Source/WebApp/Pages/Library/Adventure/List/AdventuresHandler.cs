@@ -1,6 +1,6 @@
 using static System.StringComparison;
 
-namespace VttTools.WebApp.Pages.Library.Adventures;
+namespace VttTools.WebApp.Pages.Library.Adventure.List;
 
 public class AdventuresHandler(AdventuresPage page)
     : PageHandler<AdventuresHandler, AdventuresPage>(page) {

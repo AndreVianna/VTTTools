@@ -56,7 +56,9 @@ global using VttTools.WebApp.Components;
 global using VttTools.WebApp.Extensions;
 global using VttTools.WebApp.Pages.Account;
 global using VttTools.WebApp.Pages.Account.Manage;
-global using VttTools.WebApp.Pages.Library.Adventures.Models;
+global using VttTools.WebApp.Pages.Library.Adventure.Details;
+global using VttTools.WebApp.Pages.Library.Adventure.List;
+global using VttTools.WebApp.Shared.Models;
 global using VttTools.WebApp.Utilities;
 
 global using static DotNetToolbox.Ensure;

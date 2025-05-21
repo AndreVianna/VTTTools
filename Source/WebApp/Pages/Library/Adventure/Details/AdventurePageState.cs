@@ -1,10 +1,11 @@
-namespace VttTools.WebApp.Pages.Library.Adventures.Models;
+namespace VttTools.WebApp.Pages.Library.Adventure.Details;
 
 internal class AdventurePageState {
     public DetailsPageMode Mode { get; set; }
-    internal AdventureInputModel Original { get; set; } = new();
-    internal AdventureInputModel Input { get; set; } = new();
     internal string? ImageUrl { get; set; }
+
+    internal AdventureInput Original { get; set; } = new();
+    internal AdventureInput Input { get; set; } = new();
     public InputError[] Errors { get; set; } = [];
 
     public bool DeleteConfirmationModalIsVisible { get; set; }
@@ -20,4 +21,7 @@ internal class AdventurePageState {
         || Input.IsPublic != Original.IsPublic;
     public bool PendingChangesModalIsVisible { get; set; }
     public Func<Task> PendingAction { get; set; } = null!;
+    public bool FinishEditing { get; set; }
+    public bool ExecutePendingAction { get; set; }
+    public bool SaveChanges { get; set; }
 }
