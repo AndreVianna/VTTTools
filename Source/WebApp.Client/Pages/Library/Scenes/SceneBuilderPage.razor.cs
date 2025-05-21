@@ -20,17 +20,16 @@ public partial class SceneBuilderPage : ComponentBase {
 
     private ElementReference _canvasRef;
     private ElementReference _canvasContainerRef;
-    private GridInput _grid = new();
-    private readonly AssetInput _asset = new();
-
-    private Scene Scene { get; set; } = null!;
-    private BuilderState State { get; set; } = new();
-
-    // Base path for assets
     private string _canvasJs = string.Empty;
     private const string _assetBasePath = "/uploads/assets";
     private const string _stageBasePath = "/uploads/stage";
 
+    internal Scene Scene { get; set; } = null!;
+    internal BuilderState State { get; set; } = new();
+    internal GridInput Grid { get; set; } = new();
+    internal AssetInput SelectedAsset { get; set; } = new();
+
+    // Base path for assets
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync();
         await LoadSceneAsync();
@@ -57,7 +56,7 @@ public partial class SceneBuilderPage : ComponentBase {
             NavigateBack();
             return;
         }
-        _grid = new() {
+        Grid = new() {
             Type = scene.Stage.Grid.Type,
             CellWidth = scene.Stage.Grid.Cell.Scale.X * scene.Stage.Grid.Cell.Size,
             CellHeight = scene.Stage.Grid.Cell.Scale.Y * scene.Stage.Grid.Cell.Size,
@@ -269,14 +268,14 @@ public partial class SceneBuilderPage : ComponentBase {
         var sceneData = new {
             backgroundSrc = State.BackgroundUrl,
             grid = new {
-                type = _grid.Type,
+                type = Grid.Type,
                 cellSize = new {
-                    width = _grid.CellWidth,
-                    height = _grid.CellHeight,
+                    width = Grid.CellWidth,
+                    height = Grid.CellHeight,
                 },
                 offset = new {
-                    left = _grid.OffsetLeft,
-                    top = _grid.OffsetTop,
+                    left = Grid.OffsetLeft,
+                    top = Grid.OffsetTop,
                 },
             },
             assets = Scene.SceneAssets.Select(a => new {
@@ -326,7 +325,7 @@ public partial class SceneBuilderPage : ComponentBase {
         State.ShowAssetSelectorModal = false;
     }
 
-    private void StartAssetPlacement(AssetType assetType) => _asset.Type = assetType;// Will open asset selector when user clicks on canvas
+    private void StartAssetPlacement(AssetType assetType) => SelectedAsset.Type = assetType;// Will open asset selector when user clicks on canvas
 
     private async Task OnCanvasMouseDown(MouseEventArgs e) {
         // Get mouse position relative to canvas
@@ -335,9 +334,9 @@ public partial class SceneBuilderPage : ComponentBase {
         var y = Convert.ToDouble(((dynamic)pos).y);
 
         // If we're in asset placement mode, remember position for when we add the asset
-        if (_asset.Type != AssetType.Placeholder) {
-            _asset.PositionX = x;
-            _asset.PositionY = y;
+        if (SelectedAsset.Type != AssetType.Placeholder) {
+            SelectedAsset.PositionX = x;
+            SelectedAsset.PositionY = y;
             State.ShowAssetSelectorModal = true;
             return;
         }
@@ -369,12 +368,12 @@ public partial class SceneBuilderPage : ComponentBase {
         var y = Convert.ToDouble(((dynamic)pos).y);
 
         // Update asset position
-        if (State.SnapToGrid && _grid.Type != GridType.NoGrid) {
+        if (State.SnapToGrid && Grid.Type != GridType.NoGrid) {
             // Snap to nearest grid point
-            var gridX = _grid.OffsetLeft;
-            var gridY = _grid.OffsetTop;
-            var cellWidth = _grid.CellWidth > 0 ? _grid.CellWidth : 50;
-            var cellHeight = _grid.CellHeight > 0 ? _grid.CellHeight : 50;
+            var gridX = Grid.OffsetLeft;
+            var gridY = Grid.OffsetTop;
+            var cellWidth = Grid.CellWidth > 0 ? Grid.CellWidth : 50;
+            var cellHeight = Grid.CellHeight > 0 ? Grid.CellHeight : 50;
 
             // Calculate nearest grid point
             x = (Math.Round((x - gridX) / cellWidth) * cellWidth) + gridX;
@@ -433,12 +432,12 @@ public partial class SceneBuilderPage : ComponentBase {
         await DrawSceneAsync();
     }
 
-    private void OnImageFileSelected(InputFileChangeEventArgs e) => _asset.SelectedImageFile = e.File;
+    private void OnImageFileSelected(InputFileChangeEventArgs e) => SelectedAsset.SelectedImageFile = e.File;
 
-    private void OnAssetFileSelected(InputFileChangeEventArgs e) => _asset.SelectedAssetFile = e.File;
+    private void OnAssetFileSelected(InputFileChangeEventArgs e) => SelectedAsset.SelectedAssetFile = e.File;
 
     private async Task SaveBackgroundImage() {
-        if (_asset.SelectedImageFile == null)
+        if (SelectedAsset.SelectedImageFile == null)
             return;
         // Create a new asset for the background image
         var createAssetRequest = new CreateAssetRequest {
@@ -451,8 +450,8 @@ public partial class SceneBuilderPage : ComponentBase {
         if (!assetResult.IsSuccessful)
             return;
 
-        await using var stream = _asset.SelectedImageFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
-        await AssetsClient.UploadAssetFileAsync(assetResult.Value.Id, stream, _asset.SelectedImageFile.Name);
+        await using var stream = SelectedAsset.SelectedImageFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
+        await AssetsClient.UploadAssetFileAsync(assetResult.Value.Id, stream, SelectedAsset.SelectedImageFile.Name);
 
         // Update the scene with the new background path
         Scene = Scene with { Stage = Scene.Stage with { Shape = Scene.Stage.Shape with { SourceId = assetResult.Value.Id } } };
@@ -472,16 +471,16 @@ public partial class SceneBuilderPage : ComponentBase {
         Scene = Scene with {
             Stage = Scene.Stage with {
                 Grid = new() {
-                    Type = _grid.Type,
+                    Type = Grid.Type,
                     Cell = new () {
                         Scale = new() {
-                            X = _grid.CellWidth / 50.0f,
-                            Y = _grid.CellHeight / 50.0f,
+                            X = Grid.CellWidth / 50.0f,
+                            Y = Grid.CellHeight / 50.0f,
                         },
                         Size = 50.0f,
                         Offset = new() {
-                            X = _grid.OffsetLeft,
-                            Y = _grid.OffsetTop,
+                            X = Grid.OffsetLeft,
+                            Y = Grid.OffsetTop,
                         },
                     },
                 },
@@ -503,8 +502,8 @@ public partial class SceneBuilderPage : ComponentBase {
     private async Task AddAssetToScene() {
         // First, create a new asset
         var createAssetRequest = new CreateAssetRequest {
-            Name = _asset.Name,
-            Type = _asset.Type,
+            Name = SelectedAsset.Name,
+            Type = SelectedAsset.Type,
         };
 
         var assetResult = await AssetsClient.CreateAssetAsync(createAssetRequest);
@@ -512,16 +511,16 @@ public partial class SceneBuilderPage : ComponentBase {
         if (!assetResult.IsSuccessful)
             return;
 
-        if (_asset.SelectedAssetFile != null) {
-            await using var stream = _asset.SelectedAssetFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
-            await AssetsClient.UploadAssetFileAsync(assetResult.Value.Id, stream, _asset.SelectedAssetFile.Name);
+        if (SelectedAsset.SelectedAssetFile != null) {
+            await using var stream = SelectedAsset.SelectedAssetFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
+            await AssetsClient.UploadAssetFileAsync(assetResult.Value.Id, stream, SelectedAsset.SelectedAssetFile.Name);
         }
 
         // Add the asset to the scene
         var addAssetRequest = new AddAssetRequest {
             AssetId = assetResult.Value.Id,
-            Name = _asset.Name,
-            Position = new Vector2 (_asset.PositionX, _asset.PositionY),
+            Name = SelectedAsset.Name,
+            Position = new Vector2 (SelectedAsset.PositionX, SelectedAsset.PositionY),
         };
 
         var sceneAssetResult = await LibraryClient.AddSceneAssetAsync(Scene.Id, addAssetRequest);
@@ -532,9 +531,9 @@ public partial class SceneBuilderPage : ComponentBase {
         }
 
         State.ShowAssetSelectorModal = false;
-        _asset.Type = AssetType.Placeholder;
-        _asset.Name = string.Empty;
-        _asset.SelectedAssetFile = null;
+        SelectedAsset.Type = AssetType.Placeholder;
+        SelectedAsset.Name = string.Empty;
+        SelectedAsset.SelectedAssetFile = null;
 
         await DrawSceneAsync();
     }
