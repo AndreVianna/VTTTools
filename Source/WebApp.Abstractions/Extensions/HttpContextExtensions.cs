@@ -11,7 +11,7 @@ public static class HttpContextExtensions {
     };
 
     public static void SetStatusMessage(this HttpContext context, string message)
-        => context.Response.Cookies.Append(_statusMessageCookieName, message, _statusCookieBuilder.Build(context));
+        => context?.Response.Cookies.Append(_statusMessageCookieName, message, _statusCookieBuilder.Build(context));
 
     public static string? GetStatusMessage(this HttpContext context) {
         var message = context?.Request.Cookies[_statusMessageCookieName];

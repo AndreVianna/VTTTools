@@ -21,7 +21,7 @@ internal class AdventurePageState {
         || Input.IsPublic != Original.IsPublic;
     public bool PendingChangesModalIsVisible { get; set; }
     public Func<Task> PendingAction { get; set; } = null!;
-    public bool FinishEditing { get; set; }
+    public string NextPage { get; set; } = string.Empty;
     public bool ExecutePendingAction { get; set; }
     public bool SaveChanges { get; set; }
 }

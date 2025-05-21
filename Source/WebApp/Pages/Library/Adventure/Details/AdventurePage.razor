@@ -100,6 +100,14 @@
             </div>
           }
         </div>
+        <div class="card-footer">
+          <button id="clone-button" class="btn btn-outline-primary me-2" @onclick="StartCloning">
+            <span class="icon clone me-1" aria-hidden="true"></span> Clone Adventure
+          </button>
+            <button id="back-button" class="btn btn-secondary" @onclick="ReturnToList">
+            <span class="icon back me-1" aria-hidden="true"></span> Return to List
+          </button>
+        </div>
       }
       else {
         <div class="card-body">
@@ -191,36 +199,22 @@
             </div>
           }
         </div>
-
         <div class="card-footer">
-          @if (State.Mode == DetailsPageMode.View) {
-            <button id="edit-button" class="btn btn-primary me-2" @onclick="NavigateToEditAdventure">
-              <span class="icon edit me-1" aria-hidden="true"></span> Edit
-            </button>
-            <button id="clone-button" class="btn btn-outline-primary me-2" @onclick="NavigateToCloneAdventure">
-              <span class="icon clone me-1" aria-hidden="true"></span> Clone
-            </button>
-            <button id="back-button" class="btn btn-secondary" @onclick="NavigateBack">
+          <button id="save-continue-button" class="btn btn-primary me-2" @onclick="SaveAndContinue">
+            <span class="icon save me-1" aria-hidden="true"></span> Save & Continue
+          </button>
+          <button id="save-finish-button" class="btn btn-outline-primary me-2" @onclick="SaveAndFinish">
+            <span class="icon save me-1" aria-hidden="true"></span> Save & Finish
+          </button>
+          <button id="discard-button" class="btn btn-outline-warning me-2" @onclick="DiscardChanges">
+            <span class="icon discard me-1" aria-hidden="true"></span> Discard Changes
+          </button>
+          <button id="delete-button" class="btn btn-danger" @onclick="ShowDeleteConfirmationModal">
+            <span class="icon delete me-1" aria-hidden="true"></span> Delete Adventure
+          </button>
+          <button id="cancel-button" class="btn btn-secondary" @onclick="TryReturnToList">
               <span class="icon back me-1" aria-hidden="true"></span> Return to List
-            </button>
-          }
-          else {
-            <button id="save-continue-button" type="submit" class="btn btn-primary me-2" @onclick="SaveAndContinue">
-              <span class="icon save me-1" aria-hidden="true"></span> Save & Continue
-            </button>
-            <button id="save-finish-button" type="submit" class="btn btn-outline-primary me-2" @onclick="SaveAndFinish">
-              <span class="icon save me-1" aria-hidden="true"></span> Save & Finish
-            </button>
-            <button id="discard-button" type="submit" class="btn btn-outline-warning me-2" @onclick="DiscardChanges">
-              <span class="icon discard me-1" aria-hidden="true"></span> Discard Changes
-            </button>
-            <button id="delete-button" type="submit" class="btn btn-danger" @onclick="ShowDeleteConfirmationModal">
-              <span class="icon delete me-1" aria-hidden="true"></span> Delete Adventure
-            </button>
-            <button id="cancel-button" type="submit" class="btn btn-secondary" @onclick="TryNavigateBack">
-              <span class="icon cancel me-1" aria-hidden="true"></span> Cancel
-            </button>
-          }
+          </button>
         </div>
       }
     </div>

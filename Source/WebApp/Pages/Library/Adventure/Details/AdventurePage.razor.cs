@@ -12,6 +12,8 @@ public partial class AdventurePage {
 
     protected override async Task<bool> ConfigureAsync() {
         await base.ConfigureAsync();
+        State.NextPage = string.Empty;
+        State.SaveChanges = true;
         var isLoaded = await Handler.LoadAdventureAsync(LibraryClient);
         if (isLoaded)
             return true;
@@ -20,16 +22,26 @@ public partial class AdventurePage {
     }
 
     private void NavigateBack() => RedirectTo("/adventures");
-    private void NavigateToEditAdventure() => RedirectTo($"/adventure/edit/{Id}");
-    private void NavigateToCloneAdventure() => RedirectTo($"/adventure/clone/{Id}");
+    private void StartEditing() => State.NextPage = "EDIT";
+    private void StartCloning() => State.NextPage = "CLONE";
+    private void ReturnToList() => State.NextPage = "LIST";
 
     private void NavigateToSceneBuilder(Guid sceneId) => TryExecute(() => RedirectTo($"/scenes/builder/{sceneId}"));
-    private void TryNavigateBack() => TryExecute(() => State.FinishEditing = true);
+    private void TryReturnToList() => TryExecute(() => State.NextPage = "LIST");
 
     private async Task SubmitForm() {
         await Handler.SaveChangesAsync();
-        if (State.FinishEditing) NavigateBack();
-        else NavigateToEditAdventure();
+        switch (State.NextPage) {
+            case "EDIT":
+                RedirectTo($"/adventure/edit/{Id}");
+                break;
+            case "CLONE":
+                RedirectTo($"/adventure/clone/{Id}");
+                break;
+            case "LIST":
+                NavigateBack();
+                break;
+        }
     }
 
     private Task DeleteAdventure() {
@@ -59,10 +71,10 @@ public partial class AdventurePage {
     }
 
     private void SaveAndContinue()
-        => State.FinishEditing = false;
+        => State.NextPage = "EDIT";
 
     private void SaveAndFinish()
-        => State.FinishEditing = true;
+        => State.NextPage = "LIST";
 
     private async Task HidePendingChangesModal() {
         State.PendingChangesModalIsVisible = false;

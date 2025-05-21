@@ -67,11 +67,11 @@
             <table id="owned-adventures-table" class="table table-hover">
               <thead>
                 <tr>
-                  <th id="adventures-name-header">Name</th>
-                  <th id="adventures-type-header">Type</th>
-                  <th id="adventures-scenes-header">Scenes</th>
-                  <th id="adventures-status-header">Status</th>
-                  <th id="adventures-action-header">Actions</th>
+                  <th id="owned-adventures-name-header">Name</th>
+                  <th id="owned-adventures-type-header">Type</th>
+                  <th id="owned-adventures-scenes-header">Scenes</th>
+                  <th id="owned-adventures-status-header">Status</th>
+                  <th id="owned-adventures-action-header">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -87,14 +87,16 @@
                       <span class="badge bg-@(adv.IsPublic ? "info" : "warning") me-1">@(adv.IsPublic ? "Public" : "Private")</span>
                     </td>
                     <td class="align-middle" id="@($"adventure-{adv.Id}-actions")">
-                      <a class="btn btn-icon icon-primary me-1" href="@($"/adventure/edit/{adv.Id}")">
+                      <button id="@($"edit-adventure-{adv.Id}")" class="btn btn-icon icon-primary me-1"
+                              @onclick='@(() => RedirectTo($"/adventure/edit/{adv.Id}"))' title="Edit Adventure">
                         <span class="icon edit" aria-hidden="true"></span>
-                      </a>
-                      <a class="btn btn-icon icon-primary me-1" href="@($"/adventure/clone/{adv.Id}")">
+                      </button>
+                      <button id="@($"clone-adventure-{adv.Id}")" class="btn btn-icon icon-primary me-1"
+                              @onclick='@(() => RedirectTo($"/adventure/clone/{adv.Id}"))' title="Clone Adventure">
                         <span class="icon clone" aria-hidden="true"></span>
-                      </a>
+                      </button>
                       <button id="@($"delete-adventure-{adv.Id}")" class="btn btn-icon icon-danger"
-                          @onclick="() => DeleteAdventure(adv.Id)" title="Delete Adventure">
+                              @onclick="() => DeleteAdventure(adv.Id)" title="Delete Adventure">
                         <span class="icon delete" aria-hidden="true"></span>
                       </button>
                     </td>
@@ -113,15 +115,15 @@
                     <div class="d-flex justify-content-between align-items-center">
                       <h5>@adv.Name</h5>
                       <div class="btn-group btn-group-sm" role="group">
-                        <button id="@($"clone-adventure-{adv.Id}")" class="btn btn-outline-primary"
+                        <button id="@($"edit-adventure-{adv.Id}")" class="btn btn-icon icon-primary me-1"
                                 @onclick='@(() => RedirectTo($"/adventure/edit/{adv.Id}"))' title="Edit Adventure">
                           <span class="icon edit" aria-hidden="true"></span>
                         </button>
-                        <button id="@($"clone-adventure-{adv.Id}")" class="btn btn-outline-primary"
+                        <button id="@($"clone-adventure-{adv.Id}")" class="btn btn-icon icon-primary me-1"
                                 @onclick='@(() => RedirectTo($"/adventure/clone/{adv.Id}"))' title="Clone Adventure">
                           <span class="icon clone" aria-hidden="true"></span>
                         </button>
-                        <button id="@($"delete-adventure-{adv.Id}")" class="btn btn-outline-danger"
+                        <button id="@($"delete-adventure-{adv.Id}")" class="btn btn-icon icon-danger"
                                 @onclick="() => DeleteAdventure(adv.Id)" title="Delete Adventure">
                           <span class="icon delete" aria-hidden="true"></span>
                         </button>
@@ -168,14 +170,15 @@
               <tbody>
                 @foreach (var adv in State.PublicAdventures) {
                   <tr>
-                    <td class="align-middle" id="@($"public-adventure-{adv.Id}-name")">@adv.Name</td>
-                    <td class="align-middle" id="@($"public-adventure-{adv.Id}-type")">@adv.Type.ToString()</td>
-                    <td class="align-middle" id="@($"public-adventure-{adv.Id}-scenes")">@(adv.ScenesCount == 0 ? "no" : adv.ScenesCount) scene@(adv.ScenesCount > 1 ? "s" : "")</td>
-                    <td class="align-middle" id="@($"public-adventure-{adv.Id}-actions")">
-                      <a class="btn btn-icon icon-primary me-1" href="@($"/adventure/view/{adv.Id}")" title="Edit Adventure">
+                    <td class="align-middle" id="@($"adventure-{adv.Id}-name")">@adv.Name</td>
+                    <td class="align-middle" id="@($"adventure-{adv.Id}-type")">@adv.Type.ToString()</td>
+                    <td class="align-middle" id="@($"adventure-{adv.Id}-scenes")">@(adv.ScenesCount == 0 ? "no" : adv.ScenesCount) scene@(adv.ScenesCount > 1 ? "s" : "")</td>
+                    <td class="align-middle" id="@($"adventure-{adv.Id}-actions")">
+                      <button id="@($"view-adventure-{adv.Id}")" class="btn btn-icon icon-primary me-1"
+                              @onclick='@(() => RedirectTo($"/adventure/view/{adv.Id}"))' title="View Adventure">
                         <span class="icon view" aria-hidden="true"></span>
-                      </a>
-                      <button id="@($"clone-public-adventure-{adv.Id}")" class="btn btn-icon icon-primary"
+                      </button>
+                      <button id="@($"clone-adventure-{adv.Id}")" class="btn btn-icon icon-primary"
                               @onclick='() => RedirectTo($"/adventure/clone/{adv.Id}")' title="Clone Adventure">
                         <span class="icon clone" aria-hidden="true"></span>
                       </button>
@@ -196,11 +199,11 @@
                     <div class="d-flex justify-content-between align-items-center">
                       <h5>@adv.Name</h5>
                       <div class="btn-group btn-group-sm" role="group">
-                        <button id="@($"clone-adventure-{adv.Id}")" class="btn btn-outline-primary"
+                        <button id="@($"view-adventure-{adv.Id}")" class="btn btn-icon icon-primary me-1"
                                 @onclick='@(() => RedirectTo($"/adventure/view/{adv.Id}"))' title="View Adventure">
                           <span class="icon view" aria-hidden="true"></span>
                         </button>
-                        <button id="@($"clone-adventure-{adv.Id}")" class="btn btn-outline-primary"
+                        <button id="@($"clone-adventure-{adv.Id}")" class="btn btn-icon icon-primary"
                                 @onclick='@(() => RedirectTo($"/adventure/clone/{adv.Id}"))' title="Clone Adventure">
                           <span class="icon clone" aria-hidden="true"></span>
                         </button>
