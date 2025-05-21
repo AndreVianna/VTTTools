@@ -23,7 +23,7 @@ public class SceneStorage(ApplicationDbContext context)
                       Name = s.Name,
                       Description = s.Description,
                       Stage = s.Stage,
-                      SceneAssets = s.SceneAssets.ConvertAll(sa => new SceneAsset {
+                      SceneAssets = s.SceneAssets.Select(sa => new SceneAsset {
                           Number = sa.Number,
                           Name = sa.Name,
                           Position = sa.Position,
@@ -31,7 +31,7 @@ public class SceneStorage(ApplicationDbContext context)
                           Shape = sa.Asset.Shape,
                           IsLocked = sa.IsLocked,
                           ControlledBy = sa.ControlledBy,
-                      }),
+                      }).ToList(),
                   })
                   .ToArrayAsync(ct);
 
@@ -47,7 +47,7 @@ public class SceneStorage(ApplicationDbContext context)
                       Name = s.Name,
                       Description = s.Description,
                       Stage = s.Stage,
-                      SceneAssets = s.SceneAssets.ConvertAll(sa => new SceneAsset {
+                      SceneAssets = s.SceneAssets.Select(sa => new SceneAsset {
                           Id = sa.Asset.Id,
                           Description = sa.Asset.Description,
                           Type = sa.Asset.Type,
@@ -58,7 +58,7 @@ public class SceneStorage(ApplicationDbContext context)
                           Shape = sa.Asset.Shape,
                           IsLocked = sa.IsLocked,
                           ControlledBy = sa.ControlledBy,
-                      }),
+                      }).ToList(),
                   })
                   .ToArrayAsync(ct);
 

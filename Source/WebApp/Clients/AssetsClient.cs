@@ -23,7 +23,7 @@ internal class AssetsClient(HttpClient client, IOptions<JsonOptions> options)
         var response = await client.PutAsJsonAsync($"/api/assets/{id}", request, _options);
         return response.IsSuccessStatusCode
                    ? Result.Success()
-                   : Result.Failure("Failed to update adventure.");
+                   : Result.Failure("Failed to update asset.");
     }
 
     public async Task<bool> DeleteAssetAsync(Guid id) {

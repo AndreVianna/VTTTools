@@ -5,8 +5,8 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
     private readonly JsonSerializerOptions _options = options.Value.JsonSerializerOptions;
 
     public async Task<AdventureListItem[]> GetAdventuresAsync() {
-        var json = await client.GetStringAsync("/api/adventures");
-        var test = JsonSerializer.Deserialize<Adventure[]>(json, _options);
+        //var json = await client.GetStringAsync("/api/adventures");
+        //var test = JsonSerializer.Deserialize<Adventure[]>(json, _options);
         var adventures = await client.GetFromJsonAsync<Adventure[]>("/api/adventures", _options) ?? [];
         return [.. adventures.Select(adventure => new AdventureListItem {
             Id = adventure.Id,

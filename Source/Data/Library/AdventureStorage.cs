@@ -1,9 +1,9 @@
 using Adventure = VttTools.Library.Adventures.Model.Adventure;
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using Scene = VttTools.Library.Scenes.Model.Scene;
-using SceneEntity = VttTools.Data.Library.Entities.Scene;
 using SceneAsset = VttTools.Library.Scenes.Model.SceneAsset;
 using SceneAssetEntity = VttTools.Data.Library.Entities.SceneAsset;
+using SceneEntity = VttTools.Data.Library.Entities.Scene;
 
 namespace VttTools.Data.Library;
 
@@ -13,8 +13,9 @@ namespace VttTools.Data.Library;
 public class AdventureStorage(ApplicationDbContext context)
     : IAdventureStorage {
     /// <inheritdoc />
-    public Task<Adventure[]> GetAllAsync(CancellationToken ct = default)
-        => context.Adventures
+    public async Task<Adventure[]> GetAllAsync(CancellationToken ct = default) {
+        try {
+            var query = context.Adventures
                 .Include(a => a.Scenes)
                     .ThenInclude(s => s.SceneAssets)
                         .ThenInclude(sa => sa.Asset)
@@ -29,12 +30,12 @@ public class AdventureStorage(ApplicationDbContext context)
                     ImageId = a.ImageId,
                     IsPublic = a.IsPublic,
                     IsPublished = a.IsPublished,
-                    Scenes = a.Scenes.ConvertAll(s => new Scene {
+                    Scenes = a.Scenes.Select(s => new Scene {
                         Id = s.Id,
                         Name = s.Name,
                         Description = s.Description,
                         Stage = s.Stage,
-                        SceneAssets = s.SceneAssets.ConvertAll(sa => new SceneAsset {
+                        SceneAssets = s.SceneAssets.Select(sa => new SceneAsset {
                             Id = sa.Asset.Id,
                             Description = sa.Asset.Description,
                             Type = sa.Asset.Type,
@@ -47,10 +48,16 @@ public class AdventureStorage(ApplicationDbContext context)
                             Rotation = sa.Rotation,
                             IsLocked = sa.IsLocked,
                             ControlledBy = sa.ControlledBy,
-                        }),
-                      }),
-                  })
-                  .ToArrayAsync(ct);
+                        }).ToList(),
+                    }).ToList(),
+                });
+            return await query.ToArrayAsync(ct);
+        }
+        catch (Exception ex) {
+            Console.WriteLine(ex);
+            return [];
+        }
+    }
 
     /// <inheritdoc />
     public Task<Adventure?> GetByIdAsync(Guid id, CancellationToken ct = default)
@@ -67,12 +74,12 @@ public class AdventureStorage(ApplicationDbContext context)
                       ImageId = a.ImageId,
                       IsPublic = a.IsPublic,
                       IsPublished = a.IsPublished,
-                      Scenes = a.Scenes.ConvertAll(s => new Scene {
+                      Scenes = a.Scenes.Select(s => new Scene {
                           Id = s.Id,
                           Name = s.Name,
                           Description = s.Description,
                           Stage = s.Stage,
-                          SceneAssets = s.SceneAssets.ConvertAll(sa => new SceneAsset {
+                          SceneAssets = s.SceneAssets.Select(sa => new SceneAsset {
                               Id = sa.Asset.Id,
                               Description = sa.Asset.Description,
                               Type = sa.Asset.Type,
@@ -85,8 +92,8 @@ public class AdventureStorage(ApplicationDbContext context)
                               Rotation = sa.Rotation,
                               IsLocked = sa.IsLocked,
                               ControlledBy = sa.ControlledBy,
-                          }),
-                      }),
+                          }).ToList(),
+                      }).ToList(),
                   })
                   .FirstOrDefaultAsync(a => a.Id == id, ct);
 
@@ -113,7 +120,8 @@ public class AdventureStorage(ApplicationDbContext context)
                                    .Include(a => a.Scenes)
                                        .ThenInclude(s => s.SceneAssets)
                                    .FirstOrDefaultAsync(a => a.Id == adventure.Id, ct);
-        if (entity is null) return;
+        if (entity is null)
+            return;
         entity.OwnerId = adventure.OwnerId;
         entity.CampaignId = adventure.CampaignId;
         entity.Name = adventure.Name;

@@ -4,8 +4,14 @@ namespace VttTools.Library.Handlers;
 
 internal static class AdventureHandlers {
     internal static async Task<IResult> GetAdventuresHandler([FromServices] IAdventureService adventureService) {
-        var adventures = await adventureService.GetAdventuresAsync();
-        return Results.Ok(adventures);
+        try {
+            var adventures = await adventureService.GetAdventuresAsync();
+            return Results.Ok(adventures);
+        }
+        catch (Exception ex) {
+            Console.WriteLine(ex);
+            return Results.Problem("An error occurred while retrieving adventures.");
+        }
     }
 
     internal static async Task<IResult> GetAdventureByIdHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService)

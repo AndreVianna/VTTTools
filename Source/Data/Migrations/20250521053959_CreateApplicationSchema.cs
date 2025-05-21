@@ -14,15 +14,15 @@ public partial class CreateApplicationSchema : Migration {
             columns: table => new {
                 Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                Type = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Placeholder"),
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
-                Format_Type = table.Column<int>(type: "int", nullable: false),
-                Format_SourceId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                Format_Size_Width = table.Column<double>(type: "float", nullable: false),
-                Format_Size_Height = table.Column<double>(type: "float", nullable: false),
                 IsPublished = table.Column<bool>(type: "bit", nullable: false),
-                IsPublic = table.Column<bool>(type: "bit", nullable: false)
+                IsPublic = table.Column<bool>(type: "bit", nullable: false),
+                Shape_SourceId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                Shape_Type = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Image"),
+                Shape_Size_X = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Shape_Size_Y = table.Column<float>(type: "real", nullable: false, defaultValue: 0f)
             },
             constraints: table => table.PrimaryKey("PK_Assets", x => x.Id));
 
@@ -159,14 +159,17 @@ public partial class CreateApplicationSchema : Migration {
                 Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
                 IsPublished = table.Column<bool>(type: "bit", nullable: false),
                 IsPublic = table.Column<bool>(type: "bit", nullable: false),
-                Stage_Source = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
-                Stage_Size_Width = table.Column<double>(type: "float", nullable: false),
-                Stage_Size_Height = table.Column<double>(type: "float", nullable: false),
-                Stage_Grid_Type = table.Column<int>(type: "int", nullable: false),
-                Stage_Grid_Offset_Left = table.Column<double>(type: "float", nullable: false),
-                Stage_Grid_Offset_Top = table.Column<double>(type: "float", nullable: false),
-                Stage_Grid_CellSize_Width = table.Column<double>(type: "float", nullable: false),
-                Stage_Grid_CellSize_Height = table.Column<double>(type: "float", nullable: false)
+                Stage_ZoomLevel = table.Column<float>(type: "real", nullable: false, defaultValue: 1f),
+                Stage_Grid_Type = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "NoGrid"),
+                Stage_Grid_Cell_Size = table.Column<float>(type: "real", nullable: false, defaultValue: 1f),
+                Stage_Grid_Cell_Offset_X = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Stage_Grid_Cell_Offset_Y = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Stage_Grid_Cell_Scale_X = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Stage_Grid_Cell_Scale_Y = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Stage_Shape_SourceId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                Stage_Shape_Type = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Image"),
+                Stage_Shape_Size_X = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Stage_Shape_Size_Y = table.Column<float>(type: "real", nullable: false, defaultValue: 0f)
             },
             constraints: table => {
                 table.PrimaryKey("PK_Scenes", x => x.Id);
@@ -185,15 +188,14 @@ public partial class CreateApplicationSchema : Migration {
                 AssetId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 Number = table.Column<long>(type: "bigint", nullable: false),
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                Format_Type = table.Column<int>(type: "int", nullable: false),
-                Format_SourceId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                Format_Size_Width = table.Column<double>(type: "float", nullable: false),
-                Format_Size_Height = table.Column<double>(type: "float", nullable: false),
-                Position_Left = table.Column<double>(type: "float", nullable: false),
-                Position_Top = table.Column<double>(type: "float", nullable: false),
-                Scale = table.Column<double>(type: "float", nullable: false, defaultValue: 1.0),
-                IsLocked = table.Column<bool>(type: "bit", nullable: false),
-                ControlledBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                Rotation = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                Elevation = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
+                IsLocked = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                ControlledBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                Position_X = table.Column<float>(type: "real", nullable: false),
+                Position_Y = table.Column<float>(type: "real", nullable: false),
+                Scale_X = table.Column<float>(type: "real", nullable: false, defaultValue: 1f),
+                Scale_Y = table.Column<float>(type: "real", nullable: false, defaultValue: 1f)
             },
             constraints: table => {
                 table.PrimaryKey("PK_SceneAssets", x => new { x.AssetId, x.SceneId, x.Number });

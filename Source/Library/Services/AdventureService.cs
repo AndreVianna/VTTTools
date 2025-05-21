@@ -6,8 +6,15 @@ namespace VttTools.Library.Services;
 public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage sceneStorage)
     : IAdventureService {
     /// <inheritdoc />
-    public Task<Adventure[]> GetAdventuresAsync(CancellationToken ct = default)
-        => adventureStorage.GetAllAsync(ct);
+    public async Task<Adventure[]> GetAdventuresAsync(CancellationToken ct = default) {
+        try {
+            return await adventureStorage.GetAllAsync(ct);
+        }
+        catch (Exception ex) {
+            Console.WriteLine(ex);
+            return [];
+        }
+    }
 
     /// <inheritdoc />
     public Task<Adventure?> GetAdventureByIdAsync(Guid id, CancellationToken ct = default)
