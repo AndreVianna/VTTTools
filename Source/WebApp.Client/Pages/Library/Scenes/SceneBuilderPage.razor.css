@@ -1,10 +1,3 @@
-.scene-builder-container {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 100px);
-  width: 100%;
-}
-
 .scene-builder-toolbar {
   display: flex;
   padding: 10px;

@@ -3,8 +3,8 @@ namespace VttTools.WebApp.Client.Pages.Library.Scenes;
 internal sealed class AssetInput {
     public string Name { get; set; } = string.Empty;
     public AssetType Type { get; set; }
-    public float PositionLeft { get; set; }
-    public float PositionTop { get; set; }
+    public float PositionX { get; set; }
+    public float PositionY { get; set; }
     public float Rotation { get; set; }
     public float SizeWidth { get; init; }
     public float SizeHeight { get; init; }

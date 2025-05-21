@@ -21,22 +21,25 @@ public partial class SceneBuilderPage : ComponentBase {
     private ElementReference _canvasRef;
     private ElementReference _canvasContainerRef;
     private GridInput _grid = new();
+    private readonly AssetInput _asset = new();
 
     private Scene Scene { get; set; } = null!;
     private BuilderState State { get; set; } = new();
-    private string _canvasJs = string.Empty;
-
-    // Modal state
-    private bool _showChangeImageModal;
-    private bool _showGridSettingsModal;
-    private bool _showAssetSelectorModal;
-    private bool _showTokenContextMenu;
-    private Vector2 _contextMenuPosition = new();
 
     // Base path for assets
+    private string _canvasJs = string.Empty;
     private const string _assetBasePath = "/uploads/assets";
+    private const string _stageBasePath = "/uploads/stage";
 
-    protected override Task OnInitializedAsync() => LoadSceneAsync();
+    protected override async Task OnInitializedAsync() {
+        await base.OnInitializedAsync();
+        await LoadSceneAsync();
+    }
+
+    protected override void OnParametersSet() {
+        base.OnParametersSet();
+        State.IsReady = true;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (firstRender)
@@ -56,18 +59,20 @@ public partial class SceneBuilderPage : ComponentBase {
         }
         _grid = new() {
             Type = scene.Stage.Grid.Type,
-            CellWidth = scene.Stage.Grid.CellSize.Width,
-            CellHeight = scene.Stage.Grid.CellSize.Height,
-            OffsetLeft = scene.Stage.Grid.Offset.X,
-            OffsetTop = scene.Stage.Grid.Offset.Y,
+            CellWidth = scene.Stage.Grid.Cell.Scale.X * scene.Stage.Grid.Cell.Size,
+            CellHeight = scene.Stage.Grid.Cell.Scale.Y * scene.Stage.Grid.Cell.Size,
+            OffsetLeft = scene.Stage.Grid.Cell.Offset.X,
+            OffsetTop = scene.Stage.Grid.Cell.Offset.Y,
         };
+
+        State.BackgroundUrl = $"{_stageBasePath}/{Scene.Stage.Shape.SourceId ?? Scene.Id}.png";
 
         StateHasChanged();
         _canvasJs = GetCanvasInitializationJs();
     }
 
     private async Task InitializeCanvasAsync() {
-        await JsRuntime.InvokeVoidAsync("initCanvas", _canvasRef, Scene.Stage.Scale.Width, Scene.Stage.Scale.Height);
+        await JsRuntime.InvokeVoidAsync("initCanvas", _canvasRef, Scene.Stage.Shape.Size.X, Scene.Stage.Shape.Size.Y);
         await DrawSceneAsync();
     }
 
@@ -101,20 +106,20 @@ public partial class SceneBuilderPage : ComponentBase {
                             drawGrid(sceneData.grid);
                         }
 
-                        // Draw tokens
-                        if (sceneData.tokens && sceneData.tokens.length) {
-                            drawTokens(sceneData.tokens);
+                        // Draw assets
+                        if (sceneData.assets && sceneData.assets.length) {
+                            drawAssets(sceneData.assets);
                         }
                     };
                     img.src = sceneData.backgroundSrc;
                 } else {
-                    // No background, draw grid and tokens directly
+                    // No background, draw grid and assets directly
                     if (sceneData.grid && sceneData.grid.type !== 0) {
                         drawGrid(sceneData.grid);
                     }
 
-                    if (sceneData.tokens && sceneData.tokens.length) {
-                        drawTokens(sceneData.tokens);
+                    if (sceneData.assets && sceneData.assets.length) {
+                        drawAssets(sceneData.assets);
                     }
                 }
             };
@@ -162,50 +167,50 @@ public partial class SceneBuilderPage : ComponentBase {
                 }
             };
 
-            window.drawTokens = function(tokens) {
+            window.drawAssets = function(assets) {
                 const ctx = window.sceneCanvasCtx;
 
-                tokens.forEach(token => {
-                    // Draw a placeholder circle for tokens without images
-                    const x = token.position?.left || 0;
-                    const y = token.position?.top || 0;
-                    const scale = token.scale || 1;
+                assets.forEach(asset => {
+                    // Draw a placeholder circle for assets without images
+                    const x = asset.position?.left || 0;
+                    const y = asset.position?.top || 0;
+                    const scale = asset.scale || 1;
                     const size = 40 * scale; // Default size
 
-                    if (token.imageSrc) {
+                    if (asset.imageSrc) {
                         const img = new Image();
                         img.onload = function() {
                             ctx.drawImage(img, x - size/2, y - size/2, size, size);
 
-                            // Draw border for selected token
-                            if (token.isSelected) {
+                            // Draw border for selected asset
+                            if (asset.isSelected) {
                                 ctx.strokeStyle = 'rgba(0, 126, 255, 0.8)';
                                 ctx.lineWidth = 2;
                                 ctx.strokeRect(x - size/2 - 3, y - size/2 - 3, size + 6, size + 6);
                             }
 
-                            // Draw lock icon if token is locked
-                            if (token.isLocked) {
+                            // Draw lock icon if asset is locked
+                            if (asset.isLocked) {
                                 ctx.font = '16px Arial';
                                 ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
                                 ctx.fillText('🔒', x - 8, y - size/2 - 5);
                             }
 
-                            // Draw token name beneath
+                            // Draw asset name beneath
                             ctx.font = '12px Arial';
                             ctx.fillStyle = 'black';
                             ctx.textAlign = 'center';
-                            ctx.fillText(token.name || 'Token', x, y + size/2 + 15);
+                            ctx.fillText(asset.name || 'Asset', x, y + size/2 + 15);
                         };
-                        img.src = token.imageSrc;
+                        img.src = asset.imageSrc;
                     } else {
                         ctx.beginPath();
                         ctx.arc(x, y, size/2, 0, Math.PI * 2);
-                        ctx.fillStyle = token.color || 'rgba(100, 100, 100, 0.7)';
+                        ctx.fillStyle = asset.color || 'rgba(100, 100, 100, 0.7)';
                         ctx.fill();
 
-                        // Draw border for selected token
-                        if (token.isSelected) {
+                        // Draw border for selected asset
+                        if (asset.isSelected) {
                             ctx.strokeStyle = 'rgba(0, 126, 255, 0.8)';
                             ctx.lineWidth = 2;
                             ctx.beginPath();
@@ -213,18 +218,18 @@ public partial class SceneBuilderPage : ComponentBase {
                             ctx.stroke();
                         }
 
-                        // Draw lock icon if token is locked
-                        if (token.isLocked) {
+                        // Draw lock icon if asset is locked
+                        if (asset.isLocked) {
                             ctx.font = '16px Arial';
                             ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
                             ctx.fillText('🔒', x - 8, y - size/2 - 5);
                         }
 
-                        // Draw token name beneath
+                        // Draw asset name beneath
                         ctx.font = '12px Arial';
                         ctx.fillStyle = 'black';
                         ctx.textAlign = 'center';
-                        ctx.fillText(token.name || 'Token', x, y + size/2 + 15);
+                        ctx.fillText(asset.name || 'Asset', x, y + size/2 + 15);
                     }
                 });
             };
@@ -237,23 +242,23 @@ public partial class SceneBuilderPage : ComponentBase {
                 };
             };
 
-            window.findTokenAt = function(x, y, tokens) {
-                // Check in reverse order (top-most token first)
-                for (let i = tokens.length - 1; i >= 0; i--) {
-                    const token = tokens[i];
-                    const tokenX = token.position?.left || 0;
-                    const tokenY = token.position?.top || 0;
-                    const scale = token.scale || 1;
+            window.findAssetAt = function(x, y, assets) {
+                // Check in reverse order (top-most asset first)
+                for (let i = assets.length - 1; i >= 0; i--) {
+                    const asset = assets[i];
+                    const assetX = asset.position?.left || 0;
+                    const assetY = asset.position?.top || 0;
+                    const scale = asset.scale || 1;
                     const size = 40 * scale;
 
-                    // Check if point is within token bounds
-                    const left = tokenX - size/2;
-                    const top = tokenY - size/2;
-                    const right = tokenX + size/2;
-                    const bottom = tokenY + size/2;
+                    // Check if point is within asset bounds
+                    const left = assetX - size/2;
+                    const top = assetY - size/2;
+                    const right = assetX + size/2;
+                    const bottom = assetY + size/2;
 
                     if (x >= left && x <= right && y >= top && y <= bottom) {
-                        return token;
+                        return asset;
                     }
                 }
                 return null;
@@ -262,7 +267,7 @@ public partial class SceneBuilderPage : ComponentBase {
 
     private async Task DrawSceneAsync() {
         var sceneData = new {
-            backgroundSrc = Scene.Stage.Source,
+            backgroundSrc = State.BackgroundUrl,
             grid = new {
                 type = _grid.Type,
                 cellSize = new {
@@ -274,14 +279,14 @@ public partial class SceneBuilderPage : ComponentBase {
                     top = _grid.OffsetTop,
                 },
             },
-            tokens = Scene.SceneAssets.Select(a => new {
+            assets = Scene.SceneAssets.Select(a => new {
                 id = a.Id,
                 number = a.Number,
                 name = a.Name,
                 position = a.Position,
                 scale = a.Scale,
                 isLocked = a.IsLocked,
-                isSelected = a == _selectedToken,
+                isSelected = a == State.SelectedAsset,
                 imageSrc = GetAssetPath(a.Shape.Type, a.Shape.SourceId ?? a.Id),
                 color = GetColorForAssetType(a.Type),
             }).ToArray(),
@@ -311,17 +316,17 @@ public partial class SceneBuilderPage : ComponentBase {
         _ => "rgba(100, 100, 100, 0.7)",
     };
 
-    private void OpenChangeImageModal() => _showChangeImageModal = true;
+    private void OpenChangeImageModal() => State.ShowChangeImageModal = true;
 
-    private void OpenGridSettingsModal() => _showGridSettingsModal = true;
+    private void OpenGridSettingsModal() => State.ShowGridSettingsModal = true;
 
     private void CloseModals() {
-        _showChangeImageModal = false;
-        _showGridSettingsModal = false;
-        _showAssetSelectorModal = false;
+        State.ShowChangeImageModal = false;
+        State.ShowGridSettingsModal = false;
+        State.ShowAssetSelectorModal = false;
     }
 
-    private void StartTokenPlacement(AssetType tokenType) => _tokenTypeToAdd = tokenType;// Will open asset selector when user clicks on canvas
+    private void StartAssetPlacement(AssetType assetType) => _asset.Type = assetType;// Will open asset selector when user clicks on canvas
 
     private async Task OnCanvasMouseDown(MouseEventArgs e) {
         // Get mouse position relative to canvas
@@ -329,15 +334,16 @@ public partial class SceneBuilderPage : ComponentBase {
         var x = Convert.ToDouble(((dynamic)pos).x);
         var y = Convert.ToDouble(((dynamic)pos).y);
 
-        // If we're in token placement mode, remember position for when we add the token
-        if (_tokenTypeToAdd != AssetType.Placeholder) {
-            _pendingTokenPosition = new() { Left = x, Top = y };
-            _showAssetSelectorModal = true;
+        // If we're in asset placement mode, remember position for when we add the asset
+        if (_asset.Type != AssetType.Placeholder) {
+            _asset.PositionX = x;
+            _asset.PositionY = y;
+            State.ShowAssetSelectorModal = true;
             return;
         }
 
-        // Otherwise, try to select a token
-        var tokenData = await JsRuntime.InvokeAsync<object>("findTokenAt", [ x, y, Scene.SceneAssets.Select(a => new {
+        // Otherwise, try to select an asset
+        var assetData = await JsRuntime.InvokeAsync<object>("findAssetAt", [ x, y, Scene.SceneAssets.Select(a => new {
             assetId = a.Id,
             number = a.Number,
             position = a.Position,
@@ -345,27 +351,25 @@ public partial class SceneBuilderPage : ComponentBase {
             isLocked = a.IsLocked,
         }).ToArray() ]);
 
-        _selectedToken = null;
-        var assetId = Guid.Parse(((dynamic)tokenData).assetId.ToString());
-        var number = Convert.ToUInt32(((dynamic)tokenData).number);
+        State.SelectedAsset = null;
+        var assetId = Guid.Parse(((dynamic)assetData).assetId.ToString());
+        var number = Convert.ToUInt32(((dynamic)assetData).number);
 
-        // Find the token in our scene assets
-        _selectedToken = Scene.SceneAssets.FirstOrDefault(a => a.Id == assetId && a.Number == number);
-
-        _isDragging = _selectedToken is { IsLocked: false };
+        State.SelectedAsset = Scene.SceneAssets.FirstOrDefault(a => a.Id == assetId && a.Number == number);
+        State.IsDragging = State.SelectedAsset is { IsLocked: false };
 
         await DrawSceneAsync();
     }
 
     private async Task OnCanvasMouseMove(MouseEventArgs e) {
-        if (!_isDragging || _selectedToken == null)
+        if (!State.IsDragging || State.SelectedAsset == null)
             return;
         var pos = await JsRuntime.InvokeAsync<object>("getCanvasMousePosition", [_canvasRef, new { clientX = e.ClientX, clientY = e.ClientY }]);
         var x = Convert.ToDouble(((dynamic)pos).x);
         var y = Convert.ToDouble(((dynamic)pos).y);
 
-        // Update token position
-        if (_snapToGrid && _grid.Type != GridType.NoGrid) {
+        // Update asset position
+        if (State.SnapToGrid && _grid.Type != GridType.NoGrid) {
             // Snap to nearest grid point
             var gridX = _grid.OffsetLeft;
             var gridY = _grid.OffsetTop;
@@ -377,65 +381,64 @@ public partial class SceneBuilderPage : ComponentBase {
             y = (Math.Round((y - gridY) / cellHeight) * cellHeight) + gridY;
         }
 
-        _selectedToken = _selectedToken with { Position = new() { Left = x, Top = y } };
+        State.SelectedAsset = State.SelectedAsset with { Position = new() { X = x, Y = y } };
         await DrawSceneAsync();
     }
 
-    private void OnCanvasMouseUp(MouseEventArgs _) => _isDragging = false;
+    private void OnCanvasMouseUp(MouseEventArgs _) => State.IsDragging = false;
 
     private Task OnCanvasContextMenu(MouseEventArgs e) {
-        if (_selectedToken == null)
+        if (State.SelectedAsset == null)
             return Task.CompletedTask;
 
         // Show context menu at mouse position
-        _contextMenuPosition = new() { X = e.ClientX, Y = e.ClientY };
-        _showTokenContextMenu = true;
+        State.ContextMenuPosition = new() { X = Convert.ToSingle(e.ClientX), Y = Convert.ToSingle(e.ClientY) };
+        State.ShowAssetContextMenu = true;
 
         return DrawSceneAsync();
     }
 
-    private void CloseContextMenu() => _showTokenContextMenu = false;
+    private void CloseContextMenu() => State.ShowAssetContextMenu = false;
 
-    private async Task ToggleLockSelectedToken() {
-        if (_selectedToken == null)
+    private async Task ToggleLockSelectedAsset() {
+        if (State.SelectedAsset == null)
             return;
 
-        _selectedToken = _selectedToken with { IsLocked = !_selectedToken.IsLocked };
-        _showTokenContextMenu = false;
+        State.SelectedAsset = State.SelectedAsset with { IsLocked = !State.SelectedAsset.IsLocked };
+        State.ShowAssetContextMenu = false;
 
-        // Update the token on the server
+        // Update the asset on the server
         var updateRequest = new UpdateAssetRequest {
-            AssetId = _selectedToken.Id,
-            Number = _selectedToken.Number,
-            Name = _selectedToken.Name,
-            Position = _selectedToken.Position,
-            Scale = _selectedToken.Scale,
-            IsLocked = _selectedToken.IsLocked,
+            AssetId = State.SelectedAsset.Id,
+            Number = State.SelectedAsset.Number,
+            Name = State.SelectedAsset.Name,
+            Position = State.SelectedAsset.Position,
+            Scale = State.SelectedAsset.Scale,
+            IsLocked = State.SelectedAsset.IsLocked,
         };
 
-        await LibraryClient.UpdateSceneAssetAsync(Scene.Id, _selectedToken.Id, _selectedToken.Number, updateRequest);
+        await LibraryClient.UpdateSceneAssetAsync(Scene.Id, State.SelectedAsset.Id, State.SelectedAsset.Number, updateRequest);
 
         await DrawSceneAsync();
     }
 
-    private async Task DeleteSelectedToken() {
-        if (_selectedToken == null)
+    private async Task DeleteSelectedAsset() {
+        if (State.SelectedAsset == null)
             return;
-        await LibraryClient.RemoveSceneAssetAsync(
-                                                    Scene.Id, _selectedToken.Id, _selectedToken.Number);
+        await LibraryClient.RemoveSceneAssetAsync(Scene.Id, State.SelectedAsset.Id, State.SelectedAsset.Number);
 
-        Scene.SceneAssets.Remove(_selectedToken);
-        _selectedToken = null;
-        _showTokenContextMenu = false;
+        Scene.SceneAssets.Remove(State.SelectedAsset);
+        State.SelectedAsset = null;
+        State.ShowAssetContextMenu = false;
         await DrawSceneAsync();
     }
 
-    private void OnImageFileSelected(InputFileChangeEventArgs e) => _selectedImageFile = e.File;
+    private void OnImageFileSelected(InputFileChangeEventArgs e) => _asset.SelectedImageFile = e.File;
 
-    private void OnAssetFileSelected(InputFileChangeEventArgs e) => _selectedAssetFile = e.File;
+    private void OnAssetFileSelected(InputFileChangeEventArgs e) => _asset.SelectedAssetFile = e.File;
 
     private async Task SaveBackgroundImage() {
-        if (_selectedImageFile == null)
+        if (_asset.SelectedImageFile == null)
             return;
         // Create a new asset for the background image
         var createAssetRequest = new CreateAssetRequest {
@@ -448,12 +451,11 @@ public partial class SceneBuilderPage : ComponentBase {
         if (!assetResult.IsSuccessful)
             return;
 
-        await using var stream = _selectedImageFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
-        await AssetsClient.UploadAssetFileAsync(assetResult.Value.Id, stream, _selectedImageFile.Name);
+        await using var stream = _asset.SelectedImageFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
+        await AssetsClient.UploadAssetFileAsync(assetResult.Value.Id, stream, _asset.SelectedImageFile.Name);
 
         // Update the scene with the new background path
-        Scene = Scene with { Stage = Scene.Stage with { Source = GetAssetPath(MediaType.Image, assetResult.Value.Id) } };
-
+        Scene = Scene with { Stage = Scene.Stage with { Shape = Scene.Stage.Shape with { SourceId = assetResult.Value.Id } } };
         var updateRequest = new UpdateSceneRequest {
             Name = Scene.Name,
             Description = Scene.Description,
@@ -462,7 +464,7 @@ public partial class SceneBuilderPage : ComponentBase {
 
         await LibraryClient.UpdateSceneAsync(Scene.Id, updateRequest);
 
-        _showChangeImageModal = false;
+        State.ShowChangeImageModal = false;
         await DrawSceneAsync();
     }
 
@@ -471,13 +473,16 @@ public partial class SceneBuilderPage : ComponentBase {
             Stage = Scene.Stage with {
                 Grid = new() {
                     Type = _grid.Type,
-                    CellSize = new() {
-                        Width = _grid.CellWidth,
-                        Height = _grid.CellHeight,
-                    },
-                    Offset = new() {
-                        X = _grid.OffsetLeft,
-                        Y = _grid.OffsetTop,
+                    Cell = new () {
+                        Scale = new() {
+                            X = _grid.CellWidth / 50.0f,
+                            Y = _grid.CellHeight / 50.0f,
+                        },
+                        Size = 50.0f,
+                        Offset = new() {
+                            X = _grid.OffsetLeft,
+                            Y = _grid.OffsetTop,
+                        },
                     },
                 },
             },
@@ -491,15 +496,15 @@ public partial class SceneBuilderPage : ComponentBase {
 
         await LibraryClient.UpdateSceneAsync(Scene.Id, updateRequest);
 
-        _showGridSettingsModal = false;
+        State.ShowGridSettingsModal = false;
         await DrawSceneAsync();
     }
 
-    private async Task AddTokenToScene() {
+    private async Task AddAssetToScene() {
         // First, create a new asset
         var createAssetRequest = new CreateAssetRequest {
-            Name = _newAssetName,
-            Type = _tokenTypeToAdd,
+            Name = _asset.Name,
+            Type = _asset.Type,
         };
 
         var assetResult = await AssetsClient.CreateAssetAsync(createAssetRequest);
@@ -507,17 +512,16 @@ public partial class SceneBuilderPage : ComponentBase {
         if (!assetResult.IsSuccessful)
             return;
 
-        if (_selectedAssetFile != null) {
-            await using var stream = _selectedAssetFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
-            await AssetsClient.UploadAssetFileAsync(assetResult.Value.Id, stream, _selectedAssetFile.Name);
+        if (_asset.SelectedAssetFile != null) {
+            await using var stream = _asset.SelectedAssetFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
+            await AssetsClient.UploadAssetFileAsync(assetResult.Value.Id, stream, _asset.SelectedAssetFile.Name);
         }
 
         // Add the asset to the scene
         var addAssetRequest = new AddAssetRequest {
             AssetId = assetResult.Value.Id,
-            Name = _newAssetName,
-            Position = _pendingTokenPosition,
-            Scale = 1.0,
+            Name = _asset.Name,
+            Position = new Vector2 (_asset.PositionX, _asset.PositionY),
         };
 
         var sceneAssetResult = await LibraryClient.AddSceneAssetAsync(Scene.Id, addAssetRequest);
@@ -527,10 +531,10 @@ public partial class SceneBuilderPage : ComponentBase {
             Scene.SceneAssets.Add(sceneAssetResult.Value);
         }
 
-        _showAssetSelectorModal = false;
-        _tokenTypeToAdd = AssetType.Placeholder;
-        _newAssetName = string.Empty;
-        _selectedAssetFile = null;
+        State.ShowAssetSelectorModal = false;
+        _asset.Type = AssetType.Placeholder;
+        _asset.Name = string.Empty;
+        _asset.SelectedAssetFile = null;
 
         await DrawSceneAsync();
     }

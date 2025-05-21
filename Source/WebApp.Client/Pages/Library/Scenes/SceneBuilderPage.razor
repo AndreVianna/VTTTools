@@ -1,64 +1,72 @@
 @page "/scenes/builder/{SceneId:guid}"
 @rendermode InteractiveWebAssembly
 
-<PageTitle>Scene Builder - @(Scene?.Name ?? "Loading...")</PageTitle>
+<PageTitle>Scene Builder</PageTitle>
 
-<div class="scene-builder-container">
-    <div class="scene-builder-toolbar">
-        <div class="toolbar-group">
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="stageMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                    Stage
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="stageMenuButton">
-                    <li><button class="dropdown-item" @onclick="OpenChangeImageModal">Change Image</button></li>
-                    <li><button class="dropdown-item" @onclick="OpenGridSettingsModal">Set Grid</button></li>
-                </ul>
-            </div>
-        </div>
-        <div class="toolbar-group">
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="tokensMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                    Tokens
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="tokensMenuButton">
-                    <li><button class="dropdown-item" @onclick="() => StartTokenPlacement(AssetType.Creature)">Add Creature</button></li>
-                    <li><button class="dropdown-item" @onclick="() => StartTokenPlacement(AssetType.Character)">Add Character</button></li>
-                    <li><button class="dropdown-item" @onclick="() => StartTokenPlacement(AssetType.NPC)">Add NPC</button></li>
-                    <li><button class="dropdown-item" @onclick="() => StartTokenPlacement(AssetType.Object)">Add Object</button></li>
-                </ul>
-            </div>
-        </div>
-        <div class="toolbar-group">
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="structuresMenuButton" data-bs-toggle="dropdown" aria-expanded="false" disabled>
-                    Structures
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="structuresMenuButton">
-                    <li><button class="dropdown-item" disabled>Draw Wall</button></li>
-                    <li><button class="dropdown-item" disabled>Draw Door</button></li>
-                    <li><button class="dropdown-item" disabled>Draw Window</button></li>
-                </ul>
-            </div>
-        </div>
-        <div class="toolbar-group ml-auto">
-            <button class="btn btn-primary" @onclick="SaveScene">Save</button>
-            <button class="btn btn-secondary" @onclick="NavigateBack">Back</button>
-        </div>
+<div class="container-fluid">
+  <div class="scene-builder-toolbar">
+    <div class="toolbar-group">
+      <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="stageMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+          Stage
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="stageMenuButton">
+          <li><button class="dropdown-item" @onclick="OpenChangeImageModal">Change Image</button></li>
+          <li><button class="dropdown-item" @onclick="OpenGridSettingsModal">Set Grid</button></li>
+        </ul>
+      </div>
     </div>
-
-    <div class="scene-canvas-container" @ref="_canvasContainerRef">
-        <canvas @ref="_canvasRef"
-                @onmousedown="OnCanvasMouseDown"
-                @onmousemove="OnCanvasMouseMove"
-                @onmouseup="OnCanvasMouseUp"
-                @oncontextmenu:preventDefault
-                @oncontextmenu="OnCanvasContextMenu">
-        </canvas>
+    <div class="toolbar-group">
+      <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="assetsMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+          Assets
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="assetsMenuButton">
+          <li><button class="dropdown-item" @onclick="() => StartAssetPlacement(AssetType.Creature)">Add Creature</button></li>
+          <li><button class="dropdown-item" @onclick="() => StartAssetPlacement(AssetType.Character)">Add Character</button></li>
+          <li><button class="dropdown-item" @onclick="() => StartAssetPlacement(AssetType.NPC)">Add NPC</button></li>
+          <li><button class="dropdown-item" @onclick="() => StartAssetPlacement(AssetType.Object)">Add Object</button></li>
+        </ul>
+      </div>
     </div>
+    <div class="toolbar-group">
+      <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="structuresMenuButton" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+          Structures
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="structuresMenuButton">
+          <li><button class="dropdown-item" disabled>Draw Wall</button></li>
+          <li><button class="dropdown-item" disabled>Draw Door</button></li>
+          <li><button class="dropdown-item" disabled>Draw Window</button></li>
+        </ul>
+      </div>
+    </div>
+    <div class="toolbar-group ml-auto">
+      <button class="btn btn-primary" @onclick="SaveScene">Save</button>
+      <button class="btn btn-secondary" @onclick="NavigateBack">Back</button>
+    </div>
+  </div>
+@if (!State.IsReady) {
+  <div id="loading-message" class="d-flex justify-content-center">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+}
+else {
+  <div class="scene-canvas-container" @ref="_canvasContainerRef">
+    <canvas @ref="_canvasRef"
+              @onmousedown="OnCanvasMouseDown"
+              @onmousemove="OnCanvasMouseMove"
+              @onmouseup="OnCanvasMouseUp"
+              @oncontextmenu:preventDefault
+              @oncontextmenu="OnCanvasContextMenu">
+      </canvas>
+  </div>
+}
 </div>
 
-@if (_showChangeImageModal)
+@if (State.ShowChangeImageModal)
 {
     <div class="modal fade show" style="display: block;" tabindex="-1">
         <div class="modal-dialog">
@@ -72,13 +80,10 @@
                         <label for="imageUpload" class="form-label">Upload Image</label>
                         <InputFile id="imageUpload" OnChange="OnImageFileSelected" class="form-control" />
                     </div>
-                    @if (!string.IsNullOrEmpty(Scene?.Stage.Source))
-                    {
-                        <div class="current-image mb-3">
-                            <p>Current image:</p>
-                            <img src="@Scene.Stage.Source" style="max-width: 100%; max-height: 200px;" />
-                        </div>
-                    }
+                    <div class="current-image mb-3">
+                        <p>Current image:</p>
+                        <img src="@State.BackgroundUrl" style="max-width: 100%; max-height: 200px;" />
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="CloseModals">Cancel</button>
@@ -90,7 +95,7 @@
     <div class="modal-backdrop fade show"></div>
 }
 
-@if (_showGridSettingsModal)
+@if (State.ShowGridSettingsModal)
 {
     <div class="modal fade show" style="display: block;" tabindex="-1">
         <div class="modal-dialog">
@@ -127,7 +132,7 @@
                         <input type="number" id="offsetY" class="form-control" @bind="_grid.OffsetTop" />
                     </div>
                     <div class="form-check mb-3">
-                        <input type="checkbox" id="snapToGrid" class="form-check-input" @bind="_snapToGrid" />
+                        <input type="checkbox" id="snapToGrid" class="form-check-input" @bind="State.SnapToGrid" />
                         <label for="snapToGrid" class="form-check-label">Snap to Grid</label>
                     </div>
                 </div>
@@ -141,7 +146,7 @@
     <div class="modal-backdrop fade show"></div>
 }
 
-@if (_showAssetSelectorModal)
+@if (State.ShowAssetSelectorModal)
 {
     <div class="modal fade show" style="display: block;" tabindex="-1">
         <div class="modal-dialog">
@@ -153,7 +158,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="assetName" class="form-label">Name</label>
-                        <input type="text" id="assetName" class="form-control" @bind="_newAssetName" />
+                        <input type="text" id="assetName" class="form-control" @bind="_asset.Name" />
                     </div>
                     <div class="mb-3">
                         <label for="assetUpload" class="form-label">Upload Image</label>
@@ -162,7 +167,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="CloseModals">Cancel</button>
-                    <button type="button" class="btn btn-primary" @onclick="AddTokenToScene">Add</button>
+                    <button type="button" class="btn btn-primary" @onclick="AddAssetToScene">Add</button>
                 </div>
             </div>
         </div>
@@ -170,49 +175,13 @@
     <div class="modal-backdrop fade show"></div>
 }
 
-@if (_showTokenContextMenu)
+@if (State.ShowAssetContextMenu)
 {
-    <div class="token-context-menu" style="position: absolute; left: @(_contextMenuPosition.X)px; top: @(_contextMenuPosition.Y)px; z-index: 1000; background-color: white; border: 1px solid #ccc; border-radius: 4px; padding: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+    <div class="asset-context-menu" style="position: absolute; left: @(State.ContextMenuPosition.X)px; top: @(State.ContextMenuPosition.Y)px; z-index: 1000; background-color: white; border: 1px solid #ccc; border-radius: 4px; padding: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
         <ul style="list-style: none; padding: 0; margin: 0;">
-            <li><button class="btn btn-sm btn-link w-100 text-start" @onclick="ToggleLockSelectedToken">@(_selectedToken?.IsLocked == true ? "Unlock" : "Lock")</button></li>
-            <li><button class="btn btn-sm btn-link w-100 text-start" @onclick="DeleteSelectedToken">Delete</button></li>
+            <li><button class="btn btn-sm btn-link w-100 text-start" @onclick="ToggleLockSelectedAsset">@(State.SelectedAsset?.IsLocked == true ? "Unlock" : "Lock")</button></li>
+            <li><button class="btn btn-sm btn-link w-100 text-start" @onclick="DeleteSelectedAsset">Delete</button></li>
             <li><button class="btn btn-sm btn-link w-100 text-start" @onclick="CloseContextMenu">Cancel</button></li>
         </ul>
     </div>
 }
-
-<style>
-    .scene-builder-container {
-        display: flex;
-        flex-direction: column;
-        height: calc(100vh - 100px);
-        width: 100%;
-    }
-
-    .scene-builder-toolbar {
-        display: flex;
-        padding: 10px;
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-    }
-
-    .toolbar-group {
-        margin-right: 15px;
-    }
-
-    .scene-canvas-container {
-        flex: 1;
-        position: relative;
-        overflow: auto;
-        background-color: #e9ecef;
-    }
-
-    canvas {
-        position: absolute;
-        background-color: white;
-    }
-
-    .ml-auto {
-        margin-left: auto;
-    }
-</style>
