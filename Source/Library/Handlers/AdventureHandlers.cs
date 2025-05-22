@@ -3,15 +3,11 @@ using IResult = Microsoft.AspNetCore.Http.IResult;
 namespace VttTools.Library.Handlers;
 
 internal static class AdventureHandlers {
-    internal static async Task<IResult> GetAdventuresHandler([FromServices] IAdventureService adventureService) {
-        try {
-            var adventures = await adventureService.GetAdventuresAsync();
-            return Results.Ok(adventures);
-        }
-        catch (Exception ex) {
-            Console.WriteLine(ex);
-            return Results.Problem("An error occurred while retrieving adventures.");
-        }
+    internal static async Task<IResult> GetAdventuresHandler(HttpContext context, [FromServices] IAdventureService adventureService) {
+        var userId = context.User.GetUserId();
+        var adventures = await Task.WhenAll(adventureService.GetOwnedAdventuresAsync(userId),
+                                            adventureService.GetAvailableAdventuresAsync());
+        return Results.Ok(adventures.SelectMany(x => x));
     }
 
     internal static async Task<IResult> GetAdventureByIdHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService)
@@ -21,7 +17,7 @@ internal static class AdventureHandlers {
 
     internal static async Task<IResult> CreateAdventureHandler(HttpContext context, [FromBody] CreateAdventureRequest request, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var data = new CreateAdventureData {
+        var data = new NewAdventureData {
             CampaignId = request.CampaignId,
             Name = request.Name,
             Description = request.Description,
@@ -36,7 +32,7 @@ internal static class AdventureHandlers {
 
     internal static async Task<IResult> CloneAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromBody] CloneAdventureRequest request, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var data = new CloneAdventureData {
+        var data = new ClonedAdventureData {
             TemplateId = id,
             Name = request.Name,
             Description = request.Description,
@@ -56,7 +52,7 @@ internal static class AdventureHandlers {
 
     internal static async Task<IResult> UpdateAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateAdventureRequest request, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var data = new UpdateAdventureData {
+        var data = new UpdatedAdventureData {
             Name = request.Name,
             Description = request.Description,
             Type = request.Type,
@@ -90,14 +86,9 @@ internal static class AdventureHandlers {
     internal static async Task<IResult> GetScenesHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService)
         => Results.Ok(await adventureService.GetScenesAsync(id));
 
-    internal static async Task<IResult> AddNewSceneHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddNewSceneRequest request, [FromServices] IAdventureService adventureService) {
+    internal static async Task<IResult> AddNewSceneHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var data = new AddNewSceneData {
-            Name = request.Name,
-            Description = request.Description,
-            Stage = request.Stage,
-        };
-        var result = await adventureService.AddNewSceneAsync(userId, id, data);
+        var result = await adventureService.AddNewSceneAsync(userId, id);
         return result.IsSuccessful
             ? Results.Ok(result.Value)
             : result.Errors[0].Message == "NotFound"
@@ -107,14 +98,14 @@ internal static class AdventureHandlers {
                     : Results.BadRequest(result.Errors);
     }
 
-    internal static async Task<IResult> AddClonedSceneHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddClonedSceneRequest request, [FromServices] IAdventureService adventureService) {
+    internal static async Task<IResult> AddClonedSceneHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid templateId, [FromBody] CloneSceneRequest request, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var data = new AddClonedSceneData {
-            TemplateId = request.TemplateId,
+        var data = new ClonedSceneData {
             Name = request.Name,
             Description = request.Description,
+            Stage = request.Stage,
         };
-        var result = await adventureService.AddClonedSceneAsync(userId, id, data);
+        var result = await adventureService.AddClonedSceneAsync(userId, id, templateId, data);
         return result.IsSuccessful
             ? Results.Ok(result.Value)
             : result.Errors[0].Message == "NotFound"

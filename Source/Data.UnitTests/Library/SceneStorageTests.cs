@@ -88,10 +88,11 @@ public class SceneStorageTests
     [Fact]
     public async Task AddAsync_WithValidScene_AddsToDatabase() {
         // Arrange
+        var adventure = _context.Adventures.First(p => p.Name == "Adventure 1");
         var scene = DbContextHelper.CreateTestScene(_context.Scenes.Skip(1).First().Id, "New Scene");
 
         // Act
-        var result = await _storage.AddAsync(scene, _ct);
+        var result = await _storage.AddAsync(adventure.Id, scene, _ct);
 
         // Assert
         result.Should().BeEquivalentTo(scene);

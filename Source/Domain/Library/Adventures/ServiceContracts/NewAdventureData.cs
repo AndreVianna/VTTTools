@@ -3,7 +3,7 @@ namespace VttTools.Library.Adventures.ServiceContracts;
 /// <summary>
 /// Data to create a new Adventure template.
 /// </summary>
-public record CreateAdventureData
+public record NewAdventureData
     : Data {
     /// <summary>
     /// The ID of the campaign to which this adventure belongs.

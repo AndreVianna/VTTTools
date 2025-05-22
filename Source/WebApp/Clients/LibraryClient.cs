@@ -54,7 +54,7 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
     }
 
     public async Task<Result<AdventureListItem>> CloneAdventureAsync(Guid id, CloneAdventureRequest request) {
-        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/clone", request, _options);
+        var response = await client.PostAsJsonAsync($"/api/adventures/{id}", request, _options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to clone adventure.");
         var adventure = await response.Content.ReadFromJsonAsync<Adventure>(_options);
@@ -90,16 +90,16 @@ internal class LibraryClient(HttpClient client, IOptions<JsonOptions> options)
         })];
     }
 
-    public async Task<Result<Scene>> CreateSceneAsync(Guid id, AddNewSceneRequest request) {
-        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/scenes", request, _options);
+    public async Task<Result<Scene>> CreateSceneAsync(Guid id) {
+        var response = await client.PostAsync($"/api/adventures/{id}/scenes", null);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to create scene.");
         var scene = await response.Content.ReadFromJsonAsync<Scene>(_options);
         return scene!;
     }
 
-    public async Task<Result<Scene>> CloneSceneAsync(Guid id, AddClonedSceneRequest request) {
-        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/scenes/clone", request, _options);
+    public async Task<Result<Scene>> CloneSceneAsync(Guid id, Guid templateId, CloneSceneRequest request) {
+        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/scenes/{templateId}", request, _options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to clone scene.");
         var scene = await response.Content.ReadFromJsonAsync<Scene>(_options);

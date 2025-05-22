@@ -1,10 +1,15 @@
 namespace VttTools.Library.Adventures.ServiceContracts;
 
 /// <summary>
-/// Data to update an existing Adventure template.
+/// Data to clone an existing Adventure template.
 /// </summary>
-public record UpdateAdventureData
+public record ClonedAdventureData
     : Data {
+    /// <summary>
+    /// New campaign ID for the Adventure. If not set, campaign assignment is unchanged.
+    /// </summary>
+    public Optional<Guid?> CampaignId { get; init; }
+
     /// <summary>
     /// New name for the Adventure. If not set, name is unchanged.
     /// </summary>
@@ -26,21 +31,14 @@ public record UpdateAdventureData
     public Optional<Guid?> ImageId { get; init; }
 
     /// <summary>
-    /// Indicates whether the Adventure is published (visible) or not (hidden).
-    /// If not set, visibility status is unchanged.
+    /// The id of the Adventure used as template for the new Adventure.
     /// </summary>
-    public Optional<bool> IsListed { get; init; }
+    public Guid TemplateId { get; init; }
 
     /// <summary>
-    /// Indicates whether the Adventure is publicly accessible.
-    /// If not set, public status is unchanged.
+    /// Whether the clone action should also clone the scenes.
     /// </summary>
-    public Optional<bool> IsPublic { get; init; }
-
-    /// <summary>
-    /// New campaign ID for the Adventure. If not set, campaign assignment is unchanged.
-    /// </summary>
-    public Optional<Guid?> CampaignId { get; init; }
+    public bool IncludeScenes { get; init; } = true;
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);

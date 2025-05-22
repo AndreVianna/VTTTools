@@ -24,7 +24,7 @@ public interface IAssetService {
     /// <summary>
     /// Updates an existing asset template.
     /// </summary>
-    Task<Result<Asset>> CloneAssetAsync(Guid userId, CloneAssetData data, CancellationToken ct = default);
+    Task<Result<Asset>> CloneAssetAsync(Guid userId, Guid templateId, CloneAssetData data, CancellationToken ct = default);
 
     /// <summary>
     /// Updates an existing asset template.

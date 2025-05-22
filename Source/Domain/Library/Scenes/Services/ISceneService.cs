@@ -21,7 +21,7 @@ public interface ISceneService {
     Task<SceneAsset[]> GetAssetsAsync(Guid id, CancellationToken ct = default);
 
     Task<Result<SceneAsset>> AddNewAssetAsync(Guid userId, Guid id, AddNewAssetData data, CancellationToken ct = default);
-    Task<Result<SceneAsset>> AddClonedAssetAsync(Guid userId, Guid id, AddClonedAssetData data, CancellationToken ct = default);
+    Task<Result<SceneAsset>> AddClonedAssetAsync(Guid userId, Guid id, Guid templateId, AddClonedAssetData data, CancellationToken ct = default);
 
     Task<Result<SceneAsset>> UpdateAssetAsync(Guid userId, Guid id, UpdateAssetData data, CancellationToken ct = default);
 

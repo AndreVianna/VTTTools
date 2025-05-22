@@ -96,11 +96,7 @@ public class AdventureHandler(AdventurePage page)
     }
 
     internal async Task CreateSceneAsync() {
-        var request = new AddNewSceneRequest {
-            Name = "New Scene",
-            Description = "This is a new scene.",
-        };
-        var result = await _client.CreateSceneAsync(Page.Id, request);
+        var result = await _client.CreateSceneAsync(Page.Id);
         if (result.IsSuccessful) {
             Page.RedirectTo($"/scenes/builder/{result.Value.Id}");
             return;

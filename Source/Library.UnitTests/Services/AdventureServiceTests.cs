@@ -53,7 +53,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CreateAdventureAsync_CreatesNewAdventure() {
         // Arrange
-        var request = new CreateAdventureData {
+        var request = new NewAdventureData {
             Name = "New Adventure",
             Description = "Adventure description",
             Type = AdventureType.Survival,
@@ -81,7 +81,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CreateAdventureAsync_WithEmptyName_ReturnsNull() {
         // Arrange
-        var request = new CreateAdventureData {
+        var request = new NewAdventureData {
             Name = "",
             Description = "Adventure description",
             Type = AdventureType.Survival,
@@ -99,7 +99,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CreateAdventureAsync_WithWhitespaceName_ReturnsNull() {
         // Arrange
-        var request = new CreateAdventureData {
+        var request = new NewAdventureData {
             Name = "   ",
             Description = "Adventure description",
             Type = AdventureType.Survival,
@@ -117,7 +117,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CreateAdventureAsync_WithNullName_ReturnsNull() {
         // Arrange
-        var request = new CreateAdventureData {
+        var request = new NewAdventureData {
             Name = null!,
             Description = "Adventure description",
             Type = AdventureType.Survival,
@@ -142,7 +142,7 @@ public class AdventureServiceTests {
             OwnerId = _userId,
             Description = "Old description",
         };
-        var request = new UpdateAdventureData {
+        var request = new UpdatedAdventureData {
             CampaignId = Guid.NewGuid(),
             Name = "Updated Name",
             Description = "Adventure description",
@@ -182,7 +182,7 @@ public class AdventureServiceTests {
             Description = "Old description",
             CampaignId = Guid.NewGuid(),
         };
-        var request = new UpdateAdventureData {
+        var request = new UpdatedAdventureData {
             Name = "Updated Name",
             // No Visibility update
         };
@@ -218,7 +218,7 @@ public class AdventureServiceTests {
             Name = "Adventure",
             OwnerId = _userId,
         };
-        var request = new UpdateAdventureData {
+        var request = new UpdatedAdventureData {
             Name = "Updated Name",
         };
 
@@ -236,7 +236,7 @@ public class AdventureServiceTests {
     public async Task UpdateAdventureAsync_WithNonExistentAdventure_ReturnsNull() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var request = new UpdateAdventureData {
+        var request = new UpdatedAdventureData {
             Name = "Updated Name",
         };
 
@@ -342,7 +342,7 @@ public class AdventureServiceTests {
                 ],
             },
         };
-        var request = new CloneAdventureData();
+        var request = new ClonedAdventureData();
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
         _sceneStorage.GetByParentIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(scenes);
@@ -380,7 +380,7 @@ public class AdventureServiceTests {
             IsPublic = true,
             CampaignId = Guid.NewGuid(),
         };
-        var request = new CloneAdventureData();
+        var request = new ClonedAdventureData();
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
 
@@ -397,7 +397,7 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
-        var request = new CloneAdventureData();
+        var request = new ClonedAdventureData();
 
         // Act
         var result = await _service.CloneAdventureAsync(_userId, request, _ct);
@@ -430,8 +430,7 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new AddClonedSceneData {
-            TemplateId = sceneId,
+        var request = new ClonedSceneData {
             Name = "New Scene",
             Description = "New scene description",
             Stage = new Stage {
@@ -459,14 +458,14 @@ public class AdventureServiceTests {
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
 
         // Act
-        var result = await _service.AddClonedSceneAsync(_userId, adventureId, request, _ct);
+        var result = await _service.AddClonedSceneAsync(_userId, adventureId, sceneId, request, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
         result.Value.Name.Should().Be(request.Name.Value);
         result.Value.Description.Should().Be(request.Description.Value);
         result.Value.Stage.Should().BeEquivalentTo(request.Stage);
-        result.Value.Id.Should().NotBe(request.TemplateId);
+        result.Value.Id.Should().NotBe(sceneId);
         adventure.Scenes.Should().HaveCount(1);
         await _adventureStorage.Received(1).UpdateAsync(adventure, Arg.Any<CancellationToken>());
     }
@@ -476,8 +475,7 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new AddClonedSceneData {
-            TemplateId = sceneId,
+        var request = new ClonedSceneData {
             Name = "New Scene",
         };
         var nonOwnerId = Guid.NewGuid();
@@ -492,7 +490,7 @@ public class AdventureServiceTests {
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
 
         // Act
-        var result = await _service.AddClonedSceneAsync(nonOwnerId, adventureId, request, _ct);
+        var result = await _service.AddClonedSceneAsync(nonOwnerId, adventureId, sceneId, request, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
@@ -504,15 +502,14 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new AddClonedSceneData {
-            TemplateId = sceneId,
+        var request = new ClonedSceneData {
             Name = "New Scene",
         };
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
 
         // Act
-        var result = await _service.AddClonedSceneAsync(_userId, adventureId, request, _ct);
+        var result = await _service.AddClonedSceneAsync(_userId, adventureId, sceneId, request, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
@@ -524,8 +521,7 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new AddClonedSceneData {
-            TemplateId = sceneId,
+        var request = new ClonedSceneData {
             Name = "New Scene",
         };
         var adventure = new Adventure {
@@ -538,7 +534,7 @@ public class AdventureServiceTests {
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
 
         // Act
-        var result = await _service.AddClonedSceneAsync(_userId, adventureId, request, _ct);
+        var result = await _service.AddClonedSceneAsync(_userId, adventureId, sceneId, request, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();

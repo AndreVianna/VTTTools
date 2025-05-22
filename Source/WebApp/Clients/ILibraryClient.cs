@@ -8,8 +8,8 @@ public interface ILibraryClient {
     Task<Result> UpdateAdventureAsync(Guid id, UpdateAdventureRequest request);
     Task<bool> DeleteAdventureAsync(Guid id);
     Task<SceneListItem[]> GetScenesAsync(Guid id);
-    Task<Result<Scene>> CreateSceneAsync(Guid id, AddNewSceneRequest request);
-    Task<Result<Scene>> CloneSceneAsync(Guid id, AddClonedSceneRequest request);
+    Task<Result<Scene>> CreateSceneAsync(Guid id);
+    Task<Result<Scene>> CloneSceneAsync(Guid id, Guid templateId, CloneSceneRequest request);
     Task<Result> UpdateSceneAsync(Guid id, UpdateSceneRequest request);
     Task<bool> RemoveSceneAsync(Guid id, Guid sceneId);
 }

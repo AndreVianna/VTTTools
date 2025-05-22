@@ -74,11 +74,11 @@ internal static class DbContextHelper {
     private static void SeedGameSessions(ApplicationDbContext context, Guid currentUserId) {
         var masterId = Guid.NewGuid();
         var playerId = Guid.NewGuid();
-        var scenes = context.Scenes.Include(s => s.SceneAssets).ToArray();
+        var scenes = context.Scenes.Include(s => s.Adventure).Include(s => s.SceneAssets).ToArray();
         var sessions = new[] {
             CreateTestGameSessionEntity("Session 1", scenes[0].Id, GameSessionStatus.InProgress),
             CreateTestGameSessionEntity("Session 2", scenes[1].Id, GameSessionStatus.Scheduled, ownerId: currentUserId),
-            CreateTestGameSessionEntity("Session 3", ownerId: scenes[2].OwnerId),
+            CreateTestGameSessionEntity("Session 3", ownerId: scenes[2].Adventure.OwnerId),
         };
         sessions[0].Players.AddRange([
             new() { UserId = currentUserId, Type = PlayerType.Master },
@@ -110,9 +110,9 @@ internal static class DbContextHelper {
     public static AdventureEntity CreateTestAdventureEntity(string name, bool isPublished = false, bool isPublic = false, AdventureType type = AdventureType.OpenWorld, Guid? ownerId = null)
         => CreateTestAdventureEntity(Guid.CreateVersion7(), name, isPublished, isPublic, type, ownerId);
 
-    public static SceneEntity CreateTestSceneEntity(Guid id, string name)
+    public static SceneEntity CreateTestSceneEntity(Guid adventureId, string name)
         => new() {
-            Id = id,
+            AdventureId = adventureId,
             Name = name,
             Description = $"Description for {name}",
             Stage = new() {

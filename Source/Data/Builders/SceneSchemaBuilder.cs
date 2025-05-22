@@ -11,12 +11,10 @@ internal static class SceneSchemaBuilder {
         builder.Entity<Scene>(entity => {
             entity.ToTable("Scenes");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.OwnerId).IsRequired();
             entity.Property(e => e.AdventureId).IsRequired();
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
             entity.Property(e => e.IsPublished).IsRequired();
-            entity.Property(e => e.IsPublic).IsRequired();
             entity.ComplexProperty(e => e.Stage, stageBuilder => {
                 stageBuilder.ComplexProperty(ea => ea.Shape, shapeBuilder => {
                     shapeBuilder.IsRequired();

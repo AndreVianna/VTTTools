@@ -5,10 +5,7 @@ public class AddClonedAssetRequestTests {
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
         var original = new AddClonedAssetRequest {
-            TemplateId = Guid.NewGuid(),
             Name = "Asset Name",
-            Description = "Asset Description",
-            Type = AssetType.Placeholder,
             Shape = new Shape {
                 Type = MediaType.Image,
                 SourceId = Guid.NewGuid(),
@@ -20,8 +17,6 @@ public class AddClonedAssetRequestTests {
             Elevation = 0.0f,
         };
         const string name = "Other Name";
-        const string description = "Other Description";
-        const AssetType type = AssetType.Creature;
         var shape = new Shape {
             Type = MediaType.Video,
             SourceId = Guid.NewGuid(),
@@ -36,8 +31,6 @@ public class AddClonedAssetRequestTests {
         // ReSharper disable once WithExpressionModifiesAllMembers
         var data = original with {
             Name = name,
-            Description = description,
-            Type = type,
             Shape = shape,
             Position = position,
             Scale = scale,
@@ -47,8 +40,6 @@ public class AddClonedAssetRequestTests {
 
         // Assert
         data.Name.Should().Be(name);
-        data.Description.Should().Be(description);
-        data.Type.Should().Be(type);
         data.Shape.Should().BeEquivalentTo(shape, options => options.ExcludingMissingMembers());
         data.Position.Should().Be(position);
         data.Scale.Should().Be(scale);

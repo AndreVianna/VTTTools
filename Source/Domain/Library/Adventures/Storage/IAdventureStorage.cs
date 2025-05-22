@@ -10,6 +10,11 @@ public interface IAdventureStorage {
     Task<Adventure[]> GetAllAsync(CancellationToken ct = default);
 
     /// <summary>
+    /// Retrieves all adventure templates.
+    /// </summary>
+    Task<Adventure[]> GetManyAsync(string filterDefinition, CancellationToken ct = default);
+
+    /// <summary>
     /// Retrieves an adventure by its ID.
     /// </summary>
     Task<Adventure?> GetByIdAsync(Guid id, CancellationToken ct = default);

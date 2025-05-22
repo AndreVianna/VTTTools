@@ -1,44 +1,46 @@
 namespace VttTools.Library.Adventures.ServiceContracts;
 
 /// <summary>
-/// Data to clone an existing Adventure template.
+/// Data to update an existing Adventure template.
 /// </summary>
-public record CloneAdventureData
+public record UpdatedAdventureData
     : Data {
     /// <summary>
-    /// The id of the Adventure used as template for the new Adventure.
-    /// </summary>
-    public Guid TemplateId { get; init; }
-
-    /// <summary>
-    /// The id of the Campaign to which the new Adventure belongs. If not set, the original Campaign is used.
+    /// New campaign ID for the Adventure. If not set, campaign assignment is unchanged.
     /// </summary>
     public Optional<Guid?> CampaignId { get; init; }
 
     /// <summary>
-    /// New name for the cloned Adventure. If not set, original name + " (Copy)" is used.
+    /// New name for the Adventure. If not set, name is unchanged.
     /// </summary>
     public Optional<string> Name { get; init; }
 
     /// <summary>
-    /// New description for the cloned Adventure. If not set, original description is copied.
+    /// New description for the Adventure. If not set, description is unchanged.
     /// </summary>
     public Optional<string> Description { get; init; }
 
     /// <summary>
-    /// New type for the cloned Adventure. If not set, original type is copied.
+    /// New type for the Adventure. If not set, type is unchanged.
     /// </summary>
     public Optional<AdventureType> Type { get; init; }
 
     /// <summary>
-    /// New image id for the cloned Adventure. If not set, original image id is copied.
+    /// New image path for the Adventure. If not set, image path is unchanged.
     /// </summary>
     public Optional<Guid?> ImageId { get; init; }
 
     /// <summary>
-    /// Whether the clone action should also clone the scenes.
+    /// Indicates whether the Adventure is published (visible) or not (hidden).
+    /// If not set, visibility status is unchanged.
     /// </summary>
-    public bool IncludeScenes { get; init; } = true;
+    public Optional<bool> IsListed { get; init; }
+
+    /// <summary>
+    /// Indicates whether the Adventure is publicly accessible.
+    /// If not set, public status is unchanged.
+    /// </summary>
+    public Optional<bool> IsPublic { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);

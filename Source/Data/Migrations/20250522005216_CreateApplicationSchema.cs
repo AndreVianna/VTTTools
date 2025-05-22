@@ -154,11 +154,9 @@ public partial class CreateApplicationSchema : Migration {
             columns: table => new {
                 Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 AdventureId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
                 IsPublished = table.Column<bool>(type: "bit", nullable: false),
-                IsPublic = table.Column<bool>(type: "bit", nullable: false),
                 Stage_ZoomLevel = table.Column<float>(type: "real", nullable: false, defaultValue: 1f),
                 Stage_Grid_Type = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "NoGrid"),
                 Stage_Grid_Cell_Size = table.Column<float>(type: "real", nullable: false, defaultValue: 1f),

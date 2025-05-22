@@ -9,10 +9,10 @@ internal static class AdventureEndpointsMapper {
         adventures.MapGet("/{id:guid}", AdventureHandlers.GetAdventureByIdHandler);
         adventures.MapPatch("/{id:guid}", AdventureHandlers.UpdateAdventureHandler);
         adventures.MapDelete("/{id:guid}", AdventureHandlers.DeleteAdventureHandler);
-        adventures.MapPost("/{id:guid}/clone", AdventureHandlers.CloneAdventureHandler);
+        adventures.MapPost("/{id:guid}", AdventureHandlers.CloneAdventureHandler);
         adventures.MapGet("/{id:guid}/scenes", AdventureHandlers.GetScenesHandler);
         adventures.MapPost("/{id:guid}/scenes", AdventureHandlers.AddNewSceneHandler);
-        adventures.MapPost("/{id:guid}/scenes/clone", AdventureHandlers.AddClonedSceneHandler);
+        adventures.MapPost("/{id:guid}/scenes/{templateId:guid}", AdventureHandlers.AddClonedSceneHandler);
         adventures.MapDelete("/{id:guid}/scenes/{sceneId:guid}", AdventureHandlers.RemoveSceneHandler);
     }
 }

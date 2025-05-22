@@ -5,11 +5,26 @@ namespace VttTools.Library.Adventures.Services;
 /// </summary>
 public interface IAdventureService {
     /// <summary>
-    /// Gets all adventure templates.
+    /// Gets all adventures templates.
     /// </summary>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>An array of adventure templates.</returns>
     Task<Adventure[]> GetAdventuresAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets owned adventures templates.
+    /// </summary>
+    /// <param name="userId">The ID of the user owning the adventures.</param>
+    /// <param name="ct">Cancellation token for async operations.</param>
+    /// <returns>An array of adventure templates.</returns>
+    Task<Adventure[]> GetOwnedAdventuresAsync(Guid userId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets owned adventures templates.
+    /// </summary>
+    /// <param name="ct">Cancellation token for async operations.</param>
+    /// <returns>An array of adventure templates.</returns>
+    Task<Adventure[]> GetAvailableAdventuresAsync(CancellationToken ct = default);
 
     /// <summary>
     /// Gets a specific adventure by ID.
@@ -26,7 +41,7 @@ public interface IAdventureService {
     /// <param name="data">The data containing adventure details.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>The result of the operation that may contain the created adventure when successful or the errors if the operation fails.</returns>
-    Task<Result<Adventure>> CreateAdventureAsync(Guid userId, CreateAdventureData data, CancellationToken ct = default);
+    Task<Result<Adventure>> CreateAdventureAsync(Guid userId, NewAdventureData data, CancellationToken ct = default);
 
     /// <summary>
     /// Deep-clones an existing Adventure template, including nested Scenes, Stage data, and SceneAssets.
@@ -35,7 +50,7 @@ public interface IAdventureService {
     /// <param name="data">The data for cloned adventure.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>The result of the operation that may contain the cloned adventure when successful or the errors if the operation fails.</returns>
-    Task<Result<Adventure>> CloneAdventureAsync(Guid userId, CloneAdventureData data, CancellationToken ct = default);
+    Task<Result<Adventure>> CloneAdventureAsync(Guid userId, ClonedAdventureData data, CancellationToken ct = default);
 
     /// <summary>
     /// Updates an existing adventure template.
@@ -45,7 +60,7 @@ public interface IAdventureService {
     /// <param name="data">The data containing adventure details.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>The result of the operation that may contain the updated adventure when successful or the errors if the operation fails.</returns>
-    Task<Result<Adventure>> UpdateAdventureAsync(Guid userId, Guid id, UpdateAdventureData data, CancellationToken ct = default);
+    Task<Result<Adventure>> UpdateAdventureAsync(Guid userId, Guid id, UpdatedAdventureData data, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes an adventure template.
@@ -69,10 +84,9 @@ public interface IAdventureService {
     /// </summary>
     /// <param name="userId">The ID of the user requesting the clone.</param>
     /// <param name="id">The ID of the adventure that will contain the new scene.</param>
-    /// <param name="data">The data for the new scene.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>The result of the operation that may contain the new scene when successful or the errors if the operation fails.</returns>
-    Task<Result<Scene>> AddNewSceneAsync(Guid userId, Guid id, AddNewSceneData data, CancellationToken ct = default);
+    Task<Result<Scene>> AddNewSceneAsync(Guid userId, Guid id, CancellationToken ct = default);
 
     /// <summary>
     /// Adds a cloned scene to a specific adventure by ID.
@@ -82,7 +96,7 @@ public interface IAdventureService {
     /// <param name="data">The data for the cloned scene.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>The result of the operation that may contain the cloned scene when successful or the errors if the operation fails.</returns>
-    Task<Result<Scene>> AddClonedSceneAsync(Guid userId, Guid id, AddClonedSceneData data, CancellationToken ct = default);
+    Task<Result<Scene>> AddClonedSceneAsync(Guid userId, Guid id, Guid templateId, ClonedSceneData data, CancellationToken ct = default);
 
     /// <summary>
     /// Removes a scene from a specific adventure by ID.

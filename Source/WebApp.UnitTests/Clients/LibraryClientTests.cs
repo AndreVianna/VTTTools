@@ -295,10 +295,6 @@ public class LibraryClientTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new AddNewSceneRequest {
-            Name = "New Scene",
-            Description = "Scene description",
-        };
         var expectedResponse = new Scene {
             Id = sceneId,
             Name = "New Scene",
@@ -321,7 +317,7 @@ public class LibraryClientTests {
         var client = new LibraryClient(httpClient, _options);
 
         // Act
-        var result = await client.CreateSceneAsync(adventureId, request);
+        var result = await client.CreateSceneAsync(adventureId);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
@@ -387,10 +383,9 @@ public class LibraryClientTests {
     public async Task CloneSceneAsync_WhenSuccessful_ReturnsClonedSceneId() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var originalId = Guid.NewGuid();
+        var templateId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new AddClonedSceneRequest {
-            TemplateId = originalId,
+        var request = new CloneSceneRequest {
             Name = "Updated Scene",
         };
         var expectedResponse = new Scene {
@@ -400,7 +395,7 @@ public class LibraryClientTests {
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
             requestMessage.Method.Should().Be(HttpMethod.Post);
-            requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/adventures/{adventureId}/scenes/clone");
+            requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/adventures/{adventureId}/scenes/{templateId}");
 
             var response = new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = JsonContent.Create(expectedResponse),
@@ -414,7 +409,7 @@ public class LibraryClientTests {
         var client = new LibraryClient(httpClient, _options);
 
         // Act
-        var result = await client.CloneSceneAsync(adventureId, request);
+        var result = await client.CloneSceneAsync(adventureId, templateId, request);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
@@ -467,7 +462,7 @@ public class LibraryClientTests {
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
             requestMessage.Method.Should().Be(HttpMethod.Post);
-            requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/adventures/{adventureId}/clone");
+            requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/adventures/{adventureId}");
             var response = new HttpResponseMessage(HttpStatusCode.OK) {
                 Content = JsonContent.Create(expectedResponse),
             };

@@ -1,7 +1,7 @@
 namespace VttTools.Library.Services;
 
 public static class Cloner {
-    internal static Adventure CloneAdventure(Adventure original, Guid ownerId, CloneAdventureData? data = null) {
+    internal static Adventure CloneAdventure(Adventure original, Guid ownerId, ClonedAdventureData? data = null) {
         var clone = new Adventure {
             OwnerId = ownerId,
             CampaignId = data?.CampaignId.IsSet ?? false ? data.CampaignId.Value : original.CampaignId,
@@ -15,7 +15,7 @@ public static class Cloner {
         return clone;
     }
 
-    internal static Scene CloneScene(Scene original, Guid ownerId, AddClonedSceneData? data = null) {
+    internal static Scene CloneScene(Scene original, Guid ownerId, ClonedSceneData? data = null) {
         var clone = new Scene {
             Name = data?.Name.IsSet ?? false ? data.Name.Value : $"{original.Name} (Copy)",
             Description = data?.Description.IsSet ?? false ? data.Description.Value : original.Description,

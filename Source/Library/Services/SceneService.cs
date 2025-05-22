@@ -85,10 +85,10 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         return sceneAsset;
     }
 
-    public async Task<Result<SceneAsset>> AddClonedAssetAsync(Guid userId, Guid id, AddClonedAssetData data, CancellationToken ct = default) {
+    public async Task<Result<SceneAsset>> AddClonedAssetAsync(Guid userId, Guid id, Guid templateId, AddClonedAssetData data, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null) return Result.Failure("NotFound");
-        var original = await assetStorage.GetByIdAsync(data.TemplateId, ct);
+        var original = await assetStorage.GetByIdAsync(templateId, ct);
         if (original is null) return Result.Failure("NotFound");
         if (original.OwnerId != userId || original is { IsPublic: true, IsPublished: true }) return Result.Failure("NotAllowed");
         var result = data.Validate();

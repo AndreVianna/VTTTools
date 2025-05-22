@@ -18,6 +18,7 @@ public class SceneStorage(ApplicationDbContext context)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
                   .AsNoTrackingWithIdentityResolution()
+#pragma warning disable RCS1077
                   .Select(s => new Scene {
                       Id = s.Id,
                       Name = s.Name,
@@ -32,6 +33,7 @@ public class SceneStorage(ApplicationDbContext context)
                           IsLocked = sa.IsLocked,
                           ControlledBy = sa.ControlledBy,
                       }).ToList(),
+#pragma warning restore RCS1077
                   })
                   .ToArrayAsync(ct);
 
@@ -42,6 +44,7 @@ public class SceneStorage(ApplicationDbContext context)
                     .ThenInclude(ea => ea.Asset)
                   .Where(e => e.AdventureId == adventureId)
                   .AsNoTrackingWithIdentityResolution()
+#pragma warning disable RCS1077
                   .Select(s => new Scene {
                       Id = s.Id,
                       Name = s.Name,
@@ -59,6 +62,7 @@ public class SceneStorage(ApplicationDbContext context)
                           IsLocked = sa.IsLocked,
                           ControlledBy = sa.ControlledBy,
                       }).ToList(),
+#pragma warning restore RCS1077
                   })
                   .ToArrayAsync(ct);
 
@@ -68,12 +72,13 @@ public class SceneStorage(ApplicationDbContext context)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
                   .AsNoTrackingWithIdentityResolution()
+#pragma warning disable RCS1077
                   .Select(s => new Scene {
                       Id = s.Id,
                       Name = s.Name,
                       Description = s.Description,
                       Stage = s.Stage,
-                      SceneAssets = s.SceneAssets.ConvertAll(sa => new SceneAsset {
+                      SceneAssets = s.SceneAssets.Select(sa => new SceneAsset {
                           Id = sa.Asset.Id,
                           Description = sa.Asset.Description,
                           Type = sa.Asset.Type,
@@ -84,14 +89,16 @@ public class SceneStorage(ApplicationDbContext context)
                           Shape = sa.Asset.Shape,
                           IsLocked = sa.IsLocked,
                           ControlledBy = sa.ControlledBy,
-                      }),
+                      }).ToList(),
+#pragma warning restore RCS1077
                   })
                   .FirstOrDefaultAsync(e => e.Id == id, ct);
 
     /// <inheritdoc />
-    public async Task<Scene> AddAsync(Scene scene, CancellationToken ct = default) {
+    public async Task<Scene> AddAsync(Guid adventureId, Scene scene, CancellationToken ct = default) {
         var entity = new SceneEntity {
             Id = scene.Id,
+            AdventureId = adventureId,
             Name = scene.Name,
             Description = scene.Description,
             Stage = scene.Stage,

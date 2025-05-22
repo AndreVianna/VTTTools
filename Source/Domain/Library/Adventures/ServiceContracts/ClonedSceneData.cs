@@ -3,13 +3,8 @@ namespace VttTools.Library.Adventures.ServiceContracts;
 /// <summary>
 /// Data to clone an existing Scene template.
 /// </summary>
-public record AddClonedSceneData
+public record ClonedSceneData
     : Data {
-    /// <summary>
-    /// The id of the Scene used as template for the new Scene.
-    /// </summary>
-    public Guid TemplateId { get; init; }
-
     /// <summary>
     /// New name for the Scene. If not set, the original name is used with " (Copy)" at the end.
     /// </summary>

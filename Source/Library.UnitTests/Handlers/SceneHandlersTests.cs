@@ -182,7 +182,6 @@ public class SceneHandlersTests {
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
         var request = new AddClonedAssetRequest {
-            TemplateId = assetId,
             Name = "Asset Name",
             Position = new Vector2 { X = 20, Y = 30 },
             Scale = new Vector2 { X = 0.5f, Y = 0.5f },
@@ -198,11 +197,11 @@ public class SceneHandlersTests {
             Rotation = 45f,
         };
 
-        _sceneService.AddClonedAssetAsync(_userId, sceneId, Arg.Any<AddClonedAssetData>(), Arg.Any<CancellationToken>())
+        _sceneService.AddClonedAssetAsync(_userId, sceneId, assetId, Arg.Any<AddClonedAssetData>(), Arg.Any<CancellationToken>())
             .Returns(sceneAsset);
 
         // Act
-        var result = await SceneHandlers.AddClonedAssetHandler(_httpContext, sceneId, request, _sceneService);
+        var result = await SceneHandlers.AddClonedAssetHandler(_httpContext, sceneId, assetId, request, _sceneService);
 
         // Assert
         result.Should().BeOfType<NoContent>();
@@ -214,7 +213,6 @@ public class SceneHandlersTests {
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
         var request = new AddClonedAssetRequest {
-            TemplateId = assetId,
             Name = "Asset Name",
             Position = new Vector2 { X = 20, Y = 30 },
             Scale = new Vector2 { X = 0.5f, Y = 0.5f },
@@ -222,11 +220,11 @@ public class SceneHandlersTests {
             Rotation = 45f,
         };
 
-        _sceneService.AddClonedAssetAsync(_userId, sceneId, Arg.Any<AddClonedAssetData>(), Arg.Any<CancellationToken>())
+        _sceneService.AddClonedAssetAsync(_userId, sceneId, assetId, Arg.Any<AddClonedAssetData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Some error."));
 
         // Act
-        var result = await SceneHandlers.AddClonedAssetHandler(_httpContext, sceneId, request, _sceneService);
+        var result = await SceneHandlers.AddClonedAssetHandler(_httpContext, sceneId, assetId, request, _sceneService);
 
         // Assert
         result.Should().BeOfType<BadRequest>();

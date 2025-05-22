@@ -15,14 +15,14 @@ public interface ISceneStorage {
     Task<Scene[]> GetByParentIdAsync(Guid adventureId, CancellationToken ct = default);
 
     /// <summary>
-    /// Retrieves an scene by its ID.
+    /// Retrieves a scene by its ID.
     /// </summary>
     Task<Scene?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
     /// Adds a new scene template.
     /// </summary>
-    Task<Scene> AddAsync(Scene scene, CancellationToken ct = default);
+    Task<Scene> AddAsync(Guid adventureId, Scene scene, CancellationToken ct = default);
 
     /// <summary>
     /// Updates an existing scene template.
@@ -30,7 +30,7 @@ public interface ISceneStorage {
     Task<Scene?> UpdateAsync(Scene scene, CancellationToken ct = default);
 
     /// <summary>
-    /// Deletes an scene template.
+    /// Deletes a scene template.
     /// </summary>
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 }

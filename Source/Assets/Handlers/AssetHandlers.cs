@@ -25,14 +25,13 @@ internal static class AssetHandlers {
             : Results.BadRequest(result.Errors);
     }
 
-    internal static async Task<IResult> CloneAssetHandler(HttpContext context, [FromBody] CloneAssetRequest request, [FromServices] IAssetService assetService) {
+    internal static async Task<IResult> CloneAssetHandler(HttpContext context, [FromRoute] Guid assetId, [FromBody] CloneAssetRequest request, [FromServices] IAssetService assetService) {
         var userId = context.User.GetUserId();
         var data = new CloneAssetData {
             Name = request.Name,
-            Description = request.Description,
             Shape = request.Shape,
         };
-        var result = await assetService.CloneAssetAsync(userId, data);
+        var result = await assetService.CloneAssetAsync(userId, assetId, data);
         return result.IsSuccessful
             ? Results.Created($"/api/assets/{result.Value.Id}", result.Value)
             : result.Errors[0].Message == "NotFound"

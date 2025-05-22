@@ -27,8 +27,8 @@ public class AssetService(IAssetStorage assetStorage)
         return asset;
     }
 
-    public async Task<Result<Asset>> CloneAssetAsync(Guid userId, CloneAssetData data, CancellationToken ct = default) {
-        var original = await assetStorage.GetByIdAsync(data.TemplateId, ct);
+    public async Task<Result<Asset>> CloneAssetAsync(Guid userId, Guid templateId, CloneAssetData data, CancellationToken ct = default) {
+        var original = await assetStorage.GetByIdAsync(templateId, ct);
         if (original is null) return Result.Failure("NotFound");
         if (original.OwnerId != userId || original is { IsPublic: true, IsPublished: true }) return Result.Failure("NotAllowed");
         var result = data.Validate();

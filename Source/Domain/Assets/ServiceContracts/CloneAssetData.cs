@@ -2,7 +2,6 @@ namespace VttTools.Assets.ServiceContracts;
 
 public record CloneAssetData
     : Data {
-    public Guid TemplateId { get; init; }
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
     public Optional<Shape> Shape { get; set; }

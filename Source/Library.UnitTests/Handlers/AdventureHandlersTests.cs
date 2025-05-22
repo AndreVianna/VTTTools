@@ -27,7 +27,7 @@ public class AdventureHandlersTests {
             .Returns(adventures);
 
         // Act
-        var result = await AdventureHandlers.GetAdventuresHandler(_adventureService);
+        var result = await AdventureHandlers.GetAdventuresHandler(_httpContext, _adventureService);
 
         // Assert
         var response = result.Should().BeOfType<Ok<Adventure[]>>().Subject;
@@ -72,7 +72,7 @@ public class AdventureHandlersTests {
         var request = new CreateAdventureRequest { Name = "New Adventure" };
         var adventure = new Adventure { Id = Guid.NewGuid(), Name = "New Adventure", OwnerId = _userId };
 
-        _adventureService.CreateAdventureAsync(_userId, Arg.Any<CreateAdventureData>(), Arg.Any<CancellationToken>())
+        _adventureService.CreateAdventureAsync(_userId, Arg.Any<NewAdventureData>(), Arg.Any<CancellationToken>())
             .Returns(adventure);
 
         // Act
@@ -89,7 +89,7 @@ public class AdventureHandlersTests {
         // Arrange
         var request = new CreateAdventureRequest { Name = "New Adventure" };
 
-        _adventureService.CreateAdventureAsync(_userId, Arg.Any<CreateAdventureData>(), Arg.Any<CancellationToken>())
+        _adventureService.CreateAdventureAsync(_userId, Arg.Any<NewAdventureData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Some error."));
 
         // Act
@@ -106,7 +106,7 @@ public class AdventureHandlersTests {
         var request = new UpdateAdventureRequest { Name = "Updated Adventure" };
         var adventure = new Adventure { Id = adventureId, Name = "Updated Adventure", OwnerId = _userId };
 
-        _adventureService.UpdateAdventureAsync(_userId, adventureId, Arg.Any<UpdateAdventureData>(), Arg.Any<CancellationToken>())
+        _adventureService.UpdateAdventureAsync(_userId, adventureId, Arg.Any<UpdatedAdventureData>(), Arg.Any<CancellationToken>())
             .Returns(adventure);
 
         // Act
@@ -123,7 +123,7 @@ public class AdventureHandlersTests {
         var adventureId = Guid.NewGuid();
         var request = new UpdateAdventureRequest { Name = "Updated Adventure" };
 
-        _adventureService.UpdateAdventureAsync(_userId, adventureId, Arg.Any<UpdateAdventureData>(), Arg.Any<CancellationToken>())
+        _adventureService.UpdateAdventureAsync(_userId, adventureId, Arg.Any<UpdatedAdventureData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Some error."));
 
         // Act
@@ -174,7 +174,7 @@ public class AdventureHandlersTests {
         };
         var request = new CloneAdventureRequest();
 
-        _adventureService.CloneAdventureAsync(_userId, Arg.Any<CloneAdventureData>(), Arg.Any<CancellationToken>())
+        _adventureService.CloneAdventureAsync(_userId, Arg.Any<ClonedAdventureData>(), Arg.Any<CancellationToken>())
             .Returns(clonedAdventure);
 
         // Act
@@ -192,7 +192,7 @@ public class AdventureHandlersTests {
         var adventureId = Guid.NewGuid();
         var request = new CloneAdventureRequest();
 
-        _adventureService.CloneAdventureAsync(_userId, Arg.Any<CloneAdventureData>(), Arg.Any<CancellationToken>())
+        _adventureService.CloneAdventureAsync(_userId, Arg.Any<ClonedAdventureData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Some error."));
 
         // Act
@@ -226,17 +226,17 @@ public class AdventureHandlersTests {
     public async Task AddSceneHandler_WithValidRequest_ReturnsCreatedResult() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var request = new AddClonedSceneRequest();
+        var request = new CloneSceneRequest();
         var clonedScene = new Scene {
             Id = Guid.NewGuid(),
             Name = "Cloned Adventure",
         };
 
-        _adventureService.AddClonedSceneAsync(_userId, adventureId, Arg.Any<AddClonedSceneData>(), Arg.Any<CancellationToken>())
+        _adventureService.AddClonedSceneAsync(_userId, adventureId, clonedScene.Id, Arg.Any<ClonedSceneData>(), Arg.Any<CancellationToken>())
             .Returns(clonedScene);
 
         // Act
-        var result = await AdventureHandlers.AddClonedSceneHandler(_httpContext, adventureId, request, _adventureService);
+        var result = await AdventureHandlers.AddClonedSceneHandler(_httpContext, adventureId, clonedScene.Id, request, _adventureService);
 
         // Assert
         result.Should().BeOfType<NoContent>();
@@ -246,13 +246,14 @@ public class AdventureHandlersTests {
     public async Task AddSceneHandler_WithInvalidScene_ReturnsBadRequest() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var request = new AddClonedSceneRequest();
+        var sceneId = Guid.NewGuid();
+        var request = new CloneSceneRequest();
 
-        _adventureService.AddClonedSceneAsync(_userId, adventureId, Arg.Any<AddClonedSceneData>(), Arg.Any<CancellationToken>())
+        _adventureService.AddClonedSceneAsync(_userId, adventureId, sceneId, Arg.Any<ClonedSceneData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Some error."));
 
         // Act
-        var result = await AdventureHandlers.AddClonedSceneHandler(_httpContext, adventureId, request, _adventureService);
+        var result = await AdventureHandlers.AddClonedSceneHandler(_httpContext, adventureId, sceneId, request, _adventureService);
 
         // Assert
         result.Should().BeOfType<BadRequest>();

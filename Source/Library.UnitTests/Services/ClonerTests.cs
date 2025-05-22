@@ -32,7 +32,7 @@ public class ClonerTests {
                 },
             ],
         };
-        var data = new CloneAdventureData { TemplateId = originalId };
+        var data = new ClonedAdventureData { TemplateId = originalId };
 
         // Act
         var clone = Cloner.CloneAdventure(original, _userId, data);
@@ -78,7 +78,7 @@ public class ClonerTests {
                 },
             ],
         };
-        var data = new CloneAdventureData { TemplateId = originalId, IncludeScenes = false };
+        var data = new ClonedAdventureData { TemplateId = originalId, IncludeScenes = false };
 
         // Act
         var clone = Cloner.CloneAdventure(original, _userId, data);

@@ -33,7 +33,7 @@ internal static class SceneHandlers {
     internal static async Task<IResult> GetAssetsHandler([FromRoute] Guid id, [FromServices] ISceneService sceneService)
         => Results.Ok(await sceneService.GetAssetsAsync(id));
 
-    internal static async Task<IResult> AddClonedAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddClonedAssetRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> AddClonedAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromBody] AddClonedAssetRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var data = new AddClonedAssetData {
             Shape = request.Shape,
@@ -42,7 +42,7 @@ internal static class SceneHandlers {
             Elevation = request.Elevation.Value,
             Rotation = request.Rotation.Value,
         };
-        var result = await sceneService.AddClonedAssetAsync(userId, id, data);
+        var result = await sceneService.AddClonedAssetAsync(userId, id, assetId, data);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"

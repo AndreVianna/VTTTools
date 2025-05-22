@@ -1,7 +1,7 @@
 namespace VttTools.WebApp.Extensions;
 
 public static class HttpContextExtensions {
-    private const string _statusMessageCookieName = "Identity.StatusMessage";
+    private const string _statusMessageCookieName = "VttTools.StatusMessage";
 
     private static readonly CookieBuilder _statusCookieBuilder = new() {
         SameSite = SameSiteMode.Strict,
