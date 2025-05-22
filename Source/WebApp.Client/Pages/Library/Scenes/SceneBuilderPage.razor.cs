@@ -7,10 +7,10 @@ public partial class SceneBuilderPage : ComponentBase {
     public Guid SceneId { get; set; }
 
     [Inject]
-    private ILibraryClient LibraryClient { get; set; } = null!;
+    private ILibraryClientHttpClient LibraryClientHttpClient { get; set; } = null!;
 
     [Inject]
-    private IAssetsClient AssetsClient { get; set; } = null!;
+    private IAssetsClientHttpClient AssetsClientHttpClient { get; set; } = null!;
 
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = null!;
@@ -45,17 +45,18 @@ public partial class SceneBuilderPage : ComponentBase {
             : Task.CompletedTask;
 
     private async Task LoadSceneAsync() {
-        var scene = await LibraryClient.GetSceneByIdAsync(SceneId);
+        var scene = await LibraryClientHttpClient.GetSceneByIdAsync(SceneId);
         if (scene == null) {
             NavigateBack();
             return;
         }
+        Scene = scene;
         Grid = new() {
-            Type = scene.Stage.Grid.Type,
-            CellWidth = scene.Stage.Grid.Cell.Scale.X * scene.Stage.Grid.Cell.Size,
-            CellHeight = scene.Stage.Grid.Cell.Scale.Y * scene.Stage.Grid.Cell.Size,
-            OffsetLeft = scene.Stage.Grid.Cell.Offset.X,
-            OffsetTop = scene.Stage.Grid.Cell.Offset.Y,
+            Type = Scene.Stage.Grid.Type,
+            CellWidth = Scene.Stage.Grid.Cell.Scale.X * scene.Stage.Grid.Cell.Size,
+            CellHeight = Scene.Stage.Grid.Cell.Scale.Y * scene.Stage.Grid.Cell.Size,
+            OffsetLeft = Scene.Stage.Grid.Cell.Offset.X,
+            OffsetTop = Scene.Stage.Grid.Cell.Offset.Y,
         };
 
         State.BackgroundUrl = $"{_stageBasePath}/{Scene.Stage.Shape.SourceId ?? Scene.Id}.png";
@@ -220,7 +221,7 @@ public partial class SceneBuilderPage : ComponentBase {
             IsLocked = State.SelectedAsset.IsLocked,
         };
 
-        await LibraryClient.UpdateSceneAssetAsync(Scene.Id, State.SelectedAsset.Id, State.SelectedAsset.Number, updateRequest);
+        await LibraryClientHttpClient.UpdateSceneAssetAsync(Scene.Id, State.SelectedAsset.Id, State.SelectedAsset.Number, updateRequest);
 
         await DrawSceneAsync();
     }
@@ -228,7 +229,7 @@ public partial class SceneBuilderPage : ComponentBase {
     private async Task DeleteSelectedAsset() {
         if (State.SelectedAsset == null)
             return;
-        await LibraryClient.RemoveSceneAssetAsync(Scene.Id, State.SelectedAsset.Id, State.SelectedAsset.Number);
+        await LibraryClientHttpClient.RemoveSceneAssetAsync(Scene.Id, State.SelectedAsset.Id, State.SelectedAsset.Number);
 
         Scene.SceneAssets.Remove(State.SelectedAsset);
         State.SelectedAsset = null;
@@ -249,13 +250,13 @@ public partial class SceneBuilderPage : ComponentBase {
             Type = AssetType.Object,
         };
 
-        var assetResult = await AssetsClient.CreateAssetAsync(createAssetRequest);
+        var assetResult = await AssetsClientHttpClient.CreateAssetAsync(createAssetRequest);
 
         if (!assetResult.IsSuccessful)
             return;
 
         await using var stream = SelectedAsset.SelectedImageFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
-        await AssetsClient.UploadAssetFileAsync(assetResult.Value.Id, stream, SelectedAsset.SelectedImageFile.Name);
+        await AssetsClientHttpClient.UploadAssetFileAsync(assetResult.Value.Id, stream, SelectedAsset.SelectedImageFile.Name);
 
         // Update the scene with the new background path
         Scene = Scene with { Stage = Scene.Stage with { Shape = Scene.Stage.Shape with { SourceId = assetResult.Value.Id } } };
@@ -265,7 +266,7 @@ public partial class SceneBuilderPage : ComponentBase {
             Stage = Scene.Stage,
         };
 
-        await LibraryClient.UpdateSceneAsync(Scene.Id, updateRequest);
+        await LibraryClientHttpClient.UpdateSceneAsync(Scene.Id, updateRequest);
 
         State.ShowChangeImageModal = false;
         await DrawSceneAsync();
@@ -297,7 +298,7 @@ public partial class SceneBuilderPage : ComponentBase {
             Stage = Scene.Stage,
         };
 
-        await LibraryClient.UpdateSceneAsync(Scene.Id, updateRequest);
+        await LibraryClientHttpClient.UpdateSceneAsync(Scene.Id, updateRequest);
 
         State.ShowGridSettingsModal = false;
         await DrawSceneAsync();
@@ -310,14 +311,14 @@ public partial class SceneBuilderPage : ComponentBase {
             Type = SelectedAsset.Type,
         };
 
-        var assetResult = await AssetsClient.CreateAssetAsync(createAssetRequest);
+        var assetResult = await AssetsClientHttpClient.CreateAssetAsync(createAssetRequest);
 
         if (!assetResult.IsSuccessful)
             return;
 
         if (SelectedAsset.SelectedAssetFile != null) {
             await using var stream = SelectedAsset.SelectedAssetFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
-            await AssetsClient.UploadAssetFileAsync(assetResult.Value.Id, stream, SelectedAsset.SelectedAssetFile.Name);
+            await AssetsClientHttpClient.UploadAssetFileAsync(assetResult.Value.Id, stream, SelectedAsset.SelectedAssetFile.Name);
         }
 
         // Add the asset to the scene
@@ -327,7 +328,7 @@ public partial class SceneBuilderPage : ComponentBase {
             Position = new Vector2 (SelectedAsset.PositionX, SelectedAsset.PositionY),
         };
 
-        var sceneAssetResult = await LibraryClient.AddSceneAssetAsync(Scene.Id, addAssetRequest);
+        var sceneAssetResult = await LibraryClientHttpClient.AddSceneAssetAsync(Scene.Id, addAssetRequest);
 
         if (sceneAssetResult.IsSuccessful) {
             // Add to our local scene data
@@ -350,7 +351,7 @@ public partial class SceneBuilderPage : ComponentBase {
             Stage = Scene.Stage,
         };
 
-        await LibraryClient.UpdateSceneAsync(Scene.Id, updateRequest);
+        await LibraryClientHttpClient.UpdateSceneAsync(Scene.Id, updateRequest);
 
         NavigateBack();
     }

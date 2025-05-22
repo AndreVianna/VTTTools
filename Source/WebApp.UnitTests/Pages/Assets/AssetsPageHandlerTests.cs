@@ -2,7 +2,7 @@ namespace VttTools.WebApp.Pages.Assets;
 
 public class AssetsPageHandlerTests
     : ComponentTestContext {
-    private readonly IAssetsClient _client = Substitute.For<IAssetsClient>();
+    private readonly IAssetsServerHttpClient _serverHttpClient = Substitute.For<IAssetsServerHttpClient>();
     private readonly AssetsPage _page = Substitute.For<AssetsPage>();
 
     public AssetsPageHandlerTests() {
@@ -10,7 +10,7 @@ public class AssetsPageHandlerTests
             new Asset { Name = "Asset 1", Description = "Asset 1 Description", IsPublished = true, IsPublic = true },
             new Asset { Name = "Asset 2", Description = "Asset 2 Description", IsPublished = true, IsPublic = true },
         };
-        _client.GetAssetsAsync().Returns(assets);
+        _serverHttpClient.GetAssetsAsync().Returns(assets);
         _page.HttpContext.Returns(HttpContext);
         _page.NavigationManager.Returns(NavigationManager);
         _page.Logger.Returns(NullLogger.Instance);
@@ -39,7 +39,7 @@ public class AssetsPageHandlerTests
             Description = "New Asset Description",
         };
 
-        _client.CreateAssetAsync(Arg.Any<CreateAssetRequest>()).Returns(newAsset);
+        _serverHttpClient.CreateAssetAsync(Arg.Any<CreateAssetRequest>()).Returns(newAsset);
 
         // Act
         await handler.SaveCreatedAsset();
@@ -53,7 +53,7 @@ public class AssetsPageHandlerTests
         // Arrange
         var handler = await CreateHandler();
         var assetId = _page.State.Assets[1].Id;
-        _client.DeleteAssetAsync(Arg.Any<Guid>()).Returns(true);
+        _serverHttpClient.DeleteAssetAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
         await handler.DeleteAsset(assetId);
@@ -65,7 +65,7 @@ public class AssetsPageHandlerTests
     private async Task<AssetsPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
         if (isAuthorized) EnsureAuthenticated();
         var handler = new AssetsPageHandler(_page);
-        if (isConfigured) await handler.LoadAssetsAsync(_client);
+        if (isConfigured) await handler.LoadAssetsAsync(_serverHttpClient);
         return handler;
     }
 }

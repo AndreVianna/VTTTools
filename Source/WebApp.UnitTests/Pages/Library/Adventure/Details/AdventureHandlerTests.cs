@@ -7,7 +7,7 @@ public class AdventureHandlerTests
     : ComponentTestContext {
     private readonly AdventurePage _page = Substitute.For<AdventurePage>();
     private readonly Guid _adventureId = Guid.NewGuid();
-    private readonly ILibraryClient _client = Substitute.For<ILibraryClient>();
+    private readonly ILibraryServerHttpClient _serverHttpClient = Substitute.For<ILibraryServerHttpClient>();
 
     public AdventureHandlerTests() {
         _page.HttpContext.Returns(HttpContext);
@@ -27,11 +27,11 @@ public class AdventureHandlerTests
             IsPublished = true,
             IsPublic = true,
         };
-        _client.GetAdventureByIdAsync(_adventureId).Returns(adventure);
+        _serverHttpClient.GetAdventureByIdAsync(_adventureId).Returns(adventure);
         _page.Action = "view";
 
         // Act
-        var result = await handler.LoadAdventureAsync(_client);
+        var result = await handler.LoadAdventureAsync(_serverHttpClient);
 
         // Assert
         result.Should().BeTrue();
@@ -47,11 +47,11 @@ public class AdventureHandlerTests
     public async Task LoadAdventureAsync_WithInvalidId_ReturnsFalse() {
         // Arrange
         var handler = CreateHandler();
-        _client.GetAdventureByIdAsync(_adventureId).Returns((AdventureInput?)null);
+        _serverHttpClient.GetAdventureByIdAsync(_adventureId).Returns((AdventureInput?)null);
         _page.Action = "view";
 
         // Act
-        var result = await handler.LoadAdventureAsync(_client);
+        var result = await handler.LoadAdventureAsync(_serverHttpClient);
 
         // Assert
         result.Should().BeFalse();
@@ -68,11 +68,11 @@ public class AdventureHandlerTests
             IsPublished = true,
             IsPublic = true,
         };
-        _client.GetAdventureByIdAsync(_adventureId).Returns(adventure);
+        _serverHttpClient.GetAdventureByIdAsync(_adventureId).Returns(adventure);
         _page.Action = "clone";
 
         // Act
-        var result = await handler.LoadAdventureAsync(_client);
+        var result = await handler.LoadAdventureAsync(_serverHttpClient);
 
         // Assert
         result.Should().BeTrue();
@@ -103,14 +103,14 @@ public class AdventureHandlerTests
             IsPublic = false,
         };
 
-        _client.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>())
+        _serverHttpClient.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>())
             .Returns(Result.Success(createdAdventure));
 
         // Act
         await handler.SaveChangesAsync();
 
         // Assert
-        await _client.Received(1).CreateAdventureAsync(Arg.Any<CreateAdventureRequest>());
+        await _serverHttpClient.Received(1).CreateAdventureAsync(Arg.Any<CreateAdventureRequest>());
 
         _page.NavigationManager.Received(1).NavigateTo($"/adventure/view/{createdAdventure.Id}");
     }
@@ -137,14 +137,14 @@ public class AdventureHandlerTests
         _page.Input.IsPublished = true;
         _page.Input.IsPublic = true;
 
-        _client.UpdateAdventureAsync(_adventureId, Arg.Any<UpdateAdventureRequest>())
+        _serverHttpClient.UpdateAdventureAsync(_adventureId, Arg.Any<UpdateAdventureRequest>())
             .Returns(Result.Success());
 
         // Act
         await handler.SaveChangesAsync();
 
         // Assert
-        await _client.Received(1).UpdateAdventureAsync(
+        await _serverHttpClient.Received(1).UpdateAdventureAsync(
             Arg.Is(_adventureId),
             Arg.Is<UpdateAdventureRequest>(req =>
                 req.Name.IsSet && req.Name.Value == "Updated Name" &&
@@ -164,7 +164,7 @@ public class AdventureHandlerTests
         _page.State.Mode = DetailsPageMode.Create;
 
         var error = new Error("Name", "Name is required");
-        _client.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>())
+        _serverHttpClient.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>())
             .Returns(Result.Failure([error]));
 
         // Act
@@ -191,7 +191,7 @@ public class AdventureHandlerTests
             Description = "New Description",
         };
 
-        _client.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>())
+        _serverHttpClient.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>())
             .Returns(Result.Success(createdAdventure));
 
         // Act
@@ -213,7 +213,7 @@ public class AdventureHandlerTests
         _page.State.Original.Name = "Original Name";
         _page.Input.Name = "Updated Name";
 
-        _client.UpdateAdventureAsync(_adventureId, Arg.Any<UpdateAdventureRequest>())
+        _serverHttpClient.UpdateAdventureAsync(_adventureId, Arg.Any<UpdateAdventureRequest>())
             .Returns(Result.Success());
 
         var updatedAdventure = new AdventureInput {
@@ -221,16 +221,16 @@ public class AdventureHandlerTests
             Description = "Updated Description",
             Type = AdventureType.OpenWorld,
         };
-        _client.GetAdventureByIdAsync(_adventureId).Returns(updatedAdventure);
+        _serverHttpClient.GetAdventureByIdAsync(_adventureId).Returns(updatedAdventure);
 
         // Act
         await handler.SaveChangesAsync();
 
         // Assert
-        await _client.Received(1).UpdateAdventureAsync(
+        await _serverHttpClient.Received(1).UpdateAdventureAsync(
             Arg.Is(_adventureId),
             Arg.Any<UpdateAdventureRequest>());
-        await _client.Received(1).GetAdventureByIdAsync(_adventureId);
+        await _serverHttpClient.Received(1).GetAdventureByIdAsync(_adventureId);
         _page.NavigationManager.DidNotReceive().NavigateTo(Arg.Any<string>());
     }
 
@@ -269,13 +269,13 @@ public class AdventureHandlerTests
         // Arrange
         var handler = CreateHandler();
         _page.Id = _adventureId;
-        _client.DeleteAdventureAsync(_adventureId).Returns(true);
+        _serverHttpClient.DeleteAdventureAsync(_adventureId).Returns(true);
 
         // Act
         await handler.DeleteAdventureAsync();
 
         // Assert
-        await _client.Received(1).DeleteAdventureAsync(_adventureId);
+        await _serverHttpClient.Received(1).DeleteAdventureAsync(_adventureId);
         _page.NavigationManager.Received(1).NavigateTo("/adventures");
     }
 
@@ -284,13 +284,13 @@ public class AdventureHandlerTests
         // Arrange
         var handler = CreateHandler();
         _page.Id = _adventureId;
-        _client.DeleteAdventureAsync(_adventureId).Returns(false);
+        _serverHttpClient.DeleteAdventureAsync(_adventureId).Returns(false);
 
         // Act
         await handler.DeleteAdventureAsync();
 
         // Assert
-        await _client.Received(1).DeleteAdventureAsync(_adventureId);
+        await _serverHttpClient.Received(1).DeleteAdventureAsync(_adventureId);
         _page.NavigationManager.DidNotReceive().NavigateTo(Arg.Any<string>());
     }
 

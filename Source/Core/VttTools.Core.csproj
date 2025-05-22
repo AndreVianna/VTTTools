@@ -11,15 +11,10 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetToolbox.Core" Version="9.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.5" />
   </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).UnitTests" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Core\VttTools.Core.csproj" />
   </ItemGroup>
 
 </Project>

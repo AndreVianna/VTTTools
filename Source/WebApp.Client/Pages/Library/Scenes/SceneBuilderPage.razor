@@ -46,52 +46,52 @@
       <button class="btn btn-secondary" @onclick="NavigateBack">Back</button>
     </div>
   </div>
-@if (!State.IsReady) {
-  <div id="loading-message" class="d-flex justify-content-center">
-    <div class="spinner-border" role="status">
-      <span class="visually-hidden">Loading...</span>
+  @if (!State.IsReady) {
+    <div id="loading-message" class="d-flex justify-content-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
     </div>
-  </div>
-}
-else {
-  <div class="scene-canvas-container" @ref="_canvasContainerRef">
-    <canvas @ref="_canvasRef"
+  }
+  else {
+    <div class="scene-canvas-container" @ref="_canvasContainerRef">
+      <canvas @ref="_canvasRef"
               @onmousedown="OnCanvasMouseDown"
               @onmousemove="OnCanvasMouseMove"
               @onmouseup="OnCanvasMouseUp"
               @oncontextmenu:preventDefault
               @oncontextmenu="OnCanvasContextMenu">
       </canvas>
-  </div>
-}
+    </div>
+  }
 </div>
 
 @if (State.ShowChangeImageModal) {
-    <div class="modal fade show" style="display: block;" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Change Background Image</h5>
-                    <button type="button" class="btn-close" @onclick="CloseModals"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="imageUpload" class="form-label">Upload Image</label>
-                        <InputFile id="imageUpload" OnChange="OnImageFileSelected" class="form-control" />
-                    </div>
-                    <div class="current-image mb-3">
-                        <p>Current image:</p>
-                        <img src="@State.BackgroundUrl" style="max-width: 100%; max-height: 200px;" />
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CloseModals">Cancel</button>
-                    <button type="button" class="btn btn-primary" @onclick="SaveBackgroundImage">Save</button>
-                </div>
-            </div>
+  <div class="modal fade show" style="display: block;" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Change Background Image</h5>
+          <button type="button" class="btn-close" @onclick="CloseModals"></button>
         </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="imageUpload" class="form-label">Upload Image</label>
+            <InputFile id="imageUpload" OnChange="OnImageFileSelected" class="form-control" />
+          </div>
+          <div class="current-image mb-3">
+            <p>Current image:</p>
+            <img src="@State.BackgroundUrl" style="max-width: 100%; max-height: 200px;" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" @onclick="CloseModals">Cancel</button>
+          <button type="button" class="btn btn-primary" @onclick="SaveBackgroundImage">Save</button>
+        </div>
+      </div>
     </div>
-    <div class="modal-backdrop fade show"></div>
+  </div>
+  <div class="modal-backdrop fade show"></div>
 }
 
 @if (State.ShowGridSettingsModal) {

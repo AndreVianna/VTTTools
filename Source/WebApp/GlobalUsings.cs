@@ -51,6 +51,7 @@ global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Scenes.ApiContracts;
 global using VttTools.Library.Scenes.Model;
 global using VttTools.Utilities;
+global using VttTools.WebApp.Client.Clients;
 global using VttTools.WebApp.Clients;
 global using VttTools.WebApp.Components;
 global using VttTools.WebApp.Extensions;

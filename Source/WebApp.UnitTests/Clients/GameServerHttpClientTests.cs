@@ -1,9 +1,14 @@
-using JsonOptions = Microsoft.AspNetCore.Mvc.JsonOptions;
-
 namespace VttTools.WebApp.Clients;
 
-public class GameClientTests {
-    private readonly IOptions<JsonOptions> _options = Substitute.For<IOptions<JsonOptions>>();
+public class GameServerHttpClientTests {
+    private static readonly JsonSerializerOptions _options = new() {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = {
+                new JsonStringEnumConverter(),
+                new OptionalConverterFactory(),
+            },
+    };
 
     [Fact]
     public async Task GetGameSessionsAsync_WhenApiReturnsGameSessions_ReturnsGameSessionArray() {
@@ -25,7 +30,7 @@ public class GameClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameClient(httpClient, _options);
+        var client = new GameServerHttpClient(httpClient, _options);
 
         // Act
         var result = await client.GetGameSessionsAsync();
@@ -51,7 +56,7 @@ public class GameClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameClient(httpClient, _options);
+        var client = new GameServerHttpClient(httpClient, _options);
 
         // Act
         var result = await client.GetGameSessionsAsync();
@@ -69,7 +74,7 @@ public class GameClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameClient(httpClient, _options);
+        var client = new GameServerHttpClient(httpClient, _options);
 
         // Act & Assert
         var act = client.GetGameSessionsAsync;
@@ -105,7 +110,7 @@ public class GameClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameClient(httpClient, _options);
+        var client = new GameServerHttpClient(httpClient, _options);
 
         // Act
         var result = await client.CreateGameSessionAsync(request);
@@ -133,7 +138,7 @@ public class GameClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameClient(httpClient, _options);
+        var client = new GameServerHttpClient(httpClient, _options);
 
         // Act
         var result = await client.CreateGameSessionAsync(request);
@@ -171,7 +176,7 @@ public class GameClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameClient(httpClient, _options);
+        var client = new GameServerHttpClient(httpClient, _options);
 
         // Act
         var result = await client.UpdateGameSessionAsync(sessionId, request);
@@ -197,7 +202,7 @@ public class GameClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameClient(httpClient, _options);
+        var client = new GameServerHttpClient(httpClient, _options);
 
         // Act
         var result = await client.UpdateGameSessionAsync(sessionId, request);
@@ -224,7 +229,7 @@ public class GameClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameClient(httpClient, _options);
+        var client = new GameServerHttpClient(httpClient, _options);
 
         // Act
         var result = await client.DeleteGameSessionAsync(sessionId);
@@ -246,7 +251,7 @@ public class GameClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new GameClient(httpClient, _options);
+        var client = new GameServerHttpClient(httpClient, _options);
 
         // Act
         var result = await client.DeleteGameSessionAsync(sessionId);

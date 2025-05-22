@@ -2,12 +2,12 @@ namespace VttTools.WebApp.Pages.Library.Adventure.List;
 
 public class AdventuresPageTests
     : ComponentTestContext {
-    private readonly ILibraryClient _client = Substitute.For<ILibraryClient>();
+    private readonly ILibraryServerHttpClient _serverHttpClient = Substitute.For<ILibraryServerHttpClient>();
     private readonly AdventureListItem[] _defaultAdventures;
 
     public AdventuresPageTests() {
         EnsureAuthenticated();
-        Services.AddScoped(_ => _client);
+        Services.AddScoped(_ => _serverHttpClient);
         _defaultAdventures = [
         new() {
             Name = "Adventure 1",
@@ -23,13 +23,13 @@ public class AdventuresPageTests
             IsPublished = false,
             IsPublic = false,
         }];
-        _client.GetAdventuresAsync().Returns(_defaultAdventures);
+        _serverHttpClient.GetAdventuresAsync().Returns(_defaultAdventures);
     }
 
     [Fact]
     public void BeforeIsReady_RendersLoadingState() {
         // Arrange
-        _client.GetAdventuresAsync().Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultAdventures));
+        _serverHttpClient.GetAdventuresAsync().Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultAdventures));
 
         // Act
         var cut = RenderComponent<AdventuresPage>();
@@ -42,7 +42,7 @@ public class AdventuresPageTests
     [Fact]
     public void WhenIsReady_WithNoAdventures_RendersAsEmpty() {
         // Arrange
-        _client.GetAdventuresAsync().Returns([]);
+        _serverHttpClient.GetAdventuresAsync().Returns([]);
 
         // Act
         var cut = RenderComponent<AdventuresPage>();
@@ -80,13 +80,13 @@ public class AdventuresPageTests
             IsPublished = true,
             IsPublic = true,
         };
-        _client.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>()).Returns(newAdventure);
+        _serverHttpClient.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>()).Returns(newAdventure);
 
         // Act
         cut.Find("#create-adventure").Click();
 
         // Assert
-        _client.Received(1).CreateAdventureAsync(Arg.Any<CreateAdventureRequest>());
+        _serverHttpClient.Received(1).CreateAdventureAsync(Arg.Any<CreateAdventureRequest>());
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class AdventuresPageTests
         var cut = RenderComponent<AdventuresPage>();
         var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        _client.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
+        _serverHttpClient.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
         cut.Find($"#view-adventure-{adventureId}").Click();
@@ -111,13 +111,13 @@ public class AdventuresPageTests
         var adventureId = _defaultAdventures[0].Id;
         var cut = RenderComponent<AdventuresPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        _client.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
+        _serverHttpClient.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
         cut.Find($"#delete-adventure-{adventureId}").Click();
 
         // Assert
-        _client.Received(1).DeleteAdventureAsync(_defaultAdventures[0].Id);
+        _serverHttpClient.Received(1).DeleteAdventureAsync(_defaultAdventures[0].Id);
     }
 
     [Fact]
@@ -133,12 +133,12 @@ public class AdventuresPageTests
             IsPublished = true,
             IsPublic = true,
         };
-        _client.CloneAdventureAsync(Arg.Any<Guid>(), Arg.Any<CloneAdventureRequest>()).Returns(clonedAdventure);
+        _serverHttpClient.CloneAdventureAsync(Arg.Any<Guid>(), Arg.Any<CloneAdventureRequest>()).Returns(clonedAdventure);
 
         // Act
         cut.Find($"#clone-adventure-{adventureId}").Click();
 
         // Assert
-        _client.Received(1).CloneAdventureAsync(Arg.Any<Guid>(), Arg.Any<CloneAdventureRequest>());
+        _serverHttpClient.Received(1).CloneAdventureAsync(Arg.Any<Guid>(), Arg.Any<CloneAdventureRequest>());
     }
 }

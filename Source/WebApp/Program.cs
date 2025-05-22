@@ -3,6 +3,7 @@ using static VttTools.Middlewares.UserIdentificationOptions;
 
 using MvcJsonOptions = Microsoft.AspNetCore.Mvc.JsonOptions;
 using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
+
 namespace VttTools.WebApp;
 
 [ExcludeFromCodeCoverage]
@@ -20,24 +21,36 @@ internal static class Program {
             http.AddStandardResilienceHandler();
             http.AddServiceDiscovery();
         });
-        builder.Services.Configure<MvcJsonOptions>(ConfigureMvcJsonOptions);
+        builder.Services.AddSingleton(new JsonSerializerOptions {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Converters = {
+                new JsonStringEnumConverter(),
+                new OptionalConverterFactory(),
+            },
+        });
         builder.Services.ConfigureHttpJsonOptions(ConfigureHttpJsonOptions);
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IHubConnectionBuilder, HubConnectionBuilder>();
-        builder.Services.AddScoped<IAssetsClient, AssetsClient>();
-        builder.Services.AddHttpClient<IAssetsClient, AssetsClient>(static (services, client) => {
+        builder.Services.AddHttpClient<IAssetsServerHttpClient, AssetsServerHttpClient>(static (services, client) => {
             client.BaseAddress = new("https+http://assets-api");
             SetRequestUserId(services, client);
         });
-        builder.Services.AddScoped<ILibraryClient, LibraryClient>();
-        builder.Services.AddHttpClient<ILibraryClient, LibraryClient>(static (services, client) => {
+        builder.Services.AddHttpClient<ILibraryServerHttpClient, LibraryServerHttpClient>(static (services, client) => {
             client.BaseAddress = new("https+http://library-api");
             SetRequestUserId(services, client);
         });
-        builder.Services.AddScoped<IGameClient, GameClient>();
-        builder.Services.AddHttpClient<IGameClient, GameClient>(static (services, client) => {
+        builder.Services.AddHttpClient<IGameServerHttpClient, GameServerHttpClient>(static (services, client) => {
             client.BaseAddress = new("https+http://game-api");
+            SetRequestUserId(services, client);
+        });
+        builder.Services.AddHttpClient<IAssetsClientHttpClient, AssetsClientHttpClient>(static (services, client) => {
+            client.BaseAddress = new("https+http://assets-api");
+            SetRequestUserId(services, client);
+        });
+        builder.Services.AddHttpClient<ILibraryClientHttpClient, LibraryClientHttpClient>(static (services, client) => {
+            client.BaseAddress = new("https+http://library-api");
             SetRequestUserId(services, client);
         });
 

@@ -14,17 +14,10 @@ public interface IAdventureService {
     /// <summary>
     /// Gets owned adventures templates.
     /// </summary>
-    /// <param name="userId">The ID of the user owning the adventures.</param>
+    /// <param name="filterDefinition">The definition of the filter to apply.</param>
     /// <param name="ct">Cancellation token for async operations.</param>
     /// <returns>An array of adventure templates.</returns>
-    Task<Adventure[]> GetOwnedAdventuresAsync(Guid userId, CancellationToken ct = default);
-
-    /// <summary>
-    /// Gets owned adventures templates.
-    /// </summary>
-    /// <param name="ct">Cancellation token for async operations.</param>
-    /// <returns>An array of adventure templates.</returns>
-    Task<Adventure[]> GetAvailableAdventuresAsync(CancellationToken ct = default);
+    Task<Adventure[]> GetAdventuresAsync(string filterDefinition, CancellationToken ct = default);
 
     /// <summary>
     /// Gets a specific adventure by ID.

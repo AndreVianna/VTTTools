@@ -2,13 +2,13 @@
 
 public partial class AdventuresPage {
     [Inject]
-    internal ILibraryClient LibraryClient { get; set; } = null!;
+    internal ILibraryServerHttpClient LibraryServerHttpClient { get; set; } = null!;
 
     internal AdventuresPageState State { get; set; } = new();
 
     protected override async Task ConfigureAsync() {
         await base.ConfigureAsync();
-        await Handler.LoadAdventuresAsync(LibraryClient);
+        await Handler.LoadAdventuresAsync(LibraryServerHttpClient);
     }
 
     internal void GoToCreatePage()

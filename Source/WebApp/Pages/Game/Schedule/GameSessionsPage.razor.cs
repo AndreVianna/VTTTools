@@ -2,16 +2,16 @@ namespace VttTools.WebApp.Pages.Game.Schedule;
 
 public partial class GameSessionsPage {
     [Inject]
-    internal IGameClient GameClient { get; set; } = null!;
+    internal IGameServerHttpClient GameServerHttpClient { get; set; } = null!;
     [Inject]
-    internal ILibraryClient LibraryClient { get; set; } = null!;
+    internal ILibraryServerHttpClient LibraryServerHttpClient { get; set; } = null!;
 
     internal GameSessionsPageState State { get; set; } = new();
     internal GameSessionsInputModel Input => State.Input;
 
     protected override async Task ConfigureAsync() {
         await base.ConfigureAsync();
-        await Handler.LoadGameSessionAsync(GameClient, LibraryClient);
+        await Handler.LoadGameSessionAsync(GameServerHttpClient, LibraryServerHttpClient);
     }
 
     internal void NavigateToGameSession(Guid sessionId)

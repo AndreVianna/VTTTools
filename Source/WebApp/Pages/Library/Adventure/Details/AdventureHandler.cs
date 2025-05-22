@@ -2,16 +2,16 @@ namespace VttTools.WebApp.Pages.Library.Adventure.Details;
 
 public class AdventureHandler(AdventurePage page)
     : PageHandler<AdventureHandler, AdventurePage>(page) {
-    private ILibraryClient _client = null!;
+    private ILibraryServerHttpClient _serverHttpClient = null!;
 
-    public async Task<bool> LoadAdventureAsync(ILibraryClient client) {
-        _client = client;
+    public async Task<bool> LoadAdventureAsync(ILibraryServerHttpClient serverHttpClient) {
+        _serverHttpClient = serverHttpClient;
         Page.State.Mode = Enum.Parse<DetailsPageMode>(Page.Action ?? "View", true);
         if (Page.State.Mode == DetailsPageMode.Create)
             return true;
         if (Page.Id == Guid.Empty)
             return false;
-        var adventure = await client.GetAdventureByIdAsync(Page.Id);
+        var adventure = await serverHttpClient.GetAdventureByIdAsync(Page.Id);
         if (adventure == null)
             return false;
         Page.State.Input = adventure;
@@ -31,7 +31,7 @@ public class AdventureHandler(AdventurePage page)
     }
 
     internal async Task DeleteAdventureAsync() {
-        var deleted = await _client.DeleteAdventureAsync(Page.Id);
+        var deleted = await _serverHttpClient.DeleteAdventureAsync(Page.Id);
         if (deleted)
             Page.NavigationManager.NavigateTo("/adventures");
     }
@@ -74,7 +74,7 @@ public class AdventureHandler(AdventurePage page)
             IsPublic = Page.Input.IsPublic != Page.State.Original.IsPublic ? Page.State.Input.IsPublic : Optional<bool>.None,
         };
 
-        var result = await _client.UpdateAdventureAsync(Page.Id, request);
+        var result = await _serverHttpClient.UpdateAdventureAsync(Page.Id, request);
         if (!result.IsSuccessful) {
             Page.State.Errors = [.. result.Errors];
             await Page.StateHasChangedAsync();
@@ -88,7 +88,7 @@ public class AdventureHandler(AdventurePage page)
             Type = Page.State.Input.Type,
         };
 
-        var result = await _client.CreateAdventureAsync(request);
+        var result = await _serverHttpClient.CreateAdventureAsync(request);
         if (!result.IsSuccessful) {
             Page.State.Errors = [.. result.Errors];
             await Page.StateHasChangedAsync();
@@ -96,7 +96,7 @@ public class AdventureHandler(AdventurePage page)
     }
 
     internal async Task CreateSceneAsync() {
-        var result = await _client.CreateSceneAsync(Page.Id);
+        var result = await _serverHttpClient.CreateSceneAsync(Page.Id);
         if (result.IsSuccessful) {
             Page.RedirectTo($"/scenes/builder/{result.Value.Id}");
             return;

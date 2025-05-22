@@ -2,7 +2,7 @@ namespace VttTools.WebApp.Pages.Game.Schedule;
 
 public partial class GameSessionPage {
     [Inject]
-    internal IGameClient GameClient { get; set; } = null!;
+    internal IGameServerHttpClient GameServerHttpClient { get; set; } = null!;
 
     [Parameter]
     public Guid GameSessionId { get; set; }
@@ -12,7 +12,7 @@ public partial class GameSessionPage {
 
     protected override async Task ConfigureAsync() {
         await base.ConfigureAsync();
-        await Handler.LoadSessionAsync(GameClient, GameSessionId);
+        await Handler.LoadSessionAsync(GameServerHttpClient, GameSessionId);
     }
 
     internal void NavigateToGameSessions()

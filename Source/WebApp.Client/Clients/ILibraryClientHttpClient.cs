@@ -2,7 +2,7 @@ using UpdateAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateAssetReque
 
 namespace VttTools.WebApp.Client.Clients;
 
-public interface ILibraryClient
+public interface ILibraryClientHttpClient
 {
     Task<Scene?> GetSceneByIdAsync(Guid id);
     Task<Result<Scene>> UpdateSceneAsync(Guid id, UpdateSceneRequest request);

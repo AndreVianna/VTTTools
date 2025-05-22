@@ -1,10 +1,16 @@
-using JsonOptions = Microsoft.AspNetCore.Mvc.JsonOptions;
 using UpdateAssetRequest = VttTools.Assets.ApiContracts.UpdateAssetRequest;
 
 namespace VttTools.WebApp.Clients;
 
-public class AssetsClientTests {
-    private readonly IOptions<JsonOptions> _options = Substitute.For<IOptions<JsonOptions>>();
+public class AssetsServerHttpClientTests {
+    private static readonly JsonSerializerOptions _options = new() {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = {
+                new JsonStringEnumConverter(),
+                new OptionalConverterFactory(),
+            },
+    };
 
     [Fact]
     public async Task GetAssetsAsync_WhenApiReturnsAssets_ReturnsAssetArray() {
@@ -26,7 +32,7 @@ public class AssetsClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new AssetsClient(httpClient, _options);
+        var client = new AssetsServerHttpClient(httpClient, _options);
 
         // Act
         var result = await client.GetAssetsAsync();
@@ -62,7 +68,7 @@ public class AssetsClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new AssetsClient(httpClient, _options);
+        var client = new AssetsServerHttpClient(httpClient, _options);
 
         // Act
         var result = await client.CreateAssetAsync(request);
@@ -91,7 +97,7 @@ public class AssetsClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new AssetsClient(httpClient, _options);
+        var client = new AssetsServerHttpClient(httpClient, _options);
 
         // Act
         var result = await client.UpdateAssetAsync(assetId, request);
@@ -116,7 +122,7 @@ public class AssetsClientTests {
         var httpClient = new HttpClient(mockHandler) {
             BaseAddress = new("http://host.com"),
         };
-        var client = new AssetsClient(httpClient, _options);
+        var client = new AssetsServerHttpClient(httpClient, _options);
 
         // Act
         var result = await client.DeleteAssetAsync(assetId);

@@ -17,20 +17,9 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     }
 
     /// <inheritdoc />
-    public async Task<Adventure[]> GetOwnedAdventuresAsync(Guid userId, CancellationToken ct = default) {
+    public async Task<Adventure[]> GetAdventuresAsync(string filterDefinition, CancellationToken ct = default) {
         try {
-            return await adventureStorage.GetManyAsync($"Owned:{userId}", ct);
-        }
-        catch (Exception ex) {
-            Console.WriteLine(ex);
-            return [];
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task<Adventure[]> GetAvailableAdventuresAsync(CancellationToken ct = default) {
-        try {
-            return await adventureStorage.GetManyAsync("Available", ct);
+            return await adventureStorage.GetManyAsync(filterDefinition, ct);
         }
         catch (Exception ex) {
             Console.WriteLine(ex);

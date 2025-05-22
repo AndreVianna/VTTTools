@@ -1,6 +1,6 @@
 namespace VttTools.WebApp.Client.Clients;
 
-public interface IAssetsClient
+public interface IAssetsClientHttpClient
 {
     Task<Asset?> GetAssetByIdAsync(Guid id);
     Task<Result<Asset>> CreateAssetAsync(CreateAssetRequest request);

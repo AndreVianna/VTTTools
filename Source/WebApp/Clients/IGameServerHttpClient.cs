@@ -1,6 +1,6 @@
 ﻿namespace VttTools.WebApp.Clients;
 
-public interface IGameClient {
+public interface IGameServerHttpClient {
     Task<GameSession[]> GetGameSessionsAsync();
     Task<GameSession?> GetGameSessionByIdAsync(Guid id);
     Task<Result<GameSession>> CreateGameSessionAsync(CreateGameSessionRequest request);

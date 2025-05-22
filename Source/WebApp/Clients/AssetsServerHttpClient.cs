@@ -2,25 +2,23 @@
 
 namespace VttTools.WebApp.Clients;
 
-internal class AssetsClient(HttpClient client, IOptions<JsonOptions> options)
-    : IAssetsClient {
-    private readonly JsonSerializerOptions _options = options.Value.JsonSerializerOptions;
-
+internal class AssetsServerHttpClient(HttpClient client, JsonSerializerOptions options)
+    : IAssetsServerHttpClient {
     public async Task<Asset[]> GetAssetsAsync() {
-        var assets = await client.GetFromJsonAsync<Asset[]>("/api/assets", _options);
+        var assets = await client.GetFromJsonAsync<Asset[]>("/api/assets", options);
         return assets ?? [];
     }
 
     public async Task<Result<Asset>> CreateAssetAsync(CreateAssetRequest request) {
-        var response = await client.PostAsJsonAsync("/api/assets", request, _options);
+        var response = await client.PostAsJsonAsync("/api/assets", request, options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to create asset.");
-        var asset = await response.Content.ReadFromJsonAsync<Asset>(_options);
+        var asset = await response.Content.ReadFromJsonAsync<Asset>(options);
         return asset!;
     }
 
     public async Task<Result> UpdateAssetAsync(Guid id, UpdateAssetRequest request) {
-        var response = await client.PutAsJsonAsync($"/api/assets/{id}", request, _options);
+        var response = await client.PutAsJsonAsync($"/api/assets/{id}", request, options);
         return response.IsSuccessStatusCode
                    ? Result.Success()
                    : Result.Failure("Failed to update asset.");

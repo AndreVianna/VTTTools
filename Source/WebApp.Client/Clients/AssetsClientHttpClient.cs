@@ -1,14 +1,12 @@
 namespace VttTools.WebApp.Client.Clients;
 
-public class AssetsClient(HttpClient httpClient)
-    : IAssetsClient
-{
+public class AssetsClientHttpClient(HttpClient httpClient, JsonSerializerOptions options)
+    : IAssetsClientHttpClient {
     public Task<Asset?> GetAssetByIdAsync(Guid id)
-        => httpClient.GetFromJsonAsync<Asset>($"api/assets/{id}");
+        => httpClient.GetFromJsonAsync<Asset>($"api/assets/{id}", options);
 
-    public async Task<Result<Asset>> CreateAssetAsync(CreateAssetRequest request)
-    {
-        var response = await httpClient.PostAsJsonAsync("api/assets", request);
+    public async Task<Result<Asset>> CreateAssetAsync(CreateAssetRequest request) {
+        var response = await httpClient.PostAsJsonAsync("api/assets", request, options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to create asset");
 
@@ -16,8 +14,7 @@ public class AssetsClient(HttpClient httpClient)
         return Result.Success(result!);
     }
 
-    public async Task<string> UploadAssetFileAsync(Guid assetId, Stream fileStream, string fileName)
-    {
+    public async Task<string> UploadAssetFileAsync(Guid assetId, Stream fileStream, string fileName) {
         using var content = new MultipartFormDataContent();
         using var streamContent = new StreamContent(fileStream);
 

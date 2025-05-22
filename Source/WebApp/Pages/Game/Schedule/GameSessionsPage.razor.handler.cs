@@ -2,18 +2,18 @@ namespace VttTools.WebApp.Pages.Game.Schedule;
 
 public sealed class GameSessionsPageHandler(GameSessionsPage page)
     : PageHandler<GameSessionsPageHandler, GameSessionsPage>(page) {
-    private IGameClient _gameClient = null!;
-    private ILibraryClient _libraryClient = null!;
+    private IGameServerHttpClient _gameServerHttpClient = null!;
+    private ILibraryServerHttpClient _libraryServerHttpClient = null!;
 
-    public async Task LoadGameSessionAsync(IGameClient gameClient, ILibraryClient libraryClient) {
-        _gameClient = gameClient;
-        _libraryClient = libraryClient;
-        var data = await gameClient.GetGameSessionsAsync();
+    public async Task LoadGameSessionAsync(IGameServerHttpClient gameServerHttpClient, ILibraryServerHttpClient libraryServerHttpClient) {
+        _gameServerHttpClient = gameServerHttpClient;
+        _libraryServerHttpClient = libraryServerHttpClient;
+        var data = await gameServerHttpClient.GetGameSessionsAsync();
         Page.State.GameSessions = [.. data];
     }
 
     public async Task StartGameSessionCreating() {
-        var adventures = await _libraryClient.GetAdventuresAsync();
+        var adventures = await _libraryServerHttpClient.GetAdventuresAsync();
         Page.State.Input = new() {
             Adventures = [.. adventures],
             AdventureId = adventures.FirstOrDefault()?.Id ?? Guid.Empty,
@@ -30,7 +30,7 @@ public sealed class GameSessionsPageHandler(GameSessionsPage page)
             Title = Page.State.Input.Subject,
             SceneId = Page.State.Input.SceneId,
         };
-        var result = await _gameClient.CreateGameSessionAsync(request);
+        var result = await _gameServerHttpClient.CreateGameSessionAsync(request);
         if (!result.IsSuccessful) {
             Page.State.Input.Errors = [.. result.Errors];
             return;
@@ -40,7 +40,7 @@ public sealed class GameSessionsPageHandler(GameSessionsPage page)
     }
 
     public Task<bool> TryJoinGameSession(Guid sessionId)
-        => _gameClient.JoinGameSessionAsync(sessionId);
+        => _gameServerHttpClient.JoinGameSessionAsync(sessionId);
 
     public async Task DeleteGameSession(Guid sessionId) {
         if (!await GameSessionsPage.DisplayConfirmation("Are you sure you want to delete this game session?"))
@@ -49,7 +49,7 @@ public sealed class GameSessionsPageHandler(GameSessionsPage page)
         var sessionToRemove = Page.State.GameSessions.FirstOrDefault(s => s.Id == sessionId);
         if (sessionToRemove == null)
             return;
-        await _gameClient.DeleteGameSessionAsync(sessionId);
+        await _gameServerHttpClient.DeleteGameSessionAsync(sessionId);
         Page.State.GameSessions.Remove(sessionToRemove);
     }
 
@@ -59,7 +59,7 @@ public sealed class GameSessionsPageHandler(GameSessionsPage page)
         Page.State.Input.SceneId = Guid.Empty;
         if (adventureId == Guid.Empty)
             return;
-        var scenes = await _libraryClient.GetScenesAsync(adventureId);
+        var scenes = await _libraryServerHttpClient.GetScenesAsync(adventureId);
         Page.State.Input.Scenes = [.. scenes];
         Page.State.Input.SceneId = scenes.FirstOrDefault()?.Id ?? Guid.Empty;
     }

@@ -2,14 +2,14 @@ namespace VttTools.WebApp.Pages.Assets;
 
 public partial class AssetsPage {
     [Inject]
-    internal IAssetsClient AssetsClient { get; set; } = null!;
+    internal IAssetsServerHttpClient AssetsServerHttpClient { get; set; } = null!;
 
     internal AssetsPageState State { get; set; } = new();
     internal AssetsInputModel Input => State.Input;
 
     protected override async Task<bool> ConfigureAsync() {
         await base.ConfigureAsync();
-        await Handler.LoadAssetsAsync(AssetsClient);
+        await Handler.LoadAssetsAsync(AssetsServerHttpClient);
         return true;
     }
 

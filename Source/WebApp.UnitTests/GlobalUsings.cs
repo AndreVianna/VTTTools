@@ -3,6 +3,8 @@ global using System.Diagnostics.CodeAnalysis;
 global using System.Net;
 global using System.Net.Http.Json;
 global using System.Security.Claims;
+global using System.Text.Json;
+global using System.Text.Json.Serialization;
 
 global using AngleSharp.Html.Dom;
 
@@ -42,6 +44,7 @@ global using VttTools.Library.Adventures.ApiContracts;
 global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Scenes.ApiContracts;
 global using VttTools.Library.Scenes.Model;
+global using VttTools.Utilities;
 global using VttTools.WebApp.Clients;
 global using VttTools.WebApp.Components;
 global using VttTools.WebApp.Extensions;

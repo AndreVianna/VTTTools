@@ -4,7 +4,7 @@ public class GameSessionPageHandlerTests
     : ComponentTestContext {
     private readonly GameSessionPage _page = Substitute.For<GameSessionPage>();
     private readonly Guid _sessionId = Guid.NewGuid();
-    private readonly IGameClient _client = Substitute.For<IGameClient>();
+    private readonly IGameServerHttpClient _serverHttpClient = Substitute.For<IGameServerHttpClient>();
 
     public GameSessionPageHandlerTests() {
         _page.HttpContext.Returns(HttpContext);
@@ -18,7 +18,7 @@ public class GameSessionPageHandlerTests
         var handler = await CreateHandler();
 
         // Act
-        await handler.LoadSessionAsync(_client, _sessionId);
+        await handler.LoadSessionAsync(_serverHttpClient, _sessionId);
 
         // Assert
         _page.State.GameSession.Should().NotBeNull();
@@ -30,10 +30,10 @@ public class GameSessionPageHandlerTests
     public async Task TryConfigureAsync_WithInvalidGameSessionId_ReturnsFalse() {
         // Arrange
         var handler = await CreateHandler();
-        _client.GetGameSessionByIdAsync(_sessionId).Returns((GameSession?)null);
+        _serverHttpClient.GetGameSessionByIdAsync(_sessionId).Returns((GameSession?)null);
 
         // Act
-        await handler.LoadSessionAsync(_client, _sessionId);
+        await handler.LoadSessionAsync(_serverHttpClient, _sessionId);
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class GameSessionPageHandlerTests
             Players = _page.State.GameSession.Players,
         };
 
-        _client.UpdateGameSessionAsync(_sessionId, Arg.Any<UpdateGameSessionRequest>()).Returns(updatedGameSession);
+        _serverHttpClient.UpdateGameSessionAsync(_sessionId, Arg.Any<UpdateGameSessionRequest>()).Returns(updatedGameSession);
 
         // Act
         await handler.UpdateGameSession();
@@ -97,7 +97,7 @@ public class GameSessionPageHandlerTests
         // Arrange
         var handler = await CreateHandler();
         _page.State.ShowEditDialog = true;
-        _client.UpdateGameSessionAsync(_sessionId, Arg.Any<UpdateGameSessionRequest>()).Returns(Result.Failure("Some error."));
+        _serverHttpClient.UpdateGameSessionAsync(_sessionId, Arg.Any<UpdateGameSessionRequest>()).Returns(Result.Failure("Some error."));
 
         // Act
         await handler.UpdateGameSession();
@@ -112,7 +112,7 @@ public class GameSessionPageHandlerTests
     public async Task TryStartGameSession_CallsApiAndReturnsResult() {
         // Arrange
         var handler = await CreateHandler();
-        _client.StartGameSessionAsync(_sessionId).Returns(true);
+        _serverHttpClient.StartGameSessionAsync(_sessionId).Returns(true);
 
         // Act
         var result = await handler.TryStartGameSession();
@@ -125,7 +125,7 @@ public class GameSessionPageHandlerTests
     public async Task TryStartGameSession_ReturnsFalse_OnError() {
         // Arrange
         var handler = await CreateHandler();
-        _client.StartGameSessionAsync(_sessionId).Returns(false);
+        _serverHttpClient.StartGameSessionAsync(_sessionId).Returns(false);
 
         // Act
         var result = await handler.TryStartGameSession();
@@ -144,11 +144,11 @@ public class GameSessionPageHandlerTests
             OwnerId = userId,
             Players = [player],
         };
-        _client.GetGameSessionByIdAsync(_sessionId).Returns(session);
+        _serverHttpClient.GetGameSessionByIdAsync(_sessionId).Returns(session);
         var user = new LoggedUser(userId, CurrentUser?.DisplayName ?? "Test User", CurrentUser?.IsAdministrator ?? false);
         _page.User.Returns(user);
         var handler = new GameSessionPageHandler(_page);
-        if (isConfigured) await handler.LoadSessionAsync(_client, _sessionId);
+        if (isConfigured) await handler.LoadSessionAsync(_serverHttpClient, _sessionId);
         return handler;
     }
 }

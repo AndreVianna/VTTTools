@@ -5,8 +5,8 @@ namespace VttTools.WebApp.Pages.Game.Schedule;
 public class GameSessionsPageHandlerTests
     : ComponentTestContext {
     private readonly GameSessionsPage _page = Substitute.For<GameSessionsPage>();
-    private readonly IGameClient _gameClient = Substitute.For<IGameClient>();
-    private readonly ILibraryClient _libraryClient = Substitute.For<ILibraryClient>();
+    private readonly IGameServerHttpClient _gameServerHttpClient = Substitute.For<IGameServerHttpClient>();
+    private readonly ILibraryServerHttpClient _libraryServerHttpClient = Substitute.For<ILibraryServerHttpClient>();
 
     public GameSessionsPageHandlerTests() {
         _page.HttpContext.Returns(HttpContext);
@@ -31,7 +31,7 @@ public class GameSessionsPageHandlerTests
         var adventures = new[] {
             new AdventureListItem { Name = "Adventure 1" },
         };
-        _libraryClient.GetAdventuresAsync().Returns(adventures);
+        _libraryServerHttpClient.GetAdventuresAsync().Returns(adventures);
 
         // Act
         await handler.StartGameSessionCreating();
@@ -70,7 +70,7 @@ public class GameSessionsPageHandlerTests
 
         // Setup response
         var expectedGameSession = new GameSession { Id = Guid.NewGuid(), Title = "New GameSession" };
-        _gameClient.CreateGameSessionAsync(Arg.Any<CreateGameSessionRequest>()).Returns(expectedGameSession);
+        _gameServerHttpClient.CreateGameSessionAsync(Arg.Any<CreateGameSessionRequest>()).Returns(expectedGameSession);
 
         // Act
         await handler.SaveCreatedGameSession();
@@ -88,7 +88,7 @@ public class GameSessionsPageHandlerTests
         _page.State.IsCreating = true;
         _page.State.Input.Subject = string.Empty;
         _page.State.Input.SceneId = sceneId;
-        _gameClient.CreateGameSessionAsync(Arg.Any<CreateGameSessionRequest>()).Returns(Result.Failure("Some error."));
+        _gameServerHttpClient.CreateGameSessionAsync(Arg.Any<CreateGameSessionRequest>()).Returns(Result.Failure("Some error."));
 
         // Act
         await handler.SaveCreatedGameSession();
@@ -104,7 +104,7 @@ public class GameSessionsPageHandlerTests
         // Arrange
         var handler = await CreateInitializedHandler();
         var sessionId = Guid.NewGuid();
-        _gameClient.JoinGameSessionAsync(sessionId).Returns(true);
+        _gameServerHttpClient.JoinGameSessionAsync(sessionId).Returns(true);
 
         // Act
         var result = await handler.TryJoinGameSession(sessionId);
@@ -118,7 +118,7 @@ public class GameSessionsPageHandlerTests
         // Arrange
         var handler = await CreateInitializedHandler();
         var sessionId = Guid.NewGuid();
-        _gameClient.JoinGameSessionAsync(sessionId).Returns(false);
+        _gameServerHttpClient.JoinGameSessionAsync(sessionId).Returns(false);
 
         // Act
         var result = await handler.TryJoinGameSession(sessionId);
@@ -152,7 +152,7 @@ public class GameSessionsPageHandlerTests
             new() { Name = "Scene 1" },
             new() { Name = "Scene 2" },
         };
-        _libraryClient.GetScenesAsync(adventureId).Returns(scenes);
+        _libraryServerHttpClient.GetScenesAsync(adventureId).Returns(scenes);
 
         // Act
         await handler.LoadScenes(adventureId);
@@ -183,8 +183,8 @@ public class GameSessionsPageHandlerTests
         };
         if (isAuthorized) EnsureAuthenticated();
         var handler = new GameSessionsPageHandler(_page);
-        _gameClient.GetGameSessionsAsync().Returns(sessions);
-        if (isConfigured) await handler.LoadGameSessionAsync(_gameClient, _libraryClient);
+        _gameServerHttpClient.GetGameSessionsAsync().Returns(sessions);
+        if (isConfigured) await handler.LoadGameSessionAsync(_gameServerHttpClient, _libraryServerHttpClient);
         return handler;
     }
 }

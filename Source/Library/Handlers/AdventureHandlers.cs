@@ -5,9 +5,8 @@ namespace VttTools.Library.Handlers;
 internal static class AdventureHandlers {
     internal static async Task<IResult> GetAdventuresHandler(HttpContext context, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var adventures = await Task.WhenAll(adventureService.GetOwnedAdventuresAsync(userId),
-                                            adventureService.GetAvailableAdventuresAsync());
-        return Results.Ok(adventures.SelectMany(x => x));
+        var adventures = await adventureService.GetAdventuresAsync($"AvailableTo:{userId}");
+        return Results.Ok(adventures);
     }
 
     internal static async Task<IResult> GetAdventureByIdHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService)

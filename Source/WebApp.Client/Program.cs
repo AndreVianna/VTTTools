@@ -1,8 +1,3 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Tokens;
-
-using VttTools.WebApp.Client.Extensions;
-
 namespace VttTools.WebApp.Client;
 
 [ExcludeFromCodeCoverage]
@@ -14,27 +9,17 @@ internal static class Program {
         builder.Services.AddCascadingAuthenticationState();
         builder.Services.AddAuthenticationStateDeserialization();
 
-        // Register HTTP client
-        builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new(builder.HostEnvironment.BaseAddress) });
-
-        builder.Services.AddServiceDiscovery();
-        builder.Services.ConfigureHttpClientDefaults(http => {
-            http.AddStandardResilienceHandler();
-            http.AddServiceDiscovery();
-        });
-        builder.Services.AddScoped<IAssetsClient, AssetsClient>();
-        builder.Services.AddHttpClient<IAssetsClient, AssetsClient>(static (services, client) => {
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddHttpClient<IAssetsClientHttpClient, AssetsClientHttpClient>(static (services, client) => {
             client.BaseAddress = new("https+http://assets-api");
             SetRequestUserId(services, client);
         });
-        builder.Services.AddScoped<ILibraryClient, LibraryClient>();
-        builder.Services.AddHttpClient<ILibraryClient, LibraryClient>(static (services, client) => {
+        builder.Services.AddHttpClient<ILibraryClientHttpClient, LibraryClientHttpClient>(static (services, client) => {
             client.BaseAddress = new("https+http://library-api");
             SetRequestUserId(services, client);
         });
 
         var app = builder.Build();
-
         return app.RunAsync();
     }
 

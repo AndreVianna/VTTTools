@@ -2,7 +2,7 @@ namespace VttTools.WebApp.Pages.Library.Adventure.Details;
 
 public partial class AdventurePage {
     [Inject]
-    private ILibraryClient LibraryClient { get; set; } = null!;
+    private ILibraryServerHttpClient LibraryServerHttpClient { get; set; } = null!;
     [Parameter]
     public string? Action { get; set; }
     [Parameter]
@@ -14,7 +14,7 @@ public partial class AdventurePage {
         await base.ConfigureAsync();
         State.NextPage = string.Empty;
         State.SaveChanges = true;
-        var isLoaded = await Handler.LoadAdventureAsync(LibraryClient);
+        var isLoaded = await Handler.LoadAdventureAsync(LibraryServerHttpClient);
         if (isLoaded)
             return true;
         NavigateBack();
@@ -27,6 +27,7 @@ public partial class AdventurePage {
     private void ReturnToList() => State.NextPage = "LIST";
 
     private void NavigateToSceneBuilder(Guid sceneId) => TryExecute(() => RedirectTo($"/scenes/builder/{sceneId}"));
+    private void NavigateToSceneViewer(Guid sceneId) => TryExecute(() => RedirectTo($"/scenes/viewer/{sceneId}"));
     private void TryReturnToList() => TryExecute(() => State.NextPage = "LIST");
 
     private async Task SubmitForm() {
@@ -50,6 +51,7 @@ public partial class AdventurePage {
     }
 
     private void TryExecute(Action action) {
+        State.SaveChanges = false;
         if (!State.HasChanges) {
             action();
             return;
@@ -60,11 +62,11 @@ public partial class AdventurePage {
     }
 
     private async Task TryExecuteAsync(Func<Task> action) {
+        State.SaveChanges = false;
         if (!State.HasChanges) {
             await action();
             return;
         }
-        State.SaveChanges = false;
         State.ExecutePendingAction = true;
         State.PendingAction = action;
         State.PendingChangesModalIsVisible = true;

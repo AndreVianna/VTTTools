@@ -4,11 +4,11 @@ namespace VttTools.WebApp.Pages.Library.Adventure.List;
 
 public class AdventuresHandler(AdventuresPage page)
     : PageHandler<AdventuresHandler, AdventuresPage>(page) {
-    private ILibraryClient _client = null!;
+    private ILibraryServerHttpClient _serverHttpClient = null!;
 
-    public async Task LoadAdventuresAsync(ILibraryClient client) {
-        _client = client;
-        Page.State.Adventures = [..await _client.GetAdventuresAsync()];
+    public async Task LoadAdventuresAsync(ILibraryServerHttpClient serverHttpClient) {
+        _serverHttpClient = serverHttpClient;
+        Page.State.Adventures = [..await _serverHttpClient.GetAdventuresAsync()];
         ApplyFilters();
     }
 
@@ -46,7 +46,7 @@ public class AdventuresHandler(AdventuresPage page)
     }
 
     public async Task DeleteAdventure(Guid id) {
-        var deleted = await _client.DeleteAdventureAsync(id);
+        var deleted = await _serverHttpClient.DeleteAdventureAsync(id);
         if (!deleted)
             return;
 
@@ -59,7 +59,7 @@ public class AdventuresHandler(AdventuresPage page)
             Name = $"{Page.State.Adventures.First(a => a.Id == id).Name} (Copy)",
         };
 
-        var result = await _client.CloneAdventureAsync(id, request);
+        var result = await _serverHttpClient.CloneAdventureAsync(id, request);
         if (!result.IsSuccessful)
             return;
         Page.State.Adventures.Add(result.Value);

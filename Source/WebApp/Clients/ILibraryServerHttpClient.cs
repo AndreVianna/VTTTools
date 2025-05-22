@@ -1,6 +1,6 @@
 ﻿namespace VttTools.WebApp.Clients;
 
-public interface ILibraryClient {
+public interface ILibraryServerHttpClient {
     Task<AdventureListItem[]> GetAdventuresAsync();
     Task<AdventureInput?> GetAdventureByIdAsync(Guid id);
     Task<Result<AdventureListItem>> CreateAdventureAsync(CreateAdventureRequest request);

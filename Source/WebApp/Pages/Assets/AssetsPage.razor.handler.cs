@@ -2,11 +2,11 @@ namespace VttTools.WebApp.Pages.Assets;
 
 public class AssetsPageHandler(AssetsPage page)
     : PageHandler<AssetsPageHandler, AssetsPage>(page) {
-    private IAssetsClient _client = null!;
+    private IAssetsServerHttpClient _serverHttpClient = null!;
 
-    public async Task LoadAssetsAsync(IAssetsClient client) {
-        _client = client;
-        Page.State.Assets = [.. await _client.GetAssetsAsync()];
+    public async Task LoadAssetsAsync(IAssetsServerHttpClient serverHttpClient) {
+        _serverHttpClient = serverHttpClient;
+        Page.State.Assets = [.. await _serverHttpClient.GetAssetsAsync()];
     }
 
     public async Task SaveCreatedAsset() {
@@ -16,7 +16,7 @@ public class AssetsPageHandler(AssetsPage page)
             Type = Page.State.Input.Type,
         };
 
-        var result = await _client.CreateAssetAsync(request);
+        var result = await _serverHttpClient.CreateAssetAsync(request);
 
         if (!result.IsSuccessful) {
             Page.State.Input.Errors = [.. result.Errors];
@@ -28,7 +28,7 @@ public class AssetsPageHandler(AssetsPage page)
     }
 
     public async Task DeleteAsset(Guid id) {
-        var deleted = await _client.DeleteAssetAsync(id);
+        var deleted = await _serverHttpClient.DeleteAssetAsync(id);
         if (!deleted)
             return;
         Page.State.Assets.RemoveAll(e => e.Id == id);

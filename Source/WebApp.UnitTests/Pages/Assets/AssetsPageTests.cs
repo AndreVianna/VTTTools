@@ -2,7 +2,7 @@ namespace VttTools.WebApp.Pages.Assets;
 
 public class AssetsPageTests
     : ComponentTestContext {
-    private readonly IAssetsClient _client = Substitute.For<IAssetsClient>();
+    private readonly IAssetsServerHttpClient _serverHttpClient = Substitute.For<IAssetsServerHttpClient>();
     private readonly Asset[] _defaultAssets = [
         new() {
             Name = "Asset 1",
@@ -20,15 +20,15 @@ public class AssetsPageTests
         }];
 
     public AssetsPageTests() {
-        Services.AddScoped<IAssetsClient>(_ => _client);
-        _client.GetAssetsAsync().Returns(_defaultAssets);
+        Services.AddScoped<IAssetsServerHttpClient>(_ => _serverHttpClient);
+        _serverHttpClient.GetAssetsAsync().Returns(_defaultAssets);
         EnsureAuthenticated();
     }
 
     [Fact]
     public void BeforeIsReady_RendersLoadingState() {
         // Arrange
-        _client.GetAssetsAsync().Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultAssets));
+        _serverHttpClient.GetAssetsAsync().Returns(Task.Delay(1000, CancellationToken).ContinueWith(_ => _defaultAssets));
 
         // Act
         var cut = RenderComponent<AssetsPage>();
@@ -41,7 +41,7 @@ public class AssetsPageTests
     [Fact]
     public void WhenIsReady_WithNoAssets_RendersAsEmpty() {
         // Arrange
-        _client.GetAssetsAsync().Returns([]);
+        _serverHttpClient.GetAssetsAsync().Returns([]);
 
         // Act
         var cut = RenderComponent<AssetsPage>();
@@ -86,7 +86,7 @@ public class AssetsPageTests
             Description = "New Asset Description",
             Type = AssetType.NPC,
         };
-        _client.CreateAssetAsync(Arg.Any<CreateAssetRequest>()).Returns(newAsset);
+        _serverHttpClient.CreateAssetAsync(Arg.Any<CreateAssetRequest>()).Returns(newAsset);
 
         var cut = RenderComponent<AssetsPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
@@ -109,7 +109,7 @@ public class AssetsPageTests
     public void WhenDeleteButtonIsClicked_DeletesAsset() {
         // Arrange
         var assetId = _defaultAssets[0].Id;
-        _client.DeleteAssetAsync(Arg.Any<Guid>()).Returns(true);
+        _serverHttpClient.DeleteAssetAsync(Arg.Any<Guid>()).Returns(true);
 
         var cut = RenderComponent<AssetsPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));

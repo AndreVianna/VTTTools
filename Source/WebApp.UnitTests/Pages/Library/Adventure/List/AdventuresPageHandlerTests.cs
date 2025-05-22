@@ -3,7 +3,7 @@ namespace VttTools.WebApp.Pages.Library.Adventure.List;
 public class AdventuresPageHandlerTests
     : ComponentTestContext {
     private readonly AdventuresPage _page = Substitute.For<AdventuresPage>();
-    private readonly ILibraryClient _client = Substitute.For<ILibraryClient>();
+    private readonly ILibraryServerHttpClient _serverHttpClient = Substitute.For<ILibraryServerHttpClient>();
 
     public AdventuresPageHandlerTests() {
         var adventures = new[] {
@@ -22,7 +22,7 @@ public class AdventuresPageHandlerTests
                 IsPublic = false,
             },
         };
-        _client.GetAdventuresAsync().Returns(adventures);
+        _serverHttpClient.GetAdventuresAsync().Returns(adventures);
         _page.HttpContext.Returns(HttpContext);
         _page.NavigationManager.Returns(NavigationManager);
         _page.Logger.Returns(NullLogger.Instance);
@@ -43,7 +43,7 @@ public class AdventuresPageHandlerTests
         // Arrange
         var handler = await CreateHandler();
         var adventureId = _page.State.Adventures[1].Id;
-        _client.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
+        _serverHttpClient.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
         await handler.DeleteAdventure(adventureId);
@@ -64,7 +64,7 @@ public class AdventuresPageHandlerTests
             new AdventureListItem { Id = clonedAdventure.Id, Name = clonedAdventure.Name },
         };
 
-        _client.CloneAdventureAsync(adventureId, Arg.Any<CloneAdventureRequest>()).Returns(clonedAdventure);
+        _serverHttpClient.CloneAdventureAsync(adventureId, Arg.Any<CloneAdventureRequest>()).Returns(clonedAdventure);
 
         // Act
         await handler.CloneAdventure(adventureId);
@@ -76,7 +76,7 @@ public class AdventuresPageHandlerTests
     private async Task<AdventuresHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
         if (isAuthorized) EnsureAuthenticated();
         var handler = new AdventuresHandler(_page);
-        if (isConfigured) await handler.LoadAdventuresAsync(_client);
+        if (isConfigured) await handler.LoadAdventuresAsync(_serverHttpClient);
         return handler;
     }
 }

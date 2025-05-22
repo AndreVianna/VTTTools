@@ -2,11 +2,11 @@ namespace VttTools.WebApp.Pages.Game.Schedule;
 
 public class GameSessionPageHandler(GameSessionPage page)
     : PageHandler<GameSessionPageHandler, GameSessionPage>(page) {
-    private IGameClient _client = null!;
+    private IGameServerHttpClient _serverHttpClient = null!;
 
-    public async Task LoadSessionAsync(IGameClient client, Guid sessionId) {
-        _client = client;
-        var session = await _client.GetGameSessionByIdAsync(sessionId);
+    public async Task LoadSessionAsync(IGameServerHttpClient serverHttpClient, Guid sessionId) {
+        _serverHttpClient = serverHttpClient;
+        var session = await _serverHttpClient.GetGameSessionByIdAsync(sessionId);
         if (session == null) return;
         Page.State.GameSession = session;
         Page.State.CanEdit = session.OwnerId == Page.User!.Id;
@@ -25,7 +25,7 @@ public class GameSessionPageHandler(GameSessionPage page)
         var request = new UpdateGameSessionRequest {
             Title = Page.State.Input.Title,
         };
-        var result = await _client.UpdateGameSessionAsync(Page.State.GameSession.Id, request);
+        var result = await _serverHttpClient.UpdateGameSessionAsync(Page.State.GameSession.Id, request);
         if (result.HasErrors) {
             Page.State.Input.Errors = [.. result.Errors];
             return;
@@ -37,5 +37,5 @@ public class GameSessionPageHandler(GameSessionPage page)
     }
 
     public Task<bool> TryStartGameSession()
-        => _client.StartGameSessionAsync(Page.State.GameSession.Id);
+        => _serverHttpClient.StartGameSessionAsync(Page.State.GameSession.Id);
 }
