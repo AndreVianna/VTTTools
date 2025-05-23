@@ -1,4 +1,5 @@
 @page "/scenes/builder/{SceneId:guid}"
+@attribute [Authorize]
 @rendermode InteractiveWebAssembly
 
 <PageTitle>Scene Builder</PageTitle>
@@ -43,27 +44,17 @@
     </div>
     <div class="toolbar-group ml-auto">
       <button class="btn btn-primary" @onclick="SaveScene">Save</button>
-      <button class="btn btn-secondary" @onclick="NavigateBack">Back</button>
     </div>
   </div>
-  @if (!State.IsReady) {
-    <div id="loading-message" class="d-flex justify-content-center">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
-    </div>
-  }
-  else {
-    <div class="scene-canvas-container" @ref="_canvasContainerRef">
-      <canvas @ref="_canvasRef"
-              @onmousedown="OnCanvasMouseDown"
-              @onmousemove="OnCanvasMouseMove"
-              @onmouseup="OnCanvasMouseUp"
-              @oncontextmenu:preventDefault
-              @oncontextmenu="OnCanvasContextMenu">
-      </canvas>
-    </div>
-  }
+  <div class="scene-canvas-container" @ref="_canvasContainerRef">
+    <canvas @ref="_canvasRef"
+            @onmousedown="OnCanvasMouseDown"
+            @onmousemove="OnCanvasMouseMove"
+            @onmouseup="OnCanvasMouseUp"
+            @oncontextmenu:preventDefault
+            @oncontextmenu="OnCanvasContextMenu">
+    </canvas>
+  </div>
 </div>
 
 @if (State.ShowChangeImageModal) {
@@ -79,9 +70,9 @@
             <label for="imageUpload" class="form-label">Upload Image</label>
             <InputFile id="imageUpload" OnChange="OnImageFileSelected" class="form-control" />
           </div>
-          <div class="current-image mb-3">
+          <div class="mb-3">
             <p>Current image:</p>
-            <img src="@State.BackgroundUrl" style="max-width: 100%; max-height: 200px;" />
+            <img src="@Stage.ImageUrl" style="max-width: 100%; max-height: 200px;" />
           </div>
         </div>
         <div class="modal-footer">
@@ -175,11 +166,9 @@
 @if (State.ShowAssetContextMenu) {
   <div class="asset-context-menu" style="position: absolute; left: @(State.ContextMenuPosition.X)px; top: @(State.ContextMenuPosition.Y)px; z-index: 1000; background-color: white; border: 1px solid #ccc; border-radius: 4px; padding: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
     <ul style="list-style: none; padding: 0; margin: 0;">
-      <li><button class="btn btn-sm btn-link w-100 text-start" @onclick="ToggleLockSelectedAsset">@(State.SelectedAsset?.IsLocked == true ? "Unlock" : "Lock")</button></li>
+      <li><button class="btn btn-sm btn-link w-100 text-start" @onclick="ToggleLockSelectedAsset">@(SelectedAsset?.IsLocked == true ? "Unlock" : "Lock")</button></li>
       <li><button class="btn btn-sm btn-link w-100 text-start" @onclick="DeleteSelectedAsset">Delete</button></li>
       <li><button class="btn btn-sm btn-link w-100 text-start" @onclick="CloseContextMenu">Cancel</button></li>
     </ul>
   </div>
 }
-
-<script src="scripts/builder.js"></script>

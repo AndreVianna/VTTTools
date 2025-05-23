@@ -7,7 +7,9 @@ public static class ApplicationBuilderExtensions {
 
         if (environment.IsProduction())
             app.UseHttpsRedirection();
+
         app.UseRouting();
+        app.UseCors("AllowAllOrigins");
         app.UseAuthentication();
         app.UseAuthorization();
     }

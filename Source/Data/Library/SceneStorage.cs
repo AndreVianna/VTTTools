@@ -67,8 +67,8 @@ public class SceneStorage(ApplicationDbContext context)
                   .ToArrayAsync(ct);
 
     /// <inheritdoc />
-    public Task<Scene?> GetByIdAsync(Guid id, CancellationToken ct = default)
-        => context.Scenes
+    public async Task<Scene?> GetByIdAsync(Guid id, CancellationToken ct = default) { 
+        var entity = await context.Scenes
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
                   .AsNoTrackingWithIdentityResolution()
@@ -93,6 +93,8 @@ public class SceneStorage(ApplicationDbContext context)
 #pragma warning restore RCS1077
                   })
                   .FirstOrDefaultAsync(e => e.Id == id, ct);
+        return entity;
+    }
 
     /// <inheritdoc />
     public async Task<Scene> AddAsync(Guid adventureId, Scene scene, CancellationToken ct = default) {

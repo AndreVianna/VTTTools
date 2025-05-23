@@ -1,11 +1,26 @@
+using Microsoft.AspNetCore.Components.Authorization;
+
 using UpdateAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateAssetRequest;
 
 namespace VttTools.WebApp.Client.Clients;
 
-public class LibraryClientHttpClient(HttpClient httpClient, JsonSerializerOptions options)
+public class LibraryClientHttpClient(HttpClient httpClient, JsonSerializerOptions options, AuthenticationStateProvider authentication)
     : ILibraryClientHttpClient {
-    public Task<Scene?> GetSceneByIdAsync(Guid id)
-        => httpClient.GetFromJsonAsync<Scene>($"api/scenes/{id}", options);
+    private const string _userHeader = "x-user";
+
+    public async Task<Scene?> GetSceneByIdAsync(Guid id) {
+        httpClient.DefaultRequestHeaders.Remove(_userHeader);
+        var state = await authentication.GetAuthenticationStateAsync();
+        var user = state.User;
+        if (user.Identity?.IsAuthenticated != true)
+            return null;
+        var userId = user.GetCurrentUserId();
+        if (userId == Guid.Empty)
+            return null;
+        var token = Base64UrlEncoder.Encode(userId.ToByteArray());
+        httpClient.DefaultRequestHeaders.Add(_userHeader, token);
+        return await httpClient.GetFromJsonAsync<Scene>($"api/scenes/{id}", options);
+    }
 
     public async Task<Result<Scene>> UpdateSceneAsync(Guid id, UpdateSceneRequest request) {
         var response = await httpClient.PutAsJsonAsync($"api/scenes/{id}", request, options);

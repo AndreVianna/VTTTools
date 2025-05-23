@@ -32,27 +32,23 @@ internal static class Program {
         builder.Services.ConfigureHttpJsonOptions(ConfigureHttpJsonOptions);
 
         builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<ServerAuthenticationDelegatingHandler>();
         builder.Services.AddScoped<IHubConnectionBuilder, HubConnectionBuilder>();
-        builder.Services.AddHttpClient<IAssetsServerHttpClient, AssetsServerHttpClient>(static (services, client) => {
-            client.BaseAddress = new("https+http://assets-api");
-            SetRequestUserId(services, client);
-        });
-        builder.Services.AddHttpClient<ILibraryServerHttpClient, LibraryServerHttpClient>(static (services, client) => {
-            client.BaseAddress = new("https+http://library-api");
-            SetRequestUserId(services, client);
-        });
-        builder.Services.AddHttpClient<IGameServerHttpClient, GameServerHttpClient>(static (services, client) => {
-            client.BaseAddress = new("https+http://game-api");
-            SetRequestUserId(services, client);
-        });
-        builder.Services.AddHttpClient<IAssetsClientHttpClient, AssetsClientHttpClient>(static (services, client) => {
-            client.BaseAddress = new("https+http://assets-api");
-            SetRequestUserId(services, client);
-        });
-        builder.Services.AddHttpClient<ILibraryClientHttpClient, LibraryClientHttpClient>(static (services, client) => {
-            client.BaseAddress = new("https+http://library-api");
-            SetRequestUserId(services, client);
-        });
+        builder.Services.AddHttpClient<IAssetsServerHttpClient, AssetsServerHttpClient>(static (_, client)
+            => client.BaseAddress = new("https+http://assets-api"))
+            .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
+        builder.Services.AddHttpClient<ILibraryServerHttpClient, LibraryServerHttpClient>(static (_, client)
+            => client.BaseAddress = new("https+http://library-api"))
+            .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
+        builder.Services.AddHttpClient<IGameServerHttpClient, GameServerHttpClient>(static (_, client)
+            => client.BaseAddress = new("https+http://game-api"))
+            .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
+        builder.Services.AddHttpClient<IAssetsClientHttpClient, AssetsClientHttpClient>(static (_, client)
+            => client.BaseAddress = new("https://localhost:7171"))
+            .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
+        builder.Services.AddHttpClient<ILibraryClientHttpClient, LibraryClientHttpClient>(static (_, client)
+            => client.BaseAddress = new("https://localhost:7172"))
+            .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
 
         AddDefaultHealthChecks(builder);
         builder.AddRedisOutputCache("redis");
@@ -123,26 +119,10 @@ internal static class Program {
         app.MapAdditionalIdentityEndpoints();
     }
 
-    internal static void SetRequestUserId(IServiceProvider services, HttpClient client) {
-        var httpContext = services.GetRequiredService<IHttpContextAccessor>().HttpContext!;
-        var identity = (ClaimsIdentity)httpContext.User.Identity!;
-        if (!identity.IsAuthenticated)
-            return;
-        var token = Base64UrlEncoder.Encode(httpContext.User.GetUserId().ToByteArray());
-        client.DefaultRequestHeaders.Add(UserHeader, token);
-    }
-
     internal static void ConfigureHttpJsonOptions(HttpJsonOptions options) {
         options.SerializerOptions.PropertyNameCaseInsensitive = true;
         options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
         options.SerializerOptions.Converters.Add(new OptionalConverterFactory());
-    }
-
-    internal static void ConfigureMvcJsonOptions(MvcJsonOptions options) {
-        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        options.JsonSerializerOptions.Converters.Add(new OptionalConverterFactory());
     }
 }

@@ -28,6 +28,12 @@ public static class HostApplicationBuilderExtensions {
         builder.Services.ConfigureHttpJsonOptions(ConfigureJsonOptions);
         builder.Services.AddDistributedMemoryCache();
 
+        builder.Services.AddCors(options
+            => options.AddPolicy("AllowAllOrigins", policy
+                => policy.AllowAnyOrigin()
+                         .AllowAnyHeader()
+                         .AllowAnyMethod()));
+
         //builder.Services.AddOpenApi();
         builder.Services.AddHealthChecks();
 
