@@ -74,14 +74,16 @@ public partial class SceneBuilderPage : ComponentBase {
     }
 
     private async Task InitializeCanvasAsync() {
-        if (Scene is null) return;
-        await JsRuntime.InvokeVoidAsync("initCanvas", _canvasRef, Stage.Width, Stage.Height);
+        //if (Scene is null) return;
+        await JsRuntime.InvokeVoidAsync("initCanvas", _canvasRef, 2800, 2100);
+        //await JsRuntime.InvokeVoidAsync("initCanvas", _canvasRef, Stage.Width, Stage.Height);
         await DrawSceneAsync();
     }
 
     private async Task DrawSceneAsync() {
         var sceneData = new {
-            backgroundSrc = Stage.ImageUrl,
+            //imageUrl = Stage.ImageUrl,
+            imageUrl = $"{_stageBasePath}/1309dbfb-0721-4809-a0ae-173019591f85.png",
             grid = new {
                 type = Grid.Type,
                 cellSize = new {
@@ -93,7 +95,7 @@ public partial class SceneBuilderPage : ComponentBase {
                     top = Grid.OffsetTop,
                 },
             },
-            assets = Scene!.SceneAssets.Select(a => new {
+            assets = Scene?.SceneAssets.Select(a => new {
                 id = a.Id,
                 number = a.Number,
                 name = a.Name,
@@ -103,7 +105,7 @@ public partial class SceneBuilderPage : ComponentBase {
                 isSelected = a.Id == SelectedAsset?.Id,
                 imageSrc = GetAssetPath(a.Shape.Type, a.Shape.SourceId ?? a.Id),
                 color = GetColorForAssetType(a.Type),
-            }).ToArray(),
+            }).ToArray() ?? [],
         };
 
         await JsRuntime.InvokeVoidAsync("drawScene", sceneData);

@@ -17,9 +17,11 @@ window.drawScene = function(sceneData) {
     ctx.clearRect(0, 0, window.sceneCanvasWidth, window.sceneCanvasHeight);
 
     // Draw background if there's a source
-    if (sceneData.backgroundSrc) {
+    if (sceneData.imageUrl) {
         const img = new Image();
-        img.onload = function() {
+        img.onload = function () {
+            console.log("Image loaded successfully: ", sceneData.imageUrl);
+            console.log("Canvas size: ", window.sceneCanvasWidth, ", ", window.sceneCanvasHeight);
             ctx.drawImage(img, 0, 0, window.sceneCanvasWidth, window.sceneCanvasHeight);
 
             // Draw grid on top of background
@@ -32,7 +34,17 @@ window.drawScene = function(sceneData) {
                 drawAssets(sceneData.assets);
             }
         };
-        img.src = sceneData.backgroundSrc;
+        img.onerror = function() {
+            console.error("Failed to load image:", sceneData.imageUrl);
+            // Fallback to drawing grid and assets without background
+            if (sceneData.grid && sceneData.grid.type !== 0) {
+                drawGrid(sceneData.grid);
+            }
+            if (sceneData.assets && sceneData.assets.length) {
+                drawAssets(sceneData.assets);
+            }
+        };
+        img.src = sceneData.imageUrl;
     } else {
         // No background, draw grid and assets directly
         if (sceneData.grid && sceneData.grid.type !== 0) {
