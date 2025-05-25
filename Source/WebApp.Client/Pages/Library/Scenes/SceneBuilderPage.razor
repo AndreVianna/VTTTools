@@ -43,14 +43,12 @@
       </div>
     </div>
   </div>
-  <div class="scene-canvas-container" id="scene-canvas-container" @ref="_canvasContainerRef">
-    <canvas class="scene-canvas" id="scene-canvas" @ref="_canvasRef"
-            @onmousedown="OnCanvasMouseDown"
-            @onmousemove="OnCanvasMouseMove"
-            @onmouseup="OnCanvasMouseUp"
-            @oncontextmenu="OnCanvasContextMenu"
-            @oncontextmenu:preventDefault>
-    </canvas>
+  <div class="scene-canvas-container" id="scene-canvas-container" @ref="_canvasContainerRef"
+       @onmousedown="OnCanvasMouseDown"
+       @onmousemove="OnCanvasMouseMove"
+       @onmouseup="OnCanvasMouseUp"
+       @oncontextmenu="OnCanvasContextMenu"
+       @oncontextmenu:preventDefault>
   </div>
 </div>
 

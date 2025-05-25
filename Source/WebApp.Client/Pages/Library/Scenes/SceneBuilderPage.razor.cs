@@ -18,7 +18,7 @@ public partial class SceneBuilderPage : ComponentBase {
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
 
-    private ElementReference _canvasRef;
+    private readonly ElementReference _canvasRef;
     private ElementReference _canvasContainerRef;
     private const string _assetBasePath = "/uploads/assets";
     private const string _stageBasePath = "/uploads/stages";
@@ -85,8 +85,7 @@ public partial class SceneBuilderPage : ComponentBase {
     }
 
     private async Task InitializeCanvasAsync() {
-        //if (Scene is null) return;
-        await JsRuntime.InvokeVoidAsync("initCanvas", _canvasRef, Stage.Width, Stage.Height);
+        await JsRuntime.InvokeVoidAsync("initCanvas", _canvasContainerRef, Stage.Width, Stage.Height);
         await DrawSceneAsync();
     }
 
@@ -154,21 +153,18 @@ public partial class SceneBuilderPage : ComponentBase {
     private void StartAssetPlacement(AssetType assetType) => SelectedAsset!.Type = assetType;// Will open asset selector when user clicks on canvas
 
     private async Task OnCanvasMouseDown(MouseEventArgs e) {
-        // Get mouse position relative to canvas
-        var pos = await JsRuntime.InvokeAsync<object>("getCanvasMousePosition", [_canvasRef, new { clientX = e.ClientX, clientY = e.ClientY }]);
-        var posElement = (JsonElement)pos;
-        var x = posElement.GetProperty("x").GetSingle();
-        var y = posElement.GetProperty("y").GetSingle();
+        var position = await GetValueMousePositionOrDefault(e);
+        if (position == null) return;
 
         // If we're in asset placement mode, remember position for when we add the asset
         if (SelectedAsset is not null && SelectedAsset.Type != AssetType.Placeholder) {
-            SelectedAsset.PositionX = x;
-            SelectedAsset.PositionY = y;
+            SelectedAsset.PositionX = position.Value.X;
+            SelectedAsset.PositionY = position.Value.Y;
             State.ShowAssetSelectorModal = true;
             return;
         }
 
-        await TrySelectAssetAt(x, y);
+        await TrySelectAssetAt(position.Value.X, position.Value.Y);
         await DrawSceneAsync();
     }
 
@@ -213,10 +209,10 @@ public partial class SceneBuilderPage : ComponentBase {
     private async Task OnCanvasMouseMove(MouseEventArgs e) {
         if (!State.IsDragging || SelectedAsset == null)
             return;
-        var pos = await JsRuntime.InvokeAsync<object>("getCanvasMousePosition", [_canvasRef, new { clientX = e.ClientX, clientY = e.ClientY }]);
-        var posElement = (JsonElement)pos;
-        var x = posElement.GetProperty("x").GetSingle();
-        var y = posElement.GetProperty("y").GetSingle();
+
+        // Get mouse position relative to canvas
+        var position = await GetValueMousePositionOrDefault(e);
+        if (position == null) return;
 
         // Update asset position
         if (State.SnapToGrid && Grid.Type != GridType.NoGrid) {
@@ -227,12 +223,12 @@ public partial class SceneBuilderPage : ComponentBase {
             var cellHeight = Grid.CellHeight > 0 ? Grid.CellHeight : 50;
 
             // Calculate nearest grid point
-            x = ((float)Math.Round((x - gridX) / cellWidth) * cellWidth) + gridX;
-            y = ((float)Math.Round((y - gridY) / cellHeight) * cellHeight) + gridY;
+            position = position.Value with { X = (float)((Math.Round((position.Value.X - gridX) / cellWidth) * cellWidth) + gridX) };
+            position = position.Value with { Y = (float)((Math.Round((position.Value.Y - gridY) / cellHeight) * cellHeight) + gridY) };
         }
 
-        SelectedAsset.PositionX = x;
-        SelectedAsset.PositionY = y;
+        SelectedAsset.PositionX = position.Value.X;
+        SelectedAsset.PositionY = position.Value.Y;
         await DrawSceneAsync();
     }
 
@@ -240,23 +236,34 @@ public partial class SceneBuilderPage : ComponentBase {
 
     private async Task OnCanvasContextMenu(MouseEventArgs e) {
         var wasPanning = await JsRuntime.InvokeAsync<bool>("wasPanning");
-        if (wasPanning)
-            return;
+        if (wasPanning) return;
 
-        var pos = await JsRuntime.InvokeAsync<object>("getCanvasMousePosition", [_canvasRef, new { clientX = e.ClientX, clientY = e.ClientY }]);
-        var posElement = (JsonElement)pos;
-        var x = posElement.GetProperty("x").GetDouble();
-        var y = posElement.GetProperty("y").GetDouble();
+        var position = await GetValueMousePositionOrDefault(e);
+        if (position == null) return;
 
-        var assetData = await JsRuntime.InvokeAsync<object?>("findAssetAt", [x, y, SceneAssets]);
+        var assetData = await JsRuntime.InvokeAsync<object?>("findAssetAt", [position.Value.X, position.Value.Y, SceneAssets]);
+        if (assetData == null || SelectedAsset == null) return;
 
-        // If no asset was found at this position or no asset is selected, don't show context menu
-        if (assetData == null || SelectedAsset == null)
-            return;
-
+        // Show the context menu
         State.ContextMenuPosition = new() { X = Convert.ToSingle(e.ClientX), Y = Convert.ToSingle(e.ClientY) };
         State.ShowAssetContextMenu = true;
         await DrawSceneAsync();
+    }
+
+    private async Task<Vector2?> GetValueMousePositionOrDefault(MouseEventArgs e)
+    {
+        var pos = await JsRuntime.InvokeAsync<object?>("getCanvasMousePosition", [_canvasRef, new { clientX = e.ClientX, clientY = e.ClientY }]);
+        if (pos == null) return null;
+        var posElement = (JsonElement)pos;
+        if (!posElement.TryGetProperty("x", out var xElement) ||
+            !posElement.TryGetProperty("y", out var yElement) ||
+            xElement.ValueKind == JsonValueKind.Null ||
+            yElement.ValueKind == JsonValueKind.Null) {
+            return null;
+        }
+        var x = xElement.GetSingle();
+        var y = yElement.GetSingle();
+        return new(x, y);
     }
 
     private void CloseContextMenu() => State.ShowAssetContextMenu = false;
@@ -302,8 +309,10 @@ public partial class SceneBuilderPage : ComponentBase {
     private void OnNewAssetImageSelected(InputFileChangeEventArgs e) => SelectedAsset!.SelectedAssetFile = e.File;
 
     private async Task SaveBackgroundImage() {
-        if (Scene == null) return;
-        if (_selectedBackgroundFile == null) return;
+        if (Scene == null)
+            return;
+        if (_selectedBackgroundFile == null)
+            return;
 
         var fileName = Path.GetFileName(_selectedBackgroundFile.Name);
         await using var stream = _selectedBackgroundFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB

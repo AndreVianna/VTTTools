@@ -18,11 +18,12 @@
   width: 100%;
 }
 
-.scene-canvas {
+.scene-canvas-layer {
   margin: 0;
-  background-color: #e0e0e0; /* Gray background */
+  position: absolute;
+  top: 0;
+  left: 0;
 }
-
 
 .ml-auto {
   margin-left: auto;
