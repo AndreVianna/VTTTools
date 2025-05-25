@@ -2,7 +2,6 @@
 
 public record AddAssetData
     : Data {
-    public Guid AssetId { get; init; }
     public Optional<string> Name { get; init; }
     public Optional<Vector2> Position { get; init; }
     public Optional<Vector2> Scale { get; init; }

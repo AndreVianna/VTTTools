@@ -12,5 +12,5 @@ public class Campaign {
     public Guid? ImageId { get; set; }
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }
-    public List<Adventure> Adventures { get; set; } = [];
+    public ICollection<Adventure> Adventures { get; set; } = [];
 }

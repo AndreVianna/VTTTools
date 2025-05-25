@@ -23,7 +23,7 @@ public class LibraryClientHttpClient(HttpClient httpClient, JsonSerializerOption
     }
 
     public async Task<Result<Scene>> UpdateSceneAsync(Guid id, UpdateSceneRequest request) {
-        var response = await httpClient.PutAsJsonAsync($"api/scenes/{id}", request, options);
+        var response = await httpClient.PatchAsJsonAsync($"api/scenes/{id}", request, options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to update scene");
 
@@ -46,7 +46,7 @@ public class LibraryClientHttpClient(HttpClient httpClient, JsonSerializerOption
     }
 
     public async Task<Result<SceneAsset>> UpdateSceneAssetAsync(Guid sceneId, Guid assetId, uint number, UpdateAssetRequest request) {
-        var response = await httpClient.PutAsJsonAsync($"api/scenes/{sceneId}/assets/{assetId}/{number}", request, options);
+        var response = await httpClient.PatchAsJsonAsync($"api/scenes/{sceneId}/assets/{assetId}/{number}", request, options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to update scene asset");
 

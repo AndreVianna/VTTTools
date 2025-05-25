@@ -1,15 +1,100 @@
-window.initCanvas = function(canvas, width, height) {
-    canvas.width = width || 1000;
-    canvas.height = height || 800;
+window.initCanvas = function (canvas, width, height) {
+    // Default canvas size with padding
+    const canvasWidth = width + 400; // 200px on each side
+    const canvasHeight = height + 400; // 200px on each side
+
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
     const ctx = canvas.getContext("2d");
 
     // Store context and dimensions in global vars for later use
     window.sceneCanvasCtx = ctx;
-    window.sceneCanvasWidth = canvas.width;
-    window.sceneCanvasHeight = canvas.height;
+    window.sceneCanvasWidth = canvasWidth;
+    window.sceneCanvasHeight = canvasHeight;
+
+    // Setup tracking variables for panning detection
+    window.isPanning = false;
+    window.hasMoved = false;
+
+    // Initialize panning and center the canvas
+    initPanning(canvas.parentElement);
+    centerCanvas(canvas.parentElement, canvas);
 };
 
-window.drawScene = function(sceneData) {
+function centerCanvas(container, canvas) {
+    if (!container || !canvas) return;
+
+    // Center the image in the container initially
+    setTimeout(() => {
+        const scrollX = (canvas.width - container.clientWidth) / 2;
+        const scrollY = (canvas.height - container.clientHeight) / 2;
+        container.scrollLeft = scrollX;
+        container.scrollTop = scrollY;
+    }, 100);
+}
+
+function initPanning(container) {
+    if (!container) return;
+
+    let startX, startY;
+    let scrollLeft, scrollTop;
+    const moveThreshold = 5; // pixels to consider as a move vs. a click
+
+    // Track mouse down for panning with right button
+    document.addEventListener('mousedown', function (e) {
+        if (e.button === 2 && e.target.closest('.scene-canvas-container')) { // Right mouse button inside container
+            window.isPanning = true;
+            window.hasMoved = false;
+            startX = e.pageX;
+            startY = e.pageY;
+            scrollLeft = container.scrollLeft;
+            scrollTop = container.scrollTop;
+
+            // Change cursor to indicate panning mode
+            container.style.cursor = 'grabbing';
+        }
+    });
+
+    // Track mouse move for panning
+    document.addEventListener('mousemove', function (e) {
+        if (!window.isPanning) return;
+
+        const dx = Math.abs(e.pageX - startX);
+        const dy = Math.abs(e.pageY - startY);
+
+        if (dx > moveThreshold || dy > moveThreshold) {
+            window.hasMoved = true;
+        }
+
+        // Scroll the container
+        container.scrollLeft = scrollLeft - (e.pageX - startX);
+        container.scrollTop = scrollTop - (e.pageY - startY);
+    });
+
+    // Stop panning on mouse up
+    document.addEventListener('mouseup', function (e) {
+        if (e.button === 2 && window.isPanning) { // Right mouse button release
+            window.isPanning = false;
+            container.style.cursor = 'default';
+        }
+    });
+
+    // Stop panning if mouse leaves document
+    document.addEventListener('mouseleave', function () {
+        if (window.isPanning) {
+            window.isPanning = false;
+            container.style.cursor = 'default';
+        }
+    });
+}
+
+// Function to check if user was panning (moved the mouse while right button was down)
+window.wasPanning = function () {
+    const wasPanning = window.hasMoved === true;
+    return wasPanning;
+};
+
+window.drawScene = function (sceneData) {
     const ctx = window.sceneCanvasCtx;
     if (!ctx) return;
 
@@ -22,7 +107,13 @@ window.drawScene = function(sceneData) {
         img.onload = function () {
             console.log("Image loaded successfully: ", sceneData.imageUrl);
             console.log("Canvas size: ", window.sceneCanvasWidth, ", ", window.sceneCanvasHeight);
-            ctx.drawImage(img, 0, 0, window.sceneCanvasWidth, window.sceneCanvasHeight);
+
+            // Calculate positioning to center the image on the canvas (with 200px padding on all sides)
+            const imgX = (window.sceneCanvasWidth - img.width) / 2;
+            const imgY = (window.sceneCanvasHeight - img.height) / 2;
+
+            // Draw the image centered
+            ctx.drawImage(img, imgX, imgY, img.width, img.height);
 
             // Draw grid on top of background
             if (sceneData.grid && sceneData.grid.type !== 0) { // 0 = NoGrid
@@ -34,7 +125,7 @@ window.drawScene = function(sceneData) {
                 drawAssets(sceneData.assets);
             }
         };
-        img.onerror = function() {
+        img.onerror = function () {
             console.error("Failed to load image:", sceneData.imageUrl);
             // Fallback to drawing grid and assets without background
             if (sceneData.grid && sceneData.grid.type !== 0) {

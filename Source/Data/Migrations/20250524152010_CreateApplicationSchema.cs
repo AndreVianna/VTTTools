@@ -153,7 +153,7 @@ public partial class CreateApplicationSchema : Migration {
             name: "Scenes",
             columns: table => new {
                 Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                AdventureId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                AdventureId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                 Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                 Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: false),
                 IsPublished = table.Column<bool>(type: "bit", nullable: false),

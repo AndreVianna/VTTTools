@@ -126,7 +126,7 @@ public class GameSessionStorageTests
             Id = entity.Id,
             Title = "Updated GameSession",
             Status = GameSessionStatus.Scheduled,
-            Players = entity.Players,
+            Players = [.. entity.Players],
             OwnerId = entity.OwnerId,
         };
 

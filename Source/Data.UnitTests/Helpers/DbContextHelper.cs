@@ -6,6 +6,7 @@ using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
 using GameSessionEntity = VttTools.Data.Game.Entities.GameSession;
 using SceneEntity = VttTools.Data.Library.Entities.Scene;
+using SceneAssetEntity = VttTools.Data.Library.Entities.SceneAsset;
 
 namespace VttTools.Data.Helpers;
 
@@ -56,12 +57,12 @@ internal static class DbContextHelper {
             CreateTestSceneEntity(adventures[2].Id, "Scene 3.1"),
         };
         var assets = context.Assets.ToArray();
-        scenes[0].SceneAssets.AddRange([
+        ((List<SceneAssetEntity>)scenes[0].SceneAssets).AddRange([
             new() { AssetId = assets[0].Id, Name = assets[0].Name },
             new() { AssetId = assets[0].Id, Name = "Other Asset" },
             new() { AssetId = assets[2].Id, Name = "Player Character" },
         ]);
-        scenes[2].SceneAssets.AddRange([
+        ((List<SceneAssetEntity>)scenes[2].SceneAssets).AddRange([
             new() { AssetId = assets[0].Id, Name = assets[0].Name },
             new() { AssetId = assets[2].Id, Name = assets[2].Name },
         ]);
@@ -78,20 +79,20 @@ internal static class DbContextHelper {
         var sessions = new[] {
             CreateTestGameSessionEntity("Session 1", scenes[0].Id, GameSessionStatus.InProgress),
             CreateTestGameSessionEntity("Session 2", scenes[1].Id, GameSessionStatus.Scheduled, ownerId: currentUserId),
-            CreateTestGameSessionEntity("Session 3", ownerId: scenes[2].Adventure.OwnerId),
+            CreateTestGameSessionEntity("Session 3", ownerId: scenes[2].Adventure!.OwnerId),
         };
-        sessions[0].Players.AddRange([
+        ((List<Player>)sessions[0].Players).AddRange([
             new() { UserId = currentUserId, Type = PlayerType.Master },
             new() { UserId = playerId, Type = PlayerType.Player},
         ]);
-        sessions[1].Players.AddRange([
+        ((List<Player>)sessions[1].Players).AddRange([
             new() { UserId = masterId, Type = PlayerType.Master },
             new() { UserId = playerId, Type = PlayerType.Player },
         ]);
-        sessions[2].Players.AddRange([
+        ((List<Player>)sessions[2].Players).AddRange([
             new() { UserId = sessions[2].OwnerId, Type = PlayerType.Master,
         }]);
-        scenes[0].SceneAssets[2].ControlledBy = playerId;
+        ((List<SceneAssetEntity>)scenes[0].SceneAssets)[2].ControlledBy = playerId;
 
         context.GameSessions.AddRange(sessions);
         context.SaveChanges();

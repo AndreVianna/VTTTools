@@ -19,7 +19,7 @@ internal class GameServerHttpClient(HttpClient client, JsonSerializerOptions opt
     }
 
     public async Task<Result<GameSession>> UpdateGameSessionAsync(Guid id, UpdateGameSessionRequest request) {
-        var response = await client.PutAsJsonAsync($"/api/sessions/{id}", request, options);
+        var response = await client.PatchAsJsonAsync($"/api/sessions/{id}", request, options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to update session.");
         var session = await response.Content.ReadFromJsonAsync<GameSession>(options);

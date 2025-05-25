@@ -292,7 +292,7 @@ namespace VttTools.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("AdventureId")
+                    b.Property<Guid?>("AdventureId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
@@ -818,8 +818,7 @@ namespace VttTools.Data.Migrations
                     b.HasOne("VttTools.Data.Library.Entities.Adventure", "Adventure")
                         .WithMany("Scenes")
                         .HasForeignKey("AdventureId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Adventure");
                 });

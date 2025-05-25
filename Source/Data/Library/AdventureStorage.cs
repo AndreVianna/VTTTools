@@ -9,55 +9,49 @@ public class AdventureStorage(ApplicationDbContext context)
     : IAdventureStorage {
     /// <inheritdoc />
     public async Task<Adventure[]> GetAllAsync(CancellationToken ct = default) {
-        try {
-            var query = context.Adventures
-                .Include(a => a.Scenes)
-                    .ThenInclude(s => s.SceneAssets)
-                        .ThenInclude(sa => sa.Asset)
-                .AsNoTrackingWithIdentityResolution();
-            return await query.Select(a => a.ToModel()).ToArrayAsync(ct);
-        }
-        catch (Exception ex) {
-            Console.WriteLine(ex);
-            return [];
-        }
+        var query = context.Adventures
+            .Include(a => a.Scenes)
+                .ThenInclude(s => s.SceneAssets)
+                    .ThenInclude(sa => sa.Asset)
+            .AsNoTrackingWithIdentityResolution();
+        var result = await query.Select(Mapper.AsAdventure).ToArrayAsync(ct);
+        return result;
     }
 
     /// <inheritdoc />
     public async Task<Adventure[]> GetManyAsync(string filterDefinition, CancellationToken ct = default) {
-        try {
-            var query = context.Adventures
-                .Include(a => a.Scenes)
-                    .ThenInclude(s => s.SceneAssets)
-                        .ThenInclude(sa => sa.Asset)
-                .AsNoTrackingWithIdentityResolution();
+        var query = context.Adventures
+            .Include(a => a.Scenes)
+                .ThenInclude(s => s.SceneAssets)
+                    .ThenInclude(sa => sa.Asset)
+            .AsNoTrackingWithIdentityResolution();
 
-            switch (filterDefinition) {
-                case not null when filterDefinition.Split(':') is ["OwnedBy", var id] && Guid.TryParse(id, out var userId):
-                    query = query.Where(a => a.OwnerId == userId);
-                    break;
-                case not null when filterDefinition.Split(':') is ["VisibleTo", var id] && Guid.TryParse(id, out var userId):
-                    query = query.Where(a => a.OwnerId == userId || (a.IsPublic && a.IsPublished));
-                    break;
-                case "Public":
-                    query = query.Where(a => a.IsPublic && a.IsPublished);
-                    break;
-            }
+        switch (filterDefinition) {
+            case not null when filterDefinition.Split(':') is ["OwnedBy", var id] && Guid.TryParse(id, out var userId):
+                query = query.Where(a => a.OwnerId == userId);
+                break;
+            case not null when filterDefinition.Split(':') is ["AvailableTo", var id] && Guid.TryParse(id, out var userId):
+                query = query.Where(a => a.OwnerId == userId || (a.IsPublic && a.IsPublished));
+                break;
+            case "Public":
+                query = query.Where(a => a.IsPublic && a.IsPublished);
+                break;
+        }
 
-            return await query.Select(a => a.ToModel()).ToArrayAsync(ct);
-        }
-        catch (Exception ex) {
-            Console.WriteLine(ex);
-            return [];
-        }
+        var result = await query.Select(Mapper.AsAdventure).ToArrayAsync(ct);
+        return result;
     }
 
     /// <inheritdoc />
-    public async Task<Adventure?> GetByIdAsync(Guid id, CancellationToken ct = default)
-        => (await context.Adventures
-                         .Include(a => a.Scenes)
-                         .AsNoTrackingWithIdentityResolution()
-                         .FirstOrDefaultAsync(a => a.Id == id, ct)).ToModel();
+    public async Task<Adventure?> GetByIdAsync(Guid id, CancellationToken ct = default) {
+        var query = context.Adventures
+            .Include(a => a.Scenes)
+                .ThenInclude(s => s.SceneAssets)
+                    .ThenInclude(sa => sa.Asset)
+            .AsNoTrackingWithIdentityResolution();
+        var result = await query.FirstOrDefaultAsync(a => a.Id == id, ct);
+        return result.ToModel();
+    }
 
     /// <inheritdoc />
     public async Task AddAsync(Adventure adventure, CancellationToken ct = default) {
@@ -67,22 +61,19 @@ public class AdventureStorage(ApplicationDbContext context)
     }
 
     /// <inheritdoc />
-    public async Task UpdateAsync(Adventure adventure, CancellationToken ct = default) {
-        var entity = await context.Adventures
-                                   .Include(a => a.Scenes)
-                                       .ThenInclude(s => s.SceneAssets)
-                                   .FirstOrDefaultAsync(a => a.Id == adventure.Id, ct);
-
-        if (entity is null)
-            return;
-        entity.UpdateFrom(adventure);
+    public async Task<bool> UpdateAsync(Adventure adventure, CancellationToken ct = default) {
+        var entity = adventure.ToEntity();
         context.Adventures.Update(entity);
-        await context.SaveChangesAsync(ct);
+        var count = await context.SaveChangesAsync(ct);
+        return count > 0;
     }
 
     /// <inheritdoc />
-    public async Task DeleteAsync(Guid id, CancellationToken ct = default) {
-        context.Adventures.RemoveRange(context.Adventures.Where(a => a.Id == id));
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default) {
+        var entity = await context.Adventures.FindAsync([id], ct);
+        if (entity is null) return false;
+        context.Adventures.Remove(entity);
         await context.SaveChangesAsync(ct);
+        return true;
     }
 }

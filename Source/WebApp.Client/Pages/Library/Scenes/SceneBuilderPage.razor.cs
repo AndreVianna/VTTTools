@@ -22,12 +22,21 @@ public partial class SceneBuilderPage : ComponentBase {
     private ElementReference _canvasContainerRef;
     private const string _assetBasePath = "/uploads/assets";
     private const string _stageBasePath = "/uploads/stages";
+    private IBrowserFile? _selectedBackgroundFile;
 
     internal Scene? Scene { get; set; }
     internal BuilderState State { get; set; } = new();
     internal StageInput Stage { get; set; } = new();
     internal GridInput Grid { get; set; } = new();
     internal AssetInput? SelectedAsset { get; set; } = new();
+
+    private object SceneAssets => Scene?.SceneAssets.Select(a => new {
+        assetId = a.Id,
+        number = a.Number,
+        position = a.Position,
+        scale = a.Scale,
+        isLocked = a.IsLocked,
+    }).ToArray() ?? [];
 
     // Base path for assets
     protected override async Task OnInitializedAsync() {
@@ -48,13 +57,15 @@ public partial class SceneBuilderPage : ComponentBase {
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender) {
-        if (!firstRender) return;
+        if (!firstRender)
+            return;
         await InitializeCanvasAsync();
     }
 
     private async Task LoadSceneAsync() {
         var scene = await LibraryClientHttpClient.GetSceneByIdAsync(SceneId);
-        if (scene == null) return;
+        if (scene == null)
+            return;
         Scene = scene;
         Grid = new() {
             Type = Scene.Stage.Grid.Type,
@@ -75,15 +86,13 @@ public partial class SceneBuilderPage : ComponentBase {
 
     private async Task InitializeCanvasAsync() {
         //if (Scene is null) return;
-        await JsRuntime.InvokeVoidAsync("initCanvas", _canvasRef, 2800, 2100);
-        //await JsRuntime.InvokeVoidAsync("initCanvas", _canvasRef, Stage.Width, Stage.Height);
+        await JsRuntime.InvokeVoidAsync("initCanvas", _canvasRef, Stage.Width, Stage.Height);
         await DrawSceneAsync();
     }
 
     private async Task DrawSceneAsync() {
         var sceneData = new {
-            //imageUrl = Stage.ImageUrl,
-            imageUrl = $"{_stageBasePath}/1309dbfb-0721-4809-a0ae-173019591f85.png",
+            imageUrl = Stage.ImageUrl,
             grid = new {
                 type = Grid.Type,
                 cellSize = new {
@@ -147,8 +156,9 @@ public partial class SceneBuilderPage : ComponentBase {
     private async Task OnCanvasMouseDown(MouseEventArgs e) {
         // Get mouse position relative to canvas
         var pos = await JsRuntime.InvokeAsync<object>("getCanvasMousePosition", [_canvasRef, new { clientX = e.ClientX, clientY = e.ClientY }]);
-        var x = Convert.ToDouble(((dynamic)pos).x);
-        var y = Convert.ToDouble(((dynamic)pos).y);
+        var posElement = (JsonElement)pos;
+        var x = posElement.GetProperty("x").GetSingle();
+        var y = posElement.GetProperty("y").GetSingle();
 
         // If we're in asset placement mode, remember position for when we add the asset
         if (SelectedAsset is not null && SelectedAsset.Type != AssetType.Placeholder) {
@@ -158,24 +168,27 @@ public partial class SceneBuilderPage : ComponentBase {
             return;
         }
 
-        // Otherwise, try to select an asset
-        var assetData = await JsRuntime.InvokeAsync<object>("findAssetAt", [ x, y, Scene!.SceneAssets.Select(a => new {
-            assetId = a.Id,
-            number = a.Number,
-            position = a.Position,
-            scale = a.Scale,
-            isLocked = a.IsLocked,
-        }).ToArray() ]);
+        await TrySelectAssetAt(x, y);
+        await DrawSceneAsync();
+    }
 
+    private async Task TrySelectAssetAt(float x, float y) {
         SelectedAsset = null;
-        var assetId = Guid.Parse(((dynamic)assetData).assetId.ToString());
-        var number = Convert.ToUInt32(((dynamic)assetData).number);
-
-        var selectedAsset = Scene.SceneAssets.FirstOrDefault(a => a.Id == assetId && a.Number == number);
-        if (selectedAsset == null) {
-            State.IsDragging = false;
+        var assetData = await JsRuntime.InvokeAsync<object?>("findAssetAt", [x, y, SceneAssets]);
+        if (assetData == null)
             return;
-        }
+
+        State.IsDragging = false;
+        var assetElement = (JsonElement)assetData;
+        if (assetElement.ValueKind == JsonValueKind.Null)
+            return;
+
+        var assetId = Guid.Parse(assetElement.GetProperty("assetId").ToString());
+        var number = Convert.ToUInt32(assetElement.GetProperty("number").GetDouble());
+
+        var selectedAsset = Scene?.SceneAssets.FirstOrDefault(a => a.Id == assetId && a.Number == number);
+        if (selectedAsset == null)
+            return;
 
         SelectedAsset = new() {
             Id = selectedAsset.Id,
@@ -192,19 +205,18 @@ public partial class SceneBuilderPage : ComponentBase {
             Elevation = selectedAsset.Elevation,
             IsLocked = selectedAsset.IsLocked,
             MediaType = selectedAsset.Shape.Type,
-            SourceId = selectedAsset.Shape.SourceId ?? Scene.Id,
+            SourceId = selectedAsset.Shape.SourceId ?? selectedAsset.Id,
         };
         State.IsDragging = SelectedAsset is { IsLocked: false };
-
-        await DrawSceneAsync();
     }
 
     private async Task OnCanvasMouseMove(MouseEventArgs e) {
         if (!State.IsDragging || SelectedAsset == null)
             return;
         var pos = await JsRuntime.InvokeAsync<object>("getCanvasMousePosition", [_canvasRef, new { clientX = e.ClientX, clientY = e.ClientY }]);
-        var x = Convert.ToDouble(((dynamic)pos).x);
-        var y = Convert.ToDouble(((dynamic)pos).y);
+        var posElement = (JsonElement)pos;
+        var x = posElement.GetProperty("x").GetSingle();
+        var y = posElement.GetProperty("y").GetSingle();
 
         // Update asset position
         if (State.SnapToGrid && Grid.Type != GridType.NoGrid) {
@@ -215,8 +227,8 @@ public partial class SceneBuilderPage : ComponentBase {
             var cellHeight = Grid.CellHeight > 0 ? Grid.CellHeight : 50;
 
             // Calculate nearest grid point
-            x = (Math.Round((x - gridX) / cellWidth) * cellWidth) + gridX;
-            y = (Math.Round((y - gridY) / cellHeight) * cellHeight) + gridY;
+            x = ((float)Math.Round((x - gridX) / cellWidth) * cellWidth) + gridX;
+            y = ((float)Math.Round((y - gridY) / cellHeight) * cellHeight) + gridY;
         }
 
         SelectedAsset.PositionX = x;
@@ -226,20 +238,32 @@ public partial class SceneBuilderPage : ComponentBase {
 
     private void OnCanvasMouseUp(MouseEventArgs _) => State.IsDragging = false;
 
-    private Task OnCanvasContextMenu(MouseEventArgs e) {
-        if (SelectedAsset == null)
-            return Task.CompletedTask;
+    private async Task OnCanvasContextMenu(MouseEventArgs e) {
+        var wasPanning = await JsRuntime.InvokeAsync<bool>("wasPanning");
+        if (wasPanning)
+            return;
 
-        // Show context menu at mouse position
+        var pos = await JsRuntime.InvokeAsync<object>("getCanvasMousePosition", [_canvasRef, new { clientX = e.ClientX, clientY = e.ClientY }]);
+        var posElement = (JsonElement)pos;
+        var x = posElement.GetProperty("x").GetDouble();
+        var y = posElement.GetProperty("y").GetDouble();
+
+        var assetData = await JsRuntime.InvokeAsync<object?>("findAssetAt", [x, y, SceneAssets]);
+
+        // If no asset was found at this position or no asset is selected, don't show context menu
+        if (assetData == null || SelectedAsset == null)
+            return;
+
         State.ContextMenuPosition = new() { X = Convert.ToSingle(e.ClientX), Y = Convert.ToSingle(e.ClientY) };
         State.ShowAssetContextMenu = true;
-
-        return DrawSceneAsync();
+        await DrawSceneAsync();
     }
 
     private void CloseContextMenu() => State.ShowAssetContextMenu = false;
 
     private async Task ToggleLockSelectedAsset() {
+        if (Scene == null)
+            return;
         if (SelectedAsset == null)
             return;
 
@@ -248,10 +272,8 @@ public partial class SceneBuilderPage : ComponentBase {
 
         // Update the asset on the server
         var updateRequest = new UpdateAssetRequest {
-            AssetId = SelectedAsset.Id,
-            Number = SelectedAsset.Number,
             Name = SelectedAsset.Name,
-            Position = new Vector2 (SelectedAsset.PositionX, SelectedAsset.PositionY),
+            Position = new Vector2(SelectedAsset.PositionX, SelectedAsset.PositionY),
             Scale = new Vector2(SelectedAsset.ScaleX, SelectedAsset.ScaleY),
             Rotation = SelectedAsset.Rotation,
             Elevation = SelectedAsset.Elevation,
@@ -264,6 +286,8 @@ public partial class SceneBuilderPage : ComponentBase {
     }
 
     private async Task DeleteSelectedAsset() {
+        if (Scene == null)
+            return;
         if (SelectedAsset == null)
             return;
         await LibraryClientHttpClient.RemoveSceneAssetAsync(Scene!.Id, SelectedAsset.Id, SelectedAsset.Number);
@@ -274,47 +298,40 @@ public partial class SceneBuilderPage : ComponentBase {
         await DrawSceneAsync();
     }
 
-    private void OnImageFileSelected(InputFileChangeEventArgs e) => SelectedAsset!.SelectedImageFile = e.File;
-
-    private void OnAssetFileSelected(InputFileChangeEventArgs e) => SelectedAsset!.SelectedAssetFile = e.File;
+    private void OnNewStageImageSelected(InputFileChangeEventArgs e) => _selectedBackgroundFile = e.File;
+    private void OnNewAssetImageSelected(InputFileChangeEventArgs e) => SelectedAsset!.SelectedAssetFile = e.File;
 
     private async Task SaveBackgroundImage() {
-        if (SelectedAsset?.SelectedImageFile == null)
-            return;
-        // Create a new asset for the background image
-        var createAssetRequest = new CreateAssetRequest {
-            Name = $"Background for {Scene!.Name}",
-            Type = AssetType.Object,
+        if (Scene == null) return;
+        if (_selectedBackgroundFile == null) return;
+
+        var fileName = Path.GetFileName(_selectedBackgroundFile.Name);
+        await using var stream = _selectedBackgroundFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
+        var backgroundImageId = Guid.CreateVersion7();
+        await AssetsClientHttpClient.UploadAssetFileAsync(backgroundImageId, stream, fileName);
+
+        Scene = Scene with {
+            Stage = Scene.Stage with {
+                Shape = Scene.Stage.Shape with {
+                    SourceId = backgroundImageId,
+                },
+            },
         };
+        await SaveScene();
 
-        var assetResult = await AssetsClientHttpClient.CreateAssetAsync(createAssetRequest);
-
-        if (!assetResult.IsSuccessful)
-            return;
-
-        await using var stream = SelectedAsset.SelectedImageFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
-        await AssetsClientHttpClient.UploadAssetFileAsync(assetResult.Value.Id, stream, SelectedAsset.SelectedImageFile.Name);
-
-        // Update the scene with the new background path
-        Scene = Scene with { Stage = Scene.Stage with { Shape = Scene.Stage.Shape with { SourceId = assetResult.Value.Id } } };
-        var updateRequest = new UpdateSceneRequest {
-            Name = Scene.Name,
-            Description = Scene.Description,
-            Stage = Scene.Stage,
-        };
-
-        await LibraryClientHttpClient.UpdateSceneAsync(Scene.Id, updateRequest);
-
+        Stage.ImageUrl = $"{_stageBasePath}/{backgroundImageId}.png";
         State.ShowChangeImageModal = false;
         await DrawSceneAsync();
     }
 
     private async Task SaveGridSettings() {
+        if (Scene == null)
+            return;
         Scene = Scene! with {
             Stage = Scene.Stage with {
                 Grid = new() {
                     Type = Grid.Type,
-                    Cell = new () {
+                    Cell = new() {
                         Scale = new() {
                             X = Grid.CellWidth / 50.0f,
                             Y = Grid.CellHeight / 50.0f,
@@ -329,20 +346,17 @@ public partial class SceneBuilderPage : ComponentBase {
             },
         };
 
-        var updateRequest = new UpdateSceneRequest {
-            Name = Scene.Name,
-            Description = Scene.Description,
-            Stage = Scene.Stage,
-        };
-
-        await LibraryClientHttpClient.UpdateSceneAsync(Scene.Id, updateRequest);
+        await SaveScene();
 
         State.ShowGridSettingsModal = false;
         await DrawSceneAsync();
     }
 
     private async Task AddAssetToScene() {
-        if (SelectedAsset == null) return;
+        if (Scene == null)
+            return;
+        if (SelectedAsset == null)
+            return;
 
         // First, create a new asset
         var createAssetRequest = new CreateAssetRequest {
@@ -351,10 +365,8 @@ public partial class SceneBuilderPage : ComponentBase {
         };
 
         var assetResult = await AssetsClientHttpClient.CreateAssetAsync(createAssetRequest);
-
         if (!assetResult.IsSuccessful)
             return;
-
         if (SelectedAsset.SelectedAssetFile != null) {
             await using var stream = SelectedAsset.SelectedAssetFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
             await AssetsClientHttpClient.UploadAssetFileAsync(assetResult.Value.Id, stream, SelectedAsset.SelectedAssetFile.Name);
@@ -364,7 +376,7 @@ public partial class SceneBuilderPage : ComponentBase {
         var addAssetRequest = new AddAssetRequest {
             AssetId = assetResult.Value.Id,
             Name = SelectedAsset.Name,
-            Position = new Vector2 (SelectedAsset.PositionX, SelectedAsset.PositionY),
+            Position = new Vector2(SelectedAsset.PositionX, SelectedAsset.PositionY),
         };
 
         var sceneAssetResult = await LibraryClientHttpClient.AddSceneAssetAsync(Scene!.Id, addAssetRequest);
@@ -383,13 +395,13 @@ public partial class SceneBuilderPage : ComponentBase {
     }
 
     private async Task SaveScene() {
-        // Update the scene on the server
+        if (Scene == null)
+            return;
         var updateRequest = new UpdateSceneRequest {
-            Name = Scene!.Name,
+            Name = Scene.Name,
             Description = Scene.Description,
             Stage = Scene.Stage,
         };
-
         await LibraryClientHttpClient.UpdateSceneAsync(Scene.Id, updateRequest);
     }
 }

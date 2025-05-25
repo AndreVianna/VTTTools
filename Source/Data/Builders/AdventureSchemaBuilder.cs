@@ -18,7 +18,7 @@ internal static class AdventureSchemaBuilder {
             entity.Property(e => e.ImageId);
             entity.Property(e => e.IsPublished).IsRequired();
             entity.Property(e => e.IsPublic).IsRequired();
-            entity.HasMany(e => e.Scenes).WithOne(e => e.Adventure).IsRequired()
+            entity.HasMany(e => e.Scenes).WithOne(e => e.Adventure)
                   .HasForeignKey(ep => ep.AdventureId).OnDelete(DeleteBehavior.Cascade);
         });
 

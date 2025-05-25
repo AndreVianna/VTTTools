@@ -18,7 +18,7 @@ internal class AssetsServerHttpClient(HttpClient client, JsonSerializerOptions o
     }
 
     public async Task<Result> UpdateAssetAsync(Guid id, UpdateAssetRequest request) {
-        var response = await client.PutAsJsonAsync($"/api/assets/{id}", request, options);
+        var response = await client.PatchAsJsonAsync($"/api/assets/{id}", request, options);
         return response.IsSuccessStatusCode
                    ? Result.Success()
                    : Result.Failure("Failed to update asset.");

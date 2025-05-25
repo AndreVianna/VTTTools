@@ -11,7 +11,7 @@ internal static class SceneSchemaBuilder {
         builder.Entity<Scene>(entity => {
             entity.ToTable("Scenes");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.AdventureId).IsRequired();
+            entity.Property(e => e.AdventureId);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
             entity.Property(e => e.IsPublished).IsRequired();

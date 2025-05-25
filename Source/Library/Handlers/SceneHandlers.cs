@@ -33,16 +33,16 @@ internal static class SceneHandlers {
     internal static async Task<IResult> GetAssetsHandler([FromRoute] Guid id, [FromServices] ISceneService sceneService)
         => Results.Ok(await sceneService.GetAssetsAsync(id));
 
-    internal static async Task<IResult> AddClonedAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromBody] AddClonedAssetRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> AddAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromBody] AddAssetRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var data = new AddClonedAssetData {
-            Shape = request.Shape,
+        var data = new AddAssetData {
+            Name = request.Name,
             Position = request.Position,
             Scale = request.Scale,
             Elevation = request.Elevation.Value,
             Rotation = request.Rotation.Value,
         };
-        var result = await sceneService.AddClonedAssetAsync(userId, id, assetId, data);
+        var result = await sceneService.AddAssetAsync(userId, id, assetId, data);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -52,29 +52,9 @@ internal static class SceneHandlers {
                     : Results.BadRequest(result.Errors);
     }
 
-    internal static async Task<IResult> AddNewAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddAssetRequest request, [FromServices] ISceneService sceneService) {
-        var userId = context.User.GetUserId();
-        var data = new AddNewAssetData {
-            Position = request.Position.Value,
-            Scale = request.Scale.Value,
-            Elevation = request.Elevation.Value,
-            Rotation = request.Rotation.Value,
-        };
-        var result = await sceneService.AddNewAssetAsync(userId, id, data);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
-    }
-
-    internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateAssetRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromRoute] int number, [FromBody] UpdateAssetRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var data = new UpdateAssetData {
-            AssetId = request.AssetId,
-            Number = request.Number,
             Name = request.Name,
             Position = request.Position,
             Scale = request.Scale,
@@ -83,7 +63,7 @@ internal static class SceneHandlers {
             IsLocked = request.IsLocked,
             ControlledBy = request.ControlledBy,
         };
-        var result = await sceneService.UpdateAssetAsync(userId, id, data);
+        var result = await sceneService.UpdateAssetAsync(userId, id, assetId, number, data);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"

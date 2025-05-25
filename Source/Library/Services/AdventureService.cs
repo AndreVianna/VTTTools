@@ -98,7 +98,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
         if (adventure is null) return Result.Failure("NotFound");
         if (adventure.OwnerId != userId) return Result.Failure("NotAllowed");
         var scene = new Scene();
-        await sceneStorage.AddAsync(id, scene, ct);
+        await sceneStorage.AddAsync(scene, id, ct);
         return scene;
     }
 
@@ -112,7 +112,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
         var result = data.Validate();
         if (result.HasErrors) return result;
         var clone = Cloner.CloneScene(original, userId, data);
-        await sceneStorage.AddAsync(id, clone, ct);
+        await sceneStorage.AddAsync(clone, id, ct);
         return clone;
     }
 

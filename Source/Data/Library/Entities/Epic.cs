@@ -10,5 +10,5 @@ public class Epic {
     public Guid? ImageId { get; set; }
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }
-    public HashSet<Campaign> Campaigns { get; set; } = [];
+    public ICollection<Campaign> Campaigns { get; set; } = [];
 }

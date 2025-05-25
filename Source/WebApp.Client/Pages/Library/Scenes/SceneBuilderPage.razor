@@ -42,17 +42,14 @@
         </ul>
       </div>
     </div>
-    <div class="toolbar-group ml-auto">
-      <button class="btn btn-primary" @onclick="SaveScene">Save</button>
-    </div>
   </div>
-  <div class="scene-canvas-container" @ref="_canvasContainerRef">
-    <canvas class="scene-canvas" @ref="_canvasRef"
+  <div class="scene-canvas-container" id="scene-canvas-container" @ref="_canvasContainerRef">
+    <canvas class="scene-canvas" id="scene-canvas" @ref="_canvasRef"
             @onmousedown="OnCanvasMouseDown"
             @onmousemove="OnCanvasMouseMove"
             @onmouseup="OnCanvasMouseUp"
-            @oncontextmenu:preventDefault
-            @oncontextmenu="OnCanvasContextMenu">
+            @oncontextmenu="OnCanvasContextMenu"
+            @oncontextmenu:preventDefault>
     </canvas>
   </div>
 </div>
@@ -68,7 +65,7 @@
         <div class="modal-body">
           <div class="mb-3">
             <label for="imageUpload" class="form-label">Upload Image</label>
-            <InputFile id="imageUpload" OnChange="OnImageFileSelected" class="form-control" />
+            <InputFile id="imageUpload" OnChange="OnNewStageImageSelected" class="form-control" />
           </div>
           <div class="mb-3">
             <p>Current image:</p>
@@ -150,7 +147,7 @@
           </div>
           <div class="mb-3">
             <label for="assetUpload" class="form-label">Upload Image</label>
-            <InputFile id="assetUpload" OnChange="OnAssetFileSelected" class="form-control" />
+            <InputFile id="assetUpload" OnChange="OnNewAssetImageSelected" class="form-control" />
           </div>
         </div>
         <div class="modal-footer">

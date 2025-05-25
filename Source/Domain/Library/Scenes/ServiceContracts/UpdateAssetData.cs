@@ -2,8 +2,6 @@
 
 public record UpdateAssetData
     : Data {
-    public Guid AssetId { get; init; }
-    public uint Number { get; init; }
     public Optional<string> Name { get; init; }
     public Optional<Vector2> Position { get; init; }
     public Optional<Vector2> Scale { get; init; }

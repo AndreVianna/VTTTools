@@ -69,7 +69,7 @@ internal class LibraryServerHttpClient(HttpClient client, JsonSerializerOptions 
     }
 
     public async Task<Result> UpdateAdventureAsync(Guid id, UpdateAdventureRequest request) {
-        var response = await client.PutAsJsonAsync($"/api/adventures/{id}", request, options);
+        var response = await client.PatchAsJsonAsync($"/api/adventures/{id}", request, options);
         return response.IsSuccessStatusCode
                    ? Result.Success()
                    : Result.Failure("Failed to update adventure.");
@@ -105,7 +105,7 @@ internal class LibraryServerHttpClient(HttpClient client, JsonSerializerOptions 
     }
 
     public async Task<Result> UpdateSceneAsync(Guid id, UpdateSceneRequest request) {
-        var response = await client.PutAsJsonAsync($"/api/scenes/{id}", request, options);
+        var response = await client.PatchAsJsonAsync($"/api/scenes/{id}", request, options);
         return response.IsSuccessStatusCode
                    ? Result.Success()
                    : Result.Failure("Failed to update scene.");

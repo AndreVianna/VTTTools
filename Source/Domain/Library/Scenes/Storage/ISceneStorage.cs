@@ -20,14 +20,24 @@ public interface ISceneStorage {
     Task<Scene?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
-    /// Adds a new scene template.
+    /// Adds a new scene to an adventure.
     /// </summary>
-    Task<Scene> AddAsync(Guid adventureId, Scene scene, CancellationToken ct = default);
+    Task AddAsync(Scene scene, Guid adventureId, CancellationToken ct = default);
 
     /// <summary>
-    /// Updates an existing scene template.
+    /// Adds a new standalone scene template.
     /// </summary>
-    Task<Scene?> UpdateAsync(Scene scene, CancellationToken ct = default);
+    Task AddAsync(Scene scene, CancellationToken ct = default);
+
+    /// <summary>
+    /// Updates an existing scene associated to an adventure.
+    /// </summary>
+    Task<bool> UpdateAsync(Scene scene, Guid adventureId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Updates a standalone scene template.
+    /// </summary>
+    Task<bool> UpdateAsync(Scene scene, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes a scene template.

@@ -121,119 +121,11 @@ public class SceneHandlersTests {
     }
 
     [Fact]
-    public async Task AddNewAssetHandler_WithValidRequest_ReturnsCreatedResult() {
-        // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
-        var request = new AddAssetRequest {
-            AssetId = assetId,
-            Name = "Asset Name",
-            Position = new Vector2 { X = 20, Y = 30 },
-            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
-        };
-        var sceneAsset = new SceneAsset {
-            Number = 1,
-            Name = "Asset Name",
-            Position = new() { X = 20, Y = 30 },
-            Scale = new() { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
-        };
-
-        _sceneService.AddNewAssetAsync(_userId, sceneId, Arg.Any<AddNewAssetData>(), Arg.Any<CancellationToken>())
-            .Returns(sceneAsset);
-
-        // Act
-        var result = await SceneHandlers.AddNewAssetHandler(_httpContext, sceneId, request, _sceneService);
-
-        // Assert
-        result.Should().BeOfType<NoContent>();
-    }
-
-    [Fact]
-    public async Task AddNewAssetHandler_WithInvalidAsset_ReturnsBadRequest() {
-        // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
-        var request = new AddAssetRequest {
-            AssetId = assetId,
-            Name = "Asset Name",
-            Position = new Vector2 { X = 20, Y = 30 },
-            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
-        };
-
-        _sceneService.AddNewAssetAsync(_userId, sceneId, Arg.Any<AddNewAssetData>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Failure("Some error."));
-
-        // Act
-        var result = await SceneHandlers.AddNewAssetHandler(_httpContext, sceneId, request, _sceneService);
-
-        // Assert
-        result.Should().BeOfType<BadRequest>();
-    }
-
-    [Fact]
-    public async Task AddClonedAssetHandler_WithValidRequest_ReturnsCreatedResult() {
-        // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
-        var request = new AddClonedAssetRequest {
-            Name = "Asset Name",
-            Position = new Vector2 { X = 20, Y = 30 },
-            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
-        };
-        var sceneAsset = new SceneAsset {
-            Number = 1,
-            Name = "Asset Name",
-            Position = new() { X = 20, Y = 30 },
-            Scale = new() { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
-        };
-
-        _sceneService.AddClonedAssetAsync(_userId, sceneId, assetId, Arg.Any<AddClonedAssetData>(), Arg.Any<CancellationToken>())
-            .Returns(sceneAsset);
-
-        // Act
-        var result = await SceneHandlers.AddClonedAssetHandler(_httpContext, sceneId, assetId, request, _sceneService);
-
-        // Assert
-        result.Should().BeOfType<NoContent>();
-    }
-
-    [Fact]
-    public async Task AddClonedAssetHandler_WithInvalidAsset_ReturnsBadRequest() {
-        // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
-        var request = new AddClonedAssetRequest {
-            Name = "Asset Name",
-            Position = new Vector2 { X = 20, Y = 30 },
-            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
-        };
-
-        _sceneService.AddClonedAssetAsync(_userId, sceneId, assetId, Arg.Any<AddClonedAssetData>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Failure("Some error."));
-
-        // Act
-        var result = await SceneHandlers.AddClonedAssetHandler(_httpContext, sceneId, assetId, request, _sceneService);
-
-        // Assert
-        result.Should().BeOfType<BadRequest>();
-    }
-
-    [Fact]
     public async Task UpdateAssetHandler_WithValidRequest_ReturnsCreatedResult() {
         // Arrange
         var sceneId = Guid.NewGuid();
+        var assetId = Guid.NewGuid();
+        const int number = 1;
         var request = new UpdateAssetRequest {
             Position = new Vector2 { X = 20, Y = 30 },
             Scale = new Vector2 { X = 0.5f, Y = 0.5f },
@@ -241,7 +133,8 @@ public class SceneHandlersTests {
             Rotation = 45f,
         };
         var sceneAsset = new SceneAsset {
-            Number = 1,
+            Id = assetId,
+            Number = number,
             Name = "Asset Name",
             Position = new() { X = 20, Y = 30 },
             Scale = new() { X = 0.5f, Y = 0.5f },
@@ -249,11 +142,11 @@ public class SceneHandlersTests {
             Rotation = 45f,
         };
 
-        _sceneService.UpdateAssetAsync(_userId, sceneId, Arg.Any<UpdateAssetData>(), Arg.Any<CancellationToken>())
+        _sceneService.UpdateAssetAsync(_userId, sceneId, assetId, number, Arg.Any<UpdateAssetData>(), Arg.Any<CancellationToken>())
             .Returns(sceneAsset);
 
         // Act
-        var result = await SceneHandlers.UpdateAssetHandler(_httpContext, sceneId, request, _sceneService);
+        var result = await SceneHandlers.UpdateAssetHandler(_httpContext, sceneId, assetId, number, request, _sceneService);
 
         // Assert
         result.Should().BeOfType<NoContent>();
@@ -263,6 +156,8 @@ public class SceneHandlersTests {
     public async Task UpdateAssetHandler_WithInvalidAsset_ReturnsBadRequest() {
         // Arrange
         var sceneId = Guid.NewGuid();
+        var assetId = Guid.NewGuid();
+        const int number = 1;
         var request = new UpdateAssetRequest {
             Position = new Vector2 { X = 20, Y = 30 },
             Scale = new Vector2 { X = 0.5f, Y = 0.5f },
@@ -270,11 +165,11 @@ public class SceneHandlersTests {
             Rotation = 45f,
         };
 
-        _sceneService.UpdateAssetAsync(_userId, sceneId, Arg.Any<UpdateAssetData>(), Arg.Any<CancellationToken>())
+        _sceneService.UpdateAssetAsync(_userId, sceneId, assetId, number, Arg.Any<UpdateAssetData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Some error."));
 
         // Act
-        var result = await SceneHandlers.UpdateAssetHandler(_httpContext, sceneId, request, _sceneService);
+        var result = await SceneHandlers.UpdateAssetHandler(_httpContext, sceneId, assetId, number, request, _sceneService);
 
         // Assert
         result.Should().BeOfType<BadRequest>();

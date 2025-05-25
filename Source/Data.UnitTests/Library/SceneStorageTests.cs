@@ -92,10 +92,9 @@ public class SceneStorageTests
         var scene = DbContextHelper.CreateTestScene(_context.Scenes.Skip(1).First().Id, "New Scene");
 
         // Act
-        var result = await _storage.AddAsync(adventure.Id, scene, _ct);
+        await _storage.AddAsync(scene, adventure.Id, _ct);
 
         // Assert
-        result.Should().BeEquivalentTo(scene);
         var dbScene = await _context.Scenes.FindAsync([scene.Id], _ct);
         dbScene.Should().BeEquivalentTo(scene);
     }
@@ -119,7 +118,7 @@ public class SceneStorageTests
         var result = await _storage.UpdateAsync(scene, _ct);
 
         // Assert
-        result.Should().BeEquivalentTo(scene);
+        result.Should().BeTrue();
         var dbScene = await _context.Scenes.FindAsync([scene.Id], _ct);
         dbScene.Should().BeEquivalentTo(scene);
     }

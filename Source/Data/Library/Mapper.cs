@@ -8,10 +8,8 @@ using SceneEntity = VttTools.Data.Library.Entities.Scene;
 namespace VttTools.Data.Library;
 
 internal static class Mapper {
-    [return: NotNullIfNotNull(nameof(entity))]
-    internal static Adventure? ToModel(this AdventureEntity? entity)
-#pragma warning disable RCS1077, IDE0305 // Simplify collection initialization
-        => entity is null ? null : new Adventure {
+    internal static Expression<Func<AdventureEntity, Adventure>> AsAdventure = entity
+        => new() {
             OwnerId = entity.OwnerId,
             CampaignId = entity.CampaignId,
             Id = entity.Id,
@@ -21,28 +19,45 @@ internal static class Mapper {
             ImageId = entity.ImageId,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
-            Scenes = entity.Scenes.Select(s => new Scene {
-                Id = s.Id,
-                Name = s.Name,
-                Description = s.Description,
-                Stage = s.Stage,
-                SceneAssets = s.SceneAssets.Select(sa => new SceneAsset {
-                    Id = sa.Asset.Id,
-                    Description = sa.Asset.Description,
-                    Type = sa.Asset.Type,
-                    Shape = sa.Asset.Shape,
-                    Number = sa.Number,
-                    Name = sa.Name,
-                    Position = sa.Position,
-                    Scale = sa.Scale,
-                    Elevation = sa.Elevation,
-                    Rotation = sa.Rotation,
-                    IsLocked = sa.IsLocked,
-                    ControlledBy = sa.ControlledBy,
-                }).ToList(),
-            }).ToList(),
+            Scenes = entity.Scenes.AsQueryable().Select(AsScene!).ToList()!,
         };
-#pragma warning restore RCS1077, IDE0305 // Simplify collection initialization
+
+    internal static Expression<Func<SceneEntity, Scene>> AsScene = entity
+        => new() {
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            Stage = entity.Stage,
+            SceneAssets = entity.SceneAssets.AsQueryable().Select(AsSceneAsset!).ToList()!,
+        };
+
+    internal static Expression<Func<SceneAssetEntity, SceneAsset>> AsSceneAsset = entity
+        => new() {
+            Id = entity.Asset.Id,
+            Description = entity.Asset.Description,
+            Type = entity.Asset.Type,
+            Number = entity.Number,
+            Name = entity.Name,
+            Position = entity.Position,
+            Scale = entity.Scale,
+            Shape = entity.Asset.Shape,
+            IsLocked = entity.IsLocked,
+            ControlledBy = entity.ControlledBy,
+        };
+
+    internal static Adventure? ToModel(this AdventureEntity? entity)
+        => entity == null ? null : new() {
+            OwnerId = entity.OwnerId,
+            CampaignId = entity.CampaignId,
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            Type = entity.Type,
+            ImageId = entity.ImageId,
+            IsPublic = entity.IsPublic,
+            IsPublished = entity.IsPublished,
+            Scenes = entity.Scenes.Select(ToModel).ToList()!,
+        };
 
     internal static AdventureEntity ToEntity(this Adventure model)
         => new() {
@@ -55,7 +70,7 @@ internal static class Mapper {
             ImageId = model.ImageId,
             IsPublic = model.IsPublic,
             IsPublished = model.IsPublished,
-            Scenes = model.Scenes.ConvertAll(ToEntity),
+            Scenes = model.Scenes.ConvertAll(s => s.ToEntity(model.Id)),
         };
 
     internal static void UpdateFrom(this AdventureEntity entity, Adventure model) {
@@ -69,13 +84,23 @@ internal static class Mapper {
         entity.IsPublic = model.IsPublic;
         entity.IsPublished = model.IsPublished;
         var existingScenes = entity.Scenes.Join(model.Scenes, se => se.Id, sm => sm.Id, UpdateFrom);
-        var newScenes = model.Scenes.Where(sm => entity.Scenes.All(se => se.Id != sm.Id)).Select(ToEntity);
+        var newScenes = model.Scenes.Where(sm => entity.Scenes.All(se => se.Id != sm.Id)).Select(s => s.ToEntity(model.Id));
         entity.Scenes = [.. existingScenes.Union(newScenes)];
     }
 
-    internal static SceneEntity ToEntity(this Scene model)
+    internal static Scene? ToModel(this SceneEntity? scene)
+        => scene is null ? null : new() {
+            Id = scene.Id,
+            Name = scene.Name,
+            Description = scene.Description,
+            Stage = scene.Stage,
+            SceneAssets = [..scene.SceneAssets.Select(sa => sa.ToModel()!)],
+        };
+
+    internal static SceneEntity ToEntity(this Scene model, Guid? adventureId = null)
         => new() {
             Id = model.Id,
+            AdventureId = adventureId,
             Name = model.Name,
             Description = model.Description,
             IsPublished = model.IsPublished,
@@ -94,6 +119,20 @@ internal static class Mapper {
         entity.SceneAssets = [.. existingAssets.Union(newAssets)];
         return entity;
     }
+
+    internal static SceneAsset? ToModel(this SceneAssetEntity? entity)
+        => entity == null ? null : new() {
+            Id = entity.Asset.Id,
+            Description = entity.Asset.Description,
+            Type = entity.Asset.Type,
+            Number = entity.Number,
+            Name = entity.Name,
+            Position = entity.Position,
+            Scale = entity.Scale,
+            Shape = entity.Asset.Shape,
+            IsLocked = entity.IsLocked,
+            ControlledBy = entity.ControlledBy,
+        };
 
     internal static SceneAssetEntity ToEntity(this SceneAsset model, Guid sceneId)
         => new() {

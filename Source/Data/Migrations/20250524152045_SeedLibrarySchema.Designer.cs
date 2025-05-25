@@ -13,8 +13,8 @@ using VttTools.Data;
 namespace VttTools.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250522005216_CreateApplicationSchema")]
-    partial class CreateApplicationSchema
+    [Migration("20250524152045_SeedLibrarySchema")]
+    partial class SeedLibrarySchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -154,6 +154,68 @@ namespace VttTools.Data.Migrations
                     b.HasIndex("CampaignId");
 
                     b.ToTable("Adventures", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("0196f86e-6669-78ee-95eb-4303c232295c"),
+                            Description = "Test 1",
+                            IsPublic = false,
+                            IsPublished = false,
+                            Name = "Test 1",
+                            OwnerId = new Guid("019639ea-c7de-7a01-8548-41edfccde206"),
+                            Type = "Generic"
+                        },
+                        new
+                        {
+                            Id = new Guid("0196f86e-9220-769d-bf71-173f30d7177a"),
+                            Description = "Test 2",
+                            IsPublic = false,
+                            IsPublished = false,
+                            Name = "Test 2",
+                            OwnerId = new Guid("019639ea-c7de-7a01-8548-41edfccde206"),
+                            Type = "Generic"
+                        },
+                        new
+                        {
+                            Id = new Guid("0196f86e-ce48-7b61-8dfa-3c1d535cc6c4"),
+                            Description = "Test 3",
+                            IsPublic = false,
+                            IsPublished = false,
+                            Name = "Test 3",
+                            OwnerId = new Guid("019639ea-c7de-7a01-8548-41edfccde206"),
+                            Type = "Generic"
+                        },
+                        new
+                        {
+                            Id = new Guid("0196f86e-f929-7768-9b42-33e61727b389"),
+                            Description = "Test 4",
+                            IsPublic = true,
+                            IsPublished = true,
+                            Name = "Test 4",
+                            OwnerId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Type = "Generic"
+                        },
+                        new
+                        {
+                            Id = new Guid("0196f86f-1c09-76a5-9f50-89ec627e5d00"),
+                            Description = "Test 5",
+                            IsPublic = true,
+                            IsPublished = true,
+                            Name = "Test 5",
+                            OwnerId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Type = "Generic"
+                        },
+                        new
+                        {
+                            Id = new Guid("0196f86f-4212-78eb-8354-a990b4937911"),
+                            Description = "Test 6",
+                            IsPublic = true,
+                            IsPublished = true,
+                            Name = "Test 6",
+                            OwnerId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            Type = "Generic"
+                        });
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Campaign", b =>
@@ -233,7 +295,7 @@ namespace VttTools.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("AdventureId")
+                    b.Property<Guid?>("AdventureId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
@@ -759,8 +821,7 @@ namespace VttTools.Data.Migrations
                     b.HasOne("VttTools.Data.Library.Entities.Adventure", "Adventure")
                         .WithMany("Scenes")
                         .HasForeignKey("AdventureId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Adventure");
                 });

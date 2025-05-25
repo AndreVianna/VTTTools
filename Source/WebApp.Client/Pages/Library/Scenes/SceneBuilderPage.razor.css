@@ -12,15 +12,17 @@
 .scene-canvas-container {
   flex: 1;
   position: relative;
-  overflow: auto;
-  background-color: white;
+  overflow: hidden; /* Ensures no scrollbars appear */
+  background-color: #e0e0e0; /* Gray background */
+  height: calc(100vh - 120px); /* Fill available viewport space */
+  width: 100%;
 }
 
 .scene-canvas {
-  margin: 5px;
-  position: absolute;
-  background-color: white;
+  margin: 0;
+  background-color: #e0e0e0; /* Gray background */
 }
+
 
 .ml-auto {
   margin-left: auto;

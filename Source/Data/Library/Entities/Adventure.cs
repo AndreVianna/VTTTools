@@ -46,5 +46,5 @@ public class Adventure {
     /// <summary>
     /// The collection of scenes in this adventure.
     /// </summary>
-    public List<Scene> Scenes { get; set; } = [];
+    public ICollection<Scene> Scenes { get; set; } = [];
 }
