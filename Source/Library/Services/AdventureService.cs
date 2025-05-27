@@ -41,7 +41,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
             Name = data.Name,
             Description = data.Description,
             Type = data.Type,
-            ImageId = data.ImageId,
+            Display = data.Display,
         };
         await adventureStorage.AddAsync(adventure, ct);
         return adventure;
@@ -70,7 +70,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
             Name = data.Name.IsSet ? data.Name.Value : adventure.Name,
             Description = data.Description.IsSet ? data.Description.Value : adventure.Description,
             Type = data.Type.IsSet ? data.Type.Value : adventure.Type,
-            ImageId = data.ImageId.IsSet ? data.ImageId.Value : adventure.ImageId,
+            Display = data.Display.IsSet ? data.Display.Value : adventure.Display,
             IsPublished = data.IsListed.IsSet ? data.IsListed.Value : adventure.IsPublished,
             IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : adventure.IsPublic,
             CampaignId = data.CampaignId.IsSet ? data.CampaignId.Value : adventure.CampaignId,

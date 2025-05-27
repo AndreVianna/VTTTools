@@ -8,7 +8,7 @@ public record CreateAssetData
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public AssetType Type { get; init; }
-    public Shape Shape { get; set; } = new();
+    public Display Display { get; set; } = new();
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);

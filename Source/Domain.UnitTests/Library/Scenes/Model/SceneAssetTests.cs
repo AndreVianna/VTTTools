@@ -11,7 +11,7 @@ public class SceneAssetTests {
         sceneAsset.Position.Should().NotBeNull();
         sceneAsset.Position.X.Should().Be(0);
         sceneAsset.Position.Y.Should().Be(0);
-        sceneAsset.Scale.Should().Be(1.0);
+        sceneAsset.Scale.Should().Be(1.0f);
         sceneAsset.IsLocked.Should().BeFalse();
         sceneAsset.ControlledBy.Should().BeNull();
     }
@@ -20,8 +20,8 @@ public class SceneAssetTests {
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
         const string name = "Test Asset";
-        var position = new Vector2 { X = 10, Y = 20 };
-        var scale = new Vector2 { X = 0.5f, Y = 0.5f };
+        var position = new Point { X = 10, Y = 20 };
+        const float scale = 0.5f;
         const bool isLocked = true;
         var controlledBy = Guid.NewGuid();
 

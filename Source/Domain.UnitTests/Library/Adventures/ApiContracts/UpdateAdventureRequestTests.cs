@@ -8,7 +8,7 @@ public class UpdateAdventureRequestTests {
             Name = "Title",
             Description = "Description",
             Type = AdventureType.OpenWorld,
-            ImageId = Guid.NewGuid(),
+            Display = new(),
             IsPublished = false,
             IsPublic = false,
             CampaignId = Guid.NewGuid(),
@@ -17,7 +17,11 @@ public class UpdateAdventureRequestTests {
         const string name = "Other Title";
         const string description = "Other Description";
         const AdventureType type = AdventureType.DungeonCrawl;
-        var imageId = Guid.NewGuid();
+        var display = new Display {
+            Id = Guid.NewGuid(),
+            Type = DisplayType.Image,
+            Size = new(100, 100),
+        };
         const bool isVisible = true;
         const bool isPublic = true;
         var campaignId = Guid.NewGuid();
@@ -28,17 +32,17 @@ public class UpdateAdventureRequestTests {
             Name = name,
             Description = description,
             Type = type,
-            ImageId = imageId,
+            Display = display,
             IsPublished = isVisible,
             IsPublic = isPublic,
-            CampaignId = campaignId
+            CampaignId = campaignId,
         };
 
         // Assert
         data.Name.Value.Should().Be(name);
         data.Description.Value.Should().Be(description);
         data.Type.Value.Should().Be(type);
-        data.ImageId.Value.Should().Be(imageId);
+        data.Display.Value.Should().Be(display);
         data.IsPublished.Value.Should().Be(isVisible);
         data.IsPublic.Value.Should().Be(isPublic);
         data.CampaignId.Value.Should().Be(campaignId);

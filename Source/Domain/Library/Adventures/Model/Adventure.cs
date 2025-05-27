@@ -30,7 +30,7 @@ public record Adventure {
     /// <summary>
     /// The id of the image file associated with this adventure. If not set the id if the adventure is used.
     /// </summary>
-    public Guid? ImageId { get; init; }
+    public Display Display { get; init; } = new();
     /// <summary>
     /// Indicates whether the adventure is published (visible) or not (hidden).
     /// </summary>

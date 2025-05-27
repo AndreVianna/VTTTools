@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <LangVersion>preview</LangVersion>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>VttTools</RootNamespace>
     <Configurations>Debug;Release;XUnitV3</Configurations>
   </PropertyGroup>
@@ -15,11 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="$(AssemblyName).UnitTests" />
+    <ProjectReference Include="..\Core\VttTools.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\VttTools.Core.csproj" />
+    <InternalsVisibleTo Include="$(AssemblyName).UnitTests" />
   </ItemGroup>
 
 </Project>

@@ -26,9 +26,9 @@ public record UpdatedAdventureData
     public Optional<AdventureType> Type { get; init; }
 
     /// <summary>
-    /// New image path for the Adventure. If not set, image path is unchanged.
+    /// New display configuration for the Adventure. If not set, the original display is unchanged.
     /// </summary>
-    public Optional<Guid?> ImageId { get; init; }
+    public Optional<Display> Display { get; init; }
 
     /// <summary>
     /// Indicates whether the Adventure is published (visible) or not (hidden).

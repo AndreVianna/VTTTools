@@ -9,7 +9,7 @@ public class Campaign {
     public string Name { get; set; } = string.Empty;
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
-    public Guid? ImageId { get; set; }
+    public Display Display { get; set; } = new();
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }
     public ICollection<Adventure> Adventures { get; set; } = [];

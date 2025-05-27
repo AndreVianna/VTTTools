@@ -87,7 +87,7 @@ public class AssetStorageTests
             Name = "Updated Asset",
             Type = AssetType.Overlay,
             Description = "Updated description",
-            Shape = new() { Type = MediaType.Image, SourceId = Guid.NewGuid() },
+            Display = new() { Type = DisplayType.Image, Id = Guid.NewGuid() },
             IsPublished = true,
             IsPublic = true,
         };

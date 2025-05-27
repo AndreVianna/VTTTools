@@ -6,14 +6,14 @@ public class AddNewAssetRequestTests {
         // Arrange
         var original = new AddNewAssetRequest {
             Name = "Asset Name",
-            Position = new Vector2 { X = 1, Y = 1 },
-            Scale = new Vector2 { X = 1f, Y = 1f },
+            Position = new Point { X = 1, Y = 1 },
+            Scale = 1f,
             Rotation = 0.0f,
             Elevation = 0.0f,
         };
         const string name = "Other Name";
-        var position = new Vector2 { X = 10, Y = 20 };
-        var scale = new Vector2 { X = .5f, Y = .5f };
+        var position = new Point { X = 10, Y = 20 };
+        const float scale = .5f;
         const float rotation = 45.0f;
         const float elevation = 10.0f;
 

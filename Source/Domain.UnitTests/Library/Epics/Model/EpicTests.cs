@@ -23,7 +23,11 @@ public class EpicTests {
         const string name = "Some Epic";
         const string description = "Some Description";
         var ownerId = Guid.NewGuid();
-        var imageId = Guid.NewGuid();
+        var display = new Display {
+            Id = Guid.NewGuid(),
+            Type = DisplayType.Image,
+            Size = new(100, 100),
+        };
         var campaign = new Campaign {
             Id = Guid.NewGuid(),
         };
@@ -34,7 +38,7 @@ public class EpicTests {
             Name = name,
             Description = description,
             OwnerId = ownerId,
-            ImageId = imageId,
+            Display = display,
             IsPublished = true,
             IsPublic = true,
             Campaigns = [campaign],
@@ -45,7 +49,7 @@ public class EpicTests {
         epic.Name.Should().Be(name);
         epic.Description.Should().Be(description);
         epic.OwnerId.Should().Be(ownerId);
-        epic.ImageId.Should().Be(imageId);
+        epic.Display.Should().BeEquivalentTo(display);
         epic.IsPublished.Should().BeTrue();
         epic.IsPublic.Should().BeTrue();
         epic.Campaigns.Should().ContainSingle(c => c.Equals(campaign));

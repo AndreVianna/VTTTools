@@ -26,9 +26,9 @@ public record CloneAdventureRequest
     public Optional<AdventureType> Type { get; init; }
 
     /// <summary>
-    /// Image path for the Adventure. If not set, image path is copied from source.
+    /// Stage configuration for the Adventure. If not set, the display is copied from source.
     /// </summary>
-    public Optional<Guid?> ImageId { get; init; }
+    public Optional<Display> Display { get; init; }
 
     /// <summary>
     /// Whether the Adventure is visible. Default is false.

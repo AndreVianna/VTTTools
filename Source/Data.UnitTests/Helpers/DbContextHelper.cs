@@ -116,30 +116,17 @@ internal static class DbContextHelper {
             AdventureId = adventureId,
             Name = name,
             Description = $"Description for {name}",
+            ZoomLevel = 1.0f,
             Stage = new() {
-                ZoomLevel = 1.0f,
-                Shape = new() {
-                    Type = MediaType.Image,
-                    SourceId = Guid.NewGuid(),
-                    Size = new() {
-                        X = 10.0f,
-                        Y = 20.0f,
-                    },
-                },
-                Grid = new() {
-                    Type = GridType.Square,
-                    Cell = new() {
-                        Size = 1.0f,
-                        Scale = new() {
-                            X = 1.0f,
-                            Y = 1.0f,
-                        },
-                        Offset = new() {
-                            X = 0.0f,
-                            Y = 0.0f,
-                        },
-                    },
-                },
+                Type = DisplayType.Image,
+                Id = Guid.NewGuid(),
+                Size = new(10, 20),
+            },
+            Grid = new() {
+                Type = GridType.Square,
+                CellSize = new (1, 1),
+                Offset = new(0, 0),
+                Snap = false,
             },
         };
 
@@ -152,13 +139,10 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.NewGuid(),
-            Shape = new() {
-                Type = MediaType.Image,
-                SourceId = Guid.NewGuid(),
-                Size = new() {
-                    X = 10,
-                    Y = 20,
-                },
+            Display = new() {
+                Type = DisplayType.Image,
+                Id = Guid.NewGuid(),
+                Size = new(10, 20),
             },
         };
 
@@ -195,30 +179,17 @@ internal static class DbContextHelper {
             Id = id,
             Name = name,
             Description = $"Description for {name}",
+            ZoomLevel = 1.0f,
             Stage = new() {
-                ZoomLevel = 1.0f,
-                Shape = new() {
-                    Type = MediaType.Image,
-                    SourceId = Guid.NewGuid(),
-                    Size = new() {
-                        X = 10.0f,
-                        Y = 20.0f,
-                    },
-                },
-                Grid = new() {
-                    Type = GridType.Square,
-                    Cell = new() {
-                        Size = 1.0f,
-                        Scale = new() {
-                            X = 1.0f,
-                            Y = 1.0f,
-                        },
-                        Offset = new() {
-                            X = 0.0f,
-                            Y = 0.0f,
-                        },
-                    },
-                },
+                Type = DisplayType.Image,
+                Id = Guid.NewGuid(),
+                Size = new(10, 20),
+            },
+            Grid = new() {
+                Type = GridType.Square,
+                CellSize = new(1, 1),
+                Offset = new(0, 0),
+                Snap = false,
             },
         };
 
@@ -231,13 +202,10 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.NewGuid(),
-            Shape = new() {
-                Type = MediaType.Image,
-                SourceId = Guid.NewGuid(),
-                Size = new() {
-                    X = 10,
-                    Y = 20,
-                },
+            Display = new() {
+                Type = DisplayType.Image,
+                Id = Guid.NewGuid(),
+                Size = new(10, 20),
             },
         };
 

@@ -25,9 +25,9 @@ public record CreateAdventureRequest
     public AdventureType Type { get; init; }
 
     /// <summary>
-    /// The ID of the image file associated with this Adventure.
+    /// The display configuration for this Adventure.
     /// </summary>
-    public Guid? ImageId { get; init; }
+    public Display Display { get; init; } = new();
 
     /// <summary>
     /// The ID of the campaign to which this Adventure belongs.

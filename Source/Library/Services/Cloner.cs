@@ -8,7 +8,7 @@ public static class Cloner {
             Name = data?.Name.IsSet ?? false ? data.Name.Value : $"{original.Name} (Copy)",
             Description = data?.Description.IsSet ?? false ? data.Description.Value : original.Description,
             Type = data?.Type.IsSet ?? false ? data.Type.Value : original.Type,
-            ImageId = data?.ImageId.IsSet ?? false ? data.ImageId.Value : original.ImageId,
+            Display = data?.Display.IsSet ?? false ? data.Display.Value : original.Display,
         };
         if (data?.IncludeScenes != true) return clone;
         clone.Scenes.AddRange(original.Scenes.Select(ep => CloneScene(ep, ownerId)));
@@ -20,8 +20,10 @@ public static class Cloner {
             Name = data?.Name.IsSet ?? false ? data.Name.Value : $"{original.Name} (Copy)",
             Description = data?.Description.IsSet ?? false ? data.Description.Value : original.Description,
             Stage = data?.Stage.IsSet ?? false ? data.Stage.Value : original.Stage,
+            ZoomLevel = data?.ZoomLevel.IsSet ?? false ? data.ZoomLevel.Value : original.ZoomLevel,
+            Grid = data?.Grid.IsSet ?? false ? data.Grid.Value : original.Grid,
         };
-        clone.SceneAssets.AddRange(original.SceneAssets.Select(sa => CloneSceneAsset(sa, ownerId)));
+        clone.Assets.AddRange(original.Assets.Select(sa => CloneSceneAsset(sa, ownerId)));
         return clone;
     }
 
@@ -30,20 +32,11 @@ public static class Cloner {
             Id = original.Id,
             Number = original.Number,
             Name = original.Name,
-            Shape = original.Shape,
+            Display = original.Display,
             Position = original.Position,
             Scale = original.Scale,
             Rotation = original.Rotation,
             Elevation = original.Elevation,
             ControlledBy = ownerId,
-        };
-
-    internal static Asset CloneAsset(Asset original, Guid ownerId, CloneAssetData data)
-        => new() {
-            OwnerId = ownerId,
-            Name = data.Name.IsSet ? data.Name.Value : $"{original.Name} (Copy)",
-            Description = data.Description.IsSet ? data.Description.Value : original.Description,
-            Type = original.Type,
-            Shape = data.Shape.IsSet ? data.Shape.Value : original.Shape,
         };
 }

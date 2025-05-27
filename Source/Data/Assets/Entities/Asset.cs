@@ -8,7 +8,7 @@ public class Asset {
     public string Name { get; set; } = string.Empty;
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
-    public Shape Shape { get; set; } = new();
+    public Display Display { get; set; } = new();
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }
 }

@@ -15,7 +15,7 @@ public class AdventureTests {
         adventure.Name.Should().BeEmpty();
         adventure.Description.Should().BeEmpty();
         adventure.Type.Should().Be(AdventureType.OpenWorld);
-        adventure.ImageId.Should().BeNull();
+        adventure.Display.Should().NotBeNull();
         adventure.IsPublished.Should().BeFalse();
         adventure.IsPublic.Should().BeFalse();
     }
@@ -27,14 +27,15 @@ public class AdventureTests {
         const string name = "Some Adventure";
         const string description = "Adventure description";
         const AdventureType type = AdventureType.DungeonCrawl;
-        var imageId = Guid.NewGuid();
+        var display = new Display {
+            Id = Guid.NewGuid(),
+            Type = DisplayType.Image,
+            Size = new(100, 100),
+        };
         const bool isVisible = true;
         const bool isPublic = true;
         var ownerId = Guid.NewGuid();
         var campaignId = Guid.NewGuid();
-        var campaign = new Campaign {
-            Id = campaignId,
-        };
         var scene = new Scene {
             Id = Guid.NewGuid(),
         };
@@ -45,7 +46,7 @@ public class AdventureTests {
             Name = name,
             Description = description,
             Type = type,
-            ImageId = imageId,
+            Display = display,
             IsPublished = isVisible,
             IsPublic = isPublic,
             OwnerId = ownerId,
@@ -58,7 +59,7 @@ public class AdventureTests {
         adventure.Name.Should().Be(name);
         adventure.Description.Should().Be(description);
         adventure.Type.Should().Be(type);
-        adventure.ImageId.Should().Be(imageId);
+        adventure.Display.Should().BeEquivalentTo(display);
         adventure.IsPublished.Should().Be(isVisible);
         adventure.IsPublic.Should().Be(isPublic);
         adventure.OwnerId.Should().Be(ownerId);

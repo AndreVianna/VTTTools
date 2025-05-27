@@ -21,7 +21,7 @@ internal static class AdventureHandlers {
             Name = request.Name,
             Description = request.Description,
             Type = request.Type,
-            ImageId = request.ImageId,
+            Display = request.Display,
         };
         var result = await adventureService.CreateAdventureAsync(userId, data);
         return result.IsSuccessful
@@ -36,7 +36,7 @@ internal static class AdventureHandlers {
             Name = request.Name,
             Description = request.Description,
             Type = request.Type,
-            ImageId = request.ImageId,
+            Display = request.Display,
             IncludeScenes = request.IncludeScenes,
         };
         var result = await adventureService.CloneAdventureAsync(userId, data);
@@ -55,7 +55,7 @@ internal static class AdventureHandlers {
             Name = request.Name,
             Description = request.Description,
             Type = request.Type,
-            ImageId = request.ImageId,
+            Display = request.Display,
             IsListed = request.IsPublished,
             IsPublic = request.IsPublic,
             CampaignId = request.CampaignId,
@@ -102,7 +102,9 @@ internal static class AdventureHandlers {
         var data = new ClonedSceneData {
             Name = request.Name,
             Description = request.Description,
-            Stage = request.Stage,
+            Stage = request.Display,
+            ZoomLevel = request.ZoomLevel,
+            Grid = request.Grid,
         };
         var result = await adventureService.AddClonedSceneAsync(userId, id, templateId, data);
         return result.IsSuccessful

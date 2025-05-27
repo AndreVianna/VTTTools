@@ -18,7 +18,7 @@ public class AssetStorage(ApplicationDbContext context)
                       Name = a.Name,
                       Description = a.Description,
                       Type = a.Type,
-                      Shape = a.Shape,
+                      Display = a.Display,
                       IsPublic = a.IsPublic,
                       IsPublished = a.IsPublished,
                   })
@@ -34,7 +34,7 @@ public class AssetStorage(ApplicationDbContext context)
                       Name = a.Name,
                       Description = a.Description,
                       Type = a.Type,
-                      Shape = a.Shape,
+                      Display = a.Display,
                       IsPublic = a.IsPublic,
                       IsPublished = a.IsPublished,
                   })
@@ -48,7 +48,7 @@ public class AssetStorage(ApplicationDbContext context)
             Name = asset.Name,
             Description = asset.Description,
             Type = asset.Type,
-            Shape = asset.Shape,
+            Display = asset.Display,
             IsPublic = asset.IsPublic,
             IsPublished = asset.IsPublished,
         };
@@ -65,7 +65,7 @@ public class AssetStorage(ApplicationDbContext context)
         entity.Name = asset.Name;
         entity.Description = asset.Description;
         entity.Type = asset.Type;
-        entity.Shape = asset.Shape;
+        entity.Display = asset.Display;
         entity.IsPublic = asset.IsPublic;
         entity.IsPublished = asset.IsPublished;
         context.Assets.Update(entity);

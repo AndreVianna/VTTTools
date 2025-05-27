@@ -26,9 +26,9 @@ public record ClonedAdventureData
     public Optional<AdventureType> Type { get; init; }
 
     /// <summary>
-    /// New image path for the Adventure. If not set, image path is unchanged.
+    /// New display configuration for the Adventure. If not set, the display is unchanged.
     /// </summary>
-    public Optional<Guid?> ImageId { get; init; }
+    public Optional<Display> Display { get; init; }
 
     /// <summary>
     /// The id of the Adventure used as template for the new Adventure.

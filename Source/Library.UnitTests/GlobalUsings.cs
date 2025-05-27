@@ -1,4 +1,5 @@
 ﻿global using System.Diagnostics.CodeAnalysis;
+global using System.Drawing;
 global using System.Numerics;
 global using System.Security.Claims;
 global using System.Text.Json;

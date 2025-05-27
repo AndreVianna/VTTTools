@@ -42,7 +42,7 @@ var game = builder.AddProject<Projects.VttTools_Game>("game-api")
     .WithHttpHealthCheck("health")
     .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
-builder.AddProject<Projects.VttTools_WebApp>("webapp")
+builder.AddProject<Projects.VttTools_WebApp_Server>("webapp")
     .WithReference(cache).WaitFor(cache)
     .WithReference(database).WaitFor(database)
     .WithReference(game).WaitFor(game)

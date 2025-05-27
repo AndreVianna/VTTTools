@@ -23,5 +23,5 @@ public record CreateAssetRequest
     /// <summary>
     /// The display configuration for the new Asset.
     /// </summary>
-    public Shape Shape { get; set; } = new();
+    public Display Display { get; init; } = new();
 }

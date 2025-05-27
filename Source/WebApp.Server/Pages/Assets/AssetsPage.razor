@@ -1,0 +1,68 @@
+@page "/assets"
+@inherits Page<AssetsPage, AssetsPageHandler>
+@rendermode InteractiveServer
+
+<PageTitle>Assets</PageTitle>
+
+<div class="container">
+  <div id="page-header" class="row mb-4">
+    <div class="col">
+      <h1>Assets</h1>
+    </div>
+  </div>
+@if (!IsReady) {
+  <div id="loading-message" class="d-flex justify-content-center">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+} else {
+  <EditForm id="asset-create-form" Model="Input" FormName="create" OnValidSubmit="CreateAsset" method="post">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert" />
+    <div class="form-floating mb-3">
+      <InputText id="name-input" @bind-Value="Input.Name" class="form-control mb-1" />
+      <label for="name-input" class="form-label">nameof(Input.Name)</label>
+      <ValidationMessage For="() => Input.Name" class="text-danger" />
+    </div>
+    <div class="form-floating mb-3">
+      <InputSelect id="type-input" @bind-Value="Input.Type" class="form-select mb-1">
+        <option value="">Select the asset type ...</option>
+      @foreach (var type in Enum.GetValues<AssetType>()) {
+        <option value="@type">@type</option>
+      }
+      </InputSelect>
+      <label for="type-input" class="form-label">typeof(Input.Type)</label>
+      <ValidationMessage For="() => Input.Type" class="text-danger" />
+    </div>
+    <button id="create-asset" type="submit" class="btn btn-primary">Create</button>
+  </EditForm>
+  if (State.Assets.Count == 0) {
+  <div id="no-items-message" class="alert alert-info">
+    You don't have any assets yet. Create a new one to get started!
+  </div>
+  }
+  else {
+  <table id="assets-table" class="table">
+  <thead>
+    <tr>
+      <th id="assets-type-header">@nameof(Asset.Type)</th>
+      <th id="assets-name-header">@nameof(Asset.Name)</th>
+      <th id="assets-action-header">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+  @foreach (var asset in State.Assets) {
+    <tr>
+    <td id="@($"asset-{asset.Id}-type")">@asset.Type</td>
+      <td id="@($"asset-{asset.Id}-name")">@asset.Name</td>
+      <td id="@($"asset-{asset.Id}-actions")">
+        <button id="@($"delete-asset-{asset.Id}")" class="btn btn-danger btn-sm" @onclick="() => DeleteAsset(asset.Id)">Delete</button>
+      </td>
+    </tr>
+  }
+  </tbody>
+  </table>
+  }
+}
+</div>

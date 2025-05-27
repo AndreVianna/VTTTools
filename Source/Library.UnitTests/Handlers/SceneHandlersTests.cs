@@ -127,19 +127,19 @@ public class SceneHandlersTests {
         var assetId = Guid.NewGuid();
         const int number = 1;
         var request = new UpdateAssetRequest {
-            Position = new Vector2 { X = 20, Y = 30 },
-            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
+            Position = new Point(20, 30),
+            Scale = 0.5f,
+            Elevation = 10,
+            Rotation = 45,
         };
         var sceneAsset = new SceneAsset {
             Id = assetId,
             Number = number,
             Name = "Asset Name",
-            Position = new() { X = 20, Y = 30 },
-            Scale = new() { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
+            Position = new(20, 30),
+            Scale = 0.5f,
+            Elevation = 10,
+            Rotation = 45,
         };
 
         _sceneService.UpdateAssetAsync(_userId, sceneId, assetId, number, Arg.Any<UpdateAssetData>(), Arg.Any<CancellationToken>())
@@ -159,10 +159,10 @@ public class SceneHandlersTests {
         var assetId = Guid.NewGuid();
         const int number = 1;
         var request = new UpdateAssetRequest {
-            Position = new Vector2 { X = 20, Y = 30 },
-            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
+            Position = new Point(20, 30),
+            Scale = 0.5f,
+            Elevation = 10,
+            Rotation = 45,
         };
 
         _sceneService.UpdateAssetAsync(_userId, sceneId, assetId, number, Arg.Any<UpdateAssetData>(), Arg.Any<CancellationToken>())

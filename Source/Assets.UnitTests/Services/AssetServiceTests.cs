@@ -42,7 +42,7 @@ public class AssetServiceTests {
             Name = "Test Asset",
             Description = "Test Description",
             Type = AssetType.Character,
-            Shape = new(),
+            Display = new(),
         };
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
 
@@ -61,7 +61,7 @@ public class AssetServiceTests {
             Name = "New Asset",
             Description = "New Description",
             Type = AssetType.Creature,
-            Shape = new(),
+            Display = new(),
         };
         _assetStorage.AddAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>())
             .Returns(x => x.Arg<Asset>());
@@ -88,14 +88,14 @@ public class AssetServiceTests {
             Description = "Old Description",
             Type = AssetType.Character,
             OwnerId = _userId,
-            Shape = new(),
+            Display = new(),
         };
 
         var data = new UpdateAssetData {
             Name = "Updated Name",
             Description = "Updated Description",
             Type = AssetType.Creature,
-            Shape = new Shape(),
+            Display = new Display(),
             IsPublished = true,
             IsPublic = true,
         };

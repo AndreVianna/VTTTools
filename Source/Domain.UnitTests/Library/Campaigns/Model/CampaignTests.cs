@@ -15,7 +15,7 @@ public class CampaignTests {
         campaign.Description.Should().BeEmpty();
         campaign.IsPublished.Should().BeFalse();
         campaign.IsPublic.Should().BeFalse();
-        campaign.ImageId.Should().BeNull();
+        campaign.Display.Should().BeNull();
     }
 
     [Fact]
@@ -26,7 +26,11 @@ public class CampaignTests {
         const string description = "Some Description";
         var ownerId = Guid.NewGuid();
         var epicId = Guid.NewGuid();
-        var imageId = Guid.NewGuid();
+        var display = new Display {
+            Id = Guid.NewGuid(),
+            Type = DisplayType.Image,
+            Size = new(100, 100),
+        };
         var adventure = new Adventure {
             Id = Guid.NewGuid(),
         };
@@ -38,7 +42,7 @@ public class CampaignTests {
             Description = description,
             OwnerId = ownerId,
             EpicId = epicId,
-            ImageId = imageId,
+            Display = display,
             IsPublished = true,
             IsPublic = true,
             Adventures = [adventure],
@@ -50,7 +54,7 @@ public class CampaignTests {
         campaign.Description.Should().Be(description);
         campaign.OwnerId.Should().Be(ownerId);
         campaign.EpicId.Should().Be(epicId);
-        campaign.ImageId.Should().Be(imageId);
+        campaign.Display.Should().BeEquivalentTo(display);
         campaign.IsPublished.Should().BeTrue();
         campaign.IsPublic.Should().BeTrue();
         campaign.Adventures.Should().ContainSingle(c => c.Equals(adventure));

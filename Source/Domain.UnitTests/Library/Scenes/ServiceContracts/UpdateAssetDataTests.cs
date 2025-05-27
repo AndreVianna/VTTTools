@@ -6,16 +6,16 @@ public class UpdateAssetDataTests {
         // Arrange
         var original = new UpdateAssetData {
             Name = "Original",
-            Position = new Vector2 { X = 1, Y = 1 },
-            Scale = new Vector2 { X = 1f, Y = 1f },
+            Position = new Point { X = 1, Y = 1 },
+            Scale = 1f,
             Rotation = 0.0f,
             Elevation = 0.0f,
             IsLocked = false,
             ControlledBy = Guid.Empty,
         };
         const string name = "New Name";
-        var position = new Vector2 { X = 10, Y = 20 };
-        var scale = new Vector2 { X = .5f, Y = .5f };
+        var position = new Point { X = 10, Y = 20 };
+        const float scale = .5f;
         const float rotation = 45.0f;
         const float elevation = 10.0f;
         const bool isLocked = true;
@@ -35,12 +35,12 @@ public class UpdateAssetDataTests {
 
         // Assert
         data.Name.Should().Be(name);
-        data.Position.Should().Be(Optional<Vector2>.Some(position));
-        data.Scale.Should().Be(Optional<Vector2>.Some(scale));
-        data.Rotation.Should().Be(Optional<float>.Some(rotation));
-        data.Elevation.Should().Be(Optional<float>.Some(elevation));
-        data.IsLocked.Should().Be(Optional<bool>.Some(isLocked));
-        data.ControlledBy.Should().Be(Optional<Guid?>.Some(controlledBy));
+        data.Position.Value.Should().BeEquivalentTo(position);
+        data.Scale.Value.Should().Be(scale);
+        data.Rotation.Value.Should().Be(rotation);
+        data.Elevation.Value.Should().Be(elevation);
+        data.IsLocked.Value.Should().Be(isLocked);
+        data.ControlledBy.Value.Should().Be(controlledBy);
     }
 
     [Fact]
@@ -48,8 +48,8 @@ public class UpdateAssetDataTests {
         // Arrange
         var data = new UpdateAssetData {
             Name = "Original",
-            Position = new Vector2 { X = 1, Y = 1 },
-            Scale = new Vector2 { X = 1f, Y = 1f },
+            Position = new Point { X = 1, Y = 1 },
+            Scale = 1f,
             Rotation = 0.0f,
             Elevation = 0.0f,
         };
@@ -66,7 +66,7 @@ public class UpdateAssetDataTests {
         // Arrange
         var data = new UpdateAssetData {
             Name = null!,
-            Scale = new Vector2 { X = 1000f, Y = 1000f },
+            Scale = 1000f,
             Rotation = -270,
             Elevation = 2000,
         };

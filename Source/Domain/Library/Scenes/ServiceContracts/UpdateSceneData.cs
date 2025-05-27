@@ -21,9 +21,19 @@ public record UpdateSceneData
     public Optional<string> Description { get; init; }
 
     /// <summary>
-    /// New stage configuration. If not set, the original stage is unchanged.
+    /// New display configuration. If not set, the original display is unchanged.
     /// </summary>
-    public Optional<Stage> Stage { get; init; }
+    public Optional<Display> Stage { get; init; }
+
+    /// <summary>
+    /// New zoom level configuration. If not set, the original zoom level is unchanged.
+    /// </summary>
+    public Optional<float> ZoomLevel { get; init; }
+
+    /// <summary>
+    /// New grid configuration. If not set, the original grid is unchanged.
+    /// </summary>
+    public Optional<Grid> Grid { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);

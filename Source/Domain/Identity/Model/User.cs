@@ -1,6 +1,5 @@
 namespace VttTools.Identity.Model;
 
-// Add profile data for application users by adding properties to the User class
 public class User
     : IdentityUser<Guid> {
     public override Guid Id { get; set; } = Guid.CreateVersion7();

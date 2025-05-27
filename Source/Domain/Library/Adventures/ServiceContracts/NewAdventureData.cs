@@ -26,9 +26,9 @@ public record NewAdventureData
     public AdventureType Type { get; init; }
 
     /// <summary>
-    /// The ID of the image file associated with this Adventure. If not set, the ID of the Adventure is used.
+    /// The display configuration for this Adventure.
     /// </summary>
-    public Guid? ImageId { get; init; }
+    public Display Display { get; init; } = new();
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);

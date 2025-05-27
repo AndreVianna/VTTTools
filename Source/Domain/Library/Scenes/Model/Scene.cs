@@ -9,6 +9,8 @@ public record Scene {
     [MaxLength(4096)]
     public string Description { get; init; } = string.Empty;
     public bool IsPublished { get; set; }
-    public Stage Stage { get; init; } = new();
-    public List<SceneAsset> SceneAssets { get; init; } = [];
+    public Display Stage { get; init; } = new();
+    public float ZoomLevel { get; init; } = 1.0f;
+    public Grid Grid { get; init; } = new();
+    public List<SceneAsset> Assets { get; init; } = [];
 }

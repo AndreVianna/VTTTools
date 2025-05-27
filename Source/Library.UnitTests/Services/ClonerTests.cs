@@ -13,7 +13,11 @@ public class ClonerTests {
             Id = originalId,
             OwnerId = Guid.NewGuid(),
             Name = "Original Adventure",
-            ImageId = Guid.NewGuid(),
+            Display = new() {
+                Id = Guid.NewGuid(),
+                Type = DisplayType.Image,
+                Size = new(50, 50),
+            },
             Description = "Adventure description",
             Type = AdventureType.Survival,
             IsPublished = true,
@@ -22,12 +26,13 @@ public class ClonerTests {
                 new() {
                     Id = sceneId,
                     Name = "Original Scene",
-                    Stage = new() {
-                        ZoomLevel = 1f,
-                        Grid = new() {
-                            Type = GridType.Square,
-                            Cell = new(),
-                        },
+                    ZoomLevel = 1,
+                    Stage = new(),
+                    Grid = new() {
+                        Type = GridType.Square,
+                        CellSize = new(50, 50),
+                        Offset = new(0, 0),
+                        Snap = true,
                     },
                 },
             ],
@@ -43,7 +48,7 @@ public class ClonerTests {
         clone.CampaignId.Should().Be(original.CampaignId);
         clone.Name.Should().Be($"{original.Name} (Copy)");
         clone.Description.Should().Be(original.Description);
-        clone.ImageId.Should().Be(original.ImageId);
+        clone.Display.Should().Be(original.Display);
         clone.Type.Should().Be(original.Type);
         clone.IsPublished.Should().Be(original.IsPublished);
         clone.IsPublic.Should().Be(original.IsPublic);
@@ -54,26 +59,31 @@ public class ClonerTests {
     public void CloneAdventure_WithIncludeScenesFalse_CopiesOnlyBasicProperties() {
         // Arrange
         var originalId = Guid.NewGuid();
+        var sceneId = Guid.NewGuid();
         var original = new Adventure {
             Id = originalId,
-            OwnerId = Guid.NewGuid(), // Different owner
-            CampaignId = _campaignId,
+            OwnerId = Guid.NewGuid(),
             Name = "Original Adventure",
-            ImageId = Guid.NewGuid(),
+            Display = new() {
+                Id = Guid.NewGuid(),
+                Type = DisplayType.Image,
+                Size = new(50, 50),
+            },
             Description = "Adventure description",
             Type = AdventureType.Survival,
             IsPublished = true,
             IsPublic = true,
             Scenes = [
                 new() {
-                    Id = originalId,
+                    Id = sceneId,
                     Name = "Original Scene",
-                    Stage = new() {
-                        ZoomLevel = 1,
-                        Grid = new() {
-                            Type = GridType.Square,
-                            Cell = new(),
-                        },
+                    ZoomLevel = 1,
+                    Stage = new(),
+                    Grid = new() {
+                        Type = GridType.Square,
+                        CellSize = new(50, 50),
+                        Offset = new(0, 0),
+                        Snap = true,
                     },
                 },
             ],
@@ -89,7 +99,7 @@ public class ClonerTests {
         clone.CampaignId.Should().Be(original.CampaignId);
         clone.Name.Should().Be($"{original.Name} (Copy)");
         clone.Description.Should().Be(original.Description);
-        clone.ImageId.Should().Be(original.ImageId);
+        clone.Display.Should().Be(original.Display);
         clone.Type.Should().Be(original.Type);
         clone.IsPublished.Should().Be(original.IsPublished);
         clone.IsPublic.Should().Be(original.IsPublic);
@@ -104,29 +114,30 @@ public class ClonerTests {
             Id = originalId,
             Name = "Original Scene",
             Description = "Original scene description",
-            Stage = new() {
-                ZoomLevel = 1f,
-                Grid = new() {
-                    Type = GridType.Square,
-                    Cell = new(),
-                },
+            ZoomLevel = 1,
+            Stage = new(),
+            Grid = new() {
+                Type = GridType.Square,
+                CellSize = new(50, 50),
+                Offset = new(0, 0),
+                Snap = true,
             },
-            SceneAssets = [
+            Assets = [
                 new() {
                     Name = "Asset 1",
-                    Position = new() { X = 20, Y = 30 },
-                    Scale = new() { X = 0.5f, Y = 0.5f },
-                    Elevation = 1f,
-                    Rotation = 45f,
+                    Position = new(20, 30),
+                    Scale = 0.5f,
+                    Elevation = 1,
+                    Rotation = 45,
                     IsLocked = true,
                     ControlledBy = Guid.NewGuid(),
                 },
                 new() {
                     Name = "Asset 2",
-                    Position = new() { X = 5, Y = 10 },
-                    Scale = new() { X = 1.5f, Y = 1.5f },
-                    Elevation = 2f,
-                    Rotation = -45f,
+                    Position = new(5, 10),
+                    Scale = 1.5f,
+                    Elevation = 2,
+                    Rotation = -45,
                     IsLocked = false,
                     ControlledBy = Guid.NewGuid(),
                 },
@@ -142,7 +153,7 @@ public class ClonerTests {
         clone.Name.Should().Be(original.Name);
         clone.Description.Should().Be(original.Description);
         clone.Stage.Should().BeEquivalentTo(original.Stage);
-        clone.SceneAssets.Should().BeEquivalentTo(original.SceneAssets, options =>
+        clone.Assets.Should().BeEquivalentTo(original.Assets, options =>
             options.WithMapping<SceneAsset>(originalAsset => originalAsset.IsLocked, _ => false)
                    .WithMapping<SceneAsset>(originalAsset => originalAsset.ControlledBy, _ => _userId));
     }
@@ -154,12 +165,12 @@ public class ClonerTests {
         var original = new Scene {
             Id = originalId,
             Name = "Original Scene",
-            SceneAssets = [
+            Assets = [
                 new() {
                     Number = 1,
                     Name = "Asset 1",
-                    Position = new() { X = 20, Y = 30 },
-                    Scale = new() { X = 0.5f, Y = 0.5f },
+                    Position = new(20, 30),
+                    Scale = 0.5f,
                     Elevation = 1f,
                     Rotation = 45f,
                     IsLocked = true,
@@ -173,13 +184,12 @@ public class ClonerTests {
         var clone = Cloner.CloneScene(original, _userId);
 
         // Assert
-        clone.SceneAssets.Should().HaveCount(1);
-        var clonedAsset = clone.SceneAssets.Single();
-        clonedAsset.Name.Should().Be("Asset 1");
-        clonedAsset.Position.X.Should().Be(10);
-        clonedAsset.Position.Y.Should().Be(15);
-        clonedAsset.Scale.Should().Be(1.5f);
-        clonedAsset.IsLocked.Should().BeTrue();
+        clone.Assets.Should().HaveCount(1);
+        clone.Assets[0].Name.Should().Be("Asset 1");
+        clone.Assets[0].Position.X.Should().Be(10);
+        clone.Assets[0].Position.Y.Should().Be(15);
+        clone.Assets[0].Scale.Should().Be(1.5f);
+        clone.Assets[0].IsLocked.Should().BeTrue();
     }
 
     [Fact]
@@ -190,8 +200,8 @@ public class ClonerTests {
         var original = new SceneAsset {
             Number = 1,
             Name = "Original Asset",
-            Position = new() { X = 20, Y = 30 },
-            Scale = new() { X = 0.5f, Y = 0.5f },
+            Position = new(20, 30),
+            Scale = 0.5f,
             Elevation = 1f,
             Rotation = 45f,
             IsLocked = true,

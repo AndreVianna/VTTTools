@@ -8,25 +8,19 @@ public class CreateAssetRequestTests {
             Name = "Title",
             Type = AssetType.Creature,
             Description = "Description",
-            Shape = new() {
-                Type = MediaType.Image,
-                SourceId = Guid.NewGuid(),
-                Size = new() {
-                    X = 10,
-                    Y = 20,
-                },
+            Display = new() {
+                Type = DisplayType.Image,
+                Id = Guid.NewGuid(),
+                Size = new(10, 20),
             },
         };
         const string name = "Other Title";
         const AssetType type = AssetType.NPC;
         const string description = "Other Description";
-        var newDisplay = new Shape {
-            Type = MediaType.Image,
-            SourceId = Guid.NewGuid(),
-            Size = new() {
-                X = 30,
-                Y = 40,
-            },
+        var newDisplay = new Display {
+            Type = DisplayType.Image,
+            Id = Guid.NewGuid(),
+            Size = new(30, 40),
         };
 
         // Act
@@ -34,13 +28,13 @@ public class CreateAssetRequestTests {
             Name = name,
             Type = type,
             Description = description,
-            Shape = newDisplay,
+            Display = newDisplay,
         };
 
         // Assert
         data.Name.Should().Be(name);
         data.Type.Should().Be(type);
         data.Description.Should().Be(description);
-        data.Shape.Should().BeEquivalentTo(newDisplay);
+        data.Display.Should().BeEquivalentTo(newDisplay);
     }
 }

@@ -167,7 +167,7 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            SceneAssets = [
+            Assets = [
                 new() { Number = 1, Name = "Test Asset 1" },
                 new() { Number = 2, Name = "Test Asset 2" },
             ],
@@ -180,7 +180,7 @@ public class SceneServiceTests {
         var result = await _service.GetAssetsAsync(sceneId, _ct);
 
         // Assert
-        result.Should().BeEquivalentTo(scene.SceneAssets);
+        result.Should().BeEquivalentTo(scene.Assets);
         await _sceneStorage.Received(1).GetByIdAsync(sceneId, Arg.Any<CancellationToken>());
     }
 
@@ -207,14 +207,14 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            SceneAssets = [],
+            Assets = [],
         };
         var data = new AddAssetData {
             Name = "New Asset",
-            Position = new Vector2 { X = 20, Y = 30 },
-            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
+            Position = new Point(20, 30),
+            Scale = 0.5f,
+            Elevation = 1,
+            Rotation = 45,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -226,11 +226,11 @@ public class SceneServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        scene.SceneAssets.Should().ContainSingle();
-        var addedAsset = scene.SceneAssets[0];
+        scene.Assets.Should().ContainSingle();
+        var addedAsset = scene.Assets[0];
         addedAsset.Name.Should().Be(data.Name.Value);
         addedAsset.Position.Should().BeEquivalentTo(data.Position.Value);
-        addedAsset.Scale.Should().BeEquivalentTo(data.Scale.Value);
+        addedAsset.Scale.Should().Be(data.Scale.Value);
         addedAsset.Elevation.Should().Be(data.Elevation.Value);
         addedAsset.Rotation.Should().Be(data.Rotation.Value);
         addedAsset.IsLocked.Should().BeFalse();
@@ -246,14 +246,14 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            SceneAssets = [],
+            Assets = [],
         };
         var data = new AddAssetData {
             Name = "New Asset",
-            Position = new Vector2 { X = 20, Y = 30 },
-            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
+            Position = new Point(20, 30),
+            Scale = 0.5f,
+            Elevation = 1,
+            Rotation = 45,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -263,7 +263,7 @@ public class SceneServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
-        scene.SceneAssets.Should().BeEmpty();
+        scene.Assets.Should().BeEmpty();
         await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 
@@ -274,10 +274,10 @@ public class SceneServiceTests {
         var assetId = Guid.NewGuid();
         var data = new AddAssetData {
             Name = "New Asset",
-            Position = new Vector2 { X = 20, Y = 30 },
-            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
+            Position = new Point(20, 30),
+            Scale = 0.5f,
+            Elevation = 1,
+            Rotation = 45,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
@@ -299,11 +299,11 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            SceneAssets = [
+            Assets = [
                 new() {
                     Number = number,
                     Name = "Asset to remove",
-                    Position = new() { X = 1, Y = 1 },
+                    Position = new(1, 1),
                 },
             ],
         };
@@ -315,7 +315,7 @@ public class SceneServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        scene.SceneAssets.Should().BeEmpty();
+        scene.Assets.Should().BeEmpty();
         await _sceneStorage.Received(1).UpdateAsync(scene, Arg.Any<CancellationToken>());
     }
 
@@ -329,11 +329,11 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            SceneAssets = [
+            Assets = [
                 new() {
                     Number = number,
                     Name = "Asset to keep",
-                    Position = new() { X = 1, Y = 1 },
+                    Position = new(1, 1),
                 },
             ],
         };
@@ -345,7 +345,7 @@ public class SceneServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
-        scene.SceneAssets.Should().ContainSingle();
+        scene.Assets.Should().ContainSingle();
         await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 
@@ -375,18 +375,18 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            SceneAssets = [
+            Assets = [
                 new() {
                     Name = "Asset to update",
-                    Position = new() { X = 1, Y = 1 },
+                    Position = new(1, 1),
                 },
             ],
         };
         var data = new UpdateAssetData {
-            Position = new Vector2 { X = 20, Y = 30 },
-            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
+            Position = new Point(20, 30),
+            Scale = 0.5f,
+            Elevation = 1,
+            Rotation = 45,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -396,7 +396,7 @@ public class SceneServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        var updatedAsset = scene.SceneAssets[0];
+        var updatedAsset = scene.Assets[0];
         updatedAsset.Position.Should().BeEquivalentTo(data.Position.Value);
         await _sceneStorage.Received(1).UpdateAsync(scene, Arg.Any<CancellationToken>());
     }
@@ -411,19 +411,19 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            SceneAssets = [
+            Assets = [
                 new() {
                     Number = number,
                     Name = "Asset to not update",
-                    Position = new() { X = 1, Y = 1 },
+                    Position = new(1, 1),
                 },
             ],
         };
         var data = new UpdateAssetData {
-            Position = new Vector2 { X = 20, Y = 30 },
-            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
+            Position = new Point(20, 30),
+            Scale = 0.5f,
+            Elevation = 1,
+            Rotation = 45,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -433,7 +433,7 @@ public class SceneServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
-        var unchangedAsset = scene.SceneAssets[0];
+        var unchangedAsset = scene.Assets[0];
         unchangedAsset.Position.X.Should().Be(1);
         unchangedAsset.Position.Y.Should().Be(1);
         await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
@@ -446,10 +446,10 @@ public class SceneServiceTests {
         var assetId = Guid.NewGuid();
         const int number = 1;
         var data = new UpdateAssetData {
-            Position = new Vector2 { X = 20, Y = 30 },
-            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
+            Position = new Point(20, 30),
+            Scale = 0.5f,
+            Elevation = 1,
+            Rotation = 45,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
@@ -472,19 +472,19 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            SceneAssets = [
+            Assets = [
                 new() {
                     Number = number,
                     Name = "Existing Asset",
-                    Position = new() { X = 1, Y = 1 },
+                    Position = new(1, 1),
                 },
             ],
         };
         var data = new UpdateAssetData {
-            Position = new Vector2 { X = 20, Y = 30 },
-            Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-            Elevation = 1f,
-            Rotation = 45f,
+            Position = new Point(20, 30),
+            Scale = 0.5f,
+            Elevation = 1,
+            Rotation = 45,
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);

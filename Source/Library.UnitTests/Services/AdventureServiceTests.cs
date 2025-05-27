@@ -68,7 +68,7 @@ public class AdventureServiceTests {
         result.Value.Name.Should().Be(request.Name);
         result.Value.Description.Should().Be(request.Description);
         result.Value.Type.Should().Be(request.Type);
-        result.Value.ImageId.Should().BeNull();
+        result.Value.Display.Should().NotBeNull();
         result.Value.IsPublished.Should().BeFalse();
         result.Value.IsPublic.Should().BeFalse();
         result.Value.CampaignId.Should().Be(request.CampaignId);
@@ -161,7 +161,7 @@ public class AdventureServiceTests {
         result.Value.Name.Should().Be(request.Name.Value);
         result.Value.Description.Should().Be(request.Description.Value);
         result.Value.Type.Should().Be(request.Type.Value);
-        result.Value.ImageId.Should().BeNull();
+        result.Value.Display.Should().NotBeNull();
         result.Value.IsPublished.Should().BeTrue();
         result.Value.IsPublic.Should().BeTrue();
         result.Value.CampaignId.Should().Be(request.CampaignId.Value);
@@ -197,7 +197,7 @@ public class AdventureServiceTests {
         result.Value.Name.Should().Be(request.Name.Value);
         result.Value.Description.Should().Be(adventure.Description);
         result.Value.Type.Should().Be(adventure.Type);
-        result.Value.ImageId.Should().BeNull();
+        result.Value.Display.Should().NotBeNull();
         result.Value.IsPublished.Should().BeFalse();
         result.Value.IsPublic.Should().BeFalse();
         result.Value.CampaignId.Should().Be(adventure.CampaignId);
@@ -323,20 +323,16 @@ public class AdventureServiceTests {
             new Scene {
                 Id = Guid.NewGuid(),
                 Name = "Scene 1",
-                Stage = new() {
-                    ZoomLevel = 1f,
-                    Grid = new() {
-                        Type = GridType.Square,
-                        Cell = new(),
-                    },
-                },
-                SceneAssets = [
+                ZoomLevel = 1,
+                Grid = new(),
+                Stage = new(),
+                Assets = [
                     new SceneAsset {
                         Name = "Asset 1",
-                        Position = new Vector2 { X = 20, Y = 30 },
-                        Scale = new Vector2 { X = 0.5f, Y = 0.5f },
-                        Elevation = 1f,
-                        Rotation = 45f,
+                        Position = new(20, 30),
+                        Scale = 0.5f,
+                        Elevation = 1,
+                        Rotation = 45,
                         IsLocked = false,
                     },
                 ],
@@ -355,7 +351,7 @@ public class AdventureServiceTests {
         result.Value.Name.Should().Be(request.Name.Value);
         result.Value.Description.Should().Be(request.Description.Value);
         result.Value.Type.Should().Be(request.Type.Value);
-        result.Value.ImageId.Should().BeNull();
+        result.Value.Display.Should().NotBeNull();
         result.Value.IsPublished.Should().BeTrue();
         result.Value.IsPublic.Should().BeTrue();
         result.Value.CampaignId.Should().Be(adventure.CampaignId);
@@ -433,13 +429,9 @@ public class AdventureServiceTests {
         var request = new ClonedSceneData {
             Name = "New Scene",
             Description = "New scene description",
-            Stage = new Stage {
-                ZoomLevel = 1f,
-                Grid = new() {
-                    Type = GridType.Square,
-                    Cell = new(),
-                },
-            },
+            ZoomLevel = 1,
+            Grid = new(),
+            Stage = new(),
         };
         var adventure = new Adventure {
             Id = adventureId,

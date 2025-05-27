@@ -18,7 +18,9 @@ internal static class SceneHandlers {
             AdventureId = request.AdventureId,
             Name = request.Name,
             Description = request.Description,
-            Stage = request.Stage,
+            Stage = request.Display,
+            ZoomLevel = request.ZoomLevel,
+            Grid = request.Grid,
         };
         var result = await sceneService.UpdateSceneAsync(userId, id, data);
         return result.IsSuccessful

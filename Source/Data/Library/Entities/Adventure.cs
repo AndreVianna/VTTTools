@@ -34,7 +34,7 @@ public class Adventure {
     /// <summary>
     /// The id of the image file associated with this adventure. If not set the id if the adventure is used.
     /// </summary>
-    public Guid? ImageId { get; set; }
+    public Display Display { get; set; } = new();
     /// <summary>
     /// Indicates whether the adventure is published (visible) or not (hidden).
     /// </summary>

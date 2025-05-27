@@ -16,10 +16,10 @@ internal static class Mapper {
             Name = entity.Name,
             Description = entity.Description,
             Type = entity.Type,
-            ImageId = entity.ImageId,
+            Display = entity.Display,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
-            Scenes = entity.Scenes.AsQueryable().Select(AsScene!).ToList()!,
+            Scenes = entity.Scenes.AsQueryable().Select(AsScene!).ToList(),
         };
 
     internal static Expression<Func<SceneEntity, Scene>> AsScene = entity
@@ -28,7 +28,7 @@ internal static class Mapper {
             Name = entity.Name,
             Description = entity.Description,
             Stage = entity.Stage,
-            SceneAssets = entity.SceneAssets.AsQueryable().Select(AsSceneAsset!).ToList()!,
+            Assets = entity.SceneAssets.AsQueryable().Select(AsSceneAsset!).ToList(),
         };
 
     internal static Expression<Func<SceneAssetEntity, SceneAsset>> AsSceneAsset = entity
@@ -40,7 +40,9 @@ internal static class Mapper {
             Name = entity.Name,
             Position = entity.Position,
             Scale = entity.Scale,
-            Shape = entity.Asset.Shape,
+            Display = entity.Display,
+            Elevation = entity.Elevation,
+            Rotation = entity.Rotation,
             IsLocked = entity.IsLocked,
             ControlledBy = entity.ControlledBy,
         };
@@ -53,7 +55,7 @@ internal static class Mapper {
             Name = entity.Name,
             Description = entity.Description,
             Type = entity.Type,
-            ImageId = entity.ImageId,
+            Display = entity.Display,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
             Scenes = entity.Scenes.Select(ToModel).ToList()!,
@@ -67,7 +69,7 @@ internal static class Mapper {
             Name = model.Name,
             Description = model.Description,
             Type = model.Type,
-            ImageId = model.ImageId,
+            Display = model.Display,
             IsPublic = model.IsPublic,
             IsPublished = model.IsPublished,
             Scenes = model.Scenes.ConvertAll(s => s.ToEntity(model.Id)),
@@ -80,7 +82,7 @@ internal static class Mapper {
         entity.Name = model.Name;
         entity.Description = model.Description;
         entity.Type = model.Type;
-        entity.ImageId = model.ImageId;
+        entity.Display = model.Display;
         entity.IsPublic = model.IsPublic;
         entity.IsPublished = model.IsPublished;
         var existingScenes = entity.Scenes.Join(model.Scenes, se => se.Id, sm => sm.Id, UpdateFrom);
@@ -88,13 +90,15 @@ internal static class Mapper {
         entity.Scenes = [.. existingScenes.Union(newScenes)];
     }
 
-    internal static Scene? ToModel(this SceneEntity? scene)
-        => scene is null ? null : new() {
-            Id = scene.Id,
-            Name = scene.Name,
-            Description = scene.Description,
-            Stage = scene.Stage,
-            SceneAssets = [..scene.SceneAssets.Select(sa => sa.ToModel()!)],
+    internal static Scene? ToModel(this SceneEntity? entity)
+        => entity is null ? null : new() {
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            Stage = entity.Stage,
+            ZoomLevel = entity.ZoomLevel,
+            Grid = entity.Grid,
+            Assets = [..entity.SceneAssets.Select(sa => sa.ToModel()!)],
         };
 
     internal static SceneEntity ToEntity(this Scene model, Guid? adventureId = null)
@@ -105,7 +109,9 @@ internal static class Mapper {
             Description = model.Description,
             IsPublished = model.IsPublished,
             Stage = model.Stage,
-            SceneAssets = model.SceneAssets.ConvertAll<SceneAssetEntity>(sa => ToEntity(sa, model.Id)),
+            ZoomLevel = model.ZoomLevel,
+            Grid = model.Grid,
+            SceneAssets = model.Assets.ConvertAll<SceneAssetEntity>(sa => ToEntity(sa, model.Id)),
         };
 
     internal static SceneEntity UpdateFrom(this SceneEntity entity, Scene model) {
@@ -114,8 +120,10 @@ internal static class Mapper {
         entity.Description = model.Description;
         entity.IsPublished = model.IsPublished;
         entity.Stage = model.Stage;
-        var existingAssets = entity.SceneAssets.Join<SceneAssetEntity, SceneAsset, Guid, SceneAssetEntity>(model.SceneAssets, esa => esa.AssetId, msa => msa.Id, (esa, msa) => UpdateFrom(esa, entity.Id, msa));
-        var newAssets = model.SceneAssets.Where(sa => entity.SceneAssets.All(ea => ea.AssetId != sa.Id)).Select<SceneAsset, SceneAssetEntity>(msa => ToEntity(msa, entity.Id));
+        entity.ZoomLevel = model.ZoomLevel;
+        entity.Grid = model.Grid;
+        var existingAssets = entity.SceneAssets.Join<SceneAssetEntity, SceneAsset, Guid, SceneAssetEntity>(model.Assets, esa => esa.AssetId, msa => msa.Id, (esa, msa) => UpdateFrom(esa, entity.Id, msa));
+        var newAssets = model.Assets.Where(sa => entity.SceneAssets.All(ea => ea.AssetId != sa.Id)).Select<SceneAsset, SceneAssetEntity>(msa => ToEntity(msa, entity.Id));
         entity.SceneAssets = [.. existingAssets.Union(newAssets)];
         return entity;
     }
@@ -129,7 +137,9 @@ internal static class Mapper {
             Name = entity.Name,
             Position = entity.Position,
             Scale = entity.Scale,
-            Shape = entity.Asset.Shape,
+            Display = entity.Display,
+            Elevation = entity.Elevation,
+            Rotation = entity.Rotation,
             IsLocked = entity.IsLocked,
             ControlledBy = entity.ControlledBy,
         };
@@ -142,6 +152,7 @@ internal static class Mapper {
             Name = model.Name,
             Position = model.Position,
             Scale = model.Scale,
+            Display = model.Display,
             Elevation = model.Elevation,
             Rotation = model.Rotation,
             IsLocked = model.IsLocked,
@@ -155,6 +166,7 @@ internal static class Mapper {
         entity.Name = model.Name;
         entity.Position = model.Position;
         entity.Scale = model.Scale;
+        entity.Display = model.Display;
         entity.Elevation = model.Elevation;
         entity.Rotation = model.Rotation;
         entity.IsLocked = model.IsLocked;

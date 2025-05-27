@@ -11,7 +11,7 @@ public class SceneTests {
         scene.Name.Should().BeEmpty();
         scene.Description.Should().BeEmpty();
         scene.Stage.Should().NotBeNull();
-        scene.SceneAssets.Should().BeEmpty();
+        scene.Assets.Should().BeEmpty();
     }
 
     [Fact]
@@ -20,7 +20,11 @@ public class SceneTests {
         var id = Guid.NewGuid();
         const string name = "Some Scene";
         const string description = "Some Description";
-        var stage = new Stage();
+        var display = new Display {
+            Id = Guid.NewGuid(),
+            Type = DisplayType.Image,
+            Size = new(800, 600),
+        };
         var sceneAsset = new SceneAsset();
 
         // Act
@@ -28,15 +32,15 @@ public class SceneTests {
             Id = id,
             Name = name,
             Description = description,
-            Stage = stage,
-            SceneAssets = [sceneAsset],
+            Stage = display,
+            Assets = [sceneAsset],
         };
 
         // Assert
         scene.Id.Should().Be(id);
         scene.Name.Should().Be(name);
         scene.Description.Should().Be(description);
-        scene.Stage.Should().BeSameAs(stage);
-        scene.SceneAssets.Should().ContainSingle(ea => ea.Equals(sceneAsset));
+        scene.Stage.Should().BeEquivalentTo(display);
+        scene.Assets.Should().ContainSingle(ea => ea.Equals(sceneAsset));
     }
 }

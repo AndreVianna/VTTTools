@@ -4,7 +4,7 @@ public record CloneAssetData
     : Data {
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
-    public Optional<Shape> Shape { get; set; }
+    public Optional<Display> Display { get; set; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
