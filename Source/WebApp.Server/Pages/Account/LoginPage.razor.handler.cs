@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Account;
+namespace VttTools.WebApp.Server.Pages.Account;
 
 public class LoginPageHandler(LoginPage page)
     : PageHandler<LoginPageHandler, LoginPage>(page) {

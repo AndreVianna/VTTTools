@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Game.Schedule;
+namespace VttTools.WebApp.Server.Pages.Game.Schedule;
 
 public sealed class GameSessionsPageHandler(GameSessionsPage page)
     : PageHandler<GameSessionsPageHandler, GameSessionsPage>(page) {

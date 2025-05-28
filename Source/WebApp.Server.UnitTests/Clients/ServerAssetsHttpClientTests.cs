@@ -1,3 +1,5 @@
+using VttTools.WebApp.Server.Clients;
+
 using UpdateAssetRequest = VttTools.Assets.ApiContracts.UpdateAssetRequest;
 
 namespace VttTools.WebApp.Clients;

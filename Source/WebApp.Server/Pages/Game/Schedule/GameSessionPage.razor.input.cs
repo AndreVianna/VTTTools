@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Game.Schedule;
+namespace VttTools.WebApp.Server.Pages.Game.Schedule;
 
 internal class GameSessionInputModel {
     public string Title { get; set; } = string.Empty;

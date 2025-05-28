@@ -1,3 +1,5 @@
+using VttTools.WebApp.Server.Clients;
+
 namespace VttTools.WebApp.Clients;
 
 public class ServerGameHttpClientTests {

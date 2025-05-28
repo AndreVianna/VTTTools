@@ -1,4 +1,4 @@
-﻿namespace VttTools.WebApp.Pages.Account;
+﻿namespace VttTools.WebApp.Server.Pages.Account;
 
 public partial class ExternalLoginPage {
     public const string LoginCallbackAction = "LoginCallback";

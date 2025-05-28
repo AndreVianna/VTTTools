@@ -1,6 +1,6 @@
-﻿namespace VttTools.WebApp.Clients;
+﻿namespace VttTools.WebApp.Server.Clients;
 
-internal class ServerGameHttpClient(HttpClient client, JsonSerializerOptions options)
+public class ServerGameHttpClient(HttpClient client, JsonSerializerOptions options)
     : IGameHttpClient {
     public async Task<GameSession[]> GetGameSessionsAsync() {
         var sessions = IsNotNull(await client.GetFromJsonAsync<GameSession[]>("/api/sessions", options));

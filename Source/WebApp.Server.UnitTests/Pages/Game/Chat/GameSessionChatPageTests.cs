@@ -1,3 +1,5 @@
+using VttTools.WebApp.Server.Pages.Game.Chat;
+
 namespace VttTools.WebApp.Pages.Game.Chat;
 
 public class GameSessionChatPageTests

@@ -1,3 +1,5 @@
+using VttTools.WebApp.Server.Pages.Account;
+
 namespace VttTools.WebApp.Pages.Account;
 
 public class LoginPageHandlerTests

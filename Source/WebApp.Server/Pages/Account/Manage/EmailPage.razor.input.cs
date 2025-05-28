@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Account.Manage;
+namespace VttTools.WebApp.Server.Pages.Account.Manage;
 
 internal class ChangeEmailInputModel {
     public string CurrentEmail { get; set; } = null!;

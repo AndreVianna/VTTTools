@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Account;
+namespace VttTools.WebApp.Server.Pages.Account;
 
 internal class RegisterPageState {
     public RegisterInputModel Input { get; set; } = new();

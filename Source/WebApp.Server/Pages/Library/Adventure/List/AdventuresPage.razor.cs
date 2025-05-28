@@ -1,4 +1,4 @@
-﻿namespace VttTools.WebApp.Pages.Library.Adventure.List;
+﻿namespace VttTools.WebApp.Server.Pages.Library.Adventure.List;
 
 public partial class AdventuresPage {
     [Inject]

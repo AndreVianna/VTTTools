@@ -1,6 +1,6 @@
 using VttTools.WebApp.Contracts.Library.Adventure;
 
-namespace VttTools.WebApp.Pages.Library.Adventure.Details;
+namespace VttTools.WebApp.Server.Pages.Library.Adventure.Details;
 
 public partial class AdventurePage {
     [Inject]

@@ -1,4 +1,4 @@
-﻿namespace VttTools.WebApp.Components.Account;
+﻿namespace VttTools.WebApp.Server.Components;
 
 public partial class StatusMessage {
     [Parameter]

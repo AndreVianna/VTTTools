@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Assets;
+namespace VttTools.WebApp.Server.Pages.Assets;
 
 internal class AssetsPageState {
     internal List<AssetListItem> Assets { get; set; } = [];

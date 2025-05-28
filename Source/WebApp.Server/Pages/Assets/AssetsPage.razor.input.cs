@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Assets;
+namespace VttTools.WebApp.Server.Pages.Assets;
 
 internal sealed class AssetsInputModel {
     public Guid Id { get; set; }

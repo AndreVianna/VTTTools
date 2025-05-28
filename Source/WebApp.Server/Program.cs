@@ -1,21 +1,15 @@
-using VttTools.WebApp.WebAssembly.Clients;
-
 using static VttTools.Data.Options.ApplicationDbContextOptions;
-using static VttTools.Middlewares.UserIdentificationOptions;
 
-using MvcJsonOptions = Microsoft.AspNetCore.Mvc.JsonOptions;
 using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
-namespace VttTools.WebApp;
+namespace VttTools.WebApp.Server;
 
 [ExcludeFromCodeCoverage]
 internal static class Program {
     public static void Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
-        builder.Host.VerifyDependencies();
         builder.Services.AddRazorComponents()
                .AddInteractiveServerComponents()
-               .AddInteractiveWebAssemblyComponents()
                .AddAuthenticationStateSerialization();
 
         builder.Services.AddServiceDiscovery();
@@ -45,12 +39,6 @@ internal static class Program {
             .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
         builder.Services.AddHttpClient<IGameHttpClient, ServerGameHttpClient>("Server", static client
             => client.BaseAddress = new("https+http://game-api"))
-            .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
-        builder.Services.AddHttpClient<IAssetsHttpClient, ClientAssetsHttpClient>("Client", static client
-            => client.BaseAddress = new("https://localhost:7171"))
-            .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
-        builder.Services.AddHttpClient<ILibraryHttpClient, ClientLibraryHttpClient>("Client", static client
-            => client.BaseAddress = new("https://localhost:7172"))
             .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
 
         AddDefaultHealthChecks(builder);
@@ -83,29 +71,29 @@ internal static class Program {
 
         var app = builder.Build();
 
-        if (app.Environment.IsDevelopment()) {
-            app.UseWebAssemblyDebugging();
-            app.UseDeveloperExceptionPage();
-        }
-        else {
-            app.UseExceptionHandler("/error", createScopeForErrors: true);
-            app.UseStatusCodePagesWithReExecute("/status/{0}");
-            app.UseHsts();
-        }
+        //if (app.Environment.IsDevelopment()) {
+        //    app.UseWebAssemblyDebugging();
+        //    app.UseDeveloperExceptionPage();
+        //}
+        //else {
+        //    app.UseExceptionHandler("/error", createScopeForErrors: true);
+        //    app.UseStatusCodePagesWithReExecute("/status/{0}");
+        //    app.UseHsts();
+        //}
 
-        app.UseHttpsRedirection();
+        //app.UseHttpsRedirection();
 
-        app.UseRouting();
-        app.UseAuthentication();
-        app.UseAuthorization();
-        app.UseAntiforgery();
+        //app.UseRouting();
+        //app.UseAuthentication();
+        //app.UseAuthorization();
+        //app.UseAntiforgery();
 
-        app.MapStaticAssets();
-        app.MapRazorComponents<App>()
-           .AddInteractiveServerRenderMode()
-           .AddInteractiveWebAssemblyRenderMode()
-           .AddAdditionalAssemblies(typeof(VttTools.WebApp.WebAssembly._Imports).Assembly);
-        MapEndpoints(app);
+        //app.MapStaticAssets();
+        //app.MapRazorComponents<App>()
+        //   .AddInteractiveServerRenderMode()
+        //   .AddInteractiveWebAssemblyRenderMode()
+        //   .AddAdditionalAssemblies(typeof(VttTools.WebApp.WebAssembly._Imports).Assembly);
+        //MapEndpoints(app);
 
         app.Run();
     }

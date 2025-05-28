@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Utilities;
+namespace VttTools.WebApp.Server.Utilities;
 
 public class ServerAuthenticationDelegatingHandler(IHttpContextAccessor contextAccessor)
     : DelegatingHandler {

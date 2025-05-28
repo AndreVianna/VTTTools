@@ -1,6 +1,6 @@
-namespace VttTools.WebApp.Utilities;
+namespace VttTools.WebApp.Server.Utilities;
 
-internal sealed class IdentityRevalidatingAuthenticationStateProvider(
+public sealed class IdentityRevalidatingAuthenticationStateProvider(
         ILoggerFactory loggerFactory,
         IServiceScopeFactory scopeFactory,
         IOptions<IdentityOptions> options)

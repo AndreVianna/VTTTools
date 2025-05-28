@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Game.Chat;
+namespace VttTools.WebApp.Server.Pages.Game.Chat;
 
 public partial class GameSessionChatPage {
     [Inject]

@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages;
+namespace VttTools.WebApp.Server.Pages;
 
 public sealed class ErrorPageHandler(ErrorPage page)
     : PageHandler<ErrorPageHandler, ErrorPage>(page) {

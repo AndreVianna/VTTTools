@@ -1,6 +1,6 @@
 using VttTools.WebApp.Contracts.Game.Chat.Models;
 
-namespace VttTools.WebApp.Pages.Game.Chat;
+namespace VttTools.WebApp.Server.Pages.Game.Chat;
 
 public sealed class GameSessionChatPageHandler(GameSessionChatPage page)
     : PageHandler<GameSessionChatPageHandler, GameSessionChatPage>(page)

@@ -1,4 +1,4 @@
-﻿namespace VttTools.WebApp.Pages.Account.Manage;
+﻿namespace VttTools.WebApp.Server.Pages.Account.Manage;
 
 // ReSharper disable once InconsistentNaming
 public partial class Disable2faPage {

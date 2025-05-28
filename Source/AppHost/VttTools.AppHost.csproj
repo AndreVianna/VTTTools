@@ -23,7 +23,7 @@
     <ProjectReference Include="..\Library\VttTools.Library.csproj" />
     <ProjectReference Include="..\Game\VttTools.Game.csproj" />
     <ProjectReference Include="..\Media\VttTools.Media.csproj" />
-    <ProjectReference Include="..\WebApp.Server\VttTools.WebApp.Server.csproj" />
+    <ProjectReference Include="..\WebApp\VttTools.WebApp.csproj" />
   </ItemGroup>
 
 </Project>

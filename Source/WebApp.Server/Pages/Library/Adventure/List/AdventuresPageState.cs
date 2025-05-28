@@ -1,6 +1,7 @@
 using VttTools.WebApp.Contracts.Library.Adventure;
+using VttTools.WebApp.Server.Shared.Models;
 
-namespace VttTools.WebApp.Pages.Library.Adventure.List;
+namespace VttTools.WebApp.Server.Pages.Library.Adventure.List;
 
 internal class AdventuresPageState {
     /// <summary>

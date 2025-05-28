@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Components;
+namespace VttTools.WebApp.Server.Components;
 
 public partial class NavMenu
     : IAsyncDisposable {

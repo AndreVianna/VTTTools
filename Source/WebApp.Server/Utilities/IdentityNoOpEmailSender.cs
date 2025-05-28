@@ -1,6 +1,6 @@
-namespace VttTools.WebApp.Utilities;
+namespace VttTools.WebApp.Server.Utilities;
 
-internal sealed class IdentityNoOpEmailSender
+public sealed class IdentityNoOpEmailSender
     : IEmailSender<User> {
     private readonly IEmailSender _emailSender = new NoOpEmailSender();
 

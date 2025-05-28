@@ -1,7 +1,7 @@
 using VttTools.WebApp.Contracts.Library.Adventure;
 using VttTools.WebApp.Contracts.Library.Scenes;
 
-namespace VttTools.WebApp.Pages.Game.Schedule;
+namespace VttTools.WebApp.Server.Pages.Game.Schedule;
 
 internal class GameSessionsInputModel {
     public string Subject { get; set; } = string.Empty;

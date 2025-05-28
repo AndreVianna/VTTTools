@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Account;
+namespace VttTools.WebApp.Server.Pages.Account;
 
 public class ConfirmEmailPageHandler(ConfirmEmailPage page)
     : PageHandler<ConfirmEmailPageHandler, ConfirmEmailPage>(page) {

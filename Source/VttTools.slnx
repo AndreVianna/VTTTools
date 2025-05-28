@@ -13,6 +13,7 @@
     <Project Path="Library/VttTools.Library.csproj" />
   </Folder>
   <Folder Name="/Source/3 WebApp/">
+    <Project Path="WebApp/VttTools.WebApp.csproj" />
     <Project Path="WebApp.Common/VttTools.WebApp.Common.csproj" />
     <Project Path="WebApp.Server/VttTools.WebApp.Server.csproj" />
     <Project Path="WebApp.WebAssembly/VttTools.WebApp.WebAssembly.csproj" />

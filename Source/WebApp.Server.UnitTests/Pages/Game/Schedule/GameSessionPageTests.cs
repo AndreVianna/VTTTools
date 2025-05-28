@@ -1,3 +1,5 @@
+using VttTools.WebApp.Server.Pages.Game.Schedule;
+
 namespace VttTools.WebApp.Pages.Game.Schedule;
 
 public class GameSessionPageTests

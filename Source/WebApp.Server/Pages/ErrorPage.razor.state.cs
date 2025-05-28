@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages;
+namespace VttTools.WebApp.Server.Pages;
 
 internal class ErrorPageState() {
     public ErrorPageState(string? requestId)

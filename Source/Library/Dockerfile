@@ -11,19 +11,19 @@ EXPOSE 8082
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["LibraryService/VttTools.LibraryService.csproj", "LibraryService/"]
-RUN dotnet restore "./LibraryService/VttTools.LibraryService.csproj"
+COPY ["Library/VttTools.Library.csproj", "Library/"]
+RUN dotnet restore "./Library/VttTools.Library.csproj"
 COPY . .
-WORKDIR "/src/LibraryService"
-RUN dotnet build "./VttTools.LibraryService.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Library"
+RUN dotnet build "./VttTools.Library.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./VttTools.LibraryService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./VttTools.Library.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "VttTools.LibraryService.dll"]
+ENTRYPOINT ["dotnet", "VttTools.Library.dll"]

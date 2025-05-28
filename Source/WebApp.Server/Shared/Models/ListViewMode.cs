@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Shared.Models;
+namespace VttTools.WebApp.Server.Shared.Models;
 
 /// <summary>
 /// The display mode for the adventures list.

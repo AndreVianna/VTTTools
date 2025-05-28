@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Account;
+namespace VttTools.WebApp.Server.Pages.Account;
 
 public class RegisterPageHandler(RegisterPage page)
     : PageHandler<RegisterPageHandler, RegisterPage>(page) {

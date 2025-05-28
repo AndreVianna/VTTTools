@@ -1,3 +1,5 @@
+using VttTools.WebApp.Server.Pages.Assets;
+
 namespace VttTools.WebApp.Pages.Assets;
 
 public class AssetsPageTests

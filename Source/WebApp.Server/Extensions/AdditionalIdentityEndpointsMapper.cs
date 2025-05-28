@@ -1,8 +1,6 @@
-// ReSharper disable once CheckNamespace
+namespace VttTools.WebApp.Server.Extensions;
 
-namespace VttTools.WebApp.Extensions;
-
-internal static class AdditionalIdentityEndpointsMapper {
+public static class AdditionalIdentityEndpointsMapper {
     public static IEndpointConventionBuilder MapAdditionalIdentityEndpoints(this IEndpointRouteBuilder endpoints) {
         ArgumentNullException.ThrowIfNull(endpoints);
 

@@ -1,8 +1,8 @@
 ﻿using UpdateAssetRequest = VttTools.Assets.ApiContracts.UpdateAssetRequest;
 
-namespace VttTools.WebApp.Clients;
+namespace VttTools.WebApp.Server.Clients;
 
-internal class ServerAssetsHttpClient(HttpClient client, JsonSerializerOptions options)
+public class ServerAssetsHttpClient(HttpClient client, JsonSerializerOptions options)
     : IAssetsHttpClient {
     public async Task<AssetListItem[]> GetAssetsAsync() {
         var assets = IsNotNull(await client.GetFromJsonAsync<Asset[]>("/api/assets", options));

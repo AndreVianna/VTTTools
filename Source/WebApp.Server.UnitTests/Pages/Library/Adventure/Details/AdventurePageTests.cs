@@ -1,3 +1,5 @@
+using VttTools.WebApp.Server.Pages.Library.Adventure.Details;
+
 namespace VttTools.WebApp.Pages.Library.Adventure.Details;
 
 [Trait("Category", "UI")]

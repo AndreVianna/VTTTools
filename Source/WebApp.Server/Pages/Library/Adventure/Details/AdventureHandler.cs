@@ -1,4 +1,6 @@
-namespace VttTools.WebApp.Pages.Library.Adventure.Details;
+using VttTools.WebApp.Server.Shared.Models;
+
+namespace VttTools.WebApp.Server.Pages.Library.Adventure.Details;
 
 public class AdventureHandler(AdventurePage page)
     : PageHandler<AdventureHandler, AdventurePage>(page) {

@@ -1,4 +1,4 @@
-﻿namespace VttTools.WebApp.Pages.Account;
+﻿namespace VttTools.WebApp.Server.Pages.Account;
 
 public partial class ResetPasswordPage {
     private IEnumerable<IdentityError>? _identityErrors;

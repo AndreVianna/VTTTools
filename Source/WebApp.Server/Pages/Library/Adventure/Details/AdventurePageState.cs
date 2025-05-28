@@ -1,6 +1,7 @@
 using VttTools.WebApp.Contracts.Library.Adventure;
+using VttTools.WebApp.Server.Shared.Models;
 
-namespace VttTools.WebApp.Pages.Library.Adventure.Details;
+namespace VttTools.WebApp.Server.Pages.Library.Adventure.Details;
 
 internal class AdventurePageState {
     public DetailsPageMode Mode { get; set; }

@@ -1,3 +1,5 @@
+using VttTools.WebApp.Server.Pages.Account.Manage;
+
 namespace VttTools.WebApp.Pages.Account.Manage;
 
 public class ChangePasswordPageTests

@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Account.Manage;
+namespace VttTools.WebApp.Server.Pages.Account.Manage;
 
 internal class ProfileInputModel {
     [MaxLength(128)]

@@ -1,3 +1,6 @@
+using VttTools.WebApp.Server.Pages.Library.Adventure.Details;
+using VttTools.WebApp.Server.Shared.Models;
+
 #pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable BL0005
 #pragma warning restore IDE0079 // Remove unnecessary suppression

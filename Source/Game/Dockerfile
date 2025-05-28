@@ -11,19 +11,19 @@ EXPOSE 8083
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["GameService/VttTools.GameService.csproj", "GameService/"]
-RUN dotnet restore "./GameService/VttTools.GameService.csproj"
+COPY ["Game/VttTools.Game.csproj", "Game/"]
+RUN dotnet restore "./Game/VttTools.Game.csproj"
 COPY . .
-WORKDIR "/src/GameService"
-RUN dotnet build "./VttTools.GameService.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Game"
+RUN dotnet build "./VttTools.Game.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./VttTools.GameService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./VttTools.Game.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "VttTools.GameService.dll"]
+ENTRYPOINT ["dotnet", "VttTools.Game.dll"]

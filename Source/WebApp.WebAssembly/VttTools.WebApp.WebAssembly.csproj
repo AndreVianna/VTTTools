@@ -5,6 +5,8 @@
     <LangVersion>preview</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>5a1130b0-c8ac-4469-8a0e-9520b1c29bfd</UserSecretsId>
+    <Configurations>Debug;Release;XUnitV3</Configurations>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
   </PropertyGroup>
@@ -23,6 +25,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Domain\VttTools.Domain.csproj" />
     <ProjectReference Include="..\WebApp.Common\VttTools.WebApp.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).UnitTests" />
   </ItemGroup>
 
 </Project>

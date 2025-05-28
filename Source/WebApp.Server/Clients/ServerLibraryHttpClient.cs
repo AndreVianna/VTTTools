@@ -3,9 +3,9 @@ using VttTools.WebApp.Contracts.Library.Scenes;
 
 using UpdateAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateAssetRequest;
 
-namespace VttTools.WebApp.Clients;
+namespace VttTools.WebApp.Server.Clients;
 
-internal class ServerLibraryHttpClient(HttpClient client, JsonSerializerOptions options)
+public class ServerLibraryHttpClient(HttpClient client, JsonSerializerOptions options)
     : ILibraryHttpClient {
     public async Task<AdventureListItem[]> GetAdventuresAsync() {
         var adventures = IsNotNull(await client.GetFromJsonAsync<Adventure[]>("/api/adventures", options));

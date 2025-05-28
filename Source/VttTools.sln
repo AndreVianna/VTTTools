@@ -69,6 +69,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VttTools.Media", "Media\Vtt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VttTools.Media.UnitTests", "Media.UnitTests\VttTools.Media.UnitTests.csproj", "{083C4D7B-2A52-4F24-B19A-78ACB14B3537}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VttTools.WebApp", "WebApp\VttTools.WebApp.csproj", "{4B311136-EAC7-1BBC-E7FD-FDD35BA2AFE0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -208,6 +210,12 @@ Global
 		{083C4D7B-2A52-4F24-B19A-78ACB14B3537}.Release|Any CPU.Build.0 = Release|Any CPU
 		{083C4D7B-2A52-4F24-B19A-78ACB14B3537}.XUnitV3|Any CPU.ActiveCfg = Release|Any CPU
 		{083C4D7B-2A52-4F24-B19A-78ACB14B3537}.XUnitV3|Any CPU.Build.0 = Release|Any CPU
+		{4B311136-EAC7-1BBC-E7FD-FDD35BA2AFE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B311136-EAC7-1BBC-E7FD-FDD35BA2AFE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B311136-EAC7-1BBC-E7FD-FDD35BA2AFE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B311136-EAC7-1BBC-E7FD-FDD35BA2AFE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B311136-EAC7-1BBC-E7FD-FDD35BA2AFE0}.XUnitV3|Any CPU.ActiveCfg = Release|Any CPU
+		{4B311136-EAC7-1BBC-E7FD-FDD35BA2AFE0}.XUnitV3|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -244,6 +252,7 @@ Global
 		{A36A513A-37AA-4707-821A-71E509D70DFD} = {EA8A24C3-56E2-F9D5-7FF9-AEE82BFD265C}
 		{DC7E83A6-6B50-4EEB-983E-7202AC4600DA} = {13EB88BE-D638-3FD1-5B25-B6832C7D404C}
 		{083C4D7B-2A52-4F24-B19A-78ACB14B3537} = {44F4ADE7-B310-EFC7-FAD5-FF6CF55D9412}
+		{4B311136-EAC7-1BBC-E7FD-FDD35BA2AFE0} = {8946637C-2E62-B404-9E7B-89FE0428F01C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {731C041F-9097-4ACA-A3E9-E5CC1CCABEDF}

@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.Pages.Assets;
+namespace VttTools.WebApp.Server.Pages.Assets;
 
 public class AssetsPageHandler(AssetsPage page)
     : PageHandler<AssetsPageHandler, AssetsPage>(page) {

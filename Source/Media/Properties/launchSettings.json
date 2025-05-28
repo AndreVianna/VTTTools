@@ -1,12 +1,36 @@
 {
   "profiles": {
-    "VttTools.Media": {
+    "http": {
       "commandName": "Project",
-      "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:56375;http://localhost:56376"
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5154",
+      "hotReloadEnabled": false,
+      "nativeDebugging": true,
+      "sqlDebugging": true
+    },
+    "https": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7174",
+      "hotReloadEnabled": false,
+      "nativeDebugging": true,
+      "sqlDebugging": true
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "environmentVariables": {
+        "ASPNETCORE_HTTPS_PORTS": "8084"
+      },
+      "publishAllPorts": true,
+      "useSSL": true
     }
-  }
+  },
+  "$schema": "https://json.schemastore.org/launchsettings.json"
 }
