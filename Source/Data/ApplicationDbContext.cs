@@ -20,7 +20,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         EpicSchemaBuilder.ConfigureModel(builder);
         CampaignSchemaBuilder.ConfigureModel(builder);
         AdventureSchemaBuilder.ConfigureModel(builder);
-        //AdventureSchemaBuilder.SeedAdventures(builder);
         SceneSchemaBuilder.ConfigureModel(builder);
         GameSessionSchemaBuilder.ConfigureModel(builder);
     }
