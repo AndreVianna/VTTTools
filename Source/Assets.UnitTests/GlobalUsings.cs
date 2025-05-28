@@ -3,10 +3,6 @@ global using System.Security.Claims;
 global using System.Text.Json;
 global using System.Text.Json.Serialization;
 
-global using Azure;
-global using Azure.Storage.Blobs;
-global using Azure.Storage.Blobs.Models;
-
 global using FluentAssertions;
 
 global using Microsoft.AspNetCore.Authentication;

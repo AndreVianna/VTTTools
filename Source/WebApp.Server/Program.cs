@@ -46,10 +46,10 @@ internal static class Program {
         builder.Services.AddHttpClient<IGameHttpClient, ServerGameHttpClient>("Server", static client
             => client.BaseAddress = new("https+http://game-api"))
             .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
-        builder.Services.AddHttpClient<IAssetsHttpClient, AssetsClientHttpClient>("Client", static client
+        builder.Services.AddHttpClient<IAssetsHttpClient, ClientAssetsHttpClient>("Client", static client
             => client.BaseAddress = new("https://localhost:7171"))
             .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
-        builder.Services.AddHttpClient<ILibraryHttpClient, LibraryClientHttpClient>("Client", static client
+        builder.Services.AddHttpClient<ILibraryHttpClient, ClientLibraryHttpClient>("Client", static client
             => client.BaseAddress = new("https://localhost:7172"))
             .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
 

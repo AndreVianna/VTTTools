@@ -1,3 +1,5 @@
+using VttTools.Media.Services;
+
 namespace VttTools.Assets;
 
 [ExcludeFromCodeCoverage]
@@ -20,14 +22,11 @@ internal static class Program {
 
     internal static void AddStorage(this IHostApplicationBuilder builder) {
         builder.AddSqlServerDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
-        builder.AddAzureBlobClient(AzureStorageOptions.ConnectionStringName);
         builder.AddDataStorage();
     }
 
-    internal static void AddServices(this IHostApplicationBuilder builder) {
-        builder.Services.AddScoped<IAssetService, AssetService>();
-        builder.Services.AddScoped<IMediaService, MediaService>();
-    }
+    internal static void AddServices(this IHostApplicationBuilder builder)
+        => builder.Services.AddScoped<IAssetService, AssetService>();
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app)
         => app.MapAssetEndpoints();

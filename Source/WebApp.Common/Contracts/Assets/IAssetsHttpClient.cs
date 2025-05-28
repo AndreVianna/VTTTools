@@ -7,5 +7,5 @@ public interface IAssetsHttpClient {
     Task<Result<AssetListItem>> CreateAssetAsync(CreateAssetRequest request);
     Task<Result> UpdateAssetAsync(Guid id, UpdateAssetRequest request);
     Task<bool> DeleteAssetAsync(Guid id);
-    Task<string> UploadAssetFileAsync(Guid assetId, Stream fileStream, string fileName);
+    Task<string> UploadAssetFileAsync(Guid id, Stream fileStream, string fileName);
 }

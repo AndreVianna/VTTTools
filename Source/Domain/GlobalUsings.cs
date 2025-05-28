@@ -29,4 +29,5 @@ global using VttTools.Library.Epics.Model;
 global using VttTools.Library.Scenes.ApiContracts;
 global using VttTools.Library.Scenes.Model;
 global using VttTools.Library.Scenes.ServiceContracts;
+global using VttTools.Media.Model;
 global using VttTools.Utilities;

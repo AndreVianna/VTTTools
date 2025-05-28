@@ -12,10 +12,11 @@ public class ClonerTests {
         var original = new Adventure {
             Id = originalId,
             OwnerId = Guid.NewGuid(),
+            CampaignId = _campaignId,
             Name = "Original Adventure",
             Display = new() {
-                Id = Guid.NewGuid(),
-                Type = DisplayType.Image,
+                FileName = "some_file.png",
+                Type = ResourceType.Image,
                 Size = new(50, 50),
             },
             Description = "Adventure description",
@@ -63,10 +64,11 @@ public class ClonerTests {
         var original = new Adventure {
             Id = originalId,
             OwnerId = Guid.NewGuid(),
+            CampaignId = _campaignId,
             Name = "Original Adventure",
             Display = new() {
-                Id = Guid.NewGuid(),
-                Type = DisplayType.Image,
+                FileName = "some_file.png",
+                Type = ResourceType.Image,
                 Size = new(50, 50),
             },
             Description = "Adventure description",

@@ -1,3 +1,6 @@
+using VttTools.Media.Services;
+using VttTools.Utilities;
+
 using IResult = Microsoft.AspNetCore.Http.IResult;
 using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateAssetData;
 

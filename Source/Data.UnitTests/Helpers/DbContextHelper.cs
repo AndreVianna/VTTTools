@@ -118,8 +118,8 @@ internal static class DbContextHelper {
             Description = $"Description for {name}",
             ZoomLevel = 1.0f,
             Stage = new() {
-                Type = DisplayType.Image,
-                Id = Guid.NewGuid(),
+                Type = ResourceType.Image,
+                FileName = "some_file.png",
                 Size = new(10, 20),
             },
             Grid = new() {
@@ -140,8 +140,8 @@ internal static class DbContextHelper {
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.NewGuid(),
             Display = new() {
-                Type = DisplayType.Image,
-                Id = Guid.NewGuid(),
+                Type = ResourceType.Image,
+                FileName = "some_file.png",
                 Size = new(10, 20),
             },
         };
@@ -181,8 +181,8 @@ internal static class DbContextHelper {
             Description = $"Description for {name}",
             ZoomLevel = 1.0f,
             Stage = new() {
-                Type = DisplayType.Image,
-                Id = Guid.NewGuid(),
+                Type = ResourceType.Image,
+                FileName = "some_file.png",
                 Size = new(10, 20),
             },
             Grid = new() {
@@ -203,8 +203,8 @@ internal static class DbContextHelper {
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.NewGuid(),
             Display = new() {
-                Type = DisplayType.Image,
-                Id = Guid.NewGuid(),
+                Type = ResourceType.Image,
+                FileName = "some_file.png",
                 Size = new(10, 20),
             },
         };

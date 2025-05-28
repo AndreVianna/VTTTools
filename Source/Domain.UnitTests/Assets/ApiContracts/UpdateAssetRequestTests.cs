@@ -9,8 +9,8 @@ public class UpdateAssetRequestTests {
             Type = AssetType.Creature,
             Description = "Description",
             Display = new Display {
-                Type = DisplayType.Image,
-                Id = Guid.NewGuid(),
+                Type = ResourceType.Image,
+                FileName = "some_file.png",
                 Size = new(10, 20),
             },
         };
@@ -18,8 +18,8 @@ public class UpdateAssetRequestTests {
         const AssetType type = AssetType.NPC;
         const string description = "Other Description";
         var newDisplay = new Display {
-            Type = DisplayType.Video,
-            Id = Guid.NewGuid(),
+            Type = ResourceType.Video,
+            FileName = "other_file.png",
             Size = new(20, 40),
         };
 

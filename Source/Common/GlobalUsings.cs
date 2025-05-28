@@ -15,8 +15,12 @@ global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
 global using Microsoft.Extensions.Hosting;
 global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Logging.Abstractions;
 global using Microsoft.Extensions.Options;
 
+global using SixLabors.ImageSharp;
+
+global using VttTools.Common.Model;
 global using VttTools.EndpointMappers;
 global using VttTools.Middlewares;
 global using VttTools.Utilities;

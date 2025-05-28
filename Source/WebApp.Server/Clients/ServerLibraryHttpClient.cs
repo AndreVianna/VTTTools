@@ -103,7 +103,7 @@ internal class ServerLibraryHttpClient(HttpClient client, JsonSerializerOptions 
             Description = scene.Description,
             IsPublished = scene.IsPublished,
             Stage = new() {
-                Id = scene.Stage.Id?.ToString() ?? scene.Id.ToString(),
+                FileName = scene.Stage.FileName ?? scene.Id.ToString(),
                 Type = scene.Stage.Type,
                 Size = scene.Stage.Size,
                 ZoomLevel = scene.ZoomLevel,
@@ -136,6 +136,18 @@ internal class ServerLibraryHttpClient(HttpClient client, JsonSerializerOptions 
                 Name = asset.Name,
             })],
         };
+    }
+
+    public async Task<string> UploadSceneFileAsync(Guid id, Stream fileStream, string fileName) {
+        using var content = new MultipartFormDataContent();
+        using var streamContent = new StreamContent(fileStream);
+
+        content.Add(streamContent, "file", fileName);
+
+        var response = await client.PostAsync($"api/scenes/{id}/upload", content);
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadAsStringAsync();
     }
 
     public async Task<Result> UpdateSceneAsync(Guid id, UpdateSceneRequest request) {

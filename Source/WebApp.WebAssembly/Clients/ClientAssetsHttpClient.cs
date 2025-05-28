@@ -2,7 +2,7 @@ using UpdateAssetRequest = VttTools.Assets.ApiContracts.UpdateAssetRequest;
 
 namespace VttTools.WebApp.WebAssembly.Clients;
 
-public class AssetsClientHttpClient(HttpClient httpClient, JsonSerializerOptions options)
+public class ClientAssetsHttpClient(HttpClient httpClient, JsonSerializerOptions options)
     : IAssetsHttpClient {
     public Task<AssetListItem[]> GetAssetsAsync() => throw new NotImplementedException();
 
@@ -20,13 +20,13 @@ public class AssetsClientHttpClient(HttpClient httpClient, JsonSerializerOptions
     public Task<Result> UpdateAssetAsync(Guid id, UpdateAssetRequest request) => throw new NotImplementedException();
     public Task<bool> DeleteAssetAsync(Guid id) => throw new NotImplementedException();
 
-    public async Task<string> UploadAssetFileAsync(Guid assetId, Stream fileStream, string fileName) {
+    public async Task<string> UploadAssetFileAsync(Guid id, Stream fileStream, string fileName) {
         using var content = new MultipartFormDataContent();
         using var streamContent = new StreamContent(fileStream);
 
         content.Add(streamContent, "file", fileName);
 
-        var response = await httpClient.PostAsync($"api/assets/{assetId}/upload", content);
+        var response = await httpClient.PostAsync($"api/assets/{id}/upload", content);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadAsStringAsync();

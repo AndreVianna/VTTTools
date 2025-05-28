@@ -1,6 +1,7 @@
 ﻿namespace VttTools.Common.Model;
 
-public enum DisplayType {
+public enum ResourceType {
+    Undefined,
     Image,
     Animation,
     Video,

@@ -3,7 +3,7 @@ namespace VttTools.WebApp.Pages.Library.Adventure.Details;
 [Trait("Category", "UI")]
 public class AdventurePageTests
     : BUnitContext {
-    private readonly ILibraryHttpClient _ServerLibraryHttpClient = Substitute.For<ILibraryHttpClient>();
+    private readonly ILibraryHttpClient _serverLibraryHttpClient = Substitute.For<ILibraryHttpClient>();
     private readonly NavigationManager _navigationManager = Substitute.For<NavigationManager>();
     private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
     private readonly AdventureDetails _testAdventure = new() {
@@ -15,7 +15,7 @@ public class AdventurePageTests
     };
 
     public AdventurePageTests() {
-        Services.AddSingleton(_ServerLibraryHttpClient);
+        Services.AddSingleton(_serverLibraryHttpClient);
         Services.AddSingleton(_navigationManager);
         Services.AddSingleton(_httpContext);
         Services.AddSingleton<ILoggerFactory>(new NullLoggerFactory());
@@ -26,7 +26,7 @@ public class AdventurePageTests
     public void AdventurePage_InViewMode_DisplaysCorrectButtons() {
         // Arrange
         var guid = Guid.NewGuid();
-        _ServerLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
+        _serverLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
 
         // Act
         var cut = RenderComponent<AdventurePage>(parameters => parameters
@@ -75,7 +75,7 @@ public class AdventurePageTests
     public void AdventurePage_InEditMode_DisplaysCorrectButtons() {
         // Arrange
         var guid = Guid.NewGuid();
-        _ServerLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
+        _serverLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
 
         // Act
         var cut = RenderComponent<AdventurePage>(parameters => parameters
@@ -102,7 +102,7 @@ public class AdventurePageTests
     public void AdventurePage_InCloneMode_DisplaysCorrectButtons() {
         // Arrange
         var guid = Guid.NewGuid();
-        _ServerLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
+        _serverLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
 
         // Act
         var cut = RenderComponent<AdventurePage>(parameters => parameters
@@ -129,7 +129,7 @@ public class AdventurePageTests
     public void AdventurePage_InViewMode_WithIdParameter_LoadsAdventureData() {
         // Arrange
         var guid = Guid.NewGuid();
-        _ServerLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
+        _serverLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
 
         // Act
         var cut = RenderComponent<AdventurePage>(parameters => parameters
@@ -149,7 +149,7 @@ public class AdventurePageTests
     [Fact]
     public void AdventurePage_SaveButton_SubmitsForm() {
         // Arrange
-        _ServerLibraryHttpClient.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>())
+        _serverLibraryHttpClient.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>())
             .Returns(Result.Success(new AdventureListItem { Id = Guid.NewGuid() }));
 
         var cut = RenderComponent<AdventurePage>(parameters => parameters
@@ -167,7 +167,7 @@ public class AdventurePageTests
         cut.Find("#save-finish-button").Click();
 
         // Assert
-        _ServerLibraryHttpClient.Received(1).CreateAdventureAsync(Arg.Is<CreateAdventureRequest>(request =>
+        _serverLibraryHttpClient.Received(1).CreateAdventureAsync(Arg.Is<CreateAdventureRequest>(request =>
             request.Name == "New Test Adventure" &&
             request.Description == "New Test Description"));
     }
@@ -176,7 +176,7 @@ public class AdventurePageTests
     public void AdventurePage_DiscardChangesButton_ShowsDiscardModal() {
         // Arrange
         var guid = Guid.NewGuid();
-        _ServerLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
+        _serverLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
 
         var cut = RenderComponent<AdventurePage>(parameters => parameters
             .Add(p => p.Action, "edit")
@@ -201,7 +201,7 @@ public class AdventurePageTests
     public void AdventurePage_DeleteButton_ShowsDeleteConfirmationModal() {
         // Arrange
         var guid = Guid.NewGuid();
-        _ServerLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
+        _serverLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
 
         var cut = RenderComponent<AdventurePage>(parameters => parameters
             .Add(p => p.Action, "view")
@@ -223,7 +223,7 @@ public class AdventurePageTests
     public void AdventurePage_NavigatingAway_WithChanges_ShowsUnsavedChangesModal() {
         // Arrange
         var guid = Guid.NewGuid();
-        _ServerLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
+        _serverLibraryHttpClient.GetAdventureByIdAsync(guid).Returns(_testAdventure);
 
         var cut = RenderComponent<AdventurePage>(parameters => parameters
             .Add(p => p.Action, "edit")

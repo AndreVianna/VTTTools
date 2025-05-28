@@ -17,8 +17,8 @@ internal static class SceneSchemaBuilder {
             entity.Property(e => e.IsPublished).IsRequired();
             entity.ComplexProperty(ea => ea.Stage, shapeBuilder => {
                 shapeBuilder.IsRequired();
-                shapeBuilder.Property(s => s.Type).IsRequired().HasConversion<string>().HasDefaultValue(DisplayType.Image);
-                shapeBuilder.Property(s => s.Id);
+                shapeBuilder.Property(s => s.Type).IsRequired().HasConversion<string>().HasDefaultValue(ResourceType.Undefined);
+                shapeBuilder.Property(s => s.FileName);
                 shapeBuilder.ComplexProperty(s => s.Size, sizeBuilder => {
                     sizeBuilder.IsRequired();
                     sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(0);
@@ -48,8 +48,8 @@ internal static class SceneSchemaBuilder {
             entity.Property(ea => ea.Name).IsRequired().HasMaxLength(128);
             entity.ComplexProperty(s => s.Display, displayBuilder => {
                 displayBuilder.IsRequired();
-                displayBuilder.Property(s => s.Id);
-                displayBuilder.Property(s => s.Type).IsRequired().HasConversion<string>().HasDefaultValue(DisplayType.Image);
+                displayBuilder.Property(s => s.FileName);
+                displayBuilder.Property(s => s.Type).IsRequired().HasConversion<string>().HasDefaultValue(ResourceType.Image);
                 displayBuilder.ComplexProperty(s => s.Size, sizeBuilder => {
                     sizeBuilder.IsRequired();
                     sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(0);

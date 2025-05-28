@@ -12,6 +12,5 @@ internal static class AssetEndpointsMapper {
         assets.MapPost("/", AssetHandlers.CreateAssetHandler);
         assets.MapPatch("/{id:guid}", AssetHandlers.UpdateAssetHandler);
         assets.MapDelete("/{id:guid}", AssetHandlers.DeleteAssetHandler);
-        assets.MapPost("/{id:guid}/upload", AssetHandlers.UploadAssetFileHandler);
     }
 }

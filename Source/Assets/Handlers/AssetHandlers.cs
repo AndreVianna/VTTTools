@@ -1,3 +1,5 @@
+using VttTools.Media.Services;
+
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.Assets.Handlers;
@@ -23,22 +25,6 @@ internal static class AssetHandlers {
         return result.IsSuccessful
             ? Results.Created($"/api/assets/{result.Value.Id}", result.Value)
             : Results.BadRequest(result.Errors);
-    }
-
-    internal static async Task<IResult> CloneAssetHandler(HttpContext context, [FromRoute] Guid assetId, [FromBody] CloneAssetRequest request, [FromServices] IAssetService assetService) {
-        var userId = context.User.GetUserId();
-        var data = new CloneAssetData {
-            Name = request.Name,
-            Display = request.Display,
-        };
-        var result = await assetService.CloneAssetAsync(userId, assetId, data);
-        return result.IsSuccessful
-            ? Results.Created($"/api/assets/{result.Value.Id}", result.Value)
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateAssetRequest request, [FromServices] IAssetService assetService) {
@@ -71,26 +57,5 @@ internal static class AssetHandlers {
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
                     : Results.BadRequest(result.Errors);
-    }
-
-    internal static async Task<IResult> UploadAssetFileHandler(HttpContext context,
-                                                               [FromRoute] Guid id,
-                                                               [FromForm] IFormFile file,
-                                                               [FromServices] IMediaService storage,
-                                                               [FromServices] IAssetService assetService) {
-        var userId = context.User.GetUserId();
-        var asset = await assetService.GetAssetByIdAsync(id);
-        if (asset is null || asset.OwnerId != userId) return Results.NotFound();
-        await using var stream = file.OpenReadStream();
-        var result = await storage.UploadImageAsync(id, file.FileName, stream);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : Results.Problem(detail: $"""
-                                      The image file for asset '{id}' was not saved in the media storage.
-                                      File name: "{file.FileName}"
-                                      Reason: "{result.Errors[0].Message}"
-                                      """,
-                              statusCode: StatusCodes.Status500InternalServerError,
-                              title: "Failed to save the asset image.");
     }
 }

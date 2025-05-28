@@ -25,8 +25,8 @@ public class AssetTests {
         const string description = "Test Description";
         var size = new Size(100, 200);
         var format = new Display {
-            Type = DisplayType.Image,
-            Id = Guid.NewGuid(),
+            Type = ResourceType.Image,
+            FileName = "some_file.png",
             Size = size,
         };
 

@@ -17,6 +17,7 @@ public interface ILibraryHttpClient {
     Task<SceneDetails?> GetSceneByIdAsync(Guid id);
     Task<Result<SceneDetails>> CreateSceneAsync(Guid id);
     Task<Result<SceneDetails>> CloneSceneAsync(Guid id, Guid templateId, CloneSceneRequest request);
+    Task<string> UploadSceneFileAsync(Guid id, Stream fileStream, string fileName);
     Task<Result> UpdateSceneAsync(Guid id, UpdateSceneRequest request);
     Task<bool> DeleteSceneAsync(Guid id, Guid sceneId);
 

@@ -37,5 +37,15 @@ internal class ServerAssetsHttpClient(HttpClient client, JsonSerializerOptions o
         return response.IsSuccessStatusCode;
     }
 
-    public Task<string> UploadAssetFileAsync(Guid assetId, Stream fileStream, string fileName) => throw new NotImplementedException();
+    public async Task<string> UploadAssetFileAsync(Guid id, Stream fileStream, string fileName) {
+        using var content = new MultipartFormDataContent();
+        using var streamContent = new StreamContent(fileStream);
+
+        content.Add(streamContent, "file", fileName);
+
+        var response = await client.PostAsync($"api/assets/{id}/upload", content);
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadAsStringAsync();
+    }
 }

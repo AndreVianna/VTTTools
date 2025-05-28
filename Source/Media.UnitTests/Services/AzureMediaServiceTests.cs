@@ -1,15 +1,15 @@
-﻿namespace VttTools.Assets.Services;
+﻿namespace VttTools.Media.Services;
 
-public class MediaServiceTests {
+public class AzureMediaServiceTests {
     private readonly BlobServiceClient _blobServiceClient = Substitute.For<BlobServiceClient>();
     private readonly BlobContainerClient _blobContainerClient = Substitute.For<BlobContainerClient>();
     private readonly BlobClient _blobClient = Substitute.For<BlobClient>();
-    private readonly MediaService _service;
+    private readonly AzureMediaService _service;
     private readonly BlobContentInfo _blobContentInfo = Substitute.For<BlobContentInfo>();
     private readonly Response _response = Substitute.For<Response>();
     private readonly CancellationToken _ct;
 
-    public MediaServiceTests() {
+    public AzureMediaServiceTests() {
         _blobServiceClient.GetBlobContainerClient("images").Returns(_blobContainerClient);
         _blobServiceClient.CreateBlobContainerAsync("images", PublicAccessType.BlobContainer, null, Arg.Any<CancellationToken>())
                           .Returns(Response.FromValue(_blobContainerClient, _response));
@@ -29,6 +29,12 @@ public class MediaServiceTests {
         // Arrange
         var id = Guid.NewGuid();
         const string fileName = "test-image.png";
+        var  file = new ResourceFileInfo {
+            Name = fileName,
+            Type = ResourceType.Image,
+            Width = 100,
+            Height = 100,
+        };
         var content = "test image content"u8.ToArray();
         await using var stream = new MemoryStream(content);
 
@@ -36,7 +42,7 @@ public class MediaServiceTests {
             .Returns(Response.FromValue(true, Substitute.For<Response>()));
 
         // Act
-        var result = await _service.UploadImageAsync(id, fileName, stream, _ct);
+        var result = await _service.SaveUploadedFileAsync("asset", id, file, stream, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
@@ -49,6 +55,12 @@ public class MediaServiceTests {
         // Arrange
         var id = Guid.NewGuid();
         const string fileName = "test-image.png";
+        var file = new ResourceFileInfo {
+            Name = fileName,
+            Type = ResourceType.Image,
+            Width = 100,
+            Height = 100,
+        };
         var content = "test image content"u8.ToArray();
         await using var stream = new MemoryStream(content);
 
@@ -56,7 +68,7 @@ public class MediaServiceTests {
             .Returns(Response.FromValue(false, _response));
 
         // Act
-        var result = await _service.UploadImageAsync(id, fileName, stream, _ct);
+        var result = await _service.SaveUploadedFileAsync("asset", id, file, stream, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
@@ -77,7 +89,7 @@ public class MediaServiceTests {
             .Returns(Response.FromValue(true, Substitute.For<Response>()));
 
         // Act
-        await _service.DeleteImageAsync(id, _ct);
+        await _service.DeleteFileAsync("asset", id, _ct);
 
         // Assert
         await _blobClient.Received(1).DeleteIfExistsAsync(
@@ -98,7 +110,7 @@ public class MediaServiceTests {
             .Returns(Response.FromValue(false, Substitute.For<Response>()));
 
         // Act
-        await _service.DeleteImageAsync(id, _ct);
+        await _service.DeleteFileAsync("asset", id, _ct);
 
         // Assert
         await _blobClient.DidNotReceive().DeleteIfExistsAsync(

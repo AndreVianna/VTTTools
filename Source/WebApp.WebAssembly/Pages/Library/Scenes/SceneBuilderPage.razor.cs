@@ -92,7 +92,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
                 return;
             }
             Scene = scene;
-            StageImageUrl = GetImageUrl(_stageBasePath, Scene.Stage.Type, Scene.Stage.Id);
+            StageImageUrl = GetImageUrl(_stageBasePath, Scene.Stage.Type, Scene.Stage.FileName ?? Scene.Id.ToString());
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex) {
@@ -104,7 +104,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         if (Scene is null) return;
         var stageData = new {
             id = Scene.Id,
-            imageUrl = GetImageUrl(_stageBasePath, Scene.Stage.Type, Scene.Stage.Id),
+            imageUrl = GetImageUrl(_stageBasePath, Scene.Stage.Type, Scene.Stage.FileName ?? Scene.Id.ToString()),
             size = Scene.Stage.Size,
             zoomLevel = Scene.Stage.ZoomLevel,
             grid = new {
@@ -120,7 +120,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
                 position = a.Position,
                 scale = a.Scale,
                 isSelected = a.Id == SelectedAsset?.Id,
-                imageUrl = GetImageUrl(_assetBasePath, a.DisplayType, a.DisplayId),
+                imageUrl = GetImageUrl(_assetBasePath, a.ResourceType, a.DisplayId),
                 isLocked = a.IsLocked,
             }).ToArray(),
         };
@@ -132,7 +132,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         if (Scene is null) return;
         var stageData = new {
             sceneId = Scene.Id,
-            imageUrl = GetImageUrl(_stageBasePath, Scene.Stage.Type, Scene.Stage.Id),
+            imageUrl = GetImageUrl(_stageBasePath, Scene.Stage.Type, Scene.Stage.FileName ?? Scene.Id.ToString()),
             size = Scene.Stage.Size,
             zoomLevel = Scene.Stage.ZoomLevel,
             grid = new {
@@ -148,7 +148,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
                 position = a.Position,
                 scale = a.Scale,
                 isSelected = a.Id == SelectedAsset?.Id,
-                imageUrl = GetImageUrl(_assetBasePath, a.DisplayType, a.DisplayId),
+                imageUrl = GetImageUrl(_assetBasePath, a.ResourceType, a.DisplayId),
                 isLocked = a.IsLocked,
             }).ToArray(),
         };
@@ -156,17 +156,17 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         await JsRuntime.InvokeVoidAsync("drawStage", stageData);
     }
 
-    private static string GetImageUrl(string basePath, DisplayType fileType, string id) {
-        var extension = GetFileExtension(fileType);
-        return $"{basePath}/{id}{extension}";
+    private static string GetImageUrl(string basePath, ResourceType resourceType, string name) {
+        var extension = GetFileExtension(resourceType);
+        return $"{basePath}/{name}{extension}";
     }
 
-    private static string GetFileExtension(DisplayType fileType)
-        => fileType switch {
-            DisplayType.Image => ".png",
-            DisplayType.Animation => ".gif",
-            DisplayType.Video => ".mp4",
-            _ => throw new NotSupportedException($"File type {fileType} is not supported."),
+    private static string GetFileExtension(ResourceType resourceType)
+        => resourceType switch {
+            ResourceType.Image => ".png",
+            ResourceType.Animation => ".gif",
+            ResourceType.Video => ".mp4",
+            _ => throw new NotSupportedException($"File type {resourceType} is not supported."),
         };
 
     private void OpenChangeImageModal() => State.ShowChangeImageModal = true;
@@ -224,7 +224,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             Rotation = asset.Rotation,
             Elevation = asset.Elevation,
             IsLocked = asset.IsLocked,
-            ImageUrl = GetImageUrl(_assetBasePath, asset.DisplayType, asset.DisplayId),
+            ImageUrl = GetImageUrl(_assetBasePath, asset.ResourceType, asset.DisplayId),
         };
         State.IsDragging = SelectedAsset is { IsLocked: false };
     }
@@ -364,9 +364,9 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
 
         Scene = Scene with {
             Stage = Scene.Stage with {
-                Id = backgroundImageId.ToString(),
+                FileName = backgroundImageId.ToString(),
                 Size = imageSize,
-                Type = DisplayType.Image,
+                Type = ResourceType.Image,
             },
         };
         await SaveScene();
@@ -446,7 +446,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             Name = Scene.Name,
             Description = Scene.Description,
             Display = new Display {
-                Id = Guid.TryParse(Scene.Stage.Id, out var displayId) ? displayId : Guid.Empty,
+                FileName = Scene.Stage.FileName ?? SceneId.ToString(),
                 Type = Scene.Stage.Type,
                 Size = Scene.Stage.Size,
             },

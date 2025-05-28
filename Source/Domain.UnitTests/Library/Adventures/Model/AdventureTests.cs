@@ -28,8 +28,8 @@ public class AdventureTests {
         const string description = "Adventure description";
         const AdventureType type = AdventureType.DungeonCrawl;
         var display = new Display {
-            Id = Guid.NewGuid(),
-            Type = DisplayType.Image,
+            FileName = "some_file.png",
+            Type = ResourceType.Image,
             Size = new(100, 100),
         };
         const bool isVisible = true;

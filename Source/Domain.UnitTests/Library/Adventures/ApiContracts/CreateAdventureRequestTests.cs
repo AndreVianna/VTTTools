@@ -17,8 +17,8 @@ public class CreateAdventureRequestTests {
         const AdventureType type = AdventureType.DungeonCrawl;
         var campaignId = Guid.NewGuid();
         var display = new Display {
-            Id = Guid.NewGuid(),
-            Type = DisplayType.Image,
+            FileName = "some_file.png",
+            Type = ResourceType.Image,
             Size = new(100, 100),
         };
 

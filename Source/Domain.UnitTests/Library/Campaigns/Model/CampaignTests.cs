@@ -27,8 +27,8 @@ public class CampaignTests {
         var ownerId = Guid.NewGuid();
         var epicId = Guid.NewGuid();
         var display = new Display {
-            Id = Guid.NewGuid(),
-            Type = DisplayType.Image,
+            FileName = "some_file.png",
+            Type = ResourceType.Image,
             Size = new(100, 100),
         };
         var adventure = new Adventure {

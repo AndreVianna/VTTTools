@@ -1,3 +1,5 @@
+using VttTools.Media.Services;
+
 namespace VttTools.Assets.Extensions;
 
 public class HostApplicationBuilderExtensionsTests {
@@ -18,9 +20,6 @@ public class HostApplicationBuilderExtensionsTests {
         builder.AddServices();
 
         var services = builder.Services;
-        services.Should().Contain(sd =>
-            sd.ServiceType == typeof(IMediaService) &&
-            sd.ImplementationType == typeof(MediaService));
         services.Should().Contain(sd =>
             sd.ServiceType == typeof(IAssetService) &&
             sd.ImplementationType == typeof(AssetService));

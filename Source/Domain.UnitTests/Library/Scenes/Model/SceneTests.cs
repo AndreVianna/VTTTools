@@ -21,8 +21,8 @@ public class SceneTests {
         const string name = "Some Scene";
         const string description = "Some Description";
         var display = new Display {
-            Id = Guid.NewGuid(),
-            Type = DisplayType.Image,
+            FileName = "some_file.png",
+            Type = ResourceType.Image,
             Size = new(800, 600),
         };
         var sceneAsset = new SceneAsset();

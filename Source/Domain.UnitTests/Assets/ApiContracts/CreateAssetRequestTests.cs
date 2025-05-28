@@ -9,8 +9,8 @@ public class CreateAssetRequestTests {
             Type = AssetType.Creature,
             Description = "Description",
             Display = new() {
-                Type = DisplayType.Image,
-                Id = Guid.NewGuid(),
+                Type = ResourceType.Image,
+                FileName = "some_file.png",
                 Size = new(10, 20),
             },
         };
@@ -18,8 +18,8 @@ public class CreateAssetRequestTests {
         const AssetType type = AssetType.NPC;
         const string description = "Other Description";
         var newDisplay = new Display {
-            Type = DisplayType.Image,
-            Id = Guid.NewGuid(),
+            Type = ResourceType.Image,
+            FileName = "other_file.png",
             Size = new(30, 40),
         };
 
