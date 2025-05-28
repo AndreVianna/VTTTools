@@ -21,16 +21,24 @@ var database = !isDevelopment
              .AddDatabase("database")
     : builder.AddConnectionString("database");
 
-var assets = builder.AddProject<Projects.VttTools_Assets>("assets-api")
+var media = builder.AddProject<Projects.VttTools_Media>("resources-api")
     .WithReference(cache).WaitFor(cache)
     .WithReference(database).WaitFor(database)
     .WithReference(blobs).WaitFor(blobs)
     .WithHttpHealthCheck("health")
     .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
+var assets = builder.AddProject<Projects.VttTools_Assets>("assets-api")
+    .WithReference(cache).WaitFor(cache)
+    .WithReference(database).WaitFor(database)
+    .WithReference(media).WaitFor(media)
+    .WithHttpHealthCheck("health")
+    .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
+
 var library = builder.AddProject<Projects.VttTools_Library>("library-api")
     .WithReference(cache).WaitFor(cache)
     .WithReference(database).WaitFor(database)
+    .WithReference(media).WaitFor(media)
     .WithReference(assets).WaitFor(assets)
     .WithHttpHealthCheck("health")
     .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
@@ -45,9 +53,9 @@ var game = builder.AddProject<Projects.VttTools_Game>("game-api")
 builder.AddProject<Projects.VttTools_WebApp_Server>("webapp")
     .WithReference(cache).WaitFor(cache)
     .WithReference(database).WaitFor(database)
-    .WithReference(game).WaitFor(game)
-    .WithReference(library).WaitFor(library)
     .WithReference(assets).WaitFor(assets)
+    .WithReference(library).WaitFor(library)
+    .WithReference(game).WaitFor(game)
     .WithHttpHealthCheck("health")
     .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
