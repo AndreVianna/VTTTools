@@ -29,17 +29,17 @@ internal static class Program {
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<AuthenticationStateProvider, PersistingAuthenticationStateProvider>();
-        builder.Services.AddScoped<ServerAuthenticationDelegatingHandler>();
+        builder.Services.AddScoped<AuthenticationDelegatingHandler>();
         builder.Services.AddScoped<IHubConnectionBuilder, HubConnectionBuilder>();
-        builder.Services.AddHttpClient<IAssetsHttpClient, ServerAssetsHttpClient>("Server", static client
+        builder.Services.AddHttpClient<IServerAssetsHttpClient, ServerAssetsHttpClient>(static client
             => client.BaseAddress = new("https+http://assets-api"))
-            .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
-        builder.Services.AddHttpClient<ILibraryHttpClient, ServerLibraryHttpClient>("Server", static client
+            .AddHttpMessageHandler<AuthenticationDelegatingHandler>();
+        builder.Services.AddHttpClient<IServerLibraryHttpClient, ServerLibraryHttpClient>(static client
             => client.BaseAddress = new("https+http://library-api"))
-            .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
-        builder.Services.AddHttpClient<IGameHttpClient, ServerGameHttpClient>("Server", static client
+            .AddHttpMessageHandler<AuthenticationDelegatingHandler>();
+        builder.Services.AddHttpClient<IGameHttpClient, ServerGameHttpClient>(static client
             => client.BaseAddress = new("https+http://game-api"))
-            .AddHttpMessageHandler<ServerAuthenticationDelegatingHandler>();
+            .AddHttpMessageHandler<AuthenticationDelegatingHandler>();
 
         AddDefaultHealthChecks(builder);
         builder.AddRedisOutputCache("redis");

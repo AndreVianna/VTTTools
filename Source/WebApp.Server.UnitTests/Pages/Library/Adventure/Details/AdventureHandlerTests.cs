@@ -10,7 +10,7 @@ public class AdventureHandlerTests
     : ComponentTestContext {
     private readonly AdventurePage _page = Substitute.For<AdventurePage>();
     private readonly Guid _adventureId = Guid.NewGuid();
-    private readonly ILibraryHttpClient _serverHttpClient = Substitute.For<ILibraryHttpClient>();
+    private readonly IServerLibraryHttpClient _serverHttpClient = Substitute.For<IServerLibraryHttpClient>();
 
     public AdventureHandlerTests() {
         _page.HttpContext.Returns(HttpContext);

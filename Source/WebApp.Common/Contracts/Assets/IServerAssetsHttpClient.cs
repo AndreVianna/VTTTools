@@ -2,7 +2,7 @@
 
 namespace VttTools.WebApp.Contracts.Assets;
 
-public interface IAssetsHttpClient {
+public interface IServerAssetsHttpClient {
     Task<AssetListItem[]> GetAssetsAsync();
     Task<Result<AssetListItem>> CreateAssetAsync(CreateAssetRequest request);
     Task<Result> UpdateAssetAsync(Guid id, UpdateAssetRequest request);

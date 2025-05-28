@@ -4,7 +4,7 @@ namespace VttTools.WebApp.Server.Pages.Library.Adventure.Details;
 
 public partial class AdventurePage {
     [Inject]
-    private ILibraryHttpClient Client { get; set; } = null!;
+    internal IServerLibraryHttpClient Client { get; set; } = null!;
     [Parameter]
     public string? Action { get; set; }
     [Parameter]

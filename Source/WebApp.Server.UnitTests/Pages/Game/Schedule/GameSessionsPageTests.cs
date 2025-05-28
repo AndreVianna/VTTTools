@@ -5,7 +5,7 @@ namespace VttTools.WebApp.Pages.Game.Schedule;
 public class GameSessionsPageTests
     : ComponentTestContext {
     private readonly IGameHttpClient _serverGameHttpClient = Substitute.For<IGameHttpClient>();
-    private readonly ILibraryHttpClient _serverLibraryHttpClient = Substitute.For<ILibraryHttpClient>();
+    private readonly IServerLibraryHttpClient _serverLibraryHttpClient = Substitute.For<IServerLibraryHttpClient>();
     private readonly GameSession[] _defaultGameSessions;
 
     public GameSessionsPageTests() {

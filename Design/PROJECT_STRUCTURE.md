@@ -4,7 +4,6 @@
 - CODEX.md
 - README.md
 - TASK.md
-- VTTTools.sln
 - **.claude**
   - settings.json
 - **Design**
@@ -35,7 +34,6 @@
     - **Services**
       - AssetService.cs
       - Cloner.cs
-      - MediaService.cs
   - **Assets.UnitTests**
     - GlobalUsings.cs
     - VttTools.Assets.UnitTests.csproj
@@ -47,7 +45,6 @@
       - HostApplicationBuilderExtensionsTests.cs
     - **Services**
       - AssetServiceTests.cs
-      - MediaServiceTests.cs
   - **Common**
     - GlobalUsings.cs
     - VttTools.Common.csproj
@@ -62,9 +59,7 @@
       - UserIdentificationHandler.cs
       - UserIdentificationOptions.cs
     - **Utilities**
-      - ErrorCollectionExtensions.cs
-      - OptionalConverter.cs
-      - OptionalConverterFactory.cs
+      - ResourceFileHandler.cs
   - **Common.UnitTests**
     - GlobalUsings.cs
     - VttTools.Common.UnitTests.csproj
@@ -78,10 +73,23 @@
     - **Middlewares**
       - LoggedExceptionHandlerTests.cs
       - UserIdentificationHandlerTests.cs
+  - **Core**
+    - GlobalUsings.cs
+    - VttTools.Core.csproj
+    - **Utilities**
+      - ErrorCollectionExtensions.cs
+      - Optional.cs
+      - OptionalConverter.cs
+      - OptionalConverterFactory.cs
+  - **Core.UnitTests**
+    - GlobalUsings.cs
+    - VttTools.Core.UnitTests.csproj
+    - xunit.runner.json
     - **Utilities**
       - ErrorCollectionExtensionsTests.cs
       - OptionalConverterFactoryTests.cs
       - OptionalConverterTests.cs
+      - OptionalTests.cs
   - **Data**
     - ApplicationDbContext.cs
     - ApplicationDbContextFactory.cs
@@ -89,6 +97,8 @@
     - VttTools.Data.csproj
     - **Assets**
       - AssetStorage.cs
+      - **Entities**
+        - Asset.cs
     - **Builders**
       - AdventureSchemaBuilder.cs
       - AssetSchemaBuilder.cs
@@ -101,12 +111,20 @@
       - HostApplicationBuilderExtensions.cs
     - **Game**
       - GameSessionStorage.cs
+      - **Entities**
+        - GameSession.cs
     - **Library**
       - AdventureStorage.cs
+      - Mapper.cs
       - SceneStorage.cs
+      - **Entities**
+        - Adventure.cs
+        - Campaign.cs
+        - Epic.cs
+        - Scene.cs
+        - SceneAsset.cs
     - **Options**
       - ApplicationDbContextOptions.cs
-      - AzureStorageOptions.cs
   - **Data.UnitTests**
     - ApplicationDbContextTests.cs
     - GlobalUsings.cs
@@ -136,15 +154,12 @@
       - **Model**
         - Asset.cs
         - AssetType.cs
-        - Format.cs
-        - FormatType.cs
       - **ServiceContracts**
         - CloneAssetData.cs
         - CreateAssetData.cs
         - UpdateAssetData.cs
       - **Services**
         - IAssetService.cs
-        - IMediaService.cs
       - **Storage**
         - IAssetStorage.cs
     - **Common**
@@ -153,8 +168,8 @@
         - Response.cs
       - **Model**
         - DiceRoll.cs
-        - Position.cs
-        - Size.cs
+        - Display.cs
+        - ResourceType.cs
       - **ServiceContracts**
         - Data.cs
     - **Game**
@@ -183,6 +198,7 @@
       - StringHelpers.cs
     - **Identity**
       - **Model**
+        - BasicUserInfo.cs
         - Role.cs
         - RoleClaim.cs
         - RoleName.cs
@@ -194,20 +210,18 @@
     - **Library**
       - **Adventures**
         - **ApiContracts**
-          - AddClonedSceneRequest.cs
-          - AddNewSceneRequest.cs
           - CloneAdventureRequest.cs
+          - CloneSceneRequest.cs
           - CreateAdventureRequest.cs
           - UpdateAdventureRequest.cs
         - **Model**
           - Adventure.cs
           - AdventureType.cs
         - **ServiceContracts**
-          - AddClonedSceneData.cs
-          - AddNewSceneData.cs
-          - CloneAdventureData.cs
-          - CreateAdventureData.cs
-          - UpdateAdventureData.cs
+          - ClonedAdventureData.cs
+          - ClonedSceneData.cs
+          - NewAdventureData.cs
+          - UpdatedAdventureData.cs
         - **Services**
           - IAdventureService.cs
         - **Storage**
@@ -220,28 +234,29 @@
           - Epic.cs
       - **Scenes**
         - **ApiContracts**
-          - AddClonedSceneAssetRequest.cs
-          - AddNewSceneAssetRequest.cs
-          - UpdateSceneAssetRequest.cs
+          - AddAssetRequest.cs
+          - AddClonedAssetRequest.cs
+          - AddNewAssetRequest.cs
+          - UpdateAssetRequest.cs
           - UpdateSceneRequest.cs
         - **Model**
           - Grid.cs
           - GridType.cs
           - Scene.cs
           - SceneAsset.cs
-          - Stage.cs
         - **ServiceContracts**
           - AddAssetData.cs
-          - AddClonedAssetData.cs
-          - AddNewAssetData.cs
-          - UpdateSceneAssetData.cs
+          - UpdateAssetData.cs
           - UpdateSceneData.cs
         - **Services**
           - ISceneService.cs
         - **Storage**
           - ISceneStorage.cs
-    - **Utilities**
-      - Optional.cs
+    - **Media**
+      - **Model**
+        - ResourceFileInfo.cs
+      - **Services**
+        - IMediaService.cs
   - **Domain.UnitTests**
     - GlobalUsings.cs
     - VttTools.Domain.UnitTests.csproj
@@ -259,10 +274,7 @@
         - ResponseTests.cs
       - **Model**
         - GridTests.cs
-        - PositionTests.cs
-        - SizeTests.cs
-        - StageMapTypeTests.cs
-        - StageTests.cs
+        - GridTypeTests.cs
       - **ServiceContracts**
         - DataTests.cs
     - **Game**
@@ -310,16 +322,16 @@
           - EpicTests.cs
       - **Scenes**
         - **ApiContracts**
-          - AddNewSceneAssetRequestTests.cs
-          - UpdateSceneAssetRequestTests.cs
+          - AddAssetRequestTests.cs
+          - AddClonedAssetRequestTests.cs
+          - AddNewAssetRequestTests.cs
+          - UpdateAssetRequestTests.cs
         - **Model**
           - SceneAssetTests.cs
           - SceneTests.cs
         - **ServiceContracts**
-          - AddNewAssetDataTests.cs
-          - UpdateSceneAssetDataTests.cs
-    - **Utilities**
-      - OptionalTests.cs
+          - AddAssetDataTests.cs
+          - UpdateAssetDataTests.cs
   - **Game**
     - appsettings.Development.json
     - appsettings.json
@@ -380,6 +392,32 @@
       - AdventureServiceTests.cs
       - ClonerTests.cs
       - SceneServiceTests.cs
+  - **Media**
+    - appsettings.Development.json
+    - appsettings.json
+    - GlobalUsings.cs
+    - http-client.env.json
+    - Program.cs
+    - VttTools.Media.csproj
+    - **EndpointMappers**
+      - ResourcesEndpointsMapper.cs
+    - **Handlers**
+      - ResourcesHandlers.cs
+    - **Options**
+      - AzureStorageOptions.cs
+    - **Services**
+      - AzureMediaService.cs
+  - **Media.UnitTests**
+    - GlobalUsings.cs
+    - VttTools.Media.UnitTests.csproj
+    - xunit.runner.json
+    - **Extensions**
+      - EndpointRouteBuilderExtensionsTests.cs
+      - HostApplicationBuilderExtensionsTests.cs
+    - **Options**
+      - AzureStorageOptionsTests.cs
+    - **Services**
+      - AzureMediaServiceTests.cs
   - **WebApp**
     - _Imports.razor
     - appsettings.Development.json
@@ -388,18 +426,77 @@
     - libman.json
     - Program.cs
     - VttTools.WebApp.csproj
-    - **Clients**
-      - AssetsClient.cs
-      - GameClient.cs
-      - IAssetsClient.cs
-      - IGameClient.cs
-      - ILibraryClient.cs
-      - LibraryClient.cs
     - **Components**
       - App.razor
+      - Routes.razor
+    - **wwwroot**
+  - **WebApp.Abstractions**
+  - **WebApp.Common**
+    - GlobalUsings.cs
+    - VttTools.WebApp.Common.csproj
+    - **Components**
+      - AccountPage.cs
+      - Component.cs
+      - IAccountPage.cs
+      - IComponent.cs
+      - IPage.cs
+      - Page.cs
+      - PageHandler.cs
+    - **Contracts**
+      - **Assets**
+        - AssetDetails.cs
+        - IAssetsHttpClient.cs
+        - SceneListItem.cs
+      - **Game**
+        - IGameHttpClient.cs
+        - **Chat**
+          - **Models**
+            - ChatMessage.cs
+            - ChatMessageDirection.cs
+      - **Library**
+        - ILibraryHttpClient.cs
+        - **Adventure**
+          - AdventureDetails.cs
+          - AdventureListItem.cs
+        - **Scenes**
+          - GridDetails.cs
+          - SceneAssetDetails.cs
+          - SceneDetails.cs
+          - SceneListItem.cs
+          - StageDetails.cs
+    - **Extensions**
+      - HttpContextExtensions.cs
+      - NavigationManagerExtensions.cs
+      - UserManagerExtensions.cs
+    - **Models**
+      - LoggedUser.cs
+    - **Utilities**
+      - IdentityUserAccessor.cs
+      - IIdentityUserAccessor.cs
+  - **WebApp.Common.UnitTests**
+    - GlobalUsings.cs
+    - VttTools.WebApp.Common.UnitTests.csproj
+    - xunit.runner.json
+    - **Components**
+      - PublicComponentTests.cs
+    - **TestUtilities**
+      - ComponentTestContext.cs
+  - **WebApp.Server**
+    - _Imports.razor
+    - appsettings.Development.json
+    - appsettings.json
+    - GlobalUsings.cs
+    - Program.cs
+    - VttTools.WebApp.Server.csproj
+    - **Clients**
+      - ServerAssetsHttpClient.cs
+      - ServerGameHttpClient.cs
+      - ServerLibraryHttpClient.cs
+    - **Components**
       - NavMenu.razor
       - NavMenu.razor.cs
-      - Routes.razor
+      - StatusMessage.razor
+      - StatusMessage.razor.cs
       - **Account**
         - ExternalLoginPicker.razor
         - ExternalLoginPicker.razor.cs
@@ -407,8 +504,6 @@
         - ManageNavMenu.razor.cs
         - RecoveryCodes.razor
         - RecoveryCodes.razor.cs
-        - StatusMessage.razor
-        - StatusMessage.razor.cs
     - **Extensions**
       - AdditionalIdentityEndpointsMapper.cs
     - **Layouts**
@@ -510,9 +605,6 @@
           - GameSessionChatPage.razor.handler.cs
           - GameSessionChatPage.razor.input.cs
           - GameSessionChatPage.razor.state.cs
-          - **Models**
-            - ChatMessage.cs
-            - ChatMessageDirection.cs
         - **Schedule**
           - GameSessionPage.razor
           - GameSessionPage.razor.cs
@@ -526,74 +618,36 @@
           - GameSessionsPage.razor.state.cs
       - **Library**
         - _Imports.razor
-        - **Adventures**
-          - AdventureHandler.cs
-          - AdventurePage.razor
-          - AdventurePage.razor.cs
-          - AdventuresHandler.cs
-          - AdventuresPage.razor
-          - AdventuresPage.razor.cs
-          - **Models**
-            - AdventureInputModel.cs
-            - AdventureListItem.cs
+        - **Adventure**
+          - **Details**
+            - AdventureHandler.cs
+            - AdventurePage.razor
+            - AdventurePage.razor.cs
             - AdventurePageState.cs
+          - **List**
+            - AdventuresHandler.cs
+            - AdventuresPage.razor
+            - AdventuresPage.razor.cs
             - AdventuresPageState.cs
-            - DetailsPageMode.cs
-            - ListViewMode.cs
-            - SceneInputModel.cs
-            - SceneListItem.cs
+    - **Shared**
+      - **Models**
+        - DetailsPageMode.cs
+        - ListViewMode.cs
     - **Utilities**
       - IdentityNoOpEmailSender.cs
       - IdentityRevalidatingAuthenticationStateProvider.cs
+      - PersistingAuthenticationStateProvider.cs
+      - ServerAuthenticationDelegatingHandler.cs
     - **wwwroot**
-  - **WebApp.Abstractions**
+  - **WebApp.Server.UnitTests**
     - GlobalUsings.cs
-    - VttTools.WebApp.Abstractions.csproj
-    - **Components**
-      - AccountPage.cs
-      - Component.cs
-      - IAccountPage.cs
-      - IComponent.cs
-      - IPage.cs
-      - Page.cs
-      - PageHandler.cs
-    - **Extensions**
-      - HttpContextExtensions.cs
-      - NavigationManagerExtensions.cs
-      - UserManagerExtensions.cs
-    - **Models**
-      - LoggedUser.cs
-    - **Utilities**
-      - IdentityUserAccessor.cs
-      - IIdentityUserAccessor.cs
-  - **WebApp.Abstractions.UnitTests**
-    - GlobalUsings.cs
-    - VttTools.WebApp.Abstractions.UnitTests.csproj
-    - xunit.runner.json
-    - **Components**
-      - PublicComponentTests.cs
-    - **TestUtilities**
-      - ComponentTestContext.cs
-  - **WebApp.Client**
-    - _Imports.razor
-    - Program.cs
-    - RedirectToLogin.razor
-    - VttTools.WebApp.Client.csproj
-    - **Pages**
-      - Counter.razor
-      - Counter.razor.cs
-    - **wwwroot**
-      - appsettings.Development.json
-      - appsettings.json
-  - **WebApp.UnitTests**
-    - GlobalUsings.cs
-    - VttTools.WebApp.UnitTests.csproj
+    - VttTools.WebApp.Server.UnitTests.csproj
     - xunit.runner.json
     - **Clients**
-      - AssetsClientTests.cs
-      - GameClientTests.cs
-      - LibraryClientTests.cs
       - MockHttpMessageHandler.cs
+      - ServerAssetsHttpClientTests.cs
+      - ServerGameHttpClientTests.cs
+      - ServerLibraryHttpClientTests.cs
     - **Components**
       - NavMenuTests.cs
     - **Pages**
@@ -628,13 +682,43 @@
           - GameSessionsPageHandlerTests.cs
           - GameSessionsPageTests.cs
       - **Library**
-        - **Adventures**
-          - AdventureHandlerTests.cs
-          - AdventurePageTests.cs
-          - AdventuresPageHandlerTests.cs
-          - AdventuresPageTests.cs
+        - **Adventure**
+          - **Details**
+            - AdventureHandlerTests.cs
+            - AdventurePageTests.cs
+          - **List**
+            - AdventuresPageHandlerTests.cs
+            - AdventuresPageTests.cs
     - **TestUtilities**
       - ComponentTestContext.cs
+  - **WebApp.WebAssembly**
+    - _Imports.razor
+    - appsettings.Development.json
+    - appsettings.json
+    - GlobalUsings.cs
+    - Program.cs
+    - VttTools.WebApp.WebAssembly.csproj
+    - **Clients**
+      - ClientAssetsHttpClient.cs
+      - ClientLibraryHttpClient.cs
+    - **Extensions**
+      - ClaimsPrincipalExtensions.cs
+      - PointExtensions.cs
+    - **Pages**
+      - **Library**
+        - **Scenes**
+          - BuilderInput.cs
+          - BuilderState.cs
+          - PersistedSceneData.cs
+          - SceneBuilderPage.razor
+          - SceneBuilderPage.razor.cs
+          - SelectedAsset.cs
+          - StageInput.cs
+    - **Utilities**
+      - GridCalculations.cs
+      - PersistentAuthenticationStateProvider.cs
+    - **wwwroot**
+      - **scripts**
 - **Utilities**
   - clear_artifacts.py
   - generate_coverage_report.py
@@ -645,4 +729,3 @@
     - csharp_utils.py
     - json_utils.py
     - xml_utils.py
-    - **__pycache__**

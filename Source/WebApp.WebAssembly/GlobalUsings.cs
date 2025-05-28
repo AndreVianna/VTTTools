@@ -29,6 +29,7 @@ global using VttTools.Library.Scenes.Model;
 global using VttTools.Utilities;
 global using VttTools.WebApp.Contracts.Assets;
 global using VttTools.WebApp.Contracts.Library;
+global using VttTools.WebApp.Contracts.Library.Adventure;
 global using VttTools.WebApp.Contracts.Library.Scenes;
 global using VttTools.WebApp.WebAssembly.Clients;
 global using VttTools.WebApp.WebAssembly.Extensions;

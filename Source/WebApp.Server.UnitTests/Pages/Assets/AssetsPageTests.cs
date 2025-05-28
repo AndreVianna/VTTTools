@@ -1,10 +1,11 @@
 using VttTools.WebApp.Server.Pages.Assets;
+using VttTools.WebApp.Server.Pages.Assets.List;
 
 namespace VttTools.WebApp.Pages.Assets;
 
 public class AssetsPageTests
     : ComponentTestContext {
-    private readonly IAssetsHttpClient _serverHttpClient = Substitute.For<IAssetsHttpClient>();
+    private readonly IServerAssetsHttpClient _serverHttpClient = Substitute.For<IServerAssetsHttpClient>();
     private readonly AssetListItem[] _defaultAssets = [
         new() {
             Name = "Asset 1",
@@ -16,7 +17,7 @@ public class AssetsPageTests
         }];
 
     public AssetsPageTests() {
-        Services.AddScoped<IAssetsHttpClient>(_ => _serverHttpClient);
+        Services.AddScoped<IServerAssetsHttpClient>(_ => _serverHttpClient);
         _serverHttpClient.GetAssetsAsync().Returns(_defaultAssets);
         EnsureAuthenticated();
     }

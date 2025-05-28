@@ -6,7 +6,7 @@ using UpdateAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateAssetReque
 namespace VttTools.WebApp.Server.Clients;
 
 public class ServerLibraryHttpClient(HttpClient client, JsonSerializerOptions options)
-    : ILibraryHttpClient {
+    : IServerLibraryHttpClient {
     public async Task<AdventureListItem[]> GetAdventuresAsync() {
         var adventures = IsNotNull(await client.GetFromJsonAsync<Adventure[]>("/api/adventures", options));
         return [.. adventures.Select(adventure => new AdventureListItem {
@@ -91,8 +91,6 @@ public class ServerLibraryHttpClient(HttpClient client, JsonSerializerOptions op
         })];
     }
 
-    public Task<SceneDetails?> GetSceneByIdAsync(Guid id) => throw new NotImplementedException();
-
     public async Task<Result<SceneDetails>> CreateSceneAsync(Guid id) {
         var response = await client.PostAsync($"/api/adventures/{id}/scenes", null);
         if (!response.IsSuccessStatusCode)
@@ -138,33 +136,20 @@ public class ServerLibraryHttpClient(HttpClient client, JsonSerializerOptions op
         };
     }
 
-    public async Task<string> UploadSceneFileAsync(Guid id, Stream fileStream, string fileName) {
+    public async Task<string> UploadAdventureFileAsync(Guid id, Stream fileStream, string fileName) {
         using var content = new MultipartFormDataContent();
         using var streamContent = new StreamContent(fileStream);
 
         content.Add(streamContent, "file", fileName);
 
-        var response = await client.PostAsync($"api/scenes/{id}/upload", content);
+        var response = await client.PostAsync($"api/adventures/{id}/upload", content);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadAsStringAsync();
-    }
-
-    public async Task<Result> UpdateSceneAsync(Guid id, UpdateSceneRequest request) {
-        var response = await client.PatchAsJsonAsync($"/api/scenes/{id}", request, options);
-        return response.IsSuccessStatusCode
-                   ? Result.Success()
-                   : Result.Failure("Failed to update scene.");
     }
 
     public async Task<bool> DeleteSceneAsync(Guid id, Guid sceneId) {
         var response = await client.DeleteAsync($"/api/adventures/{id}/scenes/{sceneId}");
         return response.IsSuccessStatusCode;
     }
-
-    public Task<Result<SceneAssetDetails>> AddSceneAssetAsync(Guid sceneId, AddAssetRequest request) => throw new NotImplementedException();
-
-    public Task<Result> UpdateSceneAssetAsync(Guid sceneId, Guid assetId, uint number, UpdateAssetRequest request) => throw new NotImplementedException();
-
-    public Task<bool> RemoveSceneAssetAsync(Guid sceneId, Guid assetId, uint number) => throw new NotImplementedException();
 }

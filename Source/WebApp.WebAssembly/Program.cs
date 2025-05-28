@@ -25,10 +25,8 @@ internal static class Program {
             },
         });
 
-        builder.Services.AddHttpClient<IAssetsHttpClient, ClientAssetsHttpClient>(static (_, client)
+        builder.Services.AddHttpClient<ISceneBuilderHttpClient, SceneBuilderHttpClient>(static (_, client)
             => client.BaseAddress = new("https://localhost:7171"));
-        builder.Services.AddHttpClient<ILibraryHttpClient, ClientLibraryHttpClient>(static (_, client)
-            => client.BaseAddress = new("https://localhost:7172"));
 
         var app = builder.Build();
         return app.RunAsync();

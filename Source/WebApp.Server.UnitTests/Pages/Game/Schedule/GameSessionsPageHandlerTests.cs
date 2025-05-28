@@ -6,7 +6,7 @@ public class GameSessionsPageHandlerTests
     : ComponentTestContext {
     private readonly GameSessionsPage _page = Substitute.For<GameSessionsPage>();
     private readonly IGameHttpClient _serverGameHttpClient = Substitute.For<IGameHttpClient>();
-    private readonly ILibraryHttpClient _serverLibraryHttpClient = Substitute.For<ILibraryHttpClient>();
+    private readonly IServerLibraryHttpClient _serverLibraryHttpClient = Substitute.For<IServerLibraryHttpClient>();
 
     public GameSessionsPageHandlerTests() {
         _page.HttpContext.Returns(HttpContext);

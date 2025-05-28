@@ -9,16 +9,13 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     public Guid SceneId { get; set; }
 
     [Inject]
-    private ILibraryHttpClient LibraryClient { get; set; } = null!;
+    internal ISceneBuilderHttpClient Client { get; set; } = null!;
 
     [Inject]
-    private IAssetsHttpClient AssetsClient { get; set; } = null!;
+    internal IJSRuntime JsRuntime { get; set; } = null!;
 
     [Inject]
-    private IJSRuntime JsRuntime { get; set; } = null!;
-
-    [Inject]
-    private PersistentComponentState ApplicationState { get; set; } = null!;
+    internal PersistentComponentState ApplicationState { get; set; } = null!;
 
     private PersistingComponentStateSubscription? _persistingSubscription;
     private bool _hasRestoredState;
@@ -86,7 +83,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
 
     private async Task LoadSceneAsync() {
         try {
-            var scene = await LibraryClient.GetSceneByIdAsync(SceneId);
+            var scene = await Client.GetSceneByIdAsync(SceneId);
             if (scene == null) {
                 Console.WriteLine($"Failed to load scene {SceneId}");
                 return;
@@ -316,7 +313,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             IsLocked = SelectedAsset.IsLocked,
         };
 
-        await LibraryClient.UpdateSceneAssetAsync(Scene!.Id, SelectedAsset.Id, SelectedAsset.Number, updateRequest);
+        await Client.UpdateSceneAssetAsync(Scene!.Id, SelectedAsset.Id, SelectedAsset.Number, updateRequest);
 
         await DrawStageAsync();
     }
@@ -326,7 +323,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             return;
         if (SelectedAsset == null)
             return;
-        await LibraryClient.RemoveSceneAssetAsync(Scene!.Id, SelectedAsset.Id, SelectedAsset.Number);
+        await Client.RemoveSceneAssetAsync(Scene!.Id, SelectedAsset.Id, SelectedAsset.Number);
 
         Scene.Assets.RemoveAll(sa => sa.Id == SelectedAsset.Id && sa.Number == SelectedAsset.Number);
         SelectedAsset = null;
@@ -360,7 +357,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         var fileName = Path.GetFileName(SelectedStageFile.Name);
         await using var stream = SelectedStageFile.OpenReadStream(_maxFileSize); // 10 MB
         var backgroundImageId = Guid.CreateVersion7();
-        await AssetsClient.UploadAssetFileAsync(backgroundImageId, stream, fileName);
+        await Client.UploadSceneFileAsync(backgroundImageId, stream, fileName);
 
         Scene = Scene with {
             Stage = Scene.Stage with {
@@ -392,28 +389,12 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     }
 
     private async Task AddAssetToScene() {
-        if (Scene == null)
-            return;
-        if (SelectedAsset == null)
-            return;
+        if (Scene == null) return;
+        if (SelectedAsset == null) return;
 
         // First, create a new asset
-        var createAssetRequest = new CreateAssetRequest {
-            Name = SelectedAsset.Name,
-            Type = SelectedAsset.Type,
-        };
-
-        var assetResult = await AssetsClient.CreateAssetAsync(createAssetRequest);
-        if (!assetResult.IsSuccessful)
-            return;
-        if (SelectedAssetFile != null) {
-            await using var stream = SelectedAssetFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
-            await AssetsClient.UploadAssetFileAsync(assetResult.Value.Id, stream, SelectedAssetFile.Name);
-        }
-
-        // Add the asset to the scene
         var addAssetRequest = new AddAssetRequest {
-            AssetId = assetResult.Value.Id,
+            Id = SelectedAsset.Id,
             Name = SelectedAsset.Name,
             Position = SelectedAsset.Position,
             Scale = SelectedAsset.Scale,
@@ -421,12 +402,9 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             Elevation = SelectedAsset.Elevation,
         };
 
-        var sceneAssetResult = await LibraryClient.AddSceneAssetAsync(Scene!.Id, addAssetRequest);
-
-        if (sceneAssetResult.IsSuccessful) {
-            // Add to our local scene data
+        var sceneAssetResult = await Client.AddSceneAssetAsync(Scene!.Id, addAssetRequest);
+        if (sceneAssetResult.IsSuccessful)
             Scene.Assets.Add(sceneAssetResult.Value);
-        }
 
         State.ShowAssetSelectorModal = false;
         SelectedAsset.Type = AssetType.Placeholder;
@@ -436,7 +414,6 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         SelectedAsset.Rotation = 0.0f;
         SelectedAsset.Elevation = 0.0f;
         SelectedAssetFile = null;
-
         await DrawStageAsync();
     }
 
@@ -458,6 +435,6 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
                 Snap = Scene.Grid.Snap,
             },
         };
-        await LibraryClient.UpdateSceneAsync(Scene.Id, updateRequest);
+        await Client.UpdateSceneAsync(Scene.Id, updateRequest);
     }
 }

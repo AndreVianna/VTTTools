@@ -1,5 +1,3 @@
-using VttTools.WebApp.Contracts.Library.Scenes;
-
 namespace VttTools.WebApp.Contracts.Library.Adventure;
 
 public sealed class AdventureDetails {

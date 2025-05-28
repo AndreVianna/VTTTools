@@ -4,9 +4,9 @@ namespace VttTools.WebApp.Server.Pages.Library.Adventure.Details;
 
 public class AdventureHandler(AdventurePage page)
     : PageHandler<AdventureHandler, AdventurePage>(page) {
-    private ILibraryHttpClient _client = null!;
+    private IServerLibraryHttpClient _client = null!;
 
-    public async Task<bool> LoadAdventureAsync(ILibraryHttpClient client) {
+    public async Task<bool> LoadAdventureAsync(IServerLibraryHttpClient client) {
         _client = client;
         Page.State.Mode = Enum.Parse<DetailsPageMode>(Page.Action ?? "View", true);
         if (Page.State.Mode == DetailsPageMode.Create)

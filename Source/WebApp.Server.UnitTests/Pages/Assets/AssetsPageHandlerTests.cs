@@ -1,10 +1,11 @@
 using VttTools.WebApp.Server.Pages.Assets;
+using VttTools.WebApp.Server.Pages.Assets.List;
 
 namespace VttTools.WebApp.Pages.Assets;
 
 public class AssetsPageHandlerTests
     : ComponentTestContext {
-    private readonly IAssetsHttpClient _serverHttpClient = Substitute.For<IAssetsHttpClient>();
+    private readonly IServerAssetsHttpClient _serverHttpClient = Substitute.For<IServerAssetsHttpClient>();
     private readonly AssetsPage _page = Substitute.For<AssetsPage>();
 
     public AssetsPageHandlerTests() {

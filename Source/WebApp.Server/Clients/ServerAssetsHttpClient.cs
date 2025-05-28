@@ -3,7 +3,7 @@
 namespace VttTools.WebApp.Server.Clients;
 
 public class ServerAssetsHttpClient(HttpClient client, JsonSerializerOptions options)
-    : IAssetsHttpClient {
+    : IServerAssetsHttpClient {
     public async Task<AssetListItem[]> GetAssetsAsync() {
         var assets = IsNotNull(await client.GetFromJsonAsync<Asset[]>("/api/assets", options));
         return [..assets.Select(a => new AssetListItem {

@@ -5,7 +5,7 @@ namespace VttTools.WebApp.Pages.Library.Adventure.Details;
 [Trait("Category", "UI")]
 public class AdventurePageTests
     : BUnitContext {
-    private readonly ILibraryHttpClient _serverLibraryHttpClient = Substitute.For<ILibraryHttpClient>();
+    private readonly IServerLibraryHttpClient _serverLibraryHttpClient = Substitute.For<IServerLibraryHttpClient>();
     private readonly NavigationManager _navigationManager = Substitute.For<NavigationManager>();
     private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
     private readonly AdventureDetails _testAdventure = new() {

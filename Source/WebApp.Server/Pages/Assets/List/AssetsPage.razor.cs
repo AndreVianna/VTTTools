@@ -1,8 +1,8 @@
-namespace VttTools.WebApp.Server.Pages.Assets;
+namespace VttTools.WebApp.Server.Pages.Assets.List;
 
 public partial class AssetsPage {
     [Inject]
-    internal IAssetsHttpClient Client { get; set; } = null!;
+    internal IServerAssetsHttpClient Client { get; set; } = null!;
 
     internal AssetsPageState State { get; set; } = new();
     internal AssetsInputModel Input => State.Input;

@@ -1,6 +1,6 @@
 namespace VttTools.WebApp.Server.Utilities;
 
-public class ServerAuthenticationDelegatingHandler(IHttpContextAccessor contextAccessor)
+public class AuthenticationDelegatingHandler(IHttpContextAccessor contextAccessor)
     : DelegatingHandler {
     private const string _userHeader = "x-user";
 

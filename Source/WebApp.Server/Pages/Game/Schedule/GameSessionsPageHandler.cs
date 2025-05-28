@@ -3,9 +3,9 @@ namespace VttTools.WebApp.Server.Pages.Game.Schedule;
 public sealed class GameSessionsPageHandler(GameSessionsPage page)
     : PageHandler<GameSessionsPageHandler, GameSessionsPage>(page) {
     private IGameHttpClient _gameClient = null!;
-    private ILibraryHttpClient _libraryClient = null!;
+    private IServerLibraryHttpClient _libraryClient = null!;
 
-    public async Task LoadGameSessionAsync(IGameHttpClient gameClient, ILibraryHttpClient libraryClient) {
+    public async Task LoadGameSessionAsync(IGameHttpClient gameClient, IServerLibraryHttpClient libraryClient) {
         _gameClient = gameClient;
         _libraryClient = libraryClient;
         var data = await gameClient.GetGameSessionsAsync();

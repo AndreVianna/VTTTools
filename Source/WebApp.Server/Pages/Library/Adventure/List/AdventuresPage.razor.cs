@@ -2,7 +2,7 @@
 
 public partial class AdventuresPage {
     [Inject]
-    internal ILibraryHttpClient Client { get; set; } = null!;
+    internal IServerLibraryHttpClient Client { get; set; } = null!;
 
     internal AdventuresPageState State { get; set; } = new();
 

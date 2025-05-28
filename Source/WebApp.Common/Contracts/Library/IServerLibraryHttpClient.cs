@@ -1,11 +1,8 @@
-﻿using VttTools.WebApp.Contracts.Library.Adventure;
-using VttTools.WebApp.Contracts.Library.Scenes;
-
-using UpdateAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateAssetRequest;
+﻿using UpdateAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateAssetRequest;
 
 namespace VttTools.WebApp.Contracts.Library;
 
-public interface ILibraryHttpClient {
+public interface IServerLibraryHttpClient {
     Task<AdventureListItem[]> GetAdventuresAsync();
     Task<AdventureDetails?> GetAdventureByIdAsync(Guid id);
     Task<Result<AdventureListItem>> CreateAdventureAsync(CreateAdventureRequest request);
@@ -14,14 +11,8 @@ public interface ILibraryHttpClient {
     Task<bool> DeleteAdventureAsync(Guid id);
 
     Task<SceneListItem[]> GetScenesAsync(Guid id);
-    Task<SceneDetails?> GetSceneByIdAsync(Guid id);
     Task<Result<SceneDetails>> CreateSceneAsync(Guid id);
     Task<Result<SceneDetails>> CloneSceneAsync(Guid id, Guid templateId, CloneSceneRequest request);
-    Task<string> UploadSceneFileAsync(Guid id, Stream fileStream, string fileName);
-    Task<Result> UpdateSceneAsync(Guid id, UpdateSceneRequest request);
+    Task<string> UploadAdventureFileAsync(Guid id, Stream fileStream, string fileName);
     Task<bool> DeleteSceneAsync(Guid id, Guid sceneId);
-
-    Task<Result<SceneAssetDetails>> AddSceneAssetAsync(Guid sceneId, AddAssetRequest request);
-    Task<Result> UpdateSceneAssetAsync(Guid sceneId, Guid assetId, uint number, UpdateAssetRequest request);
-    Task<bool> RemoveSceneAssetAsync(Guid sceneId, Guid assetId, uint number);
 }

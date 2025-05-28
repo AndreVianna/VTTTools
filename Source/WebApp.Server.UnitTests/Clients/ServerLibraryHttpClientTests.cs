@@ -332,35 +332,6 @@ public class ServerLibraryHttpClientTests {
     }
 
     [Fact]
-    public async Task UpdateSceneAsync_WhenSuccessful_ReturnsSuccessResult() {
-        // Arrange
-        var sceneId = Guid.NewGuid();
-        var request = new UpdateSceneRequest {
-            Name = "Updated Scene",
-            Description = "Updated description",
-        };
-
-        var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
-            requestMessage.Method.Should().Be(HttpMethod.Put);
-            requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/scenes/{sceneId}");
-
-            var response = new HttpResponseMessage(HttpStatusCode.OK);
-            return Task.FromResult(response);
-        });
-
-        var httpClient = new HttpClient(mockHandler) {
-            BaseAddress = new("http://host.com"),
-        };
-        var client = new ServerLibraryHttpClient(httpClient, _options);
-
-        // Act
-        var result = await client.UpdateSceneAsync(sceneId, request);
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue();
-    }
-
-    [Fact]
     public async Task DeleteSceneAsync_WhenSuccessful_ReturnsTrue() {
         // Arrange
         var adventureId = Guid.NewGuid();

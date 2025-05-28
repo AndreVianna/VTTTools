@@ -5,7 +5,7 @@ namespace VttTools.WebApp.Pages.Library.Adventure.List;
 public class AdventuresPageHandlerTests
     : ComponentTestContext {
     private readonly AdventuresPage _page = Substitute.For<AdventuresPage>();
-    private readonly ILibraryHttpClient _serverHttpClient = Substitute.For<ILibraryHttpClient>();
+    private readonly IServerLibraryHttpClient _serverHttpClient = Substitute.For<IServerLibraryHttpClient>();
 
     public AdventuresPageHandlerTests() {
         var adventures = new[] {

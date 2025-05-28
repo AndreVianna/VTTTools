@@ -3,7 +3,7 @@ using VttTools.WebApp.Contracts.Library.Scenes;
 
 namespace VttTools.WebApp.Server.Pages.Game.Schedule;
 
-internal class GameSessionsInputModel {
+internal class GameSessionsPageInput {
     public string Subject { get; set; } = string.Empty;
 
     internal ICollection<AdventureListItem> Adventures { get; set; } = [];

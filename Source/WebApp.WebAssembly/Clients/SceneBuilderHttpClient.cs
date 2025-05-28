@@ -1,26 +1,10 @@
-using VttTools.WebApp.Contracts.Library.Adventure;
-
 using UpdateAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateAssetRequest;
 
 namespace VttTools.WebApp.WebAssembly.Clients;
 
-public class ClientLibraryHttpClient(HttpClient client, JsonSerializerOptions options, AuthenticationStateProvider authentication)
-    : ILibraryHttpClient {
+public class SceneBuilderHttpClient(HttpClient client, JsonSerializerOptions options, AuthenticationStateProvider authentication)
+    : ISceneBuilderHttpClient {
     private const string _userHeader = "x-user";
-
-    public Task<AdventureListItem[]> GetAdventuresAsync() => throw new NotImplementedException();
-
-    public Task<AdventureDetails?> GetAdventureByIdAsync(Guid id) => throw new NotImplementedException();
-
-    public Task<Result<AdventureListItem>> CreateAdventureAsync(CreateAdventureRequest request) => throw new NotImplementedException();
-
-    public Task<Result<AdventureListItem>> CloneAdventureAsync(Guid id, CloneAdventureRequest request) => throw new NotImplementedException();
-
-    public Task<Result> UpdateAdventureAsync(Guid id, UpdateAdventureRequest request) => throw new NotImplementedException();
-
-    public Task<bool> DeleteAdventureAsync(Guid id) => throw new NotImplementedException();
-
-    public Task<SceneListItem[]> GetScenesAsync(Guid id) => throw new NotImplementedException();
 
     public async Task<SceneDetails?> GetSceneByIdAsync(Guid id) {
         client.DefaultRequestHeaders.Remove(_userHeader);
@@ -60,10 +44,6 @@ public class ClientLibraryHttpClient(HttpClient client, JsonSerializerOptions op
         };
     }
 
-    public Task<Result<SceneDetails>> CreateSceneAsync(Guid id) => throw new NotImplementedException();
-
-    public Task<Result<SceneDetails>> CloneSceneAsync(Guid id, Guid templateId, CloneSceneRequest request) => throw new NotImplementedException();
-
     public async Task<string> UploadSceneFileAsync(Guid id, Stream fileStream, string fileName) {
         using var content = new MultipartFormDataContent();
         using var streamContent = new StreamContent(fileStream);
@@ -84,8 +64,6 @@ public class ClientLibraryHttpClient(HttpClient client, JsonSerializerOptions op
         var result = IsNotNull(await response.Content.ReadFromJsonAsync<Scene>());
         return Result.Success(result);
     }
-
-    public Task<bool> DeleteSceneAsync(Guid id, Guid sceneId) => throw new NotImplementedException();
 
     public async Task<Result<SceneAssetDetails>> AddSceneAssetAsync(Guid sceneId, AddAssetRequest request) {
         var response = await client.PostAsJsonAsync($"api/scenes/{sceneId}/assets", request, options);

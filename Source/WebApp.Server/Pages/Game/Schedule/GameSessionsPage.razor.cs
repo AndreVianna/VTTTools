@@ -4,10 +4,10 @@ public partial class GameSessionsPage {
     [Inject]
     internal IGameHttpClient GameClient { get; set; } = null!;
     [Inject]
-    internal ILibraryHttpClient LibraryClient { get; set; } = null!;
+    internal IServerLibraryHttpClient LibraryClient { get; set; } = null!;
 
     internal GameSessionsPageState State { get; set; } = new();
-    internal GameSessionsInputModel Input => State.Input;
+    internal GameSessionsPageInput Input => State.Input;
 
     protected override async Task ConfigureAsync() {
         await base.ConfigureAsync();

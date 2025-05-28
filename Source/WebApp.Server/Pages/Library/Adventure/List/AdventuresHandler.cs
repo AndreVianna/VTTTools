@@ -6,9 +6,9 @@ namespace VttTools.WebApp.Server.Pages.Library.Adventure.List;
 
 public class AdventuresHandler(AdventuresPage page)
     : PageHandler<AdventuresHandler, AdventuresPage>(page) {
-    private ILibraryHttpClient _client = null!;
+    private IServerLibraryHttpClient _client = null!;
 
-    public async Task LoadAdventuresAsync(ILibraryHttpClient client) {
+    public async Task LoadAdventuresAsync(IServerLibraryHttpClient client) {
         _client = client;
         Page.State.Adventures = [..await _client.GetAdventuresAsync()];
         ApplyFilters();
