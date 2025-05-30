@@ -1,4 +1,4 @@
-// Global layer references
+﻿// Global layer references
 window.sceneLayers = {
     background: null, // Background image layer
     grid: null, // Grid layer
@@ -62,9 +62,6 @@ window.initCanvas = function (container) {
         canvas.height = window.stage.size.height;
         canvas.id = `scene-canvas-${layer}`;
         canvas.className = "scene-canvas-layer";
-        canvas.style.position = "absolute";
-        canvas.style.top = "0";
-        canvas.style.left = "0";
         container.appendChild(canvas);
         window.sceneLayers[layer] = {
             canvas: canvas,

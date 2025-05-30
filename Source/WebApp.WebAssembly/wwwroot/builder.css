@@ -1,4 +1,4 @@
-.scene-builder-toolbar {
+﻿.scene-builder-toolbar {
   display: flex;
   padding: 10px;
   background-color: #f8f9fa;
@@ -22,9 +22,4 @@
   position: absolute;
   top: 0;
   left: 0;
-  border: 5px solid red;
-}
-
-.ml-auto {
-  margin-left: auto;
 }

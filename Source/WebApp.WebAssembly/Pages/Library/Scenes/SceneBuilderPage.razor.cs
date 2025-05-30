@@ -76,7 +76,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     //private bool _sceneJsInitialized;
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (!firstRender) return;
-        module = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Library/Scenes/SceneBuilderPage.razor.js");
+        module = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./builder.js");
         _canvasReady = true;
         if (Scene == null && OperatingSystem.IsBrowser())
             await LoadSceneAsync();
