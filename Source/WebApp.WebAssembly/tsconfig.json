@@ -1,0 +1,48 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "none",
+    "lib": ["DOM", "ES2020"],
+    "outFile": "./wwwroot/builder.js",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "classic",
+    "allowSyntheticDefaultImports": false,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "declaration": false
+  },
+  "files": [
+    "src/types/IPoint.ts",
+    "src/types/ISize.ts",
+    "src/types/ICanvasBounds.ts",
+    "src/types/IMageDimensions.ts",
+    "src/types/GridType.ts",
+    "src/types/IGridDetails.ts",
+    "src/types/IAsset.ts",
+    "src/types/ICanvasLayer.ts",
+    "src/types/ISceneLayers.ts",
+    "src/types/IRenderState.ts",
+    "src/types/IRenderData.ts",
+    "src/types/IScrollPosition.ts",
+    "src/types/ISceneWindow.ts",
+    "src/constants/RenderConstants.ts",
+    "src/utils/ImageCache.ts",
+    "src/utils/DomUtils.ts",
+    "src/renderers/CanvasManager.ts",
+    "src/renderers/BackgroundRenderer.ts",
+    "src/renderers/GridRenderer.ts",
+    "src/renderers/AssetRenderer.ts",
+    "src/SceneBuilder.ts",
+    "src/main.ts"
+  ],
+  "exclude": [
+    "wwwroot/**/*",
+    "node_modules",
+    "tsconfig.vs.json"
+  ]
+}

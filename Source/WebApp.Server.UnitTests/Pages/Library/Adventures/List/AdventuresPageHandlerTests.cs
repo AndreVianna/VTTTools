@@ -74,9 +74,11 @@ public class AdventuresPageHandlerTests
     }
 
     private async Task<AdventuresHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) EnsureAuthenticated();
+        if (isAuthorized)
+            EnsureAuthenticated();
         var handler = new AdventuresHandler(_page);
-        if (isConfigured) await handler.LoadAdventuresAsync(_serverHttpClient);
+        if (isConfigured)
+            await handler.LoadAdventuresAsync(_serverHttpClient);
         return handler;
     }
 }

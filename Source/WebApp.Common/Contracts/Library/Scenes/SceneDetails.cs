@@ -1,7 +1,6 @@
 namespace VttTools.WebApp.Contracts.Library.Scenes;
 
-public class ToViewModel
-{
+public class ToViewModel {
 }
 
 public record SceneDetails {

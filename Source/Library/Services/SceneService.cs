@@ -15,9 +15,11 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
     /// <inheritdoc />
     public async Task<Result<Scene>> UpdateSceneAsync(Guid userId, Guid id, UpdateSceneData data, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
-        if (scene is null) return Result.Failure("NotFound");
+        if (scene is null)
+            return Result.Failure("NotFound");
         var result = data.Validate();
-        if (result.HasErrors) return result;
+        if (result.HasErrors)
+            return result;
         scene = scene with {
             Name = data.Name.IsSet ? data.Name.Value : scene.Name,
             Description = data.Description.IsSet ? data.Description.Value : scene.Description,
@@ -37,12 +39,16 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
 
     public async Task<Result<SceneAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, AddAssetData data, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
-        if (scene is null) return Result.Failure("NotFound");
+        if (scene is null)
+            return Result.Failure("NotFound");
         var asset = await assetStorage.GetByIdAsync(assetId, ct);
-        if (asset is null) return Result.Failure("NotFound");
-        if (asset.OwnerId != userId || asset is { IsPublic: true, IsPublished: true }) return Result.Failure("NotAllowed");
+        if (asset is null)
+            return Result.Failure("NotFound");
+        if (asset.OwnerId != userId || asset is { IsPublic: true, IsPublished: true })
+            return Result.Failure("NotAllowed");
         var result = data.Validate();
-        if (result.HasErrors) return result;
+        if (result.HasErrors)
+            return result;
         var number = scene.Assets.Where(sa => sa.Id == asset.Id).Max(sa => sa.Number) + 1;
         var name = data.Name.IsSet ? data.Name.Value : asset.Name;
         var sceneAsset = new SceneAsset {
@@ -62,13 +68,17 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
 
     /// <inheritdoc />
     public async Task<Result<SceneAsset>> UpdateAssetAsync(Guid userId, Guid id, Guid assetId, int number, UpdateAssetData data, CancellationToken ct = default) {
-        if (number < 0) return Result.Failure("NotFound");
+        if (number < 0)
+            return Result.Failure("NotFound");
         var scene = await sceneStorage.GetByIdAsync(id, ct);
-        if (scene is null) return Result.Failure("NotFound");
+        if (scene is null)
+            return Result.Failure("NotFound");
         var sceneAsset = scene.Assets.FirstOrDefault(a => a.Id == assetId && a.Number == number);
-        if (sceneAsset == null) return Result.Failure("NotFound");
+        if (sceneAsset == null)
+            return Result.Failure("NotFound");
         var result = data.Validate();
-        if (result.HasErrors) return result;
+        if (result.HasErrors)
+            return result;
         sceneAsset = sceneAsset with {
             Name = data.Name.IsSet ? data.Name.Value : sceneAsset.Name,
             Display = data.Display.IsSet ? data.Display.Value : sceneAsset.Display,
@@ -85,9 +95,11 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
 
     /// <inheritdoc />
     public async Task<Result> RemoveAssetAsync(Guid userId, Guid id, Guid assetId, int number, CancellationToken ct = default) {
-        if (number < 0) return Result.Failure("NotFound");
+        if (number < 0)
+            return Result.Failure("NotFound");
         var scene = await sceneStorage.GetByIdAsync(id, ct);
-        if (scene is null) return Result.Failure("NotFound");
+        if (scene is null)
+            return Result.Failure("NotFound");
         scene.Assets.RemoveAll(a => a.Id == assetId && a.Number == number);
         await sceneStorage.UpdateAsync(scene, ct);
         return Result.Success();

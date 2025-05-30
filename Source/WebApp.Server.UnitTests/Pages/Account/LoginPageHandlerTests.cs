@@ -129,7 +129,8 @@ public class LoginPageHandlerTests
 
     private async Task<LoginPageHandler> CreateHandler(bool isConfigured = true) {
         var handler = new LoginPageHandler(_page);
-        if (isConfigured) await handler.ConfigureAsync();
+        if (isConfigured)
+            await handler.ConfigureAsync();
         return handler;
     }
 }

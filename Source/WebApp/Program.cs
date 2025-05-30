@@ -1,6 +1,6 @@
-using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
-
 using static VttTools.Data.Options.ApplicationDbContextOptions;
+
+using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 namespace VttTools.WebApp;
 
@@ -45,6 +45,9 @@ internal static class Program {
             .AddHttpMessageHandler<AuthenticationDelegatingHandler>();
         builder.Services.AddHttpClient<ISceneBuilderHttpClient, SceneBuilderHttpClient>(static client
             => client.BaseAddress = new("https://localhost:7172"));
+
+        // Add SceneBuilder services for both server and WebAssembly rendering
+        builder.Services.AddScoped<SceneBuilderStorageService>();
 
         AddDefaultHealthChecks(builder);
         builder.AddRedisOutputCache("redis");

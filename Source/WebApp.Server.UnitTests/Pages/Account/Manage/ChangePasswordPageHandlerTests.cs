@@ -66,9 +66,11 @@ public class ChangePasswordPageHandlerTests
     }
 
     private ChangePasswordPageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) EnsureAuthenticated();
+        if (isAuthorized)
+            EnsureAuthenticated();
         var handler = new ChangePasswordPageHandler(_page);
-        if (isConfigured) handler.Configure();
+        if (isConfigured)
+            handler.Configure();
         return handler;
     }
 }

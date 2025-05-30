@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AwesomeAssertions" Version="8.2.0" />
+    <PackageReference Include="AwesomeAssertions" Version="9.0.0" />
     <PackageReference Include="bunit" Version="1.39.5" />
     <PackageReference Include="coverlet.collector" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>

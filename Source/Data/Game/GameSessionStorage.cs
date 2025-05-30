@@ -78,7 +78,8 @@ public class GameSessionStorage(ApplicationDbContext context)
 
     public async Task<GameSession?> UpdateAsync(GameSession session, CancellationToken ct = default) {
         var entity = await context.GameSessions.FindAsync([session.Id], ct);
-        if (entity == null) return null;
+        if (entity == null)
+            return null;
         entity.OwnerId = session.OwnerId;
         entity.Title = session.Title;
         entity.Status = session.Status;

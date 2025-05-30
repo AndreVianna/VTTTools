@@ -19,7 +19,8 @@ public class ConfirmEmailPageHandler(ConfirmEmailPage page)
 
         var decodedCode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
         var result = await userManager.ConfirmEmailAsync(user, decodedCode);
-        if (result.Succeeded) return;
+        if (result.Succeeded)
+            return;
 
         Page.SetStatusMessage("The email confirmation code is invalid, please try again.");
         Page.GoHome();

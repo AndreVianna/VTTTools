@@ -10,7 +10,8 @@ public static class Cloner {
             Type = data?.Type.IsSet ?? false ? data.Type.Value : original.Type,
             Display = data?.Display.IsSet ?? false ? data.Display.Value : original.Display,
         };
-        if (data?.IncludeScenes != true) return clone;
+        if (data?.IncludeScenes != true)
+            return clone;
         clone.Scenes.AddRange(original.Scenes.Select(ep => CloneScene(ep, ownerId)));
         return clone;
     }

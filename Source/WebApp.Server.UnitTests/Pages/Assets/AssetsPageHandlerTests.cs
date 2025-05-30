@@ -64,9 +64,11 @@ public class AssetsPageHandlerTests
     }
 
     private async Task<AssetsPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) EnsureAuthenticated();
+        if (isAuthorized)
+            EnsureAuthenticated();
         var handler = new AssetsPageHandler(_page);
-        if (isConfigured) await handler.LoadAssetsAsync(_client);
+        if (isConfigured)
+            await handler.LoadAssetsAsync(_client);
         return handler;
     }
 }

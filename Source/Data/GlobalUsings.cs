@@ -2,9 +2,6 @@ global using System.ComponentModel.DataAnnotations;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Drawing;
 global using System.Linq.Expressions;
-global using System.Numerics;
-
-global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore;
@@ -29,7 +26,5 @@ global using VttTools.Game.Sessions.Storage;
 global using VttTools.Identity.Model;
 global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Adventures.Storage;
-global using VttTools.Library.Campaigns.Model;
-global using VttTools.Library.Epics.Model;
 global using VttTools.Library.Scenes.Model;
 global using VttTools.Library.Scenes.Storage;

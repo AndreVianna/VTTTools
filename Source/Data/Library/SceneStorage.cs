@@ -73,7 +73,8 @@ public class SceneStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default) {
         var scene = await context.Scenes.FindAsync([id], ct);
-        if (scene == null) return false;
+        if (scene == null)
+            return false;
         context.Scenes.RemoveRange(context.Scenes.Where(a => a.Id == id));
         var result = await context.SaveChangesAsync(ct);
         return result > 0;

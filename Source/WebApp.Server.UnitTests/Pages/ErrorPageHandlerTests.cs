@@ -50,7 +50,8 @@ public class ErrorPageHandlerTests
 
     private ErrorPageHandler CreateHandler(bool isConfigured = true) {
         var handler = new ErrorPageHandler(_page);
-        if (isConfigured) handler.Configure();
+        if (isConfigured)
+            handler.Configure();
         return handler;
     }
 }

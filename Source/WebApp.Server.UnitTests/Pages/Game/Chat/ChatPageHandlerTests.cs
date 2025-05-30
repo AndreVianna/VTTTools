@@ -81,9 +81,11 @@ public sealed class ChatPageHandlerTests
     }
 
     private async Task<ChatPageHandler> CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) EnsureAuthenticated();
+        if (isAuthorized)
+            EnsureAuthenticated();
         var handler = new ChatPageHandler(_page);
-        if (isConfigured) await handler.SetHubConnectionAsync(_builder, _chatUri, RefreshAsync);
+        if (isConfigured)
+            await handler.SetHubConnectionAsync(_builder, _chatUri, RefreshAsync);
         return handler;
     }
 }

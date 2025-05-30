@@ -4,7 +4,7 @@ public class GameSessionsHttpClient(HttpClient client, JsonSerializerOptions opt
     : IGameSessionsHttpClient {
     public async Task<GameSessionListItem[]> GetGameSessionsAsync() {
         var sessions = IsNotNull(await client.GetFromJsonAsync<GameSession[]>("/api/sessions", options));
-        return [..sessions.Select(s => s.ToListItem())];
+        return [.. sessions.Select(s => s.ToListItem())];
     }
 
     public async Task<GameSessionDetails?> GetGameSessionByIdAsync(Guid id) {

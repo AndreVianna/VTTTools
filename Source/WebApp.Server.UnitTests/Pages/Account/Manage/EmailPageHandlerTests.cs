@@ -65,9 +65,11 @@ public class EmailPageHandlerTests
     }
 
     private EmailPageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) EnsureAuthenticated();
+        if (isAuthorized)
+            EnsureAuthenticated();
         var handler = new EmailPageHandler(_page);
-        if (isConfigured) handler.Configure();
+        if (isConfigured)
+            handler.Configure();
         return handler;
     }
 }

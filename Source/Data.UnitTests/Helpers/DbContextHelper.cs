@@ -1,12 +1,12 @@
 using Adventure = VttTools.Library.Adventures.Model.Adventure;
-using Asset = VttTools.Assets.Model.Asset;
-using GameSession = VttTools.Game.Sessions.Model.GameSession;
-using Scene = VttTools.Library.Scenes.Model.Scene;
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
+using Asset = VttTools.Assets.Model.Asset;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
+using GameSession = VttTools.Game.Sessions.Model.GameSession;
 using GameSessionEntity = VttTools.Data.Game.Entities.GameSession;
-using SceneEntity = VttTools.Data.Library.Entities.Scene;
+using Scene = VttTools.Library.Scenes.Model.Scene;
 using SceneAssetEntity = VttTools.Data.Library.Entities.SceneAsset;
+using SceneEntity = VttTools.Data.Library.Entities.Scene;
 
 namespace VttTools.Data.Helpers;
 
@@ -124,7 +124,7 @@ internal static class DbContextHelper {
             },
             Grid = new() {
                 Type = GridType.Square,
-                CellSize = new (1, 1),
+                CellSize = new(1, 1),
                 Offset = new(0, 0),
                 Snap = false,
             },

@@ -60,7 +60,8 @@ public class AssetStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<Asset?> UpdateAsync(Asset asset, CancellationToken ct = default) {
         var entity = await context.Assets.FindAsync([asset.Id], ct);
-        if (entity == null) return null;
+        if (entity == null)
+            return null;
         entity.OwnerId = asset.OwnerId;
         entity.Name = asset.Name;
         entity.Description = asset.Description;

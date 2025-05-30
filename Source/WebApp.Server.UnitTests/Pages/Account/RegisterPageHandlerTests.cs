@@ -108,7 +108,8 @@ public class RegisterPageHandlerTests
 
     private async Task<RegisterPageHandler> CreateHandler(bool isConfigured = true) {
         var handler = new RegisterPageHandler(_page);
-        if (isConfigured) await handler.ConfigureAsync();
+        if (isConfigured)
+            await handler.ConfigureAsync();
         return handler;
     }
 }

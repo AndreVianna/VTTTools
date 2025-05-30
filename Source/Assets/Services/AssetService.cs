@@ -16,7 +16,8 @@ public class AssetService(IAssetStorage assetStorage)
     /// <inheritdoc />
     public async Task<Result<Asset>> CreateAssetAsync(Guid userId, CreateAssetData data, CancellationToken ct = default) {
         var result = data.Validate();
-        if (result.HasErrors) return result;
+        if (result.HasErrors)
+            return result;
         var asset = new Asset {
             Name = data.Name,
             Type = data.Type,
@@ -29,10 +30,13 @@ public class AssetService(IAssetStorage assetStorage)
 
     public async Task<Result<Asset>> CloneAssetAsync(Guid userId, Guid templateId, CloneAssetData data, CancellationToken ct = default) {
         var original = await assetStorage.GetByIdAsync(templateId, ct);
-        if (original is null) return Result.Failure("NotFound");
-        if (original.OwnerId != userId || original is { IsPublic: true, IsPublished: true }) return Result.Failure("NotAllowed");
+        if (original is null)
+            return Result.Failure("NotFound");
+        if (original.OwnerId != userId || original is { IsPublic: true, IsPublished: true })
+            return Result.Failure("NotAllowed");
         var result = data.Validate();
-        if (result.HasErrors) return result;
+        if (result.HasErrors)
+            return result;
         var clone = Cloner.CloneAsset(original, userId, data);
         await assetStorage.AddAsync(clone, ct);
         return clone;
@@ -41,10 +45,13 @@ public class AssetService(IAssetStorage assetStorage)
     /// <inheritdoc />
     public async Task<Result<Asset>> UpdateAssetAsync(Guid userId, Guid id, UpdateAssetData data, CancellationToken ct = default) {
         var asset = await assetStorage.GetByIdAsync(id, ct);
-        if (asset is null) return Result.Failure("NotFound");
-        if (asset.OwnerId != userId) return Result.Failure("NotAllowed");
+        if (asset is null)
+            return Result.Failure("NotFound");
+        if (asset.OwnerId != userId)
+            return Result.Failure("NotAllowed");
         var result = data.Validate();
-        if (result.HasErrors) return result;
+        if (result.HasErrors)
+            return result;
         asset = asset with {
             Name = data.Name.IsSet ? data.Name.Value : asset.Name,
             Type = data.Type.IsSet ? data.Type.Value : asset.Type,
@@ -60,8 +67,10 @@ public class AssetService(IAssetStorage assetStorage)
     /// <inheritdoc />
     public async Task<Result> DeleteAssetAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var asset = await assetStorage.GetByIdAsync(id, ct);
-        if (asset is null) return Result.Failure("NotFound");
-        if (asset.OwnerId != userId) return Result.Failure("NotAllowed");
+        if (asset is null)
+            return Result.Failure("NotFound");
+        if (asset.OwnerId != userId)
+            return Result.Failure("NotAllowed");
         await assetStorage.DeleteAsync(id, ct);
         return Result.Success();
     }

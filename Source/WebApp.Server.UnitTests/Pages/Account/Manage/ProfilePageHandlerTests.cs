@@ -75,9 +75,11 @@ public class ProfilePageHandlerTests
     }
 
     private ProfilePageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized) EnsureAuthenticated();
+        if (isAuthorized)
+            EnsureAuthenticated();
         var handler = new ProfilePageHandler(_page);
-        if (isConfigured) handler.Configure();
+        if (isConfigured)
+            handler.Configure();
         return handler;
     }
 }

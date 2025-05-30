@@ -15,7 +15,8 @@ public sealed class PersistingAuthenticationStateProvider
     }
 
     private async Task OnPersistingAsync() {
-        if (_authenticationStateTask is null)             throw new UnreachableException($"Authentication state not set in {nameof(OnPersistingAsync)}().");
+        if (_authenticationStateTask is null)
+            throw new UnreachableException($"Authentication state not set in {nameof(OnPersistingAsync)}().");
 
         var authenticationState = await _authenticationStateTask;
         var principal = authenticationState.User;

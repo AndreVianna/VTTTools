@@ -1,5 +1,3 @@
-using VttTools.WebApp.WebAssembly.Utilities;
-
 using UpdateAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateAssetRequest;
 
 namespace VttTools.WebApp.WebAssembly.Pages.Library.Scenes;
@@ -17,6 +15,9 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     [Inject]
     internal PersistentComponentState ApplicationState { get; set; } = null!;
 
+    [Inject]
+    internal SceneBuilderStorageService StorageService { get; set; } = null!;
+
     private PersistingComponentStateSubscription? _persistingSubscription;
     private bool _hasRestoredState;
 
@@ -24,13 +25,13 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     private const string _stageBasePath = "/uploads/stages";
     private const int _maxFileSize = 10 * 1024 * 1024; // 10 MB
 
-    private static readonly Point _canvasPadding = new(200, 200);
+    private static readonly Point _canvasPadding = new(BuilderState.Padding, BuilderState.Padding);
 
     private bool _canvasReady;
     private ElementReference _canvasContainerRef;
     private bool _isDisposed;
     private Timer? _mouseMoveTimer;
-    private IJSObjectReference? module;
+    private Rectangle? _canvasRect;
 
     internal BuilderState State { get; set; } = new();
     internal GuidInput Input { get; set; } = new();
@@ -43,7 +44,8 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     public async ValueTask DisposeAsync() {
         if (_isDisposed) return;
         _persistingSubscription?.Dispose();
-        if (_mouseMoveTimer is not null) await _mouseMoveTimer.DisposeAsync();
+        if (_mouseMoveTimer is not null)
+            await _mouseMoveTimer.DisposeAsync();
         GC.SuppressFinalize(this);
         _isDisposed = true;
     }
@@ -52,13 +54,17 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync();
         _persistingSubscription = ApplicationState.RegisterOnPersisting(PersistSceneData);
+
+        // Initialize state with scene ID
+        State.SceneId = SceneId;
+
         if (!_hasRestoredState && ApplicationState.TryTakeFromJson<SceneBuilderPersistedData>($"SceneBuilder_{SceneId}", out var persistedData) && persistedData != null) {
             _hasRestoredState = true;
             Scene = persistedData.Scene;
         }
 
         if (Scene == null && !OperatingSystem.IsBrowser()) await LoadSceneAsync();
-        if (_canvasReady) await InitStage();
+        if (_canvasReady) await InitStageAsync();
     }
 
     private Task PersistSceneData() {
@@ -75,12 +81,13 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
 
     //private bool _sceneJsInitialized;
     protected override async Task OnAfterRenderAsync(bool firstRender) {
-        if (!firstRender) return;
-        module = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./builder.js");
+        if (!firstRender)
+            return;
+        await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./builder.js");
         _canvasReady = true;
         if (Scene == null && OperatingSystem.IsBrowser())
             await LoadSceneAsync();
-        await InitStage();
+        await InitStageAsync();
     }
 
     private async Task LoadSceneAsync() {
@@ -92,6 +99,10 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             }
             Scene = scene;
             StageImageUrl = GetImageUrl(_stageBasePath, Scene.Stage.Type, Scene.Stage.FileName ?? Scene.Id.ToString());
+
+            // Initialize state from scene and local storage
+            await InitializeStateAsync();
+
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex) {
@@ -99,20 +110,81 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         }
     }
 
-    private async Task InitStage() {
-        if (Scene is null) return;
-        var stageData = new {
+    private async Task InitStageAsync() {
+        if (Scene is null)
+            return;
+
+        // Calculate canvas size and update state
+        State.CanvasSize = SceneCalculations.CalculateCanvasSize(Scene.Stage.Size, BuilderState.Padding);
+
+        var renderData = CreateRenderData();
+        await JsRuntime.InvokeVoidAsync("initStage", _canvasContainerRef, renderData);
+
+        // Get canvas bounding rect for coordinate calculations
+        await UpdateCanvasRectAsync();
+    }
+
+    private async Task InitializeStateAsync() {
+        if (Scene is null)
+            return;
+
+        // Load state from local storage
+        (var panOffset, var zoomLevel, var grid) = await StorageService.LoadStateAsync(State.SceneId, Scene.ZoomLevel);
+        State.PanOffset = panOffset;
+        State.ZoomLevel = zoomLevel;
+        State.Grid = grid;
+        State.CanvasSize = SceneCalculations.CalculateCanvasSize(Scene.Stage.Size, BuilderState.Padding);
+    }
+
+    private async Task UpdateCanvasRectAsync() {
+        try {
+            var rect = await JsRuntime.InvokeAsync<object>("getCanvasBoundingRect", _canvasContainerRef);
+            if (TryParseCanvasRect(rect, out var canvasRect)) {
+                _canvasRect = canvasRect;
+            }
+        }
+        catch (Exception ex) {
+            Console.WriteLine($"Error getting canvas rect: {ex.Message}");
+        }
+    }
+
+    private static bool TryParseCanvasRect(object? rect, out Rectangle canvasRect) {
+        canvasRect = default;
+        if (rect is not JsonElement element)
+            return false;
+
+        if (element.TryGetProperty("x", out var x) &&
+            element.TryGetProperty("y", out var y) &&
+            element.TryGetProperty("width", out var width) &&
+            element.TryGetProperty("height", out var height) &&
+            x.TryGetInt32(out var xVal) &&
+            y.TryGetInt32(out var yVal) &&
+            width.TryGetInt32(out var widthVal) &&
+            height.TryGetInt32(out var heightVal)) {
+            canvasRect = new Rectangle(xVal, yVal, widthVal, heightVal);
+            return true;
+        }
+        return false;
+    }
+
+    private object CreateRenderData() {
+        if (Scene is null)
+            return new { };
+
+        return new {
             id = Scene.Id,
             imageUrl = GetImageUrl(_stageBasePath, Scene.Stage.Type, Scene.Stage.FileName ?? Scene.Id.ToString()),
             size = Scene.Stage.Size,
-            zoomLevel = Scene.Stage.ZoomLevel,
+            canvasSize = State.CanvasSize,
+            zoomLevel = State.ZoomLevel,
+            panOffset = State.PanOffset,
             grid = new {
-                type = Scene.Grid.Type,
-                cellSize = Scene.Grid.CellSize,
-                offset = Scene.Grid.Offset,
-                snap = Scene.Grid.Snap,
+                type = State.Grid.Type,
+                cellSize = State.Grid.CellSize,
+                offset = State.Grid.Offset,
+                snap = State.Grid.Snap,
             },
-            assets = Scene?.Assets.Select(a => new {
+            assets = Scene.Assets.Select(a => new {
                 id = a.Id,
                 number = a.Number,
                 name = a.Name,
@@ -123,36 +195,13 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
                 isLocked = a.IsLocked,
             }).ToArray(),
         };
-
-        await JsRuntime.InvokeVoidAsync("initStage", _canvasContainerRef, stageData);
     }
 
     private async Task DrawStageAsync() {
-        if (Scene is null) return;
-        var stageData = new {
-            sceneId = Scene.Id,
-            imageUrl = GetImageUrl(_stageBasePath, Scene.Stage.Type, Scene.Stage.FileName ?? Scene.Id.ToString()),
-            size = Scene.Stage.Size,
-            zoomLevel = Scene.Stage.ZoomLevel,
-            grid = new {
-                type = Scene.Grid.Type,
-                cellSize = Scene.Grid.CellSize,
-                offset = Scene.Grid.Offset,
-                snap = Scene.Grid.Snap,
-            },
-            assets = Scene?.Assets.Select(a => new {
-                id = a.Id,
-                number = a.Number,
-                name = a.Name,
-                position = a.Position,
-                scale = a.Scale,
-                isSelected = a.Id == SelectedAsset?.Id,
-                imageUrl = GetImageUrl(_assetBasePath, a.ResourceType, a.DisplayId),
-                isLocked = a.IsLocked,
-            }).ToArray(),
-        };
-
-        await JsRuntime.InvokeVoidAsync("drawStage", stageData);
+        if (Scene is null)
+            return;
+        var renderData = CreateRenderData();
+        await JsRuntime.InvokeVoidAsync("drawStage", renderData);
     }
 
     private static string GetImageUrl(string basePath, ResourceType resourceType, string name) {
@@ -181,11 +230,18 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     private void StartAssetPlacement(AssetType assetType) => SelectedAsset!.Type = assetType;// Will open asset selector when user clicks on canvas
 
     private async Task OnCanvasMouseDown(MouseEventArgs e) {
-        var isPanning = await JsRuntime.InvokeAsync<bool>("isPanning");
-        if (isPanning) return;
+        // Check if we're in panning mode
+        if (e.Button == 2) { // Right mouse button
+            await StartPanningAsync(e);
+            return;
+        }
 
-        var position = await GetValueMousePositionOrDefault(e);
-        if (position == null) return;
+        if (State.IsPanning)
+            return;
+
+        var position = GetSceneMousePosition(e);
+        if (position == null)
+            return;
 
         // If we're in asset placement mode, remember position for when we add the asset
         if (SelectedAsset is not null && SelectedAsset.Type != AssetType.Placeholder) {
@@ -199,18 +255,16 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     }
 
     private SceneAssetDetails? FindAssetAt(Point absolutePointerPosition) {
-        if (Scene is null) return null;
-        var relativePointerPosition = absolutePointerPosition.RelativeTo(_canvasPadding);
-        return (from asset in Scene.Assets.Reverse<SceneAssetDetails>()
-                let size = new Point((int)Math.Round(asset.Size.Width * asset.Scale), (int)Math.Round(asset.Size.Height * asset.Scale))
-                where relativePointerPosition.IsWithin(asset.Position, asset.Position.ShiftedBy(size))
-                select asset).FirstOrDefault();
+        if (Scene is null)
+            return null;
+        return SceneCalculations.FindAssetAt(absolutePointerPosition, Scene.Assets, _canvasPadding);
     }
 
     private void TrySelectAssetAt(Point pointerPosition) {
         SelectedAsset = null;
         var asset = FindAssetAt(pointerPosition);
-        if (asset == null) return;
+        if (asset == null)
+            return;
         State.IsDragging = false;
         SelectedAsset = new() {
             Id = asset.Id,
@@ -229,33 +283,106 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     }
 
     private async Task OnCanvasMouseMove(MouseEventArgs e) {
-        var isPanning = await JsRuntime.InvokeAsync<bool>("isPanning");
-        if (isPanning) return;
-        if (!State.IsDragging || SelectedAsset == null) return;
+        if (State.IsPanning) {
+            await UpdatePanningAsync(e);
+            return;
+        }
+
+        if (!State.IsDragging || SelectedAsset == null)
+            return;
+
         if (_mouseMoveTimer != null)
             await _mouseMoveTimer.DisposeAsync();
-        var position = await GetValueMousePositionOrDefault(e);
+
+        var position = GetSceneMousePosition(e);
         if (position == null)
             return;
+
         UpdateAssetPosition(position.Value);
         _mouseMoveTimer = new(async void (_) => await InvokeAsync(DrawStageAsync), null, 16, Timeout.Infinite); // 16ms = ~60fps
     }
 
     private void UpdateAssetPosition(Point position) {
-        if (Scene == null || SelectedAsset == null) return;
-        SelectedAsset.Position = Scene.Grid is { Type: GridType.Square, Snap: true }
-            ? GridCalculations.SnapToGrid(position, Scene.Grid)
-            : position;
+        if (Scene == null || SelectedAsset == null)
+            return;
+        SelectedAsset.Position = SceneCalculations.ApplyGridSnapping(position, State.Grid);
     }
 
-    private void OnCanvasMouseUp(MouseEventArgs _) => State.IsDragging = false;
+    private async Task OnCanvasMouseUp(MouseEventArgs e) {
+        if (State.IsPanning) {
+            await EndPanningAsync();
+            return;
+        }
+        State.IsDragging = false;
+    }
 
-    private async Task OnCanvasContextMenu(MouseEventArgs e) {
-        var isPanning = await JsRuntime.InvokeAsync<bool>("isPanning");
-        if (isPanning)
+    private async Task StartPanningAsync(MouseEventArgs e) {
+        State.IsPanning = true;
+        State.HasMovedDuringPan = false;
+        State.PanStartPosition = new((int)e.PageX, (int)e.PageY);
+
+        // Get current scroll position from JavaScript
+        var scrollPos = await JsRuntime.InvokeAsync<object>("getScrollPosition", _canvasContainerRef);
+        if (TryParseScrollPosition(scrollPos, out var initialScroll)) {
+            State.InitialScrollPosition = initialScroll;
+        }
+
+        await JsRuntime.InvokeVoidAsync("setCursor", _canvasContainerRef, "grabbing");
+    }
+
+    private async Task UpdatePanningAsync(MouseEventArgs e) {
+        if (!State.IsPanning)
             return;
 
-        var position = await GetValueMousePositionOrDefault(e);
+        var currentPosition = new Point((int)e.PageX, (int)e.PageY);
+        var deltaX = currentPosition.X - State.PanStartPosition.X;
+        var deltaY = currentPosition.Y - State.PanStartPosition.Y;
+
+        State.HasMovedDuringPan = SceneCalculations.ExceedsMovementThreshold(
+            State.PanStartPosition, currentPosition);
+
+        var newScrollLeft = State.InitialScrollPosition.X - deltaX;
+        var newScrollTop = State.InitialScrollPosition.Y - deltaY;
+
+        await JsRuntime.InvokeVoidAsync("setScrollPosition", _canvasContainerRef,
+            new { left = newScrollLeft, top = newScrollTop });
+
+        State.PanOffset = new Point(
+            State.PanOffset.X + Math.Abs(deltaX),
+            State.PanOffset.Y + Math.Abs(deltaY)
+        );
+
+        await StorageService.SaveStateAsync(State);
+    }
+
+    private async Task EndPanningAsync() {
+        if (!State.IsPanning)
+            return;
+
+        State.IsPanning = false;
+        await JsRuntime.InvokeVoidAsync("setCursor", _canvasContainerRef, "default");
+    }
+
+    private static bool TryParseScrollPosition(object? scrollPos, out Point position) {
+        position = default;
+        if (scrollPos is not JsonElement element)
+            return false;
+
+        if (element.TryGetProperty("left", out var left) &&
+            element.TryGetProperty("top", out var top) &&
+            left.TryGetInt32(out var leftVal) &&
+            top.TryGetInt32(out var topVal)) {
+            position = new Point(leftVal, topVal);
+            return true;
+        }
+        return false;
+    }
+
+    private async Task OnCanvasContextMenu(MouseEventArgs e) {
+        if (State.IsPanning && State.HasMovedDuringPan)
+            return;
+
+        var position = GetSceneMousePosition(e);
         if (position == null)
             return;
 
@@ -269,29 +396,23 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         await DrawStageAsync();
     }
 
-    private async Task<Point?> GetValueMousePositionOrDefault(MouseEventArgs e) {
+    private Point? GetSceneMousePosition(MouseEventArgs e) {
+        if (_canvasRect == null)
+            return null;
+
         try {
-            var pos = await JsRuntime.InvokeAsync<object?>("getSceneMousePosition", [new { clientX = e.ClientX, clientY = e.ClientY }]);
-            return TryReadPosition(pos, out var left, out var top)
-                ? new(left, top)
-                : null;
+            var clientPosition = new Point((int)e.ClientX, (int)e.ClientY);
+            return SceneCalculations.GetSceneMousePosition(
+                clientPosition,
+                _canvasRect.Value,
+                State.PanOffset,
+                State.ZoomLevel
+            );
         }
         catch (Exception ex) {
-            Console.WriteLine($"Error getting mouse position at [{e.ClientX}, {e.ClientY}]: {ex.Message}");
+            Console.WriteLine($"Error calculating mouse position at [{e.ClientX}, {e.ClientY}]: {ex.Message}");
             return null;
         }
-    }
-
-    private static bool TryReadPosition(object? result, out int left, out int top) {
-        left = 0;
-        top = 0;
-        return result is JsonElement pos &&
-            pos.TryGetProperty("x", out var x) &&
-           pos.TryGetProperty("y", out var y) &&
-           x.ValueKind != JsonValueKind.Null &&
-           y.ValueKind != JsonValueKind.Null &&
-           x.TryGetInt32(out left) &&
-           x.TryGetInt32(out top);
     }
 
     private void CloseContextMenu() => State.ShowAssetContextMenu = false;
@@ -342,7 +463,8 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         var totalBytesRead = 0;
         while (totalBytesRead < bytes.Length) {
             var bytesRead = await stream.ReadAsync(bytes.AsMemory(totalBytesRead, bytes.Length - totalBytesRead));
-            if (bytesRead == 0) break; // End of stream
+            if (bytesRead == 0)
+                break; // End of stream
             totalBytesRead += bytesRead;
         }
         if (totalBytesRead != bytes.Length)
@@ -353,7 +475,8 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     }
 
     private async Task SaveBackgroundImage() {
-        if (Scene == null || SelectedStageFile == null) return;
+        if (Scene == null || SelectedStageFile == null)
+            return;
         var objectUrl = await CreateObjectUrlForFile(SelectedStageFile);
         var imageSize = await JsRuntime.InvokeAsync<Size>("getImageDimensionsFromUrl", objectUrl);
         var fileName = Path.GetFileName(SelectedStageFile.Name);
@@ -376,14 +499,21 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     }
 
     private async Task SaveGridSettings() {
-        if (Scene == null) return;
-        Scene = Scene with { Grid = new() {
+        if (Scene == null)
+            return;
+
+        // Update both scene and state
+        var newGrid = new GridDetails {
             Type = Input.Type,
             CellSize = new(Input.CellWidth, Input.CellHeight),
             Offset = new(Input.OffsetX, Input.OffsetY),
             Snap = Input.SnapToGrid,
-        } };
-        await JsRuntime.InvokeVoidAsync("saveGridSettings", Scene.Grid);
+        };
+
+        Scene = Scene with { Grid = newGrid };
+        State.Grid = newGrid;
+
+        await StorageService.SaveStateAsync(State);
         await SaveScene();
 
         State.ShowGridSettingsModal = false;
@@ -391,8 +521,10 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     }
 
     private async Task AddAssetToScene() {
-        if (Scene == null) return;
-        if (SelectedAsset == null) return;
+        if (Scene == null)
+            return;
+        if (SelectedAsset == null)
+            return;
 
         // First, create a new asset
         var addAssetRequest = new AddAssetRequest {
@@ -420,7 +552,8 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     }
 
     private async Task SaveScene() {
-        if (Scene == null) return;
+        if (Scene == null)
+            return;
         var updateRequest = new UpdateSceneRequest {
             Name = Scene.Name,
             Description = Scene.Description,

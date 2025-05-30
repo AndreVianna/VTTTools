@@ -4,7 +4,8 @@ public class LoginPageHandler(LoginPage page)
     : PageHandler<LoginPageHandler, LoginPage>(page) {
     public override async Task ConfigureAsync() {
         await base.ConfigureAsync();
-        if (!HttpMethods.IsGet(Page.HttpContext.Request.Method)) return;
+        if (!HttpMethods.IsGet(Page.HttpContext.Request.Method))
+            return;
         await Page.HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
         var signInManager = Page.HttpContext.RequestServices.GetRequiredService<SignInManager<User>>();
         var externalLogins = await signInManager.GetExternalAuthenticationSchemesAsync();

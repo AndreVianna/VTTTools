@@ -71,7 +71,8 @@ public class AdventureStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Adventures.FindAsync([id], ct);
-        if (entity is null) return false;
+        if (entity is null)
+            return false;
         context.Adventures.Remove(entity);
         await context.SaveChangesAsync(ct);
         return true;

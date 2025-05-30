@@ -6,6 +6,7 @@
 - TASK.md
 - **.claude**
   - settings.json
+  - settings.local.json
 - **Design**
   - INSTRUCTIONS.md
   - PROJECT_DEFINITION.md
@@ -107,12 +108,14 @@
       - GameSessionSchemaBuilder.cs
       - IdentitySchemaBuilder.cs
       - SceneSchemaBuilder.cs
+      - ScheduleSchemaBuilder.cs
     - **Extensions**
       - HostApplicationBuilderExtensions.cs
     - **Game**
       - GameSessionStorage.cs
       - **Entities**
         - GameSession.cs
+        - Schedule.cs
     - **Library**
       - AdventureStorage.cs
       - Mapper.cs
@@ -169,10 +172,17 @@
       - **Model**
         - DiceRoll.cs
         - Display.cs
+        - Participant.cs
+        - PlayerType.cs
         - ResourceType.cs
       - **ServiceContracts**
         - Data.cs
     - **Game**
+      - **Schedule**
+        - **Model**
+          - Frequency.cs
+          - Recurrence.cs
+          - Schedule.cs
       - **Sessions**
         - **ApiContracts**
           - CreateGameSessionRequest.cs
@@ -184,8 +194,6 @@
           - GameSessionMessage.cs
           - GameSessionStatus.cs
           - MessageType.cs
-          - Player.cs
-          - PlayerType.cs
         - **ServiceContracts**
           - CreateGameSessionData.cs
           - UpdateGameSessionData.cs
@@ -446,15 +454,20 @@
       - **Assets**
         - AssetDetails.cs
         - IAssetsHttpClient.cs
+        - IWebAssemblyAssetsHttpClient.cs
         - SceneListItem.cs
       - **Game**
-        - IGameHttpClient.cs
+        - IGameSessionsHttpClient.cs
         - **Chat**
           - **Models**
             - ChatMessage.cs
             - ChatMessageDirection.cs
+        - **Sessions**
+          - GameSessionDetails.cs
+          - GameSessionListItem.cs
       - **Library**
-        - ILibraryHttpClient.cs
+        - IAdventuresHttpClient.cs
+        - ISceneBuilderHttpClient.cs
         - **Adventure**
           - AdventureDetails.cs
           - AdventureListItem.cs
@@ -489,9 +502,12 @@
     - Program.cs
     - VttTools.WebApp.Server.csproj
     - **Clients**
-      - ServerAssetsHttpClient.cs
-      - ServerGameHttpClient.cs
-      - ServerLibraryHttpClient.cs
+      - AdventuresHttpClient.cs
+      - AdventuresMapper.cs
+      - AssetsHttpClient.cs
+      - AssetsMapper.cs
+      - GameSessionsHttpClient.cs
+      - GameSessionsMapper.cs
     - **Components**
       - NavMenu.razor
       - NavMenu.razor.cs
@@ -522,23 +538,23 @@
         - ConfirmEmailChange.razor.cs
         - ConfirmEmailPage.razor
         - ConfirmEmailPage.razor.cs
-        - ConfirmEmailPage.razor.handler.cs
+        - ConfirmEmailPageHandler.cs
         - ExternalLoginPage.razor
         - ExternalLoginPage.razor.cs
         - ForgotPasswordConfirmation.razor
         - ForgotPasswordPage.razor
         - ForgotPasswordPage.razor.cs
-        - ForgotPasswordPage.razor.handler.cs
-        - ForgotPasswordPage.razor.input.cs
-        - ForgotPasswordPage.razor.state.cs
+        - ForgotPasswordPageHandler.cs
+        - ForgotPasswordPageInput.cs
+        - ForgotPasswordPageState.cs
         - InvalidPasswordResetPage.razor
         - InvalidUserPage.razor
         - LockoutPage.razor
         - LoginPage.razor
         - LoginPage.razor.cs
-        - LoginPage.razor.handler.cs
-        - LoginPage.razor.input.cs
-        - LoginPage.razor.state.cs
+        - LoginPageHandler.cs
+        - LoginPageInput.cs
+        - LoginPageState.cs
         - LoginWith2faPage.razor
         - LoginWith2faPage.razor.cs
         - LoginWithRecoveryCodePage.razor
@@ -547,9 +563,9 @@
         - RegisterConfirmationPage.razor.cs
         - RegisterPage.razor
         - RegisterPage.razor.cs
-        - RegisterPage.razor.handler.cs
-        - RegisterPage.razor.input.cs
-        - RegisterPage.razor.state.cs
+        - RegisterPageHandler.cs
+        - RegisterPageInput.cs
+        - RegisterPageState.cs
         - ResendEmailConfirmationPage.razor
         - ResendEmailConfirmationPage.razor.cs
         - ResetPasswordConfirmationPage.razor
@@ -559,18 +575,18 @@
           - _Imports.razor
           - ChangePasswordPage.razor
           - ChangePasswordPage.razor.cs
-          - ChangePasswordPage.razor.handler.cs
-          - ChangePasswordPage.razor.input.cs
-          - ChangePasswordPage.razor.state.cs
+          - ChangePasswordPageHandler.cs
+          - ChangePasswordPageInput.cs
+          - ChangePasswordPageState.cs
           - DeletePersonalDataPage.razor
           - DeletePersonalDataPage.razor.cs
           - Disable2faPage.razor
           - Disable2faPage.razor.cs
           - EmailPage.razor
           - EmailPage.razor.cs
-          - EmailPage.razor.handler.cs
-          - EmailPage.razor.input.cs
-          - EmailPage.razor.state.cs
+          - EmailPageHandler.cs
+          - EmailPageInput.cs
+          - EmailPageState.cs
           - EnableAuthenticatorPage.razor
           - EnableAuthenticatorPage.razor.cs
           - ExternalLoginsPage.razor
@@ -581,9 +597,9 @@
           - PersonalDataPage.razor.cs
           - ProfilePage.razor
           - ProfilePage.razor.cs
-          - ProfilePage.razor.handler.cs
-          - ProfilePage.razor.input.cs
-          - ProfilePage.razor.state.cs
+          - ProfilePageHandler.cs
+          - ProfilePageInput.cs
+          - ProfilePageState.cs
           - ResetAuthenticatorPage.razor
           - ResetAuthenticatorPage.razor.cs
           - SetPasswordPage.razor
@@ -592,62 +608,64 @@
           - TwoFactorAuthenticationPage.razor.cs
       - **Assets**
         - _Imports.razor
-        - AssetsPage.razor
-        - AssetsPage.razor.cs
-        - AssetsPage.razor.handler.cs
-        - AssetsPage.razor.input.cs
-        - AssetsPage.razor.state.cs
+        - **List**
+          - AssetsPage.razor
+          - AssetsPage.razor.cs
+          - AssetsPageHandler.cs
+          - AssetsPageInput.cs
+          - AssetsPageState.cs
       - **Game**
         - _Imports.razor
         - **Chat**
-          - GameSessionChatPage.razor
-          - GameSessionChatPage.razor.cs
-          - GameSessionChatPage.razor.handler.cs
-          - GameSessionChatPage.razor.input.cs
-          - GameSessionChatPage.razor.state.cs
+          - ChatPage.razor
+          - ChatPage.razor.cs
+          - ChatPageHandler.cs
+          - ChatPageInput.cs
+          - ChatPageState.cs
         - **Schedule**
-          - GameSessionPage.razor
-          - GameSessionPage.razor.cs
-          - GameSessionPage.razor.handler.cs
-          - GameSessionPage.razor.input.cs
-          - GameSessionPage.razor.state.cs
-          - GameSessionsPage.razor
-          - GameSessionsPage.razor.cs
-          - GameSessionsPage.razor.handler.cs
-          - GameSessionsPage.razor.input.cs
-          - GameSessionsPage.razor.state.cs
+          - **List**
+            - GameSessionsPage.razor
+            - GameSessionsPage.razor.cs
+            - GameSessionsPageHandler.cs
+            - GameSessionsPageState.cs
+          - **Single**
+            - GameSessionPage.razor
+            - GameSessionPage.razor.cs
+            - GameSessionPageHandler.cs
+            - GameSessionPageInput.cs
+            - GameSessionPageState.cs
       - **Library**
         - _Imports.razor
-        - **Adventure**
-          - **Details**
-            - AdventureHandler.cs
-            - AdventurePage.razor
-            - AdventurePage.razor.cs
-            - AdventurePageState.cs
+        - **Adventures**
           - **List**
             - AdventuresHandler.cs
             - AdventuresPage.razor
             - AdventuresPage.razor.cs
             - AdventuresPageState.cs
+          - **Single**
+            - AdventureHandler.cs
+            - AdventurePage.razor
+            - AdventurePage.razor.cs
+            - AdventurePageState.cs
     - **Shared**
       - **Models**
         - DetailsPageMode.cs
         - ListViewMode.cs
     - **Utilities**
+      - AuthenticationDelegatingHandler.cs
       - IdentityNoOpEmailSender.cs
       - IdentityRevalidatingAuthenticationStateProvider.cs
       - PersistingAuthenticationStateProvider.cs
-      - ServerAuthenticationDelegatingHandler.cs
     - **wwwroot**
   - **WebApp.Server.UnitTests**
     - GlobalUsings.cs
     - VttTools.WebApp.Server.UnitTests.csproj
     - xunit.runner.json
     - **Clients**
+      - AdventuresHttpClientTests.cs
+      - AssetsHttpClientTests.cs
+      - GameSessionsHttpClientTests.cs
       - MockHttpMessageHandler.cs
-      - ServerAssetsHttpClientTests.cs
-      - ServerGameHttpClientTests.cs
-      - ServerLibraryHttpClientTests.cs
     - **Components**
       - NavMenuTests.cs
     - **Pages**
@@ -674,21 +692,23 @@
         - AssetsPageTests.cs
       - **Game**
         - **Chat**
-          - GameSessionChatPageHandlerTests.cs
-          - GameSessionChatPageTests.cs
+          - ChatPageHandlerTests.cs
+          - ChatPageTests.cs
         - **Schedule**
-          - GameSessionPageHandlerTests.cs
-          - GameSessionPageTests.cs
-          - GameSessionsPageHandlerTests.cs
-          - GameSessionsPageTests.cs
+          - **List**
+            - GameSessionsPageHandlerTests.cs
+            - GameSessionsPageTests.cs
+          - **Single**
+            - GameSessionPageHandlerTests.cs
+            - GameSessionPageTests.cs
       - **Library**
-        - **Adventure**
-          - **Details**
-            - AdventureHandlerTests.cs
-            - AdventurePageTests.cs
+        - **Adventures**
           - **List**
             - AdventuresPageHandlerTests.cs
             - AdventuresPageTests.cs
+          - **Single**
+            - AdventureHandlerTests.cs
+            - AdventurePageTests.cs
     - **TestUtilities**
       - ComponentTestContext.cs
   - **WebApp.WebAssembly**
@@ -696,29 +716,40 @@
     - appsettings.Development.json
     - appsettings.json
     - GlobalUsings.cs
+    - package-lock.json
+    - package.json
     - Program.cs
+    - tsconfig.json
     - VttTools.WebApp.WebAssembly.csproj
     - **Clients**
-      - ClientAssetsHttpClient.cs
-      - ClientLibraryHttpClient.cs
+      - Mapper.cs
+      - SceneBuilderHttpClient.cs
     - **Extensions**
       - ClaimsPrincipalExtensions.cs
       - PointExtensions.cs
     - **Pages**
       - **Library**
         - **Scenes**
-          - BuilderInput.cs
           - BuilderState.cs
-          - PersistedSceneData.cs
+          - GuidInput.cs
           - SceneBuilderPage.razor
           - SceneBuilderPage.razor.cs
+          - SceneBuilderPersistedData.cs
           - SelectedAsset.cs
           - StageInput.cs
+    - **Services**
+      - SceneBuilderStorageService.cs
+    - **src**
+      - **constants**
+      - **renderers**
+      - **types**
+      - **utils**
     - **Utilities**
       - GridCalculations.cs
       - PersistentAuthenticationStateProvider.cs
+      - SceneCalculations.cs
     - **wwwroot**
-      - **scripts**
+- **Temp**
 - **Utilities**
   - clear_artifacts.py
   - generate_coverage_report.py

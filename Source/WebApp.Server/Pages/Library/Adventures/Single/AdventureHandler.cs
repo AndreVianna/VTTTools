@@ -39,12 +39,13 @@ public class AdventureHandler(AdventurePage page)
     }
 
     internal async Task SaveChangesAsync() {
-        if (Page.State.Mode == DetailsPageMode.View) return;
-        if (!Page.State.SaveChanges) return;
+        if (Page.State.Mode == DetailsPageMode.View)
+            return;
+        if (!Page.State.SaveChanges)
+            return;
 
         Page.State.Errors = [];
-        switch (Page.State.Mode)
-        {
+        switch (Page.State.Mode) {
             case DetailsPageMode.Create or DetailsPageMode.Clone:
                 await CreateAdventureAsync();
                 break;

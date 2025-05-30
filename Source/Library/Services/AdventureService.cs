@@ -34,7 +34,8 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     /// <inheritdoc />
     public async Task<Result<Adventure>> CreateAdventureAsync(Guid userId, NewAdventureData data, CancellationToken ct = default) {
         var result = data.Validate();
-        if (result.HasErrors) return result;
+        if (result.HasErrors)
+            return result;
         var adventure = new Adventure {
             OwnerId = userId,
             CampaignId = data.CampaignId,
@@ -50,10 +51,13 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     /// <inheritdoc />
     public async Task<Result<Adventure>> CloneAdventureAsync(Guid userId, ClonedAdventureData data, CancellationToken ct = default) {
         var original = await adventureStorage.GetByIdAsync(data.TemplateId, ct);
-        if (original is null) return Result.Failure("NotFound");
-        if (original.OwnerId != userId || original is { IsPublic: true, IsPublished: true }) return Result.Failure("NotAllowed");
+        if (original is null)
+            return Result.Failure("NotFound");
+        if (original.OwnerId != userId || original is { IsPublic: true, IsPublished: true })
+            return Result.Failure("NotAllowed");
         var result = data.Validate();
-        if (result.HasErrors) return result;
+        if (result.HasErrors)
+            return result;
         var clone = Cloner.CloneAdventure(original, userId, data);
         await adventureStorage.AddAsync(clone, ct);
         return clone;
@@ -62,10 +66,13 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     /// <inheritdoc />
     public async Task<Result<Adventure>> UpdateAdventureAsync(Guid userId, Guid id, UpdatedAdventureData data, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
-        if (adventure is null) return Result.Failure("NotFound");
-        if (adventure.OwnerId != userId) return Result.Failure("NotAllowed");
+        if (adventure is null)
+            return Result.Failure("NotFound");
+        if (adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
         var result = data.Validate();
-        if (result.HasErrors) return result;
+        if (result.HasErrors)
+            return result;
         adventure = adventure with {
             Name = data.Name.IsSet ? data.Name.Value : adventure.Name,
             Description = data.Description.IsSet ? data.Description.Value : adventure.Description,
@@ -82,8 +89,10 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     /// <inheritdoc />
     public async Task<Result> DeleteAdventureAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
-        if (adventure is null) return Result.Failure("NotFound");
-        if (adventure.OwnerId != userId) return Result.Failure("NotAllowed");
+        if (adventure is null)
+            return Result.Failure("NotFound");
+        if (adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
         await adventureStorage.DeleteAsync(id, ct);
         return Result.Success();
     }
@@ -95,8 +104,10 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     /// <inheritdoc />
     public async Task<Result<Scene>> AddNewSceneAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
-        if (adventure is null) return Result.Failure("NotFound");
-        if (adventure.OwnerId != userId) return Result.Failure("NotAllowed");
+        if (adventure is null)
+            return Result.Failure("NotFound");
+        if (adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
         var scene = new Scene();
         await sceneStorage.AddAsync(scene, id, ct);
         return scene;
@@ -105,12 +116,16 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     /// <inheritdoc />
     public async Task<Result<Scene>> AddClonedSceneAsync(Guid userId, Guid id, Guid templateId, ClonedSceneData data, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
-        if (adventure is null) return Result.Failure("NotFound");
-        if (adventure.OwnerId != userId) return Result.Failure("NotAllowed");
+        if (adventure is null)
+            return Result.Failure("NotFound");
+        if (adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
         var original = await sceneStorage.GetByIdAsync(templateId, ct);
-        if (original is null) return Result.Failure("NotFound");
+        if (original is null)
+            return Result.Failure("NotFound");
         var result = data.Validate();
-        if (result.HasErrors) return result;
+        if (result.HasErrors)
+            return result;
         var clone = Cloner.CloneScene(original, userId, data);
         await sceneStorage.AddAsync(clone, id, ct);
         return clone;
@@ -119,8 +134,10 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     /// <inheritdoc />
     public async Task<Result> RemoveSceneAsync(Guid userId, Guid id, Guid sceneId, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
-        if (adventure is null) return Result.Failure("NotFound");
-        if (adventure.OwnerId != userId) return Result.Failure("NotAllowed");
+        if (adventure is null)
+            return Result.Failure("NotFound");
+        if (adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
         await sceneStorage.DeleteAsync(sceneId, ct);
         return Result.Success();
     }

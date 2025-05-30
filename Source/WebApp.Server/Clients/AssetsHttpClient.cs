@@ -6,7 +6,7 @@ public class AssetsHttpClient(HttpClient client, JsonSerializerOptions options)
     : IAssetsHttpClient {
     public async Task<AssetListItem[]> GetAssetsAsync() {
         var assets = IsNotNull(await client.GetFromJsonAsync<Asset[]>("/api/assets", options));
-        return [..assets.Select(a => a.ToListItem())];
+        return [.. assets.Select(a => a.ToListItem())];
     }
 
     public async Task<Result<AssetListItem>> CreateAssetAsync(CreateAssetRequest request) {

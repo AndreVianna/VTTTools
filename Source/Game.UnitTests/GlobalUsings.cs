@@ -5,7 +5,7 @@ global using System.Security.Claims;
 global using DotNetToolbox;
 global using DotNetToolbox.Results;
 
-global using FluentAssertions;
+global using AwesomeAssertions;
 
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Http;

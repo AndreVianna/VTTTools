@@ -29,7 +29,7 @@ public class AzureMediaServiceTests {
         // Arrange
         var id = Guid.NewGuid();
         const string fileName = "test-image.png";
-        var  file = new ResourceFileInfo {
+        var file = new ResourceFileInfo {
             Name = fileName,
             Type = ResourceType.Image,
             Width = 100,

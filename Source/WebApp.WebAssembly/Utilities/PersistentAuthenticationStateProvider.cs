@@ -5,7 +5,8 @@ public class PersistentAuthenticationStateProvider
     private readonly AuthenticationState _persistedState = new(new(new ClaimsIdentity()));
 
     public PersistentAuthenticationStateProvider(PersistentComponentState state) {
-        if (!state.TryTakeFromJson<BasicUserInfo>(nameof(BasicUserInfo), out var userInfo) || userInfo is null) return;
+        if (!state.TryTakeFromJson<BasicUserInfo>(nameof(BasicUserInfo), out var userInfo) || userInfo is null)
+            return;
 
         var claims = new Claim[]  {
             new(ClaimTypes.NameIdentifier, userInfo.Id.ToString()),

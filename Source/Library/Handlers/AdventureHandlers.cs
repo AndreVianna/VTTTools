@@ -59,7 +59,7 @@ internal static class AdventureHandlers {
             IsListed = request.IsPublished,
             IsPublic = request.IsPublic,
             CampaignId = request.CampaignId,
-                                           };
+        };
         var result = await adventureService.UpdateAdventureAsync(userId, id, data);
         return result.IsSuccessful
             ? Results.NoContent()

@@ -98,7 +98,7 @@ internal static class Mapper {
             Stage = entity.Stage,
             ZoomLevel = entity.ZoomLevel,
             Grid = entity.Grid,
-            Assets = [..entity.SceneAssets.Select(sa => sa.ToModel()!)],
+            Assets = [.. entity.SceneAssets.Select(sa => sa.ToModel()!)],
         };
 
     internal static SceneEntity ToEntity(this Scene model, Guid? adventureId = null)

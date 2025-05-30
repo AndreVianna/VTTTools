@@ -70,10 +70,12 @@ public class GameSessionsPageHandlerTests
             new() { Title = "Session 1" },
             new() { Title = "Session 2" },
         };
-        if (isAuthorized) EnsureAuthenticated();
+        if (isAuthorized)
+            EnsureAuthenticated();
         var handler = new GameSessionsPageHandler(_page);
         _gameSessions.GetGameSessionsAsync().Returns(sessions);
-        if (isConfigured) await handler.LoadGameSessionAsync(_gameSessions);
+        if (isConfigured)
+            await handler.LoadGameSessionAsync(_gameSessions);
         return handler;
     }
 }

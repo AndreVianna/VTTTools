@@ -41,7 +41,8 @@ public static class ResourceFileHandler {
         var tempFilePath = Path.GetTempFileName();
         try {
             await using var fileStream = File.Create(tempFilePath);
-            if (stream.CanSeek) stream.Position = 0;
+            if (stream.CanSeek)
+                stream.Position = 0;
             await stream.CopyToAsync(fileStream);
             var mediaInfo = await FFMpegCore.FFProbe.AnalyseAsync(tempFilePath);
             var video = mediaInfo.VideoStreams.FirstOrDefault();

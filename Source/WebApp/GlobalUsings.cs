@@ -20,3 +20,4 @@ global using VttTools.WebApp.Server.Extensions;
 global using VttTools.WebApp.Server.Utilities;
 global using VttTools.WebApp.Utilities;
 global using VttTools.WebApp.WebAssembly.Clients;
+global using VttTools.WebApp.WebAssembly.Services;

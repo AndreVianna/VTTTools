@@ -1,5 +1,3 @@
-using VttTools.WebApp.WebAssembly.Utilities;
-
 namespace VttTools.WebApp.WebAssembly;
 
 [ExcludeFromCodeCoverage]
@@ -27,6 +25,8 @@ internal static class Program {
 
         builder.Services.AddHttpClient<ISceneBuilderHttpClient, SceneBuilderHttpClient>(static (_, client)
             => client.BaseAddress = new("https://localhost:7171"));
+
+        builder.Services.AddScoped<SceneBuilderStorageService>();
 
         var app = builder.Build();
         return app.RunAsync();

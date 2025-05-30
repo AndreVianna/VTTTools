@@ -9,6 +9,8 @@
     <Configurations>Debug;Release;XUnitV3</Configurations>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
+    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,7 +21,11 @@
     <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.5" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.10.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.11.0" />
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.8.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -30,5 +36,13 @@
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).UnitTests" />
   </ItemGroup>
+
+  <Target Name="CompileTypeScript" BeforeTargets="Build">
+    <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+  </Target>
+
+  <Target Name="EnsureNodeModules" BeforeTargets="CompileTypeScript">
+    <Exec Command="npm install" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" />
+  </Target>
 
 </Project>

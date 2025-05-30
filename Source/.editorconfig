@@ -9,8 +9,24 @@ dotnet_diagnostic.DV1003.severity = warning
 dotnet_diagnostic.DV2001.severity = none
 dotnet_diagnostic.DV2002.severity = none
 
+# TypeScript files
+[*.js,*.jsx,*.mjs,*.cjs,*.ts,*.tsx,*.mts,*.cts]
+resharper_*_highlighting = none
+indent_style = space
+indent_size = 4
+end_of_line = crlf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# JSON files
+[*.json]
+indent_size = 2
+indent_style = space
+tab_width = 2
+
 # razor files
-[*.razor,*.cshtml,*.html,*.css,*.json,*.xml,*.csproj,*.sln,*.slnx]
+[*.razor,*.cshtml,*.html,*.css,*.xml,*.csproj,*.sln,*.slnx]
 # Indentation and spacing
 indent_size = 2
 indent_style = space

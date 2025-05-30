@@ -32,7 +32,8 @@ public class Component
 
     private void SetBasicUserInfo() {
         var isAuthenticated = HttpContext?.User.Identity?.IsAuthenticated ?? false;
-        if (!isAuthenticated) return;
+        if (!isAuthenticated)
+            return;
         var id = Guid.TryParse(HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)?.Trim(), out var uuid) ? uuid : Guid.Empty;
         var displayName = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value
                         ?? HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value
@@ -43,7 +44,8 @@ public class Component
 
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         await base.OnAfterRenderAsync(firstRender);
-        if (!firstRender) return;
+        if (!firstRender)
+            return;
         await ConfigureAsync();
         IsReady = true;
         await StateHasChangedAsync();

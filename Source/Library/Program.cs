@@ -1,4 +1,5 @@
 namespace VttTools.Library;
+
 [ExcludeFromCodeCoverage]
 internal static class Program {
     public static void Main(string[] args) {

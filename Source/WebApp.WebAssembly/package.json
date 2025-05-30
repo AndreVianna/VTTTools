@@ -1,0 +1,14 @@
+{
+  "name": "vtttools-webassembly",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "eslint": "^9.27.0",
+    "typescript": "^5.3.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  }
+}

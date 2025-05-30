@@ -15,7 +15,8 @@ internal static class ResourcesHandlers {
                                    title: "Invalid resource file.");
         }
 
-        if (stream.CanSeek) stream.Position = 0;
+        if (stream.CanSeek)
+            stream.Position = 0;
         var result = await storage.SaveUploadedFileAsync(type, id, fileInfo, stream);
         return result.IsSuccessful
             ? Results.NoContent()

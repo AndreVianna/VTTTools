@@ -7,7 +7,8 @@ public class GameSessionPageHandler(GameSessionPage page)
     public async Task LoadSessionAsync(IGameSessionsHttpClient client, Guid sessionId) {
         _client = client;
         var session = await _client.GetGameSessionByIdAsync(sessionId);
-        if (session == null) return;
+        if (session == null)
+            return;
         Page.State.GameSession = session;
         Page.State.CanEdit = session.OwnerId == Page.User!.Id;
         Page.State.CanStart = session.Players.FirstOrDefault(p => p.UserId == Page.User.Id)?.Type == PlayerType.Master;

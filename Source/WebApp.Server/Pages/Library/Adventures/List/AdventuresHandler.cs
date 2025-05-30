@@ -10,7 +10,7 @@ public class AdventuresHandler(AdventuresPage page)
 
     public async Task LoadAdventuresAsync(IAdventuresHttpClient adventures) {
         _adventures = adventures;
-        Page.State.Adventures = [..await _adventures.GetAdventuresAsync()];
+        Page.State.Adventures = [.. await _adventures.GetAdventuresAsync()];
         ApplyFilters();
     }
 
@@ -29,8 +29,8 @@ public class AdventuresHandler(AdventuresPage page)
         var ownedFiltered = query.Where(a => a.OwnerId == Page.User!.Id).OrderBy(a => a.Name);
         var publicFiltered = query.Where(a => a.OwnerId != Page.User!.Id).OrderBy(a => a.Name);
 
-        Page.State.OwnedAdventures = [..ownedFiltered];
-        Page.State.PublicAdventures = [..publicFiltered];
+        Page.State.OwnedAdventures = [.. ownedFiltered];
+        Page.State.PublicAdventures = [.. publicFiltered];
     }
 
     public void ToggleViewMode() => Page.State.ListViewMode = Page.State.ListViewMode == ListViewMode.List
