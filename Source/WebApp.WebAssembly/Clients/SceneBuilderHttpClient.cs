@@ -18,41 +18,15 @@ public class SceneBuilderHttpClient(HttpClient client, JsonSerializerOptions opt
         var token = Base64UrlEncoder.Encode(userId.ToByteArray());
         client.DefaultRequestHeaders.Add(_userHeader, token);
         var scene = IsNotNull(await client.GetFromJsonAsync<Scene>($"api/scenes/{id}", options));
-        return new() {
-            Id = scene.Id,
-            Name = scene.Name,
-            Description = scene.Description,
-            IsPublished = scene.IsPublished,
-            Stage = new() {
-                FileName = scene.Stage.FileName ?? scene.Id.ToString(),
-                Type = scene.Stage.Type,
-                Size = scene.Stage.Size,
-                ZoomLevel = scene.ZoomLevel,
-            },
-            Grid = new() {
-                Type = scene.Grid.Type,
-                CellSize = scene.Grid.CellSize,
-                Offset = scene.Grid.Offset,
-                Snap = scene.Grid.Snap,
-            },
-            Assets = [..scene.Assets.Select(a => new SceneAssetDetails {
-                Id = a.Id,
-                Name = a.Name,
-                Number = a.Number,
-                Type = a.Type,
-            })],
-        };
+        return scene.ToViewModel();
     }
 
     public async Task<string> UploadSceneFileAsync(Guid id, Stream fileStream, string fileName) {
         using var content = new MultipartFormDataContent();
         using var streamContent = new StreamContent(fileStream);
-
         content.Add(streamContent, "file", fileName);
-
         var response = await client.PostAsync($"api/scenes/{id}/upload", content);
         response.EnsureSuccessStatusCode();
-
         return await response.Content.ReadAsStringAsync();
     }
 
@@ -71,20 +45,7 @@ public class SceneBuilderHttpClient(HttpClient client, JsonSerializerOptions opt
             return Result.Failure("Failed to add scene asset");
 
         var asset = IsNotNull(await response.Content.ReadFromJsonAsync<SceneAsset>());
-        return new SceneAssetDetails {
-            Id = asset.Id,
-            Name = asset.Name,
-            Number = asset.Number,
-            Type = asset.Type,
-            ResourceType = asset.Display.Type,
-            DisplayId = asset.Display.FileName ?? asset.Id.ToString(),
-            Position = asset.Position,
-            Size = asset.Display.Size,
-            Scale = asset.Scale,
-            Rotation = asset.Rotation,
-            Elevation = asset.Elevation,
-            IsLocked = false,
-        };
+        return asset.ToViewModel();
     }
 
     public async Task<bool> RemoveSceneAssetAsync(Guid sceneId, Guid assetId, uint number) {

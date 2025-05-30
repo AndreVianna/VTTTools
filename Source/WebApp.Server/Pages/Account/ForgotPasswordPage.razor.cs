@@ -6,7 +6,7 @@ public partial class ForgotPasswordPage {
 
     internal ForgotPasswordPageState State { get; set; } = new();
 
-    internal ForgotPasswordInputModel Input => State.Input;
+    internal ForgotPasswordPageInput Input => State.Input;
 
     private Task ResetPasswordAsync()
         => Handler.RequestPasswordResetAsync();

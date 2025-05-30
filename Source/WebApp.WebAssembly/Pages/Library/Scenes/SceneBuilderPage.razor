@@ -91,7 +91,7 @@
         <div class="modal-body">
           <div class="mb-3">
             <label for="gridType" class="form-label">Grid Type</label>
-            <select id="gridType" class="form-select" @bind="Input.GridType">
+            <select id="gridType" class="form-select" @bind="Input.Type">
               <option value="@GridType.NoGrid">No Grid</option>
               <option value="@GridType.Square">Square</option>
               <option value="@GridType.HexH">Hex (Horizontal)</option>
@@ -101,19 +101,19 @@
           </div>
           <div class="mb-3">
             <label for="cellWidth" class="form-label">Cell Width</label>
-            <input type="number" id="cellWidth" class="form-control" @bind="Input.GridCellWidth" min="1" />
+            <input type="number" id="cellWidth" class="form-control" @bind="Input.CellWidth" min="1" />
           </div>
           <div class="mb-3">
             <label for="cellHeight" class="form-label">Cell Height</label>
-            <input type="number" id="cellHeight" class="form-control" @bind="Input.GridCellHeight" min="1" />
+            <input type="number" id="cellHeight" class="form-control" @bind="Input.CellHeight" min="1" />
           </div>
           <div class="mb-3">
             <label for="offsetX" class="form-label">Offset X</label>
-            <input type="number" id="offsetX" class="form-control" @bind="Input.GridOffsetX" />
+            <input type="number" id="offsetX" class="form-control" @bind="Input.OffsetX" />
           </div>
           <div class="mb-3">
             <label for="offsetY" class="form-label">Offset Y</label>
-            <input type="number" id="offsetY" class="form-control" @bind="Input.GridOffsetY" />
+            <input type="number" id="offsetY" class="form-control" @bind="Input.OffsetY" />
           </div>
           <div class="form-check mb-3">
             <input type="checkbox" id="snapToGrid" class="form-check-input" @bind="Input.SnapToGrid" />

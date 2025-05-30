@@ -2,10 +2,10 @@ namespace VttTools.WebApp.Server.Pages.Assets.List;
 
 public class AssetsPageHandler(AssetsPage page)
     : PageHandler<AssetsPageHandler, AssetsPage>(page) {
-    private IServerAssetsHttpClient _client = null!;
+    private IAssetsHttpClient _client = null!;
 
-    public async Task LoadAssetsAsync(IServerAssetsHttpClient serverHttpClient) {
-        _client = serverHttpClient;
+    public async Task LoadAssetsAsync(IAssetsHttpClient client) {
+        _client = client;
         var assets = await _client.GetAssetsAsync();
         Page.State.Assets = [.. assets.OrderBy(a => a.Type).ThenBy(a => a.Name)];
     }

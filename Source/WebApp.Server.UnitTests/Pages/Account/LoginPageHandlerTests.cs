@@ -1,5 +1,3 @@
-using VttTools.WebApp.Server.Pages.Account;
-
 namespace VttTools.WebApp.Pages.Account;
 
 public class LoginPageHandlerTests
@@ -45,7 +43,7 @@ public class LoginPageHandlerTests
     public async Task LoginUserAsync_WithValidCredentials_RedirectsUser() {
         // Arrange
         var handler = await CreateHandler();
-        var input = new LoginInputModel {
+        var input = new LoginPageInput {
             Email = "test@example.com",
             Password = "Password123!",
         };
@@ -73,7 +71,7 @@ public class LoginPageHandlerTests
     public async Task LoginUserAsync_WithInvalidCredentials_SetsErrorMessage() {
         // Arrange
         var handler = await CreateHandler();
-        var input = new LoginInputModel {
+        var input = new LoginPageInput {
             Email = "test@example.com",
             Password = "WrongPassword",
         };
@@ -93,7 +91,7 @@ public class LoginPageHandlerTests
     public async Task LoginUserAsync_WithLockedOutAccount_RedirectsToLockoutPage() {
         // Arrange
         var handler = await CreateHandler();
-        var input = new LoginInputModel {
+        var input = new LoginPageInput {
             Email = "locked@example.com",
             Password = "Password123!",
         };
@@ -113,7 +111,7 @@ public class LoginPageHandlerTests
     public async Task LoginUserAsync_RequiringTwoFactor_RedirectsToTwoFactorPage() {
         // Arrange
         var handler = await CreateHandler();
-        var input = new LoginInputModel {
+        var input = new LoginPageInput {
             Email = "2fa@example.com",
             Password = "Password123!",
         };

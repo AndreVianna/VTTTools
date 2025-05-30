@@ -31,13 +31,13 @@ internal static class Program {
         builder.Services.AddScoped<AuthenticationStateProvider, PersistingAuthenticationStateProvider>();
         builder.Services.AddScoped<AuthenticationDelegatingHandler>();
         builder.Services.AddScoped<IHubConnectionBuilder, HubConnectionBuilder>();
-        builder.Services.AddHttpClient<IServerAssetsHttpClient, ServerAssetsHttpClient>(static client
+        builder.Services.AddHttpClient<IAssetsHttpClient, AssetsHttpClient>(static client
             => client.BaseAddress = new("https+http://assets-api"))
             .AddHttpMessageHandler<AuthenticationDelegatingHandler>();
-        builder.Services.AddHttpClient<IServerLibraryHttpClient, ServerLibraryHttpClient>(static client
+        builder.Services.AddHttpClient<IAdventuresHttpClient, AdventuresHttpClient>(static client
             => client.BaseAddress = new("https+http://library-api"))
             .AddHttpMessageHandler<AuthenticationDelegatingHandler>();
-        builder.Services.AddHttpClient<IGameHttpClient, ServerGameHttpClient>(static client
+        builder.Services.AddHttpClient<IGameSessionsHttpClient, GameSessionsHttpClient>(static client
             => client.BaseAddress = new("https+http://game-api"))
             .AddHttpMessageHandler<AuthenticationDelegatingHandler>();
 

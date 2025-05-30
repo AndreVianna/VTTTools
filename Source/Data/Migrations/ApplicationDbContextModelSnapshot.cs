@@ -112,6 +112,62 @@ namespace VttTools.Data.Migrations
                     b.ToTable("GameSessions", (string)null);
                 });
 
+            modelBuilder.Entity("VttTools.Data.Game.Entities.Schedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<TimeSpan>("Duration")
+                        .HasColumnType("time");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Start")
+                        .HasColumnType("datetimeoffset");
+
+                    b.ComplexProperty<Dictionary<string, object>>("Recurrence", "VttTools.Data.Game.Entities.Schedule.Recurrence#Recurrence", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<int>("Count")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int")
+                                .HasDefaultValue(1);
+
+                            b1.PrimitiveCollection<string>("Days")
+                                .IsRequired()
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("nvarchar(max)")
+                                .HasDefaultValue("[]");
+
+                            b1.Property<string>("Frequency")
+                                .IsRequired()
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("nvarchar(max)")
+                                .HasDefaultValue("Daily");
+
+                            b1.Property<int>("Interval")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int")
+                                .HasDefaultValue(1);
+
+                            b1.Property<DateTimeOffset?>("Until")
+                                .HasColumnType("datetimeoffset");
+
+                            b1.Property<bool>("UseWeekdays")
+                                .HasColumnType("bit");
+                        });
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Schedule", (string)null);
+                });
+
             modelBuilder.Entity("VttTools.Data.Library.Entities.Adventure", b =>
                 {
                     b.Property<Guid>("Id")
@@ -742,6 +798,29 @@ namespace VttTools.Data.Migrations
 
             modelBuilder.Entity("VttTools.Data.Game.Entities.GameSession", b =>
                 {
+                    b.OwnsMany("VttTools.Common.Model.Participant", "Players", b1 =>
+                        {
+                            b1.Property<Guid>("GameSessionId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("UserId")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<bool>("IsRequired")
+                                .HasColumnType("bit");
+
+                            b1.Property<int>("Type")
+                                .HasColumnType("int");
+
+                            b1.HasKey("GameSessionId", "UserId");
+
+                            b1.ToTable("Players", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("GameSessionId");
+                        });
+
                     b.OwnsMany("VttTools.Game.Sessions.Model.GameSessionEvent", "Events", b1 =>
                         {
                             b1.Property<Guid>("GameSessionId")
@@ -793,31 +872,39 @@ namespace VttTools.Data.Migrations
                                 .HasForeignKey("GameSessionId");
                         });
 
-                    b.OwnsMany("VttTools.Game.Sessions.Model.Player", "Players", b1 =>
+                    b.Navigation("Events");
+
+                    b.Navigation("Messages");
+
+                    b.Navigation("Players");
+                });
+
+            modelBuilder.Entity("VttTools.Data.Game.Entities.Schedule", b =>
+                {
+                    b.OwnsMany("VttTools.Common.Model.Participant", "Participants", b1 =>
                         {
-                            b1.Property<Guid>("GameSessionId")
+                            b1.Property<Guid>("ScheduleId")
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<Guid>("UserId")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("uniqueidentifier");
 
+                            b1.Property<bool>("IsRequired")
+                                .HasColumnType("bit");
+
                             b1.Property<int>("Type")
                                 .HasColumnType("int");
 
-                            b1.HasKey("GameSessionId", "UserId");
+                            b1.HasKey("ScheduleId", "UserId");
 
-                            b1.ToTable("Players", (string)null);
+                            b1.ToTable("Participants", (string)null);
 
                             b1.WithOwner()
-                                .HasForeignKey("GameSessionId");
+                                .HasForeignKey("ScheduleId");
                         });
 
-                    b.Navigation("Events");
-
-                    b.Navigation("Messages");
-
-                    b.Navigation("Players");
+                    b.Navigation("Participants");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Adventure", b =>

@@ -1,5 +1,3 @@
-using VttTools.WebApp.Server.Pages;
-
 namespace VttTools.WebApp.Pages;
 
 public class ErrorPageHandlerTests

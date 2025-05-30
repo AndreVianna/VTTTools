@@ -1,5 +1,3 @@
-using VttTools.WebApp.Server.Components;
-
 namespace VttTools.WebApp.Components;
 
 public class NavMenuTests

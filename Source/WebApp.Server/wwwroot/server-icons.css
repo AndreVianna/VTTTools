@@ -73,6 +73,10 @@
     content: "cancel";
   }
 
+  .icon.join:before {
+    content: "input";
+  }
+
   .icon.start:before {
     content: "play_circle";
   }

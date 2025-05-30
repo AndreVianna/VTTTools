@@ -81,15 +81,15 @@ internal static class DbContextHelper {
             CreateTestGameSessionEntity("Session 2", scenes[1].Id, GameSessionStatus.Scheduled, ownerId: currentUserId),
             CreateTestGameSessionEntity("Session 3", ownerId: scenes[2].Adventure!.OwnerId),
         };
-        ((List<Player>)sessions[0].Players).AddRange([
+        ((List<Participant>)sessions[0].Players).AddRange([
             new() { UserId = currentUserId, Type = PlayerType.Master },
             new() { UserId = playerId, Type = PlayerType.Player},
         ]);
-        ((List<Player>)sessions[1].Players).AddRange([
+        ((List<Participant>)sessions[1].Players).AddRange([
             new() { UserId = masterId, Type = PlayerType.Master },
             new() { UserId = playerId, Type = PlayerType.Player },
         ]);
-        ((List<Player>)sessions[2].Players).AddRange([
+        ((List<Participant>)sessions[2].Players).AddRange([
             new() { UserId = sessions[2].OwnerId, Type = PlayerType.Master,
         }]);
         ((List<SceneAssetEntity>)scenes[0].SceneAssets)[2].ControlledBy = playerId;

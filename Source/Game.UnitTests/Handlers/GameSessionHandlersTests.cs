@@ -1,3 +1,5 @@
+using VttTools.Common.Model;
+
 namespace VttTools.Game.Handlers;
 
 public class GameSessionHandlersTests {

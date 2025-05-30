@@ -4,7 +4,7 @@ public class PlayerTests {
     [Fact]
     public void Constructor_WhenCalled_InitializesWithDefaultValues() {
         // Arrange & Act
-        var player = new Player();
+        var player = new Participant();
 
         // Assert
         player.UserId.Should().BeEmpty();
@@ -18,7 +18,7 @@ public class PlayerTests {
         const PlayerType type = PlayerType.Master;
 
         // Act
-        var player = new Player {
+        var player = new Participant {
             UserId = userId,
             Type = type,
         };

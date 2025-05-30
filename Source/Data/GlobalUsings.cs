@@ -23,6 +23,7 @@ global using VttTools.Data.Builders;
 global using VttTools.Data.Game;
 global using VttTools.Data.Library;
 global using VttTools.Data.Options;
+global using VttTools.Game.Schedule.Model;
 global using VttTools.Game.Sessions.Model;
 global using VttTools.Game.Sessions.Storage;
 global using VttTools.Identity.Model;

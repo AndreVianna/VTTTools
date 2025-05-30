@@ -1,4 +1,6 @@
-﻿namespace VttTools.Game.Services;
+﻿using VttTools.Common.Model;
+
+namespace VttTools.Game.Services;
 
 public class GameSessionService(IGameSessionStorage storage)
     : IGameSessionService {
@@ -16,7 +18,7 @@ public class GameSessionService(IGameSessionStorage storage)
         var session = new GameSession {
             Title = data.Title,
             OwnerId = userId,
-            Players = [new Player { UserId = userId, Type = PlayerType.Master }],
+            Players = [new Participant { UserId = userId, Type = PlayerType.Master }],
             SceneId = data.SceneId,
         };
 
@@ -121,8 +123,8 @@ public class GameSessionService(IGameSessionStorage storage)
         return TypedResult.As(HttpStatusCode.NoContent);
     }
 
-    private static bool IsInGameSession(Player player, Guid userId)
+    private static bool IsInGameSession(Participant player, Guid userId)
         => player.UserId == userId;
-    private static bool IsGameSessionGameMaster(Player player, Guid userId)
+    private static bool IsGameSessionGameMaster(Participant player, Guid userId)
         => IsInGameSession(player, userId) && player.Type == PlayerType.Master;
 }

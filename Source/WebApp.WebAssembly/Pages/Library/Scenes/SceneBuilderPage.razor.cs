@@ -9,7 +9,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     public Guid SceneId { get; set; }
 
     [Inject]
-    internal ISceneBuilderHttpClient Client { get; set; } = null!;
+    internal ISceneBuilderHttpClient SceneBuilder { get; set; } = null!;
 
     [Inject]
     internal IJSRuntime JsRuntime { get; set; } = null!;
@@ -30,9 +30,10 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     private ElementReference _canvasContainerRef;
     private bool _isDisposed;
     private Timer? _mouseMoveTimer;
+    private IJSObjectReference? module;
 
     internal BuilderState State { get; set; } = new();
-    internal BuilderInput Input { get; set; } = new();
+    internal GuidInput Input { get; set; } = new();
     internal SceneDetails? Scene { get; set; }
     internal string StageImageUrl { get; set; } = string.Empty;
     internal SelectedAsset? SelectedAsset { get; set; }
@@ -51,7 +52,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync();
         _persistingSubscription = ApplicationState.RegisterOnPersisting(PersistSceneData);
-        if (!_hasRestoredState && ApplicationState.TryTakeFromJson<PersistedSceneData>($"SceneBuilder_{SceneId}", out var persistedData) && persistedData != null) {
+        if (!_hasRestoredState && ApplicationState.TryTakeFromJson<SceneBuilderPersistedData>($"SceneBuilder_{SceneId}", out var persistedData) && persistedData != null) {
             _hasRestoredState = true;
             Scene = persistedData.Scene;
         }
@@ -64,7 +65,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         if (Scene == null || OperatingSystem.IsBrowser())
             return Task.CompletedTask;
 
-        var dataToPersist = new PersistedSceneData {
+        var dataToPersist = new SceneBuilderPersistedData {
             Scene = Scene,
         };
 
@@ -75,6 +76,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     //private bool _sceneJsInitialized;
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (!firstRender) return;
+        module = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Library/Scenes/SceneBuilderPage.razor.js");
         _canvasReady = true;
         if (Scene == null && OperatingSystem.IsBrowser())
             await LoadSceneAsync();
@@ -83,7 +85,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
 
     private async Task LoadSceneAsync() {
         try {
-            var scene = await Client.GetSceneByIdAsync(SceneId);
+            var scene = await SceneBuilder.GetSceneByIdAsync(SceneId);
             if (scene == null) {
                 Console.WriteLine($"Failed to load scene {SceneId}");
                 return;
@@ -313,7 +315,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             IsLocked = SelectedAsset.IsLocked,
         };
 
-        await Client.UpdateSceneAssetAsync(Scene!.Id, SelectedAsset.Id, SelectedAsset.Number, updateRequest);
+        await SceneBuilder.UpdateSceneAssetAsync(Scene!.Id, SelectedAsset.Id, SelectedAsset.Number, updateRequest);
 
         await DrawStageAsync();
     }
@@ -323,7 +325,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             return;
         if (SelectedAsset == null)
             return;
-        await Client.RemoveSceneAssetAsync(Scene!.Id, SelectedAsset.Id, SelectedAsset.Number);
+        await SceneBuilder.RemoveSceneAssetAsync(Scene!.Id, SelectedAsset.Id, SelectedAsset.Number);
 
         Scene.Assets.RemoveAll(sa => sa.Id == SelectedAsset.Id && sa.Number == SelectedAsset.Number);
         SelectedAsset = null;
@@ -357,7 +359,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         var fileName = Path.GetFileName(SelectedStageFile.Name);
         await using var stream = SelectedStageFile.OpenReadStream(_maxFileSize); // 10 MB
         var backgroundImageId = Guid.CreateVersion7();
-        await Client.UploadSceneFileAsync(backgroundImageId, stream, fileName);
+        await SceneBuilder.UploadSceneFileAsync(backgroundImageId, stream, fileName);
 
         Scene = Scene with {
             Stage = Scene.Stage with {
@@ -376,9 +378,9 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     private async Task SaveGridSettings() {
         if (Scene == null) return;
         Scene = Scene with { Grid = new() {
-            Type = Input.GridType,
-            CellSize = new(Input.GridCellWidth, Input.GridCellHeight),
-            Offset = new(Input.GridOffsetX, Input.GridOffsetY),
+            Type = Input.Type,
+            CellSize = new(Input.CellWidth, Input.CellHeight),
+            Offset = new(Input.OffsetX, Input.OffsetY),
             Snap = Input.SnapToGrid,
         } };
         await JsRuntime.InvokeVoidAsync("saveGridSettings", Scene.Grid);
@@ -402,7 +404,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             Elevation = SelectedAsset.Elevation,
         };
 
-        var sceneAssetResult = await Client.AddSceneAssetAsync(Scene!.Id, addAssetRequest);
+        var sceneAssetResult = await SceneBuilder.AddSceneAssetAsync(Scene!.Id, addAssetRequest);
         if (sceneAssetResult.IsSuccessful)
             Scene.Assets.Add(sceneAssetResult.Value);
 
@@ -435,6 +437,6 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
                 Snap = Scene.Grid.Snap,
             },
         };
-        await Client.UpdateSceneAsync(Scene.Id, updateRequest);
+        await SceneBuilder.UpdateSceneAsync(Scene.Id, updateRequest);
     }
 }

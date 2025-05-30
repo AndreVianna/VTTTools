@@ -28,7 +28,7 @@ public class GameSessionTests {
         const string title = "Some Title";
         const GameSessionStatus status = GameSessionStatus.Scheduled;
         var sceneId = Guid.NewGuid();
-        var player = new Player {
+        var player = new Participant {
             UserId = Guid.NewGuid(),
             Type = PlayerType.Player,
         };

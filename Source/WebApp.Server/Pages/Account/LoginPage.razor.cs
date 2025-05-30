@@ -5,7 +5,7 @@ public partial class LoginPage {
     internal string? ReturnUrl { get; set; }
 
     [SupplyParameterFromForm]
-    internal LoginInputModel Input { get; set; } = new();
+    internal LoginPageInput Input { get; set; } = new();
 
     internal LoginPageState State { get; set; } = new();
 

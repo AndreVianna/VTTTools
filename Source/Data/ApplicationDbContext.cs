@@ -2,6 +2,7 @@ using Adventure = VttTools.Data.Library.Entities.Adventure;
 using Asset = VttTools.Data.Assets.Entities.Asset;
 using GameSession = VttTools.Data.Game.Entities.GameSession;
 using Scene = VttTools.Data.Library.Entities.Scene;
+using Schedule = VttTools.Data.Game.Entities.Schedule;
 
 namespace VttTools.Data;
 
@@ -11,6 +12,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Adventure> Adventures { get; set; }
     public DbSet<Scene> Scenes { get; set; }
     public DbSet<GameSession> GameSessions { get; set; }
+    public DbSet<Schedule> Schedule { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
@@ -21,6 +23,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         CampaignSchemaBuilder.ConfigureModel(builder);
         AdventureSchemaBuilder.ConfigureModel(builder);
         SceneSchemaBuilder.ConfigureModel(builder);
+        ScheduleSchemaBuilder.ConfigureModel(builder);
         GameSessionSchemaBuilder.ConfigureModel(builder);
     }
 }

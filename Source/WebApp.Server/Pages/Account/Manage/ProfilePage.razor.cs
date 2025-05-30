@@ -2,7 +2,7 @@
 
 public partial class ProfilePage {
     internal ProfilePageState State { get; set; } = new();
-    internal ProfileInputModel Input => State.Input;
+    internal ProfilePageInput Input => State.Input;
 
     private Task UpdateProfileAsync()
         => Handler.UpdateProfileAsync();

@@ -2,7 +2,7 @@
 
 public partial class EmailPage {
     internal EmailPageState State { get; set; } = new();
-    internal ChangeEmailInputModel ChangeEmailInput => State.ChangeEmailInput;
+    internal ChangeEmailPageInput ChangeEmailInput => State.ChangeEmailInput;
     internal VerifyEmailInputModel VerifyEmailInput => State.VerifyEmailInput;
 
     private Task SendEmailChangeConfirmationAsync()

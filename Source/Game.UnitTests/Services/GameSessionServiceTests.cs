@@ -1,4 +1,6 @@
-﻿namespace VttTools.Game.Services;
+﻿using VttTools.Common.Model;
+
+namespace VttTools.Game.Services;
 
 public class GameSessionServiceTests {
     private readonly IGameSessionStorage _sessionStorage;
@@ -359,7 +361,7 @@ public class GameSessionServiceTests {
             Id = sessionId,
             Title = "GameSession",
             OwnerId = _userId,
-            Players = [new Player { UserId = _userId, Type = PlayerType.Master }],
+            Players = [new Participant { UserId = _userId, Type = PlayerType.Master }],
         };
 
         _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns(session);
@@ -384,7 +386,7 @@ public class GameSessionServiceTests {
             Title = "GameSession",
             OwnerId = _userId,
             Players = [
-                new Player { UserId = _userId, Type = PlayerType.Master },
+                new Participant { UserId = _userId, Type = PlayerType.Master },
                       ],
         };
 
@@ -428,9 +430,9 @@ public class GameSessionServiceTests {
             Title = "GameSession",
             OwnerId = _userId,
             Players = [
-                new Player { UserId = _userId, Type = PlayerType.Master },
-                new Player { UserId = playerIdToRemove, Type = PlayerType.Player },
-                new Player { UserId = anotherPlayerId, Type = PlayerType.Player },
+                new Participant { UserId = _userId, Type = PlayerType.Master },
+                new Participant { UserId = playerIdToRemove, Type = PlayerType.Player },
+                new Participant { UserId = anotherPlayerId, Type = PlayerType.Player },
             ],
         };
 
@@ -459,8 +461,8 @@ public class GameSessionServiceTests {
             Title = "GameSession",
             OwnerId = _userId,
             Players = [
-                new Player { UserId = _userId, Type = PlayerType.Master },
-                new Player { UserId = otherPlayerId, Type = PlayerType.Player },
+                new Participant { UserId = _userId, Type = PlayerType.Master },
+                new Participant { UserId = otherPlayerId, Type = PlayerType.Player },
             ],
         };
         var initialPlayerCount = session.Players.Count;
@@ -505,7 +507,7 @@ public class GameSessionServiceTests {
             Title = "GameSession",
             OwnerId = Guid.NewGuid(), // Different owner for testing GM role
             SceneId = oldSceneId,
-            Players = [new Player { UserId = _userId, Type = PlayerType.Master }],
+            Players = [new Participant { UserId = _userId, Type = PlayerType.Master }],
         };
 
         _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns(session);
@@ -532,8 +534,8 @@ public class GameSessionServiceTests {
             OwnerId = _userId,
             SceneId = oldSceneId,
             Players = [
-                new Player { UserId = _userId, Type = PlayerType.Master },
-                new Player { UserId = playerId, Type = PlayerType.Player },
+                new Participant { UserId = _userId, Type = PlayerType.Master },
+                new Participant { UserId = playerId, Type = PlayerType.Player },
             ],
         };
 
@@ -561,8 +563,8 @@ public class GameSessionServiceTests {
             OwnerId = _userId,
             SceneId = oldSceneId,
             Players = [
-                new Player { UserId = _userId, Type = PlayerType.Master },
-                new Player { UserId = Guid.NewGuid(), Type = PlayerType.Player },
+                new Participant { UserId = _userId, Type = PlayerType.Master },
+                new Participant { UserId = Guid.NewGuid(), Type = PlayerType.Player },
             ],
         };
 
@@ -606,8 +608,8 @@ public class GameSessionServiceTests {
             Status = GameSessionStatus.Scheduled,
             OwnerId = Guid.NewGuid(), // Different owner
             Players = [
-                new Player { UserId = _userId, Type = PlayerType.Master }, // Caller is GM
-                new Player { UserId = Guid.NewGuid(), Type = PlayerType.Player }
+                new Participant { UserId = _userId, Type = PlayerType.Master }, // Caller is GM
+                new Participant { UserId = Guid.NewGuid(), Type = PlayerType.Player }
             ],
         };
 
@@ -632,8 +634,8 @@ public class GameSessionServiceTests {
             OwnerId = _userId, // Different owner
             Status = GameSessionStatus.Scheduled,
             Players = [
-                new Player { UserId = _userId, Type = PlayerType.Master },
-                new Player { UserId = nonGmId, Type = PlayerType.Player }, // Caller is player
+                new Participant { UserId = _userId, Type = PlayerType.Master },
+                new Participant { UserId = nonGmId, Type = PlayerType.Player }, // Caller is player
             ],
         };
 
@@ -659,8 +661,8 @@ public class GameSessionServiceTests {
             OwnerId = _userId, // Different owner
             Status = GameSessionStatus.Scheduled,
             Players = [
-                new Player { UserId = gmId, Type = PlayerType.Master },
-                new Player { UserId = _userId, Type = PlayerType.Player },
+                new Participant { UserId = gmId, Type = PlayerType.Master },
+                new Participant { UserId = _userId, Type = PlayerType.Player },
             ],
         };
 
@@ -701,8 +703,8 @@ public class GameSessionServiceTests {
             Status = GameSessionStatus.InProgress,
             OwnerId = Guid.NewGuid(), // Different owner
             Players = [
-                new Player { UserId = _userId, Type = PlayerType.Master },
-                new Player { UserId = Guid.NewGuid(), Type = PlayerType.Player },
+                new Participant { UserId = _userId, Type = PlayerType.Master },
+                new Participant { UserId = Guid.NewGuid(), Type = PlayerType.Player },
             ],
         };
 
@@ -727,8 +729,8 @@ public class GameSessionServiceTests {
             Status = GameSessionStatus.InProgress,
             OwnerId = _userId, // Different owner
             Players = [
-                new Player { UserId = _userId, Type = PlayerType.Master },
-                new Player { UserId = nonGmId, Type = PlayerType.Player }, // Caller is player
+                new Participant { UserId = _userId, Type = PlayerType.Master },
+                new Participant { UserId = nonGmId, Type = PlayerType.Player }, // Caller is player
                       ],
         };
 
@@ -754,8 +756,8 @@ public class GameSessionServiceTests {
             Status = GameSessionStatus.InProgress,
             OwnerId = _userId, // Different owner
             Players = [
-                new Player { UserId = gmId, Type = PlayerType.Master },
-                new Player { UserId = _userId, Type = PlayerType.Player },
+                new Participant { UserId = gmId, Type = PlayerType.Master },
+                new Participant { UserId = _userId, Type = PlayerType.Player },
             ],
         };
 

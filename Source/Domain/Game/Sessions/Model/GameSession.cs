@@ -6,7 +6,7 @@ public record GameSession {
     [MaxLength(128)]
     public string Title { get; init; } = string.Empty;
     public GameSessionStatus Status { get; init; } = GameSessionStatus.Draft;
-    public List<Player> Players { get; init; } = [];
+    public List<Participant> Players { get; init; } = [];
     public Guid? SceneId { get; init; }
     public List<GameSessionMessage> Messages { get; init; } = [];
     public List<GameSessionEvent> Events { get; init; } = [];
