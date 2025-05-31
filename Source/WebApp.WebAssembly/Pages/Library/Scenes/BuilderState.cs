@@ -10,10 +10,19 @@ public sealed class BuilderState {
 
     // Stage state management
     public Guid SceneId { get; set; }
-    public const int Padding = 200;
+    public const int Padding = 0;
     public Size CanvasSize { get; set; } = new(0, 0);
     public Point PanOffset { get; set; } = new(0, 0);
     public float ZoomLevel { get; set; } = 1.0f;
+
+    // Zoom constants
+    public const float MinZoomLevel = 0.1f;
+    public const float MaxZoomLevel = 4.0f;
+    public const float ZoomStep = 0.1f;
+
+    // Zoom state
+    public bool IsZooming { get; set; }
+    public Point ZoomCenter { get; set; } = new(0, 0);
     public GridDetails Grid { get; set; } = new() {
         Type = GridType.NoGrid,
         CellSize = new(50, 50),

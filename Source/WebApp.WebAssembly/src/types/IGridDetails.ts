@@ -1,6 +1,6 @@
 interface IGridDetails {
     type: GridType;
-    cellSize: ISize;
+    cell: ISize;
     offset: IPoint;
     snap: boolean;
 }

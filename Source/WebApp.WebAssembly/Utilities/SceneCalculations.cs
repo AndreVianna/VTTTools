@@ -16,9 +16,33 @@ internal static class SceneCalculations {
         var canvasX = clientPosition.X - canvasRect.X;
         var canvasY = clientPosition.Y - canvasRect.Y;
 
-        return new Point(
+        return new(
             (int)((canvasX - panOffset.X) / zoomLevel),
             (int)((canvasY - panOffset.Y) / zoomLevel)
+        );
+    }
+
+    /// <summary>
+    /// Calculates mouse position relative to the scene coordinate system accounting for zoom center
+    /// </summary>
+    /// <param name="clientPosition">Mouse position relative to viewport</param>
+    /// <param name="canvasRect">Canvas bounding rectangle</param>
+    /// <param name="panOffset">Current pan offset</param>
+    /// <param name="zoomLevel">Current zoom level</param>
+    /// <param name="zoomCenter">Center point of zoom transformation</param>
+    /// <returns>Position in scene coordinates</returns>
+    internal static Point GetSceneMousePositionWithZoom(Point clientPosition, Rectangle canvasRect, Point panOffset, float zoomLevel, Point zoomCenter) {
+        var canvasX = clientPosition.X - canvasRect.X;
+        var canvasY = clientPosition.Y - canvasRect.Y;
+
+        // Apply inverse zoom transformation
+        // Translate relative to zoom center, inverse scale, then translate back
+        var transformedX = ((canvasX - zoomCenter.X) / zoomLevel) + zoomCenter.X;
+        var transformedY = ((canvasY - zoomCenter.Y) / zoomLevel) + zoomCenter.Y;
+
+        return new(
+            (int)(transformedX - panOffset.X),
+            (int)(transformedY - panOffset.Y)
         );
     }
 

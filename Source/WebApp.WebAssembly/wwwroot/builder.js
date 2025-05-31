@@ -1,7 +1,7 @@
 "use strict";
 class RenderConstants {
 }
-RenderConstants.canvasPadding = 200;
+RenderConstants.canvasPadding = 0;
 RenderConstants.defaultAssetSize = 40;
 RenderConstants.defaultGridCellSize = 50;
 RenderConstants.selectionBorderWidth = 2;
@@ -69,92 +69,93 @@ class DomUtils {
     }
 }
 class CanvasManager {
-    static initializeCanvas(container, canvasSize, sceneLayers) {
-        this.clearContainer(container);
-        this.createCanvasLayers(container, canvasSize, sceneLayers);
-        this.centerCanvas(container, canvasSize);
+    static initializeCanvas(container, builder) {
+        this.builder = builder;
+        this.container = container;
+        this.setupExistingCanvasLayers();
+        this.centerCanvas();
     }
-    static clearContainer(container) {
-        while (container.firstChild) {
-            container.removeChild(container.firstChild);
-        }
-    }
-    static createCanvasLayers(container, canvasSize, sceneLayers) {
+    static setupExistingCanvasLayers() {
         const layers = ["background", "grid", "assets"];
         layers.forEach(layer => {
-            const canvas = this.createSingleCanvas(layer, canvasSize);
-            container.appendChild(canvas);
-            const ctx = canvas.getContext("2d");
-            if (ctx) {
-                sceneLayers[layer] = { canvas, ctx };
+            const canvas = this.container.querySelector(`#scene-canvas-${layer}`);
+            if (!canvas) {
+                console.error(`Canvas element #scene-canvas-${layer} not found`);
+                return;
             }
+            this.setupSingleCanvas(canvas);
+            const ctx = canvas.getContext("2d");
+            if (ctx)
+                this.builder.layers[layer] = { canvas, ctx };
         });
     }
-    static createSingleCanvas(layer, canvasSize) {
-        const canvas = document.createElement("canvas");
-        canvas.width = canvasSize.width;
-        canvas.height = canvasSize.height;
-        canvas.id = `scene-canvas-${layer}`;
-        canvas.className = "scene-canvas-layer";
-        return canvas;
+    static setupSingleCanvas(canvas) {
+        canvas.width = this.builder.state.canvasSize.width;
+        canvas.height = this.builder.state.canvasSize.height;
     }
-    static centerCanvas(container, canvasSize) {
-        if (!container)
+    static centerCanvas() {
+        if (!this.container)
             return;
-        container.scrollLeft = Math.max(0, (canvasSize.width - container.clientWidth) / 2);
-        container.scrollTop = Math.max(0, (canvasSize.height - container.clientHeight) / 2);
+        this.container.scrollLeft = Math.max(0, (this.builder.state.canvasSize.width - this.container.clientWidth) / 2);
+        this.container.scrollTop = Math.max(0, (this.builder.state.canvasSize.height - this.container.clientHeight) / 2);
     }
 }
 class BackgroundRenderer {
-    static render(imageUrl, layer, renderState) {
-        if (!imageUrl || !layer?.ctx)
+    static render(layer, currentState, newState) {
+        const ctx = layer?.ctx;
+        if (!ctx)
             return;
-        if (!this.hasBackgroundChanged(imageUrl, renderState))
-            return;
-        this.updateRenderState(imageUrl, renderState);
         this.clearLayer(layer);
-        this.drawBackgroundImage(imageUrl, layer.ctx);
-    }
-    static hasBackgroundChanged(imageUrl, renderState) {
-        return renderState.lastBackgroundUrl !== imageUrl;
-    }
-    static updateRenderState(imageUrl, renderState) {
-        renderState.lastBackgroundUrl = imageUrl;
+        if (!newState.imageUrl)
+            return;
+        this.applyZoomTransform(ctx, currentState, newState);
+        this.drawImage(ctx, newState.imageUrl);
+        layer.ctx.strokeStyle = "red";
+        layer.ctx.strokeRect(0, 0, 100, 100);
+        layer.ctx.strokeRect(0, 0, 200, 200);
     }
     static clearLayer(layer) {
         const ctx = layer.ctx;
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset to identity matrix
         ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
     }
-    static drawBackgroundImage(imageUrl, ctx) {
+    static applyZoomTransform(ctx, currentState, newState) {
+        ctx.translate(newState.zoomCenter.x, newState.zoomCenter.y);
+        ctx.scale(newState.zoomLevel, newState.zoomLevel);
+        ctx.translate(-newState.zoomCenter.x, -newState.zoomCenter.y);
+    }
+    static drawImage(ctx, imageUrl) {
         ImageCache.loadImage(imageUrl, img => {
             ctx.drawImage(img, RenderConstants.canvasPadding, RenderConstants.canvasPadding, img.width, img.height);
         });
     }
 }
 class GridRenderer {
-    static render(grid, layer) {
-        if (!layer?.ctx)
+    static render(layer, currentState, newState) {
+        const ctx = layer?.ctx;
+        if (!ctx)
             return;
-        if (!grid || grid.type === 0 /* GridType.NoGrid */) {
-            this.clearLayer(layer);
+        this.clearLayer(layer);
+        if (newState.grid.type === 0 /* GridType.NoGrid */)
             return;
-        }
-        this.setupGridRendering(layer.ctx);
-        this.renderGridByType(grid, layer.ctx);
+        this.applyZoomTransform(ctx, currentState, newState);
+        this.drawGrid(ctx, newState.grid, newState.zoomLevel);
     }
     static clearLayer(layer) {
-        layer.ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+        const ctx = layer.ctx;
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset to identity matrix
+        ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
     }
-    static setupGridRendering(ctx) {
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.strokeStyle = RenderConstants.gridStrokeStyle;
-        ctx.lineWidth = 1;
+    static applyZoomTransform(ctx, currentState, newState) {
+        ctx.translate(newState.zoomCenter.x, newState.zoomCenter.y);
+        ctx.scale(newState.zoomLevel, newState.zoomLevel);
+        ctx.translate(-newState.zoomCenter.x, -newState.zoomCenter.y);
     }
-    static renderGridByType(grid, ctx) {
+    static drawGrid(ctx, grid, zoomLevel) {
         const offsetX = grid.offset?.x || 0;
         const offsetY = grid.offset?.y || 0;
-        const cellWidth = grid.cellSize?.width || RenderConstants.defaultGridCellSize;
-        const cellHeight = grid.cellSize?.height || RenderConstants.defaultGridCellSize;
+        const cellWidth = grid.cell?.width || RenderConstants.defaultGridCellSize;
+        const cellHeight = grid.cell?.height || RenderConstants.defaultGridCellSize;
         switch (grid.type) {
             case 1 /* GridType.Square */:
                 this.renderSquareGrid(ctx, offsetX, offsetY, cellWidth, cellHeight);
@@ -162,7 +163,7 @@ class GridRenderer {
             case 2 /* GridType.HexV */:
             case 3 /* GridType.HexH */:
             case 4 /* GridType.Isometric */:
-                this.renderUnsupportedGridMessage(ctx, "Grid type not yet implemented");
+                this.renderUnsupportedGridMessage(ctx, "Grid type not yet implemented", zoomLevel);
                 break;
         }
     }
@@ -188,32 +189,46 @@ class GridRenderer {
             ctx.stroke();
         }
     }
-    static renderUnsupportedGridMessage(ctx, message) {
+    static renderUnsupportedGridMessage(ctx, message, zoomLevel) {
         ctx.font = RenderConstants.gridMessageFont;
         ctx.fillStyle = RenderConstants.gridMessageColor;
+        // Adjust font size for zoom level
+        const fontSize = 20 / zoomLevel;
+        ctx.font = `${fontSize}px Arial`;
         ctx.fillText(message, 20, 60);
     }
 }
 class AssetRenderer {
-    static render(assets, layer) {
-        if (!layer?.ctx)
+    static render(layer, currentState, newState) {
+        const ctx = layer?.ctx;
+        if (!ctx)
             return;
         this.clearLayer(layer);
-        if (!assets || assets.length === 0)
+        if (newState.assets.length === 0)
             return;
-        assets.forEach(asset => this.renderSingleAsset(layer.ctx, asset));
+        this.applyZoomTransform(ctx, currentState, newState);
+        this.drawAssets(ctx, newState.assets, newState.zoomLevel);
     }
     static clearLayer(layer) {
+        layer.ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset to identity matrix
         layer.ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
     }
-    static renderSingleAsset(ctx, asset) {
+    static applyZoomTransform(ctx, currentState, newState) {
+        ctx.translate(newState.zoomCenter.x, newState.zoomCenter.y);
+        ctx.scale(newState.zoomLevel, newState.zoomLevel);
+        ctx.translate(-newState.zoomCenter.x, -newState.zoomCenter.y);
+    }
+    static drawAssets(ctx, assets, zoomLevel) {
+        assets.forEach(asset => this.drawAsset(ctx, asset, zoomLevel));
+    }
+    static drawAsset(ctx, asset, zoomLevel) {
         const position = this.calculateAssetPosition(asset);
         const size = this.calculateAssetSize(asset);
         if (asset.imageUrl) {
-            this.renderAssetImage(ctx, asset, position, size);
+            this.renderAssetImage(ctx, asset, position, size, zoomLevel);
         }
         else {
-            this.renderAssetShape(ctx, asset, position, size);
+            this.renderAssetShape(ctx, asset, position, size, zoomLevel);
         }
     }
     static calculateAssetPosition(asset) {
@@ -231,31 +246,31 @@ class AssetRenderer {
             height: baseHeight * scale
         };
     }
-    static renderAssetImage(ctx, asset, position, size) {
+    static renderAssetImage(ctx, asset, position, size, zoomLevel) {
         ImageCache.loadImage(asset.imageUrl, img => {
             ctx.drawImage(img, position.x - size.width / 2, position.y - size.height / 2, size.width, size.height);
-            this.renderAssetDecorations(ctx, asset, position, size);
+            this.renderAssetDecorations(ctx, asset, position, size, zoomLevel);
         });
     }
-    static renderAssetShape(ctx, asset, position, size) {
+    static renderAssetShape(ctx, asset, position, size, zoomLevel) {
         ctx.beginPath();
         ctx.ellipse(position.x, position.y, size.width / 2, size.height / 2, 0, 0, Math.PI * 2);
         ctx.fillStyle = asset.color || RenderConstants.defaultAssetColor;
         ctx.fill();
-        this.renderAssetDecorations(ctx, asset, position, size);
+        this.renderAssetDecorations(ctx, asset, position, size, zoomLevel);
     }
-    static renderAssetDecorations(ctx, asset, position, size) {
+    static renderAssetDecorations(ctx, asset, position, size, zoomLevel) {
         if (asset.isSelected) {
-            this.renderSelectionBorder(ctx, asset, position, size);
+            this.renderSelectionBorder(ctx, asset, position, size, zoomLevel);
         }
         if (asset.isLocked) {
-            this.renderLockIcon(ctx, position, size);
+            this.renderLockIcon(ctx, position, size, zoomLevel);
         }
-        this.renderAssetName(ctx, asset, position, size);
+        this.renderAssetName(ctx, asset, position, size, zoomLevel);
     }
-    static renderSelectionBorder(ctx, asset, position, size) {
+    static renderSelectionBorder(ctx, asset, position, size, zoomLevel) {
         ctx.strokeStyle = RenderConstants.selectionStrokeStyle;
-        ctx.lineWidth = RenderConstants.selectionBorderWidth;
+        ctx.lineWidth = RenderConstants.selectionBorderWidth / zoomLevel; // Adjust line width for zoom
         if (asset.imageUrl) {
             this.renderRectangularSelection(ctx, position, size);
         }
@@ -273,13 +288,15 @@ class AssetRenderer {
         ctx.ellipse(position.x, position.y, size.width / 2 + padding, size.height / 2 + padding, 0, 0, Math.PI * 2);
         ctx.stroke();
     }
-    static renderLockIcon(ctx, position, size) {
-        ctx.font = RenderConstants.lockIconFont;
+    static renderLockIcon(ctx, position, size, zoomLevel) {
+        const fontSize = 16 / zoomLevel; // Adjust font size for zoom level
+        ctx.font = `${fontSize}px Arial`;
         ctx.fillStyle = RenderConstants.lockIconColor;
         ctx.fillText("🔒", position.x - RenderConstants.lockIconOffset, position.y - Math.max(size.width, size.height) / 2 - 5);
     }
-    static renderAssetName(ctx, asset, position, size) {
-        ctx.font = RenderConstants.assetNameFont;
+    static renderAssetName(ctx, asset, position, size, zoomLevel) {
+        const fontSize = 12 / zoomLevel; // Adjust font size for zoom level
+        ctx.font = `${fontSize}px Arial`;
         ctx.fillStyle = RenderConstants.assetNameColor;
         ctx.textAlign = "center";
         ctx.fillText(asset.name || "Asset", position.x, position.y + Math.max(size.width, size.height) / 2 + 15);
@@ -287,37 +304,135 @@ class AssetRenderer {
 }
 class SceneBuilder {
     static initialize() {
-        this.sceneWindow = window;
-        this.initializeWindowState();
-        this.bindWindowMethods();
+        this.builder = window;
+        this.initializeProperties();
+        this.bindMethods();
     }
-    static initializeWindowState() {
-        this.sceneWindow.sceneLayers = {
+    static initializeProperties() {
+        this.builder.layers = {
             background: null,
             grid: null,
             assets: null
         };
-        this.sceneWindow.renderState = {
-            lastBackgroundUrl: null
+        this.builder.state = {
+            id: undefined,
+            imageUrl: undefined,
+            imageSize: { width: 0, height: 0 }, // 4K resolution
+            canvasSize: { width: 3840, height: 2160 }, // 4K resolution
+            zoomLevel: 1.0,
+            zoomCenter: { x: 0, y: 0 },
+            offset: { x: 0, y: 0 },
+            grid: {
+                type: 0 /* GridType.NoGrid */,
+                cell: { width: 50, height: 50 },
+                offset: { x: 0, y: 0 },
+                snap: false,
+            },
+            assets: []
         };
     }
-    static bindWindowMethods() {
-        this.sceneWindow.initStage = this.initStage.bind(this);
-        this.sceneWindow.drawStage = this.drawStage.bind(this);
-        this.sceneWindow.getImageDimensionsFromUrl = ImageCache.getImageDimensions.bind(ImageCache);
-        this.sceneWindow.getCanvasBoundingRect = DomUtils.getCanvasBoundingRect.bind(DomUtils);
-        this.sceneWindow.getScrollPosition = DomUtils.getScrollPosition.bind(DomUtils);
-        this.sceneWindow.setScrollPosition = DomUtils.setScrollPosition.bind(DomUtils);
-        this.sceneWindow.setCursor = DomUtils.setCursor.bind(DomUtils);
+    static bindMethods() {
+        this.builder.resetZoom = this.resetZoom.bind(this);
+        this.builder.initStage = this.initStage.bind(this);
+        this.builder.drawStage = this.drawStage.bind(this);
+        this.builder.getImageDimensionsFromUrl = ImageCache.getImageDimensions.bind(ImageCache);
+        this.builder.getCanvasBoundingRect = DomUtils.getCanvasBoundingRect.bind(DomUtils);
+        this.builder.getScrollPosition = DomUtils.getScrollPosition.bind(DomUtils);
+        this.builder.setScrollPosition = DomUtils.setScrollPosition.bind(DomUtils);
+        this.builder.setCursor = DomUtils.setCursor.bind(DomUtils);
+        this.builder.setupCanvasWheelPrevention = this.setupCanvasWheelHandler.bind(this);
     }
-    static initStage(canvasContainer, renderData) {
-        CanvasManager.initializeCanvas(canvasContainer, renderData.canvasSize, this.sceneWindow.sceneLayers);
-        this.drawStage(renderData);
+    static initStage(canvasContainer, initialState) {
+        this.builder.state = initialState;
+        CanvasManager.initializeCanvas(canvasContainer, this.builder);
+        this.setupCanvasWheelHandler(canvasContainer);
+        this.drawStage(initialState);
     }
-    static drawStage(renderData) {
-        BackgroundRenderer.render(renderData.imageUrl, this.sceneWindow.sceneLayers.background, this.sceneWindow.renderState);
-        GridRenderer.render(renderData.grid, this.sceneWindow.sceneLayers.grid);
-        AssetRenderer.render(renderData.assets, this.sceneWindow.sceneLayers.assets);
+    static setupCanvasWheelHandler(canvasContainer) {
+        canvasContainer.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.handleZoom(e.deltaY, e.clientX, e.clientY, canvasContainer);
+        }, { passive: false });
+    }
+    static handleZoom(deltaY, clientX, clientY, canvasContainer) {
+        const MIN_ZOOM = 0.1;
+        const MAX_ZOOM = 4.0;
+        const ZOOM_STEP = 0.1;
+        const currentZoom = this.builder.state.zoomLevel ?? 1.0;
+        const currentZoomCenter = this.builder.state.zoomCenter;
+
+        const zoomDirection = deltaY > 0 ? -1 : 1;
+        let newZoom = currentZoom + (zoomDirection * ZOOM_STEP);
+        newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newZoom));
+        if (Math.abs(newZoom - currentZoom) < (ZOOM_STEP / 2))
+            return;
+        const rect = canvasContainer.getBoundingClientRect();
+        const canvasRect = DomUtils.getCanvasBoundingRect(canvasContainer);
+        console.log(`currentZoom: ${currentZoom}`);
+        console.log(`client: ${clientX}, ${clientY}`);
+        console.log(`container rect: ${rect.left}, ${rect.top} => ${rect.width}, ${rect.height}`);
+        console.log(`canvas rect: ${canvasRect.left}, ${canvasRect.top} => ${canvasRect.width}, ${canvasRect.height}`);
+        console.log(`scroll: ${canvasContainer.scrollLeft}, ${canvasContainer.scrollTop}`);
+        const mouseX = clientX - rect.left + canvasContainer.scrollLeft;
+        const mouseY = clientY - rect.top + canvasContainer.scrollTop;
+        console.log(`currentZoomCenter: ${currentZoomCenter.x}, ${currentZoomCenter.y}`);
+        console.log(`mouse: ${mouseX}, ${mouseY}`);
+        console.log(`delta: ${mouseX - (mouseX * newZoom)}, ${mouseY - (mouseY * newZoom)}`);
+        console.log(`newZoom: ${newZoom}`);
+        const newZoomCenter = {
+            x: mouseX,
+            y: mouseY
+        };
+        console.log(`newZoomCenter: ${newZoomCenter.x}, ${newZoomCenter.y}`);
+        const newState = {
+            ...this.builder.state,
+            zoomLevel: newZoomLevel,
+            zoomCenter: newZoomCenter
+        };
+        this.redrawAllLayers(newState);
+        this.updateZoomIndicator(newZoomLevel);
+        this.builder.state.zoomLevel = newZoomLevel;
+        this.builder.state.zoomCenter = newZoomCenter;
+    }
+    static redrawAllLayers(newState) {
+        this.clearAllLayers();
+        BackgroundRenderer.render(this.builder.layers.background, this.builder.state, newState);
+        GridRenderer.render(this.builder.layers.grid, this.builder.state, newState);
+        AssetRenderer.render(this.builder.layers.assets, this.builder.state, newState);
+    }
+    static clearAllLayers() {
+        for (const layerKey in this.builder.layers) {
+            const layer = this.builder.layers[layerKey];
+            if (!layer)
+                continue;
+            const ctx = layer.ctx;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+        }
+    }
+    static updateZoomIndicator(zoomLevel) {
+        const zoomIndicator = document.querySelector('.zoom-indicator');
+        if (zoomIndicator)
+            zoomIndicator.textContent = `${Math.round(zoomLevel * 100)}%`;
+    }
+    static resetZoom() {
+        const newState = {
+            ...this.builder.state,
+            zoomLevel: 1.0,
+            zoomCenter: { x: 0, y: 0 }
+        };
+        this.redrawAllLayers(newState);
+        this.updateZoomIndicator(1.0);
+        this.builder.state.zoomLevel = newState.zoomLevel;
+        this.builder.state.zoomCenter = newState.zoomCenter;
+    }
+    static drawStage(newState) {
+        BackgroundRenderer.render(this.builder.layers.background, this.builder.state, newState);
+        GridRenderer.render(this.builder.layers.grid, this.builder.state, newState);
+        AssetRenderer.render(this.builder.layers.assets, this.builder.state, newState);
+        this.builder.state.zoomLevel = newState.zoomLevel;
+        this.builder.state.zoomCenter = newState.zoomCenter;
     }
 }
 // Initialize the SceneBuilder when the script loads

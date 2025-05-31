@@ -27,7 +27,6 @@
     "src/types/ICanvasLayer.ts",
     "src/types/ISceneLayers.ts",
     "src/types/IRenderState.ts",
-    "src/types/IRenderData.ts",
     "src/types/IScrollPosition.ts",
     "src/types/ISceneWindow.ts",
     "src/constants/RenderConstants.ts",

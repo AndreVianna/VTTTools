@@ -1,5 +1,5 @@
 class RenderConstants {
-    static readonly canvasPadding = 200;
+    static readonly canvasPadding = 0;
     static readonly defaultAssetSize = 40;
     static readonly defaultGridCellSize = 50;
     static readonly selectionBorderWidth = 2;

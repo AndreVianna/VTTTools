@@ -46,6 +46,8 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         _persistingSubscription?.Dispose();
         if (_mouseMoveTimer is not null)
             await _mouseMoveTimer.DisposeAsync();
+
+
         GC.SuppressFinalize(this);
         _isDisposed = true;
     }
@@ -54,6 +56,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync();
         _persistingSubscription = ApplicationState.RegisterOnPersisting(PersistSceneData);
+
 
         // Initialize state with scene ID
         State.SceneId = SceneId;
@@ -84,6 +87,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         if (!firstRender)
             return;
         await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./builder.js");
+
         _canvasReady = true;
         if (Scene == null && OperatingSystem.IsBrowser())
             await LoadSceneAsync();
@@ -129,7 +133,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             return;
 
         // Load state from local storage
-        (var panOffset, var zoomLevel, var grid) = await StorageService.LoadStateAsync(State.SceneId, Scene.ZoomLevel);
+        var (panOffset, zoomLevel, grid) = await StorageService.LoadStateAsync(State.SceneId, Scene.ZoomLevel);
         State.PanOffset = panOffset;
         State.ZoomLevel = zoomLevel;
         State.Grid = grid;
@@ -153,18 +157,17 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         if (rect is not JsonElement element)
             return false;
 
-        if (element.TryGetProperty("x", out var x) &&
-            element.TryGetProperty("y", out var y) &&
-            element.TryGetProperty("width", out var width) &&
-            element.TryGetProperty("height", out var height) &&
-            x.TryGetInt32(out var xVal) &&
-            y.TryGetInt32(out var yVal) &&
-            width.TryGetInt32(out var widthVal) &&
-            height.TryGetInt32(out var heightVal)) {
-            canvasRect = new Rectangle(xVal, yVal, widthVal, heightVal);
-            return true;
-        }
-        return false;
+        if (!element.TryGetProperty("left", out var left) ||
+            !element.TryGetProperty("top", out var top) ||
+            !element.TryGetProperty("width", out var width) ||
+            !element.TryGetProperty("height", out var height) ||
+            !left.TryGetInt32(out var leftVal) ||
+            !top.TryGetInt32(out var topVal) ||
+            !width.TryGetInt32(out var widthVal) ||
+            !height.TryGetInt32(out var heightVal)) return false;
+
+        canvasRect = new(leftVal, topVal, widthVal, heightVal);
+        return true;
     }
 
     private object CreateRenderData() {
@@ -174,10 +177,11 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         return new {
             id = Scene.Id,
             imageUrl = GetImageUrl(_stageBasePath, Scene.Stage.Type, Scene.Stage.FileName ?? Scene.Id.ToString()),
-            size = Scene.Stage.Size,
+            imageSize = Scene.Stage.Size,
             canvasSize = State.CanvasSize,
             zoomLevel = State.ZoomLevel,
-            panOffset = State.PanOffset,
+            zoomCenter = State.ZoomCenter,
+            offset = State.PanOffset,
             grid = new {
                 type = State.Grid.Type,
                 cellSize = State.Grid.CellSize,
@@ -291,6 +295,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         if (!State.IsDragging || SelectedAsset == null)
             return;
 
+
         if (_mouseMoveTimer != null)
             await _mouseMoveTimer.DisposeAsync();
 
@@ -308,7 +313,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         SelectedAsset.Position = SceneCalculations.ApplyGridSnapping(position, State.Grid);
     }
 
-    private async Task OnCanvasMouseUp(MouseEventArgs e) {
+    private async Task OnCanvasMouseUp(MouseEventArgs _) {
         if (State.IsPanning) {
             await EndPanningAsync();
             return;
@@ -316,7 +321,31 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         State.IsDragging = false;
     }
 
+    //private async Task ApplyZoomAsync(double deltaY, Point zoomCenter) {
+    //    var zoomDirection = deltaY > 0 ? -1 : 1; // Negative deltaY = zoom in
+    //    var newZoomLevel = State.ZoomLevel + (zoomDirection * BuilderState.ZoomStep);
+
+    //    newZoomLevel = Math.Max(BuilderState.MinZoomLevel,
+    //                   Math.Min(BuilderState.MaxZoomLevel, newZoomLevel));
+
+    //    if (Math.Abs(newZoomLevel - State.ZoomLevel) < 0.01f)
+    //        return; // No change needed
+
+    //    State.ZoomLevel = newZoomLevel;
+    //    State.ZoomCenter = zoomCenter;
+
+    //    await StorageService.SaveStateAsync(State);
+    //    await DrawStageAsync();
+    //}
+
+    private async Task ResetZoom() {
+        await JsRuntime.InvokeVoidAsync("resetZoom");
+    }
+
     private async Task StartPanningAsync(MouseEventArgs e) {
+        if (State.IsZooming)
+            return;
+
         State.IsPanning = true;
         State.HasMovedDuringPan = false;
         State.PanStartPosition = new((int)e.PageX, (int)e.PageY);
@@ -347,7 +376,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         await JsRuntime.InvokeVoidAsync("setScrollPosition", _canvasContainerRef,
             new { left = newScrollLeft, top = newScrollTop });
 
-        State.PanOffset = new Point(
+        State.PanOffset = new(
             State.PanOffset.X + Math.Abs(deltaX),
             State.PanOffset.Y + Math.Abs(deltaY)
         );
@@ -368,18 +397,16 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         if (scrollPos is not JsonElement element)
             return false;
 
-        if (element.TryGetProperty("left", out var left) &&
-            element.TryGetProperty("top", out var top) &&
-            left.TryGetInt32(out var leftVal) &&
-            top.TryGetInt32(out var topVal)) {
-            position = new Point(leftVal, topVal);
-            return true;
-        }
-        return false;
+        if (!element.TryGetProperty("left", out var left) ||
+            !element.TryGetProperty("top", out var top) ||
+            !left.TryGetInt32(out var leftVal) ||
+            !top.TryGetInt32(out var topVal)) return false;
+        position = new(leftVal, topVal);
+        return true;
     }
 
     private async Task OnCanvasContextMenu(MouseEventArgs e) {
-        if (State.IsPanning && State.HasMovedDuringPan)
+        if (State is { IsPanning: true, HasMovedDuringPan: true })
             return;
 
         var position = GetSceneMousePosition(e);
@@ -402,11 +429,12 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
 
         try {
             var clientPosition = new Point((int)e.ClientX, (int)e.ClientY);
-            return SceneCalculations.GetSceneMousePosition(
+            return SceneCalculations.GetSceneMousePositionWithZoom(
                 clientPosition,
                 _canvasRect.Value,
                 State.PanOffset,
-                State.ZoomLevel
+                State.ZoomLevel,
+                State.ZoomCenter
             );
         }
         catch (Exception ex) {
