@@ -6,7 +6,7 @@
 
 <div class="container-fluid">
   <div class="scene-builder-toolbar">
-    <div class="toolbar-group">
+    <div class="toolbar-group me-1">
       <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle" type="button" id="stageMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
           Stage
@@ -17,7 +17,7 @@
         </ul>
       </div>
     </div>
-    <div class="toolbar-group">
+    <div class="toolbar-group me-1">
       <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle" type="button" id="assetsMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
           Assets
@@ -30,7 +30,7 @@
         </ul>
       </div>
     </div>
-    <div class="toolbar-group">
+    <div class="toolbar-group me-1">
       <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle" type="button" id="structuresMenuButton" data-bs-toggle="dropdown" aria-expanded="false" disabled>
           Structures
@@ -43,21 +43,33 @@
       </div>
     </div>
     <div class="toolbar-group">
-      <span class="zoom-indicator me-2">@(State.ZoomLevel.ToString("P0"))</span>
-      <button class="btn btn-sm btn-outline-secondary" @onclick="ResetZoom" title="Reset Zoom to 100%">
-        <i class="bi bi-zoom-in"></i> Reset
+      <button id="reset-zoom-button" class="btn btn-icon icon-primary" @onclick="ResetZoom" title="Reset Zoom">
+        <span class="icon reset-zoom" aria-hidden="true"></span>
+      </button>
+      <button id="fit-horz-button" class="btn btn-icon icon-primary" @onclick="ZoomToFitHorizontally" title="Zoom to Fit">
+        <span class="icon zoom-fit-horz me-1" aria-hidden="true"></span>
+      </button>
+      <button id="fit-vert-button" class="btn btn-icon icon-primary" @onclick="ZoomToFitVertically" title="Zoom to Fit">
+        <span class="icon zoom-fit-vert me-1" aria-hidden="true"></span>
+      </button>
+      <button id="reset-zoom-in-button" class="btn btn-icon icon-primary" @onclick="ZoomIn" title="Increase Zoom">
+        <span class="icon zoom-in" aria-hidden="true"></span>
+      </button>
+      <span id="zoom-display" class="zoom-display m-0">@(State.ZoomLevel.ToString("P0"))</span>
+      <button id="reset-zoom-out-button" class="btn btn-icon icon-primary" @onclick="ZoomOut" title="Decrease Zoom">
+        <span class="icon zoom-out" aria-hidden="true"></span>
       </button>
     </div>
   </div>
-  <div class="scene-canvas-container" id="scene-canvas-container" @ref="_canvasContainerRef"
+  <div id="layers-container" class="builder-layers" @ref="_canvasContainerRef"
        @onmousedown="OnCanvasMouseDown"
        @onmousemove="OnCanvasMouseMove"
        @onmouseup="OnCanvasMouseUp"
        @oncontextmenu="OnCanvasContextMenu"
        @oncontextmenu:preventDefault>
-    <canvas id="scene-canvas-background" class="scene-canvas-layer"></canvas>
-    <canvas id="scene-canvas-grid" class="scene-canvas-layer"></canvas>
-    <canvas id="scene-canvas-assets" class="scene-canvas-layer"></canvas>
+    <canvas id="background-layer" class="builder-layer"></canvas>
+    <canvas id="grid-layer" class="builder-layer"></canvas>
+    <canvas id="assets-layer" class="builder-layer"></canvas>
   </div>
 </div>
 

@@ -9,17 +9,24 @@
   margin-right: 15px;
 }
 
-.scene-canvas-container {
+.builder-layers {
   position: relative;
-  overflow: auto; /* Ensures no scrollbars appear */
+  overflow: auto; /* Enables scrollbars when needed */
   background-color: #e0e0e0; /* Gray background */
   height: calc(100vh - 120px); /* Fill available viewport space */
   width: 100%;
+  /* Ensure we can handle negative canvas positioning */
+  contain: layout style paint;
 }
 
-.scene-canvas-layer {
+.builder-layer {
   margin: 0;
   position: absolute;
-  top: 0;
-  left: 0;
+  /* top and left will be set dynamically by JavaScript */
+  transform-origin: 0 0; /* Ensure scaling happens from top-left corner */
+}
+
+.zoom-display {
+  font-size: 0.8rem;
+  color: #333;
 }

@@ -1,150 +1,198 @@
 class SceneBuilder {
-    private static builder: IBuilder;
+    private static builder: IBuilderHandler = window as unknown as IBuilderHandler;
+    private static defaultState: IBuilderState = {
+        id: "",
+        imageSize: { width: 0, height: 0 },
+        containerRect: { x: 0, y: 0, width: 0, height: 0 },
+        containerScroll: { x: 0, y: 0 },
+        layerRect: { x: 0, y: 0, width: 0, height: 0 },
+        zoomLevel: 1.0,
+        layers: [],
+    };
 
     static initialize(): void {
-        this.builder = window as unknown as IBuilder;
         this.initializeProperties();
         this.bindMethods();
+        this.captureDomElements();
+        this.bindMouseEvents();
     }
 
     private static initializeProperties(): void {
-        this.builder.layers = {
-            background: null,
-            grid: null,
-            assets: null
-        };
-
-        this.builder.state = {
-            id: undefined,
-            imageUrl: undefined,
-            imageSize: { width: 0, height: 0 }, // 4K resolution
-            canvasSize: { width: 3840, height: 2160 }, // 4K resolution
-            zoomLevel: 1.0,
-            zoomCenter: { x: 0, y: 0 },
-            offset: { x: 0, y: 0 },
-            grid: {
-                type: GridType.NoGrid,
-                cell: { width: 50, height: 50 },
-                offset: { x: 0, y: 0 },
-                snap: false,
-            },
-            assets: []
-        };
+        this.builder.state = this.defaultState;
     }
 
     private static bindMethods(): void {
-        this.builder.resetZoom = this.resetZoom.bind(this);
-        this.builder.initStage = this.initStage.bind(this);
-        this.builder.drawStage = this.drawStage.bind(this);
-        this.builder.getImageDimensionsFromUrl = ImageCache.getImageDimensions.bind(ImageCache);
-        this.builder.getCanvasBoundingRect = DomUtils.getCanvasBoundingRect.bind(DomUtils);
-        this.builder.getScrollPosition = DomUtils.getScrollPosition.bind(DomUtils);
-        this.builder.setScrollPosition = DomUtils.setScrollPosition.bind(DomUtils);
+        this.builder.setup = this.setup.bind(this);
+        this.builder.render = this.render.bind(this);
+        this.builder.setLayer = this.setLayer.bind(this);
+        this.builder.setZoom = this.setZoom.bind(this);
+
+        this.builder.getImageSize = ImageCache.getImageSize.bind(ImageCache);
+        this.builder.getContainerRect = DomUtils.getContainerRect.bind(DomUtils);
+        this.builder.getContainerScroll = DomUtils.getContainerScroll.bind(DomUtils);
+        this.builder.setContainerScroll = DomUtils.setContainerScroll.bind(DomUtils);
+        this.builder.getCanvasRect = DomUtils.getCanvasRect.bind(DomUtils);
+        this.builder.setCanvasRect = DomUtils.setCanvasRect.bind(DomUtils);
         this.builder.setCursor = DomUtils.setCursor.bind(DomUtils);
-        this.builder.setupCanvasWheelPrevention = this.setupCanvasWheelHandler.bind(this);
+        this.builder.setZoomDisplay = DomUtils.setZoomDisplay.bind(DomUtils);
     }
 
-    private static initStage(canvasContainer: HTMLElement, initialState: IBuilderState): void {
-        this.builder.state = initialState;
-        CanvasManager.initializeCanvas(canvasContainer, this.builder);
-        this.setupCanvasWheelHandler(canvasContainer);
-        this.drawStage(initialState);
+    private static captureDomElements(): void {
+        this.builder.state = this.defaultState;
+        this.builder.container = document.querySelector<HTMLElement>('#layers-container')!;
+        this.builder.layers = [];
+        const layers = document.querySelectorAll<HTMLCanvasElement>(".builder-layer");
+        layers.forEach(layer => {
+            this.builder.layers.push(new Layer(layer.id.replace("-layer", ""), layer));
+        });
+        this.builder.zoomDisplay = document.querySelector<HTMLElement>("#zoom-display")!;
     }
 
-    private static setupCanvasWheelHandler(canvasContainer: HTMLElement): void {
-        canvasContainer.addEventListener('wheel', (e: WheelEvent) => {
+    private static bindMouseEvents(): void {
+        this.builder.container.addEventListener('wheel', (e: WheelEvent) => {
             e.preventDefault();
             e.stopPropagation();
-            this.handleZoom(e.deltaY, e.clientX, e.clientY, canvasContainer);
+            this.handleWheel(e.clientX, e.clientY, e.deltaY);
         }, { passive: false });
     }
 
-    private static handleZoom(deltaY: number, clientX: number, clientY: number, canvasContainer: HTMLElement): void {
-        const MIN_ZOOM = 0.1;
-        const MAX_ZOOM = 4.0;
-        const ZOOM_STEP = 0.1;
+    private static async setup(id: string, setup: ILayersSetup): Promise<void> {
+        await this.calculateInitialState(id, setup);
+        this.initializeLayers(setup);
+        this.resetZoom();
+        this.updateDomElements();
+        this.render();
+        return;
+    }
 
-        let currentZoom = this.builder.state.zoomLevel ?? 1.0;
-        const zoomDirection = deltaY > 0 ? -1 : 1;
-        let newZoomLevel = currentZoom + (zoomDirection * ZOOM_STEP);
-        newZoomLevel = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newZoomLevel));
-        if (Math.abs(newZoomLevel - currentZoom) < (ZOOM_STEP / 2)) return;
-
-        const rect = canvasContainer.getBoundingClientRect();
-        const mouseX = clientX - rect.left + canvasContainer.scrollLeft;
-        const mouseY = clientY - rect.top + canvasContainer.scrollTop;
-        const currentZoomCenter = this.builder.state.zoomCenter;
-        console.log(`mouse: ${mouseX}, ${mouseY}`);
-        console.log(`currentZoomCenter: ${currentZoomCenter.x}, ${currentZoomCenter.y}`);
-        console.log(`currentZoom: ${currentZoom}`);
-        const newZoomCenter = {
-            x: mouseX,
-            y: mouseY
-        };
-        console.log(`newZoomCenter: ${newZoomCenter.x}, ${newZoomCenter.y}`);
-
-        const newState: IBuilderState = {
+    private static async calculateInitialState(id: string, setup: ILayersSetup): Promise<void> {
+        this.builder.state = {
             ...this.builder.state,
-            zoomLevel: newZoomLevel,
-            zoomCenter: newZoomCenter
+            id: id,
+            containerRect: DomUtils.getContainerRect(this.builder.container),
+            imageSize: await ImageCache.getImageSize(setup.imageUrl),
         };
-        this.redrawAllLayers(newState);
-        this.updateZoomIndicator(newZoomLevel);
-        this.builder.state.zoomLevel = newZoomLevel;
-        this.builder.state.zoomCenter = newZoomCenter;
     }
 
-    private static redrawAllLayers(newState: IBuilderState): void {
-        this.clearAllLayers();
-        BackgroundRenderer.render(
-            this.builder.layers.background,
-            this.builder.state,
-            newState);
-
-        GridRenderer.render(
-            this.builder.layers.grid,
-            this.builder.state,
-            newState);
-
-        AssetRenderer.render(
-            this.builder.layers.assets,
-            this.builder.state,
-            newState);
+    private static initializeLayers(setup: ILayersSetup): void {
+        const layers = this.builder.layers;
+        layers.length = 0;
+        layers.push(new BackgroundLayer(setup.imageUrl));
+        layers.push(new GridLayer(setup.grid));
+        layers.push(new AssetsLayer(setup.assets));
     }
 
-    private static clearAllLayers(): void {
-        for (const layerKey in this.builder.layers) {
-            const layer = this.builder.layers[layerKey as keyof ISceneLayers];
-            if (!layer) continue;
-            const ctx = layer.ctx;
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+    private static handleWheel(clientX: number, clientY: number, deltaY: number): void {
+        const state = this.builder.state;
+        state.containerScroll = DomUtils.getContainerScroll(this.builder.container);
+        const mouseX = clientX - state.containerRect.x;
+        const mouseY = clientY - state.containerRect.y;
+        const zoomLevel = deltaY > 0
+            ? Math.ceil((state.zoomLevel - RenderConstants.zoomStep) * 10) / 10
+            : Math.floor((state.zoomLevel + RenderConstants.zoomStep) * 10) / 10;
+        this.updateZoom(mouseX, mouseY, zoomLevel);
+        this.updateDomElements();
+        this.render();
+
+    }
+
+    private static setLayer(layer: ILayer): void {
+    }
+
+    private static render(): void {
+        const state = this.builder.state;
+        for (const layer of this.builder.layers) {
+            layer.render(state.zoomLevel);
         }
     }
 
+    private static clearLayer(layer: ILayer): void {
+        layer.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        layer.ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+    }
 
-    private static updateZoomIndicator(zoomLevel: number): void {
-        const zoomIndicator = document.querySelector('.zoom-indicator');
-        if (zoomIndicator) zoomIndicator.textContent = `${Math.round(zoomLevel * 100)}%`;
+    private static updateDomElements(): void {
+        const state = this.builder.state;
+        for (const layer of this.builder.layers)
+            DomUtils.setCanvasRect(layer.canvas, state.layerRect);
+        DomUtils.setContainerScroll(this.builder.container, state.containerScroll);
+        DomUtils.setZoomDisplay(this.builder.zoomDisplay, state.zoomLevel);
+    }
+
+    static setZoom(zoomAction: string): void {
+        const state = this.builder.state;
+        let centerX: number = state.containerRect.width / 2;
+        let centerY: number = state.containerRect.height / 2;
+        let zoomLevel: number = 1;
+        switch (zoomAction) {
+            case "+":
+                centerX = (state.containerRect.width / 2) + state.containerScroll.x - state.layerRect.x;
+                centerY = (state.containerRect.height / 2) + state.containerScroll.y - state.layerRect.y;
+                zoomLevel = Math.floor((state.zoomLevel + RenderConstants.zoomStep) * 10) / 10;
+                break;
+            case "-":
+                centerX = (state.containerRect.width / 2) + state.containerScroll.x - state.layerRect.x;
+                centerY = (state.containerRect.height / 2) + state.containerScroll.y - state.layerRect.y;
+                zoomLevel = Math.ceil((state.zoomLevel - RenderConstants.zoomStep) * 10) / 10;
+                break;
+            case "X":
+                this.resetZoom();
+                break;
+            case "H":
+                zoomLevel = state.containerRect.width / state.imageSize.width;
+                break;
+            case "V":
+                zoomLevel = state.containerRect.height / state.imageSize.height;
+                break;
+        }
+        this.updateZoom(centerX, centerY, zoomLevel);
+        this.updateDomElements();
+        this.render();
+
     }
 
     static resetZoom(): void {
-        const newState: IBuilderState = {
-            ...this.builder.state,
-            zoomLevel: 1.0,
-            zoomCenter: { x: 0, y: 0 }
+        const state = this.builder.state;
+        state.zoomLevel = 1;
+
+        const layerWidth = state.imageSize.width + (2 * RenderConstants.canvasPadding);
+        const layerHeight = state.imageSize.height + (2 * RenderConstants.canvasPadding);
+        const offsetLeft = (state.containerRect.width - layerWidth) / 2;
+        const offsetTop = (state.containerRect.height - layerHeight) / 2;
+
+        state.containerScroll = {
+            x: offsetLeft <= 0 ? -offsetLeft : 0,
+            y: offsetTop <= 0 ? -offsetTop : 0
         };
-        this.redrawAllLayers(newState);
-        this.updateZoomIndicator(1.0);
-        this.builder.state.zoomLevel = newState.zoomLevel;
-        this.builder.state.zoomCenter = newState.zoomCenter;
+        state.layerRect = {
+            x: offsetLeft > 0 ? offsetLeft : 0,
+            y: offsetTop > 0 ? offsetTop : 0,
+            width: layerWidth,
+            height: layerHeight
+        };
     }
 
-    private static drawStage(newState: IBuilderState): void {
-        BackgroundRenderer.render(this.builder.layers.background, this.builder.state, newState);
-        GridRenderer.render(this.builder.layers.grid, this.builder.state, newState);
-        AssetRenderer.render(this.builder.layers.assets, this.builder.state, newState);
-        this.builder.state.zoomLevel = newState.zoomLevel;
-        this.builder.state.zoomCenter = newState.zoomCenter;
+    static updateZoom(mouseX: number, mouseY: number, zoomLevel: number): void {
+        zoomLevel = Math.max(RenderConstants.minZoomLevel, Math.min(RenderConstants.maxZoomLevel, zoomLevel));
+        const state = this.builder.state;
+        const layerWidth = (state.imageSize.width * zoomLevel) + (2 * RenderConstants.canvasPadding);
+        const layerHeight = (state.imageSize.height * zoomLevel) + (2 * RenderConstants.canvasPadding);
+
+        const originalMouseX = mouseX + state.containerScroll.x - state.layerRect.x;
+        const originalMouseY = mouseY + state.containerScroll.y - state.layerRect.y;
+        const offsetLeft = mouseX - (originalMouseX * (zoomLevel / state.zoomLevel));
+        const offsetTop = mouseY - (originalMouseY * (zoomLevel / state.zoomLevel));
+
+        state.zoomLevel = zoomLevel;
+        state.containerScroll = {
+            x: offsetLeft <= 0 ? -offsetLeft : 0,
+            y: offsetTop <= 0 ? -offsetTop : 0
+        };
+        state.layerRect = {
+            x: offsetLeft > 0 ? offsetLeft : 0,
+            y: offsetTop > 0 ? offsetTop : 0,
+            width: layerWidth,
+            height: layerHeight,
+        };
     }
 }

@@ -10,7 +10,7 @@ public sealed class BuilderState {
 
     // Stage state management
     public Guid SceneId { get; set; }
-    public const int Padding = 0;
+    public const int Padding = 200;
     public Size CanvasSize { get; set; } = new(0, 0);
     public Point PanOffset { get; set; } = new(0, 0);
     public float ZoomLevel { get; set; } = 1.0f;

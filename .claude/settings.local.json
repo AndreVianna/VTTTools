@@ -2,5 +2,48 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "just-prompt"
-  ]
+  ],
+  "permissions": {
+    "allow": [
+      "Agent",
+      "Bash",
+      "Glob",
+      "Grep",
+      "LS",
+      "Read",
+      "Edit",
+      "Write",
+      "WebFetch",
+      "Bash(-assemblyfilters:+VttTools.*)",
+      "Bash(-classfilters:-*.Migrations.*)",
+      "Bash(JsonSummary)",
+      "Bash(cat:*)",
+      "Bash(dotnet --list-sdks)",
+      "Bash(dotnet --version)",
+      "Bash(dotnet add package:*)",
+      "Bash(dotnet add reference:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(dotnet format:*)",
+      "Bash(dotnet list:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet solution:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet-coverage collect -f cobertura -o TestResults/coverage.xml \"dotnet test\")",
+      "Bash(dotnet-coverage:*)",
+      "Bash(find:*)",
+      "Bash(git commit:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(pytest:*)",
+      "Bash(reportgenerator:*)",
+      "Bash(rm:*)",
+      "Bash(sed:*)",
+      "Bash(touch:*)",
+      "Bash(xmllint:*)",
+      "mcp__just-prompt__prompt"
+    ]
+  }
 }

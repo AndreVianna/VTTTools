@@ -81,6 +81,26 @@
     content: "play_circle";
   }
 
+  .icon.zoom-in:before {
+    content: "zoom_in";
+  }
+
+  .icon.zoom-out:before {
+    content: "zoom_out";
+  }
+
+  .icon.reset-zoom:before {
+    content: "view_real_size";
+  }
+
+  .icon.zoom-fit-horz:before {
+    content: "fit_page_width";
+  }
+
+  .icon.zoom-fit-vert:before {
+    content: "fit_page_height";
+  }
+
 .btn .icon {
   font-size: 1.25rem;
 }

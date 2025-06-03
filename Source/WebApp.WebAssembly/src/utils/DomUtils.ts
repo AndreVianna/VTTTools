@@ -1,30 +1,50 @@
 class DomUtils {
-    static getCanvasBoundingRect(canvasContainer: HTMLElement): ICanvasBounds | null {
-        const canvas = canvasContainer.querySelector(".scene-canvas-layer") as HTMLCanvasElement;
-        if (!canvas) return null;
+    static getContainerRect(container: HTMLElement): IRectangle {
+        const rect = container.getBoundingClientRect();
+        return {
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+        };
+    }
 
+    static getContainerScroll(container: HTMLElement): IPoint {
+        return {
+            x: container.scrollLeft,
+            y: container.scrollTop
+        };
+    }
+
+    static setContainerScroll(container: HTMLElement, position: IPoint): void {
+        container.scrollLeft = position.x;
+        container.scrollTop = position.y;
+    }
+
+    static getCanvasRect(canvas: HTMLCanvasElement): IRectangle {
         const rect = canvas.getBoundingClientRect();
         return {
-            x: rect.left,
-            y: rect.top,
+            x: rect.x,
+            y: rect.y,
             width: rect.width,
-            height: rect.height
+            height: rect.height,
         };
     }
 
-    static getScrollPosition(container: HTMLElement): IScrollPosition {
-        return {
-            left: container.scrollLeft,
-            top: container.scrollTop
-        };
-    }
-
-    static setScrollPosition(container: HTMLElement, position: IScrollPosition): void {
-        container.scrollLeft = position.left;
-        container.scrollTop = position.top;
+    static setCanvasRect(canvas: HTMLCanvasElement, rect: IRectangle): void {
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        canvas.style.left = `${rect.x}px`;
+        canvas.style.top = `${rect.y}px`;
+        canvas.style.width = `${rect.width}px`;
+        canvas.style.height = `${rect.height}px`;
     }
 
     static setCursor(container: HTMLElement, cursor: string): void {
         container.style.cursor = cursor;
+    }
+
+    static setZoomDisplay(zoomDisplay: HTMLElement, zoomLevel: number) {
+        zoomDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
     }
 }
