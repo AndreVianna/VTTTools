@@ -21,15 +21,6 @@ public class SceneBuilderHttpClient(HttpClient client, JsonSerializerOptions opt
         return scene.ToViewModel();
     }
 
-    public async Task<string> UploadSceneFileAsync(Guid id, Stream fileStream, string fileName) {
-        using var content = new MultipartFormDataContent();
-        using var streamContent = new StreamContent(fileStream);
-        content.Add(streamContent, "file", fileName);
-        var response = await client.PostAsync($"api/scenes/{id}/upload", content);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync();
-    }
-
     public async Task<Result> UpdateSceneAsync(Guid id, UpdateSceneRequest request) {
         var response = await client.PatchAsJsonAsync($"api/scenes/{id}", request, options);
         if (!response.IsSuccessStatusCode)

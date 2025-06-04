@@ -8,13 +8,15 @@ namespace VttTools.Media.Services;
 public class AzureMediaService(BlobServiceClient client)
     : IMediaService {
     /// <inheritdoc />
-    public async Task<Result> SaveUploadedFileAsync(string type, Guid id, ResourceFileInfo file, Stream fileStream, CancellationToken ct = default) {
-        var blobClient = await GetBlobClient($"{type}_{id:N}", ct);
+    public async Task<Result> SaveUploadedFileAsync(ResourceInfo file, Stream fileStream, string fileName, CancellationToken ct = default) {
+        var blobClient = await GetBlobClient(file.Id, ct);
         var metadata = new Dictionary<string, string> {
-            ["Name"] = file.Name,
+            ["Name"] = fileName,
             ["Type"] = file.Type.ToString(),
-            ["Width"] = file.Width.ToString(),
-            ["Height"] = file.Height.ToString(),
+            ["Bytes"] = file.Bytes.ToString(),
+            ["Width"] = file.Size.Width.ToString(),
+            ["Height"] = file.Size.Height.ToString(),
+            ["Duration"] = file.Duration.ToString(),
         };
         await blobClient.SetMetadataAsync(metadata, cancellationToken: ct);
         var response = await blobClient.UploadAsync(fileStream, true, ct);
@@ -24,8 +26,8 @@ public class AzureMediaService(BlobServiceClient client)
     }
 
     /// <inheritdoc />
-    public async Task<Result> DeleteFileAsync(string type, Guid id, CancellationToken ct = default) {
-        var blobClient = await GetBlobClient($"{type}_{id:N}", ct);
+    public async Task<Result> DeleteFileAsync(string id, CancellationToken ct = default) {
+        var blobClient = await GetBlobClient(id, ct);
         var response = await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, null, ct);
         return response.GetRawResponse().IsError
             ? Result.Failure(response.GetRawResponse().ReasonPhrase)

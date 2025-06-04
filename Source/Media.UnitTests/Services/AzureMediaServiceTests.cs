@@ -29,11 +29,12 @@ public class AzureMediaServiceTests {
         // Arrange
         var id = Guid.NewGuid();
         const string fileName = "test-image.png";
-        var file = new ResourceFileInfo {
-            Name = fileName,
+        var file = new ResourceInfo {
+            Id = id.ToString(),
             Type = ResourceType.Image,
-            Width = 100,
-            Height = 100,
+            Bytes = 12345,
+            Size = new(100, 100),
+            Duration = TimeSpan.Zero,
         };
         var content = "test image content"u8.ToArray();
         await using var stream = new MemoryStream(content);
@@ -42,7 +43,7 @@ public class AzureMediaServiceTests {
             .Returns(Response.FromValue(true, Substitute.For<Response>()));
 
         // Act
-        var result = await _service.SaveUploadedFileAsync("asset", id, file, stream, _ct);
+        var result = await _service.SaveUploadedFileAsync(file, stream, fileName, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
@@ -55,11 +56,12 @@ public class AzureMediaServiceTests {
         // Arrange
         var id = Guid.NewGuid();
         const string fileName = "test-image.png";
-        var file = new ResourceFileInfo {
-            Name = fileName,
+        var file = new ResourceInfo {
+            Id = id.ToString(),
             Type = ResourceType.Image,
-            Width = 100,
-            Height = 100,
+            Bytes = 12345,
+            Size = new(100, 100),
+            Duration = TimeSpan.Zero,
         };
         var content = "test image content"u8.ToArray();
         await using var stream = new MemoryStream(content);
@@ -68,7 +70,7 @@ public class AzureMediaServiceTests {
             .Returns(Response.FromValue(false, _response));
 
         // Act
-        var result = await _service.SaveUploadedFileAsync("asset", id, file, stream, _ct);
+        var result = await _service.SaveUploadedFileAsync(file, stream, fileName, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
@@ -89,7 +91,7 @@ public class AzureMediaServiceTests {
             .Returns(Response.FromValue(true, Substitute.For<Response>()));
 
         // Act
-        await _service.DeleteFileAsync("asset", id, _ct);
+        await _service.DeleteFileAsync(id.ToString(), _ct);
 
         // Assert
         await _blobClient.Received(1).DeleteIfExistsAsync(
@@ -110,7 +112,7 @@ public class AzureMediaServiceTests {
             .Returns(Response.FromValue(false, Substitute.For<Response>()));
 
         // Act
-        await _service.DeleteFileAsync("asset", id, _ct);
+        await _service.DeleteFileAsync(id.ToString(), _ct);
 
         // Assert
         await _blobClient.DidNotReceive().DeleteIfExistsAsync(

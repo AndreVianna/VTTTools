@@ -25,6 +25,8 @@ internal static class Program {
 
         builder.Services.AddHttpClient<ISceneBuilderHttpClient, SceneBuilderHttpClient>(static (_, client)
             => client.BaseAddress = new("https://localhost:7171"));
+        builder.Services.AddHttpClient<IWebAssemblyFileManagerHttpClient, WebAssemblyFileManagerHttpClient>(static (_, client)
+            => client.BaseAddress = new("https://localhost:7174"));
 
         builder.Services.AddScoped<SceneBuilderStorageService>();
 

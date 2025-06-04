@@ -1,8 +1,8 @@
 ﻿namespace VttTools.Common.Model;
 
 public record Display {
-    public ResourceType Type { get; init; }
     [MaxLength(64)]
-    public string? FileName { get; init; }
+    public string Id { get; init; } = string.Empty;
+    public ResourceType Type { get; init; }
     public Size Size { get; init; }
 }

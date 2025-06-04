@@ -1,3 +1,5 @@
+using VttTools.WebApp.Contracts.Resources;
+
 using static VttTools.Data.Options.ApplicationDbContextOptions;
 
 using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
@@ -43,8 +45,13 @@ internal static class Program {
         builder.Services.AddHttpClient<IGameSessionsHttpClient, GameSessionsHttpClient>(static client
             => client.BaseAddress = new("https+http://game-api"))
             .AddHttpMessageHandler<AuthenticationDelegatingHandler>();
+        builder.Services.AddHttpClient<IServerFileManagerHttpClient, ServerFileManagerHttpClient>(static client
+            => client.BaseAddress = new("https+http://resources-api"))
+            .AddHttpMessageHandler<AuthenticationDelegatingHandler>();
         builder.Services.AddHttpClient<ISceneBuilderHttpClient, SceneBuilderHttpClient>(static client
             => client.BaseAddress = new("https://localhost:7172"));
+        builder.Services.AddHttpClient<IWebAssemblyFileManagerHttpClient, WebAssemblyFileManagerHttpClient>(static client
+            => client.BaseAddress = new("https://localhost:7174"));
 
         // Add SceneBuilder services for both server and WebAssembly rendering
         builder.Services.AddScoped<SceneBuilderStorageService>();

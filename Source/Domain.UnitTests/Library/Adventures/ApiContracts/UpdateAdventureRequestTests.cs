@@ -18,7 +18,7 @@ public class UpdateAdventureRequestTests {
         const string description = "Other Description";
         const AdventureType type = AdventureType.DungeonCrawl;
         var display = new Display {
-            FileName = "some_file.png",
+            Id = "some_file.png",
             Type = ResourceType.Image,
             Size = new(100, 100),
         };

@@ -37,7 +37,7 @@ public static class AdventuresMapper {
             Description = scene.Description,
             IsPublished = scene.IsPublished,
             Stage = new() {
-                FileName = scene.Stage.FileName ?? scene.Id.ToString(),
+                Id = scene.Stage.Id,
                 Type = scene.Stage.Type,
                 Size = scene.Stage.Size,
                 ZoomLevel = scene.ZoomLevel,
@@ -50,8 +50,8 @@ public static class AdventuresMapper {
             },
             ZoomLevel = scene.ZoomLevel,
             Assets = [.. scene.Assets.Select(asset => new SceneAssetDetails {
-                                                                                                                Id = asset.Id,
-                                                                                                                Name = asset.Name,
-                                                                                                            })],
+                Id = asset.Id,
+                Name = asset.Name,
+            })],
         };
 }

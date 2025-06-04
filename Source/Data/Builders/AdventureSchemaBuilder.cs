@@ -17,7 +17,7 @@ internal static class AdventureSchemaBuilder {
             entity.Property(e => e.Type).IsRequired().HasConversion<string>();
             entity.ComplexProperty(s => s.Display, displayBuilder => {
                 displayBuilder.IsRequired();
-                displayBuilder.Property(s => s.FileName);
+                displayBuilder.Property(s => s.Id);
                 displayBuilder.Property(s => s.Type).IsRequired().HasConversion<string>().HasDefaultValue(ResourceType.Undefined);
                 displayBuilder.ComplexProperty(s => s.Size, sizeBuilder => {
                     sizeBuilder.IsRequired();

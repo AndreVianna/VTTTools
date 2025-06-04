@@ -28,16 +28,4 @@ public class AssetsHttpClient(HttpClient client, JsonSerializerOptions options)
         var response = await client.DeleteAsync($"/api/assets/{id}");
         return response.IsSuccessStatusCode;
     }
-
-    public async Task<string> UploadAssetFileAsync(Guid id, Stream fileStream, string fileName) {
-        using var content = new MultipartFormDataContent();
-        using var streamContent = new StreamContent(fileStream);
-
-        content.Add(streamContent, "file", fileName);
-
-        var response = await client.PostAsync($"api/assets/{id}/upload", content);
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadAsStringAsync();
-    }
 }

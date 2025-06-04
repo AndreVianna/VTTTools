@@ -8,7 +8,7 @@ public static class Mapper {
             Description = scene.Description,
             IsPublished = scene.IsPublished,
             Stage = new() {
-                FileName = scene.Stage.FileName ?? scene.Id.ToString(),
+                Id = scene.Stage.Id,
                 Type = scene.Stage.Type,
                 Size = scene.Stage.Size,
                 ZoomLevel = scene.ZoomLevel,
@@ -32,8 +32,8 @@ public static class Mapper {
             Name = asset.Name,
             Number = asset.Number,
             Type = asset.Type,
+            ResourceId = asset.Display.Id,
             ResourceType = asset.Display.Type,
-            DisplayId = asset.Display.FileName ?? asset.Id.ToString(),
             Position = asset.Position,
             Size = asset.Display.Size,
             Scale = asset.Scale,

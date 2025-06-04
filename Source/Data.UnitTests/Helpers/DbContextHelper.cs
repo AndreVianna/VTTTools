@@ -119,7 +119,7 @@ internal static class DbContextHelper {
             ZoomLevel = 1.0f,
             Stage = new() {
                 Type = ResourceType.Image,
-                FileName = "some_file.png",
+                Id = "some_file.png",
                 Size = new(10, 20),
             },
             Grid = new() {
@@ -141,7 +141,7 @@ internal static class DbContextHelper {
             OwnerId = ownerId ?? Guid.NewGuid(),
             Display = new() {
                 Type = ResourceType.Image,
-                FileName = "some_file.png",
+                Id = "some_file.png",
                 Size = new(10, 20),
             },
         };
@@ -182,7 +182,7 @@ internal static class DbContextHelper {
             ZoomLevel = 1.0f,
             Stage = new() {
                 Type = ResourceType.Image,
-                FileName = "some_file.png",
+                Id = "some_file.png",
                 Size = new(10, 20),
             },
             Grid = new() {
@@ -204,7 +204,7 @@ internal static class DbContextHelper {
             OwnerId = ownerId ?? Guid.NewGuid(),
             Display = new() {
                 Type = ResourceType.Image,
-                FileName = "some_file.png",
+                Id = "some_file.png",
                 Size = new(10, 20),
             },
         };

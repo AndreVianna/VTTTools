@@ -8,7 +8,7 @@ public class AddClonedAssetRequestTests {
             Name = "Asset Name",
             Display = new Display {
                 Type = ResourceType.Image,
-                FileName = "some_file.png",
+                Id = "some_file.png",
                 Size = new(100, 200),
             },
             Position = new Point { X = 1, Y = 1 },
@@ -19,7 +19,7 @@ public class AddClonedAssetRequestTests {
         const string name = "Other Name";
         var display = new Display {
             Type = ResourceType.Video,
-            FileName = "some_file.png",
+            Id = "some_file.png",
             Size = new() { Width = 300, Height = 400 },
         };
         var position = new Point { X = 10, Y = 20 };

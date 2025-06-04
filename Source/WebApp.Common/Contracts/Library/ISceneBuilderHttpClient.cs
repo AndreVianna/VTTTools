@@ -4,7 +4,6 @@ namespace VttTools.WebApp.Contracts.Library;
 
 public interface ISceneBuilderHttpClient {
     Task<SceneDetails?> GetSceneByIdAsync(Guid id);
-    Task<string> UploadSceneFileAsync(Guid id, Stream fileStream, string fileName);
     Task<Result> UpdateSceneAsync(Guid id, UpdateSceneRequest request);
 
     Task<Result<SceneAssetDetails>> AddSceneAssetAsync(Guid sceneId, AddAssetRequest request);

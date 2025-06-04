@@ -6,6 +6,6 @@ public record AssetDetails {
     public AssetType Type { get; init; }
     public string? FileName { get; init; }
     public ResourceType ResourceType { get; init; }
-    public string DisplayId { get; init; } = string.Empty;
+    public string ResourceId { get; init; } = string.Empty;
     public Size Size { get; init; }
 }

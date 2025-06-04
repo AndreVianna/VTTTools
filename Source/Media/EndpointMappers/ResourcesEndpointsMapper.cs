@@ -5,7 +5,7 @@ internal static class ResourcesEndpointsMapper {
     /// Maps endpoints for Asset templates CRUD operations.
     /// </summary>
     public static void MapResourcesEndpoints(this IEndpointRouteBuilder app) {
-        var assets = app.MapGroup("/api/resources").RequireAuthorization();
-        assets.MapPost("/{type}/{id:Guid}", ResourcesHandlers.UploadFileHandler);
+        var assets = app.MapGroup("/api/upload").RequireAuthorization();
+        assets.MapPost("/{type}/{id:Guid}/{resource}", ResourcesHandlers.UploadFileHandler);
     }
 }

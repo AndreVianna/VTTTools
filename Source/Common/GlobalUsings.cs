@@ -19,8 +19,10 @@ global using Microsoft.Extensions.Logging.Abstractions;
 global using Microsoft.Extensions.Options;
 
 global using SixLabors.ImageSharp;
+global using SixLabors.ImageSharp.Formats.Gif;
 
 global using VttTools.Common.Model;
 global using VttTools.EndpointMappers;
+global using VttTools.Media.Model;
 global using VttTools.Middlewares;
 global using VttTools.Utilities;

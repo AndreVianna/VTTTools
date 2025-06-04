@@ -24,6 +24,7 @@ global using VttTools.Library.Adventures.ApiContracts;
 global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Scenes.ApiContracts;
 global using VttTools.Library.Scenes.Model;
+global using VttTools.Media.Model;
 global using VttTools.WebApp.Contracts.Assets;
 global using VttTools.WebApp.Contracts.Library.Adventure;
 global using VttTools.WebApp.Contracts.Library.Scenes;

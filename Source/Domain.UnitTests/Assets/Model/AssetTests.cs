@@ -26,7 +26,7 @@ public class AssetTests {
         var size = new Size(100, 200);
         var format = new Display {
             Type = ResourceType.Image,
-            FileName = "some_file.png",
+            Id = "some_file.png",
             Size = size,
         };
 

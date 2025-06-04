@@ -89,7 +89,7 @@ public class AssetStorageTests
             Description = "Updated description",
             Display = new() {
                 Type = ResourceType.Image,
-                FileName = "some_file.png",
+                Id = "some_file.png",
                 Size = new(20, 30),
             },
             IsPublished = true,

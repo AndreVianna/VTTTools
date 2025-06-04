@@ -10,7 +10,7 @@ public class UpdateAssetRequestTests {
             Description = "Description",
             Display = new Display {
                 Type = ResourceType.Image,
-                FileName = "some_file.png",
+                Id = "some_file.png",
                 Size = new(10, 20),
             },
         };
@@ -19,7 +19,7 @@ public class UpdateAssetRequestTests {
         const string description = "Other Description";
         var newDisplay = new Display {
             Type = ResourceType.Video,
-            FileName = "other_file.png",
+            Id = "other_file.png",
             Size = new(20, 40),
         };
 

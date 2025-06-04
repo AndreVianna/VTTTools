@@ -5,10 +5,12 @@ namespace VttTools.Media.Handlers;
 internal static class ResourcesHandlers {
     internal static async Task<IResult> UploadFileHandler([FromRoute] string type,
                                                           [FromRoute] Guid id,
+                                                          [FromRoute] string resource,
                                                           [FromForm] IFormFile file,
                                                           [FromServices] IMediaService storage) {
         await using var stream = file.OpenReadStream();
-        var fileInfo = await ResourceFileHandler.GetResourceFileInfo(file.FileName, stream);
+        var fileId = $"{type}_{id:N}_{resource}";
+        var fileInfo = await ResourceFileHandler.GetResourceFileInfo(fileId, stream);
         if (fileInfo is null) {
             return Results.Problem(detail: $"The file '{file.FileName}' is not a valid resource file.",
                                    statusCode: StatusCodes.Status400BadRequest,
@@ -17,9 +19,9 @@ internal static class ResourcesHandlers {
 
         if (stream.CanSeek)
             stream.Position = 0;
-        var result = await storage.SaveUploadedFileAsync(type, id, fileInfo, stream);
+        var result = await storage.SaveUploadedFileAsync(fileInfo, stream, file.FileName);
         return result.IsSuccessful
-            ? Results.NoContent()
+            ? Results.Ok(fileInfo)
             : Results.Problem(detail: $"""
                                       The file for asset '{id}' was not saved in the media storage.
                                       File name: "{file.FileName}"

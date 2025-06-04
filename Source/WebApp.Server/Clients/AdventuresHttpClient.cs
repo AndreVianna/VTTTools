@@ -67,7 +67,7 @@ public class AdventuresHttpClient(HttpClient client, JsonSerializerOptions optio
 
         content.Add(streamContent, "file", fileName);
 
-        var response = await client.PostAsync($"api/adventures/{id}/upload", content);
+        var response = await client.PostAsync($"api/resources/adventure/{id}", content);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadAsStringAsync();

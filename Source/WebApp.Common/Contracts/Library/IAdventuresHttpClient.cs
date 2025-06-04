@@ -1,6 +1,4 @@
-﻿using UpdateAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateAssetRequest;
-
-namespace VttTools.WebApp.Contracts.Library;
+﻿namespace VttTools.WebApp.Contracts.Library;
 
 public interface IAdventuresHttpClient {
     Task<AdventureListItem[]> GetAdventuresAsync();

@@ -24,7 +24,7 @@ public class EpicTests {
         const string description = "Some Description";
         var ownerId = Guid.NewGuid();
         var display = new Display {
-            FileName = "some_file.png",
+            Id = "some_file.png",
             Type = ResourceType.Image,
             Size = new(100, 100),
         };

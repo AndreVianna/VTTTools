@@ -15,7 +15,7 @@ public class ClonerTests {
             CampaignId = _campaignId,
             Name = "Original Adventure",
             Display = new() {
-                FileName = "some_file.png",
+                Id = "some_file.png",
                 Type = ResourceType.Image,
                 Size = new(50, 50),
             },
@@ -67,7 +67,7 @@ public class ClonerTests {
             CampaignId = _campaignId,
             Name = "Original Adventure",
             Display = new() {
-                FileName = "some_file.png",
+                Id = "some_file.png",
                 Type = ResourceType.Image,
                 Size = new(50, 50),
             },

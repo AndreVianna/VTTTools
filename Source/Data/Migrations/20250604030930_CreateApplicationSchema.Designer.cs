@@ -13,7 +13,7 @@ using VttTools.Data;
 namespace VttTools.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250529204304_CreateApplicationSchema")]
+    [Migration("20250604030930_CreateApplicationSchema")]
     partial class CreateApplicationSchema
     {
         /// <inheritdoc />
@@ -61,7 +61,8 @@ namespace VttTools.Data.Migrations
                         {
                             b1.IsRequired();
 
-                            b1.Property<string>("FileName")
+                            b1.Property<string>("Id")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("nvarchar(64)");
 
@@ -207,7 +208,8 @@ namespace VttTools.Data.Migrations
                         {
                             b1.IsRequired();
 
-                            b1.Property<string>("FileName")
+                            b1.Property<string>("Id")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("nvarchar(64)");
 
@@ -270,7 +272,8 @@ namespace VttTools.Data.Migrations
                         {
                             b1.IsRequired();
 
-                            b1.Property<string>("FileName")
+                            b1.Property<string>("Id")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("nvarchar(64)");
 
@@ -330,7 +333,8 @@ namespace VttTools.Data.Migrations
                         {
                             b1.IsRequired();
 
-                            b1.Property<string>("FileName")
+                            b1.Property<string>("Id")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("nvarchar(64)");
 
@@ -430,7 +434,8 @@ namespace VttTools.Data.Migrations
                         {
                             b1.IsRequired();
 
-                            b1.Property<string>("FileName")
+                            b1.Property<string>("Id")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("nvarchar(64)");
 
@@ -504,7 +509,8 @@ namespace VttTools.Data.Migrations
                         {
                             b1.IsRequired();
 
-                            b1.Property<string>("FileName")
+                            b1.Property<string>("Id")
+                                .IsRequired()
                                 .HasMaxLength(64)
                                 .HasColumnType("nvarchar(64)");
 

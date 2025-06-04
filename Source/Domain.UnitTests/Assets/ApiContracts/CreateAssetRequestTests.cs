@@ -10,7 +10,7 @@ public class CreateAssetRequestTests {
             Description = "Description",
             Display = new() {
                 Type = ResourceType.Image,
-                FileName = "some_file.png",
+                Id = "some_file.png",
                 Size = new(10, 20),
             },
         };
@@ -19,7 +19,7 @@ public class CreateAssetRequestTests {
         const string description = "Other Description";
         var newDisplay = new Display {
             Type = ResourceType.Image,
-            FileName = "other_file.png",
+            Id = "other_file.png",
             Size = new(30, 40),
         };
 
