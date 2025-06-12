@@ -18,7 +18,7 @@ public record ClonedSceneData
     /// <summary>
     /// New display configuration. If not set, the original display is unchanged.
     /// </summary>
-    public Optional<Display> Stage { get; init; }
+    public Optional<Resource> Stage { get; init; }
 
     /// <summary>
     /// New zoom level configuration. If not set, the original zoom level is unchanged.

@@ -15,16 +15,10 @@ internal static class AdventureSchemaBuilder {
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
             entity.Property(e => e.Type).IsRequired().HasConversion<string>();
-            entity.ComplexProperty(s => s.Display, displayBuilder => {
-                displayBuilder.IsRequired();
-                displayBuilder.Property(s => s.Id);
-                displayBuilder.Property(s => s.Type).IsRequired().HasConversion<string>().HasDefaultValue(ResourceType.Undefined);
-                displayBuilder.ComplexProperty(s => s.Size, sizeBuilder => {
-                    sizeBuilder.IsRequired();
-                    sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(0);
-                    sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(0);
-                });
-            });
+            entity.HasOne(s => s.Display)
+                  .WithMany()
+                  .HasForeignKey(s => s.DisplayId)
+                  .OnDelete(DeleteBehavior.Cascade);
             entity.Property(e => e.IsPublished).IsRequired();
             entity.Property(e => e.IsPublic).IsRequired();
             entity.HasMany(e => e.Scenes).WithOne(e => e.Adventure)

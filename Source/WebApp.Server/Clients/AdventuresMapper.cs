@@ -40,6 +40,7 @@ public static class AdventuresMapper {
                 Id = scene.Stage.Id,
                 Type = scene.Stage.Type,
                 Size = scene.Stage.Size,
+                Offset = scene.Stage.Offset,
                 ZoomLevel = scene.ZoomLevel,
             },
             Grid = new() {

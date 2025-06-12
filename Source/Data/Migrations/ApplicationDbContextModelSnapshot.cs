@@ -54,7 +54,7 @@ namespace VttTools.Data.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("Placeholder");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Display", "VttTools.Data.Assets.Entities.Asset.Display#Display", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Image", "VttTools.Data.Assets.Entities.Asset.Image#Image", b1 =>
                         {
                             b1.IsRequired();
 
@@ -69,7 +69,7 @@ namespace VttTools.Data.Migrations
                                 .HasColumnType("nvarchar(max)")
                                 .HasDefaultValue("Undefined");
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Assets.Entities.Asset.Display#Display.Size#Size", b2 =>
+                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Assets.Entities.Asset.Image#Image.Size#Size", b2 =>
                                 {
                                     b2.Property<int>("Height")
                                         .ValueGeneratedOnAdd()
@@ -201,7 +201,7 @@ namespace VttTools.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Display", "VttTools.Data.Library.Entities.Adventure.Display#Display", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Image", "VttTools.Data.Library.Entities.Adventure.Image#Image", b1 =>
                         {
                             b1.IsRequired();
 
@@ -216,7 +216,7 @@ namespace VttTools.Data.Migrations
                                 .HasColumnType("nvarchar(max)")
                                 .HasDefaultValue("Undefined");
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.Adventure.Display#Display.Size#Size", b2 =>
+                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.Adventure.Image#Image.Size#Size", b2 =>
                                 {
                                     b2.Property<int>("Height")
                                         .ValueGeneratedOnAdd()
@@ -265,7 +265,7 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Display", "VttTools.Data.Library.Entities.Campaign.Display#Display", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Image", "VttTools.Data.Library.Entities.Campaign.Image#Image", b1 =>
                         {
                             b1.IsRequired();
 
@@ -280,7 +280,7 @@ namespace VttTools.Data.Migrations
                                 .HasColumnType("nvarchar(max)")
                                 .HasDefaultValue("Undefined");
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.Campaign.Display#Display.Size#Size", b2 =>
+                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.Campaign.Image#Image.Size#Size", b2 =>
                                 {
                                     b2.Property<int>("Height")
                                         .ValueGeneratedOnAdd()
@@ -326,7 +326,7 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Display", "VttTools.Data.Library.Entities.Epic.Display#Display", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Image", "VttTools.Data.Library.Entities.Epic.Image#Image", b1 =>
                         {
                             b1.IsRequired();
 
@@ -341,7 +341,7 @@ namespace VttTools.Data.Migrations
                                 .HasColumnType("nvarchar(max)")
                                 .HasDefaultValue("Undefined");
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.Epic.Display#Display.Size#Size", b2 =>
+                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.Epic.Image#Image.Size#Size", b2 =>
                                 {
                                     b2.Property<int>("Height")
                                         .ValueGeneratedOnAdd()
@@ -427,7 +427,7 @@ namespace VttTools.Data.Migrations
                                 });
                         });
 
-                    b.ComplexProperty<Dictionary<string, object>>("Stage", "VttTools.Data.Library.Entities.Scene.Stage#Display", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Stage", "VttTools.Data.Library.Entities.Scene.Stage#Image", b1 =>
                         {
                             b1.IsRequired();
 
@@ -442,7 +442,7 @@ namespace VttTools.Data.Migrations
                                 .HasColumnType("nvarchar(max)")
                                 .HasDefaultValue("Undefined");
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.Scene.Stage#Display.Size#Size", b2 =>
+                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.Scene.Stage#Image.Size#Size", b2 =>
                                 {
                                     b2.Property<int>("Height")
                                         .ValueGeneratedOnAdd()
@@ -502,7 +502,7 @@ namespace VttTools.Data.Migrations
                         .HasColumnType("real")
                         .HasDefaultValue(1f);
 
-                    b.ComplexProperty<Dictionary<string, object>>("Display", "VttTools.Data.Library.Entities.SceneAsset.Display#Display", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Image", "VttTools.Data.Library.Entities.SceneAsset.Image#Image", b1 =>
                         {
                             b1.IsRequired();
 
@@ -517,7 +517,7 @@ namespace VttTools.Data.Migrations
                                 .HasColumnType("nvarchar(max)")
                                 .HasDefaultValue("Image");
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.SceneAsset.Display#Display.Size#Size", b2 =>
+                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.SceneAsset.Image#Image.Size#Size", b2 =>
                                 {
                                     b2.Property<int>("Height")
                                         .ValueGeneratedOnAdd()

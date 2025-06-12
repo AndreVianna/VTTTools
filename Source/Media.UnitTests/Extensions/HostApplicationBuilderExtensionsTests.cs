@@ -10,7 +10,7 @@ public class HostApplicationBuilderExtensionsTests {
 
         var services = builder.Services;
         services.Should().Contain(sd =>
-            sd.ServiceType == typeof(IMediaService) &&
-            sd.ImplementationType == typeof(AzureMediaService));
+            sd.ServiceType == typeof(IResourceService) &&
+            sd.ImplementationType == typeof(AzureResourceService));
     }
 }

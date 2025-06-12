@@ -1,4 +1,5 @@
 ﻿using Asset = VttTools.Data.Assets.Entities.Asset;
+using Resource = VttTools.Data.Resources.Entities.Resource;
 
 namespace VttTools.Data.Library.Entities;
 
@@ -9,7 +10,8 @@ public class SceneAsset {
     public Asset Asset { get; set; } = null!;
     [MaxLength(128)]
     public string Name { get; set; } = string.Empty;
-    public Display Display { get; set; } = new();
+    public Guid DisplayId { get; set; }
+    public Resource Display { get; set; } = new();
     public Point Position { get; set; }
     public float Scale { get; set; } = 1;
     public float Rotation { get; set; }

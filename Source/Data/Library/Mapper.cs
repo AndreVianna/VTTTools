@@ -1,9 +1,10 @@
 using Adventure = VttTools.Library.Adventures.Model.Adventure;
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using Scene = VttTools.Library.Scenes.Model.Scene;
+using SceneEntity = VttTools.Data.Library.Entities.Scene;
 using SceneAsset = VttTools.Library.Scenes.Model.SceneAsset;
 using SceneAssetEntity = VttTools.Data.Library.Entities.SceneAsset;
-using SceneEntity = VttTools.Data.Library.Entities.Scene;
+using Resource = VttTools.Data.Resources.Entities.Resource;
 
 namespace VttTools.Data.Library;
 
@@ -16,7 +17,7 @@ internal static class Mapper {
             Name = entity.Name,
             Description = entity.Description,
             Type = entity.Type,
-            Display = entity.Display,
+            Display = entity.DisplayPath,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
             Scenes = entity.Scenes.AsQueryable().Select(AsScene!).ToList(),
@@ -166,11 +167,27 @@ internal static class Mapper {
         entity.Name = model.Name;
         entity.Position = model.Position;
         entity.Scale = model.Scale;
+        entity.DisplayId = model.Display.Id;
         entity.Display = model.Display;
         entity.Elevation = model.Elevation;
         entity.Rotation = model.Rotation;
         entity.IsLocked = model.IsLocked;
         entity.ControlledBy = model.ControlledBy;
+        return entity;
+    }
+
+    internal static ResourceEntity ToEntity(this Resource model)
+        => new() {
+            Id = model.Id,
+            Path = model.Path,
+            FileName = model.FileName,
+            ContentType = model.ContentType,
+        };
+
+    internal static ResourceEntity UpdateFrom(this ResourceEntity entity, Resource model) {
+        entity.Path = model.Path;
+        entity.FileName = model.FileName;
+        entity.ContentType = model.ContentType;
         return entity;
     }
 }

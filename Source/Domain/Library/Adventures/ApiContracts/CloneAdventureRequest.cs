@@ -28,7 +28,7 @@ public record CloneAdventureRequest
     /// <summary>
     /// Stage configuration for the Adventure. If not set, the display is copied from source.
     /// </summary>
-    public Optional<Display> Display { get; init; }
+    public Optional<Resource> Display { get; init; }
 
     /// <summary>
     /// Whether the Adventure is visible. Default is false.

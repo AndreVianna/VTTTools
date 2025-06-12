@@ -21,14 +21,19 @@ public record UpdateSceneRequest
     public Optional<string> Description { get; init; }
 
     /// <summary>
-    /// New display configuration. If not set, the original display is unchanged.
+    /// New zoom level configuration. If not set, the original zoom level is unchanged.
     /// </summary>
-    public Optional<Display> Display { get; init; }
+    public Optional<Point> Offset { get; init; }
 
     /// <summary>
     /// New zoom level configuration. If not set, the original zoom level is unchanged.
     /// </summary>
     public Optional<float> ZoomLevel { get; init; }
+
+    /// <summary>
+    /// New display configuration. If not set, the original display is unchanged.
+    /// </summary>
+    public Optional<Resource> Display { get; init; }
 
     /// <summary>
     /// New grid configuration. If not set, the original grid is unchanged.

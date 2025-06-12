@@ -8,7 +8,7 @@ public class Campaign {
     public string Name { get; set; } = string.Empty;
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
-    public Display Display { get; init; } = new();
+    public Resource Display { get; init; } = new();
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }
     public List<Adventure> Adventures { get; set; } = [];

@@ -27,7 +27,7 @@ public record CreateAdventureRequest
     /// <summary>
     /// The display configuration for this Adventure.
     /// </summary>
-    public Display Display { get; init; } = new();
+    public Resource Display { get; init; } = new();
 
     /// <summary>
     /// The ID of the campaign to which this Adventure belongs.

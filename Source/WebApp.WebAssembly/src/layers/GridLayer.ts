@@ -12,6 +12,7 @@ class GridLayer extends Layer implements IGridLayer {
         const cellWidth = this.grid.cell?.width || RenderConstants.defaultGridCellSize;
         const cellHeight = this.grid.cell?.height || RenderConstants.defaultGridCellSize;
 
+        console.log("Drawing Grid:", this.grid);
         switch (this.grid.type) {
             case GridType.Square:
                 this.renderSquareGrid(offsetX, offsetY, cellWidth, cellHeight);

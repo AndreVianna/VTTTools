@@ -7,9 +7,9 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     public Guid SceneId { get; set; }
 
     [Inject]
-    internal ISceneBuilderHttpClient SceneBuilder { get; set; } = null!;
+    internal ISceneBuilderHttpClient SceneService { get; set; } = null!;
 
-    [Inject] internal IWebAssemblyFileManagerHttpClient FileManager { get; set; } = null!;
+    [Inject] internal IWebAssemblyFileManagerHttpClient ResourceManager { get; set; } = null!;
 
     [Inject]
     internal IJSRuntime JsRuntime { get; set; } = null!;
@@ -98,12 +98,17 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
 
     private async Task LoadSceneAsync() {
         try {
-            var scene = await SceneBuilder.GetSceneByIdAsync(SceneId);
+            var scene = await SceneService.GetSceneByIdAsync(SceneId);
             if (scene == null) {
                 Console.WriteLine($"Failed to load scene {SceneId}");
                 return;
             }
             Scene = scene;
+            State.SceneId = Scene.Id;
+            State.Grid = Scene.Grid;
+            State.ZoomLevel = Scene.Stage.ZoomLevel;
+            State.PanOffset = Scene.Stage.Offset;
+            await StorageService.SaveStateAsync(State);
             StageImageUrl = GetImageUrl(_filesBasePath, Scene.Stage.Id);
 
             // Initialize state from scene and local storage
@@ -135,7 +140,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             return;
 
         // Load state from local storage
-        var (panOffset, zoomLevel, grid) = await StorageService.LoadStateAsync(State.SceneId, Scene.ZoomLevel);
+        var (panOffset, zoomLevel, grid) = await StorageService.LoadStateAsync(State.SceneId, Scene.Stage.ZoomLevel);
         State.PanOffset = panOffset;
         State.ZoomLevel = zoomLevel;
         State.Grid = grid;
@@ -375,7 +380,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             IsLocked = SelectedAsset.IsLocked,
         };
 
-        await SceneBuilder.UpdateSceneAssetAsync(Scene!.Id, SelectedAsset.Id, SelectedAsset.Number, updateRequest);
+        await SceneService.UpdateSceneAssetAsync(Scene!.Id, SelectedAsset.Id, SelectedAsset.Number, updateRequest);
 
         await RenderAsync();
     }
@@ -385,7 +390,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             return;
         if (SelectedAsset == null)
             return;
-        await SceneBuilder.RemoveSceneAssetAsync(Scene!.Id, SelectedAsset.Id, SelectedAsset.Number);
+        await SceneService.RemoveSceneAssetAsync(Scene!.Id, SelectedAsset.Id, SelectedAsset.Number);
 
         Scene.Assets.RemoveAll(sa => sa.Id == SelectedAsset.Id && sa.Number == SelectedAsset.Number);
         SelectedAsset = null;
@@ -417,7 +422,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         if (Scene == null || SelectedStageFile == null) return;
         var fileName = Path.GetFileName(SelectedStageFile.Name);
         await using var stream = SelectedStageFile.OpenReadStream(_maxFileSize);
-        var result = await FileManager.UploadFileAsync("scene", Scene.Id, "stage", stream, fileName);
+        var result = await ResourceManager.UploadFileAsync("scene", Scene.Id, "stage", stream, fileName);
         if (!result.IsSuccessful) {
             Console.WriteLine($"Failed to upload background image: {result.Errors[0].Message}");
             return;
@@ -425,8 +430,9 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         Scene = Scene with {
             Stage = Scene.Stage with {
                 Id = result.Value.Id,
-                Type = result.Value.Type,
-                Size = result.Value.Size,
+                ContentType = result.Value.ContentType,
+                Size = result.Value.ImageSize,
+                Path = result.Value.Path,
             },
         };
         await SaveScene();
@@ -466,7 +472,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             Elevation = SelectedAsset.Elevation,
         };
 
-        var sceneAssetResult = await SceneBuilder.AddSceneAssetAsync(Scene!.Id, addAssetRequest);
+        var sceneAssetResult = await SceneService.AddSceneAssetAsync(Scene!.Id, addAssetRequest);
         if (sceneAssetResult.IsSuccessful)
             Scene.Assets.Add(sceneAssetResult.Value);
 
@@ -499,6 +505,6 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
                 Snap = Scene.Grid.Snap,
             },
         };
-        await SceneBuilder.UpdateSceneAsync(Scene.Id, updateRequest);
+        await SceneService.UpdateSceneAsync(Scene.Id, updateRequest);
     }
 }

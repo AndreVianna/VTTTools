@@ -15,27 +15,28 @@ internal static class SceneSchemaBuilder {
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
             entity.Property(e => e.IsPublished).IsRequired();
-            entity.ComplexProperty(ea => ea.Stage, shapeBuilder => {
-                shapeBuilder.IsRequired();
-                shapeBuilder.Property(s => s.Type).IsRequired().HasConversion<string>().HasDefaultValue(ResourceType.Undefined);
-                shapeBuilder.Property(s => s.Id);
-                shapeBuilder.ComplexProperty(s => s.Size, sizeBuilder => {
-                    sizeBuilder.IsRequired();
-                    sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(0);
-                    sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(0);
-                });
-            });
             entity.Property(s => s.ZoomLevel).IsRequired().HasDefaultValue(1.0f);
+            entity.ComplexProperty(s => s.Offset, offsetBuilder => {
+                offsetBuilder.IsRequired();
+                offsetBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0);
+                offsetBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0);
+            });
+            entity.HasOne(s => s.Stage)
+                  .WithMany()
+                  .HasForeignKey(s => s.StageId)
+                  .OnDelete(DeleteBehavior.Cascade);
             entity.ComplexProperty(s => s.Grid, gridBuilder => {
                 gridBuilder.IsRequired();
                 gridBuilder.Property(g => g.Type).IsRequired().HasConversion<string>().HasDefaultValue(GridType.NoGrid);
                 gridBuilder.ComplexProperty(s => s.Offset, offsetBuilder => {
+                    offsetBuilder.IsRequired();
                     offsetBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0);
                     offsetBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0);
                 });
-                gridBuilder.ComplexProperty(s => s.CellSize, scaleBuilder => {
-                    scaleBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0);
-                    scaleBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0);
+                gridBuilder.ComplexProperty(s => s.CellSize, cellSizeBuilder => {
+                    cellSizeBuilder.IsRequired();
+                    cellSizeBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0);
+                    cellSizeBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0);
                 });
             });
         });
@@ -46,16 +47,10 @@ internal static class SceneSchemaBuilder {
             entity.Property(ea => ea.SceneId).IsRequired();
             entity.Property(ea => ea.Number).IsRequired();
             entity.Property(ea => ea.Name).IsRequired().HasMaxLength(128);
-            entity.ComplexProperty(s => s.Display, displayBuilder => {
-                displayBuilder.IsRequired();
-                displayBuilder.Property(s => s.Id);
-                displayBuilder.Property(s => s.Type).IsRequired().HasConversion<string>().HasDefaultValue(ResourceType.Image);
-                displayBuilder.ComplexProperty(s => s.Size, sizeBuilder => {
-                    sizeBuilder.IsRequired();
-                    sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(0);
-                    sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(0);
-                });
-            });
+            entity.HasOne(s => s.Display)
+                  .WithMany()
+                  .HasForeignKey(s => s.DisplayId)
+                  .OnDelete(DeleteBehavior.Cascade);
             entity.Property(ea => ea.Scale).IsRequired().HasDefaultValue(1);
             entity.ComplexProperty(ea => ea.Position, sizeBuilder => {
                 sizeBuilder.IsRequired();

@@ -1,4 +1,6 @@
-﻿namespace VttTools.Data.Assets.Entities;
+﻿using Resource = VttTools.Data.Resources.Entities.Resource;
+
+namespace VttTools.Data.Assets.Entities;
 
 public class Asset {
     public Guid Id { get; set; } = Guid.CreateVersion7();
@@ -8,7 +10,8 @@ public class Asset {
     public string Name { get; set; } = string.Empty;
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
-    public Display Display { get; set; } = new();
+    public Guid DisplayId{ get; set; }
+    public Resource Display { get; set; } = null!;
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }
 }

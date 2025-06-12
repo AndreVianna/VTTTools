@@ -25,7 +25,7 @@ public record UpdateAdventureRequest
     /// <summary>
     /// New display configuration for the Adventure. If not set, the display is unchanged.
     /// </summary>
-    public Optional<Display> Display { get; init; }
+    public Optional<Resource> Display { get; init; }
 
     /// <summary>
     /// Indicates whether the Adventure is published (visible) or not (hidden).

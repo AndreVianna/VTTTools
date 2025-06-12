@@ -1,4 +1,6 @@
-﻿namespace VttTools.Data.Library.Entities;
+﻿using Resource = VttTools.Data.Resources.Entities.Resource;
+
+namespace VttTools.Data.Library.Entities;
 
 public class Epic {
     public Guid Id { get; set; } = Guid.CreateVersion7();
@@ -7,7 +9,8 @@ public class Epic {
     public string Name { get; set; } = string.Empty;
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
-    public Display Display { get; set; } = new();
+    public Guid DisplayId { get; set; }
+    public Resource Display { get; set; } = new();
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }
     public ICollection<Campaign> Campaigns { get; set; } = [];

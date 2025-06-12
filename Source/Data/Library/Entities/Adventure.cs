@@ -1,50 +1,20 @@
+using Resource = VttTools.Data.Resources.Entities.Resource;
+
 namespace VttTools.Data.Library.Entities;
 
 public class Adventure {
-    /// <summary>
-    /// Optional parent campaign identifier.
-    /// </summary>
     public Guid? CampaignId { get; set; }
-    /// <summary>
-    /// The campaign this adventure belongs to, if any.
-    /// </summary>
     public Campaign? Campaign { get; set; }
-    /// <summary>
-    /// The unique identifier for this adventure.
-    /// </summary>
     public Guid Id { get; set; } = Guid.CreateVersion7();
-    /// <summary>
-    /// The owner of this adventure.
-    /// </summary>
     public Guid OwnerId { get; set; }
-    /// <summary>
-    /// The name of the adventure.
-    /// </summary>
     [MaxLength(128)]
     public string Name { get; set; } = string.Empty;
-    /// <summary>
-    /// The type of adventure.
-    /// </summary>
     public AdventureType Type { get; set; }
-    /// <summary>
-    /// The description of the adventure.
-    /// </summary>
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
-    /// <summary>
-    /// The id of the image file associated with this adventure. If not set the id if the adventure is used.
-    /// </summary>
-    public Display Display { get; set; } = new();
-    /// <summary>
-    /// Indicates whether the adventure is published (visible) or not (hidden).
-    /// </summary>
+    public Guid DisplayId { get; set; }
+    public Resource Display { get; set; } = new();
     public bool IsPublished { get; set; }
-    /// <summary>
-    /// Indicates whether the adventure is publicly accessible.
-    /// </summary>
     public bool IsPublic { get; set; }
-    /// <summary>
-    /// The collection of scenes in this adventure.
-    /// </summary>
     public ICollection<Scene> Scenes { get; set; } = [];
 }

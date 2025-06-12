@@ -24,7 +24,7 @@ internal static class Program {
         => builder.AddAzureBlobClient(AzureStorageOptions.ConnectionStringName);
 
     internal static void AddServices(this IHostApplicationBuilder builder)
-        => builder.Services.AddScoped<IMediaService, AzureMediaService>();
+        => builder.Services.AddScoped<IResourceService, AzureResourceService>();
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app)
         => app.MapResourcesEndpoints();

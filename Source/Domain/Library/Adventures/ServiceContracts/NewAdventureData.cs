@@ -28,7 +28,7 @@ public record NewAdventureData
     /// <summary>
     /// The display configuration for this Adventure.
     /// </summary>
-    public Display Display { get; init; } = new();
+    public Resource Display { get; init; } = new();
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);

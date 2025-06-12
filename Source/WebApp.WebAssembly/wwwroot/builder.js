@@ -59,6 +59,7 @@ class GridLayer extends Layer {
         const offsetY = this.grid.offset?.y || 0;
         const cellWidth = this.grid.cell?.width || RenderConstants.defaultGridCellSize;
         const cellHeight = this.grid.cell?.height || RenderConstants.defaultGridCellSize;
+        console.log("Drawing Grid:", this.grid);
         switch (this.grid.type) {
             case 1 /* GridType.Square */:
                 this.renderSquareGrid(offsetX, offsetY, cellWidth, cellHeight);
@@ -189,12 +190,12 @@ class ImageCache {
         img.src = url;
         this.cache.set(url, img);
     }
-    static async getImageSize(url) {
+    static async getImageSize(src) {
         return new Promise((resolve, reject) => {
             const img = new Image();
             img.onload = () => resolve({ width: img.width, height: img.height });
-            img.onerror = () => reject(`Failed to load image '${url}'`);
-            img.src = url;
+            img.onerror = () => reject(`Failed to load image '${src}'`);
+            img.src = src;
         });
     }
 }

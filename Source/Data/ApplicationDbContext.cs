@@ -8,6 +8,7 @@ namespace VttTools.Data;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>(options) {
+    public DbSet<Resource> Resources { get; set; }
     public DbSet<Asset> Assets { get; set; }
     public DbSet<Adventure> Adventures { get; set; }
     public DbSet<Scene> Scenes { get; set; }
@@ -18,6 +19,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         base.OnModelCreating(builder);
         IdentitySchemaBuilder.ConfigureModel(builder);
         IdentitySchemaBuilder.SeedIdentity(builder);
+        ResourceSchemaBuilder.ConfigureModel(builder);
         AssetSchemaBuilder.ConfigureModel(builder);
         EpicSchemaBuilder.ConfigureModel(builder);
         CampaignSchemaBuilder.ConfigureModel(builder);

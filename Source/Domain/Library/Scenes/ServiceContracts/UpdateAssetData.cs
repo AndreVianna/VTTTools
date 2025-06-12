@@ -3,7 +3,7 @@
 public record UpdateAssetData
     : Data {
     public Optional<string> Name { get; init; }
-    public Optional<Display> Display { get; init; }
+    public Optional<Resource> Display { get; init; }
     public Optional<Point> Position { get; init; }
     public Optional<float> Scale { get; init; }
     public Optional<float> Rotation { get; init; }

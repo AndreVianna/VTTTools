@@ -13,15 +13,10 @@ internal static class AssetSchemaBuilder {
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
             entity.Property(e => e.IsPublished).IsRequired();
             entity.Property(e => e.IsPublic).IsRequired();
-            entity.ComplexProperty(s => s.Display, displayBuilder => {
-                displayBuilder.IsRequired();
-                displayBuilder.Property(s => s.Id);
-                displayBuilder.Property(s => s.Type).IsRequired().HasConversion<string>().HasDefaultValue(ResourceType.Undefined);
-                displayBuilder.ComplexProperty(s => s.Size, sizeBuilder => {
-                    sizeBuilder.IsRequired();
-                    sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(0);
-                    sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(0);
-                });
-            });
+            entity.Property(e => e.DisplayId).IsRequired();
+            entity.HasOne(e => e.Display)
+                .WithMany()
+                .HasForeignKey(e => e.DisplayId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 }
