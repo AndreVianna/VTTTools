@@ -4,16 +4,23 @@ public class AddAssetDataTests {
     [Fact]
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
-        var original = new AddAssetData {
+        var original = new AddSceneAssetData {
             Name = "Asset Name",
-            Position = new Point { X = 1, Y = 1 },
-            Scale = 1f,
-            Rotation = 0.0f,
-            Elevation = 0.0f,
+            Position = new Point(1, 1),
+            Size = new(50, 50),
+            Frame = new(),
+            Rotation = 0,
+            Elevation = 0,
         };
         const string name = "Other Name";
-        var position = new Point { X = 10, Y = 20 };
-        const float scale = .5f;
+        var position = new Point(10, 20);
+        var size = new Size(10, 20);
+        var frame = new Frame {
+            Shape = FrameShape.Circle,
+            BorderThickness = 2,
+            BorderColor = "red",
+            Background = "blue",
+        };
         const float rotation = 45.0f;
         const float elevation = 10.0f;
 
@@ -22,7 +29,8 @@ public class AddAssetDataTests {
         var data = original with {
             Name = name,
             Position = position,
-            Scale = scale,
+            Size = size,
+            Frame = frame,
             Rotation = rotation,
             Elevation = elevation,
         };
@@ -30,7 +38,8 @@ public class AddAssetDataTests {
         // Assert
         data.Name.Should().Be(name);
         data.Position.Should().Be(position);
-        data.Scale.Should().Be(scale);
+        data.Size.Should().Be(size);
+        data.Frame.Should().Be(frame);
         data.Rotation.Should().Be(rotation);
         data.Elevation.Should().Be(elevation);
     }
@@ -38,10 +47,11 @@ public class AddAssetDataTests {
     [Fact]
     public void Validate_WithValidData_ReturnsSuccess() {
         // Arrange
-        var data = new AddAssetData {
+        var data = new AddSceneAssetData {
             Name = "Asset Name",
             Position = new Point { X = 1, Y = 1 },
-            Scale = 1f,
+            Size = new(50, 50),
+            Frame = new(),
             Rotation = 0.0f,
             Elevation = 0.0f,
         };
@@ -54,11 +64,12 @@ public class AddAssetDataTests {
     }
 
     [Fact]
-    public void Validate_WithInvalidData_ReturnsSuccess() {
+    public void Validate_WithInvalidData_ReturnsFailure() {
         // Arrange
-        var data = new AddAssetData {
+        var data = new AddSceneAssetData {
             Name = null!,
-            Scale = 1000f,
+            Size = new(1000, 1000),
+            Frame = new(),
             Rotation = -270,
             Elevation = 2000,
         };

@@ -26,13 +26,15 @@ namespace VttTools.Data.Migrations
             modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("DisplayId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsPublic")
                         .HasColumnType("bit");
@@ -53,35 +55,6 @@ namespace VttTools.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("Placeholder");
-
-                    b.ComplexProperty<Dictionary<string, object>>("Image", "VttTools.Data.Assets.Entities.Asset.Image#Image", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<string>("Id")
-                                .IsRequired()
-                                .HasMaxLength(64)
-                                .HasColumnType("nvarchar(64)");
-
-                            b1.Property<string>("Type")
-                                .IsRequired()
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("nvarchar(max)")
-                                .HasDefaultValue("Undefined");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Assets.Entities.Asset.Image#Image.Size#Size", b2 =>
-                                {
-                                    b2.Property<int>("Height")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("int")
-                                        .HasDefaultValue(0);
-
-                                    b2.Property<int>("Width")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("int")
-                                        .HasDefaultValue(0);
-                                });
-                        });
 
                     b.HasKey("Id");
 
@@ -175,6 +148,9 @@ namespace VttTools.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("BackgroundId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("CampaignId")
                         .HasColumnType("uniqueidentifier");
 
@@ -201,36 +177,9 @@ namespace VttTools.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Image", "VttTools.Data.Library.Entities.Adventure.Image#Image", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<string>("Id")
-                                .IsRequired()
-                                .HasMaxLength(64)
-                                .HasColumnType("nvarchar(64)");
-
-                            b1.Property<string>("Type")
-                                .IsRequired()
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("nvarchar(max)")
-                                .HasDefaultValue("Undefined");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.Adventure.Image#Image.Size#Size", b2 =>
-                                {
-                                    b2.Property<int>("Height")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("int")
-                                        .HasDefaultValue(0);
-
-                                    b2.Property<int>("Width")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("int")
-                                        .HasDefaultValue(0);
-                                });
-                        });
-
                     b.HasKey("Id");
+
+                    b.HasIndex("BackgroundId");
 
                     b.HasIndex("CampaignId");
 
@@ -247,6 +196,9 @@ namespace VttTools.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("DisplayId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("EpicId")
                         .HasColumnType("uniqueidentifier");
@@ -265,36 +217,9 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Image", "VttTools.Data.Library.Entities.Campaign.Image#Image", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<string>("Id")
-                                .IsRequired()
-                                .HasMaxLength(64)
-                                .HasColumnType("nvarchar(64)");
-
-                            b1.Property<string>("Type")
-                                .IsRequired()
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("nvarchar(max)")
-                                .HasDefaultValue("Undefined");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.Campaign.Image#Image.Size#Size", b2 =>
-                                {
-                                    b2.Property<int>("Height")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("int")
-                                        .HasDefaultValue(0);
-
-                                    b2.Property<int>("Width")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("int")
-                                        .HasDefaultValue(0);
-                                });
-                        });
-
                     b.HasKey("Id");
+
+                    b.HasIndex("DisplayId");
 
                     b.HasIndex("EpicId");
 
@@ -312,6 +237,9 @@ namespace VttTools.Data.Migrations
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("DisplayId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("IsPublic")
                         .HasColumnType("bit");
 
@@ -326,36 +254,9 @@ namespace VttTools.Data.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Image", "VttTools.Data.Library.Entities.Epic.Image#Image", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<string>("Id")
-                                .IsRequired()
-                                .HasMaxLength(64)
-                                .HasColumnType("nvarchar(64)");
-
-                            b1.Property<string>("Type")
-                                .IsRequired()
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("nvarchar(max)")
-                                .HasDefaultValue("Undefined");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.Epic.Image#Image.Size#Size", b2 =>
-                                {
-                                    b2.Property<int>("Height")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("int")
-                                        .HasDefaultValue(0);
-
-                                    b2.Property<int>("Width")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("int")
-                                        .HasDefaultValue(0);
-                                });
-                        });
-
                     b.HasKey("Id");
+
+                    b.HasIndex("DisplayId");
 
                     b.ToTable("Epics", (string)null);
                 });
@@ -381,6 +282,12 @@ namespace VttTools.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StageId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<float>("ZoomLevel")
                         .ValueGeneratedOnAdd()
@@ -427,54 +334,43 @@ namespace VttTools.Data.Migrations
                                 });
                         });
 
-                    b.ComplexProperty<Dictionary<string, object>>("Stage", "VttTools.Data.Library.Entities.Scene.Stage#Image", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Panning", "VttTools.Data.Library.Entities.Scene.Panning#Point", b1 =>
                         {
-                            b1.IsRequired();
-
-                            b1.Property<string>("Id")
-                                .IsRequired()
-                                .HasMaxLength(64)
-                                .HasColumnType("nvarchar(64)");
-
-                            b1.Property<string>("Type")
-                                .IsRequired()
+                            b1.Property<int>("X")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("nvarchar(max)")
-                                .HasDefaultValue("Undefined");
+                                .HasColumnType("int")
+                                .HasDefaultValue(0);
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.Scene.Stage#Image.Size#Size", b2 =>
-                                {
-                                    b2.Property<int>("Height")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("int")
-                                        .HasDefaultValue(0);
-
-                                    b2.Property<int>("Width")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("int")
-                                        .HasDefaultValue(0);
-                                });
+                            b1.Property<int>("Y")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int")
+                                .HasDefaultValue(0);
                         });
 
                     b.HasKey("Id");
 
                     b.HasIndex("AdventureId");
 
+                    b.HasIndex("StageId");
+
                     b.ToTable("Scenes", (string)null);
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.SceneAsset", b =>
                 {
-                    b.Property<Guid>("AssetId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("SceneId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<long>("Number")
+                    b.Property<long>("Index")
                         .HasColumnType("bigint");
 
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("ControlledBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("DisplayId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<float>("Elevation")
@@ -492,43 +388,40 @@ namespace VttTools.Data.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<long>("Number")
+                        .HasColumnType("bigint");
+
                     b.Property<float>("Rotation")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("real")
                         .HasDefaultValue(0f);
 
-                    b.Property<float>("Scale")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("real")
-                        .HasDefaultValue(1f);
-
-                    b.ComplexProperty<Dictionary<string, object>>("Image", "VttTools.Data.Library.Entities.SceneAsset.Image#Image", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Frame", "VttTools.Data.Library.Entities.SceneAsset.Frame#Frame", b1 =>
                         {
                             b1.IsRequired();
 
-                            b1.Property<string>("Id")
-                                .IsRequired()
-                                .HasMaxLength(64)
-                                .HasColumnType("nvarchar(64)");
-
-                            b1.Property<string>("Type")
+                            b1.Property<string>("Background")
                                 .IsRequired()
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("nvarchar(max)")
-                                .HasDefaultValue("Image");
+                                .HasDefaultValue("");
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.SceneAsset.Image#Image.Size#Size", b2 =>
-                                {
-                                    b2.Property<int>("Height")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("int")
-                                        .HasDefaultValue(0);
+                            b1.Property<string>("BorderColor")
+                                .IsRequired()
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("nvarchar(max)")
+                                .HasDefaultValue("white");
 
-                                    b2.Property<int>("Width")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("int")
-                                        .HasDefaultValue(0);
-                                });
+                            b1.Property<int>("BorderThickness")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int")
+                                .HasDefaultValue(1);
+
+                            b1.Property<string>("Shape")
+                                .IsRequired()
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("nvarchar(max)")
+                                .HasDefaultValue("Square");
                         });
 
                     b.ComplexProperty<Dictionary<string, object>>("Position", "VttTools.Data.Library.Entities.SceneAsset.Position#Point", b1 =>
@@ -544,11 +437,85 @@ namespace VttTools.Data.Migrations
                                 .HasDefaultValue(0);
                         });
 
-                    b.HasKey("AssetId", "SceneId", "Number");
+                    b.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.SceneAsset.Size#Size", b1 =>
+                        {
+                            b1.Property<int>("Height")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int")
+                                .HasDefaultValue(0);
 
-                    b.HasIndex("SceneId");
+                            b1.Property<int>("Width")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int")
+                                .HasDefaultValue(0);
+                        });
+
+                    b.HasKey("SceneId", "Index");
+
+                    b.HasIndex("DisplayId");
 
                     b.ToTable("SceneAssets", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Data.Media.Entities.Resource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<TimeSpan>("Duration")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("time")
+                        .HasDefaultValue(new TimeSpan(0, 0, 0, 0, 0));
+
+                    b.Property<decimal>("FileLength")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(20,0)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.PrimitiveCollection<string>("Tags")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("[]");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("Undefined");
+
+                    b.ComplexProperty<Dictionary<string, object>>("ImageSize", "VttTools.Data.Media.Entities.Resource.ImageSize#Size", b1 =>
+                        {
+                            b1.Property<int>("Height")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int")
+                                .HasDefaultValue(0);
+
+                            b1.Property<int>("Width")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int")
+                                .HasDefaultValue(0);
+                        });
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Resources", (string)null);
                 });
 
             modelBuilder.Entity("VttTools.Identity.Model.Role", b =>
@@ -802,6 +769,17 @@ namespace VttTools.Data.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>
+                {
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Display")
+                        .WithMany()
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Display");
+                });
+
             modelBuilder.Entity("VttTools.Data.Game.Entities.GameSession", b =>
                 {
                     b.OwnsMany("VttTools.Common.Model.Participant", "Players", b1 =>
@@ -915,22 +893,49 @@ namespace VttTools.Data.Migrations
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Adventure", b =>
                 {
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
+                        .WithMany()
+                        .HasForeignKey("BackgroundId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("VttTools.Data.Library.Entities.Campaign", "Campaign")
                         .WithMany("Adventures")
                         .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Background");
 
                     b.Navigation("Campaign");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Campaign", b =>
                 {
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Display")
+                        .WithMany()
+                        .HasForeignKey("DisplayId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("VttTools.Data.Library.Entities.Epic", "Epic")
                         .WithMany("Campaigns")
                         .HasForeignKey("EpicId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.Navigation("Display");
+
                     b.Navigation("Epic");
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.Epic", b =>
+                {
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Display")
+                        .WithMany()
+                        .HasForeignKey("DisplayId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Display");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Scene", b =>
@@ -940,11 +945,25 @@ namespace VttTools.Data.Migrations
                         .HasForeignKey("AdventureId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Stage")
+                        .WithMany()
+                        .HasForeignKey("StageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Adventure");
+
+                    b.Navigation("Stage");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.SceneAsset", b =>
                 {
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Display")
+                        .WithMany()
+                        .HasForeignKey("DisplayId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("VttTools.Data.Assets.Entities.Asset", "Asset")
                         .WithMany()
                         .HasForeignKey("SceneId")
@@ -958,6 +977,8 @@ namespace VttTools.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Asset");
+
+                    b.Navigation("Display");
                 });
 
             modelBuilder.Entity("VttTools.Identity.Model.RoleClaim", b =>

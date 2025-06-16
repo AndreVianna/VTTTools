@@ -8,7 +8,7 @@ public record UpdateAssetRequest
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
     public Optional<AssetType> Type { get; init; }
-    public Optional<Display> Display { get; set; }
+    public Optional<Guid> DisplayId { get; init; }
     public Optional<bool> IsPublished { get; set; }
     public Optional<bool> IsPublic { get; set; }
 }

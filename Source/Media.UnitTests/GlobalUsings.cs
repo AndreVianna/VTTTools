@@ -5,10 +5,10 @@ global using Azure.Storage.Blobs;
 global using Azure.Storage.Blobs.Models;
 
 global using Microsoft.AspNetCore.Builder;
-global using Microsoft.Extensions.Hosting;
+global using Microsoft.AspNetCore.Routing;
 
 global using NSubstitute;
 
-global using VttTools.Common.Model;
-global using VttTools.Extensions;
 global using VttTools.Media.Model;
+global using VttTools.Media.ServiceContracts;
+global using VttTools.Media.Storage;

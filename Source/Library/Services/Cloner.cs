@@ -1,43 +1,62 @@
 namespace VttTools.Library.Services;
 
 public static class Cloner {
-    internal static Adventure CloneAdventure(Adventure original, Guid ownerId, ClonedAdventureData? data = null) {
+    internal static Adventure Clone(this Adventure original, Guid userId) {
         var clone = new Adventure {
-            OwnerId = ownerId,
-            CampaignId = data?.CampaignId.IsSet ?? false ? data.CampaignId.Value : original.CampaignId,
-            Name = data?.Name.IsSet ?? false ? data.Name.Value : $"{original.Name} (Copy)",
-            Description = data?.Description.IsSet ?? false ? data.Description.Value : original.Description,
-            Type = data?.Type.IsSet ?? false ? data.Type.Value : original.Type,
-            Display = data?.Display.IsSet ?? false ? data.Display.Value : original.Display,
-        };
-        if (data?.IncludeScenes != true)
-            return clone;
-        clone.Scenes.AddRange(original.Scenes.Select(ep => CloneScene(ep, ownerId)));
-        return clone;
-    }
-
-    internal static Scene CloneScene(Scene original, Guid ownerId, ClonedSceneData? data = null) {
-        var clone = new Scene {
-            Name = data?.Name.IsSet ?? false ? data.Name.Value : $"{original.Name} (Copy)",
-            Description = data?.Description.IsSet ?? false ? data.Description.Value : original.Description,
-            Stage = data?.Stage.IsSet ?? false ? data.Stage.Value : original.Stage,
-            ZoomLevel = data?.ZoomLevel.IsSet ?? false ? data.ZoomLevel.Value : original.ZoomLevel,
-            Grid = data?.Grid.IsSet ?? false ? data.Grid.Value : original.Grid,
-        };
-        clone.Assets.AddRange(original.Assets.Select(sa => CloneSceneAsset(sa, ownerId)));
-        return clone;
-    }
-
-    internal static SceneAsset CloneSceneAsset(SceneAsset original, Guid ownerId)
-        => new() {
-            Id = original.Id,
-            Number = original.Number,
+            OwnerId = userId,
+            CampaignId = original.CampaignId,
             Name = original.Name,
-            Display = original.Display,
+            Description = original.Description,
+            Type = original.Type,
+            Background = original.Background.Clone(),
+        };
+        clone.Scenes.AddRange(original.Scenes.Select(ep => ep.Clone()));
+        return clone;
+    }
+
+    internal static Scene Clone(this Scene original) {
+        var clone = new Scene {
+            Name = original.Name,
+            Description = original.Description,
+            Stage = original.Stage,
+            Grid = original.Grid,
+        };
+        clone.Assets.AddRange(original.Assets.Select(sa => sa.Clone()));
+        return clone;
+    }
+
+    internal static SceneAsset Clone(this SceneAsset original)
+        => new() {
+            OwnerId = original.OwnerId,
+            Id = original.Id,
+            Index = original.Index,
+            Type = original.Type,
+            Name = original.Name,
+            Description = original.Description,
+            Display = original.Display.Clone(),
             Position = original.Position,
-            Scale = original.Scale,
+            Size = original.Size,
+            Frame = original.Frame,
             Rotation = original.Rotation,
             Elevation = original.Elevation,
-            ControlledBy = ownerId,
+            IsLocked = original.IsLocked,
+            IsPublic = original.IsPublic,
+            IsPublished = original.IsPublished,
+            ControlledBy = original.ControlledBy,
+        };
+
+    internal static Resource Clone(this Resource original)
+        => new() {
+            Id = original.Id,
+            Type = original.Type,
+            Path = original.Path,
+            Metadata = new() {
+                ContentType = original.Metadata.ContentType,
+                FileName = original.Metadata.FileName,
+                FileLength = original.Metadata.FileLength,
+                ImageSize = original.Metadata.ImageSize,
+                Duration = original.Metadata.Duration,
+            },
+            Tags = [.. original.Tags],
         };
 }

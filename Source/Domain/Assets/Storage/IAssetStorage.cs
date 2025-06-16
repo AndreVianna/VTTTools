@@ -17,12 +17,12 @@ public interface IAssetStorage {
     /// <summary>
     /// Adds a new asset template.
     /// </summary>
-    Task<Asset> AddAsync(Asset asset, CancellationToken ct = default);
+    Task AddAsync(Asset asset, CancellationToken ct = default);
 
     /// <summary>
     /// Updates an existing asset template.
     /// </summary>
-    Task<Asset?> UpdateAsync(Asset asset, CancellationToken ct = default);
+    Task<bool> UpdateAsync(Asset asset, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes an asset template.

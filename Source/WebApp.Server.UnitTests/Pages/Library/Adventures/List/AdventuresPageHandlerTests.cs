@@ -64,7 +64,7 @@ public class AdventuresPageHandlerTests
             new AdventureListItem { Id = clonedAdventure.Id, Name = clonedAdventure.Name },
         };
 
-        _serverHttpClient.CloneAdventureAsync(adventureId, Arg.Any<CloneAdventureRequest>()).Returns(clonedAdventure);
+        _serverHttpClient.CloneAdventureAsync(adventureId).Returns(clonedAdventure);
 
         // Act
         await handler.CloneAdventure(adventureId);

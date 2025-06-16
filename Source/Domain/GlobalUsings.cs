@@ -12,7 +12,6 @@ global using DotNetToolbox.Validation;
 
 global using Microsoft.AspNetCore.Identity;
 
-global using VttTools.Assets.ApiContracts;
 global using VttTools.Assets.Model;
 global using VttTools.Assets.ServiceContracts;
 global using VttTools.Common.ApiContracts;
@@ -26,4 +25,5 @@ global using VttTools.Library.Campaigns.Model;
 global using VttTools.Library.Scenes.Model;
 global using VttTools.Library.Scenes.ServiceContracts;
 global using VttTools.Media.Model;
+global using VttTools.Media.ServiceContracts;
 global using VttTools.Utilities;

@@ -1,3 +1,5 @@
+using VttTools.Media.Model;
+
 namespace VttTools.Library.Adventures.Model;
 
 public class AdventureTests {
@@ -15,7 +17,7 @@ public class AdventureTests {
         adventure.Name.Should().BeEmpty();
         adventure.Description.Should().BeEmpty();
         adventure.Type.Should().Be(AdventureType.OpenWorld);
-        adventure.Display.Should().NotBeNull();
+        adventure.Background.Should().NotBeNull();
         adventure.IsPublished.Should().BeFalse();
         adventure.IsPublic.Should().BeFalse();
     }
@@ -28,9 +30,14 @@ public class AdventureTests {
         const string description = "Adventure description";
         const AdventureType type = AdventureType.DungeonCrawl;
         var display = new Display {
-            Id = "some_file.png",
+            Id = Guid.NewGuid(),
             Type = ResourceType.Image,
-            Size = new(100, 100),
+            Path = "assets/adventure-background.png",
+            Metadata = new ResourceMetadata {
+                ContentType = "image/png",
+                ImageSize = new Size(1920, 1080),
+            },
+            Tags = ["adventure", "background"],
         };
         const bool isVisible = true;
         const bool isPublic = true;
@@ -46,7 +53,7 @@ public class AdventureTests {
             Name = name,
             Description = description,
             Type = type,
-            Display = display,
+            Background = display,
             IsPublished = isVisible,
             IsPublic = isPublic,
             OwnerId = ownerId,
@@ -59,7 +66,7 @@ public class AdventureTests {
         adventure.Name.Should().Be(name);
         adventure.Description.Should().Be(description);
         adventure.Type.Should().Be(type);
-        adventure.Display.Should().BeEquivalentTo(display);
+        adventure.Background.Should().BeEquivalentTo(display);
         adventure.IsPublished.Should().Be(isVisible);
         adventure.IsPublic.Should().Be(isPublic);
         adventure.OwnerId.Should().Be(ownerId);

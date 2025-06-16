@@ -3,7 +3,7 @@ namespace VttTools.Library.Services;
 /// <summary>
 /// Implements IAdventureService using EF Core storage.
 /// </summary>
-public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage sceneStorage)
+public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage sceneStorage, IMediaStorage mediaStorage)
     : IAdventureService {
     /// <inheritdoc />
     public async Task<Adventure[]> GetAdventuresAsync(CancellationToken ct = default) {
@@ -31,8 +31,17 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     public Task<Adventure?> GetAdventureByIdAsync(Guid id, CancellationToken ct = default)
         => adventureStorage.GetByIdAsync(id, ct);
 
+    private static readonly Resource _defaultAssetDisplay = new() {
+        Type = ResourceType.Image,
+        Path = "assets/default-asset-display",
+        Metadata = new ResourceMetadata {
+            ContentType = "image/png",
+            ImageSize = new(50, 50),
+        },
+    };
+
     /// <inheritdoc />
-    public async Task<Result<Adventure>> CreateAdventureAsync(Guid userId, NewAdventureData data, CancellationToken ct = default) {
+    public async Task<Result<Adventure>> CreateAdventureAsync(Guid userId, CreateAdventureData data, CancellationToken ct = default) {
         var result = data.Validate();
         if (result.HasErrors)
             return result;
@@ -42,23 +51,22 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
             Name = data.Name,
             Description = data.Description,
             Type = data.Type,
-            Display = data.Display,
+            Background = data.BackgroundId is not null
+                ? await mediaStorage.GetByIdAsync(data.BackgroundId.Value, ct) ?? _defaultAssetDisplay
+                : _defaultAssetDisplay,
         };
         await adventureStorage.AddAsync(adventure, ct);
         return adventure;
     }
 
     /// <inheritdoc />
-    public async Task<Result<Adventure>> CloneAdventureAsync(Guid userId, ClonedAdventureData data, CancellationToken ct = default) {
-        var original = await adventureStorage.GetByIdAsync(data.TemplateId, ct);
+    public async Task<Result<Adventure>> CloneAdventureAsync(Guid userId, Guid templateId, CancellationToken ct = default) {
+        var original = await adventureStorage.GetByIdAsync(templateId, ct);
         if (original is null)
             return Result.Failure("NotFound");
         if (original.OwnerId != userId || original is { IsPublic: true, IsPublished: true })
             return Result.Failure("NotAllowed");
-        var result = data.Validate();
-        if (result.HasErrors)
-            return result;
-        var clone = Cloner.CloneAdventure(original, userId, data);
+        var clone = original.Clone(userId);
         await adventureStorage.AddAsync(clone, ct);
         return clone;
     }
@@ -77,7 +85,9 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
             Name = data.Name.IsSet ? data.Name.Value : adventure.Name,
             Description = data.Description.IsSet ? data.Description.Value : adventure.Description,
             Type = data.Type.IsSet ? data.Type.Value : adventure.Type,
-            Display = data.Display.IsSet ? data.Display.Value : adventure.Display,
+            Background = data.BackgroundId.IsSet
+                ? await mediaStorage.GetByIdAsync(data.BackgroundId.Value, ct) ?? adventure.Background
+                : adventure.Background,
             IsPublished = data.IsListed.IsSet ? data.IsListed.Value : adventure.IsPublished,
             IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : adventure.IsPublic,
             CampaignId = data.CampaignId.IsSet ? data.CampaignId.Value : adventure.CampaignId,
@@ -114,7 +124,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     }
 
     /// <inheritdoc />
-    public async Task<Result<Scene>> AddClonedSceneAsync(Guid userId, Guid id, Guid templateId, ClonedSceneData data, CancellationToken ct = default) {
+    public async Task<Result<Scene>> AddClonedSceneAsync(Guid userId, Guid id, Guid templateId, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
         if (adventure is null)
             return Result.Failure("NotFound");
@@ -123,10 +133,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
         var original = await sceneStorage.GetByIdAsync(templateId, ct);
         if (original is null)
             return Result.Failure("NotFound");
-        var result = data.Validate();
-        if (result.HasErrors)
-            return result;
-        var clone = Cloner.CloneScene(original, userId, data);
+        var clone = original.Clone();
         await sceneStorage.AddAsync(clone, id, ct);
         return clone;
     }

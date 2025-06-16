@@ -133,12 +133,12 @@ public class AdventuresPageTests
             IsPublished = true,
             IsPublic = true,
         };
-        _serverHttpClient.CloneAdventureAsync(Arg.Any<Guid>(), Arg.Any<CloneAdventureRequest>()).Returns(clonedAdventure);
+        _serverHttpClient.CloneAdventureAsync(Arg.Any<Guid>()).Returns(clonedAdventure);
 
         // Act
         cut.Find($"#clone-adventure-{adventureId}").Click();
 
         // Assert
-        _serverHttpClient.Received(1).CloneAdventureAsync(Arg.Any<Guid>(), Arg.Any<CloneAdventureRequest>());
+        _serverHttpClient.Received(1).CloneAdventureAsync(Arg.Any<Guid>());
     }
 }

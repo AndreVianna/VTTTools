@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace VttTools.EndpointMappers;

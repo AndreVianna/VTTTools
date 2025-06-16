@@ -8,7 +8,7 @@ public record Asset {
     public string Name { get; init; } = string.Empty;
     [MaxLength(4096)]
     public string Description { get; init; } = string.Empty;
-    public Resource Display { get; init; } = new();
     public bool IsPublished { get; init; }
     public bool IsPublic { get; init; }
+    public Resource Display { get; init; } = null!;
 }

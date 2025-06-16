@@ -1,28 +1,17 @@
-﻿using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateAssetData;
+﻿using UpdateSceneAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
 
 namespace VttTools.Library.Scenes.Services;
 
 public interface ISceneService {
-    /// <summary>
-    /// Gets a specific scene by ID.
-    /// </summary>
     Task<Scene[]> GetScenesAsync(CancellationToken ct = default);
-
-    /// <summary>
-    /// Gets a specific scene by ID.
-    /// </summary>
     Task<Scene?> GetSceneByIdAsync(Guid id, CancellationToken ct = default);
-
-    /// <summary>
-    /// Updates an existing scene template.
-    /// </summary>
-    Task<Result<Scene>> UpdateSceneAsync(Guid userId, Guid id, UpdateSceneData data, CancellationToken ct = default);
+    Task<Result<Scene>> CreateSceneAsync(Guid userId, CreateSceneData data, CancellationToken ct = default);
+    Task<Result> UpdateSceneAsync(Guid userId, Guid id, UpdateSceneData data, CancellationToken ct = default);
+    Task<Result> DeleteSceneAsync(Guid userId, Guid id, CancellationToken ct = default);
 
     Task<SceneAsset[]> GetAssetsAsync(Guid id, CancellationToken ct = default);
-
-    Task<Result<SceneAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, AddAssetData data, CancellationToken ct = default);
-
-    Task<Result<SceneAsset>> UpdateAssetAsync(Guid userId, Guid id, Guid assetId, int number, UpdateAssetData data, CancellationToken ct = default);
-
-    Task<Result> RemoveAssetAsync(Guid userId, Guid id, Guid assetId, int number, CancellationToken ct = default);
+    Task<Result<SceneAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, AddSceneAssetData data, CancellationToken ct = default);
+    Task<Result<SceneAsset>> CloneAssetAsync(Guid userId, Guid id, int index, CancellationToken ct = default);
+    Task<Result> UpdateAssetAsync(Guid userId, Guid id, int index, UpdateSceneAssetData data, CancellationToken ct = default);
+    Task<Result> RemoveAssetAsync(Guid userId, Guid id, int index, CancellationToken ct = default);
 }

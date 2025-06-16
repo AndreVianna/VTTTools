@@ -4,25 +4,33 @@ public class AddAssetRequestTests {
     [Fact]
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
-        var original = new AddAssetRequest {
+        var original = new AddSceneAssetRequest {
             Name = "Asset Name",
-            Position = new Point { X = 1, Y = 1 },
-            Scale = 1f,
-            Rotation = 0.0f,
-            Elevation = 0.0f,
+            Position = new(1, 1),
+            Size = new(50, 50),
+            Frame = new(),
+            Rotation = 0,
+            Elevation = 0,
         };
         const string name = "Other Name";
-        var position = new Point { X = 10, Y = 20 };
-        const float scale = .5f;
-        const float rotation = 45.0f;
-        const float elevation = 10.0f;
+        var position = new Point(10, 20);
+        var size = new Size(100, 200);
+        var frame = new Frame {
+            Shape = FrameShape.Circle,
+            BorderThickness = 2,
+            BorderColor = "red",
+            Background = "blue"
+        };
+        const float rotation = 45;
+        const float elevation = 10;
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers
         var data = original with {
             Name = name,
             Position = position,
-            Scale = scale,
+            Size = size,
+            Frame = frame,
             Rotation = rotation,
             Elevation = elevation,
         };
@@ -30,7 +38,8 @@ public class AddAssetRequestTests {
         // Assert
         data.Name.Should().Be(name);
         data.Position.Should().Be(position);
-        data.Scale.Should().Be(scale);
+        data.Size.Should().Be(size);
+        data.Frame.Should().BeEquivalentTo(frame);
         data.Rotation.Should().Be(rotation);
         data.Elevation.Should().Be(elevation);
     }

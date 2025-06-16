@@ -4,18 +4,25 @@ public class UpdateAssetDataTests {
     [Fact]
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
-        var original = new UpdateAssetData {
+        var original = new UpdateSceneAssetData {
             Name = "Original",
-            Position = new Point { X = 1, Y = 1 },
-            Scale = 1f,
+            Position = new Point(1, 1),
+            Size = new Size(50, 50),
+            Frame = new(),
             Rotation = 0.0f,
             Elevation = 0.0f,
             IsLocked = false,
             ControlledBy = Guid.Empty,
         };
         const string name = "New Name";
-        var position = new Point { X = 10, Y = 20 };
-        const float scale = .5f;
+        var position = new Point(10, 20);
+        var size = new Size(1000, 2000);
+        var frame = new Frame {
+            Shape = FrameShape.Circle,
+            BorderThickness = 2,
+            BorderColor = "red",
+            Background = "blue"
+        };
         const float rotation = 45.0f;
         const float elevation = 10.0f;
         const bool isLocked = true;
@@ -26,7 +33,8 @@ public class UpdateAssetDataTests {
         var data = original with {
             Name = name,
             Position = position,
-            Scale = scale,
+            Size = size,
+            Frame = frame,
             Rotation = rotation,
             Elevation = elevation,
             IsLocked = isLocked,
@@ -36,7 +44,8 @@ public class UpdateAssetDataTests {
         // Assert
         data.Name.Should().Be(name);
         data.Position.Value.Should().BeEquivalentTo(position);
-        data.Scale.Value.Should().Be(scale);
+        data.Size.Value.Should().Be(size);
+        data.Frame.Value.Should().BeEquivalentTo(frame);
         data.Rotation.Value.Should().Be(rotation);
         data.Elevation.Value.Should().Be(elevation);
         data.IsLocked.Value.Should().Be(isLocked);
@@ -46,10 +55,16 @@ public class UpdateAssetDataTests {
     [Fact]
     public void Validate_WithValidData_ReturnsSuccess() {
         // Arrange
-        var data = new UpdateAssetData {
+        var data = new UpdateSceneAssetData {
             Name = "Original",
-            Position = new Point { X = 1, Y = 1 },
-            Scale = 1f,
+            Position = new Point(1, 1),
+            Size = new Size(10, 20),
+            Frame = new Frame {
+                Shape = FrameShape.Square,
+                BorderThickness = 1,
+                BorderColor = "white",
+                Background = string.Empty
+            },
             Rotation = 0.0f,
             Elevation = 0.0f,
         };
@@ -64,9 +79,16 @@ public class UpdateAssetDataTests {
     [Fact]
     public void Validate_WithInvalidData_ReturnsSuccess() {
         // Arrange
-        var data = new UpdateAssetData {
+        var data = new UpdateSceneAssetData {
             Name = null!,
-            Scale = 1000f,
+            Position = new Point(10, 20),
+            Size = new Size(1000, 2000),
+            Frame = new Frame {
+                Shape = FrameShape.Circle,
+                BorderThickness = 2,
+                BorderColor = "red",
+                Background = "blue"
+            },
             Rotation = -270,
             Elevation = 2000,
         };
@@ -81,7 +103,7 @@ public class UpdateAssetDataTests {
     [Fact]
     public void Validate_OptionalValuesNotSet_ReturnsSuccess() {
         // Arrange
-        var data = new UpdateAssetData();
+        var data = new UpdateSceneAssetData();
 
         // Act
         var result = data.Validate();

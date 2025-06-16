@@ -1,3 +1,5 @@
+using VttTools.Media.Model;
+
 namespace VttTools.Library.Scenes.Model;
 
 public class SceneTests {
@@ -20,10 +22,19 @@ public class SceneTests {
         var id = Guid.NewGuid();
         const string name = "Some Scene";
         const string description = "Some Description";
-        var display = new Display {
-            Id = "some_file.png",
-            Type = ResourceType.Image,
-            Size = new(800, 600),
+        var stage = new Stage {
+            ZoomLevel = 1.5f,
+            Panning = new Point(100, 200),
+            Background = new Resource {
+                Id = Guid.NewGuid(),
+                Type = ResourceType.Image,
+                Path = "path/to/image.png",
+                Metadata = new() {
+                    ContentType = "image/png",
+                    ImageSize = new Size(800, 600),
+                },
+                Tags = ["tag1", "tag2"],
+            },
         };
         var sceneAsset = new SceneAsset();
 
@@ -32,7 +43,7 @@ public class SceneTests {
             Id = id,
             Name = name,
             Description = description,
-            Stage = display,
+            Stage = stage,
             Assets = [sceneAsset],
         };
 
@@ -40,7 +51,7 @@ public class SceneTests {
         scene.Id.Should().Be(id);
         scene.Name.Should().Be(name);
         scene.Description.Should().Be(description);
-        scene.Stage.Should().BeEquivalentTo(display);
+        scene.Stage.Should().BeEquivalentTo(stage);
         scene.Assets.Should().ContainSingle(ea => ea.Equals(sceneAsset));
     }
 }

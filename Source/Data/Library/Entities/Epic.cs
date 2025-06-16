@@ -1,10 +1,10 @@
-﻿using Resource = VttTools.Data.Resources.Entities.Resource;
+﻿using Resource = VttTools.Data.Media.Entities.Resource;
 
 namespace VttTools.Data.Library.Entities;
 
 public class Epic {
-    public Guid Id { get; set; } = Guid.CreateVersion7();
     public Guid OwnerId { get; set; }
+    public Guid Id { get; set; } = Guid.CreateVersion7();
     [MaxLength(128)]
     public string Name { get; set; } = string.Empty;
     [MaxLength(4096)]

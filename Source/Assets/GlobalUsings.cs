@@ -15,3 +15,5 @@ global using VttTools.Data;
 global using VttTools.Data.Extensions;
 global using VttTools.Data.Options;
 global using VttTools.Extensions;
+global using VttTools.Media.Model;
+global using VttTools.Media.Storage;

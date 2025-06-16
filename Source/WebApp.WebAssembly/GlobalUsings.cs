@@ -16,7 +16,6 @@ global using Microsoft.IdentityModel.Tokens;
 global using Microsoft.JSInterop;
 
 global using VttTools.Assets.Model;
-global using VttTools.Common.Model;
 global using VttTools.Identity.Model;
 global using VttTools.Library.Scenes.ApiContracts;
 global using VttTools.Library.Scenes.Model;

@@ -56,7 +56,7 @@ public class ProfilePageTests
         displayNameInput.Change("");
 
         UserManager.UpdateAsync(Arg.Any<User>())
-            .Returns(IdentityResult.Failed(new IdentityError { Description = "Image name is required." }));
+            .Returns(IdentityResult.Failed(new IdentityError { Description = "Background name is required." }));
 
         // Act
         cut.Find("#update-profile-submit").Click();

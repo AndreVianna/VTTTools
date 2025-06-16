@@ -8,33 +8,25 @@ public class UpdateAssetRequestTests {
             Name = "Title",
             Type = AssetType.Creature,
             Description = "Description",
-            Display = new Display {
-                Type = ResourceType.Image,
-                Id = "some_file.png",
-                Size = new(10, 20),
-            },
+            DisplayId = Guid.NewGuid(),
         };
         const string name = "Other Title";
         const AssetType type = AssetType.NPC;
         const string description = "Other Description";
-        var newDisplay = new Display {
-            Type = ResourceType.Video,
-            Id = "other_file.png",
-            Size = new(20, 40),
-        };
+        var newDisplayId = Guid.NewGuid();
 
         // Act
         var data = original with {
             Name = name,
             Type = type,
             Description = description,
-            Display = newDisplay,
+            DisplayId = newDisplayId,
         };
 
         // Assert
         data.Name.Value.Should().Be(name);
         data.Type.Value.Should().Be(type);
         data.Description.Value.Should().Be(description);
-        data.Display.Value.Should().BeEquivalentTo(newDisplay);
+        data.DisplayId.Value.Should().Be(newDisplayId);
     }
 }

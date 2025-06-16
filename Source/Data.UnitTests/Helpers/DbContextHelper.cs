@@ -1,3 +1,5 @@
+using VttTools.Media.Model;
+
 using Adventure = VttTools.Library.Adventures.Model.Adventure;
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using Asset = VttTools.Assets.Model.Asset;
@@ -117,10 +119,17 @@ internal static class DbContextHelper {
             Name = name,
             Description = $"Description for {name}",
             ZoomLevel = 1.0f,
+            Panning = new(0, 0),
             Stage = new() {
                 Type = ResourceType.Image,
-                Id = "some_file.png",
-                Size = new(10, 20),
+                Path = "asset/1234",
+                FileName = "some_file.png",
+                Id = Guid.NewGuid(),
+                ImageSize = new(10, 20),
+                ContentType = "image/png",
+                Duration = TimeSpan.Zero,
+                FileLength = 2000,
+                Tags = [],
             },
             Grid = new() {
                 Type = GridType.Square,
@@ -141,8 +150,14 @@ internal static class DbContextHelper {
             OwnerId = ownerId ?? Guid.NewGuid(),
             Display = new() {
                 Type = ResourceType.Image,
-                Id = "some_file.png",
-                Size = new(10, 20),
+                Path = "asset/1234",
+                FileName = "some_file.png",
+                Id = Guid.NewGuid(),
+                ImageSize = new(10, 20),
+                ContentType = "image/png",
+                Duration = TimeSpan.Zero,
+                FileLength = 2000,
+                Tags = [],
             },
         };
 
@@ -179,11 +194,22 @@ internal static class DbContextHelper {
             Id = id,
             Name = name,
             Description = $"Description for {name}",
-            ZoomLevel = 1.0f,
             Stage = new() {
-                Type = ResourceType.Image,
-                Id = "some_file.png",
-                Size = new(10, 20),
+                Background = new() {
+                    Id = Guid.NewGuid(),
+                    Type = ResourceType.Image,
+                    Path = "asset/1234",
+                    Metadata = new() {
+                        FileName = "some_file.png",
+                        ImageSize = new(10, 20),
+                        ContentType = "image/png",
+                        Duration = TimeSpan.Zero,
+                        FileLength = 2000,
+                    },
+                    Tags = [],
+                },
+                ZoomLevel = 1,
+                Panning = new(0, 0),
             },
             Grid = new() {
                 Type = GridType.Square,
@@ -202,11 +228,7 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.NewGuid(),
-            Display = new() {
-                Type = ResourceType.Image,
-                Id = "some_file.png",
-                Size = new(10, 20),
-            },
+            Display = new(),
         };
 
     public static Asset CreateTestAsset(string name, AssetType type = AssetType.Placeholder, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)

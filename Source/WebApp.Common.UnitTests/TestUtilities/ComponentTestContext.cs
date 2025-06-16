@@ -4,7 +4,7 @@ public class ComponentTestContext
     : BUnitContext {
     public User DefaultUser { get; } = new() {
         Name = "Name",
-        DisplayName = "Image Name",
+        DisplayName = "Display Name",
         UserName = "test.user@host.com",
         NormalizedUserName = "TEST.USER@HOST.COM",
         Email = "test.user@host.com",

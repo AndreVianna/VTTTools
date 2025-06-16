@@ -20,8 +20,8 @@ public class AdventuresHttpClient(HttpClient client, JsonSerializerOptions optio
         return adventure.ToListItem();
     }
 
-    public async Task<Result<AdventureListItem>> CloneAdventureAsync(Guid id, CloneAdventureRequest request) {
-        var response = await client.PostAsJsonAsync($"/api/adventures/{id}", request, options);
+    public async Task<Result<AdventureListItem>> CloneAdventureAsync(Guid id) {
+        var response = await client.PostAsJsonAsync($"/api/adventures/{id}", new { }, options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to clone adventure.");
         var adventure = IsNotNull(await response.Content.ReadFromJsonAsync<Adventure>(options));
@@ -53,8 +53,8 @@ public class AdventuresHttpClient(HttpClient client, JsonSerializerOptions optio
         return scene.ToDetails();
     }
 
-    public async Task<Result<SceneDetails>> CloneSceneAsync(Guid id, Guid templateId, CloneSceneRequest request) {
-        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/scenes/{templateId}", request, options);
+    public async Task<Result<SceneDetails>> CloneSceneAsync(Guid id, Guid templateId) {
+        var response = await client.PostAsJsonAsync($"/api/adventures/{id}/scenes/clone/{templateId}", new { }, options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to clone scene.");
         var scene = IsNotNull(await response.Content.ReadFromJsonAsync<Scene>(options));

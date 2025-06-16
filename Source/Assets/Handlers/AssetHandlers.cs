@@ -1,5 +1,3 @@
-using VttTools.Media.Services;
-
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.Assets.Handlers;
@@ -19,7 +17,7 @@ internal static class AssetHandlers {
             Name = request.Name,
             Type = request.Type,
             Description = request.Description,
-            Display = request.Display,
+            DisplayId = request.DisplayId,
         };
         var result = await assetService.CreateAssetAsync(userId, data);
         return result.IsSuccessful
@@ -33,7 +31,7 @@ internal static class AssetHandlers {
             Name = request.Name,
             Description = request.Description,
             Type = request.Type,
-            Display = request.Display,
+            DisplayId = request.DisplayId,
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,
         };

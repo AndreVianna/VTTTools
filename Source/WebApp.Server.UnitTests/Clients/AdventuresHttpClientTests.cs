@@ -361,9 +361,6 @@ public class AdventuresHttpClientTests {
         var adventureId = Guid.NewGuid();
         var templateId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new CloneSceneRequest {
-            Name = "Updated Scene",
-        };
         var expectedResponse = new Scene {
             Id = sceneId,
             Name = "Updated Scene",
@@ -385,7 +382,7 @@ public class AdventuresHttpClientTests {
         var client = new AdventuresHttpClient(httpClient, _options);
 
         // Act
-        var result = await client.CloneSceneAsync(adventureId, templateId, request);
+        var result = await client.CloneSceneAsync(adventureId, templateId);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
@@ -396,9 +393,6 @@ public class AdventuresHttpClientTests {
     public async Task CloneAdventureAsync_WhenSuccessful_ReturnsClonedAdventureId() {
         // Arrange
         var adventureId = Guid.NewGuid();
-        var request = new CloneAdventureRequest {
-            Name = "Updated Adventure",
-        };
         var expectedResponse = new Adventure {
             Name = "Updated Adventure",
             OwnerId = Guid.NewGuid(),
@@ -419,7 +413,7 @@ public class AdventuresHttpClientTests {
         var client = new AdventuresHttpClient(httpClient, _options);
 
         // Act
-        var result = await client.CloneAdventureAsync(adventureId, request);
+        var result = await client.CloneAdventureAsync(adventureId);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();

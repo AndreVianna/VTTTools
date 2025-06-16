@@ -77,16 +77,10 @@ internal static class SceneCalculations {
     /// <returns>Asset at position or null if none found</returns>
     internal static SceneAssetDetails? FindAssetAt(Point position, IEnumerable<SceneAssetDetails> assets, Point padding) {
         var relativePosition = position.RelativeTo(padding);
-
-        return assets.Reverse()
-            .Where(asset => {
-                var assetSize = new Point(
-                    (int)Math.Round(asset.Size.Width * asset.Scale),
-                    (int)Math.Round(asset.Size.Height * asset.Scale)
-                );
-                return relativePosition.IsWithin(asset.Position, asset.Position.ShiftedBy(assetSize));
-            })
-            .FirstOrDefault();
+        return assets.FirstOrDefault(asset => {
+            var assetSize = new Point(asset.Size.Width, asset.Size.Height);
+            return relativePosition.IsWithin(asset.Position, asset.Position.ShiftedBy(assetSize));
+        });
     }
 
     /// <summary>
@@ -108,11 +102,8 @@ internal static class SceneCalculations {
     /// <param name="position">Original position</param>
     /// <param name="grid">Grid configuration</param>
     /// <returns>Snapped position if grid snapping is enabled, otherwise original position</returns>
-    internal static Point ApplyGridSnapping(Point position, GridDetails grid) {
-        if (grid.Type != GridType.Square || !grid.Snap) {
-            return position;
-        }
-
-        return GridCalculations.SnapToGrid(position, grid);
-    }
+    internal static Point ApplyGridSnapping(Point position, GridDetails grid)
+        => grid.Type == GridType.Square && grid.Snap
+            ? GridCalculations.SnapToGrid(position, grid)
+            : position;
 }

@@ -1,5 +1,4 @@
 using Asset = VttTools.Assets.Model.Asset;
-using AssetEntity = VttTools.Data.Assets.Entities.Asset;
 
 namespace VttTools.Data.Assets;
 
@@ -9,69 +8,39 @@ namespace VttTools.Data.Assets;
 public class AssetStorage(ApplicationDbContext context)
     : IAssetStorage {
     /// <inheritdoc />
-    public Task<Asset[]> GetAllAsync(CancellationToken ct = default)
-        => context.Assets
-                  .AsNoTrackingWithIdentityResolution()
-                  .Select(a => new Asset {
-                      OwnerId = a.OwnerId,
-                      Id = a.Id,
-                      Name = a.Name,
-                      Description = a.Description,
-                      Type = a.Type,
-                      Display = a.Display,
-                      IsPublic = a.IsPublic,
-                      IsPublished = a.IsPublished,
-                  })
-                  .ToArrayAsync(ct);
-
-    /// <inheritdoc />
-    public Task<Asset?> GetByIdAsync(Guid id, CancellationToken ct = default)
-        => context.Assets
-                  .AsNoTrackingWithIdentityResolution()
-                  .Select(a => new Asset {
-                      OwnerId = a.OwnerId,
-                      Id = a.Id,
-                      Name = a.Name,
-                      Description = a.Description,
-                      Type = a.Type,
-                      Display = a.Display,
-                      IsPublic = a.IsPublic,
-                      IsPublished = a.IsPublished,
-                  })
-                  .FirstOrDefaultAsync(a => a.Id == id, ct);
-
-    /// <inheritdoc />
-    public async Task<Asset> AddAsync(Asset asset, CancellationToken ct = default) {
-        var entity = new AssetEntity {
-            OwnerId = asset.OwnerId,
-            Id = asset.Id,
-            Name = asset.Name,
-            Description = asset.Description,
-            Type = asset.Type,
-            Display = asset.Display,
-            IsPublic = asset.IsPublic,
-            IsPublished = asset.IsPublished,
-        };
-        await context.Assets.AddAsync(entity, ct);
-        await context.SaveChangesAsync(ct);
-        return asset;
+    public async Task<Asset[]> GetAllAsync(CancellationToken ct = default) {
+        var query = context.Assets
+                    .Include(a => a.Display)
+                  .AsNoTrackingWithIdentityResolution();
+        var result = await query.Select(Mapper.AsAsset).ToArrayAsync(ct);
+        return result;
     }
 
     /// <inheritdoc />
-    public async Task<Asset?> UpdateAsync(Asset asset, CancellationToken ct = default) {
+    public async Task<Asset?> GetByIdAsync(Guid id, CancellationToken ct = default) {
+        var query = context.Assets
+                    .Include(a => a.Display)
+                  .AsNoTrackingWithIdentityResolution();
+        var result = await query.Select(Mapper.AsAsset).FirstOrDefaultAsync(a => a.Id == id, ct);
+        return result;
+    }
+
+    /// <inheritdoc />
+    public async Task AddAsync(Asset asset, CancellationToken ct = default) {
+        var entity = asset.ToEntity();
+        await context.Assets.AddAsync(entity, ct);
+        await context.SaveChangesAsync(ct);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> UpdateAsync(Asset asset, CancellationToken ct = default) {
         var entity = await context.Assets.FindAsync([asset.Id], ct);
         if (entity == null)
-            return null;
-        entity.OwnerId = asset.OwnerId;
-        entity.Name = asset.Name;
-        entity.Description = asset.Description;
-        entity.Type = asset.Type;
-        entity.Display = asset.Display;
-        entity.IsPublic = asset.IsPublic;
-        entity.IsPublished = asset.IsPublished;
+            return false;
+        entity.UpdateFrom(asset);
         context.Assets.Update(entity);
         var result = await context.SaveChangesAsync(ct);
-        return result > 0 ? asset : null;
+        return result > 0;
     }
 
     /// <inheritdoc />

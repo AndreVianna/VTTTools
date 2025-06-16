@@ -5,18 +5,17 @@ namespace VttTools.Data.Builders;
 internal static class AssetSchemaBuilder {
     public static void ConfigureModel(ModelBuilder builder)
         => builder.Entity<Asset>(entity => {
-            entity.ToTable("Assets");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.OwnerId).IsRequired();
-            entity.Property(e => e.Type).IsRequired().HasDefaultValue(AssetType.Placeholder).HasConversion<string>();
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
-            entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
-            entity.Property(e => e.IsPublished).IsRequired();
-            entity.Property(e => e.IsPublic).IsRequired();
-            entity.Property(e => e.DisplayId).IsRequired();
-            entity.HasOne(e => e.Display)
+            _ = entity.ToTable("Assets");
+            _ = entity.HasKey(e => e.Id);
+            _ = entity.Property(e => e.OwnerId).IsRequired();
+            _ = entity.Property(e => e.Type).IsRequired().HasDefaultValue(AssetType.Placeholder).HasConversion<string>();
+            _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
+            _ = entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
+            _ = entity.Property(e => e.IsPublished).IsRequired();
+            _ = entity.Property(e => e.IsPublic).IsRequired();
+            _ = entity.HasOne(e => e.Display)
                 .WithMany()
-                .HasForeignKey(e => e.DisplayId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(e => e.Id)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 }

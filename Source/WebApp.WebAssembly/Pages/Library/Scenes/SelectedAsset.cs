@@ -7,7 +7,7 @@ public sealed class SelectedAsset {
     public AssetType Type { get; set; }
     public Point Position { get; set; }
     public Size Size { get; set; }
-    public float Scale { get; set; }
+    public Frame Frame { get; set; } = new();
     public float Rotation { get; set; }
     public float Elevation { get; set; }
     public bool IsLocked { get; set; }

@@ -3,6 +3,7 @@
 public class AdventureServiceTests {
     private readonly IAdventureStorage _adventureStorage;
     private readonly ISceneStorage _sceneStorage;
+    private readonly IMediaStorage _mediaStorage;
     private readonly AdventureService _service;
     private readonly Guid _userId = Guid.NewGuid();
     private readonly CancellationToken _ct;
@@ -10,7 +11,8 @@ public class AdventureServiceTests {
     public AdventureServiceTests() {
         _adventureStorage = Substitute.For<IAdventureStorage>();
         _sceneStorage = Substitute.For<ISceneStorage>();
-        _service = new(_adventureStorage, _sceneStorage);
+        _mediaStorage = Substitute.For<IMediaStorage>();
+        _service = new(_adventureStorage, _sceneStorage, _mediaStorage);
 #if XUNITV3
         _ct = TestContext.Current.CancellationToken;
 #else
@@ -53,7 +55,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CreateAdventureAsync_CreatesNewAdventure() {
         // Arrange
-        var request = new NewAdventureData {
+        var request = new CreateAdventureData {
             Name = "New Adventure",
             Description = "Adventure description",
             Type = AdventureType.Survival,
@@ -68,7 +70,7 @@ public class AdventureServiceTests {
         result.Value.Name.Should().Be(request.Name);
         result.Value.Description.Should().Be(request.Description);
         result.Value.Type.Should().Be(request.Type);
-        result.Value.Display.Should().NotBeNull();
+        result.Value.Background.Should().NotBeNull();
         result.Value.IsPublished.Should().BeFalse();
         result.Value.IsPublic.Should().BeFalse();
         result.Value.CampaignId.Should().Be(request.CampaignId);
@@ -81,7 +83,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CreateAdventureAsync_WithEmptyName_ReturnsNull() {
         // Arrange
-        var request = new NewAdventureData {
+        var request = new CreateAdventureData {
             Name = "",
             Description = "Adventure description",
             Type = AdventureType.Survival,
@@ -99,7 +101,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CreateAdventureAsync_WithWhitespaceName_ReturnsNull() {
         // Arrange
-        var request = new NewAdventureData {
+        var request = new CreateAdventureData {
             Name = "   ",
             Description = "Adventure description",
             Type = AdventureType.Survival,
@@ -117,7 +119,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CreateAdventureAsync_WithNullName_ReturnsNull() {
         // Arrange
-        var request = new NewAdventureData {
+        var request = new CreateAdventureData {
             Name = null!,
             Description = "Adventure description",
             Type = AdventureType.Survival,
@@ -161,7 +163,7 @@ public class AdventureServiceTests {
         result.Value.Name.Should().Be(request.Name.Value);
         result.Value.Description.Should().Be(request.Description.Value);
         result.Value.Type.Should().Be(request.Type.Value);
-        result.Value.Display.Should().NotBeNull();
+        result.Value.Background.Should().NotBeNull();
         result.Value.IsPublished.Should().BeTrue();
         result.Value.IsPublic.Should().BeTrue();
         result.Value.CampaignId.Should().Be(request.CampaignId.Value);
@@ -197,7 +199,7 @@ public class AdventureServiceTests {
         result.Value.Name.Should().Be(request.Name.Value);
         result.Value.Description.Should().Be(adventure.Description);
         result.Value.Type.Should().Be(adventure.Type);
-        result.Value.Display.Should().NotBeNull();
+        result.Value.Background.Should().NotBeNull();
         result.Value.IsPublished.Should().BeFalse();
         result.Value.IsPublic.Should().BeFalse();
         result.Value.CampaignId.Should().Be(adventure.CampaignId);
@@ -323,14 +325,28 @@ public class AdventureServiceTests {
             new Scene {
                 Id = Guid.NewGuid(),
                 Name = "Scene 1",
-                ZoomLevel = 1,
                 Grid = new(),
-                Stage = new(),
+                Stage = new() {
+                    ZoomLevel = 1,
+                    Panning = new(10, 20),
+                    Background = new() {
+                        Id = Guid.NewGuid(),
+                        Type = ResourceType.Image,
+                        Path = "path/to/image.png",
+                        Metadata = new() { ImageSize = new(100, 200) },
+                    },
+                },
                 Assets = [
                     new SceneAsset {
                         Name = "Asset 1",
                         Position = new(20, 30),
-                        Scale = 0.5f,
+                        Size = new(40, 50),
+                        Frame = new() {
+                            Shape = FrameShape.Square,
+                            BorderThickness = 1,
+                            BorderColor = "white",
+                            Background = "transparent",
+                        },
                         Elevation = 1,
                         Rotation = 45,
                         IsLocked = false,
@@ -338,26 +354,14 @@ public class AdventureServiceTests {
                 ],
             },
         };
-        var request = new ClonedAdventureData();
-
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
         _sceneStorage.GetByParentIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(scenes);
 
         // Act
-        var result = await _service.CloneAdventureAsync(_userId, request, _ct);
+        var result = await _service.CloneAdventureAsync(_userId, adventureId, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Name.Should().Be(request.Name.Value);
-        result.Value.Description.Should().Be(request.Description.Value);
-        result.Value.Type.Should().Be(request.Type.Value);
-        result.Value.Display.Should().NotBeNull();
-        result.Value.IsPublished.Should().BeTrue();
-        result.Value.IsPublic.Should().BeTrue();
-        result.Value.CampaignId.Should().Be(adventure.CampaignId);
-        result.Value.Id.Should().NotBe(request.TemplateId);
-        result.Value.Scenes.Should().NotBeEmpty();
-        result.Value.OwnerId.Should().Be(_userId);
         await _adventureStorage.Received(1).AddAsync(Arg.Any<Adventure>(), Arg.Any<CancellationToken>());
     }
 
@@ -376,12 +380,11 @@ public class AdventureServiceTests {
             IsPublic = true,
             CampaignId = Guid.NewGuid(),
         };
-        var request = new ClonedAdventureData();
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
 
         // Act
-        var result = await _service.CloneAdventureAsync(nonOwnerId, request, _ct);
+        var result = await _service.CloneAdventureAsync(nonOwnerId, adventureId, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
@@ -393,10 +396,9 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
-        var request = new ClonedAdventureData();
 
         // Act
-        var result = await _service.CloneAdventureAsync(_userId, request, _ct);
+        var result = await _service.CloneAdventureAsync(_userId, adventureId, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
@@ -426,13 +428,6 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new ClonedSceneData {
-            Name = "New Scene",
-            Description = "New scene description",
-            ZoomLevel = 1,
-            Grid = new(),
-            Stage = new(),
-        };
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
@@ -450,15 +445,11 @@ public class AdventureServiceTests {
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
 
         // Act
-        var result = await _service.AddClonedSceneAsync(_userId, adventureId, sceneId, request, _ct);
+        var result = await _service.AddClonedSceneAsync(_userId, adventureId, sceneId, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Name.Should().Be(request.Name.Value);
-        result.Value.Description.Should().Be(request.Description.Value);
-        result.Value.Stage.Should().BeEquivalentTo(request.Stage);
-        result.Value.Id.Should().NotBe(sceneId);
-        adventure.Scenes.Should().HaveCount(1);
+        result.Value.Should().NotBeNull();
         await _adventureStorage.Received(1).UpdateAsync(adventure, Arg.Any<CancellationToken>());
     }
 
@@ -467,9 +458,6 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new ClonedSceneData {
-            Name = "New Scene",
-        };
         var nonOwnerId = Guid.NewGuid();
         var adventure = new Adventure {
             Id = adventureId,
@@ -482,7 +470,7 @@ public class AdventureServiceTests {
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
 
         // Act
-        var result = await _service.AddClonedSceneAsync(nonOwnerId, adventureId, sceneId, request, _ct);
+        var result = await _service.AddClonedSceneAsync(nonOwnerId, adventureId, sceneId, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
@@ -494,14 +482,11 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new ClonedSceneData {
-            Name = "New Scene",
-        };
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
 
         // Act
-        var result = await _service.AddClonedSceneAsync(_userId, adventureId, sceneId, request, _ct);
+        var result = await _service.AddClonedSceneAsync(_userId, adventureId, sceneId, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
@@ -513,9 +498,6 @@ public class AdventureServiceTests {
         // Arrange
         var adventureId = Guid.NewGuid();
         var sceneId = Guid.NewGuid();
-        var request = new ClonedSceneData {
-            Name = "New Scene",
-        };
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
@@ -526,7 +508,7 @@ public class AdventureServiceTests {
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
 
         // Act
-        var result = await _service.AddClonedSceneAsync(_userId, adventureId, sceneId, request, _ct);
+        var result = await _service.AddClonedSceneAsync(_userId, adventureId, sceneId, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();

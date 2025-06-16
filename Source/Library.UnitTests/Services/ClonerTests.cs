@@ -14,10 +14,13 @@ public class ClonerTests {
             OwnerId = Guid.NewGuid(),
             CampaignId = _campaignId,
             Name = "Original Adventure",
-            Display = new() {
-                Id = "some_file.png",
+            Background = new() {
+                Path = "path/to/background.png",
                 Type = ResourceType.Image,
-                Size = new(50, 50),
+                Metadata = new ResourceMetadata {
+                    ContentType = "image/png",
+                    ImageSize = new(1920, 1080),
+                },
             },
             Description = "Adventure description",
             Type = AdventureType.Survival,
@@ -27,8 +30,16 @@ public class ClonerTests {
                 new() {
                     Id = sceneId,
                     Name = "Original Scene",
-                    ZoomLevel = 1,
-                    Stage = new(),
+                    Stage = new() {
+                        Background = new() {
+                            Type = ResourceType.Image,
+                            Path = "path/to/scene/background.png",
+                            Metadata = new ResourceMetadata {
+                                ContentType = "image/png",
+                                ImageSize = new(800, 600),
+                            },
+                        },
+                    },
                     Grid = new() {
                         Type = GridType.Square,
                         CellSize = new(50, 50),
@@ -38,10 +49,9 @@ public class ClonerTests {
                 },
             ],
         };
-        var data = new ClonedAdventureData { TemplateId = originalId };
 
         // Act
-        var clone = Cloner.CloneAdventure(original, _userId, data);
+        var clone = original.Clone(_userId);
 
         // Assert
         clone.OwnerId.Should().Be(_userId);
@@ -49,7 +59,7 @@ public class ClonerTests {
         clone.CampaignId.Should().Be(original.CampaignId);
         clone.Name.Should().Be($"{original.Name} (Copy)");
         clone.Description.Should().Be(original.Description);
-        clone.Display.Should().Be(original.Display);
+        clone.Background.Should().Be(original.Background);
         clone.Type.Should().Be(original.Type);
         clone.IsPublished.Should().Be(original.IsPublished);
         clone.IsPublic.Should().Be(original.IsPublic);
@@ -66,10 +76,13 @@ public class ClonerTests {
             OwnerId = Guid.NewGuid(),
             CampaignId = _campaignId,
             Name = "Original Adventure",
-            Display = new() {
-                Id = "some_file.png",
+            Background = new() {
+                Path = "path/to/background.png",
                 Type = ResourceType.Image,
-                Size = new(50, 50),
+                Metadata = new ResourceMetadata {
+                    ContentType = "image/png",
+                    ImageSize = new(1920, 1080),
+                },
             },
             Description = "Adventure description",
             Type = AdventureType.Survival,
@@ -79,7 +92,6 @@ public class ClonerTests {
                 new() {
                     Id = sceneId,
                     Name = "Original Scene",
-                    ZoomLevel = 1,
                     Stage = new(),
                     Grid = new() {
                         Type = GridType.Square,
@@ -90,10 +102,9 @@ public class ClonerTests {
                 },
             ],
         };
-        var data = new ClonedAdventureData { TemplateId = originalId, IncludeScenes = false };
 
         // Act
-        var clone = Cloner.CloneAdventure(original, _userId, data);
+        var clone = original.Clone(_userId);
 
         // Assert
         clone.Should().NotBeNull();
@@ -101,7 +112,7 @@ public class ClonerTests {
         clone.CampaignId.Should().Be(original.CampaignId);
         clone.Name.Should().Be($"{original.Name} (Copy)");
         clone.Description.Should().Be(original.Description);
-        clone.Display.Should().Be(original.Display);
+        clone.Background.Should().Be(original.Background);
         clone.Type.Should().Be(original.Type);
         clone.IsPublished.Should().Be(original.IsPublished);
         clone.IsPublic.Should().Be(original.IsPublic);
@@ -116,7 +127,6 @@ public class ClonerTests {
             Id = originalId,
             Name = "Original Scene",
             Description = "Original scene description",
-            ZoomLevel = 1,
             Stage = new(),
             Grid = new() {
                 Type = GridType.Square,
@@ -128,7 +138,6 @@ public class ClonerTests {
                 new() {
                     Name = "Asset 1",
                     Position = new(20, 30),
-                    Scale = 0.5f,
                     Elevation = 1,
                     Rotation = 45,
                     IsLocked = true,
@@ -137,7 +146,6 @@ public class ClonerTests {
                 new() {
                     Name = "Asset 2",
                     Position = new(5, 10),
-                    Scale = 1.5f,
                     Elevation = 2,
                     Rotation = -45,
                     IsLocked = false,
@@ -147,7 +155,7 @@ public class ClonerTests {
         };
 
         // Act
-        var clone = Cloner.CloneScene(original, _userId);
+        var clone = original.Clone();
 
         // Assert
         clone.Should().NotBeNull();
@@ -169,10 +177,9 @@ public class ClonerTests {
             Name = "Original Scene",
             Assets = [
                 new() {
-                    Number = 1,
+                    Index = 1,
                     Name = "Asset 1",
                     Position = new(20, 30),
-                    Scale = 0.5f,
                     Elevation = 1f,
                     Rotation = 45f,
                     IsLocked = true,
@@ -183,14 +190,13 @@ public class ClonerTests {
         };
 
         // Act
-        var clone = Cloner.CloneScene(original, _userId);
+        var clone = original.Clone();
 
         // Assert
         clone.Assets.Should().HaveCount(1);
         clone.Assets[0].Name.Should().Be("Asset 1");
         clone.Assets[0].Position.X.Should().Be(10);
         clone.Assets[0].Position.Y.Should().Be(15);
-        clone.Assets[0].Scale.Should().Be(1.5f);
         clone.Assets[0].IsLocked.Should().BeTrue();
     }
 
@@ -200,10 +206,9 @@ public class ClonerTests {
         var userId = Guid.NewGuid();
         var controlledById = Guid.NewGuid();
         var original = new SceneAsset {
-            Number = 1,
+            Index = 1,
             Name = "Original Asset",
             Position = new(20, 30),
-            Scale = 0.5f,
             Elevation = 1f,
             Rotation = 45f,
             IsLocked = true,
@@ -211,14 +216,13 @@ public class ClonerTests {
         };
 
         // Act
-        var clone = Cloner.CloneSceneAsset(original, userId);
+        var clone = original.Clone();
 
         // Assert
         clone.Should().NotBeNull();
-        clone.Number.Should().Be(original.Number);
+        clone.Number.Should().Be(original.Index);
         clone.Name.Should().Be(original.Name);
         clone.Position.Should().BeEquivalentTo(original.Position);
-        clone.Scale.Should().Be(original.Scale);
         clone.IsLocked.Should().BeFalse();
         clone.ControlledBy.Should().Be(userId);
     }

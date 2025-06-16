@@ -7,8 +7,6 @@ public class SceneEndpointsMapperTests {
     }
 
     [Fact]
-    [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "<Pending>")]
-    [SuppressMessage("Usage", "ASP0018:Unused route parameter", Justification = "<Pending>")]
     public void MapSceneManagementEndpoints_RegistersEndpoints() {
         // Act
         _app.MapSceneEndpoints();

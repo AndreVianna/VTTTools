@@ -3833,6 +3833,7 @@ resharper_xaml_xaml_xamarin_forms_data_type_and_binding_context_type_mismatched_
 resharper_xaml_x_key_attribute_disallowed_highlighting = error
 resharper_xunit_xunit_test_with_console_output_highlighting = warning
 resharper_zero_index_from_end_highlighting = warning
+csharp_style_prefer_implicitly_typed_lambda_expression = true:suggestion
 
 [*.{appxmanifest,asax,ascx,aspx,axaml,axml,build,cc,ccm,cginc,compute,config,cshtml,csproj,cu,cuh,cxx,cxxm,dbml,discomap,dtd,fx,fxh,hlsl,hlsli,hlslinc,hpp,htm,html,hxx,inc,inl,ino,ipp,ixx,jsproj,lsproj,master,mpp,mq4,mq5,mqh,mxx,njsproj,nuspec,paml,proj,props,razor,resw,resx,skin,StyleCop,targets,tasks,tpp,usf,ush,vbproj,xaml,xamlx,xml,xoml,xsd}]
 indent_size = 2
@@ -3896,8 +3897,8 @@ dotnet_style_prefer_simplified_interpolation = true:suggestion
 dotnet_style_prefer_collection_expression = when_types_loosely_match:suggestion
 dotnet_style_namespace_match_folder = true:none
 dotnet_style_readonly_field = true:suggestion
-dotnet_style_predefined_type_for_locals_parameters_members = true:warning
-dotnet_style_predefined_type_for_member_access = true:warning
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
 dotnet_style_allow_multiple_blank_lines_experimental = false:warning
 dotnet_style_allow_statement_immediately_after_block_experimental = true:warning

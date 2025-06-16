@@ -1,3 +1,5 @@
+using VttTools.Media.Model;
+
 namespace VttTools.Library.Epics.Model;
 
 public class EpicTests {
@@ -24,9 +26,14 @@ public class EpicTests {
         const string description = "Some Description";
         var ownerId = Guid.NewGuid();
         var display = new Display {
-            Id = "some_file.png",
+            Id = Guid.NewGuid(),
             Type = ResourceType.Image,
-            Size = new(100, 100),
+            Path = "assets/epic-background.png",
+            Metadata = new ResourceMetadata {
+                ContentType = "image/png",
+                ImageSize = new Size(1920, 1080),
+            },
+            Tags = ["epic", "background"],
         };
         var campaign = new Campaign {
             Id = Guid.NewGuid(),
@@ -38,7 +45,7 @@ public class EpicTests {
             Name = name,
             Description = description,
             OwnerId = ownerId,
-            Display = display,
+            Background = display,
             IsPublished = true,
             IsPublic = true,
             Campaigns = [campaign],
@@ -49,7 +56,7 @@ public class EpicTests {
         epic.Name.Should().Be(name);
         epic.Description.Should().Be(description);
         epic.OwnerId.Should().Be(ownerId);
-        epic.Display.Should().BeEquivalentTo(display);
+        epic.Background.Should().BeEquivalentTo(display);
         epic.IsPublished.Should().BeTrue();
         epic.IsPublic.Should().BeTrue();
         epic.Campaigns.Should().ContainSingle(c => c.Equals(campaign));

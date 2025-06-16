@@ -1,6 +1,7 @@
 using Adventure = VttTools.Data.Library.Entities.Adventure;
 using Asset = VttTools.Data.Assets.Entities.Asset;
 using GameSession = VttTools.Data.Game.Entities.GameSession;
+using Resource = VttTools.Data.Media.Entities.Resource;
 using Scene = VttTools.Data.Library.Entities.Scene;
 using Schedule = VttTools.Data.Game.Entities.Schedule;
 

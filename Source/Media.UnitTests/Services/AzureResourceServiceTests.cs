@@ -8,6 +8,7 @@ public class AzureResourceServiceTests {
     private readonly BlobContentInfo _blobContentInfo = Substitute.For<BlobContentInfo>();
     private readonly Response _response = Substitute.For<Response>();
     private readonly CancellationToken _ct;
+    private readonly IMediaStorage _mediaStorage = Substitute.For<IMediaStorage>();
 
     public AzureResourceServiceTests() {
         _blobServiceClient.GetBlobContainerClient("images").Returns(_blobContainerClient);
@@ -16,7 +17,7 @@ public class AzureResourceServiceTests {
         _blobContainerClient.GetBlobClient(Arg.Any<string>()).Returns(_blobClient);
         _blobClient.UploadAsync(Arg.Any<Stream>(), true, Arg.Any<CancellationToken>())
             .Returns(Response.FromValue(_blobContentInfo, _response));
-        _service = new(_blobServiceClient);
+        _service = new(_blobServiceClient, _mediaStorage);
 #if XUNITV3
         _ct = TestContext.Current.CancellationToken;
 #else
@@ -29,12 +30,15 @@ public class AzureResourceServiceTests {
         // Arrange
         var id = Guid.NewGuid();
         const string fileName = "test-image.png";
-        var file = new Resource {
-            Id = id.ToString(),
-            ContentType = ResourceType.Image,
-            FileSize = 12345,
-            ImageSize = new(100, 100),
-            Duration = TimeSpan.Zero,
+        var file = new AddResourceData {
+            Path = $"images/{id}/{fileName}",
+            Metadata = new ResourceMetadata {
+                ContentType = "image/png",
+                FileLength = 12345,
+                ImageSize = new(100, 100),
+                Duration = TimeSpan.Zero,
+                FileName = fileName,
+            },
         };
         var content = "test image content"u8.ToArray();
         await using var stream = new MemoryStream(content);
@@ -43,7 +47,7 @@ public class AzureResourceServiceTests {
             .Returns(Response.FromValue(true, Substitute.For<Response>()));
 
         // Act
-        var result = await _service.SaveResourceAsync(file, stream, fileName, _ct);
+        var result = await _service.SaveResourceAsync(file, stream, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
@@ -56,12 +60,12 @@ public class AzureResourceServiceTests {
         // Arrange
         var id = Guid.NewGuid();
         const string fileName = "test-image.png";
-        var file = new Resource {
-            Id = id.ToString(),
-            ContentType = ResourceType.Image,
-            FileSize = 12345,
-            ImageSize = new(100, 100),
-            Duration = TimeSpan.Zero,
+        var file = new AddResourceData {
+            Path = "assets/12345",
+            Metadata = new() {
+                FileName = fileName,
+                ContentType = "image/png",
+            },
         };
         var content = "test image content"u8.ToArray();
         await using var stream = new MemoryStream(content);
@@ -70,7 +74,7 @@ public class AzureResourceServiceTests {
             .Returns(Response.FromValue(false, _response));
 
         // Act
-        var result = await _service.SaveResourceAsync(file, stream, fileName, _ct);
+        var result = await _service.SaveResourceAsync(file, stream, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
@@ -91,7 +95,7 @@ public class AzureResourceServiceTests {
             .Returns(Response.FromValue(true, Substitute.For<Response>()));
 
         // Act
-        await _service.DeleteResourceAsync(id.ToString(), _ct);
+        await _service.DeleteResourceAsync(id, _ct);
 
         // Assert
         await _blobClient.Received(1).DeleteIfExistsAsync(
@@ -112,7 +116,7 @@ public class AzureResourceServiceTests {
             .Returns(Response.FromValue(false, Substitute.For<Response>()));
 
         // Act
-        await _service.DeleteResourceAsync(id.ToString(), _ct);
+        await _service.DeleteResourceAsync(id, _ct);
 
         // Assert
         await _blobClient.DidNotReceive().DeleteIfExistsAsync(

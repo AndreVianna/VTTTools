@@ -22,3 +22,5 @@ global using VttTools.Library.Scenes.ServiceContracts;
 global using VttTools.Library.Scenes.Services;
 global using VttTools.Library.Scenes.Storage;
 global using VttTools.Library.Services;
+global using VttTools.Media.Model;
+global using VttTools.Media.Storage;

@@ -11,7 +11,9 @@ public class SceneAssetTests {
         sceneAsset.Position.Should().NotBeNull();
         sceneAsset.Position.X.Should().Be(0);
         sceneAsset.Position.Y.Should().Be(0);
-        sceneAsset.Scale.Should().Be(1.0f);
+        sceneAsset.Size.Width.Should().Be(0);
+        sceneAsset.Size.Height.Should().Be(0);
+        sceneAsset.Frame.Should().BeNull();
         sceneAsset.IsLocked.Should().BeFalse();
         sceneAsset.ControlledBy.Should().BeNull();
     }
@@ -20,8 +22,14 @@ public class SceneAssetTests {
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
         const string name = "Test Asset";
-        var position = new Point { X = 10, Y = 20 };
-        const float scale = 0.5f;
+        var position = new Point(10, 20);
+        var size = new Size(1000, 2000);
+        var frame = new Frame {
+            Shape = FrameShape.Square,
+            BorderThickness = 2,
+            BorderColor = "black",
+            Background = "transparent"
+        };
         const bool isLocked = true;
         var controlledBy = Guid.NewGuid();
 
@@ -29,7 +37,8 @@ public class SceneAssetTests {
         var sceneAsset = new SceneAsset {
             Name = name,
             Position = position,
-            Scale = scale,
+            Size = size,
+            Frame = frame,
             IsLocked = isLocked,
             ControlledBy = controlledBy,
         };
@@ -37,7 +46,8 @@ public class SceneAssetTests {
         // Assert
         sceneAsset.Name.Should().Be(name);
         sceneAsset.Position.Should().Be(position);
-        sceneAsset.Scale.Should().Be(scale);
+        sceneAsset.Size.Should().Be(size);
+        sceneAsset.Frame.Should().BeEquivalentTo(frame);
         sceneAsset.IsLocked.Should().Be(isLocked);
         sceneAsset.ControlledBy.Should().Be(controlledBy);
     }

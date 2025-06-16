@@ -9,18 +9,14 @@ public class CreateAdventureRequestTests {
             Description = "Description",
             Type = AdventureType.OpenWorld,
             CampaignId = Guid.NewGuid(),
-            Display = new(),
+            BackgroundId = Guid.NewGuid(),
         };
 
         const string name = "Other Title";
         const string description = "Other Description";
         const AdventureType type = AdventureType.DungeonCrawl;
         var campaignId = Guid.NewGuid();
-        var display = new Display {
-            Id = "some_file.png",
-            Type = ResourceType.Image,
-            Size = new(100, 100),
-        };
+        var backgroundId = Guid.NewGuid();
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers
@@ -29,7 +25,7 @@ public class CreateAdventureRequestTests {
             Description = description,
             Type = type,
             CampaignId = campaignId,
-            Display = display,
+            BackgroundId = backgroundId,
         };
 
         // Assert
@@ -37,6 +33,6 @@ public class CreateAdventureRequestTests {
         data.Description.Should().Be(description);
         data.Type.Should().Be(type);
         data.CampaignId.Should().Be(campaignId);
-        data.Display.Should().BeEquivalentTo(display);
+        data.BackgroundId.Should().Be(backgroundId);
     }
 }

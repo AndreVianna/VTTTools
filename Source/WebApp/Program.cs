@@ -1,5 +1,3 @@
-using VttTools.WebApp.Contracts.Resources;
-
 using static VttTools.Data.Options.ApplicationDbContextOptions;
 
 using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;

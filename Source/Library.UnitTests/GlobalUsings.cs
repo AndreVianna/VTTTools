@@ -1,5 +1,4 @@
-﻿global using System.Diagnostics.CodeAnalysis;
-global using System.Drawing;
+﻿global using System.Drawing;
 global using System.Security.Claims;
 
 global using AwesomeAssertions;
@@ -30,5 +29,7 @@ global using VttTools.Library.Scenes.ServiceContracts;
 global using VttTools.Library.Scenes.Services;
 global using VttTools.Library.Scenes.Storage;
 global using VttTools.Library.Services;
+global using VttTools.Media.Model;
+global using VttTools.Media.Storage;
 
 global using Xunit;

@@ -1,5 +1,3 @@
-using UpdateAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateAssetRequest;
-
 namespace VttTools.WebApp.WebAssembly.Pages.Library.Scenes;
 
 public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
@@ -103,13 +101,14 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
                 Console.WriteLine($"Failed to load scene {SceneId}");
                 return;
             }
+
             Scene = scene;
             State.SceneId = Scene.Id;
             State.Grid = Scene.Grid;
             State.ZoomLevel = Scene.Stage.ZoomLevel;
-            State.PanOffset = Scene.Stage.Offset;
+            State.PanOffset = Scene.Stage.Panning;
             await StorageService.SaveStateAsync(State);
-            StageImageUrl = GetImageUrl(_filesBasePath, Scene.Stage.Id);
+            StageImageUrl = GetImageUrl(_filesBasePath, Scene.Stage.Path);
 
             // Initialize state from scene and local storage
             await InitializeStateAsync();
@@ -126,7 +125,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             return;
 
         // Calculate canvas size and update state
-        State.CanvasSize = SceneCalculations.CalculateCanvasSize(Scene.Stage.Size, BuilderState.Padding);
+        State.CanvasSize = SceneCalculations.CalculateCanvasSize(Scene.Stage.ImageSize, BuilderState.Padding);
 
         var renderData = CreateRenderData();
         await JsRuntime.InvokeVoidAsync("setup", Scene.Id.ToString(), renderData);
@@ -144,7 +143,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         State.PanOffset = panOffset;
         State.ZoomLevel = zoomLevel;
         State.Grid = grid;
-        State.CanvasSize = SceneCalculations.CalculateCanvasSize(Scene.Stage.Size, BuilderState.Padding);
+        State.CanvasSize = SceneCalculations.CalculateCanvasSize(Scene.Stage.ImageSize, BuilderState.Padding);
     }
 
     private async Task SetCanvasWindowAsync() {
@@ -157,9 +156,10 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     }
 
     private object CreateRenderData() {
-        if (Scene is null) return new { };
+        if (Scene is null)
+            return new { };
         return new {
-            imageUrl = GetImageUrl(_filesBasePath, Scene.Stage.Id),
+            imageUrl = GetImageUrl(_filesBasePath, Scene.Stage.Path),
             grid = new {
                 type = State.Grid.Type,
                 cellSize = State.Grid.CellSize,
@@ -171,9 +171,9 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
                 number = a.Number,
                 name = a.Name,
                 position = a.Position,
-                scale = a.Scale,
+                size = a.Size,
                 isSelected = a.Id == SelectedAsset?.Id,
-                imageUrl = GetImageUrl(_filesBasePath, a.ResourceId),
+                imageUrl = GetImageUrl(_filesBasePath, a.DisplayPath),
                 isLocked = a.IsLocked,
             }).ToArray(),
         };
@@ -186,9 +186,8 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         await JsRuntime.InvokeVoidAsync("render", data);
     }
 
-    private static string GetImageUrl(string basePath, string id) {
-        return $"{basePath}/{id}";
-    }
+    private static string GetImageUrl(string basePath, string imagePath)
+        => $"{basePath}/{imagePath}";
 
     private void OpenChangeImageModal() => State.ShowChangeImageModal = true;
 
@@ -209,9 +208,11 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             return;
         }
 
-        if (State.IsPanning) return;
+        if (State.IsPanning)
+            return;
         var position = GetMouseCanvasPosition(e);
-        if (position == null) return;
+        if (position == null)
+            return;
         if (SelectedAsset is not null && SelectedAsset.Type != AssetType.Placeholder) {
             SelectedAsset.Position = position.Value;
             State.ShowAssetSelectorModal = true;
@@ -240,11 +241,10 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             Type = asset.Type,
             Position = asset.Position,
             Size = asset.Size,
-            Scale = asset.Scale,
             Rotation = asset.Rotation,
             Elevation = asset.Elevation,
             IsLocked = asset.IsLocked,
-            ImageUrl = GetImageUrl(_filesBasePath, asset.ResourceId),
+            ImageUrl = GetImageUrl(_filesBasePath, asset.DisplayPath),
         };
         State.IsDragging = SelectedAsset is { IsLocked: false };
     }
@@ -287,6 +287,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             await EndPanningAsync();
             return;
         }
+
         State.IsDragging = false;
     }
 
@@ -297,7 +298,8 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     private async Task ResetZoom() => await JsRuntime.InvokeVoidAsync("setZoom", "X");
 
     private async Task StartPanningAsync(MouseEventArgs e) {
-        if (State.IsZooming) return;
+        if (State.IsZooming)
+            return;
         State.IsPanning = true;
         State.HasMovedDuringPan = false;
         State.PanStartPosition = new((int)e.PageX, (int)e.PageY);
@@ -306,7 +308,8 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     }
 
     private async Task UpdatePanningAsync(MouseEventArgs e) {
-        if (!State.IsPanning) return;
+        if (!State.IsPanning)
+            return;
         var currentPosition = new Point((int)e.PageX, (int)e.PageY);
         var deltaX = currentPosition.X - State.PanStartPosition.X;
         var deltaY = currentPosition.Y - State.PanStartPosition.Y;
@@ -326,17 +329,21 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     }
 
     private async Task EndPanningAsync() {
-        if (!State.IsPanning) return;
+        if (!State.IsPanning)
+            return;
         State.IsPanning = false;
         await JsRuntime.InvokeVoidAsync("setCursor", _canvasContainerRef, "default");
     }
 
     private async Task OnCanvasContextMenu(MouseEventArgs e) {
-        if (State is { IsPanning: true, HasMovedDuringPan: true }) return;
+        if (State is { IsPanning: true, HasMovedDuringPan: true })
+            return;
         var position = GetMouseCanvasPosition(e);
-        if (position == null) return;
+        if (position == null)
+            return;
         var asset = FindAssetAt(position.Value);
-        if (asset == null || SelectedAsset == null) return;
+        if (asset == null || SelectedAsset == null)
+            return;
         State.ContextMenuPosition = new() { X = Convert.ToInt32(e.ClientX), Y = Convert.ToInt32(e.ClientY) };
         State.ShowAssetContextMenu = true;
         await RenderAsync();
@@ -371,10 +378,11 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         State.ShowAssetContextMenu = false;
 
         // Update the asset on the server
-        var updateRequest = new UpdateAssetRequest {
+        var updateRequest = new UpdateSceneAssetRequest {
             Name = SelectedAsset.Name,
             Position = SelectedAsset.Position,
-            Scale = SelectedAsset.Scale,
+            Size = SelectedAsset.Size,
+            Frame = SelectedAsset.Frame,
             Rotation = SelectedAsset.Rotation,
             Elevation = SelectedAsset.Elevation,
             IsLocked = SelectedAsset.IsLocked,
@@ -411,6 +419,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
                 break; // End of stream
             totalBytesRead += bytesRead;
         }
+
         if (totalBytesRead != bytes.Length)
             throw new IOException($"Failed to read file: read {totalBytesRead} of {bytes.Length} bytes");
         var content = Convert.ToBase64String(bytes);
@@ -419,7 +428,8 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     }
 
     private async Task SaveBackgroundImage() {
-        if (Scene == null || SelectedStageFile == null) return;
+        if (Scene == null || SelectedStageFile == null)
+            return;
         var fileName = Path.GetFileName(SelectedStageFile.Name);
         await using var stream = SelectedStageFile.OpenReadStream(_maxFileSize);
         var result = await ResourceManager.UploadFileAsync("scene", Scene.Id, "stage", stream, fileName);
@@ -427,11 +437,12 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             Console.WriteLine($"Failed to upload background image: {result.Errors[0].Message}");
             return;
         }
+
         Scene = Scene with {
             Stage = Scene.Stage with {
                 Id = result.Value.Id,
-                ContentType = result.Value.ContentType,
-                Size = result.Value.ImageSize,
+                Type = result.Value.Type,
+                ImageSize = result.Value.Metadata.ImageSize,
                 Path = result.Value.Path,
             },
         };
@@ -461,13 +472,15 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     }
 
     private async Task AddAssetToScene() {
-        if (Scene == null) return;
-        if (SelectedAsset == null) return;
-        var addAssetRequest = new AddAssetRequest {
-            Id = SelectedAsset.Id,
+        if (Scene == null)
+            return;
+        if (SelectedAsset == null)
+            return;
+        var addAssetRequest = new AddSceneAssetRequest {
             Name = SelectedAsset.Name,
             Position = SelectedAsset.Position,
-            Scale = SelectedAsset.Scale,
+            Size = SelectedAsset.Size,
+            Frame = SelectedAsset.Frame,
             Rotation = SelectedAsset.Rotation,
             Elevation = SelectedAsset.Elevation,
         };
@@ -480,25 +493,25 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         SelectedAsset.Type = AssetType.Placeholder;
         SelectedAsset.Name = string.Empty;
         SelectedAsset.Position = new(0, 0);
-        SelectedAsset.Scale = 1.0f;
-        SelectedAsset.Rotation = 0.0f;
-        SelectedAsset.Elevation = 0.0f;
+        SelectedAsset.Size = new(0, 0);
+        SelectedAsset.Rotation = 0;
+        SelectedAsset.Elevation = 0;
         SelectedAssetFile = null;
         await RenderAsync();
     }
 
     private async Task SaveScene() {
-        if (Scene == null) return;
+        if (Scene == null)
+            return;
         var updateRequest = new UpdateSceneRequest {
             Name = Scene.Name,
             Description = Scene.Description,
-            Display = new Display {
-                Id = Scene.Stage.Id,
-                Type = Scene.Stage.Type,
-                Size = Scene.Stage.Size,
+            Stage = new UpdateSceneRequest.StageUpdate() {
+                BackgroundId = Scene.Stage.Id,
+                ZoomLevel = Scene.Stage.ZoomLevel,
+                Panning = Scene.Stage.Panning,
             },
-            ZoomLevel = Scene.ZoomLevel,
-            Grid = new Grid {
+            Grid = new UpdateSceneRequest.GridUpdate() {
                 Type = Scene.Grid.Type,
                 CellSize = Scene.Grid.CellSize,
                 Offset = Scene.Grid.Offset,

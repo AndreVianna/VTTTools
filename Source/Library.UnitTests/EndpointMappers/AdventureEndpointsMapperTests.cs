@@ -8,16 +8,11 @@ public class AdventureEndpointsMapperTests {
     }
 
     [Fact]
-    [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "<Pending>")]
-    [SuppressMessage("Usage", "ASP0018:Unused route parameter", Justification = "<Pending>")]
     public void MapAdventureManagementEndpoints_RegistersEndpoints() {
-        // Arrange
-
         // Act
         _app.MapAdventureEndpoints();
 
         // Assert
-        // Check route group is created correctly
         _app.Received(1).MapGroup("/api/adventures");
         _app.DataSources.Should().HaveCount(1);
         var groupDataSource = _app.DataSources.First();

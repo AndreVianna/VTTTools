@@ -37,11 +37,12 @@ public static class AdventuresMapper {
             Description = scene.Description,
             IsPublished = scene.IsPublished,
             Stage = new() {
-                Id = scene.Stage.Id,
-                Type = scene.Stage.Type,
-                Size = scene.Stage.Size,
-                Offset = scene.Stage.Offset,
-                ZoomLevel = scene.ZoomLevel,
+                Id = scene.Stage.Background.Id,
+                Type = scene.Stage.Background.Type,
+                Path = scene.Stage.Background.Path,
+                ImageSize = scene.Stage.Background.Metadata.ImageSize,
+                Panning = scene.Stage.Panning,
+                ZoomLevel = scene.Stage.ZoomLevel,
             },
             Grid = new() {
                 Type = scene.Grid.Type,
@@ -49,7 +50,6 @@ public static class AdventuresMapper {
                 Offset = scene.Grid.Offset,
                 Snap = scene.Grid.Snap,
             },
-            ZoomLevel = scene.ZoomLevel,
             Assets = [.. scene.Assets.Select(asset => new SceneAssetDetails {
                 Id = asset.Id,
                 Name = asset.Name,

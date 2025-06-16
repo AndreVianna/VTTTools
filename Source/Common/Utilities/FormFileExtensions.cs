@@ -4,19 +4,22 @@ using Size = System.Drawing.Size;
 namespace VttTools.Utilities;
 
 public static class FormFileExtensions {
-    public static async Task<Result<Resource>> ToResource(this IFormFile file, Guid id, string path, Stream stream) {
+    public static async Task<Result<AddResourceData>> ToData(this IFormFile file, string path, Stream stream, params string[] tags) {
         var result = await GetFileData(file.FileName, stream);
-        if (stream.CanSeek) stream.Position = 0;
+        if (stream.CanSeek)
+            stream.Position = 0;
         return result.HasErrors switch {
             true => Result.Failure(result.Errors),
-            _ => new Resource {
-                Id = id,
-                FileName = file.FileName,
+            _ => new AddResourceData {
                 Path = path,
-                ContentType = file.ContentType,
-                FileSize = (ulong)file.Length,
-                ImageSize = result.Value.Size,
-                Duration = result.Value.Duration,
+                Metadata = new ResourceMetadata {
+                    ContentType = file.ContentType,
+                    FileName = file.FileName,
+                    FileLength = (ulong)file.Length,
+                    ImageSize = result.Value.Size,
+                    Duration = result.Value.Duration,
+                },
+                Tags = tags,
             },
         };
     }
@@ -33,7 +36,7 @@ public static class FormFileExtensions {
     }
 
     private static async Task<(Size, TimeSpan)> GetImageInfo(Stream stream) {
-        using var image = await Image.LoadAsync(stream);
+        using var image = await SixLabors.ImageSharp.Image.LoadAsync(stream);
         return (new(image.Width, image.Height), TimeSpan.Zero);
     }
 

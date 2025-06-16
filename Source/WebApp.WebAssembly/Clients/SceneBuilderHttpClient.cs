@@ -1,5 +1,3 @@
-using UpdateAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateAssetRequest;
-
 namespace VttTools.WebApp.WebAssembly.Clients;
 
 public class SceneBuilderHttpClient(HttpClient client, JsonSerializerOptions options, AuthenticationStateProvider authentication)
@@ -30,7 +28,7 @@ public class SceneBuilderHttpClient(HttpClient client, JsonSerializerOptions opt
         return Result.Success(result);
     }
 
-    public async Task<Result<SceneAssetDetails>> AddSceneAssetAsync(Guid sceneId, AddAssetRequest request) {
+    public async Task<Result<SceneAssetDetails>> AddSceneAssetAsync(Guid sceneId, AddSceneAssetRequest request) {
         var response = await client.PostAsJsonAsync($"api/scenes/{sceneId}/assets", request, options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to add scene asset");
@@ -44,7 +42,7 @@ public class SceneBuilderHttpClient(HttpClient client, JsonSerializerOptions opt
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<Result> UpdateSceneAssetAsync(Guid sceneId, Guid assetId, uint number, UpdateAssetRequest request) {
+    public async Task<Result> UpdateSceneAssetAsync(Guid sceneId, Guid assetId, uint number, UpdateSceneAssetRequest request) {
         var response = await client.PatchAsJsonAsync($"api/scenes/{sceneId}/assets/{assetId}/{number}", request, options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to update scene asset");

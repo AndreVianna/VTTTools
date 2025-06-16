@@ -16,12 +16,12 @@ internal static class AdventureHandlers {
 
     internal static async Task<IResult> CreateAdventureHandler(HttpContext context, [FromBody] CreateAdventureRequest request, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var data = new NewAdventureData {
+        var data = new CreateAdventureData {
             CampaignId = request.CampaignId,
             Name = request.Name,
             Description = request.Description,
             Type = request.Type,
-            Display = request.Display,
+            BackgroundId = request.BackgroundId,
         };
         var result = await adventureService.CreateAdventureAsync(userId, data);
         return result.IsSuccessful
@@ -29,17 +29,9 @@ internal static class AdventureHandlers {
             : Results.BadRequest(result.Errors);
     }
 
-    internal static async Task<IResult> CloneAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromBody] CloneAdventureRequest request, [FromServices] IAdventureService adventureService) {
+    internal static async Task<IResult> CloneAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var data = new ClonedAdventureData {
-            TemplateId = id,
-            Name = request.Name,
-            Description = request.Description,
-            Type = request.Type,
-            Display = request.Display,
-            IncludeScenes = request.IncludeScenes,
-        };
-        var result = await adventureService.CloneAdventureAsync(userId, data);
+        var result = await adventureService.CloneAdventureAsync(userId, id);
         return result.IsSuccessful
             ? Results.Created($"/api/adventures/{result.Value.Id}", result.Value)
             : result.Errors[0].Message == "NotFound"
@@ -55,7 +47,7 @@ internal static class AdventureHandlers {
             Name = request.Name,
             Description = request.Description,
             Type = request.Type,
-            Display = request.Display,
+            BackgroundId = request.BackgroundId,
             IsListed = request.IsPublished,
             IsPublic = request.IsPublic,
             CampaignId = request.CampaignId,
@@ -97,30 +89,11 @@ internal static class AdventureHandlers {
                     : Results.BadRequest(result.Errors);
     }
 
-    internal static async Task<IResult> AddClonedSceneHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid templateId, [FromBody] CloneSceneRequest request, [FromServices] IAdventureService adventureService) {
+    internal static async Task<IResult> AddClonedSceneHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid sceneId, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var data = new ClonedSceneData {
-            Name = request.Name,
-            Description = request.Description,
-            Stage = request.Display,
-            ZoomLevel = request.ZoomLevel,
-            Grid = request.Grid,
-        };
-        var result = await adventureService.AddClonedSceneAsync(userId, id, templateId, data);
+        var result = await adventureService.AddClonedSceneAsync(userId, id, sceneId);
         return result.IsSuccessful
             ? Results.Ok(result.Value)
-            : result.Errors[0].Message == "NotFound"
-                ? Results.NotFound()
-                : result.Errors[0].Message == "NotAllowed"
-                    ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
-    }
-
-    internal static async Task<IResult> RemoveSceneHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid sceneId, [FromServices] IAdventureService adventureService) {
-        var userId = context.User.GetUserId();
-        var result = await adventureService.RemoveSceneAsync(userId, id, sceneId);
-        return result.IsSuccessful
-            ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"

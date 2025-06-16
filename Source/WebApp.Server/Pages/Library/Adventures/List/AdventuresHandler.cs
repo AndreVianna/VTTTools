@@ -57,11 +57,7 @@ public class AdventuresHandler(AdventuresPage page)
     }
 
     public async Task CloneAdventure(Guid id) {
-        var request = new CloneAdventureRequest {
-            Name = $"{Page.State.Adventures.First(a => a.Id == id).Name} (Copy)",
-        };
-
-        var result = await _adventures.CloneAdventureAsync(id, request);
+        var result = await _adventures.CloneAdventureAsync(id);
         if (!result.IsSuccessful)
             return;
         Page.State.Adventures.Add(result.Value);

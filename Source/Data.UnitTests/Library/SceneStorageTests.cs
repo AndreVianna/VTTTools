@@ -112,7 +112,9 @@ public class SceneStorageTests
             Id = entity.Id,
             Name = "Updated Scene",
             Description = "Updated Description",
-            Stage = entity.Stage,
+            Stage = new() {
+                Background = entity.Stage.ToModel(),
+            }
         };
         // Act
         var result = await _storage.UpdateAsync(scene, _ct);

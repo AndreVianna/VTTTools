@@ -1,3 +1,5 @@
+using VttTools.Media.Model;
+
 namespace VttTools.Assets.Model;
 
 public class AssetTests {
@@ -25,9 +27,17 @@ public class AssetTests {
         const string description = "Test Description";
         var size = new Size(100, 200);
         var format = new Display {
+            Id = Guid.NewGuid(),
             Type = ResourceType.Image,
-            Id = "some_file.png",
-            Size = size,
+            Path = "assets/test-asset-display",
+            Metadata = new ResourceMetadata {
+                ContentType = "image/png",
+                ImageSize = size,
+            },
+            Offset = new Point(10, 20),
+            Tags = ["tag1", "tag2"],
+            Rotation = 45.0f,
+            Scale = new(1.5f, 0.5f),
         };
 
         // Act

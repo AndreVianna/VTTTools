@@ -1,3 +1,5 @@
+using VttTools.Media.Model;
+
 namespace VttTools.Library.Campaigns.Model;
 
 public class CampaignTests {
@@ -15,7 +17,7 @@ public class CampaignTests {
         campaign.Description.Should().BeEmpty();
         campaign.IsPublished.Should().BeFalse();
         campaign.IsPublic.Should().BeFalse();
-        campaign.Display.Should().BeNull();
+        campaign.Background.Should().BeNull();
     }
 
     [Fact]
@@ -27,9 +29,14 @@ public class CampaignTests {
         var ownerId = Guid.NewGuid();
         var epicId = Guid.NewGuid();
         var display = new Display {
-            Id = "some_file.png",
+            Id = Guid.NewGuid(),
             Type = ResourceType.Image,
-            Size = new(100, 100),
+            Path = "assets/campaign-background.png",
+            Metadata = new ResourceMetadata {
+                ContentType = "image/png",
+                ImageSize = new Size(1920, 1080),
+            },
+            Tags = ["fantasy", "adventure"],
         };
         var adventure = new Adventure {
             Id = Guid.NewGuid(),
@@ -42,7 +49,7 @@ public class CampaignTests {
             Description = description,
             OwnerId = ownerId,
             EpicId = epicId,
-            Display = display,
+            Background = display,
             IsPublished = true,
             IsPublic = true,
             Adventures = [adventure],
@@ -54,7 +61,7 @@ public class CampaignTests {
         campaign.Description.Should().Be(description);
         campaign.OwnerId.Should().Be(ownerId);
         campaign.EpicId.Should().Be(epicId);
-        campaign.Display.Should().BeEquivalentTo(display);
+        campaign.Background.Should().BeEquivalentTo(display);
         campaign.IsPublished.Should().BeTrue();
         campaign.IsPublic.Should().BeTrue();
         campaign.Adventures.Should().ContainSingle(c => c.Equals(adventure));

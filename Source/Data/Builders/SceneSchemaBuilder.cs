@@ -3,9 +3,6 @@ using SceneAsset = VttTools.Data.Library.Entities.SceneAsset;
 
 namespace VttTools.Data.Builders;
 
-/// <summary>
-/// Configures the EF model for the Scene entity.
-/// </summary>
 internal static class SceneSchemaBuilder {
     public static void ConfigureModel(ModelBuilder builder) {
         builder.Entity<Scene>(entity => {
@@ -15,16 +12,16 @@ internal static class SceneSchemaBuilder {
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
             entity.Property(e => e.IsPublished).IsRequired();
-            entity.Property(s => s.ZoomLevel).IsRequired().HasDefaultValue(1.0f);
-            entity.ComplexProperty(s => s.Offset, offsetBuilder => {
-                offsetBuilder.IsRequired();
-                offsetBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0);
-                offsetBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0);
+            entity.Property(s => s.ZoomLevel).IsRequired().HasDefaultValue(1);
+            entity.ComplexProperty(s => s.Panning, panningBuilder => {
+                panningBuilder.IsRequired();
+                panningBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0);
+                panningBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0);
             });
-            entity.HasOne(s => s.Stage)
+            entity.HasOne(e => e.Stage)
                   .WithMany()
-                  .HasForeignKey(s => s.StageId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(e => e.StageId)
+                .OnDelete(DeleteBehavior.Restrict);
             entity.ComplexProperty(s => s.Grid, gridBuilder => {
                 gridBuilder.IsRequired();
                 gridBuilder.Property(g => g.Type).IsRequired().HasConversion<string>().HasDefaultValue(GridType.NoGrid);
@@ -42,16 +39,28 @@ internal static class SceneSchemaBuilder {
         });
         builder.Entity<SceneAsset>(entity => {
             entity.ToTable("SceneAssets");
-            entity.HasKey(ea => new { ea.AssetId, ea.SceneId, ea.Number });
+            entity.HasKey(ea => new { ea.SceneId, ea.Index });
             entity.Property(ea => ea.AssetId).IsRequired();
             entity.Property(ea => ea.SceneId).IsRequired();
+            entity.Property(ea => ea.Index).IsRequired();
             entity.Property(ea => ea.Number).IsRequired();
             entity.Property(ea => ea.Name).IsRequired().HasMaxLength(128);
             entity.HasOne(s => s.Display)
                   .WithMany()
                   .HasForeignKey(s => s.DisplayId)
                   .OnDelete(DeleteBehavior.Cascade);
-            entity.Property(ea => ea.Scale).IsRequired().HasDefaultValue(1);
+            entity.ComplexProperty(ea => ea.Frame, frameBuilder => {
+                frameBuilder.IsRequired();
+                frameBuilder.Property(s => s.Shape).IsRequired().HasConversion<string>().HasDefaultValue(FrameShape.Square);
+                frameBuilder.Property(s => s.BorderThickness).IsRequired().HasDefaultValue(1);
+                frameBuilder.Property(s => s.BorderColor).IsRequired().HasDefaultValue("white");
+                frameBuilder.Property(s => s.Background).IsRequired().HasDefaultValue(string.Empty);
+            });
+            entity.ComplexProperty(ea => ea.Size, sizeBuilder => {
+                sizeBuilder.IsRequired();
+                sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(0);
+                sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(0);
+            });
             entity.ComplexProperty(ea => ea.Position, sizeBuilder => {
                 sizeBuilder.IsRequired();
                 sizeBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0);

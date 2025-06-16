@@ -2,10 +2,10 @@
 global using System.Net;
 global using System.Security.Claims;
 
+global using AwesomeAssertions;
+
 global using DotNetToolbox;
 global using DotNetToolbox.Results;
-
-global using AwesomeAssertions;
 
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Http;

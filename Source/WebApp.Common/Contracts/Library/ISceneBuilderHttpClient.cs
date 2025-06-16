@@ -1,4 +1,4 @@
-﻿using UpdateAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateAssetRequest;
+﻿using UpdateSceneAssetRequest = VttTools.Library.Scenes.ApiContracts.UpdateSceneAssetRequest;
 
 namespace VttTools.WebApp.Contracts.Library;
 
@@ -6,7 +6,7 @@ public interface ISceneBuilderHttpClient {
     Task<SceneDetails?> GetSceneByIdAsync(Guid id);
     Task<Result> UpdateSceneAsync(Guid id, UpdateSceneRequest request);
 
-    Task<Result<SceneAssetDetails>> AddSceneAssetAsync(Guid sceneId, AddAssetRequest request);
-    Task<Result> UpdateSceneAssetAsync(Guid sceneId, Guid assetId, uint number, UpdateAssetRequest request);
-    Task<bool> RemoveSceneAssetAsync(Guid sceneId, Guid assetId, uint number);
+    Task<Result<SceneAssetDetails>> AddSceneAssetAsync(Guid id, AddSceneAssetRequest request);
+    Task<Result> UpdateSceneAssetAsync(Guid id, Guid assetId, uint number, UpdateSceneAssetRequest request);
+    Task<bool> RemoveSceneAssetAsync(Guid id, Guid assetId, uint number);
 }

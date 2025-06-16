@@ -123,14 +123,14 @@ public class AdventureHandlerTests
         _page.State.Mode = DetailsPageMode.Edit;
         _page.Id = _adventureId;
 
-        // Set up original values
+        // Items up original values
         _page.State.Original.Name = "Original Name";
         _page.State.Original.Description = "Original Description";
         _page.State.Original.Type = AdventureType.OpenWorld;
         _page.State.Original.IsPublished = false;
         _page.State.Original.IsPublic = false;
 
-        // Set up changed values
+        // Items up changed values
         _page.Input.Name = "Updated Name";
         _page.Input.Description = "Updated Description";
         _page.Input.Type = AdventureType.DungeonCrawl;
@@ -239,14 +239,14 @@ public class AdventureHandlerTests
         // Arrange
         var handler = CreateHandler();
 
-        // Set original values
+        // Items original values
         _page.State.Original.Name = "Original Name";
         _page.State.Original.Description = "Original Description";
         _page.State.Original.Type = AdventureType.OpenWorld;
         _page.State.Original.IsPublished = true;
         _page.State.Original.IsPublic = false;
 
-        // Set changed values
+        // Items changed values
         _page.Input.Name = "Changed Name";
         _page.Input.Description = "Changed Description";
         _page.Input.Type = AdventureType.DungeonCrawl;

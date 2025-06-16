@@ -8,23 +8,19 @@ public class UpdateAdventureRequestTests {
             Name = "Title",
             Description = "Description",
             Type = AdventureType.OpenWorld,
-            Display = new(),
             IsPublished = false,
             IsPublic = false,
             CampaignId = Guid.NewGuid(),
+            BackgroundId = Guid.NewGuid(),
         };
 
         const string name = "Other Title";
         const string description = "Other Description";
         const AdventureType type = AdventureType.DungeonCrawl;
-        var display = new Display {
-            Id = "some_file.png",
-            Type = ResourceType.Image,
-            Size = new(100, 100),
-        };
         const bool isVisible = true;
         const bool isPublic = true;
         var campaignId = Guid.NewGuid();
+        var backgroundId = Guid.NewGuid();
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers
@@ -32,19 +28,19 @@ public class UpdateAdventureRequestTests {
             Name = name,
             Description = description,
             Type = type,
-            Display = display,
             IsPublished = isVisible,
             IsPublic = isPublic,
             CampaignId = campaignId,
+            BackgroundId = backgroundId,
         };
 
         // Assert
         data.Name.Value.Should().Be(name);
         data.Description.Value.Should().Be(description);
         data.Type.Value.Should().Be(type);
-        data.Display.Value.Should().Be(display);
         data.IsPublished.Value.Should().Be(isVisible);
         data.IsPublic.Value.Should().Be(isPublic);
         data.CampaignId.Value.Should().Be(campaignId);
+        data.BackgroundId.Value.Should().Be(backgroundId);
     }
 }

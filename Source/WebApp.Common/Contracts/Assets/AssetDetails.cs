@@ -5,7 +5,7 @@ public record AssetDetails {
     public string Name { get; init; } = string.Empty;
     public AssetType Type { get; init; }
     public string? FileName { get; init; }
-    public ResourceType ResourceType { get; init; }
-    public string ResourceId { get; init; } = string.Empty;
-    public Size Size { get; init; }
+    public ResourceType DisplayType { get; init; }
+    public string DisplayPath { get; init; } = string.Empty;
+    public Size DisplaySize { get; init; }
 }

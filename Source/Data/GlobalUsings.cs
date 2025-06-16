@@ -29,3 +29,4 @@ global using VttTools.Library.Adventures.Storage;
 global using VttTools.Library.Scenes.Model;
 global using VttTools.Library.Scenes.Storage;
 global using VttTools.Media.Model;
+global using VttTools.Media.Storage;

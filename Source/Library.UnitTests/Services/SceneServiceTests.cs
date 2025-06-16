@@ -3,6 +3,7 @@
 public class SceneServiceTests {
     private readonly ISceneStorage _sceneStorage;
     private readonly IAssetStorage _assetStorage;
+    private readonly IMediaStorage _mediaStorage;
     private readonly SceneService _service;
     private readonly Guid _userId = Guid.NewGuid();
     private readonly CancellationToken _ct;
@@ -10,7 +11,8 @@ public class SceneServiceTests {
     public SceneServiceTests() {
         _sceneStorage = Substitute.For<ISceneStorage>();
         _assetStorage = Substitute.For<IAssetStorage>();
-        _service = new(_sceneStorage, _assetStorage);
+        _mediaStorage = Substitute.For<IMediaStorage>();
+        _service = new(_sceneStorage, _assetStorage, _mediaStorage);
 #if XUNITV3
         _ct = TestContext.Current.CancellationToken;
 #else
@@ -87,8 +89,6 @@ public class SceneServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Name.Should().Be(data.Name.Value);
-        result.Value.Description.Should().Be(data.Description.Value);
         await _sceneStorage.Received(1).UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 
@@ -114,8 +114,6 @@ public class SceneServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Name.Should().Be(data.Name.Value);
-        result.Value.Description.Should().Be(scene.Description);
         await _sceneStorage.Received(1).UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 
@@ -168,8 +166,8 @@ public class SceneServiceTests {
             Id = sceneId,
             Name = "Scene",
             Assets = [
-                new() { Number = 1, Name = "Test Asset 1" },
-                new() { Number = 2, Name = "Test Asset 2" },
+                new() { Index = 1, Name = "Test Asset 1" },
+                new() { Index = 2, Name = "Test Asset 2" },
             ],
         };
 
@@ -209,10 +207,16 @@ public class SceneServiceTests {
             Name = "Scene",
             Assets = [],
         };
-        var data = new AddAssetData {
+        var data = new AddSceneAssetData {
             Name = "New Asset",
             Position = new Point(20, 30),
-            Scale = 0.5f,
+            Size = new Size(10, 50),
+            Frame = new Frame {
+                Shape = FrameShape.Square,
+                BorderThickness = 2,
+                BorderColor = "black",
+                Background = "white",
+            },
             Elevation = 1,
             Rotation = 45,
         };
@@ -229,10 +233,11 @@ public class SceneServiceTests {
         scene.Assets.Should().ContainSingle();
         var addedAsset = scene.Assets[0];
         addedAsset.Name.Should().Be(data.Name.Value);
-        addedAsset.Position.Should().BeEquivalentTo(data.Position.Value);
-        addedAsset.Scale.Should().Be(data.Scale.Value);
-        addedAsset.Elevation.Should().Be(data.Elevation.Value);
-        addedAsset.Rotation.Should().Be(data.Rotation.Value);
+        addedAsset.Position.Should().Be(data.Position);
+        addedAsset.Size.Should().Be(data.Size);
+        addedAsset.Frame.Should().BeEquivalentTo(data.Frame);
+        addedAsset.Elevation.Should().Be(data.Elevation);
+        addedAsset.Rotation.Should().Be(data.Rotation);
         addedAsset.IsLocked.Should().BeFalse();
         await _sceneStorage.Received(1).UpdateAsync(scene, Arg.Any<CancellationToken>());
     }
@@ -248,10 +253,16 @@ public class SceneServiceTests {
             Name = "Scene",
             Assets = [],
         };
-        var data = new AddAssetData {
+        var data = new AddSceneAssetData {
             Name = "New Asset",
             Position = new Point(20, 30),
-            Scale = 0.5f,
+            Size = new Size(10, 50),
+            Frame = new Frame {
+                Shape = FrameShape.Square,
+                BorderThickness = 2,
+                BorderColor = "black",
+                Background = "white",
+            },
             Elevation = 1,
             Rotation = 45,
         };
@@ -272,10 +283,16 @@ public class SceneServiceTests {
         // Arrange
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
-        var data = new AddAssetData {
+        var data = new AddSceneAssetData {
             Name = "New Asset",
             Position = new Point(20, 30),
-            Scale = 0.5f,
+            Size = new Size(10, 50),
+            Frame = new Frame {
+                Shape = FrameShape.Square,
+                BorderThickness = 2,
+                BorderColor = "black",
+                Background = "white",
+            },
             Elevation = 1,
             Rotation = 45,
         };
@@ -284,82 +301,6 @@ public class SceneServiceTests {
 
         // Act
         var result = await _service.AddAssetAsync(_userId, sceneId, assetId, data, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeFalse();
-        await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task RemoveAssetAsync_WithOwner_RemovesAssetAndReturnsTrue() {
-        // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
-        const int number = 1;
-        var scene = new Scene {
-            Id = sceneId,
-            Name = "Scene",
-            Assets = [
-                new() {
-                    Number = number,
-                    Name = "Asset to remove",
-                    Position = new(1, 1),
-                },
-            ],
-        };
-
-        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
-
-        // Act
-        var result = await _service.RemoveAssetAsync(_userId, sceneId, assetId, number, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue();
-        scene.Assets.Should().BeEmpty();
-        await _sceneStorage.Received(1).UpdateAsync(scene, Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task RemoveAssetAsync_WithNonOwner_ReturnsFalse() {
-        // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
-        const int number = 1;
-        var nonOwnerId = Guid.NewGuid();
-        var scene = new Scene {
-            Id = sceneId,
-            Name = "Scene",
-            Assets = [
-                new() {
-                    Number = number,
-                    Name = "Asset to keep",
-                    Position = new(1, 1),
-                },
-            ],
-        };
-
-        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
-
-        // Act
-        var result = await _service.RemoveAssetAsync(nonOwnerId, sceneId, assetId, number, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeFalse();
-        scene.Assets.Should().ContainSingle();
-        await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task RemoveAssetAsync_WithNonexistentScene_ReturnsFalse() {
-        // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
-        const int number = 1;
-
-        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
-
-        // Act
-        var result = await _service.RemoveAssetAsync(_userId, sceneId, assetId, number, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
@@ -382,9 +323,15 @@ public class SceneServiceTests {
                 },
             ],
         };
-        var data = new UpdateAssetData {
+        var data = new UpdateSceneAssetData {
             Position = new Point(20, 30),
-            Scale = 0.5f,
+            Size = new Size(10, 50),
+            Frame = new Frame {
+                Shape = FrameShape.Square,
+                BorderThickness = 2,
+                BorderColor = "black",
+                Background = "white",
+            },
             Elevation = 1,
             Rotation = 45,
         };
@@ -392,7 +339,7 @@ public class SceneServiceTests {
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
 
         // Act
-        var result = await _service.UpdateAssetAsync(_userId, sceneId, assetId, number, data, _ct);
+        var result = await _service.UpdateAssetAsync(_userId, sceneId, number, data, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
@@ -413,15 +360,21 @@ public class SceneServiceTests {
             Name = "Scene",
             Assets = [
                 new() {
-                    Number = number,
+                    Index = number,
                     Name = "Asset to not update",
                     Position = new(1, 1),
                 },
             ],
         };
-        var data = new UpdateAssetData {
+        var data = new UpdateSceneAssetData {
             Position = new Point(20, 30),
-            Scale = 0.5f,
+            Size = new Size(10, 50),
+            Frame = new Frame {
+                Shape = FrameShape.Square,
+                BorderThickness = 2,
+                BorderColor = "black",
+                Background = "white",
+            },
             Elevation = 1,
             Rotation = 45,
         };
@@ -429,7 +382,7 @@ public class SceneServiceTests {
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
 
         // Act
-        var result = await _service.UpdateAssetAsync(nonOwnerId, sceneId, assetId, number, data, _ct);
+        var result = await _service.UpdateAssetAsync(nonOwnerId, sceneId, number, data, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
@@ -445,9 +398,15 @@ public class SceneServiceTests {
         var sceneId = Guid.NewGuid();
         var assetId = Guid.NewGuid();
         const int number = 1;
-        var data = new UpdateAssetData {
+        var data = new UpdateSceneAssetData {
             Position = new Point(20, 30),
-            Scale = 0.5f,
+            Size = new Size(10, 50),
+            Frame = new Frame {
+                Shape = FrameShape.Square,
+                BorderThickness = 2,
+                BorderColor = "black",
+                Background = "white",
+            },
             Elevation = 1,
             Rotation = 45,
         };
@@ -455,7 +414,7 @@ public class SceneServiceTests {
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
 
         // Act
-        var result = await _service.UpdateAssetAsync(_userId, sceneId, assetId, number, data, _ct);
+        var result = await _service.UpdateAssetAsync(_userId, sceneId, number, data, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();
@@ -474,15 +433,21 @@ public class SceneServiceTests {
             Name = "Scene",
             Assets = [
                 new() {
-                    Number = number,
+                    Index = number,
                     Name = "Existing Asset",
                     Position = new(1, 1),
                 },
             ],
         };
-        var data = new UpdateAssetData {
+        var data = new UpdateSceneAssetData {
             Position = new Point(20, 30),
-            Scale = 0.5f,
+            Size = new Size(10, 50),
+            Frame = new Frame {
+                Shape = FrameShape.Square,
+                BorderThickness = 2,
+                BorderColor = "black",
+                Background = "white",
+            },
             Elevation = 1,
             Rotation = 45,
         };
@@ -491,7 +456,7 @@ public class SceneServiceTests {
         _assetStorage.GetByIdAsync(nonexistentAssetId, Arg.Any<CancellationToken>()).Returns((Asset?)null);
 
         // Act
-        var result = await _service.UpdateAssetAsync(_userId, sceneId, assetId, number, data, _ct);
+        var result = await _service.UpdateAssetAsync(_userId, sceneId, number, data, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeFalse();

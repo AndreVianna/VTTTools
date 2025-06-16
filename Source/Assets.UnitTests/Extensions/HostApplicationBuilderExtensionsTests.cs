@@ -1,5 +1,3 @@
-using VttTools.Media.Services;
-
 namespace VttTools.Assets.Extensions;
 
 public class HostApplicationBuilderExtensionsTests {

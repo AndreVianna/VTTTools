@@ -1,3 +1,5 @@
+using VttTools.Media.Model;
+
 namespace VttTools.Data.Library;
 
 public class AssetStorageTests
@@ -64,10 +66,9 @@ public class AssetStorageTests
         var asset = DbContextHelper.CreateTestAsset("New Asset");
 
         // Act
-        var result = await _storage.AddAsync(asset, _ct);
+        await _storage.AddAsync(asset, _ct);
 
         // Assert
-        result.Should().BeEquivalentTo(asset);
         var dbAsset = await _context.Assets.FindAsync([asset.Id], _ct);
         dbAsset.Should().BeEquivalentTo(asset);
     }
@@ -88,9 +89,13 @@ public class AssetStorageTests
             Type = AssetType.Overlay,
             Description = "Updated description",
             Display = new() {
+                Id = entity.DisplayId,
                 Type = ResourceType.Image,
-                Id = "some_file.png",
-                Size = new(20, 30),
+                Path = "assets/updated-asset-display",
+                Metadata = new ResourceMetadata {
+                    ContentType = "image/png",
+                    ImageSize = new(100, 100),
+                }
             },
             IsPublished = true,
             IsPublic = true,
@@ -100,7 +105,7 @@ public class AssetStorageTests
         var result = await _storage.UpdateAsync(asset, _ct);
 
         // Assert
-        result.Should().BeEquivalentTo(asset);
+        result.Should().BeTrue();
         var dbAsset = await _context.Assets.FindAsync([asset.Id], _ct);
         dbAsset.Should().BeEquivalentTo(asset);
     }

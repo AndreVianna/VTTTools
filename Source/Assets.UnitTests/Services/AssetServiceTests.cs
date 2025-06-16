@@ -2,13 +2,15 @@
 
 public class AssetServiceTests {
     private readonly IAssetStorage _assetStorage;
+    private readonly IMediaStorage _mediaStorage;
     private readonly AssetService _service;
     private readonly Guid _userId = Guid.NewGuid();
     private readonly CancellationToken _ct;
 
     public AssetServiceTests() {
         _assetStorage = Substitute.For<IAssetStorage>();
-        _service = new(_assetStorage);
+        _mediaStorage = Substitute.For<IMediaStorage>();
+        _service = new(_assetStorage, _mediaStorage);
 #if XUNITV3
         _ct = TestContext.Current.CancellationToken;
 #else
@@ -61,10 +63,8 @@ public class AssetServiceTests {
             Name = "New Asset",
             Description = "New Description",
             Type = AssetType.Creature,
-            Display = new(),
+            DisplayId = Guid.NewGuid(),
         };
-        _assetStorage.AddAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>())
-            .Returns(x => x.Arg<Asset>());
 
         // Act
         var result = await _service.CreateAssetAsync(_userId, data, _ct);
@@ -95,14 +95,14 @@ public class AssetServiceTests {
             Name = "Updated Name",
             Description = "Updated Description",
             Type = AssetType.Creature,
-            Display = new Display(),
+            DisplayId = Guid.NewGuid(),
             IsPublished = true,
             IsPublic = true,
         };
 
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
         _assetStorage.UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>())
-            .Returns(x => x.Arg<Asset>());
+            .Returns(true);
 
         // Act
         var result = await _service.UpdateAssetAsync(_userId, assetId, data, _ct);
@@ -159,7 +159,7 @@ public class AssetServiceTests {
 
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
         _assetStorage.UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>())
-            .Returns(x => x.Arg<Asset>());
+            .Returns(true);
 
         // Act
         var result = await _service.UpdateAssetAsync(_userId, assetId, data, _ct);
