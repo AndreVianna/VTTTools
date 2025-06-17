@@ -7,8 +7,8 @@ public class AssetsPageHandlerTests
 
     public AssetsPageHandlerTests() {
         var assets = new AssetListItem[] {
-            new() { Name = "Asset 1", Type = AssetType.Creature, },
-            new() { Name = "Asset 2", Type = AssetType.Character, },
+            new() { Id = Guid.NewGuid(), Name = "Asset 1", Type = AssetType.Creature, },
+            new() { Id = Guid.NewGuid(), Name = "Asset 2", Type = AssetType.Character, },
         };
         _client.GetAssetsAsync().Returns(assets);
         _page.HttpContext.Returns(HttpContext);
@@ -36,6 +36,7 @@ public class AssetsPageHandlerTests
             Type = AssetType.Token,
         };
         var newAsset = new AssetListItem {
+            Id = Guid.NewGuid(),
             Name = "New Asset",
             Type = AssetType.Token,
         };

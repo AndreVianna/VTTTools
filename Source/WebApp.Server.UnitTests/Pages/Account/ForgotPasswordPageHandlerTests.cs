@@ -23,7 +23,7 @@ public class ForgotPasswordPageHandlerTests
         await handler.RequestPasswordResetAsync();
 
         // Assert
-        NavigationManager.History.Should().ContainSingle(l => l.Uri == "account/forgot_password_confirmation");
+        _page.Received(1).RedirectTo("account/forgot_password_confirmation");
         await _emailSender.DidNotReceive().SendPasswordResetLinkAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
     }
 
@@ -41,7 +41,7 @@ public class ForgotPasswordPageHandlerTests
         await handler.RequestPasswordResetAsync();
 
         // Assert
-        NavigationManager.History.Should().ContainSingle(l => l.Uri == "account/forgot_password_confirmation");
+        _page.Received(1).RedirectTo("account/forgot_password_confirmation");
         await _emailSender.DidNotReceive().SendPasswordResetLinkAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
     }
 
@@ -60,7 +60,7 @@ public class ForgotPasswordPageHandlerTests
         await handler.RequestPasswordResetAsync();
 
         // Assert
-        NavigationManager.History.Should().ContainSingle(l => l.Uri == "account/forgot_password_confirmation");
+        _page.Received(1).RedirectTo("account/forgot_password_confirmation");
         await _emailSender.Received(1).SendPasswordResetLinkAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
     }
 

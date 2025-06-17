@@ -14,14 +14,17 @@ public class ChangePasswordPageHandlerTests
     [Fact]
     public void Configure_WhenUserHasNoPassword_RedirectsToSetPassword() {
         // Arrange
-        var handler = CreateHandler(isConfigured: false);
+        EnsureAuthenticated();
         CurrentUser!.PasswordHash = null;
+        _page.AccountOwner.Returns(CurrentUser);
+        var handler = new ChangePasswordPageHandler(_page);
 
         // Act
-        handler.Configure();
+        var result = handler.Configure();
 
         // Assert
-        NavigationManager.History.First().Uri.Should().Be("account/manage/set_password");
+        result.Should().BeFalse();
+        _page.Received(1).RedirectTo("account/manage/set_password");
     }
 
     [Fact]
@@ -29,9 +32,9 @@ public class ChangePasswordPageHandlerTests
         // Arrange
         var handler = CreateHandler();
 
-        _page.Input.CurrentPassword = "OldPassword123!";
-        _page.Input.NewPassword = "NewPassword123!";
-        _page.Input.NewPasswordConfirmation = "NewPassword123!";
+        _page.State.Input.CurrentPassword = "OldPassword123!";
+        _page.State.Input.NewPassword = "NewPassword123!";
+        _page.State.Input.NewPasswordConfirmation = "NewPassword123!";
 
         UserManager.ChangePasswordAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>())
             .Returns(IdentityResult.Success);
@@ -40,7 +43,7 @@ public class ChangePasswordPageHandlerTests
         await handler.ChangePasswordAsync();
 
         // Assert
-        HttpContext.Received(1).SetStatusMessage("Error: Failed to change the password.");
+        await UserManager.Received(1).ChangePasswordAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
         await SignInManager.Received(1).RefreshSignInAsync(Arg.Any<User>());
     }
 
@@ -49,9 +52,9 @@ public class ChangePasswordPageHandlerTests
         // Arrange
         var handler = CreateHandler();
 
-        _page.Input.CurrentPassword = "OldPassword123!";
-        _page.Input.NewPassword = "NewPassword123!";
-        _page.Input.NewPasswordConfirmation = "NewPassword123!";
+        _page.State.Input.CurrentPassword = "OldPassword123!";
+        _page.State.Input.NewPassword = "NewPassword123!";
+        _page.State.Input.NewPasswordConfirmation = "NewPassword123!";
 
         var errors = new IdentityError[] { new() { Description = "Incorrect password." } };
         UserManager.ChangePasswordAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>()).Returns(IdentityResult.Failed(errors));
@@ -60,14 +63,16 @@ public class ChangePasswordPageHandlerTests
         await handler.ChangePasswordAsync();
 
         // Assert
-        HttpContext.Received(1).SetStatusMessage("Error: Failed to change the password.");
-        _page.State.Errors.Should().Contain("Incorrect password.");
+        await UserManager.Received(1).ChangePasswordAsync(Arg.Any<User>(), Arg.Any<string>(), Arg.Any<string>());
+        _page.State.Errors.Should().Contain(e => e.Message == "Incorrect password.");
         await SignInManager.DidNotReceive().RefreshSignInAsync(Arg.Any<User>());
     }
 
     private ChangePasswordPageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized)
+        if (isAuthorized) {
             EnsureAuthenticated();
+            _page.AccountOwner.Returns(CurrentUser);
+        }
         var handler = new ChangePasswordPageHandler(_page);
         if (isConfigured)
             handler.Configure();

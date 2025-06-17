@@ -39,8 +39,24 @@ public class ComponentTestContext
         var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
         HttpContext = Substitute.For<HttpContext>();
         HttpContext.RequestServices = Services;
+        
+        // Set up Request and Response for SetStatusMessage extension
+        var request = Substitute.For<HttpRequest>();
+        var response = Substitute.For<HttpResponse>();
+        var session = Substitute.For<ISession>();
+        var requestCookies = Substitute.For<IRequestCookieCollection>();
+        var responseCookies = Substitute.For<IResponseCookies>();
+        
+        request.Method.Returns("GET");
+        request.Cookies.Returns(requestCookies);
+        response.Cookies.Returns(responseCookies);
+        HttpContext.Request.Returns(request);
+        HttpContext.Response.Returns(response);
+        HttpContext.Session.Returns(session);
+        HttpContext.Items.Returns(new Dictionary<object, object?>());
+        
         httpContextAccessor.HttpContext.Returns(HttpContext);
-        Services.AddSingleton(httpContextAccessor);
+        Services.AddSingleton<IHttpContextAccessor>(httpContextAccessor);
         Services.AddCascadingValue(_ => HttpContext);
 
         var userStore = Substitute.For<IUserStore<User>>();
@@ -68,11 +84,14 @@ public class ComponentTestContext
         var userAccessor = Substitute.For<IIdentityUserAccessor>();
         Services.AddSingleton(userAccessor);
 
-        NavigationManager = new(this);
+        NavigationManager = new FakeNavigationManager(this);
         Services.AddSingleton<NavigationManager>(_ => NavigationManager);
 
         SetAuthorization();
         SetCurrentLocation();
+        
+        // Add cascading AccountOwner for AccountPage components
+        Services.AddCascadingValue("AccountOwner", _ => CurrentUser);
     }
 
     protected User? CurrentUser { get; private set; }
@@ -136,12 +155,19 @@ public class ComponentTestContext
         UserManager.GetUserAsync(Arg.Any<ClaimsPrincipal>()).Returns(CurrentUser);
         UserManager.IsInRoleAsync(Arg.Any<User>(), "User").Returns(CurrentUser is not null);
         UserManager.IsInRoleAsync(Arg.Any<User>(), "Administrator").Returns(CurrentUser?.IsAdministrator ?? false);
+        
+        // Update cascading AccountOwner value
+        if (CurrentUser is not null) {
+            Services.AddCascadingValue("AccountOwner", _ => CurrentUser);
+        }
     }
 
     protected void SetCurrentLocation(string? location = null) {
         if (location is not null && Uri.IsWellFormedUriString(location, UriKind.Relative))
             NavigationManager.NavigateTo(location);
     }
+
+    // Removed SetupPageMock - configure mocks directly in test constructors
 
     protected override void Dispose(bool disposing) {
         if (disposing)

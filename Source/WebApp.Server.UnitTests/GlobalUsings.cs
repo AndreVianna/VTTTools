@@ -1,7 +1,10 @@
 global using System.Diagnostics;
+global using System.Drawing;
+global using System.Numerics;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Net;
 global using System.Net.Http.Json;
+global using System.Reflection;
 global using System.Security.Claims;
 global using System.Text.Json;
 global using System.Text.Json.Serialization;
@@ -12,6 +15,7 @@ global using AwesomeAssertions;
 
 global using Bunit;
 global using Bunit.TestDoubles;
+global using FakeNavigationManager = Bunit.TestDoubles.FakeNavigationManager;
 
 global using DotNetToolbox;
 global using DotNetToolbox.Results;
@@ -43,6 +47,7 @@ global using VttTools.Identity.Model;
 global using VttTools.Library.Adventures.ApiContracts;
 global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Scenes.Model;
+global using VttTools.Media.Model;
 global using VttTools.Utilities;
 global using VttTools.WebApp.Components;
 global using VttTools.WebApp.Contracts.Assets;
@@ -51,6 +56,7 @@ global using VttTools.WebApp.Contracts.Game.Chat.Models;
 global using VttTools.WebApp.Contracts.Game.Sessions;
 global using VttTools.WebApp.Contracts.Library;
 global using VttTools.WebApp.Contracts.Library.Adventure;
+global using VttTools.WebApp.Contracts.Library.Scenes;
 global using VttTools.WebApp.Extensions;
 global using VttTools.WebApp.Server.Clients;
 global using VttTools.WebApp.Server.Components;

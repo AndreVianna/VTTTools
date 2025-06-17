@@ -8,24 +8,31 @@ public class AdventuresPageHandlerTests
     public AdventuresPageHandlerTests() {
         var adventures = new[] {
             new AdventureListItem {
+                Id = Guid.NewGuid(),
                 Name = "Adventure 1",
                 Description = "Adventure 1 Description",
                 Type = AdventureType.Survival,
                 IsPublished = true,
                 IsPublic = true,
+                ScenesCount = 3,
+                OwnerId = Guid.NewGuid(),
             },
             new AdventureListItem {
+                Id = Guid.NewGuid(),
                 Name = "Adventure 2",
                 Description = "Adventure 2 Description",
                 Type = AdventureType.OpenWorld,
                 IsPublished = false,
                 IsPublic = false,
+                ScenesCount = 1,
+                OwnerId = Guid.NewGuid(),
             },
         };
         _serverHttpClient.GetAdventuresAsync().Returns(adventures);
         _page.HttpContext.Returns(HttpContext);
         _page.NavigationManager.Returns(NavigationManager);
         _page.Logger.Returns(NullLogger.Instance);
+        _page.User.Returns(new LoggedUser(DefaultUser.Id, DefaultUser.DisplayName, DefaultUser.IsAdministrator));
     }
 
     [Fact]

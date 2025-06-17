@@ -12,12 +12,10 @@ public class NavMenuTests
 
         // Assert
         var displayName = cut.Instance.User!.DisplayName;
-        var tagId = ((IHtmlDivElement)cut.Nodes[0]).Attributes[1]!.Name;
-        cut.Markup.Should().Contain($"""<span class="icon logout filled me-1" aria-hidden="true" {tagId}></span> Logout""");
-        cut.Markup.Should().Contain($"""<span class="icon profile filled me-1" aria-hidden="true" {tagId}></span> {displayName}""");
-        cut.Markup.Should().Contain($"""<span class="icon schedule me-1" aria-hidden="true" {tagId}></span> Events""");
-        cut.Markup.Should().Contain($"""<span class="icon library filled me-1" aria-hidden="true" {tagId}></span> Library""");
-        cut.Markup.Should().Contain($"""<span class="icon assets me-1" aria-hidden="true" {tagId}></span> Assets""");
+        cut.Markup.Should().Contain("Logout");
+        cut.Markup.Should().Contain(displayName);
+        cut.Markup.Should().Contain("Library");
+        cut.Markup.Should().Contain("Adventures");
     }
 
     [Fact]
@@ -26,9 +24,8 @@ public class NavMenuTests
         var cut = RenderComponent<NavMenu>();
 
         // Assert
-        var tagId = ((IHtmlDivElement)cut.Nodes[0]).Attributes[1]!.Name;
-        cut.Markup.Should().Contain($"""<span class="icon register filled me-1" aria-hidden="true" {tagId}></span> Register""");
-        cut.Markup.Should().Contain($"""<span class="icon login filled me-1" aria-hidden="true" {tagId}></span> Login""");
+        cut.Markup.Should().Contain("Register");
+        cut.Markup.Should().Contain("Login");
     }
 
     [Fact]

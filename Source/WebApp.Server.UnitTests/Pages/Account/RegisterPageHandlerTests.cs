@@ -102,7 +102,7 @@ public class RegisterPageHandlerTests
 
         // Assert
         result.Should().BeTrue();
-        NavigationManager.History.First().Uri.Should().Be("account/register_confirmation?email=test%40example.com&returnUrl=%2Freturn-url");
+        _page.Received(1).RedirectTo(Arg.Is<string>(s => s.StartsWith("account/register_confirmation")), Arg.Any<Action<IDictionary<string, object?>>>());
         await SignInManager.DidNotReceive().SignInAsync(Arg.Any<User>(), Arg.Any<bool>(), Arg.Any<string>());
     }
 

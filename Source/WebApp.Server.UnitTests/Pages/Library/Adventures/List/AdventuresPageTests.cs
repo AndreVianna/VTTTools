@@ -10,18 +10,24 @@ public class AdventuresPageTests
         Services.AddScoped(_ => _serverHttpClient);
         _defaultAdventures = [
         new() {
+            Id = Guid.NewGuid(),
             Name = "Adventure 1",
             Description = "Adventure 1 Description",
             Type = AdventureType.Survival,
             IsPublished = true,
             IsPublic = true,
+            OwnerId = Guid.NewGuid(), // Different owner so it appears in public section
+            ScenesCount = 3,
         },
         new() {
+            Id = Guid.NewGuid(),
             Name = "Adventure 2",
             Description = "Adventure 2 Description",
             Type = AdventureType.OpenWorld,
             IsPublished = false,
             IsPublic = false,
+            OwnerId = DefaultUser.Id,
+            ScenesCount = 1,
         }];
         _serverHttpClient.GetAdventuresAsync().Returns(_defaultAdventures);
     }
@@ -68,47 +74,38 @@ public class AdventuresPageTests
     }
 
     [Fact]
-    public void WhenCreateButtonIsClicked_CreatesAdventureMethod() {
+    public void WhenCreateButtonIsClicked_NavigatesToCreatePage() {
         // Arrange
         var cut = RenderComponent<AdventuresPage>();
+        var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        cut.Find("#create-adventure-name-input").Change("New Adventure");
-        var newAdventure = new AdventureListItem {
-            Name = "New Adventure",
-            Description = "Adventure 1 Description",
-            Type = AdventureType.Survival,
-            IsPublished = true,
-            IsPublic = true,
-        };
-        _serverHttpClient.CreateAdventureAsync(Arg.Any<CreateAdventureRequest>()).Returns(newAdventure);
 
         // Act
-        cut.Find("#create-adventure").Click();
+        cut.Find("#create-adventure-button").Click();
 
         // Assert
-        _serverHttpClient.Received(1).CreateAdventureAsync(Arg.Any<CreateAdventureRequest>());
+        navigationSpy.History.First().Uri.Should().Be("/adventure/create");
     }
 
     [Fact]
-    public void WhenViewButtonIsClicked_NavigatesToAdventureScenes() {
+    public void WhenViewButtonIsClicked_NavigatesToAdventureView() {
         // Arrange
         var adventureId = _defaultAdventures[0].Id;
         var cut = RenderComponent<AdventuresPage>();
         var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        _serverHttpClient.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
 
         // Act
         cut.Find($"#view-adventure-{adventureId}").Click();
 
         // Assert
-        navigationSpy.History.First().Uri.Should().Be($"/adventures/{adventureId}/scenes");
+        navigationSpy.History.First().Uri.Should().Be($"/adventure/view/{adventureId}");
     }
 
     [Fact]
     public void WhenDeleteButtonIsClicked_DeletesAdventure() {
         // Arrange
-        var adventureId = _defaultAdventures[0].Id;
+        var adventureId = _defaultAdventures[1].Id; // Use owned adventure (Adventure 2)
         var cut = RenderComponent<AdventuresPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
         _serverHttpClient.DeleteAdventureAsync(Arg.Any<Guid>()).Returns(true);
@@ -117,28 +114,21 @@ public class AdventuresPageTests
         cut.Find($"#delete-adventure-{adventureId}").Click();
 
         // Assert
-        _serverHttpClient.Received(1).DeleteAdventureAsync(_defaultAdventures[0].Id);
+        _serverHttpClient.Received(1).DeleteAdventureAsync(_defaultAdventures[1].Id);
     }
 
     [Fact]
-    public void WhenCloneButtonIsClicked_ClonesAdventure() {
-        // Act
+    public void WhenCloneButtonIsClicked_NavigatesToClonePage() {
+        // Arrange
         var adventureId = _defaultAdventures[0].Id;
         var cut = RenderComponent<AdventuresPage>();
+        var navigationSpy = cut.Instance.NavigationManager.Should().BeOfType<FakeNavigationManager>().Subject;
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        var clonedAdventure = new AdventureListItem {
-            Name = _defaultAdventures[0].Name,
-            Description = "Adventure 1 Description",
-            Type = AdventureType.Survival,
-            IsPublished = true,
-            IsPublic = true,
-        };
-        _serverHttpClient.CloneAdventureAsync(Arg.Any<Guid>()).Returns(clonedAdventure);
 
         // Act
         cut.Find($"#clone-adventure-{adventureId}").Click();
 
         // Assert
-        _serverHttpClient.Received(1).CloneAdventureAsync(Arg.Any<Guid>());
+        navigationSpy.History.First().Uri.Should().Be($"/adventure/clone/{adventureId}");
     }
 }

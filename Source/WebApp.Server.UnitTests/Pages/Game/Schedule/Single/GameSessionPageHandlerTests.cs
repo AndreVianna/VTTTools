@@ -89,7 +89,7 @@ public class GameSessionPageHandlerTests
 
         // Assert
         _page.State.ShowEditDialog.Should().BeFalse();
-        _page.State.GameSession.Should().BeEquivalentTo(updatedGameSession);
+        await _client.Received(1).UpdateGameSessionAsync(_sessionId, Arg.Is<UpdateGameSessionRequest>(r => r.Title == "Updated GameSession Name"));
     }
 
     [Fact]

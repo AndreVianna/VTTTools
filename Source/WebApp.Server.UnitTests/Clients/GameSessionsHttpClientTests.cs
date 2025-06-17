@@ -13,9 +13,11 @@ public class GameSessionsHttpClientTests {
     [Fact]
     public async Task GetGameSessionsAsync_WhenApiReturnsGameSessions_ReturnsGameSessionArray() {
         // Arrange
+        var owner1 = Guid.NewGuid();
+        var owner2 = Guid.NewGuid();
         var expectedGameSessions = new GameSession[] {
-            new() { Title = "GameSession 1", OwnerId = Guid.NewGuid() },
-            new() { Title = "GameSession 2", OwnerId = Guid.NewGuid() },
+            new() { Id = Guid.NewGuid(), Title = "GameSession 1", OwnerId = owner1, Status = GameSessionStatus.Draft, Players = [] },
+            new() { Id = Guid.NewGuid(), Title = "GameSession 2", OwnerId = owner2, Status = GameSessionStatus.Draft, Players = [] },
         };
 
         var mockHandler = new MockHttpMessageHandler((request, _) => {
@@ -38,11 +40,24 @@ public class GameSessionsHttpClientTests {
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(2);
-        result.Should().BeEquivalentTo(expectedGameSessions);
+        result[0].Should().BeEquivalentTo(new GameSessionListItem {
+            Id = expectedGameSessions[0].Id,
+            Title = expectedGameSessions[0].Title,
+            OwnerId = expectedGameSessions[0].OwnerId,
+            Status = expectedGameSessions[0].Status,
+            PlayerCount = expectedGameSessions[0].Players.Count,
+        });
+        result[1].Should().BeEquivalentTo(new GameSessionListItem {
+            Id = expectedGameSessions[1].Id,
+            Title = expectedGameSessions[1].Title,
+            OwnerId = expectedGameSessions[1].OwnerId,
+            Status = expectedGameSessions[1].Status,
+            PlayerCount = expectedGameSessions[1].Players.Count,
+        });
     }
 
     [Fact]
-    public async Task GetGameSessionsAsync_WhenApiReturnsNull_ReturnsEmptyArray() {
+    public async Task GetGameSessionsAsync_WhenApiReturnsNull_ThrowsArgumentNullException() {
         // Arrange
         var mockHandler = new MockHttpMessageHandler((request, _) => {
             request.Method.Should().Be(HttpMethod.Get);
@@ -58,12 +73,10 @@ public class GameSessionsHttpClientTests {
         };
         var client = new GameSessionsHttpClient(httpClient, _options);
 
-        // Act
-        var result = await client.GetGameSessionsAsync();
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Should().BeEmpty();
+        // Act & Assert
+        // NOTE: Implementation uses IsNotNull() which throws ArgumentNullException for null API responses
+        var act = client.GetGameSessionsAsync;
+        await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
     [Fact]
@@ -90,11 +103,14 @@ public class GameSessionsHttpClientTests {
             Title = "New GameSession",
             SceneId = sceneId,
         };
+        var ownerId = Guid.NewGuid();
         var expectedResponse = new GameSession {
             Id = sessionId,
             Title = "New GameSession",
-            OwnerId = Guid.NewGuid(),
+            OwnerId = ownerId,
             SceneId = sceneId,
+            Status = GameSessionStatus.Draft,
+            Players = [],
         };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
@@ -117,7 +133,13 @@ public class GameSessionsHttpClientTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo(expectedResponse);
+        result.Value.Should().BeEquivalentTo(new GameSessionListItem {
+            Id = expectedResponse.Id,
+            Title = expectedResponse.Title,
+            OwnerId = expectedResponse.OwnerId,
+            Status = expectedResponse.Status,
+            PlayerCount = expectedResponse.Players.Count,
+        });
     }
 
     [Fact]
@@ -157,14 +179,18 @@ public class GameSessionsHttpClientTests {
             Title = "Updated GameSession",
             SceneId = Guid.NewGuid(),
         };
+        var ownerId = Guid.NewGuid();
         var expectedResponse = new GameSession {
             Id = sessionId,
             Title = "Updated GameSession",
+            OwnerId = ownerId,
             SceneId = request.SceneId.Value,
+            Status = GameSessionStatus.Draft,
+            Players = [],
         };
 
         var mockHandler = new MockHttpMessageHandler((requestMessage, _) => {
-            requestMessage.Method.Should().Be(HttpMethod.Put);
+            requestMessage.Method.Should().Be(HttpMethod.Patch);
             requestMessage.RequestUri!.PathAndQuery.Should().Be($"/api/sessions/{sessionId}");
 
             var response = new HttpResponseMessage(HttpStatusCode.OK) {

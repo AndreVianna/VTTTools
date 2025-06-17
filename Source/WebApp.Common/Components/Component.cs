@@ -11,12 +11,12 @@ public class Component
     public virtual NavigationManager NavigationManager { get; set; } = null!;
     [Inject]
     internal virtual IHttpContextAccessor HttpContextAccessor { get; set; } = null!;
-    public HttpContext HttpContext => HttpContextAccessor.HttpContext!;
+    public virtual HttpContext HttpContext => HttpContextAccessor?.HttpContext!;
 
     public virtual string? CurrentLocation { get; set; }
     public virtual LoggedUser? User { get; private set; }
     public virtual bool IsReady { get; private set; }
-    public ILogger Logger { get; set; } = null!;
+    public virtual ILogger Logger { get; set; } = null!;
 
     protected override void OnInitialized() {
         Logger = LoggerFactory.CreateLogger(GetType());

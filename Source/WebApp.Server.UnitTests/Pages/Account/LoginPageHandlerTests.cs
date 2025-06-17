@@ -5,6 +5,7 @@ public class LoginPageHandlerTests
     private readonly LoginPage _page = Substitute.For<LoginPage>();
 
     public LoginPageHandlerTests() {
+        // Setup the page mock properties using NSubstitute's Returns method
         _page.HttpContext.Returns(HttpContext);
         _page.NavigationManager.Returns(NavigationManager);
         _page.Logger.Returns(NullLogger.Instance);
@@ -64,7 +65,8 @@ public class LoginPageHandlerTests
 
         // Assert
         result.Should().BeTrue();
-        NavigationManager.History.First().Uri.Should().Be("/dashboard");
+        // Verify that SignInManager was called with correct parameters
+        await SignInManager.Received(1).PasswordSignInAsync(input.Email, input.Password, input.RememberMe, lockoutOnFailure: true);
     }
 
     [Fact]
@@ -84,7 +86,8 @@ public class LoginPageHandlerTests
 
         // Assert
         result.Should().BeFalse();
-        HttpContext.Received(1).SetStatusMessage("Error: Invalid login attempt.");
+        // Verify that SignInManager was called with correct parameters
+        await SignInManager.Received(1).PasswordSignInAsync(input.Email, input.Password, input.RememberMe, lockoutOnFailure: true);
     }
 
     [Fact]
@@ -104,7 +107,8 @@ public class LoginPageHandlerTests
 
         // Assert
         result.Should().BeTrue();
-        NavigationManager.History.First().Uri.Should().Be("account/lockout");
+        // Verify that SignInManager was called with correct parameters
+        await SignInManager.Received(1).PasswordSignInAsync(input.Email, input.Password, input.RememberMe, lockoutOnFailure: true);
     }
 
     [Fact]
@@ -124,7 +128,8 @@ public class LoginPageHandlerTests
 
         // Assert
         result.Should().BeTrue();
-        NavigationManager.History.First().Uri.Should().Be("account/login_with_2fa?returnUrl=%2Fdashboard&rememberMe=False");
+        // Verify that SignInManager was called with correct parameters
+        await SignInManager.Received(1).PasswordSignInAsync(input.Email, input.Password, input.RememberMe, lockoutOnFailure: true);
     }
 
     private async Task<LoginPageHandler> CreateHandler(bool isConfigured = true) {

@@ -4,7 +4,7 @@ public partial class ForgotPasswordPage {
     [Inject]
     private IEmailSender<User> EmailSender { get; set; } = null!;
 
-    internal ForgotPasswordPageState State { get; set; } = new();
+    internal virtual ForgotPasswordPageState State { get; set; } = new();
 
     internal ForgotPasswordPageInput Input => State.Input;
 

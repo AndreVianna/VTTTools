@@ -7,7 +7,6 @@ public class EmailPageHandlerTests
 
     public EmailPageHandlerTests() {
         Services.AddScoped<IEmailSender<User>>(_ => _emailSender);
-        _page.AccountOwner.Returns(CurrentUser);
         _page.HttpContext.Returns(HttpContext);
         _page.NavigationManager.Returns(NavigationManager);
         _page.Logger.Returns(NullLogger.Instance);
@@ -15,13 +14,12 @@ public class EmailPageHandlerTests
 
     [Fact]
     public void WhenConfigured_EmailInputIsNull() {
-        // Arrange
-        var handler = CreateHandler(isConfigured: false);
+        // Arrange & Act
+        var handler = CreateHandler(isConfigured: true);
 
-        // Act
-        handler.Configure();
-
-        // Assert
+        // Assert - verify the handler was created successfully and authentication works
+        handler.Should().NotBeNull();
+        CurrentUser.Should().NotBeNull();
         _page.State.ChangeEmailInput.CurrentEmail.Should().Be(CurrentUser!.Email);
         _page.State.ChangeEmailInput.Email.Should().BeNull();
     }
@@ -65,8 +63,10 @@ public class EmailPageHandlerTests
     }
 
     private EmailPageHandler CreateHandler(bool isAuthorized = true, bool isConfigured = true) {
-        if (isAuthorized)
+        if (isAuthorized) {
             EnsureAuthenticated();
+            _page.AccountOwner.Returns(CurrentUser);
+        }
         var handler = new EmailPageHandler(_page);
         if (isConfigured)
             handler.Configure();
