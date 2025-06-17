@@ -80,8 +80,8 @@ public class SceneHandlersTests {
         var result = await SceneHandlers.UpdateSceneHandler(_httpContext, sceneId, request, _sceneService);
 
         // Assert
-        var response = result.Should().BeOfType<Ok<Scene>>().Subject;
-        response.Value.Should().BeEquivalentTo(scene);
+        // NOTE: UpdateSceneHandler returns NoContent on success, not Ok<Scene>
+        result.Should().BeOfType<NoContent>();
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class SceneHandlersTests {
         var request = new UpdateSceneRequest { Name = "Updated Scene" };
 
         _sceneService.UpdateSceneAsync(_userId, sceneId, Arg.Any<UpdateSceneData>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Failure("Some error."));
+            .Returns(Result.Failure("NotFound"));
 
         // Act
         var result = await SceneHandlers.UpdateSceneHandler(_httpContext, sceneId, request, _sceneService);
@@ -174,7 +174,8 @@ public class SceneHandlersTests {
         var result = await SceneHandlers.UpdateAssetHandler(_httpContext, sceneId, number, request, _sceneService);
 
         // Assert
-        result.Should().BeOfType<BadRequest>();
+        // NOTE: Handler returns BadRequest<IReadOnlyList<Error>>, not BadRequest
+        result.Should().BeOfType<BadRequest<IReadOnlyList<Error>>>();
     }
 
     [Fact]

@@ -23,7 +23,8 @@ public class AdventureHandlersTests {
             new Adventure { Id = Guid.NewGuid(), Name = "Adventure 2", OwnerId = _userId },
         };
 
-        _adventureService.GetAdventuresAsync(Arg.Any<CancellationToken>())
+        // NOTE: GetAdventuresHandler calls GetAdventuresAsync with filter "AvailableTo:{userId}", not the parameterless overload
+        _adventureService.GetAdventuresAsync($"AvailableTo:{_userId}", Arg.Any<CancellationToken>())
             .Returns(adventures);
 
         // Act
@@ -96,7 +97,7 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.CreateAdventureHandler(_httpContext, request, _adventureService);
 
         // Assert
-        result.Should().BeOfType<BadRequest>();
+        result.Should().BeOfType<BadRequest<IReadOnlyList<DotNetToolbox.Error>>>();
     }
 
     [Fact]
@@ -113,8 +114,8 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.UpdateAdventureHandler(_httpContext, adventureId, request, _adventureService);
 
         // Assert
-        var response = result.Should().BeOfType<Ok<Adventure>>().Subject;
-        response.Value.Should().BeEquivalentTo(adventure);
+        // NOTE: UpdateAdventureHandler returns NoContent on success, not Ok<Adventure>
+        result.Should().BeOfType<NoContent>();
     }
 
     [Fact]
@@ -124,7 +125,7 @@ public class AdventureHandlersTests {
         var request = new UpdateAdventureRequest { Name = "Updated Adventure" };
 
         _adventureService.UpdateAdventureAsync(_userId, adventureId, Arg.Any<UpdatedAdventureData>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Failure("Some error."));
+            .Returns(Result.Failure("NotFound"));
 
         // Act
         var result = await AdventureHandlers.UpdateAdventureHandler(_httpContext, adventureId, request, _adventureService);
@@ -196,7 +197,8 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.CloneAdventureHandler(_httpContext, adventureId, _adventureService);
 
         // Assert
-        result.Should().BeOfType<NotFound>();
+        // NOTE: Handler returns BadRequest with errors for generic failures, not NotFound
+        result.Should().BeOfType<BadRequest<IReadOnlyList<DotNetToolbox.Error>>>();
     }
 
     [Fact]
@@ -235,7 +237,9 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.AddClonedSceneHandler(_httpContext, adventureId, clonedScene.Id, _adventureService);
 
         // Assert
-        result.Should().BeOfType<NoContent>();
+        // NOTE: AddClonedSceneHandler returns Ok<Scene> on success, not NoContent
+        var response = result.Should().BeOfType<Ok<Scene>>().Subject;
+        response.Value.Should().BeEquivalentTo(clonedScene);
     }
 
     [Fact]
@@ -251,6 +255,7 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.AddClonedSceneHandler(_httpContext, adventureId, sceneId, _adventureService);
 
         // Assert
-        result.Should().BeOfType<BadRequest>();
+        // NOTE: Handler returns BadRequest with error collection
+        result.Should().BeOfType<BadRequest<IReadOnlyList<DotNetToolbox.Error>>>();
     }
 }

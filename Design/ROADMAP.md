@@ -9,11 +9,7 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 ### Tasks:
 
 - [x] Set up user authentication and authorization (register, sign-in, profile management)
-- [x] Implement basic meeting creation and management
-- [x] Refactor Session concept to Meeting concept according to PROJECT_DEFINITION.md
-- [x] Create basic dashboard for viewing active and past meetings
 - [x] Design and implement basic user roles (Game Master, Player)
-- [x] Create basic Adventure templates management
 
 ## Phase 2: Basic Game Content Management
 
@@ -27,12 +23,12 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
   - [x] Add Unit Test to Data project.
   - [x] Add Unit Test to GameService project.
   - [x] Add Unit Test to WebApp project.
-- [x] Adventure Templates CRUD API & UI
-  - [x] List, create, rename, delete Adventures
-  - [x] Set and update Visibility (Hidden, Private, Public)
-- [x] Scene Templates CRUD API & UI (nested under Adventures)
-  - [x] List Scenes for a given Adventure
-  - [x] Allow to create, edit, clone, and delete from the list of scenes
+- [x] Adventure Management API & UI
+  - [x] List, create, rename, delete Adventures (API Only)
+  - [x] Adventure List View
+  - [x] Adventure Details View
+- [x] Scene Management CRUD API & UI
+  - [x] Scenes List inside the Adventure Deails View
 
 ## Phase 3: Interactive Scenes and Tokens
 
@@ -40,10 +36,12 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 
 ### Tasks:
 
-- [ ] Define UI/UX for the scene editor with canvas support via client side webassembly
-- [ ] Implement map (background image) management
-    - [ ] Support file uploads (local FS in Dev, Azure Blob in Prod) for backgroud images
-- [ ] Implement grid placement and snapping
+- [X] Define UI/UX for the scene editor with canvas support via client side webassembly
+- [X] Implement map (background image) management
+    - [X] Support file uploads (local FS in Dev, Azure Blob in Prod) for backgroud images (Service and API only)
+- [X] Implement panning of the background map by dragging with the right mouse button
+- [X] Implement zoom of the background map using the mouse wheel centered in the mouse position
+- [ ] Implement displaying the default grid
 - [ ] Implement tokens (monsters, characters, npcs, objects) placement
 - [ ] Implement structure (wall, door, windows) placement
 - [ ] Implement overlay (light, fog-of-war, weather, elevation, special-effect-area, sound-effect) placement
@@ -97,6 +95,9 @@ This roadmap outlines the development phases for the Virtual Table Top (VTT) too
 
 ### Tasks:
 
+- [ ] Implement basic meeting creation and management
+- [ ] Refactor Session concept to Meeting concept according to PROJECT_DEFINITION.md
+- [ ] Create basic dashboard for viewing active and past meetings
 - [ ] Implement basic player assignment to playable tokens
 - [ ] Add persistent state for game instances across multiple meetings
 - [ ] Create basic Notes system with visibility levels

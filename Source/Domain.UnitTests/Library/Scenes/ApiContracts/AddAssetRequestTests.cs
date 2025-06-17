@@ -36,7 +36,7 @@ public class AddAssetRequestTests {
         };
 
         // Assert
-        data.Name.Should().Be(name);
+        data.Name.Value.Should().Be(name);
         data.Position.Should().Be(position);
         data.Size.Should().Be(size);
         data.Frame.Should().BeEquivalentTo(frame);

@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.WebAssembly.Pages.Library.Scenes;
 
-public sealed class BuilderState {
+public sealed class BuilderState
+{
     public bool IsDragging { get; set; }
     public bool ShowChangeImageModal { get; set; }
     public bool ShowGridSettingsModal { get; set; }
@@ -23,7 +24,8 @@ public sealed class BuilderState {
     // Zoom state
     public bool IsZooming { get; set; }
     public Point ZoomCenter { get; set; } = new(0, 0);
-    public GridDetails Grid { get; set; } = new() {
+    public GridDetails Grid { get; set; } = new()
+    {
         Type = GridType.NoGrid,
         CellSize = new(50, 50),
         Offset = new(0, 0),

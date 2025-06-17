@@ -10,10 +10,10 @@ public partial class SeedApplicationSchema : Migration {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder) {
         migrationBuilder.InsertData(table: "Resources",
-                                    columns: ["Id", "Type", "Path", "FileName", "FileLength", "ContentType", "ImageSize_Width", "ImageSize_Height"],
+                                    columns: ["Id", "Path", "Type", "ContentType", "ImageSize_Height", "ImageSize_Width", "FileName", "FileLength"],
                                     values: new object[,] {
-            { new Guid("17b7f449-b2eb-41b5-9bca-a25b431e5281"), "Image", "17b7f449-b2eb-41b5-9bca-a25b431e5281.png", "17b7f449-b2eb-41b5-9bca-a25b431e5281.png", 1508688, "image/png", 1024, 720 },
-            { new Guid("1309dbfb-0721-4809-a0ae-173019591f85"), "Image", "1309dbfb-0721-4809-a0ae-173019591f85.png", "1309dbfb-0721-4809-a0ae-173019591f85.png", 15501528, "image/png", 2800, 2100 },
+            { new Guid("17b7f449-b2eb-41b5-9bca-a25b431e5281"), "17b7f449-b2eb-41b5-9bca-a25b431e5281.png", "Image", "image/png", 720, 1024, "17b7f449-b2eb-41b5-9bca-a25b431e5281.png", 1500500 },
+            { new Guid("1309dbfb-0721-4809-a0ae-173019591f85"), "1309dbfb-0721-4809-a0ae-173019591f85.png", "Image", "image/png", 2100, 2800, "1309dbfb-0721-4809-a0ae-173019591f85.png", 15500500 },
         });
         migrationBuilder.InsertData(table: "Adventures",
                                     columns: ["Id", "CampaignId", "Description", "IsPublic", "IsPublished", "Name", "OwnerId", "Type", "BackgroundId"],
@@ -28,7 +28,7 @@ public partial class SeedApplicationSchema : Migration {
         migrationBuilder.InsertData(table: "Scenes",
                                     columns: ["Id", "AdventureId", "Description", "IsPublished", "Name", "OwnerId", "StageId", "Grid_Type", "Grid_CellSize_X", "Grid_CellSize_Y", "Grid_Offset_X", "Grid_Offset_Y", "Grid_Snap", "ZoomLevel"],
                                     values: new object[,] {
-            { new Guid("1309dbfb-0721-4809-a0ae-173019591f85"), new Guid("0196f86e-6669-78ee-95eb-4303c232295c"), "Scene 1", false, "Scene 1", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("1309dbfb-0721-4809-a0ae-173019591f85"), "NoGrid", 50.0f, 50.0f, 0.0f, 0.0f, false, 1.0f },
+            { new Guid("0196f86e-6669-78ee-95eb-4303c232295f"), new Guid("0196f86e-6669-78ee-95eb-4303c232295c"), "Scene 1", false, "Scene 1", new Guid("019639ea-c7de-7a01-8548-41edfccde206"), new Guid("1309dbfb-0721-4809-a0ae-173019591f85"), "NoGrid", 50.0f, 50.0f, 0.0f, 0.0f, false, 1.0f },
         });
     }
 
@@ -37,7 +37,7 @@ public partial class SeedApplicationSchema : Migration {
         migrationBuilder.DeleteData(
             table: "Scenes",
             keyColumn: "Id",
-            keyValue: new Guid("1309dbfb-0721-4809-a0ae-173019591f85"));
+            keyValue: new Guid("0196f86e-6669-78ee-95eb-4303c232295f"));
 
         migrationBuilder.DeleteData(
             table: "Adventures",

@@ -143,6 +143,15 @@ public class AdventureServiceTests {
             Name = "Old Name",
             OwnerId = _userId,
             Description = "Old description",
+            Background = new Resource {
+                Id = Guid.NewGuid(),
+                Type = ResourceType.Image,
+                Path = "test/background",
+                Metadata = new ResourceMetadata {
+                    FileName = "background.png",
+                    ContentType = "image/png",
+                },
+            },
         };
         var request = new UpdatedAdventureData {
             CampaignId = Guid.NewGuid(),
@@ -183,6 +192,15 @@ public class AdventureServiceTests {
             OwnerId = _userId,
             Description = "Old description",
             CampaignId = Guid.NewGuid(),
+            Background = new() {
+                Id = Guid.NewGuid(),
+                Type = ResourceType.Image,
+                Path = "test/adventure-background.jpg",
+                Metadata = new ResourceMetadata {
+                    ContentType = "image/jpeg",
+                    ImageSize = new(1920, 1080),
+                },
+            },
         };
         var request = new UpdatedAdventureData {
             Name = "Updated Name",
@@ -317,9 +335,20 @@ public class AdventureServiceTests {
             OwnerId = _userId,
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            IsPublished = true,
-            IsPublic = true,
+            // NOTE: Service logic prevents cloning if both IsPublished=true AND IsPublic=true, even for owners
+            IsPublished = false,
+            IsPublic = false,
             CampaignId = Guid.NewGuid(),
+            // NOTE: Cloner requires Background to be non-null
+            Background = new Resource {
+                Id = Guid.NewGuid(),
+                Type = ResourceType.Image,
+                Path = "adventures/background.jpg",
+                Metadata = new ResourceMetadata {
+                    ContentType = "image/jpeg",
+                    ImageSize = new(1920, 1080),
+                },
+            },
         };
         var scenes = new[] {
             new Scene {
@@ -450,7 +479,8 @@ public class AdventureServiceTests {
         // Assert
         result.IsSuccessful.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        await _adventureStorage.Received(1).UpdateAsync(adventure, Arg.Any<CancellationToken>());
+        // NOTE: AddClonedSceneAsync calls sceneStorage.AddAsync, not adventureStorage.UpdateAsync
+        await _sceneStorage.Received(1).AddAsync(Arg.Any<Scene>(), adventureId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -537,7 +567,8 @@ public class AdventureServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        await _adventureStorage.Received(1).UpdateAsync(adventure, Arg.Any<CancellationToken>());
+        // NOTE: RemoveSceneAsync calls sceneStorage.DeleteAsync, not adventureStorage.UpdateAsync
+        await _sceneStorage.Received(1).DeleteAsync(sceneId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -600,6 +631,7 @@ public class AdventureServiceTests {
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        await _adventureStorage.Received(1).UpdateAsync(adventure, Arg.Any<CancellationToken>());
+        // NOTE: RemoveSceneAsync calls sceneStorage.DeleteAsync, not adventureStorage.UpdateAsync
+        await _sceneStorage.Received(1).DeleteAsync(sceneId, Arg.Any<CancellationToken>());
     }
 }

@@ -25,6 +25,7 @@ internal static class SceneSchemaBuilder {
             entity.ComplexProperty(s => s.Grid, gridBuilder => {
                 gridBuilder.IsRequired();
                 gridBuilder.Property(g => g.Type).IsRequired().HasConversion<string>().HasDefaultValue(GridType.NoGrid);
+                gridBuilder.Property(g => g.Snap).IsRequired().HasDefaultValue(false);
                 gridBuilder.ComplexProperty(s => s.Offset, offsetBuilder => {
                     offsetBuilder.IsRequired();
                     offsetBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0);
@@ -61,10 +62,10 @@ internal static class SceneSchemaBuilder {
                 sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(0);
                 sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(0);
             });
-            entity.ComplexProperty(ea => ea.Position, sizeBuilder => {
-                sizeBuilder.IsRequired();
-                sizeBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0);
-                sizeBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0);
+            entity.ComplexProperty(ea => ea.Position, positionBuilder => {
+                positionBuilder.IsRequired();
+                positionBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0);
+                positionBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0);
             });
             entity.Property(ea => ea.Rotation).IsRequired().HasDefaultValue(0);
             entity.Property(ea => ea.Elevation).IsRequired().HasDefaultValue(0);
@@ -73,7 +74,7 @@ internal static class SceneSchemaBuilder {
             entity.HasOne<Scene>().WithMany(e => e.SceneAssets).IsRequired()
                   .HasForeignKey(ea => ea.SceneId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(ea => ea.Asset).WithMany().IsRequired()
-                  .HasForeignKey(ea => ea.SceneId).OnDelete(DeleteBehavior.Cascade);
+                  .HasForeignKey(ea => ea.AssetId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

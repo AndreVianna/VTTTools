@@ -10,7 +10,7 @@ public class OptionalConverterTests {
     [Fact]
     public void Read_DeserializesValue_ReturnsOptionalWithValue() {
         // Arrange
-        const string json = """{"value":"test"}""";
+        const string json = """{"Value":"test"}""";
 
         // Act
         var result = JsonSerializer.Deserialize<TestClass>(json, _options);
@@ -24,7 +24,7 @@ public class OptionalConverterTests {
     [Fact]
     public void Read_DeserializesNullValue_ReturnsOptionalWithNullValue() {
         // Arrange
-        const string json = """{"value":null}""";
+        const string json = """{"Value":null}""";
 
         // Act
         var result = JsonSerializer.Deserialize<TestClass>(json, _options);
@@ -58,7 +58,7 @@ public class OptionalConverterTests {
 
         // Assert
         json.Should().Contain("""
-                              "value":"test"
+                              "Value":"test"
                               """);
     }
 
@@ -72,7 +72,7 @@ public class OptionalConverterTests {
 
         // Assert
         json.Should().Contain("""
-                              "value":null
+                              "Value":null
                               """);
     }
 
@@ -86,7 +86,7 @@ public class OptionalConverterTests {
 
         // Assert
         json.Should().NotContain("""
-                                 "value":*
+                                 "Value":*
                                  """);
     }
 

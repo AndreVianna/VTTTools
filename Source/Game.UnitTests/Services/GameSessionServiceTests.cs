@@ -517,8 +517,9 @@ public class GameSessionServiceTests {
 
         // Assert
         result.Status.Should().Be(HttpStatusCode.NoContent);
-        session.SceneId.Should().Be(newSceneId);
-        await _sessionStorage.Received(1).UpdateAsync(Arg.Any<GameSession>(), Arg.Any<CancellationToken>());
+        await _sessionStorage.Received(1).UpdateAsync(
+            Arg.Is<GameSession>(s => s.Id == sessionId && s.SceneId == newSceneId),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -620,7 +621,9 @@ public class GameSessionServiceTests {
 
         // Assert
         result.Status.Should().Be(HttpStatusCode.NoContent);
-        session.Status.Should().Be(GameSessionStatus.InProgress);
+        await _sessionStorage.Received(1).UpdateAsync(
+            Arg.Is<GameSession>(s => s.Id == sessionId && s.Status == GameSessionStatus.InProgress),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -715,7 +718,9 @@ public class GameSessionServiceTests {
 
         // Assert
         result.Status.Should().Be(HttpStatusCode.NoContent);
-        session.Status.Should().Be(GameSessionStatus.Finished);
+        await _sessionStorage.Received(1).UpdateAsync(
+            Arg.Is<GameSession>(s => s.Id == sessionId && s.Status == GameSessionStatus.Finished),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]

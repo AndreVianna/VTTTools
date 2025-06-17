@@ -42,7 +42,7 @@ public class UpdateAssetRequestTests {
         };
 
         // Assert
-        data.Name.Should().Be(name);
+        data.Name.Value.Should().Be(name);
         data.Position.Value.Should().BeEquivalentTo(position);
         data.Size.Value.Should().Be(size);
         data.Frame.Value.Should().BeEquivalentTo(frame);

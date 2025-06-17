@@ -1,10 +1,12 @@
 namespace VttTools.WebApp.WebAssembly.Utilities;
 
 public class PersistentAuthenticationStateProvider
-    : AuthenticationStateProvider {
+    : AuthenticationStateProvider
+{
     private readonly AuthenticationState _persistedState = new(new(new ClaimsIdentity()));
 
-    public PersistentAuthenticationStateProvider(PersistentComponentState state) {
+    public PersistentAuthenticationStateProvider(PersistentComponentState state)
+    {
         if (!state.TryTakeFromJson<BasicUserInfo>(nameof(BasicUserInfo), out var userInfo) || userInfo is null)
             return;
 

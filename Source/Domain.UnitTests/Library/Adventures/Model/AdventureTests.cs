@@ -16,8 +16,8 @@ public class AdventureTests {
         adventure.Scenes.Should().BeEmpty();
         adventure.Name.Should().BeEmpty();
         adventure.Description.Should().BeEmpty();
-        adventure.Type.Should().Be(AdventureType.OpenWorld);
-        adventure.Background.Should().NotBeNull();
+        adventure.Type.Should().Be(AdventureType.Generic);
+        adventure.Background.Should().BeNull();
         adventure.IsPublished.Should().BeFalse();
         adventure.IsPublic.Should().BeFalse();
     }

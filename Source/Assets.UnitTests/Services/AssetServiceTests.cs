@@ -117,7 +117,7 @@ public class AssetServiceTests {
     }
 
     [Fact]
-    public async Task UpdateAssetAsync_WithNonOwner_ReturnsNull() {
+    public async Task UpdateAssetAsync_WithNonOwner_ReturnsNotAllowed() {
         // Arrange
         var assetId = Guid.NewGuid();
         var nonOwnerId = Guid.NewGuid();
@@ -137,7 +137,8 @@ public class AssetServiceTests {
         var result = await _service.UpdateAssetAsync(nonOwnerId, assetId, data, _ct);
 
         // Assert
-        result.Should().BeNull();
+        result.IsSuccessful.Should().BeFalse();
+        result.Errors[0].Message.Should().Be("NotAllowed");
         await _assetStorage.DidNotReceive().UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
     }
 
@@ -229,7 +230,7 @@ public class AssetServiceTests {
     }
 
     [Fact]
-    public async Task UpdateAssetAsync_WithNonExistentAsset_ReturnsNull() {
+    public async Task UpdateAssetAsync_WithNonExistentAsset_ReturnsNotFound() {
         // Arrange
         var assetId = Guid.NewGuid();
         var data = new UpdateAssetData {
@@ -242,7 +243,8 @@ public class AssetServiceTests {
         var result = await _service.UpdateAssetAsync(_userId, assetId, data, _ct);
 
         // Assert
-        result.Should().BeNull();
+        result.IsSuccessful.Should().BeFalse();
+        result.Errors[0].Message.Should().Be("NotFound");
         await _assetStorage.DidNotReceive().UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
     }
 }

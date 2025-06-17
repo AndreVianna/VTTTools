@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.WebAssembly.Pages.Library.Scenes;
 
-public sealed class StageInput {
+public sealed class StageInput
+{
     public string ImageUrl { get; set; } = string.Empty;
     public int Width { get; set; }
     public int Height { get; set; }

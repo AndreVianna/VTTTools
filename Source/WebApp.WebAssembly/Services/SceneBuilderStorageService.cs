@@ -3,7 +3,8 @@ namespace VttTools.WebApp.WebAssembly.Services;
 /// <summary>
 /// Handles local storage operations for scene builder state
 /// </summary>
-public sealed class SceneBuilderStorageService(IJSRuntime jsRuntime) {
+public sealed class SceneBuilderStorageService(IJSRuntime jsRuntime)
+{
     /// <summary>
     /// Gets a value from local storage or returns default if not found
     /// </summary>
@@ -12,19 +13,23 @@ public sealed class SceneBuilderStorageService(IJSRuntime jsRuntime) {
     /// <param name="sceneId">Scene ID for scoped storage</param>
     /// <param name="defaultValue">Default value if not found</param>
     /// <returns>Stored value or default</returns>
-    public async Task<T> GetFromLocalStorageOrDefaultAsync<T>(string key, Guid? sceneId, T defaultValue) {
-        try {
+    public async Task<T> GetFromLocalStorageOrDefaultAsync<T>(string key, Guid? sceneId, T defaultValue)
+    {
+        try
+        {
             var itemKey = sceneId.HasValue ? $"sceneBuilder:{key}:{sceneId}" : $"sceneBuilder:{key}";
             var json = await jsRuntime.InvokeAsync<string?>("localStorage.getItem", itemKey);
 
-            if (string.IsNullOrEmpty(json)) {
+            if (string.IsNullOrEmpty(json))
+            {
                 return defaultValue;
             }
 
             var result = JsonSerializer.Deserialize<T>(json);
             return result ?? defaultValue;
         }
-        catch (Exception ex) {
+        catch (Exception ex)
+        {
             Console.WriteLine($"Error reading from local storage: {ex.Message}");
             return defaultValue;
         }
@@ -37,13 +42,16 @@ public sealed class SceneBuilderStorageService(IJSRuntime jsRuntime) {
     /// <param name="key">Storage key</param>
     /// <param name="sceneId">Scene ID for scoped storage</param>
     /// <param name="value">Value to save</param>
-    public async Task SaveToLocalStorageAsync<T>(string key, Guid? sceneId, T value) {
-        try {
+    public async Task SaveToLocalStorageAsync<T>(string key, Guid? sceneId, T value)
+    {
+        try
+        {
             var itemKey = sceneId.HasValue ? $"sceneBuilder:{key}:{sceneId}" : $"sceneBuilder:{key}";
             var json = JsonSerializer.Serialize(value);
             await jsRuntime.InvokeVoidAsync("localStorage.setItem", itemKey, json);
         }
-        catch (Exception ex) {
+        catch (Exception ex)
+        {
             Console.WriteLine($"Error saving to local storage: {ex.Message}");
         }
     }
@@ -52,7 +60,8 @@ public sealed class SceneBuilderStorageService(IJSRuntime jsRuntime) {
     /// Saves the current scene builder state to local storage
     /// </summary>
     /// <param name="state">Builder state to save</param>
-    public async Task SaveStateAsync(BuilderState state) {
+    public async Task SaveStateAsync(BuilderState state)
+    {
         if (state.SceneId == Guid.Empty)
             return;
 
@@ -69,10 +78,12 @@ public sealed class SceneBuilderStorageService(IJSRuntime jsRuntime) {
     /// <param name="sceneId">Scene ID to load state for</param>
     /// <param name="defaultZoomLevel">Default zoom level if not stored</param>
     /// <returns>Loaded builder state</returns>
-    public async Task<(Point PanOffset, float ZoomLevel, GridDetails Grid)> LoadStateAsync(Guid sceneId, float defaultZoomLevel = 1.0f) {
+    public async Task<(Point PanOffset, float ZoomLevel, GridDetails Grid)> LoadStateAsync(Guid sceneId, float defaultZoomLevel = 1.0f)
+    {
         var panOffsetTask = Task.Run(() => GetFromLocalStorageOrDefaultAsync("panOffset", sceneId, new Point(0, 0)));
         var zoomLevelTask = Task.Run(() => GetFromLocalStorageOrDefaultAsync("zoomLevel", sceneId, defaultZoomLevel));
-        var gridTask = Task.Run(() => GetFromLocalStorageOrDefaultAsync("grid", sceneId, new GridDetails {
+        var gridTask = Task.Run(() => GetFromLocalStorageOrDefaultAsync("grid", sceneId, new GridDetails
+        {
             Type = GridType.NoGrid,
             CellSize = new(50, 50),
             Offset = new(0, 0),

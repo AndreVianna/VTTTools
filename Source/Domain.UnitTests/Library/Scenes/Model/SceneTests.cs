@@ -10,7 +10,7 @@ public class SceneTests {
 
         // Assert
         scene.Id.Should().NotBeEmpty();
-        scene.Name.Should().BeEmpty();
+        scene.Name.Should().Be(Scene.NewSceneName);
         scene.Description.Should().BeEmpty();
         scene.Stage.Should().NotBeNull();
         scene.Assets.Should().BeEmpty();

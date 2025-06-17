@@ -13,7 +13,7 @@ using VttTools.Data;
 namespace VttTools.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250616034230_CreateApplicationSchema")]
+    [Migration("20250616214219_CreateApplicationSchema")]
     partial class CreateApplicationSchema
     {
         /// <inheritdoc />
@@ -29,6 +29,7 @@ namespace VttTools.Data.Migrations
             modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
@@ -60,6 +61,8 @@ namespace VttTools.Data.Migrations
                         .HasDefaultValue("Placeholder");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DisplayId");
 
                     b.ToTable("Assets", (string)null);
                 });
@@ -302,7 +305,9 @@ namespace VttTools.Data.Migrations
                             b1.IsRequired();
 
                             b1.Property<bool>("Snap")
-                                .HasColumnType("bit");
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("bit")
+                                .HasDefaultValue(false);
 
                             b1.Property<string>("Type")
                                 .IsRequired()
@@ -454,6 +459,8 @@ namespace VttTools.Data.Migrations
                         });
 
                     b.HasKey("SceneId", "Index");
+
+                    b.HasIndex("AssetId");
 
                     b.HasIndex("DisplayId");
 
@@ -776,7 +783,7 @@ namespace VttTools.Data.Migrations
                 {
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Display")
                         .WithMany()
-                        .HasForeignKey("Id")
+                        .HasForeignKey("DisplayId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -961,15 +968,15 @@ namespace VttTools.Data.Migrations
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.SceneAsset", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Display")
+                    b.HasOne("VttTools.Data.Assets.Entities.Asset", "Asset")
                         .WithMany()
-                        .HasForeignKey("DisplayId")
+                        .HasForeignKey("AssetId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Assets.Entities.Asset", "Asset")
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Display")
                         .WithMany()
-                        .HasForeignKey("SceneId")
+                        .HasForeignKey("DisplayId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

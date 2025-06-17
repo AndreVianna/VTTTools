@@ -1,13 +1,16 @@
 namespace VttTools.WebApp.WebAssembly.Clients;
 
-public static class Mapper {
+public static class Mapper
+{
     internal static SceneDetails ToViewModel(this Scene scene)
-        => new() {
+        => new()
+        {
             Id = scene.Id,
             Name = scene.Name,
             Description = scene.Description,
             IsPublished = scene.IsPublished,
-            Stage = new() {
+            Stage = new()
+            {
                 Id = scene.Stage.Background.Id,
                 Type = scene.Stage.Background.Type,
                 Path = scene.Stage.Background.Path,
@@ -15,13 +18,15 @@ public static class Mapper {
                 ZoomLevel = scene.Stage.ZoomLevel,
                 Panning = scene.Stage.Panning,
             },
-            Grid = new() {
+            Grid = new()
+            {
                 Type = scene.Grid.Type,
                 CellSize = scene.Grid.CellSize,
                 Offset = scene.Grid.Offset,
                 Snap = scene.Grid.Snap,
             },
-            Assets = scene.Assets.ConvertAll(a => new SceneAssetDetails {
+            Assets = scene.Assets.ConvertAll(a => new SceneAssetDetails
+            {
                 Id = a.Id,
                 Name = a.Name,
                 Number = a.Number,
@@ -29,7 +34,8 @@ public static class Mapper {
             }),
         };
     internal static SceneAssetDetails ToViewModel(this SceneAsset asset)
-        => new() {
+        => new()
+        {
             Id = asset.Id,
             Name = asset.Name,
             Number = asset.Number,

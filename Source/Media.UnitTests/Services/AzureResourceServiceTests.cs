@@ -15,7 +15,7 @@ public class AzureResourceServiceTests {
         _blobServiceClient.CreateBlobContainerAsync("images", PublicAccessType.BlobContainer, null, Arg.Any<CancellationToken>())
                           .Returns(Response.FromValue(_blobContainerClient, _response));
         _blobContainerClient.GetBlobClient(Arg.Any<string>()).Returns(_blobClient);
-        _blobClient.UploadAsync(Arg.Any<Stream>(), true, Arg.Any<CancellationToken>())
+        _blobClient.UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>())
             .Returns(Response.FromValue(_blobContentInfo, _response));
         _service = new(_blobServiceClient, _mediaStorage);
 #if XUNITV3
@@ -52,7 +52,7 @@ public class AzureResourceServiceTests {
         // Assert
         result.IsSuccessful.Should().BeTrue();
         _blobServiceClient.Received(1).GetBlobContainerClient("images");
-        await _blobClient.Received(1).UploadAsync(Arg.Any<Stream>(), true, Arg.Any<CancellationToken>());
+        await _blobClient.Received(1).UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -80,14 +80,24 @@ public class AzureResourceServiceTests {
         result.IsSuccessful.Should().BeTrue();
 
         await _blobServiceClient.Received(1).CreateBlobContainerAsync("images", PublicAccessType.BlobContainer, null, Arg.Any<CancellationToken>());
-        await _blobClient.Received(1).UploadAsync(Arg.Any<Stream>(), true, Arg.Any<CancellationToken>());
+        await _blobClient.Received(1).UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task DeleteImageAsync_DeletesFileFromBlobStorage() {
         // Arrange
         var id = Guid.NewGuid();
+        var resource = new Resource {
+            Id = id,
+            Path = "test/path",
+            Type = ResourceType.Image,
+            Metadata = new ResourceMetadata {
+                FileName = "test.png",
+                ContentType = "image/png",
+            },
+        };
 
+        _mediaStorage.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(resource);
         _blobClient.DeleteIfExistsAsync(
                 DeleteSnapshotsOption.IncludeSnapshots,
                 null,
@@ -109,16 +119,14 @@ public class AzureResourceServiceTests {
         // Arrange
         var id = Guid.NewGuid();
 
-        _blobClient.DeleteIfExistsAsync(
-                DeleteSnapshotsOption.IncludeSnapshots,
-                null,
-                Arg.Any<CancellationToken>())
-            .Returns(Response.FromValue(false, Substitute.For<Response>()));
+        _mediaStorage.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns((Resource?)null);
 
         // Act
-        await _service.DeleteResourceAsync(id, _ct);
+        var result = await _service.DeleteResourceAsync(id, _ct);
 
         // Assert
+        result.IsSuccessful.Should().BeFalse();
+        result.Errors[0].Message.Should().Be("NotFound");
         await _blobClient.DidNotReceive().DeleteIfExistsAsync(
             Arg.Any<DeleteSnapshotsOption>(),
             Arg.Any<BlobRequestConditions>(),

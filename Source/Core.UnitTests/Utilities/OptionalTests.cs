@@ -214,7 +214,7 @@ public class OptionalTests {
         var result = optional.ToString();
 
         // Assert
-        result.Should().Be("NoGrid");
+        result.Should().Be("None");
     }
 
     [Fact]
@@ -226,7 +226,7 @@ public class OptionalTests {
         var result = optional.ToString();
 
         // Assert
-        result.Should().Be("Some(test)");
+        result.Should().Be("Some(\"test\")");
     }
 
     [Fact]

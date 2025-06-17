@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.WebAssembly.Pages.Library.Scenes;
 
-public sealed class GuidInput {
+public sealed class GuidInput
+{
     public GridType Type { get; set; }
     public float CellWidth { get; set; }
     public float CellHeight { get; set; }

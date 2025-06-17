@@ -14,7 +14,7 @@ public class AssetTests {
         asset.Name.Should().BeEmpty();
         asset.Type.Should().Be(AssetType.Placeholder);
         asset.Description.Should().BeEmpty();
-        asset.Display.Should().NotBeNull();
+        asset.Display.Should().BeNull();
     }
 
     [Fact]

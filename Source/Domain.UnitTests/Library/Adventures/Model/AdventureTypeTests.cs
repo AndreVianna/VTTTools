@@ -6,12 +6,13 @@ public class AdventureTypeTests {
         // Arrange
         var expectedValues = new[]
         {
+            AdventureType.Generic,
             AdventureType.OpenWorld,
             AdventureType.DungeonCrawl,
             AdventureType.HackNSlash,
             AdventureType.Survival,
             AdventureType.GoalDriven,
-            AdventureType.RandomlyGenerated
+            AdventureType.RandomlyGenerated,
         };
 
         // Act
