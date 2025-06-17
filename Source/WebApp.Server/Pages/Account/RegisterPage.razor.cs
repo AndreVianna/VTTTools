@@ -9,7 +9,7 @@ public partial class RegisterPage {
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    internal virtual RegisterPageState State { get; set; } = new();
+    internal RegisterPageState State { get; set; } = new();
 
     public async Task RegisterUser(EditContext _) {
         await Handler.RegisterUserAsync(ReturnUrl);
