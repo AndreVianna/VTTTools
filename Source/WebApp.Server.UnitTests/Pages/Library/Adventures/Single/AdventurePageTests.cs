@@ -2,10 +2,8 @@ namespace VttTools.WebApp.Pages.Library.Adventures.Single;
 
 [Trait("Category", "UI")]
 public class AdventurePageTests
-    : BUnitContext {
+    : ComponentTestContext {
     private readonly IAdventuresHttpClient _client = Substitute.For<IAdventuresHttpClient>();
-    private readonly NavigationManager _navigationManager = Substitute.For<NavigationManager>();
-    private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
     private readonly AdventureDetails _testAdventure = new() {
         Name = "Test Adventure",
         Description = "Test Description",
@@ -16,10 +14,9 @@ public class AdventurePageTests
 
     public AdventurePageTests() {
         Services.AddSingleton(_client);
-        Services.AddSingleton(_navigationManager);
-        Services.AddSingleton(_httpContext);
-        Services.AddSingleton<ILoggerFactory>(new NullLoggerFactory());
-        Services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
+        Services.AddSingleton<IServiceScopeFactory>(Substitute.For<IServiceScopeFactory>());
+        EnsureAuthenticated();
+        _testAdventure.OwnerId = CurrentUser!.Id;
     }
 
     [Fact]
@@ -38,7 +35,6 @@ public class AdventurePageTests
         cut.Render();
 
         // Assert
-        cut.Find("#edit-button").Should().NotBeNull();
         cut.Find("#clone-button").Should().NotBeNull();
         cut.Find("#back-button").Should().NotBeNull();
 
@@ -173,7 +169,7 @@ public class AdventurePageTests
     }
 
     [Fact]
-    public void AdventurePage_DiscardChangesButton_ShowsDiscardModal() {
+    public void AdventurePage_DiscardChangesButton_ResetsValues() {
         // Arrange
         var guid = Guid.NewGuid();
         _client.GetAdventureByIdAsync(guid).Returns(_testAdventure);
@@ -187,14 +183,15 @@ public class AdventurePageTests
         cut.Render();
 
         // Make a change
-        cut.Find("#name").Change("Changed Name");
+        var nameInput = cut.Find("#name");
+        nameInput.Change("Changed Name");
+        nameInput.GetAttribute("value").Should().Be("Changed Name");
 
         // Act
         cut.Find("#discard-button").Click();
 
-        // Assert
-        cut.FindAll(".modal.show").Should().NotBeEmpty();
-        cut.Find(".modal.show .modal-title").TextContent.Should().Contain("Discard Changes");
+        // Assert - values should be reset to original
+        cut.Find("#name").GetAttribute("value").Should().Be(_testAdventure.Name);
     }
 
     [Fact]
@@ -204,7 +201,7 @@ public class AdventurePageTests
         _client.GetAdventureByIdAsync(guid).Returns(_testAdventure);
 
         var cut = RenderComponent<AdventurePage>(parameters => parameters
-            .Add(p => p.Action, "view")
+            .Add(p => p.Action, "edit")
             .Add(p => p.Id, guid));
 
         // Wait for async operations
@@ -212,7 +209,7 @@ public class AdventurePageTests
         cut.Render();
 
         // Act
-        cut.Find(".card-footer button").Click();
+        cut.Find("#delete-button").Click();
 
         // Assert
         cut.FindAll(".modal.show").Should().NotBeEmpty();

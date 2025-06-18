@@ -40,5 +40,6 @@
       "Bash(xmllint:*)",
       "mcp__just-prompt__prompt"
     ],
+    "deny": []
   }
 }

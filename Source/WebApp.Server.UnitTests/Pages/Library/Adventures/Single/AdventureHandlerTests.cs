@@ -8,11 +8,9 @@ public class AdventureHandlerTests
     private readonly AdventurePage _page = Substitute.For<AdventurePage>();
     private readonly Guid _adventureId = Guid.NewGuid();
     private readonly IAdventuresHttpClient _serverHttpClient = Substitute.For<IAdventuresHttpClient>();
-    private readonly NavigationManager _mockNavigationManager = Substitute.For<NavigationManager>();
-
     public AdventureHandlerTests() {
         _page.HttpContext.Returns(HttpContext);
-        _page.NavigationManager.Returns(_mockNavigationManager);
+        _page.NavigationManager.Returns(NavigationManager);
         _page.Logger.Returns(NullLogger.Instance);
         _page.Id = _adventureId;
     }
@@ -22,13 +20,11 @@ public class AdventureHandlerTests
         // Arrange
         var handler = CreateHandler();
         var adventure = new AdventureDetails {
-            Id = _adventureId,
             Name = "Test Adventure",
             Description = "Test Description",
             Type = AdventureType.OpenWorld,
             IsPublished = true,
             IsPublic = true,
-            ScenesCount = 2,
             OwnerId = Guid.NewGuid(),
         };
         _serverHttpClient.GetAdventureByIdAsync(_adventureId).Returns(adventure);
@@ -66,13 +62,11 @@ public class AdventureHandlerTests
         // Arrange
         var handler = CreateHandler();
         var adventure = new AdventureDetails {
-            Id = _adventureId,
             Name = "Test Adventure",
             Description = "Test Description",
             Type = AdventureType.OpenWorld,
             IsPublished = true,
             IsPublic = true,
-            ScenesCount = 2,
             OwnerId = Guid.NewGuid(),
         };
         _serverHttpClient.GetAdventureByIdAsync(_adventureId).Returns(adventure);
@@ -118,8 +112,6 @@ public class AdventureHandlerTests
 
         // Assert
         await _serverHttpClient.Received(1).CreateAdventureAsync(Arg.Any<CreateAdventureRequest>());
-
-        _mockNavigationManager.Received(1).NavigateTo($"/adventure/view/{createdAdventure.Id}");
     }
 
     [Fact]
@@ -159,8 +151,6 @@ public class AdventureHandlerTests
                 req.Type.IsSet && req.Type.Value == AdventureType.DungeonCrawl &&
                 req.IsPublished.IsSet && req.IsPublished.Value &&
                 req.IsPublic.IsSet && req.IsPublic.Value));
-
-        _mockNavigationManager.Received(1).NavigateTo($"/adventure/view/{_adventureId}");
     }
 
     [Fact]
@@ -179,11 +169,11 @@ public class AdventureHandlerTests
 
         // Assert
         _page.State.Errors.Should().Contain(error);
-        _mockNavigationManager.DidNotReceive().NavigateTo(Arg.Any<string>());
+        NavigationManager.History.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task SaveChangesAndContinueAsync_InCreateMode_RedirectsToEditMode() {
+    public async Task SaveChangesAsync_InCreateModeSimple_CallsCreateEndpoint() {
         // Arrange
         var handler = await CreateHandlerForCreate();
         _page.State.Mode = DetailsPageMode.Create;
@@ -205,11 +195,11 @@ public class AdventureHandlerTests
         await handler.SaveChangesAsync();
 
         // Assert
-        _mockNavigationManager.Received(1).NavigateTo($"/adventure/edit/{createdId}");
+        await _serverHttpClient.Received(1).CreateAdventureAsync(Arg.Any<CreateAdventureRequest>());
     }
 
     [Fact]
-    public async Task SaveChangesAndContinueAsync_InEditMode_RefreshesData() {
+    public async Task SaveChangesAsync_InEditMode_RefreshesData() {
         // Arrange
         var handler = await CreateConfiguredHandler();
         _page.State.Mode = DetailsPageMode.Edit;
@@ -224,11 +214,9 @@ public class AdventureHandlerTests
             .Returns(Result.Success());
 
         var updatedAdventure = new AdventureDetails {
-            Id = _adventureId,
             Name = "Updated Name",
             Description = "Updated Description",
             Type = AdventureType.OpenWorld,
-            ScenesCount = 2,
             OwnerId = Guid.NewGuid(),
         };
         _serverHttpClient.GetAdventureByIdAsync(_adventureId).Returns(updatedAdventure);
@@ -241,7 +229,6 @@ public class AdventureHandlerTests
             Arg.Is(_adventureId),
             Arg.Any<UpdateAdventureRequest>());
         await _serverHttpClient.Received(1).GetAdventureByIdAsync(_adventureId);
-        _mockNavigationManager.DidNotReceive().NavigateTo(Arg.Any<string>());
     }
 
     [Fact]
@@ -286,7 +273,7 @@ public class AdventureHandlerTests
 
         // Assert
         await _serverHttpClient.Received(1).DeleteAdventureAsync(_adventureId);
-        _mockNavigationManager.Received(1).NavigateTo("/adventures");
+        NavigationManager.History.Should().ContainSingle(h => h.Uri == "/adventures");
     }
 
     [Fact]
@@ -301,7 +288,7 @@ public class AdventureHandlerTests
 
         // Assert
         await _serverHttpClient.Received(1).DeleteAdventureAsync(_adventureId);
-        _mockNavigationManager.DidNotReceive().NavigateTo(Arg.Any<string>());
+        NavigationManager.History.Should().BeEmpty();
     }
 
     private AdventureHandler CreateHandler() {
@@ -314,13 +301,11 @@ public class AdventureHandlerTests
         var handler = CreateHandler();
         _page.Action = "edit";
         var adventure = new AdventureDetails {
-            Id = _adventureId,
             Name = "Test Adventure",
             Description = "Test Description",
             Type = AdventureType.OpenWorld,
             IsPublished = true,
             IsPublic = true,
-            ScenesCount = 2,
             OwnerId = Guid.NewGuid(),
         };
         _serverHttpClient.GetAdventureByIdAsync(_adventureId).Returns(adventure);

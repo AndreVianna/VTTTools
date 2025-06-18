@@ -13,7 +13,8 @@ public class EmailPageTests
     [Fact]
     public void WhenRendered_WithConfirmedEmail_ShowsEmailChangeForm() {
         // Act
-        var cut = RenderComponent<EmailPage>();
+        var cut = RenderComponent<EmailPage>(parameters => parameters
+            .AddCascadingValue(CurrentUser!));
 
         // Assert
         cut.Markup.Should().Contain("<h3>Manage email</h3>");
@@ -29,7 +30,8 @@ public class EmailPageTests
         CurrentUser!.EmailConfirmed = false;
 
         // Act
-        var cut = RenderComponent<EmailPage>();
+        var cut = RenderComponent<EmailPage>(parameters => parameters
+            .AddCascadingValue(CurrentUser!));
 
         // Assert
         cut.Markup.Should().Contain("<h3>Manage email</h3>");
@@ -41,7 +43,8 @@ public class EmailPageTests
     [Fact]
     public void ChangeEmailButtonIsClicked_WithEmptyEmail_ShowsErrorMessage() {
         // Arrange
-        var cut = RenderComponent<EmailPage>();
+        var cut = RenderComponent<EmailPage>(parameters => parameters
+            .AddCascadingValue(CurrentUser!));
 
         // Act
         cut.Find("#change-email-submit").Click();
@@ -54,7 +57,8 @@ public class EmailPageTests
     [Fact]
     public void ChangeEmailButtonIsClicked_WithSameEmail_ShowsUnchangedMessage() {
         // Arrange
-        var cut = RenderComponent<EmailPage>();
+        var cut = RenderComponent<EmailPage>(parameters => parameters
+            .AddCascadingValue(CurrentUser!));
         var newEmailInput = cut.Find("#new-email-input");
         newEmailInput.Change(CurrentUser!.Email);
 
@@ -69,7 +73,8 @@ public class EmailPageTests
     [Fact]
     public void ChangeEmailButtonIsClicked_WithNewEmail_SendsConfirmationEmail() {
         // Arrange
-        var cut = RenderComponent<EmailPage>();
+        var cut = RenderComponent<EmailPage>(parameters => parameters
+            .AddCascadingValue(CurrentUser!));
         var newEmailInput = cut.Find("#new-email-input");
         newEmailInput.Change("new@example.com");
 
@@ -87,7 +92,8 @@ public class EmailPageTests
     public void VerifyEmailButtonIsClicked_SendsVerificationEmail() {
         // Arrange
         CurrentUser!.EmailConfirmed = false;
-        var cut = RenderComponent<EmailPage>();
+        var cut = RenderComponent<EmailPage>(parameters => parameters
+            .AddCascadingValue(CurrentUser!));
 
         UserManager.GenerateEmailConfirmationTokenAsync(Arg.Any<User>()).Returns("token");
 
