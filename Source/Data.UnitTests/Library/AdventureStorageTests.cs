@@ -156,7 +156,7 @@ public class AdventureStorageTests
             .Where(s => s.AdventureId == adventureEntity.Id)
             .Select(s => s.Name)
             .ToArrayAsync(_ct);
-        
+
         sceneCount.Should().Be(2);
         sceneNames.Should().Contain("Scene 1.1");
         sceneNames.Should().Contain("Scene 1.2");

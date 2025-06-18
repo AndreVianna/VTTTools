@@ -39,14 +39,14 @@ public class ComponentTestContext
         var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
         HttpContext = Substitute.For<HttpContext>();
         HttpContext.RequestServices = Services;
-        
+
         // Set up Request and Response for SetStatusMessage extension
         var request = Substitute.For<HttpRequest>();
         var response = Substitute.For<HttpResponse>();
         var session = Substitute.For<ISession>();
         var requestCookies = Substitute.For<IRequestCookieCollection>();
         var responseCookies = Substitute.For<IResponseCookies>();
-        
+
         request.Method.Returns("GET");
         request.Cookies.Returns(requestCookies);
         response.Cookies.Returns(responseCookies);
@@ -54,7 +54,7 @@ public class ComponentTestContext
         HttpContext.Response.Returns(response);
         HttpContext.Session.Returns(session);
         HttpContext.Items.Returns(new Dictionary<object, object?>());
-        
+
         httpContextAccessor.HttpContext.Returns(HttpContext);
         Services.AddSingleton<IHttpContextAccessor>(httpContextAccessor);
         Services.AddCascadingValue(_ => HttpContext);
@@ -89,7 +89,7 @@ public class ComponentTestContext
 
         SetAuthorization();
         SetCurrentLocation();
-        
+
         // Add cascading AccountOwner for AccountPage components
         Services.AddCascadingValue("AccountOwner", _ => CurrentUser);
     }
@@ -155,7 +155,7 @@ public class ComponentTestContext
         UserManager.GetUserAsync(Arg.Any<ClaimsPrincipal>()).Returns(CurrentUser);
         UserManager.IsInRoleAsync(Arg.Any<User>(), "User").Returns(CurrentUser is not null);
         UserManager.IsInRoleAsync(Arg.Any<User>(), "Administrator").Returns(CurrentUser?.IsAdministrator ?? false);
-        
+
         // Update cascading AccountOwner value
         if (CurrentUser is not null) {
             Services.AddCascadingValue("AccountOwner", _ => CurrentUser);

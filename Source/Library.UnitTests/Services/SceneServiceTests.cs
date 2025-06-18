@@ -210,11 +210,11 @@ public class SceneServiceTests {
             OwnerId = _userId,
             Assets = [
                 // NOTE: Service uses Assets.Max(sa => sa.Index) and scene.Assets.Where(sa => sa.Id == assetId).Max() which fail on empty collections
-                new SceneAsset { 
+                new SceneAsset {
                     Id = assetId, // Same assetId to provide baseline for Number calculation
-                    Index = 0, 
+                    Index = 0,
                     Number = 1,
-                    Name = "Existing Asset Instance" 
+                    Name = "Existing Asset Instance"
                 }
             ],
         };

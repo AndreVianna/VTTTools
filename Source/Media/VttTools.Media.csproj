@@ -15,9 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.3.0" />
-    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.11.0" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
+    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.3.1" />
+    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.12.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.24.1" />
   </ItemGroup>
 
   <ItemGroup>

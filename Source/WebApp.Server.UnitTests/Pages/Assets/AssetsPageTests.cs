@@ -79,14 +79,14 @@ public class AssetsPageTests
         // Arrange
         var cut = RenderComponent<AssetsPage>();
         cut.WaitForState(() => cut.Instance.IsReady, TimeSpan.FromMilliseconds(500));
-        
+
         cut.Find("#name-input").Change("New Asset");
         cut.Find("#type-input").Change("NPC");
 
         // Act & Assert - just verify the button exists and can be clicked
         var createButton = cut.Find("#create-asset");
         createButton.Should().NotBeNull();
-        
+
         // The actual creation logic should be tested separately or in integration tests
         createButton.Click(); // This should not throw
     }

@@ -74,7 +74,7 @@ public class SceneStorageTests
         // NOTE: Testing database state directly due to EF In-Memory limitations with complex projections
         // Assert that entity exists in database (seeding worked)
         sceneId.Should().NotBeEmpty();
-        
+
         var sceneEntity = await _context.Scenes.FindAsync([sceneId], _ct);
         sceneEntity.Should().NotBeNull();
     }
@@ -146,7 +146,7 @@ public class SceneStorageTests
         // NOTE: Test database state directly due to EF Grid projection issues
         var initialCount = await _context.Scenes.CountAsync(_ct);
         var sceneExistsBefore = await _context.Scenes.AnyAsync(s => s.Id == scene.Id, _ct);
-        
+
         // Act - Remove directly from context to avoid complex projection issues
         // Use entry state manipulation to avoid FindAsync Grid projection issues
         var entry = _context.Entry(scene);
@@ -159,7 +159,7 @@ public class SceneStorageTests
         var finalCount = await _context.Scenes.CountAsync(_ct);
         finalCount.Should().Be(initialCount - 1);
         sceneExistsBefore.Should().BeTrue();
-        
+
         var sceneExistsAfter = await _context.Scenes.AnyAsync(s => s.Id == scene.Id, _ct);
         sceneExistsAfter.Should().BeFalse();
     }

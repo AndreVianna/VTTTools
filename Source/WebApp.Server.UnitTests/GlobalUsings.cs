@@ -1,9 +1,9 @@
 global using System.Diagnostics;
-global using System.Drawing;
-global using System.Numerics;
 global using System.Diagnostics.CodeAnalysis;
+global using System.Drawing;
 global using System.Net;
 global using System.Net.Http.Json;
+global using System.Numerics;
 global using System.Reflection;
 global using System.Security.Claims;
 global using System.Text.Json;
@@ -15,7 +15,6 @@ global using AwesomeAssertions;
 
 global using Bunit;
 global using Bunit.TestDoubles;
-global using FakeNavigationManager = Bunit.TestDoubles.FakeNavigationManager;
 
 global using DotNetToolbox;
 global using DotNetToolbox.Results;
@@ -74,3 +73,4 @@ global using VttTools.WebApp.TestUtilities;
 global using VttTools.WebApp.Utilities;
 
 global using BUnitContext = Bunit.TestContext;
+global using FakeNavigationManager = Bunit.TestDoubles.FakeNavigationManager;

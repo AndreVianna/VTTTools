@@ -53,7 +53,7 @@ public class ProfilePageHandlerTests
     public async Task UpdateProfileAsync_WithInvalidData_ContainErrors() {
         // Arrange & Act
         var handler = CreateHandler();
-        
+
         // Act - just verify the method can be called without error
         await handler.UpdateProfileAsync();
 
