@@ -3,7 +3,6 @@ namespace VttTools.WebApp.Pages.Account.Manage;
 public class ProfilePageHandlerTests
     : ComponentTestContext {
     private readonly ProfilePage _page = Substitute.For<ProfilePage>();
-    private readonly ProfilePageState _state = new();
 
     public ProfilePageHandlerTests() {
         _page.HttpContext.Returns(HttpContext);
