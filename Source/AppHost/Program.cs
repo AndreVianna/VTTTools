@@ -28,6 +28,7 @@ internal static class Program {
 
         var resources = builder.AddProject<Projects.VttTools_Media>("resources-api")
                                .WithReference(cache).WaitFor(cache)
+                               .WithReference(database).WaitFor(database)
                                .WithReference(blobs).WaitFor(blobs)
                                .WithHttpHealthCheck("health")
                                .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);

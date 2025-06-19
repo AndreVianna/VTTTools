@@ -10,6 +10,7 @@ public class SceneStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public Task<Scene[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Scenes
+                  .Include(e => e.Stage)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
                   .AsNoTrackingWithIdentityResolution()
@@ -21,6 +22,7 @@ public class SceneStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public Task<Scene[]> GetByParentIdAsync(Guid adventureId, CancellationToken ct = default) {
         var query = context.Scenes
+                  .Include(e => e.Stage)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
                   .Where(e => e.AdventureId == adventureId)
@@ -33,6 +35,7 @@ public class SceneStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<Scene?> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Scenes
+                  .Include(e => e.Stage)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
                   .AsNoTrackingWithIdentityResolution()

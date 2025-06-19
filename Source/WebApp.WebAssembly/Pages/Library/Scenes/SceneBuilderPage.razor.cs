@@ -3,7 +3,7 @@ namespace VttTools.WebApp.WebAssembly.Pages.Library.Scenes;
 public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable
 {
     [Parameter]
-    public Guid SceneId { get; set; }
+    public Guid Id { get; set; }
 
     [Inject]
     internal ISceneBuilderHttpClient SceneService { get; set; } = null!;
@@ -60,9 +60,9 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable
         _persistingSubscription = ApplicationState.RegisterOnPersisting(PersistSceneData);
 
         // Initialize state with scene ID
-        State.SceneId = SceneId;
+        State.SceneId = Id;
 
-        if (!_hasRestoredState && ApplicationState.TryTakeFromJson<SceneBuilderPersistedData>($"SceneBuilder_{SceneId}", out var persistedData) && persistedData != null)
+        if (!_hasRestoredState && ApplicationState.TryTakeFromJson<SceneBuilderPersistedData>($"SceneBuilder_{Id}", out var persistedData) && persistedData != null)
         {
             _hasRestoredState = true;
             Scene = persistedData.Scene;
@@ -84,7 +84,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable
             Scene = Scene,
         };
 
-        ApplicationState.PersistAsJson($"SceneBuilder_{SceneId}", dataToPersist);
+        ApplicationState.PersistAsJson($"SceneBuilder_{Id}", dataToPersist);
         return Task.CompletedTask;
     }
 
@@ -105,10 +105,10 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable
     {
         try
         {
-            var scene = await SceneService.GetSceneByIdAsync(SceneId);
+            var scene = await SceneService.GetSceneByIdAsync(Id);
             if (scene == null)
             {
-                Console.WriteLine($"Failed to load scene {SceneId}");
+                Console.WriteLine($"Failed to load scene {Id}");
                 return;
             }
 

@@ -2,24 +2,17 @@ using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.Media.Handlers;
 
-public record UploadRequest {
-    public Guid Id { get; init; }
-    public string Type { get; init; } = string.Empty;
-    public string Resource { get; init; } = string.Empty;
-}
-
 internal static class ResourcesHandlers {
-    internal static async Task<IResult> UploadFileHandler([FromForm] IFormFile file,
-                                                          [FromBody] UploadRequest request,
+    internal static async Task<IResult> UploadFileHandler([FromForm] UploadRequest request,
                                                           [FromServices] IResourceService storage) {
         try {
-            await using var stream = file.OpenReadStream();
+            await using var stream = request.File.OpenReadStream();
             var path = $"{request.Type}/{request.Resource}/{request.Id:N}";
-            var data = await file.ToData(path, stream);
+            var data = await request.File.ToData(path, stream);
             if (data.HasErrors) {
                 return Results.Problem(detail: $"""
                                           The resource file for the {request.Type} '{request.Id}' {request.Resource} is invalid.
-                                          File name: "{file.FileName}"
+                                          File name: "{request.File.FileName}"
                                           Reason: "{data.Errors[0].Message}"
                                           """,
                                         statusCode: StatusCodes.Status400BadRequest,
@@ -30,7 +23,7 @@ internal static class ResourcesHandlers {
                 ? Results.Ok(data.Value)
                 : Results.Problem(detail: $"""
                                           There was a problem while uploading the resource file for the {request.Type} '{request.Id}' {request.Resource}.
-                                          File name: "{file.FileName}"
+                                          File name: "{request.File.FileName}"
                                           Reason: "{result.Errors[0].Message}"
                                           """,
                                   statusCode: StatusCodes.Status500InternalServerError,
@@ -39,7 +32,7 @@ internal static class ResourcesHandlers {
         catch (Exception ex) {
             return Results.Problem(detail: $"""
                                       There was a problem while uploading the resource file for the {request.Type} '{request.Id}' {request.Resource}.
-                                      File name: "{file.FileName}"
+                                      File name: "{request.File.FileName}"
                                       Exception: "{ex.GetType().Name}"
                                       Message: "{ex.Message}"
                                       """,
@@ -49,7 +42,7 @@ internal static class ResourcesHandlers {
     }
 
     internal static async Task<IResult> DeleteFileHandler([FromRoute] Guid id,
-                                                         [FromServices] IResourceService storage) {
+                                                          [FromServices] IResourceService storage) {
         var result = await storage.DeleteResourceAsync(id);
         return result.IsSuccessful
             ? Results.NoContent()

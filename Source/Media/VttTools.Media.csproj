@@ -10,18 +10,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="serviceDependencies.json" />
-    <Content Remove="serviceDependencies.local.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.3.1" />
+    <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="9.3.1" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.12.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.24.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Common\VttTools.Common.csproj" />
+    <ProjectReference Include="..\Data\VttTools.Data.csproj" />
     <ProjectReference Include="..\Domain\VttTools.Domain.csproj" />
   </ItemGroup>
 

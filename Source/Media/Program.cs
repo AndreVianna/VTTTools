@@ -1,5 +1,3 @@
-using VttTools.Media.EndpointMappers;
-
 namespace VttTools.Media;
 
 [ExcludeFromCodeCoverage]
@@ -20,8 +18,11 @@ internal static class Program {
         app.Run();
     }
 
-    internal static void AddStorage(this IHostApplicationBuilder builder)
-        => builder.AddAzureBlobClient(AzureStorageOptions.ConnectionStringName);
+    internal static void AddStorage(this IHostApplicationBuilder builder) {
+        builder.AddSqlServerDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
+        builder.AddDataStorage();
+        builder.AddAzureBlobClient(AzureStorageOptions.ConnectionStringName);
+    }
 
     internal static void AddServices(this IHostApplicationBuilder builder)
         => builder.Services.AddScoped<IResourceService, AzureResourceService>();

@@ -27,8 +27,8 @@ public class AdventureStorage(ApplicationDbContext context)
             .AsNoTrackingWithIdentityResolution();
 
         switch (filterDefinition) {
-            case not null when filterDefinition.Split(':') is ["OwnedBy", var id] && Guid.TryParse(id, out var userId):
-                query = query.Where(a => a.OwnerId == userId);
+            case not null when filterDefinition.Split(':') is ["OwnedBy", var id] && Guid.TryParse(id, out var ownerId):
+                query = query.Where(a => a.OwnerId == ownerId);
                 break;
             case not null when filterDefinition.Split(':') is ["AvailableTo", var id] && Guid.TryParse(id, out var userId):
                 query = query.Where(a => a.OwnerId == userId || (a.IsPublic && a.IsPublished));
