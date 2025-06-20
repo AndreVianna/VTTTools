@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.WebAssembly.Services;
+namespace VttTools.WebApp.Services;
 
 /// <summary>
 /// Handles local storage operations for scene builder state
@@ -21,9 +21,7 @@ public sealed class SceneBuilderStorageService(IJSRuntime jsRuntime)
             var json = await jsRuntime.InvokeAsync<string?>("localStorage.getItem", itemKey);
 
             if (string.IsNullOrEmpty(json))
-            {
                 return defaultValue;
-            }
 
             var result = JsonSerializer.Deserialize<T>(json);
             return result ?? defaultValue;

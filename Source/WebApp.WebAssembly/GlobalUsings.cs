@@ -21,13 +21,13 @@ global using VttTools.Library.Scenes.ApiContracts;
 global using VttTools.Library.Scenes.Model;
 global using VttTools.Media.Model;
 global using VttTools.Utilities;
+global using VttTools.WebApp.Clients;
 global using VttTools.WebApp.Contracts.Library;
 global using VttTools.WebApp.Contracts.Library.Scenes;
 global using VttTools.WebApp.Contracts.Resources;
-global using VttTools.WebApp.WebAssembly.Clients;
-global using VttTools.WebApp.WebAssembly.Extensions;
-global using VttTools.WebApp.WebAssembly.Pages.Library.Scenes;
-global using VttTools.WebApp.WebAssembly.Services;
-global using VttTools.WebApp.WebAssembly.Utilities;
+global using VttTools.WebApp.Extensions;
+global using VttTools.WebApp.Pages.Library.Scenes;
+global using VttTools.WebApp.Services;
+global using VttTools.WebApp.Utilities;
 
 global using static DotNetToolbox.Ensure;

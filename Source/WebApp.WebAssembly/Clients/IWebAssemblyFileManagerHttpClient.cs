@@ -1,3 +1,3 @@
-﻿namespace VttTools.WebApp.WebAssembly.Clients;
+﻿namespace VttTools.WebApp.Clients;
 
 public interface IWebAssemblyFileManagerHttpClient : IFileManagerHttpClient;

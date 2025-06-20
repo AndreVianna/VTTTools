@@ -1,3 +1,5 @@
+using VttTools.WebApp.Services;
+
 using static VttTools.Data.Options.ApplicationDbContextOptions;
 
 using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
@@ -105,8 +107,7 @@ internal static class Program {
         app.MapRazorComponents<App>()
            .AddInteractiveServerRenderMode()
            .AddInteractiveWebAssemblyRenderMode()
-           .AddAdditionalAssemblies(typeof(VttTools.WebApp.Server._Imports).Assembly)
-           .AddAdditionalAssemblies(typeof(VttTools.WebApp.WebAssembly._Imports).Assembly);
+           .AddAdditionalAssemblies(typeof(ClientMarker).Assembly);
         MapEndpoints(app);
 
         app.Run();

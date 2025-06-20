@@ -1,14 +1,11 @@
-namespace VttTools.WebApp.WebAssembly;
+namespace VttTools.WebApp;
 
 [ExcludeFromCodeCoverage]
-internal static class Program
-{
-    public static Task Main(string[] args)
-    {
+internal static class Program {
+    public static Task Main(string[] args) {
         var builder = WebAssemblyHostBuilder.CreateDefault(args);
         builder.Services.AddServiceDiscovery();
-        builder.Services.ConfigureHttpClientDefaults(http =>
-        {
+        builder.Services.ConfigureHttpClientDefaults(http => {
             http.AddStandardResilienceHandler();
             http.AddServiceDiscovery();
         });
@@ -17,8 +14,7 @@ internal static class Program
         builder.Services.AddCascadingAuthenticationState();
         builder.Services.AddSingleton<AuthenticationStateProvider, PersistentAuthenticationStateProvider>();
         builder.Services.AddAuthenticationStateDeserialization();
-        builder.Services.AddSingleton(new JsonSerializerOptions
-        {
+        builder.Services.AddSingleton(new JsonSerializerOptions {
             PropertyNameCaseInsensitive = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Converters = {

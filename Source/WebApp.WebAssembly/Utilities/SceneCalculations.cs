@@ -1,10 +1,9 @@
-namespace VttTools.WebApp.WebAssembly.Utilities;
+namespace VttTools.WebApp.Utilities;
 
 /// <summary>
 /// Provides calculation utilities for scene builder operations
 /// </summary>
-internal static class SceneCalculations
-{
+internal static class SceneCalculations {
     /// <summary>
     /// Calculates mouse position relative to the scene coordinate system
     /// </summary>
@@ -13,8 +12,7 @@ internal static class SceneCalculations
     /// <param name="panOffset">Current pan offset</param>
     /// <param name="zoomLevel">Current zoom level</param>
     /// <returns>Position in scene coordinates</returns>
-    internal static Point GetSceneMousePosition(Point clientPosition, Rectangle canvasRect, Point panOffset, float zoomLevel)
-    {
+    internal static Point GetSceneMousePosition(Point clientPosition, Rectangle canvasRect, Point panOffset, float zoomLevel) {
         var canvasX = clientPosition.X - canvasRect.X;
         var canvasY = clientPosition.Y - canvasRect.Y;
 
@@ -33,8 +31,7 @@ internal static class SceneCalculations
     /// <param name="zoomLevel">Current zoom level</param>
     /// <param name="zoomCenter">Center point of zoom transformation</param>
     /// <returns>Position in scene coordinates</returns>
-    internal static Point GetSceneMousePositionWithZoom(Point clientPosition, Rectangle canvasRect, Point panOffset, float zoomLevel, Point zoomCenter)
-    {
+    internal static Point GetSceneMousePositionWithZoom(Point clientPosition, Rectangle canvasRect, Point panOffset, float zoomLevel, Point zoomCenter) {
         var canvasX = clientPosition.X - canvasRect.X;
         var canvasY = clientPosition.Y - canvasRect.Y;
 
@@ -78,11 +75,9 @@ internal static class SceneCalculations
     /// <param name="assets">Collection of assets to search</param>
     /// <param name="padding">Canvas padding offset</param>
     /// <returns>Asset at position or null if none found</returns>
-    internal static SceneAssetDetails? FindAssetAt(Point position, IEnumerable<SceneAssetDetails> assets, Point padding)
-    {
+    internal static SceneAssetDetails? FindAssetAt(Point position, IEnumerable<SceneAssetDetails> assets, Point padding) {
         var relativePosition = position.RelativeTo(padding);
-        return assets.FirstOrDefault(asset =>
-        {
+        return assets.FirstOrDefault(asset => {
             var assetSize = new Point(asset.Size.Width, asset.Size.Height);
             return relativePosition.IsWithin(asset.Position, asset.Position.ShiftedBy(assetSize));
         });
@@ -95,8 +90,7 @@ internal static class SceneCalculations
     /// <param name="currentPosition">Current position</param>
     /// <param name="threshold">Movement threshold</param>
     /// <returns>True if movement exceeds threshold</returns>
-    internal static bool ExceedsMovementThreshold(Point startPosition, Point currentPosition, int threshold = 5)
-    {
+    internal static bool ExceedsMovementThreshold(Point startPosition, Point currentPosition, int threshold = 5) {
         var dx = Math.Abs(currentPosition.X - startPosition.X);
         var dy = Math.Abs(currentPosition.Y - startPosition.Y);
         return dx > threshold || dy > threshold;

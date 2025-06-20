@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.WebAssembly.Clients;
+namespace VttTools.WebApp.Clients;
 
 public class SceneBuilderHttpClient(HttpClient client, JsonSerializerOptions options, AuthenticationStateProvider authentication)
     : ISceneBuilderHttpClient

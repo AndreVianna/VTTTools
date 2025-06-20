@@ -5,8 +5,9 @@
     <LangVersion>preview</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <UserSecretsId>5a1130b0-c8ac-4469-8a0e-9520b1c29bfd</UserSecretsId>
+    <RootNamespace>VttTools.WebApp</RootNamespace>
     <Configurations>Debug;Release;XUnitV3</Configurations>
+    <UserSecretsId>5a1130b0-c8ac-4469-8a0e-9520b1c29bfd</UserSecretsId>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>

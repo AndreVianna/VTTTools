@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.WebAssembly.Pages.Library.Scenes;
+namespace VttTools.WebApp.Pages.Library.Scenes;
 
 public sealed class BuilderState
 {

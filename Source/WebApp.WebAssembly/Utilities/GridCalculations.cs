@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.WebAssembly.Utilities;
+namespace VttTools.WebApp.Utilities;
 
 internal static class GridCalculations
 {

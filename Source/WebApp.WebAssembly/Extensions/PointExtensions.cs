@@ -1,4 +1,4 @@
-namespace VttTools.WebApp.WebAssembly.Extensions;
+namespace VttTools.WebApp.Extensions;
 
 public static class PointExtensions
 {

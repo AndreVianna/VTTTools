@@ -1,4 +1,4 @@
-﻿namespace VttTools.WebApp.WebAssembly.Clients;
+﻿namespace VttTools.WebApp.Clients;
 
 public class WebAssemblyFileManagerHttpClient(HttpClient client, JsonSerializerOptions options)
     : IWebAssemblyFileManagerHttpClient

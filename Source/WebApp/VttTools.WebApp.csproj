@@ -5,8 +5,10 @@
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>e2d0289b-015b-4b29-a6d8-0459f89bfef9</UserSecretsId>
     <Configurations>Debug;Release;XUnitV3</Configurations>
+    <UserSecretsId>e2d0289b-015b-4b29-a6d8-0459f89bfef9</UserSecretsId>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <StaticWebAssetProjectMode>Root</StaticWebAssetProjectMode>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,8 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Common\VttTools.Common.csproj" />
     <ProjectReference Include="..\Data\VttTools.Data.csproj" />
-    <ProjectReference Include="..\WebApp.Server\VttTools.WebApp.Server.csproj" />
+    <ProjectReference Include="..\Domain\VttTools.Domain.csproj" />
+    <ProjectReference Include="..\WebApp.Common\VttTools.WebApp.Common.csproj" />
     <ProjectReference Include="..\WebApp.WebAssembly\VttTools.WebApp.WebAssembly.csproj" />
   </ItemGroup>
 
