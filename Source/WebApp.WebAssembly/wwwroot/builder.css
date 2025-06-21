@@ -1,19 +1,10 @@
-﻿.scene-builder-toolbar {
-  display: flex;
-  padding: 10px;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.toolbar-group {
-  margin-right: 15px;
-}
+﻿/* Toolbar styles removed - Scene Builder now uses main navigation */
 
 .builder-layers {
   position: relative;
   overflow: auto; /* Enables scrollbars when needed */
   background-color: #e0e0e0; /* Gray background */
-  height: calc(100vh - 120px); /* Fill available viewport space */
+  height: calc(100vh - 75px); /* Fill available viewport space minus navbar height */
   width: 100%;
   /* Ensure we can handle negative canvas positioning */
   contain: layout style paint;

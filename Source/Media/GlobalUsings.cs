@@ -9,8 +9,8 @@ global using DotNetToolbox.Results;
 global using Microsoft.AspNetCore.Mvc;
 
 global using VttTools.Data;
-global using VttTools.Data.Options;
 global using VttTools.Data.Extensions;
+global using VttTools.Data.Options;
 global using VttTools.Extensions;
 global using VttTools.Media.ApiContracts;
 global using VttTools.Media.EndpointMappers;

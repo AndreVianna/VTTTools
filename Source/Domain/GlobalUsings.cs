@@ -6,12 +6,12 @@ global using System.Net;
 global using System.Numerics;
 global using System.Text.RegularExpressions;
 
-global using Microsoft.AspNetCore.Identity;
-global using Microsoft.AspNetCore.Http;
-
 global using DotNetToolbox;
 global using DotNetToolbox.Results;
 global using DotNetToolbox.Validation;
+
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Identity;
 
 global using VttTools.Assets.Model;
 global using VttTools.Assets.ServiceContracts;

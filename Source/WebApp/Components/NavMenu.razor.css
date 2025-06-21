@@ -42,3 +42,25 @@
 .nav-item .icon.assets:before {
   content: "category";
 }
+
+/* Scene Builder Navigation Icons */
+.nav-item .icon.reset-zoom:before {
+  content: "zoom_out_map";
+}
+
+.nav-item .icon.zoom-fit-horz:before {
+  content: "fit_screen";
+}
+
+.nav-item .icon.zoom-fit-vert:before {
+  content: "fit_screen";
+  transform: rotate(90deg);
+}
+
+.nav-item .icon.zoom-in:before {
+  content: "zoom_in";
+}
+
+.nav-item .icon.zoom-out:before {
+  content: "zoom_out";
+}

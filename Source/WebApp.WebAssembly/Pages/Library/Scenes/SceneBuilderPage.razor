@@ -4,63 +4,7 @@
 
 <PageTitle>Scene Builder</PageTitle>
 
-<div class="container-fluid">
-  <div class="scene-builder-toolbar">
-    <div class="toolbar-group me-1">
-      <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="stageMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-          Stage
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="stageMenuButton">
-          <li><button class="dropdown-item" @onclick="OpenChangeImageModal">Change Image</button></li>
-          <li><button class="dropdown-item" @onclick="OpenGridSettingsModal">Set Grid</button></li>
-        </ul>
-      </div>
-    </div>
-    <div class="toolbar-group me-1">
-      <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="assetsMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-          Assets
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="assetsMenuButton">
-          <li><button class="dropdown-item" @onclick="() => StartAssetPlacement(AssetType.Creature)">Add Creature</button></li>
-          <li><button class="dropdown-item" @onclick="() => StartAssetPlacement(AssetType.Character)">Add Character</button></li>
-          <li><button class="dropdown-item" @onclick="() => StartAssetPlacement(AssetType.NPC)">Add NPC</button></li>
-          <li><button class="dropdown-item" @onclick="() => StartAssetPlacement(AssetType.Object)">Add Object</button></li>
-        </ul>
-      </div>
-    </div>
-    <div class="toolbar-group me-1">
-      <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="structuresMenuButton" data-bs-toggle="dropdown" aria-expanded="false" disabled>
-          Structures
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="structuresMenuButton">
-          <li><button class="dropdown-item" disabled>Draw Wall</button></li>
-          <li><button class="dropdown-item" disabled>Draw Door</button></li>
-          <li><button class="dropdown-item" disabled>Draw Window</button></li>
-        </ul>
-      </div>
-    </div>
-    <div class="toolbar-group">
-      <button id="reset-zoom-button" class="btn btn-icon icon-primary" @onclick="ResetZoom" title="Reset Zoom">
-        <span class="icon reset-zoom" aria-hidden="true"></span>
-      </button>
-      <button id="fit-horz-button" class="btn btn-icon icon-primary" @onclick="FitHorizontally" title="Zoom to Fit">
-        <span class="icon zoom-fit-horz me-1" aria-hidden="true"></span>
-      </button>
-      <button id="fit-vert-button" class="btn btn-icon icon-primary" @onclick="FitVertically" title="Zoom to Fit">
-        <span class="icon zoom-fit-vert me-1" aria-hidden="true"></span>
-      </button>
-      <button id="reset-zoom-in-button" class="btn btn-icon icon-primary" @onclick="ZoomIn" title="Increase Zoom">
-        <span class="icon zoom-in" aria-hidden="true"></span>
-      </button>
-      <span id="zoom-display" class="zoom-display m-0">@(State.ZoomLevel.ToString("P0"))</span>
-      <button id="reset-zoom-out-button" class="btn btn-icon icon-primary" @onclick="ZoomOut" title="Decrease Zoom">
-        <span class="icon zoom-out" aria-hidden="true"></span>
-      </button>
-    </div>
-  </div>
+<div class="container-fluid p-0">
   <div id="layers-container" class="builder-layers" @ref="_canvasContainerRef"
        @onmousedown="OnCanvasMouseDown"
        @onmousemove="OnCanvasMouseMove"

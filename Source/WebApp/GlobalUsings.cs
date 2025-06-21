@@ -30,6 +30,7 @@ global using Microsoft.Extensions.Diagnostics.HealthChecks;
 global using Microsoft.Extensions.Options;
 global using Microsoft.Extensions.Primitives;
 global using Microsoft.IdentityModel.Tokens;
+global using Microsoft.JSInterop;
 
 global using VttTools.Assets.ApiContracts;
 global using VttTools.Assets.Model;

@@ -1,7 +1,6 @@
 namespace VttTools.WebApp.Pages.Library.Scenes;
 
-public sealed class SelectedAsset
-{
+public sealed class SelectedAsset {
     public Guid Id { get; set; }
     public uint Number { get; set; }
     public string Name { get; set; } = string.Empty;

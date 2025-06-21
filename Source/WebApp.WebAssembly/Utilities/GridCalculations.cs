@@ -1,10 +1,8 @@
 namespace VttTools.WebApp.Utilities;
 
-internal static class GridCalculations
-{
+internal static class GridCalculations {
     private const int _defaultCellSize = 50;
-    public static Point SnapToGrid(Point position, GridDetails grid)
-    {
+    public static Point SnapToGrid(Point position, GridDetails grid) {
         if (grid.Type == GridType.NoGrid)
             return position;
 
