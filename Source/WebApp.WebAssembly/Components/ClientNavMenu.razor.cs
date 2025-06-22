@@ -1,22 +1,13 @@
 namespace VttTools.WebApp.Components;
 
-public partial class NavMenu
+public partial class ClientNavMenu
     : IAsyncDisposable {
     public string LogoutUri => NavigationManager.GetRelativeUrl("account/logout");
     public string LoginUri => NavigationManager.GetRelativeUrl("account/login");
     public string ProfileUri => NavigationManager.GetRelativeUrl("account/manage");
     public string RegisterUri => NavigationManager.GetRelativeUrl("account/manage");
-
     public string AdventuresUri => NavigationManager.GetRelativeUrl("/adventures");
-
-    public new string? CurrentLocation { get; set; }
-
-    public new string GetUrlRelativeToBase(string url) {
-        var baseUri = NavigationManager.BaseUri;
-        return url.StartsWith(baseUri, StringComparison.OrdinalIgnoreCase)
-            ? url[baseUri.Length..]
-            : url;
-    }
+    public string ZoomLevelDisplay { get; private set; } = "100%";
 
     public event EventHandler<LocationChangedEventArgs> LocationChanged {
         add => NavigationManager.LocationChanged += value;

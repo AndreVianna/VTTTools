@@ -43,6 +43,7 @@ global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Scenes.Model;
 global using VttTools.Media.Model;
 global using VttTools.Utilities;
+global using VttTools.WebApp.Common.Models;
 global using VttTools.WebApp.Components;
 global using VttTools.WebApp.Contracts.Assets;
 global using VttTools.WebApp.Contracts.Game;

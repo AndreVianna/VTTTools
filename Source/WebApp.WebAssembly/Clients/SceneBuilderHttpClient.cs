@@ -28,8 +28,8 @@ public class SceneBuilderHttpClient(HttpClient client, JsonSerializerOptions opt
         return Result.Success(result);
     }
 
-    public async Task<Result<SceneAssetDetails>> AddSceneAssetAsync(Guid sceneId, AddSceneAssetRequest request) {
-        var response = await client.PostAsJsonAsync($"api/scenes/{sceneId}/assets", request, options);
+    public async Task<Result<SceneAssetDetails>> AddSceneAssetAsync(Guid id, AddSceneAssetRequest request) {
+        var response = await client.PostAsJsonAsync($"api/scenes/{id}/assets", request, options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to add scene asset");
 
@@ -37,13 +37,13 @@ public class SceneBuilderHttpClient(HttpClient client, JsonSerializerOptions opt
         return asset.ToViewModel();
     }
 
-    public async Task<bool> RemoveSceneAssetAsync(Guid sceneId, Guid assetId, uint number) {
-        var response = await client.DeleteAsync($"api/scenes/{sceneId}/assets/{assetId}/{number}");
+    public async Task<bool> RemoveSceneAssetAsync(Guid id, Guid assetId, uint number) {
+        var response = await client.DeleteAsync($"api/scenes/{id}/assets/{assetId}/{number}");
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<Result> UpdateSceneAssetAsync(Guid sceneId, Guid assetId, uint number, UpdateSceneAssetRequest request) {
-        var response = await client.PatchAsJsonAsync($"api/scenes/{sceneId}/assets/{assetId}/{number}", request, options);
+    public async Task<Result> UpdateSceneAssetAsync(Guid id, Guid assetId, uint number, UpdateSceneAssetRequest request) {
+        var response = await client.PatchAsJsonAsync($"api/scenes/{id}/assets/{assetId}/{number}", request, options);
         if (!response.IsSuccessStatusCode)
             return Result.Failure("Failed to update scene asset");
 

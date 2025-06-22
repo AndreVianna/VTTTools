@@ -37,8 +37,7 @@
     "src/layers/AssetsLayer.ts",
     "src/utils/ImageCache.ts",
     "src/utils/DomUtils.ts",
-    "src/SceneBuilder.ts",
-    "src/main.ts"
+    "src/SceneBuilder.ts"
   ],
   "exclude": [
     "wwwroot/**/*",

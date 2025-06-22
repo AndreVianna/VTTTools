@@ -1,6 +1,7 @@
 @page "/scenes/builder/{id:guid}"
 @attribute [Authorize]
 @rendermode InteractiveWebAssembly
+@layout ClientLayout
 
 <PageTitle>Scene Builder</PageTitle>
 
@@ -17,110 +18,107 @@
   </div>
 </div>
 
-@if (State.ShowChangeImageModal) {
-  <div class="modal fade show" style="display: block;" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Change Background Image</h5>
-          <button type="button" class="btn-close" @onclick="CloseModals"></button>
+<div id="change-image-modal" class="modal fade" data-modal="change-image" style="display: none;" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Change Background Image</h5>
+        <button type="button" class="btn-close" onclick="SceneBuilder.closeModal('change-image')"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="imageUpload" class="form-label">Upload Image</label>
+          <InputFile id="imageUpload" OnChange="OnNewStageImageSelected" class="form-control" />
         </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="imageUpload" class="form-label">Upload Image</label>
-            <InputFile id="imageUpload" OnChange="OnNewStageImageSelected" class="form-control" />
-          </div>
-          <div class="mb-3">
-            <p>Current image:</p>
-            <img src="@StageImageUrl" style="max-width: 100%; max-height: 200px;" />
-          </div>
+        <div class="mb-3">
+          <p>Current image:</p>
+          <img src="@StageImageUrl" style="max-width: 100%; max-height: 200px;" />
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @onclick="CloseModals">Cancel</button>
-          <button type="button" class="btn btn-primary" @onclick="SaveBackgroundImage">Save</button>
-        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="SceneBuilder.closeModal('change-image')">Cancel</button>
+        <button type="button" class="btn btn-primary" @onclick="SaveBackgroundImage">Save</button>
       </div>
     </div>
   </div>
-  <div class="modal-backdrop fade show"></div>
-}
+</div>
+<div id="change-image-backdrop" class="modal-backdrop fade" data-backdrop="change-image" style="display: none;"></div>
 
-@if (State.ShowGridSettingsModal) {
-  <div class="modal fade show" style="display: block;" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Grid Settings</h5>
-          <button type="button" class="btn-close" @onclick="CloseModals"></button>
+<div id="grid-settings-modal" class="modal fade" data-modal="grid-settings" style="display: none;" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Grid Settings</h5>
+        <button type="button" class="btn-close" onclick="SceneBuilder.closeModal('grid-settings')"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="gridType" class="form-label">Grid Type</label>
+          <select id="gridType" class="form-select" @bind="Input.Type">
+            <option value="@GridType.NoGrid">No Grid</option>
+            <option value="@GridType.Square">Square</option>
+            <option value="@GridType.HexH">Hex (Horizontal)</option>
+            <option value="@GridType.HexV">Hex (Vertical)</option>
+            <option value="@GridType.Isometric">Isometric</option>
+          </select>
         </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="gridType" class="form-label">Grid Type</label>
-            <select id="gridType" class="form-select" @bind="Input.Type">
-              <option value="@GridType.NoGrid">No Grid</option>
-              <option value="@GridType.Square">Square</option>
-              <option value="@GridType.HexH">Hex (Horizontal)</option>
-              <option value="@GridType.HexV">Hex (Vertical)</option>
-              <option value="@GridType.Isometric">Isometric</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="cellWidth" class="form-label">Cell Width</label>
-            <input type="number" id="cellWidth" class="form-control" @bind="Input.CellWidth" min="1" />
-          </div>
-          <div class="mb-3">
-            <label for="cellHeight" class="form-label">Cell Height</label>
-            <input type="number" id="cellHeight" class="form-control" @bind="Input.CellHeight" min="1" />
-          </div>
-          <div class="mb-3">
-            <label for="offsetX" class="form-label">Offset X</label>
-            <input type="number" id="offsetX" class="form-control" @bind="Input.OffsetX" />
-          </div>
-          <div class="mb-3">
-            <label for="offsetY" class="form-label">Offset Y</label>
-            <input type="number" id="offsetY" class="form-control" @bind="Input.OffsetY" />
-          </div>
-          <div class="form-check mb-3">
-            <input type="checkbox" id="snapToGrid" class="form-check-input" @bind="Input.SnapToGrid" />
-            <label for="snapToGrid" class="form-check-label">Snap to Grid</label>
-          </div>
+        <div class="mb-3">
+          <label for="cellWidth" class="form-label">Cell Width</label>
+          <input type="number" id="cellWidth" class="form-control" @bind="Input.CellWidth" min="1" />
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @onclick="CloseModals">Cancel</button>
-          <button type="button" class="btn btn-primary" @onclick="SaveGridSettings">Save</button>
+        <div class="mb-3">
+          <label for="cellHeight" class="form-label">Cell Height</label>
+          <input type="number" id="cellHeight" class="form-control" @bind="Input.CellHeight" min="1" />
         </div>
+        <div class="mb-3">
+          <label for="offsetX" class="form-label">Offset X</label>
+          <input type="number" id="offsetX" class="form-control" @bind="Input.OffsetX" />
+        </div>
+        <div class="mb-3">
+          <label for="offsetY" class="form-label">Offset Y</label>
+          <input type="number" id="offsetY" class="form-control" @bind="Input.OffsetY" />
+        </div>
+        <div class="form-check mb-3">
+          <input type="checkbox" id="snapToGrid" class="form-check-input" @bind="Input.SnapToGrid" />
+          <label for="snapToGrid" class="form-check-label">Snap to Grid</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="SceneBuilder.closeModal('grid-settings')">Cancel</button>
+        <button type="button" class="btn btn-primary" @onclick="SaveGridSettings">Save</button>
       </div>
     </div>
   </div>
-  <div class="modal-backdrop fade show"></div>
-}
+</div>
+<div id="grid-settings-backdrop" class="modal-backdrop fade" data-backdrop="grid-settings" style="display: none;"></div>
 
-@if (State.ShowAssetSelectorModal) {
-  <div class="modal fade show" style="display: block;" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Select Asset</h5>
-          <button type="button" class="btn-close" @onclick="CloseModals"></button>
+@if (SelectedAsset is not null) {
+<div id="asset-selector-modal" class="modal fade" data-modal="asset-selector" style="display: none;" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Select Asset</h5>
+        <button type="button" class="btn-close" onclick="SceneBuilder.closeModal('asset-selector')"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" data-asset-type />
+        <div class="mb-3">
+          <label for="assetName" class="form-label">Name</label>
+          <input type="text" id="assetName" class="form-control" @bind="SelectedAsset.Name" />
         </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="assetName" class="form-label">Name</label>
-            <input type="text" id="assetName" class="form-control" @bind="SelectedAsset!.Name" />
-          </div>
-          <div class="mb-3">
-            <label for="assetUpload" class="form-label">Upload Image</label>
-            <InputFile id="assetUpload" OnChange="OnNewAssetImageSelected" class="form-control" />
-          </div>
+        <div class="mb-3">
+          <label for="assetUpload" class="form-label">Upload Image</label>
+          <InputFile id="assetUpload" OnChange="OnNewAssetImageSelected" class="form-control" />
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @onclick="CloseModals">Cancel</button>
-          <button type="button" class="btn btn-primary" @onclick="AddAssetToScene">Add</button>
-        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="SceneBuilder.closeModal('asset-selector')">Cancel</button>
+        <button type="button" class="btn btn-primary" @onclick="AddAssetToScene">Add</button>
       </div>
     </div>
   </div>
-  <div class="modal-backdrop fade show"></div>
+</div>
+<div id="asset-selector-backdrop" class="modal-backdrop fade" data-backdrop="asset-selector" style="display: none;"></div>
 }
 
 @if (State.ShowAssetContextMenu) {

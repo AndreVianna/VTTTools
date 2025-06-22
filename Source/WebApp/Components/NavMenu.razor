@@ -19,61 +19,7 @@
                 <li><a class="dropdown-item" href="@AdventuresUri">Adventures</a></li>
               </ul>
             </li>
-            @if (IsSceneBuilderPage) {
-              <li class="nav-item dropdown">
-                <NavLink class="nav-link dropdown-toggle text-light" role="button" data-bs-toggle="dropdown">
-                  Stage
-                </NavLink>
-                <ul class="dropdown-menu dropdown-menu-dark custom-dropdown-menu">
-                  <li><button class="dropdown-item" @onclick="OnChangeImageClicked">Change Image</button></li>
-                  <li><button class="dropdown-item" @onclick="OnGridSettingsClicked">Set Grid</button></li>
-                </ul>
-              </li>
-              <li class="nav-item dropdown">
-                <NavLink class="nav-link dropdown-toggle text-light" role="button" data-bs-toggle="dropdown">
-                  Assets
-                </NavLink>
-                <ul class="dropdown-menu dropdown-menu-dark custom-dropdown-menu">
-                  <li><button class="dropdown-item" @onclick="() => OnAssetPlacementClicked(AssetType.Creature)">Add Creature</button></li>
-                  <li><button class="dropdown-item" @onclick="() => OnAssetPlacementClicked(AssetType.Character)">Add Character</button></li>
-                  <li><button class="dropdown-item" @onclick="() => OnAssetPlacementClicked(AssetType.NPC)">Add NPC</button></li>
-                  <li><button class="dropdown-item" @onclick="() => OnAssetPlacementClicked(AssetType.Object)">Add Object</button></li>
-                </ul>
-              </li>
-              <li class="nav-item dropdown">
-                <NavLink class="nav-link dropdown-toggle text-light disabled" role="button" data-bs-toggle="dropdown">
-                  Structures
-                </NavLink>
-                <ul class="dropdown-menu dropdown-menu-dark custom-dropdown-menu">
-                  <li><button class="dropdown-item" disabled>Draw Wall</button></li>
-                  <li><button class="dropdown-item" disabled>Draw Door</button></li>
-                  <li><button class="dropdown-item" disabled>Draw Window</button></li>
-                </ul>
-              </li>
-            }
           </ul>
-          @if (IsSceneBuilderPage) {
-            <ul class="navbar-nav me-auto">
-              <li class="nav-item d-flex align-items-center">
-                <button class="btn btn-sm btn-outline-light me-2" @onclick="OnResetZoomClicked" title="Reset Zoom">
-                  <span class="icon small reset-zoom" aria-hidden="true"></span>
-                </button>
-                <button class="btn btn-sm btn-outline-light me-2" @onclick="OnFitHorizontallyClicked" title="Zoom to Fit Horizontally">
-                  <span class="icon small zoom-fit-horz" aria-hidden="true"></span>
-                </button>
-                <button class="btn btn-sm btn-outline-light me-2" @onclick="OnFitVerticallyClicked" title="Zoom to Fit Vertically">
-                  <span class="icon small zoom-fit-vert" aria-hidden="true"></span>
-                </button>
-                <button class="btn btn-sm btn-outline-light me-2" @onclick="OnZoomInClicked" title="Increase Zoom">
-                  <span class="icon small zoom-in" aria-hidden="true"></span>
-                </button>
-                <span class="text-light me-2">@ZoomLevelDisplay</span>
-                <button class="btn btn-sm btn-outline-light me-2" @onclick="OnZoomOutClicked" title="Decrease Zoom">
-                  <span class="icon small zoom-out" aria-hidden="true"></span>
-                </button>
-              </li>
-            </ul>
-          }
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
               <NavLink class="nav-link text-light" href="@ProfileUri">

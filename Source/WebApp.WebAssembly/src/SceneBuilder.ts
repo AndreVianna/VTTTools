@@ -45,7 +45,7 @@ class SceneBuilder {
         layers.forEach(layer => {
             this.builder.layers.push(new Layer(layer.id.replace("-layer", ""), layer));
         });
-        this.builder.zoomDisplay = document.querySelector<HTMLElement>("#zoom-display")!;
+        this.builder.zoomDisplay = document.querySelector<HTMLElement>("#zoom-level-display")!;
     }
 
     private static bindMouseEvents(): void {
@@ -117,6 +117,75 @@ class SceneBuilder {
             DomUtils.setCanvasRect(layer.canvas, state.layerRect);
         DomUtils.setContainerScroll(this.builder.container, state.containerScroll);
         DomUtils.setZoomDisplay(this.builder.zoomDisplay, state.zoomLevel);
+    }
+
+    static openChangeImageModal(): void {
+        // Find and show the change image modal by manipulating DOM directly
+        const modal = document.querySelector('[data-modal="change-image"]') as HTMLElement;
+        if (modal) {
+            modal.style.display = 'block';
+            modal.classList.add('show');
+        }
+        
+        // Show backdrop
+        const backdrop = document.querySelector('[data-backdrop="change-image"]') as HTMLElement;
+        if (backdrop) {
+            backdrop.style.display = 'block';
+            backdrop.classList.add('show');
+        }
+    }
+
+    static openGridSettingsModal(): void {
+        // Find and show the grid settings modal by manipulating DOM directly
+        const modal = document.querySelector('[data-modal="grid-settings"]') as HTMLElement;
+        if (modal) {
+            modal.style.display = 'block';
+            modal.classList.add('show');
+        }
+        
+        // Show backdrop
+        const backdrop = document.querySelector('[data-backdrop="grid-settings"]') as HTMLElement;
+        if (backdrop) {
+            backdrop.style.display = 'block';
+            backdrop.classList.add('show');
+        }
+    }
+
+    static startAssetPlacement(assetType: string): void {
+        // Set the asset type and show the asset selector modal
+        const assetTypeInput = document.querySelector('[data-asset-type]') as HTMLInputElement;
+        if (assetTypeInput) {
+            assetTypeInput.value = assetType;
+        }
+        
+        const modal = document.querySelector('[data-modal="asset-selector"]') as HTMLElement;
+        if (modal) {
+            modal.style.display = 'block';
+            modal.classList.add('show');
+        }
+        
+        // Show backdrop
+        const backdrop = document.querySelector('[data-backdrop="asset-selector"]') as HTMLElement;
+        if (backdrop) {
+            backdrop.style.display = 'block';
+            backdrop.classList.add('show');
+        }
+    }
+
+    static closeModal(modalType: string): void {
+        // Hide the specified modal
+        const modal = document.querySelector(`[data-modal="${modalType}"]`) as HTMLElement;
+        if (modal) {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+        }
+        
+        // Hide backdrop
+        const backdrop = document.querySelector(`[data-backdrop="${modalType}"]`) as HTMLElement;
+        if (backdrop) {
+            backdrop.style.display = 'none';
+            backdrop.classList.remove('show');
+        }
     }
 
     static setZoom(zoomAction: string): void {
@@ -196,3 +265,9 @@ class SceneBuilder {
         };
     }
 }
+
+// Initialize the SceneBuilder when the script loads
+SceneBuilder.initialize();
+
+// Expose SceneBuilder methods globally for C# JavaScript interop
+(window as any).SceneBuilder = SceneBuilder;

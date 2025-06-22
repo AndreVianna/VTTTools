@@ -1,6 +1,7 @@
 namespace VttTools.WebApp.Pages.Library.Scenes;
 
-public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
+public partial class SceneBuilderPage
+    : ComponentBase, IAsyncDisposable {
     [Parameter]
     public Guid Id { get; set; }
 
@@ -44,12 +45,6 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         if (_isDisposed)
             return;
 
-        // Unregister from JavaScript interop
-        if (_dotNetReference is not null) {
-            await JsRuntime.InvokeVoidAsync("sceneBuilderInterop.unregisterSceneBuilder");
-            _dotNetReference.Dispose();
-        }
-
         _persistingSubscription?.Dispose();
         if (_mouseMoveTimer is not null)
             await _mouseMoveTimer.DisposeAsync();
@@ -89,17 +84,10 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         return Task.CompletedTask;
     }
 
-    private DotNetObjectReference<SceneBuilderPage>? _dotNetReference;
-
-    //private bool _sceneJsInitialized;
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (!firstRender)
             return;
         await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./builder.js");
-
-        // Register this component with the JavaScript interop
-        _dotNetReference = DotNetObjectReference.Create(this);
-        await JsRuntime.InvokeVoidAsync("sceneBuilderInterop.registerSceneBuilder", _dotNetReference);
 
         _canvasReady = true;
         if (Scene == null && OperatingSystem.IsBrowser())
@@ -202,29 +190,6 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
     private static string GetImageUrl(string basePath, string imagePath)
         => $"{basePath}/{imagePath}";
 
-    [JSInvokable]
-    public void OpenChangeImageModal() => State.ShowChangeImageModal = true;
-
-    [JSInvokable]
-    public void OpenGridSettingsModal() => State.ShowGridSettingsModal = true;
-
-    private void CloseModals() {
-        State.ShowChangeImageModal = false;
-        State.ShowGridSettingsModal = false;
-        State.ShowAssetSelectorModal = false;
-    }
-
-    [JSInvokable]
-    public void StartAssetPlacement(string assetType) {
-        if (Enum.TryParse<AssetType>(assetType, out var type)) {
-            SelectedAsset ??= new SelectedAsset();
-            SelectedAsset.Type = type;
-        }
-    }
-
-    private void StartAssetPlacement(AssetType assetType)
-        => SelectedAsset!.Type = assetType;// Will open asset selector when user clicks on canvas
-
     private async Task OnCanvasMouseDown(MouseEventArgs e) {
         if (e.Button == 2) { // Right mouse button
             await StartPanningAsync(e);
@@ -238,7 +203,6 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
             return;
         if (SelectedAsset is not null && SelectedAsset.Type != AssetType.Placeholder) {
             SelectedAsset.Position = position.Value;
-            State.ShowAssetSelectorModal = true;
             return;
         }
 
@@ -305,7 +269,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         SelectedAsset.Position = SceneCalculations.ApplyGridSnapping(position, State.Grid);
     }
 
-    private async Task OnCanvasMouseUp(MouseEventArgs _) {
+    private async Task OnCanvasMouseUp() {
         if (State.IsPanning) {
             await EndPanningAsync();
             return;
@@ -313,38 +277,6 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
 
         State.IsDragging = false;
     }
-
-    [JSInvokable]
-    public async Task ZoomIn() {
-        await JsRuntime.InvokeVoidAsync("setZoom", "+");
-        await UpdateMainNavZoomDisplay();
-    }
-
-    [JSInvokable]
-    public async Task ZoomOut() {
-        await JsRuntime.InvokeVoidAsync("setZoom", "-");
-        await UpdateMainNavZoomDisplay();
-    }
-
-    [JSInvokable]
-    public async Task FitHorizontally() {
-        await JsRuntime.InvokeVoidAsync("setZoom", "H");
-        await UpdateMainNavZoomDisplay();
-    }
-
-    [JSInvokable]
-    public async Task FitVertically() {
-        await JsRuntime.InvokeVoidAsync("setZoom", "V");
-        await UpdateMainNavZoomDisplay();
-    }
-
-    [JSInvokable]
-    public async Task ResetZoom() {
-        await JsRuntime.InvokeVoidAsync("setZoom", "X");
-        await UpdateMainNavZoomDisplay();
-    }
-
-    private async Task UpdateMainNavZoomDisplay() => await JsRuntime.InvokeVoidAsync("sceneBuilderInterop.updateZoomLevel", State.ZoomLevel);
 
     private async Task StartPanningAsync(MouseEventArgs e) {
         if (State.IsZooming)
@@ -498,7 +430,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         await SaveScene();
 
         StageImageUrl = $"{_filesBasePath}/{Scene.Stage.Id}";
-        State.ShowChangeImageModal = false;
+        await JsRuntime.InvokeVoidAsync("closeModal", "change-image");
         await RenderAsync();
     }
 
@@ -516,7 +448,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         Scene = Scene with { Grid = State.Grid };
         await SaveScene();
 
-        State.ShowGridSettingsModal = false;
+        await JsRuntime.InvokeVoidAsync("closeModal", "grid-settings");
         await RenderAsync();
     }
 
@@ -538,7 +470,7 @@ public partial class SceneBuilderPage : ComponentBase, IAsyncDisposable {
         if (sceneAssetResult.IsSuccessful)
             Scene.Assets.Add(sceneAssetResult.Value);
 
-        State.ShowAssetSelectorModal = false;
+        await JsRuntime.InvokeVoidAsync("closeModal", "asset-selector");
         SelectedAsset.Type = AssetType.Placeholder;
         SelectedAsset.Name = string.Empty;
         SelectedAsset.Position = new(0, 0);
