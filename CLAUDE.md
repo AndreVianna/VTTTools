@@ -19,28 +19,48 @@ It creates a Virtual Table Top (VTT) RPG Game interface for online play. It prov
     - Test: cd Source && dotnet test VTTTools.sln && cd -
     - Add Migrations: cd Source/Data && dotnet ef migrations add {Migration_Name} -o Migrations
 
-# Memory
+# Available MCP Servers
 
-1. Project Identification:
-   - You should assume that you are working with current_project
-   - If you have not identified current_user, proactively try to do so by getting the project information from the files in the Design folder.
+Claude Code has access to several Model Context Protocol (MCP) servers that extend capabilities beyond basic functionality:
 
-2. Memory Retrieval:
-   - Always begin your chat by saying only "Remembering..." and retrieve all relevant information from your knowledge graph
-   - Always refer to your knowledge graph as your "memory"
+## 1. Thinking MCP Server IMPORTANT!!
+- **Purpose**: Advanced reasoning and problem-solving through structured thought processes
+- **Use Cases**:
+- Complex analysis and multi-step reasoning
+- Architectural decisions and design planning
+- Debugging complex logic and troubleshooting
+- **When to Use**: Breaking down complex problems, planning development phases, analyzing system architecture
 
-3. Memory
-   - While conversing with the user, be attentive to any new information that falls into these categories:
-     a) Basic Solution Info: platform, name, description, source folder, list of projects that compose the solution;
-     b) Basic Project Info: type of project (library, console, blazor web app, web api, tests), folder, language, name, description,  dependencies;
-     c) Architecture: project relations and purpose (business dommain, core utilities, data management, api service, UI/UX, hosting);
-     d) Features: with names, desriptions, aceptance criteria, funtional and non-funtional requirements, pre-requisites and interdependencies of the tasks
-     e) Roadmap: phases and tasks to achieve the intended goal and implement all the features.
-     f) Current state: list of the tasks and their state. A list on entries under each task that indicates what what was done to complete the task. That list is very dinamic and should be constantly updated.
+## 2. Memory MCP Server IMPORTANT!!
+- **Purpose**: Knowledge graph management for persistent information storage
+- **Use Cases**:
+- Project documentation and context preservation across sessions
+- Tracking entity relationships and project structure
+- Information retrieval from previous conversations
+- **When to Use**: Documenting architecture, maintaining development context, remembering complex project details
+- **IMPORTANT!!**: Always begin your chat by saying only "Remembering..." and retrieve all relevant information from your knowledge graph
+- Always refer to your knowledge graph as your "memory"
 
-4. Memory Update:
-   - If any new information was gathered during the interaction, update your memory as follows:
-     a) Create entities to represent the definition and progress of the project/solution.
-     b) Connect them to the current entities using relations
-     c) Store facts about them as observations
-     d) Update the entities and relationship accordingly when any new information is gathered.
+## 3. Microsoft Docs MCP Server
+- **Purpose**: Search official Microsoft documentation and learning resources
+- **Use Cases**:
+- .NET development questions and API references
+- Azure documentation lookup and service guidance
+- Blazor, Entity Framework, and C# best practices
+- **When to Use**: Need authoritative Microsoft documentation for .NET 9, C#, Blazor, Azure, or any other Microsoft technologies
+
+## 4. Playwright MCP Server
+- **Purpose**: Web browser automation and testing
+- **Use Cases**:
+- Automated web testing and UI verification
+- Screenshot capture and form filling
+- Generating automated test scripts
+- **When to Use**: Testing Blazor applications, automating browser interactions, capturing UI states
+
+## 5. Calculator MCP Server
+- **Purpose**: Mathematical calculations and expression evaluation
+- **Use Cases**:
+- Mathematical problem solving and formula evaluation
+- Unit conversions and computational needs
+- **When to Use**: Any mathematical calculations or formula verification
+
