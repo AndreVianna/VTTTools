@@ -6,16 +6,17 @@ class GridLayer extends Layer implements IGridLayer {
         this.grid = grid;
     }
 
-    protected drawLayer(): void {
-        const offsetX = this.grid.offset?.x || 0;
-        const offsetY = this.grid.offset?.y || 0;
+    protected drawLayer(zoomLevel: number) : void {
+        if (this.grid.type === GridType.NoGrid) return;
+        const gridOffsetX = (this.grid.offset?.x || 0);
+        const gridOffsetY = (this.grid.offset?.y || 0);
+        this.ctx.translate(gridOffsetX, gridOffsetY);
+
         const cellWidth = this.grid.cell?.width || RenderConstants.defaultGridCellSize;
         const cellHeight = this.grid.cell?.height || RenderConstants.defaultGridCellSize;
-
-        console.log("Drawing Grid:", this.grid);
         switch (this.grid.type) {
             case GridType.Square:
-                this.renderSquareGrid(offsetX, offsetY, cellWidth, cellHeight);
+                this.renderSquareGrid(cellWidth, cellHeight);
                 break;
             case GridType.HexV:
             case GridType.HexH:
@@ -25,15 +26,13 @@ class GridLayer extends Layer implements IGridLayer {
         }
     }
 
-    private renderSquareGrid(offsetX: number, offsetY: number, cellWidth: number, cellHeight: number): void {
-        const canvasWidth = this.ctx.canvas.width;
-        const canvasHeight = this.ctx.canvas.height;
-        this.drawVerticalLines(offsetX, cellWidth, canvasWidth, canvasHeight);
-        this.drawHorizontalLines(offsetY, cellHeight, canvasWidth, canvasHeight);
+    private renderSquareGrid(cellWidth: number, cellHeight: number): void {
+        this.drawVerticalLines(cellWidth, this.canvas.width, this.canvas.height);
+        this.drawHorizontalLines(cellHeight, this.canvas.width, this.canvas.height);
     }
 
-    private drawVerticalLines(offsetX: number, cellWidth: number, canvasWidth: number, canvasHeight: number): void {
-        for (let x = offsetX; x < canvasWidth; x += cellWidth) {
+    private drawVerticalLines(cellWidth: number, canvasWidth: number, canvasHeight: number): void {
+        for (let x = 0; x < canvasWidth; x += cellWidth) {
             this.ctx.beginPath();
             this.ctx.moveTo(x, 0);
             this.ctx.lineTo(x, canvasHeight);
@@ -41,8 +40,8 @@ class GridLayer extends Layer implements IGridLayer {
         }
     }
 
-    private drawHorizontalLines(offsetY: number, cellHeight: number, canvasWidth: number, canvasHeight: number): void {
-        for (let y = offsetY; y < canvasHeight; y += cellHeight) {
+    private drawHorizontalLines(cellHeight: number, canvasWidth: number, canvasHeight: number): void {
+        for (let y = 0; y < canvasHeight; y += cellHeight) {
             this.ctx.beginPath();
             this.ctx.moveTo(0, y);
             this.ctx.lineTo(canvasWidth, y);

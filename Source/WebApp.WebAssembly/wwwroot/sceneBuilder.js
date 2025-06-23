@@ -24,13 +24,16 @@ class Layer {
         this.id = id;
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
+        console.log("canvas:", this.canvas.width, ", ", this.canvas.height);
+        this.clear();
     }
     render(zoomLevel) {
         this.clear();
         this.ctx.scale(zoomLevel, zoomLevel);
-        this.drawLayer();
+        this.ctx.translate(0, 0);
+        this.drawLayer(zoomLevel);
     }
-    drawLayer() {
+    drawLayer(zoomLevel) {
     }
     clear() {
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -38,12 +41,11 @@ class Layer {
     }
 }
 class BackgroundLayer extends Layer {
-    //imageSize: ISize = null!;
     constructor(imageUrl) {
         super("background", document.querySelector(`#background-layer`));
         this.imageUrl = imageUrl;
     }
-    drawLayer() {
+    drawLayer(zoomLevel) {
         ImageCache.loadImage(this.imageUrl, img => {
             this.ctx.drawImage(img, RenderConstants.canvasPadding, RenderConstants.canvasPadding, img.width, img.height);
         });
@@ -54,15 +56,17 @@ class GridLayer extends Layer {
         super("grid", document.querySelector(`#grid-layer`));
         this.grid = grid;
     }
-    drawLayer() {
-        const offsetX = this.grid.offset?.x || 0;
-        const offsetY = this.grid.offset?.y || 0;
+    drawLayer(zoomLevel) {
+        if (this.grid.type === 0 /* GridType.NoGrid */)
+            return;
+        const gridOffsetX = (this.grid.offset?.x || 0);
+        const gridOffsetY = (this.grid.offset?.y || 0);
+        this.ctx.translate(gridOffsetX, gridOffsetY);
         const cellWidth = this.grid.cell?.width || RenderConstants.defaultGridCellSize;
         const cellHeight = this.grid.cell?.height || RenderConstants.defaultGridCellSize;
-        console.log("Drawing Grid:", this.grid);
         switch (this.grid.type) {
             case 1 /* GridType.Square */:
-                this.renderSquareGrid(offsetX, offsetY, cellWidth, cellHeight);
+                this.renderSquareGrid(cellWidth, cellHeight);
                 break;
             case 2 /* GridType.HexV */:
             case 3 /* GridType.HexH */:
@@ -71,22 +75,20 @@ class GridLayer extends Layer {
                 break;
         }
     }
-    renderSquareGrid(offsetX, offsetY, cellWidth, cellHeight) {
-        const canvasWidth = this.ctx.canvas.width;
-        const canvasHeight = this.ctx.canvas.height;
-        this.drawVerticalLines(offsetX, cellWidth, canvasWidth, canvasHeight);
-        this.drawHorizontalLines(offsetY, cellHeight, canvasWidth, canvasHeight);
+    renderSquareGrid(cellWidth, cellHeight) {
+        this.drawVerticalLines(cellWidth, this.canvas.width, this.canvas.height);
+        this.drawHorizontalLines(cellHeight, this.canvas.width, this.canvas.height);
     }
-    drawVerticalLines(offsetX, cellWidth, canvasWidth, canvasHeight) {
-        for (let x = offsetX; x < canvasWidth; x += cellWidth) {
+    drawVerticalLines(cellWidth, canvasWidth, canvasHeight) {
+        for (let x = 0; x < canvasWidth; x += cellWidth) {
             this.ctx.beginPath();
             this.ctx.moveTo(x, 0);
             this.ctx.lineTo(x, canvasHeight);
             this.ctx.stroke();
         }
     }
-    drawHorizontalLines(offsetY, cellHeight, canvasWidth, canvasHeight) {
-        for (let y = offsetY; y < canvasHeight; y += cellHeight) {
+    drawHorizontalLines(cellHeight, canvasWidth, canvasHeight) {
+        for (let y = 0; y < canvasHeight; y += cellHeight) {
             this.ctx.beginPath();
             this.ctx.moveTo(0, y);
             this.ctx.lineTo(canvasWidth, y);
@@ -200,7 +202,7 @@ class ImageCache {
     }
 }
 ImageCache.cache = new Map();
-class DomUtils {
+class DomUtilities {
     static getContainerRect(container) {
         const rect = container.getBoundingClientRect();
         return {
@@ -260,13 +262,13 @@ class SceneBuilder {
         this.builder.setLayer = this.setLayer.bind(this);
         this.builder.setZoom = this.setZoom.bind(this);
         this.builder.getImageSize = ImageCache.getImageSize.bind(ImageCache);
-        this.builder.getContainerRect = DomUtils.getContainerRect.bind(DomUtils);
-        this.builder.getContainerScroll = DomUtils.getContainerScroll.bind(DomUtils);
-        this.builder.setContainerScroll = DomUtils.setContainerScroll.bind(DomUtils);
-        this.builder.getCanvasRect = DomUtils.getCanvasRect.bind(DomUtils);
-        this.builder.setCanvasRect = DomUtils.setCanvasRect.bind(DomUtils);
-        this.builder.setCursor = DomUtils.setCursor.bind(DomUtils);
-        this.builder.setZoomDisplay = DomUtils.setZoomDisplay.bind(DomUtils);
+        this.builder.getContainerRect = DomUtilities.getContainerRect.bind(DomUtilities);
+        this.builder.getContainerScroll = DomUtilities.getContainerScroll.bind(DomUtilities);
+        this.builder.setContainerScroll = DomUtilities.setContainerScroll.bind(DomUtilities);
+        this.builder.getCanvasRect = DomUtilities.getCanvasRect.bind(DomUtilities);
+        this.builder.setCanvasRect = DomUtilities.setCanvasRect.bind(DomUtilities);
+        this.builder.setCursor = DomUtilities.setCursor.bind(DomUtilities);
+        this.builder.setZoomDisplay = DomUtilities.setZoomDisplay.bind(DomUtilities);
     }
     static captureDomElements() {
         this.builder.state = this.defaultState;
@@ -297,7 +299,7 @@ class SceneBuilder {
         this.builder.state = {
             ...this.builder.state,
             id: id,
-            containerRect: DomUtils.getContainerRect(this.builder.container),
+            containerRect: DomUtilities.getContainerRect(this.builder.container),
             imageSize: await ImageCache.getImageSize(setup.imageUrl),
         };
     }
@@ -307,10 +309,11 @@ class SceneBuilder {
         layers.push(new BackgroundLayer(setup.imageUrl));
         layers.push(new GridLayer(setup.grid));
         layers.push(new AssetsLayer(setup.assets));
+        this.builder.state.containerScroll = setup.stage.panning;
     }
     static handleWheel(clientX, clientY, deltaY) {
         const state = this.builder.state;
-        state.containerScroll = DomUtils.getContainerScroll(this.builder.container);
+        state.containerScroll = DomUtilities.getContainerScroll(this.builder.container);
         const mouseX = clientX - state.containerRect.x;
         const mouseY = clientY - state.containerRect.y;
         const zoomLevel = deltaY > 0
@@ -322,31 +325,28 @@ class SceneBuilder {
     }
     static setLayer(layer) {
     }
-    static render() {
+    static render(data) {
+        if (data) {
+            this.initializeLayers(data);
+        }
         const state = this.builder.state;
         for (const layer of this.builder.layers) {
             layer.render(state.zoomLevel);
         }
     }
-    static clearLayer(layer) {
-        layer.ctx.setTransform(1, 0, 0, 1, 0, 0);
-        layer.ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
-    }
     static updateDomElements() {
         const state = this.builder.state;
         for (const layer of this.builder.layers)
-            DomUtils.setCanvasRect(layer.canvas, state.layerRect);
-        DomUtils.setContainerScroll(this.builder.container, state.containerScroll);
-        DomUtils.setZoomDisplay(this.builder.zoomDisplay, state.zoomLevel);
+            DomUtilities.setCanvasRect(layer.canvas, state.layerRect);
+        DomUtilities.setContainerScroll(this.builder.container, state.containerScroll);
+        DomUtilities.setZoomDisplay(this.builder.zoomDisplay, state.zoomLevel);
     }
     static openChangeImageModal() {
-        // Find and show the change image modal by manipulating DOM directly
         const modal = document.querySelector('[data-modal="change-image"]');
         if (modal) {
             modal.style.display = 'block';
             modal.classList.add('show');
         }
-        // Show backdrop
         const backdrop = document.querySelector('[data-backdrop="change-image"]');
         if (backdrop) {
             backdrop.style.display = 'block';
@@ -354,13 +354,11 @@ class SceneBuilder {
         }
     }
     static openGridSettingsModal() {
-        // Find and show the grid settings modal by manipulating DOM directly
         const modal = document.querySelector('[data-modal="grid-settings"]');
         if (modal) {
             modal.style.display = 'block';
             modal.classList.add('show');
         }
-        // Show backdrop
         const backdrop = document.querySelector('[data-backdrop="grid-settings"]');
         if (backdrop) {
             backdrop.style.display = 'block';
@@ -368,7 +366,6 @@ class SceneBuilder {
         }
     }
     static startAssetPlacement(assetType) {
-        // Set the asset type and show the asset selector modal
         const assetTypeInput = document.querySelector('[data-asset-type]');
         if (assetTypeInput) {
             assetTypeInput.value = assetType;
@@ -378,7 +375,6 @@ class SceneBuilder {
             modal.style.display = 'block';
             modal.classList.add('show');
         }
-        // Show backdrop
         const backdrop = document.querySelector('[data-backdrop="asset-selector"]');
         if (backdrop) {
             backdrop.style.display = 'block';
@@ -386,13 +382,11 @@ class SceneBuilder {
         }
     }
     static closeModal(modalType) {
-        // Hide the specified modal
         const modal = document.querySelector(`[data-modal="${modalType}"]`);
         if (modal) {
             modal.style.display = 'none';
             modal.classList.remove('show');
         }
-        // Hide backdrop
         const backdrop = document.querySelector(`[data-backdrop="${modalType}"]`);
         if (backdrop) {
             backdrop.style.display = 'none';
@@ -450,8 +444,8 @@ class SceneBuilder {
     static updateZoom(mouseX, mouseY, zoomLevel) {
         zoomLevel = Math.max(RenderConstants.minZoomLevel, Math.min(RenderConstants.maxZoomLevel, zoomLevel));
         const state = this.builder.state;
-        const layerWidth = (state.imageSize.width * zoomLevel) + (2 * RenderConstants.canvasPadding);
-        const layerHeight = (state.imageSize.height * zoomLevel) + (2 * RenderConstants.canvasPadding);
+        const layerWidth = state.imageSize.width + (2 * RenderConstants.canvasPadding);
+        const layerHeight = state.imageSize.height + (2 * RenderConstants.canvasPadding);
         const originalMouseX = mouseX + state.containerScroll.x - state.layerRect.x;
         const originalMouseY = mouseY + state.containerScroll.y - state.layerRect.y;
         const offsetLeft = mouseX - (originalMouseX * (zoomLevel / state.zoomLevel));
@@ -479,8 +473,11 @@ SceneBuilder.defaultState = {
     zoomLevel: 1.0,
     layers: [],
 };
-// Initialize the SceneBuilder when the script loads
 SceneBuilder.initialize();
-// Expose SceneBuilder methods globally for C# JavaScript interop
 window.SceneBuilder = SceneBuilder;
-//# sourceMappingURL=builder.js.map
+window.closeModal = (modalType) => SceneBuilder.closeModal(modalType);
+window.setup = (id, setup) => SceneBuilder.setup(id, setup);
+window.render = (data) => SceneBuilder.render(data);
+window.setCursor = (element, cursor) => DomUtilities.setCursor(element, cursor);
+window.setContainerScroll = (container, scroll) => DomUtilities.setContainerScroll(container, scroll);
+//# sourceMappingURL=sceneBuilder.js.map

@@ -56,7 +56,7 @@ public sealed class SceneBuilderStorageService(IJSRuntime jsRuntime) {
             return;
 
         await Task.WhenAll(
-            SaveToLocalStorageAsync("panOffset", state.SceneId, state.PanOffset),
+            SaveToLocalStorageAsync("panOffset", state.SceneId, state.Panning),
             SaveToLocalStorageAsync("zoomLevel", state.SceneId, state.ZoomLevel),
             SaveToLocalStorageAsync("grid", state.SceneId, state.Grid)
         );

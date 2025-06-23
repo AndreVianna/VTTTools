@@ -54,7 +54,7 @@
       <div class="modal-body">
         <div class="mb-3">
           <label for="gridType" class="form-label">Grid Type</label>
-          <select id="gridType" class="form-select" @bind="Input.Type">
+          <select id="gridType" class="form-select" @bind="Input.Type" @bind:after="UpdateGrid">
             <option value="@GridType.NoGrid">No Grid</option>
             <option value="@GridType.Square">Square</option>
             <option value="@GridType.HexH">Hex (Horizontal)</option>
@@ -64,22 +64,22 @@
         </div>
         <div class="mb-3">
           <label for="cellWidth" class="form-label">Cell Width</label>
-          <input type="number" id="cellWidth" class="form-control" @bind="Input.CellWidth" min="1" />
+          <input type="number" id="cellWidth" class="form-control" @bind="Input.CellWidth" @bind:after="UpdateGrid" min="1" />
         </div>
         <div class="mb-3">
           <label for="cellHeight" class="form-label">Cell Height</label>
-          <input type="number" id="cellHeight" class="form-control" @bind="Input.CellHeight" min="1" />
+          <input type="number" id="cellHeight" class="form-control" @bind="Input.CellHeight" @bind:after="UpdateGrid" min="1" />
         </div>
         <div class="mb-3">
           <label for="offsetX" class="form-label">Offset X</label>
-          <input type="number" id="offsetX" class="form-control" @bind="Input.OffsetX" />
+          <input type="number" id="offsetX" class="form-control" @bind="Input.OffsetX" @bind:after="UpdateGrid" />
         </div>
         <div class="mb-3">
           <label for="offsetY" class="form-label">Offset Y</label>
-          <input type="number" id="offsetY" class="form-control" @bind="Input.OffsetY" />
+          <input type="number" id="offsetY" class="form-control" @bind="Input.OffsetY" @bind:after="UpdateGrid" />
         </div>
         <div class="form-check mb-3">
-          <input type="checkbox" id="snapToGrid" class="form-check-input" @bind="Input.SnapToGrid" />
+          <input type="checkbox" id="snapToGrid" class="form-check-input" @bind="Input.SnapToGrid" @bind:after="UpdateGrid" />
           <label for="snapToGrid" class="form-check-label">Snap to Grid</label>
         </div>
       </div>

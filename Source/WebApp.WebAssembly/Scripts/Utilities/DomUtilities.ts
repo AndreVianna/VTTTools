@@ -1,4 +1,4 @@
-class DomUtils {
+class DomUtilities {
     static getContainerRect(container: HTMLElement): IRectangle {
         const rect = container.getBoundingClientRect();
         return {

@@ -28,13 +28,13 @@ class SceneBuilder {
         this.builder.setZoom = this.setZoom.bind(this);
 
         this.builder.getImageSize = ImageCache.getImageSize.bind(ImageCache);
-        this.builder.getContainerRect = DomUtils.getContainerRect.bind(DomUtils);
-        this.builder.getContainerScroll = DomUtils.getContainerScroll.bind(DomUtils);
-        this.builder.setContainerScroll = DomUtils.setContainerScroll.bind(DomUtils);
-        this.builder.getCanvasRect = DomUtils.getCanvasRect.bind(DomUtils);
-        this.builder.setCanvasRect = DomUtils.setCanvasRect.bind(DomUtils);
-        this.builder.setCursor = DomUtils.setCursor.bind(DomUtils);
-        this.builder.setZoomDisplay = DomUtils.setZoomDisplay.bind(DomUtils);
+        this.builder.getContainerRect = DomUtilities.getContainerRect.bind(DomUtilities);
+        this.builder.getContainerScroll = DomUtilities.getContainerScroll.bind(DomUtilities);
+        this.builder.setContainerScroll = DomUtilities.setContainerScroll.bind(DomUtilities);
+        this.builder.getCanvasRect = DomUtilities.getCanvasRect.bind(DomUtilities);
+        this.builder.setCanvasRect = DomUtilities.setCanvasRect.bind(DomUtilities);
+        this.builder.setCursor = DomUtilities.setCursor.bind(DomUtilities);
+        this.builder.setZoomDisplay = DomUtilities.setZoomDisplay.bind(DomUtilities);
     }
 
     private static captureDomElements(): void {
@@ -56,7 +56,7 @@ class SceneBuilder {
         }, { passive: false });
     }
 
-    private static async setup(id: string, setup: ILayersSetup): Promise<void> {
+    static async setup(id: string, setup: ILayersSetup): Promise<void> {
         await this.calculateInitialState(id, setup);
         this.initializeLayers(setup);
         this.resetZoom();
@@ -69,7 +69,7 @@ class SceneBuilder {
         this.builder.state = {
             ...this.builder.state,
             id: id,
-            containerRect: DomUtils.getContainerRect(this.builder.container),
+            containerRect: DomUtilities.getContainerRect(this.builder.container),
             imageSize: await ImageCache.getImageSize(setup.imageUrl),
         };
     }
@@ -80,11 +80,13 @@ class SceneBuilder {
         layers.push(new BackgroundLayer(setup.imageUrl));
         layers.push(new GridLayer(setup.grid));
         layers.push(new AssetsLayer(setup.assets));
+
+        this.builder.state.containerScroll = setup.stage.panning;
     }
 
     private static handleWheel(clientX: number, clientY: number, deltaY: number): void {
         const state = this.builder.state;
-        state.containerScroll = DomUtils.getContainerScroll(this.builder.container);
+        state.containerScroll = DomUtilities.getContainerScroll(this.builder.container);
         const mouseX = clientX - state.containerRect.x;
         const mouseY = clientY - state.containerRect.y;
         const zoomLevel = deltaY > 0
@@ -99,35 +101,32 @@ class SceneBuilder {
     private static setLayer(layer: ILayer): void {
     }
 
-    private static render(): void {
+    static render(data?: ILayersSetup): void {
+        if (data) {
+            this.initializeLayers(data);
+        }
+
         const state = this.builder.state;
         for (const layer of this.builder.layers) {
             layer.render(state.zoomLevel);
         }
     }
 
-    private static clearLayer(layer: ILayer): void {
-        layer.ctx.setTransform(1, 0, 0, 1, 0, 0);
-        layer.ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
-    }
-
     private static updateDomElements(): void {
         const state = this.builder.state;
         for (const layer of this.builder.layers)
-            DomUtils.setCanvasRect(layer.canvas, state.layerRect);
-        DomUtils.setContainerScroll(this.builder.container, state.containerScroll);
-        DomUtils.setZoomDisplay(this.builder.zoomDisplay, state.zoomLevel);
+            DomUtilities.setCanvasRect(layer.canvas, state.layerRect);
+        DomUtilities.setContainerScroll(this.builder.container, state.containerScroll);
+        DomUtilities.setZoomDisplay(this.builder.zoomDisplay, state.zoomLevel);
     }
 
     static openChangeImageModal(): void {
-        // Find and show the change image modal by manipulating DOM directly
         const modal = document.querySelector('[data-modal="change-image"]') as HTMLElement;
         if (modal) {
             modal.style.display = 'block';
             modal.classList.add('show');
         }
-        
-        // Show backdrop
+
         const backdrop = document.querySelector('[data-backdrop="change-image"]') as HTMLElement;
         if (backdrop) {
             backdrop.style.display = 'block';
@@ -136,14 +135,12 @@ class SceneBuilder {
     }
 
     static openGridSettingsModal(): void {
-        // Find and show the grid settings modal by manipulating DOM directly
         const modal = document.querySelector('[data-modal="grid-settings"]') as HTMLElement;
         if (modal) {
             modal.style.display = 'block';
             modal.classList.add('show');
         }
-        
-        // Show backdrop
+
         const backdrop = document.querySelector('[data-backdrop="grid-settings"]') as HTMLElement;
         if (backdrop) {
             backdrop.style.display = 'block';
@@ -152,19 +149,17 @@ class SceneBuilder {
     }
 
     static startAssetPlacement(assetType: string): void {
-        // Set the asset type and show the asset selector modal
         const assetTypeInput = document.querySelector('[data-asset-type]') as HTMLInputElement;
         if (assetTypeInput) {
             assetTypeInput.value = assetType;
         }
-        
+
         const modal = document.querySelector('[data-modal="asset-selector"]') as HTMLElement;
         if (modal) {
             modal.style.display = 'block';
             modal.classList.add('show');
         }
-        
-        // Show backdrop
+
         const backdrop = document.querySelector('[data-backdrop="asset-selector"]') as HTMLElement;
         if (backdrop) {
             backdrop.style.display = 'block';
@@ -173,14 +168,12 @@ class SceneBuilder {
     }
 
     static closeModal(modalType: string): void {
-        // Hide the specified modal
         const modal = document.querySelector(`[data-modal="${modalType}"]`) as HTMLElement;
         if (modal) {
             modal.style.display = 'none';
             modal.classList.remove('show');
         }
-        
-        // Hide backdrop
+
         const backdrop = document.querySelector(`[data-backdrop="${modalType}"]`) as HTMLElement;
         if (backdrop) {
             backdrop.style.display = 'none';
@@ -244,8 +237,8 @@ class SceneBuilder {
     static updateZoom(mouseX: number, mouseY: number, zoomLevel: number): void {
         zoomLevel = Math.max(RenderConstants.minZoomLevel, Math.min(RenderConstants.maxZoomLevel, zoomLevel));
         const state = this.builder.state;
-        const layerWidth = (state.imageSize.width * zoomLevel) + (2 * RenderConstants.canvasPadding);
-        const layerHeight = (state.imageSize.height * zoomLevel) + (2 * RenderConstants.canvasPadding);
+        const layerWidth = state.imageSize.width + (2 * RenderConstants.canvasPadding);
+        const layerHeight = state.imageSize.height + (2 * RenderConstants.canvasPadding);
 
         const originalMouseX = mouseX + state.containerScroll.x - state.layerRect.x;
         const originalMouseY = mouseY + state.containerScroll.y - state.layerRect.y;
@@ -265,9 +258,3 @@ class SceneBuilder {
         };
     }
 }
-
-// Initialize the SceneBuilder when the script loads
-SceneBuilder.initialize();
-
-// Expose SceneBuilder methods globally for C# JavaScript interop
-(window as any).SceneBuilder = SceneBuilder;

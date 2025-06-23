@@ -12,7 +12,7 @@ public sealed class BuilderState {
     public Guid SceneId { get; set; }
     public const int Padding = 200;
     public Size CanvasSize { get; set; } = new(0, 0);
-    public Point PanOffset { get; set; } = new(0, 0);
+    public Point Panning { get; set; } = new(0, 0);
     public float ZoomLevel { get; set; } = 1.0f;
 
     // Zoom constants

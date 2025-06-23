@@ -36,7 +36,10 @@
       "mcp__memory__add_observations",
       "mcp__memory__delete_observations",
       "mcp__thinking__sequentialthinking",
-      "mcp__microsoft_docs__microsoft_docs_search"
+      "mcp__microsoft_docs__microsoft_docs_search",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_close"
     ],
     "deny": []
   }

@@ -87,7 +87,7 @@ public partial class SceneBuilderPage
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (!firstRender)
             return;
-        await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./builder.js");
+        await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./sceneBuilder.js");
 
         _canvasReady = true;
         if (Scene == null && OperatingSystem.IsBrowser())
@@ -107,7 +107,7 @@ public partial class SceneBuilderPage
             State.SceneId = Scene.Id;
             State.Grid = Scene.Grid;
             State.ZoomLevel = Scene.Stage.ZoomLevel;
-            State.PanOffset = Scene.Stage.Panning;
+            State.Panning = Scene.Stage.Panning;
             await StorageService.SaveStateAsync(State);
             StageImageUrl = GetImageUrl(_filesBasePath, Scene.Stage.Path);
 
@@ -124,26 +124,17 @@ public partial class SceneBuilderPage
     private async Task InitStageAsync() {
         if (Scene is null)
             return;
-
-        // Calculate canvas size and update state
         State.CanvasSize = SceneCalculations.CalculateCanvasSize(Scene.Stage.ImageSize, BuilderState.Padding);
-
         var renderData = CreateRenderData();
         await JsRuntime.InvokeVoidAsync("setup", Scene.Id.ToString(), renderData);
-
-        // Get canvas bounding rect for coordinate calculations
         await SetCanvasWindowAsync();
+        InitializeGridInput();
     }
 
     private async Task InitializeStateAsync() {
         if (Scene is null)
             return;
-
-        // Load state from local storage
-        var (panOffset, zoomLevel, grid) = await StorageService.LoadStateAsync(State.SceneId, Scene.Stage.ZoomLevel);
-        State.PanOffset = panOffset;
-        State.ZoomLevel = zoomLevel;
-        State.Grid = grid;
+        (State.Panning, State.ZoomLevel, State.Grid) = await StorageService.LoadStateAsync(State.SceneId, Scene.Stage.ZoomLevel);
         State.CanvasSize = SceneCalculations.CalculateCanvasSize(Scene.Stage.ImageSize, BuilderState.Padding);
     }
 
@@ -161,6 +152,13 @@ public partial class SceneBuilderPage
             return new { };
         return new {
             imageUrl = GetImageUrl(_filesBasePath, Scene.Stage.Path),
+            stage = new {
+                panning = new {
+                    x = Scene.Stage.Panning.X,
+                    y = Scene.Stage.Panning.Y
+                },
+                zoomLevel = Scene.Stage.ZoomLevel
+            },
             grid = new {
                 type = State.Grid.Type,
                 cellSize = State.Grid.CellSize,
@@ -301,9 +299,9 @@ public partial class SceneBuilderPage
             y = State.InitialScrollPosition.Y - deltaY
         };
         await JsRuntime.InvokeVoidAsync("setContainerScroll", _canvasContainerRef, newPosition);
-        State.PanOffset = new(
-            State.PanOffset.X + Math.Abs(deltaX),
-            State.PanOffset.Y + Math.Abs(deltaY)
+        State.Panning = new(
+            State.Panning.X + Math.Abs(deltaX),
+            State.Panning.Y + Math.Abs(deltaY)
         );
 
         await StorageService.SaveStateAsync(State);
@@ -336,7 +334,7 @@ public partial class SceneBuilderPage
             return SceneCalculations.GetSceneMousePositionWithZoom(
                 clientPosition,
                 _canvasWindow!.Value,
-                State.PanOffset,
+                State.Panning,
                 State.ZoomLevel,
                 State.ZoomCenter
             );
@@ -390,24 +388,6 @@ public partial class SceneBuilderPage
     private void OnNewStageImageSelected(InputFileChangeEventArgs e) => SelectedStageFile = e.File;
     private void OnNewAssetImageSelected(InputFileChangeEventArgs e) => SelectedAssetFile = e.File;
 
-    private static async Task<string> GetFileBase64Content(IBrowserFile file) {
-        await using var stream = file.OpenReadStream(_maxFileSize);
-        var bytes = new byte[stream.Length];
-        var totalBytesRead = 0;
-        while (totalBytesRead < bytes.Length) {
-            var bytesRead = await stream.ReadAsync(bytes.AsMemory(totalBytesRead, bytes.Length - totalBytesRead));
-            if (bytesRead == 0)
-                break; // End of stream
-            totalBytesRead += bytesRead;
-        }
-
-        if (totalBytesRead != bytes.Length)
-            throw new IOException($"Failed to read file: read {totalBytesRead} of {bytes.Length} bytes");
-        var content = Convert.ToBase64String(bytes);
-        var fileType = file.ContentType;
-        return $"data:{fileType};base64,{content}";
-    }
-
     private async Task SaveBackgroundImage() {
         if (Scene == null || SelectedStageFile == null)
             return;
@@ -434,6 +414,29 @@ public partial class SceneBuilderPage
         await RenderAsync();
     }
 
+    private void InitializeGridInput() {
+        if (Scene == null)
+            return;
+        Input.Type = State.Grid.Type;
+        Input.CellWidth = State.Grid.CellSize.X;
+        Input.CellHeight = State.Grid.CellSize.Y;
+        Input.OffsetX = State.Grid.Offset.X;
+        Input.OffsetY = State.Grid.Offset.Y;
+        Input.SnapToGrid = State.Grid.Snap;
+    }
+
+    private async Task UpdateGrid() {
+        if (Scene == null)
+            return;
+        State.Grid = new GridDetails {
+            Type = Input.Type,
+            CellSize = new(Input.CellWidth, Input.CellHeight),
+            Offset = new(Input.OffsetX, Input.OffsetY),
+            Snap = Input.SnapToGrid,
+        };
+        await RenderAsync();
+    }
+
     private async Task SaveGridSettings() {
         if (Scene == null)
             return;
@@ -444,7 +447,6 @@ public partial class SceneBuilderPage
             Snap = Input.SnapToGrid,
         };
         await StorageService.SaveStateAsync(State);
-
         Scene = Scene with { Grid = State.Grid };
         await SaveScene();
 
