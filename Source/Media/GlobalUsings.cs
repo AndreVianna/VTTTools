@@ -12,6 +12,7 @@ global using VttTools.Data;
 global using VttTools.Data.Extensions;
 global using VttTools.Data.Options;
 global using VttTools.Extensions;
+global using VttTools.HealthChecks;
 global using VttTools.Media.ApiContracts;
 global using VttTools.Media.EndpointMappers;
 global using VttTools.Media.Handlers;

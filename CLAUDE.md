@@ -11,13 +11,38 @@ It creates a Virtual Table Top (VTT) RPG Game interface for online play. It prov
 @Design/PROJECT_STRUCTURE.md - Current file/folder structure of the project.
 
 # Tools
-- dotnet CLI:
-  - use the folloing solution file: `VTTTools.sln`
+
+## Aspire Application Launcher (Primary Development Tool)
+- **runapp.sh** - Two-phase Aspire development launcher that solves Podman/WSL environment issues:
+  - **Full development startup**: `./runapp.sh`
+  - **Quick restart (no build)**: `./runapp.sh --no-build`
+  - **Build and test validation**: `./runapp.sh --build-only --run-tests`
+  - **Development with testing**: `./runapp.sh --run-tests`
+  - **Preserve containers (debugging)**: `./runapp.sh --no-cleanup`
+
+### Script Benefits:
+- Solves mount propagation issues in WSL/Podman environments
+- Automatic cleanup of stale containers and networks
+- Reliable two-phase build and run process
+- Access to Aspire dashboard for service monitoring
+- Health check endpoint testing across all services
+
+## dotnet CLI (Alternative/Component Commands):
+  - use the following solution file: `VTTTools.sln`
   - migrations folder: `VTTTools.Data/Migrations`
   - commands:
     - Build: cd Source && dotnet build VTTTools.sln && cd -
     - Test: cd Source && dotnet test VTTTools.sln && cd -
     - Add Migrations: cd Source/Data && dotnet ef migrations add {Migration_Name} -o Migrations
+
+## Health Check Endpoints (Available when running with runapp.sh)
+All services provide detailed JSON health responses:
+- **Assets Service**: `https://localhost:7001/health` - Database connectivity
+- **Game Service**: `https://localhost:7002/health` - Database connectivity  
+- **Library Service**: `https://localhost:7003/health` - Database connectivity
+- **Media Service**: `https://localhost:7004/health` - Database + Azure Blob Storage
+- **WebApp Service**: `https://localhost:7005/health` - Database connectivity
+- **Aspire Dashboard**: Available at URL shown in runapp.sh output for service monitoring
 
 # Available MCP Servers
 

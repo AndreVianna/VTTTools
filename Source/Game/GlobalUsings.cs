@@ -10,6 +10,7 @@ global using VttTools.Data.Extensions;
 global using VttTools.Data.Options;
 global using VttTools.Extensions;
 global using VttTools.Game.EndpointMappers;
+global using VttTools.HealthChecks;
 global using VttTools.Game.Handlers;
 global using VttTools.Game.Services;
 global using VttTools.Game.Sessions.ApiContracts;

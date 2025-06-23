@@ -18,6 +18,6 @@ public static class ApplicationBuilderExtensions {
     public static void MapDefaultEndpoints(this IEndpointRouteBuilder app) {
         //app.MapOpenApi();
         // ReSharper disable once ArrangeMethodOrOperatorBody
-        app.MapHealthCheckEndpoints();
+        app.MapDetailedHealthCheckEndpoints();
     }
 }

@@ -27,6 +27,21 @@ public class HealthEndpointsMapperTests {
         aliveRoute.RoutePattern.RawText.Should().Be("/alive");
     }
 
+    [Fact]
+    public void MapDetailedHealthCheckEndpoints_RegistersTwoHealthEndpointsWithDetailedWriter() {
+        // Act
+        _app.MapDetailedHealthCheckEndpoints();
+
+        // Assert that two health check endpoints were registered
+        _app.DataSources.Should().HaveCount(1);
+        var groupDataSource = _app.DataSources.First();
+        groupDataSource.Endpoints.Should().HaveCount(2);
+        var healthRoute = groupDataSource.Endpoints[0].Should().BeOfType<RouteEndpoint>().Subject;
+        healthRoute.RoutePattern.RawText.Should().Be("/health");
+        var aliveRoute = groupDataSource.Endpoints[1].Should().BeOfType<RouteEndpoint>().Subject;
+        aliveRoute.RoutePattern.RawText.Should().Be("/alive");
+    }
+
     [Theory]
     [InlineData("live", true)]
     [InlineData("not-live", false)]

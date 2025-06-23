@@ -35,11 +35,47 @@ public static class HostApplicationBuilderExtensions {
                          .AllowAnyMethod()));
 
         //builder.Services.AddOpenApi();
-        builder.Services.AddHealthChecks();
+        builder.AddDetailedHealthChecks();
 
         builder.Services.AddAuthentication(Scheme)
             .AddScheme<UserIdentificationOptions, UserIdentificationHandler>(Scheme, _ => { });
         builder.Services.AddAuthorization();
+    }
+
+    /// <summary>
+    /// Adds detailed health checks with comprehensive JSON response formatting.
+    /// </summary>
+    /// <param name="builder">The host application builder.</param>
+    /// <returns>The health checks builder for chaining additional health checks.</returns>
+    public static IHealthChecksBuilder AddDetailedHealthChecks(this IHostApplicationBuilder builder) {
+        return builder.Services.AddHealthChecks()
+                      .AddCheck("self", () => HealthCheckResult.Healthy("Service is operational"), ["live"]);
+    }
+
+    /// <summary>
+    /// Adds a custom health check with the specified name, check function, and tags.
+    /// </summary>
+    /// <param name="healthChecksBuilder">The health checks builder.</param>
+    /// <param name="name">The name of the health check.</param>
+    /// <param name="healthCheck">The health check function.</param>
+    /// <param name="tags">Optional tags for the health check.</param>
+    /// <returns>The health checks builder for chaining additional health checks.</returns>
+    public static IHealthChecksBuilder AddCustomHealthCheck(this IHealthChecksBuilder healthChecksBuilder, 
+        string name, Func<HealthCheckResult> healthCheck, params string[] tags) {
+        return healthChecksBuilder.AddCheck(name, healthCheck, tags);
+    }
+
+    /// <summary>
+    /// Adds an async custom health check with the specified name, check function, and tags.
+    /// </summary>
+    /// <param name="healthChecksBuilder">The health checks builder.</param>
+    /// <param name="name">The name of the health check.</param>
+    /// <param name="healthCheck">The async health check function.</param>
+    /// <param name="tags">Optional tags for the health check.</param>
+    /// <returns>The health checks builder for chaining additional health checks.</returns>
+    public static IHealthChecksBuilder AddAsyncCustomHealthCheck(this IHealthChecksBuilder healthChecksBuilder, 
+        string name, Func<CancellationToken, Task<HealthCheckResult>> healthCheck, params string[] tags) {
+        return healthChecksBuilder.AddAsyncCheck(name, healthCheck, tags);
     }
 
     internal static void ConfigureJsonOptions(JsonOptions options) {

@@ -21,6 +21,13 @@ internal static class Program {
     internal static void AddStorage(this IHostApplicationBuilder builder) {
         builder.AddSqlServerDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
         builder.AddDataStorage();
+        
+        // Register health checks
+        builder.Services.AddSingleton<DatabaseHealthCheck>(sp => 
+            new DatabaseHealthCheck(sp.GetRequiredService<IConfiguration>(), ApplicationDbContextOptions.ConnectionStringName));
+        
+        builder.AddDetailedHealthChecks()
+            .AddCheck<DatabaseHealthCheck>("Database", tags: ["database"]);
     }
 
     internal static void AddServices(this IHostApplicationBuilder builder) {

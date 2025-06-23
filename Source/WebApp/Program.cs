@@ -113,15 +113,21 @@ internal static class Program {
         app.Run();
     }
 
-    internal static void AddDefaultHealthChecks(WebApplicationBuilder builder)
-        => builder.Services.AddHealthChecks()
-                  .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+    internal static void AddDefaultHealthChecks(WebApplicationBuilder builder) {
+        // Register the database health check service
+        builder.Services.AddSingleton<DatabaseHealthCheck>(provider =>
+            new DatabaseHealthCheck(provider.GetRequiredService<IConfiguration>(), ConnectionStringName));
+
+        // Add detailed health checks with database health check
+        builder.AddDetailedHealthChecks()
+               .AddCheck<DatabaseHealthCheck>("Database", tags: ["database", "sql"]);
+
+        // Note: Redis health check requires additional packages and would be added here if needed
+        // .AddRedis(redisConnectionString, tags: ["redis", "cache"]);
+    }
 
     internal static void MapEndpoints(WebApplication app) {
-        app.MapHealthChecks("/health");
-        app.MapHealthChecks("/alive", new() {
-            Predicate = r => r.Tags.Contains("live"),
-        });
+        app.MapDefaultEndpoints();
         app.MapAdditionalIdentityEndpoints();
     }
 

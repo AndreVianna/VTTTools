@@ -6,6 +6,8 @@ global using System.Text.RegularExpressions;
 
 global using DotNetToolbox.Results;
 
+global using Microsoft.Extensions.Configuration;
+
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Diagnostics;
@@ -24,6 +26,7 @@ global using SixLabors.ImageSharp.Formats.Gif;
 global using SixLabors.ImageSharp.Formats.Webp;
 
 global using VttTools.EndpointMappers;
+global using VttTools.HealthChecks;
 global using VttTools.Media.Model;
 global using VttTools.Media.ServiceContracts;
 global using VttTools.Middlewares;

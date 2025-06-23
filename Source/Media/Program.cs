@@ -22,6 +22,16 @@ internal static class Program {
         builder.AddSqlServerDbContext<ApplicationDbContext>(ApplicationDbContextOptions.ConnectionStringName);
         builder.AddDataStorage();
         builder.AddAzureBlobClient(AzureStorageOptions.ConnectionStringName);
+        
+        // Register health checks
+        builder.Services.AddSingleton<DatabaseHealthCheck>(sp => 
+            new DatabaseHealthCheck(sp.GetRequiredService<IConfiguration>(), ApplicationDbContextOptions.ConnectionStringName));
+        builder.Services.AddSingleton<BlobStorageHealthCheck>(sp => 
+            new BlobStorageHealthCheck(sp.GetRequiredService<IConfiguration>(), AzureStorageOptions.ConnectionStringName, "default"));
+        
+        builder.AddDetailedHealthChecks()
+            .AddCheck<DatabaseHealthCheck>("Database", tags: ["database"])
+            .AddCheck<BlobStorageHealthCheck>("BlobStorage", tags: ["storage", "blob"]);
     }
 
     internal static void AddServices(this IHostApplicationBuilder builder)

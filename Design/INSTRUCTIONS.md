@@ -80,6 +80,48 @@ Test Standards:
 - Refactor test code with the same quality standards as production code.
 
 Command Line Tools:
+
+## Primary Development Tool: Aspire Application Launcher
+
+**runapp.sh** - Two-phase Aspire development launcher that solves Podman/WSL environment issues:
+
+### Recommended Development Workflow:
+1. **Initial Development Setup**: `./runapp.sh --build-only --run-tests`
+   - Validates build and tests before starting services
+   - Ensures code quality and test coverage before runtime testing
+
+2. **Active Development**: `./runapp.sh --no-build`  
+   - Quick restart for iterative development
+   - Skips build phase for faster startup after code changes
+
+3. **Full Development Cycle**: `./runapp.sh`
+   - Complete build, cleanup, and run cycle
+   - Use when switching branches or after significant changes
+
+4. **Testing Integration**: `./runapp.sh --run-tests`
+   - Includes test execution with build and run
+   - Validates health check implementations and service integration
+
+5. **Debugging Containers**: `./runapp.sh --no-cleanup`
+   - Preserves containers for inspection and troubleshooting
+   - Useful for diagnosing service connectivity issues
+
+### Key Benefits for VTT Tools Development:
+- **Health Check Testing**: Automatically starts all services with enhanced health endpoints
+- **Aspire Dashboard Access**: Provides monitoring interface for service health and logs
+- **Container Environment**: Solves WSL/Podman mount propagation and namespace issues
+- **Service Integration**: Tests full microservice stack including database and storage
+
+### Health Endpoint Validation:
+After starting with runapp.sh, validate health check implementations:
+- Assets: `curl https://localhost:7001/health` - Database connectivity
+- Game: `curl https://localhost:7002/health` - Database connectivity  
+- Library: `curl https://localhost:7003/health` - Database connectivity
+- Media: `curl https://localhost:7004/health` - Database + Azure Blob Storage
+- WebApp: `curl https://localhost:7005/health` - Database connectivity
+
+## Alternative Development Commands:
+
 - Code clean-up and Linting:
   - Linting: `dotnet format`
   - Delete files generated during build, test or packing: `Utilities\remove_file_clutter.py`
@@ -107,6 +149,132 @@ To generate the code coverage report I want you to do the following sequence:
 4. Generate a coverage report for the whole solution with: 'reportgenerator "-reports:TestResults/coverage.xml" "-targetdir:CoverageReport/Full" "-assemblyfilters:+VttTools.*;-VttTools.*.UnitTests" "-classfilters:-*.Migrations.*;-System.Text.RegularExpressions.*" "-reporttypes:Html;JsonSummary"'
 5. That will create the reports in html (index.html) and json (Summary.json) formats.
 You can use those files to get details about the tests and code coverage. 
+
+## UI Testing with Playwright MCP
+
+The VTT Tools project uses Playwright MCP for comprehensive UI testing with an orchestrated multi-agent system to prevent race conditions and enable parallel testing.
+
+### Directory Structure
+All UI test screenshots are organized in the following structure:
+```
+Tests/
+├── YYYYMMDD_HHMMSS/           # Test run timestamp
+│   ├── Agent001/              # Agent-specific folders
+│   │   └── Screenshots/       # Screenshots for this agent
+│   │       ├── 001_TestName.png
+│   │       └── 002_TestName.png
+│   ├── Agent002/              # Additional agents for parallel testing
+│   │   └── Screenshots/
+│   │       └── 001_TestName.png
+```
+
+### Orchestrator Responsibilities (Main Agent)
+When you need to conduct UI testing, follow this workflow as the orchestrator:
+
+1. **Generate Test Run Timestamp**:
+   ```bash
+   date +"%Y%m%d_%H%M%S"
+   ```
+
+2. **Plan Agent Distribution**:
+   - Determine how many agents are needed for comprehensive test coverage
+   - Assign specific test scenarios to each agent
+   - Pre-assign sequential agent IDs (001, 002, 003, etc.)
+
+3. **Create Base Directory Structure**:
+   ```bash
+   mkdir -p Tests/{TIMESTAMP}/
+   ```
+
+4. **Launch Agents with Explicit ID Assignment**:
+   ```
+   Use Task tool with prompts like:
+   "You are Agent001. Create directory Tests/{TIMESTAMP}/Agent001/Screenshots/. 
+   Test the landing page and navigation. Use screenshot format 001_TestName.png, 002_TestName.png, etc."
+   ```
+
+### Agent Responsibilities (Sub-Agents)
+When operating as an assigned agent, follow this workflow:
+
+1. **Accept Agent Assignment**:
+   - Read agent ID from orchestrator prompt (e.g., "You are Agent002")
+   - Note assigned test scenarios and timestamp
+
+2. **Create Agent Directory**:
+   ```bash
+   mkdir -p Tests/{TIMESTAMP}/Agent{ASSIGNED_ID}/Screenshots/
+   ```
+
+3. **Initialize Screenshot Counter**:
+   - Start at 001 for first screenshot
+   - Increment sequentially for each capture
+
+4. **Screenshot Workflow**:
+   ```bash
+   # Step 1: Use Playwright to capture screenshot
+   mcp__playwright__browser_take_screenshot filename="temp_name.png"
+   
+   # Step 2: Copy from Playwright temp location to organized structure
+   cp "/tmp/playwright-mcp-output/{PLAYWRIGHT_TIMESTAMP}/{temp_name.png}" \
+      "Tests/{TIMESTAMP}/Agent{ID}/Screenshots/{COUNTER:D3}_{TestName}.png"
+   
+   # Step 3: Increment counter for next screenshot
+   ```
+
+5. **Naming Convention**:
+   - Format: `{SequentialNumber:D3}_{TestName}.png`
+   - Examples: `001_LandingPage.png`, `002_Navigation.png`, `003_GridZoom.png`
+
+### Playwright MCP Commands
+Use these commands for UI testing:
+- `mcp__playwright__browser_navigate` - Navigate to URLs
+- `mcp__playwright__browser_take_screenshot` - Capture screenshots
+- `mcp__playwright__browser_snapshot` - Capture accessibility tree
+- `mcp__playwright__browser_click` - Click elements
+- `mcp__playwright__browser_type` - Type text in forms
+- `mcp__playwright__browser_wait_for` - Wait for conditions
+
+### Application Startup for Testing
+Before UI testing, ensure the VTT Tools application is running using the Aspire launcher:
+```bash
+# Recommended: Use the Aspire application launcher
+./runapp.sh
+
+# Alternative for manual startup (not recommended):
+cd Source
+dotnet build VttTools.sln
+dotnet run --project WebApp --no-build
+```
+**Aspire Environment**: All services available with health endpoints and Aspire dashboard
+**Manual Startup**: WebApp only available at `http://localhost:5001`
+
+**Note**: The runapp.sh script is strongly recommended as it:
+- Starts all microservices with proper container networking
+- Provides health check endpoints for comprehensive testing
+- Includes Aspire dashboard for service monitoring
+- Solves WSL/Podman environment issues automatically
+
+### Benefits of This System
+- **Zero Race Conditions**: Orchestrator pre-assigns agent IDs
+- **Parallel Testing**: Multiple agents can run simultaneously
+- **Organized Storage**: Chronological and agent-based organization
+- **Scalable**: Supports up to 999 concurrent agents
+- **Traceable**: Clear attribution of tests to specific agents
+- **Isolated Workspaces**: No file conflicts between agents
+
+### Example Usage
+```bash
+# Orchestrator creates test run
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+mkdir -p Tests/$TIMESTAMP/
+
+# Agent001 tests basic functionality
+# Agent002 tests grid features  
+# Agent003 tests authentication flows
+# Each agent operates independently with isolated screenshot storage
+```
+
+This system ensures reliable, organized, and conflict-free UI testing across all development activities.
 
 ## Other Instructions
 
