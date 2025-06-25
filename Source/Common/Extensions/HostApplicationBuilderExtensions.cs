@@ -47,10 +47,9 @@ public static class HostApplicationBuilderExtensions {
     /// </summary>
     /// <param name="builder">The host application builder.</param>
     /// <returns>The health checks builder for chaining additional health checks.</returns>
-    public static IHealthChecksBuilder AddDetailedHealthChecks(this IHostApplicationBuilder builder) {
-        return builder.Services.AddHealthChecks()
-                      .AddCheck("self", () => HealthCheckResult.Healthy("Service is operational"), ["live"]);
-    }
+    public static IHealthChecksBuilder AddDetailedHealthChecks(this IHostApplicationBuilder builder)
+        => builder.Services.AddHealthChecks()
+                  .AddCheck("self", () => HealthCheckResult.Healthy("Service is operational"), ["live"]);
 
     /// <summary>
     /// Adds a custom health check with the specified name, check function, and tags.
@@ -60,10 +59,11 @@ public static class HostApplicationBuilderExtensions {
     /// <param name="healthCheck">The health check function.</param>
     /// <param name="tags">Optional tags for the health check.</param>
     /// <returns>The health checks builder for chaining additional health checks.</returns>
-    public static IHealthChecksBuilder AddCustomHealthCheck(this IHealthChecksBuilder healthChecksBuilder, 
-        string name, Func<HealthCheckResult> healthCheck, params string[] tags) {
-        return healthChecksBuilder.AddCheck(name, healthCheck, tags);
-    }
+    public static IHealthChecksBuilder AddCustomHealthCheck(this IHealthChecksBuilder healthChecksBuilder,
+                                                            string name,
+                                                            Func<HealthCheckResult> healthCheck,
+                                                            params string[] tags)
+        => healthChecksBuilder.AddCheck(name, healthCheck, tags);
 
     /// <summary>
     /// Adds an async custom health check with the specified name, check function, and tags.
@@ -73,10 +73,8 @@ public static class HostApplicationBuilderExtensions {
     /// <param name="healthCheck">The async health check function.</param>
     /// <param name="tags">Optional tags for the health check.</param>
     /// <returns>The health checks builder for chaining additional health checks.</returns>
-    public static IHealthChecksBuilder AddAsyncCustomHealthCheck(this IHealthChecksBuilder healthChecksBuilder, 
-        string name, Func<CancellationToken, Task<HealthCheckResult>> healthCheck, params string[] tags) {
-        return healthChecksBuilder.AddAsyncCheck(name, healthCheck, tags);
-    }
+    public static IHealthChecksBuilder AddAsyncCustomHealthCheck(this IHealthChecksBuilder healthChecksBuilder,
+        string name, Func<CancellationToken, Task<HealthCheckResult>> healthCheck, params string[] tags) => healthChecksBuilder.AddAsyncCheck(name, healthCheck, tags);
 
     internal static void ConfigureJsonOptions(JsonOptions options) {
         options.SerializerOptions.PropertyNameCaseInsensitive = true;

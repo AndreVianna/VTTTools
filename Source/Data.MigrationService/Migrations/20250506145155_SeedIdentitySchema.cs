@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace VttTools.Data.Migrations;
+namespace VttTools.Data.MigrationService.Migrations;
 /// <inheritdoc />
 public partial class SeedIdentitySchema : Migration {
     /// <inheritdoc />

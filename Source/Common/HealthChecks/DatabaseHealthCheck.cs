@@ -1,26 +1,23 @@
 using System.Data.Common;
 using System.Diagnostics;
+
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
 
 namespace VttTools.HealthChecks;
 
 /// <summary>
 /// Health check implementation for SQL Server database connectivity.
 /// </summary>
-public class DatabaseHealthCheck : IHealthCheck {
-    private readonly string _connectionString;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DatabaseHealthCheck"/> class.
-    /// </summary>
-    /// <param name="configuration">The configuration instance to retrieve connection strings.</param>
-    /// <param name="connectionStringName">The name of the connection string to use.</param>
-    /// <exception cref="ArgumentException">Thrown when the connection string is not found.</exception>
-    public DatabaseHealthCheck(IConfiguration configuration, string connectionStringName) {
-        _connectionString = configuration.GetConnectionString(connectionStringName)
+/// <remarks>
+/// Initializes a new instance of the <see cref="DatabaseHealthCheck"/> class.
+/// </remarks>
+/// <param name="configuration">The configuration instance to retrieve connection strings.</param>
+/// <param name="connectionStringName">The name of the connection string to use.</param>
+/// <exception cref="ArgumentException">Thrown when the connection string is not found.</exception>
+public class DatabaseHealthCheck(IConfiguration configuration,
+                                 string connectionStringName) : IHealthCheck {
+    private readonly string _connectionString = configuration.GetConnectionString(connectionStringName)
             ?? throw new ArgumentException($"Connection string '{connectionStringName}' not found.", nameof(connectionStringName));
-    }
 
     /// <summary>
     /// Checks the health of the database connection by executing a simple query.
@@ -33,17 +30,17 @@ public class DatabaseHealthCheck : IHealthCheck {
         var data = new Dictionary<string, object>();
 
         try {
-            using var connection = new SqlConnection(_connectionString);
+            await using var connection = new SqlConnection(_connectionString);
             await connection.OpenAsync(cancellationToken);
 
-            using var command = connection.CreateCommand();
+            await using var command = connection.CreateCommand();
             command.CommandText = "SELECT 1";
             command.CommandTimeout = 5; // 5 second timeout
-            
+
             var result = await command.ExecuteScalarAsync(cancellationToken);
-            
+
             stopwatch.Stop();
-            
+
             data.Add("connectionTime", $"{stopwatch.ElapsedMilliseconds}ms");
             data.Add("server", connection.DataSource);
             data.Add("database", connection.Database);

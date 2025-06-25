@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Assets\VttTools.Assets.csproj" />
+    <ProjectReference Include="..\Data.MigrationService\VttTools.Data.MigrationService.csproj" />
     <ProjectReference Include="..\Library\VttTools.Library.csproj" />
     <ProjectReference Include="..\Game\VttTools.Game.csproj" />
     <ProjectReference Include="..\Media\VttTools.Media.csproj" />

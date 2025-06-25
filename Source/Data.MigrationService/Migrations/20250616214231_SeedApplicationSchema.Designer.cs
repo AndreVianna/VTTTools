@@ -10,7 +10,7 @@ using VttTools.Data;
 
 #nullable disable
 
-namespace VttTools.Data.Migrations
+namespace VttTools.Data.MigrationService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20250616214231_SeedApplicationSchema")]

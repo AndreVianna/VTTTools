@@ -9,7 +9,7 @@ using VttTools.Data;
 
 #nullable disable
 
-namespace VttTools.Data.Migrations
+namespace VttTools.Data.MigrationService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -18,7 +18,7 @@ namespace VttTools.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.5")
+                .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -789,29 +789,6 @@ namespace VttTools.Data.Migrations
 
             modelBuilder.Entity("VttTools.Data.Game.Entities.GameSession", b =>
                 {
-                    b.OwnsMany("VttTools.Common.Model.Participant", "Players", b1 =>
-                        {
-                            b1.Property<Guid>("GameSessionId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<Guid>("UserId")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<bool>("IsRequired")
-                                .HasColumnType("bit");
-
-                            b1.Property<int>("Type")
-                                .HasColumnType("int");
-
-                            b1.HasKey("GameSessionId", "UserId");
-
-                            b1.ToTable("Players", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("GameSessionId");
-                        });
-
                     b.OwnsMany("VttTools.Game.Sessions.Model.GameSessionEvent", "Events", b1 =>
                         {
                             b1.Property<Guid>("GameSessionId")
@@ -858,6 +835,29 @@ namespace VttTools.Data.Migrations
                             b1.HasKey("GameSessionId", "SentAt");
 
                             b1.ToTable("Messages", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("GameSessionId");
+                        });
+
+                    b.OwnsMany("VttTools.Common.Model.Participant", "Players", b1 =>
+                        {
+                            b1.Property<Guid>("GameSessionId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("UserId")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<bool>("IsRequired")
+                                .HasColumnType("bit");
+
+                            b1.Property<int>("Type")
+                                .HasColumnType("int");
+
+                            b1.HasKey("GameSessionId", "UserId");
+
+                            b1.ToTable("Players", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("GameSessionId");

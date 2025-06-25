@@ -34,9 +34,9 @@ public class HostApplicationBuilderExtensionsTests {
     [Fact]
     public void AddDetailedHealthChecks_RegistersHealthChecksBuilder() {
         var builder = new HostApplicationBuilder();
-        
+
         var healthChecksBuilder = builder.AddDetailedHealthChecks();
-        
+
         healthChecksBuilder.Should().NotBeNull();
         builder.Services.Should().Contain(sd => sd.ServiceType == typeof(HealthCheckService));
     }
@@ -45,9 +45,9 @@ public class HostApplicationBuilderExtensionsTests {
     public void AddCustomHealthCheck_RegistersCustomHealthCheck() {
         var builder = new HostApplicationBuilder();
         var healthChecksBuilder = builder.AddDetailedHealthChecks();
-        
+
         var result = healthChecksBuilder.AddCustomHealthCheck("test", () => HealthCheckResult.Healthy());
-        
+
         result.Should().NotBeNull();
         result.Should().BeSameAs(healthChecksBuilder);
     }
@@ -56,10 +56,10 @@ public class HostApplicationBuilderExtensionsTests {
     public void AddAsyncCustomHealthCheck_RegistersAsyncCustomHealthCheck() {
         var builder = new HostApplicationBuilder();
         var healthChecksBuilder = builder.AddDetailedHealthChecks();
-        
-        var result = healthChecksBuilder.AddAsyncCustomHealthCheck("async-test", 
+
+        var result = healthChecksBuilder.AddAsyncCustomHealthCheck("async-test",
             _ => Task.FromResult(HealthCheckResult.Healthy()));
-        
+
         result.Should().NotBeNull();
         result.Should().BeSameAs(healthChecksBuilder);
     }

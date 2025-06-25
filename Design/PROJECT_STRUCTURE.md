@@ -138,6 +138,29 @@
         - Resource.cs
     - **Options**
       - ApplicationDbContextOptions.cs
+  - **Data.MigrationService**
+    - ApplicationDbContextFactory.cs
+    - GlobalUsings.cs
+    - Program.cs
+    - VttTools.Data.MigrationService.csproj
+    - Worker.cs
+    - **Migrations**
+      - 20250506145110_CreateIdentitySchema.cs
+      - 20250506145110_CreateIdentitySchema.Designer.cs
+      - 20250506145155_SeedIdentitySchema.cs
+      - 20250506145155_SeedIdentitySchema.Designer.cs
+      - 20250616214219_CreateApplicationSchema.cs
+      - 20250616214219_CreateApplicationSchema.Designer.cs
+      - 20250616214231_SeedApplicationSchema.cs
+      - 20250616214231_SeedApplicationSchema.Designer.cs
+      - ApplicationDbContextModelSnapshot.cs
+  - **Data.MigrationService.UnitTests**
+    - GlobalUsings.cs
+    - ProgramTests.cs
+    - README.md
+    - VttTools.Data.MigrationService.UnitTests.csproj
+    - WorkerTests.cs
+    - xunit.runner.json
   - **Data.UnitTests**
     - ApplicationDbContextTests.cs
     - GlobalUsings.cs

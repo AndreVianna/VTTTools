@@ -4,6 +4,8 @@
 - This project is .NET 9 C# Aspire Solution called VTTTools.
 It creates a Virtual Table Top (VTT) RPG Game interface for online play. It provides tools to help Dungeon Masters (DMs) and players set up and play tabletop role-playing games online, including maps, tokens, dice rolling, and chat functionality.
 
+The solution includes a dedicated migration service that handles database migrations centrally during application startup, ensuring proper database schema initialization across all environments.
+
 # Key Files (**IMPORTANT!** YOU MUST READ THESE FILES)
 @Design/INSTRUCTIONS.md - Agent instructions and coding standards
 @Design/ROADMAP.md - Project roadmap with implementation phases
@@ -12,37 +14,64 @@ It creates a Virtual Table Top (VTT) RPG Game interface for online play. It prov
 
 # Tools
 
-## Aspire Application Launcher (Primary Development Tool)
-- **runapp.sh** - Two-phase Aspire development launcher that solves Podman/WSL environment issues:
-  - **Full development startup**: `./runapp.sh`
-  - **Quick restart (no build)**: `./runapp.sh --no-build`
-  - **Build and test validation**: `./runapp.sh --build-only --run-tests`
-  - **Development with testing**: `./runapp.sh --run-tests`
-  - **Preserve containers (debugging)**: `./runapp.sh --no-cleanup`
+## VTT Tools CLI (Primary Development Tool)
+- **vtttools.sh** - Clean CLI for building, testing, and running the VTT Tools application:
 
-### Script Benefits:
+### Commands:
+  - **Fresh start**: `./vtttools.sh` (default - cleanup containers and rebuild)
+  - **Build validation**: `./vtttools.sh build`
+  - **Test all with coverage**: `./vtttools.sh test`
+  - **Test specific**: `./vtttools.sh test ShouldValidateUser`
+  - **Quick restart**: `./vtttools.sh --preserve` (preserve containers for fast iteration)
+  - **Migration commands**: `./vtttools.sh migration [add|remove|list|apply|revert]`
+  - **Help**: `./vtttools.sh help`
+
+### Run Options:
+  - **`--rebuild, -r`** - Build before running (default: rebuild enabled)
+  - **`--preserve, -p`** - Preserve containers and build (fast iteration mode)
+
+### Migration Commands:
+  - **`./vtttools.sh migration add <name>`** - Create new database migration
+  - **`./vtttools.sh migration remove`** - Remove latest migration
+  - **`./vtttools.sh migration list`** - List all migrations
+  - **`./vtttools.sh migration apply`** - Apply pending migrations
+  - **`./vtttools.sh migration revert [target]`** - Revert to specific migration
+
+### Test Options:
+  - **`--rebuild, -r`** - Build before testing (default: use existing build)
+  - **`[test_filter]`** - Run specific test (no coverage for faster execution)
+
+### CLI Benefits:
 - Solves mount propagation issues in WSL/Podman environments
-- Automatic cleanup of stale containers and networks
-- Reliable two-phase build and run process
+- Smart defaults for clean development (cleanup containers by default)
+- Fast iteration mode available with --preserve option
+- Individual test debugging without code coverage overhead
+- Centralized database migration management via dedicated migration service
+- Migration commands work from any directory
 - Access to Aspire dashboard for service monitoring
 - Health check endpoint testing across all services
+- Integrated migration service ensures proper database initialization across all environments
 
 ## dotnet CLI (Alternative/Component Commands):
   - use the following solution file: `VTTTools.sln`
-  - migrations folder: `VTTTools.Data/Migrations`
+  - migrations folder: `VTTTools.Data.MigrationService/Migrations`
   - commands:
     - Build: cd Source && dotnet build VTTTools.sln && cd -
     - Test: cd Source && dotnet test VTTTools.sln && cd -
-    - Add Migrations: cd Source/Data && dotnet ef migrations add {Migration_Name} -o Migrations
+    - Add Migrations: cd Source/Data.MigrationService && dotnet ef migrations add {Migration_Name} -o Migrations
+    - Manual Migration Service: cd Source/Data.MigrationService && dotnet run && cd -
+    - List Migrations: cd Source/Data.MigrationService && dotnet ef migrations list && cd -
+    - Remove Latest Migration: cd Source/Data.MigrationService && dotnet ef migrations remove && cd -
 
-## Health Check Endpoints (Available when running with runapp.sh)
+## Health Check Endpoints (Available when running with vtttools.sh)
 All services provide detailed JSON health responses:
+- **Migration Service**: Startup service that runs database migrations and exits successfully
 - **Assets Service**: `https://localhost:7001/health` - Database connectivity
 - **Game Service**: `https://localhost:7002/health` - Database connectivity  
 - **Library Service**: `https://localhost:7003/health` - Database connectivity
 - **Media Service**: `https://localhost:7004/health` - Database + Azure Blob Storage
 - **WebApp Service**: `https://localhost:7005/health` - Database connectivity
-- **Aspire Dashboard**: Available at URL shown in runapp.sh output for service monitoring
+- **Aspire Dashboard**: Available at URL shown in vtttools.sh output for service monitoring
 
 # Available MCP Servers
 

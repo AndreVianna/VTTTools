@@ -4,6 +4,12 @@ namespace VttTools.HealthChecks;
 /// Provides comprehensive health check response writing functionality with detailed JSON output.
 /// </summary>
 public static class DetailedHealthCheckResponseWriter {
+    private static readonly JsonSerializerOptions _options = new() {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
     /// <summary>
     /// Writes a detailed health check response to the HTTP context in JSON format.
     /// </summary>
@@ -26,13 +32,6 @@ public static class DetailedHealthCheckResponseWriter {
                 tags = entry.Value.Tags.Any() ? entry.Value.Tags : null
             }).ToList()
         };
-
-        var options = new JsonSerializerOptions {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
-
-        await JsonSerializer.SerializeAsync(context.Response.Body, response, options);
+        await JsonSerializer.SerializeAsync(context.Response.Body, response, _options);
     }
 }

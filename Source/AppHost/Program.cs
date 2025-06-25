@@ -19,17 +19,20 @@ internal static class Program {
                                      e.WithLifetime(ContainerLifetime.Persistent);
                                  })
                                  .AddBlobs("blobs");
-        var database = !isDevelopment
-                           ? builder.AddSqlServer("sql")
-                                    .WithDataVolume()
-                                    .WithLifetime(ContainerLifetime.Persistent)
-                                    .AddDatabase("database")
-                           : builder.AddConnectionString("database");
+
+        var database = builder.AddSqlServer("sql")
+                              .WithDataVolume()
+                              .WithLifetime(ContainerLifetime.Persistent)
+                              .AddDatabase("database");
+
+        var migrationService = builder.AddProject<Projects.VttTools_Data_MigrationService>("migration-service")
+                                      .WithReference(database);
 
         var resources = builder.AddProject<Projects.VttTools_Media>("resources-api")
                                .WithReference(cache)
                                .WithReference(database)
                                .WithReference(blobs)
+                               .WaitFor(migrationService)
                                .WithHttpHealthCheck("health")
                                .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
@@ -37,6 +40,7 @@ internal static class Program {
                             .WithReference(cache)
                             .WithReference(database)
                             .WithReference(resources)
+                            .WaitFor(migrationService)
                             .WithHttpHealthCheck("health")
                             .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
@@ -45,6 +49,7 @@ internal static class Program {
                              .WithReference(database)
                              .WithReference(resources)
                              .WithReference(assets)
+                             .WaitFor(migrationService)
                              .WithHttpHealthCheck("health")
                              .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
@@ -52,6 +57,7 @@ internal static class Program {
                           .WithReference(cache)
                           .WithReference(database)
                           .WithReference(library)
+                          .WaitFor(migrationService)
                           .WithHttpHealthCheck("health")
                           .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
@@ -63,6 +69,7 @@ internal static class Program {
                .WithReference(assets).WaitFor(assets)
                .WithReference(library).WaitFor(library)
                .WithReference(game).WaitFor(game)
+               .WaitFor(migrationService)
                .WithHttpHealthCheck("health")
                .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 

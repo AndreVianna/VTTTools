@@ -1,4 +1,4 @@
-﻿namespace VttTools.Data;
+namespace VttTools.Data.MigrationService;
 
 [ExcludeFromCodeCoverage]
 public class ApplicationDbContextFactory
@@ -14,7 +14,7 @@ public class ApplicationDbContextFactory
                             ?? throw new InvalidOperationException($"Connection string '{ApplicationDbContextOptions.ConnectionStringName}' not found.");
 
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-        optionsBuilder.UseSqlServer(connectionString, _ => _.MigrationsAssembly("VttTools.Data"));
+        optionsBuilder.UseSqlServer(connectionString, b => b.MigrationsAssembly("VttTools.Data.MigrationService"));
         optionsBuilder.EnableSensitiveDataLogging();
         optionsBuilder.EnableDetailedErrors();
         optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);

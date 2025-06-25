@@ -1,22 +1,22 @@
 using System.Data.Common;
+
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
-using VttTools.HealthChecks;
 
 namespace VttTools.HealthChecks;
 
 public class DatabaseHealthCheckTests {
     private readonly IConfiguration _configuration = Substitute.For<IConfiguration>();
-    private const string TestConnectionString = "Server=localhost;Database=TestDb;Integrated Security=true;TrustServerCertificate=true";
-    private const string ConnectionStringName = "DefaultConnection";
+    private const string _testConnectionString = "Server=localhost;Database=TestDb;Integrated Security=true;TrustServerCertificate=true";
+    private const string _connectionStringName = "DefaultConnection";
 
     [Fact]
     public void Constructor_ValidConnectionString_CreatesInstance() {
         // Arrange
-        _configuration.GetConnectionString(ConnectionStringName).Returns(TestConnectionString);
+        _configuration.GetConnectionString(_connectionStringName).Returns(_testConnectionString);
 
         // Act
-        var healthCheck = new DatabaseHealthCheck(_configuration, ConnectionStringName);
+        var healthCheck = new DatabaseHealthCheck(_configuration, _connectionStringName);
 
         // Assert
         healthCheck.Should().NotBeNull();
@@ -25,12 +25,12 @@ public class DatabaseHealthCheckTests {
     [Fact]
     public void Constructor_NullConnectionString_ThrowsArgumentException() {
         // Arrange
-        _configuration.GetConnectionString(ConnectionStringName).Returns((string?)null);
+        _configuration.GetConnectionString(_connectionStringName).Returns((string?)null);
 
         // Act & Assert
-        var action = () => new DatabaseHealthCheck(_configuration, ConnectionStringName);
+        var action = () => new DatabaseHealthCheck(_configuration, _connectionStringName);
         action.Should().Throw<ArgumentException>()
-            .WithMessage($"Connection string '{ConnectionStringName}' not found. (Parameter 'connectionStringName')");
+            .WithMessage($"Connection string '{_connectionStringName}' not found. (Parameter 'connectionStringName')");
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class DatabaseHealthCheckTests {
     [InlineData(null, HealthStatus.Unhealthy, "Database query returned unexpected result")]
     public async Task CheckHealthAsync_QueryReturnsExpectedResult_ReturnsCorrectHealthStatus(string? queryResult, HealthStatus expectedStatus, string expectedDescription) {
         // Arrange
-        var healthCheck = new MockableDatabaseHealthCheck(TestConnectionString, queryResult);
+        var healthCheck = new MockableDatabaseHealthCheck(_testConnectionString, queryResult);
         var context = new HealthCheckContext();
 
         // Act
@@ -71,7 +71,7 @@ public class DatabaseHealthCheckTests {
         // Arrange
         // Since SqlException is hard to create, we'll use a similar mock that behaves like SqlException
         var sqlException = new TestSqlException("Connection failed", 2, 16, 1);
-        var healthCheck = new MockableDatabaseHealthCheck(TestConnectionString, exception: sqlException);
+        var healthCheck = new MockableDatabaseHealthCheck(_testConnectionString, exception: sqlException);
         var context = new HealthCheckContext();
 
         // Act
@@ -94,7 +94,7 @@ public class DatabaseHealthCheckTests {
     public async Task CheckHealthAsync_DbException_ReturnsUnhealthyWithDbErrorDetails() {
         // Arrange
         var dbException = new TestDbException("Database error", 1001);
-        var healthCheck = new MockableDatabaseHealthCheck(TestConnectionString, exception: dbException);
+        var healthCheck = new MockableDatabaseHealthCheck(_testConnectionString, exception: dbException);
         var context = new HealthCheckContext();
 
         // Act
@@ -113,7 +113,7 @@ public class DatabaseHealthCheckTests {
     public async Task CheckHealthAsync_GeneralException_ReturnsUnhealthyWithGenericError() {
         // Arrange
         var exception = new InvalidOperationException("General error");
-        var healthCheck = new MockableDatabaseHealthCheck(TestConnectionString, exception: exception);
+        var healthCheck = new MockableDatabaseHealthCheck(_testConnectionString, exception: exception);
         var context = new HealthCheckContext();
 
         // Act
@@ -129,7 +129,7 @@ public class DatabaseHealthCheckTests {
     [Fact]
     public async Task CheckHealthAsync_CancellationTokenCancelled_ThrowsOperationCancelledException() {
         // Arrange
-        var healthCheck = new MockableDatabaseHealthCheck(TestConnectionString, simulateCancellation: true);
+        var healthCheck = new MockableDatabaseHealthCheck(_testConnectionString, simulateCancellation: true);
         var context = new HealthCheckContext();
         var cancellationToken = new CancellationToken(true);
 
@@ -141,7 +141,7 @@ public class DatabaseHealthCheckTests {
     [Fact]
     public async Task CheckHealthAsync_SuccessfulConnection_IncludesPerformanceData() {
         // Arrange
-        var healthCheck = new MockableDatabaseHealthCheck(TestConnectionString, "1", simulateDelay: TimeSpan.FromMilliseconds(50));
+        var healthCheck = new MockableDatabaseHealthCheck(_testConnectionString, "1", simulateDelay: TimeSpan.FromMilliseconds(50));
         var context = new HealthCheckContext();
 
         // Act
@@ -175,20 +175,12 @@ public class DatabaseHealthCheckTests {
     }
 
     // Helper class to mock SQL connections for testing
-    private class MockableDatabaseHealthCheck : IHealthCheck {
-        private readonly string? _queryResult;
-        private readonly Exception? _exception;
-        private readonly bool _simulateCancellation;
-        private readonly TimeSpan _simulateDelay;
-        private readonly string _connectionString;
-
-        public MockableDatabaseHealthCheck(string connectionString, string? queryResult = "1", Exception? exception = null, bool simulateCancellation = false, TimeSpan simulateDelay = default) {
-            _connectionString = connectionString;
-            _queryResult = queryResult;
-            _exception = exception;
-            _simulateCancellation = simulateCancellation;
-            _simulateDelay = simulateDelay;
-        }
+    private sealed class MockableDatabaseHealthCheck(string connectionString, string? queryResult = "1", Exception? exception = null, bool simulateCancellation = false, TimeSpan simulateDelay = default) : IHealthCheck {
+        private readonly string? _queryResult = queryResult;
+        private readonly Exception? _exception = exception;
+        private readonly bool _simulateCancellation = simulateCancellation;
+        private readonly TimeSpan _simulateDelay = simulateDelay;
+        private readonly string _connectionString = connectionString;
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default) {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -263,26 +255,14 @@ public class DatabaseHealthCheckTests {
     }
 
     // Helper class for testing DbException
-    private class TestDbException : DbException {
-        private readonly int _errorCode;
-
-        public TestDbException(string message, int errorCode) : base(message) {
-            _errorCode = errorCode;
-        }
-
-        public override int ErrorCode => _errorCode;
+    private sealed class TestDbException(string message, int errorCode) : DbException(message) {
+        public override int ErrorCode { get; } = errorCode;
     }
 
     // Helper class for testing SqlException behavior
-    private class TestSqlException : Exception {
-        public int Number { get; }
-        public byte Class { get; }
-        public byte State { get; }
-
-        public TestSqlException(string message, int number, byte severity, byte state) : base(message) {
-            Number = number;
-            Class = severity;
-            State = state;
-        }
+    private sealed class TestSqlException(string message, int number, byte severity, byte state) : Exception(message) {
+        public int Number { get; } = number;
+        public byte Class { get; } = severity;
+        public byte State { get; } = state;
     }
 }

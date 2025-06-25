@@ -1,29 +1,26 @@
 using System.Diagnostics;
+
 using Azure;
 using Azure.Storage.Blobs;
-using Microsoft.Extensions.Configuration;
 
 namespace VttTools.HealthChecks;
 
 /// <summary>
 /// Health check implementation for Azure Blob Storage connectivity.
 /// </summary>
-public class BlobStorageHealthCheck : IHealthCheck {
-    private readonly string _connectionString;
-    private readonly string _containerName;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BlobStorageHealthCheck"/> class.
-    /// </summary>
-    /// <param name="configuration">The configuration instance to retrieve connection strings.</param>
-    /// <param name="connectionStringName">The name of the connection string to use.</param>
-    /// <param name="containerName">The name of the blob container to test access to.</param>
-    /// <exception cref="ArgumentException">Thrown when the connection string is not found.</exception>
-    public BlobStorageHealthCheck(IConfiguration configuration, string connectionStringName, string containerName) {
-        _connectionString = configuration.GetConnectionString(connectionStringName)
+/// <remarks>
+/// Initializes a new instance of the <see cref="BlobStorageHealthCheck"/> class.
+/// </remarks>
+/// <param name="configuration">The configuration instance to retrieve connection strings.</param>
+/// <param name="connectionStringName">The name of the connection string to use.</param>
+/// <param name="containerName">The name of the blob container to test access to.</param>
+/// <exception cref="ArgumentException">Thrown when the connection string is not found.</exception>
+public class BlobStorageHealthCheck(IConfiguration configuration,
+                                    string connectionStringName,
+                                    string containerName) : IHealthCheck {
+    private readonly string _connectionString = configuration.GetConnectionString(connectionStringName)
             ?? throw new ArgumentException($"Connection string '{connectionStringName}' not found.", nameof(connectionStringName));
-        _containerName = containerName ?? throw new ArgumentNullException(nameof(containerName));
-    }
+    private readonly string _containerName = containerName ?? throw new ArgumentNullException(nameof(containerName));
 
     /// <summary>
     /// Checks the health of the blob storage connection by testing container access.
@@ -41,32 +38,28 @@ public class BlobStorageHealthCheck : IHealthCheck {
 
             // Test container access by checking if it exists
             var containerExists = await containerClient.ExistsAsync(cancellationToken);
-            
             stopwatch.Stop();
-            
             data.Add("accessTime", $"{stopwatch.ElapsedMilliseconds}ms");
             data.Add("containerName", _containerName);
-            data.Add("containerExists", containerExists.Value);
             data.Add("accountName", blobServiceClient.AccountName);
-
             if (containerExists.Value) {
-                try {
-                    // Additional test: try to get container properties
-                    var properties = await containerClient.GetPropertiesAsync(cancellationToken: cancellationToken);
-                    data.Add("lastModified", properties.Value.LastModified.ToString() ?? "Unknown");
-                    data.Add("publicAccess", properties.Value.PublicAccess.ToString() ?? "Unknown");
-                }
-                catch (RequestFailedException ex) {
-                    // Container exists but we might not have permission to get properties
-                    // This is still considered healthy if we can at least verify existence
-                    data.Add("propertiesWarning", $"Could not retrieve properties: {ex.Message}");
-                }
-
-                return HealthCheckResult.Healthy("Blob storage container access successful", data);
+                data.Add("containerExists", containerExists.Value);
             }
             else {
-                return HealthCheckResult.Degraded("Blob storage container does not exist", null, data);
+                await containerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+                data.Add("containerCreated", true);
             }
+
+            try {
+                var properties = await containerClient.GetPropertiesAsync(cancellationToken: cancellationToken);
+                data.Add("lastModified", properties.Value.LastModified.ToString() ?? "Unknown");
+                data.Add("publicAccess", properties.Value.PublicAccess.ToString() ?? "Unknown");
+            }
+            catch (RequestFailedException ex) {
+                data.Add("propertiesWarning", $"Could not retrieve properties: {ex.Message}");
+            }
+
+            return HealthCheckResult.Healthy("Blob storage container created and accessible", data);
         }
         catch (RequestFailedException ex) {
             stopwatch.Stop();

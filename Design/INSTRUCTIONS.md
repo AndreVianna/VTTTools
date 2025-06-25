@@ -48,7 +48,12 @@ Additional Coding Guidelines:
 - Apply consistent security practices including proper authentication and authorization.
 
 Migration Guidelines:
-- Manage DB schema changes through migrations and document migration commands.
+- Database migrations are centrally managed through the VttTools.Data.MigrationService project
+- The migration service automatically discovers and applies migrations during application startup
+- All migration files are located in Source/Data.MigrationService/Migrations directory
+- Individual consumer services (Assets, Game, Library, Media, WebApp) reference the shared ApplicationDbContext
+- Use the CLI migration commands for creating and managing migrations: `./vtttools.sh migration [add|remove|list|apply|revert]`
+- Migration operations can be performed from any directory using the VTT Tools CLI
 - Do not mix schema and data migrations. Perform data migrations in a separate migration file.
 - For complex migrations that may cause data loss or are blocked by constraints:
   1. Create a data migration to move affected data to temporary tables with no constraints, and delete the affected data or remove the constraints.
@@ -81,39 +86,70 @@ Test Standards:
 
 Command Line Tools:
 
-## Primary Development Tool: Aspire Application Launcher
+## Primary Development Tool: VTT Tools CLI
 
-**runapp.sh** - Two-phase Aspire development launcher that solves Podman/WSL environment issues:
+**vtttools.sh** - Clean CLI for building, testing, and running the VTT Tools application with Podman/WSL environment support:
 
 ### Recommended Development Workflow:
-1. **Initial Development Setup**: `./runapp.sh --build-only --run-tests`
-   - Validates build and tests before starting services
-   - Ensures code quality and test coverage before runtime testing
+1. **Initial Project Validation**: `./vtttools.sh test --rebuild`
+   - Builds solution and runs all tests with code coverage
+   - Ensures code quality and test coverage before development
 
-2. **Active Development**: `./runapp.sh --no-build`  
-   - Quick restart for iterative development
-   - Skips build phase for faster startup after code changes
+2. **Clean Development Start**: `./vtttools.sh`
+   - Fresh start with container cleanup and rebuild (default behavior)
+   - Ensures clean environment and proper migration service execution
+   - Centralized migration service runs automatically and discovers all migrations
 
-3. **Full Development Cycle**: `./runapp.sh`
-   - Complete build, cleanup, and run cycle
+3. **Fast Development Iteration**: `./vtttools.sh --preserve`
+   - Quick restart preserving build and containers
+   - Fastest option for rapid code-test-run cycles when environment is stable
+
+4. **Migration Management**: Use centralized migration commands from any directory
+   - `./vtttools.sh migration add <name>` - Create new migration
+   - `./vtttools.sh migration remove` - Remove latest migration
+   - `./vtttools.sh migration list` - List all migrations
+   - `./vtttools.sh migration apply` - Apply pending migrations
+   - `./vtttools.sh migration revert [target]` - Revert to specific migration
+
+5. **Test Individual Failures**: `./vtttools.sh test FailingTestName`
+   - Runs specific test without code coverage for faster debugging
+   - Use when troubleshooting individual test failures
+
+6. **Fresh Environment**: `./vtttools.sh run --rebuild --cleanup`
+   - Complete rebuild with clean container state
    - Use when switching branches or after significant changes
 
-4. **Testing Integration**: `./runapp.sh --run-tests`
-   - Includes test execution with build and run
-   - Validates health check implementations and service integration
+7. **Build Validation Only**: `./vtttools.sh build`
+   - Validates compilation without running services
+   - Useful for CI/CD or quick validation
 
-5. **Debugging Containers**: `./runapp.sh --no-cleanup`
-   - Preserves containers for inspection and troubleshooting
-   - Useful for diagnosing service connectivity issues
+### CLI Commands:
+- **`./vtttools.sh`** - Fresh start with cleanup (default behavior)
+- **`./vtttools.sh --preserve`** - Quick restart preserving containers
+- **`./vtttools.sh build`** - Build validation only
+- **`./vtttools.sh test`** - Run all tests with coverage
+- **`./vtttools.sh test [filter]`** - Run specific test (no coverage)
+- **`./vtttools.sh migration [command]`** - Migration management commands
+- **`./vtttools.sh run [options]`** - Run application with options
+- **`./vtttools.sh help`** - Show usage information
+
+### Run Options:
+- **`--rebuild, -r`** - Build before running
+- **`--preserve, -p`** - Preserve containers and build (fast iteration mode)
+- **`--cleanup, -c`** - Reset containers and networks (legacy option)
 
 ### Key Benefits for VTT Tools Development:
+- **Migration Service Integration**: Automatically runs database migrations via dedicated migration service
 - **Health Check Testing**: Automatically starts all services with enhanced health endpoints
+- **Smart Defaults**: Optimized for fast iteration with container preservation
+- **Individual Test Debugging**: Run specific tests without coverage overhead
 - **Aspire Dashboard Access**: Provides monitoring interface for service health and logs
 - **Container Environment**: Solves WSL/Podman mount propagation and namespace issues
 - **Service Integration**: Tests full microservice stack including database and storage
 
 ### Health Endpoint Validation:
-After starting with runapp.sh, validate health check implementations:
+After starting with vtttools.sh, validate health check implementations:
+- Migration Service: Runs database migrations and exits successfully (check Aspire dashboard)
 - Assets: `curl https://localhost:7001/health` - Database connectivity
 - Game: `curl https://localhost:7002/health` - Database connectivity  
 - Library: `curl https://localhost:7003/health` - Database connectivity
@@ -133,12 +169,15 @@ After starting with runapp.sh, validate health check implementations:
   - Run all tests: `dotnet test`
   - Run single test: `dotnet test --filter "FullyQualifiedName=Tests.WebTests.TestName"`
   - Detailed output: `dotnet test --logger "console;verbosity=detailed"`
-- Data Schema Commands:
-  - Create Migration: `dotnet ef migrations add {Migration_Name}`
-  - Remove Migration (Only works for the latest created migration): `dotnet ef migrations remove`
+- Data Schema Commands (Migration Service):
+  - Navigate to Migration Service: `cd Source/Data.MigrationService`
+  - Create Migration: `dotnet ef migrations add {Migration_Name} -o Migrations`
+  - Remove Migration: `dotnet ef migrations remove`
+  - List Migrations: `dotnet ef migrations list`
   - Apply Migration to Database: `dotnet ef database update`
   - Revert all Migrations from Database: `dotnet ef database update 0`
   - Update database to a specific Migration: `dotnet ef database update {Migration_Name}`
+  - **Recommended**: Use VTT Tools CLI migration commands instead: `./vtttools.sh migration [command]`
 
 ## IMPORTANT! Code Coverage Report Generation
 
@@ -235,24 +274,29 @@ Use these commands for UI testing:
 - `mcp__playwright__browser_wait_for` - Wait for conditions
 
 ### Application Startup for Testing
-Before UI testing, ensure the VTT Tools application is running using the Aspire launcher:
+Before UI testing, ensure the VTT Tools application is running using the VTT Tools CLI:
 ```bash
-# Recommended: Use the Aspire application launcher
-./runapp.sh
+# Recommended: Use the VTT Tools CLI for full service stack
+./vtttools.sh
+
+# For fresh environment if needed:
+./vtttools.sh run --rebuild --cleanup
 
 # Alternative for manual startup (not recommended):
 cd Source
 dotnet build VttTools.sln
 dotnet run --project WebApp --no-build
 ```
-**Aspire Environment**: All services available with health endpoints and Aspire dashboard
+**VTT Tools CLI**: All microservices available with health endpoints and Aspire dashboard
 **Manual Startup**: WebApp only available at `http://localhost:5001`
 
-**Note**: The runapp.sh script is strongly recommended as it:
+**Note**: The vtttools.sh CLI is strongly recommended as it:
+- Automatically runs database migrations via dedicated migration service
 - Starts all microservices with proper container networking
 - Provides health check endpoints for comprehensive testing
 - Includes Aspire dashboard for service monitoring
 - Solves WSL/Podman environment issues automatically
+- Optimizes for fast development iteration with smart defaults
 
 ### Benefits of This System
 - **Zero Race Conditions**: Orchestrator pre-assigns agent IDs
