@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
-# vtttools.sh - VttTools Development CLI
-# A clean command-line interface for building, testing, and running the VttTools application
+# vtttools-wsl.sh - VttTools Development CLI for WSL2 + Podman
+# Optimized for WSL2 environment with Podman as Docker replacement
 
 # Script configuration - adjust these paths to match your project structure
 SOLUTION_DIR="$(dirname "$0")/Source"  # Directory containing your solution
@@ -43,24 +43,25 @@ log_error() {
 
 # Function to display usage information
 show_usage() {
-    print -P "%F{cyan}VttTools Development CLI%f"
+    print -P "%F{cyan}VttTools Development CLI (WSL2 + Podman)%f"
     print -P ""
     print -P "%F{green}Usage:%f"
-    print -P "  ./vtttools.sh [command] [options] [arguments]"
+    print -P "  ./vtttools-wsl.sh [command] [options] [arguments]"
     print -P ""
     print -P "%F{green}Commands:%f"
     print -P "  run        Run the application (default command)"
     print -P "  build      Build the solution and exit"
     print -P "  test       Run tests and exit"
     print -P "  migration  Manage database migrations"
+    print -P "  podman     Podman socket management"
     print -P "  help       Show this help message"
     print -P ""
     print -P "%F{green}Run Options:%f"
-    print -P "  --rebuild, -r   Build before running (default: use existing build)"
-    print -P "  --preserve, -p  Preserve containers (default: clean containers)"
+    print -P "  --build, -b     Build before running (default: use existing build)"
+    print -P "  --clean, -c     Clean containers (default: preserve containers)"
     print -P ""
     print -P "%F{green}Test Options:%f"
-    print -P "  --rebuild, -r   Build before testing (default: use existing build)"
+    print -P "  --build, -b     Build before testing (default: use existing build)"
     print -P ""
     print -P "%F{green}Test Arguments:%f"
     print -P "  [test_name]     Run specific test (uses --filter, no code coverage)"
@@ -73,33 +74,192 @@ show_usage() {
     print -P "  migration apply [name]  Apply migrations to database (optional name)"
     print -P "  migration revert        Revert all migrations"
     print -P ""
+    print -P "%F{green}Podman Commands:%f"
+    print -P "  podman start     Start Podman socket"
+    print -P "  podman stop      Stop Podman socket"
+    print -P "  podman status    Check Podman socket status"
+    print -P "  podman restart   Restart Podman socket"
+    print -P ""
     print -P "%F{green}Examples:%f"
-    print -P "  ./vtttools.sh                          # Fresh start (clean containers)"
-    print -P "  ./vtttools.sh run                      # Same as above"
-    print -P "  ./vtttools.sh run -r                   # Build and run, clean containers"
-    print -P "  ./vtttools.sh run -p                   # Run preserving containers"
-    print -P "  ./vtttools.sh run -r -p                # Build and run, preserve containers"
-    print -P "  ./vtttools.sh build                    # Build validation only"
-    print -P "  ./vtttools.sh test                     # Run all tests with coverage"
-    print -P "  ./vtttools.sh test -r                  # Build and run all tests"
-    print -P "  ./vtttools.sh test ShouldValidateUser  # Run specific test (no coverage)"
-    print -P "  ./vtttools.sh test -r GetUserTests     # Build and run specific test"
-    print -P "  ./vtttools.sh migration add AddUser    # Create new migration"
-    print -P "  ./vtttools.sh migration list           # Show all migrations"
-    print -P "  ./vtttools.sh migration apply          # Apply all pending migrations"
+    print -P "  ./vtttools-wsl.sh                          # Quick start (preserve containers)"
+    print -P "  ./vtttools-wsl.sh run                      # Same as above"
+    print -P "  ./vtttools-wsl.sh run -b                   # Build and run, preserve containers"
+    print -P "  ./vtttools-wsl.sh run -c                   # Run with clean containers"
+    print -P "  ./vtttools-wsl.sh run -b -c                # Build and run, clean containers"
+    print -P "  ./vtttools-wsl.sh build                    # Build validation only"
+    print -P "  ./vtttools-wsl.sh test                     # Run all tests with coverage"
+    print -P "  ./vtttools-wsl.sh test -b                  # Build and run all tests"
+    print -P "  ./vtttools-wsl.sh test ShouldValidateUser  # Run specific test (no coverage)"
+    print -P "  ./vtttools-wsl.sh test -b GetUserTests     # Build and run specific test"
+    print -P "  ./vtttools-wsl.sh migration add AddUser    # Create new migration"
+    print -P "  ./vtttools-wsl.sh migration list           # Show all migrations"
+    print -P "  ./vtttools-wsl.sh migration apply          # Apply all pending migrations"
+    print -P "  ./vtttools-wsl.sh podman status            # Check container runtime"
     print -P ""
     print -P "%F{green}Development Workflow:%f"
-    print -P "  1. ./vtttools.sh test -r               # Validate all tests"
-    print -P "  2. ./vtttools.sh                       # Fresh start after validation"
-    print -P "  3. ./vtttools.sh test FailingTest      # Debug individual failing test"
+    print -P "  1. ./vtttools-wsl.sh podman start          # Ensure container runtime"
+    print -P "  2. ./vtttools-wsl.sh test -b               # Validate all tests"
+    print -P "  3. ./vtttools-wsl.sh -c                    # Fresh start after validation"
+    print -P "  4. ./vtttools-wsl.sh test FailingTest      # Debug individual failing test"
     print -P ""
-    print -P "%F{yellow}Notes:%f"
+    print -P "%F{yellow}WSL2 + Podman Notes:%f"
+    print -P "  - Uses Podman instead of Docker (no licensing issues)"
+    print -P "  - Optimized for WSL2 environment (no nested virtualization)"
+    print -P "  - Automatically manages Podman socket for .NET Aspire"
     print -P "  - Uses $SOLUTION_FILE solution file for build and test operations"
-    print -P "  - Uses .runsettings file from Source folder if available"
-    print -P "  - Individual tests run without code coverage for faster execution"
-    print -P "  - Full test runs include code coverage collection"
-    print -P "  - Test filter supports any dotnet test --filter expression"
-    print -P "  - Run command uses vtttools-namespace.sh for container environment setup"
+    print -P "  - Mount propagation warnings are normal in WSL2 and can be ignored"
+}
+
+# Function to ensure WSL2 runtime directory exists
+ensure_wsl_runtime_dir() {
+    local runtime_dir="/run/user/$UID"
+    local podman_dir="$runtime_dir/podman"
+    
+    if [[ ! -d "$runtime_dir" ]]; then
+        log_info "Creating WSL2 runtime directory: $runtime_dir"
+        sudo mkdir -p "$runtime_dir"
+        sudo chown $USER:$USER "$runtime_dir"
+        sudo chmod 700 "$runtime_dir"
+    fi
+    
+    if [[ ! -d "$podman_dir" ]]; then
+        log_info "Creating Podman runtime directory: $podman_dir"
+        mkdir -p "$podman_dir"
+    fi
+    
+    # Set XDG_RUNTIME_DIR for WSL2
+    export XDG_RUNTIME_DIR="$runtime_dir"
+}
+
+# Function to start Podman socket for .NET Aspire compatibility
+start_podman_socket() {
+    local socket_path="/run/user/$UID/podman/podman.sock"
+    
+    # Check if socket is already running
+    if [[ -S "$socket_path" ]]; then
+        # Test if it's responsive
+        if curl -s --unix-socket "$socket_path" http://localhost/version >/dev/null 2>&1; then
+            log_success "Podman socket already running and responsive"
+            return 0
+        else
+            log_warning "Podman socket exists but not responsive, restarting..."
+            stop_podman_socket
+        fi
+    fi
+    
+    log_info "Starting Podman socket for .NET Aspire compatibility..."
+    
+    # Ensure runtime directory exists
+    ensure_wsl_runtime_dir
+    
+    # Kill any hanging podman service processes
+    pkill -f "podman.*system.*service" 2>/dev/null || true
+    
+    export PODMAN_USERNS=keep-id
+    export BUILDAH_ISOLATION=chroot
+    
+    # Start the socket
+    podman system service --time=0 unix://"$socket_path" &
+    local socket_pid=$!
+    
+    # Wait for socket to be ready
+    local max_attempts=30
+    local attempt=0
+    while [ ! -S "$socket_path" ] && [ $attempt -lt $max_attempts ]; do
+        sleep 0.5
+        attempt=$((attempt + 1))
+    done
+    
+    if [ -S "$socket_path" ]; then
+        # Test socket responsiveness
+        if curl -s --unix-socket "$socket_path" http://localhost/version >/dev/null 2>&1; then
+            log_success "Podman socket started successfully (PID: $socket_pid)"
+            log_success "Socket path: $socket_path"
+            return 0
+        else
+            log_error "Podman socket created but not responsive"
+            return 1
+        fi
+    else
+        log_error "Failed to create Podman socket"
+        return 1
+    fi
+}
+
+# Function to stop Podman socket
+stop_podman_socket() {
+    local socket_path="/run/user/$UID/podman/podman.sock"
+    
+    log_info "Stopping Podman socket..."
+    
+    # Kill podman service processes
+    pkill -f "podman.*system.*service" 2>/dev/null || true
+    
+    # Remove socket file
+    rm -f "$socket_path" 2>/dev/null || true
+    
+    # Wait a moment for cleanup
+    sleep 1
+    
+    if [[ ! -S "$socket_path" ]]; then
+        log_success "Podman socket stopped"
+        return 0
+    else
+        log_warning "Socket file still exists, but processes stopped"
+        return 0
+    fi
+}
+
+# Function to check Podman socket status
+check_podman_status() {
+    local socket_path="/run/user/$UID/podman/podman.sock"
+    
+    log_info "Checking Podman socket status..."
+    
+    if [[ -S "$socket_path" ]]; then
+        # Socket file exists, test responsiveness
+        if curl -s --unix-socket "$socket_path" http://localhost/version >/dev/null 2>&1; then
+            local version=$(curl -s --unix-socket "$socket_path" http://localhost/version | jq -r '.Version // "Unknown"' 2>/dev/null || echo "Connected")
+            log_success "✅ Podman socket is running and responsive"
+            log_success "   Version: $version"
+            log_success "   Socket: $socket_path"
+        else
+            log_warning "⚠️  Podman socket exists but not responsive"
+            log_warning "   Socket: $socket_path"
+            log_info "   Try: ./vtttools-wsl.sh podman restart"
+        fi
+    else
+        log_error "❌ Podman socket not running"
+        log_error "   Expected: $socket_path"
+        log_info "   Try: ./vtttools-wsl.sh podman start"
+    fi
+    
+    # Show process information
+    local podman_processes=$(pgrep -f "podman.*system.*service" 2>/dev/null || true)
+    if [[ -n "$podman_processes" ]]; then
+        log_info "Podman service processes: $podman_processes"
+    else
+        log_info "No Podman service processes running"
+    fi
+}
+
+# Function to configure .NET Aspire environment for Podman
+configure_aspire_environment() {
+    local socket_path="/run/user/$UID/podman/podman.sock"
+    
+    log_info "Configuring .NET Aspire environment for Podman..."
+    
+    # Set Docker API compatibility
+    export DOCKER_HOST="unix://$socket_path"
+    export DOCKER_BUILDKIT=1
+    
+    # Aspire-specific settings
+    export ASPIRE_CONTAINER_RUNTIME=podman
+    export DOTNET_ASPIRE_CONTAINER_RUNTIME=podman
+    
+    log_success "Environment configured:"
+    log_success "  DOCKER_HOST=$DOCKER_HOST"
+    log_success "  Container Runtime: Podman"
 }
 
 # Function to validate that required directories and files exist
@@ -188,7 +348,28 @@ configure_dotnet_environment() {
     fi
 }
 
-# Function to build the solution in normal environment
+# Function to ensure container environment is ready
+ensure_container_environment() {
+    log_phase "ENVIRONMENT: Container Runtime Setup"
+    
+    # Configure WSL2 runtime directories
+    ensure_wsl_runtime_dir
+    
+    # Start Podman socket if needed
+    if ! start_podman_socket; then
+        log_error "Failed to start Podman socket"
+        log_error "Container operations will not work"
+        return 1
+    fi
+    
+    # Configure environment variables
+    configure_aspire_environment
+    
+    log_success "Container environment ready for .NET Aspire"
+    return 0
+}
+
+# Function to build the solution
 build_solution() {
     log_phase "BUILD: Building Solution"
     
@@ -218,6 +399,7 @@ build_solution() {
     fi
 }
 
+# Function to build the AppHost project specifically
 build_project() {
     log_phase "BUILD: Building AppHost Project"
     
@@ -322,49 +504,6 @@ run_tests() {
     fi
 }
 
-# Function to check if we need namespace and delegate to wrapper if necessary
-ensure_container_environment() {
-    # Only set up namespace for run command (which needs containers)
-    local needs_namespace=false
-    
-    # Check if this is a run command (default or explicit)
-    if [[ $# -eq 0 ]] || [[ "$1" == "run" ]] || [[ "$1" == --* ]]; then
-        needs_namespace=true
-    fi
-    
-    # If we don't need namespace, skip this entirely
-    if [[ "$needs_namespace" == false ]]; then
-        return 0
-    fi
-    
-    # If already configured, we're good
-    if [[ -n "$NAMESPACE_CONFIGURED" ]]; then
-        log_success "Running in configured namespace environment"
-        return 0
-    fi
-    
-    # Check if we're already in a shared mount environment
-    local mount_propagation=$(findmnt -n -o PROPAGATION / 2>/dev/null)
-    if [[ "$mount_propagation" == "shared" ]]; then
-        log_info "Already in container-friendly environment"
-        export NAMESPACE_CONFIGURED=1
-        return 0
-    fi
-    
-    # We need to set up the namespace - delegate to wrapper script
-    local script_dir="$(dirname "$0")"
-    local namespace_wrapper="$script_dir/vtttools-namespace.sh"
-    
-    if [[ ! -f "$namespace_wrapper" ]]; then
-        log_error "Namespace wrapper script not found: $namespace_wrapper"
-        log_error "Please ensure vtttools-namespace.sh is in the same directory as vtttools.sh"
-        exit 1
-    fi
-    
-    log_info "Delegating to namespace wrapper for container environment setup..."
-    exec "$namespace_wrapper" "$@"
-}
-
 # Function to clean up existing Aspire containers and networks
 cleanup_container_state() {
     log_phase "CLEANUP: Resetting Container State"
@@ -422,7 +561,7 @@ cleanup_container_state() {
 run_aspire_application() {
     log_phase "RUN: Starting Aspire Application"
     
-    log_info "Running AppHost in container-friendly environment..."
+    log_info "Running AppHost with Podman backend..."
     log_info "Using pre-built assemblies (--no-build)"
     
     # Change to AppHost directory
@@ -434,12 +573,14 @@ run_aspire_application() {
     
     local abs_apphost_dir=$(realpath .)
     log_info "Working directory: $abs_apphost_dir"
+    log_info "Container backend: Podman via Docker API"
     log_info "Running: dotnet run --no-build --launch-profile https"
     
     # Always use --no-build since we should use pre-built assemblies
     dotnet run --no-build --launch-profile https || {
         log_error "Failed to start Aspire application"
-        log_error "If you see assembly not found errors, try using --rebuild"
+        log_error "If you see assembly not found errors, try using --build (-b)"
+        log_error "If you see container runtime errors, check: ./vtttools-wsl.sh podman status"
         cd "$original_dir"
         return 1
     }
@@ -470,13 +611,13 @@ cmd_test() {
     # Parse test command options and arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --rebuild|-r)
+            --build|-b)
                 rebuild=true
                 shift
                 ;;
             --*|-*)
                 log_error "Unknown test option: $1"
-                log_info "Use 'vtttools.sh help' for usage information"
+                log_info "Use 'vtttools-wsl.sh help' for usage information"
                 exit 1
                 ;;
             *)
@@ -536,22 +677,22 @@ cmd_test() {
 
 cmd_run() {
     local rebuild=false
-    local cleanup=true  # Default is now cleanup (fresh start)
+    local cleanup=false  # Default is now preserve (no cleanup)
     
     # Parse run command options
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --rebuild|-r)
+            --build|-b)
                 rebuild=true
                 shift
                 ;;
-            --preserve|-p)
-                cleanup=false  # Preserve containers when this flag is used
+            --clean|-c)
+                cleanup=true  # Clean containers when this flag is used
                 shift
                 ;;
             *)
                 log_error "Unknown run option: $1"
-                log_info "Use 'vtttools.sh help' for usage information"
+                log_info "Use 'vtttools-wsl.sh help' for usage information"
                 exit 1
                 ;;
         esac
@@ -570,6 +711,11 @@ cmd_run() {
         print -P "%F{blue}Mode: Quick Restart (preserve build and containers)%f"
     fi
     
+    # Ensure container environment is ready
+    if ! ensure_container_environment; then
+        exit 1
+    fi
+    
     # Configure .NET environment
     configure_dotnet_environment
     
@@ -582,7 +728,7 @@ cmd_run() {
         log_info "Using existing build artifacts"
     fi
     
-    # Clean up containers unless preservation is requested
+    # Clean up containers only if cleanup is requested
     if [[ "$cleanup" == true ]]; then
         cleanup_container_state
     else
@@ -597,7 +743,46 @@ cmd_run() {
     log_success "Run command completed successfully"
 }
 
-# Migration command implementations
+# Podman management commands
+cmd_podman() {
+    local subcommand=""
+    
+    if [[ $# -eq 0 ]]; then
+        log_error "Podman subcommand required"
+        log_info "Available subcommands: start, stop, status, restart"
+        log_info "Use 'vtttools-wsl.sh help' for usage information"
+        exit 1
+    fi
+    
+    subcommand=$1
+    shift
+    
+    case $subcommand in
+        start)
+            ensure_wsl_runtime_dir
+            start_podman_socket
+            ;;
+        stop)
+            stop_podman_socket
+            ;;
+        status)
+            check_podman_status
+            ;;
+        restart)
+            stop_podman_socket
+            sleep 1
+            ensure_wsl_runtime_dir
+            start_podman_socket
+            ;;
+        *)
+            log_error "Unknown podman subcommand: $subcommand"
+            log_info "Available subcommands: start, stop, status, restart"
+            exit 1
+            ;;
+    esac
+}
+
+# Migration command implementations (same as original, but with validation)
 cmd_migration() {
     local subcommand=""
     local migration_name=""
@@ -606,7 +791,7 @@ cmd_migration() {
     if [[ $# -eq 0 ]]; then
         log_error "Migration subcommand required"
         log_info "Available subcommands: add, remove, list, apply, revert"
-        log_info "Use 'vtttools.sh help' for usage information"
+        log_info "Use 'vtttools-wsl.sh help' for usage information"
         exit 1
     fi
     
@@ -617,7 +802,7 @@ cmd_migration() {
         add)
             if [[ $# -eq 0 ]]; then
                 log_error "Migration name required for 'add' command"
-                log_info "Usage: ./vtttools.sh migration add MigrationName"
+                log_info "Usage: ./vtttools-wsl.sh migration add MigrationName"
                 exit 1
             fi
             migration_name=$1
@@ -671,21 +856,18 @@ validate_migration_service() {
     return 0
 }
 
-# Function to add a new migration
+# Migration functions (same as original)
 migration_add() {
     local migration_name=$1
     
     log_phase "MIGRATION: Adding Migration '$migration_name'"
     
-    # Configure .NET environment
     configure_dotnet_environment
     
-    # Validate migration service structure
     if ! validate_migration_service; then
         exit 1
     fi
     
-    # Change to migration service directory for migration operations
     local original_dir=$(pwd)
     cd "$MIGRATION_SERVICE_DIR" || {
         log_error "Failed to change to migration service directory: $MIGRATION_SERVICE_DIR"
@@ -695,7 +877,6 @@ migration_add() {
     log_info "Adding migration: $migration_name"
     log_info "Working directory: $(realpath .)"
     
-    # Execute migration add command from migration service directory
     local migration_command="dotnet ef migrations add $migration_name"
     log_info "Running: $migration_command"
     
@@ -710,19 +891,15 @@ migration_add() {
     fi
 }
 
-# Function to remove the last migration
 migration_remove() {
     log_phase "MIGRATION: Removing Last Migration"
     
-    # Configure .NET environment
     configure_dotnet_environment
     
-    # Validate migration service structure
     if ! validate_migration_service; then
         exit 1
     fi
     
-    # Change to migration service directory for migration operations
     local original_dir=$(pwd)
     cd "$MIGRATION_SERVICE_DIR" || {
         log_error "Failed to change to migration service directory: $MIGRATION_SERVICE_DIR"
@@ -732,7 +909,6 @@ migration_remove() {
     log_info "Removing last migration"
     log_info "Working directory: $(realpath .)"
     
-    # Execute migration remove command from migration service directory (force flag to avoid database check)
     local migration_command="dotnet ef migrations remove --force"
     log_info "Running: $migration_command"
     
@@ -747,19 +923,15 @@ migration_remove() {
     fi
 }
 
-# Function to list all migrations
 migration_list() {
     log_phase "MIGRATION: Listing Migrations"
     
-    # Configure .NET environment
     configure_dotnet_environment
     
-    # Validate migration service structure
     if ! validate_migration_service; then
         exit 1
     fi
     
-    # Change to migration service directory for migration operations
     local original_dir=$(pwd)
     cd "$MIGRATION_SERVICE_DIR" || {
         log_error "Failed to change to migration service directory: $MIGRATION_SERVICE_DIR"
@@ -769,8 +941,7 @@ migration_list() {
     log_info "Listing all migrations"
     log_info "Working directory: $(realpath .)"
     
-    # Execute migration list command from migration service directory
-    local migration_command="dotnet ef migrations list --force"
+    local migration_command="dotnet ef migrations list"
     log_info "Running: $migration_command"
     
     if eval "$migration_command"; then
@@ -784,7 +955,6 @@ migration_list() {
     fi
 }
 
-# Function to apply migrations to database
 migration_apply() {
     local migration_name=$1
     
@@ -794,15 +964,12 @@ migration_apply() {
         log_phase "MIGRATION: Applying All Pending Migrations"
     fi
     
-    # Configure .NET environment
     configure_dotnet_environment
     
-    # Validate migration service structure
     if ! validate_migration_service; then
         exit 1
     fi
     
-    # Change to migration service directory for migration operations
     local original_dir=$(pwd)
     cd "$MIGRATION_SERVICE_DIR" || {
         log_error "Failed to change to migration service directory: $MIGRATION_SERVICE_DIR"
@@ -816,7 +983,6 @@ migration_apply() {
     fi
     log_info "Working directory: $(realpath .)"
     
-    # Execute migration apply command from migration service directory
     local migration_command="dotnet ef database update"
     if [[ -n "$migration_name" ]]; then
         migration_command="$migration_command $migration_name"
@@ -839,19 +1005,15 @@ migration_apply() {
     fi
 }
 
-# Function to revert all migrations
 migration_revert() {
     log_phase "MIGRATION: Reverting All Migrations"
     
-    # Configure .NET environment
     configure_dotnet_environment
     
-    # Validate migration service structure
     if ! validate_migration_service; then
         exit 1
     fi
     
-    # Change to migration service directory for migration operations
     local original_dir=$(pwd)
     cd "$MIGRATION_SERVICE_DIR" || {
         log_error "Failed to change to migration service directory: $MIGRATION_SERVICE_DIR"
@@ -861,7 +1023,6 @@ migration_revert() {
     log_info "Reverting all migrations from database"
     log_info "Working directory: $(realpath .)"
     
-    # Execute migration revert command from migration service directory
     local migration_command="dotnet ef database update 0"
     log_info "Running: $migration_command"
     
@@ -878,23 +1039,17 @@ migration_revert() {
 
 # Main script execution logic
 main() {
-    # Check and setup container environment FIRST, before any other processing
-    # Only for run commands (which actually need containers)
-    if [[ $# -eq 0 ]] || [[ "$1" == "run" ]] || [[ "$1" == --* ]]; then
-        ensure_container_environment "$@"
-    fi
-    
-    # Validate project structure
+    # Validate project structure first
     if ! validate_project_structure; then
         exit 1
     fi
     
-    # Parse command normally
+    # Parse command
     local command="run"  # Default command
     
     if [[ $# -gt 0 ]]; then
         case $1 in
-            build|test|run|migration|help)
+            build|test|run|migration|podman|help)
                 command=$1
                 shift
                 ;;
@@ -904,7 +1059,7 @@ main() {
                 ;;
             *)
                 log_error "Unknown command: $1"
-                log_info "Use 'vtttools.sh help' for usage information"
+                log_info "Use 'vtttools-wsl.sh help' for usage information"
                 exit 1
                 ;;
         esac
@@ -912,7 +1067,7 @@ main() {
     
     # Display banner
     print -P "\n%F{cyan}================================================%f"
-    print -P "%F{cyan}    VttTools Development CLI%f"
+    print -P "%F{cyan}    VttTools Development CLI (WSL2 + Podman)%f"
     print -P "%F{cyan}================================================%f"
     
     # Execute the appropriate command
@@ -928,6 +1083,9 @@ main() {
             ;;
         migration)
             cmd_migration "$@"
+            ;;
+        podman)
+            cmd_podman "$@"
             ;;
         help)
             show_usage
