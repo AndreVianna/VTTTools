@@ -403,6 +403,9 @@ FodyWeavers.xsd
 # merged source
 *.src
 
-#claude
-**/*.local.json
-**/*.local.md
+#Local files and Logs
+*.local.json
+*.local.md
+/**/*.local.json
+/**/*.local.md
+/**/logs

@@ -1,51 +1,111 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "os": "windows",
   "permissions": {
     "allow": [
-      "Agent",
       "Bash",
+      "Read",
       "Edit",
+      "MultiEdit",
+      "Write",
+      "Agent",
       "Glob",
       "Grep",
       "LS",
-      "MultiEdit",
-      "NotebookEdit",
-      "NotebookRead",
-      "Read",
       "TodoRead",
       "TodoWrite",
-      "WebFetch",
       "WebSearch",
-      "Write",
-      "Bash(cat:*)",
-      "Bash(dotnet restore:*)",
-      "Bash(dotnet build:*)",
-      "Bash(dotnet run:*)",
-      "Bash(dotnet test:*)",
-      "Bash(dotnet-coverage:*)",
-      "Bash(find:*)",
-      "Bash(git commit:*)",
-      "Bash(grep:*)",
-      "Bash(ls:*)",
-      "Bash(mkdir:*)",
-      "Bash(reportgenerator:*)",
-      "Bash(rm:*)",
-      "Bash(sed:*)",
-      "Bash(touch:*)",
-      "Bash(xmllint:*)",
+      "WebFetch",
       "mcp__memory__read_graph",
       "mcp__memory__search_nodes",
+      "mcp__memory__open_nodes",
       "mcp__memory__create_entities",
       "mcp__memory__delete_entities",
       "mcp__memory__create_relations",
       "mcp__memory__delete_relations",
       "mcp__memory__add_observations",
       "mcp__memory__delete_observations",
-      "mcp__thinking__sequentialthinking",
-      "mcp__microsoft_docs__microsoft_docs_search",
-      "mcp__playwright__browser_navigate",
-      "mcp__playwright__browser_take_screenshot",
-      "mcp__playwright__browser_close"
+      "mcp__thinking__sequentialthinking"
     ],
     "deny": []
+  },
+  "outputStyle": "default",
+  "statusLine": {
+    "type": "command",
+    "command": "pwsh -ExecutionPolicy Bypass -File \"C:\\Projects\\Personal\\VTTTools\\.claude\\scripts\\utilities\\set_status_line.ps1\""
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/session_start.ps1\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/user_prompt_submit.ps1\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/pre_tool_use.ps1\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/post_tool_use.ps1\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/stop.ps1\""
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/subagent_stop.ps1\""
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/notification.ps1\""
+          }
+        ]
+      }
+    ]
   }
 }
