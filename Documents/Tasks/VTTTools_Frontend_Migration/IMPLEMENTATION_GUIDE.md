@@ -2943,6 +2943,188 @@ const useFocusManagement = () => {
 };
 ```
 
+## 18. Phase 1 Testing Lessons & Best Practices
+
+### Overview of Phase 1 Experiences
+
+Phase 1 testing revealed critical insights for efficient VTT Tools development, resulting in comprehensive documentation and refined processes. The following sections summarize key learnings and reference detailed guides.
+
+### Infrastructure Lessons Applied
+
+**Docker Issues Resolved:**
+- Docker containers failing due to Windows/Linux manifest mismatches
+- Bridge plugin issues on Windows (Docker using nat driver vs bridge)
+- **Solution:** Native Windows services (LocalDB, Memurai, Azurite)
+
+**Service Discovery Issues Resolved:**
+- Aspire service discovery names (`https+http://auth-api`) not working with Vite proxy
+- **Solution:** Direct localhost URLs in Vite proxy configuration
+
+**Configuration Management Improved:**
+- Hardcoded connection strings causing security and maintainability issues
+- **Solution:** User secrets configuration with AddConnectionString() pattern
+
+**📖 Reference:** [Infrastructure Setup Guide](../../Guides/INFRASTRUCTURE_SETUP.md) provides complete setup instructions for native Windows services.
+
+**📖 Reference:** [Aspire Troubleshooting Guide](../../Guides/ASPIRE_TROUBLESHOOTING.md) covers all common Docker issues and their native alternatives.
+
+### Authentication Integration Success Patterns
+
+**Incremental Development Approach:**
+- Started with basic endpoints (login, register, logout, me)
+- Avoided overengineering with unnecessary features upfront
+- Built what React app needs, added features incrementally
+
+**API Contract Alignment:**
+- React form contracts initially misaligned with Auth service API contracts
+- Backend API worked perfectly when called directly
+- **Solution:** Ensure frontend form data structure matches backend expectations exactly
+
+**Cookie-Based Authentication:**
+- Successfully integrated with existing ASP.NET Core Identity
+- No token management required
+- Authentication cookies automatically included in API requests
+
+### React-Aspire Integration Patterns
+
+**Service Communication Lessons:**
+- Service discovery names don't work directly with Vite proxy
+- **Critical:** Use actual localhost URLs for development proxy configuration
+- Hot reload working properly with corrected npm script configuration
+
+**Error Handling Success:**
+- React Error Boundaries working correctly
+- User-friendly error messages displaying properly
+- Optional chaining (`?.includes()`) preventing undefined property errors
+
+**📖 Reference:** [React-Aspire Integration Guide](../../Guides/REACT_ASPIRE_INTEGRATION.md) provides complete patterns for service communication, authentication, and error handling.
+
+### Testing Process Refinements
+
+**Test-As-You-Go Approach:**
+- Incremental testing after each small change proved highly effective
+- Immediate validation prevented compound issues
+- Service health verification before proceeding crucial
+
+**Tool Selection Matrix:**
+- **Playwright MCP:** End-to-end user workflows, UI interaction testing, visual validation
+- **HTTP Clients:** Backend API functionality, service integration, authentication validation
+- **Unit Tests:** Individual component logic, business rule validation, edge cases
+
+**Service Health Validation:**
+- Aspire dashboard essential for service health monitoring
+- Direct endpoint testing validates backend functionality
+- Service logs provide crucial debugging information
+
+**📖 Reference:** [Testing Best Practices Guide](../../Guides/TESTING_BEST_PRACTICES.md) provides step-by-step testing procedures, tool selection guidance, and comprehensive debugging techniques.
+
+### Development Workflow Optimizations
+
+**Phase Setup Testing Procedure:**
+```bash
+# 1. Clean Environment Start
+./vtttools.sh --cleanup
+# or
+dotnet run --project Source/AppHost
+
+# 2. Verify Infrastructure Health
+# Check Aspire Dashboard: https://localhost:17086
+# Ensure all services show "Healthy" status
+
+# 3. Validate Core Services
+curl https://localhost:7001/health  # Assets
+curl https://localhost:7002/health  # Game
+curl https://localhost:7003/health  # Library
+curl https://localhost:7004/health  # Media
+curl https://localhost:7005/health  # WebApp
+```
+
+**Error Diagnosis Procedures:**
+1. **Service Health Issues:** Check Aspire Dashboard → Review service logs → Validate dependencies
+2. **Authentication Issues:** Check WebApp service → Validate cookies → Test direct authentication
+3. **Service Discovery Issues:** Verify Vite proxy configuration → Check service names → Test direct service access
+4. **Database Issues:** Check LocalDB status → Verify migrations → Test connectivity
+
+### Updated Vite Configuration Based on Phase 1
+
+```typescript
+// vite.config.ts - Refined configuration based on testing experiences
+export default defineConfig({
+  server: {
+    proxy: {
+      // ✅ CORRECT - Direct localhost URLs based on Phase 1 learnings
+      '/api/auth': {
+        target: 'https://localhost:7005',      // WebApp Identity service
+        changeOrigin: true,
+        secure: false, // Accept self-signed certificates in development
+      },
+      '/api/assets': {
+        target: 'https://localhost:7001',    // Assets microservice
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/adventures': {
+        target: 'https://localhost:7003', // Library microservice
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/scenes': {
+        target: 'https://localhost:7003',    // Scenes (part of Library)
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/sessions': {
+        target: 'https://localhost:7002',  // Game microservice
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/media': {
+        target: 'https://localhost:7004',     // Media microservice
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
+});
+```
+
+### Performance Insights from Phase 1
+
+**Canvas Performance Validated:**
+- React + Konva.js handles expected asset loads effectively
+- Frame rate monitoring essential for performance validation
+- Error boundaries prevent canvas crashes from affecting entire application
+
+**API Response Times Verified:**
+- Service communication through Vite proxy performs well
+- Native services outperform Docker containers on Windows
+- Connection pooling and caching working as expected
+
+### Future Phase Considerations
+
+**Phase 2+ Preparation:**
+- Infrastructure validation process established
+- Testing procedures documented and proven
+- Error handling patterns ready for complex features
+- Performance baseline established
+
+**Documentation References:**
+- **[Testing Best Practices](../../Guides/TESTING_BEST_PRACTICES.md):** Complete testing procedures and tool selection
+- **[Aspire Troubleshooting](../../Guides/ASPIRE_TROUBLESHOOTING.md):** Docker issues and native alternatives
+- **[React-Aspire Integration](../../Guides/REACT_ASPIRE_INTEGRATION.md):** Service communication and authentication patterns
+- **[Infrastructure Setup](../../Guides/INFRASTRUCTURE_SETUP.md):** Native Windows services configuration
+
+### Critical Success Factors
+
+1. **Test Incrementally:** After every small change, not in batches
+2. **Verify Infrastructure First:** Service health before feature testing
+3. **Use Appropriate Tools:** Playwright for UI, HTTP clients for APIs
+4. **Native Services on Windows:** Better than Docker for development
+5. **Direct Localhost URLs:** In Vite proxy, not Aspire service names
+6. **Comprehensive Error Handling:** React Error Boundaries + service-specific handling
+
 ---
 
 This implementation guide serves as the complete reference for all VTTTools React development. It consolidates architectural decisions, coding standards, performance requirements, and best practices into a single authoritative document that ensures consistency and quality across the entire frontend migration project.
+
+**Phase 1 validation has proven these patterns work effectively and are ready for Phase 2+ development.**

@@ -30,10 +30,13 @@ This file provides guidance to Claude Code when working with this solution.
 - **PREFERRED_PATTERNS**:
   - Clean Architecture, Domain-Driven Design, CQRS patterns
 - **INFORMATION_LOOKUP**:
-  1. **Dynamic Memory** (MCP) → 2. **Project Docs** (./Documents/Specifications/) → 3. **Code Base** → 4. **External** (Web Search)
+  1. **Dynamic Memory** (MCP) → 2. **Project Guides** (./Documents/Guides/) → 3. **Project Specs** (./Documents/Specifications/) → 4. **Code Base** → 5. **External** (Web Search)
+  - Use Documents/Guides/TESTING_BEST_PRACTICES.md for comprehensive testing procedures (Unit, Integration, E2E)
+  - Use Documents/Guides/ASPIRE_TROUBLESHOOTING.md for infrastructure and service health issues
+  - Use Documents/Guides/REACT_ASPIRE_INTEGRATION.md for frontend-backend integration patterns
+  - Use Documents/Guides/INFRASTRUCTURE_SETUP.md for native Windows services and Docker CLI setup
   - Use PROJECT_DEFINITION.md for game concepts, entities, UI specs
   - Use ROADMAP.md for development phases, task status
-  - Use INSTRUCTIONS.md for coding standards, testing, CLI commands
 
 ## [PRIORITY:HIGH] Module Architecture
 
@@ -44,13 +47,20 @@ This file provides guidance to Claude Code when working with this solution.
 - **Data**: `Source/Data` - Data access layer with Entity Framework
 - **Common**: `Source/Common` - Shared utilities and extensions
 - **WebApp**: `Source/WebApp` - ASP.NET Core API backend
-- **WebApp.WebAssembly**: `Source/WebApp.WebAssembly` - Blazor WASM frontend
+- **WebClientApp**: `Source/WebClientApp` - React SPA frontend (current)
+- **WebApp.WebAssembly**: `Source/WebApp.WebAssembly` - Blazor WASM frontend (legacy)
 
-### Containerized Services
-- **Assets Service**: `Source/Assets` (Docker)
-- **Game Service**: `Source/Game` (Docker)
-- **Library Service**: `Source/Library` (Docker)
-- **Media Service**: `Source/Media` (Docker)
+### Microservices Architecture
+- **Auth Service**: `Source/Auth` - Authentication and authorization microservice
+- **Assets Service**: `Source/Assets` - Asset management and media processing
+- **Game Service**: `Source/Game` - Game session and real-time features
+- **Library Service**: `Source/Library` - Adventure and content management
+- **Media Service**: `Source/Media` - File upload and media storage
+
+### Infrastructure Services
+- **Data Migration Service**: `Source/Data.MigrationService` - Database schema management
+- **SQL Server**: Database backend (native Windows service or Docker)
+- **Redis**: Caching and session storage (native Windows service or Docker)
 
 ## [PRIORITY:MEDIUM] Cross-Module Operations
 
@@ -61,10 +71,12 @@ This file provides guidance to Claude Code when working with this solution.
 - **Code Format**: `dotnet format --verify-no-changes`
 
 ### Module Dependencies
-- AppHost → All Services
-- WebApp → Core, Domain, Data, Common
-- Services → Domain, Common
-- UnitTests → Corresponding Source Projects
+- **AppHost** → All Services (Auth, Assets, Game, Library, Media, WebApp, WebClientApp)
+- **WebApp** → Core, Domain, Data, Common (ASP.NET Core API backend)
+- **WebClientApp** → Communicates with all microservices via Vite proxy
+- **Auth Service** → Domain, Common, Data (Identity and authentication)
+- **Microservices** → Domain, Common (shared business logic and utilities)
+- **Unit Test Projects** → Corresponding source projects with mocking frameworks
 
 ## [PRIORITY:MEDIUM] Documentation & Navigation
 
@@ -73,8 +85,12 @@ This file provides guidance to Claude Code when working with this solution.
 - **Specifications**: ./Documents/Specifications/ - Core project documentation
   - PROJECT_DEFINITION.md - Game concepts, entities, UI specifications
   - ROADMAP.md - Development phases, completed/pending tasks
-  - INSTRUCTIONS.md - Coding standards, testing, CLI workflow
   - PROJECT_STRUCTURE.md - Complete directory structure
+- **Guides**: ./Documents/Guides/ - Testing and infrastructure guides
+  - TESTING_BEST_PRACTICES.md - Comprehensive testing procedures (Unit, Integration, E2E)
+  - ASPIRE_TROUBLESHOOTING.md - Infrastructure troubleshooting and native Windows alternatives
+  - REACT_ASPIRE_INTEGRATION.md - Frontend-backend service communication and authentication patterns
+  - INFRASTRUCTURE_SETUP.md - Native Windows services setup and Docker CLI configuration
 - **Templates**: ./Documents/Templates/ - Reusable specification templates
 
 ### Search Commands

@@ -431,47 +431,162 @@ const [ExampleComponent] = () => {
 ## 7. Testing Strategy
 
 <!--
-GUIDANCE: Comprehensive testing approach covering all aspects of the implementation
+GUIDANCE: Comprehensive testing approach based on Phase 1 VTTTools testing lessons.
+Reference: Documents/Guides/TESTING_BEST_PRACTICES.md for detailed implementation patterns.
 -->
+
+**CRITICAL**: Always validate infrastructure health before feature testing. Use Aspire Dashboard to ensure all services are "Healthy" before proceeding with any testing scenarios.
 
 ### 7.1 Unit Testing Requirements
 
-**Testing Framework**: [Specify testing framework and version]
+**Testing Frameworks:**
+- **C# Services**: xUnit v3 + NSubstitute + FluentAssertions
+- **React Components**: React Testing Library + Jest + @testing-library/user-event
 
 **Coverage Requirements**:
+- [ ] All business logic with comprehensive mocking of dependencies
 - [ ] All utility functions with edge cases and error conditions
-- [ ] All business logic with various input scenarios
-- [ ] All API endpoints with valid and invalid requests
-- [ ] All data validation with boundary conditions
+- [ ] All API endpoints with valid and invalid request scenarios
+- [ ] All React components with user interaction simulation
+- [ ] All data validation with boundary conditions and error states
 
-**Quality Standards**:
-- Tests must be fast (< 100ms per test), isolated, deterministic, and idempotent
-- All tests must use appropriate mocks for external dependencies
-- Code coverage minimum: [percentage]% for critical business logic
+**Quality Standards (Phase 1 Lessons)**:
+- **Fast Execution**: < 100ms per test, isolated, deterministic, and idempotent
+- **Complete Mocking**: All external dependencies mocked (database, HTTP calls, auth services)
+- **Behavioral Testing**: Focus on component behavior, not implementation details
+- **Error Scenario Coverage**: Test all failure paths and exception handling
+- **Code Coverage**: Minimum 80% for critical business logic
+
+**Implementation Patterns (From Phase 1)**:
+```csharp
+// C# Service Unit Testing Pattern (Auth service example)
+public class AuthServiceTests
+{
+    private readonly IUserManager _mockUserManager;
+    private readonly ISignInManager _mockSignInManager;
+    private readonly ILogger<AuthService> _mockLogger;
+
+    public AuthServiceTests()
+    {
+        _mockUserManager = Substitute.For<IUserManager>();
+        _mockSignInManager = Substitute.For<ISignInManager>();
+        _mockLogger = Substitute.For<ILogger<AuthService>>();
+    }
+
+    [Fact]
+    public async Task LoginAsync_ValidCredentials_ReturnsSuccess()
+    {
+        // Arrange, Act, Assert pattern with NSubstitute verification
+    }
+}
+```
+
+```typescript
+// React Component Unit Testing Pattern
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+test('Component handles user interaction correctly', async () => {
+    const mockHandler = jest.fn();
+    render(<Component onAction={mockHandler} />);
+
+    await userEvent.click(screen.getByRole('button'));
+    expect(mockHandler).toHaveBeenCalledWith(expectedData);
+});
+```
 
 ### 7.2 Integration Testing Requirements
 
-**Integration Scope**:
-- [ ] API integration with backend services (mocked at boundaries)
-- [ ] Service-to-service communication patterns
-- [ ] Authentication and authorization workflows
-- [ ] Data flow validation across component boundaries
+**Testing Frameworks:**
+- **Backend Integration**: xUnit v3 + Microsoft.AspNetCore.Mvc.Testing + TestContainers (when needed)
+- **Frontend Integration**: React Testing Library + MSW (Mock Service Worker)
 
-**Quality Standards**:
-- Integration tests stop at external boundaries (mock external services)
-- Tests must be repeatable and not depend on external data
-- Test data must be isolated and cleaned up after each test
+**Integration Scope (Phase 1 Patterns)**:
+- [ ] **Service-to-Database**: Real ApplicationDbContext with in-memory or TestContainer SQL Server
+- [ ] **Service Discovery**: Aspire service communication through actual service names
+- [ ] **Authentication Flows**: Full Identity pipeline with real cookie/session management
+- [ ] **API Contract Validation**: HTTP requests through entire service stack
+- [ ] **React-Backend Integration**: API calls with realistic data contracts
+
+**Quality Standards (Phase 1 Lessons)**:
+- **Real Dependencies Within Boundaries**: Use real implementations within test scope, mock at system edges
+- **Test Database Isolation**: Each test gets clean database state with proper cleanup
+- **Service Health Validation**: Always verify Aspire service health before integration tests
+- **Configuration Testing**: Validate service discovery and configuration injection
+
+**Implementation Patterns (From Phase 1)**:
+```csharp
+// Aspire Service Integration Testing Pattern
+[Collection("Integration")]
+public class AuthIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+{
+    private readonly HttpClient _client;
+    private readonly ApplicationDbContext _dbContext;
+
+    public AuthIntegrationTests(WebApplicationFactory<Program> factory)
+    {
+        // Setup with in-memory database and clean test data
+        _client = factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.AddDbContext<ApplicationDbContext>(options =>
+                    options.UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}"));
+            });
+        }).CreateClient();
+    }
+}
+```
 
 ### 7.3 End-to-End Testing Requirements
 
-<!--
-GUIDANCE: Include only if E2E testing is required for the task
--->
+**Testing Framework**: Playwright MCP (integrated with Claude Code)
 
-- [ ] Critical user workflows from start to finish
-- [ ] Cross-browser compatibility testing (if applicable)
-- [ ] Performance testing under realistic load conditions
-- [ ] Security testing for authentication and authorization flows
+**E2E Scope (Based on Phase 1 Experience)**:
+- [ ] Complete user workflows from authentication to feature completion
+- [ ] Canvas/Scene Builder visual and interaction testing
+- [ ] Cross-service communication validation (React → Auth → Database)
+- [ ] Error handling and recovery workflows
+- [ ] Performance validation under realistic conditions
+
+**Quality Standards (Phase 1 Lessons)**:
+- **Infrastructure First**: Always validate Aspire Dashboard shows all services "Healthy"
+- **Real User Simulation**: Use Playwright browser automation for genuine user interactions
+- **Visual Validation**: Test canvas rendering, UI updates, and visual feedback
+- **Network Resilience**: Test behavior during service unavailability
+
+### 7.4 Service Health Validation (Critical Phase 1 Lesson)
+
+**MANDATORY**: Before any feature testing, validate infrastructure health:
+
+```bash
+# 1. Verify all services healthy in Aspire Dashboard
+# Navigate to: https://localhost:17086
+
+# 2. Validate service health endpoints
+curl https://localhost:7001/health  # Auth
+curl https://localhost:7002/health  # Assets
+curl https://localhost:7003/health  # Game
+curl https://localhost:7004/health  # Library
+curl https://localhost:7005/health  # Media
+
+# 3. Test service discovery through React Vite proxy
+curl http://localhost:5173/api/auth/me
+curl http://localhost:5173/api/adventures
+```
+
+### 7.5 Performance Testing Requirements (Phase 1 Insights)
+
+**Performance Targets (Learned from Auth Implementation)**:
+- **API Response Times**: < 2 seconds for CRUD operations, < 500ms for simple queries
+- **Authentication**: Login/logout < 1 second
+- **Canvas Performance**: Maintain > 50fps with multiple assets
+- **Service Startup**: All services healthy within 30 seconds
+
+**Monitoring Approach**:
+- Use Aspire Dashboard resource monitoring
+- Browser DevTools Network tab for frontend performance
+- Service logs for slow query identification
 
 ## 8. Constraints
 
