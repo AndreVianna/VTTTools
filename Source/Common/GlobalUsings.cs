@@ -27,6 +27,7 @@ global using SixLabors.ImageSharp.Formats.Webp;
 
 global using VttTools.EndpointMappers;
 global using VttTools.HealthChecks;
+global using VttTools.Media.Contracts;
 global using VttTools.Media.Model;
 global using VttTools.Media.ServiceContracts;
 global using VttTools.Middlewares;

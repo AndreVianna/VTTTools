@@ -7,7 +7,7 @@ public sealed class Worker(
     ILogger<Worker> logger,
     IServiceProvider serviceProvider,
     IHostApplicationLifetime hostLifetime) : BackgroundService {
-    
+
     /// <summary>
     /// Executes the migration worker task.
     /// </summary>
@@ -15,26 +15,26 @@ public sealed class Worker(
     /// <returns>A task that represents the asynchronous operation.</returns>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
         using var activity = Activity.Current?.Source.StartActivity(nameof(ExecuteAsync));
-        
+
         try {
             logger.LogInformation("Starting database migration service");
-            
+
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            
+
             // Log migration discovery information
             await LogMigrationDiscoveryAsync(dbContext, stoppingToken);
-            
+
             // Test migration assembly discovery (without database connection)
             LogMigrationAssemblyInfo(dbContext);
-            
+
             // Check and apply migrations
             logger.LogInformation("Applying database migrations");
             await dbContext.Database.MigrateAsync(stoppingToken);
-            
+
             // Log completion status
             await LogMigrationStatusAsync(dbContext, stoppingToken);
-            
+
             logger.LogInformation("Database migrations completed successfully");
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("migrations")) {
@@ -68,19 +68,20 @@ public sealed class Worker(
             var allMigrations = dbContext.Database.GetMigrations();
             var appliedMigrations = await dbContext.Database.GetAppliedMigrationsAsync(stoppingToken);
             var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync(stoppingToken);
-            
+
             logger.LogInformation("Migration discovery completed:");
             logger.LogInformation("  Total migrations found: {TotalCount}", allMigrations.Count());
             logger.LogInformation("  Applied migrations: {AppliedCount}", appliedMigrations.Count());
             logger.LogInformation("  Pending migrations: {PendingCount}", pendingMigrations.Count());
-            
+
             if (allMigrations.Any()) {
                 logger.LogDebug("All migrations: {AllMigrations}", string.Join(", ", allMigrations));
             }
-            
+
             if (pendingMigrations.Any()) {
                 logger.LogInformation("Pending migrations to apply: {PendingMigrations}", string.Join(", ", pendingMigrations));
-            } else {
+            }
+            else {
                 logger.LogInformation("Database is up to date - no pending migrations");
             }
         }
@@ -99,7 +100,7 @@ public sealed class Worker(
         try {
             var appliedMigrations = await dbContext.Database.GetAppliedMigrationsAsync(stoppingToken);
             logger.LogInformation("Migration completed - Total applied migrations: {AppliedCount}", appliedMigrations.Count());
-            
+
             if (appliedMigrations.Any()) {
                 var lastMigration = appliedMigrations.Last();
                 logger.LogInformation("Latest applied migration: {LastMigration}", lastMigration);
@@ -118,16 +119,17 @@ public sealed class Worker(
         try {
             // Get migrations from assembly without database connection
             var allMigrations = dbContext.Database.GetMigrations();
-            
+
             logger.LogInformation("Migration assembly discovery test:");
             logger.LogInformation("  Configured migrations assembly: VttTools.Data.MigrationService");
             logger.LogInformation("  Total migrations found in assembly: {TotalCount}", allMigrations.Count());
-            
+
             if (allMigrations.Any()) {
                 logger.LogInformation("  First migration: {FirstMigration}", allMigrations.First());
                 logger.LogInformation("  Last migration: {LastMigration}", allMigrations.Last());
                 logger.LogDebug("  All migrations: {AllMigrations}", string.Join(", ", allMigrations));
-            } else {
+            }
+            else {
                 logger.LogWarning("  No migrations found in assembly - verify migrations assembly configuration");
             }
         }

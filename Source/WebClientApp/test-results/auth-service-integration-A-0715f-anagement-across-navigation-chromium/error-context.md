@@ -1,0 +1,93 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e7]:
+      - heading "VTT Tools" [level=1] [ref=e8]
+      - heading "Sign In" [level=2] [ref=e9]
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - generic:
+            - text: Email Address
+            - generic: "*"
+          - generic [ref=e12]:
+            - textbox "Email Address" [disabled] [ref=e13]
+            - group:
+              - generic: Email Address *
+        - generic [ref=e14]:
+          - generic:
+            - text: Password
+            - generic: "*"
+          - generic [ref=e15]:
+            - textbox "Password" [disabled] [ref=e16]
+            - generic [ref=e17]:
+              - button "toggle password visibility" [disabled]:
+                - img
+            - group:
+              - generic: Password *
+        - generic [ref=e18]:
+          - generic:
+            - checkbox "Remember me for 30 days" [disabled]
+            - img
+          - paragraph [ref=e19]: Remember me for 30 days
+        - button [disabled]:
+          - progressbar:
+            - img
+      - button "Forgot your password?" [disabled] [ref=e21] [cursor=pointer]
+      - separator [ref=e22]:
+        - paragraph [ref=e24]: Or continue with
+      - generic [ref=e25]:
+        - button "Google" [disabled]:
+          - generic:
+            - img
+          - text: Google
+        - button "Microsoft" [disabled]:
+          - generic:
+            - img
+          - text: Microsoft
+        - button "GitHub" [disabled]:
+          - generic:
+            - img
+          - text: GitHub
+      - paragraph [ref=e27]:
+        - text: Don't have an account?
+        - button "Sign up here" [disabled] [ref=e28] [cursor=pointer]
+    - paragraph [ref=e30]: VTT Tools - Professional Virtual Tabletop Tools for Content Creators
+  - alert [ref=e31]:
+    - img [ref=e33]
+    - generic [ref=e35]:
+      - generic [ref=e36]: Connection Issue
+      - text: Cannot connect to VTT Tools servers. Please check your connection.
+    - button "Retry" [ref=e39] [cursor=pointer]:
+      - img [ref=e41] [cursor=pointer]
+      - text: Retry
+  - button "Online" [ref=e43] [cursor=pointer]:
+    - img [ref=e44] [cursor=pointer]
+    - generic [ref=e46] [cursor=pointer]: Online
+  - generic [ref=e48]:
+    - alert [ref=e49]:
+      - img [ref=e51]
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - generic [ref=e57]: Network
+          - generic [ref=e58]: 9:08:58 AM
+        - paragraph [ref=e59]: Cannot connect to VTT Tools servers. Please check your connection.
+      - generic [ref=e61]:
+        - button [ref=e62] [cursor=pointer]:
+          - img [ref=e63] [cursor=pointer]
+        - button [ref=e65] [cursor=pointer]:
+          - img [ref=e66] [cursor=pointer]
+    - alert [ref=e68]:
+      - img [ref=e70]
+      - generic [ref=e73]:
+        - generic [ref=e74]:
+          - generic [ref=e76]: Network
+          - generic [ref=e77]: 9:08:58 AM
+        - paragraph [ref=e78]: Cannot connect to VTT Tools servers. Please check your connection.
+      - generic [ref=e80]:
+        - button [ref=e81] [cursor=pointer]:
+          - img [ref=e82] [cursor=pointer]
+        - button [ref=e84] [cursor=pointer]:
+          - img [ref=e85] [cursor=pointer]
+```

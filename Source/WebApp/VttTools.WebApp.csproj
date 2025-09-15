@@ -9,6 +9,7 @@
     <UserSecretsId>e2d0289b-015b-4b29-a6d8-0459f89bfef9</UserSecretsId>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <StaticWebAssetProjectMode>Root</StaticWebAssetProjectMode>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <ItemGroup>

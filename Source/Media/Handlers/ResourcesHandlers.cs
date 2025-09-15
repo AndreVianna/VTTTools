@@ -1,10 +1,21 @@
+using VttTools.Infrastructure;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.Media.Handlers;
 
 internal static class ResourcesHandlers {
-    internal static async Task<IResult> UploadFileHandler([FromForm] UploadRequest request,
+    internal static async Task<IResult> UploadFileHandler([FromForm] Guid id,
+                                                          [FromForm] string type,
+                                                          [FromForm] string resource,
+                                                          [FromForm] IFormFile file,
                                                           [FromServices] IResourceService storage) {
+        var request = new UploadRequest
+        {
+            Id = id,
+            Type = type,
+            Resource = resource,
+            File = file.ToFileData()
+        };
         try {
             await using var stream = request.File.OpenReadStream();
             var path = $"{request.Type}/{request.Resource}/{request.Id:N}";

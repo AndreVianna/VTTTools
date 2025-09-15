@@ -30,7 +30,10 @@ This file provides guidance to Claude Code when working with this solution.
 - **PREFERRED_PATTERNS**:
   - Clean Architecture, Domain-Driven Design, CQRS patterns
 - **INFORMATION_LOOKUP**:
-  1. **Dynamic Memory** (MCP) → 2. **Docs & Guides** ('./Documents') → 3. **Code Base** → 4. **External** (Web Search)
+  1. **Dynamic Memory** (MCP) → 2. **Project Docs** (./Documents/Specifications/) → 3. **Code Base** → 4. **External** (Web Search)
+  - Use PROJECT_DEFINITION.md for game concepts, entities, UI specs
+  - Use ROADMAP.md for development phases, task status
+  - Use INSTRUCTIONS.md for coding standards, testing, CLI commands
 
 ## [PRIORITY:HIGH] Module Architecture
 
@@ -67,16 +70,18 @@ This file provides guidance to Claude Code when working with this solution.
 
 ### Documentation Structure
 - **Main Project Document**: ./README.md
-- **Documentation Folder**: ./Documents
-- **Specifications**: ./Documents/Specification
-- **Guides**: ./Documents/Guides
-- **Templates**: ./Documents/Templates
-- **Troubleshooting**: ./Documents/Troubleshooting
+- **Specifications**: ./Documents/Specifications/ - Core project documentation
+  - PROJECT_DEFINITION.md - Game concepts, entities, UI specifications
+  - ROADMAP.md - Development phases, completed/pending tasks
+  - INSTRUCTIONS.md - Coding standards, testing, CLI workflow
+  - PROJECT_STRUCTURE.md - Complete directory structure
+- **Templates**: ./Documents/Templates/ - Reusable specification templates
 
 ### Search Commands
 - **Find Folders**: `Get-ChildItem -Directory -Recurse -Name "*pattern*"`
 - **Find Files**: `Get-ChildItem -File -Recurse -Name "*pattern*"`
 - **Search Content**: `Select-String -Pattern "pattern" -Path "*.cs" -Recurse`
+- **Search Documentation**: `Select-String -Pattern "pattern" -Path "Documents/**/*.md" -Recurse`
 
 ## [PRIORITY:LOW] Reference Context
 

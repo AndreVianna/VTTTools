@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>0dbce209-48df-467d-a8fc-3c35fd7738cc</UserSecretsId>
     <Configurations>Debug;Release;XUnitV3</Configurations>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <ItemGroup>

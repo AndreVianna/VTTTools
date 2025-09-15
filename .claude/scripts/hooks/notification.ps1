@@ -17,6 +17,7 @@ $detailsObj = @{
     message = $message
 }
 $details = $detailsObj | ConvertTo-Json -Compress
+& "$PSScriptRoot\send_log.ps1" -SessionId $sessionId -Level "DEBUG" -Message "{`"Notification`": $jsonInput}"
 & "$PSScriptRoot\send_event.ps1" -SessionId $sessionId -Operation "Notification" -Details $details
 
 # Send system notification if flag is set
@@ -40,6 +41,4 @@ if ($Notify) {
         & notify-send "Claude Code" $message
     }
 }
-
-Write-Host "✓ Notification logged: $message"
 exit 0

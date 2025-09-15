@@ -1,5 +1,3 @@
-using VttTools.WebApp.Services;
-
 using static VttTools.Data.Options.ApplicationDbContextOptions;
 
 using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
@@ -15,6 +13,13 @@ internal static class Program {
                .AddInteractiveServerComponents()
                .AddInteractiveWebAssemblyComponents()
                .AddAuthenticationStateSerialization();
+
+        // Add CORS for React SPA
+        builder.Services.AddCors(options => options.AddPolicy("ReactSPA",
+                                                              policy => policy.WithOrigins("https://localhost:5173", "https://localhost:4173") // Vite dev/preview ports
+                                                                              .AllowAnyMethod()
+                                                                              .AllowAnyHeader()
+                                                                              .AllowCredentials()));
 
         builder.Services.AddServiceDiscovery();
         builder.Services.ConfigureHttpClientDefaults(http => {
@@ -97,6 +102,9 @@ internal static class Program {
         }
 
         app.UseHttpsRedirection();
+
+        // Enable CORS for React SPA
+        app.UseCors("ReactSPA");
 
         app.UseRouting();
         app.UseAuthentication();

@@ -1,3 +1,9 @@
+global using System.Diagnostics;
 global using System.Diagnostics.CodeAnalysis;
+global using System.Runtime.InteropServices;
+global using System.ServiceProcess;
 
+global using Microsoft.Data.SqlClient;
+global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;

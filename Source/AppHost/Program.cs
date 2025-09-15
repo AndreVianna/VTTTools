@@ -2,37 +2,43 @@ namespace VttTools.AppHost;
 
 [ExcludeFromCodeCoverage]
 internal static class Program {
-    public static Task Main(string[] args) {
+    private static readonly bool _isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+    public static async Task Main(string[] args) {
         var builder = DistributedApplication.CreateBuilder(args);
 
         var isDevelopment = builder.Environment.IsDevelopment();
 
-        var cache = builder.AddRedis("redis")
-                           .WithLifetime(ContainerLifetime.Persistent);
+        // Create a temporary logger for configuration decisions
+        var serviceProvider = builder.Services.BuildServiceProvider();
+        var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger("AppHost");
 
-        var blobs = !isDevelopment
-                        ? builder.AddAzureStorage("storage")
-                                 .AddBlobs("blobs")
-                        : builder.AddAzureStorage("storage")
-                                 .RunAsEmulator(e => {
-                                     e.WithDataVolume();
-                                     e.WithLifetime(ContainerLifetime.Persistent);
-                                 })
-                                 .AddBlobs("blobs");
+        logger.LogInformation("Environment Detection: OS={OS}, Development={IsDevelopment}",
+            _isWindows ? "Windows" : "Linux", isDevelopment);
 
-        var database = builder.AddSqlServer("sql")
-                              .WithDataVolume()
-                              .WithLifetime(ContainerLifetime.Persistent)
-                              .AddDatabase("database");
+        // Configure infrastructure with auto-detection (using connection strings from user secrets)
+        logger.LogInformation("Configuring infrastructure from user secrets");
 
-        var migrationService = builder.AddProject<Projects.VttTools_Data_MigrationService>("migration-service")
+        var cache = builder.AddConnectionString("redis");
+        var blobs = builder.AddConnectionString("blobs");
+        var database = builder.AddConnectionString("database");
+
+        var migration = builder.AddProject<Projects.VttTools_Data_MigrationService>("db-migration")
                                       .WithReference(database);
+
+        var auth = builder.AddProject<Projects.VttTools_Auth>("auth-api")
+                          .WithReference(cache)
+                          .WithReference(database)
+                          .WaitFor(migration)
+                          .WithHttpHealthCheck("health")
+                          .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
         var resources = builder.AddProject<Projects.VttTools_Media>("resources-api")
                                .WithReference(cache)
                                .WithReference(database)
                                .WithReference(blobs)
-                               .WaitFor(migrationService)
+                               .WaitFor(migration)
                                .WithHttpHealthCheck("health")
                                .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
@@ -40,7 +46,7 @@ internal static class Program {
                             .WithReference(cache)
                             .WithReference(database)
                             .WithReference(resources)
-                            .WaitFor(migrationService)
+                            .WaitFor(migration)
                             .WithHttpHealthCheck("health")
                             .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
@@ -49,7 +55,7 @@ internal static class Program {
                              .WithReference(database)
                              .WithReference(resources)
                              .WithReference(assets)
-                             .WaitFor(migrationService)
+                             .WaitFor(migration)
                              .WithHttpHealthCheck("health")
                              .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
@@ -57,23 +63,40 @@ internal static class Program {
                           .WithReference(cache)
                           .WithReference(database)
                           .WithReference(library)
-                          .WaitFor(migrationService)
+                          .WaitFor(migration)
                           .WithHttpHealthCheck("health")
                           .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
-        builder.AddProject<Projects.VttTools_WebApp>("webapp")
-               .WithReference(cache)
-               .WithReference(database)
-               .WithReference(blobs)
-               .WithReference(resources).WaitFor(resources)
-               .WithReference(assets).WaitFor(assets)
-               .WithReference(library).WaitFor(library)
-               .WithReference(game).WaitFor(game)
-               .WaitFor(migrationService)
-               .WithHttpHealthCheck("health")
-               .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
+        //var webApp = builder.AddProject<Projects.VttTools_WebApp>("webapp")
+        //                   .WithReference(cache)
+        //                   .WithReference(database)
+        //                   .WithReference(blobs)
+        //                   .WithReference(auth).WaitFor(auth)
+        //                   .WithReference(resources).WaitFor(resources)
+        //                   .WithReference(assets).WaitFor(assets)
+        //                   .WithReference(library).WaitFor(library)
+        //                   .WithReference(game).WaitFor(game)
+        //                   .WaitFor(migration)
+        //                   .WithHttpHealthCheck("health")
+        //                   .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
+
+        // Register React SPA with .NET Aspire
+        builder.AddNpmApp("webapp", "../WebClientApp", "dev")
+                                 .WithReference(cache)
+                                 .WithReference(database)
+                                 .WithReference(blobs)
+                                 .WithReference(auth).WaitFor(auth)
+                                 .WithReference(resources).WaitFor(resources)
+                                 .WithReference(assets).WaitFor(assets)
+                                 .WithReference(library).WaitFor(library)
+                                 .WithReference(game).WaitFor(game)
+                                 .WithEnvironment("NODE_ENV", isDevelopment ? "development" : "production")
+                                 .WithEndpoint("https", endpoint => {
+                                     endpoint.Port = isDevelopment ? 5173 : null; // Vite default port in dev
+                                     endpoint.IsProxied = !isDevelopment;
+                                 });
 
         var app = builder.Build();
-        return app.RunAsync();
+        await app.RunAsync();
     }
 }

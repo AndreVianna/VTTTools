@@ -10,7 +10,6 @@ global using DotNetToolbox;
 global using DotNetToolbox.Results;
 global using DotNetToolbox.Validation;
 
-global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Identity;
 
 global using VttTools.Assets.Model;

@@ -18,6 +18,7 @@ $detailsObj = @{
     prompt = $prompt
 }
 $details = $detailsObj | ConvertTo-Json -Compress
+& "$PSScriptRoot\send_log.ps1" -SessionId $sessionId -Level "DEBUG" -Message "{`"UserPromptSubmit`": $jsonInput}"
 & "$PSScriptRoot\send_event.ps1" -SessionId $sessionId -Operation "Prompt" -Details $details
 
 # Validation mode - check for prompt issues
@@ -27,7 +28,7 @@ if ($Validate) {
         Write-Error "Empty prompt submitted"
         exit 2
     }
-    
+
     # Check for prompts that are too long
     if ($prompt.Length -gt 100000) {
         Write-Error "Prompt exceeds maximum length (100k characters)"
@@ -48,6 +49,4 @@ if (-not $LogOnly) {
         Write-Host "======================="
     }
 }
-
-Write-Host "✓ Prompt logged: $(if ($prompt.Length -gt 50) { $prompt.Substring(0, 50) + '...' } else { $prompt })"
 exit 0

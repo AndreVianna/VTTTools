@@ -1,0 +1,111 @@
+/**
+ * Development configuration for VTT Tools WebClientApp
+ * Handles both Aspire orchestration and standalone development modes
+ */
+
+// Development mode detection
+export const isDevelopment = import.meta.env.MODE === 'development';
+export const isStandalone = !window.location.origin.includes('aspire') &&
+                            !import.meta.env.VITE_ASPIRE_MODE;
+
+// API configuration
+export const API_CONFIG = {
+  // Aspire orchestration mode (default)
+  aspire: {
+    auth: '/api/auth',
+    assets: '/api/assets',
+    adventures: '/api/adventures',
+    scenes: '/api/scenes',
+    sessions: '/api/sessions',
+    media: '/api/media',
+    health: '/health'
+  },
+
+  // Standalone development mode - fallback to WebApp endpoints
+  standalone: {
+    auth: 'https://localhost:7001/api/auth',
+    assets: 'https://localhost:7001/api/assets',
+    adventures: 'https://localhost:7001/api/adventures',
+    scenes: 'https://localhost:7001/api/scenes',
+    sessions: 'https://localhost:7001/api/sessions',
+    media: 'https://localhost:7001/api/media',
+    health: 'https://localhost:7001/health'
+  }
+};
+
+// Get current API endpoints based on mode
+export const getApiEndpoints = () => {
+  if (isStandalone && isDevelopment) {
+    console.info('🔧 VTT Tools: Running in standalone development mode');
+    return API_CONFIG.standalone;
+  }
+
+  console.info('🚀 VTT Tools: Running in Aspire orchestration mode');
+  return API_CONFIG.aspire;
+};
+
+// Development features
+export const DEV_FEATURES = {
+  // Enable mock data when backend is unavailable
+  enableMockData: isStandalone && isDevelopment,
+
+  // Enable detailed error logging
+  enableVerboseErrors: isDevelopment,
+
+  // Enable development UI features
+  showDevTools: isDevelopment,
+
+  // Network retry configuration for development
+  maxRetries: isDevelopment ? 1 : 3,
+  retryDelay: isDevelopment ? 1000 : 2000,
+};
+
+// Mock data configuration
+export const MOCK_DATA = {
+  // Mock user for development
+  user: {
+    id: 'dev-user-123',
+    email: 'developer@vtttools.dev',
+    userName: 'Developer',
+    emailConfirmed: true,
+    phoneNumber: null,
+    phoneNumberConfirmed: false,
+    twoFactorEnabled: false,
+    lockoutEnd: null,
+    lockoutEnabled: false,
+    accessFailedCount: 0,
+    createdAt: new Date().toISOString(),
+    lastLoginAt: new Date().toISOString(),
+    profilePictureUrl: null
+  },
+
+  // Mock API responses
+  responses: {
+    login: { success: true, requiresTwoFactor: false },
+    register: { success: true, message: 'Registration successful' },
+    adventures: [],
+    assets: [],
+    sessions: []
+  }
+};
+
+// Development utilities
+export const devUtils = {
+  log: (message: string, data?: any) => {
+    if (isDevelopment) {
+      console.log(`🔧 VTT Tools Dev: ${message}`, data || '');
+    }
+  },
+
+  error: (message: string, error?: any) => {
+    if (isDevelopment) {
+      console.error(`❌ VTT Tools Dev Error: ${message}`, error || '');
+    }
+  },
+
+  warn: (message: string, data?: any) => {
+    if (isDevelopment) {
+      console.warn(`⚠️ VTT Tools Dev Warning: ${message}`, data || '');
+    }
+  }
+};

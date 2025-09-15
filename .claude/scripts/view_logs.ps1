@@ -1,15 +1,15 @@
-# Claude Code Log Viewer - Session-Based Format
-# Optimized for new session log format: yyyyMMdd-sessionId.log
+﻿# Claude Code Log Viewer - Session-Based Format
+# Optimized for new session log format: yyyyMMdd-NNN-sessionId.log
 
 param(
     [string]$Session,           # Session ID (full or partial match)
     [string]$Date,              # Date filter (yyyyMMdd)
     [switch]$Latest,            # Show latest session
     [switch]$List,              # List available sessions
-    [ValidateSet("Prompt", "Read", "Write", "Edit", "MultiEdit", "Bash", "Glob", "Grep", "Task", 
-                 "SessionStart", "SessionEnd", "SecurityBlock", "SubagentStop", "Notification")]
+    [ValidateSet("Prompt", "Read", "Write", "Edit", "MultiEdit", "Bash", "Glob", "Grep", "Task",
+                 "SessionStart", "SessionEnd", "SecurityBlock", "SubagentStop", "Notification", "DEBUG", "INFO", "WARN", "ERROR")]
     [string[]]$Operation,       # Show only these operations
-    [string[]]$Exclude,         # Exclude these operations  
+    [string[]]$Exclude,         # Exclude these operations
     [int]$Last = 50,           # Number of entries to show
     [switch]$Follow,           # Follow mode (tail)
     [ValidateSet("compact", "detailed", "json")]
@@ -19,6 +19,8 @@ param(
     [switch]$NoColor,          # Disable colorized output
     [switch]$Help              # Show help information
 )
+
+[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding
 
 $logsDir = Join-Path $PSScriptRoot ".." "logs"
 
@@ -33,7 +35,7 @@ SYNOPSIS
     
 DESCRIPTION  
     Displays Claude Code session logs in readable format. Logs are stored as
-    session-based files (yyyyMMdd-sessionId.log) with entries in format:
+    session-based files (yyyyMMdd-NNN-sessionId.log) with entries in format:
     HHmmss [Operation] {JSON}
 
 PARAMETERS
@@ -80,22 +82,22 @@ EXAMPLES
         
     view_logs.ps1 -Search "performance"
         Find entries containing "performance"
-        
+
     view_logs.ps1 -Stats
         Show session statistics and tool usage summary
-        
+
     view_logs.ps1 -Follow
         Follow latest session in real-time
-        
+
     view_logs.ps1 -Format detailed
         Show full JSON details for each entry
-        
+
     view_logs.ps1 -Operation Bash -NoColor
         Show only Bash commands without colors
 
 OPERATIONS
     SessionStart        Session initialization with type indicator
-    SessionEnd          Session completion with reason and metrics  
+    SessionEnd          Session completion with reason and metrics
     Prompt              User prompt submissions
     Read, Write, Edit   File operations with paths and content
     Bash                Shell command executions
@@ -105,7 +107,7 @@ OPERATIONS
     Notification        System notifications and alerts
 
 LOG FORMAT
-    Files: .claude/logs/yyyyMMdd-sessionId.log
+    Files: .claude/logs/yyyyMMdd-NNN-sessionId.log
     Entry: HHmmss [Operation] {"key":"value","details":"..."}
 
 "@ -ForegroundColor Cyan
@@ -118,32 +120,32 @@ function Get-SessionFiles {
         [string]$SessionFilter,
         [string]$DateFilter
     )
-    
-    $pattern = if ($DateFilter) { "$DateFilter-*.log" } else { "????????-*.log" }
+
+    $pattern = if ($DateFilter) { "$DateFilter-*-*.log" } else { "????????-*-*.log" }
     $files = Get-ChildItem -Path $logsDir -Name $pattern -ErrorAction SilentlyContinue
-    
+
     if ($SessionFilter) {
         $files = $files | Where-Object { $_ -like "*$SessionFilter*" }
     }
-    
+
     return $files | Sort-Object -Descending
 }
 
 # Function to parse new log line format
 function Parse-LogLine {
     param([string]$Line)
-    
+
     if ($Line -match '^(\d{2}:\d{2}:\d{2}) \[([^\]]+)\] (.*)$') {
         $timeStr = $matches[1]
-        $operation = $matches[2] 
+        $operation = $matches[2]
         $detailsJson = $matches[3]
-        
+
         try {
             $details = $detailsJson | ConvertFrom-Json
         } catch {
             $details = @{ raw = $detailsJson }
         }
-        
+
         return @{
             Time = $timeStr
             Operation = $operation
@@ -151,76 +153,127 @@ function Parse-LogLine {
             Raw = $Line
         }
     }
-    
+
     return $null
 }
 
 # Function to display log entries with colorization
 function Show-Entry {
     param($Entry, [string]$DisplayFormat, [bool]$UseColor = $true)
-    
+
+    if ($Entry.Operation -eq "Task") { $Entry.Operation = "SubagentStart" }
+    if ($Entry.Operation -eq "mcp__thinking__sequentialthinking") { $Entry.Operation = "Thinking" }
+    if ($Entry.Operation -eq "DEBUG" -or $Entry.Operation -eq "INFO" -or $Entry.Operation -eq "WARN" -or $Entry.Operation -eq "ERROR") { return }
     $operationColors = @{
-        "SessionStart" = "Green"
-        "SessionEnd" = "Red" 
+        "SessionStart" = "Blue"
+        "SessionEnd" = "Blue"
         "Prompt" = "Cyan"
-        "Read" = "Yellow"
+        "Read" = "Blue"
         "Write" = "Magenta"
-        "Edit" = "Blue"
-        "Bash" = "White"
-        "Task" = "DarkYellow"
+        "Edit" = "DarkMagenta"
+        "MultiEdit" = "DarkMagenta"
+        "Bash" = "Green"
+        "TodoWrite" = "DarkMagenta"
         "SecurityBlock" = "DarkRed"
-        "SubagentStop" = "Gray"
+        "Stop" = "DarkYellow"
+        "SubagentStart" = "DarkGreen"
+        "SubagentStop" = "DarkYellow"
+        "ExitPlanMode" = "DarkYellow"
         "Notification" = "DarkCyan"
+        "Thinking" = "Cyan"
     }
-    
+
     # Default colors for safe PowerShell color handling
-    $timeColor = if ($UseColor) { "DarkGray" } else { "White" }
-    $opColor = if ($UseColor -and $operationColors[$Entry.Operation]) { $operationColors[$Entry.Operation] } else { "White" }
-    
+    $timeColor = if ($UseColor) { "Gray" } else { "White" }
+    $opColor = if ($UseColor -and $operationColors[$Entry.Operation]) { $operationColors[$Entry.Operation] } else { "Gray" }
+
     switch ($DisplayFormat) {
         "compact" {
-            Write-Host "[$($Entry.Time)] " -NoNewline -ForegroundColor $timeColor
-            Write-Host $Entry.Operation -NoNewline -ForegroundColor $opColor
-            
+            Write-Host "$($Entry.Time) " -NoNewline -ForegroundColor $timeColor
+            Write-Host "[$($Entry.Operation)]" -NoNewline -ForegroundColor $opColor
+            Write-Host " " -NoNewline
+
             # Show relevant details based on operation
             switch ($Entry.Operation) {
-                "SessionStart" { 
-                    Write-Host " - $($Entry.Details.type), $($Entry.Details.cwd)" -ForegroundColor Gray
+                "SessionStart" {
+                    Write-Host "$($Entry.Details.type), $($Entry.Details.cwd)" -ForegroundColor Gray
                 }
                 "Prompt" {
-                    $promptPreview = if ($Entry.Details.prompt.Length -gt 60) { $Entry.Details.prompt.Substring(0, 60) + "..." } else { $Entry.Details.prompt }
-                    Write-Host " - $promptPreview" -ForegroundColor Gray
+                    Write-Host "$($Entry.Details.prompt)" -ForegroundColor Gray
                 }
                 "Read" {
-                    Write-Host " - $($Entry.Details.file_path)" -ForegroundColor Gray
+                    Write-Host "$($Entry.Details.file_path)" -ForegroundColor Gray
                 }
                 "Write" {
-                    Write-Host " - $($Entry.Details.file_path)" -ForegroundColor Gray
+                    Write-Host "$($Entry.Details.file_path)" -ForegroundColor Gray
                 }
                 "Edit" {
-                    Write-Host " - $($Entry.Details.file_path)" -ForegroundColor Gray
+                    Write-Host "$($Entry.Details.file_path)" -ForegroundColor Gray
+                }
+                "MultiEdit" {
+                    Write-Host "$($Entry.Details.file_path), $($Entry.Details.edits_count) edits" -ForegroundColor Gray
                 }
                 "Bash" {
-                    Write-Host " - $($Entry.Details.command)" -ForegroundColor Gray
+                    Write-Host "$($Entry.Details.command)" -ForegroundColor Gray
                 }
-                "Task" {
-                    Write-Host " - $($Entry.Details.subagent_type)" -ForegroundColor Gray
+                "SubagentStart" {
+                    Write-Host "$($Entry.Details.subagent_type)" -ForegroundColor Gray
+                }
+                "SubagentStop" {
+                    Write-Host "" -ForegroundColor Gray
+                }
+                "Stop" {
+                    Write-Host "" -ForegroundColor Gray
                 }
                 "SecurityBlock" {
-                    Write-Host " - $($Entry.Details.tool): $($Entry.Details.reason)" -ForegroundColor DarkRed
+                    Write-Host "$($Entry.Details.tool): $($Entry.Details.reason)" -ForegroundColor DarkRed
                 }
                 "SessionEnd" {
-                    Write-Host " - $($Entry.Details.reason), $($Entry.Details.duration), $($Entry.Details.tools_used) tools" -ForegroundColor Gray
+                    Write-Host "$($Entry.Details.reason), $($Entry.Details.duration), $($Entry.Details.tools_used) tools" -ForegroundColor Gray
+                }
+                "ExitPlanMode" {
+                    Write-Host ""
+                    Write-Host "$($Entry.Details.plan)" -ForegroundColor Gray
+                }
+                "Notification" {
+                    Write-Host "$($Entry.Details.message)" -ForegroundColor Gray
+                }
+                "TodoWrite" {
+                    Write-Host ""
+                    ForEach ($todo in $Entry.Details.todos) {
+                        switch ($todo.status) {
+                            "pending" { Write-Host "🔳 " -NoNewline -ForegroundColor Gray }
+                            "in_progress" { Write-Host "⚙️ " -NoNewline -ForegroundColor Gray }
+                            "completed" { Write-Host "✅ " -NoNewline -ForegroundColor Gray }
+                            default { Write-Host "$($todo.status) " -NoNewline -ForegroundColor Gray }
+                        }
+                        Write-Host "$($todo.content)" -ForegroundColor Gray
+                    }
+                }
+                "Thinking" {
+                    $thoughtRaw = [string]($Entry.Details.thought ?? "")
+                    # Convert escaped \n sequences into actual new lines
+                    $thoughtFormatted = $thoughtRaw -replace '\\n', "`n"
+
+                    Write-Host ""
+                    Write-Host "💭 $($thoughtFormatted)" -ForegroundColor Gray
+                    if ($Entry.Details.nextThoughtNeeded) {
+                        Write-Host "🤔 I need to think more." -ForegroundColor Gray
+                    }
+                    else {
+                        Write-Host "👍 I am done thinking" -ForegroundColor Gray
+                    }
                 }
                 default {
-                    Write-Host " - $($Entry.Details | ConvertTo-Json -Compress)" -ForegroundColor Gray
+                    Write-Host ""
+                    Write-Host "$($Entry.Details | ConvertTo-Json -Depth 5)" -ForegroundColor Gray
                 }
             }
         }
         "detailed" {
             Write-Host "[$($Entry.Time.Substring(0,2)):$($Entry.Time.Substring(2,2)):$($Entry.Time.Substring(4,2))] " -NoNewline -ForegroundColor $timeColor
             Write-Host $Entry.Operation -ForegroundColor $opColor
-            $Entry.Details | ConvertTo-Json | Write-Host -ForegroundColor DarkGray
+            $Entry.Details | ConvertTo-Json | Format-Json | Write-Host -ForegroundColor DarkGray
             Write-Host ""
         }
         "json" {
@@ -232,13 +285,13 @@ function Show-Entry {
 # Function to get session statistics
 function Get-SessionStats {
     param($Entries)
-    
+
     $sessionStart = $Entries | Where-Object { $_.Operation -eq "SessionStart" } | Select-Object -First 1
     $sessionEnd = $Entries | Where-Object { $_.Operation -eq "SessionEnd" } | Select-Object -First 1
-    
+
     $operationCounts = $Entries | Group-Object Operation | Sort-Object Count -Descending
     $toolCounts = $Entries | Where-Object { $_.Operation -notin @("SessionStart", "SessionEnd", "Prompt", "SecurityBlock", "SubagentStop", "Notification") } | Group-Object Operation | Sort-Object Count -Descending
-    
+
     Write-Host "=== SESSION STATISTICS ===" -ForegroundColor Yellow
     if ($sessionStart) {
         Write-Host "Start: $($sessionStart.Details.type) at $($sessionStart.Time)" -ForegroundColor Green
@@ -248,19 +301,19 @@ function Get-SessionStats {
         Write-Host "End: $($sessionEnd.Details.reason) - Duration: $($sessionEnd.Details.duration)" -ForegroundColor Red
         Write-Host "Tools used: $($sessionEnd.Details.tools_used)" -ForegroundColor Gray
     }
-    
+
     Write-Host "`nOperation Counts:" -ForegroundColor Cyan
     $operationCounts | ForEach-Object {
         Write-Host "  $($_.Name): $($_.Count)" -ForegroundColor White
     }
-    
+
     if ($toolCounts) {
         Write-Host "`nTool Usage:" -ForegroundColor Cyan
         $toolCounts | ForEach-Object {
             Write-Host "  $($_.Name): $($_.Count)" -ForegroundColor White
         }
     }
-    
+
     Write-Host "=========================" -ForegroundColor Yellow
 }
 
@@ -278,11 +331,12 @@ if ($List) {
         $sessionFiles | ForEach-Object {
             $parts = $_ -replace '\.log$' -split '-'
             $dateStr = $parts[0]
-            $sessionId = $parts[1]
-            
+            $sequence = $parts[1]
+            $sessionId = $parts[2]
+
             # Format date as yyyy-MM-dd
             $formattedDate = "$($dateStr.Substring(0,4))-$($dateStr.Substring(4,2))-$($dateStr.Substring(6,2))"
-            Write-Host "  $formattedDate - $sessionId" -ForegroundColor White
+            Write-Host "  $formattedDate - $sequence - $sessionId" -ForegroundColor White
         }
     } else {
         Write-Host "No session log files found." -ForegroundColor Gray
@@ -298,8 +352,9 @@ if ($Latest) {
     $sessionFile = $sessionFiles | Select-Object -First 1
 } elseif ($Session) {
     $sessionFiles = Get-SessionFiles -SessionFilter $Session
+    Write-Host "SessionFiles: $sessionFiles"
     if ($sessionFiles.Count -eq 1) {
-        $sessionFile = $sessionFiles[0]
+        $sessionFile = $sessionFiles | Select-Object -First 1
     } elseif ($sessionFiles.Count -gt 1) {
         Write-Host "Multiple sessions found matching '$Session':" -ForegroundColor Yellow
         $sessionFiles | ForEach-Object { Write-Host "  $_" -ForegroundColor White }
@@ -308,7 +363,7 @@ if ($Latest) {
 } elseif ($Date) {
     $sessionFiles = Get-SessionFiles -DateFilter $Date
     if ($sessionFiles.Count -eq 1) {
-        $sessionFile = $sessionFiles[0]
+        $sessionFile = $sessionFiles | Select-Object -First 1
     } elseif ($sessionFiles.Count -gt 1) {
         Write-Host "Multiple sessions found for date '$Date':" -ForegroundColor Yellow
         $sessionFiles | ForEach-Object { Write-Host "  $_" -ForegroundColor White }
@@ -339,7 +394,7 @@ if ($Follow) {
             if ($Operation -and $entry.Operation -notin $Operation) { $include = $false }
             if ($Exclude -and $entry.Operation -in $Exclude) { $include = $false }
             if ($Search -and $entry.Raw -notmatch [regex]::Escape($Search)) { $include = $false }
-            
+
             if ($include) {
                 Show-Entry $entry $Format (-not $NoColor)
             }
@@ -350,10 +405,10 @@ if ($Follow) {
         Write-Host "Session log file not found: $sessionLogPath" -ForegroundColor Red
         exit 1
     }
-    
+
     $lines = Get-Content $sessionLogPath
     $entries = $lines | ForEach-Object { Parse-LogLine $_ } | Where-Object { $_ -ne $null }
-    
+
     # Apply filters
     if ($Operation) {
         $entries = $entries | Where-Object { $_.Operation -in $Operation }
@@ -364,19 +419,19 @@ if ($Follow) {
     if ($Search) {
         $entries = $entries | Where-Object { $_.Raw -match [regex]::Escape($Search) }
     }
-    
+
     # Show statistics if requested
     if ($Stats) {
         Get-SessionStats $entries
         Write-Host ""
     }
-    
+
     # Show entries
     $entriesToShow = $entries | Select-Object -Last $Last
     $entriesToShow | ForEach-Object {
         Show-Entry $_ $Format (-not $NoColor)
     }
-    
+
     if (-not $Stats) {
         Write-Host "`nShowing last $Last entries. Total: $($entries.Count)" -ForegroundColor DarkGray
     }
