@@ -91,12 +91,74 @@ export class MockApiService {
     await delay(MOCK_DELAY);
 
     return [
+      // Active Assets - Entities
       {
         id: 'mock-asset-1',
         type: 'Character' as const,
-        name: 'Demo Character',
-        description: 'A mock character asset',
+        category: 'Active' as const,
+        name: 'Hero Character',
+        description: 'A playable hero character',
         displayId: undefined,
+        imageUrl: 'https://via.placeholder.com/100/4CAF50/FFFFFF?text=Hero',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-asset-2',
+        type: 'Monster' as const,
+        category: 'Active' as const,
+        name: 'Goblin',
+        description: 'A hostile goblin enemy',
+        displayId: undefined,
+        imageUrl: 'https://via.placeholder.com/100/F44336/FFFFFF?text=Goblin',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+
+      // Passive Assets - Objects
+      {
+        id: 'mock-asset-3',
+        type: 'Item' as const,
+        category: 'Passive' as const,
+        name: 'Wooden Crate',
+        description: 'A moveable wooden crate',
+        displayId: undefined,
+        imageUrl: 'https://via.placeholder.com/100/795548/FFFFFF?text=Crate',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-asset-4',
+        type: 'Item' as const,
+        category: 'Passive' as const,
+        name: 'Treasure Chest',
+        description: 'A chest containing loot',
+        displayId: undefined,
+        imageUrl: 'https://via.placeholder.com/100/FFC107/FFFFFF?text=Chest',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+
+      // Static Assets - Structures
+      {
+        id: 'mock-asset-5',
+        type: 'Environment' as const,
+        category: 'Static' as const,
+        name: 'Stone Wall',
+        description: 'An immovable stone wall segment',
+        displayId: undefined,
+        imageUrl: 'https://via.placeholder.com/100/9E9E9E/FFFFFF?text=Wall',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-asset-6',
+        type: 'Environment' as const,
+        category: 'Static' as const,
+        name: 'Wooden Door',
+        description: 'A locked structural door',
+        displayId: undefined,
+        imageUrl: 'https://via.placeholder.com/100/8D6E63/FFFFFF?text=Door',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }

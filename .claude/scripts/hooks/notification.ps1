@@ -1,28 +1,36 @@
-# Claude Code Hooks - Notification
-# Logs notifications and optionally sends system alerts
-
 param(
     [switch]$Notify
 )
+$jsonInput = ''
+try {
+    if (-not [Console]::IsInputRedirected) {
+        exit 0
+    }
+    $readTask = [Console]::In.ReadToEndAsync()
+    if ($readTask.IsCompleted -or $readTask.Wait(500)) {
+        $jsonInput = $readTask.Result
+    }
+    if ([string]::IsNullOrWhiteSpace($jsonInput)) {
+        exit 0
+    }
 
-# Read JSON input
-$jsonInput = [Console]::In.ReadToEnd()
+}
+catch {
+    exit 0
+}
+
 $data = $jsonInput | ConvertFrom-Json
-
 $message = $data.message
 $sessionId = $data.session_id
 
-# Log notification using shared utility
+
 $detailsObj = @{
     message = $message
 }
 $details = $detailsObj | ConvertTo-Json -Compress
-& "$PSScriptRoot\send_log.ps1" -SessionId $sessionId -Level "DEBUG" -Message "{`"Notification`": $jsonInput}"
 & "$PSScriptRoot\send_event.ps1" -SessionId $sessionId -Operation "Notification" -Details $details
 
-# Send system notification if flag is set
 if ($Notify) {
-    # Windows Toast Notification
     if ($PSVersionTable.Platform -eq 'Win32NT' -or $null -eq $PSVersionTable.Platform) {
         Add-Type -AssemblyName System.Windows.Forms
         $notification = New-Object System.Windows.Forms.NotifyIcon
@@ -32,11 +40,9 @@ if ($Notify) {
         $notification.Visible = $true
         $notification.ShowBalloonTip(5000)
     }
-    # macOS notification
     elseif ($PSVersionTable.Platform -eq 'Unix' -and (Get-Command osascript -ErrorAction SilentlyContinue)) {
         & osascript -e "display notification `"$message`" with title `"Claude Code`" sound name `"Glass`""
     }
-    # Linux notification
     elseif (Get-Command notify-send -ErrorAction SilentlyContinue) {
         & notify-send "Claude Code" $message
     }

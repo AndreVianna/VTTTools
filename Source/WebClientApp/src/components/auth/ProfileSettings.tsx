@@ -10,7 +10,6 @@ import {
   Avatar,
   IconButton,
   Divider,
-  Grid,
 } from '@mui/material';
 import {
   Edit,

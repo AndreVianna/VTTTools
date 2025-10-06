@@ -22,9 +22,29 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
             },
         };
         var response = await blobClient.UploadAsync(stream, options, ct);
-        return response.GetRawResponse().IsError
-            ? Result.Failure(response.GetRawResponse().ReasonPhrase)
-            : Result.Success();
+        if (response.GetRawResponse().IsError)
+            return Result.Failure(response.GetRawResponse().ReasonPhrase);
+
+        // Determine ResourceType from file metadata
+        var resourceType = data.Metadata.Duration > TimeSpan.Zero ? ResourceType.Video
+            : data.Metadata.ContentType.Contains("gif") || data.Metadata.ContentType.Contains("webp") ? ResourceType.Animation
+            : ResourceType.Image;
+
+        // Extract resource ID from path (format: "type/name/id")
+        var pathParts = data.Path.Split('/');
+        var resourceId = Guid.Parse(pathParts[^1]);
+
+        // Save Resource entity to database
+        var resource = new Resource {
+            Id = resourceId,
+            Type = resourceType,
+            Path = data.Path,
+            Metadata = data.Metadata,
+            Tags = data.Tags,
+        };
+        await mediaStorage.AddAsync(resource, ct);
+
+        return Result.Success();
     }
 
     /// <inheritdoc />

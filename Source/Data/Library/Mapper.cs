@@ -39,7 +39,7 @@ internal static class Mapper {
             Type = entity.Asset.Type,
             Index = entity.Index,
             Name = entity.Name,
-            Display = entity.Display.ToModel(),
+            Resource = entity.Resource.ToModel(),
             Frame = entity.Frame,
             Size = entity.Size,
             Position = entity.Position,
@@ -157,7 +157,7 @@ internal static class Mapper {
             Type = entity.Asset.Type,
             Index = entity.Index,
             Name = entity.Name,
-            Display = entity.Display.ToModel(),
+            Resource = entity.Resource.ToModel(),
             Frame = entity.Frame,
             Size = entity.Size,
             Position = entity.Position,
@@ -173,7 +173,7 @@ internal static class Mapper {
             AssetId = model.Id,
             Index = model.Index,
             Name = model.Name,
-            DisplayId = model.Display.Id,
+            ResourceId = model.Resource!.Id,
             Frame = model.Frame,
             Size = model.Size,
             Position = model.Position,
@@ -195,7 +195,7 @@ internal static class Mapper {
         entity.Rotation = model.Rotation;
         entity.IsLocked = model.IsLocked;
         entity.ControlledBy = model.ControlledBy;
-        entity.DisplayId = model.Display.Id;
+        entity.ResourceId = model.Resource!.Id;
         return entity;
     }
 

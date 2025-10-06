@@ -30,7 +30,6 @@ internal static class Program {
         var auth = builder.AddProject<Projects.VttTools_Auth>("auth-api")
                           .WithReference(cache)
                           .WithReference(database)
-                          .WaitFor(migration)
                           .WithHttpHealthCheck("health")
                           .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
@@ -38,7 +37,6 @@ internal static class Program {
                                .WithReference(cache)
                                .WithReference(database)
                                .WithReference(blobs)
-                               .WaitFor(migration)
                                .WithHttpHealthCheck("health")
                                .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
@@ -46,7 +44,6 @@ internal static class Program {
                             .WithReference(cache)
                             .WithReference(database)
                             .WithReference(resources)
-                            .WaitFor(migration)
                             .WithHttpHealthCheck("health")
                             .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
@@ -55,7 +52,6 @@ internal static class Program {
                              .WithReference(database)
                              .WithReference(resources)
                              .WithReference(assets)
-                             .WaitFor(migration)
                              .WithHttpHealthCheck("health")
                              .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
@@ -63,7 +59,6 @@ internal static class Program {
                           .WithReference(cache)
                           .WithReference(database)
                           .WithReference(library)
-                          .WaitFor(migration)
                           .WithHttpHealthCheck("health")
                           .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 

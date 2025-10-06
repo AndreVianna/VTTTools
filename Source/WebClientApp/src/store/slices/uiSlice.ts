@@ -41,6 +41,29 @@ export interface UIState {
   tooltipsEnabled: boolean;
 }
 
+// Theme persistence utilities
+const THEME_STORAGE_KEY = 'vtttools-theme';
+
+const loadThemeFromStorage = (): 'light' | 'dark' => {
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark') {
+      return stored;
+    }
+  } catch (error) {
+    console.warn('Failed to load theme from localStorage:', error);
+  }
+  return 'light';
+};
+
+const saveThemeToStorage = (theme: 'light' | 'dark') => {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch (error) {
+    console.warn('Failed to save theme to localStorage:', error);
+  }
+};
+
 const initialState: UIState = {
   leftSidebarOpen: true,
   rightSidebarOpen: true,
@@ -54,7 +77,7 @@ const initialState: UIState = {
   },
   modals: {},
   notifications: [],
-  theme: 'light',
+  theme: loadThemeFromStorage(), // Load from localStorage on init
   helpVisible: false,
   tooltipsEnabled: true,
 };
@@ -139,10 +162,12 @@ const uiSlice = createSlice({
     // Theme management
     setTheme: (state, action: PayloadAction<'light' | 'dark'>) => {
       state.theme = action.payload;
+      saveThemeToStorage(action.payload);
     },
 
     toggleTheme: (state) => {
       state.theme = state.theme === 'light' ? 'dark' : 'light';
+      saveThemeToStorage(state.theme);
     },
 
     // Help system

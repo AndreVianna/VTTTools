@@ -403,6 +403,9 @@ FodyWeavers.xsd
 # merged source
 *.src
 
+# Playwright MCP
+.playwright-mcp
+
 #Local files and Logs
 *.local.json
 *.local.md

@@ -64,7 +64,7 @@ export const DEV_FEATURES = {
 export const MOCK_DATA = {
   // Mock user for development
   user: {
-    id: 'dev-user-123',
+    id: '550e8400-e29b-41d4-a716-446655440000', // Valid GUID for development
     email: 'developer@vtttools.dev',
     userName: 'Developer',
     emailConfirmed: true,

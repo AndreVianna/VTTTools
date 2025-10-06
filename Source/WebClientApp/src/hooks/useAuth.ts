@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   useLoginMutation,
@@ -14,7 +14,8 @@ import {
   useVerifyRecoveryCodeMutation,
   useGenerateRecoveryCodesMutation,
   useChangePasswordMutation,
-  useUpdateProfileMutation
+  useUpdateProfileMutation,
+  authApi
 } from '@/services/authApi';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setAuthenticated, setAuthError, logout as logoutAction, clearAuthError } from '@/store/slices/authSlice';
@@ -23,6 +24,9 @@ import { addNotification } from '@/store/slices/uiSlice';
 import { mockApi } from '@/services/mockApi';
 import { isDevelopment, MOCK_DATA, devUtils } from '@/config/development';
 
+// Global flag to track if we've checked for existing session (shared across all hook instances)
+let globalAuthInitialized = false;
+
 // Authentication hook integrating with existing WebApp Identity system
 export const useAuth = () => {
   const location = useLocation();
@@ -30,7 +34,16 @@ export const useAuth = () => {
   const dispatch = useAppDispatch();
 
   const authState = useAppSelector(state => state.auth);
+
+  // Local state to track if initial auth check is complete
+  const [initComplete, setInitComplete] = useState(globalAuthInitialized);
+
+  // IMPORTANT: Only fetch current user if:
+  // 1. We haven't initialized yet (checking for existing session), OR
+  // 2. Redux confirms we're authenticated
+  // This prevents cached user data from showing after logout
   const { data: currentUser, isLoading, error, refetch } = useGetCurrentUserQuery(undefined, {
+    skip: globalAuthInitialized && !authState.isAuthenticated,  // Skip after init unless authenticated
     // Handle query errors gracefully in development
     retry: (failureCount, error) => {
       if (isDevelopment && failureCount < 2) {
@@ -41,8 +54,29 @@ export const useAuth = () => {
     },
   });
 
-  // Use mock user in development when API is unavailable
+  // Initialize authentication state from server session cookie (runs once globally)
+  useEffect(() => {
+    if (!globalAuthInitialized && !isLoading) {
+      // Query has completed (success or failure)
+      if (currentUser && !authState.isAuthenticated) {
+        // Found existing session - restore it
+        dispatch(setAuthenticated({ user: currentUser }));
+      }
+      // Mark as initialized (both global and local state)
+      globalAuthInitialized = true;
+      setInitComplete(true);
+    }
+  }, [isLoading, currentUser, authState.isAuthenticated, dispatch]);
+
+  // CRITICAL: Redux state is the PRIMARY source of truth for authentication
+  // Use cached/mock user data ONLY if Redux confirms we're authenticated
   const effectiveUser = useMemo(() => {
+    // If Redux says not authenticated, always return null (ignore cache)
+    if (!authState.isAuthenticated) {
+      return null;
+    }
+
+    // Redux says authenticated - prefer API data over Redux user
     if (currentUser) {
       return currentUser;
     }
@@ -56,36 +90,32 @@ export const useAuth = () => {
       return MOCK_DATA.user;
     }
 
+    // Fallback to Redux stored user
     return authState.user;
-  }, [currentUser, error, authState.user]);
+  }, [authState.isAuthenticated, authState.user, currentUser, error]);
 
-  // Determine if user is authenticated
-  const isAuthenticated = useMemo(() => {
-    if (effectiveUser) {
-      return true;
-    }
+  // IMPORTANT: Redux auth state is the ONLY source of truth for isAuthenticated
+  // This prevents flickering and state inconsistencies
+  const isAuthenticated = authState.isAuthenticated;
 
-    // In development, if we have persistent auth state, consider authenticated
-    if (isDevelopment && authState.isAuthenticated) {
-      return true;
-    }
+  const [loginMutation, { isLoading: isLoggingIn }] = useLoginMutation();
+  const [logoutMutation, { isLoading: isLoggingOut }] = useLogoutMutation();
+  const [registerMutation, { isLoading: isRegistering }] = useRegisterMutation();
+  const [resetPasswordMutation, { isLoading: isResettingPassword }] = useResetPasswordMutation();
+  const [confirmResetPasswordMutation, { isLoading: isConfirmingReset }] = useConfirmResetPasswordMutation();
+  const [setupTwoFactorMutation, { isLoading: isSettingUpTwoFactor }] = useSetupTwoFactorMutation();
+  const [enableTwoFactorMutation, { isLoading: isEnablingTwoFactor }] = useEnableTwoFactorMutation();
+  const [disableTwoFactorMutation, { isLoading: isDisablingTwoFactor }] = useDisableTwoFactorMutation();
+  const [verifyTwoFactorMutation, { isLoading: isVerifyingTwoFactor }] = useVerifyTwoFactorMutation();
+  const [verifyRecoveryCodeMutation, { isLoading: isVerifyingRecoveryCode }] = useVerifyRecoveryCodeMutation();
+  const [generateRecoveryCodesMutation, { isLoading: isGeneratingRecoveryCodes }] = useGenerateRecoveryCodesMutation();
+  const [changePasswordMutation, { isLoading: isChangingPassword }] = useChangePasswordMutation();
+  const [updateProfileMutation, { isLoading: isUpdatingProfile }] = useUpdateProfileMutation();
 
-    return false;
-  }, [effectiveUser, authState.isAuthenticated]);
-
-  const [loginMutation] = useLoginMutation();
-  const [logoutMutation] = useLogoutMutation();
-  const [registerMutation] = useRegisterMutation();
-  const [resetPasswordMutation] = useResetPasswordMutation();
-  const [confirmResetPasswordMutation] = useConfirmResetPasswordMutation();
-  const [setupTwoFactorMutation] = useSetupTwoFactorMutation();
-  const [enableTwoFactorMutation] = useEnableTwoFactorMutation();
-  const [disableTwoFactorMutation] = useDisableTwoFactorMutation();
-  const [verifyTwoFactorMutation] = useVerifyTwoFactorMutation();
-  const [verifyRecoveryCodeMutation] = useVerifyRecoveryCodeMutation();
-  const [generateRecoveryCodesMutation] = useGenerateRecoveryCodesMutation();
-  const [changePasswordMutation] = useChangePasswordMutation();
-  const [updateProfileMutation] = useUpdateProfileMutation();
+  // Stable clearError function to prevent unnecessary re-renders
+  const clearErrorCallback = useCallback(() => {
+    dispatch(clearAuthError());
+  }, [dispatch]);
 
   // Login with existing WebApp Identity
   const login = useCallback(async (email: string, password: string, rememberMe?: boolean) => {
@@ -183,7 +213,7 @@ export const useAuth = () => {
     email: string,
     password: string,
     confirmPassword: string,
-    userName: string
+    displayName: string
   ) => {
     dispatch(clearAuthError());
 
@@ -192,7 +222,8 @@ export const useAuth = () => {
         email,
         password,
         confirmPassword,
-        userName
+        name: email,  // UserName = Email (ASP.NET Identity requirement)
+        displayName: displayName  // User's friendly display name
       }).unwrap();
 
       if (result.success) {
@@ -206,7 +237,10 @@ export const useAuth = () => {
 
       return result;
     } catch (error: any) {
-      const errorMessage = error.data?.message || 'Registration failed';
+      console.error('useAuth.register caught error:', error);
+      console.error('Error details - status:', error?.status, 'data:', error?.data);
+
+      const errorMessage = error.data?.message || error.message || 'Registration failed';
       dispatch(setAuthError(errorMessage));
       dispatch(addError({
         type: 'authentication',
@@ -214,7 +248,7 @@ export const useAuth = () => {
         context: {
           component: 'useAuth',
           operation: 'register',
-          data: { email, userName }
+          data: { email, displayName }
         },
         userFriendlyMessage: 'Unable to create account. Please try again.',
       }));
@@ -225,9 +259,21 @@ export const useAuth = () => {
   // Logout using existing WebApp Identity
   const logout = useCallback(async () => {
     try {
+      // Clear local Redux state first (THIS is the source of truth)
+      dispatch(logoutAction());
+
+      // Clear RTK Query cache (removes cached user data)
+      dispatch(authApi.util.resetApiState());
+
+      // Call backend logout to clear server-side session FIRST
+      // This ensures cookie is cleared before we reset the init flag
       await logoutMutation().unwrap();
 
-      dispatch(logoutAction());
+      // THEN reset initialization flags (cookie is now cleared)
+      // If query runs after this, it will get 401 since cookie is cleared
+      globalAuthInitialized = false;
+      setInitComplete(false);
+
       dispatch(addNotification({
         type: 'info',
         message: 'You have been logged out.',
@@ -235,8 +281,10 @@ export const useAuth = () => {
 
       navigate('/login', { replace: true });
     } catch (error: any) {
-      // Even if logout API fails, clear local auth state
-      dispatch(logoutAction());
+      // Even if logout API fails, local state already cleared
+      globalAuthInitialized = false;  // Still reset for next login attempt
+      setInitComplete(false);
+
       dispatch(addError({
         type: 'authentication',
         message: 'Logout request failed, but you have been signed out locally.',
@@ -635,8 +683,9 @@ export const useAuth = () => {
     // State - using enhanced values with fallbacks
     user: effectiveUser,
     isAuthenticated,
-    isLoading: isLoading || authState.isLoading,
-    error: (isDevelopment && error?.data?.isRecoverable) ? null : (error || authState.error),
+    isLoading: isLoading || authState.isLoading || isLoggingIn || isRegistering || isResettingPassword || isConfirmingReset || isLoggingOut || isSettingUpTwoFactor || isEnablingTwoFactor || isDisablingTwoFactor || isVerifyingTwoFactor || isVerifyingRecoveryCode || isGeneratingRecoveryCodes || isChangingPassword || isUpdatingProfile,
+    isInitializing: !initComplete,  // True until initial auth check completes
+    error: authState.error || ((isDevelopment && error?.data?.isRecoverable) ? null : error),
     loginAttempts: authState.loginAttempts,
 
     // Basic Actions
@@ -662,7 +711,7 @@ export const useAuth = () => {
     // Utilities
     canRetryLogin,
     getLockoutTimeRemaining,
-    clearError: () => dispatch(clearAuthError()),
+    clearError: clearErrorCallback,
 
     // Development utilities
     isDevelopmentMode: isDevelopment,

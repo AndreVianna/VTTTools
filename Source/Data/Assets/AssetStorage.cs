@@ -10,7 +10,7 @@ public class AssetStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<Asset[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Assets
-                    .Include(a => a.Display)
+                    .Include(a => a.Resource)
                   .AsNoTrackingWithIdentityResolution();
         var result = await query.Select(Mapper.AsAsset).ToArrayAsync(ct);
         return result;
@@ -19,7 +19,7 @@ public class AssetStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<Asset?> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var query = context.Assets
-                    .Include(a => a.Display)
+                    .Include(a => a.Resource)
                   .AsNoTrackingWithIdentityResolution();
         var result = await query.Select(Mapper.AsAsset).FirstOrDefaultAsync(a => a.Id == id, ct);
         return result;

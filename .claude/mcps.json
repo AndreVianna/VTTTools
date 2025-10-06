@@ -20,7 +20,7 @@
       "@modelcontextprotocol/server-memory"
     ],
     "env": {
-      "MEMORY_FILE_PATH": "{PROJECT_ROOT}\\.claude\\memory.local.json"
+      "MEMORY_FILE_PATH": "C:\\Projects\\Ross\\Utilities\\AI\\Claude\\.claude\\memory.local.jsonl"
     }
   }
 }

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { Box, Container, Typography, Paper } from '@mui/material';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { RegistrationForm } from '@/components/auth/RegistrationForm';
+import { SimpleLoginForm } from '@/components/auth/SimpleLoginForm';
+import { SimpleRegistrationForm } from '@/components/auth/SimpleRegistrationForm';
 import { PasswordResetRequestForm } from '@/components/auth/PasswordResetRequestForm';
 import { PasswordResetConfirmForm } from '@/components/auth/PasswordResetConfirmForm';
 import { TwoFactorVerificationForm } from '@/components/auth/TwoFactorVerificationForm';
@@ -18,9 +20,10 @@ type AuthMode =
 
 export const LoginPage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const [mode, setMode] = useState<AuthMode>('login');
 
-  // Check URL parameters to determine initial mode
+  // Check URL path and parameters to determine initial mode
   useEffect(() => {
     const email = searchParams.get('email');
     const token = searchParams.get('token');
@@ -28,8 +31,12 @@ export const LoginPage: React.FC = () => {
     // If we have email and token parameters, show password reset confirm form
     if (email && token) {
       setMode('reset-confirm');
+    } else if (location.pathname === '/register') {
+      setMode('register');
+    } else {
+      setMode('login');
     }
-  }, [searchParams]);
+  }, [searchParams, location.pathname]);
 
   const handleLoginResult = (result: any) => {
     if (result?.requiresTwoFactor) {
@@ -41,16 +48,15 @@ export const LoginPage: React.FC = () => {
     switch (mode) {
       case 'login':
         return (
-          <LoginForm
+          <SimpleLoginForm
             onSwitchToRegister={() => setMode('register')}
             onSwitchToResetPassword={() => setMode('reset-request')}
-            onLoginResult={handleLoginResult}
           />
         );
 
       case 'register':
         return (
-          <RegistrationForm
+          <SimpleRegistrationForm
             onSwitchToLogin={() => setMode('login')}
           />
         );
@@ -97,35 +103,8 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 8 }}>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          minHeight: '80vh',
-          justifyContent: 'center',
-        }}
-      >
-        <Paper
-          elevation={3}
-          sx={{
-            p: 4,
-            width: '100%',
-            maxWidth: mode === 'register' ? 500 : 400,
-            borderRadius: 2,
-            transition: 'max-width 0.3s ease-in-out',
-          }}
-        >
-          {renderCurrentForm()}
-        </Paper>
-
-        <Box sx={{ mt: 4, textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            VTT Tools - Professional Virtual Tabletop Tools for Content Creators
-          </Typography>
-        </Box>
-      </Box>
-    </Container>
+    <Box>
+      {renderCurrentForm()}
+    </Box>
   );
 };

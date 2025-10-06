@@ -8,7 +8,7 @@ public class CreateAssetRequestTests {
             Name = "Title",
             Type = AssetType.Creature,
             Description = "Description",
-            DisplayId = Guid.NewGuid(),
+            ResourceId = Guid.NewGuid(),
         };
         const string name = "Other Title";
         const AssetType type = AssetType.NPC;
@@ -20,13 +20,13 @@ public class CreateAssetRequestTests {
             Name = name,
             Type = type,
             Description = description,
-            DisplayId = newDisplayId,
+            ResourceId = newDisplayId,
         };
 
         // Assert
         data.Name.Should().Be(name);
         data.Type.Should().Be(type);
         data.Description.Should().Be(description);
-        data.DisplayId.Should().Be(newDisplayId);
+        data.ResourceId.Should().Be(newDisplayId);
     }
 }

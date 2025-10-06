@@ -26,35 +26,68 @@ export interface ApiResponse<T> {
 }
 
 // Asset Types (from Domain.Assets.ApiContracts)
+
+// Asset behavioral categories - determines placement and interaction rules
+export enum AssetCategory {
+  Static = 'Static',    // Structural/environmental, locked in place (walls, doors, terrain, light sources)
+  Passive = 'Passive',  // Manipulable objects (furniture, items, containers)
+  Active = 'Active'     // Autonomous entities with actions (characters, NPCs, monsters)
+}
+
 export interface CreateAssetRequest {
   type: AssetType;
+  category: AssetCategory;
   name: string;
   description: string;
-  displayId?: string; // Guid?
+  resourceId?: string; // Guid? - Optional reference to Resource (image/sound/video)
 }
 
 export interface UpdateAssetRequest {
   name?: string;
   description?: string;
-  displayId?: string;
+  type?: AssetType;
+  category?: AssetCategory;
+  resourceId?: string;
 }
 
 export enum AssetType {
+  Placeholder = 'Placeholder',
+  Creature = 'Creature',
   Character = 'Character',
-  Monster = 'Monster',
-  Item = 'Item',
-  Environment = 'Environment',
+  NPC = 'NPC',
+  Object = 'Object',
+  Wall = 'Wall',
+  Door = 'Door',
+  Window = 'Window',
+  Overlay = 'Overlay',
+  Elevation = 'Elevation',
+  Effect = 'Effect',
+  Sound = 'Sound',
+  Music = 'Music',
+  Vehicle = 'Vehicle',
   Token = 'Token'
 }
 
 export interface Asset {
   id: string;
   type: AssetType;
+  category: AssetCategory;
   name: string;
   description: string;
-  displayId?: string;
+  resource?: MediaResource;  // Optional media resource (image/sound/video)
   createdAt: string;
   updatedAt: string;
+}
+
+// Placed Asset - Frontend-only type for local placement state
+export interface PlacedAsset {
+  id: string;           // Unique instance ID (frontend-generated)
+  assetId: string;      // Reference to Asset template
+  asset: Asset;         // Full asset data (for image URL and metadata)
+  position: { x: number; y: number };  // Center position in stage coordinates
+  size: { width: number; height: number };
+  rotation: number;     // Degrees
+  layer: string;        // Layer name (Structure | Objects | Agents)
 }
 
 // Adventures (from Domain.Library.Adventures.ApiContracts)
@@ -148,6 +181,8 @@ export interface SceneAsset {
   visible: boolean;
   locked: boolean;
   asset: Asset;
+  // Placement behavior derived from asset.category but can be customized
+  customBehavior?: Partial<import('./placement').PlacementBehavior>;
 }
 
 // Game Sessions (from Domain.Game.Sessions.ApiContracts)
@@ -223,15 +258,18 @@ export enum ResourceType {
 
 export interface MediaResource {
   id: string;
-  name: string;
-  description: string;
-  resourceType: ResourceType;
-  filePath: string;
-  fileSize: number;
-  mimeType: string;
+  type: ResourceType;
+  path: string;  // Blob storage path
+  metadata: ResourceMetadata;
   tags: string[];
-  createdAt: string;
-  updatedAt: string;
+}
+
+export interface ResourceMetadata {
+  contentType: string;
+  fileName: string;
+  fileLength: number;
+  imageSize?: { width: number; height: number };
+  duration?: string; // TimeSpan as string
 }
 
 // Authentication Types
@@ -252,7 +290,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   confirmPassword: string;
-  userName: string;
+  name: string;           // Maps to backend Name property
+  displayName?: string;   // Optional display name
 }
 
 export interface RegisterResponse {

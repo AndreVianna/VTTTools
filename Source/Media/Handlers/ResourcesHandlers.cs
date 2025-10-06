@@ -65,8 +65,13 @@ internal static class ResourcesHandlers {
     internal static async Task<IResult> DownloadFileHandler([FromRoute] Guid id,
                                                             [FromServices] IResourceService storage) {
         var download = await storage.ServeResourceAsync(id);
-        return download != null
-            ? Results.File(download.Stream, download.ContentType, download.FileName)
-            : Results.NotFound();
+        if (download == null)
+            return Results.NotFound();
+
+        // Serve images inline for browser display, other files as attachment
+        var isImage = download.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
+        return isImage
+            ? Results.File(download.Stream, download.ContentType)  // Inline display
+            : Results.File(download.Stream, download.ContentType, download.FileName);  // Download attachment
     }
 }

@@ -77,7 +77,7 @@ public class AssetStorageTests
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
         dbAsset.OwnerId.Should().Be(asset.OwnerId);
-        dbAsset.DisplayId.Should().Be(asset.Display.Id);
+        dbAsset.ResourceId.Should().Be(asset.Resource?.Id);
     }
 
     [Fact]
@@ -95,10 +95,10 @@ public class AssetStorageTests
             Name = "Updated Asset",
             Type = AssetType.Overlay,
             Description = "Updated description",
-            Display = new() {
-                Id = entity.DisplayId,
+            Resource = new() {
+                Id = entity.ResourceId!.Value,
                 Type = ResourceType.Image,
-                Path = "assets/updated-asset-display",
+                Path = "assets/updated-asset-Resource",
                 Metadata = new ResourceMetadata {
                     ContentType = "image/png",
                     ImageSize = new(100, 100),
@@ -122,7 +122,7 @@ public class AssetStorageTests
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
         dbAsset.OwnerId.Should().Be(asset.OwnerId);
-        dbAsset.DisplayId.Should().Be(asset.Display.Id);
+        dbAsset.ResourceId.Should().Be(asset.Resource?.Id);
     }
 
     [Fact]

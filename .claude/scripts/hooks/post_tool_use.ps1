@@ -1,19 +1,31 @@
-# Claude Code Hooks - Post Tool Use
-# Simplified post-tool logging (optional)
-
 param()
+$jsonInput = ''
+try {
+    if (-not [Console]::IsInputRedirected) {
+        exit 0
+    }
+    $readTask = [Console]::In.ReadToEndAsync()
+    if ($readTask.IsCompleted -or $readTask.Wait(500)) {
+        $jsonInput = $readTask.Result
+    }
+    if ([string]::IsNullOrWhiteSpace($jsonInput)) {
+        exit 0
+    }
 
-# Read JSON input
-$jsonInput = [Console]::In.ReadToEnd()
+}
+catch {
+    exit 0
+}
+
 $data = $jsonInput | ConvertFrom-Json
-
-# Optional: Uncomment the lines below if you want to log tool completions
-# $toolName = $data.tool_name
-# $toolInput = $data.tool_input
-# $toolResponse = $data.tool_response
 $sessionId = $data.session_id
-& "$PSScriptRoot\send_log.ps1" -SessionId $sessionId -Level "DEBUG" -Message "{`"PostToolUse`": $jsonInput}"
+$toolName = $data.tool_name
 
-# $details = "completed successfully"
-# & "$PSScriptRoot\send_event.ps1" -SessionId $sessionId -Operation "PostToolUse" -Details "tool: $toolName, status: success"
+$sessionId = $data.session_id
+$detailsObj = @{
+    tool = $toolName
+    status = success
+}
+$details = $detailsObj | ConvertTo-Json -Compress
+& "$PSScriptRoot\send_event.ps1" -SessionId $sessionId -Operation 'ToolComplete' -Details $details
 exit 0

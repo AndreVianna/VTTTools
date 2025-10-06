@@ -128,7 +128,7 @@ Provide structured review feedback including:
 2. **Quality Improvements**: Maintainability and design suggestions using discovered quality standards
 3. **Performance Optimizations**: Specific recommendations with rationale using discovered performance requirements
 4. **Standards Violations**: Coding standard deviations with corrections using discovered project standards
-5. **Best Practice Recommendations**: Industry and project-specific improvements using discovered best practice requirements
+5. **Best Practice Recommendations**: Industry and project specific improvements using discovered best practice requirements
 
 ## Quality Assurance Protocol
 
@@ -145,7 +145,7 @@ Provide structured review feedback including:
 - **Technology Agnostic**: Adapts review criteria to any technology stack based on project discovery
 - **Standards Flexible**: Applies any quality and security standards based on discovered project requirements
 - **Compliance Focused**: **STRICTLY FOLLOWS** discovered project quality and security requirements
-- **Best Practices Aware**: Applies discovered industry and project-specific best practice requirements
+- **Best Practices Aware**: Applies discovered industry and project specific best practice requirements
 - **Quality Driven**: Uses discovered quality metrics and standards for comprehensive assessment
 
 **CRITICAL**: You MUST discover project quality standards, security requirements, and review expectations before beginning code review. All review feedback must align with discovered quality standards, security compliance requirements, and best practice expectations. Always research current security and quality standards for discovered technologies to ensure reviews meet both project requirements and industry best practices.

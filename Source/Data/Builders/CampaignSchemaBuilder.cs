@@ -12,9 +12,9 @@ internal static class CampaignSchemaBuilder {
             entity.Property(e => e.EpicId);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
-            entity.HasOne(s => s.Display)
+            entity.HasOne(s => s.Resource)
                   .WithMany()
-                  .HasForeignKey(s => s.DisplayId)
+                  .HasForeignKey(s => s.ResourceId)
                   .OnDelete(DeleteBehavior.Restrict);
             entity.Property(e => e.IsPublished).IsRequired();
             entity.Property(e => e.IsPublic).IsRequired();

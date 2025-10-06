@@ -142,7 +142,7 @@ public class ClonerTests {
             Assets = [
                 new() {
                     Name = "Asset 1",
-                    Display = new() {
+                    Resource = new() {
                         Type = ResourceType.Image,
                         Path = "assets/asset1.png",
                         Metadata = new ResourceMetadata {
@@ -158,7 +158,7 @@ public class ClonerTests {
                 },
                 new() {
                     Name = "Asset 2",
-                    Display = new() {
+                    Resource = new() {
                         Type = ResourceType.Image,
                         Path = "assets/asset2.png",
                         Metadata = new ResourceMetadata {
@@ -199,7 +199,7 @@ public class ClonerTests {
                 new() {
                     Index = 1,
                     Name = "Asset 1",
-                    Display = new() {
+                    Resource = new() {
                         Type = ResourceType.Image,
                         Path = "assets/scene-asset.png",
                         Metadata = new ResourceMetadata {
@@ -236,7 +236,7 @@ public class ClonerTests {
         var original = new SceneAsset {
             Index = 1,
             Name = "Original Asset",
-            Display = new() {
+            Resource = new() {
                 Type = ResourceType.Image,
                 Path = "assets/original-asset.png",
                 Metadata = new ResourceMetadata {

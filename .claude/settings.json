@@ -8,6 +8,7 @@
       "Edit",
       "MultiEdit",
       "Write",
+      "Task",
       "Agent",
       "Glob",
       "Grep",
@@ -25,97 +26,43 @@
       "mcp__memory__delete_relations",
       "mcp__memory__add_observations",
       "mcp__memory__delete_observations",
-      "mcp__thinking__sequentialthinking"
+      "mcp__thinking__sequentialthinking",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_close",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_network_requests",
+      "mcp__playwright__browser_tabs",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_take_screenshot",
+      "SlashCommand(/creation:create-project:*)",
+      "SlashCommand(/creation:add-feature:*)",
+      "SlashCommand(/creation:add-use-case:*)",
+      "SlashCommand(/creation:generate-bdd:*)",
+      "SlashCommand(/validation:validate-project:*)",
+      "SlashCommand(/validation:validate-feature:*)",
+      "SlashCommand(/validation:validate-use-case:*)",
+      "SlashCommand(/validation:validate-bdd:*)",
+      "SlashCommand(/extraction:extract-project:*)",
+      "SlashCommand(/extraction:extract-features:*)",
+      "SlashCommand(/maintenance:remove-feature:*)",
+      "SlashCommand(/maintenance:remove-use-case:*)",
+      "SlashCommand(/update:update-project:*)",
+      "SlashCommand(/update:update-feature:*)",
+      "SlashCommand(/update:update-use-case:*)",
+      "SlashCommand(/update:update-bdd:*)",
+      "SlashCommand(/show-structure:*)",
+      "SlashCommand(/workflow-help:*)",
+      "SlashCommand(/implementation:implement-use-case:*)"
     ],
     "deny": []
   },
   "outputStyle": "default",
   "statusLine": {
     "type": "command",
-    "command": "pwsh -ExecutionPolicy Bypass -File \"C:\\Projects\\Personal\\VTTTools\\.claude\\scripts\\utilities\\set_status_line.ps1\""
-  },
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/session_start.ps1\""
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/session_end.ps1\""
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/user_prompt_submit.ps1\""
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/pre_tool_use.ps1\""
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/post_tool_use.ps1\""
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/stop.ps1\""
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/subagent_stop.ps1\""
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwsh -ExecutionPolicy Bypass -File \".claude/scripts/hooks/notification.ps1\""
-          }
-        ]
-      }
-    ]
+    "command": "pwsh -ExecutionPolicy Bypass -File \"C:\\Projects\\Ross\\Utilities\\AI\\Claude\\.claude\\scripts\\utilities\\set_status_line.ps1\""
   }
 }

@@ -28,7 +28,7 @@ public class CampaignTests {
         const string description = "Some Description";
         var ownerId = Guid.NewGuid();
         var epicId = Guid.NewGuid();
-        var display = new Display {
+        var display = new Resource {
             Id = Guid.NewGuid(),
             Type = ResourceType.Image,
             Path = "assets/campaign-background.png",

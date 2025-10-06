@@ -33,7 +33,7 @@ public static class Cloner {
             Type = original.Type,
             Name = original.Name,
             Description = original.Description,
-            Display = original.Display.Clone(),
+            Resource = original.Resource?.Clone(),
             Position = original.Position,
             Size = original.Size,
             Frame = original.Frame,

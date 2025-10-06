@@ -14,7 +14,7 @@ public static class FileDataExtensions {
             _ => new AddResourceData {
                 Path = path,
                 Metadata = new ResourceMetadata {
-                    ContentType = file.ContentType,
+                    ContentType = GetContentType(file.FileName, file.ContentType),
                     FileName = file.FileName,
                     FileLength = (ulong)file.Length,
                     ImageSize = result.Value.Size,
@@ -25,6 +25,19 @@ public static class FileDataExtensions {
         };
     }
 
+    private static string GetContentType(string fileName, string uploadedContentType) {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension switch {
+            ".svg" => "image/svg+xml",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            ".mp4" => "video/mp4",
+            _ => uploadedContentType  // Fall back to uploaded content type
+        };
+    }
+
     private static async Task<Result<FileData>> GetFileData(string fileName, Stream stream) {
         var extension = Path.GetExtension(fileName).ToLowerInvariant();
         return extension switch {
@@ -32,7 +45,8 @@ public static class FileDataExtensions {
             ".gif" => await GetGifInfo(stream),
             ".webp" => await GetWebpInfo(stream),
             ".mp4" => await GetVideoInfo(stream),
-            _ => Result.Failure($"Unsupported file format: {extension}. Supported files: jpg, jpeg, png, gif, webp, and mp4."),
+            ".svg" => await GetSvgInfo(stream),  // SVG is scalable - return default size
+            _ => Result.Failure($"Unsupported file format: {extension}. Supported files: jpg, jpeg, png, gif, webp, svg, and mp4."),
         };
     }
 
@@ -69,5 +83,46 @@ public static class FileDataExtensions {
         finally {
             File.Delete(tempFilePath);
         }
+    }
+
+    private static async Task<(Size, TimeSpan)> GetSvgInfo(Stream stream) {
+        // Parse SVG XML to extract width/height from the root <svg> element
+        using var reader = new StreamReader(stream, leaveOpen: true);
+        var svgContent = await reader.ReadToEndAsync();
+
+        var doc = System.Xml.Linq.XDocument.Parse(svgContent);
+        var svgElement = doc.Root;
+
+        // Try to get width and height attributes
+        var widthAttr = svgElement?.Attribute("width")?.Value;
+        var heightAttr = svgElement?.Attribute("height")?.Value;
+
+        // If width/height not found, try viewBox
+        if (string.IsNullOrEmpty(widthAttr) || string.IsNullOrEmpty(heightAttr)) {
+            var viewBoxAttr = svgElement?.Attribute("viewBox")?.Value;
+            if (!string.IsNullOrEmpty(viewBoxAttr)) {
+                var parts = viewBoxAttr.Split(' ');
+                if (parts.Length == 4) {
+                    // viewBox format: "minX minY width height"
+                    widthAttr = parts[2];
+                    heightAttr = parts[3];
+                }
+            }
+        }
+
+        // Parse dimensions, removing any 'px' suffix
+        var width = TryParseSize(widthAttr) ?? 512;
+        var height = TryParseSize(heightAttr) ?? 512;
+
+        return (new(width, height), TimeSpan.Zero);
+    }
+
+    private static int? TryParseSize(string? value) {
+        if (string.IsNullOrEmpty(value)) return null;
+
+        // Remove common unit suffixes
+        value = value.Replace("px", "").Replace("pt", "").Trim();
+
+        return int.TryParse(value, out var result) ? result : null;
     }
 }

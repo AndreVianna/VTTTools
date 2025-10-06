@@ -32,8 +32,9 @@ export type { AssetErrorProps } from './AssetLoadingError';
 // UC035 - Scene Saving/Loading Error Recovery
 export { SceneRecoveryManager } from './SceneRecovery';
 
-// Global Error Display System
+// Global Error Resource System
 export { GlobalErrorDisplay } from './GlobalErrorDisplay';
+export { ServiceUnavailablePage } from './ServiceUnavailablePage';
 
 // Re-export error utilities from utils
 export {

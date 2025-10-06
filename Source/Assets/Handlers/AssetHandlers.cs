@@ -16,8 +16,9 @@ internal static class AssetHandlers {
         var data = new CreateAssetData {
             Name = request.Name,
             Type = request.Type,
+            Category = request.Category,
             Description = request.Description,
-            DisplayId = request.DisplayId,
+            ResourceId = request.ResourceId,
         };
         var result = await assetService.CreateAssetAsync(userId, data);
         return result.IsSuccessful
@@ -31,7 +32,8 @@ internal static class AssetHandlers {
             Name = request.Name,
             Description = request.Description,
             Type = request.Type,
-            DisplayId = request.DisplayId,
+            Category = request.Category,
+            ResourceId = request.ResourceId,
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,
         };

@@ -49,6 +49,14 @@ export const authApi = createApi({
     getCurrentUser: builder.query<User, void>({
       query: () => '/me',
       providesTags: ['User'],
+      transformResponse: (response: any) => {
+        // Backend returns AuthResponse { Success, User }, extract User
+        if (response?.User || response?.user) {
+          return response.User || response.user;
+        }
+        // If response is already a User object (direct format)
+        return response;
+      },
       transformErrorResponse: (response, meta, arg) => {
         if (isDevelopment && (response.status === 'FETCH_ERROR' || response.data?.isRecoverable)) {
           devUtils.warn('getCurrentUser failed, using mock user in development');

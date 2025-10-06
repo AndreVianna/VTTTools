@@ -5,8 +5,12 @@ public static class Cloner {
         => new() {
             OwnerId = ownerId ?? original.OwnerId,
             Name = original.Name,
+            Type = original.Type,
+            Category = original.Category,
             Description = original.Description,
-            Display = original.Display.Clone(),
+            Resource = original.Resource?.Clone(),
+            IsPublic = original.IsPublic,
+            IsPublished = original.IsPublished,
         };
 
     internal static Resource Clone(this Resource original)

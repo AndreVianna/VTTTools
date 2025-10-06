@@ -13,7 +13,20 @@ internal static class Mapper {
             Name = entity.Name,
             Description = entity.Description,
             Type = entity.Type,
-            Display = entity.Display.ToModel(),
+            Category = entity.Category,
+            Resource = entity.Resource != null ? new Resource {
+                Id = entity.Resource.Id,
+                Type = entity.Resource.Type,
+                Path = entity.Resource.Path,
+                Metadata = new() {
+                    ContentType = entity.Resource.ContentType,
+                    FileName = entity.Resource.FileName,
+                    FileLength = entity.Resource.FileLength,
+                    ImageSize = entity.Resource.ImageSize,
+                    Duration = entity.Resource.Duration,
+                },
+                Tags = entity.Resource.Tags,
+            } : null,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
         };
@@ -41,6 +54,7 @@ internal static class Mapper {
             Name = entity.Name,
             Description = entity.Description,
             Type = entity.Type,
+            Category = entity.Category,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
         };
@@ -52,7 +66,8 @@ internal static class Mapper {
             Name = model.Name,
             Description = model.Description,
             Type = model.Type,
-            DisplayId = model.Display.Id,
+            Category = model.Category,
+            ResourceId = model.Resource?.Id,
             IsPublic = model.IsPublic,
             IsPublished = model.IsPublished,
         };
@@ -63,7 +78,8 @@ internal static class Mapper {
         entity.Name = model.Name;
         entity.Description = model.Description;
         entity.Type = model.Type;
-        entity.DisplayId = model.Display.Id;
+        entity.Category = model.Category;
+        entity.ResourceId = model.Resource?.Id;
         entity.IsPublic = model.IsPublic;
         entity.IsPublished = model.IsPublished;
     }

@@ -289,7 +289,7 @@ public class AuthServiceTests {
             Email = "nodisplay@example.com",
             Password = "Password123!",
             ConfirmPassword = "Password123!",
-            Name = "No Display User",
+            Name = "No Resource User",
             DisplayName = null
         };
 

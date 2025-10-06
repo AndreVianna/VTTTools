@@ -1,35 +1,42 @@
-# Claude Code Hooks - User Prompt Submit
-# Logs user prompts and loads project context
-
 param(
     [switch]$LogOnly,
     [switch]$Validate
 )
+$jsonInput = ''
+try {
+    if (-not [Console]::IsInputRedirected) {
+        exit 0
+    }
+    $readTask = [Console]::In.ReadToEndAsync()
+    if ($readTask.IsCompleted -or $readTask.Wait(500)) {
+        $jsonInput = $readTask.Result
+    }
+    if ([string]::IsNullOrWhiteSpace($jsonInput)) {
+        exit 0
+    }
 
-# Read JSON input
-$jsonInput = [Console]::In.ReadToEnd()
+}
+catch {
+    exit 0
+}
+
 $data = $jsonInput | ConvertFrom-Json
-
 $prompt = $data.prompt
 $sessionId = $data.session_id
 
-# Log the prompt using shared utility
 $detailsObj = @{
     prompt = $prompt
 }
 $details = $detailsObj | ConvertTo-Json -Compress
-& "$PSScriptRoot\send_log.ps1" -SessionId $sessionId -Level "DEBUG" -Message "{`"UserPromptSubmit`": $jsonInput}"
 & "$PSScriptRoot\send_event.ps1" -SessionId $sessionId -Operation "Prompt" -Details $details
 
 # Validation mode - check for prompt issues
 if ($Validate) {
-    # Check for empty prompts
     if ([string]::IsNullOrWhiteSpace($prompt)) {
         Write-Error "Empty prompt submitted"
         exit 2
     }
 
-    # Check for prompts that are too long
     if ($prompt.Length -gt 100000) {
         Write-Error "Prompt exceeds maximum length (100k characters)"
         exit 2
@@ -38,7 +45,6 @@ if ($Validate) {
 
 # Inject context if not log-only mode
 if (-not $LogOnly) {
-    # Load any context files
     $contextDir = Join-Path $PSScriptRoot ".." "context"
     if (Test-Path $contextDir) {
         Write-Host "=== PROJECT CONTEXT ==="

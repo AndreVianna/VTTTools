@@ -159,7 +159,7 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.NewGuid(),
-            DisplayId = displayId ?? Guid.NewGuid(),
+            ResourceId = displayId ?? Guid.NewGuid(),
         };
 
     public static AssetEntity CreateTestAssetEntity(string name, AssetType type = AssetType.Placeholder, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
@@ -256,7 +256,7 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.NewGuid(),
-            Display = new(),
+            Resource = new(),
         };
 
     public static Asset CreateTestAsset(string name, AssetType type = AssetType.Placeholder, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)

@@ -13,9 +13,9 @@ internal static class AssetSchemaBuilder {
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
             entity.Property(e => e.IsPublished).IsRequired();
             entity.Property(e => e.IsPublic).IsRequired();
-            entity.HasOne(e => e.Display)
+            entity.HasOne(e => e.Resource)
                 .WithMany()
-                .HasForeignKey(e => e.DisplayId)
+                .HasForeignKey(e => e.ResourceId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 }

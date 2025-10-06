@@ -11,8 +11,8 @@ public class SceneAsset {
     public uint Number { get; set; }
     [MaxLength(128)]
     public string Name { get; set; } = string.Empty;
-    public Guid DisplayId { get; set; }
-    public Resource Display { get; set; } = null!;
+    public Guid ResourceId { get; set; }
+    public Resource Resource { get; set; } = null!;
     public Frame? Frame { get; set; }
     public Size Size { get; set; }
     public Point Position { get; set; }

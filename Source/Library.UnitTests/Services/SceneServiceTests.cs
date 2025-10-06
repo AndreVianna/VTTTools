@@ -236,7 +236,7 @@ public class SceneServiceTests {
             Id = assetId,
             OwnerId = _userId,
             Name = "Test Asset",
-            Display = new Resource {
+            Resource = new Resource {
                 Id = Guid.NewGuid(),
                 Type = ResourceType.Image,
                 Path = "test/asset-display.png",

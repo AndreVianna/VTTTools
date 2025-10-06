@@ -46,9 +46,9 @@ internal static class SceneSchemaBuilder {
             entity.Property(ea => ea.Index).IsRequired();
             entity.Property(ea => ea.Number).IsRequired();
             entity.Property(ea => ea.Name).IsRequired().HasMaxLength(128);
-            entity.HasOne(s => s.Display)
+            entity.HasOne(s => s.Resource)
                   .WithMany()
-                  .HasForeignKey(s => s.DisplayId)
+                  .HasForeignKey(s => s.ResourceId)
                   .OnDelete(DeleteBehavior.Cascade);
             entity.ComplexProperty(ea => ea.Frame, frameBuilder => {
                 frameBuilder.IsRequired();

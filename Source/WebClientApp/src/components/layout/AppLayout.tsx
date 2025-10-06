@@ -1,0 +1,224 @@
+import React from 'react';
+import {
+  Box,
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  Stack,
+  Container,
+  Link,
+  useTheme
+} from '@mui/material';
+import {
+  LightMode,
+  DarkMode,
+  AccountCircle,
+  KeyboardArrowDown
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { toggleTheme, selectTheme } from '@/store/slices/uiSlice';
+
+interface AppLayoutProps {
+  children: React.ReactNode;
+}
+
+export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
+  const theme = useTheme();
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const currentTheme = useAppSelector(selectTheme);
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const [userMenuAnchor, setUserMenuAnchor] = React.useState<null | HTMLElement>(null);
+
+  const handleThemeToggle = () => {
+    dispatch(toggleTheme());
+  };
+
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setUserMenuAnchor(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchor(null);
+  };
+
+  const handleLogout = async () => {
+    handleUserMenuClose();
+    await logout();
+  };
+
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
+  const handleRegister = () => {
+    navigate('/register');
+  };
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* Header */}
+      <AppBar
+        position="static"
+        elevation={0}
+        sx={{
+          backgroundColor: theme.palette.primary.main,
+          color: 'white'
+        }}
+      >
+        <Toolbar>
+          {/* VTT Tools Branding */}
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{
+              flexGrow: 1,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+            onClick={() => navigate('/')}
+          >
+            VTT Tools
+          </Typography>
+
+          {/* Theme Toggle */}
+          <IconButton
+            color="inherit"
+            onClick={handleThemeToggle}
+            sx={{
+              mr: 1,
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              }
+            }}
+          >
+            {currentTheme === 'light' ? <DarkMode /> : <LightMode />}
+          </IconButton>
+
+          {/* Authentication Controls */}
+          {isAuthenticated && user ? (
+            // Logged in - show user menu
+            <Box>
+              <IconButton
+                color="inherit"
+                onClick={handleUserMenuOpen}
+                sx={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  }
+                }}
+              >
+                <AccountCircle />
+              </IconButton>
+              <Menu
+                anchorEl={userMenuAnchor}
+                open={Boolean(userMenuAnchor)}
+                onClose={handleUserMenuClose}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+              >
+                <MenuItem onClick={() => { handleUserMenuClose(); navigate('/profile'); }}>
+                  Profile
+                </MenuItem>
+                <MenuItem onClick={() => { handleUserMenuClose(); navigate('/settings'); }}>
+                  Settings
+                </MenuItem>
+                <MenuItem onClick={handleLogout}>
+                  Sign Out
+                </MenuItem>
+              </Menu>
+            </Box>
+          ) : (
+            // Not logged in - show login/register buttons
+            <Stack direction="row" spacing={1}>
+              <Button
+                color="inherit"
+                onClick={handleLogin}
+                sx={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  }
+                }}
+              >
+                Login
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleRegister}
+                sx={{
+                  backgroundColor: theme.palette.secondary.main,
+                  '&:hover': {
+                    backgroundColor: theme.palette.secondary.dark,
+                  }
+                }}
+              >
+                Register
+              </Button>
+            </Stack>
+          )}
+        </Toolbar>
+      </AppBar>
+
+      {/* Main Content */}
+      <Box component="main" sx={{ flex: 1 }}>
+        {children}
+      </Box>
+
+      {/* Footer */}
+      <Box
+        component="footer"
+        sx={{
+          backgroundColor: theme.palette.primary.main,
+          color: 'white',
+          py: 2,
+        }}
+      >
+        <Container maxWidth="lg">
+          <Stack
+            direction="row"
+            justifyContent="center"
+            alignItems="center"
+            spacing={2}
+            sx={{ fontSize: '0.875rem' }}
+          >
+            <Link href="/about" color="inherit" underline="hover">
+              About
+            </Link>
+            <Box sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>|</Box>
+            <Link href="/contact" color="inherit" underline="hover">
+              Contact
+            </Link>
+            <Box sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>|</Box>
+            <Link href="/terms" color="inherit" underline="hover">
+              Terms
+            </Link>
+            <Box sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>|</Box>
+            <Link href="/privacy" color="inherit" underline="hover">
+              Privacy
+            </Link>
+            <Box sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>|</Box>
+            <Typography variant="inherit" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+              © 2025 VTT Tools
+            </Typography>
+          </Stack>
+        </Container>
+      </Box>
+    </Box>
+  );
+};

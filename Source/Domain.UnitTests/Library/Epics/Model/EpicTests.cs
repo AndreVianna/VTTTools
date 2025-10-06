@@ -25,7 +25,7 @@ public class EpicTests {
         const string name = "Some Epic";
         const string description = "Some Description";
         var ownerId = Guid.NewGuid();
-        var display = new Display {
+        var display = new Resource {
             Id = Guid.NewGuid(),
             Type = ResourceType.Image,
             Path = "assets/epic-background.png",

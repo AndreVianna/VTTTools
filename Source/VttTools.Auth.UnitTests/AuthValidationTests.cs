@@ -135,7 +135,7 @@ public class AuthValidationTests {
 
         // Act & Assert
         var validationResults = ValidateRequest(request);
-        Assert.Contains(validationResults, v => v.ErrorMessage!.Contains("Display name"));
+        Assert.Contains(validationResults, v => v.ErrorMessage!.Contains("Resource name"));
     }
 
     [Theory]

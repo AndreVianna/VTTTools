@@ -1,5 +1,5 @@
 ---
-allowed-tools: [Bash, Read, Write, Edit, Glob, Grep, mcp__thinking__sequentialthinking, mcp__memory__create_entities, mcp__memory__add_observations, mcp__memory__read_graph, mcp__memory__search_nodes, mcp__memory__open_nodes, TodoWrite]
+allowed-tools: [mcp__memory__create_entities, mcp__memory__delete_entities, mcp__memory__create_relations, mcp__memory__delete_relations, mcp__memory__add_observations, mcp__memory__delete_observations, mcp__memory__read_graph, mcp__memory__search_nodes, mcp__memory__open_nodes, mcp__thinking__sequentialthinking, Task, Read, Write, Edit, Glob, Grep, Bash, TodoWrite]
 description: Generic project initialization with AI-optimized CLAUDE.md template management
 argument-hint: Optional mode (quick|full|template-only) - defaults to full
 ---
@@ -19,10 +19,12 @@ Systematically prepare development environment with AI-optimized CLAUDE.md templ
   - Abort if missing: "FATAL: settings.json missing required 'os' property. Add: \"os\": \"windows|linux|mac\""
   - Abort if invalid value: "FATAL: Invalid 'os' value '{value}'. Must be: windows, linux, mac"
 - **Determine setup script path**: Based on OS property:
-  - The scripts will be located under the `.claude/scripts` folder.
-  - "windows": Uses `.ps1` extensions. i.e.: `.claude/scripts/setup.ps1`
-  - "linux/mac": Uses `.sh` extensions. i.e.: `.claude/scripts/setup.sh`  
-- **Execute setup script**: Use `Bash` tool with appropriate shell to execute the `setup` script.
+  - "windows": `.claude/scripts/setup.ps1`
+  - "linux": `.claude/scripts/setup.sh`  
+  - "mac": `.claude/scripts/setup.sh`
+- **Execute setup script**: Use `Bash` tool with appropriate shell:
+  - Windows: `pwsh -ExecutionPolicy Bypass -File ".claude/scripts/setup.ps1"`
+  - Linux/Mac: `bash ".claude/scripts/setup.sh"`
 - **Validate setup success**: Monitor exit code and abort Prime if setup fails (exit code ≠ 0)
 - **Log setup completion**: Record successful environment setup before proceeding
 
@@ -93,13 +95,13 @@ Systematically prepare development environment with AI-optimized CLAUDE.md templ
 - **STEP 12**: Use `Read` to verify cleanup was successful - NO tier comments should remain
 - **MANDATORY FINAL VALIDATION**: Use `Grep` to search generated CLAUDE.md for ".claude/" in documentation section:
   - If found: ERROR - report which variables contain ".claude/" and set them to "N/A"
-  - Remove any remaining ".claude/" references in documentation
+  - Use `Edit` to fix any remaining ".claude/" references in documentation
 - **FINAL VERIFICATION**: Use `Read` to show user the final clean CLAUDE.md
 - **Report completion**: Confirm generation successful with clean, professional output
 
 ### Phase 3: Context Budget Validation
 
-- **Run budget validator**: Use `Bash` to execute `context_budget_validator` script in `.claude/scripts/utilities` folder if available
+- **Run budget validator**: Use `Bash` to execute `context_budget_validator` script in `.claude/scripts/utilities` folder
 - **Count effective lines**: Use `Read` to count lines in generated CLAUDE.md after conditional processing and variable substitution
 - **Validate tier markers**: Verify NEVER_COMPRESS, LIGHT_OPTIMIZE, MODERATE_OPTIMIZE, HEAVY_OPTIMIZE tier markers are present
 - **Check tier compliance**: Ensure NEVER_COMPRESS sections (⚠️ marked) remain intact and unmodified
@@ -129,10 +131,10 @@ Systematically prepare development environment with AI-optimized CLAUDE.md templ
 
 ## Error Handling
 
-- **Missing settings.json**: "FATAL: `.claude/settings.json` not found"
+- **Missing settings.json**: "FATAL: .claude/settings.json not found"
 - **Missing os property**: "FATAL: settings.json missing required 'os' property. Add: \"os\": \"windows|linux|mac\""
 - **Invalid os value**: "FATAL: Invalid 'os' value '{value}'. Valid values: windows, linux, mac"
-- **Missing setup script**: "FATAL: Setup script not found: `.claude/scripts/setup.{ps1|sh}`"
+- **Missing setup script**: "FATAL: Setup script not found: .claude/scripts/setup.{ps1|sh}"
 - **Setup execution failure**: "FATAL: Environment setup failed (exit code: {code}). Check setup script output above."
 - **Missing scripts**: Provide fallback detection if platform-specific scripts unavailable
 - **Template not found**: Use built-in minimal template if CLAUDE_TEMPLATE.md missing

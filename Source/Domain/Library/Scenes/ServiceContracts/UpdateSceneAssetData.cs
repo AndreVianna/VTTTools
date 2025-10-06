@@ -4,7 +4,7 @@ public record UpdateSceneAssetData
     : Data {
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
-    public Optional<Guid> DisplayId { get; init; }
+    public Optional<Guid> ResourceId { get; init; }
     public Optional<Point> Position { get; init; }
     public Optional<Size> Size { get; init; }
     public Optional<Frame?> Frame { get; init; }

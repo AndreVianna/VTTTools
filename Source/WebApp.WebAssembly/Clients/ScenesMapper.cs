@@ -38,8 +38,8 @@ public static class ScenesMapper {
             Size = asset.Size,
             Rotation = asset.Rotation,
             Elevation = asset.Elevation,
-            DisplayType = asset.Display.Type,
-            DisplayPath = asset.Display.Path,
+            DisplayType = asset.Resource?.Type ?? ResourceType.Undefined,
+            DisplayPath = asset.Resource?.Path ?? string.Empty,
             ControlledBy = asset.ControlledBy,
             IsLocked = false,
         };

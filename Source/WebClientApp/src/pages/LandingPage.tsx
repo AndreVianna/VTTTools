@@ -6,315 +6,259 @@ import {
   Button,
   Card,
   CardContent,
+  CardActions,
+  useTheme,
   Grid,
-  Paper,
-  Chip,
-  Stack,
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import {
   Map as MapIcon,
-  Inventory2 as AssetIcon,
-  Group as SessionIcon,
-  Brush as CreativeIcon,
-  Speed as PerformanceIcon,
-  Security as SecurityIcon,
-  Login as LoginIcon,
-  Dashboard as DashboardIcon,
+  LibraryBooks as LibraryIcon,
+  Create as CreateIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
+import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { isDevelopment, isStandalone } from '@/config/development';
+
+// Professional Hero Section with gradient background
+const HeroContainer = styled(Box)(({ theme }) => ({
+  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+  borderRadius: 16,
+  padding: '80px 40px',
+  margin: '24px 0',
+  position: 'relative',
+  overflow: 'hidden',
+  textAlign: 'center',
+
+  // Subtle background pattern
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+    opacity: 0.1,
+  },
+}));
+
+const HeroTitle = styled(Typography)(({ theme }) => ({
+  color: '#FFFFFF',
+  marginBottom: theme.spacing(3),
+  fontWeight: 700,
+  fontSize: '3.5rem',
+  lineHeight: 1.1,
+  letterSpacing: '-0.025em',
+
+  [theme.breakpoints.down('md')]: {
+    fontSize: '2.5rem',
+  },
+}));
+
+const HeroSubtitle = styled(Typography)(({ theme }) => ({
+  color: 'rgba(255, 255, 255, 0.9)',
+  marginBottom: theme.spacing(5),
+  fontSize: '1.25rem',
+  lineHeight: 1.5,
+  maxWidth: '600px',
+  margin: `0 auto ${theme.spacing(5)}px`,
+}));
+
+const CTAContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  gap: theme.spacing(2),
+  justifyContent: 'center',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+}));
+
+const PrimaryCTA = styled(Button)(({ theme }) => ({
+  backgroundColor: '#FFFFFF',
+  color: theme.palette.primary.main,
+  padding: '14px 32px',
+  fontSize: '1rem',
+  fontWeight: 600,
+  boxShadow: 'none',
+  borderRadius: 12,
+
+  '&:hover': {
+    backgroundColor: '#F9FAFB',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+  },
+}));
+
+const SecondaryCTA = styled(Button)(({ theme }) => ({
+  borderColor: '#FFFFFF',
+  color: '#FFFFFF',
+  padding: '14px 32px',
+  fontSize: '1rem',
+  fontWeight: 500,
+  borderRadius: 12,
+
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#FFFFFF',
+    transform: 'translateY(-2px)',
+  },
+}));
+
+// Dashboard content container for authenticated users
+const DashboardContainer = styled(Box)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: 16,
+  padding: '48px 40px',
+  textAlign: 'center',
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: '0 4px 6px rgba(17, 24, 39, 0.05), 0 2px 4px rgba(17, 24, 39, 0.06)',
+}));
 
 export const LandingPage: React.FC = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
-
-  const features = [
-    {
-      icon: <MapIcon fontSize="large" />,
-      title: 'Scene Builder',
-      description: 'Create immersive battle maps with drag-and-drop assets, multi-layer canvas, and grid systems.',
-      phase: 'Phase 5',
-    },
-    {
-      icon: <AssetIcon fontSize="large" />,
-      title: 'Asset Management',
-      description: 'Organize and manage your visual assets with smart categorization and search capabilities.',
-      phase: 'Phase 3',
-    },
-    {
-      icon: <SessionIcon fontSize="large" />,
-      title: 'Game Sessions',
-      description: 'Host multiplayer sessions with real-time collaboration and chat functionality.',
-      phase: 'Phase 4',
-    },
-    {
-      icon: <CreativeIcon fontSize="large" />,
-      title: 'Adventure Creation',
-      description: 'Design and manage complete adventures with scenes, assets, and storylines.',
-      phase: 'Phase 3',
-    },
-    {
-      icon: <PerformanceIcon fontSize="large" />,
-      title: 'High Performance',
-      description: 'Optimized canvas rendering with 50+ fps for smooth creative workflows.',
-      phase: 'All Phases',
-    },
-    {
-      icon: <SecurityIcon fontSize="large" />,
-      title: 'Secure & Reliable',
-      description: 'Enterprise-grade security with seamless authentication and data protection.',
-      phase: 'Phase 1',
-    },
-  ];
-
-  const developmentStatus = [
-    { phase: 'Phase 1', title: 'Authentication & Infrastructure', status: 'In Progress', color: 'primary' as const },
-    { phase: 'Phase 2', title: 'Navigation & Dashboard', status: 'Planned', color: 'default' as const },
-    { phase: 'Phase 3', title: 'Content Management', status: 'Planned', color: 'default' as const },
-    { phase: 'Phase 4', title: 'Real-time Sessions', status: 'Planned', color: 'default' as const },
-    { phase: 'Phase 5', title: 'Scene Builder Canvas', status: 'Planned', color: 'default' as const },
-    { phase: 'Phase 6', title: 'Polish & Production', status: 'Planned', color: 'default' as const },
-  ];
+  const { user, isAuthenticated } = useAuth();
 
   return (
-    <Container maxWidth="lg" sx={{ py: 8 }}>
-      {/* Hero Section */}
-      <Box
-        sx={{
-          textAlign: 'center',
-          mb: 8,
-          py: 6,
-        }}
-      >
-        <Typography
-          variant="h1"
-          component="h1"
-          gutterBottom
-          sx={{
-            background: 'linear-gradient(45deg, #2563EB, #7C3AED)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            mb: 2,
-          }}
-        >
-          VTT Tools
-        </Typography>
-        <Typography
-          variant="h4"
-          component="h2"
-          gutterBottom
-          color="text.secondary"
-          sx={{ mb: 3, fontWeight: 400 }}
-        >
-          Professional Virtual Tabletop Tools for Content Creators
-        </Typography>
-        <Typography
-          variant="body1"
-          sx={{
-            mb: 4,
-            maxWidth: 800,
-            mx: 'auto',
-            fontSize: '1.125rem',
-            lineHeight: 1.6,
-            color: 'text.secondary',
-          }}
-        >
-          Create immersive adventures, manage assets, and build stunning scenes for your tabletop RPG sessions.
-          VTT Tools provides a comprehensive platform designed specifically for game masters and content creators
-          who demand professional-grade tools with exceptional performance.
-        </Typography>
-
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={2}
-          justifyContent="center"
-          sx={{ mb: 4 }}
-        >
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={<LoginIcon />}
-            onClick={() => navigate('/login')}
-            sx={{ minWidth: 160, py: 1.5 }}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {isAuthenticated ? (
+        // Dashboard Preview for authenticated users - Phase 2
+        <Box>
+          <Typography
+            variant="h2"
+            component="h1"
+            sx={{
+              textAlign: 'center',
+              mb: 2,
+              color: theme.palette.text.primary,
+            }}
           >
-            Get Started
-          </Button>
-          <Button
-            variant="outlined"
-            size="large"
-            startIcon={<DashboardIcon />}
-            onClick={() => navigate('/dashboard')}
-            sx={{ minWidth: 160, py: 1.5 }}
+            Welcome back, {user?.userName || 'Game Master'}!
+          </Typography>
+
+          <Typography
+            variant="h5"
+            sx={{
+              textAlign: 'center',
+              color: theme.palette.text.secondary,
+              mb: 5,
+              fontWeight: 400,
+            }}
           >
-            View Dashboard
-          </Button>
-        </Stack>
+            Your Creative Workspace
+          </Typography>
 
-        {/* Integration Status */}
-        <Paper
-          elevation={1}
-          sx={{
-            p: 3,
-            maxWidth: 600,
-            mx: 'auto',
-            backgroundColor: isStandalone && isDevelopment ? 'warning.light' : 'success.light',
-            color: isStandalone && isDevelopment ? 'warning.contrastText' : 'success.contrastText',
-            borderRadius: 2,
-          }}
-        >
-          {isStandalone && isDevelopment ? (
-            <>
-              <Typography variant="h6" gutterBottom>
-                🔧 Development Mode - Standalone Configuration
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Running in standalone development mode with mock services. Backend integration available via Aspire orchestration.
-              </Typography>
-            </>
-          ) : (
-            <>
-              <Typography variant="h6" gutterBottom>
-                ✅ React SPA Successfully Integrated with .NET Aspire Infrastructure
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Phase 1 Week 1 implementation complete with authentication, service discovery, and error handling
-              </Typography>
-            </>
-          )}
-        </Paper>
-      </Box>
-
-      {/* Features Section */}
-      <Box sx={{ mb: 8 }}>
-        <Typography variant="h2" component="h2" textAlign="center" gutterBottom sx={{ mb: 6 }}>
-          Comprehensive VTT Platform
-        </Typography>
-        <Grid container spacing={4}>
-          {features.map((feature, index) => (
-            <Grid item xs={12} sm={6} lg={4} key={index}>
-              <Card
-                sx={{
-                  height: '100%',
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 3,
-                  },
-                }}
-              >
-                <CardContent sx={{ p: 3, textAlign: 'center' }}>
-                  <Box
-                    sx={{
-                      color: 'primary.main',
-                      mb: 2,
-                      display: 'flex',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {feature.icon}
-                  </Box>
-                  <Typography variant="h5" component="h3" gutterBottom>
-                    {feature.title}
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            {/* Scene Editor - Phase 3-4 Complete */}
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
+                  <MapIcon color="primary" sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography variant="h6" gutterBottom>
+                    Scene Editor
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    {feature.description}
+                  <Typography variant="body2" color="text.secondary">
+                    Create tactical maps with grids and tokens
                   </Typography>
-                  <Chip
-                    label={feature.phase}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                  />
                 </CardContent>
+                <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => navigate('/scene-editor')}
+                  >
+                    Open Editor
+                  </Button>
+                </CardActions>
               </Card>
             </Grid>
-          ))}
-        </Grid>
-      </Box>
 
-      {/* Development Status */}
-      <Box sx={{ mb: 8 }}>
-        <Typography variant="h2" component="h2" textAlign="center" gutterBottom sx={{ mb: 4 }}>
-          Development Roadmap
-        </Typography>
-        <Typography variant="body1" textAlign="center" color="text.secondary" sx={{ mb: 4 }}>
-          VTT Tools is being developed in phases, with each phase building upon the previous to deliver
-          a complete professional VTT platform.
-        </Typography>
-
-        <Grid container spacing={2}>
-          {developmentStatus.map((phase, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
-              <Paper
-                elevation={1}
-                sx={{
-                  p: 2.5,
-                  textAlign: 'center',
-                  borderRadius: 2,
-                  border: phase.status === 'In Progress' ? '2px solid' : '1px solid',
-                  borderColor: phase.status === 'In Progress' ? 'primary.main' : 'divider',
-                }}
-              >
-                <Typography variant="h6" gutterBottom color="primary">
-                  {phase.phase}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                  {phase.title}
-                </Typography>
-                <Chip
-                  label={phase.status}
-                  color={phase.color}
-                  size="small"
-                  variant={phase.status === 'In Progress' ? 'filled' : 'outlined'}
-                />
-              </Paper>
+            {/* Content Library - Phase 7-8 Blocked */}
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', opacity: 0.6 }}>
+                <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
+                  <LibraryIcon color="disabled" sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography variant="h6" gutterBottom>
+                    Content Library
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Manage epics, campaigns, adventures
+                  </Typography>
+                </CardContent>
+                <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
+                  <Button size="small" disabled variant="outlined">
+                    Phase 7-8
+                  </Button>
+                </CardActions>
+              </Card>
             </Grid>
-          ))}
-        </Grid>
-      </Box>
 
-      {/* Architecture Section */}
-      <Box sx={{ textAlign: 'center' }}>
-        <Typography variant="h2" component="h2" gutterBottom sx={{ mb: 4 }}>
-          Modern Architecture
-        </Typography>
-        <Paper
-          elevation={1}
-          sx={{
-            p: 4,
-            backgroundColor: 'grey.50',
-            borderRadius: 2,
-          }}
-        >
-          <Typography variant="h5" gutterBottom>
-            React 18+ with .NET Aspire Microservices
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            Built on a modern, scalable architecture combining React for the frontend with .NET Aspire
-            orchestrating microservices for assets, scenes, sessions, and media management.
-          </Typography>
+            {/* Asset Library - Phase 5 Planned */}
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', opacity: 0.6 }}>
+                <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
+                  <CreateIcon color="disabled" sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography variant="h6" gutterBottom>
+                    Asset Library
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Browse creatures, characters, tokens
+                  </Typography>
+                </CardContent>
+                <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
+                  <Button size="small" disabled variant="outlined">
+                    Phase 5
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
 
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={2}
-            justifyContent="center"
-            flexWrap="wrap"
-            useFlexGap
-          >
-            <Chip label="React 18+" color="primary" />
-            <Chip label="TypeScript" color="primary" />
-            <Chip label="Material UI" color="primary" />
-            <Chip label="Konva.js Canvas" color="primary" />
-            <Chip label="Redux Toolkit" color="primary" />
-            <Chip label="SignalR" color="primary" />
-            <Chip label=".NET Aspire" color="secondary" />
-            <Chip label="Microservices" color="secondary" />
-            <Chip label="SQL Server" color="secondary" />
-            <Chip label="Redis Cache" color="secondary" />
-            <Chip label="Azure Storage" color="secondary" />
-          </Stack>
-        </Paper>
-      </Box>
+            {/* Account Settings - Phase 10 Planned */}
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', opacity: 0.6 }}>
+                <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
+                  <SettingsIcon color="disabled" sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography variant="h6" gutterBottom>
+                    Account Settings
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Profile, security, 2FA settings
+                  </Typography>
+                </CardContent>
+                <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
+                  <Button size="small" disabled variant="outlined">
+                    Phase 10
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          </Grid>
+        </Box>
+      ) : (
+        // Hero section for non-authenticated users
+        <HeroContainer>
+          <HeroTitle variant="h1">
+            Craft Legendary Adventures
+          </HeroTitle>
+          <HeroSubtitle variant="h5">
+            Professional Virtual Tabletop tools designed for Game Masters who create epic campaigns and immersive worlds
+          </HeroSubtitle>
+          <CTAContainer>
+            <PrimaryCTA
+              variant="contained"
+              onClick={() => navigate('/register')}
+            >
+              Start Creating
+            </PrimaryCTA>
+            <SecondaryCTA
+              variant="outlined"
+              onClick={() => navigate('/login')}
+            >
+              Explore Features
+            </SecondaryCTA>
+          </CTAContainer>
+        </HeroContainer>
+      )}
     </Container>
   );
 };

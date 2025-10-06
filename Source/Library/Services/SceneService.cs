@@ -130,7 +130,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         var sceneAsset = new SceneAsset {
             Index = scene.Assets.Max(sa => sa.Index) + 1,
             Number = scene.Assets.Where(sa => sa.Id == assetId).Max(sa => sa.Number) + 1,
-            Display = asset.Display,
+            Resource = asset.Resource,
             Name = data.Name.IsSet ? data.Name.Value : asset.Name,
             Position = data.Position,
             Size = data.Size,
@@ -185,9 +185,9 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             return result;
         sceneAsset = sceneAsset with {
             Name = data.Name.IsSet ? data.Name.Value : sceneAsset.Name,
-            Display = data.DisplayId.IsSet
-                ? await mediaStorage.GetByIdAsync(data.DisplayId.Value, ct) ?? sceneAsset.Display
-                : sceneAsset.Display,
+            Resource = data.ResourceId.IsSet
+                ? await mediaStorage.GetByIdAsync(data.ResourceId.Value, ct) ?? sceneAsset.Resource
+                : sceneAsset.Resource,
             Position = data.Position.IsSet ? data.Position.Value : sceneAsset.Position,
             Size = data.Size.IsSet ? data.Size.Value : sceneAsset.Size,
             Rotation = data.Rotation.IsSet ? data.Rotation.Value : 0f,

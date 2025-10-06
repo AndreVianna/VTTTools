@@ -161,9 +161,6 @@ function Parse-LogLine {
 function Show-Entry {
     param($Entry, [string]$DisplayFormat, [bool]$UseColor = $true)
 
-    if ($Entry.Operation -eq "Task") { $Entry.Operation = "SubagentStart" }
-    if ($Entry.Operation -eq "mcp__thinking__sequentialthinking") { $Entry.Operation = "Thinking" }
-    if ($Entry.Operation -eq "DEBUG" -or $Entry.Operation -eq "INFO" -or $Entry.Operation -eq "WARN" -or $Entry.Operation -eq "ERROR") { return }
     $operationColors = @{
         "SessionStart" = "Blue"
         "SessionEnd" = "Blue"
@@ -171,16 +168,17 @@ function Show-Entry {
         "Read" = "Blue"
         "Write" = "Magenta"
         "Edit" = "DarkMagenta"
-        "MultiEdit" = "DarkMagenta"
         "Bash" = "Green"
+        "Task" = "DarkGreen"
         "TodoWrite" = "DarkMagenta"
         "SecurityBlock" = "DarkRed"
-        "Stop" = "DarkYellow"
-        "SubagentStart" = "DarkGreen"
         "SubagentStop" = "DarkYellow"
         "ExitPlanMode" = "DarkYellow"
         "Notification" = "DarkCyan"
-        "Thinking" = "Cyan"
+        "DEBUG" = "DarkGray"
+        "INFO" = "DarkCyan"
+        "WARN" = "Yellow"
+        "ERROR" = "Red"
     }
 
     # Default colors for safe PowerShell color handling
@@ -210,20 +208,11 @@ function Show-Entry {
                 "Edit" {
                     Write-Host "$($Entry.Details.file_path)" -ForegroundColor Gray
                 }
-                "MultiEdit" {
-                    Write-Host "$($Entry.Details.file_path), $($Entry.Details.edits_count) edits" -ForegroundColor Gray
-                }
                 "Bash" {
                     Write-Host "$($Entry.Details.command)" -ForegroundColor Gray
                 }
-                "SubagentStart" {
+                "Task" {
                     Write-Host "$($Entry.Details.subagent_type)" -ForegroundColor Gray
-                }
-                "SubagentStop" {
-                    Write-Host "" -ForegroundColor Gray
-                }
-                "Stop" {
-                    Write-Host "" -ForegroundColor Gray
                 }
                 "SecurityBlock" {
                     Write-Host "$($Entry.Details.tool): $($Entry.Details.reason)" -ForegroundColor DarkRed
@@ -250,23 +239,21 @@ function Show-Entry {
                         Write-Host "$($todo.content)" -ForegroundColor Gray
                     }
                 }
-                "Thinking" {
-                    $thoughtRaw = [string]($Entry.Details.thought ?? "")
-                    # Convert escaped \n sequences into actual new lines
-                    $thoughtFormatted = $thoughtRaw -replace '\\n', "`n"
-
-                    Write-Host ""
-                    Write-Host "💭 $($thoughtFormatted)" -ForegroundColor Gray
-                    if ($Entry.Details.nextThoughtNeeded) {
-                        Write-Host "🤔 I need to think more." -ForegroundColor Gray
-                    }
-                    else {
-                        Write-Host "👍 I am done thinking" -ForegroundColor Gray
-                    }
+                "DEBUG" {
+                    Write-Host "$($Entry.Details.raw)" -ForegroundColor DarkGray
+                }
+                "INFO" {
+                    Write-Host "$($Entry.Details.raw)" -ForegroundColor DarkCyan
+                }
+                "WARN" {
+                    Write-Host "$($Entry.Details.raw)" -ForegroundColor Yellow
+                }
+                "ERROR" {
+                    Write-Host "$($Entry.Details.raw)" -ForegroundColor Red
                 }
                 default {
                     Write-Host ""
-                    Write-Host "$($Entry.Details | ConvertTo-Json -Depth 5)" -ForegroundColor Gray
+                    Write-Host "$($Entry.Details | ConvertTo-Json)" -ForegroundColor Gray
                 }
             }
         }

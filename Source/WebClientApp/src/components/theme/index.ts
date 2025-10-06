@@ -1,0 +1,1 @@
+export { VTTThemeProvider } from './VTTThemeProvider';

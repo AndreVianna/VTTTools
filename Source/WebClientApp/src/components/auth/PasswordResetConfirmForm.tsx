@@ -41,10 +41,8 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
     email: '',
     token: '',
     newPassword: '',
-    confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isInvalidToken, setIsInvalidToken] = useState(false);
 
   const { confirmResetPassword, isLoading, error } = useAuth();
@@ -53,7 +51,6 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
     email?: string;
     token?: string;
     newPassword?: string;
-    confirmPassword?: string;
   }>({});
 
   // Extract email and token from URL params
@@ -136,13 +133,6 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
       errors.newPassword = 'Password is too weak. Missing: ' + passwordStrength.feedback.join(', ');
     }
 
-    // Confirm password validation
-    if (!formData.confirmPassword) {
-      errors.confirmPassword = 'Please confirm your password';
-    } else if (formData.newPassword !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
-    }
-
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -174,7 +164,7 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
         formData.email,
         formData.token,
         formData.newPassword,
-        formData.confirmPassword
+        formData.newPassword  // Send password twice (backend still requires confirmPassword)
       );
     } catch (error) {
       // Error is already handled by the useAuth hook
@@ -299,41 +289,6 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
             )}
           </Box>
         )}
-
-        <TextField
-          fullWidth
-          id="confirmPassword"
-          name="confirmPassword"
-          label="Confirm New Password"
-          type={showConfirmPassword ? 'text' : 'password'}
-          value={formData.confirmPassword}
-          onChange={handleInputChange('confirmPassword')}
-          error={!!validationErrors.confirmPassword}
-          helperText={validationErrors.confirmPassword}
-          disabled={isLoading}
-          margin="normal"
-          required
-          autoComplete="new-password"
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                {formData.confirmPassword && (
-                  formData.newPassword === formData.confirmPassword ?
-                    <CheckCircle color="success" sx={{ mr: 1 }} /> :
-                    <Cancel color="error" sx={{ mr: 1 }} />
-                )}
-                <IconButton
-                  aria-label="toggle confirm password visibility"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  edge="end"
-                  disabled={isLoading}
-                >
-                  {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
 
         <Button
           type="submit"

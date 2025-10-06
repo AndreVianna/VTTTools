@@ -23,9 +23,60 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
   const baseQuery = fetchBaseQuery({
     baseUrl,
     credentials: 'include',
-    prepareHeaders: (headers) => {
+    prepareHeaders: (headers, { getState }) => {
       headers.set('Content-Type', 'application/json');
       headers.set('X-Requested-With', 'XMLHttpRequest');
+
+      // Add x-user header for microservice authentication
+      const state = getState() as any;
+      const user = state?.auth?.user;
+
+      if (isDevelopment) {
+        console.log('🔐 Auth Debug - User from state:', user?.id);
+      }
+
+      if (user?.id) {
+        // Convert GUID string to bytes matching .NET Guid.ToByteArray() format
+        // .NET uses mixed endianness: first 3 components little-endian, last 2 big-endian
+        const parts = user.id.split('-');
+        const bytes = new Uint8Array(16);
+
+        // Data1 (4 bytes) - little endian
+        const data1 = parseInt(parts[0], 16);
+        bytes[0] = data1 & 0xFF;
+        bytes[1] = (data1 >> 8) & 0xFF;
+        bytes[2] = (data1 >> 16) & 0xFF;
+        bytes[3] = (data1 >> 24) & 0xFF;
+
+        // Data2 (2 bytes) - little endian
+        const data2 = parseInt(parts[1], 16);
+        bytes[4] = data2 & 0xFF;
+        bytes[5] = (data2 >> 8) & 0xFF;
+
+        // Data3 (2 bytes) - little endian
+        const data3 = parseInt(parts[2], 16);
+        bytes[6] = data3 & 0xFF;
+        bytes[7] = (data3 >> 8) & 0xFF;
+
+        // Data4 (8 bytes) - big endian
+        const data4 = parts[3] + parts[4];
+        for (let i = 0; i < 8; i++) {
+          bytes[8 + i] = parseInt(data4.substr(i * 2, 2), 16);
+        }
+
+        // Convert to base64URL (base64 with URL-safe characters)
+        const base64 = btoa(String.fromCharCode(...bytes));
+        const base64Url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+
+        headers.set('x-user', base64Url);
+
+        if (isDevelopment) {
+          console.log('🔐 Auth Debug - x-user header:', base64Url);
+        }
+      } else if (isDevelopment) {
+        console.warn('⚠️ No user ID found in state for x-user header');
+      }
+
       return headers;
     },
   });
