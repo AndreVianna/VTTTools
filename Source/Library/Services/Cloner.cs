@@ -27,21 +27,18 @@ public static class Cloner {
 
     internal static SceneAsset Clone(this SceneAsset original)
         => new() {
-            OwnerId = original.OwnerId,
-            Id = original.Id,
+            AssetId = original.AssetId,
             Index = original.Index,
-            Type = original.Type,
+            Number = original.Number,
             Name = original.Name,
             Description = original.Description,
-            Resource = original.Resource?.Clone(),
+            ResourceId = original.ResourceId,
             Position = original.Position,
             Size = original.Size,
             Frame = original.Frame,
             Rotation = original.Rotation,
             Elevation = original.Elevation,
             IsLocked = original.IsLocked,
-            IsPublic = original.IsPublic,
-            IsPublished = original.IsPublished,
             ControlledBy = original.ControlledBy,
         };
 

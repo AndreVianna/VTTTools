@@ -2,10 +2,13 @@
 
 public record UpdateSceneAssetData
     : Data {
+    // Overridable properties
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
     public Optional<Guid> ResourceId { get; init; }
-    public Optional<Point> Position { get; init; }
+
+    // Instance-specific properties
+    public Optional<Position> Position { get; init; }
     public Optional<Size> Size { get; init; }
     public Optional<Frame?> Frame { get; init; }
     public Optional<float> Rotation { get; init; }

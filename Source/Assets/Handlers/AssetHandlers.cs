@@ -14,11 +14,12 @@ internal static class AssetHandlers {
     internal static async Task<IResult> CreateAssetHandler(HttpContext context, [FromBody] CreateAssetRequest request, [FromServices] IAssetService assetService) {
         var userId = context.User.GetUserId();
         var data = new CreateAssetData {
+            Kind = request.Kind,
             Name = request.Name,
-            Type = request.Type,
-            Category = request.Category,
             Description = request.Description,
             ResourceId = request.ResourceId,
+            ObjectProps = request.ObjectProps,
+            CreatureProps = request.CreatureProps,
         };
         var result = await assetService.CreateAssetAsync(userId, data);
         return result.IsSuccessful
@@ -31,15 +32,15 @@ internal static class AssetHandlers {
         var data = new UpdateAssetData {
             Name = request.Name,
             Description = request.Description,
-            Type = request.Type,
-            Category = request.Category,
             ResourceId = request.ResourceId,
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,
+            ObjectProps = request.ObjectProps,
+            CreatureProps = request.CreatureProps,
         };
         var result = await assetService.UpdateAssetAsync(userId, id, data);
         return result.IsSuccessful
-            ? Results.Created($"/api/assets/{result.Value.Id}", result.Value)
+            ? Results.Ok(result.Value)  // 200 OK with updated entity (has side effects: UpdatedAt)
             : result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"

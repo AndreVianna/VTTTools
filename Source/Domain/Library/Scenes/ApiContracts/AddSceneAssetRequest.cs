@@ -1,8 +1,13 @@
 ﻿namespace VttTools.Library.Scenes.ApiContracts;
 
 public record AddSceneAssetRequest {
+    // Overridable properties
     public Optional<string> Name { get; init; }
-    public Point Position { get; init; }
+    public Optional<string> Description { get; init; }
+    public Optional<Guid> ResourceId { get; init; }
+
+    // Instance-specific properties
+    public Position Position { get; init; }
     public Size Size { get; init; }
     public Frame? Frame { get; init; }
     public float Rotation { get; init; }

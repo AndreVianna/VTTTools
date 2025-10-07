@@ -128,10 +128,14 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         if (result.HasErrors)
             return result;
         var sceneAsset = new SceneAsset {
-            Index = scene.Assets.Max(sa => sa.Index) + 1,
-            Number = scene.Assets.Where(sa => sa.Id == assetId).Max(sa => sa.Number) + 1,
-            Resource = asset.Resource,
+            AssetId = assetId,
+            Index = scene.Assets.Any() ? scene.Assets.Max(sa => sa.Index) + 1 : 0,
+            Number = scene.Assets.Where(sa => sa.AssetId == assetId).Any()
+                ? scene.Assets.Where(sa => sa.AssetId == assetId).Max(sa => sa.Number) + 1
+                : 1,
             Name = data.Name.IsSet ? data.Name.Value : asset.Name,
+            Description = data.Description.IsSet ? data.Description.Value : null,  // Override if provided
+            ResourceId = data.ResourceId.IsSet ? data.ResourceId.Value : null,  // Override if provided
             Position = data.Position,
             Size = data.Size,
             Frame = data.Frame,
@@ -158,9 +162,9 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             return Result.Failure("NotFound");
         var sceneAsset = asset.Clone() with {
             Index = scene.Assets.Max(sa => sa.Index) + 1,
-            Number = scene.Assets.Where(sa => sa.Id == asset.Id).Max(sa => sa.Number) + 1,
+            Number = scene.Assets.Where(sa => sa.AssetId == asset.AssetId).Max(sa => sa.Number) + 1,
             ControlledBy = userId,
-            Position = new(),
+            Position = new Position(0, 0),
             IsLocked = false,
         };
         scene.Assets.Add(sceneAsset);
@@ -185,13 +189,12 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             return result;
         sceneAsset = sceneAsset with {
             Name = data.Name.IsSet ? data.Name.Value : sceneAsset.Name,
-            Resource = data.ResourceId.IsSet
-                ? await mediaStorage.GetByIdAsync(data.ResourceId.Value, ct) ?? sceneAsset.Resource
-                : sceneAsset.Resource,
+            Description = data.Description.IsSet ? data.Description.Value : sceneAsset.Description,
+            ResourceId = data.ResourceId.IsSet ? data.ResourceId.Value : sceneAsset.ResourceId,
             Position = data.Position.IsSet ? data.Position.Value : sceneAsset.Position,
             Size = data.Size.IsSet ? data.Size.Value : sceneAsset.Size,
-            Rotation = data.Rotation.IsSet ? data.Rotation.Value : 0f,
-            Elevation = data.Elevation.IsSet ? data.Elevation.Value : 0f,
+            Rotation = data.Rotation.IsSet ? data.Rotation.Value : sceneAsset.Rotation,
+            Elevation = data.Elevation.IsSet ? data.Elevation.Value : sceneAsset.Elevation,
             IsLocked = data.IsLocked.IsSet ? data.IsLocked.Value : sceneAsset.IsLocked,
             ControlledBy = data.ControlledBy.IsSet ? data.ControlledBy.Value : sceneAsset.ControlledBy,
         };

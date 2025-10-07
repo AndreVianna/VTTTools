@@ -1,3 +1,6 @@
+using Point = VttTools.Common.Model.Point;
+using Size = VttTools.Common.Model.Size;
+
 namespace VttTools.Library.Handlers;
 
 public class SceneHandlersTests {
@@ -127,7 +130,7 @@ public class SceneHandlersTests {
         var assetId = Guid.NewGuid();
         const int number = 1;
         var request = new UpdateSceneAssetRequest {
-            Position = new Point(20, 30),
+            Position = new Position(20, 30),
             Size = new Size(10, 50),
             Frame = new Frame {
                 Shape = FrameShape.Square,
@@ -155,7 +158,7 @@ public class SceneHandlersTests {
         var sceneId = Guid.NewGuid();
         const int number = 1;
         var request = new UpdateSceneAssetRequest {
-            Position = new Point(20, 30),
+            Position = new Position(20, 30),
             Size = new Size(10, 50),
             Frame = new Frame {
                 Shape = FrameShape.Square,

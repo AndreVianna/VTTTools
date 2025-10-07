@@ -5,11 +5,14 @@ namespace VttTools.Assets.ServiceContracts;
 /// </summary>
 public record CreateAssetData
     : Data {
+    public AssetKind Kind { get; init; }
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
-    public AssetType Type { get; init; }
-    public AssetCategory Category { get; init; }
     public Guid? ResourceId { get; init; }
+
+    // Polymorphic properties (only one should be provided based on Kind)
+    public ObjectProperties? ObjectProps { get; init; }
+    public CreatureProperties? CreatureProps { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
@@ -17,6 +20,13 @@ public record CreateAssetData
             result += new Error("The asset name cannot be null or empty.", nameof(Name));
         if (string.IsNullOrWhiteSpace(Description))
             result += new Error("The asset description cannot be null or empty.", nameof(Description));
+
+        // Validate that properties match the Kind
+        if (Kind == AssetKind.Object && ObjectProps is null)
+            result += new Error("ObjectProps must be provided for Object assets.", nameof(ObjectProps));
+        if (Kind == AssetKind.Creature && CreatureProps is null)
+            result += new Error("CreatureProps must be provided for Creature assets.", nameof(CreatureProps));
+
         return result;
     }
 }

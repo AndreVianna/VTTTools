@@ -6,14 +6,14 @@ public class AddAssetDataTests {
         // Arrange
         var original = new AddSceneAssetData {
             Name = "Asset Name",
-            Position = new Point(1, 1),
-            Size = new(50, 50),
+            Position = new Position(1, 1),
+            Size = new Size(50, 50),
             Frame = new(),
             Rotation = 0,
             Elevation = 0,
         };
         const string name = "Other Name";
-        var position = new Point(10, 20);
+        var position = new Position(10, 20);
         var size = new Size(10, 20);
         var frame = new Frame {
             Shape = FrameShape.Circle,
@@ -49,8 +49,8 @@ public class AddAssetDataTests {
         // Arrange
         var data = new AddSceneAssetData {
             Name = "Asset Name",
-            Position = new Point { X = 1, Y = 1 },
-            Size = new(50, 50),
+            Position = new Position(1, 1),
+            Size = new Size(50, 50),
             Frame = new(),
             Rotation = 0.0f,
             Elevation = 0.0f,

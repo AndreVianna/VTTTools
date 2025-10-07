@@ -46,11 +46,13 @@ internal static class GameSessionHandlers {
             Title = request.Title,
         };
         var result = await service.UpdateGameSessionAsync(userId, id, data);
-        return result.Status switch {
-            HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
-            HttpStatusCode.OK => Results.Ok(result.Value),
-            _ => Results.StatusCode((int)result.Status),
-        };
+        return result.IsSuccessful
+            ? Results.Ok(result.Value)
+            : result.Errors[0].Message == "Session not found"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "Not authorized"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> DeleteGameSessionHandler(
@@ -59,7 +61,13 @@ internal static class GameSessionHandlers {
         [FromServices] IGameSessionService service) {
         var userId = context.User.GetUserId();
         var result = await service.DeleteGameSessionAsync(userId, id);
-        return Results.StatusCode((int)result.Status);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "Session not found"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "Not authorized"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> JoinGameSessionHandler(
@@ -69,10 +77,11 @@ internal static class GameSessionHandlers {
         [FromServices] IGameSessionService service) {
         var userId = context.User.GetUserId();
         var result = await service.JoinGameSessionAsync(userId, id, request.JoinAs);
-        return result.Status switch {
-            HttpStatusCode.BadRequest => Results.ValidationProblem(result.Errors.GroupedBySource()),
-            _ => Results.StatusCode((int)result.Status),
-        };
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "Session not found"
+                ? Results.NotFound()
+                : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> LeaveGameSessionHandler(
@@ -81,7 +90,11 @@ internal static class GameSessionHandlers {
         [FromServices] IGameSessionService service) {
         var userId = context.User.GetUserId();
         var result = await service.LeaveGameSessionAsync(userId, id);
-        return Results.StatusCode((int)result.Status);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "Session not found"
+                ? Results.NotFound()
+                : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> ActivateSceneHandler(
@@ -91,7 +104,13 @@ internal static class GameSessionHandlers {
         [FromServices] IGameSessionService service) {
         var userId = context.User.GetUserId();
         var result = await service.SetActiveSceneAsync(userId, id, scene);
-        return Results.StatusCode((int)result.Status);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "Session not found"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "Not authorized"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> StartGameSessionHandler(
@@ -100,7 +119,13 @@ internal static class GameSessionHandlers {
         [FromServices] IGameSessionService service) {
         var userId = context.User.GetUserId();
         var result = await service.StartGameSessionAsync(userId, id);
-        return Results.StatusCode((int)result.Status);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "Session not found"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "Not authorized"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 
     internal static async Task<IResult> StopGameSessionHandler(
@@ -109,6 +134,12 @@ internal static class GameSessionHandlers {
         [FromServices] IGameSessionService service) {
         var userId = context.User.GetUserId();
         var result = await service.StopGameSessionAsync(userId, id);
-        return Results.StatusCode((int)result.Status);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "Session not found"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "Not authorized"
+                    ? Results.Forbid()
+                    : Results.BadRequest(result.Errors);
     }
 }

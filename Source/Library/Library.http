@@ -1,128 +1,282 @@
-###################################
-# Health Endpoints
-###################################
+###############################################
+### Library API Testing - Comprehensive Test Suite
+###############################################
+###
+### Prerequisites:
+### 1. AppHost running
+### 2. Find actual port in AppHost logs
+### 3. Auth disabled for testing
+### 4. Create assets first using Assets.http
+###
+###############################################
 
-### GET Health Check
-GET {{baseUrl}}/health HTTP/1.1
-Accept: application/json
+### Variables (UPDATE WITH ACTUAL PORT AND ASSET ID!)
+@baseUrl = https://localhost:17XXX
+@assetId = 00000000-0000-0000-0000-000000000000
 
-### GET Alive Check
-GET {{baseUrl}}/alive HTTP/1.1
-Accept: application/json
+###############################################
+### HEALTH CHECKS
+###############################################
 
-###################################
-# Adventure Endpoints
-###################################
+### Health Check
+GET {{baseUrl}}/health
 
-### GET All Adventures
-GET {{baseUrl}}/api/adventures/ HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
+### Alive Check
+GET {{baseUrl}}/alive
 
-### POST Create Adventure
+###############################################
+### ADVENTURE CRUD
+###############################################
+
+### 1. Create Adventure
 # @name adventure
-POST {{baseUrl}}/api/adventures/ HTTP/1.1
+POST {{baseUrl}}/api/adventures
 Content-Type: application/json
-X-USER: {{x-user}}
 
 {
-  "name": "New Adventure",
+  "name": "Curse of Strahd",
+  "description": "Gothic horror adventure in Barovia",
+  "type": "Campaign"
 }
 
-### GET Adventure by Id
-GET {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}} HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
+### 2. Get All Adventures
+GET {{baseUrl}}/api/adventures
 
-### PATCH Update Adventure
-PATCH {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}} HTTP/1.1
+### 3. Get Adventure by ID
+GET {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}
+
+### 4. Update Adventure
+PATCH {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}
 Content-Type: application/json
-X-USER: {{x-user}}
 
 {
-  "name": "Updated Adventure Name"
+  "name": "Curse of Strahd - Revised",
+  "description": "Updated gothic horror campaign"
 }
 
-### DELETE Adventure
-DELETE {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}} HTTP/1.1
-X-USER: {{x-user}}
-
-### POST Clone Adventure
-POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}} HTTP/1.1
+### 5. Clone Adventure
+POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/clone
 Content-Type: application/json
-X-USER: {{x-user}}
 
 {}
 
-### GET Adventure Scenes
-GET {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
+###############################################
+### SCENE CRUD
+###############################################
 
-### POST Create Scene
+### 6. Get Adventure Scenes
+GET {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes
+
+### 7. Create Scene in Adventure
 # @name scene
-POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes HTTP/1.1
+POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes
 Content-Type: application/json
-X-USER: {{x-user}}
+
+{
+  "name": "Death House - Entrance Hall",
+  "description": "Dimly lit entrance with grand staircase"
+}
+
+### 8. Get Scene by ID
+GET {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+
+### 9. Update Scene Name
+PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "Death House - Main Hall"
+}
+
+### 10. Update Scene Grid (Domain Primitives: CellSize, Offset)
+PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "grid": {
+    "type": "Square",
+    "cellSize": {
+      "width": 50.0,
+      "height": 50.0
+    },
+    "offset": {
+      "left": 10.0,
+      "top": 10.0
+    },
+    "snap": true
+  }
+}
+
+### 11. Update Scene Panning (Point primitive: X, Y floats)
+PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "stage": {
+    "zoomLevel": 1.5,
+    "panning": {
+      "x": 100.0,
+      "y": 50.0
+    }
+  }
+}
+
+### 12. Clone Scene
+POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/clone
+Content-Type: application/json
 
 {}
 
-### POST Add cloned Scene
-POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes/{{scene.response.body.$.id}} HTTP/1.1
+###############################################
+### SCENE ASSET PLACEMENT (Template/Instance)
+###############################################
+
+### 13. Get Scene Assets
+GET {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets
+
+### 14. Add Asset to Scene (Basic - Uses Template Defaults)
+POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/{{assetId}}
 Content-Type: application/json
-X-USER: {{x-user}}
 
 {
-  "name": "New Name"
+  "name": "Goblin #1",
+  "position": {
+    "x": 5,
+    "y": 3
+  },
+  "size": {
+    "width": 50,
+    "height": 50
+  },
+  "rotation": 0.0,
+  "elevation": 0.0
 }
 
-### DELETE Remove Scene from Adventure
-DELETE {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes/{{scene.response.body.$.id}} HTTP/1.1
-X-USER: {{x-user}}
-
-###################################
-# Scene Endpoints
-###################################
-
-### GET Scene by Id
-GET {{baseUrl}}/api/scenes/{{scene.response.body.$.id}} HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
-
-### PATCH Update Scene
-PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}} HTTP/1.1
+### 15. Add Asset with Description Override
+POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/{{assetId}}
 Content-Type: application/json
-X-USER: {{x-user}}
 
 {
-  "name": "Updated Scene"
+  "name": "Goblin #2",
+  "description": "Goblin archer with longbow",
+  "position": {
+    "x": 7,
+    "y": 3
+  },
+  "size": {
+    "width": 50,
+    "height": 50
+  },
+  "rotation": 0.0,
+  "elevation": 0.0
 }
 
-### DELETE Scene
-DELETE {{baseUrl}}/api/scenes/{{scene.response.body.$.id}} HTTP/1.1
-X-USER: {{x-user}}
-
-### POST Clone Scene
-POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}} HTTP/1.1
+### 16. Add Asset with ResourceId Override (Custom Token)
+POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/{{assetId}}
 Content-Type: application/json
-X-USER: {{x-user}}
+
+{
+  "name": "Goblin Boss",
+  "description": "Leader with enchanted blade",
+  "resourceId": "00000000-0000-0000-0000-000000000000",
+  "position": {
+    "x": 10,
+    "y": 5
+  },
+  "size": {
+    "width": 75,
+    "height": 75
+  },
+  "rotation": 45.0,
+  "elevation": 0.0
+}
+
+### 17. Update Scene Asset Position (Position primitive: int X, Y)
+PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0
+Content-Type: application/json
+
+{
+  "position": {
+    "x": 6,
+    "y": 4
+  }
+}
+
+### 18. Update Scene Asset Description Override
+PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0
+Content-Type: application/json
+
+{
+  "description": "Wounded goblin, half HP"
+}
+
+### 19. Update Scene Asset ResourceId Override
+PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0
+Content-Type: application/json
+
+{
+  "resourceId": "00000000-0000-0000-0000-111111111111"
+}
+
+### 20. Clone Scene Asset
+POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0/clone
+Content-Type: application/json
 
 {}
 
-### GET Scene Assets
-GET {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
+### 21. Delete Scene Asset
+DELETE {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0
 
-### POST Add Asset to Scene
-POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets HTTP/1.1
+###############################################
+### DELETE OPERATIONS
+###############################################
+
+### 22. Remove Scene from Adventure
+DELETE {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes/{{scene.response.body.$.id}}
+
+### 23. Delete Scene
+DELETE {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+
+### 24. Delete Adventure
+DELETE {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}
+
+###############################################
+### EDGE CASES & VALIDATION
+###############################################
+
+### 25. Invalid - Missing Scene Name
+POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes
 Content-Type: application/json
-X-USER: {{x-user}}
 
 {
-  "Id": "{{asset.response.body.$.id}}"
+  "description": "Missing name"
 }
 
-### DELETE Remove Asset from Scene
-DELETE {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/{{asset.response.body.$.id}} HTTP/1.1
-X-USER: {{x-user}}
+### 26. Invalid - Wrong Grid Type
+PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "grid": {
+    "type": "InvalidType"
+  }
+}
+
+### 27. Invalid - Negative CellSize
+PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "grid": {
+    "cellSize": {
+      "width": -50.0,
+      "height": 50.0
+    }
+  }
+}
+
+### 28. Not Found - Get Non-Existent Adventure
+GET {{baseUrl}}/api/adventures/00000000-0000-0000-0000-000000000000
+
+### 29. Not Found - Get Non-Existent Scene
+GET {{baseUrl}}/api/scenes/00000000-0000-0000-0000-000000000000

@@ -1,46 +1,105 @@
 <Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <BuildType Name="XUnitV3" />
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
   <Folder Name="/Source/" />
   <Folder Name="/Source/0 Common/">
-    <Project Path="Core/VttTools.Core.csproj" />
-    <Project Path="Common/VttTools.Common.csproj" />
-    <Project Path="Domain/VttTools.Domain.csproj" />
+    <Project Path="Common/VttTools.Common.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Debug" />
+    </Project>
+    <Project Path="Core/VttTools.Core.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Release" />
+    </Project>
+    <Project Path="Domain/VttTools.Domain.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/Source/1 Storage/">
-    <Project Path="Data/VttTools.Data.csproj" />
+    <Project Path="Data.MigrationService/VttTools.Data.MigrationService.csproj">
+      <BuildType Solution="XUnitV3|*" Project="Debug" />
+    </Project>
+    <Project Path="Data/VttTools.Data.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/Source/2 Services/">
-    <Project Path="Media/VttTools.Media.csproj" />
-    <Project Path="Assets/VttTools.Assets.csproj" />
-    <Project Path="Library/VttTools.Library.csproj" />
-    <Project Path="Game/VttTools.Game.csproj" />
+    <Project Path="Assets/VttTools.Assets.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Release" />
+    </Project>
+    <Project Path="Auth/VttTools.Auth.csproj" />
+    <Project Path="Game/VttTools.Game.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Debug" />
+    </Project>
+    <Project Path="Library/VttTools.Library.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Release" />
+    </Project>
+    <Project Path="Media/VttTools.Media.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Release" />
+    </Project>
   </Folder>
   <Folder Name="/Source/3 WebApp/">
-    <Project Path="WebApp/VttTools.WebApp.csproj" />
-    <Project Path="WebApp.Common/VttTools.WebApp.Common.csproj" />
-    <Project Path="WebApp.WebAssembly/VttTools.WebApp.WebAssembly.csproj" />
+    <Project Path="WebApp.Common/VttTools.WebApp.Common.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Release" />
+    </Project>
+    <Project Path="WebApp.WebAssembly/VttTools.WebApp.WebAssembly.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Release" />
+    </Project>
+    <Project Path="WebApp/VttTools.WebApp.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Release" />
+    </Project>
+    <Project Path="WebClientApp/VttTools.WebClientApp.esproj">
+      <BuildType Solution="XUnitV3|*" Project="Release" />
+      <Platform Project="AnyCPU" />
+      <Build />
+      <Deploy />
+    </Project>
   </Folder>
   <Folder Name="/Source/4 Hosting/">
-    <Project Path="AppHost/VttTools.AppHost.csproj" />
+    <Project Path="AppHost/VttTools.AppHost.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/Tests/" />
   <Folder Name="/Tests/0 Common/">
-    <Project Path="Core.UnitTests/VttTools.Core.UnitTests.csproj" />
-    <Project Path="Common.UnitTests/VttTools.Common.UnitTests.csproj" />
-    <Project Path="Domain.UnitTests/VttTools.Domain.UnitTests.csproj" />
+    <Project Path="Common.UnitTests/VttTools.Common.UnitTests.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Debug" />
+    </Project>
+    <Project Path="Core.UnitTests/VttTools.Core.UnitTests.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Release" />
+    </Project>
+    <Project Path="Domain.UnitTests/VttTools.Domain.UnitTests.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/Tests/1 Storage/">
-    <Project Path="Data.UnitTests/VttTools.Data.UnitTests.csproj" />
+    <Project Path="Data.UnitTests/VttTools.Data.UnitTests.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/Tests/2 Services/">
-    <Project Path="Media.UnitTests/VttTools.Media.UnitTests.csproj" />
-    <Project Path="Assets.UnitTests/VttTools.Assets.UnitTests.csproj" />
-    <Project Path="Library.UnitTests/VttTools.Library.UnitTests.csproj" />
-    <Project Path="Game.UnitTests/VttTools.Game.UnitTests.csproj" />
+    <Project Path="Assets.UnitTests/VttTools.Assets.UnitTests.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Release" />
+    </Project>
+    <Project Path="Game.UnitTests/VttTools.Game.UnitTests.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Debug" />
+    </Project>
+    <Project Path="Library.UnitTests/VttTools.Library.UnitTests.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Release" />
+    </Project>
+    <Project Path="Media.UnitTests/VttTools.Media.UnitTests.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Release" />
+    </Project>
+    <Project Path="VttTools.Auth.UnitTests/VttTools.Auth.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Tests/3 WebApp/">
-    <Project Path="WebApp.Common.UnitTests/VttTools.WebApp.Common.UnitTests.csproj" />
-    <Project Path="WebApp.Server.UnitTests/VttTools.WebApp.Server.UnitTests.csproj" />
-    <Project Path="WebApp.WebAssembly.UnitTests/VttTools.WebApp.WebAssembly.UnitTests.csproj" />
+    <Project Path="WebApp.Common.UnitTests/VttTools.WebApp.Common.UnitTests.csproj">
+      <BuildType Solution="XUnitV3|Any CPU" Project="Release" />
+    </Project>
+    <Project Path="WebApp.UnitTests/VttTools.WebApp.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/Tests/4 Hosting/" />
 </Solution>

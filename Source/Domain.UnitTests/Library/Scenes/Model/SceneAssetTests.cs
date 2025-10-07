@@ -22,7 +22,7 @@ public class SceneAssetTests {
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
         const string name = "Test Asset";
-        var position = new Point(10, 20);
+        var position = new Position(10, 20);
         var size = new Size(1000, 2000);
         var frame = new Frame {
             Shape = FrameShape.Square,

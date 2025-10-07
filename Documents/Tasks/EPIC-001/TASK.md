@@ -5,7 +5,7 @@
 **Priority**: Critical
 **Effort**: 120-160 hours (6-8 weeks)
 **Created**: 2025-10-03
-**Last Updated**: 2025-10-03
+**Last Updated**: 2025-10-05
 
 ---
 
@@ -42,7 +42,7 @@ Migrate VTTTools frontend from Blazor WebAssembly to React 19 + TypeScript + Mat
 - **Scene Management** (Area: Library)
   - Impact: Implement Konva-based scene editor with canvas, grid, panning, zoom, token placement
   - Use Cases Affected: CreateScene, ConfigureStage, ConfigureGrid, PlaceAsset, MoveAsset, RemoveAsset, GetSceneByID, UpdateScene
-  - Status: 🚧 In Progress (panning/zoom complete, grid and token placement ongoing)
+  - Status: 🚧 In Progress (panning/zoom/grid complete, token placement ongoing)
 
 - **Game Session Management** (Area: Game)
   - Impact: Real-time session collaboration UI with SignalR integration for chat, events, participant list

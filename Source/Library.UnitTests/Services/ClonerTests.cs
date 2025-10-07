@@ -141,32 +141,22 @@ public class ClonerTests {
             },
             Assets = [
                 new() {
+                    AssetId = Guid.NewGuid(),
                     Name = "Asset 1",
-                    Resource = new() {
-                        Type = ResourceType.Image,
-                        Path = "assets/asset1.png",
-                        Metadata = new ResourceMetadata {
-                            ContentType = "image/png",
-                            ImageSize = new(32, 32),
-                        },
-                    },
+                    ResourceId = Guid.NewGuid(),
                     Position = new(20, 30),
+                    Size = new(1, 1),
                     Elevation = 1,
                     Rotation = 45,
                     IsLocked = true,
                     ControlledBy = Guid.NewGuid(),
                 },
                 new() {
+                    AssetId = Guid.NewGuid(),
                     Name = "Asset 2",
-                    Resource = new() {
-                        Type = ResourceType.Image,
-                        Path = "assets/asset2.png",
-                        Metadata = new ResourceMetadata {
-                            ContentType = "image/png",
-                            ImageSize = new(32, 32),
-                        },
-                    },
+                    ResourceId = Guid.NewGuid(),
                     Position = new(5, 10),
+                    Size = new(1, 1),
                     Elevation = 2,
                     Rotation = -45,
                     IsLocked = false,
@@ -185,7 +175,7 @@ public class ClonerTests {
         clone.Description.Should().Be(original.Description);
         clone.Stage.Should().BeEquivalentTo(original.Stage);
         // NOTE: Cloned assets should be equivalent to originals (no special transformations in Clone method)
-        clone.Assets.Should().BeEquivalentTo(original.Assets, options => options.Excluding(a => a.Id));
+        clone.Assets.Should().BeEquivalentTo(original.Assets);
     }
 
     [Fact]
@@ -197,17 +187,12 @@ public class ClonerTests {
             Name = "Original Scene",
             Assets = [
                 new() {
+                    AssetId = Guid.NewGuid(),
                     Index = 1,
                     Name = "Asset 1",
-                    Resource = new() {
-                        Type = ResourceType.Image,
-                        Path = "assets/scene-asset.png",
-                        Metadata = new ResourceMetadata {
-                            ContentType = "image/png",
-                            ImageSize = new(32, 32),
-                        },
-                    },
+                    ResourceId = Guid.NewGuid(),
                     Position = new(20, 30),
+                    Size = new(1, 1),
                     Elevation = 1f,
                     Rotation = 45f,
                     IsLocked = true,
@@ -234,17 +219,12 @@ public class ClonerTests {
         var userId = Guid.NewGuid();
         var controlledById = Guid.NewGuid();
         var original = new SceneAsset {
+            AssetId = Guid.NewGuid(),
             Index = 1,
             Name = "Original Asset",
-            Resource = new() {
-                Type = ResourceType.Image,
-                Path = "assets/original-asset.png",
-                Metadata = new ResourceMetadata {
-                    ContentType = "image/png",
-                    ImageSize = new(32, 32),
-                },
-            },
+            ResourceId = Guid.NewGuid(),
             Position = new(20, 30),
+            Size = new(1, 1),
             Elevation = 1f,
             Rotation = 45f,
             IsLocked = true,

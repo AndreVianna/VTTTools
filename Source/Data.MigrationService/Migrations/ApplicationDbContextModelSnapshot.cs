@@ -29,8 +29,8 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Category")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -38,10 +38,18 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsPublic")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsPublished")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -54,17 +62,18 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid?>("ResourceId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("Placeholder");
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ResourceId");
 
                     b.ToTable("Assets", (string)null);
+
+                    b.HasDiscriminator<string>("Kind");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("VttTools.Data.Game.Entities.GameSession", b =>
@@ -146,6 +155,25 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Schedule", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Data.Game.Entities.StatBlock", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("StatBlocks", (string)null);
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Adventure", b =>
@@ -232,6 +260,56 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("Campaigns", (string)null);
                 });
 
+            modelBuilder.Entity("VttTools.Data.Library.Entities.Effect", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("BoundedByStructures")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Direction")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Shape")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("VisualResourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VisualResourceId");
+
+                    b.ToTable("Effects", (string)null);
+                });
+
             modelBuilder.Entity("VttTools.Data.Library.Entities.Epic", b =>
                 {
                     b.Property<Guid>("Id")
@@ -315,44 +393,50 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasColumnType("nvarchar(max)")
                                 .HasDefaultValue("NoGrid");
 
-                            b1.ComplexProperty<Dictionary<string, object>>("CellSize", "VttTools.Data.Library.Entities.Scene.Grid#Grid.CellSize#Vector2", b2 =>
+                            b1.ComplexProperty<Dictionary<string, object>>("CellSize", "VttTools.Data.Library.Entities.Scene.Grid#Grid.CellSize#CellSize", b2 =>
                                 {
-                                    b2.Property<float>("X")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("real")
-                                        .HasDefaultValue(0f);
+                                    b2.IsRequired();
 
-                                    b2.Property<float>("Y")
+                                    b2.Property<double>("Height")
                                         .ValueGeneratedOnAdd()
-                                        .HasColumnType("real")
-                                        .HasDefaultValue(0f);
+                                        .HasColumnType("float")
+                                        .HasDefaultValue(50.0);
+
+                                    b2.Property<double>("Width")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("float")
+                                        .HasDefaultValue(50.0);
                                 });
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Offset", "VttTools.Data.Library.Entities.Scene.Grid#Grid.Offset#Vector2", b2 =>
+                            b1.ComplexProperty<Dictionary<string, object>>("Offset", "VttTools.Data.Library.Entities.Scene.Grid#Grid.Offset#Offset", b2 =>
                                 {
-                                    b2.Property<float>("X")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("real")
-                                        .HasDefaultValue(0f);
+                                    b2.IsRequired();
 
-                                    b2.Property<float>("Y")
+                                    b2.Property<double>("Left")
                                         .ValueGeneratedOnAdd()
-                                        .HasColumnType("real")
-                                        .HasDefaultValue(0f);
+                                        .HasColumnType("float")
+                                        .HasDefaultValue(0.0);
+
+                                    b2.Property<double>("Top")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("float")
+                                        .HasDefaultValue(0.0);
                                 });
                         });
 
                     b.ComplexProperty<Dictionary<string, object>>("Panning", "VttTools.Data.Library.Entities.Scene.Panning#Point", b1 =>
                         {
-                            b1.Property<int>("X")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("int")
-                                .HasDefaultValue(0);
+                            b1.IsRequired();
 
-                            b1.Property<int>("Y")
+                            b1.Property<double>("X")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("int")
-                                .HasDefaultValue(0);
+                                .HasColumnType("float")
+                                .HasDefaultValue(0.0);
+
+                            b1.Property<double>("Y")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("float")
+                                .HasDefaultValue(0.0);
                         });
 
                     b.HasKey("Id");
@@ -378,6 +462,10 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid?>("ControlledBy")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<float>("Elevation")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("real")
@@ -396,7 +484,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<long>("Number")
                         .HasColumnType("bigint");
 
-                    b.Property<Guid>("ResourceId")
+                    b.Property<Guid?>("ResourceId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<float>("Rotation")
@@ -432,8 +520,10 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasDefaultValue("Square");
                         });
 
-                    b.ComplexProperty<Dictionary<string, object>>("Position", "VttTools.Data.Library.Entities.SceneAsset.Position#Point", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Position", "VttTools.Data.Library.Entities.SceneAsset.Position#Position", b1 =>
                         {
+                            b1.IsRequired();
+
                             b1.Property<int>("X")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("int")
@@ -447,6 +537,8 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.SceneAsset.Size#Size", b1 =>
                         {
+                            b1.IsRequired();
+
                             b1.Property<int>("Height")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("int")
@@ -465,6 +557,130 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasIndex("ResourceId");
 
                     b.ToTable("SceneAssets", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneEffect", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("Direction")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("EffectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SceneId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("Size")
+                        .HasColumnType("int");
+
+                    b.ComplexProperty<Dictionary<string, object>>("Origin", "VttTools.Data.Library.Entities.SceneEffect.Origin#Point", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<double>("X")
+                                .HasColumnType("float");
+
+                            b1.Property<double>("Y")
+                                .HasColumnType("float");
+                        });
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EffectId");
+
+                    b.HasIndex("SceneId");
+
+                    b.ToTable("SceneEffects", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneStructure", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool?>("IsLocked")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("IsOpen")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("IsSecret")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("SceneId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StructureId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SceneId");
+
+                    b.HasIndex("StructureId");
+
+                    b.ToTable("SceneStructures", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.Structure", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsBlocking")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsLocked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsOpaque")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsOpenable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsSecret")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("VisualResourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VisualResourceId");
+
+                    b.ToTable("Structures", (string)null);
                 });
 
             modelBuilder.Entity("VttTools.Data.Media.Entities.Resource", b =>
@@ -512,6 +728,8 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.ComplexProperty<Dictionary<string, object>>("ImageSize", "VttTools.Data.Media.Entities.Resource.ImageSize#Size", b1 =>
                         {
+                            b1.IsRequired();
+
                             b1.Property<int>("Height")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("int")
@@ -779,6 +997,20 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("VttTools.Data.Assets.Entities.CreatureAsset", b =>
+                {
+                    b.HasBaseType("VttTools.Data.Assets.Entities.Asset");
+
+                    b.HasDiscriminator().HasValue("Creature");
+                });
+
+            modelBuilder.Entity("VttTools.Data.Assets.Entities.ObjectAsset", b =>
+                {
+                    b.HasBaseType("VttTools.Data.Assets.Entities.Asset");
+
+                    b.HasDiscriminator().HasValue("Object");
+                });
+
             modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>
                 {
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")
@@ -936,6 +1168,16 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Resource");
                 });
 
+            modelBuilder.Entity("VttTools.Data.Library.Entities.Effect", b =>
+                {
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Visual")
+                        .WithMany()
+                        .HasForeignKey("VisualResourceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Visual");
+                });
+
             modelBuilder.Entity("VttTools.Data.Library.Entities.Epic", b =>
                 {
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")
@@ -976,8 +1218,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")
                         .WithMany()
                         .HasForeignKey("ResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("VttTools.Data.Library.Entities.Scene", null)
                         .WithMany("SceneAssets")
@@ -988,6 +1229,81 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Asset");
 
                     b.Navigation("Resource");
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneEffect", b =>
+                {
+                    b.HasOne("VttTools.Data.Library.Entities.Effect", "Effect")
+                        .WithMany()
+                        .HasForeignKey("EffectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VttTools.Data.Library.Entities.Scene", "Scene")
+                        .WithMany()
+                        .HasForeignKey("SceneId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Effect");
+
+                    b.Navigation("Scene");
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneStructure", b =>
+                {
+                    b.HasOne("VttTools.Data.Library.Entities.Scene", "Scene")
+                        .WithMany()
+                        .HasForeignKey("SceneId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VttTools.Data.Library.Entities.Structure", "Structure")
+                        .WithMany()
+                        .HasForeignKey("StructureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsMany("VttTools.Common.Model.Point", "Vertices", b1 =>
+                        {
+                            b1.Property<Guid>("SceneStructureId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            b1.Property<double>("X")
+                                .HasColumnType("float");
+
+                            b1.Property<double>("Y")
+                                .HasColumnType("float");
+
+                            b1.HasKey("SceneStructureId", "__synthesizedOrdinal");
+
+                            b1.ToTable("SceneStructures");
+
+                            b1.ToJson("Vertices");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SceneStructureId");
+                        });
+
+                    b.Navigation("Scene");
+
+                    b.Navigation("Structure");
+
+                    b.Navigation("Vertices");
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.Structure", b =>
+                {
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Visual")
+                        .WithMany()
+                        .HasForeignKey("VisualResourceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Visual");
                 });
 
             modelBuilder.Entity("VttTools.Identity.Model.RoleClaim", b =>
@@ -1038,6 +1354,101 @@ namespace VttTools.Data.MigrationService.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("VttTools.Data.Assets.Entities.CreatureAsset", b =>
+                {
+                    b.OwnsOne("VttTools.Data.Assets.Entities.CreatureProperties", "Properties", b1 =>
+                        {
+                            b1.Property<Guid>("CreatureAssetId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Category")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<int>("CellSize")
+                                .HasColumnType("int");
+
+                            b1.Property<Guid?>("StatBlockId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.HasKey("CreatureAssetId");
+
+                            b1.ToTable("Assets");
+
+                            b1.ToJson("CreatureProperties");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CreatureAssetId");
+
+                            b1.OwnsOne("VttTools.Data.Assets.Entities.TokenStyle", "TokenStyle", b2 =>
+                                {
+                                    b2.Property<Guid>("CreaturePropertiesCreatureAssetId")
+                                        .HasColumnType("uniqueidentifier");
+
+                                    b2.Property<string>("BackgroundColor")
+                                        .HasColumnType("nvarchar(max)");
+
+                                    b2.Property<string>("BorderColor")
+                                        .HasColumnType("nvarchar(max)");
+
+                                    b2.Property<string>("Shape")
+                                        .IsRequired()
+                                        .HasColumnType("nvarchar(max)");
+
+                                    b2.HasKey("CreaturePropertiesCreatureAssetId");
+
+                                    b2.ToTable("Assets");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("CreaturePropertiesCreatureAssetId");
+                                });
+
+                            b1.Navigation("TokenStyle");
+                        });
+
+                    b.Navigation("Properties")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("VttTools.Data.Assets.Entities.ObjectAsset", b =>
+                {
+                    b.OwnsOne("VttTools.Data.Assets.Entities.ObjectProperties", "Properties", b1 =>
+                        {
+                            b1.Property<Guid>("ObjectAssetId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("CellHeight")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("CellWidth")
+                                .HasColumnType("int");
+
+                            b1.Property<bool>("IsMovable")
+                                .HasColumnType("bit");
+
+                            b1.Property<bool>("IsOpaque")
+                                .HasColumnType("bit");
+
+                            b1.Property<bool>("IsVisible")
+                                .HasColumnType("bit");
+
+                            b1.Property<Guid?>("TriggerEffectId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.HasKey("ObjectAssetId");
+
+                            b1.ToTable("Assets");
+
+                            b1.ToJson("ObjectProperties");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ObjectAssetId");
+                        });
+
+                    b.Navigation("Properties")
                         .IsRequired();
                 });
 

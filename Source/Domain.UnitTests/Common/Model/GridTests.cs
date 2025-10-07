@@ -17,21 +17,21 @@ public class GridTests {
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
         const GridType type = GridType.Square;
-        var size = new Vector2 { X = 20, Y = 20 };
-        var offset = new Vector2 { X = 100, Y = 100 };
+        var cellSize = new CellSize(20.0, 20.0);
+        var offset = new Offset(100.0, 100.0);
         const bool snap = true;
 
         // Act
         var grid = new Grid {
             Type = type,
-            CellSize = size,
+            CellSize = cellSize,
             Offset = offset,
             Snap = snap,
         };
 
         // Assert
         grid.Type.Should().Be(type);
-        grid.CellSize.Should().BeEquivalentTo(size);
+        grid.CellSize.Should().BeEquivalentTo(cellSize);
         grid.Offset.Should().BeEquivalentTo(offset);
         grid.Snap.Should().Be(snap);
     }

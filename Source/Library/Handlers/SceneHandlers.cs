@@ -51,6 +51,8 @@ internal static class SceneHandlers {
         var userId = context.User.GetUserId();
         var data = new AddSceneAssetData {
             Name = request.Name,
+            Description = request.Description,
+            ResourceId = request.ResourceId,
             Position = request.Position,
             Size = request.Size,
             Frame = request.Frame,

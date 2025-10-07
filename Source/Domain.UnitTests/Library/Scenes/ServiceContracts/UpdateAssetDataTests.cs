@@ -6,7 +6,7 @@ public class UpdateAssetDataTests {
         // Arrange
         var original = new UpdateSceneAssetData {
             Name = "Original",
-            Position = new Point(1, 1),
+            Position = new Position(1, 1),
             Size = new Size(50, 50),
             Frame = new(),
             Rotation = 0.0f,
@@ -15,7 +15,7 @@ public class UpdateAssetDataTests {
             ControlledBy = Guid.Empty,
         };
         const string name = "New Name";
-        var position = new Point(10, 20);
+        var position = new Position(10, 20);
         var size = new Size(1000, 2000);
         var frame = new Frame {
             Shape = FrameShape.Circle,
@@ -57,7 +57,7 @@ public class UpdateAssetDataTests {
         // Arrange
         var data = new UpdateSceneAssetData {
             Name = "Original",
-            Position = new Point(1, 1),
+            Position = new Position(1, 1),
             Size = new Size(10, 20),
             Frame = new Frame {
                 Shape = FrameShape.Square,
@@ -81,7 +81,7 @@ public class UpdateAssetDataTests {
         // Arrange
         var data = new UpdateSceneAssetData {
             Name = null!,
-            Position = new Point(10, 20),
+            Position = new Position(10, 20),
             Size = new Size(1000, 2000),
             Frame = new Frame {
                 Shape = FrameShape.Circle,

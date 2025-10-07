@@ -1,58 +1,109 @@
+using Size = VttTools.Common.Model.Size;
 using VttTools.Media.Model;
 
 namespace VttTools.Assets.Model;
 
 public class AssetTests {
     [Fact]
-    public void Constructor_WhenCalled_InitializesWithDefaultValues() {
+    public void ObjectAsset_Constructor_InitializesWithDefaultValues() {
         // Arrange & Act
-        var asset = new Asset();
+        var asset = new ObjectAsset();
 
         // Assert
         asset.Id.Should().NotBeEmpty();
         asset.OwnerId.Should().BeEmpty();
         asset.Name.Should().BeEmpty();
-        asset.Type.Should().Be(AssetType.Placeholder);
+        asset.Kind.Should().Be(AssetKind.Object);
         asset.Description.Should().BeEmpty();
         asset.Resource.Should().BeNull();
+        asset.Properties.Should().NotBeNull();
+        asset.Properties.CellWidth.Should().Be(1);
+        asset.Properties.IsMovable.Should().BeTrue();
     }
 
     [Fact]
-    public void Constructor_WithValues_InitializesWithProvidedValues() {
+    public void CreatureAsset_Constructor_InitializesWithDefaultValues() {
+        // Arrange & Act
+        var asset = new CreatureAsset();
+
+        // Assert
+        asset.Id.Should().NotBeEmpty();
+        asset.Kind.Should().Be(AssetKind.Creature);
+        asset.Properties.Should().NotBeNull();
+        asset.Properties.CellSize.Should().Be(1);
+        asset.Properties.Category.Should().Be(CreatureCategory.Character);
+    }
+
+    [Fact]
+    public void ObjectAsset_WithValues_InitializesCorrectly() {
         // Arrange
         var id = Guid.NewGuid();
         var ownerId = Guid.NewGuid();
-        const string name = "Test Asset";
-        const AssetType type = AssetType.Character;
-        const string description = "Test Description";
+        const string name = "Wooden Table";
+        const string description = "A sturdy oak table";
         var size = new Size(100, 200);
-        var format = new Resource {
+        var resource = new Resource {
             Id = Guid.NewGuid(),
             Type = ResourceType.Image,
-            Path = "assets/test-asset-Resource",
+            Path = "assets/table.png",
             Metadata = new ResourceMetadata {
                 ContentType = "image/png",
                 ImageSize = size,
             },
-            Tags = ["tag1", "tag2"],
+            Tags = ["furniture", "indoor"],
         };
 
         // Act
-        var asset = new Asset {
+        var asset = new ObjectAsset {
             Id = id,
             OwnerId = ownerId,
             Name = name,
-            Type = type,
             Description = description,
-            Resource = format,
+            Resource = resource,
+            Properties = new ObjectProperties {
+                CellWidth = 2,
+                CellHeight = 1,
+                IsMovable = true,
+                IsOpaque = false,
+                IsVisible = true
+            }
         };
 
         // Assert
         asset.Id.Should().Be(id);
         asset.OwnerId.Should().Be(ownerId);
         asset.Name.Should().Be(name);
-        asset.Type.Should().Be(type);
+        asset.Kind.Should().Be(AssetKind.Object);
         asset.Description.Should().Be(description);
-        asset.Resource.Should().BeEquivalentTo(format);
+        asset.Resource.Should().BeEquivalentTo(resource);
+        asset.Properties.CellWidth.Should().Be(2);
+        asset.Properties.CellHeight.Should().Be(1);
+    }
+
+    [Fact]
+    public void CreatureAsset_WithTokenStyle_InitializesCorrectly() {
+        // Arrange
+        var tokenStyle = new TokenStyle {
+            BorderColor = "#FF0000",
+            BackgroundColor = "#FFE0E0",
+            Shape = TokenShape.Circle
+        };
+
+        // Act
+        var asset = new CreatureAsset {
+            Name = "Goblin Warrior",
+            Description = "Small hostile creature",
+            Properties = new CreatureProperties {
+                CellSize = 1,
+                Category = CreatureCategory.Monster,
+                TokenStyle = tokenStyle
+            }
+        };
+
+        // Assert
+        asset.Kind.Should().Be(AssetKind.Creature);
+        asset.Properties.Category.Should().Be(CreatureCategory.Monster);
+        asset.Properties.TokenStyle.Should().NotBeNull();
+        asset.Properties.TokenStyle!.Shape.Should().Be(TokenShape.Circle);
     }
 }

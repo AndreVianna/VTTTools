@@ -1,87 +1,147 @@
-using Asset = VttTools.Assets.Model.Asset;
+using DomainAsset = VttTools.Assets.Model.Asset;
+using DomainObjectAsset = VttTools.Assets.Model.ObjectAsset;
+using DomainCreatureAsset = VttTools.Assets.Model.CreatureAsset;
+using DomainObjectProperties = VttTools.Assets.Model.ObjectProperties;
+using DomainCreatureProperties = VttTools.Assets.Model.CreatureProperties;
+using DomainTokenStyle = VttTools.Assets.Model.TokenStyle;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
+using ObjectAssetEntity = VttTools.Data.Assets.Entities.ObjectAsset;
+using CreatureAssetEntity = VttTools.Data.Assets.Entities.CreatureAsset;
 using Resource = VttTools.Media.Model.Resource;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 
 namespace VttTools.Data.Assets;
 
 internal static class Mapper {
-    internal static Expression<Func<AssetEntity, Asset>> AsAsset = static entity
-        => new() {
-            OwnerId = entity.OwnerId,
-            Id = entity.Id,
-            Name = entity.Name,
-            Description = entity.Description,
-            Type = entity.Type,
-            Category = entity.Category,
-            Resource = entity.Resource != null ? new Resource {
-                Id = entity.Resource.Id,
-                Type = entity.Resource.Type,
-                Path = entity.Resource.Path,
-                Metadata = new() {
-                    ContentType = entity.Resource.ContentType,
-                    FileName = entity.Resource.FileName,
-                    FileLength = entity.Resource.FileLength,
-                    ImageSize = entity.Resource.ImageSize,
-                    Duration = entity.Resource.Duration,
-                },
-                Tags = entity.Resource.Tags,
-            } : null,
-            IsPublic = entity.IsPublic,
-            IsPublished = entity.IsPublished,
-        };
-
-    internal static Expression<Func<ResourceEntity, Resource>> AsResource = static entity
-        => new() {
-            Id = entity.Id,
-            Type = entity.Type,
-            Path = entity.Path,
-            Metadata = new() {
-                ContentType = entity.ContentType,
-                FileName = entity.FileName,
-                FileLength = entity.FileLength,
-                ImageSize = entity.ImageSize,
-                Duration = entity.Duration,
-            },
-            Tags = entity.Tags,
-        };
-
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static Asset? ToModel(this AssetEntity? entity)
-        => entity == null ? null : new() {
-            OwnerId = entity.OwnerId,
-            Id = entity.Id,
-            Name = entity.Name,
-            Description = entity.Description,
-            Type = entity.Type,
-            Category = entity.Category,
-            IsPublic = entity.IsPublic,
-            IsPublished = entity.IsPublished,
+    internal static DomainAsset? ToModel(this AssetEntity? entity)
+        => entity switch {
+            null => null,
+            ObjectAssetEntity obj => new DomainObjectAsset {
+                Id = obj.Id,
+                OwnerId = obj.OwnerId,
+                Name = obj.Name,
+                Description = obj.Description,
+                IsPublic = obj.IsPublic,
+                IsPublished = obj.IsPublished,
+                CreatedAt = obj.CreatedAt,
+                UpdatedAt = obj.UpdatedAt,
+                Resource = obj.Resource?.ToModel(),
+                Properties = new DomainObjectProperties {
+                    CellWidth = obj.Properties.CellWidth,
+                    CellHeight = obj.Properties.CellHeight,
+                    IsMovable = obj.Properties.IsMovable,
+                    IsOpaque = obj.Properties.IsOpaque,
+                    IsVisible = obj.Properties.IsVisible,
+                    TriggerEffectId = obj.Properties.TriggerEffectId
+                }
+            },
+            CreatureAssetEntity creature => new DomainCreatureAsset {
+                Id = creature.Id,
+                OwnerId = creature.OwnerId,
+                Name = creature.Name,
+                Description = creature.Description,
+                IsPublic = creature.IsPublic,
+                IsPublished = creature.IsPublished,
+                CreatedAt = creature.CreatedAt,
+                UpdatedAt = creature.UpdatedAt,
+                Resource = creature.Resource?.ToModel(),
+                Properties = new DomainCreatureProperties {
+                    CellSize = creature.Properties.CellSize,
+                    StatBlockId = creature.Properties.StatBlockId,
+                    Category = creature.Properties.Category,
+                    TokenStyle = creature.Properties.TokenStyle != null ? new DomainTokenStyle {
+                        BorderColor = creature.Properties.TokenStyle.BorderColor,
+                        BackgroundColor = creature.Properties.TokenStyle.BackgroundColor,
+                        Shape = creature.Properties.TokenStyle.Shape
+                    } : null
+                }
+            },
+            _ => throw new InvalidOperationException($"Unknown asset entity type: {entity.GetType()}")
         };
 
-    internal static AssetEntity ToEntity(this Asset model)
-        => new() {
-            OwnerId = model.OwnerId,
-            Id = model.Id,
-            Name = model.Name,
-            Description = model.Description,
-            Type = model.Type,
-            Category = model.Category,
-            ResourceId = model.Resource?.Id,
-            IsPublic = model.IsPublic,
-            IsPublished = model.IsPublished,
+    internal static AssetEntity ToEntity(this DomainAsset model)
+        => model switch {
+            DomainObjectAsset obj => new ObjectAssetEntity {
+                Id = obj.Id,
+                OwnerId = obj.OwnerId,
+                Kind = AssetKind.Object,
+                Name = obj.Name,
+                Description = obj.Description,
+                ResourceId = obj.Resource?.Id,
+                IsPublic = obj.IsPublic,
+                IsPublished = obj.IsPublished,
+                CreatedAt = obj.CreatedAt,
+                UpdatedAt = obj.UpdatedAt,
+                Properties = new Entities.ObjectProperties {
+                    CellWidth = obj.Properties.CellWidth,
+                    CellHeight = obj.Properties.CellHeight,
+                    IsMovable = obj.Properties.IsMovable,
+                    IsOpaque = obj.Properties.IsOpaque,
+                    IsVisible = obj.Properties.IsVisible,
+                    TriggerEffectId = obj.Properties.TriggerEffectId
+                }
+            },
+            DomainCreatureAsset creature => new CreatureAssetEntity {
+                Id = creature.Id,
+                OwnerId = creature.OwnerId,
+                Kind = AssetKind.Creature,
+                Name = creature.Name,
+                Description = creature.Description,
+                ResourceId = creature.Resource?.Id,
+                IsPublic = creature.IsPublic,
+                IsPublished = creature.IsPublished,
+                CreatedAt = creature.CreatedAt,
+                UpdatedAt = creature.UpdatedAt,
+                Properties = new Entities.CreatureProperties {
+                    CellSize = creature.Properties.CellSize,
+                    StatBlockId = creature.Properties.StatBlockId,
+                    Category = creature.Properties.Category,
+                    TokenStyle = creature.Properties.TokenStyle != null ? new Entities.TokenStyle {
+                        BorderColor = creature.Properties.TokenStyle.BorderColor,
+                        BackgroundColor = creature.Properties.TokenStyle.BackgroundColor,
+                        Shape = creature.Properties.TokenStyle.Shape
+                    } : null
+                }
+            },
+            _ => throw new InvalidOperationException($"Unknown asset model type: {model.GetType()}")
         };
 
-    internal static void UpdateFrom(this AssetEntity entity, Asset model) {
-        entity.OwnerId = model.OwnerId;
-        entity.Id = model.Id;
+    internal static void UpdateFrom(this AssetEntity entity, DomainAsset model) {
         entity.Name = model.Name;
         entity.Description = model.Description;
-        entity.Type = model.Type;
-        entity.Category = model.Category;
         entity.ResourceId = model.Resource?.Id;
         entity.IsPublic = model.IsPublic;
         entity.IsPublished = model.IsPublished;
+        entity.UpdatedAt = DateTime.UtcNow;
+
+        // Update polymorphic properties
+        switch (entity, model) {
+            case (ObjectAssetEntity objEntity, DomainObjectAsset objModel):
+                objEntity.Properties.CellWidth = objModel.Properties.CellWidth;
+                objEntity.Properties.CellHeight = objModel.Properties.CellHeight;
+                objEntity.Properties.IsMovable = objModel.Properties.IsMovable;
+                objEntity.Properties.IsOpaque = objModel.Properties.IsOpaque;
+                objEntity.Properties.IsVisible = objModel.Properties.IsVisible;
+                objEntity.Properties.TriggerEffectId = objModel.Properties.TriggerEffectId;
+                break;
+            case (CreatureAssetEntity creatureEntity, DomainCreatureAsset creatureModel):
+                creatureEntity.Properties.CellSize = creatureModel.Properties.CellSize;
+                creatureEntity.Properties.StatBlockId = creatureModel.Properties.StatBlockId;
+                creatureEntity.Properties.Category = creatureModel.Properties.Category;
+                if (creatureModel.Properties.TokenStyle != null) {
+                    creatureEntity.Properties.TokenStyle = new Entities.TokenStyle {
+                        BorderColor = creatureModel.Properties.TokenStyle.BorderColor,
+                        BackgroundColor = creatureModel.Properties.TokenStyle.BackgroundColor,
+                        Shape = creatureModel.Properties.TokenStyle.Shape
+                    };
+                } else {
+                    creatureEntity.Properties.TokenStyle = null;
+                }
+                break;
+            default:
+                throw new InvalidOperationException($"Mismatched asset types: entity={entity.GetType()}, model={model.GetType()}");
+        }
     }
 
     [return: NotNullIfNotNull(nameof(entity))]
@@ -99,30 +159,4 @@ internal static class Mapper {
             },
             Tags = entity.Tags,
         };
-
-    internal static ResourceEntity ToEntity(this Resource model)
-        => new() {
-            Id = model.Id,
-            ContentType = model.Metadata.ContentType,
-            FileName = model.Metadata.FileName,
-            FileLength = model.Metadata.FileLength,
-            Type = model.Type,
-            Path = model.Path,
-            ImageSize = model.Metadata.ImageSize,
-            Duration = model.Metadata.Duration,
-            Tags = model.Tags,
-        };
-
-    internal static ResourceEntity UpdateFrom(this ResourceEntity entity, Resource model) {
-        entity.Id = model.Id;
-        entity.Type = model.Type;
-        entity.Path = model.Path;
-        entity.ContentType = model.Metadata.ContentType;
-        entity.FileName = model.Metadata.FileName;
-        entity.FileLength = model.Metadata.FileLength;
-        entity.ImageSize = model.Metadata.ImageSize;
-        entity.Duration = model.Metadata.Duration;
-        entity.Tags = model.Tags;
-        return entity;
-    }
 }

@@ -1,61 +1,348 @@
-###################################
-# Health Endpoints
-###################################
+###############################################
+### Asset API Testing - Comprehensive Test Suite
+###############################################
+###
+### Prerequisites:
+### 1. AppHost running: cd Source/AppHost && dotnet run
+### 2. Find actual port in AppHost logs: "Now listening on: https://localhost:[PORT]"
+### 3. Auth disabled in AssetEndpointsMapper.cs line 8 for testing
+###
+### Port Discovery:
+### - Check AppHost console for: "Resource assets-api... Now listening on: https://localhost:XXXXX"
+### - Or visit Aspire dashboard: http://localhost:15000
+###
+###############################################
 
-### GET Health Check
-GET {{baseUrl}}/health HTTP/1.1
-Accept: application/json
+### Variables (UPDATE @baseUrl WITH ACTUAL PORT!)
+@aspireUrl = https://localhost:17276
+@baseUrl = https://localhost:7171
 
-### GET Alive Check
-GET {{baseUrl}}/alive HTTP/1.1
-Accept: application/json
+###############################################
+### HEALTH CHECKS
+###############################################
 
-###################################
-# Asset Endpoints
-###################################
+### Health Check
+GET {{baseUrl}}/health
 
-### GET All Assets
-GET {{baseUrl}}/api/assets/ HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
+### Alive Check
+GET {{baseUrl}}/alive
 
-### POST Create Asset
-# @name asset
-POST {{baseUrl}}/api/assets/ HTTP/1.1
+###############################################
+### CREATE - OBJECT ASSETS
+###############################################
+
+### 1. Create ObjectAsset - Wooden Table (Movable Furniture)
+# @name table
+POST {{baseUrl}}/api/assets
 Content-Type: application/json
-X-USER: {{x-user}}
 
 {
-  "name": "New Asset",
-  "description": "Description for new asset"
+  "kind": "Object",
+  "name": "Wooden Table",
+  "description": "A sturdy oak dining table with ornate carvings",
+  "objectProps": {
+    "cellWidth": 2,
+    "cellHeight": 1,
+    "isMovable": true,
+    "isOpaque": false,
+    "isVisible": true
+  }
 }
 
-### GET Asset by Id
-GET {{baseUrl}}/api/assets/{{asset.response.body.$.id}} HTTP/1.1
-Accept: application/json
-X-USER: {{x-user}}
-
-### PATCH Update Asset
-PATCH {{baseUrl}}/api/assets/{{asset.response.body.$.id}} HTTP/1.1
+### 2. Create ObjectAsset - Pressure Plate Trap (Hidden)
+# @name trap
+POST {{baseUrl}}/api/assets
 Content-Type: application/json
-X-USER: {{x-user}}
 
 {
-  "name": "Updated Asset"
+  "kind": "Object",
+  "name": "Pressure Plate Trap",
+  "description": "Hidden trap triggering poison darts",
+  "objectProps": {
+    "cellWidth": 1,
+    "cellHeight": 1,
+    "isMovable": false,
+    "isOpaque": false,
+    "isVisible": false
+  }
 }
 
-### DELETE Asset
-DELETE {{baseUrl}}/api/assets/{{asset.response.body.$.id}} HTTP/1.1
-X-USER: {{x-user}}
+### 3. Create ObjectAsset - Large Boulder (Immovable, Blocks Vision)
+# @name boulder
+POST {{baseUrl}}/api/assets
+Content-Type: application/json
 
-### POST Upload Asset File
-POST {{baseUrl}}/api/assets/{{asset.response.body.$.id}}/upload HTTP/1.1
-Content-Type: multipart/form-data; boundary=---011000010111000001101001
-X-USER: {{x-user}}
+{
+  "kind": "Object",
+  "name": "Large Boulder",
+  "description": "Massive rock blocking the path",
+  "objectProps": {
+    "cellWidth": 2,
+    "cellHeight": 2,
+    "isMovable": false,
+    "isOpaque": true,
+    "isVisible": true
+  }
+}
 
----011000010111000001101001
-Content-Disposition: form-data; name="file"; filename="test.txt"
-Content-Type: text/plain
+###############################################
+### CREATE - CREATURE ASSETS (CHARACTERS)
+###############################################
 
-Test file content
----011000010111000001101001--
+### 4. Create CreatureAsset - Elven Ranger (Character)
+# @name ranger
+POST {{baseUrl}}/api/assets
+Content-Type: application/json
+
+{
+  "kind": "Creature",
+  "name": "Elven Ranger",
+  "description": "Agile archer from Silverwood Forest",
+  "creatureProps": {
+    "cellSize": 1,
+    "category": "Character",
+    "tokenStyle": {
+      "borderColor": "#4CAF50",
+      "backgroundColor": "#E8F5E9",
+      "shape": "Circle"
+    }
+  }
+}
+
+### 5. Create CreatureAsset - Dwarven Cleric (Character)
+# @name cleric
+POST {{baseUrl}}/api/assets
+Content-Type: application/json
+
+{
+  "kind": "Creature",
+  "name": "Dwarven Cleric",
+  "description": "Holy warrior blessed by mountain gods",
+  "creatureProps": {
+    "cellSize": 1,
+    "category": "Character",
+    "tokenStyle": {
+      "borderColor": "#2196F3",
+      "backgroundColor": "#E3F2FD",
+      "shape": "Square"
+    }
+  }
+}
+
+###############################################
+### CREATE - CREATURE ASSETS (MONSTERS)
+###############################################
+
+### 6. Create CreatureAsset - Goblin Warrior (Small Monster)
+# @name goblin
+POST {{baseUrl}}/api/assets
+Content-Type: application/json
+
+{
+  "kind": "Creature",
+  "name": "Goblin Warrior",
+  "description": "Small hostile creature with crude weapons",
+  "creatureProps": {
+    "cellSize": 1,
+    "category": "Monster",
+    "tokenStyle": {
+      "borderColor": "#F44336",
+      "backgroundColor": "#FFEBEE",
+      "shape": "Circle"
+    }
+  }
+}
+
+### 7. Create CreatureAsset - Orc Brute (Medium Monster)
+# @name orc
+POST {{baseUrl}}/api/assets
+Content-Type: application/json
+
+{
+  "kind": "Creature",
+  "name": "Orc Brute",
+  "description": "Muscular humanoid with battle axe",
+  "creatureProps": {
+    "cellSize": 1,
+    "category": "Monster",
+    "tokenStyle": {
+      "borderColor": "#8B4513",
+      "backgroundColor": "#FFE4C4",
+      "shape": "Circle"
+    }
+  }
+}
+
+### 8. Create CreatureAsset - Adult Red Dragon (Huge 4x4 Monster)
+# @name dragon
+POST {{baseUrl}}/api/assets
+Content-Type: application/json
+
+{
+  "kind": "Creature",
+  "name": "Adult Red Dragon",
+  "description": "Massive ancient fire-breathing wyrm",
+  "creatureProps": {
+    "cellSize": 4,
+    "category": "Monster",
+    "tokenStyle": {
+      "borderColor": "#D32F2F",
+      "backgroundColor": "#FFCDD2",
+      "shape": "Square"
+    }
+  }
+}
+
+###############################################
+### READ OPERATIONS
+###############################################
+
+### 9. List All Assets
+GET {{baseUrl}}/api/assets
+
+### 10. Get ObjectAsset by ID
+GET {{baseUrl}}/api/assets/{{table.response.body.$.id}}
+
+### 11. Get CreatureAsset by ID
+GET {{baseUrl}}/api/assets/{{ranger.response.body.$.id}}
+
+### 12. Get Monster by ID
+GET {{baseUrl}}/api/assets/{{goblin.response.body.$.id}}
+
+###############################################
+### UPDATE OPERATIONS
+###############################################
+
+### 13. Update ObjectAsset Properties (Make Immovable, Resize)
+PATCH {{baseUrl}}/api/assets/{{table.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "Grand Oak Table",
+  "description": "Massive banquet table, too heavy to move",
+  "objectProps": {
+    "cellWidth": 3,
+    "cellHeight": 2,
+    "isMovable": false,
+    "isOpaque": false,
+    "isVisible": true
+  }
+}
+
+### 14. Update CreatureAsset Token Style
+PATCH {{baseUrl}}/api/assets/{{ranger.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "creatureProps": {
+    "cellSize": 1,
+    "category": "Character",
+    "tokenStyle": {
+      "borderColor": "#FF9800",
+      "backgroundColor": "#FFF3E0",
+      "shape": "Square"
+    }
+  }
+}
+
+### 15. Update Only Name and Description
+PATCH {{baseUrl}}/api/assets/{{orc.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "Orc Chieftain",
+  "description": "Leader of the war band with enchanted axe"
+}
+
+### 16. Publish Asset
+PATCH {{baseUrl}}/api/assets/{{goblin.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "isPublic": true,
+  "isPublished": true
+}
+
+###############################################
+### DELETE OPERATIONS
+###############################################
+
+### 17. Delete ObjectAsset
+DELETE {{baseUrl}}/api/assets/{{trap.response.body.$.id}}
+
+### 18. Delete CreatureAsset
+DELETE {{baseUrl}}/api/assets/{{dragon.response.body.$.id}}
+
+###############################################
+### EDGE CASES & VALIDATION
+###############################################
+
+### 19. Invalid - Missing Kind
+POST {{baseUrl}}/api/assets
+Content-Type: application/json
+
+{
+  "name": "Invalid Asset",
+  "description": "Missing kind property"
+}
+
+### 20. Invalid - Wrong Kind Value
+POST {{baseUrl}}/api/assets
+Content-Type: application/json
+
+{
+  "kind": "InvalidKind",
+  "name": "Test",
+  "description": "Should return validation error"
+}
+
+### 21. Invalid - Object Without ObjectProps
+POST {{baseUrl}}/api/assets
+Content-Type: application/json
+
+{
+  "kind": "Object",
+  "name": "Incomplete Object",
+  "description": "Missing objectProps - should fail validation"
+}
+
+### 22. Invalid - Creature Without CreatureProps
+POST {{baseUrl}}/api/assets
+Content-Type: application/json
+
+{
+  "kind": "Creature",
+  "name": "Incomplete Creature",
+  "description": "Missing creatureProps - should fail validation"
+}
+
+### 23. Invalid - Negative Cell Dimensions
+POST {{baseUrl}}/api/assets
+Content-Type: application/json
+
+{
+  "kind": "Object",
+  "name": "Invalid Object",
+  "description": "Negative dimensions",
+  "objectProps": {
+    "cellWidth": -1,
+    "cellHeight": 1,
+    "isMovable": true,
+    "isOpaque": false,
+    "isVisible": true
+  }
+}
+
+### 24. Not Found - Get Non-Existent Asset
+GET {{baseUrl}}/api/assets/00000000-0000-0000-0000-000000000000
+
+### 25. Not Found - Update Non-Existent Asset
+PATCH {{baseUrl}}/api/assets/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+
+{
+  "name": "Should Return 404"
+}
+
+### 26. Not Found - Delete Non-Existent Asset
+DELETE {{baseUrl}}/api/assets/00000000-0000-0000-0000-000000000000

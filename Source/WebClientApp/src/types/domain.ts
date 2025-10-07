@@ -27,56 +27,84 @@ export interface ApiResponse<T> {
 
 // Asset Types (from Domain.Assets.ApiContracts)
 
-// Asset behavioral categories - determines placement and interaction rules
-export enum AssetCategory {
-  Static = 'Static',    // Structural/environmental, locked in place (walls, doors, terrain, light sources)
-  Passive = 'Passive',  // Manipulable objects (furniture, items, containers)
-  Active = 'Active'     // Autonomous entities with actions (characters, NPCs, monsters)
+export enum AssetKind {
+  Object = 'Object',
+  Creature = 'Creature'
+}
+
+export enum CreatureCategory {
+  Character = 'Character',
+  Monster = 'Monster'
+}
+
+export enum TokenShape {
+  Circle = 'Circle',
+  Square = 'Square'
+}
+
+export interface TokenStyle {
+  borderColor?: string;
+  backgroundColor?: string;
+  shape: TokenShape;
+}
+
+export interface ObjectProperties {
+  cellWidth: number;
+  cellHeight: number;
+  isMovable: boolean;
+  isOpaque: boolean;
+  isVisible: boolean;
+  triggerEffectId?: string;
+}
+
+export interface CreatureProperties {
+  cellSize: number;
+  statBlockId?: string;
+  category: CreatureCategory;
+  tokenStyle?: TokenStyle;
 }
 
 export interface CreateAssetRequest {
-  type: AssetType;
-  category: AssetCategory;
+  kind: AssetKind;
   name: string;
   description: string;
-  resourceId?: string; // Guid? - Optional reference to Resource (image/sound/video)
+  resourceId?: string;
+  objectProps?: ObjectProperties;
+  creatureProps?: CreatureProperties;
 }
 
 export interface UpdateAssetRequest {
   name?: string;
   description?: string;
-  type?: AssetType;
-  category?: AssetCategory;
   resourceId?: string;
+  objectProps?: ObjectProperties;
+  creatureProps?: CreatureProperties;
 }
 
-export enum AssetType {
-  Placeholder = 'Placeholder',
-  Creature = 'Creature',
-  Character = 'Character',
-  NPC = 'NPC',
-  Object = 'Object',
-  Wall = 'Wall',
-  Door = 'Door',
-  Window = 'Window',
-  Overlay = 'Overlay',
-  Elevation = 'Elevation',
-  Effect = 'Effect',
-  Sound = 'Sound',
-  Music = 'Music',
-  Vehicle = 'Vehicle',
-  Token = 'Token'
-}
-
+// Base Asset interface
 export interface Asset {
   id: string;
-  type: AssetType;
-  category: AssetCategory;
+  ownerId: string;
+  kind: AssetKind;
   name: string;
   description: string;
-  resource?: MediaResource;  // Optional media resource (image/sound/video)
+  isPublished: boolean;
+  isPublic: boolean;
+  resource?: MediaResource;
   createdAt: string;
   updatedAt: string;
+}
+
+// ObjectAsset - environmental items
+export interface ObjectAsset extends Asset {
+  kind: AssetKind.Object;
+  objectProps: ObjectProperties;
+}
+
+// CreatureAsset - characters and monsters
+export interface CreatureAsset extends Asset {
+  kind: AssetKind.Creature;
+  creatureProps: CreatureProperties;
 }
 
 // Placed Asset - Frontend-only type for local placement state
@@ -88,6 +116,72 @@ export interface PlacedAsset {
   size: { width: number; height: number };
   rotation: number;     // Degrees
   layer: string;        // Layer name (Structure | Objects | Agents)
+}
+
+// Structure Types (from Domain.Library.Scenes.Model)
+
+export interface Structure {
+  id: string;
+  ownerId: string;
+  name: string;
+  description?: string;
+  isBlocking: boolean;
+  isOpaque: boolean;
+  isSecret: boolean;
+  isOpenable: boolean;
+  isLocked: boolean;
+  visual?: MediaResource;
+  createdAt: string;
+}
+
+export interface SceneStructure {
+  id: string;
+  sceneId: string;
+  structureId: string;
+  vertices: Array<{ x: number; y: number }>;
+  isOpen?: boolean;
+  isLocked?: boolean;
+  isSecret?: boolean;
+}
+
+// Effect Types (from Domain.Library.Scenes.Model)
+
+export enum EffectShape {
+  Circle = 'Circle',
+  Cone = 'Cone',
+  Square = 'Square',
+  Line = 'Line'
+}
+
+export interface Effect {
+  id: string;
+  ownerId: string;
+  name: string;
+  description?: string;
+  shape: EffectShape;
+  size: number;
+  direction?: number;
+  boundedByStructures: boolean;
+  visual?: MediaResource;
+  category?: string;
+  createdAt: string;
+}
+
+export interface SceneEffect {
+  id: string;
+  sceneId: string;
+  effectId: string;
+  origin: { x: number; y: number };
+  size?: number;
+  direction?: number;
+}
+
+// StatBlock (stub - full implementation in future phase)
+
+export interface StatBlock {
+  id: string;
+  name: string;
+  createdAt: string;
 }
 
 // Adventures (from Domain.Library.Adventures.ApiContracts)

@@ -18,16 +18,33 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         var result = data.Validate();
         if (result.HasErrors)
             return result;
-        var asset = new Asset {
-            OwnerId = userId,
-            Name = data.Name,
-            Type = data.Type,
-            Category = data.Category,
-            Description = data.Description,
-            Resource = data.ResourceId is not null
-                ? await mediaStorage.GetByIdAsync(data.ResourceId.Value, ct)
-                : null,
+
+        var resource = data.ResourceId is not null
+            ? await mediaStorage.GetByIdAsync(data.ResourceId.Value, ct)
+            : null;
+
+        Asset asset = data.Kind switch {
+            AssetKind.Object => new ObjectAsset {
+                OwnerId = userId,
+                Name = data.Name,
+                Description = data.Description,
+                Resource = resource,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Properties = data.ObjectProps ?? new()
+            },
+            AssetKind.Creature => new CreatureAsset {
+                OwnerId = userId,
+                Name = data.Name,
+                Description = data.Description,
+                Resource = resource,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Properties = data.CreatureProps ?? new()
+            },
+            _ => throw new InvalidOperationException($"Unknown asset kind: {data.Kind}")
         };
+
         await assetStorage.AddAsync(asset, ct);
         return asset;
     }
@@ -53,17 +70,34 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         var result = data.Validate();
         if (result.HasErrors)
             return result;
-        asset = asset with {
-            Name = data.Name.IsSet ? data.Name.Value : asset.Name,
-            Type = data.Type.IsSet ? data.Type.Value : asset.Type,
-            Category = data.Category.IsSet ? data.Category.Value : asset.Category,
-            Description = data.Description.IsSet ? data.Description.Value : asset.Description,
-            Resource = data.ResourceId.IsSet
-                ? await mediaStorage.GetByIdAsync(data.ResourceId.Value, ct) ?? asset.Resource
-                : asset.Resource,
-            IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : asset.IsPublished,
-            IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : asset.IsPublic,
+
+        var resource = data.ResourceId.IsSet
+            ? await mediaStorage.GetByIdAsync(data.ResourceId.Value, ct) ?? asset.Resource
+            : asset.Resource;
+
+        // Update based on asset type
+        asset = asset switch {
+            ObjectAsset obj => obj with {
+                Name = data.Name.IsSet ? data.Name.Value : obj.Name,
+                Description = data.Description.IsSet ? data.Description.Value : obj.Description,
+                Resource = resource,
+                IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : obj.IsPublished,
+                IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : obj.IsPublic,
+                UpdatedAt = DateTime.UtcNow,
+                Properties = data.ObjectProps.IsSet ? data.ObjectProps.Value : obj.Properties
+            },
+            CreatureAsset creature => creature with {
+                Name = data.Name.IsSet ? data.Name.Value : creature.Name,
+                Description = data.Description.IsSet ? data.Description.Value : creature.Description,
+                Resource = resource,
+                IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : creature.IsPublished,
+                IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : creature.IsPublic,
+                UpdatedAt = DateTime.UtcNow,
+                Properties = data.CreatureProps.IsSet ? data.CreatureProps.Value : creature.Properties
+            },
+            _ => throw new InvalidOperationException($"Unknown asset type: {asset.GetType()}")
         };
+
         await assetStorage.UpdateAsync(asset, ct);
         return asset;
     }

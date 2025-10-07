@@ -1,6 +1,5 @@
-using VttTools.Media.Contracts;
-using FileData = (System.Drawing.Size Size, System.TimeSpan Duration);
-using Size = System.Drawing.Size;
+using Size = VttTools.Common.Model.Size;
+using FileData = (VttTools.Common.Model.Size Size, System.TimeSpan Duration);
 
 namespace VttTools.Utilities;
 
@@ -17,7 +16,7 @@ public static class FileDataExtensions {
                     ContentType = GetContentType(file.FileName, file.ContentType),
                     FileName = file.FileName,
                     FileLength = (ulong)file.Length,
-                    ImageSize = result.Value.Size,
+                    ImageSize = new Size(result.Value.Size.Width, result.Value.Size.Height),
                     Duration = result.Value.Duration,
                 },
                 Tags = tags,
@@ -50,26 +49,26 @@ public static class FileDataExtensions {
         };
     }
 
-    private static async Task<(Size, TimeSpan)> GetImageInfo(Stream stream) {
-        using var image = await SixLabors.ImageSharp.Image.LoadAsync(stream);
-        return (new(image.Width, image.Height), TimeSpan.Zero);
+    private static async Task<FileData> GetImageInfo(Stream stream) {
+        using var image = await Image.LoadAsync(stream);
+        return (new Size(image.Width, image.Height), TimeSpan.Zero);
     }
 
-    private static async Task<(Size, TimeSpan)> GetGifInfo(Stream stream, int fps = 15) {
+    private static async Task<FileData> GetGifInfo(Stream stream, int fps = 15) {
         using var image = await GifDecoder.Instance.DecodeAsync(new(), stream);
         var totalDelay = image.Frames.Aggregate(0.0, (d, f) => d + f.Metadata.GetGifMetadata().FrameDelay);
         var duration = ((double)image.Frames.Count / fps) + (totalDelay / 100.0);
-        return (new(image.Width, image.Height), TimeSpan.FromSeconds(duration));
+        return (new Size(image.Width, image.Height), TimeSpan.FromSeconds(duration));
     }
 
-    private static async Task<(Size, TimeSpan)> GetWebpInfo(Stream stream, int fps = 15) {
+    private static async Task<FileData> GetWebpInfo(Stream stream, int fps = 15) {
         using var image = await WebpDecoder.Instance.DecodeAsync(new(), stream);
         var totalDelay = image.Frames.Aggregate(0.0, (d, f) => d + f.Metadata.GetGifMetadata().FrameDelay);
         var duration = ((double)image.Frames.Count / fps) + (totalDelay / 100.0);
-        return (new(image.Width, image.Height), TimeSpan.FromSeconds(duration));
+        return (new Size(image.Width, image.Height), TimeSpan.FromSeconds(duration));
     }
 
-    private static async Task<(Size, TimeSpan)> GetVideoInfo(Stream stream) {
+    private static async Task<FileData> GetVideoInfo(Stream stream) {
         var tempFilePath = Path.GetTempFileName();
         try {
             await using var fileStream = File.Create(tempFilePath);
@@ -78,14 +77,14 @@ public static class FileDataExtensions {
             await stream.CopyToAsync(fileStream);
             var mediaInfo = await FFMpegCore.FFProbe.AnalyseAsync(tempFilePath);
             var video = mediaInfo.VideoStreams[0];
-            return new(new(video.Width, video.Height), video.Duration);
+            return new(new Size(video.Width, video.Height), video.Duration);
         }
         finally {
             File.Delete(tempFilePath);
         }
     }
 
-    private static async Task<(Size, TimeSpan)> GetSvgInfo(Stream stream) {
+    private static async Task<FileData> GetSvgInfo(Stream stream) {
         // Parse SVG XML to extract width/height from the root <svg> element
         using var reader = new StreamReader(stream, leaveOpen: true);
         var svgContent = await reader.ReadToEndAsync();
@@ -114,7 +113,7 @@ public static class FileDataExtensions {
         var width = TryParseSize(widthAttr) ?? 512;
         var height = TryParseSize(heightAttr) ?? 512;
 
-        return (new(width, height), TimeSpan.Zero);
+        return (new Size(width, height), TimeSpan.Zero);
     }
 
     private static int? TryParseSize(string? value) {

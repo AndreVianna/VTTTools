@@ -5,6 +5,7 @@ global using DotNetToolbox.Results;
 global using Microsoft.AspNetCore.Mvc;
 
 global using VttTools.Assets.Storage;
+global using VttTools.Common.Model;
 global using VttTools.Data;
 global using VttTools.Data.Extensions;
 global using VttTools.Data.Options;

@@ -34,17 +34,17 @@ internal static class Mapper {
 
     internal static Expression<Func<SceneAssetEntity, SceneAsset>> AsSceneAsset = entity
         => new() {
-            Id = entity.Asset.Id,
-            Description = entity.Asset.Description,
-            Type = entity.Asset.Type,
+            AssetId = entity.AssetId,
             Index = entity.Index,
+            Number = entity.Number,
             Name = entity.Name,
-            Resource = entity.Resource.ToModel(),
-            Frame = entity.Frame,
+            Description = entity.Description,
+            ResourceId = entity.ResourceId,
             Size = entity.Size,
             Position = entity.Position,
             Elevation = entity.Elevation,
             Rotation = entity.Rotation,
+            Frame = entity.Frame,
             IsLocked = entity.IsLocked,
             ControlledBy = entity.ControlledBy,
         };
@@ -143,8 +143,8 @@ internal static class Mapper {
         entity.ZoomLevel = model.Stage.ZoomLevel;
         entity.Panning = model.Stage.Panning;
         entity.Grid = model.Grid;
-        var existingAssets = entity.SceneAssets.Join(model.Assets, esa => esa.AssetId, msa => msa.Id, (esa, msa) => UpdateFrom(esa, entity.Id, msa));
-        var newAssets = model.Assets.Where(sa => entity.SceneAssets.All(ea => ea.AssetId != sa.Id)).Select(msa => ToEntity(msa, entity.Id));
+        var existingAssets = entity.SceneAssets.Join(model.Assets, esa => esa.AssetId, msa => msa.AssetId, (esa, msa) => UpdateFrom(esa, entity.Id, msa));
+        var newAssets = model.Assets.Where(sa => entity.SceneAssets.All(ea => ea.AssetId != sa.AssetId)).Select(msa => ToEntity(msa, entity.Id));
         entity.SceneAssets = [.. existingAssets.Union(newAssets)];
         return entity;
     }
@@ -152,17 +152,17 @@ internal static class Mapper {
     [return: NotNullIfNotNull(nameof(entity))]
     internal static SceneAsset? ToModel(this SceneAssetEntity? entity)
         => entity == null ? null : new() {
-            Id = entity.Asset.Id,
-            Description = entity.Asset.Description,
-            Type = entity.Asset.Type,
+            AssetId = entity.AssetId,
             Index = entity.Index,
+            Number = entity.Number,
             Name = entity.Name,
-            Resource = entity.Resource.ToModel(),
-            Frame = entity.Frame,
+            Description = entity.Description,
+            ResourceId = entity.ResourceId,
             Size = entity.Size,
             Position = entity.Position,
             Elevation = entity.Elevation,
             Rotation = entity.Rotation,
+            Frame = entity.Frame,
             IsLocked = entity.IsLocked,
             ControlledBy = entity.ControlledBy,
         };
@@ -170,10 +170,12 @@ internal static class Mapper {
     internal static SceneAssetEntity ToEntity(this SceneAsset model, Guid sceneId)
         => new() {
             SceneId = sceneId,
-            AssetId = model.Id,
+            AssetId = model.AssetId,
             Index = model.Index,
+            Number = model.Number,
             Name = model.Name,
-            ResourceId = model.Resource!.Id,
+            Description = model.Description,
+            ResourceId = model.ResourceId,
             Frame = model.Frame,
             Size = model.Size,
             Position = model.Position,
@@ -185,9 +187,12 @@ internal static class Mapper {
 
     internal static SceneAssetEntity UpdateFrom(this SceneAssetEntity entity, Guid sceneId, SceneAsset model) {
         entity.SceneId = sceneId;
-        entity.AssetId = model.Id;
+        entity.AssetId = model.AssetId;
         entity.Index = model.Index;
+        entity.Number = model.Number;
         entity.Name = model.Name;
+        entity.Description = model.Description;
+        entity.ResourceId = model.ResourceId;
         entity.Frame = model.Frame;
         entity.Size = model.Size;
         entity.Position = model.Position;
@@ -195,7 +200,6 @@ internal static class Mapper {
         entity.Rotation = model.Rotation;
         entity.IsLocked = model.IsLocked;
         entity.ControlledBy = model.ControlledBy;
-        entity.ResourceId = model.Resource!.Id;
         return entity;
     }
 

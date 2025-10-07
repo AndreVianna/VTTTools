@@ -2,7 +2,9 @@
 
 **Bounded Context**: Assets
 
-**Purpose**: Manage reusable game asset templates (creatures, characters, NPCs, objects, tokens, walls, doors, effects) that can be placed on scenes during gameplay.
+**Purpose**: Manage reusable game asset templates (objects and entities/creatures) that can be placed on scenes during gameplay.
+
+**Note**: Structures (walls, doors) and Effects (light, fog) are now separate domain models in the Library.Scenes bounded context.
 
 **Boundaries**:
 - **Inside**: Asset entity definitions, asset type categorization, asset ownership and publishing
@@ -17,33 +19,40 @@
 ---
 
 ## Change Log
+- *2025-10-06* — **2.0.0** — Major refactoring: Asset hierarchy (ObjectAsset, EntityAsset), removed Structures/Effects (moved to Library.Scenes), framework-independent primitives
 - *2025-10-02* — **1.0.0** — Initial domain model extracted from existing codebase
 
 ---
 
 ## Ubiquitous Language
 
-- **Asset**: Reusable game element template (creature, character, prop, effect) that can be placed on scenes
-- **Asset Type**: Category classification of asset (15 types: Placeholder, Creature, Character, NPC, Object, Wall, Door, Window, Overlay, Elevation, Effect, Sound, Music, Vehicle, Token)
-- **Token**: Visual representation (specific AssetType) for characters/creatures on tactical maps
+- **Asset**: Reusable game element template (objects or creatures) that can be placed on scenes
+- **Asset Kind**: Fundamental categorization (Object or Creature)
+- **Object Asset**: Environmental items (furniture, traps, containers) placed in grid cells
+- **Creature Asset**: Controllable game creatures (characters, NPCs, monsters) with stat blocks
+- **Creature Category**: Sub-classification for creatures (Character vs Monster) for UI filtering
 - **Published**: Asset approved and available for use in game sessions
 - **Public**: Asset visible to all users (vs private/owner-only)
 - **Private**: Asset visible only to the owner (antonym of Public, default state for new assets)
 - **Unpublished**: Asset in draft state, not yet approved for session use (antonym of Published, default for new assets)
-- **Display Resource**: Media file (image) used to visually represent the asset
 - **Ownership**: User who created and controls the asset
-- **Frame**: Visual border styling for asset display (shape and colors)
-- **Creature**: Asset type representing monsters, animals, or non-player combat entities in game sessions
+- **Token Style**: Visual customization for entity tokens (border, background, shape)
+- **Stat Block**: Reference to character/creature statistics (stub for future implementation)
+- **Trigger Effect**: Effect activated when object is interacted with (for traps)
 
 ---
 
 ## Entities
 
-### Asset
+### Asset (Abstract Base)
 
 **Entity Classification**: Aggregate Root
 
-**Aggregate Root**: This entity is the entry point for all operations on the Asset aggregate
+**Aggregate Root**: This is the abstract base for all asset types (ObjectAsset and EntityAsset)
+
+**Inheritance Pattern**: Table-Per-Hierarchy (TPH) - all asset types stored in single Assets table with Kind discriminator
+
+**Updated**: 2025-10-06 - Refactored to use inheritance instead of nullable mutually-exclusive properties
 
 #### Identity
 - **Primary Key**: Id (Guid)
@@ -62,11 +71,11 @@
   - **Nullable**: No
   - **Purpose**: Links asset to owning user
 
-- **Type**: AssetType (enum)
-  - **Constraints**: Must be valid AssetType value (one of 15 types)
-  - **Default Value**: AssetType.Placeholder
+- **Kind**: AssetKind (enum)
+  - **Constraints**: Must be either Object or Entity
+  - **Default Value**: Set by concrete class constructor
   - **Nullable**: No
-  - **Purpose**: Categorizes asset for filtering and behavior
+  - **Purpose**: Discriminator for TPH inheritance (determines concrete type)
 
 - **Name**: string
   - **Constraints**: Required, max length 128 characters, no leading/trailing whitespace
@@ -92,11 +101,17 @@
   - **Nullable**: No
   - **Purpose**: Controls visibility to users other than owner
 
-- **Display**: Display (value object, references Resource)
-  - **Constraints**: Must reference valid Resource entity with Type=Image
-  - **Default Value**: null
-  - **Nullable**: Yes
-  - **Purpose**: Visual representation of the asset
+- **CreatedAt**: DateTime
+  - **Constraints**: Required, automatically set on creation
+  - **Default Value**: UTC timestamp at creation
+  - **Nullable**: No
+  - **Purpose**: Track when asset was created
+
+- **UpdatedAt**: DateTime
+  - **Constraints**: Required, automatically updated on modification
+  - **Default Value**: UTC timestamp at last update
+  - **Nullable**: No
+  - **Purpose**: Track when asset was last modified
 
 #### Invariants
 - **INV-01**: Name must not be empty or whitespace
@@ -119,9 +134,43 @@
   - **Rationale**: Orphaned assets not allowed
   - **Enforced By**: Database foreign key constraint
 
-- **INV-06**: Type must be valid AssetType enum value
-  - **Rationale**: Type categorization integrity
-  - **Enforced By**: C# enum type system, EF Core enum conversion
+- **INV-06**: Kind must be valid AssetKind enum value (Object or Entity)
+  - **Rationale**: Kind discriminator integrity for TPH
+  - **Enforced By**: C# enum type system, EF Core discriminator configuration
+
+---
+
+### ObjectAsset (Concrete)
+
+**Inherits From**: Asset
+
+**Purpose**: Represents environmental objects (furniture, traps, containers)
+
+#### Specific Attributes
+
+- **Properties**: ObjectProperties (value object)
+  - **CellWidth**: int (grid cells occupied horizontally, default: 1)
+  - **CellHeight**: int (grid cells occupied vertically, default: 1)
+  - **IsMovable**: bool (can be moved after placement, default: true)
+  - **IsOpaque**: bool (blocks line of sight and light, default: false)
+  - **IsVisible**: bool (visible to players, default: true - false for hidden traps/doors)
+  - **TriggerEffectId**: Guid? (optional reference to Effect triggered on interaction)
+
+---
+
+### CreatureAsset (Concrete)
+
+**Inherits From**: Asset
+
+**Purpose**: Represents controllable creatures (characters, NPCs, monsters)
+
+#### Specific Attributes
+
+- **Properties**: CreatureProperties (value object)
+  - **CellSize**: int (grid cells occupied, default: 1 - larger creatures can be 2+)
+  - **StatBlockId**: Guid? (optional reference to StatBlock entity)
+  - **Category**: CreatureCategory enum (Character or Monster for UI filtering)
+  - **TokenStyle**: TokenStyle? (optional visual styling with border/background colors and shape)
 
 #### Operations (Implemented in Application Services)
 
@@ -199,61 +248,49 @@ Potential future events:
 
 ## Value Objects
 
-### Display
+### ObjectProperties
 
-**Purpose**: Encapsulates reference to a Resource used for visual representation of an asset
-
-#### Properties
-- **ResourceId**: Guid?
-  - **Constraints**: Must reference existing Resource with Type=Image if provided
-- **Frame**: Frame (nested value object)
-  - **Constraints**: See Frame value object definition
-
-#### Creation & Validation
-- **Factory Method**: Inline construction: `new Display { ResourceId = resourceId, Frame = frame }`
-- **Validation Rules**:
-  - ResourceId must be null or reference valid Resource
-  - Frame is optional (can be null)
-- **Immutability**: Yes (record type with init-only properties)
-
-#### Equality & Comparison
-- **Equality**: Value-based (ResourceId and Frame must match)
-- **Hash Code**: Based on ResourceId and Frame
-- **Comparison**: Not comparable
-
-#### Methods
-- **ToString()**: Returns string representation
-- **Equals(Display other)**: Value equality comparison
-- **GetHashCode()**: Hash based on ResourceId and Frame
-
-### Frame
-
-**Purpose**: Defines visual border styling for asset display (shape and colors)
+**Purpose**: Encapsulates properties specific to Object assets (stored as JSON)
 
 #### Properties
-- **Shape**: FrameShape (enum: Square, Circle)
-  - **Constraints**: Must be valid FrameShape enum value
-- **Color**: string (hex color code)
-  - **Constraints**: Valid hex color format (e.g., "#FF5733")
-- **BorderColor**: string (hex color code)
-  - **Constraints**: Valid hex color format
+- **CellWidth**: int (default: 1)
+- **CellHeight**: int (default: 1)
+- **IsMovable**: bool (default: true)
+- **IsOpaque**: bool (default: false)
+- **IsVisible**: bool (default: true)
+- **TriggerEffectId**: Guid? (optional)
 
-#### Creation & Validation
-- **Factory Method**: Inline construction: `new Frame { Shape = FrameShape.Circle, Color = "#FFFFFF", BorderColor = "#000000" }`
-- **Validation Rules**:
-  - Shape must be Square or Circle
-  - Color and BorderColor should be valid hex codes
-- **Immutability**: Yes (record type)
+#### Immutability
+Yes (record type with init-only properties)
 
-#### Equality & Comparison
-- **Equality**: Value-based (all properties must match)
-- **Hash Code**: Based on Shape, Color, BorderColor
-- **Comparison**: Not comparable
+---
 
-#### Methods
-- **ToString()**: Returns string representation
-- **Equals(Frame other)**: Value equality comparison
-- **GetHashCode()**: Hash based on all properties
+### CreatureProperties
+
+**Purpose**: Encapsulates properties specific to Creature assets (stored as JSON)
+
+#### Properties
+- **CellSize**: int (default: 1)
+- **StatBlockId**: Guid? (optional reference to StatBlock)
+- **Category**: CreatureCategory enum (Character or Monster)
+- **TokenStyle**: TokenStyle? (optional visual styling)
+
+#### Immutability
+Yes (record type with init-only properties)
+
+---
+
+### TokenStyle
+
+**Purpose**: Defines visual styling for entity tokens
+
+#### Properties
+- **BorderColor**: string? (hex color code, e.g., "#FF5733")
+- **BackgroundColor**: string? (hex color code, e.g., "#FFFFFF")
+- **Shape**: TokenShape enum (Circle or Square)
+
+#### Immutability
+Yes (record type with init-only properties)
 
 ---
 
@@ -264,22 +301,28 @@ Potential future events:
 **Aggregate Root**: Asset
 
 **Entities in Aggregate**:
-- Asset (root): The asset template definition
+- Asset (root - abstract): Base asset definition
+- ObjectAsset (concrete): Environmental object templates
+- CreatureAsset (concrete): Character/monster templates
 
 **Value Objects in Aggregate**:
-- Display: Resource reference with frame styling
-- Frame: Border shape and colors
+- ObjectProperties: Object-specific attributes
+- CreatureProperties: Creature-specific attributes
+- TokenStyle: Visual styling for creature tokens
 
 #### Boundary Definition
 **What's Inside**:
-- Asset entity (root)
-- Display value object
-- Frame value object
+- Asset entity hierarchy (Asset → ObjectAsset, CreatureAsset)
+- ObjectProperties value object
+- CreatureProperties value object
+- TokenStyle value object
 
 **What's Outside** (Referenced, not contained):
 - User (referenced via OwnerId)
-- Resource (referenced via Display.ResourceId)
-- Scene (references Asset via SceneAsset, not part of this aggregate)
+- Resource (referenced via Asset.Resource)
+- StatBlock (referenced via CreatureProperties.StatBlockId)
+- Effect (referenced via ObjectProperties.TriggerEffectId)
+- Scene (references Asset via SceneAsset.AssetId, not part of this aggregate)
 
 **Boundary Rule**: All data needed to create, update, or delete an asset template is within this aggregate. External references (User, Resource) are by ID only. Scene usage of assets is tracked in the Library aggregate (Scene > SceneAsset), not here.
 

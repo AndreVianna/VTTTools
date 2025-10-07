@@ -1,7 +1,5 @@
 global using System.Collections;
 global using System.ComponentModel.DataAnnotations;
-global using System.Drawing;
-global using System.Numerics;
 
 global using AwesomeAssertions;
 

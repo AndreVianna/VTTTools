@@ -34,9 +34,8 @@ public class GameSessionHandlersTests {
             OwnerId = _userId,
         };
 
-        var createdResult = TypedResult.As(HttpStatusCode.Created, expectedGameSession);
         _sessionService.CreateGameSessionAsync(_userId, Arg.Any<CreateGameSessionData>(), Arg.Any<CancellationToken>())
-            .Returns(createdResult);
+            .Returns(Result.Success(expectedGameSession));
 
         // Act
         var result = await GameSessionHandlers.CreateGameSessionHandler(_httpContext, request, _sessionService);
@@ -55,10 +54,9 @@ public class GameSessionHandlersTests {
             SceneId = _sceneId,
         };
         var errors = new[] { new Error("Title", "Cannot be empty") };
-        var badRequestResult = TypedResult.As(HttpStatusCode.BadRequest, [.. errors]).WithNo<GameSession>();
 
         _sessionService.CreateGameSessionAsync(_userId, Arg.Any<CreateGameSessionData>(), Arg.Any<CancellationToken>())
-            .Returns(badRequestResult);
+            .Returns(Result.Failure("Title: Cannot be empty"));
 
         // Act
         var result = await GameSessionHandlers.CreateGameSessionHandler(_httpContext, request, _sessionService);
@@ -118,9 +116,8 @@ public class GameSessionHandlersTests {
         // Arrange
         var request = new UpdateGameSessionRequest { Title = "Updated GameSession" };
         var expectedGameSession = new GameSession { Id = _sessionId, Title = "Updated GameSession", OwnerId = _userId };
-        var okResult = TypedResult.As(HttpStatusCode.OK, expectedGameSession);
         _sessionService.UpdateGameSessionAsync(_userId, _sessionId, Arg.Any<UpdateGameSessionData>(), Arg.Any<CancellationToken>())
-            .Returns(okResult);
+            .Returns(Result.Success(expectedGameSession));
 
         // Act
         var result = await GameSessionHandlers.UpdateGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
@@ -135,14 +132,13 @@ public class GameSessionHandlersTests {
         // Arrange
         var request = new UpdateGameSessionRequest { Title = "" };
         var errors = new[] { new Error("Title", "Cannot be empty") };
-        var badRequestResult = TypedResult.As(HttpStatusCode.BadRequest, [.. errors]).WithNo<GameSession>();
 
         _sessionService.UpdateGameSessionAsync(
             _userId,
             _sessionId,
             Arg.Any<UpdateGameSessionData>(),
             Arg.Any<CancellationToken>())
-            .Returns(badRequestResult);
+            .Returns(Result.Failure("Title: Cannot be empty"));
 
         // Act
         var result = await GameSessionHandlers.UpdateGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
@@ -154,9 +150,8 @@ public class GameSessionHandlersTests {
     [Fact]
     public async Task DeleteGameSessionHandler_ReturnsCorrectStatusCode() {
         // Arrange
-        var noContentResult = TypedResult.As(HttpStatusCode.NoContent);
         _sessionService.DeleteGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
-            .Returns(noContentResult);
+            .Returns(Result.Success());
 
         // Act
         var result = await GameSessionHandlers.DeleteGameSessionHandler(_httpContext, _sessionId, _sessionService);
@@ -170,9 +165,8 @@ public class GameSessionHandlersTests {
     public async Task JoinGameSessionHandler_ReturnsCorrectStatusCode() {
         // Arrange
         var request = new JoinGameSessionRequest { JoinAs = PlayerType.Player };
-        var okResult = TypedResult.As(HttpStatusCode.OK);
         _sessionService.JoinGameSessionAsync(_userId, _sessionId, PlayerType.Player, Arg.Any<CancellationToken>())
-            .Returns(okResult);
+            .Returns(Result.Success());
 
         // Act
         var result = await GameSessionHandlers.JoinGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
@@ -186,9 +180,8 @@ public class GameSessionHandlersTests {
     public async Task JoinGameSessionHandler_WithInvalidRequest_ReturnsBadRequestResult() {
         // Arrange
         var request = new JoinGameSessionRequest { JoinAs = PlayerType.Player };
-        var errorResult = TypedResult.As(HttpStatusCode.BadRequest, new Error("Some error."));
         _sessionService.JoinGameSessionAsync(_userId, _sessionId, PlayerType.Player, Arg.Any<CancellationToken>())
-            .Returns(errorResult);
+            .Returns(Result.Failure(new Error("Some error.")));
 
         // Act
         var result = await GameSessionHandlers.JoinGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
@@ -200,9 +193,8 @@ public class GameSessionHandlersTests {
     [Fact]
     public async Task LeaveGameSessionHandler_ReturnsCorrectStatusCode() {
         // Arrange
-        var okResult = TypedResult.As(HttpStatusCode.OK);
         _sessionService.LeaveGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
-            .Returns(okResult);
+            .Returns(Result.Success());
 
         // Act
         var result = await GameSessionHandlers.LeaveGameSessionHandler(_httpContext, _sessionId, _sessionService);
@@ -215,9 +207,8 @@ public class GameSessionHandlersTests {
     [Fact]
     public async Task ActivateSceneHandler_ReturnsCorrectStatusCode() {
         // Arrange
-        var okResult = TypedResult.As(HttpStatusCode.OK);
         _sessionService.SetActiveSceneAsync(_userId, _sessionId, _sceneId, Arg.Any<CancellationToken>())
-            .Returns(okResult);
+            .Returns(Result.Success());
 
         // Act
         var result = await GameSessionHandlers.ActivateSceneHandler(_httpContext, _sessionId, _sceneId, _sessionService);
@@ -230,9 +221,8 @@ public class GameSessionHandlersTests {
     [Fact]
     public async Task StartGameSessionHandler_ReturnsCorrectStatusCode() {
         // Arrange
-        var okResult = TypedResult.As(HttpStatusCode.OK);
         _sessionService.StartGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
-            .Returns(okResult);
+            .Returns(Result.Success());
 
         // Act
         var result = await GameSessionHandlers.StartGameSessionHandler(_httpContext, _sessionId, _sessionService);
@@ -245,9 +235,8 @@ public class GameSessionHandlersTests {
     [Fact]
     public async Task StopGameSessionHandler_ReturnsCorrectStatusCode() {
         // Arrange
-        var okResult = TypedResult.As(HttpStatusCode.OK);
         _sessionService.StopGameSessionAsync(_userId, _sessionId, Arg.Any<CancellationToken>())
-            .Returns(okResult);
+            .Returns(Result.Success());
 
         // Act
         var result = await GameSessionHandlers.StopGameSessionHandler(_httpContext, _sessionId, _sessionService);

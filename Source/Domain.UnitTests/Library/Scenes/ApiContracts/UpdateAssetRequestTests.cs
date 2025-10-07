@@ -6,7 +6,7 @@ public class UpdateAssetRequestTests {
         // Arrange
         var original = new UpdateSceneAssetRequest {
             Name = "Original",
-            Position = new Point { X = 1, Y = 1 },
+            Position = new Position(1, 1),
             Size = new Size(50, 50),
             Frame = new Frame(),
             Rotation = 0.0f,
@@ -15,7 +15,7 @@ public class UpdateAssetRequestTests {
             ControlledBy = Guid.Empty,
         };
         const string name = "New Name";
-        var position = new Point { X = 10, Y = 20 };
+        var position = new Position(10, 20);
         var size = new Size(100, 200);
         var frame = new Frame {
             Shape = FrameShape.Circle,

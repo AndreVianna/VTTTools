@@ -22,8 +22,8 @@ public class AssetServiceTests {
     public async Task GetAssetsAsync_CallsStorage() {
         // Arrange
         var assets = new Asset[] {
-            new() { Id = Guid.NewGuid(), Name = "Test Asset 1", Type = AssetType.Character },
-            new() { Id = Guid.NewGuid(), Name = "Test Asset 2", Type = AssetType.Creature },
+            new CreatureAsset { Id = Guid.NewGuid(), Name = "Test Asset 1" },
+            new CreatureAsset { Id = Guid.NewGuid(), Name = "Test Asset 2" },
                                  };
         _assetStorage.GetAllAsync(Arg.Any<CancellationToken>()).Returns(assets);
 
@@ -39,11 +39,10 @@ public class AssetServiceTests {
     public async Task GetAssetAsync_CallsStorage() {
         // Arrange
         var assetId = Guid.NewGuid();
-        var asset = new Asset {
+        var asset = new CreatureAsset {
             Id = assetId,
             Name = "Test Asset",
             Description = "Test Description",
-            Type = AssetType.Character,
             Resource = new(),
         };
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
@@ -62,7 +61,7 @@ public class AssetServiceTests {
         var data = new CreateAssetData {
             Name = "New Asset",
             Description = "New Description",
-            Type = AssetType.Creature,
+            Kind = AssetKind.Creature,
             ResourceId = Guid.NewGuid(),
         };
 
@@ -73,7 +72,7 @@ public class AssetServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Name.Should().Be(data.Name);
         result.Value.Description.Should().Be(data.Description);
-        result.Value.Type.Should().Be(data.Type);
+        result.Value.Kind.Should().Be(data.Kind);
         result.Value.OwnerId.Should().Be(_userId);
         await _assetStorage.Received(1).AddAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
     }
@@ -82,11 +81,10 @@ public class AssetServiceTests {
     public async Task UpdateAssetAsync_WithOwner_UpdatesAsset() {
         // Arrange
         var assetId = Guid.NewGuid();
-        var asset = new Asset {
+        var asset = new CreatureAsset {
             Id = assetId,
             Name = "Old Name",
             Description = "Old Description",
-            Type = AssetType.Character,
             OwnerId = _userId,
             Resource = new(),
         };
@@ -94,7 +92,6 @@ public class AssetServiceTests {
         var data = new UpdateAssetData {
             Name = "Updated Name",
             Description = "Updated Description",
-            Type = AssetType.Creature,
             ResourceId = Guid.NewGuid(),
             IsPublished = true,
             IsPublic = true,
@@ -111,7 +108,6 @@ public class AssetServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Name.Should().Be(data.Name.Value);
         result.Value.Description.Should().Be(data.Description.Value);
-        result.Value.Type.Should().Be(data.Type.Value);
         result.Value.OwnerId.Should().Be(_userId);
         await _assetStorage.Received(1).UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
     }
@@ -121,7 +117,7 @@ public class AssetServiceTests {
         // Arrange
         var assetId = Guid.NewGuid();
         var nonOwnerId = Guid.NewGuid();
-        var asset = new Asset {
+        var asset = new ObjectAsset {
             Id = assetId,
             Name = "Asset",
             OwnerId = _userId,
@@ -146,11 +142,10 @@ public class AssetServiceTests {
     public async Task UpdateAssetAsync_WithPartialUpdate_OnlyUpdatesProvidedFields() {
         // Arrange
         var assetId = Guid.NewGuid();
-        var asset = new Asset {
+        var asset = new CreatureAsset {
             Id = assetId,
             Name = "Original Name",
             Description = "Original Description",
-            Type = AssetType.Character,
             OwnerId = _userId,
         };
 
@@ -169,7 +164,7 @@ public class AssetServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Name.Should().Be(data.Name.Value);
         result.Value.Description.Should().Be(asset.Description);
-        result.Value.Type.Should().Be(asset.Type);
+        result.Value.Kind.Should().Be(asset.Kind);
         await _assetStorage.Received(1).UpdateAsync(Arg.Any<Asset>(), Arg.Any<CancellationToken>());
     }
 
@@ -177,7 +172,7 @@ public class AssetServiceTests {
     public async Task DeleteAssetAsync_WithOwner_DeletesAsset() {
         // Arrange
         var assetId = Guid.NewGuid();
-        var asset = new Asset {
+        var asset = new ObjectAsset {
             Id = assetId,
             Name = "Asset",
             OwnerId = _userId,
@@ -199,7 +194,7 @@ public class AssetServiceTests {
         // Arrange
         var assetId = Guid.NewGuid();
         var nonOwnerId = Guid.NewGuid();
-        var asset = new Asset {
+        var asset = new ObjectAsset {
             Id = assetId,
             Name = "Asset",
             OwnerId = _userId,

@@ -9,20 +9,20 @@ public class AssetStorage(ApplicationDbContext context)
     : IAssetStorage {
     /// <inheritdoc />
     public async Task<Asset[]> GetAllAsync(CancellationToken ct = default) {
-        var query = context.Assets
+        var entities = await context.Assets
                     .Include(a => a.Resource)
-                  .AsNoTrackingWithIdentityResolution();
-        var result = await query.Select(Mapper.AsAsset).ToArrayAsync(ct);
-        return result;
+                  .AsNoTrackingWithIdentityResolution()
+                  .ToArrayAsync(ct);
+        return entities.Select(e => e.ToModel()).OfType<Asset>().ToArray();
     }
 
     /// <inheritdoc />
     public async Task<Asset?> GetByIdAsync(Guid id, CancellationToken ct = default) {
-        var query = context.Assets
+        var entity = await context.Assets
                     .Include(a => a.Resource)
-                  .AsNoTrackingWithIdentityResolution();
-        var result = await query.Select(Mapper.AsAsset).FirstOrDefaultAsync(a => a.Id == id, ct);
-        return result;
+                  .AsNoTrackingWithIdentityResolution()
+                  .FirstOrDefaultAsync(a => a.Id == id, ct);
+        return entity?.ToModel();
     }
 
     /// <inheritdoc />

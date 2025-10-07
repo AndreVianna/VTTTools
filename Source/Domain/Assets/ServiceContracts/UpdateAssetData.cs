@@ -4,11 +4,13 @@ public record UpdateAssetData
     : Data {
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
-    public Optional<AssetType> Type { get; init; }
-    public Optional<AssetCategory> Category { get; init; }
     public Optional<Guid> ResourceId { get; init; }
     public Optional<bool> IsPublished { get; set; }
     public Optional<bool> IsPublic { get; set; }
+
+    // Polymorphic properties (provide the one matching the asset's Kind)
+    public Optional<ObjectProperties> ObjectProps { get; init; }
+    public Optional<CreatureProperties> CreatureProps { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);

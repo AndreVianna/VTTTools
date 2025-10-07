@@ -1,4 +1,7 @@
-﻿namespace VttTools.Library.Services;
+﻿using Point = VttTools.Common.Model.Point;
+using Size = VttTools.Common.Model.Size;
+
+namespace VttTools.Library.Services;
 
 public class SceneServiceTests {
     private readonly ISceneStorage _sceneStorage;
@@ -209,18 +212,20 @@ public class SceneServiceTests {
             Name = "Scene",
             OwnerId = _userId,
             Assets = [
-                // NOTE: Service uses Assets.Max(sa => sa.Index) and scene.Assets.Where(sa => sa.Id == assetId).Max() which fail on empty collections
+                // NOTE: Service uses Assets.Max(sa => sa.Index) and scene.Assets.Where(sa => sa.AssetId == assetId).Max() which fail on empty collections
                 new SceneAsset {
-                    Id = assetId, // Same assetId to provide baseline for Number calculation
+                    AssetId = assetId, // Same assetId to provide baseline for Number calculation
                     Index = 0,
                     Number = 1,
-                    Name = "Existing Asset Instance"
+                    Name = "Existing Asset Instance",
+                    Position = new Position(0, 0),
+                    Size = new Size(1, 1)
                 }
             ],
         };
         var data = new AddSceneAssetData {
             Name = "New Asset",
-            Position = new Point(20, 30),
+            Position = new Position(20, 30),
             Size = new Size(10, 50),
             Frame = new Frame {
                 Shape = FrameShape.Square,
@@ -232,7 +237,7 @@ public class SceneServiceTests {
             Rotation = 45,
         };
 
-        var asset = new Asset {
+        var asset = new ObjectAsset {
             Id = assetId,
             OwnerId = _userId,
             Name = "Test Asset",
@@ -280,7 +285,7 @@ public class SceneServiceTests {
         };
         var data = new AddSceneAssetData {
             Name = "New Asset",
-            Position = new Point(20, 30),
+            Position = new Position(20, 30),
             Size = new Size(10, 50),
             Frame = new Frame {
                 Shape = FrameShape.Square,
@@ -310,7 +315,7 @@ public class SceneServiceTests {
         var assetId = Guid.NewGuid();
         var data = new AddSceneAssetData {
             Name = "New Asset",
-            Position = new Point(20, 30),
+            Position = new Position(20, 30),
             Size = new Size(10, 50),
             Frame = new Frame {
                 Shape = FrameShape.Square,
@@ -351,7 +356,7 @@ public class SceneServiceTests {
             ],
         };
         var data = new UpdateSceneAssetData {
-            Position = new Point(20, 30),
+            Position = new Position(20, 30),
             Size = new Size(10, 50),
             Frame = new Frame {
                 Shape = FrameShape.Square,
@@ -395,7 +400,7 @@ public class SceneServiceTests {
             ],
         };
         var data = new UpdateSceneAssetData {
-            Position = new Point(20, 30),
+            Position = new Position(20, 30),
             Size = new Size(10, 50),
             Frame = new Frame {
                 Shape = FrameShape.Square,
@@ -427,7 +432,7 @@ public class SceneServiceTests {
         var assetId = Guid.NewGuid();
         const int number = 1;
         var data = new UpdateSceneAssetData {
-            Position = new Point(20, 30),
+            Position = new Position(20, 30),
             Size = new Size(10, 50),
             Frame = new Frame {
                 Shape = FrameShape.Square,
@@ -468,7 +473,7 @@ public class SceneServiceTests {
             ],
         };
         var data = new UpdateSceneAssetData {
-            Position = new Point(20, 30),
+            Position = new Position(20, 30),
             Size = new Size(10, 50),
             Frame = new Frame {
                 Shape = FrameShape.Square,

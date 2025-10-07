@@ -1,15 +1,58 @@
 ﻿namespace VttTools.Assets.Model;
 
-public record Asset {
+/// <summary>
+/// Abstract base class for all asset types
+/// </summary>
+public abstract record Asset {
+    /// <summary>
+    /// Unique identifier for the asset
+    /// </summary>
     public Guid Id { get; init; } = Guid.CreateVersion7();
+
+    /// <summary>
+    /// ID of the user who owns this asset
+    /// </summary>
     public Guid OwnerId { get; init; }
-    public AssetType Type { get; init; }
-    public AssetCategory Category { get; init; }
+
+    /// <summary>
+    /// Discriminator for asset kind (Object or Entity)
+    /// </summary>
+    public AssetKind Kind { get; init; }
+
+    /// <summary>
+    /// Asset name (max 128 characters)
+    /// </summary>
     [MaxLength(128)]
     public string Name { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Asset description (max 4096 characters)
+    /// </summary>
     [MaxLength(4096)]
     public string Description { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Whether the asset is approved for use in game sessions
+    /// </summary>
     public bool IsPublished { get; init; }
+
+    /// <summary>
+    /// Whether the asset is visible to all users (vs owner-only)
+    /// </summary>
     public bool IsPublic { get; init; }
+
+    /// <summary>
+    /// Optional reference to the asset's visual resource (image/video)
+    /// </summary>
     public Resource? Resource { get; init; }
+
+    /// <summary>
+    /// When the asset was created
+    /// </summary>
+    public DateTime CreatedAt { get; init; }
+
+    /// <summary>
+    /// When the asset was last updated
+    /// </summary>
+    public DateTime UpdatedAt { get; init; }
 }

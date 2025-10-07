@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Aspire.AppHost.Sdk" Version="9.3.0" />
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.5.1" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -13,12 +13,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="9.4.2" />
-    <PackageReference Include="Aspire.Hosting.SqlServer" Version="9.4.2" />
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.4.2" />
-    <PackageReference Include="Aspire.Hosting.NodeJs" Version="9.4.2" />
-    <PackageReference Include="Aspire.Hosting.Redis" Version="9.4.2" />
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />
+    <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="9.5.1" />
+    <PackageReference Include="Aspire.Hosting.SqlServer" Version="9.5.1" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.1" />
+    <PackageReference Include="Aspire.Hosting.NodeJs" Version="9.5.1" />
+    <PackageReference Include="Aspire.Hosting.Redis" Version="9.5.1" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.9" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,7 +27,8 @@
     <ProjectReference Include="..\Library\VttTools.Library.csproj" />
     <ProjectReference Include="..\Game\VttTools.Game.csproj" />
     <ProjectReference Include="..\Media\VttTools.Media.csproj" />
-    <ProjectReference Include="..\WebApp\VttTools.WebApp.csproj" />
+    <!-- Temporarily disabled - legacy Blazor WASM (migrating to React) -->
+    <!-- <ProjectReference Include="..\WebApp\VttTools.WebApp.csproj" /> -->
     <ProjectReference Include="..\Auth\VttTools.Auth.csproj" />
   </ItemGroup>
 

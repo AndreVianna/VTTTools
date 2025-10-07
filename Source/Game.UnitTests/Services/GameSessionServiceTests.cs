@@ -149,7 +149,7 @@ public class GameSessionServiceTests {
         var result = await _service.UpdateGameSessionAsync(nonOwnerId, sessionId, data, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.Forbidden);
+        result.HasErrors.Should().BeTrue();
         await _sessionStorage.DidNotReceive().UpdateAsync(Arg.Any<GameSession>(), Arg.Any<CancellationToken>());
     }
 
@@ -182,7 +182,7 @@ public class GameSessionServiceTests {
         var result = await _service.UpdateGameSessionAsync(_userId, sessionId, data, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.OK);
+        result.IsSuccessful.Should().BeTrue();
         result.Value.Should().BeEquivalentTo(expectedGameSession);
     }
 
@@ -215,7 +215,7 @@ public class GameSessionServiceTests {
         var result = await _service.UpdateGameSessionAsync(_userId, sessionId, data, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.OK);
+        result.IsSuccessful.Should().BeTrue();
         result.Value.Should().BeEquivalentTo(expectedGameSession);
     }
 
@@ -240,7 +240,7 @@ public class GameSessionServiceTests {
         var result = await _service.UpdateGameSessionAsync(_userId, sessionId, data, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.OK);
+        result.IsSuccessful.Should().BeTrue();
         result.Value.Should().BeEquivalentTo(session);
     }
 
@@ -258,7 +258,7 @@ public class GameSessionServiceTests {
         var result = await _service.UpdateGameSessionAsync(_userId, sessionId, data, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NotFound);
+        result.HasErrors.Should().BeTrue();
         await _sessionStorage.DidNotReceive().UpdateAsync(Arg.Any<GameSession>(), Arg.Any<CancellationToken>());
     }
 
@@ -284,7 +284,7 @@ public class GameSessionServiceTests {
         var result = await _service.UpdateGameSessionAsync(_userId, sessionId, data, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.BadRequest);
+        result.HasErrors.Should().BeTrue();
         await _sessionStorage.Received().GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
         await _sessionStorage.DidNotReceive().UpdateAsync(Arg.Any<GameSession>(), Arg.Any<CancellationToken>());
     }
@@ -309,7 +309,7 @@ public class GameSessionServiceTests {
         var result = await _service.DeleteGameSessionAsync(_userId, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NoContent);
+        result.IsSuccessful.Should().BeTrue();
         await _sessionStorage.Received(1).DeleteAsync(sessionId, Arg.Any<CancellationToken>());
     }
 
@@ -330,7 +330,7 @@ public class GameSessionServiceTests {
         var result = await _service.DeleteGameSessionAsync(nonOwnerId, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.Forbidden);
+        result.HasErrors.Should().BeTrue();
         await _sessionStorage.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
@@ -344,7 +344,7 @@ public class GameSessionServiceTests {
         var result = await _service.DeleteGameSessionAsync(_userId, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NotFound);
+        result.HasErrors.Should().BeTrue();
         await _sessionStorage.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
@@ -370,7 +370,7 @@ public class GameSessionServiceTests {
         var result = await _service.JoinGameSessionAsync(playerId, sessionId, PlayerType.Player, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NoContent);
+        result.IsSuccessful.Should().BeTrue();
         session.Players.Should().Contain(p => p.UserId == playerId && p.Type == PlayerType.Player);
         await _sessionStorage.Received(1).UpdateAsync(
             Arg.Is<GameSession>(m => m.Players.Any(p => p.UserId == playerId && p.Type == PlayerType.Player)),
@@ -396,7 +396,7 @@ public class GameSessionServiceTests {
         var result = await _service.JoinGameSessionAsync(_userId, sessionId, PlayerType.Player, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NoContent);
+        result.IsSuccessful.Should().BeTrue();
         session.Players.Should().ContainSingle(p => p.UserId == _userId); // Still only one entry for this user
         await _sessionStorage.DidNotReceive().UpdateAsync(Arg.Any<GameSession>(), Arg.Any<CancellationToken>());
     }
@@ -411,7 +411,7 @@ public class GameSessionServiceTests {
         var result = await _service.JoinGameSessionAsync(_userId, sessionId, PlayerType.Player, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NotFound);
+        result.HasErrors.Should().BeTrue();
         await _sessionStorage.DidNotReceive().UpdateAsync(Arg.Any<GameSession>(), Arg.Any<CancellationToken>());
     }
 
@@ -442,7 +442,7 @@ public class GameSessionServiceTests {
         var result = await _service.LeaveGameSessionAsync(playerIdToRemove, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NoContent);
+        result.IsSuccessful.Should().BeTrue();
         session.Players.Should().HaveCount(2);
         session.Players.Should().NotContain(p => p.UserId == playerIdToRemove);
         session.Players.Should().Contain(p => p.UserId == _userId);
@@ -473,7 +473,7 @@ public class GameSessionServiceTests {
         var result = await _service.LeaveGameSessionAsync(nonMemberPlayerId, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NoContent);
+        result.IsSuccessful.Should().BeTrue();
         session.Players.Should().HaveCount(initialPlayerCount);
         await _sessionStorage.Received(1).UpdateAsync(session, Arg.Any<CancellationToken>());
     }
@@ -488,7 +488,7 @@ public class GameSessionServiceTests {
         var result = await _service.LeaveGameSessionAsync(_userId, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NotFound);
+        result.HasErrors.Should().BeTrue();
         await _sessionStorage.DidNotReceive().UpdateAsync(Arg.Any<GameSession>(), Arg.Any<CancellationToken>());
     }
 
@@ -516,7 +516,7 @@ public class GameSessionServiceTests {
         var result = await _service.SetActiveSceneAsync(_userId, sessionId, newSceneId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NoContent);
+        result.IsSuccessful.Should().BeTrue();
         await _sessionStorage.Received(1).UpdateAsync(
             Arg.Is<GameSession>(s => s.Id == sessionId && s.SceneId == newSceneId),
             Arg.Any<CancellationToken>());
@@ -546,7 +546,7 @@ public class GameSessionServiceTests {
         var result = await _service.SetActiveSceneAsync(playerId, sessionId, newSceneId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.Forbidden);
+        result.HasErrors.Should().BeTrue();
         session.SceneId.Should().Be(oldSceneId); // Verify scene not changed
         await _sessionStorage.DidNotReceive().UpdateAsync(Arg.Any<GameSession>(), Arg.Any<CancellationToken>());
     }
@@ -575,7 +575,7 @@ public class GameSessionServiceTests {
         var result = await _service.SetActiveSceneAsync(playerNotInGameSessionId, sessionId, newSceneId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.Forbidden); // Service checks IsGameSessionGameMaster, which includes IsInGameSession
+        result.HasErrors.Should().BeTrue(); // Service checks IsGameSessionGameMaster, which includes IsInGameSession
         session.SceneId.Should().Be(oldSceneId);
         await _sessionStorage.DidNotReceive().UpdateAsync(Arg.Any<GameSession>(), Arg.Any<CancellationToken>());
     }
@@ -591,7 +591,7 @@ public class GameSessionServiceTests {
         var result = await _service.SetActiveSceneAsync(_userId, sessionId, sceneId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NotFound);
+        result.HasErrors.Should().BeTrue();
         await _sessionStorage.DidNotReceive().UpdateAsync(Arg.Any<GameSession>(), Arg.Any<CancellationToken>());
     }
 
@@ -620,7 +620,7 @@ public class GameSessionServiceTests {
         var result = await _service.StartGameSessionAsync(_userId, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NoContent);
+        result.IsSuccessful.Should().BeTrue();
         await _sessionStorage.Received(1).UpdateAsync(
             Arg.Is<GameSession>(s => s.Id == sessionId && s.Status == GameSessionStatus.InProgress),
             Arg.Any<CancellationToken>());
@@ -648,7 +648,7 @@ public class GameSessionServiceTests {
         var result = await _service.StartGameSessionAsync(nonGmId, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.Forbidden);
+        result.HasErrors.Should().BeTrue();
         session.Status.Should().Be(GameSessionStatus.Scheduled);
     }
 
@@ -675,7 +675,7 @@ public class GameSessionServiceTests {
         var result = await _service.StartGameSessionAsync(playerNotInGameSessionId, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.Forbidden);
+        result.HasErrors.Should().BeTrue();
         session.Status.Should().Be(GameSessionStatus.Scheduled);
     }
 
@@ -689,7 +689,7 @@ public class GameSessionServiceTests {
         var result = await _service.StartGameSessionAsync(_userId, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NotFound);
+        result.HasErrors.Should().BeTrue();
     }
 
     #endregion StartGameSessionAsync
@@ -717,7 +717,7 @@ public class GameSessionServiceTests {
         var result = await _service.StopGameSessionAsync(_userId, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NoContent);
+        result.IsSuccessful.Should().BeTrue();
         await _sessionStorage.Received(1).UpdateAsync(
             Arg.Is<GameSession>(s => s.Id == sessionId && s.Status == GameSessionStatus.Finished),
             Arg.Any<CancellationToken>());
@@ -745,7 +745,7 @@ public class GameSessionServiceTests {
         var result = await _service.StopGameSessionAsync(nonGmId, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.Forbidden);
+        result.HasErrors.Should().BeTrue();
         session.Status.Should().Be(GameSessionStatus.InProgress);
     }
 
@@ -772,7 +772,7 @@ public class GameSessionServiceTests {
         var result = await _service.StopGameSessionAsync(playerNotInGameSessionId, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.Forbidden);
+        result.HasErrors.Should().BeTrue();
         session.Status.Should().Be(GameSessionStatus.InProgress);
     }
 
@@ -786,7 +786,7 @@ public class GameSessionServiceTests {
         var result = await _service.StopGameSessionAsync(_userId, sessionId, _ct);
 
         // Assert
-        result.Status.Should().Be(HttpStatusCode.NotFound);
+        result.HasErrors.Should().BeTrue();
     }
 
     #endregion StopGameSessionAsync

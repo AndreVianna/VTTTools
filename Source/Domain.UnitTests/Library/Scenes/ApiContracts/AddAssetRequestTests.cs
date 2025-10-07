@@ -13,7 +13,7 @@ public class AddAssetRequestTests {
             Elevation = 0,
         };
         const string name = "Other Name";
-        var position = new Point(10, 20);
+        var position = new Position(10, 20);
         var size = new Size(100, 200);
         var frame = new Frame {
             Shape = FrameShape.Circle,

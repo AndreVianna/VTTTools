@@ -16,8 +16,8 @@ public record UpdateSceneData
 
     public record GridUpdate {
         public Optional<GridType> Type { get; init; }
-        public Optional<Vector2> CellSize { get; init; }
-        public Optional<Vector2> Offset { get; init; }
+        public Optional<CellSize> CellSize { get; init; }
+        public Optional<Offset> Offset { get; init; }
         public Optional<bool> Snap { get; init; }
     }
 
