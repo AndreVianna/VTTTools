@@ -53,6 +53,11 @@ This file provides guidance to Claude Code when working with this solution.
 
 ## Architecture
 
+### Solution File
+**IMPORTANT**: Always use `VttTools.slnx` (not `VttTools.sln`) for all build operations.
+- **Build Command**: `dotnet build VttTools.slnx`
+- **Restore Command**: `dotnet restore VttTools.slnx`
+
 ### Key Files
 - DSL SYNTAX REFERENCE: @.claude/guides/COMMAND_SYNTAX.md
 
