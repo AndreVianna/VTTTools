@@ -6,6 +6,7 @@ import { setupGlobalErrorHandling } from '@/utils/errorHandling';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { LandingPage } from '@/pages/LandingPage';
 import { SceneEditorPage } from '@/pages/SceneEditorPage';
+import { AssetLibraryPage } from '@/pages/AssetLibraryPage';
 import { ErrorBoundary, NetworkStatus, GlobalErrorDisplay, ServiceUnavailablePage } from '@/components/error';
 import { AppLayout } from '@/components/layout';
 import { VTTThemeProvider } from '@/components/theme';
@@ -63,6 +64,12 @@ function AppRoutes() {
             } />
 
             {/* Protected Routes - Require authentication */}
+            <Route path="/assets" element={
+              <ProtectedRoute authLevel="authorized">
+                <AssetLibraryPage />
+              </ProtectedRoute>
+            } />
+
             <Route path="/scene-editor" element={
               <ProtectedRoute authLevel="authorized">
                 <SceneEditorPage />

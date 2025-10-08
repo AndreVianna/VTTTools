@@ -34,7 +34,7 @@ import {
     Search as SearchIcon,
     Close as CloseIcon
 } from '@mui/icons-material';
-import { Asset, AssetCategory, AssetType } from '@/types/domain';
+import { Asset, AssetKind, CreatureCategory } from '@/types/domain';
 import { useGetAssetsQuery } from '@/services/assetsApi';
 
 export interface AssetPickerProps {
@@ -43,8 +43,8 @@ export interface AssetPickerProps {
     onSelect: (asset: Asset) => void;
 
     // Filtering options
-    category: AssetCategory;           // Required: which category to show
-    allowedTypes?: AssetType[];        // Optional: limit to specific types
+    kind?: AssetKind;                    // Optional: filter by Object or Creature
+    creatureCategory?: CreatureCategory; // Optional: filter Characters vs Monsters (if kind=Creature)
 
     // UI customization
     title?: string;
@@ -55,30 +55,22 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
     open,
     onClose,
     onSelect,
-    category,
-    allowedTypes,
+    kind,
+    creatureCategory,
     title,
     multiSelect = false
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
-    // Fetch assets from API
-    const { data: allAssets, isLoading, error } = useGetAssetsQuery({});
+    // Fetch assets from API with optional kind filter
+    const { data: allAssets, isLoading, error } = useGetAssetsQuery({ kind });
 
-    // Filter assets by category and type
+    // Filter assets by search query
     const filteredAssets = useMemo(() => {
         if (!allAssets) return [];
 
         return allAssets.filter(asset => {
-            // Filter by category
-            if (asset.category !== category) return false;
-
-            // Filter by allowed types if specified
-            if (allowedTypes && allowedTypes.length > 0) {
-                if (!allowedTypes.includes(asset.type)) return false;
-            }
-
             // Filter by search query
             if (searchQuery) {
                 const query = searchQuery.toLowerCase();
@@ -90,30 +82,26 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
 
             return true;
         });
-    }, [allAssets, category, allowedTypes, searchQuery]);
+    }, [allAssets, searchQuery]);
 
-    // Get category display name
-    const getCategoryName = (cat: AssetCategory): string => {
-        switch (cat) {
-            case AssetCategory.Static:
-                return 'Structures';
-            case AssetCategory.Passive:
+    // Get kind display name
+    const getKindName = (assetKind: AssetKind): string => {
+        switch (assetKind) {
+            case AssetKind.Object:
                 return 'Objects';
-            case AssetCategory.Active:
-                return 'Entities';
+            case AssetKind.Creature:
+                return 'Creatures';
             default:
                 return 'Assets';
         }
     };
 
-    // Get category color
-    const getCategoryColor = (cat: AssetCategory): string => {
-        switch (cat) {
-            case AssetCategory.Static:
+    // Get kind color
+    const getKindColor = (assetKind: AssetKind): string => {
+        switch (assetKind) {
+            case AssetKind.Object:
                 return '#9E9E9E'; // Gray
-            case AssetCategory.Passive:
-                return '#795548'; // Brown
-            case AssetCategory.Active:
+            case AssetKind.Creature:
                 return '#4CAF50'; // Green
             default:
                 return '#2196F3'; // Blue
@@ -142,7 +130,7 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
         onClose();
     };
 
-    const dialogTitle = title || `Select ${getCategoryName(category)}`;
+    const dialogTitle = title || `Select ${kind ? getKindName(kind) : 'Asset'}`;
 
     return (
         <Dialog
@@ -159,10 +147,10 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="h6">{dialogTitle}</Typography>
                         <Chip
-                            label={category}
+                            label={kind ?? "All"}
                             size="small"
                             sx={{
-                                bgcolor: getCategoryColor(category),
+                                bgcolor: getKindColor(kind ?? AssetKind.Object),
                                 color: 'white',
                                 fontWeight: 500
                             }}
@@ -192,22 +180,7 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
                     sx={{ mb: 2 }}
                 />
 
-                {/* Type Filters Display (if specified) */}
-                {allowedTypes && allowedTypes.length > 0 && (
-                    <Box sx={{ mb: 2, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                        <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
-                            Types:
-                        </Typography>
-                        {allowedTypes.map(type => (
-                            <Chip
-                                key={type}
-                                label={type}
-                                size="small"
-                                variant="outlined"
-                            />
-                        ))}
-                    </Box>
-                )}
+                {/* TODO: Add CreatureCategory filter chips here when needed */}
 
                 {/* Loading State */}
                 {isLoading && (
@@ -241,7 +214,7 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
                                                 cursor: 'pointer',
                                                 transition: 'all 0.2s',
                                                 border: selectedAsset?.id === asset.id
-                                                    ? `2px solid ${getCategoryColor(category)}`
+                                                    ? `2px solid ${getKindColor(kind ?? AssetKind.Object)}`
                                                     : '2px solid transparent',
                                                 '&:hover': {
                                                     transform: 'translateY(-4px)',
@@ -281,7 +254,7 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
                                                     {asset.description}
                                                 </Typography>
                                                 <Chip
-                                                    label={asset.type}
+                                                    label={asset.kind}
                                                     size="small"
                                                     sx={{ mt: 0.5, fontSize: '0.7rem' }}
                                                 />
@@ -304,9 +277,9 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
                     variant="contained"
                     disabled={!selectedAsset}
                     sx={{
-                        bgcolor: getCategoryColor(category),
+                        bgcolor: getKindColor(kind ?? AssetKind.Object),
                         '&:hover': {
-                            bgcolor: getCategoryColor(category),
+                            bgcolor: getKindColor(kind ?? AssetKind.Object),
                             filter: 'brightness(0.9)'
                         }
                     }}

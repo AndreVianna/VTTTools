@@ -193,11 +193,11 @@ export const LandingPage: React.FC = () => {
               </Card>
             </Grid>
 
-            {/* Asset Library - Phase 5 Planned */}
+            {/* Asset Library - Active */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', opacity: 0.6 }}>
+              <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                  <CreateIcon color="disabled" sx={{ fontSize: 48, mb: 2 }} />
+                  <CreateIcon color="primary" sx={{ fontSize: 48, mb: 2 }} />
                   <Typography variant="h6" gutterBottom>
                     Asset Library
                   </Typography>
@@ -206,8 +206,12 @@ export const LandingPage: React.FC = () => {
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
-                  <Button size="small" disabled variant="outlined">
-                    Phase 5
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => navigate('/assets')}
+                  >
+                    Browse Assets
                   </Button>
                 </CardActions>
               </Card>

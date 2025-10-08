@@ -41,7 +41,7 @@ import {
 } from '@mui/icons-material';
 import { GridConfig, GridType } from '@utils/gridCalculator';
 import { AssetPicker } from '@components/common';
-import { Asset, AssetCategory, AssetType } from '@/types/domain';
+import { Asset, AssetKind } from '@/types/domain';
 
 export interface SceneEditorMenuBarProps {
     gridConfig: GridConfig;

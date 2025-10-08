@@ -79,14 +79,47 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             variant="h6"
             component="div"
             sx={{
-              flexGrow: 1,
               fontWeight: 600,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              mr: 4
             }}
             onClick={() => navigate('/')}
           >
             VTT Tools
           </Typography>
+
+          {/* Navigation Links (for authenticated users) */}
+          {isAuthenticated && user && (
+            <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
+              <Button
+                color="inherit"
+                onClick={() => navigate('/assets')}
+                sx={{
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  }
+                }}
+              >
+                Assets
+              </Button>
+              <Button
+                color="inherit"
+                onClick={() => navigate('/scene-editor')}
+                sx={{
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  }
+                }}
+              >
+                Scene Editor
+              </Button>
+            </Box>
+          )}
+
+          {/* Spacer for non-authenticated users */}
+          {(!isAuthenticated || !user) && <Box sx={{ flexGrow: 1 }} />}
 
           {/* Theme Toggle */}
           <IconButton

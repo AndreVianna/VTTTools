@@ -10,6 +10,35 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         => assetStorage.GetAllAsync(ct);
 
     /// <inheritdoc />
+    public async Task<Asset[]> GetAssetsAsync(Guid userId, AssetKind? kind, string? search, bool? published, CancellationToken ct = default) {
+        var assets = await assetStorage.GetAllAsync(ct);
+
+        // Filter by kind
+        if (kind.HasValue) {
+            assets = assets.Where(a => a.Kind == kind.Value).ToArray();
+        }
+
+        // Filter by search (name or description)
+        if (!string.IsNullOrWhiteSpace(search)) {
+            var searchLower = search.ToLowerInvariant();
+            assets = assets.Where(a =>
+                a.Name.ToLowerInvariant().Contains(searchLower) ||
+                a.Description.ToLowerInvariant().Contains(searchLower)
+            ).ToArray();
+        }
+
+        // Filter by published status
+        if (published.HasValue) {
+            assets = assets.Where(a => a.IsPublished == published.Value).ToArray();
+        }
+
+        // Only return user's own assets or public published assets
+        assets = assets.Where(a => a.OwnerId == userId || (a.IsPublic && a.IsPublished)).ToArray();
+
+        return assets;
+    }
+
+    /// <inheritdoc />
     public Task<Asset?> GetAssetByIdAsync(Guid id, CancellationToken ct = default)
         => assetStorage.GetByIdAsync(id, ct);
 

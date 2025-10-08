@@ -22,7 +22,7 @@ import {
 } from '@components/scene';
 import { GridConfig, GridType, getDefaultGrid, Point, pointToCell, cellToPoint } from '@utils/gridCalculator';
 import { layerManager, LayerName } from '@services/layerManager';
-import { Asset, PlacedAsset, AssetCategory, ResourceMetadata } from '@/types/domain';
+import { Asset, PlacedAsset, ResourceMetadata } from '@/types/domain';
 
 // Stage dimensions match the background image for 1:1 rendering at 100% zoom
 const STAGE_WIDTH = 2800;

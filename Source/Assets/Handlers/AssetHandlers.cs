@@ -4,8 +4,24 @@ using static VttTools.Utilities.ErrorCollectionExtensions;
 namespace VttTools.Assets.Handlers;
 
 internal static class AssetHandlers {
-    internal static async Task<IResult> GetAssetsHandler([FromServices] IAssetService assetService)
-        => Results.Ok(await assetService.GetAssetsAsync());
+    internal static async Task<IResult> GetAssetsHandler(
+        HttpContext context,
+        [FromQuery] string? kind,
+        [FromQuery] string? search,
+        [FromQuery] bool? published,
+        [FromServices] IAssetService assetService) {
+
+        var userId = context.User.GetUserId();
+
+        // Parse kind filter
+        AssetKind? kindFilter = null;
+        if (!string.IsNullOrEmpty(kind) && Enum.TryParse<AssetKind>(kind, ignoreCase: true, out var parsedKind)) {
+            kindFilter = parsedKind;
+        }
+
+        var assets = await assetService.GetAssetsAsync(userId, kindFilter, search, published);
+        return Results.Ok(assets);
+    }
 
     internal static async Task<IResult> GetAssetByIdHandler([FromRoute] Guid id, [FromServices] IAssetService assetService)
         => await assetService.GetAssetByIdAsync(id) is { } asset
