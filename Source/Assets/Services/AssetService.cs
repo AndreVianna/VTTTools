@@ -19,6 +19,11 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         if (result.HasErrors)
             return result;
 
+        // Check for duplicate name for this owner
+        var existing = await assetStorage.GetByNameAndOwnerAsync(data.Name, userId, ct);
+        if (existing != null)
+            return Result.Failure($"Duplicate asset name. An asset named '{data.Name}' already exists for this user.");
+
         var resource = data.ResourceId is not null
             ? await mediaStorage.GetByIdAsync(data.ResourceId.Value, ct)
             : null;

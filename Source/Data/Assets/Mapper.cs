@@ -1,12 +1,12 @@
-using DomainAsset = VttTools.Assets.Model.Asset;
-using DomainObjectAsset = VttTools.Assets.Model.ObjectAsset;
-using DomainCreatureAsset = VttTools.Assets.Model.CreatureAsset;
-using DomainObjectProperties = VttTools.Assets.Model.ObjectProperties;
-using DomainCreatureProperties = VttTools.Assets.Model.CreatureProperties;
-using DomainTokenStyle = VttTools.Assets.Model.TokenStyle;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
-using ObjectAssetEntity = VttTools.Data.Assets.Entities.ObjectAsset;
 using CreatureAssetEntity = VttTools.Data.Assets.Entities.CreatureAsset;
+using DomainAsset = VttTools.Assets.Model.Asset;
+using DomainCreatureAsset = VttTools.Assets.Model.CreatureAsset;
+using DomainCreatureProperties = VttTools.Assets.Model.CreatureProperties;
+using DomainObjectAsset = VttTools.Assets.Model.ObjectAsset;
+using DomainObjectProperties = VttTools.Assets.Model.ObjectProperties;
+using DomainTokenStyle = VttTools.Assets.Model.TokenStyle;
+using ObjectAssetEntity = VttTools.Data.Assets.Entities.ObjectAsset;
 using Resource = VttTools.Media.Model.Resource;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 
@@ -129,15 +129,13 @@ internal static class Mapper {
                 creatureEntity.Properties.CellSize = creatureModel.Properties.CellSize;
                 creatureEntity.Properties.StatBlockId = creatureModel.Properties.StatBlockId;
                 creatureEntity.Properties.Category = creatureModel.Properties.Category;
-                if (creatureModel.Properties.TokenStyle != null) {
-                    creatureEntity.Properties.TokenStyle = new Entities.TokenStyle {
+                creatureEntity.Properties.TokenStyle = creatureModel.Properties.TokenStyle == null
+                    ? null
+                    : new Entities.TokenStyle {
                         BorderColor = creatureModel.Properties.TokenStyle.BorderColor,
                         BackgroundColor = creatureModel.Properties.TokenStyle.BackgroundColor,
                         Shape = creatureModel.Properties.TokenStyle.Shape
                     };
-                } else {
-                    creatureEntity.Properties.TokenStyle = null;
-                }
                 break;
             default:
                 throw new InvalidOperationException($"Mismatched asset types: entity={entity.GetType()}, model={model.GetType()}");

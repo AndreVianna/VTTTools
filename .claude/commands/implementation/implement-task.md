@@ -10,7 +10,14 @@ Orchestrates task implementation based on cross-references. Analyzes task scope 
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+- **Architecture**: `Documents/Guides/VTTTOOLS_STACK.md`
+- **Code Examples**: `Documents/Guides/CODE_EXAMPLES.md`
+- **Implementation**: `Documents/Guides/IMPLEMENTATION_GUIDE.md`
+
+## Process
+
+### Validation & Setup
 
 - **STEP 0A**: Validate {task_id} is not empty
 - **STEP 0B**: Use Read tool to load task specification: "Documents/Tasks/{task_id}/TASK.md"
@@ -29,7 +36,7 @@ Orchestrates task implementation based on cross-references. Analyzes task scope 
   - Exit
   </if>
 
-## Phase 0.5: Check for Implementation Roadmap (Optional Enhancement)
+### Check for Implementation Roadmap (Optional Enhancement)
 
 - **STEP 0.5A**: Look for task roadmap:
   - Check: "Documents/Tasks/{task_id}/ROADMAP.md"
@@ -53,7 +60,7 @@ Orchestrates task implementation based on cross-references. Analyzes task scope 
     </if>
   </if>
 
-## Phase 1: Analyze Implementation Scope
+### Analyze Implementation Scope
 
 - **STEP 1A**: Determine orchestration plan:
   <if ({has_roadmap})>
@@ -113,23 +120,20 @@ Orchestrates task implementation based on cross-references. Analyzes task scope 
   - Check all blocking tasks are completed
   - Verify all required components/features exist
 
-## Phase 2: Update Task Status
+### Update Task Status
 
 - **STEP 2A**: Use Edit tool to update task status to "in-progress"
 - **STEP 2B**: Add activity log entry:
   - "Implementation started: {current_date}"
 - **STEP 2C**: Update backlog with status change
 
-## Phase 3: Execute Implementation Plan
+### Execute Implementation Plan
 
 - **STEP 3A**: Display implementation progress header:
   ```
-  ═══════════════════════════════════════════
   IMPLEMENTING TASK: {task_id}
-  ═══════════════════════════════════════════
   Total Phases: {phase_count}
   Estimated Duration: {estimated_duration}
-  ═══════════════════════════════════════════
   ```
 
 - **STEP 3B**: Execute commands in order from implementation plan:
@@ -161,7 +165,7 @@ Orchestrates task implementation based on cross-references. Analyzes task scope 
   - Update task progress percentage
   </foreach>
 
-## Phase 4: Validation & Testing
+### Validation & Testing
 
 - **STEP 4A**: Run tests based on task testing requirements:
   <if (task requires unit tests)>
@@ -180,7 +184,7 @@ Orchestrates task implementation based on cross-references. Analyzes task scope 
   - Use SlashCommand: "/quality:review-code {scope}"
   - Address any critical issues found
 
-## Phase 5: Update Task Status
+### Update Final Task Status
 
 - **STEP 5A**: Determine final status:
   <if (all acceptance criteria met AND tests passing)>
@@ -200,7 +204,7 @@ Orchestrates task implementation based on cross-references. Analyzes task scope 
   - Move task to completed section (if done)
   - Update sprint/milestone progress
 
-## Phase 6: Update Cross-Referenced Specifications
+### Update Cross-Referenced Specifications
 
 - **STEP 6A**: For each affected feature:
   - Add implementation notes
@@ -214,13 +218,11 @@ Orchestrates task implementation based on cross-references. Analyzes task scope 
   - Document changes made
   - Update feature mapping if changed
 
-## Phase 7: Reporting
+### Reporting
 
 - **STEP 7A**: Display implementation summary:
   ```
-  ═══════════════════════════════════════════════════════════════
   TASK IMPLEMENTATION: {task_id}
-  ═══════════════════════════════════════════════════════════════
 
   Title: {task_title}
   Type: {task_type}
@@ -265,8 +267,6 @@ Orchestrates task implementation based on cross-references. Analyzes task scope 
   - Address remaining items
   - Re-run /implement-task {task_id}
   </if>
-
-  ═══════════════════════════════════════════════════════════════
   ```
 
 **IMPORTANT NOTES**:

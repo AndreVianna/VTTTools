@@ -10,7 +10,13 @@ Define technical architecture and structure organization for the solution throug
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+- **Stack Guide**: Documents/Guides/VTTTOOLS_STACK.md
+- **Template**: .claude/templates/STRUCTURE_TEMPLATE.md
+
+## Process
+
+### Step 0: Validation & Setup
 
 - **STEP 0A**: Validate {platform_type} is a supported platform:
   - Supported: dotnet, java, python, typescript, go, rust, ruby, php
@@ -26,7 +32,7 @@ Define technical architecture and structure organization for the solution throug
   - Set {solution_name} = project folder name
   </if>
 
-## Phase 1: Initialize Structure Memory
+### Step 1: Initialize Structure Memory
 
 - **STEP 1A**: Use mcp__memory__create_entities to create structure entity:
   - name: "{solution_name}_structure"
@@ -35,7 +41,7 @@ Define technical architecture and structure organization for the solution throug
 - **STEP 1B**: Use mcp__memory__add_observations to add variable tracking:
   - ["variables_needed: solution_name,platform_type,architecture_style,organization_pattern,projects,modules,packages,components,domain_components,application_components,infrastructure_components,ui_components,layer_architecture,dependency_rules,external_dependencies,build_configuration,deployment_units,feature_component_mapping,component_feature_mapping"]
 
-## Phase 2: Guided Architecture Definition
+### Step 2: Guided Architecture Definition
 
 - **STEP 2A**: Use mcp__memory__open_nodes to retrieve current state for "{solution_name}_structure"
 - **STEP 2B**: Extract control variables from memory
@@ -125,7 +131,7 @@ Define technical architecture and structure organization for the solution throug
   - Store answers in memory observations
   </while>
 
-## Phase 3: Generate Structure Specification
+### Step 3: Generate Structure Specification
 
 - **STEP 3A**: Use mcp__memory__open_nodes to retrieve all observations for "{solution_name}_structure"
 - **STEP 3B**: Load template using Read tool: ".claude/templates/STRUCTURE_TEMPLATE.md"
@@ -138,7 +144,7 @@ Define technical architecture and structure organization for the solution throug
 - **STEP 3F**: Validate document was created successfully
 - **STEP 3G**: Use mcp__memory__add_observations to update status: "status: structure_defined", "document_path: Documents/Structure/STRUCTURE.md"
 
-## Phase 4: Create Feature Mapping Cross-References
+### Step 4: Create Feature Mapping Cross-References
 
 - **STEP 4A**: Read all existing feature specifications:
   - Use Glob: "Documents/Areas/*/Features/*.md"
@@ -156,7 +162,7 @@ Define technical architecture and structure organization for the solution throug
     </foreach>
   </foreach>
 
-## Phase 5: Platform-Specific Setup
+### Step 5: Platform-Specific Setup
 
 <case {platform_type}>
 <is dotnet>
@@ -181,7 +187,7 @@ Define technical architecture and structure organization for the solution throug
 </is>
 </case>
 
-## Phase 6: Validation & Reporting
+### Step 6: Validation & Reporting
 
 - **STEP 6A**: Validate structure specification:
   - All components assigned to layers

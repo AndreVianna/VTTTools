@@ -20,8 +20,10 @@ public record CellSize {
     /// </summary>
     /// <exception cref="ArgumentException">Thrown if width or height is negative</exception>
     public CellSize(double width, double height) {
-        if (width < 0) throw new ArgumentException("Width cannot be negative", nameof(width));
-        if (height < 0) throw new ArgumentException("Height cannot be negative", nameof(height));
+        if (width < 0)
+            throw new ArgumentException("Width cannot be negative", nameof(width));
+        if (height < 0)
+            throw new ArgumentException("Height cannot be negative", nameof(height));
         Width = width;
         Height = height;
     }

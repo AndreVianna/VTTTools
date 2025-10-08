@@ -10,7 +10,7 @@ public class Resource {
     [MaxLength(128)]
     public string FileName { get; set; } = string.Empty;
     public ulong FileLength { get; set; }
-    public Size ImageSize { get; set; }
+    public Size ImageSize { get; set; } = Size.Zero;
     public TimeSpan Duration { get; set; } = TimeSpan.Zero;
     public string[] Tags { get; set; } = [];
 }

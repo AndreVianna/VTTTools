@@ -10,7 +10,41 @@
 ###############################################
 
 ### Variables (UPDATE WITH ACTUAL PORT!)
-@baseUrl = https://localhost:17XXX
+@authUrl = https://localhost:7050
+@baseUrl = https://localhost:7173
+
+###############################################
+### SETUP - AUTHENTICATION
+###############################################
+
+### 0a. Register Test User
+POST {{authUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test123!",
+  "confirmPassword": "Test123!",
+  "name": "Test User"
+}
+
+### 0b. Login (Cookie auto-captured for subsequent requests)
+# @name login
+POST {{authUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test123!"
+}
+
+### 0c. Verify Authenticated
+GET {{authUrl}}/api/auth/me
+
+### After Login - Get User ID from response above
+### Use csharprepl to run the command below:
+###  Base64UrlTextEncoder.Encode(new Guid("put-user-id-here").ToByteArray())
+@encodedUserId = 8sCZAY0Pn3KUcaTkxZ7t1w
 
 ###############################################
 ### HEALTH CHECKS
@@ -29,6 +63,7 @@ GET {{baseUrl}}/alive
 ### 1. Create Game Session
 # @name session
 POST {{baseUrl}}/api/sessions
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -37,12 +72,15 @@ Content-Type: application/json
 
 ### 2. Get All Game Sessions
 GET {{baseUrl}}/api/sessions
+x-user: {{encodedUserId}}
 
 ### 3. Get Game Session by ID
 GET {{baseUrl}}/api/sessions/{{session.response.body.$.id}}
+x-user: {{encodedUserId}}
 
 ### 4. Update Game Session Title
 PATCH {{baseUrl}}/api/sessions/{{session.response.body.$.id}}
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -55,6 +93,7 @@ Content-Type: application/json
 
 ### 5. Join Game Session as Player
 POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/join
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -63,6 +102,7 @@ Content-Type: application/json
 
 ### 6. Join Game Session as Observer
 POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/join
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -71,6 +111,7 @@ Content-Type: application/json
 
 ### 7. Leave Game Session
 POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/leave
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {}
@@ -81,18 +122,21 @@ Content-Type: application/json
 
 ### 8. Start Game Session (Status → InProgress)
 POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/start
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {}
 
 ### 9. Set Active Scene
 POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/scenes/00000000-0000-0000-0000-000000000000/activate
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {}
 
 ### 10. Stop Game Session (Status → Finished)
 POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/stop
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {}
@@ -103,6 +147,7 @@ Content-Type: application/json
 
 ### 11. Delete Game Session
 DELETE {{baseUrl}}/api/sessions/{{session.response.body.$.id}}
+x-user: {{encodedUserId}}
 
 ###############################################
 ### EDGE CASES & VALIDATION
@@ -110,6 +155,7 @@ DELETE {{baseUrl}}/api/sessions/{{session.response.body.$.id}}
 
 ### 12. Invalid - Missing Title
 POST {{baseUrl}}/api/sessions
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -118,15 +164,18 @@ Content-Type: application/json
 
 ### 13. Invalid - Missing JoinAs Parameter
 POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/join
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {}
 
 ### 14. Not Found - Get Non-Existent Session
 GET {{baseUrl}}/api/sessions/00000000-0000-0000-0000-000000000000
+x-user: {{encodedUserId}}
 
 ### 15. Not Found - Update Non-Existent Session
 PATCH {{baseUrl}}/api/sessions/00000000-0000-0000-0000-000000000000
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -135,3 +184,4 @@ Content-Type: application/json
 
 ### 16. Not Found - Delete Non-Existent Session
 DELETE {{baseUrl}}/api/sessions/00000000-0000-0000-0000-000000000000
+x-user: {{encodedUserId}}

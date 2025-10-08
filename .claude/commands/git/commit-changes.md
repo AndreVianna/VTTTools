@@ -10,33 +10,39 @@ Stages all current changes and commits to current branch. Supports user-provided
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Pre-Commit Validation
+## Quick Reference
+- **Architecture**: `Documents/Guides/VTTTOOLS_STACK.md`
+- **Commands**: `Documents/Guides/COMMON_COMMANDS.md` → Git section
 
-- **STEP 0A**: Check git status
+## Process
+
+### Pre-Commit Validation
+
+- **STEP 1**: Check git status
   - Use Bash: "git status --porcelain"
   - <if (no changes)>
     - Display: "No changes to commit"
     - Exit
   </if>
 
-- **STEP 0B**: Verify on a branch (not detached HEAD)
-- **STEP 0C**: Get current branch name: "git rev-parse --abbrev-ref HEAD"
+- **STEP 2**: Verify on a branch (not detached HEAD)
+- **STEP 3**: Get current branch name: "git rev-parse --abbrev-ref HEAD"
 
-## Phase 1: Generate Commit Message (If Not Provided)
+### Generate Commit Message (If Not Provided)
 
 <if ({message} is empty)>
 
-- **STEP 1A**: Analyze changed files:
+- **STEP 1**: Analyze changed files:
   - Use Bash: "git diff --name-only --cached" (staged)
   - Use Bash: "git diff --name-only" (unstaged)
   - Determine which area/feature affected
 
-- **STEP 1B**: Check memory for recent implementation:
+- **STEP 2**: Check memory for recent implementation:
   - What use case was just implemented?
   - What layer was completed?
   - Get spec version
 
-- **STEP 1C**: Use Task tool to generate conventional commit message:
+- **STEP 3**: Use Task tool to generate conventional commit message:
   ```markdown
   ROLE: Commit Message Generator
 
@@ -76,14 +82,12 @@ Stages all current changes and commits to current branch. Supports user-provided
   OUTPUT: Complete conventional commit message.
   ```
 
-- **STEP 1D**: Display generated message to user:
+- **STEP 4**: Display generated message to user:
   ```
   Generated commit message:
-  ┌─────────────────────────────────────────┐
-  │ {commit_message}                        │
-  │                                         │
-  │ {commit_body}                           │
-  └─────────────────────────────────────────┘
+  {commit_message}
+
+  {commit_body}
 
   Use this message? [Y/N/Edit]
   ```
@@ -94,20 +98,20 @@ Stages all current changes and commits to current branch. Supports user-provided
 
 </if>
 
-## Phase 2: Stage and Commit
+### Stage and Commit
 
-- **STEP 2A**: Stage all changes:
+- **STEP 1**: Stage all changes:
   - Use Bash: "git add ."
 
-- **STEP 2B**: Create commit:
+- **STEP 2**: Create commit:
   - Use Bash: git commit -m "{message}"
 
-- **STEP 2C**: Capture commit SHA:
+- **STEP 3**: Capture commit SHA:
   - Use Bash: "git rev-parse HEAD"
 
-## Phase 3: Update STATUS Files & Memory
+### Update STATUS Files & Memory
 
-- **STEP 3A**: Update STATUS.md files with commit SHA:
+- **STEP 1**: Update STATUS.md files with commit SHA:
   - Parse commit message for scope (domain-{area}, {area}, feat({area}), etc.)
   - Determine which STATUS files affected:
     - If "domain-": Update DOMAIN_STATUS.md
@@ -118,15 +122,15 @@ Stages all current changes and commits to current branch. Supports user-provided
     - Update last_updated timestamp
     - If commit completes a roadmap item, check it off
 
-- **STEP 3B**: Update memory:
+- **STEP 2**: Update memory:
   - Update relevant implementation entity with commit SHA
   - Update last_commit_date
 
-## Phase 4: Reporting
+### Reporting
 
-- **STEP 4A**: Display commit confirmation:
+- **STEP 1**: Display commit confirmation:
   ```
-  ✓ CHANGES COMMITTED
+  CHANGES COMMITTED
 
   Branch: {branch_name}
   Commit: {commit_sha}
@@ -141,7 +145,7 @@ Stages all current changes and commits to current branch. Supports user-provided
   - Create PR when feature complete: /create-pr
   ```
 
-**IMPORTANT NOTES**:
+## Important Notes
 - Stages ALL current changes (git add .)
 - Supports user message or auto-generates conventional commits
 - Links commits to specifications in memory

@@ -2,8 +2,7 @@ namespace VttTools.Library.EndpointMappers;
 
 internal static class SceneEndpointsMapper {
     public static void MapSceneEndpoints(this IEndpointRouteBuilder app) {
-        var scenes = app.MapGroup("/api/scenes")
-                          .RequireAuthorization();
+        var scenes = app.MapGroup("/api/scenes").RequireAuthorization();
 
         scenes.MapGet("/{id:guid}", SceneHandlers.GetSceneByIdHandler);
         scenes.MapPatch("/{id:guid}", SceneHandlers.UpdateSceneHandler);

@@ -23,7 +23,7 @@ public record SceneEffect {
     /// <summary>
     /// Origin point where the effect is centered/starts
     /// </summary>
-    public Point Origin { get; init; }
+    public Point Origin { get; init; } = Point.Zero;
 
     /// <summary>
     /// Instance-specific override: size/radius of this effect instance

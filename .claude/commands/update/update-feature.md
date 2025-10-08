@@ -10,7 +10,18 @@ Updates existing feature specification based on natural language modification re
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+
+**Templates**:
+- `.claude/templates/FEATURE_TEMPLATE.md` - Feature specification structure
+
+**Guides**:
+- `Documents/Guides/ARCHITECTURE_PATTERN.md` - DDD Contracts pattern
+- `.claude/guides/COMMAND_SYNTAX.md` - DSL syntax reference
+
+## Process
+
+### Validation & Setup
 
 - **STEP 0A**: Validate {feature_name} and {update_details} are not empty - abort if invalid
 - **STEP 0B**: Use Glob to find feature file: "Documents/Areas/*/Features/{feature_name}.md"
@@ -20,7 +31,7 @@ Updates existing feature specification based on natural language modification re
 - **STEP 0C**: Use Read tool to load feature specification
 - **STEP 0D**: Use mcp__memory__search_nodes to find feature entity (optional)
 
-## Phase 1: Parse Update Request
+### Parse Update Request
 
 - **STEP 1A**: Use Task tool with solution-engineer agent:
   ```markdown
@@ -70,7 +81,7 @@ Updates existing feature specification based on natural language modification re
 - **STEP 1B**: Parse response
 - **STEP 1C**: Handle clarification questions if needed
 
-## Phase 2: Apply Update
+### Apply Update
 
 - **STEP 2A**: Load FEATURE_TEMPLATE.md for structure reference
 - **STEP 2B**: Apply changes based on UPDATE_TYPE:
@@ -96,7 +107,7 @@ Updates existing feature specification based on natural language modification re
   - Increment version (minor: 1.1.0 → 1.2.0)
   - Add change entry with date and description
 
-## Phase 3: Update Memory
+### Update Memory
 
 - **STEP 3A**:
   <if (feature entity exists)>
@@ -105,7 +116,7 @@ Updates existing feature specification based on natural language modification re
   - Store update history
   </if>
 
-## Phase 4: Reporting
+### Reporting
 
 - **STEP 4A**: Display update summary:
   ```

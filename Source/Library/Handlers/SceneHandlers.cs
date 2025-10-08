@@ -1,5 +1,6 @@
 using IResult = Microsoft.AspNetCore.Http.IResult;
 using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
+using static VttTools.Utilities.ErrorCollectionExtensions;
 
 namespace VttTools.Library.Handlers;
 
@@ -41,7 +42,7 @@ internal static class SceneHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> GetAssetsHandler([FromRoute] Guid id, [FromServices] ISceneService sceneService)
@@ -66,7 +67,7 @@ internal static class SceneHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> CloneAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int number, [FromServices] ISceneService sceneService) {
@@ -78,7 +79,7 @@ internal static class SceneHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int number, [FromBody] UpdateSceneAssetRequest request, [FromServices] ISceneService sceneService) {
@@ -100,7 +101,7 @@ internal static class SceneHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> RemoveAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int number, [FromServices] ISceneService sceneService) {
@@ -112,7 +113,7 @@ internal static class SceneHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> DeleteSceneHandler(HttpContext context, [FromRoute] Guid id, [FromServices] ISceneService sceneService) {
@@ -124,6 +125,6 @@ internal static class SceneHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 }

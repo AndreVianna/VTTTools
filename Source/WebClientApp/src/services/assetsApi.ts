@@ -1,142 +1,105 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import type { CreateAssetRequest, UpdateAssetRequest, Asset } from '@/types/domain';
+import type {
+  CreateAssetRequest,
+  UpdateAssetRequest,
+  Asset,
+  AssetKind
+} from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 
-// Assets API consuming existing Assets microservice
+/**
+ * Assets API - RTK Query slice for Asset CRUD operations
+ * Supports ObjectAssets (furniture, traps) and CreatureAssets (characters, monsters)
+ * Phase 5 Step 1 - Updated for new domain model (AssetKind, polymorphic properties)
+ */
 export const assetsApi = createApi({
   reducerPath: 'assetsApi',
   baseQuery: createEnhancedBaseQuery('/api/assets'),
   tagTypes: ['Asset'],
   endpoints: (builder) => ({
-    // Get all assets
+    /**
+     * Get all assets with optional filtering
+     * Query params: kind (Object/Creature), search (name), published, owner
+     */
     getAssets: builder.query<Asset[], {
-      type?: string;
+      kind?: AssetKind;
       search?: string;
-      limit?: number;
-      offset?: number;
+      published?: boolean;
+      owner?: string;
     }>({
       query: (params = {}) => ({
         url: '',
         params,
       }),
-      providesTags: ['Asset'],
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: 'Asset' as const, id })),
+              { type: 'Asset', id: 'LIST' },
+            ]
+          : [{ type: 'Asset', id: 'LIST' }],
     }),
 
-    // Get single asset
+    /**
+     * Get single asset by ID
+     * Returns ObjectAsset or CreatureAsset based on kind
+     */
     getAsset: builder.query<Asset, string>({
       query: (id) => `/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Asset', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Asset', id }],
     }),
 
-    // Create asset using existing CreateAssetRequest from Domain.Assets.ApiContracts
+    /**
+     * Create new asset (ObjectAsset or CreatureAsset)
+     * Request must include kind and corresponding properties (objectProps or creatureProps)
+     */
     createAsset: builder.mutation<Asset, CreateAssetRequest>({
       query: (request) => ({
         url: '',
         method: 'POST',
         body: request,
       }),
-      invalidatesTags: ['Asset'],
+      invalidatesTags: [{ type: 'Asset', id: 'LIST' }],
     }),
 
-    // Update asset using existing UpdateAssetRequest from Domain.Assets.ApiContracts
-    updateAsset: builder.mutation<Asset, { id: string; request: UpdateAssetRequest }>({
+    /**
+     * Update existing asset
+     * Can update common fields (name, description) or kind-specific properties
+     */
+    updateAsset: builder.mutation<void, { id: string; request: UpdateAssetRequest }>({
       query: ({ id, request }) => ({
         url: `/${id}`,
-        method: 'PUT',
+        method: 'PATCH',  // Changed from PUT to match backend
         body: request,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Asset', id }],
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Asset', id },
+        { type: 'Asset', id: 'LIST' },
+      ],
     }),
 
-    // Delete asset
+    /**
+     * Delete asset
+     * Note: May fail if asset is in use on any scenes
+     */
     deleteAsset: builder.mutation<void, string>({
       query: (id) => ({
         url: `/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Asset'],
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Asset', id },
+        { type: 'Asset', id: 'LIST' },
+      ],
     }),
 
-    // Search assets
-    searchAssets: builder.query<Asset[], {
-      query: string;
-      type?: string;
-      tags?: string[];
-      limit?: number;
-    }>({
-      query: (params) => ({
-        url: '/search',
-        params,
-      }),
-      providesTags: ['Asset'],
-    }),
-
-    // Get assets by type
-    getAssetsByType: builder.query<Asset[], string>({
-      query: (type) => `/type/${type}`,
-      providesTags: ['Asset'],
-    }),
-
-    // Get asset categories/types
-    getAssetTypes: builder.query<string[], void>({
-      query: () => '/types',
-    }),
-
-    // Bulk delete assets
-    bulkDeleteAssets: builder.mutation<void, string[]>({
-      query: (ids) => ({
-        url: '/bulk-delete',
-        method: 'DELETE',
-        body: { ids },
-      }),
-      invalidatesTags: ['Asset'],
-    }),
-
-    // Bulk update assets
-    bulkUpdateAssets: builder.mutation<Asset[], {
-      ids: string[];
-      updates: Partial<UpdateAssetRequest>;
-    }>({
-      query: ({ ids, updates }) => ({
-        url: '/bulk-update',
-        method: 'PUT',
-        body: { ids, updates },
-      }),
-      invalidatesTags: ['Asset'],
-    }),
-
-    // Clone asset
-    cloneAsset: builder.mutation<Asset, { id: string; name?: string }>({
-      query: ({ id, name }) => ({
-        url: `/${id}/clone`,
-        method: 'POST',
-        body: { name },
-      }),
-      invalidatesTags: ['Asset'],
-    }),
-
-    // Get asset usage (where it's used in scenes)
-    getAssetUsage: builder.query<{
-      scenes: Array<{ id: string; name: string; adventureId: string }>;
-      totalUsages: number;
-    }, string>({
-      query: (id) => `/${id}/usage`,
-    }),
-
-    // Import assets from external source
-    importAssets: builder.mutation<Asset[], {
-      source: 'url' | 'upload';
-      data: any;
-    }>({
-      query: ({ source, data }) => ({
-        url: '/import',
-        method: 'POST',
-        body: { source, data },
-      }),
-      invalidatesTags: ['Asset'],
-    }),
   }),
 });
+
+/**
+ * Auto-generated React hooks for Assets API
+ * Use these hooks in React components to interact with the Assets API
+ */
 
 export const {
   useGetAssetsQuery,
@@ -144,12 +107,4 @@ export const {
   useCreateAssetMutation,
   useUpdateAssetMutation,
   useDeleteAssetMutation,
-  useSearchAssetsQuery,
-  useGetAssetsByTypeQuery,
-  useGetAssetTypesQuery,
-  useBulkDeleteAssetsMutation,
-  useBulkUpdateAssetsMutation,
-  useCloneAssetMutation,
-  useGetAssetUsageQuery,
-  useImportAssetsMutation,
 } = assetsApi;

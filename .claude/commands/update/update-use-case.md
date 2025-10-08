@@ -10,7 +10,18 @@ Updates existing use case specification based on natural language modification r
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+
+**Templates**:
+- `.claude/templates/USE_CASE_TEMPLATE.md` - Use case specification structure
+
+**Guides**:
+- `Documents/Guides/ARCHITECTURE_PATTERN.md` - DDD Contracts pattern
+- `.claude/guides/COMMAND_SYNTAX.md` - DSL syntax reference
+
+## Process
+
+### Validation & Setup
 
 - **STEP 0A**: Validate {use_case_name} and {update_details} are not empty - abort if invalid
 - **STEP 0B**: Use Glob to find use case file: "Documents/Areas/*/Features/*/UseCases/{use_case_name}.md"
@@ -20,7 +31,7 @@ Updates existing use case specification based on natural language modification r
 - **STEP 0C**: Use Read tool to load use case specification
 - **STEP 0D**: Use mcp__memory__search_nodes to find use case entity (optional)
 
-## Phase 1: Parse Update Request
+### Parse Update Request
 
 - **STEP 1A**: Use Task tool with solution-engineer agent:
   ```markdown
@@ -65,7 +76,7 @@ Updates existing use case specification based on natural language modification r
 
 - **STEP 1B**: Parse response and handle clarifications
 
-## Phase 2: Apply Update
+### Apply Update
 
 - **STEP 2A**: Load USE_CASE_TEMPLATE.md for structure reference
 - **STEP 2B**: Apply changes:
@@ -92,7 +103,7 @@ Updates existing use case specification based on natural language modification r
 
 - **STEP 2C**: Update change log and version
 
-## Phase 3: Update Memory & Parent Feature
+### Update Memory & Parent Feature
 
 - **STEP 3A**: Update use case entity in memory if exists
 - **STEP 3B**: Find parent feature and update its change log:
@@ -100,7 +111,7 @@ Updates existing use case specification based on natural language modification r
   - Add change entry: "Use case {use_case_name} updated: {summary}"
   - Update parent feature file
 
-## Phase 4: Reporting
+### Reporting
 
 - **STEP 4A**: Display summary:
   ```

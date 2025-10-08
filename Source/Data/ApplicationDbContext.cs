@@ -1,12 +1,12 @@
 using Adventure = VttTools.Data.Library.Entities.Adventure;
 using Asset = VttTools.Data.Assets.Entities.Asset;
+using Effect = VttTools.Data.Library.Entities.Effect;
 using GameSession = VttTools.Data.Game.Entities.GameSession;
 using Resource = VttTools.Data.Media.Entities.Resource;
 using Scene = VttTools.Data.Library.Entities.Scene;
 using Schedule = VttTools.Data.Game.Entities.Schedule;
-using Structure = VttTools.Data.Library.Entities.Structure;
-using Effect = VttTools.Data.Library.Entities.Effect;
 using StatBlock = VttTools.Data.Game.Entities.StatBlock;
+using Structure = VttTools.Data.Library.Entities.Structure;
 
 namespace VttTools.Data;
 

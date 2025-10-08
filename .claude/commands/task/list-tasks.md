@@ -10,7 +10,9 @@ Display tasks from backlog with filtering by status, type, priority, sprint, or 
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Parse Filter
+## Process
+
+### Parse Filter
 
 - **STEP 0A**: Parse {filter} parameter:
   <case {filter}>
@@ -44,7 +46,7 @@ Display tasks from backlog with filtering by status, type, priority, sprint, or 
   </otherwise>
   </case>
 
-## Phase 1: Discover Tasks
+### Discover Tasks
 
 - **STEP 1A**: Use Glob to find all tasks: "Documents/Tasks/*/TASK.md"
 - **STEP 1B**: For each task file:
@@ -52,7 +54,7 @@ Display tasks from backlog with filtering by status, type, priority, sprint, or 
   - Extract: task_id, title, type, status, priority, effort, affected_features, affected_components
   - Store in task list
 
-## Phase 2: Apply Filter
+### Apply Filter
 
 - **STEP 2A**: Filter task list based on {filter_type}:
   <case {filter_type}>
@@ -81,14 +83,12 @@ Display tasks from backlog with filtering by status, type, priority, sprint, or 
   - Primary sort: Priority (Critical → High → Medium → Low)
   - Secondary sort: Status (blocked → in-progress → planned → completed)
 
-## Phase 3: Display Results
+### Display Results
 
 - **STEP 3A**: Calculate summary statistics for filtered set
 - **STEP 3B**: Display task list:
   ```
-  ═══════════════════════════════════════════════════════════════
   TASK LIST <if ({filter} not empty)> (Filter: {filter})</if>
-  ═══════════════════════════════════════════════════════════════
 
   Summary:
   - Total Tasks: {filtered_count} <if ({filter} not empty)>of {total_count}</if>
@@ -96,8 +96,6 @@ Display tasks from backlog with filtering by status, type, priority, sprint, or 
   - Planned: {planned_count}
   - Completed: {completed_count}
   - Blocked: {blocked_count}
-
-  ───────────────────────────────────────────────────────────────
 
   <foreach {task} in {filtered_tasks}>
   [{status_icon}] {task.id}: {task.title}
@@ -113,17 +111,13 @@ Display tasks from backlog with filtering by status, type, priority, sprint, or 
       ⚠️  Blocked by: {task.blocking_tasks}
       </if>
       Path: Documents/Tasks/{task.id}/TASK.md
-
-  ───────────────────────────────────────────────────────────────
   </foreach>
 
   Status Icons:
   ✅ Completed  |  🔨 In Progress  |  📋 Planned  |  🚫 Blocked
-
-  ═══════════════════════════════════════════════════════════════
   ```
 
-## Phase 4: Quick Actions
+### Quick Actions
 
 - **STEP 4A**: Suggest relevant next actions:
   <if (filter equals "status:planned" AND have high priority tasks)>
@@ -135,6 +129,10 @@ Display tasks from backlog with filtering by status, type, priority, sprint, or 
   <if (filter equals "status:in-progress")>
   - Suggest: "Continue with: /implement-task {first_in_progress_task}"
   </if>
+
+## Quick Reference
+- VTTTOOLS_STACK.md: VttTools technology stack overview
+- IMPLEMENTATION_GUIDE.md: VttTools Phase 2 implementation workflow
 
 **IMPORTANT NOTES**:
 - Lists tasks with flexible filtering

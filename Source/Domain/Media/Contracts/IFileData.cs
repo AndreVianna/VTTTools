@@ -3,8 +3,7 @@ namespace VttTools.Media.Contracts;
 /// <summary>
 /// Platform-agnostic interface for file data that eliminates dependency on web-specific types.
 /// </summary>
-public interface IFileData
-{
+public interface IFileData {
     /// <summary>
     /// Gets the file name including the extension.
     /// </summary>

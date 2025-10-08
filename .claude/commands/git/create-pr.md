@@ -10,15 +10,21 @@ Creates pull request from current branch to parent/main branch. Supports custom 
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation
+## Quick Reference
+- **Architecture**: `Documents/Guides/VTTTOOLS_STACK.md`
+- **Commands**: `Documents/Guides/COMMON_COMMANDS.md` → Git section
 
-- **STEP 0A**: Verify git repository and GitHub CLI:
+## Process
+
+### Validation
+
+- **STEP 1**: Verify git repository and GitHub CLI:
   - Check: gh CLI installed
   - <if (not installed)>
     - Error: "GitHub CLI (gh) required. Install: https://cli.github.com"
   </if>
 
-- **STEP 0B**: Check branch status:
+- **STEP 2**: Check branch status:
   - Current branch name
   - Parent/base branch (usually main or develop)
   - Commits ahead of base
@@ -26,7 +32,7 @@ Creates pull request from current branch to parent/main branch. Supports custom 
     - Error: "No commits to create PR from"
   </if>
 
-- **STEP 0C**: Verify all changes committed:
+- **STEP 3**: Verify all changes committed:
   - Use Bash: "git status --porcelain"
   - <if (uncommitted changes)>
     - Warning: "Uncommitted changes exist. Commit first? [Y/N]"
@@ -35,17 +41,17 @@ Creates pull request from current branch to parent/main branch. Supports custom 
     </if>
   </if>
 
-## Phase 1: Generate PR Description (If Not Provided)
+### Generate PR Description (If Not Provided)
 
 <if ({description} is empty)>
 
-- **STEP 1A**: Gather PR context:
+- **STEP 1**: Gather PR context:
   - Use Bash: "git log {base}..HEAD --oneline" (commits in branch)
   - Use Bash: "git diff --name-status {base}..HEAD" (files changed)
   - Query memory for implementation status
   - Find which features/use cases implemented
 
-- **STEP 1B**: Use Task tool to generate PR description:
+- **STEP 2**: Use Task tool to generate PR description:
   ```markdown
   ROLE: Pull Request Description Generator
 
@@ -95,39 +101,37 @@ Creates pull request from current branch to parent/main branch. Supports custom 
   Based on commits and implementation status, generate professional PR description.
   ```
 
-- **STEP 1C**: Display generated description:
+- **STEP 3**: Display generated description:
   ```
   Generated PR Description:
-  ┌─────────────────────────────────────────┐
-  │ {pr_description}                        │
-  └─────────────────────────────────────────┘
+  {pr_description}
 
   Use this description? [Y/N/Edit]
   ```
 
 </if>
 
-## Phase 2: Create Pull Request
+### Create Pull Request
 
-- **STEP 2A**: Push current branch to remote (if not pushed):
+- **STEP 1**: Push current branch to remote (if not pushed):
   - Use Bash: "git push origin {branch} -u"
 
-- **STEP 2B**: Create PR using GitHub CLI:
+- **STEP 2**: Create PR using GitHub CLI:
   - Use Bash: gh pr create --title "{pr_title}" --body "{pr_description}" --base {base_branch}
 
-- **STEP 2C**: Capture PR URL from output
+- **STEP 3**: Capture PR URL from output
 
-## Phase 3: Update Memory
+### Update Memory
 
-- **STEP 3A**: Store PR information:
+- **STEP 1**: Store PR information:
   - Update feature/area implementation entity
   - Add: pr_url, pr_number, pr_created_date
 
-## Phase 4: Reporting
+### Reporting
 
-- **STEP 4A**: Display PR details:
+- **STEP 1**: Display PR details:
   ```
-  ✓ PULL REQUEST CREATED
+  PULL REQUEST CREATED
 
   PR #: {pr_number}
   URL: {pr_url}
@@ -148,7 +152,7 @@ Creates pull request from current branch to parent/main branch. Supports custom 
   - Merge when approved
   ```
 
-**IMPORTANT NOTES**:
+## Important Notes
 - Creates PR from current branch to parent/main
 - Auto-generates description from commits and specs if not provided
 - Includes implementation summary and test results

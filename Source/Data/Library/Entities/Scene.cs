@@ -1,5 +1,5 @@
-﻿using Resource = VttTools.Data.Media.Entities.Resource;
-using Point = VttTools.Common.Model.Point;
+﻿using Point = VttTools.Common.Model.Point;
+using Resource = VttTools.Data.Media.Entities.Resource;
 
 namespace VttTools.Data.Library.Entities;
 
@@ -13,7 +13,7 @@ public class Scene {
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
     public bool IsPublished { get; set; }
-    public Point Panning { get; set; }
+    public Point Panning { get; set; } = Point.Zero;
     public float ZoomLevel { get; set; } = 1;
     public Guid StageId { get; set; }
     public Resource Stage { get; set; } = null!;

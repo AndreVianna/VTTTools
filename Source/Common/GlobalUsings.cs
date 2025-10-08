@@ -6,8 +6,6 @@ global using System.Text.RegularExpressions;
 
 global using DotNetToolbox.Results;
 
-global using Microsoft.Extensions.Configuration;
-
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Diagnostics;
@@ -15,6 +13,7 @@ global using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Routing;
+global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
 global using Microsoft.Extensions.Hosting;

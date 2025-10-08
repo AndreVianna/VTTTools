@@ -10,7 +10,13 @@ Creates context-aware implementation roadmap by analyzing item specifications an
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Context Discovery
+## Quick Reference
+- **Stack Guide**: Documents/Guides/VTTTOOLS_STACK.md
+- **Template**: .claude/templates/ROADMAP_TEMPLATE.md
+
+## Process
+
+### Step 0: Validation & Context Discovery
 
 - **STEP 0A**: Validate {item_type}:
   - Supported: feature, use-case, task, domain
@@ -38,7 +44,7 @@ Creates context-aware implementation roadmap by analyzing item specifications an
   - Set {specification_path} = found path
 - **STEP 0D**: Validate ROADMAP_TEMPLATE.md exists - abort if missing
 
-## Phase 1: Extract Scope from Specification
+### Step 1: Extract Scope from Specification
 
 - **STEP 1A**: Read item specification completely
 - **STEP 1B**: Load context specifications:
@@ -134,7 +140,7 @@ Creates context-aware implementation roadmap by analyzing item specifications an
 
 - **STEP 1D**: Parse extracted scope and store in memory
 
-## Phase 2: Dependency Analysis
+### Step 2: Dependency Analysis
 
 - **STEP 2A**: Use Task tool with solution-engineer agent to analyze dependencies:
   ```markdown
@@ -172,7 +178,7 @@ Creates context-aware implementation roadmap by analyzing item specifications an
 
 - **STEP 2B**: Parse dependency analysis results
 
-## Phase 3: Generate Roadmap Specification
+### Step 3: Generate Roadmap Specification
 
 - **STEP 3A**: Create roadmap memory entity:
   - name: "{item_type}_{item_name}_roadmap"
@@ -222,7 +228,7 @@ Creates context-aware implementation roadmap by analyzing item specifications an
 
 - **STEP 3F**: Write roadmap specification to calculated path
 
-## Phase 4: Create Cross-Reference Relationships
+### Step 4: Create Cross-Reference Relationships
 
 - **STEP 4A**: Create roadmap-item relationship:
   - Use mcp__memory__create_relations:
@@ -237,14 +243,14 @@ Creates context-aware implementation roadmap by analyzing item specifications an
   - relationType: "will_modify"
   </foreach>
 
-## Phase 5: Update Item Specification
+### Step 5: Update Item Specification
 
 - **STEP 5A**: Update source specification with roadmap reference:
   - Read item specification
   - Add note: "Implementation roadmap available: {roadmap_path}"
   - Use Edit tool to add reference (if not already present)
 
-## Phase 6: Reporting
+### Step 6: Reporting
 
 - **STEP 6A**: Display roadmap summary:
   ```

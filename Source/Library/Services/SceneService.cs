@@ -129,8 +129,8 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             return result;
         var sceneAsset = new SceneAsset {
             AssetId = assetId,
-            Index = scene.Assets.Any() ? scene.Assets.Max(sa => sa.Index) + 1 : 0,
-            Number = scene.Assets.Where(sa => sa.AssetId == assetId).Any()
+            Index = scene.Assets.Count != 0 ? scene.Assets.Max(sa => sa.Index) + 1 : 0,
+            Number = scene.Assets.Any(sa => sa.AssetId == assetId)
                 ? scene.Assets.Where(sa => sa.AssetId == assetId).Max(sa => sa.Number) + 1
                 : 1,
             Name = data.Name.IsSet ? data.Name.Value : asset.Name,

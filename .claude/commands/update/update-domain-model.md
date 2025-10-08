@@ -10,7 +10,18 @@ Updates existing domain model specification based on natural language modificati
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+
+**Templates**:
+- `.claude/templates/DOMAIN_MODEL_TEMPLATE.md` - Domain model structure
+
+**Guides**:
+- `Documents/Guides/ARCHITECTURE_PATTERN.md` - DDD Contracts pattern
+- `.claude/guides/COMMAND_SYNTAX.md` - DSL syntax reference
+
+## Process
+
+### Validation & Setup
 
 - **STEP 0A**: Validate {area_name} and {update_details} are not empty
 - **STEP 0B**: Use Glob to find domain model: "Documents/Areas/{area_name}/DOMAIN_MODEL.md"
@@ -19,7 +30,7 @@ Updates existing domain model specification based on natural language modificati
   </if>
 - **STEP 0C**: Use Read to load current domain model
 
-## Phase 1: Parse Update Request
+### Parse Update Request
 
 - **STEP 1A**: Use Task tool with solution-engineer agent:
   ```markdown
@@ -67,18 +78,18 @@ Updates existing domain model specification based on natural language modificati
 
 - **STEP 1B**: Parse response, handle clarifications if needed
 
-## Phase 2: Apply Update
+### Apply Update
 
 - **STEP 2A**: Use Edit tool to update DOMAIN_MODEL.md
 - **STEP 2B**: Update change log (increment version)
 - **STEP 2C**: Validate domain model structure maintained
 
-## Phase 3: Update Memory
+### Update Memory
 
 - **STEP 3A**: Update domain model entity in memory with changes
 - **STEP 3B**: Store update history
 
-## Phase 4: Reporting
+### Reporting
 
 - **STEP 4A**: Display summary:
   ```

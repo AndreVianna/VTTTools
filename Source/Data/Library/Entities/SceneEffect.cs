@@ -9,7 +9,7 @@ public class SceneEffect {
     public Scene Scene { get; set; } = null!;
     public Guid EffectId { get; set; }
     public Effect Effect { get; set; } = null!;
-    public Point Origin { get; set; }  // Stored as ComplexProperty
+    public Point Origin { get; set; } = Point.Zero;  // Stored as ComplexProperty
     public int? Size { get; set; }
     public int? Direction { get; set; }
 }

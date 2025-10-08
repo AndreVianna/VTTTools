@@ -10,14 +10,25 @@ Updates existing task specification based on natural language modification reque
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+
+**Templates**:
+- `.claude/templates/TASK_TEMPLATE.md` - Task specification structure
+
+**Guides**:
+- `Documents/Guides/ARCHITECTURE_PATTERN.md` - DDD Contracts pattern
+- `.claude/guides/COMMAND_SYNTAX.md` - DSL syntax reference
+
+## Process
+
+### Validation & Setup
 
 - **STEP 0A**: Validate {task_id} and {update_details} are not empty
 - **STEP 0B**: Use Read tool to load: "Documents/Tasks/{task_id}/TASK.md"
   - Abort if not found
 - **STEP 0C**: Use mcp__memory__search_nodes to find task entity (optional)
 
-## Phase 1: Parse Update Request
+### Parse Update Request
 
 - **STEP 1A**: Use Task tool with solution-engineer agent:
   ```markdown
@@ -57,7 +68,7 @@ Updates existing task specification based on natural language modification reque
 
 - **STEP 1B**: Parse agent response
 
-## Phase 2: Apply Update
+### Apply Update
 
 - **STEP 2A**: Based on UPDATE_TYPE, apply changes using Edit tool:
   <case {UPDATE_TYPE}>
@@ -91,7 +102,7 @@ Updates existing task specification based on natural language modification reque
 - **STEP 2B**: Update task version (increment minor)
 - **STEP 2C**: Add change log entry
 
-## Phase 3: Update Cross-References
+### Update Cross-References
 
 - **STEP 3A**:
   <if (feature references changed)>
@@ -112,7 +123,7 @@ Updates existing task specification based on natural language modification reque
   - Update sprint allocation if changed
   - Update priority sorting if changed
 
-## Phase 4: Update Memory
+### Update Memory
 
 - **STEP 4A**:
   <if (task entity exists in memory)>
@@ -125,7 +136,7 @@ Updates existing task specification based on natural language modification reque
   - Create new task-feature relationships
   </if>
 
-## Phase 5: Reporting
+### Reporting
 
 - **STEP 5A**: Display update summary:
   ```

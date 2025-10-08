@@ -8,13 +8,15 @@ argument-hint: {feature_name:string} {use_case_name:string} {cleanup_orphans:fla
 
 Safely remove a use case from a feature, maintaining consistency between memory graph and documentation while preserving project integrity.
 
-## Phase 0: Validation & Setup
+## Process
+
+### Validation & Setup
 
 - **STEP 0A**: Validate {feature_name} is not empty and contains valid characters - abort if invalid with clear error message
 - **STEP 0B**: Validate {use_case_name} is not empty and contains valid characters - abort if invalid with clear error message
 - **STEP 0C**: Set {cleanup_orphans} default to true if not provided
 
-## Phase 1: Entity Verification
+### Entity Verification
 
 - **STEP 1A**: Use mcp__memory__search_nodes to find feature entity with name "{feature_name}"
 - **STEP 1B**:
@@ -36,7 +38,7 @@ Safely remove a use case from a feature, maintaining consistency between memory 
   - Abort operation with correction guidance
   </if>
 
-## Phase 2: Dependency Analysis
+### Dependency Analysis
 
 - **STEP 2A**: Use mcp__memory__search_nodes to find any entities that reference the use case
 - **STEP 2B**: Check for relationships pointing TO the use case entity
@@ -52,7 +54,7 @@ Safely remove a use case from a feature, maintaining consistency between memory 
 - **STEP 2D**: Use Glob tool to find use case document: "Documents/Areas/*/UseCases/{use_case_name}.md"
 - **STEP 2E**: Store document path for later deletion
 
-## Phase 3: Memory Entity Removal
+### Memory Entity Removal
 
 - **STEP 3A**: Use mcp__memory__delete_relations to remove feature→use_case relationship
 - **STEP 3B**: Use mcp__memory__delete_relations to remove any other relationships involving the use case
@@ -69,7 +71,7 @@ Safely remove a use case from a feature, maintaining consistency between memory 
   - Updated change log
   - Last updated date
 
-## Phase 4: Document Cleanup
+### Document Cleanup
 
 - **STEP 4A**:
   <if (use case document path found)>
@@ -92,7 +94,7 @@ Safely remove a use case from a feature, maintaining consistency between memory 
   - Report: "Updated feature document: {feature_document_path}"
   </if>
 
-## Phase 5: Orphan Cleanup (Conditional)
+### Orphan Cleanup (Conditional)
 
 - **STEP 5A**:
   <if ({cleanup_orphans} equals true)>
@@ -115,7 +117,7 @@ Safely remove a use case from a feature, maintaining consistency between memory 
   - Recommend manual review and cleanup
   </if>
 
-## Phase 6: Impact Assessment
+### Impact Assessment
 
 - **STEP 6A**: Check if feature has any remaining use cases
 - **STEP 6B**:
@@ -126,7 +128,7 @@ Safely remove a use case from a feature, maintaining consistency between memory 
 - **STEP 6C**: Assess impact on related features that might reference this use case
 - **STEP 6D**: Check solution specification for any references to the removed use case
 
-## Phase 7: Completion Report
+### Completion Report
 
 - **STEP 7A**: Display comprehensive removal summary:
   ```
@@ -156,7 +158,7 @@ Safely remove a use case from a feature, maintaining consistency between memory 
   - Consider running /validate-solution to check consistency
   ```
 
-## Phase 8: Validation Check
+### Validation Check
 
 - **STEP 8A**: Use mcp__memory__search_nodes to verify use case entity was completely removed
 - **STEP 8B**: Use mcp__memory__open_nodes to verify feature no longer references the use case
@@ -166,6 +168,10 @@ Safely remove a use case from a feature, maintaining consistency between memory 
   - List remaining issues
   - Recommend: "Run /extract-all to resync memory with documents"
   </if>
+
+## Quick Reference
+- VTTTOOLS_STACK.md: VttTools technology stack overview
+- ARCHITECTURE_PATTERN.md: DDD Contracts + Service Implementation pattern
 
 **IMPORTANT NOTES**:
 - This command performs destructive operations - use with caution

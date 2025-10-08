@@ -1,11 +1,14 @@
 global using System.Diagnostics;
 global using System.Diagnostics.CodeAnalysis;
+
 global using Microsoft.Data.SqlClient;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Design;
+global using Microsoft.EntityFrameworkCore.Migrations;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
 global using Microsoft.Extensions.Logging;
+
 global using VttTools.Data;
 global using VttTools.Data.Options;

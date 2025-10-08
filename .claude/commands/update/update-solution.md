@@ -10,14 +10,25 @@ Updates existing solution specification based on natural language modification r
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+
+**Templates**:
+- `.claude/templates/SOLUTION_TEMPLATE.md` - Solution specification structure
+
+**Guides**:
+- `Documents/Guides/ARCHITECTURE_PATTERN.md` - DDD Contracts pattern
+- `.claude/guides/COMMAND_SYNTAX.md` - DSL syntax reference
+
+## Process
+
+### Validation & Setup
 
 - **STEP 0A**: Validate {update_details} is not empty - abort if missing with usage guidance
 - **STEP 0B**: Use Read tool to load "Documents/SOLUTION.md" - abort if missing with guidance to run /create-solution first
 - **STEP 0C**: Extract solution name from specification file header
 - **STEP 0D**: Use mcp__memory__search_nodes to find solution entity (optional - may not exist)
 
-## Phase 1: Parse Update Request
+### Parse Update Request
 
 - **STEP 1A**: Use Task tool with solution-engineer agent to analyze update request:
   ```markdown
@@ -77,7 +88,7 @@ Updates existing solution specification based on natural language modification r
   - Re-run agent with additional context
   </if>
 
-## Phase 2: Apply Update
+### Apply Update
 
 - **STEP 2A**: Load SOLUTION_TEMPLATE.md to understand structure
 - **STEP 2B**: Based on UPDATE_TYPE:
@@ -100,7 +111,7 @@ Updates existing solution specification based on natural language modification r
 - **STEP 2C**: Validate edit maintains proper markdown structure and DSL syntax
 - **STEP 2D**: Save updated specification
 
-## Phase 3: Update Memory
+### Update Memory
 
 - **STEP 3A**:
   <if (solution entity exists in memory)>
@@ -114,7 +125,7 @@ Updates existing solution specification based on natural language modification r
   - "update_{timestamp}: {update_details}"
   - "modified_sections: [{section_list}]"
 
-## Phase 4: Validation & Reporting
+### Validation & Reporting
 
 - **STEP 4A**: Use Read tool to verify updated file is valid
 - **STEP 4B**: Display update summary:

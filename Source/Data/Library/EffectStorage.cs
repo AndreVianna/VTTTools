@@ -16,7 +16,7 @@ public class EffectStorage(ApplicationDbContext context) {
             .Where(e => e.OwnerId == ownerId)
             .ToArrayAsync(ct);
 
-        return entities.Select(ToModel).ToArray();
+        return [.. entities.Select(ToModel)];
     }
 
     /// <summary>
@@ -52,9 +52,8 @@ public class EffectStorage(ApplicationDbContext context) {
         await context.Effects.AddAsync(entity, ct);
         await context.SaveChangesAsync(ct);
     }
-
-    private static Effect ToModel(Entities.Effect entity) =>
-        new() {
+    private static Effect ToModel(Entities.Effect entity)
+        => new() {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Name = entity.Name,

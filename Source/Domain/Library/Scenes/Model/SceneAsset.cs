@@ -17,8 +17,8 @@ public record SceneAsset {
     public Guid? ResourceId { get; init; }  // Instance-specific image (custom token art, variant)
 
     // Instance-specific data
-    public Size Size { get; init; }
-    public Position Position { get; init; }  // Cell-based placement position
+    public Size Size { get; init; } = Size.Zero;
+    public Position Position { get; init; } = Position.Zero;  // Cell-based placement position
     public float Rotation { get; init; }
     public Frame? Frame { get; init; }
     public float Elevation { get; init; }

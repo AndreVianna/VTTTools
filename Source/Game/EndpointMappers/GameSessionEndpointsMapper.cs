@@ -2,8 +2,7 @@ namespace VttTools.Game.EndpointMappers;
 
 internal static class GameSessionEndpointsMapper {
     public static void MapGameSessionEndpoints(this IEndpointRouteBuilder app) {
-        var sessions = app.MapGroup("/api/sessions")
-                          .RequireAuthorization();
+        var sessions = app.MapGroup("/api/sessions").RequireAuthorization();
 
         sessions.MapGet("/", GameSessionHandlers.GetGameSessionsHandler);
         sessions.MapGet("/{id:guid}", GameSessionHandlers.GetGameSessionByIdHandler);

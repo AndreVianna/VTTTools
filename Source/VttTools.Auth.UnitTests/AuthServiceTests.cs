@@ -266,7 +266,7 @@ public class AuthServiceTests {
             new() { Description = "Password too weak" },
             new() { Description = "Password must contain uppercase letter" }
         };
-        var failedResult = IdentityResult.Failed([]);
+        var failedResult = IdentityResult.Failed([.. identityErrors]);
 
         _mockUserManager.FindByEmailAsync(request.Email).Returns((User?)null);
         _mockUserManager.CreateAsync(Arg.Any<User>(), request.Password).Returns(failedResult);

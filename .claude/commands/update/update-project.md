@@ -10,14 +10,25 @@ Updates existing project specification based on natural language modification re
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+
+**Templates**:
+- `.claude/templates/PROJECT_TEMPLATE.md` - Project specification structure
+
+**Guides**:
+- `Documents/Guides/ARCHITECTURE_PATTERN.md` - DDD Contracts pattern
+- `.claude/guides/COMMAND_SYNTAX.md` - DSL syntax reference
+
+## Process
+
+### Validation & Setup
 
 - **STEP 0A**: Validate {update_details} is not empty - abort if missing with usage guidance
 - **STEP 0B**: Use Read tool to load "Documents/PROJECT.md" - abort if missing with guidance to run /create-project first
 - **STEP 0C**: Extract project name from specification file header
 - **STEP 0D**: Use mcp__memory__search_nodes to find project entity (optional - may not exist)
 
-## Phase 1: Parse Update Request
+### Parse Update Request
 
 - **STEP 1A**: Use Task tool with solution-engineer agent to analyze update request:
   ```markdown
@@ -77,7 +88,7 @@ Updates existing project specification based on natural language modification re
   - Re-run agent with additional context
   </if>
 
-## Phase 2: Apply Update
+### Apply Update
 
 - **STEP 2A**: Load PROJECT_TEMPLATE.md to understand structure
 - **STEP 2B**: Based on UPDATE_TYPE:
@@ -100,7 +111,7 @@ Updates existing project specification based on natural language modification re
 - **STEP 2C**: Validate edit maintains proper markdown structure and DSL syntax
 - **STEP 2D**: Save updated specification
 
-## Phase 3: Update Memory
+### Update Memory
 
 - **STEP 3A**:
   <if (project entity exists in memory)>
@@ -114,7 +125,7 @@ Updates existing project specification based on natural language modification re
   - "update_{timestamp}: {update_details}"
   - "modified_sections: [{section_list}]"
 
-## Phase 4: Validation & Reporting
+### Validation & Reporting
 
 - **STEP 4A**: Use Read tool to verify updated file is valid
 - **STEP 4B**: Display update summary:

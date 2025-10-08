@@ -1,5 +1,6 @@
-using Size = VttTools.Common.Model.Size;
 using VttTools.Media.Model;
+
+using Size = VttTools.Common.Model.Size;
 
 namespace VttTools.Assets.Model;
 

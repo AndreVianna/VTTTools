@@ -271,7 +271,8 @@ public class AuthValidationTests {
         // Assert
         if (expectedValid) {
             Assert.Empty(emailErrors);
-        } else {
+        }
+        else {
             Assert.NotEmpty(emailErrors);
         }
     }
@@ -300,7 +301,8 @@ public class AuthValidationTests {
         if (expectedValid) {
             // Should not have password mismatch errors (may have required field errors if empty)
             Assert.DoesNotContain(passwordErrors, e => e.ErrorMessage!.Contains("do not match"));
-        } else {
+        }
+        else {
             Assert.NotEmpty(passwordErrors);
         }
     }

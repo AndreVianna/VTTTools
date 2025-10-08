@@ -47,12 +47,12 @@ internal static class GameSessionHandlers {
         };
         var result = await service.UpdateGameSessionAsync(userId, id, data);
         return result.IsSuccessful
-            ? Results.Ok(result.Value)
+            ? Results.NoContent()  // 204 No Content (no user-facing side effects)
             : result.Errors[0].Message == "Session not found"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "Not authorized"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> DeleteGameSessionHandler(
@@ -67,7 +67,7 @@ internal static class GameSessionHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "Not authorized"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> JoinGameSessionHandler(
@@ -81,7 +81,7 @@ internal static class GameSessionHandlers {
             ? Results.NoContent()
             : result.Errors[0].Message == "Session not found"
                 ? Results.NotFound()
-                : Results.BadRequest(result.Errors);
+                : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> LeaveGameSessionHandler(
@@ -94,7 +94,7 @@ internal static class GameSessionHandlers {
             ? Results.NoContent()
             : result.Errors[0].Message == "Session not found"
                 ? Results.NotFound()
-                : Results.BadRequest(result.Errors);
+                : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> ActivateSceneHandler(
@@ -110,7 +110,7 @@ internal static class GameSessionHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "Not authorized"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> StartGameSessionHandler(
@@ -125,7 +125,7 @@ internal static class GameSessionHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "Not authorized"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> StopGameSessionHandler(
@@ -140,6 +140,6 @@ internal static class GameSessionHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "Not authorized"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 }

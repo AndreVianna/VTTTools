@@ -10,7 +10,14 @@ Validates use case specifications against USE_CASE_TEMPLATE.md quality checklist
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Scope Determination
+## Quick Reference
+- **Template**: Documents/Templates/USE_CASE_TEMPLATE.md
+- **Tech Stack**: Documents/Guides/VTTTOOLS_STACK.md
+- **Architecture**: DDD + Clean Architecture + Hexagonal Architecture
+
+## Process
+
+### Scope Determination
 
 - **STEP 0A**: Parse {use_case_name} parameter:
   <case {use_case_name}>
@@ -32,7 +39,7 @@ Validates use case specifications against USE_CASE_TEMPLATE.md quality checklist
   - Set {iteration} = 1
   </if>
 
-## Phase 1: Quality Scoring
+### Quality Scoring
 
 <foreach {use_case_file} in {use_case_files}>
 
@@ -94,13 +101,11 @@ Validates use case specifications against USE_CASE_TEMPLATE.md quality checklist
 
 </foreach>
 
-## Phase 2: Display Results
+### Display Results
 
-### Section 1: Grade Table
+#### Section 1: Grade Table
 ```
-═══════════════════════════════════════════
 USE CASE SPECIFICATION VALIDATION
-═══════════════════════════════════════════
 <if (scope is all)>
 Use Cases Validated: {count}
 Average Score: {avg}/100
@@ -109,25 +114,21 @@ Average Score: {avg}/100
 Use Case: {use_case_name}
 </if>
 Iteration: {iteration}
-Overall: {score}/100 ({PASS ✅ | FAIL ❌})
+Overall: {score}/100 ({PASS/FAIL})
 
-┌──────────────────────────────┬────────┬────────┬────────┐
-│ Dimension                    │ Score  │ Target │ Status │
-├──────────────────────────────┼────────┼────────┼────────┤
-│ Business Context             │ XX/20  │ 16/20  │ ✅/⚠️  │
-│ Architecture Integration     │ XX/30  │ 24/30  │ ✅/⚠️  │
-│ Functional Specification     │ XX/30  │ 24/30  │ ✅/⚠️  │
-│ Implementation Guidance      │ XX/20  │ 16/20  │ ✅/⚠️  │
-├──────────────────────────────┼────────┼────────┼────────┤
-│ TOTAL                        │ XX/100 │ 80/100 │ ✅/⚠️  │
-└──────────────────────────────┴────────┴────────┴────────┘
+Dimension                    | Score  | Target | Status
+-----------------------------|--------|--------|--------
+Business Context             | XX/20  | 16/20  | PASS/WARN
+Architecture Integration     | XX/30  | 24/30  | PASS/WARN
+Functional Specification     | XX/30  | 24/30  | PASS/WARN
+Implementation Guidance      | XX/20  | 16/20  | PASS/WARN
+-----------------------------|--------|--------|--------
+TOTAL                        | XX/100 | 80/100 | PASS/WARN
 ```
 
-### Section 2: Proposed Improvements
+#### Section 2: Proposed Improvements
 ```
-═══════════════════════════════════════════
 PROPOSED IMPROVEMENTS
-═══════════════════════════════════════════
 
 🔴 CRITICAL ({count})
 1. [{USE_CASE}] {Issue}
@@ -145,11 +146,9 @@ PROPOSED IMPROVEMENTS
 {improvements}
 ```
 
-### Section 3: Apply Changes
+#### Section 3: Apply Changes
 ```
-═══════════════════════════════════════════
 APPLY IMPROVEMENTS?
-═══════════════════════════════════════════
 Total: {count} | Impact: {current}→{projected}
 
 Options:
@@ -163,7 +162,7 @@ Options:
 [Enter 1-6]:
 ```
 
-## Phase 3: Auto-Fix Implementation
+### Auto-Fix Implementation
 
 - **STEP 3A**: Execute selected improvements:
   <case {user_choice}>

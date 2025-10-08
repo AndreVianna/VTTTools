@@ -4,8 +4,10 @@ using Adventure = VttTools.Library.Adventures.Model.Adventure;
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using Asset = VttTools.Assets.Model.Asset;
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
+using CreatureAssetEntity = VttTools.Data.Assets.Entities.CreatureAsset;
 using GameSession = VttTools.Game.Sessions.Model.GameSession;
 using GameSessionEntity = VttTools.Data.Game.Entities.GameSession;
+using ObjectAssetEntity = VttTools.Data.Assets.Entities.ObjectAsset;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using Scene = VttTools.Library.Scenes.Model.Scene;
 using SceneAssetEntity = VttTools.Data.Library.Entities.SceneAsset;
@@ -49,10 +51,10 @@ internal static class DbContextHelper {
 
         // Then add Assets that reference the Resources
         var assets = new[] {
-            CreateTestAssetEntity("Asset 1", AssetType.Creature, isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[0].Id),
+            CreateTestAssetEntity("Asset 1", AssetKind.Creature, isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[0].Id),
             CreateTestAssetEntity("Asset 2", ownerId: currentUserId, displayId: resources[1].Id),
-            CreateTestAssetEntity("Asset 3", AssetType.Character, isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[2].Id),
-            CreateTestAssetEntity("Asset 4", AssetType.Character, isPublished: true, isPublic: false, ownerId: Guid.NewGuid(), displayId: resources[3].Id),
+            CreateTestAssetEntity("Asset 3", AssetKind.Creature, isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[2].Id),
+            CreateTestAssetEntity("Asset 4", AssetKind.Creature, isPublished: true, isPublic: false, ownerId: Guid.NewGuid(), displayId: resources[3].Id),
         };
 
         context.Assets.AddRange(assets);
@@ -150,11 +152,11 @@ internal static class DbContextHelper {
             },
         };
 
-    public static AssetEntity CreateTestAssetEntity(Guid id, string name, AssetType type = AssetType.Placeholder, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
+    public static CreatureAssetEntity CreateTestAssetEntity(Guid id, string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
         => new() {
             Id = id,
             Name = name,
-            Type = type,
+            Kind = kind,
             Description = $"Description for {name}",
             IsPublic = isPublic,
             IsPublished = isPublished,
@@ -162,8 +164,8 @@ internal static class DbContextHelper {
             ResourceId = displayId ?? Guid.NewGuid(),
         };
 
-    public static AssetEntity CreateTestAssetEntity(string name, AssetType type = AssetType.Placeholder, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
-        => CreateTestAssetEntity(Guid.CreateVersion7(), name, type, isPublished, isPublic, ownerId, displayId);
+    public static CreatureAssetEntity CreateTestAssetEntity(string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
+        => CreateTestAssetEntity(Guid.CreateVersion7(), name, kind, isPublished, isPublic, ownerId, displayId);
 
     public static GameSessionEntity CreateTestGameSessionEntity(Guid id, string title, Guid? sceneId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
         => new() {
@@ -247,11 +249,11 @@ internal static class DbContextHelper {
             },
         };
 
-    public static Asset CreateTestAsset(Guid id, string name, AssetType type = AssetType.Placeholder, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
+    public static CreatureAsset CreateTestAsset(Guid id, string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
         => new() {
             Id = id,
             Name = name,
-            Type = type,
+            Kind = kind,
             Description = $"Description for {name}",
             IsPublic = isPublic,
             IsPublished = isPublished,
@@ -259,8 +261,8 @@ internal static class DbContextHelper {
             Resource = new(),
         };
 
-    public static Asset CreateTestAsset(string name, AssetType type = AssetType.Placeholder, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
-        => CreateTestAsset(Guid.CreateVersion7(), name, type, isPublished, isPublic, ownerId);
+    public static CreatureAsset CreateTestAsset(string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
+        => CreateTestAsset(Guid.CreateVersion7(), name, kind, isPublished, isPublic, ownerId);
 
     public static GameSession CreateTestGameSession(Guid id, string title, Guid? sceneId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
         => new() {

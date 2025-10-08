@@ -1,0 +1,155 @@
+###############################################
+### Auth API Testing - Comprehensive Test Suite
+###############################################
+###
+### Prerequisites:
+### 1. AppHost running
+### 2. Update @baseUrl with actual port from logs
+###
+###############################################
+
+### Variables (UPDATE WITH ACTUAL PORT!)
+@baseUrl = https://localhost:7050
+
+###############################################
+### HEALTH CHECKS
+###############################################
+
+### Health Check
+GET {{baseUrl}}/health
+
+### Alive Check
+GET {{baseUrl}}/alive
+
+###############################################
+### HAPPY PATH - USER REGISTRATION & LOGIN
+###############################################
+
+### 1. Register New User
+# @name register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test2@example.com",
+  "password": "Test123!",
+  "confirmPassword": "Test123!",
+  "name": "Test User 2"
+}
+
+### 2. Login (Cookie auto-captured)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test123!"
+}
+
+### 3. Get Current User (Requires Auth)
+GET {{baseUrl}}/api/auth/me
+
+### After Login - Get User ID from response above
+### Use csharprepl to run the command below:
+###  Base64UrlTextEncoder.Encode(new Guid("put-user-id-here").ToByteArray())
+@encodedUserId = put-the-result-here-without-quotes
+
+### 4. Logout
+POST {{baseUrl}}/api/auth/logout
+Content-Type: application/json
+
+{}
+
+###############################################
+### ERROR PATH - VALIDATION ERRORS (400)
+###############################################
+
+### 5. Register - Missing Email
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "password": "Test123!",
+  "confirmPassword": "Test123!",
+  "name": "Test User"
+}
+
+### 6. Register - Invalid Email Format
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "password": "Test123!",
+  "confirmPassword": "Test123!",
+  "name": "Test User"
+}
+
+### 7. Register - Password Too Short
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test2@example.com",
+  "password": "123",
+  "confirmPassword": "123",
+  "name": "Test User"
+}
+
+### 8. Register - Passwords Don't Match
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test3@example.com",
+  "password": "Test123!",
+  "confirmPassword": "Different123!",
+  "name": "Test User"
+}
+
+### 9. Register - Missing Name
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test4@example.com",
+  "password": "Test123!",
+  "confirmPassword": "Test123!"
+}
+
+### 10. Register - Duplicate Email (409 Conflict)
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test123!",
+  "confirmPassword": "Test123!",
+  "name": "Duplicate User"
+}
+
+###############################################
+### ERROR PATH - AUTHENTICATION ERRORS (401)
+###############################################
+
+### 11. Login - Wrong Password
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "WrongPassword123!"
+}
+
+### 12. Login - Non-Existent User
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com",
+  "password": "Test123!"
+}
+
+### 13. Get Current User - Without Auth (After Logout)
+GET {{baseUrl}}/api/auth/me

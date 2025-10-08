@@ -11,8 +11,42 @@
 ###############################################
 
 ### Variables (UPDATE WITH ACTUAL PORT AND ASSET ID!)
-@baseUrl = https://localhost:17XXX
+@authUrl = https://localhost:7050
+@baseUrl = https://localhost:7172
 @assetId = 00000000-0000-0000-0000-000000000000
+
+###############################################
+### SETUP - AUTHENTICATION
+###############################################
+
+### 0a. Register Test User
+POST {{authUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test123!",
+  "confirmPassword": "Test123!",
+  "name": "Test User"
+}
+
+### 0b. Login (Cookie auto-captured for subsequent requests)
+# @name login
+POST {{authUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test123!"
+}
+
+### 0c. Verify Authenticated
+GET {{authUrl}}/api/auth/me
+
+### After Login - Get User ID from response above
+### Use csharprepl to run the command below:
+###  Base64UrlTextEncoder.Encode(new Guid("put-user-id-here").ToByteArray())
+@encodedUserId = 8sCZAY0Pn3KUcaTkxZ7t1w
 
 ###############################################
 ### HEALTH CHECKS
@@ -31,6 +65,7 @@ GET {{baseUrl}}/alive
 ### 1. Create Adventure
 # @name adventure
 POST {{baseUrl}}/api/adventures
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -41,13 +76,16 @@ Content-Type: application/json
 
 ### 2. Get All Adventures
 GET {{baseUrl}}/api/adventures
+x-user: {{encodedUserId}}
 
 ### 3. Get Adventure by ID
 GET {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}
+x-user: {{encodedUserId}}
 
 ### 4. Update Adventure
 PATCH {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}
 Content-Type: application/json
+x-user: {{encodedUserId}}
 
 {
   "name": "Curse of Strahd - Revised",
@@ -56,6 +94,7 @@ Content-Type: application/json
 
 ### 5. Clone Adventure
 POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/clone
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {}
@@ -66,10 +105,12 @@ Content-Type: application/json
 
 ### 6. Get Adventure Scenes
 GET {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes
+x-user: {{encodedUserId}}
 
 ### 7. Create Scene in Adventure
 # @name scene
 POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -79,9 +120,11 @@ Content-Type: application/json
 
 ### 8. Get Scene by ID
 GET {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+x-user: {{encodedUserId}}
 
 ### 9. Update Scene Name
 PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -90,6 +133,7 @@ Content-Type: application/json
 
 ### 10. Update Scene Grid (Domain Primitives: CellSize, Offset)
 PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -109,6 +153,7 @@ Content-Type: application/json
 
 ### 11. Update Scene Panning (Point primitive: X, Y floats)
 PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -123,6 +168,7 @@ Content-Type: application/json
 
 ### 12. Clone Scene
 POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/clone
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {}
@@ -133,9 +179,11 @@ Content-Type: application/json
 
 ### 13. Get Scene Assets
 GET {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets
+x-user: {{encodedUserId}}
 
 ### 14. Add Asset to Scene (Basic - Uses Template Defaults)
 POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/{{assetId}}
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -154,6 +202,7 @@ Content-Type: application/json
 
 ### 15. Add Asset with Description Override
 POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/{{assetId}}
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -173,6 +222,7 @@ Content-Type: application/json
 
 ### 16. Add Asset with ResourceId Override (Custom Token)
 POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/{{assetId}}
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -193,6 +243,7 @@ Content-Type: application/json
 
 ### 17. Update Scene Asset Position (Position primitive: int X, Y)
 PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -204,6 +255,7 @@ Content-Type: application/json
 
 ### 18. Update Scene Asset Description Override
 PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -212,6 +264,7 @@ Content-Type: application/json
 
 ### 19. Update Scene Asset ResourceId Override
 PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -220,12 +273,14 @@ Content-Type: application/json
 
 ### 20. Clone Scene Asset
 POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0/clone
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {}
 
 ### 21. Delete Scene Asset
 DELETE {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0
+x-user: {{encodedUserId}}
 
 ###############################################
 ### DELETE OPERATIONS
@@ -233,12 +288,15 @@ DELETE {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0
 
 ### 22. Remove Scene from Adventure
 DELETE {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes/{{scene.response.body.$.id}}
+x-user: {{encodedUserId}}
 
 ### 23. Delete Scene
 DELETE {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+x-user: {{encodedUserId}}
 
 ### 24. Delete Adventure
 DELETE {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}
+x-user: {{encodedUserId}}
 
 ###############################################
 ### EDGE CASES & VALIDATION
@@ -246,6 +304,7 @@ DELETE {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}
 
 ### 25. Invalid - Missing Scene Name
 POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -254,6 +313,7 @@ Content-Type: application/json
 
 ### 26. Invalid - Wrong Grid Type
 PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -264,6 +324,7 @@ Content-Type: application/json
 
 ### 27. Invalid - Negative CellSize
 PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -277,6 +338,8 @@ Content-Type: application/json
 
 ### 28. Not Found - Get Non-Existent Adventure
 GET {{baseUrl}}/api/adventures/00000000-0000-0000-0000-000000000000
+x-user: {{encodedUserId}}
 
 ### 29. Not Found - Get Non-Existent Scene
 GET {{baseUrl}}/api/scenes/00000000-0000-0000-0000-000000000000
+x-user: {{encodedUserId}}

@@ -10,7 +10,18 @@ Updates existing BDD feature files based on natural language modification reques
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+
+**Templates**:
+- `.claude/templates/BDD_FEATURE_TEMPLATE.md` - BDD feature file structure
+
+**Guides**:
+- `.claude/guides/BDD_CUCUMBER_GUIDE.md` - Gherkin syntax and patterns
+- `Documents/Guides/TESTING_GUIDE.md` - Testing approach
+
+## Process
+
+### Validation & Setup
 
 - **STEP 0A**: Validate {bdd_name} and {update_details} are not empty - abort if invalid
 - **STEP 0B**: Use Glob to find BDD file(s):
@@ -27,7 +38,7 @@ Updates existing BDD feature files based on natural language modification reques
 
 - **STEP 0C**: Use Read tool to load BDD file(s)
 
-## Phase 1: Parse Update Request
+### Parse Update Request
 
 - **STEP 1A**: Use Task tool with solution-engineer agent:
   ```markdown
@@ -88,7 +99,7 @@ Updates existing BDD feature files based on natural language modification reques
 
 - **STEP 1B**: Parse response and handle clarifications
 
-## Phase 2: Apply Update
+### Apply Update
 
 - **STEP 2A**: Load BDD_FEATURE_TEMPLATE.md for structure reference
 - **STEP 2B**: Apply changes based on UPDATE_TYPE:
@@ -120,7 +131,7 @@ Updates existing BDD feature files based on natural language modification reques
 - **STEP 2C**: Validate Gherkin syntax is correct
 - **STEP 2D**: Update file metadata (generation date comment if present)
 
-## Phase 3: Reporting
+### Reporting
 
 - **STEP 3A**: Display update summary:
   ```

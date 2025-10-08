@@ -10,7 +10,14 @@ Orchestrates implementation of complete feature including domain layer (if not d
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Planning
+## Quick Reference
+- **Architecture**: `Documents/Guides/VTTTOOLS_STACK.md`
+- **Code Examples**: `Documents/Guides/CODE_EXAMPLES.md`
+- **Implementation**: `Documents/Guides/IMPLEMENTATION_GUIDE.md`
+
+## Process
+
+### Validation & Planning
 
 - **STEP 0A**: Validate {feature_name} is not empty
 - **STEP 0B**: Find feature spec: "Documents/Areas/*/Features/{feature_name}.md"
@@ -24,7 +31,7 @@ Orchestrates implementation of complete feature including domain layer (if not d
   - Coding standards exist
   - Configuration exists
 
-## Phase 0.5: Check for Implementation Roadmap (Optional Enhancement)
+### Check for Implementation Roadmap (Optional Enhancement)
 
 - **STEP 0.5A**: Look for feature roadmap:
   - Parse feature directory from feature specification path
@@ -54,7 +61,7 @@ Orchestrates implementation of complete feature including domain layer (if not d
     </if>
   </if>
 
-## Phase 1: Check Domain Layer Status
+### Check Domain Layer Status
 
 - **STEP 1A**: Check if domain layer implemented for area:
   - Use mcp__memory__search_nodes for "DomainImpl_{area}"
@@ -69,7 +76,7 @@ Orchestrates implementation of complete feature including domain layer (if not d
   </if>
 </if>
 
-## Phase 2: Implement Use Cases Sequentially
+### Implement Use Cases Sequentially
 
 - **STEP 2A**: Initialize feature implementation tracking:
   - Use mcp__memory__create_entities:
@@ -90,9 +97,7 @@ Orchestrates implementation of complete feature including domain layer (if not d
 
 - **STEP 2C**: Display implementation plan:
   ```
-  ═══════════════════════════════════════════
   FEATURE IMPLEMENTATION PLAN
-  ═══════════════════════════════════════════
 
   Feature: {feature_name}
   Area: {area_name}
@@ -154,7 +159,7 @@ Orchestrates implementation of complete feature including domain layer (if not d
 
   </foreach>
 
-## Phase 3: Feature-Level Validation
+### Feature-Level Validation
 
 - **STEP 3A**: All use cases complete, run comprehensive tests:
   - /test-unit feature {feature_name}
@@ -166,9 +171,7 @@ Orchestrates implementation of complete feature including domain layer (if not d
 
 - **STEP 3C**: Summary:
   ```
-  ═══════════════════════════════════════════
   FEATURE IMPLEMENTATION COMPLETE
-  ═══════════════════════════════════════════
 
   Feature: {feature_name}
   Area: {area_name}
@@ -199,7 +202,7 @@ Orchestrates implementation of complete feature including domain layer (if not d
   </if>
   ```
 
-## Phase 4: Update Memory
+### Update Memory
 
 - **STEP 4A**: Use mcp__memory__add_observations:
   - "status: COMPLETE"

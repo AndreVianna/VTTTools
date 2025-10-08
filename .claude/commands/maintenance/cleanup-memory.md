@@ -10,7 +10,9 @@ Removes stale memory entities from previous sessions to maintain memory graph cl
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Setup
+## Process
+
+### Setup
 
 - **STEP 0A**: Parse {scope} parameter:
   <case {scope}>
@@ -31,7 +33,7 @@ Removes stale memory entities from previous sessions to maintain memory graph cl
   </otherwise>
   </case>
 
-## Phase 1: Discover Stale Entities
+### Discover Stale Entities
 
 - **STEP 1A**: Use mcp__memory__read_graph to get complete memory graph
 - **STEP 1B**: Identify temporary entity types:
@@ -53,9 +55,7 @@ Removes stale memory entities from previous sessions to maintain memory graph cl
 - **STEP 1D**: Build deletion list
 - **STEP 1E**: Display what will be cleaned:
   ```
-  ═══════════════════════════════════════════
   MEMORY CLEANUP ANALYSIS
-  ═══════════════════════════════════════════
 
   Entities to Remove:
   - Validation Sessions: {validation_session_count}
@@ -69,11 +69,9 @@ Removes stale memory entities from previous sessions to maintain memory graph cl
   <if ({scope} equals "dry-run")>
   DRY RUN MODE - Nothing will be deleted
   </if>
-
-  ═══════════════════════════════════════════
   ```
 
-## Phase 2: Confirm Deletion
+### Confirm Deletion
 
 <if ({scope} not equals "dry-run")>
 - **STEP 2A**: Ask user for confirmation:
@@ -94,7 +92,7 @@ Removes stale memory entities from previous sessions to maintain memory graph cl
   </if>
 </if>
 
-## Phase 3: Execute Cleanup
+### Execute Cleanup
 
 <if ({scope} not equals "dry-run")>
 - **STEP 3A**: Delete relationships first:
@@ -140,7 +138,7 @@ Removes stale memory entities from previous sessions to maintain memory graph cl
   ```
 </if>
 
-## Phase 4: Optimize Memory (Optional)
+### Optimize Memory (Optional)
 
 <if (cleanup executed successfully)>
 - **STEP 4A**: Suggest optimization:
@@ -154,6 +152,10 @@ Removes stale memory entities from previous sessions to maintain memory graph cl
   Next Cleanup: Recommended after {next_recommendation_time}
   ```
 </if>
+
+## Quick Reference
+- VTTTOOLS_STACK.md: VttTools technology stack overview
+- ARCHITECTURE_PATTERN.md: DDD Contracts + Service Implementation pattern
 
 **IMPORTANT NOTES**:
 - Removes temporary session entities (validations, extractions)

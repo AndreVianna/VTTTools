@@ -123,8 +123,7 @@ public class GameSessionHandlersTests {
         var result = await GameSessionHandlers.UpdateGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
 
         // Assert
-        var response = result.Should().BeOfType<Ok<GameSession>>().Subject;
-        response.Value.Should().Be(expectedGameSession);
+        result.Should().BeOfType<NoContent>();
     }
 
     [Fact]
@@ -144,7 +143,7 @@ public class GameSessionHandlersTests {
         var result = await GameSessionHandlers.UpdateGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
 
         // Assert
-        result.Should().BeOfType<ProblemHttpResult>();
+        result.Should().BeOfType<BadRequest<IReadOnlyList<Error>>>();
     }
 
     [Fact]
@@ -157,8 +156,7 @@ public class GameSessionHandlersTests {
         var result = await GameSessionHandlers.DeleteGameSessionHandler(_httpContext, _sessionId, _sessionService);
 
         // Assert
-        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
-        response.StatusCode.Should().Be(204);
+        result.Should().BeOfType<NoContent>();
     }
 
     [Fact]
@@ -172,8 +170,7 @@ public class GameSessionHandlersTests {
         var result = await GameSessionHandlers.JoinGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
 
         // Assert
-        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
-        response.StatusCode.Should().Be(200);
+        result.Should().BeOfType<NoContent>();
     }
 
     [Fact]
@@ -187,7 +184,7 @@ public class GameSessionHandlersTests {
         var result = await GameSessionHandlers.JoinGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
 
         // Assert
-        result.Should().BeOfType<ProblemHttpResult>();
+        result.Should().BeOfType<BadRequest<IReadOnlyList<Error>>>();
     }
 
     [Fact]
@@ -200,8 +197,7 @@ public class GameSessionHandlersTests {
         var result = await GameSessionHandlers.LeaveGameSessionHandler(_httpContext, _sessionId, _sessionService);
 
         // Assert
-        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
-        response.StatusCode.Should().Be(200);
+        result.Should().BeOfType<NoContent>();
     }
 
     [Fact]
@@ -214,8 +210,7 @@ public class GameSessionHandlersTests {
         var result = await GameSessionHandlers.ActivateSceneHandler(_httpContext, _sessionId, _sceneId, _sessionService);
 
         // Assert
-        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
-        response.StatusCode.Should().Be(200);
+        result.Should().BeOfType<NoContent>();
     }
 
     [Fact]
@@ -228,8 +223,7 @@ public class GameSessionHandlersTests {
         var result = await GameSessionHandlers.StartGameSessionHandler(_httpContext, _sessionId, _sessionService);
 
         // Assert
-        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
-        response.StatusCode.Should().Be(200);
+        result.Should().BeOfType<NoContent>();
     }
 
     [Fact]
@@ -242,8 +236,6 @@ public class GameSessionHandlersTests {
         var result = await GameSessionHandlers.StopGameSessionHandler(_httpContext, _sessionId, _sessionService);
 
         // Assert
-        Assert.IsType<StatusCodeHttpResult>(result);
-        var response = result.Should().BeOfType<StatusCodeHttpResult>().Subject;
-        response.StatusCode.Should().Be(200);
+        result.Should().BeOfType<NoContent>();
     }
 }

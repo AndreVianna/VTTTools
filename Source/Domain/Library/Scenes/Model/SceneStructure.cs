@@ -23,7 +23,7 @@ public record SceneStructure {
     /// <summary>
     /// Vertices defining the structure's geometry (connected points forming walls/doors)
     /// </summary>
-    public List<Point> Vertices { get; init; } = new();
+    public List<Point> Vertices { get; init; } = [];
 
     /// <summary>
     /// Instance-specific override: whether this door/gate is currently open

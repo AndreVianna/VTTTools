@@ -10,9 +10,9 @@ Systematically prepare development environment with AI-optimized CLAUDE.md templ
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Instructions
+## Process
 
-### Phase 0: Environment Setup & Validation
+### Environment Setup & Validation
 
 - **Read settings.json**: Use `Read` tool to load `.claude/settings.json` file
 - **Validate OS property**: Extract and validate "os" property:
@@ -28,7 +28,7 @@ Systematically prepare development environment with AI-optimized CLAUDE.md templ
 - **Validate setup success**: Monitor exit code and abort Prime if setup fails (exit code ≠ 0)
 - **Log setup completion**: Record successful environment setup before proceeding
 
-### Phase 1: Simple Project Analysis
+### Simple Project Analysis
 
 - **STEP 1**: Use `Bash` command `ls -la` to examine project root structure
 - **STEP 2**: Use `Bash` command `wc -c README.md` to check README.md size and verify it exists
@@ -49,7 +49,7 @@ Systematically prepare development environment with AI-optimized CLAUDE.md templ
   - Linux/Mac: Use Unix commands (find, grep)
 - **MANDATORY REPORTING**: Report to user the project analysis results and variable values that will be used
 
-### Phase 2: Dynamic CLAUDE.md Generation
+### Dynamic CLAUDE.md Generation
 
 #### Step 2A: Template Processing Setup
 - **Check for existing CLAUDE.md**: Use `Read` tool to examine current CLAUDE.md if it exists
@@ -79,7 +79,8 @@ Systematically prepare development environment with AI-optimized CLAUDE.md templ
   - Templates: ./Documents/Templates
   - Troubleshooting: ./Documents/Troubleshooting
 - **These paths represent the recommended/standard documentation structure for projects**
-### Phase 2.5: Mandatory Template Cleanup
+
+### Mandatory Template Cleanup
 
 - **STEP 1**: Use `Read` to load the generated CLAUDE.md file
 - **STEP 2**: Use `Edit` to remove ALL lines containing exactly: `<!-- TIER: NEVER_COMPRESS Lines: 1-30 -->`
@@ -99,7 +100,7 @@ Systematically prepare development environment with AI-optimized CLAUDE.md templ
 - **FINAL VERIFICATION**: Use `Read` to show user the final clean CLAUDE.md
 - **Report completion**: Confirm generation successful with clean, professional output
 
-### Phase 3: Context Budget Validation
+### Context Budget Validation
 
 - **Run budget validator**: Use `Bash` to execute `context_budget_validator` script in `.claude/scripts/utilities` folder
 - **Count effective lines**: Use `Read` to count lines in generated CLAUDE.md after conditional processing and variable substitution
@@ -122,12 +123,16 @@ Systematically prepare development environment with AI-optimized CLAUDE.md templ
   - Optimization level applied: none/level1/level2/level3
   - Budget compliance: pass/fail with target ~150 lines
 
-### Phase 4: Session Initialization
+### Session Initialization
 
 - **Load project state**: Use `Bash` to check git status with `git status --porcelain` and `git branch --show-current`
 - **Check recent activity**: Use `Bash` to run `git log --oneline -5` for recent commits
 - **Store session context**: Use `mcp__memory__add_observations` to record session initialization data
 - **Present summary**: Display project characteristics, CLAUDE.md status, git state, and recommended next steps
+
+## Quick Reference
+- CLAUDE_TEMPLATE.md: Template for CLAUDE.md generation
+- settings.json: Project settings and OS configuration
 
 ## Error Handling
 

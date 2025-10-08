@@ -10,7 +10,9 @@ Performs automated code review using code-reviewer agent to check coding standar
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Scope Determination
+## Process
+
+### Scope Determination
 
 - **STEP 0A**: Parse {scope} parameter:
   - Can be: {use-case-name} | {feature-name} | {area-name} | "recent" (last commit)
@@ -18,7 +20,7 @@ Performs automated code review using code-reviewer agent to check coding standar
 
 - **STEP 0B**: Determine what code to review based on scope
 
-## Phase 1: Gather Review Context
+### Gather Review Context
 
 - **STEP 1A**: Read coding standards guides:
   - Documents/Guides/CODING_STANDARDS.md (overview)
@@ -29,7 +31,7 @@ Performs automated code review using code-reviewer agent to check coding standar
 - **STEP 1C**: Use Glob to find all code files in scope
 - **STEP 1D**: Use Read to load code files
 
-## Phase 2: Automated Code Review
+### Automated Code Review
 
 - **STEP 2A**: Use Task tool with code-reviewer agent:
   ```markdown
@@ -103,13 +105,11 @@ Performs automated code review using code-reviewer agent to check coding standar
 - **STEP 2B**: Parse review results
 - **STEP 2C**: Categorize issues by severity
 
-## Phase 3: Display Review Results
+### Display Review Results
 
 - **STEP 3A**: Display formatted review:
   ```
-  ═══════════════════════════════════════════
   CODE REVIEW: {scope}
-  ═══════════════════════════════════════════
 
   Files Reviewed: {count}
   Issues Found: {total} ({critical}C + {high}H + {medium}M + {low}L)
@@ -143,8 +143,6 @@ Performs automated code review using code-reviewer agent to check coding standar
   ─────────────────────────────────────────
   {issues}
 
-  ═══════════════════════════════════════════
-
   Recommendation:
   <if (critical issues)>
   ❌ DO NOT COMMIT - Fix critical issues first
@@ -157,7 +155,7 @@ Performs automated code review using code-reviewer agent to check coding standar
   </if>
   ```
 
-## Phase 4: Update STATUS Files & Memory
+### Update STATUS Files & Memory
 
 - **STEP 4A**: Update STATUS.md files with review results:
 
@@ -179,6 +177,14 @@ Performs automated code review using code-reviewer agent to check coding standar
 - **STEP 4B**: Update memory:
   - Create CodeReview entity
   - Link to implementation entities
+
+## Quick Reference
+
+- **Architecture**: `Documents/Guides/ARCHITECTURE_PATTERN.md`
+- **Code Examples**: `Documents/Guides/CODE_EXAMPLES.md`
+- **Coding Standards**: `Documents/Guides/CODING_STANDARDS.md`, `Documents/Guides/CSHARP_STYLE_GUIDE.md`, `Documents/Guides/TYPESCRIPT_STYLE_GUIDE.md`
+- **Code Quality**: `Documents/Guides/CODE_QUALITY_GUIDE.md`
+- **Related**: `/quality:test-unit`, `/git:commit-changes`
 
 **IMPORTANT NOTES**:
 - Automated code review using code-reviewer agent

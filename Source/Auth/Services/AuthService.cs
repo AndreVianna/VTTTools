@@ -73,7 +73,7 @@ public class AuthService(
                 UserName = request.Email,
                 Email = request.Email,
                 Name = request.Name,
-                DisplayName = request.DisplayName,
+                DisplayName = request.DisplayName ?? request.Name,  // Fallback to Name if DisplayName not provided
                 EmailConfirmed = true, // For now, skip email confirmation
             };
 
@@ -91,19 +91,19 @@ public class AuthService(
                 };
             }
 
-            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
             logger.LogWarning("Registration failed for email {Email}: {Errors}", request.Email, errors);
 
             return new AuthResponse {
                 Success = false,
-                Message = $"Registration failed: {errors}",
+                Message = errors,  // Return actual Identity errors, not generic message
             };
         }
         catch (Exception ex) {
-            logger.LogError(ex, "Error during registration for email: {Email}", request.Email);
+            logger.LogError(ex, "Error during registration for email: {Email}. Exception: {Message}", request.Email, ex.Message);
             return new AuthResponse {
                 Success = false,
-                Message = "An error occurred during registration",
+                Message = $"Registration error: {ex.Message}",  // Include exception message for debugging
             };
         }
     }

@@ -10,26 +10,30 @@ Resets all uncommitted changes back to the last commit. Includes comprehensive s
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Safety Check
+## Quick Reference
+- **Architecture**: `Documents/Guides/VTTTOOLS_STACK.md`
+- **Commands**: `Documents/Guides/COMMON_COMMANDS.md` → Git section
 
-- **STEP 0A**: Check for uncommitted changes:
+## Process
+
+### Safety Check
+
+- **STEP 1**: Check for uncommitted changes:
   - Use Bash: "git status --porcelain"
   - <if (no changes)>
     - Display: "No uncommitted changes to discard"
     - Exit
   </if>
 
-- **STEP 0B**: Identify what will be lost:
+- **STEP 2**: Identify what will be lost:
   - Use Bash: "git diff --name-status" (modified files)
   - Use Bash: "git ls-files --others --exclude-standard" (untracked files)
 
-## Phase 1: Display Comprehensive Warning
+### Display Comprehensive Warning
 
-- **STEP 1A**: Show detailed impact:
+- **STEP 1**: Show detailed impact:
   ```
-  ═══════════════════════════════════════════
-  ⚠️  WARNING: DISCARD ALL UNCOMMITTED CHANGES
-  ═══════════════════════════════════════════
+  WARNING: DISCARD ALL UNCOMMITTED CHANGES
 
   This will PERMANENTLY DELETE all changes since last commit!
 
@@ -53,34 +57,32 @@ Resets all uncommitted changes back to the last commit. Includes comprehensive s
 
   Total Files Affected: {count}
 
-  ═══════════════════════════════════════════
-
-  ⚠️  THIS ACTION CANNOT BE UNDONE!
+  THIS ACTION CANNOT BE UNDONE!
 
   Type 'DISCARD' to confirm (or anything else to cancel): _
   ```
 
-- **STEP 1B**: Wait for explicit confirmation
+- **STEP 2**: Wait for explicit confirmation
   - Must type exactly "DISCARD" (case-sensitive)
   - Anything else cancels operation
 
-## Phase 2: Discard Changes
+### Discard Changes
 
 <if (user confirms with "DISCARD")>
 
-- **STEP 2A**: Reset tracked files:
+- **STEP 1**: Reset tracked files:
   - Use Bash: "git reset --hard HEAD"
 
-- **STEP 2B**: Remove untracked files:
+- **STEP 2**: Remove untracked files:
   - Use Bash: "git clean -fd"
 
-- **STEP 2C**: Verify clean state:
+- **STEP 3**: Verify clean state:
   - Use Bash: "git status --porcelain"
   - Should be empty
 
-- **STEP 2D**: Display confirmation:
+- **STEP 4**: Display confirmation:
   ```
-  ✓ CHANGES DISCARDED
+  CHANGES DISCARDED
 
   All uncommitted changes have been removed.
   Working directory reset to: {commit_sha}
@@ -100,14 +102,14 @@ Resets all uncommitted changes back to the last commit. Includes comprehensive s
 - Exit
 </if>
 
-## Phase 3: Update Memory
+### Update Memory
 
-- **STEP 3A**: If use case was in progress, update status:
+- **STEP 1**: If use case was in progress, update status:
   - Find relevant implementation entities
   - Set status back to previous state
   - Remove uncommitted file references
 
-**IMPORTANT NOTES**:
+## Important Notes
 - DESTRUCTIVE operation - cannot be undone
 - Requires explicit "DISCARD" confirmation
 - Shows exactly what will be lost before confirming

@@ -7,8 +7,8 @@ public record AddSceneAssetRequest {
     public Optional<Guid> ResourceId { get; init; }
 
     // Instance-specific properties
-    public Position Position { get; init; }
-    public Size Size { get; init; }
+    public Position Position { get; init; } = Position.Zero;
+    public Size Size { get; init; } = Size.Zero;
     public Frame? Frame { get; init; }
     public float Rotation { get; init; }
     public float Elevation { get; init; }

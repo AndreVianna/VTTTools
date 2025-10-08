@@ -6,265 +6,158 @@ argument-hint: {task_id:string:optional(all)}
 
 # Validate Task Command
 
-Comprehensive validation of task specifications. Validates cross-references, acceptance criteria, dependencies, and traceability to features, components, and domain models.
+Validates task specifications against quality standards. Checks cross-references, acceptance criteria, dependencies, and traceability.
 
-**Platform**: Cross-platform (Windows/Linux/macOS)
+**SEE**: @Documents/Guides/ARCHITECTURE_PATTERN.md, @Documents/Guides/TESTING_GUIDE.md
 
-## Phase 0: Setup & Scope
+## Section 1: Validation Execution
 
-- **STEP 0A**: Determine validation scope:
-  <case {task_id}>
-  <is "all">
-  - Use Glob: "Documents/Tasks/*/TASK.md"
-  - Set {tasks_to_validate} = all found task files
-  </is>
-  <is empty>
-  - Set {task_id} = "all"
-  - Use Glob: "Documents/Tasks/*/TASK.md"
-  - Set {tasks_to_validate} = all found task files
-  </is>
-  <otherwise>
-  - Set {tasks_to_validate} = single task: "Documents/Tasks/{task_id}/TASK.md"
-  - Abort if task file not found
-  </otherwise>
-  </case>
+**STEP 1**: Determine scope:
+<case {task_id}>
+<is "all">Use Glob: "Documents/Tasks/*/TASK.md" → {tasks_to_validate}</is>
+<is empty>Set {task_id}="all", use Glob: "Documents/Tasks/*/TASK.md" → {tasks_to_validate}</is>
+<otherwise>Set {tasks_to_validate} = "Documents/Tasks/{task_id}/TASK.md" (abort if not found)</otherwise>
+</case>
 
-## Phase 1: Validate Each Task
+**STEP 2**: Validate each task using Task tool with code-reviewer agent:
 
 <foreach {task_file} in {tasks_to_validate}>
 
-- **STEP 1A**: Read task specification
-- **STEP 1B**: Extract task metadata and cross-references
-- **STEP 1C**: Use Task tool with code-reviewer agent:
-  ```markdown
-  ROLE: Task Specification Quality Reviewer
+```markdown
+ROLE: Task Specification Validator
 
-  TASK: Validate task specification against quality checklist
+TASK FILE: {task_file}
 
-  TASK FILE: {task_file}
+VALIDATION RUBRIC (100 points, 80+ to pass):
+- Task Identity (15): Type, title, priority, effort
+- Cross-References (35): Features (10), Components (10), Domain (10), BDD (5)
+- Success Criteria (15): Measurable criteria (10), Given/When/Then (5)
+- Implementation (20): Approach (10), Steps (5), Dependencies (5)
+- Quality (15): Testing (5), Risks (5), Code locations (5)
 
-  SCORING RUBRIC (100 points):
+CHECK CROSS-REFERENCE INTEGRITY:
+- Features: Glob "Documents/Areas/*/Features/{name}.md"
+- Components: Verify in STRUCTURE.md + codebase
+- Use Cases: Check spec exists, matches features
+- BDD: Find "Documents/Areas/**/{file}.feature"
+- Domain: Find "Documents/Areas/{area}/Domain/DOMAIN_MODEL.md"
 
-  **Task Identity & Scope (15 points)**:
-  - 5pts: Task type clearly specified
-  - 5pts: Clear, actionable title and description
-  - 5pts: Priority and effort estimate provided
+CHECK DEPENDENCIES:
+- Blocking tasks exist: "Documents/Tasks/{id}/TASK.md"
+- No circular dependencies
+- Reverse relationships valid
 
-  **Cross-References (35 points) - CRITICAL**:
-  - 10pts: All affected features documented with impact
-  - 10pts: All affected structure components documented
-  - 10pts: Affected domain areas/models documented
-  - 5pts: Affected BDD files identified
-
-  **Success Criteria (15 points)**:
-  - 10pts: Clear, measurable success criteria (3+)
-  - 5pts: Acceptance criteria in Given/When/Then format
-
-  **Implementation Plan (20 points)**:
-  - 10pts: Technical approach documented
-  - 5pts: Implementation steps with time estimates
-  - 5pts: Dependencies identified (blocking and blocked)
-
-  **Quality & Testing (15 points)**:
-  - 5pts: Testing requirements specified
-  - 5pts: Risk assessment completed
-  - 5pts: Code locations identified
-
-  TARGET: 80/100 minimum
-
-  OUTPUT: Scoring with issues by priority level
-  ```
-
-- **STEP 1D**: Parse score and issues
+OUTPUT:
+- Section scores with grade (A-F)
+- Invalid cross-references list
+- Circular dependencies
+- Issues by priority (CRITICAL/HIGH/MEDIUM)
+```
 
 </foreach>
 
-## Phase 2: Cross-Reference Integrity Validation
+## Section 2: Report Generation
 
-<foreach {task_file} in {tasks_to_validate}>
+**STEP 3**: Calculate results:
+- {total_score} = average if validating all, else single score
+- {pass_fail} = "PASS" if score ≥ 80, else "FAIL"
+- {invalid_refs} = count of broken cross-references
+- {circular_deps} = count of dependency cycles
 
-- **STEP 2A**: Validate feature references:
-  <foreach {feature} in {task.affected_features}>
-  - Check if feature specification exists:
-    - Use Glob: "Documents/Areas/*/Features/{feature.name}.md"
-  - Report if feature not found
-  </foreach>
+**STEP 4**: Display report:
 
-- **STEP 2B**: Validate component references:
-  <foreach {component} in {task.affected_components}>
-  - Check if component exists in STRUCTURE.md
-  - Check if component exists in codebase
-  - Report missing components
-  </foreach>
+```
+## TASK VALIDATION RESULTS
+───────────────────────────────────────────────────────────────
 
-- **STEP 2C**: Validate use case references:
-  <foreach {usecase} in {task.affected_use_cases}>
-  - Check if use case specification exists
-  - Verify use case belongs to referenced features
-  - Report orphaned use case references
-  </foreach>
+<if ({task_id} equals "all")>
+Tasks Validated: {count}
+Average Score: {avg_score}/100
+Passing (80+): {passing_count}
+Failing (<80): {failing_count}
+</if>
 
-- **STEP 2D**: Validate BDD file references:
-  <foreach {bdd} in {task.affected_bdd_files}>
-  - Check if BDD file exists: "Documents/Areas/**/{bdd.file_name}"
-  - Report missing BDD files
-  </foreach>
+<if ({task_id} not equals "all")>
+Task: {task_id} - {title}
+Score: {score}/100 [{grade}]
+Status: {pass_fail}
+</if>
 
-- **STEP 2E**: Validate domain area references:
-  <foreach {domain} in {task.affected_domain_areas}>
-  - Check if domain model exists: "Documents/Areas/{domain}/Domain/DOMAIN_MODEL.md"
-  - Report missing domain models
-  </foreach>
+───────────────────────────────────────────────────────────────
+QUALITY BREAKDOWN
+───────────────────────────────────────────────────────────────
+Task Identity:       {score}/15  [{grade}]
+Cross-References:    {score}/35  [{grade}]  ← CRITICAL
+Success Criteria:    {score}/15  [{grade}]
+Implementation:      {score}/20  [{grade}]
+Quality & Testing:   {score}/15  [{grade}]
 
+───────────────────────────────────────────────────────────────
+INTEGRITY ISSUES
+───────────────────────────────────────────────────────────────
+Invalid Features:    {count}
+Invalid Components:  {count}
+Invalid Use Cases:   {count}
+Invalid BDD Files:   {count}
+Circular Deps:       {count}
+
+<foreach {issue} in {integrity_issues}>
+- {issue.type}: {issue.description}
 </foreach>
 
-## Phase 3: Dependency Validation
-
-<foreach {task_file} in {tasks_to_validate}>
-
-- **STEP 3A**: Validate blocking tasks:
-  <foreach {blocker} in {task.blocking_tasks}>
-  - Check if blocker task exists: "Documents/Tasks/{blocker.task_id}/TASK.md"
-  - Check blocker status (warn if already completed)
-  - Detect circular dependencies
-  </foreach>
-
-- **STEP 3B**: Validate blocked tasks:
-  <foreach {blocked} in {task.blocked_tasks}>
-  - Check if blocked task exists
-  - Verify reverse relationship
-  </foreach>
-
-- **STEP 3C**: Check for circular dependency chains:
-  - Build dependency graph
-  - Detect cycles
-  - Report circular dependencies
-
+───────────────────────────────────────────────────────────────
+IMPROVEMENTS NEEDED
+───────────────────────────────────────────────────────────────
+🔴 CRITICAL ({count}):
+<foreach {issue} in {critical_issues}>
+- {issue.description}
 </foreach>
 
-## Phase 4: Generate Validation Report
+🟡 HIGH ({count}):
+<foreach {issue} in {high_issues}>
+- {issue.description}
+</foreach>
 
-- **STEP 4A**: Calculate aggregate scores:
-  <if (validating all tasks)>
-  - Average score across all tasks
-  - Count tasks below 80/100
-  - Identify lowest scoring task
-  </if>
+🟢 MEDIUM ({count}):
+<foreach {issue} in {medium_issues}>
+- {issue.description}
+</foreach>
 
-- **STEP 4B**: Display validation results:
-  ```
-  ═══════════════════════════════════════════════════════════════
-  TASK VALIDATION RESULTS
-  ═══════════════════════════════════════════════════════════════
+───────────────────────────────────────────────────────────────
+AUTO-FIX OPTIONS
+───────────────────────────────────────────────────────────────
+1. Fix CRITICAL only
+2. Fix CRITICAL + HIGH
+3. Fix all issues
+4. Manual review (show plan)
+5. Skip
 
-  <if (validating all)>
-  Tasks Validated: {task_count}
-  Average Score: {avg_score}/100
-  Passing (80+): {passing_count}/{task_count}
-  Failing (<80): {failing_count}
-  </if>
+───────────────────────────────────────────────────────────────
+```
 
-  <if (validating single task)>
-  Task: {task_id} - {task_title}
-  Score: {score}/100  [{grade}]
-  Status: {pass_or_fail}
-  </if>
+## Section 3: Auto-Fix (Optional)
 
-  ═══════════════════════════════════════════════════════════════
-  SECTION 1: QUALITY SCORES (per task or averaged)
-  ═══════════════════════════════════════════════════════════════
+**STEP 5**: If user selects option 1-3:
+- Apply fixes based on choice
+- Use Edit tool to update task files
+- Re-run validation on fixed tasks
+- Display before/after scores
 
-  Task Identity & Scope:    {score}/15  [{grade}]
-  Cross-References:         {score}/35  [{grade}]  ← CRITICAL
-  Success Criteria:         {score}/15  [{grade}]
-  Implementation Plan:      {score}/20  [{grade}]
-  Quality & Testing:        {score}/15  [{grade}]
+**STEP 6**: If user selects option 4:
+- Use Task tool with solution-engineer agent to generate improvement plan
+- Show specific edits needed per task
+- Wait for user approval before applying
 
-  OVERALL: {total_score}/100  [{overall_grade}]
+## Quick Reference
 
-  ═══════════════════════════════════════════════════════════════
-  SECTION 2: CROSS-REFERENCE INTEGRITY
-  ═══════════════════════════════════════════════════════════════
+- **Architecture**: `Documents/Guides/ARCHITECTURE_PATTERN.md`
+- **Testing Guide**: `Documents/Guides/TESTING_GUIDE.md`
+- **Templates**: `.claude/templates/TASK_TEMPLATE.md`
+- **Related**: `/creation:create-task`, `/task:show-impact`, `/update:update-task`
 
-  Feature References:
-  ✓ Valid: {valid_feature_refs}
-  ✗ Invalid: {invalid_feature_refs}
-  <foreach {invalid} in {invalid_feature_references}>
-  - Task {invalid.task_id} references non-existent feature: {invalid.feature_name}
-  </foreach>
-
-  Component References:
-  ✓ Valid: {valid_component_refs}
-  ✗ Invalid: {invalid_component_refs}
-  <foreach {invalid} in {invalid_component_references}>
-  - Task {invalid.task_id} references non-existent component: {invalid.component_name}
-  </foreach>
-
-  Use Case References:
-  ✓ Valid: {valid_usecase_refs}
-  ✗ Invalid: {invalid_usecase_refs}
-
-  BDD File References:
-  ✓ Valid: {valid_bdd_refs}
-  ✗ Invalid: {invalid_bdd_refs}
-
-  ═══════════════════════════════════════════════════════════════
-  SECTION 3: DEPENDENCY VALIDATION
-  ═══════════════════════════════════════════════════════════════
-
-  Blocking Task Dependencies:
-  ✓ Valid: {valid_blockers}
-  ✗ Invalid: {invalid_blockers}
-
-  Circular Dependencies:
-  <foreach {cycle} in {circular_dependencies}>
-  - ⚠️  {cycle.path}
-    Fix: {cycle.recommendation}
-  </foreach>
-
-  ═══════════════════════════════════════════════════════════════
-  SECTION 4: PROPOSED IMPROVEMENTS
-  ═══════════════════════════════════════════════════════════════
-
-  🔴 CRITICAL Issues ({critical_count}):
-  <foreach {issue} in {critical_issues}>
-  - {issue.description}
-  </foreach>
-
-  🟡 HIGH Priority ({high_count}):
-  <foreach {issue} in {high_issues}>
-  - {issue.description}
-  </foreach>
-
-  🟢 MEDIUM Priority ({medium_count}):
-  <foreach {issue} in {medium_issues}>
-  - {issue.description}
-  </foreach>
-
-  ═══════════════════════════════════════════════════════════════
-  SECTION 5: AUTO-FIX OPTIONS
-  ═══════════════════════════════════════════════════════════════
-
-  1. Fix CRITICAL issues only
-  2. Fix CRITICAL + HIGH
-  3. Fix CRITICAL + HIGH + MEDIUM
-  4. Fix all issues
-  5. Manual review - show improvement plan
-  6. Skip auto-fix
-
-  ═══════════════════════════════════════════════════════════════
-  ```
-
-## Phase 5: Auto-Fix (if requested)
-
-- **STEP 5A**: Collect user choice
-- **STEP 5B**: Apply fixes based on choice
-- **STEP 5C**: Re-validate to show improvements
-
-**IMPORTANT NOTES**:
-- Validates task specifications for quality and completeness
-- Checks cross-reference integrity (features, components, use cases, domain, BDD)
-- Validates dependency relationships (no circular dependencies)
-- Supports validating single task or all tasks
-- Target score: 80/100 minimum
-- Auto-fix capability for quality improvements
+**NOTES**:
+- Validates specifications for quality (80/100 target)
+- Checks cross-references to features, components, use cases, domain, BDD
+- Detects circular dependencies
+- Supports bulk validation ({task_id}="all")
+- Optional auto-fix with severity filtering

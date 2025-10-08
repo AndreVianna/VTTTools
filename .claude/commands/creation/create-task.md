@@ -10,7 +10,14 @@ Create comprehensive work item specification with full cross-referencing to feat
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+- **Stack Guide**: Documents/Guides/VTTTOOLS_STACK.md
+- **Template**: .claude/templates/TASK_TEMPLATE.md
+- **Backlog Template**: .claude/templates/BACKLOG_TEMPLATE.md
+
+## Process
+
+### Step 0: Validation & Setup
 
 - **STEP 0A**: Validate {task_type} is valid:
   - Supported: feature, bug, refactor, tech-debt, infrastructure, documentation
@@ -30,7 +37,7 @@ Create comprehensive work item specification with full cross-referencing to feat
     - documentation → DOCS-{next_number}
   - Set {task_id}
 
-## Phase 1: Load Context
+### Step 1: Load Context
 
 - **STEP 1A**: Load solution context:
   <if (Documents/SOLUTION.md exists)>
@@ -53,7 +60,7 @@ Create comprehensive work item specification with full cross-referencing to feat
   - Use Glob: "Documents/Areas/*/Features/*/UseCases/*.md" (use cases)
   - Parse names for multiselect prompts
 
-## Phase 2: Initialize Task Memory
+### Step 2: Initialize Task Memory
 
 - **STEP 2A**: Use mcp__memory__create_entities to create task entity:
   - name: "{task_id}"
@@ -68,7 +75,7 @@ Create comprehensive work item specification with full cross-referencing to feat
 - **STEP 2C**: Add variable tracking:
   - ["variables_needed: task_id,task_title,task_type,task_status,task_priority,task_description,effort_estimate,affected_features,affected_use_cases,affected_components,affected_domain_areas,affected_bdd_files,primary_objective,success_criteria,implementation_strategy,implementation_steps,blocking_tasks,blocked_tasks,external_dependencies,acceptance_criteria,technical_considerations,risks,design_decisions,sprint_name,story_points"]
 
-## Phase 3: Interactive Task Definition
+### Step 3: Interactive Task Definition
 
 - **STEP 3A**: Use mcp__memory__open_nodes to get current task state
 - **STEP 3B**:
@@ -136,7 +143,7 @@ Create comprehensive work item specification with full cross-referencing to feat
   - Store in memory
   </while>
 
-## Phase 4: Generate Task Specification
+### Step 4: Generate Task Specification
 
 - **STEP 4A**: Use mcp__memory__open_nodes to retrieve all task observations
 - **STEP 4B**: Load template: ".claude/templates/TASK_TEMPLATE.md"
@@ -147,7 +154,7 @@ Create comprehensive work item specification with full cross-referencing to feat
 - **STEP 4D**: Write to: "Documents/Tasks/{task_id}/TASK.md"
 - **STEP 4E**: Create Notes.md placeholder: "Documents/Tasks/{task_id}/Notes.md"
 
-## Phase 5: Update Backlog
+### Step 5: Update Backlog
 
 - **STEP 5A**: Read or create BACKLOG.md:
   <if (Documents/Tasks/BACKLOG.md not exists)>
@@ -169,7 +176,7 @@ Create comprehensive work item specification with full cross-referencing to feat
   - Confirm statistics are updated correctly
   - If validation fails: Log warning (task still created, backlog manually fixable)
 
-## Phase 6: Create Cross-Reference Relationships
+### Step 6: Create Cross-Reference Relationships
 
 - **STEP 6A**: Create task-feature relationships:
   <foreach {feature} in {affected_features}>
@@ -195,7 +202,7 @@ Create comprehensive work item specification with full cross-referencing to feat
     - relationType: "implements"
   </foreach>
 
-## Phase 7: Update Referenced Specifications
+### Step 7: Update Referenced Specifications
 
 - **STEP 7A**: For each affected feature:
   <foreach {feature} in {affected_features}>
@@ -227,7 +234,7 @@ Create comprehensive work item specification with full cross-referencing to feat
   - Confirm task appears in all referenced feature/use case specs
   - Bidirectional traceability: Task→Feature and Feature→Task ✓
 
-## Phase 8: Reporting
+### Step 8: Reporting
 
 - **STEP 8A**: Display task creation summary:
   ```

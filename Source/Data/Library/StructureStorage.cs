@@ -16,7 +16,7 @@ public class StructureStorage(ApplicationDbContext context) {
             .Where(s => s.OwnerId == ownerId)
             .ToArrayAsync(ct);
 
-        return entities.Select(ToModel).ToArray();
+        return [.. entities.Select(ToModel)];
     }
 
     /// <summary>
@@ -52,9 +52,8 @@ public class StructureStorage(ApplicationDbContext context) {
         await context.Structures.AddAsync(entity, ct);
         await context.SaveChangesAsync(ct);
     }
-
-    private static Structure ToModel(Entities.Structure entity) =>
-        new() {
+    private static Structure ToModel(Entities.Structure entity)
+        => new() {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Name = entity.Name,

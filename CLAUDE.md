@@ -104,6 +104,9 @@ Log Viewer: `pwsh -ExecutionPolicy Bypass -File .claude/scripts/view_logs.ps1`
 **Project Templates**:`Documents/Templates/` - Project-specific templates
 
 **Project-Specific Guides (Documents/Guides/)**:
+- **VTTTOOLS_STACK.md** - Complete technology stack reference (C#/.NET, React/TypeScript, testing frameworks)
+- **CODE_EXAMPLES.md** - All code pattern examples (backend, frontend, testing, PowerShell)
+- **COMMON_COMMANDS.md** - Build, test, and deployment commands (dotnet, npm, EF Core, PowerShell)
 - ARCHITECTURE_PATTERN.md - DDD Contracts + Service Implementation pattern
 - CODING_STANDARDS.md - VttTools coding standards (extracted from codebase)
 - CSHARP_STYLE_GUIDE.md - VttTools C# style guide

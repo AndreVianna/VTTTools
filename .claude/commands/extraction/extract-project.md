@@ -9,375 +9,144 @@ argument-hint: {project_folder:string:optional}
 Extract comprehensive technical specification from existing codebase through systematic analysis. Documents actual architecture, patterns, and implementation as-is without judgment or design recommendations.
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
+**Reference**: `.claude/templates/PROJECT_TEMPLATE.md` for output structure
+**Guide**: `Documents/Guides/ARCHITECTURE_PATTERN.md` for architecture principles
 
-## Phase 0: Validation & Setup
+## 1. Validation & Technology Detection
 
-- **STEP 0A**:
+**STEP 1.1 - Validate Environment**:
 <if ({project_folder} is empty)>
-  - Set {project_folder} = current working directory "."
-  - Use Bash tool: "pwd" to confirm current directory path
+- Set {project_folder} = current working directory "."
+- Use Bash: "pwd" to confirm directory
 <else>
-  - Validate {project_folder} exists using Bash tool: "test -d {project_folder} && echo 'exists' || echo 'missing'"
-  - Abort if missing: "ERROR: Project folder '{project_folder}' does not exist"
+- Validate {project_folder} exists: Bash "test -d {project_folder} && echo 'exists' || echo 'missing'"
+- Abort if missing
 </if>
-- **STEP 0B**: Use Bash tool: "mkdir -p Documents" to ensure output directory exists
-- **STEP 0C**: Validate PROJECT_TEMPLATE.md exists using Read tool - abort if missing
+- Ensure output directory: Bash "mkdir -p Documents"
+- Validate PROJECT_TEMPLATE.md exists using Read tool
 
-## Phase 0B: Multi-Technology Detection & Discovery Strategy
+**STEP 1.2 - Detect Technologies**:
+Use Glob/Grep to identify technologies:
+- Backend: *.csproj (.NET), pom.xml/build.gradle (Java), package.json (Node), go.mod (Go), Cargo.toml (Rust), requirements.txt (Python)
+- Frontend: package.json (react/vue/angular/svelte), tsconfig.json (TypeScript), vite/webpack.config (build tools)
+- ORM: DbSet< (EF Core), JpaRepository (Spring JPA), prisma/schema.prisma (Prisma), models.Model (Django)
+- Infrastructure: Redis/StackExchange.Redis (cache), SignalR (real-time .NET), socket.io/ws (real-time Node)
 
-- **STEP 0B1**: Detect ALL technologies in the project:
-  - Use Glob and Grep to identify technology indicator files and patterns
-  - **Backend Detection**:
-    - Glob: "{project_folder}/**/*.csproj" → .NET/C# project
-    - Glob: "{project_folder}/**/pom.xml" or "build.gradle" → Java project
-    - Glob: "{project_folder}/**/package.json" (check for express/fastify/nest) → Node.js backend
-    - Glob: "{project_folder}/**/go.mod" → Go project
-    - Glob: "{project_folder}/**/Cargo.toml" → Rust project
-    - Glob: "{project_folder}/**/requirements.txt" or "pyproject.toml" → Python project
-  - **Frontend Detection**:
-    - Check package.json for: react, vue, angular, svelte → identify frontend framework
-    - Glob: "{project_folder}/**/tsconfig.json" → TypeScript usage
-    - Glob: "{project_folder}/**/vite.config.*" or "webpack.config.*" → build tool
-  - **Database/ORM Detection**:
-    - Grep: "DbSet<" in *.cs files → Entity Framework Core
-    - Grep: "JpaRepository" in *.java files → Spring Data JPA
-    - Glob: "**/prisma/schema.prisma" → Prisma ORM
-    - Grep: "models.Model" in *.py files → Django ORM
-  - **Cache Detection**:
-    - Grep: "Redis" or "StackExchange.Redis" or "redis-client"
-    - Grep: "Memcached" or "memcache"
-  - **Real-time Detection**:
-    - Grep: "SignalR" in *.cs files
-    - Grep: "socket.io" or "ws" in package.json
-  - Store detected technologies in memory with versions where available
+Store detected technologies in memory with versions.
 
-- **STEP 0B2**: For EACH detected technology, perform web search to get discovery patterns:
-  <foreach {technology} in {detected_technologies}>
-  - Use WebSearch tool with query: "How to discover all entities in {technology.name} {technology.version} programmatically best practices"
-  - Extract discovery patterns from search results (file patterns, commands, conventions)
-  - Use mcp__memory__add_observations to store: "discovery_pattern_{technology.name}: {patterns}"
-  - Examples of patterns to extract:
-    - For Entity Framework: "Search for DbSet<T> declarations in *Context.cs files"
-    - For Spring JPA: "Search for @Entity annotations"
-    - For Django: "Search for models.Model inheritance"
-    - For React: "Find all .tsx/.jsx files in src/ folder"
-  </foreach>
+**STEP 1.3 - Retrieve Discovery Patterns**:
+<foreach {technology} in {detected_technologies}>
+- WebSearch discovery patterns for {technology.name} {technology.version}
+- Store in memory: "discovery_pattern_{technology.name}: {patterns}"
+</foreach>
 
-- **STEP 0B3**: Report detected technologies and selected strategies:
-  ```
-  TECHNOLOGY DETECTION COMPLETE
-  ────────────────────────────────
-  Backend: {backend_tech} {version}
-  Frontend: {frontend_tech} {version}
-  ORM: {orm_tech} {version}
-  Cache: {cache_tech}
-  Real-time: {realtime_tech}
-  Build: {build_tech}
+## 2. Initialize Extraction Memory
 
-  Discovery Strategies Loaded:
-  - {tech1}: {strategy1}
-  - {tech2}: {strategy2}
-  ```
+**STEP 2.1 - Create Extraction Entity**:
+Use mcp__memory__create_entities:
+- name: "current_project_extraction"
+- entityType: "extraction"
+- observations: ["status: analysis_starting", "analysis_complete: false", "analysis_count: 0", "project_folder: {project_folder}"]
 
-## Phase 1: Initialize Extraction Memory
+**STEP 2.2 - Track Variables**:
+Use mcp__memory__add_observations to track required variables (see PROJECT_TEMPLATE.md for complete list)
 
-- **STEP 1A**: Use mcp__memory__create_entities to create extraction entity:
-  - name: "current_project_extraction"
-  - entityType: "extraction"
-  - observations: ["status: analysis_starting", "analysis_complete: false", "analysis_count: 0", "project_folder: {project_folder}"]
-- **STEP 1B**: Use mcp__memory__add_observations to add extraction variable tracking:
-  - ["variables_needed: project_name,product_type,core_purpose,change_log,spec_version,last_updated,update_reason,bounded_contexts,domain_interactions,ubiquitous_language,domain_layer,application_layer,infrastructure_layer,ui_layer,primary_ports,secondary_ports,primary_adapters,secondary_adapters,complexity_justification,simplification_opportunities,target_user_type,primary_user_workflow,has_frontend,has_backend,has_database,needs_auth,needs_realtime,application_type,frontend_tech,backend_tech,database_tech,interface_type,deployment_target,external_apis,auth_method,data_entities,storage_requirements,interaction_method,ui_framework,tech_stack"]
+## 3. Systematic Codebase Analysis
 
-## Phase 2: Systematic Codebase Analysis
+Use Task tool with solution-engineer agent for exhaustive extraction:
 
-- **STEP 2A**: Use mcp__memory__open_nodes to retrieve current state for "current_project_extraction"
-- **STEP 2B**: Extract and initialize control variables from memory observations:
-  - Set {analysis_complete} from "analysis_complete" observation (default: false)
-  - Set {analysis_count} from "analysis_count" observation (default: 0)
-- **STEP 2C**: Use Task tool with solution-engineer agent for exhaustive multi-technology extraction with EXACT prompt:
-  ```markdown
-  ROLE: Project Architecture Extraction Analyst with Exhaustive Discovery
+```markdown
+ROLE: Project Architecture Extraction Analyst
 
-  TASK: Extract complete project architecture using technology-adaptive exhaustive discovery methodology.
+TASK: Extract complete project architecture using technology-adaptive exhaustive discovery.
 
-  CRITICAL MANDATE: Document reality with 100% coverage. Extract ALL entities, components, and patterns.
+CRITICAL: Document reality with 100% coverage. Extract ALL entities, components, patterns.
 
-  TARGET OUTPUT FILE: "Documents/PROJECT.md"
-  TEMPLATE LOCATION: ".claude/templates/PROJECT_TEMPLATE.md"
-  PROJECT FOLDER: "{project_folder}"
+TARGET: "Documents/PROJECT.md"
+TEMPLATE: ".claude/templates/PROJECT_TEMPLATE.md"
+PROJECT: "{project_folder}"
+TECHNOLOGIES: {detected_technologies}
+STRATEGIES: {discovery_patterns}
 
-  DETECTED TECHNOLOGIES: {detected_technologies}
-  DISCOVERY STRATEGIES: {discovery_patterns}
+## PHASE 1: INVENTORY (CREATE COMPLETE LISTS - NO ANALYSIS YET)
+───────────────────────────────────────────────────────────────
 
-  ═══════════════════════════════════════════════════════════════════════════
-  PHASE 1: TECHNOLOGY-SPECIFIC INVENTORY (CREATE COMPLETE LISTS)
-  ═══════════════════════════════════════════════════════════════════════════
+<if (Entity Framework Core detected)>
+**ENTITY INVENTORY**: grep "DbSet<" in *Context.cs → extract all entity names → store entity_list
+**ENUM INVENTORY**: grep "public enum" in *.cs → extract all enum names → store enum_list
+</if>
 
-  CRITICAL: This phase ONLY creates inventories. Do NOT analyze content yet.
+<if (Spring Data JPA detected)>
+**ENTITY INVENTORY**: grep "@Entity" in *.java → extract class names → cross-ref JpaRepository
+</if>
 
-  FOR EACH DETECTED TECHNOLOGY:
+<if (React detected)>
+**COMPONENT INVENTORY**: find *.tsx/*.jsx → store component_files
+**PAGE INVENTORY**: find src/pages/*.tsx → store page_files
+</if>
 
-  <if (Entity Framework Core detected)>
-  **ENTITY INVENTORY** (.NET/EF Core):
-  1. Execute: grep -r "DbSet<" {project_folder} --include="*Context.cs"
-  2. Parse output to extract ALL entity names from DbSet<EntityName> declarations
-  3. Store complete list: entity_list = [Entity1, Entity2, ...]
-  4. Report: "Found {count} entities in DbContext"
-  5. For each entity, locate file: {project_folder}/**/Domain/**/{EntityName}.cs
-  6. Verify all entity files exist
+<if (Redux detected)>
+**SLICE INVENTORY**: grep "createSlice" in *.ts → store slice_list
+</if>
 
-  **ENUM INVENTORY** (.NET/C#):
-  1. Execute: grep -r "^[[:space:]]*public enum " {project_folder} --include="*.cs"
-  2. Extract ALL enum names
-  3. Store: enum_list = [Enum1, Enum2, ...]
-  4. Report: "Found {count} enums"
-  </if>
+CHECKPOINT - Report inventories:
+```
+INVENTORY COMPLETE
+Entities: {entity_count}
+Enums: {enum_count}
+Components: {component_count}
+```
 
-  <if (Spring Data JPA detected)>
-  **ENTITY INVENTORY** (Java/JPA):
-  1. Execute: grep -r "@Entity" {project_folder} --include="*.java"
-  2. Extract class names following @Entity annotation
-  3. Cross-reference: grep -r "JpaRepository<" to validate
-  4. Store: entity_list = [Entity1, Entity2, ...]
-  </if>
+## PHASE 2: ANALYSIS (MANDATORY - PROCESS ALL INVENTORY ITEMS)
+───────────────────────────────────────────────────────────────
 
-  <if (React detected)>
-  **COMPONENT INVENTORY** (React):
-  1. Execute: find {project_folder}/src -name "*.tsx" -o -name "*.jsx"
-  2. Store all file paths: component_files = [path1, path2, ...]
-  3. Report: "Found {count} React component files"
+<if (Entity Framework Core detected)>
+**ENTITY ANALYSIS** (Loop all entities):
+<foreach entity_name in entity_list>
+  Read file → Extract properties/relationships/enums → Store data
+</foreach>
+VERIFY: entities_analyzed == entity_count
 
-  **PAGE INVENTORY**:
-  1. Execute: find {project_folder}/src/pages -name "*.tsx"
-  2. Store: page_files = [path1, path2, ...]
-  </if>
+**ENUM ANALYSIS** (Loop all enums):
+<foreach enum_name in enum_list>
+  grep -A 30 → Extract ALL values to closing brace → Store data
+</foreach>
+VERIFY: enums_analyzed == enum_count (all complete)
+</if>
 
-  <if (Redux detected)>
-  **SLICE INVENTORY**:
-  1. Execute: grep -r "createSlice" {project_folder}/src --include="*.ts"
-  2. Extract slice names
-  3. Store: slice_list = [slice1, slice2, ...]
-  </if>
+**ARCHITECTURE**: Bounded contexts, ports/adapters, use cases, domain interactions
 
-  **INVENTORY CHECKPOINT**:
-  Report complete inventories before proceeding:
-  ```
-  INVENTORY COMPLETE
-  ─────────────────────
-  Entities to analyze: {entity_count}
-  Enums to analyze: {enum_count}
-  Components to analyze: {component_count}
-  ```
+## PHASE 3: VERIFICATION (FORCED - CANNOT SELF-REPORT COMPLETE)
+───────────────────────────────────────────────────────────────
 
-  ═══════════════════════════════════════════════════════════════════════════
-  PHASE 2: EXHAUSTIVE ANALYSIS (MANDATORY PROCESSING OF ALL ITEMS)
-  ═══════════════════════════════════════════════════════════════════════════
+<if (Entity Framework Core detected)>
+VERIFY: entities_analyzed == dbset_count (ERROR if mismatch)
+VERIFY: all enums complete with closing braces (ERROR if incomplete)
+</if>
 
-  CRITICAL: MUST process EVERY item in inventories. NO SAMPLING ALLOWED.
+CRITERIA (ALL required): Entities analyzed, Enums complete, Contexts identified, Architecture documented
+STATUS: complete (High confidence) OR analysis_needed (Low confidence)
 
-  <if (Entity Framework Core detected)>
-  **ENTITY ANALYSIS** (Mandatory Loop):
+OUTPUT: STATUS, METRICS (entities/enums/coverage %), EXTRACTED_VARIABLES, MISSING_VARIABLES (N/A), VERIFICATION results
+```
 
-  entities_analyzed = 0
-  entity_count = length of entity_list
+## 4. Generate Specification Document
 
-  <foreach entity_name in entity_list>
-    Report progress: "Processing entity {entities_analyzed + 1} of {entity_count}: {entity_name}"
+**STEP 4.1-4**: Retrieve memory observations → Load PROJECT_TEMPLATE.md → Parse variables (handle N/A) → Apply DSL substitution
 
-    1. Use Read tool on entity file
-    2. Extract: properties, relationships, base classes, enums used
-    3. Store observations: "entity_{entity_name}: {data}"
-    4. Increment: entities_analyzed = entities_analyzed + 1
-  </foreach>
+**STEP 4.5**: Prepend extraction metadata (technologies detected, entities/enums/components analyzed, confidence, coverage %, date)
 
-  VERIFICATION: entities_analyzed MUST equal entity_count
-  <if (entities_analyzed < entity_count)>
-    ERROR: "INCOMPLETE - Only {entities_analyzed} of {entity_count} entities analyzed"
-    STATUS: analysis_needed
-  </if>
+**STEP 4.6-9**: Write "Documents/PROJECT.md" → Validate → Update memory (status: extraction_complete) → Report (path, metrics, N/A summary)
 
-  **ENUM ANALYSIS** (Mandatory Loop - Complete Values Required):
+## Quick Reference
 
-  enums_analyzed = 0
-  enum_count = length of enum_list
-
-  <foreach enum_name in enum_list>
-    Report progress: "Processing enum {enums_analyzed + 1} of {enum_count}: {enum_name}"
-
-    1. Execute: grep -r "public enum {enum_name}" -A 30 --include="*.cs"
-    2. Parse output to extract ALL values until closing brace "}"
-    3. Verify completeness: must contain closing brace
-    4. Store: "enum_{enum_name}_values: [all_values]"
-    5. Increment: enums_analyzed = enums_analyzed + 1
-
-    <if (closing brace not found)>
-      WARNING: "Enum {enum_name} may be incomplete"
-    </if>
-  </foreach>
-
-  VERIFICATION: enums_analyzed MUST equal enum_count
-  </if>
-
-  <if (React detected)>
-  **COMPONENT ANALYSIS** (Sample-based for high-level understanding):
-  - Analyze component structure patterns (not exhaustive per-component)
-  - Identify routing patterns
-  - Extract state management approach
-  </if>
-
-  **ARCHITECTURE ANALYSIS**:
-  - Bounded contexts (from namespace/package structure)
-  - Ports & adapters (interface patterns)
-  - Use case patterns (service methods)
-  - Domain interactions (dependency flow)
-
-  ═══════════════════════════════════════════════════════════════════════════
-  PHASE 3: FORCED VERIFICATION (CANNOT SELF-REPORT COMPLETE)
-  ═══════════════════════════════════════════════════════════════════════════
-
-  <if (Entity Framework Core detected)>
-  **ENTITY COUNT VERIFICATION**:
-  - Expected (from DbSet): {dbset_count}
-  - Actually analyzed: {entities_analyzed}
-  - Match: {dbset_count} == {entities_analyzed}
-  - <if (NOT match)>
-    ERROR: "Entity count mismatch! Missing: {calculate_difference}"
-    STATUS: analysis_needed
-  </if>
-
-  **ENUM COMPLETENESS VERIFICATION**:
-  <foreach enum in analyzed_enums>
-  - Enum: {enum.name}
-  - Values found: {enum.value_count}
-  - Has closing brace: {enum.complete}
-  - <if (NOT enum.complete)>
-    ERROR: "Enum {enum.name} incomplete"
-  </if>
-  </foreach>
-  </if>
-
-  **COMPLETION CRITERIA** (ALL must be TRUE):
-  - [ ] All entities from DbContext analyzed
-  - [ ] All enums have complete value lists
-  - [ ] All bounded contexts identified
-  - [ ] Architecture patterns documented
-
-  <if (ALL criteria met)>
-    STATUS: complete
-    CONFIDENCE: High
-  </if>
-  <else>
-    STATUS: analysis_needed
-    CONFIDENCE: Low
-    REQUIRED_ACTIONS: {list_what_is_missing}
-  </else>
-
-  ═══════════════════════════════════════════════════════════════════════════
-  OUTPUT FORMAT
-  ═══════════════════════════════════════════════════════════════════════════
-
-  STATUS: [analysis_needed|complete]
-
-  EXTRACTION_METRICS:
-  - Entities inventoried: X
-  - Entities analyzed: Y of X ({percentage}%)
-  - Enums inventoried: A
-  - Enums analyzed: B of A ({percentage}%)
-  - Coverage: {overall_percentage}%
-  - Confidence: [High|Medium|Low]
-
-  EXTRACTED_VARIABLES: [comprehensive list]
-  MISSING_VARIABLES: [items not found - marked N/A]
-
-  VERIFICATION_RESULTS:
-  - Entity count match: YES/NO
-  - Enum completeness: YES/NO
-  - Coverage acceptable: YES/NO
-
-  <if (STATUS=analysis_needed)>
-  NEXT_ACTIONS: [specific items requiring additional analysis]
-  </if>
-
-  <if (STATUS=complete)>
-  COMPLETION_JUSTIFICATION:
-  - All {entity_count} entities analyzed ✓
-  - All {enum_count} enums complete ✓
-  - Coverage: {percentage}% ✓
-  - Verification passed ✓
-  </if>
-  ```
-
-## Phase 3: Reality-Based Specification Generation
-
-- **STEP 3A**: Use mcp__memory__open_nodes to retrieve all observations for "current_project_extraction" entity
-- **STEP 3B**: Load template using Read tool: ".claude/templates/PROJECT_TEMPLATE.md"
-- **STEP 3C**: Parse memory observations to extract variable values:
-  - Process extracted "variable_name: value" format observations
-  - Handle "N/A" entries for missing architectural elements
-  - Create variable mapping including "Not implemented" and "Mixed approach" designations
-  - Preserve Title Case capitalization for extracted values
-  - Process actual technology collections and implementation patterns found
-- **STEP 3D**: Apply DSL template variable substitution with extracted reality:
-  - Replace {variable_name} placeholders with extracted values (including N/A entries)
-  - Process `if` blocks based on actual implementation detection
-  - Handle `foreach` loops for actual collections found in codebase
-  - Process conditional blocks that may evaluate to "N/A" or "Not implemented"
-  - Ensure honest representation of current codebase state
-- **STEP 3E**: Prepend extraction metadata to specification content:
-  ```markdown
-  ---
-  Extraction Metadata:
-
-  <if (Entity Framework Core detected)>
-  Backend Analysis (.NET {version}):
-  - ORM: Entity Framework Core {version}
-  - Discovery Method: DbSet declarations + namespace analysis
-  - Entities Found: {entity_count}
-  - Entities Verified: {entities_analyzed} of {entity_count} ({percentage}%)
-  - Enums Found: {enum_count}
-  - Enums Complete: {enums_complete} of {enum_count} ({percentage}%)
-  - Confidence: {confidence_level}
-  </if>
-
-  <if (React detected)>
-  Frontend Analysis (React {version}):
-  - Framework: React + TypeScript
-  - Discovery Method: Component file analysis
-  - Components Found: {component_count}
-  - Pages Found: {page_count}
-  - Confidence: {confidence_level}
-  </if>
-
-  <if (Other technologies detected)>
-  Infrastructure:
-  - Real-time: {realtime_tech}
-  - Cache: {cache_tech}
-  - Build: {build_tech}
-  </if>
-
-  Overall Confidence: {overall_confidence} ({coverage}% verified)
-  Extraction Date: {current_date}
-  ---
-  ```
-- **STEP 3F**: Write complete specification (metadata + content) to: "Documents/PROJECT.md"
-- **STEP 3G**: Use Read tool to validate document was created and accurately reflects extracted reality
-- **STEP 3H**: Use mcp__memory__add_observations to update status: "status: extraction_complete", "document_path: Documents/PROJECT.md"
-- **STEP 3I**: Report completion to user with:
-  - Success confirmation
-  - Document location path
-  - Extraction metrics: "{entity_count} entities, {enum_count} enums, {confidence} confidence"
-  - Summary of what was extracted vs. what was marked N/A
-  - Note about honest documentation of current state
-
-## Phase 4: Extraction Validation & Cleanup
-
-- **STEP 4A**: Use Read tool to perform final validation of extracted specification document
-- **STEP 4B**: Verify specification accurately reflects actual codebase without imposing ideal patterns
-- **STEP 4C**: Confirm all N/A entries are properly justified and accurate
-- **STEP 4D**: Report final extraction status and note that specification reflects current implementation reality
+- **Architecture**: `Documents/Guides/ARCHITECTURE_PATTERN.md`
+- **Templates**: `.claude/templates/PROJECT_TEMPLATE.md`
+- **Output**: `Documents/PROJECT.md`
+- **Related**: `/extraction:extract-solution`, `/extraction:extract-structure`
 
 **IMPORTANT NOTES**:
-- This command documents existing codebase reality without judgment or improvement suggestions
-- Generated specifications reflect actual implementation patterns, architecture, and organization
-- N/A entries indicate missing or unimplemented patterns - this is accurate documentation, not a failure
-- Purpose is to enable AI agents to work effectively with existing codebases as they are
+- Documents existing reality without judgment
+- Specifications reflect actual implementation as-is
+- N/A entries indicate missing/unimplemented patterns (accurate documentation)
+- Enables AI agents to work with codebases as they exist

@@ -10,7 +10,14 @@ Comprehensive architectural validation of solution specification against DDD, Cl
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+- **Template**: Documents/Templates/SOLUTION_TEMPLATE.md
+- **Tech Stack**: Documents/Guides/VTTTOOLS_STACK.md
+- **Architecture**: DDD + Clean Architecture + Hexagonal Architecture
+
+## Process
+
+### Validation & Setup
 
 - **STEP 0A**: Use Read tool to load "Documents/SOLUTION.md" - abort if missing with guidance to run /create-solution
 - **STEP 0B**: Extract solution name from specification file header (first # heading)
@@ -25,7 +32,7 @@ Comprehensive architectural validation of solution specification against DDD, Cl
   - Display: "Initial Validation"
   </if>
 
-## Phase 1: Memory Cleanup & Initialization
+### Memory Cleanup & Initialization
 
 - **STEP 1A**:
   <if (Solution_Validation entity exists from previous run)>
@@ -37,7 +44,7 @@ Comprehensive architectural validation of solution specification against DDD, Cl
   - entityType: "validation_session"
   - observations: ["solution_name: {solution_name}", "iteration: {iteration}", "date: {current_date}", "target_score: 80/100"]
 
-## Phase 2: Quality Scoring
+### Quality Scoring
 
 - **STEP 2A**: Use Task tool with code-reviewer agent to score solution against checklist:
   ```markdown
@@ -89,7 +96,7 @@ Comprehensive architectural validation of solution specification against DDD, Cl
 
 - **STEP 2B**: Parse scores and store in memory
 
-## Phase 3: Generate Prioritized Improvements
+### Generate Prioritized Improvements
 
 - **STEP 3A**: Categorize all identified issues into priority levels:
   - 🔴 CRITICAL: Issues preventing 80/100 target
@@ -102,37 +109,31 @@ Comprehensive architectural validation of solution specification against DDD, Cl
   - Effort estimate (Low: <30min, Medium: 30min-2h, High: >2h)
   - Projected score if applied
 
-## Phase 4: Display Standardized Report
+### Display Standardized Report
 
 Display 3-section report to console:
 
-### Section 1: Grade Table
+#### Section 1: Grade Table
 ```
-═══════════════════════════════════════════
-PROJECT SPECIFICATION VALIDATION
-═══════════════════════════════════════════
-Project: {project_name}
+SOLUTION SPECIFICATION VALIDATION
+Solution: {solution_name}
 Iteration: {iteration}
-Overall: {score}/100 ({PASS ✅ | FAIL ❌})
+Overall: {score}/100 ({PASS/FAIL})
 
-┌──────────────────────────────┬────────┬────────┬────────┐
-│ Dimension                    │ Score  │ Target │ Status │
-├──────────────────────────────┼────────┼────────┼────────┤
-│ Project Identity & Value     │ XX/15  │ 12/15  │ ✅/⚠️  │
-│ Domain Architecture (DDD)    │ XX/30  │ 24/30  │ ✅/⚠️  │
-│ Clean Architecture           │ XX/25  │ 20/25  │ ✅/⚠️  │
-│ Hexagonal (Ports & Adapters) │ XX/15  │ 12/15  │ ✅/⚠️  │
-│ Implementation Guidance      │ XX/15  │ 12/15  │ ✅/⚠️  │
-├──────────────────────────────┼────────┼────────┼────────┤
-│ TOTAL                        │ XX/100 │ 80/100 │ ✅/⚠️  │
-└──────────────────────────────┴────────┴────────┴────────┘
+Dimension                    | Score  | Target | Status
+-----------------------------|--------|--------|--------
+Solution Identity & Value    | XX/15  | 12/15  | PASS/WARN
+Domain Architecture (DDD)    | XX/30  | 24/30  | PASS/WARN
+Clean Architecture           | XX/25  | 20/25  | PASS/WARN
+Hexagonal (Ports & Adapters) | XX/15  | 12/15  | PASS/WARN
+Implementation Guidance      | XX/15  | 12/15  | PASS/WARN
+-----------------------------|--------|--------|--------
+TOTAL                        | XX/100 | 80/100 | PASS/WARN
 ```
 
-### Section 2: Proposed Improvements
+#### Section 2: Proposed Improvements
 ```
-═══════════════════════════════════════════
 PROPOSED IMPROVEMENTS
-═══════════════════════════════════════════
 
 🔴 CRITICAL ({count})
 1. {Issue title}
@@ -150,11 +151,9 @@ PROPOSED IMPROVEMENTS
 {items}
 ```
 
-### Section 3: Apply Changes
+#### Section 3: Apply Changes
 ```
-═══════════════════════════════════════════
 APPLY IMPROVEMENTS?
-═══════════════════════════════════════════
 Total: {count} | Impact: {current}→{projected} (+{delta})
 
 Options:
@@ -168,7 +167,7 @@ Options:
 [Enter 1-6]:
 ```
 
-## Phase 5: Auto-Fix Implementation
+### Auto-Fix Implementation
 
 - **STEP 5A**: Collect user choice (1-6)
 - **STEP 5B**:

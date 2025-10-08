@@ -1,21 +1,55 @@
 ###############################################
-### Asset API Testing - Comprehensive Test Suite
+### Asset API Testing - With Authentication
 ###############################################
 ###
 ### Prerequisites:
 ### 1. AppHost running: cd Source/AppHost && dotnet run
-### 2. Find actual port in AppHost logs: "Now listening on: https://localhost:[PORT]"
-### 3. Auth disabled in AssetEndpointsMapper.cs line 8 for testing
+### 2. Update @authUrl and @baseUrl with actual ports from logs
 ###
-### Port Discovery:
-### - Check AppHost console for: "Resource assets-api... Now listening on: https://localhost:XXXXX"
-### - Or visit Aspire dashboard: http://localhost:15000
+### Test Flow:
+### 1. Register test user
+### 2. Login (captures auth cookie automatically)
+### 3. Run authenticated tests
+### 4. Run unauthorized tests (without login)
 ###
 ###############################################
 
-### Variables (UPDATE @baseUrl WITH ACTUAL PORT!)
-@aspireUrl = https://localhost:17276
+### Variables (UPDATE WITH ACTUAL PORTS!)
+@authUrl = https://localhost:7050
 @baseUrl = https://localhost:7171
+
+###############################################
+### SETUP - AUTHENTICATION
+###############################################
+
+### 0a. Register Test User
+POST {{authUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test123!",
+  "confirmPassword": "Test123!",
+  "name": "Test User"
+}
+
+### 0b. Login (Cookie auto-captured for subsequent requests)
+# @name login
+POST {{authUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test123!"
+}
+
+### 0c. Verify Authenticated
+GET {{authUrl}}/api/auth/me
+
+### After Login - Get User ID from response above
+### Use csharprepl to run the command below:
+###  Base64UrlTextEncoder.Encode(new Guid("put-user-id-here").ToByteArray())
+@encodedUserId = 8sCZAY0Pn3KUcaTkxZ7t1w
 
 ###############################################
 ### HEALTH CHECKS
@@ -28,18 +62,19 @@ GET {{baseUrl}}/health
 GET {{baseUrl}}/alive
 
 ###############################################
-### CREATE - OBJECT ASSETS
+### HAPPY PATH - OBJECT ASSETS
 ###############################################
 
-### 1. Create ObjectAsset - Wooden Table (Movable Furniture)
+### 1. Create ObjectAsset - Wooden Table
 # @name table
 POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
   "kind": "Object",
   "name": "Wooden Table",
-  "description": "A sturdy oak dining table with ornate carvings",
+  "description": "A sturdy oak dining table",
   "objectProps": {
     "cellWidth": 2,
     "cellHeight": 1,
@@ -52,6 +87,7 @@ Content-Type: application/json
 ### 2. Create ObjectAsset - Pressure Plate Trap (Hidden)
 # @name trap
 POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -67,15 +103,16 @@ Content-Type: application/json
   }
 }
 
-### 3. Create ObjectAsset - Large Boulder (Immovable, Blocks Vision)
+### 3. Create ObjectAsset - Large Boulder (Opaque)
 # @name boulder
 POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
   "kind": "Object",
   "name": "Large Boulder",
-  "description": "Massive rock blocking the path",
+  "description": "Massive rock blocking path",
   "objectProps": {
     "cellWidth": 2,
     "cellHeight": 2,
@@ -86,18 +123,19 @@ Content-Type: application/json
 }
 
 ###############################################
-### CREATE - CREATURE ASSETS (CHARACTERS)
+### HAPPY PATH - CREATURE ASSETS (CHARACTERS)
 ###############################################
 
-### 4. Create CreatureAsset - Elven Ranger (Character)
+### 4. Create CreatureAsset - Elven Ranger
 # @name ranger
 POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
   "kind": "Creature",
   "name": "Elven Ranger",
-  "description": "Agile archer from Silverwood Forest",
+  "description": "Agile archer from Silverwood",
   "creatureProps": {
     "cellSize": 1,
     "category": "Character",
@@ -109,15 +147,16 @@ Content-Type: application/json
   }
 }
 
-### 5. Create CreatureAsset - Dwarven Cleric (Character)
+### 5. Create CreatureAsset - Dwarven Cleric
 # @name cleric
 POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
   "kind": "Creature",
   "name": "Dwarven Cleric",
-  "description": "Holy warrior blessed by mountain gods",
+  "description": "Holy warrior of the mountain",
   "creatureProps": {
     "cellSize": 1,
     "category": "Character",
@@ -130,18 +169,19 @@ Content-Type: application/json
 }
 
 ###############################################
-### CREATE - CREATURE ASSETS (MONSTERS)
+### HAPPY PATH - CREATURE ASSETS (MONSTERS)
 ###############################################
 
-### 6. Create CreatureAsset - Goblin Warrior (Small Monster)
+### 6. Create CreatureAsset - Goblin Warrior
 # @name goblin
 POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
   "kind": "Creature",
   "name": "Goblin Warrior",
-  "description": "Small hostile creature with crude weapons",
+  "description": "Small hostile creature",
   "creatureProps": {
     "cellSize": 1,
     "category": "Monster",
@@ -153,9 +193,10 @@ Content-Type: application/json
   }
 }
 
-### 7. Create CreatureAsset - Orc Brute (Medium Monster)
+### 7. Create CreatureAsset - Orc Brute
 # @name orc
 POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -173,9 +214,10 @@ Content-Type: application/json
   }
 }
 
-### 8. Create CreatureAsset - Adult Red Dragon (Huge 4x4 Monster)
+### 8. Create CreatureAsset - Adult Red Dragon (4x4)
 # @name dragon
 POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -194,32 +236,33 @@ Content-Type: application/json
 }
 
 ###############################################
-### READ OPERATIONS
+### HAPPY PATH - READ OPERATIONS
 ###############################################
 
 ### 9. List All Assets
 GET {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
 
 ### 10. Get ObjectAsset by ID
 GET {{baseUrl}}/api/assets/{{table.response.body.$.id}}
+x-user: {{encodedUserId}}
 
 ### 11. Get CreatureAsset by ID
 GET {{baseUrl}}/api/assets/{{ranger.response.body.$.id}}
-
-### 12. Get Monster by ID
-GET {{baseUrl}}/api/assets/{{goblin.response.body.$.id}}
+x-user: {{encodedUserId}}
 
 ###############################################
-### UPDATE OPERATIONS
+### HAPPY PATH - UPDATE OPERATIONS
 ###############################################
 
-### 13. Update ObjectAsset Properties (Make Immovable, Resize)
+### 12. Update ObjectAsset Properties
 PATCH {{baseUrl}}/api/assets/{{table.response.body.$.id}}
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
   "name": "Grand Oak Table",
-  "description": "Massive banquet table, too heavy to move",
+  "description": "Massive banquet table",
   "objectProps": {
     "cellWidth": 3,
     "cellHeight": 2,
@@ -229,8 +272,9 @@ Content-Type: application/json
   }
 }
 
-### 14. Update CreatureAsset Token Style
+### 13. Update CreatureAsset Token Style
 PATCH {{baseUrl}}/api/assets/{{ranger.response.body.$.id}}
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -245,17 +289,9 @@ Content-Type: application/json
   }
 }
 
-### 15. Update Only Name and Description
-PATCH {{baseUrl}}/api/assets/{{orc.response.body.$.id}}
-Content-Type: application/json
-
-{
-  "name": "Orc Chieftain",
-  "description": "Leader of the war band with enchanted axe"
-}
-
-### 16. Publish Asset
+### 14. Publish Asset
 PATCH {{baseUrl}}/api/assets/{{goblin.response.body.$.id}}
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
@@ -264,65 +300,89 @@ Content-Type: application/json
 }
 
 ###############################################
-### DELETE OPERATIONS
+### HAPPY PATH - DELETE OPERATIONS
 ###############################################
 
-### 17. Delete ObjectAsset
+### 15. Delete ObjectAsset
 DELETE {{baseUrl}}/api/assets/{{trap.response.body.$.id}}
+x-user: {{encodedUserId}}
 
-### 18. Delete CreatureAsset
+### 16. Delete CreatureAsset
 DELETE {{baseUrl}}/api/assets/{{dragon.response.body.$.id}}
+x-user: {{encodedUserId}}
 
 ###############################################
-### EDGE CASES & VALIDATION
+### ERROR PATH - VALIDATION ERRORS (400 Bad Request)
 ###############################################
 
-### 19. Invalid - Missing Kind
+### 17. Duplicate Name (409 Conflict)
 POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
-  "name": "Invalid Asset",
-  "description": "Missing kind property"
+  "kind": "Object",
+  "name": "Wooden Table",
+  "description": "Duplicate of test 1",
+  "objectProps": {
+    "cellWidth": 1,
+    "cellHeight": 1,
+    "isMovable": true,
+    "isOpaque": false,
+    "isVisible": true
+  }
 }
 
-### 20. Invalid - Wrong Kind Value
+### 18. Missing Kind
+POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
+Content-Type: application/json
+
+{
+  "name": "Invalid",
+  "description": "Missing kind"
+}
+
+### 19. Invalid Kind Value
 POST {{baseUrl}}/api/assets
 Content-Type: application/json
 
 {
   "kind": "InvalidKind",
   "name": "Test",
-  "description": "Should return validation error"
+  "description": "Invalid kind value"
 }
 
-### 21. Invalid - Object Without ObjectProps
+### 20. Object Without ObjectProps
 POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
   "kind": "Object",
-  "name": "Incomplete Object",
-  "description": "Missing objectProps - should fail validation"
+  "name": "Incomplete",
+  "description": "Missing objectProps"
 }
 
-### 22. Invalid - Creature Without CreatureProps
+### 21. Creature Without CreatureProps
 POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
   "kind": "Creature",
-  "name": "Incomplete Creature",
-  "description": "Missing creatureProps - should fail validation"
+  "name": "Incomplete",
+  "description": "Missing creatureProps"
 }
 
-### 23. Invalid - Negative Cell Dimensions
+### 22. Negative Cell Dimensions
 POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
   "kind": "Object",
-  "name": "Invalid Object",
+  "name": "Invalid Dimensions",
   "description": "Negative dimensions",
   "objectProps": {
     "cellWidth": -1,
@@ -333,16 +393,60 @@ Content-Type: application/json
   }
 }
 
-### 24. Not Found - Get Non-Existent Asset
-GET {{baseUrl}}/api/assets/00000000-0000-0000-0000-000000000000
+### 23. Zero CellSize
+POST {{baseUrl}}/api/assets
+x-user: {{encodedUserId}}
+Content-Type: application/json
 
-### 25. Not Found - Update Non-Existent Asset
+{
+  "kind": "Creature",
+  "name": "Invalid Size",
+  "description": "Zero cellSize",
+  "creatureProps": {
+    "cellSize": 0,
+    "category": "Monster"
+  }
+}
+
+###############################################
+### ERROR PATH - NOT FOUND (404)
+###############################################
+
+### 24. Get Non-Existent Asset
+GET {{baseUrl}}/api/assets/00000000-0000-0000-0000-000000000000
+x-user: {{encodedUserId}}
+
+### 25. Update Non-Existent Asset
 PATCH {{baseUrl}}/api/assets/00000000-0000-0000-0000-000000000000
+x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {
   "name": "Should Return 404"
 }
 
-### 26. Not Found - Delete Non-Existent Asset
+### 26. Delete Non-Existent Asset
 DELETE {{baseUrl}}/api/assets/00000000-0000-0000-0000-000000000000
+x-user: {{encodedUserId}}
+
+###############################################
+### ERROR PATH - UNAUTHORIZED (401)
+###############################################
+
+### 27. Create Asset Without Auth (Logout first or use new session)
+# Note: Run this in a new session or after logout
+POST {{baseUrl}}/api/assets
+Content-Type: application/json
+
+{
+  "kind": "Object",
+  "name": "Unauthorized Test",
+  "description": "Should return 401",
+  "objectProps": {
+    "cellWidth": 1,
+    "cellHeight": 1,
+    "isMovable": true,
+    "isOpaque": false,
+    "isVisible": true
+  }
+}

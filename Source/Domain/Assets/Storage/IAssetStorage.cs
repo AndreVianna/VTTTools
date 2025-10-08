@@ -15,6 +15,11 @@ public interface IAssetStorage {
     Task<Asset?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
+    /// Checks if an asset with the given name exists for the specified owner.
+    /// </summary>
+    Task<Asset?> GetByNameAndOwnerAsync(string name, Guid ownerId, CancellationToken ct = default);
+
+    /// <summary>
     /// Adds a new asset template.
     /// </summary>
     Task AddAsync(Asset asset, CancellationToken ct = default);

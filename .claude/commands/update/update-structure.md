@@ -10,14 +10,25 @@ Updates existing technical structure specification based on natural language mod
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+
+**Templates**:
+- `.claude/templates/STRUCTURE_TEMPLATE.md` - Structure specification template
+
+**Guides**:
+- `Documents/Guides/ARCHITECTURE_PATTERN.md` - DDD Contracts pattern
+- `.claude/guides/COMMAND_SYNTAX.md` - DSL syntax reference
+
+## Process
+
+### Validation & Setup
 
 - **STEP 0A**: Validate {update_details} is not empty
 - **STEP 0B**: Use Read tool to load "Documents/Structure/STRUCTURE.md" - abort if missing
 - **STEP 0C**: Extract solution name and platform type from structure specification
 - **STEP 0D**: Use mcp__memory__search_nodes to find structure entity (optional)
 
-## Phase 1: Parse Update Request
+### Parse Update Request
 
 - **STEP 1A**: Use Task tool with solution-engineer agent to analyze update request:
   ```markdown
@@ -67,7 +78,7 @@ Updates existing technical structure specification based on natural language mod
 - **STEP 1B**: Parse agent response
 - **STEP 1C**: Handle clarification if needed
 
-## Phase 2: Apply Structure Update
+### Apply Structure Update
 
 - **STEP 2A**: Based on UPDATE_TYPE:
   <case {UPDATE_TYPE}>
@@ -105,7 +116,7 @@ Updates existing technical structure specification based on natural language mod
 - **STEP 2B**: Update structure version (increment minor)
 - **STEP 2C**: Add change log entry
 
-## Phase 3: Update Cross-References
+### Update Cross-References
 
 - **STEP 3A**: For each affected feature specification:
   - Read feature specification file
@@ -124,7 +135,7 @@ Updates existing technical structure specification based on natural language mod
   - FEATURE.md component list
   - Both match
 
-## Phase 4: Update Memory
+### Update Memory
 
 - **STEP 4A**:
   <if (structure entity exists in memory)>
@@ -139,7 +150,7 @@ Updates existing technical structure specification based on natural language mod
   - Create new relationships using mcp__memory__create_relations
   </if>
 
-## Phase 5: Validation & Reporting
+### Validation & Reporting
 
 - **STEP 5A**: Validate updated structure:
   - No broken cross-references

@@ -1,4 +1,5 @@
 using IResult = Microsoft.AspNetCore.Http.IResult;
+using static VttTools.Utilities.ErrorCollectionExtensions;
 
 namespace VttTools.Assets.Handlers;
 
@@ -24,7 +25,9 @@ internal static class AssetHandlers {
         var result = await assetService.CreateAssetAsync(userId, data);
         return result.IsSuccessful
             ? Results.Created($"/api/assets/{result.Value.Id}", result.Value)
-            : Results.BadRequest(result.Errors);
+            : result.Errors[0].Message.StartsWith("Duplicate")
+                ? Results.Conflict(new { error = result.Errors[0].Message })
+                : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateAssetRequest request, [FromServices] IAssetService assetService) {
@@ -40,12 +43,12 @@ internal static class AssetHandlers {
         };
         var result = await assetService.UpdateAssetAsync(userId, id, data);
         return result.IsSuccessful
-            ? Results.Ok(result.Value)  // 200 OK with updated entity (has side effects: UpdatedAt)
+            ? Results.NoContent()  // 204 No Content (UpdatedAt is audit metadata, not side effect)
             : result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> DeleteAssetHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IAssetService assetService) {
@@ -57,6 +60,6 @@ internal static class AssetHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 }

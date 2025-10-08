@@ -61,10 +61,13 @@ public class AzureResourceServiceTests {
         var id = Guid.NewGuid();
         const string fileName = "test-image.png";
         var file = new AddResourceData {
-            Path = "assets/12345",
-            Metadata = new() {
-                FileName = fileName,
+            Path = $"images/{id}/{fileName}",
+            Metadata = new ResourceMetadata {
                 ContentType = "image/png",
+                FileLength = 12345,
+                ImageSize = new(100, 100),
+                Duration = TimeSpan.Zero,
+                FileName = fileName,
             },
         };
         var content = "test image content"u8.ToArray();

@@ -10,7 +10,9 @@ Runs unit tests for specified scope (feature, use-case, module, plugin, project,
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Scope Determination
+## Process
+
+### Scope Determination
 
 - **STEP 0A**: Parse {scope} and {name} parameters:
   <case {scope}>
@@ -33,7 +35,7 @@ Runs unit tests for specified scope (feature, use-case, module, plugin, project,
     - Error: "Invalid scope. Use: feature, use-case, module, plugin, project, or class"
   </case>
 
-## Phase 1: Run Tests
+### Run Tests
 
 - **STEP 1A**: Determine test command based on project:
   <if (C# project)>
@@ -51,7 +53,7 @@ Runs unit tests for specified scope (feature, use-case, module, plugin, project,
   - Test execution time
   - Coverage percentage (if available)
 
-## Phase 2: Analyze Failures (If Any)
+### Analyze Failures (If Any)
 
 <if (failures exist)>
 - **STEP 2A**: Parse failure details:
@@ -67,13 +69,11 @@ Runs unit tests for specified scope (feature, use-case, module, plugin, project,
   - Setup/teardown issues
 </if>
 
-## Phase 3: Display Results
+### Display Results
 
 - **STEP 3A**: Format and display test report:
   ```
-  ═══════════════════════════════════════════
   UNIT TEST RESULTS
-  ═══════════════════════════════════════════
 
   Scope: {scope} {name}
   Tests Run: {total}
@@ -86,15 +86,11 @@ Runs unit tests for specified scope (feature, use-case, module, plugin, project,
   Coverage: {coverage}% (Target: {target}%)
 
   <if (all passing)>
-  ═══════════════════════════════════════════
   ✅ ALL TESTS PASSING
-  ═══════════════════════════════════════════
   </if>
 
   <if (failures)>
-  ═══════════════════════════════════════════
   ❌ TEST FAILURES
-  ═══════════════════════════════════════════
 
   <foreach {failure} in {failures}>
   ❌ {test_name}
@@ -118,7 +114,7 @@ Runs unit tests for specified scope (feature, use-case, module, plugin, project,
   </if>
   ```
 
-## Phase 4: Update STATUS Files & Memory
+### Update STATUS Files & Memory
 
 - **STEP 4A**: Update STATUS.md files with test results:
 
@@ -147,6 +143,13 @@ Runs unit tests for specified scope (feature, use-case, module, plugin, project,
 - **STEP 4B**: Update memory (for fast queries):
   - Update UseCaseImplementation or FeatureImplementation entities
   - Store: timestamp, pass/fail counts, coverage
+
+## Quick Reference
+
+- **Architecture**: `Documents/Guides/ARCHITECTURE_PATTERN.md`
+- **Testing Guide**: `Documents/Guides/TESTING_GUIDE.md`
+- **Commands**: `Documents/Guides/COMMON_COMMANDS.md`
+- **Related**: `/quality:review-code`, `/git:commit-changes`
 
 **IMPORTANT NOTES**:
 - Runs UNIT tests only (Phase 2 scope)

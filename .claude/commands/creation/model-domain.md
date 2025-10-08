@@ -10,7 +10,13 @@ Creates comprehensive domain model specification for a bounded context through g
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+- **Stack Guide**: Documents/Guides/VTTTOOLS_STACK.md
+- **Template**: .claude/templates/DOMAIN_MODEL_TEMPLATE.md
+
+## Process
+
+### Step 0: Validation & Setup
 
 - **STEP 0A**: Validate {area_name} is not empty - abort if invalid
 - **STEP 0B**: Use Read tool to verify "Documents/SOLUTION.md" exists
@@ -27,7 +33,7 @@ Creates comprehensive domain model specification for a bounded context through g
   </if>
 - **STEP 0E**: Use Bash to create area directory: "mkdir -p Documents/Areas/{area_name}"
 
-## Phase 1: Initialize Domain Model Memory
+### Step 1: Initialize Domain Model Memory
 
 - **STEP 1A**: Use mcp__memory__create_entities to create domain model entity:
   - name: "DomainModel_{area_name}"
@@ -37,7 +43,7 @@ Creates comprehensive domain model specification for a bounded context through g
 - **STEP 1B**: Use mcp__memory__add_observations to add variable tracking:
   - ["variables_needed: area_name,context_purpose,boundaries,domain_terms,entities,value_objects,aggregates,domain_services,business_rules,change_log"]
 
-## Phase 2: Guided Domain Modeling Session
+### Step 2: Guided Domain Modeling Session
 
 - **STEP 2A**: Use Task tool with solution-engineer agent for iterative modeling:
   ```markdown
@@ -106,7 +112,7 @@ Creates comprehensive domain model specification for a bounded context through g
   - Continue until status = complete
   </while>
 
-## Phase 3: Generate Domain Model Document
+### Step 3: Generate Domain Model Document
 
 - **STEP 3A**: Use mcp__memory__open_nodes to retrieve all domain model data
 - **STEP 3B**: Load DOMAIN_MODEL_TEMPLATE.md
@@ -114,7 +120,7 @@ Creates comprehensive domain model specification for a bounded context through g
 - **STEP 3D**: Write to "Documents/Areas/{area_name}/DOMAIN_MODEL.md"
 - **STEP 3E**: Use Read to verify file created successfully
 
-## Phase 4: Update Project & Memory
+### Step 4: Update Project & Memory
 
 - **STEP 4A**: Read solution specification
 - **STEP 4B**: Update project change log (increment minor version)
@@ -124,7 +130,7 @@ Creates comprehensive domain model specification for a bounded context through g
   - "modeling_complete: true"
   - "document_path: Documents/Areas/{area_name}/DOMAIN_MODEL.md"
 
-## Phase 5: Reporting
+### Step 5: Reporting
 
 - **STEP 5A**: Display completion summary:
   ```

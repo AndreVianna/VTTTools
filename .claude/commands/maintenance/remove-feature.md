@@ -8,12 +8,14 @@ argument-hint: {feature_name:string} {force:flag:optional(false)}
 
 Safely remove a feature from the project, including all its use cases and related artifacts, while maintaining project integrity and providing recovery options.
 
-## Phase 0: Validation & Setup
+## Process
+
+### Validation & Setup
 
 - **STEP 0A**: Validate {feature_name} is not empty and contains valid characters - abort if invalid with clear error message
 - **STEP 0B**: Set {force} default to false if not provided
 
-## Phase 1: Feature Verification & Impact Analysis
+### Feature Verification & Impact Analysis
 
 - **STEP 1A**: Use mcp__memory__search_nodes to find feature entity with name "{feature_name}"
 - **STEP 1B**:
@@ -28,7 +30,7 @@ Safely remove a feature from the project, including all its use cases and relate
 - **STEP 1F**: Use mcp__memory__search_nodes to find any entities that reference this feature
 - **STEP 1G**: Analyze cross-feature dependencies and references
 
-## Phase 2: Dependency Check & User Confirmation
+### Dependency Check & User Confirmation
 
 - **STEP 2A**:
   <if (dependencies found AND {force} equals false)>
@@ -50,7 +52,7 @@ Safely remove a feature from the project, including all its use cases and relate
 - **STEP 2D**: Use Glob tool to find all use case documents for this feature: "Documents/Areas/*/UseCases/*.md"
 - **STEP 2E**: Filter use case documents to match feature's use cases from memory
 
-## Phase 3: Backup Creation (Conditional)
+### Backup Creation (Conditional)
 
 - **STEP 3A**:
   - Create backup directory: "backups/feature_removal_{feature_name}_{backup_timestamp}"
@@ -67,7 +69,7 @@ Safely remove a feature from the project, including all its use cases and relate
 - **STEP 3D**:
   - Report: "Created backup at: backups/feature_removal_{feature_name}_{backup_timestamp}"
 
-## Phase 4: Cascade Use Case Removal
+### Cascade Use Case Removal
 
 - **STEP 4A**:
   <foreach use_case in feature_use_cases>
@@ -81,7 +83,7 @@ Safely remove a feature from the project, including all its use cases and relate
   </foreach>
 - **STEP 4B**: Count and report total use cases removed: "Removed {count} use cases"
 
-## Phase 5: Feature Memory Cleanup
+### Feature Memory Cleanup
 
 - **STEP 5A**: Use mcp__memory__delete_relations to remove all relationships FROM the feature
 - **STEP 5B**: Use mcp__memory__delete_relations to remove all relationships TO the feature
@@ -99,7 +101,7 @@ Safely remove a feature from the project, including all its use cases and relate
   - Last updated date
 - **STEP 5K**: Use mcp__memory__delete_entities to remove feature entity from memory
 
-## Phase 6: Document Cleanup
+### Document Cleanup
 
 - **STEP 6A**:
   <if (feature document found)>
@@ -117,7 +119,7 @@ Safely remove a feature from the project, including all its use cases and relate
   - Report: "Updated solution specification document"
   </if>
 
-## Phase 7: Orphan & Reference Cleanup
+### Orphan & Reference Cleanup
 
 - **STEP 7A**: Use Glob tool to find potential orphaned files: "**/*{feature_name}*"
 - **STEP 7B**: Filter results to exclude legitimate files and backup directory
@@ -138,7 +140,7 @@ Safely remove a feature from the project, including all its use cases and relate
   - Recommend manual review and cleanup
   </if>
 
-## Phase 8: Cross-Feature Impact Assessment
+### Cross-Feature Impact Assessment
 
 - **STEP 8A**: Use mcp__memory__search_nodes to check if any remaining features reference the removed feature
 - **STEP 8B**: Use Bash tool to search for feature name in remaining feature documents
@@ -157,7 +159,7 @@ Safely remove a feature from the project, including all its use cases and relate
    - Remove empty directories
   </if>
 
-## Phase 9: Project Consistency Check
+### Project Consistency Check
 
 - **STEP 9A**: Use mcp__memory__search_nodes to count remaining features
 - **STEP 9B**: Use mcp__memory__open_nodes to verify project entity no longer references removed feature
@@ -168,7 +170,7 @@ Safely remove a feature from the project, including all its use cases and relate
   </if>
 - **STEP 9D**: Verify all memory relationships are consistent
 
-## Phase 10: Completion Report
+### Completion Report
 
 - **STEP 10A**: Display comprehensive removal summary:
   ```
@@ -204,7 +206,7 @@ Safely remove a feature from the project, including all its use cases and relate
   - Update any dependent features that referenced {feature_name}
   ```
 
-## Phase 11: Final Validation
+### Final Validation
 
 - **STEP 11A**: Use mcp__memory__search_nodes to verify feature entity was completely removed
 - **STEP 11B**: Use mcp__memory__search_nodes to verify no orphaned use case entities remain
@@ -218,6 +220,9 @@ Safely remove a feature from the project, including all its use cases and relate
   - Recommend: "Run /extract-all to resync memory with documents"
   </if>
 
+## Quick Reference
+- VTTTOOLS_STACK.md: VttTools technology stack overview
+- ARCHITECTURE_PATTERN.md: DDD Contracts + Service Implementation pattern
 
 **IMPORTANT NOTES**:
 - This command performs extensive destructive operations - use with extreme caution

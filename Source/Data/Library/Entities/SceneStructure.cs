@@ -10,7 +10,7 @@ public class SceneStructure {
     public Guid StructureId { get; set; }
     public Structure Structure { get; set; } = null!;
     // Vertices stored as JSON (List<Point>)
-    public List<Point> Vertices { get; set; } = new();
+    public List<Point> Vertices { get; set; } = [];
     public bool? IsOpen { get; set; }
     public bool? IsLocked { get; set; }
     public bool? IsSecret { get; set; }

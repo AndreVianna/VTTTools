@@ -72,7 +72,7 @@ public class AssetStorageTests
         dbAsset.Should().NotBeNull();
         dbAsset.Id.Should().Be(asset.Id);
         dbAsset.Name.Should().Be(asset.Name);
-        dbAsset.Type.Should().Be(asset.Type);
+        dbAsset.Kind.Should().Be(asset.Kind);
         dbAsset.Description.Should().Be(asset.Description);
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
@@ -89,11 +89,10 @@ public class AssetStorageTests
         await _context.SaveChangesAsync(_ct);
 
         // Modify the asset
-        var asset = new Asset {
+        var asset = new CreatureAsset {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Name = "Updated Asset",
-            Type = AssetType.Overlay,
             Description = "Updated description",
             Resource = new() {
                 Id = entity.ResourceId!.Value,
@@ -117,7 +116,7 @@ public class AssetStorageTests
         dbAsset.Should().NotBeNull();
         dbAsset.Id.Should().Be(asset.Id);
         dbAsset.Name.Should().Be(asset.Name);
-        dbAsset.Type.Should().Be(asset.Type);
+        dbAsset.Kind.Should().Be(asset.Kind);
         dbAsset.Description.Should().Be(asset.Description);
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);

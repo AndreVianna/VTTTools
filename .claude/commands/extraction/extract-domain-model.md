@@ -10,7 +10,13 @@ Analyzes existing codebase to reverse-engineer domain model specification for a 
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Setup
+## Quick Reference
+
+- **Stack Reference**: Documents/Guides/VTTTOOLS_STACK.md
+- **Template**: .claude/templates/DOMAIN_MODEL_TEMPLATE.md
+- **Output Location**: Documents/Areas/{area_name}/DOMAIN_MODEL.md
+
+## Process: Validation & Setup
 
 - **STEP 0A**: Parse {area_name} parameter:
   <case {area_name}>
@@ -51,7 +57,7 @@ Analyzes existing codebase to reverse-engineer domain model specification for a 
     </if>
   </if>
 
-## Phase 1: Code Analysis & Discovery
+## Process: Code Analysis & Discovery
 
 - **STEP 1A**: Use Task tool with solution-engineer agent for code analysis:
   ```markdown
@@ -133,7 +139,7 @@ Analyzes existing codebase to reverse-engineer domain model specification for a 
 - **STEP 1B**: Parse agent analysis results
 - **STEP 1C**: Store extracted data in memory
 
-## Phase 2: Handle Extraction Gaps
+## Process: Handle Extraction Gaps
 
 - **STEP 2A**: Review missing_information from analysis
 - **STEP 2B**: For items with LOW confidence or missing:
@@ -145,7 +151,7 @@ Analyzes existing codebase to reverse-engineer domain model specification for a 
   - Collect answers
   - Update memory observations
 
-## Phase 3: Generate Domain Model Document
+## Process: Generate Domain Model Document
 
 - **STEP 3A**: Use mcp__memory__open_nodes to get complete domain model data
 - **STEP 3B**: Load DOMAIN_MODEL_TEMPLATE.md
@@ -153,7 +159,7 @@ Analyzes existing codebase to reverse-engineer domain model specification for a 
 - **STEP 3D**: Mark low-confidence items with: `[EXTRACTED - Please verify]`
 - **STEP 3E**: Write to "Documents/Areas/{area_name}/DOMAIN_MODEL.md"
 
-## Phase 4: Update Memory & Project
+## Process: Update Memory & Project
 
 - **STEP 4A**: Update solution specification change log
 - **STEP 4B**: Use mcp__memory__add_observations:
@@ -166,7 +172,7 @@ Analyzes existing codebase to reverse-engineer domain model specification for a 
 
 </foreach>
 
-## Phase 5: Reporting
+## Process: Reporting
 
 - **STEP 5A**: Display extraction summary:
 

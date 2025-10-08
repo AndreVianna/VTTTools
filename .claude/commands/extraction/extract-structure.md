@@ -10,7 +10,13 @@ Analyze existing codebase to extract technical structure including projects/modu
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Platform Detection
+## Quick Reference
+
+- **Stack Reference**: Documents/Guides/VTTTOOLS_STACK.md
+- **Template**: .claude/templates/STRUCTURE_TEMPLATE.md
+- **Output Location**: Documents/Structure/STRUCTURE.md
+
+## Process: Platform Detection
 
 - **STEP 0A**: Set {project_folder} to current directory if not provided
 - **STEP 0B**: Use Bash tool: "mkdir -p Documents/Structure" to ensure output directory exists
@@ -24,7 +30,7 @@ Analyze existing codebase to extract technical structure including projects/modu
   - Set {detected_platform} based on findings
   - Report to user: "Detected platform: {detected_platform}"
 
-## Phase 1: Initialize Extraction Memory
+## Process: Initialize Extraction Memory
 
 - **STEP 1A**: Use mcp__memory__create_entities to create extraction entity:
   - name: "structure_extraction_{solution_name}"
@@ -39,7 +45,7 @@ Analyze existing codebase to extract technical structure including projects/modu
   - Log: "No solution spec found - feature mapping will be manual"
   </if>
 
-## Phase 2: Platform-Specific Component Discovery
+## Process: Platform-Specific Component Discovery
 
 <case {detected_platform}>
 <is dotnet>
@@ -111,7 +117,7 @@ Analyze existing codebase to extract technical structure including projects/modu
 </otherwise>
 </case>
 
-## Phase 3: Layer Classification
+## Process: Layer Classification
 
 - **STEP 3A**: Classify each component by layer:
   - Use path patterns:
@@ -131,7 +137,7 @@ Analyze existing codebase to extract technical structure including projects/modu
   - Identify dependency rule compliance
   - Report warnings for architectural violations
 
-## Phase 4: Feature-Component Mapping
+## Process: Feature-Component Mapping
 
 <if (features exist in solution spec)>
 - **STEP 4A**: Use Task tool with solution-engineer agent to map features to components:
@@ -166,7 +172,7 @@ Analyze existing codebase to extract technical structure including projects/modu
 - **STEP 4B**: Set mappings to empty
 </if>
 
-## Phase 5: Generate Structure Specification
+## Process: Generate Structure Specification
 
 - **STEP 5A**: Use mcp__memory__open_nodes to retrieve all observations
 - **STEP 5B**: Load template: ".claude/templates/STRUCTURE_TEMPLATE.md"
@@ -178,7 +184,7 @@ Analyze existing codebase to extract technical structure including projects/modu
 - **STEP 5D**: Write to: "Documents/Structure/STRUCTURE.md"
 - **STEP 5E**: Validate document created successfully
 
-## Phase 6: Create Platform-Specific Documentation
+## Process: Create Platform-Specific Documentation
 
 <case {detected_platform}>
 <is dotnet>
@@ -201,7 +207,7 @@ Analyze existing codebase to extract technical structure including projects/modu
 </is>
 </case>
 
-## Phase 7: Update Feature Specifications
+## Process: Update Feature Specifications
 
 <if (features exist AND feature_component_mapping exists)>
 - **STEP 7A**: For each feature with component mapping:
@@ -211,7 +217,7 @@ Analyze existing codebase to extract technical structure including projects/modu
 - **STEP 7B**: Validate cross-references are bidirectional
 </if>
 
-## Phase 8: Create Memory Relationships
+## Process: Create Memory Relationships
 
 - **STEP 8A**: Create structure-feature relationships in memory:
   <foreach {mapping} in {feature_component_mappings}>
@@ -221,7 +227,7 @@ Analyze existing codebase to extract technical structure including projects/modu
     - relationType: "implements"
   </foreach>
 
-## Phase 9: Reporting
+## Process: Reporting
 
 - **STEP 9A**: Display extraction summary:
   ```

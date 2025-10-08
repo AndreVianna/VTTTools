@@ -27,6 +27,20 @@ public record CreateAssetData
         if (Kind == AssetKind.Creature && CreatureProps is null)
             result += new Error("CreatureProps must be provided for Creature assets.", nameof(CreatureProps));
 
+        // Validate ObjectProps values
+        if (ObjectProps is not null) {
+            if (ObjectProps.CellWidth <= 0)
+                result += new Error("CellWidth must be greater than 0.", $"{nameof(ObjectProps)}.{nameof(ObjectProps.CellWidth)}");
+            if (ObjectProps.CellHeight <= 0)
+                result += new Error("CellHeight must be greater than 0.", $"{nameof(ObjectProps)}.{nameof(ObjectProps.CellHeight)}");
+        }
+
+        // Validate CreatureProps values
+        if (CreatureProps is not null) {
+            if (CreatureProps.CellSize <= 0)
+                result += new Error("CellSize must be greater than 0.", $"{nameof(CreatureProps)}.{nameof(CreatureProps.CellSize)}");
+        }
+
         return result;
     }
 }

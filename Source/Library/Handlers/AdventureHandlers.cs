@@ -1,4 +1,5 @@
 using IResult = Microsoft.AspNetCore.Http.IResult;
+using static VttTools.Utilities.ErrorCollectionExtensions;
 
 namespace VttTools.Library.Handlers;
 
@@ -26,7 +27,7 @@ internal static class AdventureHandlers {
         var result = await adventureService.CreateAdventureAsync(userId, data);
         return result.IsSuccessful
             ? Results.Created($"/api/adventures/{result.Value.Id}", result.Value)
-            : Results.BadRequest(result.Errors);
+            : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> CloneAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IAdventureService adventureService) {
@@ -38,7 +39,7 @@ internal static class AdventureHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> UpdateAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateAdventureRequest request, [FromServices] IAdventureService adventureService) {
@@ -59,7 +60,7 @@ internal static class AdventureHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> DeleteAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IAdventureService adventureService) {
@@ -71,7 +72,7 @@ internal static class AdventureHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> GetScenesHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService)
@@ -86,7 +87,7 @@ internal static class AdventureHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
     internal static async Task<IResult> AddClonedSceneHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid sceneId, [FromServices] IAdventureService adventureService) {
@@ -98,6 +99,6 @@ internal static class AdventureHandlers {
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.BadRequest(result.Errors);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 }

@@ -10,7 +10,14 @@ Generates domain layer implementation for a bounded context including entities, 
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Validation & Prerequisites
+## Quick Reference
+- **Architecture**: `Documents/Guides/VTTTOOLS_STACK.md`
+- **Code Examples**: `Documents/Guides/CODE_EXAMPLES.md`
+- **Implementation**: `Documents/Guides/IMPLEMENTATION_GUIDE.md`
+
+## Process
+
+### Validation & Prerequisites
 
 - **STEP 0A**: Validate {area_name} is not empty
 - **STEP 0B**: Verify prerequisites exist:
@@ -24,7 +31,7 @@ Generates domain layer implementation for a bounded context including entities, 
   - Warning: "Domain layer already implemented. Regenerate? [Y/N]"
   </if>
 
-## Phase 0.5: Check for Implementation Roadmap (Optional Enhancement)
+### Check for Implementation Roadmap (Optional Enhancement)
 
 - **STEP 0.5A**: Look for domain roadmap:
   - Check: "Documents/Areas/{area_name}/Domain/ROADMAP.md"
@@ -48,7 +55,7 @@ Generates domain layer implementation for a bounded context including entities, 
     </if>
   </if>
 
-## Phase 1: Load Context
+### Load Context
 
 - **STEP 1A**: Read DOMAIN_MODEL.md for area
 - **STEP 1B**: Read coding standards:
@@ -58,7 +65,7 @@ Generates domain layer implementation for a bounded context including entities, 
 - **STEP 1C**: Read project architecture from SOLUTION.md
 - **STEP 1D**: Load configuration (approval mode, quality thresholds)
 
-## Phase 2: Generate Domain Entities
+### Generate Domain Entities
 
 - **STEP 2A**: Use Task tool with solution-engineer agent:
   ```markdown
@@ -125,7 +132,7 @@ Generates domain layer implementation for a bounded context including entities, 
 - **STEP 2B**: Write generated entity files
 - **STEP 2C**: Validate syntax (compile check)
 
-## Phase 3: Generate Value Objects
+### Generate Value Objects
 
 - **STEP 3A**: For each value object, generate:
   - Enum types (for classifications like AssetType, GameSessionStatus)
@@ -136,7 +143,7 @@ Generates domain layer implementation for a bounded context including entities, 
 
 - **STEP 3B**: Write value object files
 
-## Phase 4: Generate Service Interface Contracts
+### Generate Service Interface Contracts
 
 - **STEP 4A**: For each entity, generate I{Entity}Service interface:
   - Operations from domain model
@@ -161,7 +168,7 @@ Generates domain layer implementation for a bounded context including entities, 
 
 **NOTE**: Service **implementations** (AssetService.cs) will be generated in Phase 2B (/implement-use-case), not here.
 
-## Phase 5: Generate Unit Tests (Minimal for Contracts)
+### Generate Unit Tests (Minimal for Contracts)
 
 - **STEP 5A**: Generate tests for value objects only:
   - Test enum values are correct
@@ -171,7 +178,7 @@ Generates domain layer implementation for a bounded context including entities, 
 
 - **STEP 5B**: Write test files (lightweight - mainly value object tests)
 
-## Phase 6: Validate & Test
+### Validate & Test
 
 - **STEP 6A**: Run compiler/type checker
   <if (errors)>
@@ -192,7 +199,7 @@ Generates domain layer implementation for a bounded context including entities, 
   - Generate additional tests
   </if>
 
-## Phase 7: User Approval & Completion
+### User Approval & Completion
 
 - **STEP 7A**: Display summary:
   ```

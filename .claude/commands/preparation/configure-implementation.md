@@ -10,19 +10,19 @@ Sets user preferences for Phase 2 implementation workflow including approval mod
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Load Current Configuration
+## Process
+
+### Load Current Configuration
 
 - **STEP 0A**: Use mcp__memory__search_nodes for "ImplementationConfig"
 - **STEP 0B**: Display current settings if exist, defaults if new
 
-## Phase 1: Collect Preferences
+### Collect Preferences
 
 - **STEP 1A**: Prompt user for configuration:
 
   ```
-  ═══════════════════════════════════════════
   IMPLEMENTATION CONFIGURATION
-  ═══════════════════════════════════════════
 
   1. Approval Mode (How much control do you want?)
      a. INTERACTIVE - Approve each layer and commit (RECOMMENDED for first use)
@@ -55,17 +55,21 @@ Sets user preferences for Phase 2 implementation workflow including approval mod
 - **STEP 1B**: Validate inputs
 - **STEP 1C**: Display configuration summary for confirmation
 
-## Phase 2: Store Configuration
+### Store Configuration
 
 - **STEP 2A**: Use mcp__memory__create_entities or update:
   - name: "ImplementationConfig"
   - entityType: "configuration"
   - observations: [all settings]
 
-## Phase 3: Reporting
+### Reporting
 
 - **STEP 3A**: Display saved configuration
 - **STEP 3B**: Explain how to change: "Run /configure-implementation again to modify"
+
+## Quick Reference
+- VTTTOOLS_STACK.md: VttTools technology stack overview
+- IMPLEMENTATION_GUIDE.md: VttTools Phase 2 implementation workflow
 
 **IMPORTANT NOTES**:
 - INTERACTIVE mode recommended for first implementation

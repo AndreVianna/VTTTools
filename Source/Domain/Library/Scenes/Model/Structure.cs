@@ -38,17 +38,17 @@ public record Structure {
     /// <summary>
     /// Whether the structure is hidden from players until revealed
     /// </summary>
-    public bool IsSecret { get; init; } = false;
+    public bool IsSecret { get; init; }
 
     /// <summary>
     /// Whether the structure can be opened/closed (doors, gates)
     /// </summary>
-    public bool IsOpenable { get; init; } = false;
+    public bool IsOpenable { get; init; }
 
     /// <summary>
     /// Whether the structure requires a key/unlock action to open
     /// </summary>
-    public bool IsLocked { get; init; } = false;
+    public bool IsLocked { get; init; }
 
     /// <summary>
     /// Optional visual resource (texture, image) for rendering

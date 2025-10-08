@@ -1,7 +1,7 @@
 ﻿using Asset = VttTools.Data.Assets.Entities.Asset;
+using Position = VttTools.Common.Model.Position;
 using Resource = VttTools.Data.Media.Entities.Resource;
 using Size = VttTools.Common.Model.Size;
-using Position = VttTools.Common.Model.Position;
 
 namespace VttTools.Data.Library.Entities;
 
@@ -22,8 +22,8 @@ public class SceneAsset {
 
     // Instance-specific data
     public Frame? Frame { get; set; }
-    public Size Size { get; set; }
-    public Position Position { get; set; }
+    public Size Size { get; set; } = Size.Zero;
+    public Position Position { get; set; } = Position.Zero;
     public float Rotation { get; set; }
     public float Elevation { get; set; }
     public bool IsLocked { get; set; }

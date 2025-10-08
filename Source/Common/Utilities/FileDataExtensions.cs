@@ -1,5 +1,5 @@
-using Size = VttTools.Common.Model.Size;
 using FileData = (VttTools.Common.Model.Size Size, System.TimeSpan Duration);
+using Size = VttTools.Common.Model.Size;
 
 namespace VttTools.Utilities;
 
@@ -117,7 +117,8 @@ public static class FileDataExtensions {
     }
 
     private static int? TryParseSize(string? value) {
-        if (string.IsNullOrEmpty(value)) return null;
+        if (string.IsNullOrEmpty(value))
+            return null;
 
         // Remove common unit suffixes
         value = value.Replace("px", "").Replace("pt", "").Trim();

@@ -1,5 +1,5 @@
-using Structure = VttTools.Data.Library.Entities.Structure;
 using SceneStructure = VttTools.Data.Library.Entities.SceneStructure;
+using Structure = VttTools.Data.Library.Entities.Structure;
 
 namespace VttTools.Data.Builders;
 

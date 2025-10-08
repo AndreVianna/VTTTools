@@ -22,7 +22,7 @@ public record ObjectProperties {
     /// <summary>
     /// Whether the object blocks line of sight and light
     /// </summary>
-    public bool IsOpaque { get; init; } = false;
+    public bool IsOpaque { get; init; }
 
     /// <summary>
     /// Whether the object is visible to players (false for secret doors, hidden traps)

@@ -14,9 +14,9 @@ public class Structure {
     public string? Description { get; set; }
     public bool IsBlocking { get; set; } = true;
     public bool IsOpaque { get; set; } = true;
-    public bool IsSecret { get; set; } = false;
-    public bool IsOpenable { get; set; } = false;
-    public bool IsLocked { get; set; } = false;
+    public bool IsSecret { get; set; }
+    public bool IsOpenable { get; set; }
+    public bool IsLocked { get; set; }
     public Guid? VisualResourceId { get; set; }
     public Resource? Visual { get; set; }
     public DateTime CreatedAt { get; set; }

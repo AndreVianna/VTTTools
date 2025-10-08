@@ -10,16 +10,16 @@ Provides interactive guidance for the specification-driven agentic coding workfl
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Execution
+## Process
+
+### Display Workflow Guide
 
 - **STEP 1**: Use Read tool to load ".claude/guides/WORKFLOW_GUIDE.md"
 
 - **STEP 2**: Display formatted, user-friendly presentation:
 
 ```
-═══════════════════════════════════════════════════════════════
 SPECIFICATION-DRIVEN AGENTIC CODING WORKFLOW
-═══════════════════════════════════════════════════════════════
 
 Welcome! This system helps you create comprehensive software specifications
 that AI agents can consume to implement any software system.
@@ -89,9 +89,7 @@ All show: Grade Table → Improvements → Apply Options (1-6)
 │ /remove-use-case {feat} {name} │ Remove use case spec      │
 └────────────────────────────────────────────────────────────┘
 
-═══════════════════════════════════════════════════════════════
 ## 💡 COMMON PATTERNS
-═══════════════════════════════════════════════════════════════
 
 ### Quick Start (Prove the Workflow)
   /create-solution
@@ -123,9 +121,7 @@ All show: Grade Table → Improvements → Apply Options (1-6)
   → Auto re-validates and shows new score
   → Iterate until 80/100+ achieved
 
-═══════════════════════════════════════════════════════════════
 ## 📖 FULL DOCUMENTATION
-═══════════════════════════════════════════════════════════════
 
 Read complete guide: .claude/guides/WORKFLOW_GUIDE.md
 
@@ -139,13 +135,13 @@ Syntax & Best Practices:
   .claude/guides/COMMAND_SYNTAX.md (DSL syntax)
   .claude/guides/BDD_CUCUMBER_GUIDE.md (BDD patterns)
 
-═══════════════════════════════════════════════════════════════
-
 Questions? Run commands above or review documentation files.
 Ready to start? Run /init or /create-solution!
-
-═══════════════════════════════════════════════════════════════
 ```
+
+## Quick Reference
+- WORKFLOW_GUIDE.md: Complete workflow documentation
+- COMMAND_SYNTAX.md: DSL syntax reference
 
 **IMPORTANT NOTES**:
 - Displays workflow guide content in user-friendly format

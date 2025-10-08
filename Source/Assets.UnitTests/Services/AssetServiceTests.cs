@@ -63,6 +63,10 @@ public class AssetServiceTests {
             Description = "New Description",
             Kind = AssetKind.Creature,
             ResourceId = Guid.NewGuid(),
+            CreatureProps = new CreatureProperties {
+                CellSize = 1,
+                Category = CreatureCategory.Character
+            }
         };
 
         // Act

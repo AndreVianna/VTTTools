@@ -10,7 +10,9 @@ Displays hierarchical visualization of complete project status showing specifica
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
 
-## Phase 0: Setup & Scope
+## Process
+
+### Setup & Scope
 
 - **STEP 0A**: Parse {detail_level} parameter:
   <case {detail_level}>
@@ -24,7 +26,7 @@ Displays hierarchical visualization of complete project status showing specifica
     - Display error, show valid options: summary, detailed, full
   </case>
 
-## Phase 1: Discover Project Structure
+### Discover Project Structure
 
 - **STEP 1A**: Use Read tool to check for "Documents/PROJECT.md"
   <if (not found)>
@@ -50,7 +52,7 @@ Displays hierarchical visualization of complete project status showing specifica
   - Group use cases by feature
   - Map STATUS files to their specs
 
-## Phase 2: Read STATUS Files for Implementation Data
+### Read STATUS Files for Implementation Data
 
 - **STEP 2A**: Read PROJECT_STATUS.md (if exists):
   - Extract: phase progress, overall grades, metrics
@@ -75,15 +77,13 @@ Displays hierarchical visualization of complete project status showing specifica
   - Extract: recommendation (KEEP, ENHANCE, REFACTOR, COMPLETE, IMPLEMENT)
   - Fallback to use case spec for UI type if STATUS missing
 
-## Phase 3: Display Hierarchical Structure
+### Display Hierarchical Structure
 
 - **STEP 3A**: Format and display tree structure:
 
 ### Summary View (detail_level = summary):
 ```
-═══════════════════════════════════════════════════════════════
 PROJECT STRUCTURE
-═══════════════════════════════════════════════════════════════
 
 📦 {Project Name} v{version}
 │
@@ -105,15 +105,11 @@ Summary:
 - Total Features: {count}
 - Total Use Cases: {count}
 - Total BDD Files: {count}
-
-═══════════════════════════════════════════════════════════════
 ```
 
 ### Detailed View (detail_level = detailed):
 ```
-═══════════════════════════════════════════════════════════════
 PROJECT STRUCTURE (Detailed)
-═══════════════════════════════════════════════════════════════
 
 📦 {Project Name} v{version}
 │
@@ -143,15 +139,11 @@ BDD Coverage:
 - Feature-level BDD: {count} files
 - Use Case-level BDD: {count} files
 - Total Scenarios: {count}
-
-═══════════════════════════════════════════════════════════════
 ```
 
 ### Full View (detail_level = full):
 ```
-═══════════════════════════════════════════════════════════════
 PROJECT STRUCTURE (Full)
-═══════════════════════════════════════════════════════════════
 
 📦 {Project Name} v{version}
 │
@@ -206,17 +198,13 @@ Summary:
 - BDD Files: {count} ({scenario_count} scenarios total)
 - Implementation: [Phase 2 - Not yet available]
 - Test Coverage: [Phase 2 - Not yet available]
-
-═══════════════════════════════════════════════════════════════
 ```
 
-## Phase 4: Display Statistics
+### Display Statistics
 
 - **STEP 4A**: Calculate and display key metrics:
   ```
-  ═══════════════════════════════════════════
   PROJECT METRICS
-  ═══════════════════════════════════════════
 
   Specification Coverage:
   - Bounded Contexts (Areas): {count}
@@ -244,11 +232,9 @@ Summary:
 
   Phase 1 Status: ✅ COMPLETE
   Phase 2 Status: 🔜 READY (Implementation & Testing)
-
-  ═══════════════════════════════════════════
   ```
 
-## Phase 5: Future Extensibility (Phase 2 Placeholders)
+### Future Extensibility (Phase 2 Placeholders)
 
 **STEP 5A**: When Phase 2 is implemented, this command will also show:
 
@@ -271,6 +257,10 @@ Summary:
 - /show-structure will display real-time progress
 
 **Current State**: Placeholders shown, actual status tracking awaits Phase 2
+
+## Quick Reference
+- VTTTOOLS_STACK.md: VttTools technology stack overview
+- ARCHITECTURE_PATTERN.md: DDD Contracts + Service Implementation pattern
 
 **IMPORTANT NOTES**:
 - Displays complete project status from FILES (persistent, version controlled)

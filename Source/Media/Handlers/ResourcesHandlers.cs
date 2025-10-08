@@ -1,4 +1,5 @@
 using VttTools.Infrastructure;
+
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.Media.Handlers;
@@ -9,8 +10,7 @@ internal static class ResourcesHandlers {
                                                           [FromForm] string resource,
                                                           [FromForm] IFormFile file,
                                                           [FromServices] IResourceService storage) {
-        var request = new UploadRequest
-        {
+        var request = new UploadRequest {
             Id = id,
             Type = type,
             Resource = resource,
