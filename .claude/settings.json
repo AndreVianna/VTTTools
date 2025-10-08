@@ -37,32 +37,13 @@
       "mcp__playwright__browser_console_messages",
       "mcp__playwright__browser_evaluate",
       "mcp__playwright__browser_fill_form",
-      "mcp__playwright__browser_take_screenshot",
-      "SlashCommand(/creation:create-project:*)",
-      "SlashCommand(/creation:add-feature:*)",
-      "SlashCommand(/creation:add-use-case:*)",
-      "SlashCommand(/creation:generate-bdd:*)",
-      "SlashCommand(/validation:validate-project:*)",
-      "SlashCommand(/validation:validate-feature:*)",
-      "SlashCommand(/validation:validate-use-case:*)",
-      "SlashCommand(/validation:validate-bdd:*)",
-      "SlashCommand(/extraction:extract-project:*)",
-      "SlashCommand(/extraction:extract-features:*)",
-      "SlashCommand(/maintenance:remove-feature:*)",
-      "SlashCommand(/maintenance:remove-use-case:*)",
-      "SlashCommand(/update:update-project:*)",
-      "SlashCommand(/update:update-feature:*)",
-      "SlashCommand(/update:update-use-case:*)",
-      "SlashCommand(/update:update-bdd:*)",
-      "SlashCommand(/show-structure:*)",
-      "SlashCommand(/workflow-help:*)",
-      "SlashCommand(/implementation:implement-use-case:*)"
+      "mcp__playwright__browser_take_screenshot"
     ],
     "deny": []
   },
   "outputStyle": "default",
   "statusLine": {
-    "type": "command",
-    "command": "pwsh -ExecutionPolicy Bypass -File \"C:\\Projects\\Ross\\Utilities\\AI\\Claude\\.claude\\scripts\\utilities\\set_status_line.ps1\""
+    "command": "pwsh -ExecutionPolicy Bypass -File \"C:\\Projects\\Personal\\VTTTools\\.claude\\scripts\\utilities\\set_status_line.ps1\"",
+    "type": "command"
   }
 }

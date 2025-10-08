@@ -7,8 +7,12 @@ internal static class AssetHandlers {
     internal static async Task<IResult> GetAssetsHandler(
         HttpContext context,
         [FromQuery] string? kind,
+        [FromQuery] string? creatureCategory,
         [FromQuery] string? search,
         [FromQuery] bool? published,
+        [FromQuery] string? owner,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
         [FromServices] IAssetService assetService) {
 
         var userId = context.User.GetUserId();
@@ -19,8 +23,28 @@ internal static class AssetHandlers {
             kindFilter = parsedKind;
         }
 
-        var assets = await assetService.GetAssetsAsync(userId, kindFilter, search, published);
-        return Results.Ok(assets);
+        // Parse creature category filter
+        CreatureCategory? creatureCategoryFilter = null;
+        if (!string.IsNullOrEmpty(creatureCategory) && Enum.TryParse<CreatureCategory>(creatureCategory, ignoreCase: true, out var parsedCategory)) {
+            creatureCategoryFilter = parsedCategory;
+        }
+
+        // If pagination requested, use paged endpoint
+        if (page.HasValue && pageSize.HasValue) {
+            var skip = (page.Value - 1) * pageSize.Value;
+            var (assets, totalCount) = await assetService.GetAssetsPagedAsync(userId, kindFilter, creatureCategoryFilter, search, published, owner, skip, pageSize.Value);
+            return Results.Ok(new {
+                data = assets,
+                page = page.Value,
+                pageSize = pageSize.Value,
+                totalCount,
+                totalPages = (int)Math.Ceiling(totalCount / (double)pageSize.Value)
+            });
+        }
+
+        // No pagination - return all assets
+        var allAssets = await assetService.GetAssetsAsync(userId, kindFilter, creatureCategoryFilter, search, published, owner);
+        return Results.Ok(allAssets);
     }
 
     internal static async Task<IResult> GetAssetByIdHandler([FromRoute] Guid id, [FromServices] IAssetService assetService)

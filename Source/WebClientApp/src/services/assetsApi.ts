@@ -18,14 +18,15 @@ export const assetsApi = createApi({
   tagTypes: ['Asset'],
   endpoints: (builder) => ({
     /**
-     * Get all assets with optional filtering
-     * Query params: kind (Object/Creature), search (name), published, owner
+     * Get all assets with optional filtering (non-paginated)
+     * Query params: kind, creatureCategory, search, published, owner
      */
     getAssets: builder.query<Asset[], {
       kind?: AssetKind;
+      creatureCategory?: string;
       search?: string;
       published?: boolean;
-      owner?: string;
+      owner?: 'mine' | 'public' | 'all';
     }>({
       query: (params = {}) => ({
         url: '',
@@ -35,6 +36,38 @@ export const assetsApi = createApi({
         result
           ? [
               ...result.map(({ id }) => ({ type: 'Asset' as const, id })),
+              { type: 'Asset', id: 'LIST' },
+            ]
+          : [{ type: 'Asset', id: 'LIST' }],
+    }),
+
+    /**
+     * Get assets with pagination
+     * Returns: { data, page, pageSize, totalCount, totalPages }
+     */
+    getAssetsPaged: builder.query<{
+      data: Asset[];
+      page: number;
+      pageSize: number;
+      totalCount: number;
+      totalPages: number;
+    }, {
+      kind?: AssetKind;
+      creatureCategory?: string;
+      search?: string;
+      published?: boolean;
+      owner?: 'mine' | 'public' | 'all';
+      page: number;
+      pageSize: number;
+    }>({
+      query: (params) => ({
+        url: '',
+        params,
+      }),
+      providesTags: (result) =>
+        result?.data
+          ? [
+              ...result.data.map(({ id }) => ({ type: 'Asset' as const, id })),
               { type: 'Asset', id: 'LIST' },
             ]
           : [{ type: 'Asset', id: 'LIST' }],
@@ -103,6 +136,7 @@ export const assetsApi = createApi({
 
 export const {
   useGetAssetsQuery,
+  useGetAssetsPagedQuery,
   useGetAssetQuery,
   useCreateAssetMutation,
   useUpdateAssetMutation,

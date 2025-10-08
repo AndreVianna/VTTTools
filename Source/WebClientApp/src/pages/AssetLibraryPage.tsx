@@ -23,6 +23,7 @@ import {
     CircularProgress,
     Grid,
     Skeleton,
+    Pagination,
     useTheme
 } from '@mui/material';
 import {
@@ -31,6 +32,8 @@ import {
 } from '@mui/icons-material';
 import { useGetAssetsQuery } from '@/services/assetsApi';
 import { Asset, AssetKind, CreatureCategory } from '@/types/domain';
+import { AssetFilterPanel, AssetFilters, AssetSearchBar, AssetPreviewDialog } from '@/components/assets';
+import { useDebounce } from '@/hooks/useDebounce';
 
 /**
  * Asset Library Page Component
@@ -42,12 +45,50 @@ import { Asset, AssetKind, CreatureCategory } from '@/types/domain';
  */
 export const AssetLibraryPage: React.FC = () => {
     const theme = useTheme();
-    const [selectedKind, setSelectedKind] = useState<AssetKind | undefined>(undefined);
 
-    // Fetch assets from API with optional kind filter
-    // Only include kind in params if it's defined
-    const queryParams = selectedKind ? { kind: selectedKind } : {};
-    const { data: assets, isLoading, error, refetch } = useGetAssetsQuery(queryParams);
+    // Comprehensive filter state
+    const [filters, setFilters] = useState<AssetFilters>({
+        kind: undefined,
+        creatureCategory: undefined,
+        ownership: 'mine',
+        publishedOnly: false,
+        publicOnly: false
+    });
+
+    // Search state with 300ms debounce
+    const [searchQuery, setSearchQuery] = useState('');
+    const debouncedSearch = useDebounce(searchQuery, 300);
+
+    // Pagination state (12 assets per page)
+    const [page, setPage] = useState(1);
+    const pageSize = 12;
+
+    // Preview dialog state
+    const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+    const [previewOpen, setPreviewOpen] = useState(false);
+
+    // Build query params from filters and debounced search
+    const queryParams: any = {};
+    if (filters.kind) queryParams.kind = filters.kind;
+    if (filters.creatureCategory) queryParams.creatureCategory = filters.creatureCategory;
+    if (filters.publishedOnly) queryParams.published = true;
+    if (filters.ownership) queryParams.owner = filters.ownership;
+    if (debouncedSearch) queryParams.search = debouncedSearch;
+
+    // Fetch assets from API with filters
+    const { data: allAssets, isLoading, error, refetch } = useGetAssetsQuery(queryParams);
+
+    // Client-side pagination (slice assets for current page)
+    const totalAssets = allAssets?.length || 0;
+    const totalPages = Math.ceil(totalAssets / pageSize);
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const assets = allAssets?.slice(startIndex, endIndex);
+
+    // Reset to page 1 when filters change
+    React.useEffect(() => {
+        setPage(1);
+    }, [filters, debouncedSearch]);
 
     // Get kind badge color
     const getKindColor = (kind: AssetKind): string => {
@@ -76,73 +117,55 @@ export const AssetLibraryPage: React.FC = () => {
     return (
         <Container maxWidth="xl" sx={{ py: 4 }}>
             {/* Page Header */}
-            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
-                    <Typography variant="h4" component="h1" gutterBottom>
-                        Asset Library
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        Manage your objects and creatures for scenes
-                    </Typography>
+            <Box sx={{ mb: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Box>
+                        <Typography variant="h4" component="h1" gutterBottom>
+                            Asset Library
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            Manage your objects and creatures for scenes
+                        </Typography>
+                    </Box>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => {
+                            // TODO: Open create asset dialog (Phase 5 Step 5)
+                            console.log('Create asset clicked');
+                        }}
+                    >
+                        Create Asset
+                    </Button>
                 </Box>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => {
-                        // TODO: Open create asset dialog (Phase 5 Step 5)
-                        console.log('Create asset clicked');
-                    }}
-                >
-                    Create Asset
-                </Button>
+
+                {/* Search Bar */}
+                <AssetSearchBar
+                    value={searchQuery}
+                    onChange={setSearchQuery}
+                    fullWidth
+                />
             </Box>
 
-            {/* Filter Toolbar */}
-            <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                <Button
-                    variant={selectedKind === undefined ? 'contained' : 'outlined'}
-                    size="small"
-                    startIcon={<CategoryIcon />}
-                    onClick={() => setSelectedKind(undefined)}
-                >
-                    All Assets
-                </Button>
-                <Button
-                    variant={selectedKind === AssetKind.Object ? 'contained' : 'outlined'}
-                    size="small"
-                    onClick={() => setSelectedKind(AssetKind.Object)}
-                    sx={{
-                        bgcolor: selectedKind === AssetKind.Object ? getKindColor(AssetKind.Object) : undefined,
-                        '&:hover': {
-                            bgcolor: selectedKind === AssetKind.Object ? getKindColor(AssetKind.Object) : undefined,
-                            filter: 'brightness(0.9)'
-                        }
-                    }}
-                >
-                    Objects
-                </Button>
-                <Button
-                    variant={selectedKind === AssetKind.Creature ? 'contained' : 'outlined'}
-                    size="small"
-                    onClick={() => setSelectedKind(AssetKind.Creature)}
-                    sx={{
-                        bgcolor: selectedKind === AssetKind.Creature ? getKindColor(AssetKind.Creature) : undefined,
-                        '&:hover': {
-                            bgcolor: selectedKind === AssetKind.Creature ? getKindColor(AssetKind.Creature) : undefined,
-                            filter: 'brightness(0.9)'
-                        }
-                    }}
-                >
-                    Creatures
-                </Button>
-            </Box>
+            {/* Main Content Grid: Filter Panel + Asset Cards */}
+            <Grid container spacing={3}>
+                {/* Filter Panel Sidebar */}
+                <Grid size={{ xs: 12, md: 3 }}>
+                    <AssetFilterPanel
+                        filters={filters}
+                        onFiltersChange={setFilters}
+                    />
+                </Grid>
 
-            {/* Results Count */}
-            {assets && !isLoading && (
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    {assets.length} {assets.length === 1 ? 'asset' : 'assets'} found
-                </Typography>
-            )}
+                {/* Asset Cards Area */}
+                <Grid size={{ xs: 12, md: 9 }}>
+                    {/* Results Count */}
+                    {allAssets && !isLoading && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            {totalAssets} {totalAssets === 1 ? 'asset' : 'assets'} found
+                            {totalPages > 1 && ` (page ${page} of ${totalPages})`}
+                        </Typography>
+                    )}
 
             {/* Loading State */}
             {isLoading && (
@@ -194,8 +217,8 @@ export const AssetLibraryPage: React.FC = () => {
                         No Assets Found
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                        {selectedKind
-                            ? `No ${selectedKind === AssetKind.Object ? 'objects' : 'creatures'} created yet.`
+                        {filters.kind
+                            ? `No ${filters.kind === AssetKind.Object ? 'objects' : 'creatures'} created yet.`
                             : 'Get started by creating your first asset template.'
                         }
                     </Typography>
@@ -230,8 +253,8 @@ export const AssetLibraryPage: React.FC = () => {
                                     }
                                 }}
                                 onClick={() => {
-                                    // TODO: Open asset preview dialog (Phase 5 Step 5)
-                                    console.log('Asset clicked:', asset.id);
+                                    setSelectedAsset(asset);
+                                    setPreviewOpen(true);
                                 }}
                             >
                                 {/* Asset Image */}
@@ -338,6 +361,35 @@ export const AssetLibraryPage: React.FC = () => {
                         </Grid>
                     ))}
                 </Grid>
+
+                {/* Pagination (show if multiple pages) */}
+                {totalPages > 1 && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                        <Pagination
+                            count={totalPages}
+                            page={page}
+                            onChange={(_, value) => setPage(value)}
+                            color="primary"
+                            size="large"
+                            showFirstButton
+                            showLastButton
+                        />
+                    </Box>
+                )}
+            )}
+                </Grid>
+            </Grid>
+
+            {/* Asset Preview Dialog */}
+            {selectedAsset && (
+                <AssetPreviewDialog
+                    open={previewOpen}
+                    asset={selectedAsset}
+                    onClose={() => {
+                        setPreviewOpen(false);
+                        setSelectedAsset(null);
+                    }}
+                />
             )}
         </Container>
     );
