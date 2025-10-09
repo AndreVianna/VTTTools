@@ -1,6 +1,7 @@
+using static VttTools.Utilities.ErrorCollectionExtensions;
+
 using IResult = Microsoft.AspNetCore.Http.IResult;
 using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
-using static VttTools.Utilities.ErrorCollectionExtensions;
 
 namespace VttTools.Library.Handlers;
 

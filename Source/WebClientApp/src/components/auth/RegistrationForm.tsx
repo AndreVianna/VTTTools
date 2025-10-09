@@ -180,7 +180,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
         formData.confirmPassword,
         formData.userName
       );
-    } catch (error) {
+    } catch (_error) {
       // Error is already handled by the useAuth hook
       console.log('Registration failed:', error);
     }

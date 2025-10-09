@@ -6,17 +6,14 @@ import {
   Typography,
   Button,
   Alert,
+  AlertTitle,
   Skeleton,
-  IconButton,
-  Tooltip,
   Stack,
   Chip,
 } from '@mui/material';
 import {
   BrokenImage as BrokenImageIcon,
   Refresh as RefreshIcon,
-  CloudOff as CloudOffIcon,
-  ErrorOutline as ErrorIcon,
   Image as ImageIcon,
   Movie as VideoIcon,
   AudioFile as AudioIcon,
@@ -76,11 +73,11 @@ export const AssetLoadingError: React.FC<AssetErrorProps> = ({
         delay: 1000,
         exponentialBackoff: false,
       });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load asset';
+    } catch (_error) {
+      const errorMessage = _error instanceof Error ? _error.message : 'Failed to load asset';
       setLastError(errorMessage);
 
-      handleAssetLoadingError(error, {
+      handleAssetLoadingError(_error, {
         assetId,
         assetType,
         assetUrl,
@@ -409,7 +406,7 @@ export const AssetGridError: React.FC<AssetGridErrorProps> = ({
   assets,
   failedAssets,
   onRetryAsset,
-  onRemoveAsset,
+  onRemoveAsset: _onRemoveAsset,
 }) => {
   const failedCount = failedAssets.length;
   const totalCount = assets.length;
@@ -437,7 +434,7 @@ export const AssetGridError: React.FC<AssetGridErrorProps> = ({
       <AlertTitle>Asset Loading Issues</AlertTitle>
       <Typography variant="body2">
         {failedCount} of {totalCount} assets failed to load.
-        You can retry individual assets or use the "Retry All" button.
+        You can retry individual assets or use the &quot;Retry All&quot; button.
       </Typography>
     </Alert>
   );

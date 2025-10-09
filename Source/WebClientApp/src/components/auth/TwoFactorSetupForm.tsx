@@ -23,7 +23,6 @@ import {
   DialogActions,
 } from '@mui/material';
 import {
-  QrCode2,
   ContentCopy,
   CheckCircle,
   Warning,
@@ -69,7 +68,7 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
       try {
         const data = await setupTwoFactor();
         setSetupData(data);
-      } catch (error) {
+      } catch (_error) {
         console.error('Failed to initialize 2FA setup:', error);
       }
     };
@@ -128,7 +127,7 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
         setActiveStep(2);
         setShowRecoveryDialog(true);
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to enable 2FA:', error);
     }
   };
@@ -141,7 +140,7 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
     onComplete?.();
   };
 
-  const steps = [
+  const _steps = [
     'Install Authenticator App',
     'Scan QR Code & Verify',
     'Save Recovery Codes'
@@ -239,7 +238,7 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
             </Paper>
 
             <Typography variant="body2" gutterBottom>
-              Can't scan the code? Enter this key manually:
+              Can&apos;t scan the code? Enter this key manually:
             </Typography>
             <Paper sx={{ p: 2, mb: 2, backgroundColor: 'grey.50' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -309,7 +308,7 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
             <Alert severity="warning" sx={{ mb: 2 }}>
               <Typography variant="body2">
                 Make sure to save your recovery codes in a safe place.
-                You'll need them to access your account if you lose your authenticator device.
+                You&apos;ll need them to access your account if you lose your authenticator device.
               </Typography>
             </Alert>
 
@@ -401,7 +400,7 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
             }}
             variant="contained"
           >
-            I've Saved These Codes
+            I&apos;ve Saved These Codes
           </Button>
         </DialogActions>
       </Dialog>

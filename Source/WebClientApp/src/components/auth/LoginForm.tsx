@@ -95,7 +95,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       if (onLoginResult) {
         onLoginResult(result);
       }
-    } catch (error) {
+    } catch (_error) {
       // Error is already handled by the useAuth hook
       console.log('Login failed:', error);
     }
@@ -262,7 +262,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
         <Box sx={{ textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link
               component="button"
               variant="body2"

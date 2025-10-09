@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
-import { Box, Container, Typography, Paper } from '@mui/material';
+import { Box } from '@mui/material';
 import { LoginForm } from '@/components/auth/LoginForm';
-import { RegistrationForm } from '@/components/auth/RegistrationForm';
 import { SimpleLoginForm } from '@/components/auth/SimpleLoginForm';
 import { SimpleRegistrationForm } from '@/components/auth/SimpleRegistrationForm';
 import { PasswordResetRequestForm } from '@/components/auth/PasswordResetRequestForm';

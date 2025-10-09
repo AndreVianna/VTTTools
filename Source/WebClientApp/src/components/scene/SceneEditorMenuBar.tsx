@@ -71,8 +71,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
 
     // Asset picker state
     const [assetPickerOpen, setAssetPickerOpen] = useState(false);
-    const [pickerCategory, setPickerCategory] = useState<AssetCategory>(AssetCategory.Static);
-    const [pickerAllowedTypes, setPickerAllowedTypes] = useState<AssetType[] | undefined>(undefined);
+    const [pickerKind, setPickerKind] = useState<AssetKind | undefined>(undefined);
 
     const handleStageMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         setStageMenuAnchor(event.currentTarget);
@@ -107,9 +106,8 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
     };
 
     // Asset picker handlers
-    const handleOpenAssetPicker = (category: AssetCategory, allowedTypes?: AssetType[]) => {
-        setPickerCategory(category);
-        setPickerAllowedTypes(allowedTypes);
+    const handleOpenAssetPicker = (kind?: AssetKind) => {
+        setPickerKind(kind);
         setAssetPickerOpen(true);
         // Close all menus
         handleStructuresMenuClose();
@@ -453,7 +451,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                     fullWidth
                     variant="outlined"
                     size="small"
-                    onClick={() => handleOpenAssetPicker(AssetCategory.Static)}
+                    onClick={() => handleOpenAssetPicker(AssetKind.Object)}
                 >
                     Browse Structures
                 </Button>
@@ -486,7 +484,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                     fullWidth
                     variant="outlined"
                     size="small"
-                    onClick={() => handleOpenAssetPicker(AssetCategory.Passive)}
+                    onClick={() => handleOpenAssetPicker(AssetKind.Object)}
                 >
                     Browse Objects
                 </Button>
@@ -519,7 +517,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                     fullWidth
                     variant="outlined"
                     size="small"
-                    onClick={() => handleOpenAssetPicker(AssetCategory.Active)}
+                    onClick={() => handleOpenAssetPicker(AssetKind.Creature)}
                 >
                     Browse Entities
                 </Button>
@@ -530,8 +528,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                 open={assetPickerOpen}
                 onClose={() => setAssetPickerOpen(false)}
                 onSelect={handleAssetSelected}
-                category={pickerCategory}
-                allowedTypes={pickerAllowedTypes}
+                kind={pickerKind}
             />
         </Paper>
     );

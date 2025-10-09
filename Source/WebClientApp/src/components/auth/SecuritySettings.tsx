@@ -6,8 +6,6 @@ import {
   Alert,
   CircularProgress,
   Paper,
-  Switch,
-  FormControlLabel,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -26,7 +24,6 @@ import {
   Key,
   Password,
   Close,
-  Warning,
   CheckCircle,
   Error,
 } from '@mui/icons-material';
@@ -136,7 +133,7 @@ export const SecuritySettings: React.FC = () => {
       setShowPasswordChange(false);
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setValidationErrors({});
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to change password:', error);
     }
   };
@@ -155,7 +152,7 @@ export const SecuritySettings: React.FC = () => {
       setShowDisable2FA(false);
       setDisablePassword('');
       setValidationErrors({});
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to disable 2FA:', error);
     }
   };

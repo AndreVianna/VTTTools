@@ -1,3 +1,6 @@
+/* eslint-disable react-refresh/only-export-components */
+// FormValidation exports both validation components and utility functions (getErrorMessage, formatFieldName, useFormValidation hook)
+// These utilities are tightly coupled to form validation behavior and logically belong in the same file
 import React from 'react';
 import {
   Alert,
@@ -87,7 +90,7 @@ const StandardFormValidation: React.FC<{
   errors: ValidationError[];
   touched: Record<string, boolean>;
   showSummary: boolean;
-}> = ({ errors, touched, showSummary }) => {
+}> = ({ errors, touched: _touched, showSummary }) => {
   if (!showSummary || errors.length === 0) {
     return null;
   }

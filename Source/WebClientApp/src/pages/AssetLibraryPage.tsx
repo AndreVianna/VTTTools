@@ -20,10 +20,12 @@ import {
     CardActions,
     Chip,
     Alert,
-    CircularProgress,
     Grid,
     Skeleton,
     Pagination,
+    Tabs,
+    Tab,
+    Tooltip,
     useTheme
 } from '@mui/material';
 import {
@@ -32,7 +34,7 @@ import {
 } from '@mui/icons-material';
 import { useGetAssetsQuery } from '@/services/assetsApi';
 import { Asset, AssetKind, CreatureCategory } from '@/types/domain';
-import { AssetFilterPanel, AssetFilters, AssetSearchBar, AssetPreviewDialog } from '@/components/assets';
+import { AssetFilterPanel, AssetFilters, AssetSearchBar, AssetPreviewDialog, AssetCreateDialog } from '@/components/assets';
 import { useDebounce } from '@/hooks/useDebounce';
 
 /**
@@ -46,13 +48,19 @@ import { useDebounce } from '@/hooks/useDebounce';
 export const AssetLibraryPage: React.FC = () => {
     const theme = useTheme();
 
+    // Kind selection via Tabs (major filter) - defaults to Objects
+    const [selectedKind, setSelectedKind] = useState<AssetKind>(AssetKind.Object);
+
     // Comprehensive filter state
     const [filters, setFilters] = useState<AssetFilters>({
-        kind: undefined,
+        kind: undefined, // Set from selectedKind
         creatureCategory: undefined,
-        ownership: 'mine',
-        publishedOnly: false,
-        publicOnly: false
+        showMine: true,
+        showOthers: true,
+        showPublic: true,
+        showPrivate: true,
+        showPublished: true,
+        showDraft: true
     });
 
     // Search state with 300ms debounce
@@ -67,28 +75,90 @@ export const AssetLibraryPage: React.FC = () => {
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     const [previewOpen, setPreviewOpen] = useState(false);
 
-    // Build query params from filters and debounced search
+    // Create dialog state
+    const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+    // Build query params from selected kind and filters
     const queryParams: any = {};
-    if (filters.kind) queryParams.kind = filters.kind;
-    if (filters.creatureCategory) queryParams.creatureCategory = filters.creatureCategory;
-    if (filters.publishedOnly) queryParams.published = true;
-    if (filters.ownership) queryParams.owner = filters.ownership;
-    if (debouncedSearch) queryParams.search = debouncedSearch;
+
+    // Kind from Tabs (always set now, no 'all' option)
+    queryParams.kind = selectedKind;
+
+    // Creature category
+    if (filters.creatureCategory) {
+        queryParams.creatureCategory = filters.creatureCategory;
+    }
+
+    // Ownership: Determine 'owner' param based on checkboxes
+    if (filters.showMine && !filters.showOthers) {
+        queryParams.owner = 'mine';
+    } else if (filters.showOthers && !filters.showMine) {
+        queryParams.owner = 'public';
+    } else if (filters.showMine && filters.showOthers) {
+        queryParams.owner = 'all';
+    }
+    // If neither checked, no results (don't send param, filter client-side)
+
+    // Search
+    if (debouncedSearch) {
+        queryParams.search = debouncedSearch;
+    }
+
+    // Published status
+    if (filters.showPublished && !filters.showDraft) {
+        queryParams.published = true;
+    } else if (filters.showDraft && !filters.showPublished) {
+        queryParams.published = false;
+    }
 
     // Fetch assets from API with filters
     const { data: allAssets, isLoading, error, refetch } = useGetAssetsQuery(queryParams);
 
+    // Client-side filtering for visibility/status checkboxes (when showMine is checked)
+    const filteredAssets = React.useMemo(() => {
+        if (!allAssets) return [];
+
+        // Apply visibility/status filters when "Mine" checkbox is checked
+        if (filters.showMine) {
+            return allAssets.filter(asset => {
+                // Check visibility filter
+                const visibilityMatch =
+                    (filters.showPublic && asset.isPublic) ||
+                    (filters.showPrivate && !asset.isPublic);
+
+                // Check status filter
+                const statusMatch =
+                    (filters.showPublished && filters.showDraft) || // Both checked, show all
+                    (filters.showPublished && asset.isPublished) ||
+                    (filters.showDraft && !asset.isPublished);
+
+                return visibilityMatch && statusMatch;
+            });
+        }
+
+        // For "Others" only, no client-side filtering needed (backend already filtered to public published)
+        return allAssets;
+    }, [allAssets, filters.showMine, filters.showPublic, filters.showPrivate, filters.showPublished, filters.showDraft]);
+
     // Client-side pagination (slice assets for current page)
-    const totalAssets = allAssets?.length || 0;
+    const totalAssets = filteredAssets?.length || 0;
     const totalPages = Math.ceil(totalAssets / pageSize);
     const startIndex = (page - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    const assets = allAssets?.slice(startIndex, endIndex);
+    const assets = filteredAssets?.slice(startIndex, endIndex);
+
+    // Sync selectedKind with filters.kind for query
+    React.useEffect(() => {
+        setFilters(prev => ({
+            ...prev,
+            kind: selectedKind
+        }));
+    }, [selectedKind]);
 
     // Reset to page 1 when filters change
     React.useEffect(() => {
         setPage(1);
-    }, [filters, debouncedSearch]);
+    }, [filters, debouncedSearch, selectedKind]);
 
     // Get kind badge color
     const getKindColor = (kind: AssetKind): string => {
@@ -130,14 +200,21 @@ export const AssetLibraryPage: React.FC = () => {
                     <Button
                         variant="contained"
                         startIcon={<AddIcon />}
-                        onClick={() => {
-                            // TODO: Open create asset dialog (Phase 5 Step 5)
-                            console.log('Create asset clicked');
-                        }}
+                        onClick={() => setCreateDialogOpen(true)}
                     >
                         Create Asset
                     </Button>
                 </Box>
+
+                {/* Asset Kind Tabs (Major Filter) */}
+                <Tabs
+                    value={selectedKind}
+                    onChange={(_, newValue) => setSelectedKind(newValue)}
+                    sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
+                >
+                    <Tab label="Objects" value={AssetKind.Object} />
+                    <Tab label="Creatures" value={AssetKind.Creature} />
+                </Tabs>
 
                 {/* Search Bar */}
                 <AssetSearchBar
@@ -170,10 +247,12 @@ export const AssetLibraryPage: React.FC = () => {
             {/* Loading State */}
             {isLoading && (
                 <Grid container spacing={3}>
-                    {[...Array(6)].map((_, index) => (
-                        <Grid key={index} size={{ xs: 12, sm: 6, md: 4 }}>
+                    {[...Array(12)].map((_, index) => (
+                        <Grid key={index} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
                             <Card>
-                                <Skeleton variant="rectangular" height={200} />
+                                <Box sx={{ paddingTop: '100%', position: 'relative' }}>
+                                    <Skeleton variant="rectangular" sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+                                </Box>
                                 <CardContent>
                                     <Skeleton variant="text" width="60%" height={32} />
                                     <Skeleton variant="text" width="80%" />
@@ -217,18 +296,12 @@ export const AssetLibraryPage: React.FC = () => {
                         No Assets Found
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                        {filters.kind
-                            ? `No ${filters.kind === AssetKind.Object ? 'objects' : 'creatures'} created yet.`
-                            : 'Get started by creating your first asset template.'
-                        }
+                        {`No ${selectedKind === AssetKind.Object ? 'objects' : 'creatures'} found with the current filters.`}
                     </Typography>
                     <Button
                         variant="contained"
                         startIcon={<AddIcon />}
-                        onClick={() => {
-                            // TODO: Open create asset dialog
-                            console.log('Create first asset');
-                        }}
+                        onClick={() => setCreateDialogOpen(true)}
                     >
                         Create Your First Asset
                     </Button>
@@ -237,145 +310,136 @@ export const AssetLibraryPage: React.FC = () => {
 
             {/* Asset Cards Grid */}
             {!isLoading && !error && assets && assets.length > 0 && (
-                <Grid container spacing={3}>
-                    {assets.map((asset) => (
-                        <Grid key={asset.id} size={{ xs: 12, sm: 6, md: 4 }}>
-                            <Card
-                                sx={{
-                                    height: '100%',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    transition: 'all 0.2s',
-                                    cursor: 'pointer',
-                                    '&:hover': {
-                                        transform: 'translateY(-4px)',
-                                        boxShadow: 4
-                                    }
-                                }}
-                                onClick={() => {
-                                    setSelectedAsset(asset);
-                                    setPreviewOpen(true);
-                                }}
-                            >
-                                {/* Asset Image */}
-                                <CardMedia
-                                    component="div"
+                <>
+                    <Grid container spacing={3}>
+                        {assets.map((asset) => (
+                            <Grid key={asset.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
+                                <Card
                                     sx={{
-                                        height: 200,
-                                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.200',
+                                        height: '100%',
                                         display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
+                                        flexDirection: 'column',
+                                        transition: 'all 0.2s',
+                                        cursor: 'pointer',
+                                        '&:hover': {
+                                            transform: 'translateY(-4px)',
+                                            boxShadow: 4
+                                        }
+                                    }}
+                                    onClick={() => {
+                                        setSelectedAsset(asset);
+                                        setPreviewOpen(true);
                                     }}
                                 >
-                                    {asset.resource ? (
-                                        <img
-                                            src={`https://localhost:7174/api/resources/${asset.resource.id}`}
-                                            alt={asset.name}
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                objectFit: 'contain'
-                                            }}
-                                        />
-                                    ) : (
-                                        <CategoryIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
-                                    )}
-                                </CardMedia>
+                                    {/* Asset Name - Above Image */}
+                                    <CardContent sx={{ pb: 1 }}>
+                                        <Typography variant="subtitle2" component="h2" noWrap fontWeight={600}>
+                                            {asset.name}
+                                        </Typography>
+                                    </CardContent>
 
-                                {/* Asset Info */}
-                                <CardContent sx={{ flexGrow: 1 }}>
-                                    <Typography variant="h6" component="h2" gutterBottom noWrap>
-                                        {asset.name}
-                                    </Typography>
-
-                                    <Box sx={{ display: 'flex', gap: 0.5, mb: 1, flexWrap: 'wrap' }}>
-                                        {/* Kind Badge */}
-                                        <Chip
-                                            label={asset.kind}
-                                            size="small"
+                                    {/* Asset Image with Description Tooltip */}
+                                    <Tooltip title={asset.description} arrow placement="top">
+                                        <CardMedia
+                                            component="div"
                                             sx={{
-                                                bgcolor: getKindColor(asset.kind),
-                                                color: 'white',
-                                                fontWeight: 500,
-                                                fontSize: '0.7rem'
+                                                paddingTop: '100%', // 1:1 aspect ratio (square)
+                                                position: 'relative',
+                                                bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.200'
                                             }}
-                                        />
-
-                                        {/* Creature Category Badge (if Creature) */}
-                                        {asset.kind === AssetKind.Creature && 'creatureProps' in asset && (
-                                            <Chip
-                                                label={asset.creatureProps.category}
-                                                size="small"
+                                        >
+                                            <Box
                                                 sx={{
-                                                    bgcolor: getCreatureCategoryColor(asset.creatureProps.category),
-                                                    color: 'white',
-                                                    fontSize: '0.7rem'
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: 0,
+                                                    right: 0,
+                                                    bottom: 0,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
                                                 }}
-                                            />
-                                        )}
+                                            >
+                                            {asset.resource ? (
+                                                <img
+                                                    src={`https://localhost:7174/api/resources/${asset.resource.id}`}
+                                                    alt={asset.name}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        objectFit: 'contain'
+                                                    }}
+                                                />
+                                            ) : (
+                                                <CategoryIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
+                                            )}
+                                            </Box>
+                                        </CardMedia>
+                                    </Tooltip>
 
-                                        {/* Published Badge */}
-                                        {asset.isPublished && (
-                                            <Chip
-                                                label="Published"
-                                                size="small"
-                                                color="success"
-                                                variant="outlined"
-                                                sx={{ fontSize: '0.7rem' }}
-                                            />
-                                        )}
-                                    </Box>
+                                    {/* Asset Info - Badges (no Kind badge - redundant with Tabs) */}
+                                    <CardContent sx={{ pt: 1, pb: 1, flexGrow: 1 }}>
+                                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', minHeight: '24px' }}>
+                                            {/* Creature Category Badge (only for Creatures) */}
+                                            {asset.kind === AssetKind.Creature && 'creatureProps' in asset && (
+                                                <Chip
+                                                    label={asset.creatureProps.category}
+                                                    size="small"
+                                                    sx={{
+                                                        bgcolor: getCreatureCategoryColor(asset.creatureProps.category),
+                                                        color: 'white',
+                                                        fontSize: '0.7rem'
+                                                    }}
+                                                />
+                                            )}
 
-                                    <Typography
-                                        variant="body2"
-                                        color="text.secondary"
-                                        sx={{
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            display: '-webkit-box',
-                                            WebkitLineClamp: 2,
-                                            WebkitBoxOrient: 'vertical',
-                                            minHeight: '2.5em'
-                                        }}
-                                    >
-                                        {asset.description}
-                                    </Typography>
-                                </CardContent>
+                                            {/* Published Badge */}
+                                            {asset.isPublished && (
+                                                <Chip
+                                                    label="Published"
+                                                    size="small"
+                                                    color="success"
+                                                    variant="outlined"
+                                                    sx={{ fontSize: '0.7rem' }}
+                                                />
+                                            )}
+                                        </Box>
+                                    </CardContent>
 
-                                {/* Card Actions */}
-                                <CardActions sx={{ pt: 0, px: 2, pb: 2 }}>
-                                    <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
-                                        {asset.kind === AssetKind.Object && 'objectProps' in asset
-                                            ? `${asset.objectProps.cellWidth}x${asset.objectProps.cellHeight} cells`
-                                            : asset.kind === AssetKind.Creature && 'creatureProps' in asset
-                                                ? `${asset.creatureProps.cellSize}x${asset.creatureProps.cellSize} cells`
-                                                : ''
-                                        }
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary">
-                                        {asset.isPublic ? 'Public' : 'Private'}
-                                    </Typography>
-                                </CardActions>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
+                                    {/* Card Actions */}
+                                    <CardActions sx={{ pt: 0, px: 2, pb: 2 }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
+                                            {asset.kind === AssetKind.Object && 'objectProps' in asset
+                                                ? `${asset.objectProps.cellWidth}x${asset.objectProps.cellHeight} cells`
+                                                : asset.kind === AssetKind.Creature && 'creatureProps' in asset
+                                                    ? `${asset.creatureProps.cellSize}x${asset.creatureProps.cellSize} cells`
+                                                    : ''
+                                            }
+                                        </Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {asset.isPublic ? 'Public' : 'Private'}
+                                        </Typography>
+                                    </CardActions>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
 
-                {/* Pagination (show if multiple pages) */}
-                {totalPages > 1 && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                        <Pagination
-                            count={totalPages}
-                            page={page}
-                            onChange={(_, value) => setPage(value)}
-                            color="primary"
-                            size="large"
-                            showFirstButton
-                            showLastButton
-                        />
-                    </Box>
-                )}
+                    {/* Pagination (show if multiple pages) */}
+                    {totalPages > 1 && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                            <Pagination
+                                count={totalPages}
+                                page={page}
+                                onChange={(_, value) => setPage(value)}
+                                color="primary"
+                                size="large"
+                                showFirstButton
+                                showLastButton
+                            />
+                        </Box>
+                    )}
+                </>
             )}
                 </Grid>
             </Grid>
@@ -391,6 +455,13 @@ export const AssetLibraryPage: React.FC = () => {
                     }}
                 />
             )}
+
+            {/* Asset Create Dialog */}
+            <AssetCreateDialog
+                open={createDialogOpen}
+                onClose={() => setCreateDialogOpen(false)}
+                initialKind={selectedKind}
+            />
         </Container>
     );
 };

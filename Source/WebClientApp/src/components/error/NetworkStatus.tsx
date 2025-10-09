@@ -15,12 +15,12 @@ import {
   Refresh as RetryIcon,
   SignalWifiConnectedNoInternet4 as LimitedIcon,
 } from '@mui/icons-material';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { addError, clearErrorsByType } from '@/store/slices/errorSlice';
 import { addNotification } from '@/store/slices/uiSlice';
 import { retryOperation, createNetworkError } from '@/utils/errorHandling';
 
-interface NetworkStatus {
+interface NetworkStatusState {
   isOnline: boolean;
   isConnected: boolean;
   latency: number | null;
@@ -34,7 +34,7 @@ interface NetworkStatus {
  */
 export const NetworkStatus: React.FC = () => {
   const dispatch = useDispatch();
-  const [networkStatus, setNetworkStatus] = useState<NetworkStatus>({
+  const [networkStatus, setNetworkStatus] = useState<NetworkStatusState>({
     isOnline: navigator.onLine,
     isConnected: true,
     latency: null,
@@ -59,7 +59,7 @@ export const NetworkStatus: React.FC = () => {
         connected: response.ok,
         latency: Math.round(latency),
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         connected: false,
         latency: null,
@@ -170,7 +170,7 @@ export const NetworkStatus: React.FC = () => {
           maxRetries: 3,
           delay: 1000,
           exponentialBackoff: true,
-          onRetry: (attempt, error) => {
+          onRetry: (attempt, _error) => {
             dispatch(addNotification({
               type: 'info',
               message: `Reconnection attempt ${attempt} of 3...`,
@@ -183,7 +183,7 @@ export const NetworkStatus: React.FC = () => {
       // Success
       await updateNetworkStatus(true, true);
       setNetworkStatus(prev => ({ ...prev, retryCount: 0 }));
-    } catch (error) {
+    } catch (_error) {
       dispatch(addNotification({
         type: 'error',
         message: 'Failed to reconnect. Please check your internet connection.',
@@ -198,19 +198,6 @@ export const NetworkStatus: React.FC = () => {
     if (!networkStatus.isOnline || !networkStatus.isConnected) return 'error';
     if (networkStatus.latency && networkStatus.latency > 1000) return 'warning';
     return 'success';
-  };
-
-  const getStatusIcon = () => {
-    if (!networkStatus.isOnline) return <OfflineIcon />;
-    if (!networkStatus.isConnected) return <LimitedIcon />;
-    return <OnlineIcon />;
-  };
-
-  const getStatusText = () => {
-    if (!networkStatus.isOnline) return 'Offline';
-    if (!networkStatus.isConnected) return 'Limited connectivity';
-    if (networkStatus.latency) return `Online (${networkStatus.latency}ms)`;
-    return 'Online';
   };
 
   return (
@@ -267,7 +254,7 @@ export const NetworkStatus: React.FC = () => {
  * Compact network status indicator for status bars
  */
 interface NetworkStatusIndicatorProps {
-  status: NetworkStatus;
+  status: NetworkStatusState;
   onRetry: () => void;
   isRetrying: boolean;
   variant?: 'chip' | 'icon';
@@ -283,6 +270,19 @@ export const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
     if (!status.isOnline || !status.isConnected) return 'error';
     if (status.latency && status.latency > 1000) return 'warning';
     return 'success';
+  };
+
+  const getStatusIcon = () => {
+    if (!status.isOnline) return <OfflineIcon />;
+    if (!status.isConnected) return <LimitedIcon />;
+    return <OnlineIcon />;
+  };
+
+  const getStatusText = () => {
+    if (!status.isOnline) return 'Offline';
+    if (!status.isConnected) return 'Limited connectivity';
+    if (status.latency) return `Online (${status.latency}ms)`;
+    return 'Online';
   };
 
   if (variant === 'icon') {
@@ -315,15 +315,5 @@ export const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
     />
   );
 };
-
-function getStatusIcon() {
-  // This is a placeholder - in the actual component context, it would use the proper logic
-  return <OnlineIcon />;
-}
-
-function getStatusText() {
-  // This is a placeholder - in the actual component context, it would use the proper logic
-  return 'Online';
-}
 
 export default NetworkStatus;

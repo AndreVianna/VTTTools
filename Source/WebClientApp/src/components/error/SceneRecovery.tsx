@@ -26,8 +26,6 @@ import {
   Warning as WarningIcon,
   Delete as DeleteIcon,
   Schedule as ScheduleIcon,
-  CheckCircle as CheckIcon,
-  Error as ErrorIcon,
   CloudSync as SyncIcon,
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
@@ -38,15 +36,6 @@ import { addNotification } from '@/store/slices/uiSlice';
  * UC035 - Scene Saving/Loading Error Recovery
  * Auto-save functionality, retry mechanisms, and data integrity protection
  */
-
-interface SceneData {
-  id: string;
-  name: string;
-  data: any;
-  version: number;
-  timestamp: number;
-  checksum?: string;
-}
 
 interface AutoSaveState {
   isEnabled: boolean;
@@ -100,7 +89,7 @@ export const SceneRecoveryManager: React.FC<{
   const [recoverySnapshots, setRecoverySnapshots] = useState<RecoverySnapshot[]>([]);
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
   const lastSaveDataRef = useRef<string>('');
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Load existing recovery snapshots
   useEffect(() => {
@@ -140,8 +129,8 @@ export const SceneRecoveryManager: React.FC<{
         const snapshots: RecoverySnapshot[] = JSON.parse(stored);
         setRecoverySnapshots(snapshots.filter(s => Date.now() - s.timestamp < 7 * 24 * 60 * 60 * 1000)); // Keep 7 days
       }
-    } catch (error) {
-      console.warn('Failed to load recovery snapshots:', error);
+    } catch (_error) {
+      console.warn('Failed to load recovery snapshots:', _error);
     }
   }, [sceneId]);
 
@@ -163,8 +152,8 @@ export const SceneRecoveryManager: React.FC<{
 
       setRecoverySnapshots(updatedSnapshots);
       localStorage.setItem(`${STORAGE_KEY_PREFIX}${sceneId}`, JSON.stringify(updatedSnapshots));
-    } catch (error) {
-      console.warn('Failed to save recovery snapshot:', error);
+    } catch (_error) {
+      console.warn('Failed to save recovery snapshot:', _error);
     }
   }, [sceneId, sceneName, recoverySnapshots]);
 
@@ -200,13 +189,13 @@ export const SceneRecoveryManager: React.FC<{
         duration: 2000,
       }));
 
-    } catch (error) {
+    } catch (_error) {
       // Auto-save failed, save recovery snapshot locally
       saveRecoverySnapshot(sceneData, 'recovery');
 
       setAutoSaveState(prev => ({ ...prev, isAutoSaving: false }));
 
-      handleSceneError(error, 'save', {
+      handleSceneError(_error, 'save', {
         sceneId,
         sceneName,
         isAutoSave: true,
@@ -248,11 +237,11 @@ export const SceneRecoveryManager: React.FC<{
         duration: 3000,
       }));
 
-    } catch (error) {
+    } catch (_error) {
       // Manual save failed, save recovery snapshot
       saveRecoverySnapshot(sceneData, 'recovery');
 
-      handleSceneError(error, 'save', {
+      handleSceneError(_error, 'save', {
         sceneId,
         sceneName,
         isManualSave: true,
@@ -271,8 +260,8 @@ export const SceneRecoveryManager: React.FC<{
       }));
 
       setShowRecoveryDialog(false);
-    } catch (error) {
-      handleSceneError(error, 'load', {
+    } catch (_error) {
+      handleSceneError(_error, 'load', {
         sceneId,
         sceneName,
         snapshotId: snapshot.id,

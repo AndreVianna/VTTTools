@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import {
-  Snackbar,
   Alert,
-  AlertTitle,
   Button,
   Box,
   Typography,
@@ -29,7 +27,6 @@ import {
   selectCanRetry,
   VTTError,
 } from '@/store/slices/errorSlice';
-import { retryOperation } from '@/utils/errorHandling';
 
 /**
  * Global error display system for all error types with user-friendly messaging

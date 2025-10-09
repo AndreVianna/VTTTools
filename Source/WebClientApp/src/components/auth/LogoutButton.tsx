@@ -50,8 +50,8 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
       onLogoutStart?.();
       await logout();
       onLogoutComplete?.();
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch (_error) {
+      console.error('Logout failed:', _error);
       // The useAuth hook handles error notifications
     } finally {
       setShowConfirmDialog(false);

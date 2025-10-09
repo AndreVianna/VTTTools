@@ -79,7 +79,7 @@ export const assetsApi = createApi({
      */
     getAsset: builder.query<Asset, string>({
       query: (id) => `/${id}`,
-      providesTags: (_result, _error, id) => [{ type: 'Asset', id }],
+      providesTags: (_result, _error, arg) => [{ type: 'Asset', id: arg }],
     }),
 
     /**
@@ -120,8 +120,8 @@ export const assetsApi = createApi({
         url: `/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (_result, _error, id) => [
-        { type: 'Asset', id },
+      invalidatesTags: (_result, _error, arg) => [
+        { type: 'Asset', id: arg },
         { type: 'Asset', id: 'LIST' },
       ],
     }),

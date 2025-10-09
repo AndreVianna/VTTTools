@@ -17,7 +17,6 @@ import {
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
 
 // Authentication Card Container - Professional Design (Theme-Aware)
 const AuthCard = styled(Paper)(({ theme }) => ({
@@ -158,7 +157,6 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
-  const navigate = useNavigate();
 
   const { login, isLoading, error, clearError } = useAuth();
 
@@ -200,7 +198,7 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
 
     try {
       await login(email, password, rememberMe);
-    } catch (error) {
+    } catch (_error) {
       // Error is already handled by the useAuth hook
       console.log('Login failed:', error);
     }

@@ -56,7 +56,7 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
     onClose,
     onSelect,
     kind,
-    creatureCategory,
+    creatureCategory: _creatureCategory,
     title,
     multiSelect = false
 }) => {

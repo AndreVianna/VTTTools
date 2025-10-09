@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useEffect, useState } from 'react';
+import { useCallback, useMemo, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   useLoginMutation,
@@ -45,7 +45,7 @@ export const useAuth = () => {
   const { data: currentUser, isLoading, error, refetch } = useGetCurrentUserQuery(undefined, {
     skip: globalAuthInitialized && !authState.isAuthenticated,  // Skip after init unless authenticated
     // Handle query errors gracefully in development
-    retry: (failureCount, error) => {
+    retry: (failureCount, _error) => {
       if (isDevelopment && failureCount < 2) {
         devUtils.warn('getCurrentUserQuery retry attempt', failureCount);
         return true;
@@ -280,7 +280,7 @@ export const useAuth = () => {
       }));
 
       navigate('/login', { replace: true });
-    } catch (error: any) {
+    } catch (_error) {
       // Even if logout API fails, local state already cleared
       globalAuthInitialized = false;  // Still reset for next login attempt
       setInitComplete(false);
@@ -370,7 +370,7 @@ export const useAuth = () => {
         dispatch(logoutAction());
         return null;
       }
-    } catch (error) {
+    } catch (_error) {
       dispatch(logoutAction());
       return null;
     }

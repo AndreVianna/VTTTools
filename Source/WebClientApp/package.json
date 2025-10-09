@@ -8,7 +8,8 @@
     "build": "vite build",
     "build:standalone": "cross-env VITE_STANDALONE=true vite build --mode standalone",
     "preview": "vite preview --port 4173",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix",
     "type-check": "tsc --noEmit",
     "test": "vitest",
     "test:e2e": "playwright test",
@@ -32,18 +33,24 @@
     "react-konva": "^19.0.10",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.1",
-    "typescript": "^5.9.2",
     "use-image": "^1.1.4",
     "vite": "^7.1.5"
   },
   "devDependencies": {
+    "@eslint/js": "^9.37.0",
     "@playwright/test": "^1.55.0",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "cross-env": "^10.0.0",
     "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^6.1.1",
+    "eslint-plugin-react-refresh": "^0.4.23",
     "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.0",
     "vitest": "^0.34.6"
   }
 }

@@ -321,11 +321,15 @@ export const retryOperation = async <T>(
 export const withErrorBoundary = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
-  return (props: P) => {
+  const WrappedComponent = (props: P) => {
     // This would typically use React Error Boundary
     // For now, just return the component
     return React.createElement(Component, props);
   };
+
+  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name || 'Component'})`;
+
+  return WrappedComponent;
 };
 
 // Validation error helper

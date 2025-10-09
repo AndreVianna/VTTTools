@@ -11,7 +11,7 @@
  */
 
 import React, { useState, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
-import { Stage, Layer } from 'react-konva';
+import { Stage } from 'react-konva';
 import Konva from 'konva';
 
 /**
@@ -113,7 +113,7 @@ export const SceneCanvas = forwardRef<SceneCanvasHandle, SceneCanvasProps>(({
     initialScale = DEFAULT_SCALE,
     minZoom = DEFAULT_MIN_ZOOM,
     maxZoom = DEFAULT_MAX_ZOOM,
-    draggable = true,
+    draggable: _draggable = true,
     onViewportChange,
     children,
     backgroundColor = 'transparent',

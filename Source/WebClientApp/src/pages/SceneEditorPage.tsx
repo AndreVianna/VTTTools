@@ -76,7 +76,7 @@ export const SceneEditorPage: React.FC = () => {
     const [gridConfig, setGridConfig] = useState<GridConfig>(getDefaultGrid());
 
     // Background state (Phase 3) - Default tavern map
-    const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>(DEFAULT_BACKGROUND_IMAGE);
+    const [backgroundImageUrl] = useState<string>(DEFAULT_BACKGROUND_IMAGE);
 
     // Placement mode state for asset placement
     const [placementMode, setPlacementMode] = useState<PlacementMode>({ active: false, asset: null });
@@ -299,17 +299,9 @@ export const SceneEditorPage: React.FC = () => {
     };
 
     // Helper: Get layer name from asset category
-    const getLayerFromCategory = (category: AssetCategory): LayerName => {
-        switch (category) {
-            case AssetCategory.Static:
-                return LayerName.Structure;
-            case AssetCategory.Passive:
-                return LayerName.Objects;
-            case AssetCategory.Active:
-                return LayerName.Agents;
-            default:
-                return LayerName.Agents;
-        }
+    const getLayerFromCategory = (_category: string): LayerName => {
+        // TODO: Implement proper category-to-layer mapping when AssetCategory enum is available
+        return LayerName.Agents;
     };
 
     // Helper: Calculate size to fit grid cell (maintain aspect ratio)

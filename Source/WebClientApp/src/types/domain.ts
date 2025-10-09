@@ -69,6 +69,8 @@ export interface CreateAssetRequest {
   name: string;
   description: string;
   resourceId?: string;
+  isPublished: boolean;
+  isPublic: boolean;
   objectProps?: ObjectProperties;
   creatureProps?: CreatureProperties;
 }

@@ -20,8 +20,7 @@ import {
     Checkbox,
     Button,
     Divider,
-    Box,
-    useTheme
+    Box
 } from '@mui/material';
 import {
     FilterList as FilterIcon,
@@ -32,9 +31,15 @@ import { AssetKind, CreatureCategory } from '@/types/domain';
 export interface AssetFilters {
     kind?: AssetKind;
     creatureCategory?: CreatureCategory;
-    ownership: 'mine' | 'public' | 'all';
-    publishedOnly: boolean;
-    publicOnly: boolean;
+    // Ownership - checkboxes
+    showMine: boolean;
+    showOthers: boolean;
+    // Visibility - checkboxes
+    showPublic: boolean;
+    showPrivate: boolean;
+    // Status - checkboxes
+    showPublished: boolean;
+    showDraft: boolean;
 }
 
 export interface AssetFilterPanelProps {
@@ -46,49 +51,27 @@ export const AssetFilterPanel: React.FC<AssetFilterPanelProps> = ({
     filters,
     onFiltersChange
 }) => {
-    const theme = useTheme();
-
-    const handleKindChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = event.target.value;
-        onFiltersChange({
-            ...filters,
-            kind: value === 'all' ? undefined : (value as AssetKind),
-            // Reset creature category when changing kind
-            creatureCategory: value === AssetKind.Creature ? filters.creatureCategory : undefined
-        });
-    };
-
-    const handleCreatureCategoryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = event.target.value;
-        onFiltersChange({
-            ...filters,
-            creatureCategory: value === 'all' ? undefined : (value as CreatureCategory)
-        });
-    };
-
-    const handleOwnershipChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        onFiltersChange({
-            ...filters,
-            ownership: event.target.value as 'mine' | 'public' | 'all'
-        });
-    };
-
     const handleResetFilters = () => {
         onFiltersChange({
-            kind: undefined,
+            ...filters, // Keep kind (controlled by Tabs in parent)
             creatureCategory: undefined,
-            ownership: 'mine',
-            publishedOnly: false,
-            publicOnly: false
+            showMine: true,
+            showOthers: true,
+            showPublic: true,
+            showPrivate: true,
+            showPublished: true,
+            showDraft: true
         });
     };
 
     const hasActiveFilters =
-        filters.kind !== undefined ||
         filters.creatureCategory !== undefined ||
-        filters.ownership !== 'mine' ||
-        filters.publishedOnly ||
-        filters.publicOnly;
+        !filters.showMine ||
+        !filters.showOthers ||
+        !filters.showPublic ||
+        !filters.showPrivate ||
+        !filters.showPublished ||
+        !filters.showDraft;
 
     return (
         <Paper
@@ -121,83 +104,103 @@ export const AssetFilterPanel: React.FC<AssetFilterPanelProps> = ({
 
             <Divider sx={{ mb: 2 }} />
 
-            {/* Kind Filter */}
-            <FormControl component="fieldset" sx={{ width: '100%', mb: 3 }}>
-                <FormLabel component="legend" sx={{ mb: 1, fontSize: '0.875rem', fontWeight: 500 }}>
-                    Asset Kind
-                </FormLabel>
-                <RadioGroup
-                    value={filters.kind ?? 'all'}
-                    onChange={handleKindChange}
-                >
-                    <FormControlLabel value="all" control={<Radio size="small" />} label="All" />
-                    <FormControlLabel value={AssetKind.Object} control={<Radio size="small" />} label="Objects" />
-                    <FormControlLabel value={AssetKind.Creature} control={<Radio size="small" />} label="Creatures" />
-                </RadioGroup>
-            </FormControl>
-
-            {/* Creature Category Filter (only when kind=Creature) */}
-            {filters.kind === AssetKind.Creature && (
-                <FormControl component="fieldset" sx={{ width: '100%', mb: 3 }}>
-                    <FormLabel component="legend" sx={{ mb: 1, fontSize: '0.875rem', fontWeight: 500 }}>
-                        Creature Type
-                    </FormLabel>
-                    <RadioGroup
-                        value={filters.creatureCategory ?? 'all'}
-                        onChange={handleCreatureCategoryChange}
-                    >
-                        <FormControlLabel value="all" control={<Radio size="small" />} label="All" />
-                        <FormControlLabel value={CreatureCategory.Character} control={<Radio size="small" />} label="Characters" />
-                        <FormControlLabel value={CreatureCategory.Monster} control={<Radio size="small" />} label="Monsters" />
-                    </RadioGroup>
-                </FormControl>
-            )}
-
-            <Divider sx={{ mb: 2 }} />
-
-            {/* Ownership Filter */}
+            {/* Ownership Filter - Checkboxes */}
             <FormControl component="fieldset" sx={{ width: '100%', mb: 3 }}>
                 <FormLabel component="legend" sx={{ mb: 1, fontSize: '0.875rem', fontWeight: 500 }}>
                     Ownership
                 </FormLabel>
-                <RadioGroup
-                    value={filters.ownership}
-                    onChange={handleOwnershipChange}
-                >
-                    <FormControlLabel value="mine" control={<Radio size="small" />} label="My Assets" />
-                    <FormControlLabel value="public" control={<Radio size="small" />} label="Public Assets" />
-                    <FormControlLabel value="all" control={<Radio size="small" />} label="All Assets" />
-                </RadioGroup>
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                size="small"
+                                checked={filters.showMine}
+                                onChange={(e) => onFiltersChange({ ...filters, showMine: e.target.checked })}
+                            />
+                        }
+                        label="Mine"
+                    />
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                size="small"
+                                checked={filters.showOthers}
+                                onChange={(e) => onFiltersChange({ ...filters, showOthers: e.target.checked })}
+                            />
+                        }
+                        label="Others"
+                    />
+                </Box>
             </FormControl>
 
-            <Divider sx={{ mb: 2 }} />
+            {/* Status/Visibility Filters - Only when "Mine" is checked */}
+            {filters.showMine && (
+                <>
+                    <Divider sx={{ mb: 2 }} />
 
-            {/* Status Filters */}
-            <FormControl component="fieldset" sx={{ width: '100%' }}>
-                <FormLabel component="legend" sx={{ mb: 1, fontSize: '0.875rem', fontWeight: 500 }}>
-                    Status
-                </FormLabel>
-                <FormControlLabel
-                    control={
-                        <Checkbox
-                            size="small"
-                            checked={filters.publishedOnly}
-                            onChange={(e) => onFiltersChange({ ...filters, publishedOnly: e.target.checked })}
-                        />
-                    }
-                    label="Published Only"
-                />
-                <FormControlLabel
-                    control={
-                        <Checkbox
-                            size="small"
-                            checked={filters.publicOnly}
-                            onChange={(e) => onFiltersChange({ ...filters, publicOnly: e.target.checked })}
-                        />
-                    }
-                    label="Public Only"
-                />
-            </FormControl>
+                    <FormControl component="fieldset" sx={{ width: '100%' }}>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                            {/* Status Column */}
+                            <Box>
+                                <FormLabel component="legend" sx={{ mb: 1, fontSize: '0.875rem', fontWeight: 500 }}>
+                                    Status
+                                </FormLabel>
+                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                size="small"
+                                                checked={filters.showPublished}
+                                                onChange={(e) => onFiltersChange({ ...filters, showPublished: e.target.checked })}
+                                            />
+                                        }
+                                        label="Published"
+                                    />
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                size="small"
+                                                checked={filters.showDraft}
+                                                onChange={(e) => onFiltersChange({ ...filters, showDraft: e.target.checked })}
+                                            />
+                                        }
+                                        label="Draft"
+                                    />
+                                </Box>
+                            </Box>
+
+                            {/* Visibility Column */}
+                            <Box>
+                                <FormLabel component="legend" sx={{ mb: 1, fontSize: '0.875rem', fontWeight: 500 }}>
+                                    Visibility
+                                </FormLabel>
+                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                size="small"
+                                                checked={filters.showPublic}
+                                                onChange={(e) => onFiltersChange({ ...filters, showPublic: e.target.checked })}
+                                            />
+                                        }
+                                        label="Public"
+                                    />
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                size="small"
+                                                checked={filters.showPrivate}
+                                                onChange={(e) => onFiltersChange({ ...filters, showPrivate: e.target.checked })}
+                                            />
+                                        }
+                                        label="Private"
+                                    />
+                                </Box>
+                            </Box>
+                        </Box>
+                    </FormControl>
+                </>
+            )}
         </Paper>
     );
 };

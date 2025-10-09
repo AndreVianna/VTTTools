@@ -17,7 +17,7 @@ import type {
   UpdateProfileRequest
 } from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
-import { mockApi } from './mockApi';
+// import { mockApi } from './mockApi'; // Unused - reserved for future mock API implementation
 import { devUtils, isDevelopment } from '@/config/development';
 
 // Authentication API using existing WebApp ASP.NET Core Identity
@@ -57,7 +57,7 @@ export const authApi = createApi({
         // If response is already a User object (direct format)
         return response;
       },
-      transformErrorResponse: (response, meta, arg) => {
+      transformErrorResponse: (response, _meta, _arg) => {
         if (isDevelopment && (response.status === 'FETCH_ERROR' || response.data?.isRecoverable)) {
           devUtils.warn('getCurrentUser failed, using mock user in development');
           // Return null instead of error to prevent crash

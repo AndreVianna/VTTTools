@@ -10,10 +10,11 @@ import {
   Avatar,
   IconButton,
   Divider,
+  Grid,
 } from '@mui/material';
 import {
-  Edit,
   PhotoCamera,
+  Edit,
   Save,
   Cancel,
 } from '@mui/icons-material';
@@ -90,7 +91,7 @@ export const ProfileSettings: React.FC = () => {
       }
 
       setIsEditing(false);
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to update profile:', error);
     }
   };

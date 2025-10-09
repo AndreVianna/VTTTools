@@ -1,5 +1,6 @@
-using IResult = Microsoft.AspNetCore.Http.IResult;
 using static VttTools.Utilities.ErrorCollectionExtensions;
+
+using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.Library.Handlers;
 

@@ -41,11 +41,14 @@ public static class AuthHandlers {
         // Check for specific error types from Identity
         if (response.Message?.Contains("Password") == true) {
             errors["password"] = [response.Message];
-        } else if (response.Message?.Contains("Email") == true || response.Message?.Contains("email") == true) {
+        }
+        else if (response.Message?.Contains("Email") == true || response.Message?.Contains("email") == true) {
             errors["email"] = [response.Message];
-        } else if (response.Message?.Contains("Name") == true || response.Message?.Contains("name") == true) {
+        }
+        else if (response.Message?.Contains("Name") == true || response.Message?.Contains("name") == true) {
             errors["name"] = [response.Message];
-        } else {
+        }
+        else {
             // Generic error
             errors[""] = [response.Message ?? "Registration failed"];
         }

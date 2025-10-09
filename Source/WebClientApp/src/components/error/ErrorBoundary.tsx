@@ -1,3 +1,6 @@
+/* eslint-disable react-refresh/only-export-components */
+// ErrorBoundary exports both the error boundary component and utility functions (withErrorBoundary HOC, ErrorBoundaryFallbackProps interface)
+// These utilities are tightly coupled to the error boundary behavior and logically belong in the same file
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import {
   Box,
@@ -193,7 +196,7 @@ const DefaultErrorFallback: React.FC<{
       >
         <Alert severity="error" sx={{ mb: 3 }}>
           <AlertTitle>System Error Occurred</AlertTitle>
-          Something unexpected happened in VTT Tools. Don't worry - your data is safe.
+          Something unexpected happened in VTT Tools. Don&apos;t worry - your data is safe.
         </Alert>
 
         <Typography variant="h4" gutterBottom color="error" sx={{ mb: 2 }}>
@@ -201,7 +204,7 @@ const DefaultErrorFallback: React.FC<{
         </Typography>
 
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          We're sorry for the inconvenience. The VTT Tools application encountered an unexpected error.
+          We&apos;re sorry for the inconvenience. The VTT Tools application encountered an unexpected error.
           Our team has been notified and will investigate the issue.
         </Typography>
 

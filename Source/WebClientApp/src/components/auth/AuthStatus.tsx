@@ -14,8 +14,6 @@ import {
 import {
   Person,
   Security,
-  Settings,
-  Logout as LogoutIcon,
   Login as LoginIcon,
   PersonAdd,
   CheckCircle,

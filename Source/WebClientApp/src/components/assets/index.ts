@@ -5,3 +5,5 @@ export { AssetSearchBar } from './AssetSearchBar';
 export type { AssetSearchBarProps } from './AssetSearchBar';
 export { AssetPreviewDialog } from './AssetPreviewDialog';
 export type { AssetPreviewDialogProps } from './AssetPreviewDialog';
+export { AssetCreateDialog } from './AssetCreateDialog';
+export type { AssetCreateDialogProps } from './AssetCreateDialog';

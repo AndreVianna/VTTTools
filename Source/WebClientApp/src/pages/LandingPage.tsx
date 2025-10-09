@@ -89,7 +89,7 @@ const PrimaryCTA = styled(Button)(({ theme }) => ({
   },
 }));
 
-const SecondaryCTA = styled(Button)(({ theme }) => ({
+const SecondaryCTA = styled(Button)(() => ({
   borderColor: '#FFFFFF',
   color: '#FFFFFF',
   padding: '14px 32px',
@@ -104,15 +104,15 @@ const SecondaryCTA = styled(Button)(({ theme }) => ({
   },
 }));
 
-// Dashboard content container for authenticated users
-const DashboardContainer = styled(Box)(({ theme }) => ({
-  backgroundColor: theme.palette.background.paper,
-  borderRadius: 16,
-  padding: '48px 40px',
-  textAlign: 'center',
-  border: `1px solid ${theme.palette.divider}`,
-  boxShadow: '0 4px 6px rgba(17, 24, 39, 0.05), 0 2px 4px rgba(17, 24, 39, 0.06)',
-}));
+// Dashboard content container for authenticated users (future use)
+// const DashboardContainer = styled(Box)(({ theme }) => ({
+//   backgroundColor: theme.palette.background.paper,
+//   borderRadius: 16,
+//   padding: '48px 40px',
+//   textAlign: 'center',
+//   border: `1px solid ${theme.palette.divider}`,
+//   boxShadow: '0 4px 6px rgba(17, 24, 39, 0.05), 0 2px 4px rgba(17, 24, 39, 0.06)',
+// }));
 
 export const LandingPage: React.FC = () => {
   const theme = useTheme();

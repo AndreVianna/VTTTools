@@ -16,12 +16,15 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         // Apply ownership filter first
         if (owner == "mine") {
             assets = assets.Where(a => a.OwnerId == userId).ToArray();
-        } else if (owner == "public") {
+        }
+        else if (owner == "public") {
             assets = assets.Where(a => a.IsPublic).ToArray();
-        } else if (owner == "all") {
+        }
+        else if (owner == "all") {
             // Show user's assets + public published assets
             assets = assets.Where(a => a.OwnerId == userId || (a.IsPublic && a.IsPublished)).ToArray();
-        } else {
+        }
+        else {
             // Default: only user's own assets (when owner not specified)
             assets = assets.Where(a => a.OwnerId == userId).ToArray();
         }
@@ -94,6 +97,8 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                 Name = data.Name,
                 Description = data.Description,
                 Resource = resource,
+                IsPublished = data.IsPublished,
+                IsPublic = data.IsPublic,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 Properties = data.ObjectProps ?? new()
@@ -103,6 +108,8 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                 Name = data.Name,
                 Description = data.Description,
                 Resource = resource,
+                IsPublished = data.IsPublished,
+                IsPublic = data.IsPublic,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 Properties = data.CreatureProps ?? new()

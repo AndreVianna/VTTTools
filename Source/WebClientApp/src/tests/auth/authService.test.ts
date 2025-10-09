@@ -53,7 +53,7 @@ describe('VttTools.Auth Microservice - Direct API Testing', () => {
           console.log('✅ Services are healthy and ready');
           break;
         }
-      } catch (error) {
+      } catch {
         healthCheckAttempts++;
         console.log(`⏳ Health check attempt ${healthCheckAttempts}/${maxHealthCheckAttempts}...`);
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -72,7 +72,7 @@ describe('VttTools.Auth Microservice - Direct API Testing', () => {
         confirmPassword: EXISTING_USER.password
       });
       console.log('✅ Test user setup completed');
-    } catch (error) {
+    } catch {
       console.log('ℹ️ Test user may already exist (this is expected)');
     }
   });
@@ -207,7 +207,7 @@ describe('VttTools.Auth Microservice - Direct API Testing', () => {
       try {
         await Promise.all(promises);
         expect.fail('Rate limiting should have been enforced');
-      } catch (error: any) {
+      } catch {
         // Some requests should succeed, others should be rate limited
         const failedRequests = promises.filter(async (p) => {
           try {

@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Box,
   Button,
   Paper,
   Typography,
@@ -10,7 +9,7 @@ import { styled } from '@mui/material/styles';
 import { Refresh as RefreshIcon } from '@mui/icons-material';
 
 // Professional Error Card
-const ErrorCard = styled(Paper)(({ theme }) => ({
+const ErrorCard = styled(Paper)(() => ({
   maxWidth: '500px',
   margin: '0 auto',
   padding: '64px 48px',

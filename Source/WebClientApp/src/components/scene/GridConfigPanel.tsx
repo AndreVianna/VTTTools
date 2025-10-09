@@ -83,8 +83,8 @@ export const GridConfigPanel: React.FC<GridConfigPanelProps> = ({
         try {
             // Call backend API: PATCH /api/library/scenes/{id}/grid
             await onSave(grid);
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to save grid configuration';
+        } catch (_error) {
+            const errorMessage = _error instanceof Error ? _error.message : 'Failed to save grid configuration';
             setErrors([errorMessage]);
         } finally {
             setIsLoading(false);

@@ -6,6 +6,8 @@ public record CreateAssetRequest
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public Guid? ResourceId { get; init; }
+    public bool IsPublished { get; init; }
+    public bool IsPublic { get; init; }
 
     // Polymorphic properties (only one should be populated based on Kind)
     public ObjectProperties? ObjectProps { get; init; }

@@ -50,8 +50,8 @@ const loadThemeFromStorage = (): 'light' | 'dark' => {
     if (stored === 'light' || stored === 'dark') {
       return stored;
     }
-  } catch (error) {
-    console.warn('Failed to load theme from localStorage:', error);
+  } catch (_error) {
+    console.warn('Failed to load theme from localStorage:', _error);
   }
   return 'light';
 };
@@ -59,8 +59,8 @@ const loadThemeFromStorage = (): 'light' | 'dark' => {
 const saveThemeToStorage = (theme: 'light' | 'dark') => {
   try {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
-  } catch (error) {
-    console.warn('Failed to save theme to localStorage:', error);
+  } catch (_error) {
+    console.warn('Failed to save theme to localStorage:', _error);
   }
 };
 

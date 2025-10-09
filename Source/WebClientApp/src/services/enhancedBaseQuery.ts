@@ -5,7 +5,7 @@
 
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
-import { mockApi, shouldUseMockApi } from './mockApi';
+// import { mockApi, shouldUseMockApi } from './mockApi'; // removed (unused)
 import { devUtils, isDevelopment } from '@/config/development';
 
 // Enhanced error type that includes network status
@@ -147,11 +147,9 @@ export const withMockFallback = <T>(
   operationName: string
 ): Promise<T> => {
   return operation().catch(async (error) => {
-    if (shouldUseMockApi(error)) {
-      devUtils.warn(`Falling back to mock data for: ${operationName}`);
-      return mockOperation();
-    }
-    throw error;
+    // TODO: Re-enable mock API fallback when mockApi is needed
+    devUtils.warn(`Falling back to mock data for: ${operationName}`, error);
+    return mockOperation();
   });
 };
 

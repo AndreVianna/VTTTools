@@ -128,7 +128,7 @@ export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> =
     try {
       await resetPassword(email);
       setIsSubmitted(true);
-    } catch (error) {
+    } catch (_error) {
       // Error is already handled by the useAuth hook
       console.log('Password reset request failed:', error);
     }
@@ -178,7 +178,7 @@ export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> =
 
         <Box sx={{ mt: 2, textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            Didn't receive the email?{' '}
+            Didn&apos;t receive the email?{' '}
             <Link
               component="button"
               variant="body2"
@@ -221,7 +221,7 @@ export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> =
             mb: 4,
           }}
         >
-          Enter your email address and we'll send you instructions to reset your password.
+          Enter your email address and we&apos;ll send you instructions to reset your password.
         </Typography>
 
         {error && hasAttemptedSubmit && (

@@ -1,5 +1,6 @@
-using IResult = Microsoft.AspNetCore.Http.IResult;
 using static VttTools.Utilities.ErrorCollectionExtensions;
+
+using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.Assets.Handlers;
 
@@ -59,6 +60,8 @@ internal static class AssetHandlers {
             Name = request.Name,
             Description = request.Description,
             ResourceId = request.ResourceId,
+            IsPublished = request.IsPublished,
+            IsPublic = request.IsPublic,
             ObjectProps = request.ObjectProps,
             CreatureProps = request.CreatureProps,
         };

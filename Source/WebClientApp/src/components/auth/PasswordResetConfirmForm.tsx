@@ -15,8 +15,6 @@ import {
 import {
   Visibility,
   VisibilityOff,
-  CheckCircle,
-  Cancel,
   ArrowBack,
 } from '@mui/icons-material';
 import { useAuth } from '@/hooks/useAuth';
@@ -166,7 +164,7 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
         formData.newPassword,
         formData.newPassword  // Send password twice (backend still requires confirmPassword)
       );
-    } catch (error) {
+    } catch (_error) {
       // Error is already handled by the useAuth hook
       console.log('Password reset confirmation failed:', error);
     }

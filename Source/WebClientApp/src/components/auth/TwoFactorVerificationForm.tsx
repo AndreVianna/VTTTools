@@ -63,7 +63,7 @@ export const TwoFactorVerificationForm: React.FC<TwoFactorVerificationFormProps>
 
     try {
       await verifyTwoFactor(verificationCode.replace(/\s/g, ''), rememberMachine);
-    } catch (error) {
+    } catch (_error) {
       // Error is already handled by the useAuth hook
       console.log('2FA verification failed:', error);
     }

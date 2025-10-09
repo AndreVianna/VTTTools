@@ -15,16 +15,12 @@ import {
     DialogContent,
     DialogActions,
     Button,
-    TextField,
     Typography,
     Box,
     Chip,
     Stack,
     IconButton,
     Divider,
-    FormControlLabel,
-    Checkbox,
-    Alert,
     CircularProgress,
     useTheme
 } from '@mui/material';
@@ -40,11 +36,15 @@ import {
     Asset,
     AssetKind,
     CreatureCategory,
-    ObjectAsset,
-    CreatureAsset,
     UpdateAssetRequest
 } from '@/types/domain';
 import { useUpdateAssetMutation, useDeleteAssetMutation } from '@/services/assetsApi';
+import {
+    AssetBasicFields,
+    ObjectPropertiesForm,
+    CreaturePropertiesForm,
+    AssetVisibilityFields
+} from './forms';
 
 export interface AssetPreviewDialogProps {
     open: boolean;
@@ -104,6 +104,22 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
         setDescription(asset.description);
         setIsPublic(asset.isPublic);
         setIsPublished(asset.isPublished);
+
+        // Reset object-specific properties
+        if (asset.kind === AssetKind.Object && 'objectProps' in asset) {
+            setCellWidth(asset.objectProps.cellWidth);
+            setCellHeight(asset.objectProps.cellHeight);
+            setIsMovable(asset.objectProps.isMovable);
+            setIsOpaque(asset.objectProps.isOpaque);
+            setIsVisible(asset.objectProps.isVisible);
+        }
+
+        // Reset creature-specific properties
+        if (asset.kind === AssetKind.Creature && 'creatureProps' in asset) {
+            setCellSize(asset.creatureProps.cellSize);
+            setCreatureCategory(asset.creatureProps.category);
+        }
+
         setEditMode(false);
         setDeleteConfirmOpen(false);
     }, [asset]);
@@ -136,8 +152,8 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
             await updateAsset({ id: asset.id, request }).unwrap();
             setEditMode(false);
             onClose();
-        } catch (error) {
-            console.error('Failed to update asset:', error);
+        } catch (_error) {
+            console.error('Failed to update asset:', _error);
         }
     };
 
@@ -145,8 +161,8 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
         try {
             await deleteAsset(asset.id).unwrap();
             onClose();
-        } catch (error) {
-            console.error('Failed to delete asset:', error);
+        } catch (_error) {
+            console.error('Failed to delete asset:', _error);
         }
     };
 
@@ -170,7 +186,7 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                 <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CategoryIcon />
-                        <Typography variant="h6">
+                        <Typography variant="h6" component="span">
                             {editMode ? 'Edit Asset' : 'Asset Details'}
                         </Typography>
                     </Box>
@@ -211,38 +227,14 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                     </Box>
 
                     <Stack spacing={2}>
-                        {/* Name */}
-                        {editMode ? (
-                            <TextField
-                                label="Name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                fullWidth
-                                required
-                            />
-                        ) : (
-                            <Box>
-                                <Typography variant="caption" color="text.secondary">Name</Typography>
-                                <Typography variant="h6">{asset.name}</Typography>
-                            </Box>
-                        )}
-
-                        {/* Description */}
-                        {editMode ? (
-                            <TextField
-                                label="Description"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                multiline
-                                rows={3}
-                                fullWidth
-                            />
-                        ) : (
-                            <Box>
-                                <Typography variant="caption" color="text.secondary">Description</Typography>
-                                <Typography>{asset.description}</Typography>
-                            </Box>
-                        )}
+                        {/* Basic Fields (Name & Description) */}
+                        <AssetBasicFields
+                            name={name}
+                            description={description}
+                            onNameChange={setName}
+                            onDescriptionChange={setDescription}
+                            readOnly={!editMode}
+                        />
 
                         {/* Kind (Read-only) */}
                         <Box>
@@ -254,128 +246,40 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
 
                         {/* Object-specific Properties */}
                         {asset.kind === AssetKind.Object && 'objectProps' in asset && (
-                            <Box>
-                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                                    Object Properties
-                                </Typography>
-                                {editMode ? (
-                                    <Stack spacing={2}>
-                                        <Box sx={{ display: 'flex', gap: 2 }}>
-                                            <TextField
-                                                label="Cell Width"
-                                                type="number"
-                                                value={cellWidth}
-                                                onChange={(e) => setCellWidth(parseInt(e.target.value) || 1)}
-                                                inputProps={{ min: 1 }}
-                                                size="small"
-                                            />
-                                            <TextField
-                                                label="Cell Height"
-                                                type="number"
-                                                value={cellHeight}
-                                                onChange={(e) => setCellHeight(parseInt(e.target.value) || 1)}
-                                                inputProps={{ min: 1 }}
-                                                size="small"
-                                            />
-                                        </Box>
-                                        <FormControlLabel
-                                            control={<Checkbox checked={isMovable} onChange={(e) => setIsMovable(e.target.checked)} />}
-                                            label="Movable"
-                                        />
-                                        <FormControlLabel
-                                            control={<Checkbox checked={isOpaque} onChange={(e) => setIsOpaque(e.target.checked)} />}
-                                            label="Opaque (blocks vision)"
-                                        />
-                                        <FormControlLabel
-                                            control={<Checkbox checked={isVisible} onChange={(e) => setIsVisible(e.target.checked)} />}
-                                            label="Visible to players"
-                                        />
-                                    </Stack>
-                                ) : (
-                                    <Stack spacing={1}>
-                                        <Typography variant="body2">Size: {asset.objectProps.cellWidth}x{asset.objectProps.cellHeight} cells</Typography>
-                                        <Typography variant="body2">Movable: {asset.objectProps.isMovable ? 'Yes' : 'No'}</Typography>
-                                        <Typography variant="body2">Opaque: {asset.objectProps.isOpaque ? 'Yes' : 'No'}</Typography>
-                                        <Typography variant="body2">Visible: {asset.objectProps.isVisible ? 'Yes' : 'No'}</Typography>
-                                    </Stack>
-                                )}
-                            </Box>
+                            <ObjectPropertiesForm
+                                cellWidth={cellWidth}
+                                cellHeight={cellHeight}
+                                isMovable={isMovable}
+                                isOpaque={isOpaque}
+                                isVisible={isVisible}
+                                onCellWidthChange={setCellWidth}
+                                onCellHeightChange={setCellHeight}
+                                onIsMovableChange={setIsMovable}
+                                onIsOpaqueChange={setIsOpaque}
+                                onIsVisibleChange={setIsVisible}
+                                readOnly={!editMode}
+                            />
                         )}
 
                         {/* Creature-specific Properties */}
                         {asset.kind === AssetKind.Creature && 'creatureProps' in asset && (
-                            <Box>
-                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                                    Creature Properties
-                                </Typography>
-                                {editMode ? (
-                                    <Stack spacing={2}>
-                                        <TextField
-                                            label="Cell Size"
-                                            type="number"
-                                            value={cellSize}
-                                            onChange={(e) => setCellSize(parseInt(e.target.value) || 1)}
-                                            inputProps={{ min: 1 }}
-                                            size="small"
-                                            fullWidth
-                                        />
-                                        <Box>
-                                            <Typography variant="body2" sx={{ mb: 1 }}>Category</Typography>
-                                            <Box sx={{ display: 'flex', gap: 1 }}>
-                                                <Chip
-                                                    label="Character"
-                                                    onClick={() => setCreatureCategory(CreatureCategory.Character)}
-                                                    color={creatureCategory === CreatureCategory.Character ? 'primary' : 'default'}
-                                                    variant={creatureCategory === CreatureCategory.Character ? 'filled' : 'outlined'}
-                                                />
-                                                <Chip
-                                                    label="Monster"
-                                                    onClick={() => setCreatureCategory(CreatureCategory.Monster)}
-                                                    color={creatureCategory === CreatureCategory.Monster ? 'primary' : 'default'}
-                                                    variant={creatureCategory === CreatureCategory.Monster ? 'filled' : 'outlined'}
-                                                />
-                                            </Box>
-                                        </Box>
-                                    </Stack>
-                                ) : (
-                                    <Stack spacing={1}>
-                                        <Typography variant="body2">Size: {asset.creatureProps.cellSize}x{asset.creatureProps.cellSize} cells</Typography>
-                                        <Box>
-                                            <Chip label={asset.creatureProps.category} size="small" />
-                                        </Box>
-                                    </Stack>
-                                )}
-                            </Box>
+                            <CreaturePropertiesForm
+                                cellSize={cellSize}
+                                category={creatureCategory}
+                                onCellSizeChange={setCellSize}
+                                onCategoryChange={setCreatureCategory}
+                                readOnly={!editMode}
+                            />
                         )}
 
-                        {/* Publishing Status */}
-                        <Box>
-                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                                Visibility
-                            </Typography>
-                            {editMode ? (
-                                <Stack spacing={1}>
-                                    <FormControlLabel
-                                        control={<Checkbox checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />}
-                                        label="Public (visible to all users)"
-                                    />
-                                    <FormControlLabel
-                                        control={<Checkbox checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} />}
-                                        label="Published (approved for use)"
-                                    />
-                                    {isPublished && !isPublic && (
-                                        <Alert severity="warning" sx={{ mt: 1 }}>
-                                            Published assets must be public
-                                        </Alert>
-                                    )}
-                                </Stack>
-                            ) : (
-                                <Box sx={{ display: 'flex', gap: 1 }}>
-                                    <Chip label={asset.isPublic ? 'Public' : 'Private'} size="small" />
-                                    {asset.isPublished && <Chip label="Published" color="success" size="small" />}
-                                </Box>
-                            )}
-                        </Box>
+                        {/* Visibility Fields */}
+                        <AssetVisibilityFields
+                            isPublic={isPublic}
+                            isPublished={isPublished}
+                            onIsPublicChange={setIsPublic}
+                            onIsPublishedChange={setIsPublished}
+                            readOnly={!editMode}
+                        />
 
                         {/* Metadata */}
                         {!editMode && (
@@ -450,7 +354,7 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                 <DialogTitle>Delete Asset?</DialogTitle>
                 <DialogContent>
                     <Typography>
-                        Are you sure you want to delete "{asset.name}"? This action cannot be undone.
+                        Are you sure you want to delete &quot;{asset.name}&quot;? This action cannot be undone.
                     </Typography>
                     {asset.isPublished && (
                         <Alert severity="warning" sx={{ mt: 2 }}>

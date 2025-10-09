@@ -59,7 +59,7 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
       const result = await generateRecoveryCodes();
       setNewRecoveryCodes(result.recoveryCodes);
       setShowConfirmDialog(false);
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to generate recovery codes:', error);
     } finally {
       setIsGenerating(false);
@@ -73,7 +73,7 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
       </Typography>
 
       <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
-        Recovery codes are used to access your account when you don't have access to your authenticator device.
+        Recovery codes are used to access your account when you don&apos;t have access to your authenticator device.
       </Typography>
 
       {error && (
@@ -150,7 +150,7 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
                 </ListItemIcon>
                 <ListItemText
                   primary="Important Security Information"
-                  secondary="Each recovery code can only be used once. If you've used some codes or suspect they may be compromised, generate new ones."
+                  secondary="Each recovery code can only be used once. If you&apos;ve used some codes or suspect they may be compromised, generate new ones."
                 />
               </ListItem>
               <ListItem>
@@ -159,7 +159,7 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
                 </ListItemIcon>
                 <ListItemText
                   primary="When to Generate New Codes"
-                  secondary="Generate new recovery codes if you've used some of your existing codes, or if you believe they may have been compromised."
+                  secondary="Generate new recovery codes if you&apos;ve used some of your existing codes, or if you believe they may have been compromised."
                 />
               </ListItem>
             </List>
@@ -205,13 +205,13 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
           <Alert severity="warning" sx={{ mb: 2 }}>
             <Typography variant="body2">
               Generating new recovery codes will invalidate all of your existing recovery codes.
-              Make sure you've saved the new codes before continuing.
+              Make sure you&apos;ve saved the new codes before continuing.
             </Typography>
           </Alert>
 
           <Typography variant="body2" color="text.secondary">
             This action cannot be undone. Your current recovery codes will no longer work
-            and you'll need to save the new ones in a safe place.
+            and you&apos;ll need to save the new ones in a safe place.
           </Typography>
         </DialogContent>
         <DialogActions>

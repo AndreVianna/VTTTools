@@ -38,7 +38,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
 
     // Memoize grid lines for performance (60 FPS target)
     const gridLines = useMemo(() => {
-        const lines: JSX.Element[] = [];
+        const lines: React.ReactElement[] = [];
 
         switch (grid.type) {
             case GridType.Square:

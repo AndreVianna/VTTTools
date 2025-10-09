@@ -11,7 +11,6 @@ import type {
   RegisterRequest,
   RegisterResponse,
   Adventure,
-  Scene,
   Asset,
   GameSession,
   MediaResource

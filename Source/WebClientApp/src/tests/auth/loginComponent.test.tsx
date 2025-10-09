@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -25,7 +25,6 @@ const mockAuthService = {
 
 // Mock auth API responses
 const mockSuccessResponse = { success: true, message: 'Operation successful' };
-const mockErrorResponse = { success: false, message: 'Operation failed' };
 
 // Import components after setting up mocks
 vi.mock('@/services/authApi', () => ({
@@ -133,7 +132,7 @@ const vttToolsTheme = createTheme({
 // Create test store
 const createTestStore = () => configureStore({
   reducer: {
-    auth: (state = { isAuthenticated: false, user: null }, action) => state,
+    auth: (state = { isAuthenticated: false, user: null }) => state,
   },
 });
 
@@ -151,6 +150,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     </Provider>
   );
 };
+TestWrapper.displayName = 'TestWrapper';
 
 // Simple test login form component for testing
 const TestLoginForm: React.FC = () => {
@@ -194,6 +194,7 @@ const TestLoginForm: React.FC = () => {
         setErrors({ general: result.message });
       }
     } catch (error) {
+      console.error('Login error:', error);
       setErrors({ general: 'Network error occurred' });
     } finally {
       setIsLoading(false);
@@ -247,6 +248,7 @@ const TestLoginForm: React.FC = () => {
     </form>
   );
 };
+TestLoginForm.displayName = 'TestLoginForm';
 
 // Import Material UI components
 import {

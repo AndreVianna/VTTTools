@@ -124,8 +124,8 @@ export const StageConfigPanel: React.FC<StageConfigPanelProps> = ({
         try {
             // Call backend API: PATCH /api/library/scenes/{id}/stage
             await onSave(stage);
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to save stage configuration';
+        } catch (_error) {
+            const errorMessage = _error instanceof Error ? _error.message : 'Failed to save stage configuration';
             setErrors([errorMessage]);
         } finally {
             setIsLoading(false);
