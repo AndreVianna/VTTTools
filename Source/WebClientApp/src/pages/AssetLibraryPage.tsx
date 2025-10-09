@@ -30,6 +30,7 @@ import {
 } from '@mui/material';
 import {
     Add as AddIcon,
+    AddCircleOutline as AddCircleOutlineIcon,
     Category as CategoryIcon
 } from '@mui/icons-material';
 import { useGetAssetsQuery } from '@/services/assetsApi';
@@ -188,22 +189,13 @@ export const AssetLibraryPage: React.FC = () => {
         <Container maxWidth="xl" sx={{ py: 4 }}>
             {/* Page Header */}
             <Box sx={{ mb: 4 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Box>
-                        <Typography variant="h4" component="h1" gutterBottom>
-                            Asset Library
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Manage your objects and creatures for scenes
-                        </Typography>
-                    </Box>
-                    <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        onClick={() => setCreateDialogOpen(true)}
-                    >
-                        Create Asset
-                    </Button>
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h4" component="h1" gutterBottom>
+                        Asset Library
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Manage your objects and creatures for scenes
+                    </Typography>
                 </Box>
 
                 {/* Asset Kind Tabs (Major Filter) */}
@@ -279,39 +271,85 @@ export const AssetLibraryPage: React.FC = () => {
                 </Alert>
             )}
 
-            {/* Empty State */}
-            {!isLoading && !error && assets && assets.length === 0 && (
-                <Box
-                    sx={{
-                        textAlign: 'center',
-                        py: 8,
-                        px: 2,
-                        bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : 'grey.50',
-                        borderRadius: 2,
-                        border: `1px dashed ${theme.palette.divider}`
-                    }}
-                >
-                    <CategoryIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
-                        No Assets Found
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                        {`No ${selectedKind === AssetKind.Object ? 'objects' : 'creatures'} found with the current filters.`}
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        onClick={() => setCreateDialogOpen(true)}
-                    >
-                        Create Your First Asset
-                    </Button>
-                </Box>
-            )}
-
-            {/* Asset Cards Grid */}
-            {!isLoading && !error && assets && assets.length > 0 && (
+            {/* Asset Cards Grid (always shown with virtual "Add" card) */}
+            {!isLoading && !error && assets && (
                 <>
                     <Grid container spacing={3}>
+                        {/* Virtual "Add" Card (always first) */}
+                        <Grid size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
+                            <Card
+                                sx={{
+                                    height: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    transition: 'all 0.2s',
+                                    cursor: 'pointer',
+                                    border: '2px dashed',
+                                    borderColor: theme.palette.primary.main,
+                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+                                    '&:hover': {
+                                        transform: 'translateY(-4px)',
+                                        boxShadow: 4,
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
+                                    }
+                                }}
+                                onClick={() => {
+                                    setCreateDialogOpen(true);
+                                }}
+                            >
+                                {/* Title: "Add Object" or "Add Creature" */}
+                                <CardContent sx={{ pb: 1 }}>
+                                    <Typography variant="subtitle2" component="h2" noWrap fontWeight={600} color="primary">
+                                        Add {selectedKind === AssetKind.Object ? 'Object' : 'Creature'}
+                                    </Typography>
+                                </CardContent>
+
+                                {/* Plus Icon in Image Area */}
+                                <CardMedia
+                                    component="div"
+                                    sx={{
+                                        paddingTop: '100%', // 1:1 aspect ratio (square)
+                                        position: 'relative',
+                                        bgcolor: 'transparent'
+                                    }}
+                                >
+                                    <Box
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                    >
+                                        <AddCircleOutlineIcon
+                                            sx={{
+                                                fontSize: 80,
+                                                color: theme.palette.primary.main,
+                                                opacity: 0.7
+                                            }}
+                                        />
+                                    </Box>
+                                </CardMedia>
+
+                                {/* Empty badge area for consistent height */}
+                                <CardContent sx={{ pt: 1, pb: 1, flexGrow: 1 }}>
+                                    <Box sx={{ minHeight: '24px' }} />
+                                </CardContent>
+
+                                {/* Empty actions area for consistent height */}
+                                <CardActions sx={{ pt: 0, px: 2, pb: 2 }}>
+                                    <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
+                                        &nbsp;
+                                    </Typography>
+                                </CardActions>
+                            </Card>
+                        </Grid>
+
+                        {/* Regular Asset Cards */}
                         {assets.map((asset) => (
                             <Grid key={asset.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
                                 <Card
@@ -460,7 +498,7 @@ export const AssetLibraryPage: React.FC = () => {
             <AssetCreateDialog
                 open={createDialogOpen}
                 onClose={() => setCreateDialogOpen(false)}
-                initialKind={selectedKind}
+                fixedKind={selectedKind}
             />
         </Container>
     );

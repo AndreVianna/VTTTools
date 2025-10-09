@@ -39,15 +39,17 @@ export interface AssetCreateDialogProps {
     open: boolean;
     onClose: () => void;
     initialKind?: AssetKind; // Optional: Pre-select kind based on active tab in parent
+    fixedKind?: AssetKind; // Optional: Lock kind (hide tabs) - used by virtual Add card
 }
 
 export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
     open,
     onClose,
-    initialKind = AssetKind.Object
+    initialKind = AssetKind.Object,
+    fixedKind
 }) => {
-    // Kind selection
-    const [selectedKind, setSelectedKind] = useState<AssetKind>(initialKind);
+    // Kind selection - use fixedKind if provided, otherwise initialKind
+    const [selectedKind, setSelectedKind] = useState<AssetKind>(fixedKind ?? initialKind);
 
     // Basic fields
     const [name, setName] = useState('');
@@ -74,7 +76,7 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
     // Reset form when dialog opens
     useEffect(() => {
         if (open) {
-            setSelectedKind(initialKind);
+            setSelectedKind(fixedKind ?? initialKind);
             setName('');
             setDescription('');
             setIsPublic(false);
@@ -87,7 +89,7 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
             setCellSize(1);
             setCreatureCategory(CreatureCategory.Character);
         }
-    }, [open, initialKind]);
+    }, [open, initialKind, fixedKind]);
 
     const handleSave = async () => {
         try {
@@ -163,20 +165,22 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
 
             <DialogContent>
                 <Stack spacing={3}>
-                    {/* Kind Selector Tabs */}
-                    <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                            Asset Kind
-                        </Typography>
-                        <Tabs
-                            value={selectedKind}
-                            onChange={(_, newValue) => setSelectedKind(newValue)}
-                            sx={{ borderBottom: 1, borderColor: 'divider' }}
-                        >
-                            <Tab label="Object" value={AssetKind.Object} />
-                            <Tab label="Creature" value={AssetKind.Creature} />
-                        </Tabs>
-                    </Box>
+                    {/* Kind Selector Tabs - only show if kind is not fixed */}
+                    {!fixedKind && (
+                        <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                                Asset Kind
+                            </Typography>
+                            <Tabs
+                                value={selectedKind}
+                                onChange={(_, newValue) => setSelectedKind(newValue)}
+                                sx={{ borderBottom: 1, borderColor: 'divider' }}
+                            >
+                                <Tab label="Object" value={AssetKind.Object} />
+                                <Tab label="Creature" value={AssetKind.Creature} />
+                            </Tabs>
+                        </Box>
+                    )}
 
                     {/* Basic Fields (Name & Description) */}
                     <AssetBasicFields
