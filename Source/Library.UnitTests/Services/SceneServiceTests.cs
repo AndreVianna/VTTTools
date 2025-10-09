@@ -237,16 +237,24 @@ public class SceneServiceTests {
             Rotation = 45,
         };
 
+        var resourceId = Guid.NewGuid();
         var asset = new ObjectAsset {
             Id = assetId,
             OwnerId = _userId,
             Name = "Test Asset",
-            Resource = new Resource {
-                Id = Guid.NewGuid(),
-                Type = ResourceType.Image,
-                Path = "test/asset-display.png",
-                Metadata = new ResourceMetadata { ContentType = "image/png" },
-            },
+            Resources = [
+                new AssetResource {
+                    ResourceId = resourceId,
+                    Resource = new Resource {
+                        Id = resourceId,
+                        Type = ResourceType.Image,
+                        Path = "test/asset-display.png",
+                        Metadata = new ResourceMetadata { ContentType = "image/png" },
+                    },
+                    Role = ResourceRole.Token,
+                    IsDefault = true
+                }
+            ],
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);

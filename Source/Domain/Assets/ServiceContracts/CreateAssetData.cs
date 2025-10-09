@@ -8,7 +8,7 @@ public record CreateAssetData
     public AssetKind Kind { get; init; }
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
-    public Guid? ResourceId { get; init; }
+    public AssetResource[] Resources { get; init; } = [];
     public bool IsPublished { get; init; }
     public bool IsPublic { get; init; }
 
@@ -31,16 +31,18 @@ public record CreateAssetData
 
         // Validate ObjectProps values
         if (ObjectProps is not null) {
-            if (ObjectProps.CellWidth <= 0)
-                result += new Error("CellWidth must be greater than 0.", $"{nameof(ObjectProps)}.{nameof(ObjectProps.CellWidth)}");
-            if (ObjectProps.CellHeight <= 0)
-                result += new Error("CellHeight must be greater than 0.", $"{nameof(ObjectProps)}.{nameof(ObjectProps.CellHeight)}");
+            if (ObjectProps.Size.Width <= 0)
+                result += new Error("Size width must be greater than 0.", $"{nameof(ObjectProps)}.Size.Width");
+            if (ObjectProps.Size.Height <= 0)
+                result += new Error("Size height must be greater than 0.", $"{nameof(ObjectProps)}.Size.Height");
         }
 
         // Validate CreatureProps values
         if (CreatureProps is not null) {
-            if (CreatureProps.CellSize <= 0)
-                result += new Error("CellSize must be greater than 0.", $"{nameof(CreatureProps)}.{nameof(CreatureProps.CellSize)}");
+            if (CreatureProps.Size.Width <= 0)
+                result += new Error("Size width must be greater than 0.", $"{nameof(CreatureProps)}.Size.Width");
+            if (CreatureProps.Size.Height <= 0)
+                result += new Error("Size height must be greater than 0.", $"{nameof(CreatureProps)}.Size.Height");
         }
 
         return result;

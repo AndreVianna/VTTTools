@@ -9,12 +9,12 @@ public record SceneAsset {
     public uint Index { get; init; }
     public uint Number { get; init; }
 
-    // Overridable properties (if null, use template value)
+    // Overridable properties (if null/default, use template value)
     [MaxLength(128)]
     public string Name { get; init; } = string.Empty;  // Instance-specific name (e.g., "Goblin #3")
     [MaxLength(4096)]
     public string? Description { get; init; }  // Instance-specific description (e.g., "Goblin with bow")
-    public Guid? ResourceId { get; init; }  // Instance-specific image (custom token art, variant)
+    public Guid ResourceId { get; init; }  // REQUIRED - must select a resource from Asset.Resources (for token display)
 
     // Instance-specific data
     public Size Size { get; init; } = Size.Zero;

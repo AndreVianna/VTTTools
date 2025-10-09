@@ -16,6 +16,7 @@ import { Group, Image as KonvaImage } from 'react-konva';
 import Konva from 'konva';
 import { Asset } from '@/types/domain';
 import { GridConfig, Point, pointToCell, cellToPoint } from '@/utils/gridCalculator';
+import { getDefaultTokenResource, getResourceUrl } from '@/utils/assetHelpers';
 
 export interface PlacementCursorProps {
     /** Asset being placed */
@@ -43,10 +44,11 @@ export const PlacementCursor: React.FC<PlacementCursorProps> = ({
 
     // Load asset image
     useEffect(() => {
-        if (!asset.resource?.id) return;
+        const tokenResource = getDefaultTokenResource(asset);
+        if (!tokenResource) return;
 
         const img = new window.Image();
-        img.src = `https://localhost:7174/api/resources/${asset.resource.id}`;
+        img.src = getResourceUrl(tokenResource.resourceId);
         img.crossOrigin = 'anonymous';
 
         img.onload = () => {
@@ -58,7 +60,7 @@ export const PlacementCursor: React.FC<PlacementCursorProps> = ({
             imageRef.current = null;
             setImage(null);
         };
-    }, [asset.resource?.id]);
+    }, [asset]);
 
     // Track raw mouse pointer position
     useEffect(() => {

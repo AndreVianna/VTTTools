@@ -22,6 +22,7 @@ import {
     IconButton,
     Divider,
     CircularProgress,
+    Alert,
     useTheme
 } from '@mui/material';
 import {
@@ -43,8 +44,11 @@ import {
     AssetBasicFields,
     ObjectPropertiesForm,
     CreaturePropertiesForm,
-    AssetVisibilityFields
+    AssetVisibilityFields,
+    AssetResourceManager
 } from './forms';
+import { getDefaultPortraitResource, getResourceUrl } from '@/utils/assetHelpers';
+import { AssetResource } from '@/types/domain';
 
 export interface AssetPreviewDialogProps {
     open: boolean;
@@ -64,6 +68,7 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
     // Editable fields
     const [name, setName] = useState(asset.name);
     const [description, setDescription] = useState(asset.description);
+    const [resources, setResources] = useState<AssetResource[]>([]);
     const [isPublic, setIsPublic] = useState(asset.isPublic);
     const [isPublished, setIsPublished] = useState(asset.isPublished);
 
@@ -102,6 +107,7 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
     useEffect(() => {
         setName(asset.name);
         setDescription(asset.description);
+        setResources([...asset.resources]); // Clone the array
         setIsPublic(asset.isPublic);
         setIsPublished(asset.isPublished);
 
@@ -129,6 +135,7 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
             const request: UpdateAssetRequest = {
                 name,
                 description,
+                resources,
                 isPublic,
                 isPublished
             };
@@ -211,22 +218,32 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                             mb: 3
                         }}
                     >
-                        {asset.resource ? (
-                            <img
-                                src={`https://localhost:7174/api/resources/${asset.resource.id}`}
-                                alt={asset.name}
-                                style={{
-                                    maxWidth: '100%',
-                                    maxHeight: '100%',
-                                    objectFit: 'contain'
-                                }}
-                            />
-                        ) : (
-                            <CategoryIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
-                        )}
+                        {(() => {
+                            const portraitResource = getDefaultPortraitResource(asset);
+                            return portraitResource ? (
+                                <img
+                                    src={getResourceUrl(portraitResource.resourceId)}
+                                    alt={asset.name}
+                                    style={{
+                                        maxWidth: '100%',
+                                        maxHeight: '100%',
+                                        objectFit: 'contain'
+                                    }}
+                                />
+                            ) : (
+                                <CategoryIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
+                            );
+                        })()}
                     </Box>
 
                     <Stack spacing={2}>
+                        {/* Resource Manager - TOP PRIORITY */}
+                        <AssetResourceManager
+                            resources={resources}
+                            onResourcesChange={setResources}
+                            readOnly={!editMode}
+                        />
+
                         {/* Basic Fields (Name & Description) */}
                         <AssetBasicFields
                             name={name}

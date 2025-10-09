@@ -42,9 +42,10 @@ public abstract record Asset {
     public bool IsPublic { get; init; }
 
     /// <summary>
-    /// Optional reference to the asset's visual resource (image/video)
+    /// Collection of visual resources (images/videos) associated with this asset
+    /// Each resource can have one or more roles (Token, Portrait)
     /// </summary>
-    public Resource? Resource { get; init; }
+    public ICollection<AssetResource> Resources { get; init; } = [];
 
     /// <summary>
     /// When the asset was created

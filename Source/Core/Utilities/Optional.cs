@@ -1,4 +1,6 @@
-﻿namespace VttTools.Utilities;
+﻿using System.Linq.Expressions;
+
+namespace VttTools.Utilities;
 
 /// <summary>
 /// Represents a value that may or may not be present.
@@ -28,6 +30,19 @@ public readonly record struct Optional<T>() {
         _value = value;
         IsSet = isSet;
     }
+
+    /// <summary>
+    /// Transforms the contained value to another type if present, otherwise returns None.
+    /// </summary>
+    /// <typeparam name="TResult">The type of the transformed value.</typeparam>
+    /// <param name="transform">A function to transform the value if present.</param>
+    /// <returns>An Optional containing the transformed value if present; otherwise, None.</returns>
+    public Optional<TResult> As<TResult>(Func<T, TResult> transform)
+        => transform is null
+            ? throw new ArgumentNullException(nameof(transform))
+            : IsSet
+                ? Optional<TResult>.Some(transform(_value))
+                : Optional<TResult>.None;
 
     /// <summary>
     /// Represents the absence of a value.

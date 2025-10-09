@@ -49,9 +49,9 @@ internal static class SceneSchemaBuilder {
             // Overridable properties
             entity.Property(ea => ea.Name).IsRequired().HasMaxLength(128);
             entity.Property(ea => ea.Description).HasMaxLength(4096);
-            entity.Property(ea => ea.ResourceId);
+            entity.Property(ea => ea.ResourceId).IsRequired();  // REQUIRED - must select from Asset.Resources
 
-            // Resource navigation (optional override)
+            // Resource navigation (required - selects which resource from Asset.Resources to display)
             entity.HasOne(s => s.Resource)
                   .WithMany()
                   .HasForeignKey(s => s.ResourceId)

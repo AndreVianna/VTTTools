@@ -10,7 +10,7 @@ public class AssetStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<Asset[]> GetAllAsync(CancellationToken ct = default) {
         var entities = await context.Assets
-                    .Include(a => a.Resource)
+                    .Include(a => a.Resources)
                   .AsNoTrackingWithIdentityResolution()
                   .ToArrayAsync(ct);
         return [.. entities.Select(e => e.ToModel()).OfType<Asset>()];
@@ -19,7 +19,7 @@ public class AssetStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<Asset?> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Assets
-                    .Include(a => a.Resource)
+                    .Include(a => a.Resources)
                   .AsNoTrackingWithIdentityResolution()
                   .FirstOrDefaultAsync(a => a.Id == id, ct);
         return entity?.ToModel();
@@ -28,7 +28,7 @@ public class AssetStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<Asset?> GetByNameAndOwnerAsync(string name, Guid ownerId, CancellationToken ct = default) {
         var entity = await context.Assets
-                    .Include(a => a.Resource)
+                    .Include(a => a.Resources)
                   .AsNoTrackingWithIdentityResolution()
                   .FirstOrDefaultAsync(a => a.Name == name && a.OwnerId == ownerId, ct);
         return entity?.ToModel();

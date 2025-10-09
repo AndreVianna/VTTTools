@@ -1,3 +1,4 @@
+using VttTools.Assets.Model;
 using VttTools.Media.Model;
 
 namespace VttTools.Data.Library;
@@ -77,7 +78,7 @@ public class AssetStorageTests
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
         dbAsset.OwnerId.Should().Be(asset.OwnerId);
-        dbAsset.ResourceId.Should().Be(asset.Resource?.Id);
+        dbAsset.Resources.Should().HaveCount(asset.Resources.Count);
     }
 
     [Fact]
@@ -89,20 +90,32 @@ public class AssetStorageTests
         await _context.SaveChangesAsync(_ct);
 
         // Modify the asset
+        var resourceId = Guid.CreateVersion7();
         var asset = new CreatureAsset {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Name = "Updated Asset",
             Description = "Updated description",
-            Resource = new() {
-                Id = entity.ResourceId!.Value,
-                Type = ResourceType.Image,
-                Path = "assets/updated-asset-Resource",
-                Metadata = new ResourceMetadata {
-                    ContentType = "image/png",
-                    ImageSize = new(100, 100),
-                }
-            },
+            Resources = [
+                new() {
+                    ResourceId = resourceId,
+                    Role = ResourceRole.Token | ResourceRole.Portrait,
+                    IsDefault = true,
+                    Resource = new() {
+                        Id = resourceId,
+                        Type = ResourceType.Image,
+                        Path = "assets/updated-asset-resource",
+                        Metadata = new ResourceMetadata {
+                            FileName = "updated_resource.png",
+                            ContentType = "image/png",
+                            FileLength = 1500,
+                            ImageSize = new(100, 100),
+                            Duration = TimeSpan.Zero,
+                        },
+                        Tags = [],
+                    },
+                },
+            ],
             IsPublished = true,
             IsPublic = true,
         };
@@ -121,7 +134,7 @@ public class AssetStorageTests
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
         dbAsset.OwnerId.Should().Be(asset.OwnerId);
-        dbAsset.ResourceId.Should().Be(asset.Resource?.Id);
+        dbAsset.Resources.Should().HaveCount(asset.Resources.Count);
     }
 
     [Fact]

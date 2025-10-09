@@ -32,8 +32,10 @@ import {
     AssetBasicFields,
     ObjectPropertiesForm,
     CreaturePropertiesForm,
-    AssetVisibilityFields
+    AssetVisibilityFields,
+    AssetResourceManager
 } from './forms';
+import { AssetResource } from '@/types/domain';
 
 export interface AssetCreateDialogProps {
     open: boolean;
@@ -54,6 +56,9 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
     // Basic fields
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+
+    // Resources (images)
+    const [resources, setResources] = useState<AssetResource[]>([]);
 
     // Visibility fields
     const [isPublic, setIsPublic] = useState(false);
@@ -79,6 +84,7 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
             setSelectedKind(fixedKind ?? initialKind);
             setName('');
             setDescription('');
+            setResources([]);
             setIsPublic(false);
             setIsPublished(false);
             setCellWidth(1);
@@ -97,6 +103,7 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                 kind: selectedKind,
                 name,
                 description,
+                resources,
                 isPublic,
                 isPublished
             };
@@ -165,6 +172,12 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
 
             <DialogContent>
                 <Stack spacing={3}>
+                    {/* Resource Manager (Image Upload) - TOP PRIORITY */}
+                    <AssetResourceManager
+                        resources={resources}
+                        onResourcesChange={setResources}
+                    />
+
                     {/* Kind Selector Tabs - only show if kind is not fixed */}
                     {!fixedKind && (
                         <Box>

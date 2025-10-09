@@ -127,6 +127,18 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         var result = data.Validate();
         if (result.HasErrors)
             return result;
+
+        // ResourceId is required - select from Asset.Resources
+        Guid? resourceId = data.ResourceId.IsSet ? data.ResourceId.Value : null;
+        if (resourceId is null) {
+            // If not provided, select the first resource from the asset
+            if (asset.Resources.Count == 0)
+                return Result.Failure("Asset has no resources available");
+            // Prefer default token resource, fallback to first resource
+            var defaultResource = asset.Resources.FirstOrDefault(r => r.IsDefault);
+            resourceId = defaultResource?.ResourceId ?? asset.Resources.First().ResourceId;
+        }
+
         var sceneAsset = new SceneAsset {
             AssetId = assetId,
             Index = scene.Assets.Count != 0 ? scene.Assets.Max(sa => sa.Index) + 1 : 0,
@@ -135,7 +147,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
                 : 1,
             Name = data.Name.IsSet ? data.Name.Value : asset.Name,
             Description = data.Description.IsSet ? data.Description.Value : null,  // Override if provided
-            ResourceId = data.ResourceId.IsSet ? data.ResourceId.Value : null,  // Override if provided
+            ResourceId = resourceId.Value,
             Position = data.Position,
             Size = data.Size,
             Frame = data.Frame,

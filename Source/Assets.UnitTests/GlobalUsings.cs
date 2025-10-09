@@ -15,5 +15,6 @@ global using VttTools.Assets.Storage;
 global using VttTools.Data.Assets;
 global using VttTools.Extensions;
 global using VttTools.Media.Storage;
+global using VttTools.Utilities;
 
 global using Xunit;

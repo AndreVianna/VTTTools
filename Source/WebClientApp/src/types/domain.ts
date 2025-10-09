@@ -48,9 +48,40 @@ export interface TokenStyle {
   shape: TokenShape;
 }
 
+export enum ResourceRole {
+  None = 0,
+  Token = 1,
+  Portrait = 2
+}
+
+export interface AssetResource {
+  resourceId: string;
+  resource?: MediaResource;
+  role: ResourceRole;
+  isDefault: boolean;
+}
+
+export enum SizeName {
+  Zero = 0,
+  Miniscule = 1,
+  Tiny = 2,
+  Small = 3,
+  Medium = 4,
+  Large = 5,
+  Huge = 6,
+  Gargantuan = 7,
+  Custom = 99
+}
+
+export interface NamedSize {
+  width: number;
+  height: number;
+  isSquare: boolean;
+  // Computed name derived from width/height/isSquare on backend
+}
+
 export interface ObjectProperties {
-  cellWidth: number;
-  cellHeight: number;
+  size: NamedSize;
   isMovable: boolean;
   isOpaque: boolean;
   isVisible: boolean;
@@ -58,7 +89,7 @@ export interface ObjectProperties {
 }
 
 export interface CreatureProperties {
-  cellSize: number;
+  size: NamedSize;
   statBlockId?: string;
   category: CreatureCategory;
   tokenStyle?: TokenStyle;
@@ -68,7 +99,7 @@ export interface CreateAssetRequest {
   kind: AssetKind;
   name: string;
   description: string;
-  resourceId?: string;
+  resources: AssetResource[];
   isPublished: boolean;
   isPublic: boolean;
   objectProps?: ObjectProperties;
@@ -78,7 +109,7 @@ export interface CreateAssetRequest {
 export interface UpdateAssetRequest {
   name?: string;
   description?: string;
-  resourceId?: string;
+  resources?: AssetResource[];
   objectProps?: ObjectProperties;
   creatureProps?: CreatureProperties;
 }
@@ -92,7 +123,7 @@ export interface Asset {
   description: string;
   isPublished: boolean;
   isPublic: boolean;
-  resource?: MediaResource;
+  resources: AssetResource[];
   createdAt: string;
   updatedAt: string;
 }

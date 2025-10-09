@@ -59,7 +59,11 @@ internal static class AssetHandlers {
             Kind = request.Kind,
             Name = request.Name,
             Description = request.Description,
-            ResourceId = request.ResourceId,
+            Resources = [..request.Resources.Select(r => new AssetResource {
+                ResourceId = r.ResourceId,
+                Role = r.Role,
+                IsDefault = r.IsDefault
+            })],
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,
             ObjectProps = request.ObjectProps,
@@ -78,7 +82,11 @@ internal static class AssetHandlers {
         var data = new UpdateAssetData {
             Name = request.Name,
             Description = request.Description,
-            ResourceId = request.ResourceId,
+            Resources = request.Resources.As<AssetResource[]>(list => [..list.Select(r => new AssetResource {
+                ResourceId = r.ResourceId,
+                Role = r.Role,
+                IsDefault = r.IsDefault
+            })]),
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,
             ObjectProps = request.ObjectProps,

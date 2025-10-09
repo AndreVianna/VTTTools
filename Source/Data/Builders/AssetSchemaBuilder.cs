@@ -18,10 +18,17 @@ internal static class AssetSchemaBuilder {
             entity.Property(e => e.IsPublic).IsRequired().HasDefaultValue(false);
             entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
-            entity.HasOne(e => e.Resource)
-                .WithMany()
-                .HasForeignKey(e => e.ResourceId)
-                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure AssetResources collection (owned collection stored as JSON)
+            // Note: Resource navigation property must be loaded explicitly in service layer
+            // because EF Core doesn't support navigations to regular entities from JSON-owned types
+            entity.OwnsMany(e => e.Resources, resources => {
+                resources.ToJson("Resources");
+                resources.Property(r => r.ResourceId).IsRequired();
+                resources.Property(r => r.Role).IsRequired().HasConversion<int>();
+                resources.Property(r => r.IsDefault).IsRequired();
+                resources.Ignore(r => r.Resource);  // Ignore navigation - loaded separately
+            });
 
             // Configure TPH discriminator
             entity.HasDiscriminator<AssetKind>("Kind")

@@ -1,4 +1,6 @@
-﻿namespace VttTools.Assets.Services;
+﻿using VttTools.Common.Model;
+
+namespace VttTools.Assets.Services;
 
 public class AssetServiceTests {
     private readonly IAssetStorage _assetStorage;
@@ -43,7 +45,7 @@ public class AssetServiceTests {
             Id = assetId,
             Name = "Test Asset",
             Description = "Test Description",
-            Resource = new(),
+            Resources = [],
         };
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
 
@@ -58,13 +60,20 @@ public class AssetServiceTests {
     [Fact]
     public async Task CreateAssetAsync_CreatesNewAsset() {
         // Arrange
+        var resourceId = Guid.NewGuid();
         var data = new CreateAssetData {
             Name = "New Asset",
             Description = "New Description",
             Kind = AssetKind.Creature,
-            ResourceId = Guid.NewGuid(),
+            Resources = [
+                new AssetResource {
+                    ResourceId = resourceId,
+                    Role = ResourceRole.Token,
+                    IsDefault = true
+                }
+            ],
             CreatureProps = new CreatureProperties {
-                CellSize = 1,
+                Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
                 Category = CreatureCategory.Character
             }
         };
@@ -90,13 +99,20 @@ public class AssetServiceTests {
             Name = "Old Name",
             Description = "Old Description",
             OwnerId = _userId,
-            Resource = new(),
+            Resources = [],
         };
 
+        var resourceId = Guid.NewGuid();
         var data = new UpdateAssetData {
             Name = "Updated Name",
             Description = "Updated Description",
-            ResourceId = Guid.NewGuid(),
+            Resources = Optional<AssetResource[]>.Some([
+                new AssetResource {
+                    ResourceId = resourceId,
+                    Role = ResourceRole.Portrait,
+                    IsDefault = true
+                }
+            ]),
             IsPublished = true,
             IsPublic = true,
         };

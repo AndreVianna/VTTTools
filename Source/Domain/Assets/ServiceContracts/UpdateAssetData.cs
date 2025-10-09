@@ -4,7 +4,7 @@ public record UpdateAssetData
     : Data {
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
-    public Optional<Guid> ResourceId { get; init; }
+    public Optional<AssetResource[]> Resources { get; init; }  // Replace entire Resources collection when set
     public Optional<bool> IsPublished { get; set; }
     public Optional<bool> IsPublic { get; set; }
 
@@ -21,16 +21,18 @@ public record UpdateAssetData
 
         // Validate ObjectProps values if being updated
         if (ObjectProps.IsSet && ObjectProps.Value is not null) {
-            if (ObjectProps.Value.CellWidth <= 0)
-                result += new Error("CellWidth must be greater than 0.", $"{nameof(ObjectProps)}.{nameof(ObjectProps.Value.CellWidth)}");
-            if (ObjectProps.Value.CellHeight <= 0)
-                result += new Error("CellHeight must be greater than 0.", $"{nameof(ObjectProps)}.{nameof(ObjectProps.Value.CellHeight)}");
+            if (ObjectProps.Value.Size.Width <= 0)
+                result += new Error("Size width must be greater than 0.", $"{nameof(ObjectProps)}.Size.Width");
+            if (ObjectProps.Value.Size.Height <= 0)
+                result += new Error("Size height must be greater than 0.", $"{nameof(ObjectProps)}.Size.Height");
         }
 
         // Validate CreatureProps values if being updated
         if (CreatureProps.IsSet && CreatureProps.Value is not null) {
-            if (CreatureProps.Value.CellSize <= 0)
-                result += new Error("CellSize must be greater than 0.", $"{nameof(CreatureProps)}.{nameof(CreatureProps.Value.CellSize)}");
+            if (CreatureProps.Value.Size.Width <= 0)
+                result += new Error("Size width must be greater than 0.", $"{nameof(CreatureProps)}.Size.Width");
+            if (CreatureProps.Value.Size.Height <= 0)
+                result += new Error("Size height must be greater than 0.", $"{nameof(CreatureProps)}.Size.Height");
         }
 
         return result;

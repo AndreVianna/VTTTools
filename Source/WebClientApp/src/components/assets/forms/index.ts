@@ -5,3 +5,4 @@ export * from './AssetBasicFields';
 export * from './ObjectPropertiesForm';
 export * from './CreaturePropertiesForm';
 export * from './AssetVisibilityFields';
+export * from './AssetResourceManager';

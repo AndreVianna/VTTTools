@@ -406,6 +406,9 @@ FodyWeavers.xsd
 # Playwright MCP
 .playwright-mcp
 
+# Azurite
+/**/.azurite
+
 #Local files and Logs
 *.local.json
 *.local.md

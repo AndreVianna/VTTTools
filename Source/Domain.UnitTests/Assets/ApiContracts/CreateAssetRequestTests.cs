@@ -1,3 +1,5 @@
+using VttTools.Common.Model;
+
 namespace VttTools.Assets.ApiContracts;
 
 public class CreateAssetRequestTests {
@@ -8,10 +10,15 @@ public class CreateAssetRequestTests {
             Kind = AssetKind.Object,
             Name = "Table",
             Description = "A table",
-            ResourceId = Guid.NewGuid(),
+            Resources = [
+                new AssetResourceDto {
+                    ResourceId = Guid.NewGuid(),
+                    Role = ResourceRole.Token,
+                    IsDefault = true
+                }
+            ],
             ObjectProps = new ObjectProperties {
-                CellWidth = 1,
-                CellHeight = 1,
+                Size = new NamedSize { Width = 1, Height = 1, IsSquare = false },
                 IsMovable = true,
                 IsOpaque = false,
                 IsVisible = true
@@ -23,8 +30,7 @@ public class CreateAssetRequestTests {
         var updated = original with {
             Name = name,
             ObjectProps = new ObjectProperties {
-                CellWidth = 2,
-                CellHeight = 1,
+                Size = new NamedSize { Width = 2, Height = 1, IsSquare = false },
                 IsMovable = false,
                 IsOpaque = false,
                 IsVisible = true
@@ -35,7 +41,8 @@ public class CreateAssetRequestTests {
         updated.Name.Should().Be(name);
         updated.Kind.Should().Be(AssetKind.Object);
         updated.ObjectProps.Should().NotBeNull();
-        updated.ObjectProps!.CellWidth.Should().Be(2);
+        updated.ObjectProps!.Size.Width.Should().Be(2);
+        updated.ObjectProps.Size.Height.Should().Be(1);
         updated.ObjectProps.IsMovable.Should().BeFalse();
     }
 
@@ -47,7 +54,7 @@ public class CreateAssetRequestTests {
             Name = "Goblin",
             Description = "A goblin",
             CreatureProps = new CreatureProperties {
-                CellSize = 1,
+                Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
                 Category = CreatureCategory.Monster
             }
         };
@@ -55,7 +62,7 @@ public class CreateAssetRequestTests {
         // Act
         var updated = original with {
             CreatureProps = new CreatureProperties {
-                CellSize = 1,
+                Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
                 Category = CreatureCategory.Character,
                 TokenStyle = new TokenStyle {
                     BorderColor = "#FF0000",

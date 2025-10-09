@@ -1,3 +1,4 @@
+using VttTools.Assets.Model;
 using VttTools.Media.Model;
 
 using Adventure = VttTools.Library.Adventures.Model.Adventure;
@@ -152,8 +153,9 @@ internal static class DbContextHelper {
             },
         };
 
-    public static CreatureAssetEntity CreateTestAssetEntity(Guid id, string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
-        => new() {
+    public static CreatureAssetEntity CreateTestAssetEntity(Guid id, string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null) {
+        var resourceId = displayId ?? Guid.NewGuid();
+        return new() {
             Id = id,
             Name = name,
             Kind = kind,
@@ -161,8 +163,15 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.NewGuid(),
-            ResourceId = displayId ?? Guid.NewGuid(),
+            Resources = [
+                new() {
+                    ResourceId = resourceId,
+                    Role = ResourceRole.Token | ResourceRole.Portrait,
+                    IsDefault = true,
+                },
+            ],
         };
+    }
 
     public static CreatureAssetEntity CreateTestAssetEntity(string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
         => CreateTestAssetEntity(Guid.CreateVersion7(), name, kind, isPublished, isPublic, ownerId, displayId);
@@ -249,8 +258,9 @@ internal static class DbContextHelper {
             },
         };
 
-    public static CreatureAsset CreateTestAsset(Guid id, string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
-        => new() {
+    public static CreatureAsset CreateTestAsset(Guid id, string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null) {
+        var resourceId = Guid.CreateVersion7();
+        return new() {
             Id = id,
             Name = name,
             Kind = kind,
@@ -258,8 +268,28 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.NewGuid(),
-            Resource = new(),
+            Resources = [
+                new() {
+                    ResourceId = resourceId,
+                    Role = ResourceRole.Token | ResourceRole.Portrait,
+                    IsDefault = true,
+                    Resource = new() {
+                        Id = resourceId,
+                        Type = ResourceType.Image,
+                        Path = "test/path",
+                        Metadata = new ResourceMetadata {
+                            FileName = $"{name}_resource.png",
+                            ContentType = "image/png",
+                            FileLength = 1000,
+                            ImageSize = new(100, 100),
+                            Duration = TimeSpan.Zero,
+                        },
+                        Tags = [],
+                    },
+                },
+            ],
         };
+    }
 
     public static CreatureAsset CreateTestAsset(string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
         => CreateTestAsset(Guid.CreateVersion7(), name, kind, isPublished, isPublic, ownerId);

@@ -1,11 +1,13 @@
 using AssetEntity = VttTools.Data.Assets.Entities.Asset;
 using CreatureAssetEntity = VttTools.Data.Assets.Entities.CreatureAsset;
 using DomainAsset = VttTools.Assets.Model.Asset;
+using DomainAssetResource = VttTools.Assets.Model.AssetResource;
 using DomainCreatureAsset = VttTools.Assets.Model.CreatureAsset;
 using DomainCreatureProperties = VttTools.Assets.Model.CreatureProperties;
 using DomainObjectAsset = VttTools.Assets.Model.ObjectAsset;
 using DomainObjectProperties = VttTools.Assets.Model.ObjectProperties;
 using DomainTokenStyle = VttTools.Assets.Model.TokenStyle;
+using NamedSize = VttTools.Common.Model.NamedSize;
 using ObjectAssetEntity = VttTools.Data.Assets.Entities.ObjectAsset;
 using Resource = VttTools.Media.Model.Resource;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
@@ -26,10 +28,18 @@ internal static class Mapper {
                 IsPublished = obj.IsPublished,
                 CreatedAt = obj.CreatedAt,
                 UpdatedAt = obj.UpdatedAt,
-                Resource = obj.Resource?.ToModel(),
+                Resources = [.. obj.Resources.Select(r => new DomainAssetResource {
+                    ResourceId = r.ResourceId,
+                    Resource = r.Resource?.ToModel(),
+                    Role = r.Role,
+                    IsDefault = r.IsDefault
+                })],
                 Properties = new DomainObjectProperties {
-                    CellWidth = obj.Properties.CellWidth,
-                    CellHeight = obj.Properties.CellHeight,
+                    Size = new NamedSize {
+                        Width = obj.Properties.CellWidth,
+                        Height = obj.Properties.CellHeight,
+                        IsSquare = obj.Properties.CellWidth == obj.Properties.CellHeight
+                    },
                     IsMovable = obj.Properties.IsMovable,
                     IsOpaque = obj.Properties.IsOpaque,
                     IsVisible = obj.Properties.IsVisible,
@@ -45,9 +55,18 @@ internal static class Mapper {
                 IsPublished = creature.IsPublished,
                 CreatedAt = creature.CreatedAt,
                 UpdatedAt = creature.UpdatedAt,
-                Resource = creature.Resource?.ToModel(),
+                Resources = [.. creature.Resources.Select(r => new DomainAssetResource {
+                    ResourceId = r.ResourceId,
+                    Resource = r.Resource?.ToModel(),
+                    Role = r.Role,
+                    IsDefault = r.IsDefault
+                })],
                 Properties = new DomainCreatureProperties {
-                    CellSize = creature.Properties.CellSize,
+                    Size = new NamedSize {
+                        Width = creature.Properties.CellSize,
+                        Height = creature.Properties.CellSize,
+                        IsSquare = true
+                    },
                     StatBlockId = creature.Properties.StatBlockId,
                     Category = creature.Properties.Category,
                     TokenStyle = creature.Properties.TokenStyle != null ? new DomainTokenStyle {
@@ -68,14 +87,19 @@ internal static class Mapper {
                 Kind = AssetKind.Object,
                 Name = obj.Name,
                 Description = obj.Description,
-                ResourceId = obj.Resource?.Id,
+                Resources = [.. obj.Resources.Select(r => new Entities.AssetResource {
+                    ResourceId = r.ResourceId,
+                    Role = r.Role,
+                    IsDefault = r.IsDefault
+                    // Resource navigation will be loaded by EF Core
+                })],
                 IsPublic = obj.IsPublic,
                 IsPublished = obj.IsPublished,
                 CreatedAt = obj.CreatedAt,
                 UpdatedAt = obj.UpdatedAt,
                 Properties = new Entities.ObjectProperties {
-                    CellWidth = obj.Properties.CellWidth,
-                    CellHeight = obj.Properties.CellHeight,
+                    CellWidth = (int)obj.Properties.Size.Width,
+                    CellHeight = (int)obj.Properties.Size.Height,
                     IsMovable = obj.Properties.IsMovable,
                     IsOpaque = obj.Properties.IsOpaque,
                     IsVisible = obj.Properties.IsVisible,
@@ -88,13 +112,18 @@ internal static class Mapper {
                 Kind = AssetKind.Creature,
                 Name = creature.Name,
                 Description = creature.Description,
-                ResourceId = creature.Resource?.Id,
+                Resources = [.. creature.Resources.Select(r => new Entities.AssetResource {
+                    ResourceId = r.ResourceId,
+                    Role = r.Role,
+                    IsDefault = r.IsDefault
+                    // Resource navigation will be loaded by EF Core
+                })],
                 IsPublic = creature.IsPublic,
                 IsPublished = creature.IsPublished,
                 CreatedAt = creature.CreatedAt,
                 UpdatedAt = creature.UpdatedAt,
                 Properties = new Entities.CreatureProperties {
-                    CellSize = creature.Properties.CellSize,
+                    CellSize = (int)creature.Properties.Size.Width,
                     StatBlockId = creature.Properties.StatBlockId,
                     Category = creature.Properties.Category,
                     TokenStyle = creature.Properties.TokenStyle != null ? new Entities.TokenStyle {
@@ -110,7 +139,17 @@ internal static class Mapper {
     internal static void UpdateFrom(this AssetEntity entity, DomainAsset model) {
         entity.Name = model.Name;
         entity.Description = model.Description;
-        entity.ResourceId = model.Resource?.Id;
+
+        // Update Resources collection
+        entity.Resources.Clear();
+        foreach (var resource in model.Resources) {
+            entity.Resources.Add(new Entities.AssetResource {
+                ResourceId = resource.ResourceId,
+                Role = resource.Role,
+                IsDefault = resource.IsDefault
+            });
+        }
+
         entity.IsPublic = model.IsPublic;
         entity.IsPublished = model.IsPublished;
         entity.UpdatedAt = DateTime.UtcNow;
@@ -118,15 +157,15 @@ internal static class Mapper {
         // Update polymorphic properties
         switch (entity, model) {
             case (ObjectAssetEntity objEntity, DomainObjectAsset objModel):
-                objEntity.Properties.CellWidth = objModel.Properties.CellWidth;
-                objEntity.Properties.CellHeight = objModel.Properties.CellHeight;
+                objEntity.Properties.CellWidth = (int)objModel.Properties.Size.Width;
+                objEntity.Properties.CellHeight = (int)objModel.Properties.Size.Height;
                 objEntity.Properties.IsMovable = objModel.Properties.IsMovable;
                 objEntity.Properties.IsOpaque = objModel.Properties.IsOpaque;
                 objEntity.Properties.IsVisible = objModel.Properties.IsVisible;
                 objEntity.Properties.TriggerEffectId = objModel.Properties.TriggerEffectId;
                 break;
             case (CreatureAssetEntity creatureEntity, DomainCreatureAsset creatureModel):
-                creatureEntity.Properties.CellSize = creatureModel.Properties.CellSize;
+                creatureEntity.Properties.CellSize = (int)creatureModel.Properties.Size.Width;
                 creatureEntity.Properties.StatBlockId = creatureModel.Properties.StatBlockId;
                 creatureEntity.Properties.Category = creatureModel.Properties.Category;
                 creatureEntity.Properties.TokenStyle = creatureModel.Properties.TokenStyle == null

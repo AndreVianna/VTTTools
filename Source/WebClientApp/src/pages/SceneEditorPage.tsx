@@ -23,6 +23,7 @@ import {
 import { GridConfig, GridType, getDefaultGrid, Point, pointToCell, cellToPoint } from '@utils/gridCalculator';
 import { layerManager, LayerName } from '@services/layerManager';
 import { Asset, PlacedAsset, ResourceMetadata } from '@/types/domain';
+import { getDefaultTokenResource, getResourceUrl } from '@/utils/assetHelpers';
 
 // Stage dimensions match the background image for 1:1 rendering at 100% zoom
 const STAGE_WIDTH = 2800;
@@ -109,17 +110,17 @@ export const SceneEditorPage: React.FC = () => {
     // Load images for placed assets
     useEffect(() => {
         placedAssets.forEach(pa => {
-            const resourceId = pa.asset.resource?.id;
-            if (!resourceId || loadedImages[resourceId]) return;
+            const tokenResource = getDefaultTokenResource(pa.asset);
+            if (!tokenResource || loadedImages[tokenResource.resourceId]) return;
 
             const img = new window.Image();
-            img.src = `https://localhost:7174/api/resources/${resourceId}`;
+            img.src = getResourceUrl(tokenResource.resourceId);
             img.crossOrigin = 'anonymous';
 
             img.onload = () => {
                 setLoadedImages(prev => ({
                     ...prev,
-                    [resourceId]: img
+                    [tokenResource.resourceId]: img
                 }));
             };
         });
@@ -334,9 +335,10 @@ export const SceneEditorPage: React.FC = () => {
             placementPos = cellToPoint(cell, gridConfig);
         }
 
-        // Calculate image size to fit cell (maintain aspect ratio)
+        // Get token resource and calculate image size to fit cell (maintain aspect ratio)
+        const tokenResource = getDefaultTokenResource(placementMode.asset);
         const imageSize = calculateAssetSize(
-            placementMode.asset.resource?.metadata,
+            tokenResource?.metadata,
             gridConfig.cellWidth,
             gridConfig.cellHeight
         );
@@ -432,7 +434,8 @@ export const SceneEditorPage: React.FC = () => {
                         {placedAssets
                             .filter(pa => pa.layer === LayerName.Structure)
                             .map(pa => {
-                                const image = pa.asset.resource?.id ? loadedImages[pa.asset.resource.id] : undefined;
+                                const tokenResource = getDefaultTokenResource(pa.asset);
+                                const image = tokenResource ? loadedImages[tokenResource.resourceId] : undefined;
                                 if (!image) return null;
 
                                 return (
@@ -456,7 +459,8 @@ export const SceneEditorPage: React.FC = () => {
                         {placedAssets
                             .filter(pa => pa.layer === LayerName.Objects)
                             .map(pa => {
-                                const image = pa.asset.resource?.id ? loadedImages[pa.asset.resource.id] : undefined;
+                                const tokenResource = getDefaultTokenResource(pa.asset);
+                                const image = tokenResource ? loadedImages[tokenResource.resourceId] : undefined;
                                 if (!image) return null;
 
                                 return (
@@ -480,7 +484,8 @@ export const SceneEditorPage: React.FC = () => {
                         {placedAssets
                             .filter(pa => pa.layer === LayerName.Agents)
                             .map(pa => {
-                                const image = pa.asset.resource?.id ? loadedImages[pa.asset.resource.id] : undefined;
+                                const tokenResource = getDefaultTokenResource(pa.asset);
+                                const image = tokenResource ? loadedImages[tokenResource.resourceId] : undefined;
                                 if (!image) return null;
 
                                 return (

@@ -13,8 +13,7 @@ public abstract class Asset {
     public string Name { get; set; } = string.Empty;
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
-    public Guid? ResourceId { get; set; }
-    public Resource? Resource { get; set; }
+    public ICollection<AssetResource> Resources { get; set; } = [];
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }
     public DateTime CreatedAt { get; set; }

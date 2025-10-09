@@ -36,6 +36,7 @@ import {
 } from '@mui/icons-material';
 import { Asset, AssetKind, CreatureCategory } from '@/types/domain';
 import { useGetAssetsQuery } from '@/services/assetsApi';
+import { getDefaultTokenResource, getResourceUrl } from '@/utils/assetHelpers';
 
 export interface AssetPickerProps {
     open: boolean;
@@ -227,7 +228,10 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
                                             <CardMedia
                                                 component="img"
                                                 height="120"
-                                                image={asset.resource?.id ? `https://localhost:7174/api/resources/${asset.resource.id}` : 'https://via.placeholder.com/100/CCCCCC/FFFFFF?text=No+Image'}
+                                                image={(() => {
+                                                    const tokenResource = getDefaultTokenResource(asset);
+                                                    return tokenResource?.resourceId ? getResourceUrl(tokenResource.resourceId) : 'https://via.placeholder.com/100/CCCCCC/FFFFFF?text=No+Image';
+                                                })()}
                                                 alt={asset.name}
                                                 sx={{
                                                     objectFit: 'contain',

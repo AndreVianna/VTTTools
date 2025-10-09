@@ -1,3 +1,4 @@
+using VttTools.Common.Model;
 using VttTools.Media.Model;
 
 using Size = VttTools.Common.Model.Size;
@@ -16,9 +17,9 @@ public class AssetTests {
         asset.Name.Should().BeEmpty();
         asset.Kind.Should().Be(AssetKind.Object);
         asset.Description.Should().BeEmpty();
-        asset.Resource.Should().BeNull();
+        asset.Resources.Should().NotBeNull().And.BeEmpty();
         asset.Properties.Should().NotBeNull();
-        asset.Properties.CellWidth.Should().Be(1);
+        asset.Properties.Size.Width.Should().Be(1);
         asset.Properties.IsMovable.Should().BeTrue();
     }
 
@@ -31,7 +32,9 @@ public class AssetTests {
         asset.Id.Should().NotBeEmpty();
         asset.Kind.Should().Be(AssetKind.Creature);
         asset.Properties.Should().NotBeNull();
-        asset.Properties.CellSize.Should().Be(1);
+        asset.Properties.Size.Width.Should().Be(1);
+        asset.Properties.Size.Height.Should().Be(1);
+        asset.Properties.Size.IsSquare.Should().BeTrue();
         asset.Properties.Category.Should().Be(CreatureCategory.Character);
     }
 
@@ -43,8 +46,9 @@ public class AssetTests {
         const string name = "Wooden Table";
         const string description = "A sturdy oak table";
         var size = new Size(100, 200);
+        var resourceId = Guid.NewGuid();
         var resource = new Resource {
-            Id = Guid.NewGuid(),
+            Id = resourceId,
             Type = ResourceType.Image,
             Path = "assets/table.png",
             Metadata = new ResourceMetadata {
@@ -60,10 +64,16 @@ public class AssetTests {
             OwnerId = ownerId,
             Name = name,
             Description = description,
-            Resource = resource,
+            Resources = [
+                new AssetResource {
+                    ResourceId = resourceId,
+                    Resource = resource,
+                    Role = ResourceRole.Token | ResourceRole.Portrait,
+                    IsDefault = true
+                }
+            ],
             Properties = new ObjectProperties {
-                CellWidth = 2,
-                CellHeight = 1,
+                Size = new NamedSize { Width = 2, Height = 1, IsSquare = false },
                 IsMovable = true,
                 IsOpaque = false,
                 IsVisible = true
@@ -76,9 +86,15 @@ public class AssetTests {
         asset.Name.Should().Be(name);
         asset.Kind.Should().Be(AssetKind.Object);
         asset.Description.Should().Be(description);
-        asset.Resource.Should().BeEquivalentTo(resource);
-        asset.Properties.CellWidth.Should().Be(2);
-        asset.Properties.CellHeight.Should().Be(1);
+        asset.Resources.Should().NotBeEmpty();
+        asset.Resources.First().ResourceId.Should().Be(resourceId);
+        asset.Resources.First().Resource.Should().BeEquivalentTo(resource);
+        asset.Resources.First().Role.Should().HaveFlag(ResourceRole.Token);
+        asset.Resources.First().Role.Should().HaveFlag(ResourceRole.Portrait);
+        asset.Resources.First().IsDefault.Should().BeTrue();
+        asset.Properties.Size.Width.Should().Be(2);
+        asset.Properties.Size.Height.Should().Be(1);
+        asset.Properties.Size.IsSquare.Should().BeFalse();
     }
 
     [Fact]
@@ -95,7 +111,7 @@ public class AssetTests {
             Name = "Goblin Warrior",
             Description = "Small hostile creature",
             Properties = new CreatureProperties {
-                CellSize = 1,
+                Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
                 Category = CreatureCategory.Monster,
                 TokenStyle = tokenStyle
             }

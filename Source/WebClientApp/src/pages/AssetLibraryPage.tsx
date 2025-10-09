@@ -37,6 +37,7 @@ import { useGetAssetsQuery } from '@/services/assetsApi';
 import { Asset, AssetKind, CreatureCategory } from '@/types/domain';
 import { AssetFilterPanel, AssetFilters, AssetSearchBar, AssetPreviewDialog, AssetCreateDialog } from '@/components/assets';
 import { useDebounce } from '@/hooks/useDebounce';
+import { getDefaultTokenResource, getResourceUrl } from '@/utils/assetHelpers';
 
 /**
  * Asset Library Page Component
@@ -398,19 +399,22 @@ export const AssetLibraryPage: React.FC = () => {
                                                     justifyContent: 'center'
                                                 }}
                                             >
-                                            {asset.resource ? (
-                                                <img
-                                                    src={`https://localhost:7174/api/resources/${asset.resource.id}`}
-                                                    alt={asset.name}
-                                                    style={{
-                                                        width: '100%',
-                                                        height: '100%',
-                                                        objectFit: 'contain'
-                                                    }}
-                                                />
-                                            ) : (
-                                                <CategoryIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
-                                            )}
+                                            {(() => {
+                                                const tokenResource = getDefaultTokenResource(asset);
+                                                return tokenResource ? (
+                                                    <img
+                                                        src={getResourceUrl(tokenResource.resourceId)}
+                                                        alt={asset.name}
+                                                        style={{
+                                                            width: '100%',
+                                                            height: '100%',
+                                                            objectFit: 'contain'
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <CategoryIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
+                                                );
+                                            })()}
                                             </Box>
                                         </CardMedia>
                                     </Tooltip>

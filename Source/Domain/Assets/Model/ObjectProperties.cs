@@ -2,18 +2,9 @@ namespace VttTools.Assets.Model;
 
 /// <summary>
 /// Properties specific to Object assets (furniture, traps, environmental items)
+/// Inherits Size from AssetProperties
 /// </summary>
-public record ObjectProperties {
-    /// <summary>
-    /// Width in grid cells
-    /// </summary>
-    public int CellWidth { get; init; } = 1;
-
-    /// <summary>
-    /// Height in grid cells
-    /// </summary>
-    public int CellHeight { get; init; } = 1;
-
+public record ObjectProperties : AssetProperties {
     /// <summary>
     /// Whether the object can be moved after placement
     /// </summary>

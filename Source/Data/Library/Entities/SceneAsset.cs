@@ -17,8 +17,8 @@ public class SceneAsset {
     public string Name { get; set; } = string.Empty;
     [MaxLength(4096)]
     public string? Description { get; set; }  // Override template description
-    public Guid? ResourceId { get; set; }  // Override template resource
-    public Resource? Resource { get; set; }  // Navigation property for override resource
+    public Guid ResourceId { get; set; }  // REQUIRED - must select from Asset.Resources
+    public Resource? Resource { get; set; }  // Navigation property for selected resource
 
     // Instance-specific data
     public Frame? Frame { get; set; }

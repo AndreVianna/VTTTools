@@ -15,44 +15,44 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
 
         // Apply ownership filter first
         if (owner == "mine") {
-            assets = assets.Where(a => a.OwnerId == userId).ToArray();
+            assets = [.. assets.Where(a => a.OwnerId == userId)];
         }
         else if (owner == "public") {
-            assets = assets.Where(a => a.IsPublic).ToArray();
+            assets = [.. assets.Where(a => a.IsPublic)];
         }
         else if (owner == "all") {
             // Show user's assets + public published assets
-            assets = assets.Where(a => a.OwnerId == userId || (a.IsPublic && a.IsPublished)).ToArray();
+            assets = [.. assets.Where(a => a.OwnerId == userId || (a.IsPublic && a.IsPublished))];
         }
         else {
             // Default: only user's own assets (when owner not specified)
-            assets = assets.Where(a => a.OwnerId == userId).ToArray();
+            assets = [.. assets.Where(a => a.OwnerId == userId)];
         }
 
         // Filter by kind
         if (kind.HasValue) {
-            assets = assets.Where(a => a.Kind == kind.Value).ToArray();
+            assets = [.. assets.Where(a => a.Kind == kind.Value)];
         }
 
         // Filter by creature category (only for CreatureAssets)
         if (creatureCategory.HasValue) {
-            assets = assets.Where(a =>
+            assets = [.. assets.Where(a =>
                 a is CreatureAsset creature && creature.Properties.Category == creatureCategory.Value
-            ).ToArray();
+            )];
         }
 
         // Filter by search (name or description)
         if (!string.IsNullOrWhiteSpace(search)) {
             var searchLower = search.ToLowerInvariant();
-            assets = assets.Where(a =>
-                a.Name.ToLowerInvariant().Contains(searchLower) ||
-                a.Description.ToLowerInvariant().Contains(searchLower)
-            ).ToArray();
+            assets = [.. assets.Where(a =>
+                a.Name.Contains(searchLower, StringComparison.InvariantCultureIgnoreCase) ||
+                a.Description.Contains(searchLower, StringComparison.InvariantCultureIgnoreCase)
+            )];
         }
 
         // Filter by published status
         if (published.HasValue) {
-            assets = assets.Where(a => a.IsPublished == published.Value).ToArray();
+            assets = [.. assets.Where(a => a.IsPublished == published.Value)];
         }
 
         return assets;
@@ -87,16 +87,24 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         if (existing != null)
             return Result.Failure($"Duplicate asset name. An asset named '{data.Name}' already exists for this user.");
 
-        var resource = data.ResourceId is not null
-            ? await mediaStorage.GetByIdAsync(data.ResourceId.Value, ct)
-            : null;
+        // Load Resource entities for each AssetResource
+        var resources = new List<AssetResource>();
+        foreach (var assetResource in data.Resources) {
+            var resource = await mediaStorage.GetByIdAsync(assetResource.ResourceId, ct);
+            resources.Add(new AssetResource {
+                ResourceId = assetResource.ResourceId,
+                Resource = resource,
+                Role = assetResource.Role,
+                IsDefault = assetResource.IsDefault
+            });
+        }
 
         Asset asset = data.Kind switch {
             AssetKind.Object => new ObjectAsset {
                 OwnerId = userId,
                 Name = data.Name,
                 Description = data.Description,
-                Resource = resource,
+                Resources = resources,
                 IsPublished = data.IsPublished,
                 IsPublic = data.IsPublic,
                 CreatedAt = DateTime.UtcNow,
@@ -107,7 +115,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                 OwnerId = userId,
                 Name = data.Name,
                 Description = data.Description,
-                Resource = resource,
+                Resources = resources,
                 IsPublished = data.IsPublished,
                 IsPublic = data.IsPublic,
                 CreatedAt = DateTime.UtcNow,
@@ -143,16 +151,27 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         if (result.HasErrors)
             return result;
 
-        var resource = data.ResourceId.IsSet
-            ? await mediaStorage.GetByIdAsync(data.ResourceId.Value, ct) ?? asset.Resource
-            : asset.Resource;
+        // Load Resource entities for updated Resources if provided
+        var resources = asset.Resources.ToList();
+        if (data.Resources.IsSet) {
+            resources.Clear();
+            foreach (var assetResource in data.Resources.Value) {
+                var resource = await mediaStorage.GetByIdAsync(assetResource.ResourceId, ct);
+                resources.Add(new AssetResource {
+                    ResourceId = assetResource.ResourceId,
+                    Resource = resource,
+                    Role = assetResource.Role,
+                    IsDefault = assetResource.IsDefault
+                });
+            }
+        }
 
         // Update based on asset type
         asset = asset switch {
             ObjectAsset obj => obj with {
                 Name = data.Name.IsSet ? data.Name.Value : obj.Name,
                 Description = data.Description.IsSet ? data.Description.Value : obj.Description,
-                Resource = resource,
+                Resources = resources,
                 IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : obj.IsPublished,
                 IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : obj.IsPublic,
                 UpdatedAt = DateTime.UtcNow,
@@ -161,7 +180,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             CreatureAsset creature => creature with {
                 Name = data.Name.IsSet ? data.Name.Value : creature.Name,
                 Description = data.Description.IsSet ? data.Description.Value : creature.Description,
-                Resource = resource,
+                Resources = resources,
                 IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : creature.IsPublished,
                 IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : creature.IsPublic,
                 UpdatedAt = DateTime.UtcNow,

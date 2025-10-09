@@ -7,7 +7,7 @@ public static class Cloner {
                 OwnerId = ownerId ?? obj.OwnerId,
                 Name = obj.Name,
                 Description = obj.Description,
-                Resource = obj.Resource?.Clone(),
+                Resources = [.. obj.Resources.Select(ar => ar.Clone())],
                 IsPublic = obj.IsPublic,
                 IsPublished = obj.IsPublished,
                 CreatedAt = DateTime.UtcNow,
@@ -18,7 +18,7 @@ public static class Cloner {
                 OwnerId = ownerId ?? creature.OwnerId,
                 Name = creature.Name,
                 Description = creature.Description,
-                Resource = creature.Resource?.Clone(),
+                Resources = [.. creature.Resources.Select(ar => ar.Clone())],
                 IsPublic = creature.IsPublic,
                 IsPublished = creature.IsPublished,
                 CreatedAt = DateTime.UtcNow,
@@ -26,6 +26,14 @@ public static class Cloner {
                 Properties = creature.Properties
             },
             _ => throw new InvalidOperationException($"Unknown asset type: {original.GetType()}")
+        };
+
+    internal static AssetResource Clone(this AssetResource original)
+        => new() {
+            ResourceId = original.ResourceId,
+            Resource = original.Resource?.Clone(),
+            Role = original.Role,
+            IsDefault = original.IsDefault
         };
 
     internal static Resource Clone(this Resource original)

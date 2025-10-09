@@ -2,12 +2,9 @@ namespace VttTools.Assets.Model;
 
 /// <summary>
 /// Properties specific to Creature assets (characters, NPCs, monsters)
+/// Inherits Size from AssetProperties
 /// </summary>
-public record CreatureProperties {
-    /// <summary>
-    /// Size in grid cells (typically 1, but large creatures can be 2+)
-    /// </summary>
-    public int CellSize { get; init; } = 1;
+public record CreatureProperties : AssetProperties {
 
     /// <summary>
     /// Reference to the creature's stat block (to be implemented in future phase)
