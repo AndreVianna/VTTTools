@@ -1,14 +1,19 @@
 // Phase 5 Step 6 - Shared Form Component
-// Basic asset fields (name, description) - Used in both Create and Edit dialogs
+// Basic asset fields (name, description) with inline visibility - Used in both Create and Edit dialogs
 
 import React from 'react';
 import { TextField, Box, Typography } from '@mui/material';
+import { AssetVisibilityFields } from './AssetVisibilityFields';
 
 export interface AssetBasicFieldsProps {
     name: string;
     description: string;
     onNameChange: (value: string) => void;
     onDescriptionChange: (value: string) => void;
+    isPublic: boolean;
+    isPublished: boolean;
+    onIsPublicChange: (value: boolean) => void;
+    onIsPublishedChange: (value: boolean) => void;
     readOnly?: boolean;
 }
 
@@ -17,6 +22,10 @@ export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({
     description,
     onNameChange,
     onDescriptionChange,
+    isPublic,
+    isPublished,
+    onIsPublicChange,
+    onIsPublishedChange,
     readOnly = false
 }) => {
     if (readOnly) {
@@ -30,21 +39,37 @@ export const AssetBasicFields: React.FC<AssetBasicFieldsProps> = ({
                     <Typography variant="caption" color="text.secondary">Description</Typography>
                     <Typography>{description}</Typography>
                 </Box>
+                <AssetVisibilityFields
+                    isPublic={isPublic}
+                    isPublished={isPublished}
+                    onIsPublicChange={onIsPublicChange}
+                    onIsPublishedChange={onIsPublishedChange}
+                    readOnly
+                />
             </>
         );
     }
 
     return (
         <>
-            <TextField
-                label="Name"
-                value={name}
-                onChange={(e) => onNameChange(e.target.value)}
-                fullWidth
-                required
-                helperText="Required - minimum 3 characters"
-                error={name.length > 0 && name.length < 3}
-            />
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                <TextField
+                    label="Name"
+                    value={name}
+                    onChange={(e) => onNameChange(e.target.value)}
+                    required
+                    helperText="Required - minimum 3 characters"
+                    error={name.length > 0 && name.length < 3}
+                    sx={{ flexGrow: 1 }}
+                />
+                <AssetVisibilityFields
+                    isPublic={isPublic}
+                    isPublished={isPublished}
+                    onIsPublicChange={onIsPublicChange}
+                    onIsPublishedChange={onIsPublishedChange}
+                    inline
+                />
+            </Box>
             <TextField
                 label="Description"
                 value={description}

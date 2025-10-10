@@ -1,34 +1,28 @@
 // Phase 5 Step 6 - Shared Form Component
-// Object-specific properties (cell dimensions, movable/opaque/visible) - Used in both Create and Edit dialogs
+// Object-specific properties (size, movable/opaque/visible) - Used in both Create and Edit dialogs
 
 import React from 'react';
-import { TextField, Box, Typography, FormControlLabel, Checkbox, Stack } from '@mui/material';
+import { Box, Typography, FormControlLabel, Checkbox, Stack } from '@mui/material';
+import { NamedSize } from '@/types/domain';
+import { SizeSelector } from '@/components/common/SizeSelector';
 
 export interface ObjectPropertiesFormProps {
-    cellWidth: number;
-    cellHeight: number;
+    size: NamedSize;
     isMovable: boolean;
     isOpaque: boolean;
-    isVisible: boolean;
-    onCellWidthChange: (value: number) => void;
-    onCellHeightChange: (value: number) => void;
+    onSizeChange: (value: NamedSize) => void;
     onIsMovableChange: (value: boolean) => void;
     onIsOpaqueChange: (value: boolean) => void;
-    onIsVisibleChange: (value: boolean) => void;
     readOnly?: boolean;
 }
 
 export const ObjectPropertiesForm: React.FC<ObjectPropertiesFormProps> = ({
-    cellWidth,
-    cellHeight,
+    size,
     isMovable,
     isOpaque,
-    isVisible,
-    onCellWidthChange,
-    onCellHeightChange,
+    onSizeChange,
     onIsMovableChange,
     onIsOpaqueChange,
-    onIsVisibleChange,
     readOnly = false
 }) => {
     if (readOnly) {
@@ -38,10 +32,9 @@ export const ObjectPropertiesForm: React.FC<ObjectPropertiesFormProps> = ({
                     Object Properties
                 </Typography>
                 <Stack spacing={1}>
-                    <Typography variant="body2">Size: {cellWidth}x{cellHeight} cells</Typography>
+                    <SizeSelector value={size} onChange={onSizeChange} readOnly />
                     <Typography variant="body2">Movable: {isMovable ? 'Yes' : 'No'}</Typography>
                     <Typography variant="body2">Opaque: {isOpaque ? 'Yes' : 'No'}</Typography>
-                    <Typography variant="body2">Visible: {isVisible ? 'Yes' : 'No'}</Typography>
                 </Stack>
             </Box>
         );
@@ -53,28 +46,7 @@ export const ObjectPropertiesForm: React.FC<ObjectPropertiesFormProps> = ({
                 Object Properties
             </Typography>
             <Stack spacing={2}>
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                    <TextField
-                        label="Cell Width"
-                        type="number"
-                        value={cellWidth}
-                        onChange={(e) => onCellWidthChange(parseInt(e.target.value) || 1)}
-                        inputProps={{ min: 1 }}
-                        size="small"
-                        helperText="Width in grid cells"
-                        error={cellWidth <= 0}
-                    />
-                    <TextField
-                        label="Cell Height"
-                        type="number"
-                        value={cellHeight}
-                        onChange={(e) => onCellHeightChange(parseInt(e.target.value) || 1)}
-                        inputProps={{ min: 1 }}
-                        size="small"
-                        helperText="Height in grid cells"
-                        error={cellHeight <= 0}
-                    />
-                </Box>
+                <SizeSelector value={size} onChange={onSizeChange} />
                 <FormControlLabel
                     control={
                         <Checkbox
@@ -92,15 +64,6 @@ export const ObjectPropertiesForm: React.FC<ObjectPropertiesFormProps> = ({
                         />
                     }
                     label="Opaque (blocks vision)"
-                />
-                <FormControlLabel
-                    control={
-                        <Checkbox
-                            checked={isVisible}
-                            onChange={(e) => onIsVisibleChange(e.target.checked)}
-                        />
-                    }
-                    label="Visible to players"
                 />
             </Stack>
         </Box>

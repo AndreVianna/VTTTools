@@ -27,5 +27,6 @@ public class SceneAsset {
     public float Rotation { get; set; }
     public float Elevation { get; set; }
     public bool IsLocked { get; set; }
+    public bool IsVisible { get; set; } = true;
     public Guid? ControlledBy { get; set; }
 }

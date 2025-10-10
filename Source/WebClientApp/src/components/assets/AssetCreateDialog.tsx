@@ -25,14 +25,14 @@ import {
 import {
     AssetKind,
     CreatureCategory,
-    CreateAssetRequest
+    CreateAssetRequest,
+    NamedSize
 } from '@/types/domain';
 import { useCreateAssetMutation } from '@/services/assetsApi';
 import {
     AssetBasicFields,
     ObjectPropertiesForm,
     CreaturePropertiesForm,
-    AssetVisibilityFields,
     AssetResourceManager
 } from './forms';
 import { AssetResource } from '@/types/domain';
@@ -65,14 +65,12 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
     const [isPublished, setIsPublished] = useState(false);
 
     // Object-specific properties
-    const [cellWidth, setCellWidth] = useState(1);
-    const [cellHeight, setCellHeight] = useState(1);
+    const [objectSize, setObjectSize] = useState<NamedSize>({ width: 1, height: 1, isSquare: true });
     const [isMovable, setIsMovable] = useState(true);
     const [isOpaque, setIsOpaque] = useState(false);
-    const [isVisible, setIsVisible] = useState(true);
 
     // Creature-specific properties
-    const [cellSize, setCellSize] = useState(1);
+    const [creatureSize, setCreatureSize] = useState<NamedSize>({ width: 1, height: 1, isSquare: true });
     const [creatureCategory, setCreatureCategory] = useState<CreatureCategory>(CreatureCategory.Character);
 
     // RTK Query mutation
@@ -87,12 +85,10 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
             setResources([]);
             setIsPublic(false);
             setIsPublished(false);
-            setCellWidth(1);
-            setCellHeight(1);
+            setObjectSize({ width: 1, height: 1, isSquare: true });
             setIsMovable(true);
             setIsOpaque(false);
-            setIsVisible(true);
-            setCellSize(1);
+            setCreatureSize({ width: 1, height: 1, isSquare: true });
             setCreatureCategory(CreatureCategory.Character);
         }
     }, [open, initialKind, fixedKind]);
@@ -111,15 +107,21 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
             // Add kind-specific properties
             if (selectedKind === AssetKind.Object) {
                 request.objectProps = {
-                    cellWidth,
-                    cellHeight,
+                    size: {
+                        width: objectSize.width,
+                        height: objectSize.height,
+                        isSquare: objectSize.isSquare
+                    },
                     isMovable,
-                    isOpaque,
-                    isVisible
+                    isOpaque
                 };
             } else if (selectedKind === AssetKind.Creature) {
                 request.creatureProps = {
-                    cellSize,
+                    size: {
+                        width: creatureSize.width,
+                        height: creatureSize.height,
+                        isSquare: creatureSize.isSquare
+                    },
                     category: creatureCategory
                 };
             }
@@ -142,11 +144,11 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
         // Description must not be empty
         if (description.trim().length === 0) return false;
 
-        // Cell dimensions must be positive
+        // Size dimensions must be positive
         if (selectedKind === AssetKind.Object) {
-            if (cellWidth <= 0 || cellHeight <= 0) return false;
+            if (objectSize.width <= 0 || objectSize.height <= 0) return false;
         } else if (selectedKind === AssetKind.Creature) {
-            if (cellSize <= 0) return false;
+            if (creatureSize.width <= 0 || creatureSize.height <= 0) return false;
         }
 
         return true;
@@ -201,40 +203,32 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                         description={description}
                         onNameChange={setName}
                         onDescriptionChange={setDescription}
-                    />
-
-                    {/* Kind-Specific Properties */}
-                    {selectedKind === AssetKind.Object && (
-                        <ObjectPropertiesForm
-                            cellWidth={cellWidth}
-                            cellHeight={cellHeight}
-                            isMovable={isMovable}
-                            isOpaque={isOpaque}
-                            isVisible={isVisible}
-                            onCellWidthChange={setCellWidth}
-                            onCellHeightChange={setCellHeight}
-                            onIsMovableChange={setIsMovable}
-                            onIsOpaqueChange={setIsOpaque}
-                            onIsVisibleChange={setIsVisible}
-                        />
-                    )}
-
-                    {selectedKind === AssetKind.Creature && (
-                        <CreaturePropertiesForm
-                            cellSize={cellSize}
-                            category={creatureCategory}
-                            onCellSizeChange={setCellSize}
-                            onCategoryChange={setCreatureCategory}
-                        />
-                    )}
-
-                    {/* Visibility Fields */}
-                    <AssetVisibilityFields
                         isPublic={isPublic}
                         isPublished={isPublished}
                         onIsPublicChange={setIsPublic}
                         onIsPublishedChange={setIsPublished}
                     />
+
+                    {/* Kind-Specific Properties */}
+                    {selectedKind === AssetKind.Object && (
+                        <ObjectPropertiesForm
+                            size={objectSize}
+                            isMovable={isMovable}
+                            isOpaque={isOpaque}
+                            onSizeChange={setObjectSize}
+                            onIsMovableChange={setIsMovable}
+                            onIsOpaqueChange={setIsOpaque}
+                        />
+                    )}
+
+                    {selectedKind === AssetKind.Creature && (
+                        <CreaturePropertiesForm
+                            size={creatureSize}
+                            category={creatureCategory}
+                            onSizeChange={setCreatureSize}
+                            onCategoryChange={setCreatureCategory}
+                        />
+                    )}
                 </Stack>
             </DialogContent>
 

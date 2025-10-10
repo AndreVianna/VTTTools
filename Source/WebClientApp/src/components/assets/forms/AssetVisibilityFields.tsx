@@ -10,6 +10,7 @@ export interface AssetVisibilityFieldsProps {
     onIsPublicChange: (value: boolean) => void;
     onIsPublishedChange: (value: boolean) => void;
     readOnly?: boolean;
+    inline?: boolean;  // Compact inline mode (for positioning next to Name field)
 }
 
 export const AssetVisibilityFields: React.FC<AssetVisibilityFieldsProps> = ({
@@ -17,8 +18,35 @@ export const AssetVisibilityFields: React.FC<AssetVisibilityFieldsProps> = ({
     isPublished,
     onIsPublicChange,
     onIsPublishedChange,
-    readOnly = false
+    readOnly = false,
+    inline = false
 }) => {
+    // Inline compact mode (for positioning next to Name field)
+    if (inline && !readOnly) {
+        return (
+            <Box sx={{ display: 'flex', gap: 2 }}>
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={!isPublic}
+                            onChange={(e) => onIsPublicChange(!e.target.checked)}
+                        />
+                    }
+                    label="Private"
+                />
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={!isPublished}
+                            onChange={(e) => onIsPublishedChange(!e.target.checked)}
+                        />
+                    }
+                    label="Draft"
+                />
+            </Box>
+        );
+    }
+
     if (readOnly) {
         return (
             <Box>
@@ -27,7 +55,7 @@ export const AssetVisibilityFields: React.FC<AssetVisibilityFieldsProps> = ({
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <Chip label={isPublic ? 'Public' : 'Private'} size="small" />
-                    {isPublished && <Chip label="Published" color="success" size="small" />}
+                    <Chip label={isPublished ? 'Published' : 'Draft'} size="small" color={isPublished ? 'success' : 'default'} />
                 </Box>
             </Box>
         );
@@ -42,24 +70,24 @@ export const AssetVisibilityFields: React.FC<AssetVisibilityFieldsProps> = ({
                 <FormControlLabel
                     control={
                         <Checkbox
-                            checked={isPublic}
-                            onChange={(e) => onIsPublicChange(e.target.checked)}
+                            checked={!isPublic}
+                            onChange={(e) => onIsPublicChange(!e.target.checked)}
                         />
                     }
-                    label="Public (visible to all users)"
+                    label="Private (only visible to you)"
                 />
                 <FormControlLabel
                     control={
                         <Checkbox
-                            checked={isPublished}
-                            onChange={(e) => onIsPublishedChange(e.target.checked)}
+                            checked={!isPublished}
+                            onChange={(e) => onIsPublishedChange(!e.target.checked)}
                         />
                     }
-                    label="Published (approved for use)"
+                    label="Draft (not approved for use)"
                 />
-                {isPublished && !isPublic && (
-                    <Alert severity="warning" sx={{ mt: 1 }}>
-                        Published assets must be public
+                {!isPublished && isPublic && (
+                    <Alert severity="info" sx={{ mt: 1 }}>
+                        Draft assets can still be shared publicly
                     </Alert>
                 )}
             </Stack>

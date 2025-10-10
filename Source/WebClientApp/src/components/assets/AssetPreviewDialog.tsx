@@ -37,14 +37,14 @@ import {
     Asset,
     AssetKind,
     CreatureCategory,
-    UpdateAssetRequest
+    UpdateAssetRequest,
+    NamedSize
 } from '@/types/domain';
 import { useUpdateAssetMutation, useDeleteAssetMutation } from '@/services/assetsApi';
 import {
     AssetBasicFields,
     ObjectPropertiesForm,
     CreaturePropertiesForm,
-    AssetVisibilityFields,
     AssetResourceManager
 } from './forms';
 import { getDefaultPortraitResource, getResourceUrl } from '@/utils/assetHelpers';
@@ -72,27 +72,25 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
     const [isPublic, setIsPublic] = useState(asset.isPublic);
     const [isPublished, setIsPublished] = useState(asset.isPublished);
 
+    // Size state (shared by both Object and Creature)
+    const [size, setSize] = useState<NamedSize>(() => {
+        if (asset.kind === AssetKind.Object && 'objectProps' in asset) {
+            return asset.objectProps.size;
+        } else if (asset.kind === AssetKind.Creature && 'creatureProps' in asset) {
+            return asset.creatureProps.size;
+        }
+        return { width: 1, height: 1, isSquare: true };
+    });
+
     // Object-specific properties
-    const [cellWidth, setCellWidth] = useState(
-        asset.kind === AssetKind.Object && 'objectProps' in asset ? asset.objectProps.cellWidth : 1
-    );
-    const [cellHeight, setCellHeight] = useState(
-        asset.kind === AssetKind.Object && 'objectProps' in asset ? asset.objectProps.cellHeight : 1
-    );
     const [isMovable, setIsMovable] = useState(
         asset.kind === AssetKind.Object && 'objectProps' in asset ? asset.objectProps.isMovable : true
     );
     const [isOpaque, setIsOpaque] = useState(
         asset.kind === AssetKind.Object && 'objectProps' in asset ? asset.objectProps.isOpaque : false
     );
-    const [isVisible, setIsVisible] = useState(
-        asset.kind === AssetKind.Object && 'objectProps' in asset ? asset.objectProps.isVisible : true
-    );
 
     // Creature-specific properties
-    const [cellSize, setCellSize] = useState(
-        asset.kind === AssetKind.Creature && 'creatureProps' in asset ? asset.creatureProps.cellSize : 1
-    );
     const [creatureCategory, setCreatureCategory] = useState<CreatureCategory>(
         asset.kind === AssetKind.Creature && 'creatureProps' in asset
             ? asset.creatureProps.category
@@ -111,18 +109,13 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
         setIsPublic(asset.isPublic);
         setIsPublished(asset.isPublished);
 
-        // Reset object-specific properties
+        // Reset size from asset
         if (asset.kind === AssetKind.Object && 'objectProps' in asset) {
-            setCellWidth(asset.objectProps.cellWidth);
-            setCellHeight(asset.objectProps.cellHeight);
+            setSize(asset.objectProps.size);
             setIsMovable(asset.objectProps.isMovable);
             setIsOpaque(asset.objectProps.isOpaque);
-            setIsVisible(asset.objectProps.isVisible);
-        }
-
-        // Reset creature-specific properties
-        if (asset.kind === AssetKind.Creature && 'creatureProps' in asset) {
-            setCellSize(asset.creatureProps.cellSize);
+        } else if (asset.kind === AssetKind.Creature && 'creatureProps' in asset) {
+            setSize(asset.creatureProps.size);
             setCreatureCategory(asset.creatureProps.category);
         }
 
@@ -143,15 +136,13 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
             // Add kind-specific properties
             if (asset.kind === AssetKind.Object) {
                 request.objectProps = {
-                    cellWidth,
-                    cellHeight,
+                    size,
                     isMovable,
-                    isOpaque,
-                    isVisible
+                    isOpaque
                 };
             } else if (asset.kind === AssetKind.Creature) {
                 request.creatureProps = {
-                    cellSize,
+                    size,
                     category: creatureCategory
                 };
             }
@@ -244,12 +235,16 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                             readOnly={!editMode}
                         />
 
-                        {/* Basic Fields (Name & Description) */}
+                        {/* Basic Fields (Name, Description & Visibility) */}
                         <AssetBasicFields
                             name={name}
                             description={description}
                             onNameChange={setName}
                             onDescriptionChange={setDescription}
+                            isPublic={isPublic}
+                            isPublished={isPublished}
+                            onIsPublicChange={setIsPublic}
+                            onIsPublishedChange={setIsPublished}
                             readOnly={!editMode}
                         />
 
@@ -264,16 +259,12 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                         {/* Object-specific Properties */}
                         {asset.kind === AssetKind.Object && 'objectProps' in asset && (
                             <ObjectPropertiesForm
-                                cellWidth={cellWidth}
-                                cellHeight={cellHeight}
+                                size={size}
                                 isMovable={isMovable}
                                 isOpaque={isOpaque}
-                                isVisible={isVisible}
-                                onCellWidthChange={setCellWidth}
-                                onCellHeightChange={setCellHeight}
+                                onSizeChange={setSize}
                                 onIsMovableChange={setIsMovable}
                                 onIsOpaqueChange={setIsOpaque}
-                                onIsVisibleChange={setIsVisible}
                                 readOnly={!editMode}
                             />
                         )}
@@ -281,22 +272,13 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                         {/* Creature-specific Properties */}
                         {asset.kind === AssetKind.Creature && 'creatureProps' in asset && (
                             <CreaturePropertiesForm
-                                cellSize={cellSize}
+                                size={size}
                                 category={creatureCategory}
-                                onCellSizeChange={setCellSize}
+                                onSizeChange={setSize}
                                 onCategoryChange={setCreatureCategory}
                                 readOnly={!editMode}
                             />
                         )}
-
-                        {/* Visibility Fields */}
-                        <AssetVisibilityFields
-                            isPublic={isPublic}
-                            isPublished={isPublished}
-                            onIsPublicChange={setIsPublic}
-                            onIsPublishedChange={setIsPublished}
-                            readOnly={!editMode}
-                        />
 
                         {/* Metadata */}
                         {!editMode && (

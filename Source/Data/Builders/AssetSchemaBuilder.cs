@@ -43,7 +43,6 @@ internal static class AssetSchemaBuilder {
             props.Property(p => p.CellHeight).IsRequired();
             props.Property(p => p.IsMovable).IsRequired();
             props.Property(p => p.IsOpaque).IsRequired();
-            props.Property(p => p.IsVisible).IsRequired();
             props.Property(p => p.TriggerEffectId);
         }));
 

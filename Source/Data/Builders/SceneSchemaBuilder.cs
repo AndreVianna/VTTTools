@@ -76,6 +76,7 @@ internal static class SceneSchemaBuilder {
             entity.Property(ea => ea.Rotation).IsRequired().HasDefaultValue(0);
             entity.Property(ea => ea.Elevation).IsRequired().HasDefaultValue(0);
             entity.Property(ea => ea.IsLocked).IsRequired().HasDefaultValue(false);
+            entity.Property(ea => ea.IsVisible).IsRequired().HasDefaultValue(true);
             entity.Property(ea => ea.ControlledBy);
             entity.HasOne<Scene>().WithMany(e => e.SceneAssets).IsRequired()
                   .HasForeignKey(ea => ea.SceneId).OnDelete(DeleteBehavior.Cascade);

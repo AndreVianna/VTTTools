@@ -23,5 +23,6 @@ public record SceneAsset {
     public Frame? Frame { get; init; }
     public float Elevation { get; init; }
     public bool IsLocked { get; init; }
+    public bool IsVisible { get; init; } = true;  // Whether visible to players (GM can hide traps, secret objects, etc.)
     public Guid? ControlledBy { get; init; }
 }

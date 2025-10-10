@@ -84,7 +84,6 @@ export interface ObjectProperties {
   size: NamedSize;
   isMovable: boolean;
   isOpaque: boolean;
-  isVisible: boolean;
   triggerEffectId?: string;
 }
 

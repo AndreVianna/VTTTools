@@ -16,11 +16,6 @@ public record ObjectProperties : AssetProperties {
     public bool IsOpaque { get; init; }
 
     /// <summary>
-    /// Whether the object is visible to players (false for secret doors, hidden traps)
-    /// </summary>
-    public bool IsVisible { get; init; } = true;
-
-    /// <summary>
     /// Optional reference to an Effect that triggers when interacted with (for traps)
     /// </summary>
     public Guid? TriggerEffectId { get; init; }

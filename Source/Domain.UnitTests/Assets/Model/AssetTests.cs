@@ -75,8 +75,7 @@ public class AssetTests {
             Properties = new ObjectProperties {
                 Size = new NamedSize { Width = 2, Height = 1, IsSquare = false },
                 IsMovable = true,
-                IsOpaque = false,
-                IsVisible = true
+                IsOpaque = false
             }
         };
 

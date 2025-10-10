@@ -42,7 +42,6 @@ internal static class Mapper {
                     },
                     IsMovable = obj.Properties.IsMovable,
                     IsOpaque = obj.Properties.IsOpaque,
-                    IsVisible = obj.Properties.IsVisible,
                     TriggerEffectId = obj.Properties.TriggerEffectId
                 }
             },
@@ -102,7 +101,6 @@ internal static class Mapper {
                     CellHeight = (int)obj.Properties.Size.Height,
                     IsMovable = obj.Properties.IsMovable,
                     IsOpaque = obj.Properties.IsOpaque,
-                    IsVisible = obj.Properties.IsVisible,
                     TriggerEffectId = obj.Properties.TriggerEffectId
                 }
             },
@@ -161,7 +159,6 @@ internal static class Mapper {
                 objEntity.Properties.CellHeight = (int)objModel.Properties.Size.Height;
                 objEntity.Properties.IsMovable = objModel.Properties.IsMovable;
                 objEntity.Properties.IsOpaque = objModel.Properties.IsOpaque;
-                objEntity.Properties.IsVisible = objModel.Properties.IsVisible;
                 objEntity.Properties.TriggerEffectId = objModel.Properties.TriggerEffectId;
                 break;
             case (CreatureAssetEntity creatureEntity, DomainCreatureAsset creatureModel):

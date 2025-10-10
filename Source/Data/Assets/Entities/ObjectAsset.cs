@@ -18,6 +18,5 @@ public class ObjectProperties {
     public int CellHeight { get; set; } = 1;
     public bool IsMovable { get; set; } = true;
     public bool IsOpaque { get; set; }
-    public bool IsVisible { get; set; } = true;
     public Guid? TriggerEffectId { get; set; }
 }

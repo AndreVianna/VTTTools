@@ -452,9 +452,9 @@ export const AssetLibraryPage: React.FC = () => {
                                     <CardActions sx={{ pt: 0, px: 2, pb: 2 }}>
                                         <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
                                             {asset.kind === AssetKind.Object && 'objectProps' in asset
-                                                ? `${asset.objectProps.cellWidth}x${asset.objectProps.cellHeight} cells`
+                                                ? `${asset.objectProps.size.width}×${asset.objectProps.size.height} cells`
                                                 : asset.kind === AssetKind.Creature && 'creatureProps' in asset
-                                                    ? `${asset.creatureProps.cellSize}x${asset.creatureProps.cellSize} cells`
+                                                    ? `${asset.creatureProps.size.width}×${asset.creatureProps.size.width} cells`
                                                     : ''
                                             }
                                         </Typography>

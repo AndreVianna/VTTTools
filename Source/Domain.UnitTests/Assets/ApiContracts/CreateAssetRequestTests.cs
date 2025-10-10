@@ -20,8 +20,7 @@ public class CreateAssetRequestTests {
             ObjectProps = new ObjectProperties {
                 Size = new NamedSize { Width = 1, Height = 1, IsSquare = false },
                 IsMovable = true,
-                IsOpaque = false,
-                IsVisible = true
+                IsOpaque = false
             }
         };
         const string name = "Large Table";
@@ -32,8 +31,7 @@ public class CreateAssetRequestTests {
             ObjectProps = new ObjectProperties {
                 Size = new NamedSize { Width = 2, Height = 1, IsSquare = false },
                 IsMovable = false,
-                IsOpaque = false,
-                IsVisible = true
+                IsOpaque = false
             }
         };
 
