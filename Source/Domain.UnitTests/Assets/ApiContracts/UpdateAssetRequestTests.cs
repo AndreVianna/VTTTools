@@ -32,7 +32,7 @@ public class UpdateAssetRequestTests {
             Resources = new[] {
                 new AssetResourceDto {
                     ResourceId = newResourceId,
-                    Role = ResourceRole.Token | ResourceRole.Portrait,
+                    Role = ResourceRole.Token,
                     IsDefault = true
                 }
             },
@@ -47,7 +47,7 @@ public class UpdateAssetRequestTests {
         updated.Name.Value.Should().Be(newName);
         updated.Resources.Value.Should().HaveCount(1);
         updated.Resources.Value[0].ResourceId.Should().Be(newResourceId);
-        updated.Resources.Value[0].Role.Should().Be(ResourceRole.Token | ResourceRole.Portrait);
+        updated.Resources.Value[0].Role.Should().Be(ResourceRole.Token);
         updated.Resources.Value[0].IsDefault.Should().BeTrue();
         updated.ObjectProps.Value.Size.Width.Should().Be(2);
         updated.ObjectProps.Value.Size.Height.Should().Be(2);

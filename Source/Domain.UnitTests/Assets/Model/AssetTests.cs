@@ -46,11 +46,22 @@ public class AssetTests {
         const string name = "Wooden Table";
         const string description = "A sturdy oak table";
         var size = new Size(100, 200);
-        var resourceId = Guid.NewGuid();
-        var resource = new Resource {
-            Id = resourceId,
+        var tokenId = Guid.NewGuid();
+        var portraitId = Guid.NewGuid();
+        var token = new Resource {
+            Id = tokenId,
             Type = ResourceType.Image,
-            Path = "assets/table.png",
+            Path = "assets/table-token.png",
+            Metadata = new ResourceMetadata {
+                ContentType = "image/png",
+                ImageSize = size,
+            },
+            Tags = ["furniture", "indoor"],
+        };
+        var portrait = new Resource {
+            Id = portraitId,
+            Type = ResourceType.Image,
+            Path = "assets/table-portrait.png",
             Metadata = new ResourceMetadata {
                 ContentType = "image/png",
                 ImageSize = size,
@@ -66,9 +77,15 @@ public class AssetTests {
             Description = description,
             Resources = [
                 new AssetResource {
-                    ResourceId = resourceId,
-                    Resource = resource,
-                    Role = ResourceRole.Token | ResourceRole.Portrait,
+                    ResourceId = tokenId,
+                    Resource = token,
+                    Role = ResourceRole.Token,
+                    IsDefault = true
+                },
+                new AssetResource {
+                    ResourceId = portraitId,
+                    Resource = portrait,
+                    Role = ResourceRole.Portrait,
                     IsDefault = true
                 }
             ],
@@ -86,11 +103,14 @@ public class AssetTests {
         asset.Kind.Should().Be(AssetKind.Object);
         asset.Description.Should().Be(description);
         asset.Resources.Should().NotBeEmpty();
-        asset.Resources.First().ResourceId.Should().Be(resourceId);
-        asset.Resources.First().Resource.Should().BeEquivalentTo(resource);
+        asset.Resources.First().ResourceId.Should().Be(tokenId);
+        asset.Resources.First().Resource.Should().BeEquivalentTo(token);
         asset.Resources.First().Role.Should().HaveFlag(ResourceRole.Token);
-        asset.Resources.First().Role.Should().HaveFlag(ResourceRole.Portrait);
         asset.Resources.First().IsDefault.Should().BeTrue();
+        asset.Resources.Last().ResourceId.Should().Be(portraitId);
+        asset.Resources.Last().Resource.Should().BeEquivalentTo(portrait);
+        asset.Resources.Last().Role.Should().HaveFlag(ResourceRole.Portrait);
+        asset.Resources.Last().IsDefault.Should().BeTrue();
         asset.Properties.Size.Width.Should().Be(2);
         asset.Properties.Size.Height.Should().Be(1);
         asset.Properties.Size.IsSquare.Should().BeFalse();

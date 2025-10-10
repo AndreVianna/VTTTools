@@ -146,18 +146,17 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
     if (readOnly) {
         return (
             <Box>
-                <Typography variant="subtitle2" sx={{ mb: 2 }}>Asset Images</Typography>
                 <Grid container spacing={2}>
                     {/* Token */}
-                    <Grid size={6}>
+                    <Grid size={3}>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                            Tokens
+                            Token
                         </Typography>
                         {defaultToken ? (
                             <Card sx={{ width: '100%', maxWidth: 150 }}>
                                 <CardMedia
                                     component="img"
-                                    height="120"
+                                    height="128"
                                     image={getResourceUrl(defaultToken.resourceId)}
                                     alt="Token"
                                     sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
@@ -167,8 +166,8 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                         ) : (
                             <Box sx={{
                                 width: '100%',
-                                maxWidth: 150,
-                                height: 120,
+                                maxWidth: 128,
+                                height: 128,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -183,15 +182,15 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                     </Grid>
 
                     {/* Portrait */}
-                    <Grid size={6}>
+                    <Grid size={9}>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                            Portraits
+                            Portrait
                         </Typography>
                         {defaultPortrait ? (
-                            <Card sx={{ width: '100%', maxWidth: 150 }}>
+                            <Card sx={{ width: '100%', maxWidth: 200 }}>
                                 <CardMedia
                                     component="img"
-                                    height="120"
+                                    height="300"
                                     image={getResourceUrl(defaultPortrait.resourceId)}
                                     alt="Portrait"
                                     sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
@@ -201,8 +200,8 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                         ) : (
                             <Box sx={{
                                 width: '100%',
-                                maxWidth: 150,
-                                height: 120,
+                                maxWidth: 200,
+                                height: 300,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -222,20 +221,17 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
 
     return (
         <Box>
-            <Typography variant="subtitle2" sx={{ mb: 2 }}>Asset Images</Typography>
-
             {uploadError && (
                 <Alert severity="error" sx={{ mb: 2 }} onClose={() => setUploadError(null)}>
                     {uploadError}
                 </Alert>
             )}
-
-            {/* Side-by-side: Tokens and Portraits */}
+            {/* Side-by-side: Token and Portrait */}
             <Grid container spacing={2} sx={{ mb: 2 }}>
                 {/* TOKEN SECTION (Left Side) */}
-                <Grid size={6}>
+                <Grid size={3}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="body2" fontWeight={600}>Tokens</Typography>
+                        <Typography variant="body2" fontWeight={600}>Token</Typography>
                         <Button
                             size="small"
                             endIcon={expandedAlbum === 'token' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
@@ -247,10 +243,10 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
 
                     {/* Show default token */}
                     {defaultToken ? (
-                        <Card sx={{ width: '100%', maxWidth: 150 }}>
+                        <Card sx={{ width: '100%', maxWidth: 128 }}>
                             <CardMedia
                                 component="img"
-                                height="120"
+                                height="128"
                                 image={getResourceUrl(defaultToken.resourceId)}
                                 alt="Default Token"
                                 sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
@@ -260,8 +256,8 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                     ) : (
                         <Box sx={{
                             width: '100%',
-                            maxWidth: 150,
-                            height: 120,
+                            maxWidth: 128,
+                            height: 128,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -276,9 +272,9 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                 </Grid>
 
                 {/* PORTRAIT SECTION (Right Side) */}
-                <Grid size={6}>
+                <Grid size={9}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="body2" fontWeight={600}>Portraits</Typography>
+                        <Typography variant="body2" fontWeight={600}>Portrait</Typography>
                         <Button
                             size="small"
                             endIcon={expandedAlbum === 'portrait' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
@@ -290,10 +286,10 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
 
                     {/* Show default portrait */}
                     {defaultPortrait ? (
-                        <Card sx={{ width: '100%', maxWidth: 150 }}>
+                        <Card sx={{ width: '100%', maxWidth: 200 }}>
                             <CardMedia
                                 component="img"
-                                height="120"
+                                height="300"
                                 image={getResourceUrl(defaultPortrait.resourceId)}
                                 alt="Default Portrait"
                                 sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
@@ -303,8 +299,8 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                     ) : (
                         <Box sx={{
                             width: '100%',
-                            maxWidth: 150,
-                            height: 120,
+                            maxWidth: 200,
+                            height: 300,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',

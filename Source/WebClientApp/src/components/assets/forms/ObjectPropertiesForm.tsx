@@ -28,9 +28,6 @@ export const ObjectPropertiesForm: React.FC<ObjectPropertiesFormProps> = ({
     if (readOnly) {
         return (
             <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                    Object Properties
-                </Typography>
                 <Stack spacing={1}>
                     <SizeSelector value={size} onChange={onSizeChange} readOnly />
                     <Typography variant="body2">Movable: {isMovable ? 'Yes' : 'No'}</Typography>
@@ -42,9 +39,6 @@ export const ObjectPropertiesForm: React.FC<ObjectPropertiesFormProps> = ({
 
     return (
         <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                Object Properties
-            </Typography>
             <Stack spacing={2}>
                 <SizeSelector value={size} onChange={onSizeChange} />
                 <FormControlLabel

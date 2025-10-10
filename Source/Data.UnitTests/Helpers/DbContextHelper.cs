@@ -166,7 +166,7 @@ internal static class DbContextHelper {
             Resources = [
                 new() {
                     ResourceId = resourceId,
-                    Role = ResourceRole.Token | ResourceRole.Portrait,
+                    Role = ResourceRole.Token,
                     IsDefault = true,
                 },
             ],
@@ -271,7 +271,7 @@ internal static class DbContextHelper {
             Resources = [
                 new() {
                     ResourceId = resourceId,
-                    Role = ResourceRole.Token | ResourceRole.Portrait,
+                    Role = ResourceRole.Token,
                     IsDefault = true,
                     Resource = new() {
                         Id = resourceId,

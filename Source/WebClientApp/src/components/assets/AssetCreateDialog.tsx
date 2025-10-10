@@ -15,12 +15,18 @@ import {
     Stack,
     CircularProgress,
     Tabs,
-    Tab
+    Tab,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    Chip,
+    useTheme
 } from '@mui/material';
 import {
     Close as CloseIcon,
     Save as SaveIcon,
-    Cancel as CancelIcon
+    Cancel as CancelIcon,
+    ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
 import {
     AssetKind,
@@ -50,6 +56,8 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
     initialKind = AssetKind.Object,
     fixedKind
 }) => {
+    const theme = useTheme();
+
     // Kind selection - use fixedKind if provided, otherwise initialKind
     const [selectedKind, setSelectedKind] = useState<AssetKind>(fixedKind ?? initialKind);
 
@@ -173,63 +181,135 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
             <Divider />
 
             <DialogContent>
-                <Stack spacing={3}>
-                    {/* Resource Manager (Image Upload) - TOP PRIORITY */}
+                {/* PERMANENT SECTION: Asset Images (Always Visible - Visual Identity) */}
+                <Box sx={{ mb: 3 }}>
                     <AssetResourceManager
                         resources={resources}
                         onResourcesChange={setResources}
                     />
+                </Box>
 
-                    {/* Kind Selector Tabs - only show if kind is not fixed */}
-                    {!fixedKind && (
-                        <Box>
-                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                                Asset Kind
+                {/* ACCORDION SECTION 1: Identity & Basics (Default Expanded, Required) */}
+                <Accordion
+                    defaultExpanded
+                    disableGutters
+                    sx={{
+                        bgcolor: 'background.paper',
+                        boxShadow: 'none',
+                        '&:before': { display: 'none' },
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                        mb: 2
+                    }}
+                >
+                    <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        sx={{
+                            bgcolor: theme.palette.mode === 'dark'
+                                ? 'rgba(255,255,255,0.05)'
+                                : 'rgba(0,0,0,0.02)',
+                            borderBottom: '1px solid',
+                            borderColor: 'divider',
+                            minHeight: 48,
+                            '&.Mui-expanded': { minHeight: 48 }
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1 }}>
+                            <Typography variant="subtitle1" fontWeight={600}>
+                                Identity & Basics
                             </Typography>
-                            <Tabs
-                                value={selectedKind}
-                                onChange={(_, newValue) => setSelectedKind(newValue)}
-                                sx={{ borderBottom: 1, borderColor: 'divider' }}
-                            >
-                                <Tab label="Object" value={AssetKind.Object} />
-                                <Tab label="Creature" value={AssetKind.Creature} />
-                            </Tabs>
+                            <Chip label="Required" size="small" color="primary" />
                         </Box>
-                    )}
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ p: 3 }}>
+                        <Stack spacing={3}>
+                            {/* Kind Selector Tabs - only show if kind is not fixed */}
+                            {!fixedKind && (
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                                        Asset Kind
+                                    </Typography>
+                                    <Tabs
+                                        value={selectedKind}
+                                        onChange={(_, newValue) => setSelectedKind(newValue)}
+                                        sx={{ borderBottom: 1, borderColor: 'divider' }}
+                                    >
+                                        <Tab label="Object" value={AssetKind.Object} />
+                                        <Tab label="Creature" value={AssetKind.Creature} />
+                                    </Tabs>
+                                </Box>
+                            )}
 
-                    {/* Basic Fields (Name & Description) */}
-                    <AssetBasicFields
-                        name={name}
-                        description={description}
-                        onNameChange={setName}
-                        onDescriptionChange={setDescription}
-                        isPublic={isPublic}
-                        isPublished={isPublished}
-                        onIsPublicChange={setIsPublic}
-                        onIsPublishedChange={setIsPublished}
-                    />
+                            {/* Basic Fields (Name, Description & Visibility) */}
+                            <AssetBasicFields
+                                name={name}
+                                description={description}
+                                onNameChange={setName}
+                                onDescriptionChange={setDescription}
+                                isPublic={isPublic}
+                                isPublished={isPublished}
+                                onIsPublicChange={setIsPublic}
+                                onIsPublishedChange={setIsPublished}
+                            />
+                        </Stack>
+                    </AccordionDetails>
+                </Accordion>
 
-                    {/* Kind-Specific Properties */}
-                    {selectedKind === AssetKind.Object && (
-                        <ObjectPropertiesForm
-                            size={objectSize}
-                            isMovable={isMovable}
-                            isOpaque={isOpaque}
-                            onSizeChange={setObjectSize}
-                            onIsMovableChange={setIsMovable}
-                            onIsOpaqueChange={setIsOpaque}
-                        />
-                    )}
+                {/* ACCORDION SECTION 2: Properties (Collapsed, Required, Flexible) */}
+                <Accordion
+                    disableGutters
+                    sx={{
+                        bgcolor: 'background.paper',
+                        boxShadow: 'none',
+                        '&:before': { display: 'none' },
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 1
+                    }}
+                >
+                    <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        sx={{
+                            bgcolor: theme.palette.mode === 'dark'
+                                ? 'rgba(255,255,255,0.05)'
+                                : 'rgba(0,0,0,0.02)',
+                            borderBottom: '1px solid',
+                            borderColor: 'divider',
+                            minHeight: 48,
+                            '&.Mui-expanded': { minHeight: 48 }
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1 }}>
+                            <Typography variant="subtitle1" fontWeight={600}>
+                                Properties
+                            </Typography>
+                            <Chip label="Required" size="small" />
+                        </Box>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ p: 3 }}>
+                        {/* Kind-Specific Properties */}
+                        {selectedKind === AssetKind.Object && (
+                            <ObjectPropertiesForm
+                                size={objectSize}
+                                isMovable={isMovable}
+                                isOpaque={isOpaque}
+                                onSizeChange={setObjectSize}
+                                onIsMovableChange={setIsMovable}
+                                onIsOpaqueChange={setIsOpaque}
+                            />
+                        )}
 
-                    {selectedKind === AssetKind.Creature && (
-                        <CreaturePropertiesForm
-                            size={creatureSize}
-                            category={creatureCategory}
-                            onSizeChange={setCreatureSize}
-                            onCategoryChange={setCreatureCategory}
-                        />
-                    )}
-                </Stack>
+                        {selectedKind === AssetKind.Creature && (
+                            <CreaturePropertiesForm
+                                size={creatureSize}
+                                category={creatureCategory}
+                                onSizeChange={setCreatureSize}
+                                onCategoryChange={setCreatureCategory}
+                            />
+                        )}
+                    </AccordionDetails>
+                </Accordion>
             </DialogContent>
 
             <Divider />

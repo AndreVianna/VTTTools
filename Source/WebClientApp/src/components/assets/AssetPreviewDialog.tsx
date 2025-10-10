@@ -23,7 +23,10 @@ import {
     Divider,
     CircularProgress,
     Alert,
-    useTheme
+    useTheme,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails
 } from '@mui/material';
 import {
     Close as CloseIcon,
@@ -31,7 +34,8 @@ import {
     Delete as DeleteIcon,
     Save as SaveIcon,
     Cancel as CancelIcon,
-    Category as CategoryIcon
+    Category as CategoryIcon,
+    ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
 import {
     Asset,
@@ -227,61 +231,172 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                         })()}
                     </Box>
 
-                    <Stack spacing={2}>
-                        {/* Resource Manager - TOP PRIORITY */}
-                        <AssetResourceManager
-                            resources={resources}
-                            onResourcesChange={setResources}
-                            readOnly={!editMode}
-                        />
+                    {/* Resource Manager - Always visible at top */}
+                    <AssetResourceManager
+                        resources={resources}
+                        onResourcesChange={setResources}
+                        readOnly={!editMode}
+                    />
 
-                        {/* Basic Fields (Name, Description & Visibility) */}
-                        <AssetBasicFields
-                            name={name}
-                            description={description}
-                            onNameChange={setName}
-                            onDescriptionChange={setDescription}
-                            isPublic={isPublic}
-                            isPublished={isPublished}
-                            onIsPublicChange={setIsPublic}
-                            onIsPublishedChange={setIsPublished}
-                            readOnly={!editMode}
-                        />
+                    {editMode ? (
+                        <>
+                            {/* Accordion 1: Identity & Basics (default expanded) */}
+                            <Accordion
+                                defaultExpanded
+                                disableGutters
+                                sx={{
+                                    bgcolor: 'background.paper',
+                                    boxShadow: 'none',
+                                    '&:before': { display: 'none' },
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    borderRadius: 1,
+                                    mb: 2,
+                                    mt: 2
+                                }}
+                            >
+                                <AccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    sx={{
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+                                        borderBottom: '1px solid',
+                                        borderColor: 'divider',
+                                        minHeight: 48,
+                                        '&.Mui-expanded': { minHeight: 48 }
+                                    }}
+                                >
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Typography variant="subtitle1" fontWeight={600}>Identity & Basics</Typography>
+                                        <Chip label="Required" size="small" color="primary" />
+                                    </Box>
+                                </AccordionSummary>
+                                <AccordionDetails sx={{ p: 3 }}>
+                                    <Stack spacing={2}>
+                                        <AssetBasicFields
+                                            name={name}
+                                            description={description}
+                                            onNameChange={setName}
+                                            onDescriptionChange={setDescription}
+                                            isPublic={isPublic}
+                                            isPublished={isPublished}
+                                            onIsPublicChange={setIsPublic}
+                                            onIsPublishedChange={setIsPublished}
+                                            readOnly={false}
+                                        />
+                                        {/* Kind (Read-only) */}
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary">Kind</Typography>
+                                            <Box sx={{ mt: 0.5 }}>
+                                                <Chip label={asset.kind} color="primary" size="small" />
+                                            </Box>
+                                        </Box>
+                                    </Stack>
+                                </AccordionDetails>
+                            </Accordion>
 
-                        {/* Kind (Read-only) */}
-                        <Box>
-                            <Typography variant="caption" color="text.secondary">Kind</Typography>
-                            <Box sx={{ mt: 0.5 }}>
-                                <Chip label={asset.kind} color="primary" size="small" />
+                            {/* Accordion 2: Properties (collapsed) */}
+                            <Accordion
+                                disableGutters
+                                sx={{
+                                    bgcolor: 'background.paper',
+                                    boxShadow: 'none',
+                                    '&:before': { display: 'none' },
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    borderRadius: 1,
+                                    mb: 2
+                                }}
+                            >
+                                <AccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    sx={{
+                                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+                                        borderBottom: '1px solid',
+                                        borderColor: 'divider',
+                                        minHeight: 48,
+                                        '&.Mui-expanded': { minHeight: 48 }
+                                    }}
+                                >
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Typography variant="subtitle1" fontWeight={600}>Properties</Typography>
+                                        <Chip label="Required" size="small" color="primary" />
+                                    </Box>
+                                </AccordionSummary>
+                                <AccordionDetails sx={{ p: 3 }}>
+                                    {/* Object-specific Properties */}
+                                    {asset.kind === AssetKind.Object && 'objectProps' in asset && (
+                                        <ObjectPropertiesForm
+                                            size={size}
+                                            isMovable={isMovable}
+                                            isOpaque={isOpaque}
+                                            onSizeChange={setSize}
+                                            onIsMovableChange={setIsMovable}
+                                            onIsOpaqueChange={setIsOpaque}
+                                            readOnly={false}
+                                        />
+                                    )}
+
+                                    {/* Creature-specific Properties */}
+                                    {asset.kind === AssetKind.Creature && 'creatureProps' in asset && (
+                                        <CreaturePropertiesForm
+                                            size={size}
+                                            category={creatureCategory}
+                                            onSizeChange={setSize}
+                                            onCategoryChange={setCreatureCategory}
+                                            readOnly={false}
+                                        />
+                                    )}
+                                </AccordionDetails>
+                            </Accordion>
+                        </>
+                    ) : (
+                        <Stack spacing={2} sx={{ mt: 2 }}>
+                            {/* View mode: Keep flat layout - no accordions */}
+                            <AssetBasicFields
+                                name={name}
+                                description={description}
+                                onNameChange={setName}
+                                onDescriptionChange={setDescription}
+                                isPublic={isPublic}
+                                isPublished={isPublished}
+                                onIsPublicChange={setIsPublic}
+                                onIsPublishedChange={setIsPublished}
+                                readOnly={true}
+                            />
+
+                            {/* Kind (Read-only) */}
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">Kind</Typography>
+                                <Box sx={{ mt: 0.5 }}>
+                                    <Chip label={asset.kind} color="primary" size="small" />
+                                </Box>
                             </Box>
-                        </Box>
 
-                        {/* Object-specific Properties */}
-                        {asset.kind === AssetKind.Object && 'objectProps' in asset && (
-                            <ObjectPropertiesForm
-                                size={size}
-                                isMovable={isMovable}
-                                isOpaque={isOpaque}
-                                onSizeChange={setSize}
-                                onIsMovableChange={setIsMovable}
-                                onIsOpaqueChange={setIsOpaque}
-                                readOnly={!editMode}
-                            />
-                        )}
+                            {/* Object-specific Properties */}
+                            {asset.kind === AssetKind.Object && 'objectProps' in asset && (
+                                <ObjectPropertiesForm
+                                    size={size}
+                                    isMovable={isMovable}
+                                    isOpaque={isOpaque}
+                                    onSizeChange={setSize}
+                                    onIsMovableChange={setIsMovable}
+                                    onIsOpaqueChange={setIsOpaque}
+                                    readOnly={true}
+                                />
+                            )}
 
-                        {/* Creature-specific Properties */}
-                        {asset.kind === AssetKind.Creature && 'creatureProps' in asset && (
-                            <CreaturePropertiesForm
-                                size={size}
-                                category={creatureCategory}
-                                onSizeChange={setSize}
-                                onCategoryChange={setCreatureCategory}
-                                readOnly={!editMode}
-                            />
-                        )}
+                            {/* Creature-specific Properties */}
+                            {asset.kind === AssetKind.Creature && 'creatureProps' in asset && (
+                                <CreaturePropertiesForm
+                                    size={size}
+                                    category={creatureCategory}
+                                    onSizeChange={setSize}
+                                    onCategoryChange={setCreatureCategory}
+                                    readOnly={true}
+                                />
+                            )}
 
-                        {/* Metadata */}
-                        {!editMode && (
+                            {/* Metadata */}
                             <Box>
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                                     Metadata
@@ -293,8 +408,8 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                                     Updated: {new Date(asset.updatedAt).toLocaleDateString()}
                                 </Typography>
                             </Box>
-                        )}
-                    </Stack>
+                        </Stack>
+                    )}
                 </DialogContent>
 
                 <Divider />

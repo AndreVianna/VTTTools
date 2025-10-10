@@ -99,7 +99,7 @@ public class AssetStorageTests
             Resources = [
                 new() {
                     ResourceId = resourceId,
-                    Role = ResourceRole.Token | ResourceRole.Portrait,
+                    Role = ResourceRole.Token,
                     IsDefault = true,
                     Resource = new() {
                         Id = resourceId,
