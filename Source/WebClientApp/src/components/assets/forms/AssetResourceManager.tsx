@@ -35,13 +35,15 @@ export interface AssetResourceManagerProps {
     onResourcesChange: (resources: AssetResource[]) => void;
     size: NamedSize;  // Asset size for token preview grid
     readOnly?: boolean;
+    entityId?: string;  // Asset ID for edit mode
 }
 
 export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
     resources,
     onResourcesChange,
     size,
-    readOnly = false
+    readOnly = false,
+    entityId
 }) => {
     const theme = useTheme();
     const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation();
@@ -60,7 +62,8 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
         setUploadError(null);
         try {
             const result = await uploadFile({
-                file
+                file,
+                entityId  // Will be undefined for create, set for edit
             }).unwrap();
 
             onResourcesChange([...resources, {

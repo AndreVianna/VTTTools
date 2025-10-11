@@ -11,8 +11,8 @@ public class AzureResourceServiceTests {
     private readonly IMediaStorage _mediaStorage = Substitute.For<IMediaStorage>();
 
     public AzureResourceServiceTests() {
-        _blobServiceClient.GetBlobContainerClient("images").Returns(_blobContainerClient);
-        _blobServiceClient.CreateBlobContainerAsync("images", PublicAccessType.BlobContainer, null, Arg.Any<CancellationToken>())
+        _blobServiceClient.GetBlobContainerClient("media").Returns(_blobContainerClient);
+        _blobServiceClient.CreateBlobContainerAsync("media", PublicAccessType.BlobContainer, null, Arg.Any<CancellationToken>())
                           .Returns(Response.FromValue(_blobContainerClient, _response));
         _blobContainerClient.GetBlobClient(Arg.Any<string>()).Returns(_blobClient);
         _blobClient.UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>())
@@ -29,9 +29,11 @@ public class AzureResourceServiceTests {
     public async Task UploadImageAsync_UploadsFileAndReturnsUrl() {
         // Arrange
         var id = Guid.CreateVersion7();
+        var guidString = id.ToString("N");
+        var guidSuffix = guidString.Substring(guidString.Length - 4);
         const string fileName = "test-image.png";
         var file = new AddResourceData {
-            Path = $"images/{id}/{fileName}",
+            Path = $"images/{guidSuffix}/{guidString}",
             Metadata = new ResourceMetadata {
                 ContentType = "image/png",
                 FileLength = 12345,
@@ -47,11 +49,11 @@ public class AzureResourceServiceTests {
             .Returns(Response.FromValue(true, Substitute.For<Response>()));
 
         // Act
-        var result = await _service.SaveResourceAsync(file, stream, _ct);
+        var result = await _service.SaveResourceAsync(file, stream, Guid.NewGuid(), "asset", null, false, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        _blobServiceClient.Received(1).GetBlobContainerClient("images");
+        _blobServiceClient.Received(1).GetBlobContainerClient("media");
         await _blobClient.Received(1).UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>());
     }
 
@@ -59,9 +61,11 @@ public class AzureResourceServiceTests {
     public async Task UploadImageAsync_CreatesContainerIfNotExists() {
         // Arrange
         var id = Guid.CreateVersion7();
+        var guidString = id.ToString("N");
+        var guidSuffix = guidString.Substring(guidString.Length - 4);
         const string fileName = "test-image.png";
         var file = new AddResourceData {
-            Path = $"images/{id}/{fileName}",
+            Path = $"images/{guidSuffix}/{guidString}",
             Metadata = new ResourceMetadata {
                 ContentType = "image/png",
                 FileLength = 12345,
@@ -77,12 +81,12 @@ public class AzureResourceServiceTests {
             .Returns(Response.FromValue(false, _response));
 
         // Act
-        var result = await _service.SaveResourceAsync(file, stream, _ct);
+        var result = await _service.SaveResourceAsync(file, stream, Guid.NewGuid(), "asset", null, false, _ct);
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
 
-        await _blobServiceClient.Received(1).CreateBlobContainerAsync("images", PublicAccessType.BlobContainer, null, Arg.Any<CancellationToken>());
+        await _blobServiceClient.Received(1).CreateBlobContainerAsync("media", PublicAccessType.BlobContainer, null, Arg.Any<CancellationToken>());
         await _blobClient.Received(1).UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>());
     }
 

@@ -34,14 +34,20 @@ export const mediaApi = createApi({
       file: File;
       type?: string;
       resource?: string;
+      entityId?: string;
     }>({
-      query: ({ file, type = 'asset', resource = 'image' }) => {
+      query: ({ file, type = 'asset', resource = 'image', entityId }) => {
         const formData = new FormData();
 
         // Backend generates GUID v7 - don't send ID from frontend
         formData.append('type', type);
         formData.append('resource', resource);
         formData.append('file', file);
+
+        // Add entityId if provided (for edit mode)
+        if (entityId) {
+          formData.append('entityId', entityId);
+        }
 
         return {
           url: '/resources',  // Changed from '/upload' to match backend mapping

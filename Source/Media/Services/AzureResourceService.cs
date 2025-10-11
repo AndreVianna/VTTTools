@@ -6,7 +6,7 @@ namespace VttTools.Media.Services;
 public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaStorage)
     : IResourceService {
     /// <inheritdoc />
-    public async Task<Result> SaveResourceAsync(AddResourceData data, Stream stream, CancellationToken ct = default) {
+    public async Task<Result> SaveResourceAsync(AddResourceData data, Stream stream, Guid ownerId, string entityType, Guid? entityId, bool isPublic, CancellationToken ct = default) {
         var blobClient = await GetBlobClient(data.Path, ct);
         var options = new BlobUploadOptions {
             Metadata = new Dictionary<string, string> {
@@ -16,6 +16,10 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
                 ["Width"] = data.Metadata.ImageSize.Width.ToString(),
                 ["Height"] = data.Metadata.ImageSize.Height.ToString(),
                 ["Duration"] = data.Metadata.Duration.ToString(),
+                ["OwnerId"] = ownerId.ToString(),
+                ["EntityType"] = entityType,
+                ["EntityId"] = entityId?.ToString() ?? "",
+                ["IsPublic"] = isPublic.ToString()
             },
             HttpHeaders = new() {
                 ContentType = data.Metadata.ContentType,
@@ -30,9 +34,10 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
             : data.Metadata.ContentType.Contains("gif") || data.Metadata.ContentType.Contains("webp") ? ResourceType.Animation
             : ResourceType.Image;
 
-        // Extract resource ID from path (format: "type/resource/id")
+        // Extract resource ID from path (format: "resourceType/guid-suffix/guid")
+        // Example: "images/ee97/0199d0f8459a76a0a1c92dceab0cee97"
         var pathParts = data.Path.Split('/');
-        var resourceId = Guid.Parse(pathParts[^1]);  // Last element is the GUID
+        var resourceId = Guid.Parse(pathParts[^1]);  // Last element is the full GUID
 
         // Save Resource entity to database
         var resource = new Resource {
@@ -106,9 +111,9 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
     }
 
     private async Task<BlobClient> GetBlobClient(string blobName, CancellationToken ct) {
-        var containerClient = client.GetBlobContainerClient("images");
+        var containerClient = client.GetBlobContainerClient("media");
         if (!await containerClient.ExistsAsync(ct))
-            containerClient = await client.CreateBlobContainerAsync("images", PublicAccessType.BlobContainer, null, ct);
+            containerClient = await client.CreateBlobContainerAsync("media", PublicAccessType.BlobContainer, null, ct);
         return containerClient.GetBlobClient(blobName);
     }
 }

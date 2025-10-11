@@ -237,6 +237,7 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                         onResourcesChange={setResources}
                         size={size}
                         readOnly={!editMode}
+                        entityId={asset.id}
                     />
 
                     {editMode ? (

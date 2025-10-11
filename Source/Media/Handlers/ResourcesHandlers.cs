@@ -10,12 +10,17 @@ using IResult = Microsoft.AspNetCore.Http.IResult;
 namespace VttTools.Media.Handlers;
 
 internal static class ResourcesHandlers {
-    internal static async Task<IResult> UploadFileHandler([FromForm] string type,
+    internal static async Task<IResult> UploadFileHandler(HttpContext context,
+                                                          [FromForm] string type,
                                                           [FromForm] string resource,
                                                           [FromForm] IFormFile file,
+                                                          [FromForm] string? entityId,  // Optional: Asset ID for edit mode
                                                           [FromServices] IResourceService storage) {
         // Generate GUID v7 for consistent timestamp-based IDs
         var guidId = Guid.CreateVersion7();
+
+        // Get user ID from context
+        var userId = context.User.GetUserId();
 
         var request = new UploadRequest {
             Id = guidId,
@@ -144,7 +149,13 @@ internal static class ResourcesHandlers {
                                             statusCode: StatusCodes.Status400BadRequest,
                                             title: "Invalid file data.");
                 }
-                var result = await storage.SaveResourceAsync(data.Value, streamToUse);
+                // Parse entityId if provided
+                Guid? parsedEntityId = null;
+                if (!string.IsNullOrEmpty(entityId) && Guid.TryParse(entityId, out var entityGuid)) {
+                    parsedEntityId = entityGuid;
+                }
+
+                var result = await storage.SaveResourceAsync(data.Value, streamToUse, userId, type, parsedEntityId, isPublic: false);
                 return result.IsSuccessful
                     ? Results.Ok(new { id = guidId.ToString() })  // Return just the ID for frontend
                     : Results.Problem(detail: $"""
