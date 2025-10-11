@@ -69,7 +69,7 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
         const data = await setupTwoFactor();
         setSetupData(data);
       } catch (_error) {
-        console.error('Failed to initialize 2FA setup:', error);
+        console.error('Failed to initialize 2FA setup:', _error);
       }
     };
 
@@ -128,7 +128,7 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
         setShowRecoveryDialog(true);
       }
     } catch (_error) {
-      console.error('Failed to enable 2FA:', error);
+      console.error('Failed to enable 2FA:', _error);
     }
   };
 

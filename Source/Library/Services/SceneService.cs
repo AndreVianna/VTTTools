@@ -1,4 +1,5 @@
 using VttTools.Assets.Model;
+
 using UpdateSceneAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
 
 namespace VttTools.Library.Services;

@@ -13,18 +13,18 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Group, Image as KonvaImage } from 'react-konva';
-import Konva from 'konva';
 import { Asset } from '@/types/domain';
 import { GridConfig, Point, pointToCell, cellToPoint } from '@/utils/gridCalculator';
 import { getFirstTokenResource, getResourceUrl } from '@/utils/assetHelpers';
+import { SceneCanvasHandle } from './SceneCanvas';
 
 export interface PlacementCursorProps {
     /** Asset being placed */
     asset: Asset;
     /** Grid configuration for snap-to-grid */
     gridConfig: GridConfig;
-    /** Konva stage reference for mouse tracking */
-    stage: Konva.Stage | null;
+    /** Ref to SceneCanvasHandle for accessing stage in effects */
+    canvasRef: React.RefObject<SceneCanvasHandle | null>;
     /** Viewport scale for coordinate transformation */
     scale: number;
     /** Viewport position for coordinate transformation */
@@ -34,7 +34,7 @@ export interface PlacementCursorProps {
 export const PlacementCursor: React.FC<PlacementCursorProps> = ({
     asset,
     gridConfig,
-    stage,
+    canvasRef,
     scale,
     stagePos
 }) => {
@@ -64,6 +64,7 @@ export const PlacementCursor: React.FC<PlacementCursorProps> = ({
 
     // Track raw mouse pointer position
     useEffect(() => {
+        const stage = canvasRef.current?.getStage();
         if (!stage) return;
 
         const handleMouseMove = () => {
@@ -78,7 +79,7 @@ export const PlacementCursor: React.FC<PlacementCursorProps> = ({
         return () => {
             stage.off('mousemove', handleMouseMove);
         };
-    }, [stage]);
+    }, [canvasRef]);
 
     // Calculate stage coordinates from raw mouse position
     const getStageCoordinates = (): Point | null => {

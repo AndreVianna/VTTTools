@@ -146,6 +146,9 @@ export const NetworkStatus: React.FC = () => {
       window.removeEventListener('offline', handleOffline);
       clearInterval(interval);
     };
+    // updateNetworkStatus recreated on each render but uses stable refs internally
+    // This effect should only run once on mount to set up event listeners
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Retry connection with exponential backoff

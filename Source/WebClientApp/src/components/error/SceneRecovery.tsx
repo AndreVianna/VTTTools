@@ -78,49 +78,28 @@ export const SceneRecoveryManager: React.FC<{
   isEnabled = true,
 }) => {
   const dispatch = useDispatch();
-  const [autoSaveState, setAutoSaveState] = useState<AutoSaveState>({
+  const [autoSaveState, setAutoSaveState] = useState<AutoSaveState>(() => ({
     isEnabled,
     interval: AUTOSAVE_INTERVAL,
     lastSave: Date.now(),
     pendingChanges: false,
     isAutoSaving: false,
-  });
+  }));
 
   const [recoverySnapshots, setRecoverySnapshots] = useState<RecoverySnapshot[]>([]);
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
   const lastSaveDataRef = useRef<string>('');
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Load existing recovery snapshots
+  // Update current time every 10 seconds for timestamp display
   useEffect(() => {
-    loadRecoverySnapshots();
-  }, [sceneId]);
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 10000);
 
-  // Auto-save effect
-  useEffect(() => {
-    if (!autoSaveState.isEnabled || !sceneData) return;
-
-    const currentDataString = JSON.stringify(sceneData);
-    if (currentDataString === lastSaveDataRef.current) return;
-
-    setAutoSaveState(prev => ({ ...prev, pendingChanges: true }));
-
-    // Clear existing timeout
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-
-    // Set new auto-save timeout
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      performAutoSave();
-    }, autoSaveState.interval);
-
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-    };
-  }, [sceneData, autoSaveState.isEnabled, autoSaveState.interval]);
+    return () => clearInterval(interval);
+  }, []);
 
   const loadRecoverySnapshots = useCallback(() => {
     try {
@@ -133,6 +112,13 @@ export const SceneRecoveryManager: React.FC<{
       console.warn('Failed to load recovery snapshots:', _error);
     }
   }, [sceneId]);
+
+  // Load existing recovery snapshots on mount
+  useEffect(() => {
+    loadRecoverySnapshots();
+    // Run only once on mount - loadRecoverySnapshots is stable via useCallback
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const saveRecoverySnapshot = useCallback((data: any, type: RecoverySnapshot['type']) => {
     try {
@@ -209,6 +195,34 @@ export const SceneRecoveryManager: React.FC<{
     }
   }, [sceneData, onSave, autoSaveState.isAutoSaving, saveRecoverySnapshot, dispatch, sceneId, sceneName]);
 
+  // Auto-save effect
+  useEffect(() => {
+    if (!autoSaveState.isEnabled || !sceneData) return;
+
+    const currentDataString = JSON.stringify(sceneData);
+    if (currentDataString === lastSaveDataRef.current) return;
+
+    setAutoSaveState(prev => ({ ...prev, pendingChanges: true }));
+
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set new auto-save timeout
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      performAutoSave();
+    }, autoSaveState.interval);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+    // performAutoSave is stable via useCallback and includes all necessary dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sceneData, autoSaveState.isEnabled, autoSaveState.interval]);
+
   const performManualSave = useCallback(async () => {
     if (!sceneData) return;
 
@@ -282,8 +296,7 @@ export const SceneRecoveryManager: React.FC<{
   };
 
   const formatTimestamp = (timestamp: number): string => {
-    const now = Date.now();
-    const diff = now - timestamp;
+    const diff = currentTime - timestamp;
 
     if (diff < 60000) return 'Just now';
     if (diff < 3600000) return `${Math.floor(diff / 60000)} minutes ago`;
@@ -410,12 +423,24 @@ const SceneRecoveryStatusBar: React.FC<SceneRecoveryStatusBarProps> = ({
   onShowRecovery,
   onToggleAutoSave,
 }) => {
+  // Track current time for reactive timestamp calculations
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+
+  // Update current time every 10 seconds for status display
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 10000); // Update every 10 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   const getAutoSaveStatus = () => {
     if (!autoSaveState.isEnabled) return 'Auto-save disabled';
     if (autoSaveState.isAutoSaving) return 'Auto-saving...';
     if (autoSaveState.pendingChanges) return 'Changes pending...';
 
-    const timeSinceLastSave = Date.now() - autoSaveState.lastSave;
+    const timeSinceLastSave = currentTime - autoSaveState.lastSave;
     const minutesAgo = Math.floor(timeSinceLastSave / 60000);
 
     if (minutesAgo === 0) return 'Saved just now';

@@ -57,10 +57,13 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
     const token = searchParams.get('token') || '';
 
     if (!email || !token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsInvalidToken(true);
     } else {
       setFormData(prev => ({ ...prev, email, token }));
     }
+    // Note: Intentionally syncing external state (URL params) with component state
+    // This is a legitimate use case for setState in useEffect
   }, [searchParams]);
 
   // Password strength checker

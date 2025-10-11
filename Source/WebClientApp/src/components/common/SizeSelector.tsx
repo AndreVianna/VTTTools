@@ -1,7 +1,7 @@
 // SizeSelector Component
 // Unified size input with named presets and custom dimensions
 
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import {
     Box,
     Select,
@@ -10,7 +10,6 @@ import {
     IconButton,
     Typography,
     FormControl,
-    InputLabel,
     SelectChangeEvent
 } from '@mui/material';
 import {
@@ -71,18 +70,14 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
     label = 'Size',
     readOnly = false
 }) => {
-    const [selectedName, setSelectedName] = useState<SizeName>(
-        determineSizeName(value.width, value.height, value.isSquare)
+    // Derive selectedName from value props
+    const selectedName = useMemo(
+        () => determineSizeName(value.width, value.height, value.isSquare),
+        [value.width, value.height, value.isSquare]
     );
-
-    // Sync selectedName when value changes externally
-    useEffect(() => {
-        setSelectedName(determineSizeName(value.width, value.height, value.isSquare));
-    }, [value.width, value.height, value.isSquare]);
 
     const handleNameChange = (event: SelectChangeEvent<SizeName>) => {
         const newName = Number(event.target.value) as SizeName;
-        setSelectedName(newName);
 
         if (newName !== SizeName.Custom) {
             const dimensions = SIZE_MAP[newName];
@@ -109,7 +104,7 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
                 width: newWidth
             });
         }
-        // Name will be updated via useEffect
+        // Name will be re-derived automatically via useMemo
     };
 
     const handleHeightChange = (newHeight: number) => {
@@ -117,7 +112,7 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
             ...value,
             height: newHeight
         });
-        // Name will be updated via useEffect
+        // Name will be re-derived automatically via useMemo
     };
 
     const handleToggleLock = () => {

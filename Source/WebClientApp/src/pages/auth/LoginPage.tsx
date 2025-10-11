@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { LoginForm } from '@/components/auth/LoginForm';
@@ -20,22 +20,18 @@ type AuthMode =
 export const LoginPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
-  const [mode, setMode] = useState<AuthMode>('login');
 
-  // Check URL path and parameters to determine initial mode
-  useEffect(() => {
+  // Derive initial mode from URL path and query parameters
+  const initialMode = useMemo<AuthMode>(() => {
     const email = searchParams.get('email');
     const token = searchParams.get('token');
 
-    // If we have email and token parameters, show password reset confirm form
-    if (email && token) {
-      setMode('reset-confirm');
-    } else if (location.pathname === '/register') {
-      setMode('register');
-    } else {
-      setMode('login');
-    }
+    if (email && token) return 'reset-confirm';
+    if (location.pathname === '/register') return 'register';
+    return 'login';
   }, [searchParams, location.pathname]);
+
+  const [mode, setMode] = useState<AuthMode>(initialMode);
 
   const handleLoginResult = (result: any) => {
     if (result?.requiresTwoFactor) {

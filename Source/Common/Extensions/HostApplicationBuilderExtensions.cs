@@ -28,26 +28,25 @@ public static class HostApplicationBuilderExtensions {
         builder.Services.ConfigureHttpJsonOptions(ConfigureJsonOptions);
         builder.Services.AddDistributedMemoryCache();
 
-        builder.Services.AddCors(options => {
-            options.AddPolicy("AllowAllOrigins", policy => {
-                if (builder.Environment.IsDevelopment()) {
-                    // Development: Allow Vite dev server
-                    policy.WithOrigins("http://localhost:5173")
-                          .AllowAnyHeader()
-                          .AllowAnyMethod()
-                          .AllowCredentials();
-                } else {
-                    // Production: Get allowed origins from configuration
-                    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-                        ?? ["https://vtttools.com"];  // Fallback default
+        builder.Services.AddCors(options => options.AddPolicy("AllowAllOrigins", policy => {
+            if (builder.Environment.IsDevelopment()) {
+                // Development: Allow Vite dev server
+                policy.WithOrigins("http://localhost:5173")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            }
+            else {
+                // Production: Get allowed origins from configuration
+                var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                    ?? ["https://vtttools.com"];  // Fallback default
 
-                    policy.WithOrigins(allowedOrigins)
-                          .AllowAnyHeader()
-                          .AllowAnyMethod()
-                          .AllowCredentials();
-                }
-            });
-        });
+                policy.WithOrigins(allowedOrigins)
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            }
+        }));
 
         //builder.Services.AddOpenApi();
         builder.AddDetailedHealthChecks();

@@ -31,12 +31,8 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
     stageHeight,
     visible = true
 }) => {
-    // Don't render if NoGrid or not visible
-    if (!visible || grid.type === GridType.NoGrid) {
-        return null;
-    }
-
     // Memoize grid lines for performance (60 FPS target)
+    // MUST be called before any early returns (React Hooks Rules)
     const gridLines = useMemo(() => {
         const lines: React.ReactElement[] = [];
 
@@ -217,6 +213,11 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
 
         return lines;
     }, [grid, stageWidth, stageHeight]);
+
+    // Don't render if NoGrid or not visible
+    if (!visible || grid.type === GridType.NoGrid) {
+        return null;
+    }
 
     return (
         <Layer name="grid" listening={false}>

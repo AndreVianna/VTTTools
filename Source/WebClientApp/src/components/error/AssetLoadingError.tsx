@@ -305,6 +305,8 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
+    // Intentionally syncing external src prop with internal state
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentSrc(src);
     setHasError(false);
     setRetryCount(0);

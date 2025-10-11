@@ -30,6 +30,11 @@ const STAGE_WIDTH = 2800;
 const STAGE_HEIGHT = 2100;
 const DEFAULT_BACKGROUND_IMAGE = '/assets/backgrounds/default.png';
 
+// Layout height constants
+const APP_BAR_HEIGHT = 64;  // Material-UI Toolbar default height
+const MENU_BAR_HEIGHT = 50;  // Scene editor menu bar (compact design)
+const TOTAL_TOP_OFFSET = APP_BAR_HEIGHT + MENU_BAR_HEIGHT;  // Combined header height
+
 // Auto-pan constants
 const EDGE_PAN_THRESHOLD = 50;  // pixels from edge to trigger auto-pan
 const PAN_INTERVAL = 500;        // 500ms = 2 cells per second
@@ -57,11 +62,6 @@ export const SceneEditorPage: React.FC = () => {
 
     // SceneCanvas reference for programmatic control (Phase 3)
     const canvasRef = useRef<SceneCanvasHandle>(null);
-
-    // Layout height constants
-    const APP_BAR_HEIGHT = 64;  // Material-UI Toolbar default height
-    const MENU_BAR_HEIGHT = 50;  // Scene editor menu bar (compact design)
-    const TOTAL_TOP_OFFSET = APP_BAR_HEIGHT + MENU_BAR_HEIGHT;  // Combined header height
 
     // Calculate initial viewport position to center the stage
     const initialViewport = {
@@ -338,13 +338,13 @@ export const SceneEditorPage: React.FC = () => {
         // Get token resource and calculate image size to fit cell (maintain aspect ratio)
         const tokenResource = getFirstTokenResource(placementMode.asset);
         const imageSize = calculateAssetSize(
-            tokenResource?.metadata,
+            tokenResource?.resource?.metadata,
             gridConfig.cellWidth,
             gridConfig.cellHeight
         );
 
-        // Determine layer from category
-        const layer = getLayerFromCategory(placementMode.asset.category);
+        // Determine layer from asset kind (TODO: implement proper category-to-layer mapping)
+        const layer = getLayerFromCategory(placementMode.asset.kind);
 
         // Create placed asset instance
         const placedAsset: PlacedAsset = {
@@ -515,7 +515,7 @@ export const SceneEditorPage: React.FC = () => {
                             <PlacementCursor
                                 asset={placementMode.asset}
                                 gridConfig={gridConfig}
-                                stage={canvasRef.current?.getStage() || null}
+                                canvasRef={canvasRef}
                                 scale={viewport.scale}
                                 stagePos={{ x: viewport.x, y: viewport.y }}
                             />

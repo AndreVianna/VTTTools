@@ -30,7 +30,7 @@ public class AzureResourceServiceTests {
         // Arrange
         var id = Guid.CreateVersion7();
         var guidString = id.ToString("N");
-        var guidSuffix = guidString.Substring(guidString.Length - 4);
+        var guidSuffix = guidString[^4..];
         const string fileName = "test-image.png";
         var file = new AddResourceData {
             Path = $"images/{guidSuffix}/{guidString}",
@@ -62,7 +62,7 @@ public class AzureResourceServiceTests {
         // Arrange
         var id = Guid.CreateVersion7();
         var guidString = id.ToString("N");
-        var guidSuffix = guidString.Substring(guidString.Length - 4);
+        var guidSuffix = guidString[^4..];
         const string fileName = "test-image.png";
         var file = new AddResourceData {
             Path = $"images/{guidSuffix}/{guidString}",

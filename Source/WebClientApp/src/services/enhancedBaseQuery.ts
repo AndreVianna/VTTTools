@@ -23,7 +23,7 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
   const baseQuery = fetchBaseQuery({
     baseUrl,
     credentials: 'include',
-    prepareHeaders: (headers, { getState, endpoint }) => {
+    prepareHeaders: (headers, { getState, _endpoint }) => {
       // Don't set Content-Type - let fetchBaseQuery handle it automatically
       // fetchBaseQuery will set application/json for objects, multipart/form-data for FormData
       headers.set('X-Requested-With', 'XMLHttpRequest');

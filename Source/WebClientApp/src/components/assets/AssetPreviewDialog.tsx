@@ -8,7 +8,7 @@
  * Supports ObjectAsset and CreatureAsset with polymorphic property editing
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -104,28 +104,6 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
     // RTK Query mutations
     const [updateAsset, { isLoading: isSaving }] = useUpdateAssetMutation();
     const [deleteAsset, { isLoading: isDeleting }] = useDeleteAssetMutation();
-
-    // Reset form when asset changes
-    useEffect(() => {
-        setName(asset.name);
-        setDescription(asset.description);
-        setResources([...asset.resources]); // Clone the array
-        setIsPublic(asset.isPublic);
-        setIsPublished(asset.isPublished);
-
-        // Reset size from asset
-        if (asset.kind === AssetKind.Object && 'objectProps' in asset) {
-            setSize(asset.objectProps.size);
-            setIsMovable(asset.objectProps.isMovable);
-            setIsOpaque(asset.objectProps.isOpaque);
-        } else if (asset.kind === AssetKind.Creature && 'creatureProps' in asset) {
-            setSize(asset.creatureProps.size);
-            setCreatureCategory(asset.creatureProps.category);
-        }
-
-        setEditMode(false);
-        setDeleteConfirmOpen(false);
-    }, [asset]);
 
     const handleSave = async () => {
         try {

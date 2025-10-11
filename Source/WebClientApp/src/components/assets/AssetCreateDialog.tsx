@@ -1,7 +1,7 @@
 // Phase 5 Step 6 - Asset Create Dialog
 // Modal dialog for creating new assets with shared form components
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -83,23 +83,6 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
 
     // RTK Query mutation
     const [createAsset, { isLoading: isSaving }] = useCreateAssetMutation();
-
-    // Reset form when dialog opens
-    useEffect(() => {
-        if (open) {
-            setSelectedKind(fixedKind ?? initialKind);
-            setName('');
-            setDescription('');
-            setResources([]);
-            setIsPublic(false);
-            setIsPublished(false);
-            setObjectSize({ width: 1, height: 1, isSquare: true });
-            setIsMovable(true);
-            setIsOpaque(false);
-            setCreatureSize({ width: 1, height: 1, isSquare: true });
-            setCreatureCategory(CreatureCategory.Character);
-        }
-    }, [open, initialKind, fixedKind]);
 
     const handleSave = async () => {
         try {

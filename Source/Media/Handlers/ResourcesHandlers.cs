@@ -1,7 +1,10 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
+
 using SkiaSharp;
+
 using Svg.Skia;
+
 using VttTools.Infrastructure;
 using VttTools.Media.Contracts;
 
@@ -95,7 +98,8 @@ internal static class ResourcesHandlers {
                 // Update file metadata to reflect PNG format
                 fileName = Path.ChangeExtension(fileName, ".png");
                 contentType = "image/png";
-            } else if (isImage && contentType != "image/png") {
+            }
+            else if (isImage && contentType != "image/png") {
                 // Existing ImageSharp raster conversion
                 using var image = await Image.LoadAsync(originalStream);
                 pngStream = new MemoryStream();
@@ -120,7 +124,8 @@ internal static class ResourcesHandlers {
                 // Update file metadata to reflect PNG format
                 fileName = Path.ChangeExtension(fileName, ".png");
                 contentType = "image/png";
-            } else {
+            }
+            else {
                 // PNG or non-image - use original stream
                 streamToUse = originalStream;
             }
@@ -136,7 +141,7 @@ internal static class ResourcesHandlers {
 
                 // Path: {resourceType}/{guid-last4}/{guid:32} for load balancing
                 var guidString = guidId.ToString("N");
-                var guidSuffix = guidString.Substring(guidString.Length - 4);
+                var guidSuffix = guidString[^4..];
                 var path = $"{resourceType}/{guidSuffix}/{guidString}";
 
                 var data = await fileData.ToData(path, streamToUse);

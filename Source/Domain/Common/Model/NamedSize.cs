@@ -27,18 +27,27 @@ public record NamedSize {
     /// </summary>
     public SizeName Name {
         get {
-            if (Width == 0 && Height == 0) return SizeName.Zero;
-            if (!IsSquare) return SizeName.Custom;  // Rectangles are always Custom
+            if (Width == 0 && Height == 0)
+                return SizeName.Zero;
+            if (!IsSquare)
+                return SizeName.Custom;  // Rectangles are always Custom
 
             // Match square sizes to named values (with tolerance for floating point)
             const double tolerance = 0.001;
-            if (Math.Abs(Width - 0.125) < tolerance) return SizeName.Miniscule;
-            if (Math.Abs(Width - 0.25) < tolerance) return SizeName.Tiny;
-            if (Math.Abs(Width - 0.5) < tolerance) return SizeName.Small;
-            if (Math.Abs(Width - 1.0) < tolerance) return SizeName.Medium;
-            if (Math.Abs(Width - 2.0) < tolerance) return SizeName.Large;
-            if (Math.Abs(Width - 3.0) < tolerance) return SizeName.Huge;
-            if (Math.Abs(Width - 4.0) < tolerance) return SizeName.Gargantuan;
+            if (Math.Abs(Width - 0.125) < tolerance)
+                return SizeName.Miniscule;
+            if (Math.Abs(Width - 0.25) < tolerance)
+                return SizeName.Tiny;
+            if (Math.Abs(Width - 0.5) < tolerance)
+                return SizeName.Small;
+            if (Math.Abs(Width - 1.0) < tolerance)
+                return SizeName.Medium;
+            if (Math.Abs(Width - 2.0) < tolerance)
+                return SizeName.Large;
+            if (Math.Abs(Width - 3.0) < tolerance)
+                return SizeName.Huge;
+            if (Math.Abs(Width - 4.0) < tolerance)
+                return SizeName.Gargantuan;
 
             return SizeName.Custom;  // Non-standard square size
         }

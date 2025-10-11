@@ -29,7 +29,6 @@ import {
     useTheme
 } from '@mui/material';
 import {
-    Add as AddIcon,
     AddCircleOutline as AddCircleOutlineIcon,
     Category as CategoryIcon
 } from '@mui/icons-material';
@@ -161,18 +160,6 @@ export const AssetLibraryPage: React.FC = () => {
     React.useEffect(() => {
         setPage(1);
     }, [filters, debouncedSearch, selectedKind]);
-
-    // Get kind badge color
-    const getKindColor = (kind: AssetKind): string => {
-        switch (kind) {
-            case AssetKind.Object:
-                return theme.palette.mode === 'dark' ? '#9E9E9E' : '#757575';
-            case AssetKind.Creature:
-                return theme.palette.mode === 'dark' ? '#4CAF50' : '#388E3C';
-            default:
-                return theme.palette.primary.main;
-        }
-    };
 
     // Get creature category badge color
     const getCreatureCategoryColor = (category: CreatureCategory): string => {
@@ -489,6 +476,7 @@ export const AssetLibraryPage: React.FC = () => {
             {/* Asset Preview Dialog */}
             {selectedAsset && (
                 <AssetPreviewDialog
+                    key={selectedAsset.id}
                     open={previewOpen}
                     asset={selectedAsset}
                     onClose={() => {
@@ -500,6 +488,7 @@ export const AssetLibraryPage: React.FC = () => {
 
             {/* Asset Create Dialog */}
             <AssetCreateDialog
+                key={createDialogOpen ? 'create' : 'closed'}
                 open={createDialogOpen}
                 onClose={() => setCreateDialogOpen(false)}
                 fixedKind={selectedKind}

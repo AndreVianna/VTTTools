@@ -55,7 +55,7 @@ export const mediaApi = createApi({
           body: formData
         };
       },
-      transformResponse: (response, meta, arg) => {
+      transformResponse: (response, _meta, _arg) => {
         // Extract ID from response or use the one we sent
         return { id: (response as any).id || crypto.randomUUID() };
       },
