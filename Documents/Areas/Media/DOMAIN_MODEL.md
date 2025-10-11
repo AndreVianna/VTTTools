@@ -18,6 +18,7 @@
 
 ## Change Log
 - *2025-10-02* — **1.0.0** — Initial domain model extracted from existing codebase
+- *2025-10-11* — **2.0.0** — Blob storage refactoring: PNG conversion pipeline (SVG/JPEG/etc → PNG), GUID v7 generation, new path structure (resourceType/guid-suffix/guid), blob metadata (OwnerId, EntityType, EntityId, IsPublic)
 
 ---
 
@@ -34,6 +35,11 @@
 - **Upload**: The process of transferring a media file from user to blob storage with automatic metadata extraction
 - **Thumbnail**: Smaller preview version of media file for UI display and performance optimization
 - **MIME Type**: Internet media type identifier standardized by IANA (e.g., image/png, video/mp4, image/jpeg)
+- **PNG Conversion**: Automatic conversion of all uploaded images to PNG format for standardization
+- **GUID v7**: Timestamp-based GUID generation for resource IDs (better load balancing than GUID v4)
+- **Resource Type Directory**: Path prefix based on content type (images/, videos/, audio/)
+- **Blob Metadata**: Additional properties stored on blob (OwnerId, EntityType, EntityId, IsPublic) for cleanup and access control
+- **Orphan Resource**: Uploaded resource with EntityId=null (cleanup candidate if older than 24 hours)
 
 ---
 
@@ -63,10 +69,12 @@
   - **Purpose**: Categorizes media file type
 
 - **Path**: string
-  - **Constraints**: Required, unique, represents blob storage location
-  - **Default Value**: None (generated on upload)
+  - **Constraints**: Required, unique, format: "{resourceType}/{guid-suffix}/{guid}"
+  - **Format**: resourceType (images/videos/audio) + last 4 chars of GUID + full GUID (32 hex chars)
+  - **Example**: "images/ee97/0199d0f8459a76a0a1c92dceab0cee97"
+  - **Default Value**: Generated on upload based on content type and GUID v7
   - **Nullable**: No
-  - **Purpose**: Unique storage path in blob storage system
+  - **Purpose**: Unique storage path with load balancing (GUID suffix provides distribution)
 
 - **Metadata**: ResourceMetadata (value object)
   - **Constraints**: See ResourceMetadata definition
@@ -157,9 +165,9 @@ Potential future events:
 - **ResourceTagsUpdated**: When tags are modified
 
 #### Relationships
-- **Referenced By** ← Asset: Resource may be used as Display in assets
-  - **Cardinality**: One-to-Many (one resource used by many assets)
-  - **Navigation**: Not navigable from Resource (no collection property)
+- **Referenced By** ← Asset: Resources may be used via AssetResource collection
+  - **Cardinality**: One-to-Many (one resource can be referenced by many AssetResource associations)
+  - **Roles**: Each reference has a role (Token for scenes, Display for UI)
 
 - **Referenced By** ← Scene/Adventure/Epic: Resource may be used as Background
   - **Cardinality**: One-to-Many (one resource used by many backgrounds)
@@ -202,6 +210,43 @@ Potential future events:
 - **ToString()**: Returns string representation
 - **Equals(ResourceMetadata other)**: Value equality comparison
 - **GetHashCode()**: Hash based on all properties
+
+## PNG Conversion Pipeline
+
+**Purpose**: Standardize all uploaded images to PNG format for consistency
+
+### Conversion Rules
+- **PNG files**: Saved as-is (no conversion)
+- **SVG files**: Converted to PNG using Svg.Skia library
+  - Preserves transparency
+  - Max dimensions: 2048×2048 (proportional scaling if larger)
+  - Quality: 100 (lossless)
+- **JPEG/GIF/BMP/WebP/TIFF**: Converted to PNG using ImageSharp library
+  - Best compression
+  - Preserves transparency (where applicable)
+  - Quality: Lossless
+- **Non-image files**: Rejected with 400 Bad Request
+- **Size limit**: 5MB after conversion (413 error if exceeded)
+
+### Technical Details
+- **SVG Rendering**: Uses SkiaSharp canvas with transparent background
+- **Raster Conversion**: Uses ImageSharp PngEncoder with BestCompression
+- **File Extension**: Original extension changed to .png
+- **Content Type**: Updated to "image/png"
+
+## Blob Metadata
+
+**Purpose**: Track resource ownership and enable orphan cleanup
+
+### Metadata Properties (Stored on Azure Blob)
+- **OwnerId**: User GUID who uploaded the resource
+- **EntityType**: Type of entity using resource ("asset", "scene", "adventure")
+- **EntityId**: ID of owning entity (empty for orphans, populated when entity saved)
+- **IsPublic**: Whether resource is publicly accessible
+
+### Orphan Detection Strategy
+Resources with `EntityId=""` and age >24 hours are considered orphans (user abandoned upload).
+Cleanup process can safely delete these blobs and Resource entities.
 
 ### ResourceFile
 

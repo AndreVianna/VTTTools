@@ -19,7 +19,8 @@
 ---
 
 ## Change Log
-- *2025-10-06* — **2.0.0** — Major refactoring: Asset hierarchy (ObjectAsset, EntityAsset), removed Structures/Effects (moved to Library.Scenes), framework-independent primitives
+- *2025-10-11* — **3.0.0** — Multi-resource system (Token/Display roles), NamedSize with fractional support, IsVisible moved to SceneAsset, AssetProperties base class
+- *2025-10-06* — **2.0.0** — Major refactoring: Asset hierarchy (ObjectAsset, CreatureAsset), removed Structures/Effects (moved to Library.Scenes), framework-independent primitives
 - *2025-10-02* — **1.0.0** — Initial domain model extracted from existing codebase
 
 ---
@@ -36,9 +37,15 @@
 - **Private**: Asset visible only to the owner (antonym of Public, default state for new assets)
 - **Unpublished**: Asset in draft state, not yet approved for session use (antonym of Published, default for new assets)
 - **Ownership**: User who created and controls the asset
-- **Token Style**: Visual customization for entity tokens (border, background, shape)
+- **Token Style**: Visual customization for creature tokens (border, background, shape)
 - **Stat Block**: Reference to character/creature statistics (stub for future implementation)
 - **Trigger Effect**: Effect activated when object is interacted with (for traps)
+- **Resource Role**: Purpose of a resource image (Token for scene placement, Display for UI, or both)
+- **Asset Resource**: Association between an Asset and a Resource with a specific role
+- **Token Role**: Resource used for map/scene placement (typically smaller, grid-sized)
+- **Display Role**: Resource used in UI dialogs, character sheets (typically larger, detailed)
+- **Named Size**: Asset size with optional category name (Tiny, Medium, Large, etc.) supporting fractional dimensions
+- **Asset Properties**: Base properties shared by all asset types (currently: Size)
 
 ---
 
@@ -48,7 +55,7 @@
 
 **Entity Classification**: Aggregate Root
 
-**Aggregate Root**: This is the abstract base for all asset types (ObjectAsset and EntityAsset)
+**Aggregate Root**: This is the abstract base for all asset types (ObjectAsset and CreatureAsset)
 
 **Inheritance Pattern**: Table-Per-Hierarchy (TPH) - all asset types stored in single Assets table with Kind discriminator
 
@@ -236,9 +243,10 @@ Potential future events:
   - **Cardinality**: Many-to-One (many assets per user)
   - **Navigation**: OwnerId property (foreign key, no navigation property in current implementation)
 
-- **References** → Resource: Asset may reference a display resource
-  - **Cardinality**: Many-to-One optional (many assets may share one resource, or asset may have no display)
-  - **Navigation**: Display property (value object containing Resource reference)
+- **References** → Resources: Asset references multiple resources with different roles
+  - **Cardinality**: One-to-Many (one asset has many resources via AssetResource collection)
+  - **Navigation**: Resources property (ICollection<AssetResource>)
+  - **Roles**: Each resource can be Token (scene placement), Display (UI), or both (flag enum)
 
 - **Referenced By** ← SceneAsset: Asset may be placed on multiple scenes
   - **Cardinality**: One-to-Many (one asset template used in many scene placements)
@@ -248,32 +256,68 @@ Potential future events:
 
 ## Value Objects
 
-### ObjectProperties
+### AssetProperties (Base)
 
-**Purpose**: Encapsulates properties specific to Object assets (stored as JSON)
+**Purpose**: Base properties shared by all asset types
 
 #### Properties
-- **CellWidth**: int (default: 1)
-- **CellHeight**: int (default: 1)
-- **IsMovable**: bool (default: true)
-- **IsOpaque**: bool (default: false)
-- **IsVisible**: bool (default: true)
-- **TriggerEffectId**: Guid? (optional)
+- **Size**: NamedSize (asset dimensions in grid cells with optional category name)
+  - **Type**: NamedSize value object (see Common domain)
+  - **Default**: Medium (1×1)
+  - **Supports**: Fractional sizes (⅛, ¼, ½) and whole numbers
+  - **Named Categories**: Zero, Miniscule, Tiny, Small, Medium, Large, Huge, Gargantuan, Custom
 
 #### Immutability
 Yes (record type with init-only properties)
 
 ---
 
-### CreatureProperties
+### ObjectProperties (Inherits AssetProperties)
+
+**Purpose**: Encapsulates properties specific to Object assets (stored as JSON)
+
+#### Properties (Inherited)
+- **Size**: NamedSize (from AssetProperties)
+
+#### Properties (Object-Specific)
+- **IsMovable**: bool (default: true) - Can be moved after placement
+- **IsOpaque**: bool (default: false) - Blocks line of sight and light
+- **TriggerEffectId**: Guid? (optional) - Reference to Effect triggered on interaction
+
+**Note:** IsVisible was removed - now managed at instance level (SceneAsset.IsVisible)
+
+#### Immutability
+Yes (record type with init-only properties)
+
+---
+
+### CreatureProperties (Inherits AssetProperties)
 
 **Purpose**: Encapsulates properties specific to Creature assets (stored as JSON)
 
+#### Properties (Inherited)
+- **Size**: NamedSize (from AssetProperties)
+
+#### Properties (Creature-Specific)
+- **StatBlockId**: Guid? (optional) - Reference to StatBlock entity
+- **Category**: CreatureCategory enum - Character or Monster for UI filtering
+- **TokenStyle**: TokenStyle? (optional) - Visual styling with border/background colors and shape
+
+#### Immutability
+Yes (record type with init-only properties)
+
+---
+
+### AssetResource
+
+**Purpose**: Associates a Resource (image) with an Asset and defines its role(s)
+
 #### Properties
-- **CellSize**: int (default: 1)
-- **StatBlockId**: Guid? (optional reference to StatBlock)
-- **Category**: CreatureCategory enum (Character or Monster)
-- **TokenStyle**: TokenStyle? (optional visual styling)
+- **ResourceId**: Guid - Reference to the media resource
+- **Resource**: Resource? (navigation property, loaded separately)
+- **Role**: ResourceRole (flag enum) - Token, Display, or both
+
+**Role Selection:** When multiple resources have the same role, the first in the collection is used.
 
 #### Immutability
 Yes (record type with init-only properties)
@@ -282,7 +326,7 @@ Yes (record type with init-only properties)
 
 ### TokenStyle
 
-**Purpose**: Defines visual styling for entity tokens
+**Purpose**: Defines visual styling for creature tokens
 
 #### Properties
 - **BorderColor**: string? (hex color code, e.g., "#FF5733")
@@ -291,6 +335,14 @@ Yes (record type with init-only properties)
 
 #### Immutability
 Yes (record type with init-only properties)
+
+---
+
+### NamedSize
+
+**Purpose**: See Common domain model for full definition
+
+**Summary**: Asset size in grid cells with optional category name, supporting fractional dimensions (⅛, ¼, ½) and named presets (Tiny, Medium, Large, etc.)
 
 ---
 
@@ -306,9 +358,12 @@ Yes (record type with init-only properties)
 - CreatureAsset (concrete): Character/monster templates
 
 **Value Objects in Aggregate**:
-- ObjectProperties: Object-specific attributes
-- CreatureProperties: Creature-specific attributes
+- AssetProperties (base): Shared properties (Size)
+- ObjectProperties: Object-specific attributes (inherits AssetProperties)
+- CreatureProperties: Creature-specific attributes (inherits AssetProperties)
+- AssetResource: Resource association with role
 - TokenStyle: Visual styling for creature tokens
+- NamedSize: Size representation (referenced from Common domain)
 
 #### Boundary Definition
 **What's Inside**:
@@ -319,12 +374,12 @@ Yes (record type with init-only properties)
 
 **What's Outside** (Referenced, not contained):
 - User (referenced via OwnerId)
-- Resource (referenced via Asset.Resource)
+- Resources (referenced via AssetResource.ResourceId collection - multiple resources per asset)
 - StatBlock (referenced via CreatureProperties.StatBlockId)
 - Effect (referenced via ObjectProperties.TriggerEffectId)
 - Scene (references Asset via SceneAsset.AssetId, not part of this aggregate)
 
-**Boundary Rule**: All data needed to create, update, or delete an asset template is within this aggregate. External references (User, Resource) are by ID only. Scene usage of assets is tracked in the Library aggregate (Scene > SceneAsset), not here.
+**Boundary Rule**: All data needed to create, update, or delete an asset template is within this aggregate. External references (User, Resources) are by ID only. Resource entities themselves are managed in the Media bounded context. Scene usage of assets is tracked in the Library aggregate (Scene > SceneAsset), not here.
 
 #### Aggregate Invariants
 - **AGG-01**: Asset can only be modified by owner (or admin)
@@ -444,10 +499,10 @@ Yes (record type with init-only properties)
   - **Enforcement**: Database foreign key constraint
   - **Validation**: Database enforces FK relationship
 
-- **BR-09** - Referential Integrity: Display.ResourceId must reference existing Resource with Type=Image
-  - **Scope**: Asset creation and updates when Display is provided
-  - **Enforcement**: Service validation before save
-  - **Validation**: Query Resource repository, check Type=Image
+- **BR-09** - Referential Integrity: AssetResource.ResourceId must reference existing Resource
+  - **Scope**: Asset creation and updates when resources are provided
+  - **Enforcement**: Service validation before save (loads Resource entities)
+  - **Validation**: Query Resource repository for each AssetResource.ResourceId
 
 ---
 
