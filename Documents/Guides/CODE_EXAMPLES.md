@@ -577,7 +577,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task GetByIdAsync_WithExistingId_ReturnsSession() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         var expectedSession = new GameSession {
             Id = sessionId,
             Title = "Test Session"
@@ -597,7 +597,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task GetByIdAsync_WithNonExistentId_ReturnsNull() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         _storage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>())
             .Returns((GameSession?)null);
 
@@ -611,7 +611,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task CreateAsync_WithValidData_ReturnsCreatedSession() {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         var data = new CreateGameSessionData { Title = "New Session" };
 
         // Act
@@ -632,7 +632,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task CreateAsync_WithInvalidData_ReturnsBadRequest() {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         var invalidData = new CreateGameSessionData { Title = "" }; // Invalid empty title
 
         // Act
@@ -654,7 +654,7 @@ public class GameSessionServiceTests {
     [InlineData("Test")]
     public async Task CreateAsync_WithValidTitles_ReturnsCreatedSession(string title) {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         var data = new CreateGameSessionData { Title = title };
 
         // Act

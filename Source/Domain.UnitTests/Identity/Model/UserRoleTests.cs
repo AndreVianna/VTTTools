@@ -14,8 +14,8 @@ public class UserRoleTests {
     [Fact]
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
-        var userId = Guid.NewGuid();
-        var roleId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
+        var roleId = Guid.CreateVersion7();
 
         // Act
         var userRole = new UserRole {

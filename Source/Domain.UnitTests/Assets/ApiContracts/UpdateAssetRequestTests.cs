@@ -6,15 +6,14 @@ public class UpdateAssetRequestTests {
     [Fact]
     public void WithClause_ObjectAsset_UpdatesProperties() {
         // Arrange
-        var originalResourceId = Guid.NewGuid();
+        var originalResourceId = Guid.CreateVersion7();
         var original = new UpdateAssetRequest {
             Name = "Table",
             Description = "A table",
             Resources = new[] {
                 new AssetResourceDto {
                     ResourceId = originalResourceId,
-                    Role = ResourceRole.Token,
-                    IsDefault = true
+                    Role = ResourceRole.Token
                 }
             },
             ObjectProps = new ObjectProperties {
@@ -24,7 +23,7 @@ public class UpdateAssetRequestTests {
             }
         };
         const string newName = "Large Table";
-        var newResourceId = Guid.NewGuid();
+        var newResourceId = Guid.CreateVersion7();
 
         // Act
         var updated = original with {
@@ -32,8 +31,7 @@ public class UpdateAssetRequestTests {
             Resources = new[] {
                 new AssetResourceDto {
                     ResourceId = newResourceId,
-                    Role = ResourceRole.Token,
-                    IsDefault = true
+                    Role = ResourceRole.Token
                 }
             },
             ObjectProps = new ObjectProperties {
@@ -48,7 +46,6 @@ public class UpdateAssetRequestTests {
         updated.Resources.Value.Should().HaveCount(1);
         updated.Resources.Value[0].ResourceId.Should().Be(newResourceId);
         updated.Resources.Value[0].Role.Should().Be(ResourceRole.Token);
-        updated.Resources.Value[0].IsDefault.Should().BeTrue();
         updated.ObjectProps.Value.Size.Width.Should().Be(2);
         updated.ObjectProps.Value.Size.Height.Should().Be(2);
         updated.ObjectProps.Value.IsMovable.Should().BeFalse();

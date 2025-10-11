@@ -94,8 +94,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             resources.Add(new AssetResource {
                 ResourceId = assetResource.ResourceId,
                 Resource = resource,
-                Role = assetResource.Role,
-                IsDefault = assetResource.IsDefault
+                Role = assetResource.Role
             });
         }
 
@@ -160,8 +159,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
                 resources.Add(new AssetResource {
                     ResourceId = assetResource.ResourceId,
                     Resource = resource,
-                    Role = assetResource.Role,
-                    IsDefault = assetResource.IsDefault
+                    Role = assetResource.Role
                 });
             }
         }

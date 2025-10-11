@@ -25,12 +25,12 @@ public class AdventureTests {
     [Fact]
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
         const string name = "Some Adventure";
         const string description = "Adventure description";
         const AdventureType type = AdventureType.DungeonCrawl;
         var display = new Resource {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             Type = ResourceType.Image,
             Path = "assets/adventure-background.png",
             Metadata = new ResourceMetadata {
@@ -41,10 +41,10 @@ public class AdventureTests {
         };
         const bool isVisible = true;
         const bool isPublic = true;
-        var ownerId = Guid.NewGuid();
-        var campaignId = Guid.NewGuid();
+        var ownerId = Guid.CreateVersion7();
+        var campaignId = Guid.CreateVersion7();
         var scene = new Scene {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
         };
 
         // Act

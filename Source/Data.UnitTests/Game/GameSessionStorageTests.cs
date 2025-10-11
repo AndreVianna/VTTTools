@@ -4,7 +4,7 @@ public class GameSessionStorageTests
     : IDisposable {
     private readonly GameSessionStorage _storage;
     private readonly ApplicationDbContext _context;
-    private readonly Guid _currentUserId = Guid.NewGuid();
+    private readonly Guid _currentUserId = Guid.CreateVersion7();
     private readonly CancellationToken _ct;
 
     public GameSessionStorageTests() {
@@ -50,7 +50,7 @@ public class GameSessionStorageTests
     [Fact]
     public async Task GetByIdAsync_WithNonExistingId_ReturnsNull() {
         // Arrange
-        var nonExistingId = Guid.NewGuid();
+        var nonExistingId = Guid.CreateVersion7();
 
         // Act
         var result = await _storage.GetByIdAsync(nonExistingId, _ct);
@@ -90,7 +90,7 @@ public class GameSessionStorageTests
     [Fact]
     public async Task GetByUserIdAsync_WithNoMatchingGameSessions_ReturnsEmptyArray() {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
 
         // Act
         var result = await _storage.GetByUserIdAsync(userId, _ct);

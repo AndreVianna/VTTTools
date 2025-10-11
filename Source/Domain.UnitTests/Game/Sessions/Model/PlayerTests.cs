@@ -14,7 +14,7 @@ public class PlayerTests {
     [Fact]
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         const PlayerType type = PlayerType.Master;
 
         // Act

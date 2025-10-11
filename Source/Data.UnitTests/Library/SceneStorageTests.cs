@@ -7,7 +7,7 @@ public class SceneStorageTests
     private readonly CancellationToken _ct;
 
     public SceneStorageTests() {
-        _context = DbContextHelper.CreateInMemoryContext(Guid.NewGuid());
+        _context = DbContextHelper.CreateInMemoryContext(Guid.CreateVersion7());
         _storage = new(_context);
 #if XUNITV3
         _ct = TestContext.Current.CancellationToken;
@@ -38,7 +38,7 @@ public class SceneStorageTests
     [Fact]
     public async Task GetByParentIdAsync_WithNoScenes_ReturnsEmptyArray() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
 
         // NOTE: Testing database state directly due to EF In-Memory limitations with complex projections
         var sceneCount = await _context.Scenes.CountAsync(s => s.AdventureId == adventureId, _ct);
@@ -82,7 +82,7 @@ public class SceneStorageTests
     [Fact]
     public async Task GetByIdAsync_WithNonExistingId_ReturnsNull() {
         // Arrange
-        var nonExistingId = Guid.NewGuid();
+        var nonExistingId = Guid.CreateVersion7();
 
         // NOTE: Testing database state directly due to EF In-Memory limitations with complex projections
         // Use simple ID query to avoid complex Grid projection issues
@@ -96,7 +96,7 @@ public class SceneStorageTests
     public async Task AddAsync_WithValidScene_AddsToDatabase() {
         // Arrange
         var adventure = await _context.Adventures.Where(p => p.Name == "Adventure 1").FirstAsync(_ct);
-        var scene = DbContextHelper.CreateTestScene(Guid.NewGuid(), "New Scene");
+        var scene = DbContextHelper.CreateTestScene(Guid.CreateVersion7(), "New Scene");
 
         // Act
         await _storage.AddAsync(scene, adventure.Id, _ct);

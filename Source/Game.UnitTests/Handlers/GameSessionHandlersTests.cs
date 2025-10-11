@@ -6,9 +6,9 @@ public class GameSessionHandlersTests {
     private readonly IGameSessionService _sessionService = Substitute.For<IGameSessionService>();
     private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
     private readonly ClaimsPrincipal _user = Substitute.For<ClaimsPrincipal>();
-    private static readonly Guid _userId = Guid.NewGuid();
-    private static readonly Guid _sessionId = Guid.NewGuid();
-    private static readonly Guid _sceneId = Guid.NewGuid();
+    private static readonly Guid _userId = Guid.CreateVersion7();
+    private static readonly Guid _sessionId = Guid.CreateVersion7();
+    private static readonly Guid _sceneId = Guid.CreateVersion7();
 
     public GameSessionHandlersTests() {
         // Setup user claims
@@ -69,8 +69,8 @@ public class GameSessionHandlersTests {
     public async Task GetGameSessionsHandler_ReturnsOkResult() {
         // Arrange
         var sessions = new[] {
-            new GameSession { Id = Guid.NewGuid(), Title = "Session 1", OwnerId = _userId },
-            new GameSession { Id = Guid.NewGuid(), Title = "Session 2", OwnerId = _userId },
+            new GameSession { Id = Guid.CreateVersion7(), Title = "Session 1", OwnerId = _userId },
+            new GameSession { Id = Guid.CreateVersion7(), Title = "Session 2", OwnerId = _userId },
         };
         _sessionService.GetGameSessionsAsync(_userId, Arg.Any<CancellationToken>())
             .Returns(sessions);

@@ -134,10 +134,10 @@ public void Should_Return_Created_Session() { }   // Don't use Should_
 [Fact]
 public async Task CreateGameSessionAsync_WithValidData_ReturnsCreatedSession() {
     // Arrange
-    var userId = Guid.NewGuid();
+    var userId = Guid.CreateVersion7();
     var data = new CreateGameSessionData {
         Title = "Epic Adventure",
-        SceneId = Guid.NewGuid()
+        SceneId = Guid.CreateVersion7()
     };
     var storage = Substitute.For<IGameSessionStorage>();
     var service = new GameSessionService(storage);
@@ -159,7 +159,7 @@ public async Task CreateGameSessionAsync_WithValidData_ReturnsCreatedSession() {
 // ❌ Incorrect: No clear separation
 [Fact]
 public async Task CreateGameSessionAsync_WithValidData_ReturnsCreatedSession() {
-    var userId = Guid.NewGuid();
+    var userId = Guid.CreateVersion7();
     var service = new GameSessionService(storage);
     var result = await service.CreateGameSessionAsync(userId, data);
     result.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -176,7 +176,7 @@ public void GameSession_WhenCreated_HasExpectedDefaults() {
     // Arrange & Act
     var session = new GameSession {
         Title = "New Session",
-        OwnerId = Guid.NewGuid()
+        OwnerId = Guid.CreateVersion7()
     };
 
     // Assert
@@ -237,9 +237,9 @@ public void GameSession_WhenCreated_HasExpectedDefaults() {
 ```csharp
 // ✅ Correct: Test data builder pattern for complex objects
 public class GameSessionBuilder {
-    private Guid _id = Guid.NewGuid();
+    private Guid _id = Guid.CreateVersion7();
     private string _title = "Test Session";
-    private Guid _ownerId = Guid.NewGuid();
+    private Guid _ownerId = Guid.CreateVersion7();
     private GameSessionStatus _status = GameSessionStatus.Draft;
     private List<Participant> _players = [];
 
@@ -276,8 +276,8 @@ public class GameSessionBuilder {
 [Fact]
 public void DeleteSessionAsync_WhenNotOwner_ReturnsForbidden() {
     // Arrange
-    var ownerId = Guid.NewGuid();
-    var differentUserId = Guid.NewGuid();
+    var ownerId = Guid.CreateVersion7();
+    var differentUserId = Guid.CreateVersion7();
     var session = new GameSessionBuilder()
         .WithOwner(ownerId)
         .WithStatus(GameSessionStatus.InProgress)
@@ -339,7 +339,7 @@ public void CanTransitionTo_WithVariousStates_ReturnsExpectedResult(
 [Fact]
 public async Task GetByIdAsync_WithExistingId_ReturnsSession() {
     // Arrange
-    var sessionId = Guid.NewGuid();
+    var sessionId = Guid.CreateVersion7();
     var expectedSession = new GameSession { Id = sessionId };
     var storage = Substitute.For<IGameSessionStorage>();
     storage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>())

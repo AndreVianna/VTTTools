@@ -81,7 +81,7 @@
   1. Validate user authentication and existence
   2. Validate title (not empty, length ≤ 128)
   3. Create GameSession entity with Status=Draft
-  4. Generate new Guid for Id
+  4. Generate new GuidV7 for Id
   5. Create Participant with UserId=OwnerId, PlayerType=Master, JoinedAt=Now
   6. Add participant to Players collection
   7. Persist via IGameSessionStorage.CreateAsync()

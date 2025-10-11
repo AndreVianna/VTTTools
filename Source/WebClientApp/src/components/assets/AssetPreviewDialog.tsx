@@ -51,7 +51,7 @@ import {
     CreaturePropertiesForm,
     AssetResourceManager
 } from './forms';
-import { getDefaultPortraitResource, getResourceUrl } from '@/utils/assetHelpers';
+import { getFirstDisplayResource, getResourceUrl } from '@/utils/assetHelpers';
 import { AssetResource } from '@/types/domain';
 
 export interface AssetPreviewDialogProps {
@@ -214,10 +214,10 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                         }}
                     >
                         {(() => {
-                            const portraitResource = getDefaultPortraitResource(asset);
-                            return portraitResource ? (
+                            const displayResource = getFirstDisplayResource(asset);
+                            return displayResource ? (
                                 <img
-                                    src={getResourceUrl(portraitResource.resourceId)}
+                                    src={getResourceUrl(displayResource.resourceId)}
                                     alt={asset.name}
                                     style={{
                                         maxWidth: '100%',
@@ -235,6 +235,7 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                     <AssetResourceManager
                         resources={resources}
                         onResourcesChange={setResources}
+                        size={size}
                         readOnly={!editMode}
                     />
 

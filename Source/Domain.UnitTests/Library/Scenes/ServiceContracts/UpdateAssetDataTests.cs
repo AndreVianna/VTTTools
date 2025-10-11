@@ -26,7 +26,7 @@ public class UpdateAssetDataTests {
         const float rotation = 45.0f;
         const float elevation = 10.0f;
         const bool isLocked = true;
-        var controlledBy = Guid.NewGuid();
+        var controlledBy = Guid.CreateVersion7();
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers

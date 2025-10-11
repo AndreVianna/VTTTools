@@ -1,3 +1,4 @@
+using VttTools.Assets.Model;
 using UpdateSceneAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
 
 namespace VttTools.Library.Services;
@@ -131,12 +132,12 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         // ResourceId is required - select from Asset.Resources
         Guid? resourceId = data.ResourceId.IsSet ? data.ResourceId.Value : null;
         if (resourceId is null) {
-            // If not provided, select the first resource from the asset
+            // If not provided, select the first token resource from the asset
             if (asset.Resources.Count == 0)
                 return Result.Failure("Asset has no resources available");
-            // Prefer default token resource, fallback to first resource
-            var defaultResource = asset.Resources.FirstOrDefault(r => r.IsDefault);
-            resourceId = defaultResource?.ResourceId ?? asset.Resources.First().ResourceId;
+            // Select first Token resource, fallback to first resource
+            var tokenResource = asset.Resources.FirstOrDefault(r => r.Role == ResourceRole.Token);
+            resourceId = tokenResource?.ResourceId ?? asset.Resources.First().ResourceId;
         }
 
         var sceneAsset = new SceneAsset {

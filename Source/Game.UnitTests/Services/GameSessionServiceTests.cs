@@ -5,7 +5,7 @@ namespace VttTools.Game.Services;
 public class GameSessionServiceTests {
     private readonly IGameSessionStorage _sessionStorage;
     private readonly GameSessionService _service;
-    private readonly Guid _userId = Guid.NewGuid();
+    private readonly Guid _userId = Guid.CreateVersion7();
     private readonly CancellationToken _ct;
 
     public GameSessionServiceTests() {
@@ -24,8 +24,8 @@ public class GameSessionServiceTests {
     public async Task GetGameSessionsAsync_ReturnsGameSessionArray() {
         // Arrange
         var sessions = new GameSession[] {
-            new() { Id = Guid.NewGuid(), Title = "Test GameSession 1", OwnerId = _userId },
-            new() { Id = Guid.NewGuid(), Title = "Test GameSession 2", OwnerId = _userId },
+            new() { Id = Guid.CreateVersion7(), Title = "Test GameSession 1", OwnerId = _userId },
+            new() { Id = Guid.CreateVersion7(), Title = "Test GameSession 2", OwnerId = _userId },
                                      };
         _sessionStorage.GetByUserIdAsync(_userId, Arg.Any<CancellationToken>()).Returns(sessions);
 
@@ -44,7 +44,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task GetGameSessionByIdAsync_WithExistingId_ReturnsGameSession() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         var session = new GameSession { Id = sessionId, Title = "Test GameSession", OwnerId = _userId };
         _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns(session);
 
@@ -59,7 +59,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task GetGameSessionByIdAsync_WithNonExistingId_ReturnsNull() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns((GameSession?)null);
 
         // Act
@@ -77,7 +77,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task CreateGameSessionAsync_WithValidData_ReturnsSuccess() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         var data = new CreateGameSessionData {
             Title = "New GameSession",
             SceneId = sceneId,
@@ -112,7 +112,7 @@ public class GameSessionServiceTests {
         // Arrange
         var data = new CreateGameSessionData {
             Title = "", // Invalid empty title
-            SceneId = Guid.NewGuid(),
+            SceneId = Guid.CreateVersion7(),
         };
 
         // Act
@@ -131,8 +131,8 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task UpdateGameSessionAsync_AsNonOwner_ReturnsForbidden() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var nonOwnerId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
+        var nonOwnerId = Guid.CreateVersion7();
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
@@ -156,15 +156,15 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task UpdateGameSessionAsync_AsOwnerWithValidData_ReturnsNoContent() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         var session = new GameSession {
             Id = sessionId,
             Title = "Old Title",
             OwnerId = _userId,
-            SceneId = Guid.NewGuid(),
+            SceneId = Guid.CreateVersion7(),
         };
 
-        var newSceneId = Guid.NewGuid();
+        var newSceneId = Guid.CreateVersion7();
         var data = new UpdateGameSessionData {
             Title = "Updated Title",
             SceneId = newSceneId,
@@ -189,8 +189,8 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task UpdateGameSessionAsync_AsOwnerWithPartialData_ReturnsNoContent() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
         const string originalTitle = "Original Title";
         var session = new GameSession {
             Id = sessionId,
@@ -222,8 +222,8 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task UpdateGameSessionAsync_AsOwnerWithEmptyData_ReturnsNoContent() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
         const string originalTitle = "Original Title";
         var session = new GameSession {
             Id = sessionId,
@@ -247,7 +247,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task UpdateGameSessionAsync_WithNonExistentGameSession_ReturnsNotFound() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         var data = new UpdateGameSessionData {
             Title = "Updated Title",
         };
@@ -268,12 +268,12 @@ public class GameSessionServiceTests {
     [InlineData("   ")]
     public async Task UpdateGameSessionAsync_WithInvalidData_ReturnsBadRequest(string? title) {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         var session = new GameSession {
             Id = sessionId,
             Title = "Session Title",
             OwnerId = _userId,
-            SceneId = Guid.NewGuid(),
+            SceneId = Guid.CreateVersion7(),
         };
         var data = new UpdateGameSessionData {
             Title = title!,
@@ -296,7 +296,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task DeleteGameSessionAsync_AsOwner_DeletesGameSessionAndReturnsNoContent() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
@@ -316,8 +316,8 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task DeleteGameSessionAsync_AsNonOwner_ReturnsForbiddenAndDoesNotDelete() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var nonOwnerId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
+        var nonOwnerId = Guid.CreateVersion7();
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
@@ -337,7 +337,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task DeleteGameSessionAsync_WithNonExistentGameSession_ReturnsNotFoundAndDoesNotDelete() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns((GameSession?)null);
 
         // Act
@@ -355,8 +355,8 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task JoinGameSessionAsync_WithNewPlayer_AddsPlayerAndReturnsNoContent() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var playerId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
+        var playerId = Guid.CreateVersion7();
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
@@ -380,7 +380,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task JoinGameSessionAsync_WithExistingPlayer_ReturnsNoContentAndDoesNotAddDuplicate() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
@@ -404,7 +404,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task JoinGameSessionAsync_WithNonExistentGameSession_ReturnsNotFound() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns((GameSession?)null);
 
         // Act
@@ -422,9 +422,9 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task LeaveGameSessionAsync_WithPlayerInGameSession_RemovesPlayerAndReturnsNoContent() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var playerIdToRemove = Guid.NewGuid();
-        var anotherPlayerId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
+        var playerIdToRemove = Guid.CreateVersion7();
+        var anotherPlayerId = Guid.CreateVersion7();
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
@@ -453,9 +453,9 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task LeaveGameSessionAsync_WithPlayerNotInGameSession_ReturnsNoContentAndDoesNotChangePlayers() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var otherPlayerId = Guid.NewGuid();
-        var nonMemberPlayerId = Guid.NewGuid(); // This user is not in the game session
+        var sessionId = Guid.CreateVersion7();
+        var otherPlayerId = Guid.CreateVersion7();
+        var nonMemberPlayerId = Guid.CreateVersion7(); // This user is not in the game session
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
@@ -481,7 +481,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task LeaveGameSessionAsync_WithNonExistentGameSession_ReturnsNotFound() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns((GameSession?)null);
 
         // Act
@@ -499,13 +499,13 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task SetActiveSceneAsync_AsGameMaster_UpdatesSceneAndReturnsNoContent() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var newSceneId = Guid.NewGuid();
-        var oldSceneId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
+        var newSceneId = Guid.CreateVersion7();
+        var oldSceneId = Guid.CreateVersion7();
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
-            OwnerId = Guid.NewGuid(), // Different owner for testing GM role
+            OwnerId = Guid.CreateVersion7(), // Different owner for testing GM role
             SceneId = oldSceneId,
             Players = [new Participant { UserId = _userId, Type = PlayerType.Master }],
         };
@@ -525,10 +525,10 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task SetActiveSceneAsync_AsNonGameMaster_ReturnsForbiddenAndDoesNotUpdate() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var playerId = Guid.NewGuid(); // User making the call is just a player
-        var newSceneId = Guid.NewGuid();
-        var oldSceneId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
+        var playerId = Guid.CreateVersion7(); // User making the call is just a player
+        var newSceneId = Guid.CreateVersion7();
+        var oldSceneId = Guid.CreateVersion7();
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
@@ -554,10 +554,10 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task SetActiveSceneAsync_AsPlayerNotInGameSession_ReturnsForbiddenAndDoesNotUpdate() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var newSceneId = Guid.NewGuid();
-        var playerNotInGameSessionId = Guid.NewGuid(); // This user is not in the players list
-        var oldSceneId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
+        var newSceneId = Guid.CreateVersion7();
+        var playerNotInGameSessionId = Guid.CreateVersion7(); // This user is not in the players list
+        var oldSceneId = Guid.CreateVersion7();
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
@@ -565,7 +565,7 @@ public class GameSessionServiceTests {
             SceneId = oldSceneId,
             Players = [
                 new Participant { UserId = _userId, Type = PlayerType.Master },
-                new Participant { UserId = Guid.NewGuid(), Type = PlayerType.Player },
+                new Participant { UserId = Guid.CreateVersion7(), Type = PlayerType.Player },
             ],
         };
 
@@ -583,8 +583,8 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task SetActiveSceneAsync_WithNonExistentGameSession_ReturnsNotFound() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
         _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns((GameSession?)null);
 
         // Act
@@ -602,15 +602,15 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task StartGameSessionAsync_AsGameMaster_ReturnsNoContent() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
             Status = GameSessionStatus.Scheduled,
-            OwnerId = Guid.NewGuid(), // Different owner
+            OwnerId = Guid.CreateVersion7(), // Different owner
             Players = [
                 new Participant { UserId = _userId, Type = PlayerType.Master }, // Caller is GM
-                new Participant { UserId = Guid.NewGuid(), Type = PlayerType.Player }
+                new Participant { UserId = Guid.CreateVersion7(), Type = PlayerType.Player }
             ],
         };
 
@@ -629,8 +629,8 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task StartGameSessionAsync_AsNonGameMaster_ReturnsForbidden() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var nonGmId = Guid.NewGuid(); // Caller is not GM
+        var sessionId = Guid.CreateVersion7();
+        var nonGmId = Guid.CreateVersion7(); // Caller is not GM
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
@@ -655,9 +655,9 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task StartGameSessionAsync_AsPlayerNotInGameSession_ReturnsForbidden() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var gmId = Guid.NewGuid();
-        var playerNotInGameSessionId = Guid.NewGuid(); // Caller is not in players list
+        var sessionId = Guid.CreateVersion7();
+        var gmId = Guid.CreateVersion7();
+        var playerNotInGameSessionId = Guid.CreateVersion7(); // Caller is not in players list
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
@@ -682,7 +682,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task StartGameSessionAsync_WithNonExistentGameSession_ReturnsNotFound() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns((GameSession?)null);
 
         // Act
@@ -699,15 +699,15 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task StopGameSessionAsync_AsGameMaster_ReturnsNoContent() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
             Status = GameSessionStatus.InProgress,
-            OwnerId = Guid.NewGuid(), // Different owner
+            OwnerId = Guid.CreateVersion7(), // Different owner
             Players = [
                 new Participant { UserId = _userId, Type = PlayerType.Master },
-                new Participant { UserId = Guid.NewGuid(), Type = PlayerType.Player },
+                new Participant { UserId = Guid.CreateVersion7(), Type = PlayerType.Player },
             ],
         };
 
@@ -726,8 +726,8 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task StopGameSessionAsync_AsNonGameMaster_ReturnsForbidden() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var nonGmId = Guid.NewGuid(); // Caller is not GM
+        var sessionId = Guid.CreateVersion7();
+        var nonGmId = Guid.CreateVersion7(); // Caller is not GM
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
@@ -752,9 +752,9 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task StopGameSessionAsync_AsPlayerNotInGameSession_ReturnsForbidden() {
         // Arrange
-        var sessionId = Guid.NewGuid();
-        var gmId = Guid.NewGuid();
-        var playerNotInGameSessionId = Guid.NewGuid(); // Caller is not in players list
+        var sessionId = Guid.CreateVersion7();
+        var gmId = Guid.CreateVersion7();
+        var playerNotInGameSessionId = Guid.CreateVersion7(); // Caller is not in players list
         var session = new GameSession {
             Id = sessionId,
             Title = "GameSession",
@@ -779,7 +779,7 @@ public class GameSessionServiceTests {
     [Fact]
     public async Task StopGameSessionAsync_WithNonExistentGameSession_ReturnsNotFound() {
         // Arrange
-        var sessionId = Guid.NewGuid();
+        var sessionId = Guid.CreateVersion7();
         _sessionStorage.GetByIdAsync(sessionId, Arg.Any<CancellationToken>()).Returns((GameSession?)null);
 
         // Act

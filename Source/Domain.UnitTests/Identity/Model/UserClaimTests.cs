@@ -17,7 +17,7 @@ public class UserClaimTests {
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
         const int id = 123;
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         const string claimType = "ClaimType1";
         const string claimValue = "ClaimValue1";
 

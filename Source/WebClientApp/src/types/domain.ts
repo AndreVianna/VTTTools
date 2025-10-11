@@ -51,14 +51,13 @@ export interface TokenStyle {
 export enum ResourceRole {
   None = 0,
   Token = 1,
-  Portrait = 2
+  Display = 2
 }
 
 export interface AssetResource {
   resourceId: string;
   resource?: MediaResource;
   role: ResourceRole;
-  isDefault: boolean;
 }
 
 export enum SizeName {

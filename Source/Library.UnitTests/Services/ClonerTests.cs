@@ -1,17 +1,17 @@
 namespace VttTools.Library.Services;
 
 public class ClonerTests {
-    private readonly Guid _userId = Guid.NewGuid();
-    private readonly Guid _campaignId = Guid.NewGuid();
+    private readonly Guid _userId = Guid.CreateVersion7();
+    private readonly Guid _campaignId = Guid.CreateVersion7();
 
     [Fact]
     public void CloneAdventure_ClonesAll() {
         // Arrange
-        var originalId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
+        var originalId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
         var original = new Adventure {
             Id = originalId,
-            OwnerId = Guid.NewGuid(),
+            OwnerId = Guid.CreateVersion7(),
             CampaignId = _campaignId,
             Name = "Original Adventure",
             Background = new() {
@@ -71,11 +71,11 @@ public class ClonerTests {
     [Fact]
     public void CloneAdventure_WithIncludeScenesFalse_CopiesOnlyBasicProperties() {
         // Arrange
-        var originalId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
+        var originalId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
         var original = new Adventure {
             Id = originalId,
-            OwnerId = Guid.NewGuid(),
+            OwnerId = Guid.CreateVersion7(),
             CampaignId = _campaignId,
             Name = "Original Adventure",
             Background = new() {
@@ -127,7 +127,7 @@ public class ClonerTests {
     [Fact]
     public void CloneScene_CopiesBasicProperties() {
         // Arrange
-        var originalId = Guid.NewGuid();
+        var originalId = Guid.CreateVersion7();
         var original = new Scene {
             Id = originalId,
             Name = "Original Scene",
@@ -141,26 +141,26 @@ public class ClonerTests {
             },
             Assets = [
                 new() {
-                    AssetId = Guid.NewGuid(),
+                    AssetId = Guid.CreateVersion7(),
                     Name = "Asset 1",
-                    ResourceId = Guid.NewGuid(),
+                    ResourceId = Guid.CreateVersion7(),
                     Position = new(20, 30),
                     Size = new(1, 1),
                     Elevation = 1,
                     Rotation = 45,
                     IsLocked = true,
-                    ControlledBy = Guid.NewGuid(),
+                    ControlledBy = Guid.CreateVersion7(),
                 },
                 new() {
-                    AssetId = Guid.NewGuid(),
+                    AssetId = Guid.CreateVersion7(),
                     Name = "Asset 2",
-                    ResourceId = Guid.NewGuid(),
+                    ResourceId = Guid.CreateVersion7(),
                     Position = new(5, 10),
                     Size = new(1, 1),
                     Elevation = 2,
                     Rotation = -45,
                     IsLocked = false,
-                    ControlledBy = Guid.NewGuid(),
+                    ControlledBy = Guid.CreateVersion7(),
                 },
             ],
         };
@@ -181,22 +181,22 @@ public class ClonerTests {
     [Fact]
     public void CloneScene_ClonesSceneAssets() {
         // Arrange
-        var originalId = Guid.NewGuid();
+        var originalId = Guid.CreateVersion7();
         var original = new Scene {
             Id = originalId,
             Name = "Original Scene",
             Assets = [
                 new() {
-                    AssetId = Guid.NewGuid(),
+                    AssetId = Guid.CreateVersion7(),
                     Index = 1,
                     Name = "Asset 1",
-                    ResourceId = Guid.NewGuid(),
+                    ResourceId = Guid.CreateVersion7(),
                     Position = new(20, 30),
                     Size = new(1, 1),
                     Elevation = 1f,
                     Rotation = 45f,
                     IsLocked = true,
-                    ControlledBy = Guid.NewGuid(),
+                    ControlledBy = Guid.CreateVersion7(),
                 },
             ],
             Stage = new(),
@@ -216,13 +216,13 @@ public class ClonerTests {
     [Fact]
     public void CloneSceneAsset_CreatesNewAssetWithCorrectProperties() {
         // Arrange
-        var userId = Guid.NewGuid();
-        var controlledById = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
+        var controlledById = Guid.CreateVersion7();
         var original = new SceneAsset {
-            AssetId = Guid.NewGuid(),
+            AssetId = Guid.CreateVersion7(),
             Index = 1,
             Name = "Original Asset",
-            ResourceId = Guid.NewGuid(),
+            ResourceId = Guid.CreateVersion7(),
             Position = new(20, 30),
             Size = new(1, 1),
             Elevation = 1f,

@@ -55,7 +55,7 @@ internal static class DbContextHelper {
             CreateTestAssetEntity("Asset 1", AssetKind.Creature, isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[0].Id),
             CreateTestAssetEntity("Asset 2", ownerId: currentUserId, displayId: resources[1].Id),
             CreateTestAssetEntity("Asset 3", AssetKind.Creature, isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[2].Id),
-            CreateTestAssetEntity("Asset 4", AssetKind.Creature, isPublished: true, isPublic: false, ownerId: Guid.NewGuid(), displayId: resources[3].Id),
+            CreateTestAssetEntity("Asset 4", AssetKind.Creature, isPublished: true, isPublic: false, ownerId: Guid.CreateVersion7(), displayId: resources[3].Id),
         };
 
         context.Assets.AddRange(assets);
@@ -82,7 +82,7 @@ internal static class DbContextHelper {
         var adventures = new[] {
             CreateTestAdventureEntity("Adventure 1", isPublished: true, isPublic: true, ownerId: currentUserId, backgroundId: adventureResources[0].Id),
             CreateTestAdventureEntity("Adventure 2", ownerId: currentUserId, backgroundId: adventureResources[1].Id),
-            CreateTestAdventureEntity("Adventure 3", isPublished: true, isPublic: false, ownerId: Guid.NewGuid(), backgroundId: adventureResources[2].Id),
+            CreateTestAdventureEntity("Adventure 3", isPublished: true, isPublic: false, ownerId: Guid.CreateVersion7(), backgroundId: adventureResources[2].Id),
         };
         var scenes = new[] {
             CreateTestSceneEntity(adventures[0].Id, "Scene 1.1", stageId: sceneResources[0].Id),
@@ -97,8 +97,8 @@ internal static class DbContextHelper {
     }
 
     private static void SeedGameSessions(ApplicationDbContext context, Guid currentUserId) {
-        var masterId = Guid.NewGuid();
-        var playerId = Guid.NewGuid();
+        var masterId = Guid.CreateVersion7();
+        var playerId = Guid.CreateVersion7();
 
         // Get scene IDs without complex Include operations to avoid EF In-Memory issues
         var sceneIds = context.Scenes.Select(s => s.Id).ToArray();
@@ -130,8 +130,8 @@ internal static class DbContextHelper {
         Type = type,
         IsPublished = isPublished,
         IsPublic = isPublic,
-        OwnerId = ownerId ?? Guid.NewGuid(),
-        BackgroundId = backgroundId ?? Guid.NewGuid(),
+        OwnerId = ownerId ?? Guid.CreateVersion7(),
+        BackgroundId = backgroundId ?? Guid.CreateVersion7(),
     };
 
     public static AdventureEntity CreateTestAdventureEntity(string name, bool isPublished = false, bool isPublic = false, AdventureType type = AdventureType.OpenWorld, Guid? ownerId = null, Guid? backgroundId = null)
@@ -144,7 +144,7 @@ internal static class DbContextHelper {
             Description = $"Description for {name}",
             ZoomLevel = 1.0f,
             Panning = new(0, 0),
-            StageId = stageId ?? Guid.NewGuid(),
+            StageId = stageId ?? Guid.CreateVersion7(),
             Grid = new() {
                 Type = GridType.Square,
                 CellSize = new(1, 1),
@@ -154,7 +154,7 @@ internal static class DbContextHelper {
         };
 
     public static CreatureAssetEntity CreateTestAssetEntity(Guid id, string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null) {
-        var resourceId = displayId ?? Guid.NewGuid();
+        var resourceId = displayId ?? Guid.CreateVersion7();
         return new() {
             Id = id,
             Name = name,
@@ -162,12 +162,11 @@ internal static class DbContextHelper {
             Description = $"Description for {name}",
             IsPublic = isPublic,
             IsPublished = isPublished,
-            OwnerId = ownerId ?? Guid.NewGuid(),
+            OwnerId = ownerId ?? Guid.CreateVersion7(),
             Resources = [
                 new() {
                     ResourceId = resourceId,
                     Role = ResourceRole.Token,
-                    IsDefault = true,
                 },
             ],
         };
@@ -182,7 +181,7 @@ internal static class DbContextHelper {
             Title = title,
             SceneId = sceneId,
             Status = status,
-            OwnerId = ownerId ?? Guid.NewGuid(),
+            OwnerId = ownerId ?? Guid.CreateVersion7(),
         };
 
     public static GameSessionEntity CreateTestGameSessionEntity(string title, Guid? sceneId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
@@ -208,7 +207,7 @@ internal static class DbContextHelper {
         Type = type,
         IsPublished = isPublished,
         IsPublic = isPublic,
-        OwnerId = ownerId ?? Guid.NewGuid(),
+        OwnerId = ownerId ?? Guid.CreateVersion7(),
         Background = new() {
             Id = Guid.CreateVersion7(),
             Type = ResourceType.Image,
@@ -235,7 +234,7 @@ internal static class DbContextHelper {
             Description = $"Description for {name}",
             Stage = new() {
                 Background = new() {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.CreateVersion7(),
                     Type = ResourceType.Image,
                     Path = "asset/1234",
                     Metadata = new() {
@@ -267,12 +266,11 @@ internal static class DbContextHelper {
             Description = $"Description for {name}",
             IsPublic = isPublic,
             IsPublished = isPublished,
-            OwnerId = ownerId ?? Guid.NewGuid(),
+            OwnerId = ownerId ?? Guid.CreateVersion7(),
             Resources = [
                 new() {
                     ResourceId = resourceId,
                     Role = ResourceRole.Token,
-                    IsDefault = true,
                     Resource = new() {
                         Id = resourceId,
                         Type = ResourceType.Image,
@@ -300,7 +298,7 @@ internal static class DbContextHelper {
             Title = title,
             SceneId = sceneId,
             Status = status,
-            OwnerId = ownerId ?? Guid.NewGuid(),
+            OwnerId = ownerId ?? Guid.CreateVersion7(),
         };
 
     public static GameSession CreateTestGameSession(string title, Guid? sceneId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)

@@ -10,5 +10,4 @@ public class AssetResource {
     public Guid ResourceId { get; set; }
     public Resource? Resource { get; set; }
     public ResourceRole Role { get; set; }
-    public bool IsDefault { get; set; }
 }

@@ -254,13 +254,13 @@ public bool PlayersExist { get; init; } // Awkward phrasing
 ```csharp
 // ✅ Correct: Always use 'var'
 var session = new GameSession();
-var userId = Guid.NewGuid();
+var userId = Guid.CreateVersion7();
 var count = await _storage.CountAsync(ct);
 var sessions = new List<GameSession>();
 
 // ❌ Incorrect: Explicit types
 GameSession session = new GameSession();
-Guid userId = Guid.NewGuid();
+Guid userId = Guid.CreateVersion7();
 int count = await _storage.CountAsync(ct);
 
 // ⚠️ Exception: When type is not obvious from right-hand side

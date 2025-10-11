@@ -10,8 +10,8 @@ public class UpdateAdventureRequestTests {
             Type = AdventureType.OpenWorld,
             IsPublished = false,
             IsPublic = false,
-            CampaignId = Guid.NewGuid(),
-            BackgroundId = Guid.NewGuid(),
+            CampaignId = Guid.CreateVersion7(),
+            BackgroundId = Guid.CreateVersion7(),
         };
 
         const string name = "Other Title";
@@ -19,8 +19,8 @@ public class UpdateAdventureRequestTests {
         const AdventureType type = AdventureType.DungeonCrawl;
         const bool isVisible = true;
         const bool isPublic = true;
-        var campaignId = Guid.NewGuid();
-        var backgroundId = Guid.NewGuid();
+        var campaignId = Guid.CreateVersion7();
+        var backgroundId = Guid.CreateVersion7();
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers

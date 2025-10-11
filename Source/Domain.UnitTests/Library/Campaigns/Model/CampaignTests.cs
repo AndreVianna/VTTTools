@@ -23,13 +23,13 @@ public class CampaignTests {
     [Fact]
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
         const string name = "Some Epic";
         const string description = "Some Description";
-        var ownerId = Guid.NewGuid();
-        var epicId = Guid.NewGuid();
+        var ownerId = Guid.CreateVersion7();
+        var epicId = Guid.CreateVersion7();
         var display = new Resource {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             Type = ResourceType.Image,
             Path = "assets/campaign-background.png",
             Metadata = new ResourceMetadata {
@@ -39,7 +39,7 @@ public class CampaignTests {
             Tags = ["fantasy", "adventure"],
         };
         var adventure = new Adventure {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
         };
 
         // Act

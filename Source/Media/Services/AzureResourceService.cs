@@ -30,9 +30,9 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
             : data.Metadata.ContentType.Contains("gif") || data.Metadata.ContentType.Contains("webp") ? ResourceType.Animation
             : ResourceType.Image;
 
-        // Extract resource ID from path (format: "type/id/filename")
+        // Extract resource ID from path (format: "type/resource/id")
         var pathParts = data.Path.Split('/');
-        var resourceId = Guid.Parse(pathParts[^2]);
+        var resourceId = Guid.Parse(pathParts[^1]);  // Last element is the GUID
 
         // Save Resource entity to database
         var resource = new Resource {

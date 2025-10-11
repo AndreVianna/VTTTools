@@ -1,5 +1,6 @@
-// Phase 5.5 - Asset Resource Manager
-// Dual collapsible album component with side-by-side layout
+// Phase 5.6 - Asset Resource Manager Redesigned
+// Single-panel image manager with keyboard shortcuts for role assignment
+// Ctrl+Click=Toggle Display, Alt+Click=Toggle Token, Ctrl+Alt+Click=Toggle Both
 
 import React, { useState } from 'react';
 import {
@@ -18,199 +19,160 @@ import {
 import {
     CloudUpload as UploadIcon,
     Close as CloseIcon,
+    Videocam as TokenIcon,
+    Portrait as DisplayIcon,
     ExpandMore as ExpandMoreIcon,
-    ExpandLess as ExpandLessIcon,
-    Image as ImageIcon
+    ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
-import { AssetResource, ResourceRole } from '@/types/domain';
+import { AssetResource, ResourceRole, NamedSize } from '@/types/domain';
 import { useUploadFileMutation } from '@/services/mediaApi';
 import { getResourceUrl } from '@/utils/assetHelpers';
+import { TokenPreview } from '@/components/common/TokenPreview';
+import { DisplayPreview } from '@/components/common/DisplayPreview';
 
 export interface AssetResourceManagerProps {
     resources: AssetResource[];
     onResourcesChange: (resources: AssetResource[]) => void;
+    size: NamedSize;  // Asset size for token preview grid
     readOnly?: boolean;
 }
-
-type ExpandedAlbum = 'token' | 'portrait' | null;
 
 export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
     resources,
     onResourcesChange,
+    size,
     readOnly = false
 }) => {
     const theme = useTheme();
     const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation();
     const [uploadError, setUploadError] = useState<string | null>(null);
-    const [expandedAlbum, setExpandedAlbum] = useState<ExpandedAlbum>(null);
+    const [showManage, setShowManage] = useState(false);
 
-    // Separate resources by role
-    const tokenResources = resources.filter(r => r.role === ResourceRole.Token);
-    const portraitResources = resources.filter(r => r.role === ResourceRole.Portrait);
-    const defaultToken = tokenResources.find(r => r.isDefault) ?? tokenResources[0];
-    const defaultPortrait = portraitResources.find(r => r.isDefault) ?? portraitResources[0];
+    // Get first resources by role
+    const firstToken = resources.find(r => (r.role & ResourceRole.Token) === ResourceRole.Token);
+    const firstDisplay = resources.find(r => (r.role & ResourceRole.Display) === ResourceRole.Display);
 
-    // Toggle album (only one can be open at a time)
-    const handleToggleAlbum = (album: 'token' | 'portrait') => {
-        setExpandedAlbum(prev => prev === album ? null : album);
-    };
-
-    // Ctrl+Click handler to toggle default (on/off)
-    const handleSetDefault = (resourceId: string, role: ResourceRole) => {
-        const resource = resources.find(r => r.resourceId === resourceId);
-        if (!resource || resource.role !== role) return;
-
-        const updated = resources.map(r => ({
-            ...r,
-            isDefault: r.resourceId === resourceId && r.role === role ? !r.isDefault :  // TOGGLE
-                       r.role === role ? false : r.isDefault  // Clear other defaults for this role
-        }));
-        onResourcesChange(updated);
-    };
-
-    // Upload token image
-    const handleUploadToken = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Upload image (no role assigned - user sets via keyboard)
+    const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
         setUploadError(null);
         try {
             const result = await uploadFile({
-                file,
-                metadata: {
-                    fileName: file.name,
-                    contentType: file.type,
-                    fileSize: file.size
-                }
+                file
             }).unwrap();
 
-            const isFirst = tokenResources.length === 0;
             onResourcesChange([...resources, {
-                resourceId: result.resourceId!,
-                role: ResourceRole.Token,
-                isDefault: false  // NOT auto-default - user must Ctrl+click
+                resourceId: result.id,  // Use 'id' from new response format
+                role: ResourceRole.None  // No role assigned - user sets via keyboard
             }]);
 
-            // Auto-expand token album after first upload
-            if (isFirst) {
-                setExpandedAlbum('token');
-            }
-        } catch (error) {
+            setShowManage(true);  // Auto-expand management panel
+        } catch (error: any) {
             console.error('Upload failed:', error);
-            setUploadError('Failed to upload token image. Please try again.');
+            console.error('Error stringified:', JSON.stringify(error, null, 2));
+            console.error('Error keys:', Object.keys(error || {}));
+            console.error('Error.data:', error?.data);
+            console.error('Error.status:', error?.status);
+            console.error('Error.error:', error?.error);
+
+            const errorMessage = error?.data?.detail || error?.data?.title || error?.error || error?.message || JSON.stringify(error);
+            setUploadError(`Failed to upload image: ${errorMessage}`);
         }
         event.target.value = '';
     };
 
-    // Upload portrait image
-    const handleUploadPortrait = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
+    // Keyboard shortcut handler for role assignment
+    const handleImageClick = (event: React.MouseEvent, resourceId: string) => {
+        const isCtrl = event.ctrlKey;
+        const isAlt = event.altKey;
 
-        setUploadError(null);
-        try {
-            const result = await uploadFile({
-                file,
-                metadata: {
-                    fileName: file.name,
-                    contentType: file.type,
-                    fileSize: file.size
-                }
-            }).unwrap();
-
-            const isFirst = portraitResources.length === 0;
-            onResourcesChange([...resources, {
-                resourceId: result.resourceId!,
-                role: ResourceRole.Portrait,
-                isDefault: false  // NOT auto-default - user must Ctrl+click
-            }]);
-
-            // Auto-expand portrait album after first upload
-            if (isFirst) {
-                setExpandedAlbum('portrait');
-            }
-        } catch (error) {
-            console.error('Upload failed:', error);
-            setUploadError('Failed to upload portrait image. Please try again.');
+        // Prevent default behavior for all clicks with modifier keys
+        if (isCtrl || isAlt) {
+            event.preventDefault();
+            event.stopPropagation();
+        } else {
+            return; // Regular click - do nothing
         }
-        event.target.value = '';
-    };
 
-    // Remove resource (doesn't auto-reassign default)
-    const handleRemoveResource = (resourceId: string) => {
-        const updated = resources.filter(r => r.resourceId !== resourceId);
+        const updated = resources.map(r => {
+            if (r.resourceId !== resourceId) return r;
+
+            let newRole = r.role;
+
+            if (isCtrl && isAlt) {
+                // Ctrl+Alt+Click: Toggle BOTH roles (XOR both flags)
+                newRole = newRole ^ (ResourceRole.Token | ResourceRole.Display);
+            } else if (isCtrl) {
+                // Ctrl+Click: Toggle Display role only
+                newRole = newRole ^ ResourceRole.Display;
+            } else if (isAlt) {
+                // Alt+Click: Toggle Token role only
+                newRole = newRole ^ ResourceRole.Token;
+            }
+
+            return { ...r, role: newRole };
+        });
+
         onResourcesChange(updated);
     };
 
-    // Read-only mode
+    // Remove resource
+    const handleRemove = (resourceId: string) => {
+        onResourcesChange(resources.filter(r => r.resourceId !== resourceId));
+    };
+
+    // Read-only mode - show token and display side-by-side
     if (readOnly) {
         return (
             <Box>
+                <Typography variant="subtitle2" sx={{ mb: 2 }}>Asset Images</Typography>
                 <Grid container spacing={2}>
-                    {/* Token */}
-                    <Grid size={3}>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                    <Grid size={6}>
+                        <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
                             Token
                         </Typography>
-                        {defaultToken ? (
-                            <Card sx={{ width: '100%', maxWidth: 150 }}>
-                                <CardMedia
-                                    component="img"
-                                    height="128"
-                                    image={getResourceUrl(defaultToken.resourceId)}
-                                    alt="Token"
-                                    sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
-                                />
-                                <Chip label="Default" size="small" color="primary" sx={{ m: 0.5 }} />
-                            </Card>
+                        {firstToken ? (
+                            <TokenPreview
+                                imageUrl={getResourceUrl(firstToken.resourceId)}
+                                size={size}
+                            />
                         ) : (
                             <Box sx={{
-                                width: '100%',
-                                maxWidth: 128,
-                                height: 128,
+                                height: 120,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
-                                borderRadius: 1,
                                 border: '1px dashed',
-                                borderColor: 'divider'
+                                borderColor: 'divider',
+                                borderRadius: 1,
+                                bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100'
                             }}>
-                                <ImageIcon sx={{ fontSize: 32, color: 'text.disabled' }} />
+                                <Typography variant="caption" color="text.secondary">No token</Typography>
                             </Box>
                         )}
                     </Grid>
-
-                    {/* Portrait */}
-                    <Grid size={9}>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                            Portrait
+                    <Grid size={6}>
+                        <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                            Display
                         </Typography>
-                        {defaultPortrait ? (
-                            <Card sx={{ width: '100%', maxWidth: 200 }}>
-                                <CardMedia
-                                    component="img"
-                                    height="300"
-                                    image={getResourceUrl(defaultPortrait.resourceId)}
-                                    alt="Portrait"
-                                    sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
-                                />
-                                <Chip label="Default" size="small" color="secondary" sx={{ m: 0.5 }} />
-                            </Card>
+                        {firstDisplay ? (
+                            <DisplayPreview
+                                imageUrl={getResourceUrl(firstDisplay.resourceId)}
+                            />
                         ) : (
                             <Box sx={{
-                                width: '100%',
-                                maxWidth: 200,
-                                height: 300,
+                                height: 120,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
-                                borderRadius: 1,
                                 border: '1px dashed',
-                                borderColor: 'divider'
+                                borderColor: 'divider',
+                                borderRadius: 1,
+                                bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100'
                             }}>
-                                <ImageIcon sx={{ fontSize: 32, color: 'text.disabled' }} />
+                                <Typography variant="caption" color="text.secondary">No display</Typography>
                             </Box>
                         )}
                     </Grid>
@@ -221,221 +183,96 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
 
     return (
         <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="subtitle2">Asset Images</Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                        component="label"
+                        size="small"
+                        startIcon={isUploading ? <CircularProgress size={16} /> : <UploadIcon />}
+                        disabled={isUploading}
+                    >
+                        Upload
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/svg+xml,image/gif,image/webp,image/bmp,image/tiff"
+                            hidden
+                            onChange={handleUpload}
+                            disabled={isUploading}
+                        />
+                    </Button>
+                    <Button
+                        size="small"
+                        variant="outlined"
+                        endIcon={showManage ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                        onClick={() => setShowManage(!showManage)}
+                    >
+                        Manage
+                    </Button>
+                </Box>
+            </Box>
+
             {uploadError && (
                 <Alert severity="error" sx={{ mb: 2 }} onClose={() => setUploadError(null)}>
                     {uploadError}
                 </Alert>
             )}
-            {/* Side-by-side: Token and Portrait */}
-            <Grid container spacing={2} sx={{ mb: 2 }}>
-                {/* TOKEN SECTION (Left Side) */}
-                <Grid size={3}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="body2" fontWeight={600}>Token</Typography>
-                        <Button
-                            size="small"
-                            endIcon={expandedAlbum === 'token' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                            onClick={() => handleToggleAlbum('token')}
-                        >
-                            Manage
-                        </Button>
-                    </Box>
 
-                    {/* Show default token */}
-                    {defaultToken ? (
-                        <Card sx={{ width: '100%', maxWidth: 128 }}>
-                            <CardMedia
-                                component="img"
-                                height="128"
-                                image={getResourceUrl(defaultToken.resourceId)}
-                                alt="Default Token"
-                                sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
+            {/* Current Previews (Collapsed View) */}
+            {!showManage && (
+                <Grid container spacing={2}>
+                    <Grid size={6}>
+                        <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                            Token
+                        </Typography>
+                        {firstToken ? (
+                            <TokenPreview
+                                imageUrl={getResourceUrl(firstToken.resourceId)}
+                                size={size}
+                                maxSize={180}
                             />
-                            <Chip label="Default" size="small" color="primary" sx={{ m: 0.5 }} />
-                        </Card>
-                    ) : (
-                        <Box sx={{
-                            width: '100%',
-                            maxWidth: 128,
-                            height: 128,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
-                            borderRadius: 1,
-                            border: '2px dashed',
-                            borderColor: 'divider'
-                        }}>
-                            <ImageIcon sx={{ fontSize: 32, color: 'text.disabled' }} />
-                        </Box>
-                    )}
-                </Grid>
-
-                {/* PORTRAIT SECTION (Right Side) */}
-                <Grid size={9}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="body2" fontWeight={600}>Portrait</Typography>
-                        <Button
-                            size="small"
-                            endIcon={expandedAlbum === 'portrait' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                            onClick={() => handleToggleAlbum('portrait')}
-                        >
-                            Manage
-                        </Button>
-                    </Box>
-
-                    {/* Show default portrait */}
-                    {defaultPortrait ? (
-                        <Card sx={{ width: '100%', maxWidth: 200 }}>
-                            <CardMedia
-                                component="img"
-                                height="300"
-                                image={getResourceUrl(defaultPortrait.resourceId)}
-                                alt="Default Portrait"
-                                sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
-                            />
-                            <Chip label="Default" size="small" color="secondary" sx={{ m: 0.5 }} />
-                        </Card>
-                    ) : (
-                        <Box sx={{
-                            width: '100%',
-                            maxWidth: 200,
-                            height: 300,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
-                            borderRadius: 1,
-                            border: '2px dashed',
-                            borderColor: 'divider'
-                        }}>
-                            <ImageIcon sx={{ fontSize: 32, color: 'text.disabled' }} />
-                        </Box>
-                    )}
-                </Grid>
-            </Grid>
-
-            {/* EXPANDED ALBUM (Full Width Below) */}
-            {expandedAlbum === 'token' && (
-                <Box sx={{
-                    p: 2,
-                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-                    borderRadius: 1,
-                    border: '1px solid',
-                    borderColor: 'divider'
-                }}>
-                    <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>
-                        Token Album
-                    </Typography>
-                    <Box sx={{
-                        display: 'flex',
-                        gap: 1,
-                        overflowX: 'auto',
-                        pb: 1,
-                        '&::-webkit-scrollbar': { height: 6 },
-                        '&::-webkit-scrollbar-thumb': {
-                            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
-                            borderRadius: 3
-                        }
-                    }}>
-                        {tokenResources.map((resource) => (
-                            <Card
-                                key={resource.resourceId}
-                                onClick={(e) => {
-                                    if (e.ctrlKey) {
-                                        handleSetDefault(resource.resourceId, ResourceRole.Token);
-                                    }
-                                }}
-                                sx={{
-                                    minWidth: 120,
-                                    maxWidth: 120,
-                                    cursor: 'pointer',
-                                    position: 'relative',
-                                    border: resource.isDefault ? '3px solid' : '1px solid',
-                                    borderColor: resource.isDefault ? 'primary.main' : 'divider',
-                                    '&:hover': {
-                                        boxShadow: 2
-                                    }
-                                }}
-                            >
-                                <CardMedia
-                                    component="img"
-                                    height="100"
-                                    image={getResourceUrl(resource.resourceId)}
-                                    alt="Token"
-                                    sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
-                                />
-                                {resource.isDefault && (
-                                    <Chip
-                                        label="Default"
-                                        size="small"
-                                        color="primary"
-                                        sx={{ position: 'absolute', top: 4, left: 4 }}
-                                    />
-                                )}
-                                <IconButton
-                                    size="small"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleRemoveResource(resource.resourceId);
-                                    }}
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 4,
-                                        right: 4,
-                                        bgcolor: 'background.paper',
-                                        '&:hover': { bgcolor: 'error.main', color: 'white' }
-                                    }}
-                                >
-                                    <CloseIcon fontSize="small" />
-                                </IconButton>
-                            </Card>
-                        ))}
-
-                        {/* Upload Button Card */}
-                        <Card
-                            component="label"
-                            sx={{
-                                minWidth: 120,
-                                maxWidth: 120,
-                                height: 116,
+                        ) : (
+                            <Box sx={{
+                                height: 120,
                                 display: 'flex',
-                                flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                cursor: 'pointer',
                                 border: '2px dashed',
-                                borderColor: 'primary.main',
-                                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-                                '&:hover': {
-                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
-                                }
-                            }}
-                        >
-                            {isUploading ? (
-                                <CircularProgress size={24} />
-                            ) : (
-                                <>
-                                    <UploadIcon sx={{ fontSize: 32, color: 'primary.main', mb: 0.5 }} />
-                                    <Typography variant="caption" color="primary">Upload</Typography>
-                                </>
-                            )}
-                            <input
-                                type="file"
-                                accept="image/*"
-                                hidden
-                                onChange={handleUploadToken}
-                                disabled={isUploading}
+                                borderColor: 'divider',
+                                borderRadius: 1
+                            }}>
+                                <Typography variant="caption" color="text.secondary">No token</Typography>
+                            </Box>
+                        )}
+                    </Grid>
+                    <Grid size={6}>
+                        <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                            Display Image
+                        </Typography>
+                        {firstDisplay ? (
+                            <DisplayPreview
+                                imageUrl={getResourceUrl(firstDisplay.resourceId)}
+                                maxSize={180}
                             />
-                        </Card>
-                    </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                        Ctrl+Click any image to toggle default token
-                    </Typography>
-                </Box>
+                        ) : (
+                            <Box sx={{
+                                height: 120,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '2px dashed',
+                                borderColor: 'divider',
+                                borderRadius: 1
+                            }}>
+                                <Typography variant="caption" color="text.secondary">No display</Typography>
+                            </Box>
+                        )}
+                    </Grid>
+                </Grid>
             )}
 
-            {expandedAlbum === 'portrait' && (
+            {/* Expanded Management Panel */}
+            {showManage && (
                 <Box sx={{
                     p: 2,
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
@@ -443,114 +280,100 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                     border: '1px solid',
                     borderColor: 'divider'
                 }}>
-                    <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>
-                        Portrait Album
+                    <Typography variant="body2" fontWeight={600} sx={{ display: 'inline', mb: 1 }}>
+                        Image Library
                     </Typography>
-                    <Box sx={{
-                        display: 'flex',
-                        gap: 1,
-                        overflowX: 'auto',
-                        pb: 1,
-                        '&::-webkit-scrollbar': { height: 6 },
-                        '&::-webkit-scrollbar-thumb': {
-                            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
-                            borderRadius: 3
-                        }
-                    }}>
-                        {portraitResources.map((resource) => (
-                            <Card
-                                key={resource.resourceId}
-                                onClick={(e) => {
-                                    if (e.ctrlKey) {
-                                        handleSetDefault(resource.resourceId, ResourceRole.Portrait);
-                                    }
-                                }}
-                                sx={{
-                                    minWidth: 120,
-                                    maxWidth: 120,
-                                    cursor: 'pointer',
-                                    position: 'relative',
-                                    border: resource.isDefault ? '3px solid' : '1px solid',
-                                    borderColor: resource.isDefault ? 'secondary.main' : 'divider',
-                                    '&:hover': {
-                                        boxShadow: 2
-                                    }
-                                }}
-                            >
-                                <CardMedia
-                                    component="img"
-                                    height="100"
-                                    image={getResourceUrl(resource.resourceId)}
-                                    alt="Portrait"
-                                    sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
-                                />
-                                {resource.isDefault && (
-                                    <Chip
-                                        label="Default"
-                                        size="small"
-                                        color="secondary"
-                                        sx={{ position: 'absolute', top: 4, left: 4 }}
-                                    />
-                                )}
-                                <IconButton
-                                    size="small"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleRemoveResource(resource.resourceId);
-                                    }}
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 4,
-                                        right: 4,
-                                        bgcolor: 'background.paper',
-                                        '&:hover': { bgcolor: 'error.main', color: 'white' }
-                                    }}
-                                >
-                                    <CloseIcon fontSize="small" />
-                                </IconButton>
-                            </Card>
-                        ))}
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'inline', mb: 1, ml: 2 }}>
+                        Set/Unset as Display: Ctrl+Click • Set/Unset as Token: Alt+Click
+                    </Typography>
 
-                        {/* Upload Button Card */}
-                        <Card
-                            component="label"
-                            sx={{
-                                minWidth: 120,
-                                maxWidth: 120,
-                                height: 116,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                border: '2px dashed',
-                                borderColor: 'secondary.main',
-                                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-                                '&:hover': {
-                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
-                                }
-                            }}
-                        >
-                            {isUploading ? (
-                                <CircularProgress size={24} />
-                            ) : (
-                                <>
-                                    <UploadIcon sx={{ fontSize: 32, color: 'secondary.main', mb: 0.5 }} />
-                                    <Typography variant="caption" color="secondary">Upload</Typography>
-                                </>
-                            )}
-                            <input
-                                type="file"
-                                accept="image/*"
-                                hidden
-                                onChange={handleUploadPortrait}
-                                disabled={isUploading}
-                            />
-                        </Card>
-                    </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                        Ctrl+Click any image to toggle default portrait
-                    </Typography>
+                    {resources.length > 0 ? (
+                        <Grid container spacing={1}>
+                            {resources.map((resource, _index) => {
+                                const hasToken = (resource.role & ResourceRole.Token) === ResourceRole.Token;
+                                const hasDisplay = (resource.role & ResourceRole.Display) === ResourceRole.Display;
+                                const hasBoth = hasToken && hasDisplay;
+
+                                return (
+                                    <Grid size={{ xs: 6, sm: 4, md: 3 }} key={resource.resourceId}>
+                                        <Card
+                                            onClick={(e) => handleImageClick(e, resource.resourceId)}
+                                            sx={{
+                                                cursor: 'pointer',
+                                                position: 'relative',
+                                                border: '2px solid',
+                                                borderColor: hasBoth ? 'success.main' : hasToken ? 'primary.main' : hasDisplay ? 'secondary.main' : 'divider',
+                                                '&:hover': { boxShadow: 3 }
+                                            }}
+                                        >
+                                            <CardMedia
+                                                component="img"
+                                                height="100"
+                                                image={getResourceUrl(resource.resourceId)}
+                                                alt="Resource"
+                                                sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
+                                            />
+
+                                            {/* Role Badges */}
+                                            <Box sx={{ position: 'absolute', bottom: 4, left: 4, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                                                {hasToken && (
+                                                    <Chip
+                                                        icon={<TokenIcon sx={{ fontSize: 14 }} />}
+                                                        label="Token"
+                                                        size="small"
+                                                        color="primary"
+                                                        sx={{ height: 20 }}
+                                                    />
+                                                )}
+                                                {hasDisplay && (
+                                                    <Chip
+                                                        icon={<DisplayIcon sx={{ fontSize: 14 }} />}
+                                                        label="Display"
+                                                        size="small"
+                                                        color="secondary"
+                                                        sx={{ height: 20 }}
+                                                    />
+                                                )}
+                                            </Box>
+
+                                            {/* Delete Button */}
+                                            <IconButton
+                                                size="small"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRemove(resource.resourceId);
+                                                }}
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: 4,
+                                                    right: 4,
+                                                    bgcolor: 'background.paper',
+                                                    '&:hover': { bgcolor: 'error.main', color: 'white' }
+                                                }}
+                                            >
+                                                <CloseIcon fontSize="small" />
+                                            </IconButton>
+                                        </Card>
+                                    </Grid>
+                                );
+                            })}
+                        </Grid>
+                    ) : (
+                        <Box sx={{
+                            textAlign: 'center',
+                            py: 4,
+                            border: '2px dashed',
+                            borderColor: 'divider',
+                            borderRadius: 1
+                        }}>
+                            <Typography variant="body2" color="text.secondary">
+                                No images uploaded yet
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                Click &quote;Upload&quote; to add images
+                            </Typography>
+                        </Box>
+                    )}
                 </Box>
             )}
         </Box>

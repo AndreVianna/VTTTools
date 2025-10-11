@@ -5,7 +5,7 @@ import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 // Media API consuming existing Media microservice
 export const mediaApi = createApi({
   reducerPath: 'mediaApi',
-  baseQuery: createEnhancedBaseQuery('/api/media'),
+  baseQuery: createEnhancedBaseQuery('https://localhost:7174/api'),  // Media service direct URL
   tagTypes: ['MediaResource'],
   endpoints: (builder) => ({
     // Get all media resources
@@ -29,26 +29,29 @@ export const mediaApi = createApi({
       providesTags: (result, error, id) => [{ type: 'MediaResource', id }],
     }),
 
-    // Upload file using existing UploadRequest from Domain.Media.ApiContracts
-    uploadFile: builder.mutation<{ uploadUrl: string; resourceId?: string }, {
+    // Upload file to /api/resources endpoint (matches backend ResourcesHandlers.UploadFileHandler)
+    uploadFile: builder.mutation<{ id: string }, {
       file: File;
-      metadata?: Partial<UploadRequest>;
+      type?: string;
+      resource?: string;
     }>({
-      query: ({ file, metadata = {} }) => {
+      query: ({ file, type = 'asset', resource = 'image' }) => {
         const formData = new FormData();
+
+        // Backend generates GUID v7 - don't send ID from frontend
+        formData.append('type', type);
+        formData.append('resource', resource);
         formData.append('file', file);
 
-        // Add metadata from UploadRequest contract
-        if (metadata.fileName) formData.append('fileName', metadata.fileName);
-        if (metadata.contentType) formData.append('contentType', metadata.contentType);
-        if (metadata.fileSize !== undefined) formData.append('fileSize', metadata.fileSize.toString());
-        if (metadata.tags) formData.append('tags', JSON.stringify(metadata.tags));
-
         return {
-          url: '/upload',
+          url: '/resources',  // Changed from '/upload' to match backend mapping
           method: 'POST',
-          body: formData,
+          body: formData
         };
+      },
+      transformResponse: (response, meta, arg) => {
+        // Extract ID from response or use the one we sent
+        return { id: (response as any).id || crypto.randomUUID() };
       },
       invalidatesTags: ['MediaResource'],
     }),

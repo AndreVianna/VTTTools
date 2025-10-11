@@ -6,7 +6,7 @@ public class AssetServiceTests {
     private readonly IAssetStorage _assetStorage;
     private readonly IMediaStorage _mediaStorage;
     private readonly AssetService _service;
-    private readonly Guid _userId = Guid.NewGuid();
+    private readonly Guid _userId = Guid.CreateVersion7();
     private readonly CancellationToken _ct;
 
     public AssetServiceTests() {
@@ -24,8 +24,8 @@ public class AssetServiceTests {
     public async Task GetAssetsAsync_CallsStorage() {
         // Arrange
         var assets = new Asset[] {
-            new CreatureAsset { Id = Guid.NewGuid(), Name = "Test Asset 1" },
-            new CreatureAsset { Id = Guid.NewGuid(), Name = "Test Asset 2" },
+            new CreatureAsset { Id = Guid.CreateVersion7(), Name = "Test Asset 1" },
+            new CreatureAsset { Id = Guid.CreateVersion7(), Name = "Test Asset 2" },
                                  };
         _assetStorage.GetAllAsync(Arg.Any<CancellationToken>()).Returns(assets);
 
@@ -40,7 +40,7 @@ public class AssetServiceTests {
     [Fact]
     public async Task GetAssetAsync_CallsStorage() {
         // Arrange
-        var assetId = Guid.NewGuid();
+        var assetId = Guid.CreateVersion7();
         var asset = new CreatureAsset {
             Id = assetId,
             Name = "Test Asset",
@@ -60,7 +60,7 @@ public class AssetServiceTests {
     [Fact]
     public async Task CreateAssetAsync_CreatesNewAsset() {
         // Arrange
-        var resourceId = Guid.NewGuid();
+        var resourceId = Guid.CreateVersion7();
         var data = new CreateAssetData {
             Name = "New Asset",
             Description = "New Description",
@@ -68,8 +68,7 @@ public class AssetServiceTests {
             Resources = [
                 new AssetResource {
                     ResourceId = resourceId,
-                    Role = ResourceRole.Token,
-                    IsDefault = true
+                    Role = ResourceRole.Token
                 }
             ],
             CreatureProps = new CreatureProperties {
@@ -93,7 +92,7 @@ public class AssetServiceTests {
     [Fact]
     public async Task UpdateAssetAsync_WithOwner_UpdatesAsset() {
         // Arrange
-        var assetId = Guid.NewGuid();
+        var assetId = Guid.CreateVersion7();
         var asset = new CreatureAsset {
             Id = assetId,
             Name = "Old Name",
@@ -102,15 +101,14 @@ public class AssetServiceTests {
             Resources = [],
         };
 
-        var resourceId = Guid.NewGuid();
+        var resourceId = Guid.CreateVersion7();
         var data = new UpdateAssetData {
             Name = "Updated Name",
             Description = "Updated Description",
             Resources = Optional<AssetResource[]>.Some([
                 new AssetResource {
                     ResourceId = resourceId,
-                    Role = ResourceRole.Portrait,
-                    IsDefault = true
+                    Role = ResourceRole.Display
                 }
             ]),
             IsPublished = true,
@@ -135,8 +133,8 @@ public class AssetServiceTests {
     [Fact]
     public async Task UpdateAssetAsync_WithNonOwner_ReturnsNotAllowed() {
         // Arrange
-        var assetId = Guid.NewGuid();
-        var nonOwnerId = Guid.NewGuid();
+        var assetId = Guid.CreateVersion7();
+        var nonOwnerId = Guid.CreateVersion7();
         var asset = new ObjectAsset {
             Id = assetId,
             Name = "Asset",
@@ -161,7 +159,7 @@ public class AssetServiceTests {
     [Fact]
     public async Task UpdateAssetAsync_WithPartialUpdate_OnlyUpdatesProvidedFields() {
         // Arrange
-        var assetId = Guid.NewGuid();
+        var assetId = Guid.CreateVersion7();
         var asset = new CreatureAsset {
             Id = assetId,
             Name = "Original Name",
@@ -191,7 +189,7 @@ public class AssetServiceTests {
     [Fact]
     public async Task DeleteAssetAsync_WithOwner_DeletesAsset() {
         // Arrange
-        var assetId = Guid.NewGuid();
+        var assetId = Guid.CreateVersion7();
         var asset = new ObjectAsset {
             Id = assetId,
             Name = "Asset",
@@ -212,8 +210,8 @@ public class AssetServiceTests {
     [Fact]
     public async Task DeleteAssetAsync_WithNonOwner_ReturnsFalse() {
         // Arrange
-        var assetId = Guid.NewGuid();
-        var nonOwnerId = Guid.NewGuid();
+        var assetId = Guid.CreateVersion7();
+        var nonOwnerId = Guid.CreateVersion7();
         var asset = new ObjectAsset {
             Id = assetId,
             Name = "Asset",
@@ -233,7 +231,7 @@ public class AssetServiceTests {
     [Fact]
     public async Task DeleteAssetAsync_WithNonExistentAsset_ReturnsFalse() {
         // Arrange
-        var assetId = Guid.NewGuid();
+        var assetId = Guid.CreateVersion7();
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns((Asset?)null);
 
         // Act
@@ -247,7 +245,7 @@ public class AssetServiceTests {
     [Fact]
     public async Task UpdateAssetAsync_WithNonExistentAsset_ReturnsNotFound() {
         // Arrange
-        var assetId = Guid.NewGuid();
+        var assetId = Guid.CreateVersion7();
         var data = new UpdateAssetData {
             Name = "Updated Name",
         };

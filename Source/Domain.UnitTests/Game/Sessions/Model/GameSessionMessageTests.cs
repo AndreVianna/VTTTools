@@ -18,8 +18,8 @@ public class GameSessionMessageTests {
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
         var sentAt = DateTime.UtcNow.AddMinutes(-5);
-        var sentBy = Guid.NewGuid();
-        var sentTo = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        var sentBy = Guid.CreateVersion7();
+        var sentTo = new[] { Guid.CreateVersion7(), Guid.CreateVersion7() };
         const string content = "Hello, this is a test message!";
         const MessageType type = MessageType.Text;
 

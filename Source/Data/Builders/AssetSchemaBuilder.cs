@@ -26,7 +26,6 @@ internal static class AssetSchemaBuilder {
                 resources.ToJson("Resources");
                 resources.Property(r => r.ResourceId).IsRequired();
                 resources.Property(r => r.Role).IsRequired().HasConversion<int>();
-                resources.Property(r => r.IsDefault).IsRequired();
                 resources.Ignore(r => r.Resource);  // Ignore navigation - loaded separately
             });
 

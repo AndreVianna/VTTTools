@@ -27,7 +27,7 @@ public class UserTests {
     [Fact]
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
         const string userName = "test_user";
         const string email = "test@example.com";
 

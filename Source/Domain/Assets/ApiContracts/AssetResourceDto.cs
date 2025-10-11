@@ -10,12 +10,7 @@ public record AssetResourceDto {
     public Guid ResourceId { get; init; }
 
     /// <summary>
-    /// Role(s) this resource plays (Token, Portrait, or both)
+    /// Role(s) this resource plays (Token or Display)
     /// </summary>
     public ResourceRole Role { get; init; }
-
-    /// <summary>
-    /// Whether this is the default resource for its role(s)
-    /// </summary>
-    public bool IsDefault { get; init; }
 }

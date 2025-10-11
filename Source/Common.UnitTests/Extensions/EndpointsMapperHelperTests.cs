@@ -4,7 +4,7 @@ public class ClaimsPrincipalExtensionsTests {
     [Fact]
     public void GetUserId_WithValidId_ReturnsGuid() {
         // Create claims principal with NameIdentifier claim
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         var claim = new Claim(ClaimTypes.NameIdentifier, userId.ToString());
         var claims = new List<Claim> { claim };
         var identity = new ClaimsIdentity(claims, "TestAuth");

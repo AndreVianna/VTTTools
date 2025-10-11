@@ -41,13 +41,13 @@ public class AssetTests {
     [Fact]
     public void ObjectAsset_WithValues_InitializesCorrectly() {
         // Arrange
-        var id = Guid.NewGuid();
-        var ownerId = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
+        var ownerId = Guid.CreateVersion7();
         const string name = "Wooden Table";
         const string description = "A sturdy oak table";
         var size = new Size(100, 200);
-        var tokenId = Guid.NewGuid();
-        var portraitId = Guid.NewGuid();
+        var tokenId = Guid.CreateVersion7();
+        var portraitId = Guid.CreateVersion7();
         var token = new Resource {
             Id = tokenId,
             Type = ResourceType.Image,
@@ -79,14 +79,12 @@ public class AssetTests {
                 new AssetResource {
                     ResourceId = tokenId,
                     Resource = token,
-                    Role = ResourceRole.Token,
-                    IsDefault = true
+                    Role = ResourceRole.Token
                 },
                 new AssetResource {
                     ResourceId = portraitId,
                     Resource = portrait,
-                    Role = ResourceRole.Portrait,
-                    IsDefault = true
+                    Role = ResourceRole.Display
                 }
             ],
             Properties = new ObjectProperties {
@@ -106,11 +104,9 @@ public class AssetTests {
         asset.Resources.First().ResourceId.Should().Be(tokenId);
         asset.Resources.First().Resource.Should().BeEquivalentTo(token);
         asset.Resources.First().Role.Should().HaveFlag(ResourceRole.Token);
-        asset.Resources.First().IsDefault.Should().BeTrue();
         asset.Resources.Last().ResourceId.Should().Be(portraitId);
         asset.Resources.Last().Resource.Should().BeEquivalentTo(portrait);
-        asset.Resources.Last().Role.Should().HaveFlag(ResourceRole.Portrait);
-        asset.Resources.Last().IsDefault.Should().BeTrue();
+        asset.Resources.Last().Role.Should().HaveFlag(ResourceRole.Display);
         asset.Properties.Size.Width.Should().Be(2);
         asset.Properties.Size.Height.Should().Be(1);
         asset.Properties.Size.IsSquare.Should().BeFalse();

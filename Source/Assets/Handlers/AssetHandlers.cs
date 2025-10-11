@@ -61,8 +61,7 @@ internal static class AssetHandlers {
             Description = request.Description,
             Resources = [..request.Resources.Select(r => new AssetResource {
                 ResourceId = r.ResourceId,
-                Role = r.Role,
-                IsDefault = r.IsDefault
+                Role = r.Role
             })],
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,
@@ -84,8 +83,7 @@ internal static class AssetHandlers {
             Description = request.Description,
             Resources = request.Resources.As<AssetResource[]>(list => [..list.Select(r => new AssetResource {
                 ResourceId = r.ResourceId,
-                Role = r.Role,
-                IsDefault = r.IsDefault
+                Role = r.Role
             })]),
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,

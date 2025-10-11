@@ -6,10 +6,10 @@ public class UpdateGameSessionDataTests {
         // Arrange
         var original = new UpdateGameSessionData {
             Title = "Title",
-            SceneId = Guid.NewGuid(),
+            SceneId = Guid.CreateVersion7(),
         };
         const string name = "Other Title";
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers

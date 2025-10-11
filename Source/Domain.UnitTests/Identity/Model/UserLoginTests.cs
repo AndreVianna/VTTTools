@@ -19,7 +19,7 @@ public class UserLoginTests {
         const string loginProvider = "GoogleProvider";
         const string providerKey = "google-key-123";
         const string providerDisplayName = "Google";
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
 
         // Act
         var userLogin = new UserLogin {

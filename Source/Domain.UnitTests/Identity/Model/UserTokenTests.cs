@@ -16,7 +16,7 @@ public class UserTokenTests {
     [Fact]
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         const string loginProvider = "GoogleProvider";
         const string name = "RefreshToken";
         const string value = "token-value-123";

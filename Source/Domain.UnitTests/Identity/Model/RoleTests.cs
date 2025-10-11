@@ -16,10 +16,10 @@ public class RoleTests {
     [Fact]
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
         const string name = "Admin";
         const string normalizedName = "ADMIN";
-        var concurrencyStamp = Guid.NewGuid().ToString();
+        var concurrencyStamp = Guid.CreateVersion7().ToString();
 
         // Act
         var role = new Role {

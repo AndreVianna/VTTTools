@@ -368,7 +368,7 @@ public class AuthServiceTests {
     [Fact]
     public async Task GetCurrentUserAsync_ValidUserId_ReturnsUserInfo() {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         var user = CreateTestUser("current@example.com", "Current User");
         user.Id = userId;
         var roles = new List<string> { "User" };
@@ -394,7 +394,7 @@ public class AuthServiceTests {
     [Fact]
     public async Task GetCurrentUserAsync_NonExistentUser_ReturnsFailureResponse() {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
 
         // Act
@@ -411,7 +411,7 @@ public class AuthServiceTests {
     [Fact]
     public async Task GetCurrentUserAsync_AdministratorUser_SetsIsAdministratorTrue() {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         var user = CreateTestUser("admin@example.com", "Admin User");
         user.Id = userId;
         var roles = new List<string> { "Administrator" };
@@ -431,7 +431,7 @@ public class AuthServiceTests {
     [Fact]
     public async Task GetCurrentUserAsync_ExceptionThrown_ReturnsErrorResponse() {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         _mockUserManager.FindByIdAsync(userId.ToString()).ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
@@ -449,7 +449,7 @@ public class AuthServiceTests {
 
     private static User CreateTestUser(string email, string name)
         => new() {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             UserName = email,
             Email = email,
             Name = name,

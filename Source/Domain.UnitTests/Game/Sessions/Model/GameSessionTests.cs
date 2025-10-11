@@ -23,17 +23,17 @@ public class GameSessionTests {
     [Fact]
     public void Constructor_WhenCalledWithValues_InitializesWithDefaultValues() {
         // Arrange & Act
-        var id = Guid.NewGuid();
-        var ownerId = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
+        var ownerId = Guid.CreateVersion7();
         const string title = "Some Title";
         const GameSessionStatus status = GameSessionStatus.Scheduled;
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         var player = new Participant {
-            UserId = Guid.NewGuid(),
+            UserId = Guid.CreateVersion7(),
             Type = PlayerType.Player,
         };
         var message = new GameSessionMessage {
-            SentBy = Guid.NewGuid(),
+            SentBy = Guid.CreateVersion7(),
             Content = "Test message",
             SentAt = DateTime.UtcNow,
         };

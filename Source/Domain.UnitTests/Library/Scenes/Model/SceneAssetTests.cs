@@ -31,7 +31,7 @@ public class SceneAssetTests {
             Background = "transparent"
         };
         const bool isLocked = true;
-        var controlledBy = Guid.NewGuid();
+        var controlledBy = Guid.CreateVersion7();
 
         // Act
         var sceneAsset = new SceneAsset {

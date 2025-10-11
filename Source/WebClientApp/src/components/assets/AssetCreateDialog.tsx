@@ -186,6 +186,7 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                     <AssetResourceManager
                         resources={resources}
                         onResourcesChange={setResources}
+                        size={selectedKind === AssetKind.Object ? objectSize : creatureSize}
                     />
                 </Box>
 

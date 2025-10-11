@@ -33,8 +33,8 @@ internal static class SceneSchemaBuilder {
                 });
                 gridBuilder.ComplexProperty(s => s.CellSize, cellSizeBuilder => {
                     cellSizeBuilder.IsRequired();
-                    cellSizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(50.0);
-                    cellSizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(50.0);
+                    cellSizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(64.0);
+                    cellSizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(64.0);
                 });
             });
         });

@@ -104,7 +104,7 @@
   3. Validate Type is valid AssetType enum
   4. If Display.ResourceId provided, validate Resource exists and Type=Image
   5. Create Asset entity with provided properties
-  6. Set Id (new Guid), IsPublished=false, IsPublic=false
+  6. Set Id (new GuidV7), IsPublished=false, IsPublic=false
   7. Persist Asset via IAssetStorage.CreateAsync()
   8. Return persisted Asset with generated Id
   9. (Future) Publish AssetCreated domain event

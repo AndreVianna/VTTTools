@@ -3,35 +3,21 @@
 import { Asset, AssetResource, ResourceRole } from '@/types/domain';
 
 /**
- * Get the default resource for a specific role
+ * Get the first token resource (for map display)
  * @param asset - The asset containing resources
- * @param role - The role to search for (Token or Portrait)
- * @returns The default resource for the role, or the first matching resource, or undefined
+ * @returns The first resource with Token role, or undefined
  */
-export function getDefaultResourceForRole(asset: Asset, role: ResourceRole): AssetResource | undefined {
-    // Find default resource with this role
-    const defaultResource = asset.resources.find(
-        r => r.isDefault && (r.role & role) === role
-    );
-
-    if (defaultResource) return defaultResource;
-
-    // Fallback: Find any resource with this role
-    return asset.resources.find(r => (r.role & role) === role);
+export function getFirstTokenResource(asset: Asset): AssetResource | undefined {
+    return asset.resources?.find(r => (r.role & ResourceRole.Token) === ResourceRole.Token);
 }
 
 /**
- * Get the default token resource (for map display)
+ * Get the first display resource (for character sheets/dialogs)
+ * @param asset - The asset containing resources
+ * @returns The first resource with Display role, or undefined
  */
-export function getDefaultTokenResource(asset: Asset): AssetResource | undefined {
-    return getDefaultResourceForRole(asset, ResourceRole.Token);
-}
-
-/**
- * Get the default portrait resource (for character sheets/dialogs)
- */
-export function getDefaultPortraitResource(asset: Asset): AssetResource | undefined {
-    return getDefaultResourceForRole(asset, ResourceRole.Portrait);
+export function getFirstDisplayResource(asset: Asset): AssetResource | undefined {
+    return asset.resources?.find(r => (r.role & ResourceRole.Display) === ResourceRole.Display);
 }
 
 /**

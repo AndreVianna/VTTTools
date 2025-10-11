@@ -7,7 +7,7 @@ public class SceneHandlersTests {
     private readonly ISceneService _sceneService = Substitute.For<ISceneService>();
     private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
     private readonly ClaimsPrincipal _user = Substitute.For<ClaimsPrincipal>();
-    private static readonly Guid _userId = Guid.NewGuid();
+    private static readonly Guid _userId = Guid.CreateVersion7();
 
     public SceneHandlersTests() {
         // Setup user claims
@@ -22,8 +22,8 @@ public class SceneHandlersTests {
     public async Task GetScenesHandler_ReturnsOkResult() {
         // Arrange
         var scenes = new[] {
-            new Scene { Id = Guid.NewGuid(), Name = "Scene 1" },
-            new Scene { Id = Guid.NewGuid(), Name = "Scene 2" },
+            new Scene { Id = Guid.CreateVersion7(), Name = "Scene 1" },
+            new Scene { Id = Guid.CreateVersion7(), Name = "Scene 2" },
         };
 
         _sceneService.GetScenesAsync(Arg.Any<CancellationToken>())
@@ -40,7 +40,7 @@ public class SceneHandlersTests {
     [Fact]
     public async Task GetSceneByIdHandler_WithExistingId_ReturnsOkResult() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         var scene = new Scene { Id = sceneId, Name = "Test Scene" };
 
         _sceneService.GetSceneByIdAsync(sceneId, Arg.Any<CancellationToken>())
@@ -57,7 +57,7 @@ public class SceneHandlersTests {
     [Fact]
     public async Task GetSceneByIdHandler_WithNonExistingId_ReturnsNotFound() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
 
         _sceneService.GetSceneByIdAsync(sceneId, Arg.Any<CancellationToken>())
             .Returns((Scene?)null);
@@ -72,7 +72,7 @@ public class SceneHandlersTests {
     [Fact]
     public async Task UpdateSceneHandler_WithValidRequest_ReturnsOkResult() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         var request = new UpdateSceneRequest { Name = "Updated Scene" };
         var scene = new Scene { Id = sceneId, Name = "Updated Scene" };
 
@@ -90,7 +90,7 @@ public class SceneHandlersTests {
     [Fact]
     public async Task UpdateSceneHandler_WithNonExistingId_ReturnsNotFound() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         var request = new UpdateSceneRequest { Name = "Updated Scene" };
 
         _sceneService.UpdateSceneAsync(_userId, sceneId, Arg.Any<UpdateSceneData>(), Arg.Any<CancellationToken>())
@@ -106,7 +106,7 @@ public class SceneHandlersTests {
     [Fact]
     public async Task GetAssetsHandler_ReturnsOkResult() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         var assets = new[] {
             new SceneAsset { Index = 1, Name = "Asset 1" },
             new SceneAsset { Index = 2, Name = "Asset 2" },
@@ -126,8 +126,8 @@ public class SceneHandlersTests {
     [Fact]
     public async Task UpdateAssetHandler_WithValidRequest_ReturnsCreatedResult() {
         // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
         const int number = 1;
         var request = new UpdateSceneAssetRequest {
             Position = new Position(20, 30),
@@ -155,7 +155,7 @@ public class SceneHandlersTests {
     [Fact]
     public async Task UpdateAssetHandler_WithInvalidAsset_ReturnsBadRequest() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         const int number = 1;
         var request = new UpdateSceneAssetRequest {
             Position = new Position(20, 30),
@@ -184,7 +184,7 @@ public class SceneHandlersTests {
     [Fact]
     public async Task RemoveAssetHandler_WithValidRequest_ReturnsCreatedResult() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         const int number = 1;
 
         _sceneService.RemoveAssetAsync(_userId, sceneId, number, Arg.Any<CancellationToken>())
@@ -200,7 +200,7 @@ public class SceneHandlersTests {
     [Fact]
     public async Task RemoveAssetHandler_WithInvalidAsset_ReturnsBadRequest() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         const int number = 1;
 
         _sceneService.RemoveAssetAsync(_userId, sceneId, number, Arg.Any<CancellationToken>())

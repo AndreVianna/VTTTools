@@ -2,6 +2,8 @@ namespace VttTools.Assets.Model;
 
 /// <summary>
 /// Associates a Resource with an Asset and defines its role(s)
+/// Resources are selected by role flag (Token for scene placement, Display for UI)
+/// When multiple resources have the same role, first in collection is used
 /// </summary>
 public record AssetResource {
     /// <summary>
@@ -15,13 +17,7 @@ public record AssetResource {
     public Resource? Resource { get; init; }
 
     /// <summary>
-    /// Role(s) this resource plays (Token, Portrait, or both)
+    /// Role(s) this resource plays (Token for scenes, Display for UI, or both)
     /// </summary>
     public ResourceRole Role { get; init; }
-
-    /// <summary>
-    /// Whether this is the default resource for its role(s)
-    /// Each role should have exactly one default resource
-    /// </summary>
-    public bool IsDefault { get; init; }
 }

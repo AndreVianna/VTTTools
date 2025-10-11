@@ -36,7 +36,7 @@ import {
 } from '@mui/icons-material';
 import { Asset, AssetKind, CreatureCategory } from '@/types/domain';
 import { useGetAssetsQuery } from '@/services/assetsApi';
-import { getDefaultTokenResource, getResourceUrl } from '@/utils/assetHelpers';
+import { getFirstTokenResource, getResourceUrl } from '@/utils/assetHelpers';
 
 export interface AssetPickerProps {
     open: boolean;
@@ -229,7 +229,7 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
                                                 component="img"
                                                 height="120"
                                                 image={(() => {
-                                                    const tokenResource = getDefaultTokenResource(asset);
+                                                    const tokenResource = getFirstTokenResource(asset);
                                                     return tokenResource?.resourceId ? getResourceUrl(tokenResource.resourceId) : 'https://via.placeholder.com/100/CCCCCC/FFFFFF?text=No+Image';
                                                 })()}
                                                 alt={asset.name}

@@ -17,7 +17,7 @@ public class RoleClaimTests {
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
         const int id = 123;
-        var roleId = Guid.NewGuid();
+        var roleId = Guid.CreateVersion7();
         const string claimType = "ClaimType1";
         const string claimValue = "ClaimValue1";
 

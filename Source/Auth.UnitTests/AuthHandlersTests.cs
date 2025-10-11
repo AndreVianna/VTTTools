@@ -28,7 +28,7 @@ public class AuthHandlersTests {
             Success = true,
             Message = "Login successful",
             User = new UserInfo {
-                Id = Guid.NewGuid(),
+                Id = Guid.CreateVersion7(),
                 Email = "test@example.com",
                 Name = "Test User",
                 DisplayName = "TestUser",
@@ -130,7 +130,7 @@ public class AuthHandlersTests {
             Success = true,
             Message = "Registration successful",
             User = new UserInfo {
-                Id = Guid.NewGuid(),
+                Id = Guid.CreateVersion7(),
                 Email = "newuser@example.com",
                 Name = "New User",
                 DisplayName = "NewUser",
@@ -278,7 +278,7 @@ public class AuthHandlersTests {
     [Fact]
     public async Task GetCurrentUserHandler_ValidUser_ReturnsOkResult() {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         var claims = new List<Claim> {
             new(ClaimTypes.NameIdentifier, userId.ToString())
         };
@@ -350,7 +350,7 @@ public class AuthHandlersTests {
     [Fact]
     public async Task GetCurrentUserHandler_UserNotFound_ReturnsBadRequestResult() {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         var claims = new List<Claim> {
             new(ClaimTypes.NameIdentifier, userId.ToString())
         };
@@ -381,7 +381,7 @@ public class AuthHandlersTests {
     [Fact]
     public async Task GetCurrentUserHandler_AdministratorUser_ReturnsUserWithAdminFlag() {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         var claims = new List<Claim> {
             new(ClaimTypes.NameIdentifier, userId.ToString())
         };

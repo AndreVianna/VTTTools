@@ -5,7 +5,7 @@ public class AdventureServiceTests {
     private readonly ISceneStorage _sceneStorage;
     private readonly IMediaStorage _mediaStorage;
     private readonly AdventureService _service;
-    private readonly Guid _userId = Guid.NewGuid();
+    private readonly Guid _userId = Guid.CreateVersion7();
     private readonly CancellationToken _ct;
 
     public AdventureServiceTests() {
@@ -24,8 +24,8 @@ public class AdventureServiceTests {
     public async Task GetAdventuresAsync_CallsStorage() {
         // Arrange
         var adventures = new Adventure[] {
-            new() { Id = Guid.NewGuid(), Name = "Test Adventure 1" },
-            new() { Id = Guid.NewGuid(), Name = "Test Adventure 2" },
+            new() { Id = Guid.CreateVersion7(), Name = "Test Adventure 1" },
+            new() { Id = Guid.CreateVersion7(), Name = "Test Adventure 2" },
                                          };
         _adventureStorage.GetAllAsync(Arg.Any<CancellationToken>()).Returns(adventures);
 
@@ -40,7 +40,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task GetAdventureByIdAsync_CallsStorage() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         var adventure = new Adventure { Id = adventureId, Name = "Test Adventure" };
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
 
@@ -59,7 +59,7 @@ public class AdventureServiceTests {
             Name = "New Adventure",
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            CampaignId = Guid.NewGuid(),
+            CampaignId = Guid.CreateVersion7(),
         };
 
         // Act
@@ -87,7 +87,7 @@ public class AdventureServiceTests {
             Name = "",
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            CampaignId = Guid.NewGuid(),
+            CampaignId = Guid.CreateVersion7(),
         };
 
         // Act
@@ -105,7 +105,7 @@ public class AdventureServiceTests {
             Name = "   ",
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            CampaignId = Guid.NewGuid(),
+            CampaignId = Guid.CreateVersion7(),
         };
 
         // Act
@@ -123,7 +123,7 @@ public class AdventureServiceTests {
             Name = null!,
             Description = "Adventure description",
             Type = AdventureType.Survival,
-            CampaignId = Guid.NewGuid(),
+            CampaignId = Guid.CreateVersion7(),
         };
 
         // Act
@@ -137,14 +137,14 @@ public class AdventureServiceTests {
     [Fact]
     public async Task UpdateAdventureAsync_WithOwner_UpdatesAdventure() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Old Name",
             OwnerId = _userId,
             Description = "Old description",
             Background = new Resource {
-                Id = Guid.NewGuid(),
+                Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "test/background",
                 Metadata = new ResourceMetadata {
@@ -154,7 +154,7 @@ public class AdventureServiceTests {
             },
         };
         var request = new UpdatedAdventureData {
-            CampaignId = Guid.NewGuid(),
+            CampaignId = Guid.CreateVersion7(),
             Name = "Updated Name",
             Description = "Adventure description",
             Type = AdventureType.Survival,
@@ -185,15 +185,15 @@ public class AdventureServiceTests {
     [Fact]
     public async Task UpdateAdventureAsync_WithOnlyNameUpdate_OnlyUpdatesName() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Old Name",
             OwnerId = _userId,
             Description = "Old description",
-            CampaignId = Guid.NewGuid(),
+            CampaignId = Guid.CreateVersion7(),
             Background = new() {
-                Id = Guid.NewGuid(),
+                Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "test/adventure-background.jpg",
                 Metadata = new ResourceMetadata {
@@ -231,8 +231,8 @@ public class AdventureServiceTests {
     [Fact]
     public async Task UpdateAdventureAsync_WithNonOwner_ReturnsNull() {
         // Arrange
-        var adventureId = Guid.NewGuid();
-        var nonOwnerId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
+        var nonOwnerId = Guid.CreateVersion7();
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
@@ -255,7 +255,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task UpdateAdventureAsync_WithNonExistentAdventure_ReturnsNull() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         var request = new UpdatedAdventureData {
             Name = "Updated Name",
         };
@@ -273,7 +273,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task DeleteAdventureAsync_WithOwner_DeletesAdventure() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
@@ -293,8 +293,8 @@ public class AdventureServiceTests {
     [Fact]
     public async Task DeleteAdventureAsync_WithNonOwner_ReturnsFalse() {
         // Arrange
-        var adventureId = Guid.NewGuid();
-        var nonOwnerId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
+        var nonOwnerId = Guid.CreateVersion7();
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
@@ -314,7 +314,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task DeleteAdventureAsync_WithNonExistentAdventure_ReturnsFalse() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
 
         // Act
@@ -328,7 +328,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CloneAdventureAsync_WithOwner_ClonesAdventureAndScenes() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
@@ -338,10 +338,10 @@ public class AdventureServiceTests {
             // NOTE: Service logic prevents cloning if both IsPublished=true AND IsPublic=true, even for owners
             IsPublished = false,
             IsPublic = false,
-            CampaignId = Guid.NewGuid(),
+            CampaignId = Guid.CreateVersion7(),
             // NOTE: Cloner requires Background to be non-null
             Background = new Resource {
-                Id = Guid.NewGuid(),
+                Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "adventures/background.jpg",
                 Metadata = new ResourceMetadata {
@@ -352,14 +352,14 @@ public class AdventureServiceTests {
         };
         var scenes = new[] {
             new Scene {
-                Id = Guid.NewGuid(),
+                Id = Guid.CreateVersion7(),
                 Name = "Scene 1",
                 Grid = new(),
                 Stage = new() {
                     ZoomLevel = 1,
                     Panning = new(10, 20),
                     Background = new() {
-                        Id = Guid.NewGuid(),
+                        Id = Guid.CreateVersion7(),
                         Type = ResourceType.Image,
                         Path = "path/to/image.png",
                         Metadata = new() { ImageSize = new(100, 200) },
@@ -397,8 +397,8 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CloneAdventureAsync_WithNonOwner_ReturnsNull() {
         // Arrange
-        var adventureId = Guid.NewGuid();
-        var nonOwnerId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
+        var nonOwnerId = Guid.CreateVersion7();
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
@@ -407,7 +407,7 @@ public class AdventureServiceTests {
             Type = AdventureType.Survival,
             IsPublished = true,
             IsPublic = true,
-            CampaignId = Guid.NewGuid(),
+            CampaignId = Guid.CreateVersion7(),
         };
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);
@@ -423,7 +423,7 @@ public class AdventureServiceTests {
     [Fact]
     public async Task CloneAdventureAsync_WithNonExistentAdventure_ReturnsNull() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
 
         // Act
@@ -437,10 +437,10 @@ public class AdventureServiceTests {
     [Fact]
     public async Task GetScenesAsync_CallsStorage() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         var scenes = new Scene[] {
-            new() { Id = Guid.NewGuid(), Name = "Test Scene 1" },
-            new() { Id = Guid.NewGuid(), Name = "Test Scene 2" },
+            new() { Id = Guid.CreateVersion7(), Name = "Test Scene 1" },
+            new() { Id = Guid.CreateVersion7(), Name = "Test Scene 2" },
                                      };
         _sceneStorage.GetByParentIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(scenes);
 
@@ -455,8 +455,8 @@ public class AdventureServiceTests {
     [Fact]
     public async Task AddSceneAsync_WithOwnerAndValidScene_ReturnsTrue() {
         // Arrange
-        var adventureId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
@@ -486,13 +486,13 @@ public class AdventureServiceTests {
     [Fact]
     public async Task AddSceneAsync_NotOwnedNonPublicScene_ReturnsFalse() {
         // Arrange
-        var adventureId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
-        var nonOwnerId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
+        var nonOwnerId = Guid.CreateVersion7();
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
-            OwnerId = Guid.NewGuid(),
+            OwnerId = Guid.CreateVersion7(),
             IsPublic = false,
             IsPublished = false,
         };
@@ -510,8 +510,8 @@ public class AdventureServiceTests {
     [Fact]
     public async Task AddSceneAsync_WithNonExistentAdventure_ReturnsFalse() {
         // Arrange
-        var adventureId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
 
@@ -526,8 +526,8 @@ public class AdventureServiceTests {
     [Fact]
     public async Task AddSceneAsync_WithNonExistentScene_ReturnsFalse() {
         // Arrange
-        var adventureId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
@@ -548,14 +548,14 @@ public class AdventureServiceTests {
     [Fact]
     public async Task RemoveSceneAsync_WithOwner_ReturnsTrue() {
         // Arrange
-        var adventureId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
             OwnerId = _userId,
             Scenes = [
-                new() { Id = Guid.NewGuid(), Name = "Scene 1" },
+                new() { Id = Guid.CreateVersion7(), Name = "Scene 1" },
                 new() { Id = sceneId, Name = "Scene 2" },
             ],
         };
@@ -574,9 +574,9 @@ public class AdventureServiceTests {
     [Fact]
     public async Task RemoveSceneAsync_WithNonOwner_ReturnsFalse() {
         // Arrange
-        var adventureId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
-        var nonOwnerId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
+        var nonOwnerId = Guid.CreateVersion7();
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",
@@ -599,8 +599,8 @@ public class AdventureServiceTests {
     [Fact]
     public async Task RemoveSceneAsync_WithNonExistentAdventure_ReturnsFalse() {
         // Arrange
-        var adventureId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns((Adventure?)null);
 
@@ -615,8 +615,8 @@ public class AdventureServiceTests {
     [Fact]
     public async Task RemoveSceneAsync_WithNonExistentScene_StillReturnsTrue() {
         // Arrange
-        var adventureId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
         var adventure = new Adventure {
             Id = adventureId,
             Name = "Adventure",

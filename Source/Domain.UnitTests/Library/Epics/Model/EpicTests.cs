@@ -21,12 +21,12 @@ public class EpicTests {
     [Fact]
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
         const string name = "Some Epic";
         const string description = "Some Description";
-        var ownerId = Guid.NewGuid();
+        var ownerId = Guid.CreateVersion7();
         var display = new Resource {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             Type = ResourceType.Image,
             Path = "assets/epic-background.png",
             Metadata = new ResourceMetadata {
@@ -36,7 +36,7 @@ public class EpicTests {
             Tags = ["epic", "background"],
         };
         var campaign = new Campaign {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
         };
 
         // Act

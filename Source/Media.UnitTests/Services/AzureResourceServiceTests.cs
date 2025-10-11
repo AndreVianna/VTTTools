@@ -28,7 +28,7 @@ public class AzureResourceServiceTests {
     [Fact]
     public async Task UploadImageAsync_UploadsFileAndReturnsUrl() {
         // Arrange
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
         const string fileName = "test-image.png";
         var file = new AddResourceData {
             Path = $"images/{id}/{fileName}",
@@ -58,7 +58,7 @@ public class AzureResourceServiceTests {
     [Fact]
     public async Task UploadImageAsync_CreatesContainerIfNotExists() {
         // Arrange
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
         const string fileName = "test-image.png";
         var file = new AddResourceData {
             Path = $"images/{id}/{fileName}",
@@ -89,7 +89,7 @@ public class AzureResourceServiceTests {
     [Fact]
     public async Task DeleteImageAsync_DeletesFileFromBlobStorage() {
         // Arrange
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
         var resource = new Resource {
             Id = id,
             Path = "test/path",
@@ -120,7 +120,7 @@ public class AzureResourceServiceTests {
     [Fact]
     public async Task DeleteImageAsync_WithInvalidId_DoesNothing() {
         // Arrange
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
 
         _mediaStorage.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns((Resource?)null);
 

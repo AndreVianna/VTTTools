@@ -31,8 +31,7 @@ internal static class Mapper {
                 Resources = [.. obj.Resources.Select(r => new DomainAssetResource {
                     ResourceId = r.ResourceId,
                     Resource = r.Resource?.ToModel(),
-                    Role = r.Role,
-                    IsDefault = r.IsDefault
+                    Role = r.Role
                 })],
                 Properties = new DomainObjectProperties {
                     Size = new NamedSize {
@@ -57,8 +56,7 @@ internal static class Mapper {
                 Resources = [.. creature.Resources.Select(r => new DomainAssetResource {
                     ResourceId = r.ResourceId,
                     Resource = r.Resource?.ToModel(),
-                    Role = r.Role,
-                    IsDefault = r.IsDefault
+                    Role = r.Role
                 })],
                 Properties = new DomainCreatureProperties {
                     Size = new NamedSize {
@@ -88,8 +86,7 @@ internal static class Mapper {
                 Description = obj.Description,
                 Resources = [.. obj.Resources.Select(r => new Entities.AssetResource {
                     ResourceId = r.ResourceId,
-                    Role = r.Role,
-                    IsDefault = r.IsDefault
+                    Role = r.Role
                     // Resource navigation will be loaded by EF Core
                 })],
                 IsPublic = obj.IsPublic,
@@ -112,8 +109,7 @@ internal static class Mapper {
                 Description = creature.Description,
                 Resources = [.. creature.Resources.Select(r => new Entities.AssetResource {
                     ResourceId = r.ResourceId,
-                    Role = r.Role,
-                    IsDefault = r.IsDefault
+                    Role = r.Role
                     // Resource navigation will be loaded by EF Core
                 })],
                 IsPublic = creature.IsPublic,
@@ -143,8 +139,7 @@ internal static class Mapper {
         foreach (var resource in model.Resources) {
             entity.Resources.Add(new Entities.AssetResource {
                 ResourceId = resource.ResourceId,
-                Role = resource.Role,
-                IsDefault = resource.IsDefault
+                Role = resource.Role
             });
         }
 

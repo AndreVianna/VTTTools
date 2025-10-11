@@ -8,7 +8,7 @@ public class SceneServiceTests {
     private readonly IAssetStorage _assetStorage;
     private readonly IMediaStorage _mediaStorage;
     private readonly SceneService _service;
-    private readonly Guid _userId = Guid.NewGuid();
+    private readonly Guid _userId = Guid.CreateVersion7();
     private readonly CancellationToken _ct;
 
     public SceneServiceTests() {
@@ -27,8 +27,8 @@ public class SceneServiceTests {
     public async Task GetScenesAsync_CallsStorage() {
         // Arrange
         var scenes = new Scene[] {
-            new() { Id = Guid.NewGuid(), Name = "Test Scene 1" },
-            new() { Id = Guid.NewGuid(), Name = "Test Scene 2" },
+            new() { Id = Guid.CreateVersion7(), Name = "Test Scene 1" },
+            new() { Id = Guid.CreateVersion7(), Name = "Test Scene 2" },
         };
         _sceneStorage.GetAllAsync(Arg.Any<CancellationToken>()).Returns(scenes);
 
@@ -43,7 +43,7 @@ public class SceneServiceTests {
     [Fact]
     public async Task GetSceneByIdAsync_CallsStorage() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         var scene = new Scene { Id = sceneId, Name = "Test Scene" };
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
 
@@ -58,7 +58,7 @@ public class SceneServiceTests {
     [Fact]
     public async Task GetSceneByIdAsync_WhenSceneNotFound_ReturnsNull() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns((Scene?)null);
 
         // Act
@@ -72,7 +72,7 @@ public class SceneServiceTests {
     [Fact]
     public async Task UpdateSceneAsync_WithOwner_UpdatesScene() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         var scene = new Scene {
             Id = sceneId,
             Name = "Old Name",
@@ -98,7 +98,7 @@ public class SceneServiceTests {
     [Fact]
     public async Task UpdateSceneAsync_WithPartialUpdate_OnlyUpdatesSpecifiedFields() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         var scene = new Scene {
             Id = sceneId,
             Name = "Old Name",
@@ -123,8 +123,8 @@ public class SceneServiceTests {
     [Fact]
     public async Task UpdateSceneAsync_WithNonOwner_ReturnsNull() {
         // Arrange
-        var sceneId = Guid.NewGuid();
-        var nonOwnerId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
+        var nonOwnerId = Guid.CreateVersion7();
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
@@ -148,7 +148,7 @@ public class SceneServiceTests {
     [Fact]
     public async Task UpdateSceneAsync_WithNonexistentScene_ReturnsNull() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         var data = new UpdateSceneData {
             Name = "Updated Name",
         };
@@ -166,7 +166,7 @@ public class SceneServiceTests {
     [Fact]
     public async Task GetAssetsAsync_CallsStorage() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
@@ -190,7 +190,7 @@ public class SceneServiceTests {
     [Fact]
     public async Task GetAssetsAsync_WithNonexistentScene_ReturnsEmptyArray() {
         // Arrange
-        var sceneId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>())
                        .Returns((Scene?)null);
 
@@ -205,8 +205,8 @@ public class SceneServiceTests {
     [Fact]
     public async Task AddAssetAsync_WithOwner_AddsAssetAndReturnsTrue() {
         // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
@@ -237,7 +237,7 @@ public class SceneServiceTests {
             Rotation = 45,
         };
 
-        var resourceId = Guid.NewGuid();
+        var resourceId = Guid.CreateVersion7();
         var asset = new ObjectAsset {
             Id = assetId,
             OwnerId = _userId,
@@ -251,8 +251,7 @@ public class SceneServiceTests {
                         Path = "test/asset-display.png",
                         Metadata = new ResourceMetadata { ContentType = "image/png" },
                     },
-                    Role = ResourceRole.Token,
-                    IsDefault = true
+                    Role = ResourceRole.Token
                 }
             ],
         };
@@ -283,9 +282,9 @@ public class SceneServiceTests {
     [Fact]
     public async Task AddAssetAsync_WithNonOwner_ReturnsFalse() {
         // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
-        var nonOwnerId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
+        var nonOwnerId = Guid.CreateVersion7();
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
@@ -319,8 +318,8 @@ public class SceneServiceTests {
     [Fact]
     public async Task AddAssetAsync_WithNonexistentScene_ReturnsFalse() {
         // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
         var data = new AddSceneAssetData {
             Name = "New Asset",
             Position = new Position(20, 30),
@@ -348,8 +347,8 @@ public class SceneServiceTests {
     [Fact]
     public async Task UpdateAssetAsync_WithOwner_UpdatesAssetAndReturnsTrue() {
         // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
         const int number = 1;
         var scene = new Scene {
             Id = sceneId,
@@ -392,10 +391,10 @@ public class SceneServiceTests {
     [Fact]
     public async Task UpdateAssetAsync_WithNonOwner_ReturnsFalse() {
         // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
         const int number = 1;
-        var nonOwnerId = Guid.NewGuid();
+        var nonOwnerId = Guid.CreateVersion7();
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
@@ -436,8 +435,8 @@ public class SceneServiceTests {
     [Fact]
     public async Task UpdateAssetAsync_WithNonexistentScene_ReturnsFalse() {
         // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
         const int number = 1;
         var data = new UpdateSceneAssetData {
             Position = new Position(20, 30),
@@ -465,10 +464,10 @@ public class SceneServiceTests {
     [Fact]
     public async Task UpdateAssetAsync_WithNonexistentAsset_ReturnsFalse() {
         // Arrange
-        var sceneId = Guid.NewGuid();
-        var assetId = Guid.NewGuid();
+        var sceneId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
         const int number = 1;
-        var nonexistentAssetId = Guid.NewGuid();
+        var nonexistentAssetId = Guid.CreateVersion7();
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",

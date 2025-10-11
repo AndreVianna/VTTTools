@@ -19,14 +19,14 @@ public class SceneTests {
     [Fact]
     public void Properties_WhenSet_RetainValues() {
         // Arrange
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
         const string name = "Some Scene";
         const string description = "Some Description";
         var stage = new Stage {
             ZoomLevel = 1.5f,
             Panning = new Point(100, 200),
             Background = new Resource {
-                Id = Guid.NewGuid(),
+                Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
                 Path = "path/to/image.png",
                 Metadata = new() {

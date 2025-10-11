@@ -8,15 +8,15 @@ public class CreateAdventureRequestTests {
             Name = "Title",
             Description = "Description",
             Type = AdventureType.OpenWorld,
-            CampaignId = Guid.NewGuid(),
-            BackgroundId = Guid.NewGuid(),
+            CampaignId = Guid.CreateVersion7(),
+            BackgroundId = Guid.CreateVersion7(),
         };
 
         const string name = "Other Title";
         const string description = "Other Description";
         const AdventureType type = AdventureType.DungeonCrawl;
-        var campaignId = Guid.NewGuid();
-        var backgroundId = Guid.NewGuid();
+        var campaignId = Guid.CreateVersion7();
+        var backgroundId = Guid.CreateVersion7();
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers

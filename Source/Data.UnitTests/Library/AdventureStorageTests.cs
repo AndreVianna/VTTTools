@@ -7,7 +7,7 @@ public class AdventureStorageTests
     private readonly CancellationToken _ct;
 
     public AdventureStorageTests() {
-        _context = DbContextHelper.CreateInMemoryContext(Guid.NewGuid());
+        _context = DbContextHelper.CreateInMemoryContext(Guid.CreateVersion7());
         _storage = new(_context);
 #if XUNITV3
         _ct = TestContext.Current.CancellationToken;
@@ -48,7 +48,7 @@ public class AdventureStorageTests
     [Fact]
     public async Task GetByIdAsync_WithNonExistingId_ReturnsNull() {
         // Arrange
-        var nonExistingId = Guid.NewGuid();
+        var nonExistingId = Guid.CreateVersion7();
 
         // NOTE: Testing database state directly due to EF In-Memory limitations with complex projections
         var entity = await _context.Adventures.FirstOrDefaultAsync(a => a.Id == nonExistingId, _ct);

@@ -32,8 +32,7 @@ public static class Cloner {
         => new() {
             ResourceId = original.ResourceId,
             Resource = original.Resource?.Clone(),
-            Role = original.Role,
-            IsDefault = original.IsDefault
+            Role = original.Role
         };
 
     internal static Resource Clone(this Resource original)

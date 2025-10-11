@@ -12,9 +12,8 @@ public class CreateAssetRequestTests {
             Description = "A table",
             Resources = [
                 new AssetResourceDto {
-                    ResourceId = Guid.NewGuid(),
-                    Role = ResourceRole.Token,
-                    IsDefault = true
+                    ResourceId = Guid.CreateVersion7(),
+                    Role = ResourceRole.Token
                 }
             ],
             ObjectProps = new ObjectProperties {

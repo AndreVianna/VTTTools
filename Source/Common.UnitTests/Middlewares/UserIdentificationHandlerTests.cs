@@ -24,7 +24,7 @@ public class UserIdentificationHandlerTests {
     [Fact]
     public async Task HandleAuthenticateAsync_WithValidHeader_SetsUserIdentity() {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         _httpContext.Request.Headers[UserHeader] = Base64UrlTextEncoder.Encode(userId.ToByteArray());
         await _handler.InitializeAsync(new(Scheme, "User Authentication", typeof(UserIdentificationHandler)), _httpContext);
 

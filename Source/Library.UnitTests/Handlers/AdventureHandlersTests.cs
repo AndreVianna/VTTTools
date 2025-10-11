@@ -4,7 +4,7 @@ public class AdventureHandlersTests {
     private readonly IAdventureService _adventureService = Substitute.For<IAdventureService>();
     private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
     private readonly ClaimsPrincipal _user = Substitute.For<ClaimsPrincipal>();
-    private static readonly Guid _userId = Guid.NewGuid();
+    private static readonly Guid _userId = Guid.CreateVersion7();
 
     public AdventureHandlersTests() {
         // Setup user claims
@@ -19,8 +19,8 @@ public class AdventureHandlersTests {
     public async Task GetAdventuresHandler_ReturnsOkResult() {
         // Arrange
         var adventures = new[] {
-            new Adventure { Id = Guid.NewGuid(), Name = "Adventure 1", OwnerId = _userId },
-            new Adventure { Id = Guid.NewGuid(), Name = "Adventure 2", OwnerId = _userId },
+            new Adventure { Id = Guid.CreateVersion7(), Name = "Adventure 1", OwnerId = _userId },
+            new Adventure { Id = Guid.CreateVersion7(), Name = "Adventure 2", OwnerId = _userId },
         };
 
         // NOTE: GetAdventuresHandler calls GetAdventuresAsync with filter "AvailableTo:{userId}", not the parameterless overload
@@ -38,7 +38,7 @@ public class AdventureHandlersTests {
     [Fact]
     public async Task GetAdventureByIdHandler_WithExistingId_ReturnsOkResult() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         var adventure = new Adventure { Id = adventureId, Name = "Test Adventure", OwnerId = _userId };
 
         _adventureService.GetAdventureByIdAsync(adventureId, Arg.Any<CancellationToken>())
@@ -55,7 +55,7 @@ public class AdventureHandlersTests {
     [Fact]
     public async Task GetAdventureByIdHandler_WithNonExistingId_ReturnsNotFound() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
 
         _adventureService.GetAdventureByIdAsync(adventureId, Arg.Any<CancellationToken>())
             .Returns((Adventure?)null);
@@ -71,7 +71,7 @@ public class AdventureHandlersTests {
     public async Task CreateAdventureHandler_WithValidRequest_ReturnsCreatedResult() {
         // Arrange
         var request = new CreateAdventureRequest { Name = "New Adventure" };
-        var adventure = new Adventure { Id = Guid.NewGuid(), Name = "New Adventure", OwnerId = _userId };
+        var adventure = new Adventure { Id = Guid.CreateVersion7(), Name = "New Adventure", OwnerId = _userId };
 
         _adventureService.CreateAdventureAsync(_userId, Arg.Any<CreateAdventureData>(), Arg.Any<CancellationToken>())
             .Returns(adventure);
@@ -103,7 +103,7 @@ public class AdventureHandlersTests {
     [Fact]
     public async Task UpdateAdventureHandler_WithValidRequest_ReturnsOkResult() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         var request = new UpdateAdventureRequest { Name = "Updated Adventure" };
         var adventure = new Adventure { Id = adventureId, Name = "Updated Adventure", OwnerId = _userId };
 
@@ -121,7 +121,7 @@ public class AdventureHandlersTests {
     [Fact]
     public async Task UpdateAdventureHandler_WithNonExistingId_ReturnsNotFound() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         var request = new UpdateAdventureRequest { Name = "Updated Adventure" };
 
         _adventureService.UpdateAdventureAsync(_userId, adventureId, Arg.Any<UpdatedAdventureData>(), Arg.Any<CancellationToken>())
@@ -137,7 +137,7 @@ public class AdventureHandlersTests {
     [Fact]
     public async Task DeleteAdventureHandler_WithExistingId_ReturnsNoContent() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
 
         _adventureService.DeleteAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
@@ -152,7 +152,7 @@ public class AdventureHandlersTests {
     [Fact]
     public async Task DeleteAdventureHandler_WithNonExistingId_ReturnsNotFound() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
 
         _adventureService.DeleteAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure("NotFound"));
@@ -167,9 +167,9 @@ public class AdventureHandlersTests {
     [Fact]
     public async Task CloneAdventureHandler_WithExistingId_ReturnsCreatedResult() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         var clonedAdventure = new Adventure {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             Name = "Cloned Adventure",
             OwnerId = _userId,
         };
@@ -188,7 +188,7 @@ public class AdventureHandlersTests {
     [Fact]
     public async Task CloneAdventureHandler_WithNonExistingId_ReturnsNotFound() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
 
         _adventureService.CloneAdventureAsync(_userId, adventureId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Some error."));
@@ -204,10 +204,10 @@ public class AdventureHandlersTests {
     [Fact]
     public async Task GetScenesHandler_ReturnsOkResult() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         var scenes = new[] {
-            new Scene { Id = Guid.NewGuid(), Name = "Scene 1" },
-            new Scene { Id = Guid.NewGuid(), Name = "Scene 2" },
+            new Scene { Id = Guid.CreateVersion7(), Name = "Scene 1" },
+            new Scene { Id = Guid.CreateVersion7(), Name = "Scene 2" },
         };
 
         _adventureService.GetScenesAsync(adventureId, Arg.Any<CancellationToken>())
@@ -224,9 +224,9 @@ public class AdventureHandlersTests {
     [Fact]
     public async Task AddSceneHandler_WithValidRequest_ReturnsCreatedResult() {
         // Arrange
-        var adventureId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
         var clonedScene = new Scene {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             Name = "Cloned Adventure",
         };
 
@@ -245,8 +245,8 @@ public class AdventureHandlersTests {
     [Fact]
     public async Task AddSceneHandler_WithInvalidScene_ReturnsBadRequest() {
         // Arrange
-        var adventureId = Guid.NewGuid();
-        var sceneId = Guid.NewGuid();
+        var adventureId = Guid.CreateVersion7();
+        var sceneId = Guid.CreateVersion7();
 
         _adventureService.AddClonedSceneAsync(_userId, adventureId, sceneId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Some error."));
