@@ -74,14 +74,22 @@ export const handleError = (error: unknown, options: {
   const processedError = processError(error, options);
 
   // Add to error store
-  store.dispatch(addError({
+  const errorPayload: any = {
     type: processedError.type,
     message: processedError.message,
-    details: processedError.details,
-    context: processedError.context,
     retryable: processedError.retryable,
     userFriendlyMessage: processedError.userFriendlyMessage,
-  }));
+  };
+
+  // Only add optional fields if they have values
+  if (processedError.details !== undefined) {
+    errorPayload.details = processedError.details;
+  }
+  if (processedError.context !== undefined) {
+    errorPayload.context = processedError.context;
+  }
+
+  store.dispatch(addError(errorPayload));
 
   // Show user notification if requested
   if (options.showNotification !== false) {
@@ -127,40 +135,62 @@ const processError = (error: unknown, options: {
 
   // Handle Error objects
   if (error instanceof Error) {
-    return {
+    const result: any = {
       type: options.type || 'system',
       message: error.message,
-      details: error.stack || undefined,
-      context: {
-        ...options.context,
-        component: options.component,
-        operation: options.operation,
-      },
       retryable: options.retryable ?? false,
       userFriendlyMessage: options.userFriendlyMessage || getDefaultUserMessage(options.type || 'system'),
     };
+
+    if (error.stack) {
+      result.details = error.stack;
+    }
+
+    const context = {
+      ...options.context,
+      component: options.component,
+      operation: options.operation,
+    };
+    if (Object.keys(context).length > 0 && Object.values(context).some(v => v !== undefined)) {
+      result.context = context;
+    }
+
+    return result;
   }
 
   // Handle string errors
   if (typeof error === 'string') {
-    return {
+    const result: any = {
       type: options.type || 'system',
       message: error,
-      context: options.context,
       retryable: options.retryable ?? false,
       userFriendlyMessage: options.userFriendlyMessage || getDefaultUserMessage(options.type || 'system'),
     };
+
+    if (options.context !== undefined && Object.keys(options.context).length > 0) {
+      result.context = options.context;
+    }
+
+    return result;
   }
 
   // Handle unknown errors
-  return {
+  const result: any = {
     type: options.type || 'system',
     message: 'An unknown error occurred',
-    details: JSON.stringify(error),
-    context: options.context,
     retryable: options.retryable ?? false,
     userFriendlyMessage: options.userFriendlyMessage || 'An unexpected error occurred. Please try again.',
   };
+
+  if (error !== null && error !== undefined) {
+    result.details = JSON.stringify(error);
+  }
+
+  if (options.context !== undefined && Object.keys(options.context).length > 0) {
+    result.context = options.context;
+  }
+
+  return result;
 };
 
 // Process API errors with proper typing and error mapping
@@ -230,18 +260,32 @@ const processApiError = (error: {
     }
   }
 
-  return {
+  const result: any = {
     type,
     message: data?.message || error.message || `HTTP ${status} Error`,
-    details: data?.details ? JSON.stringify(data.details) : undefined,
-    context: {
-      ...options.context,
-      httpStatus: status,
-      apiErrors: data?.errors,
-    },
     retryable,
     userFriendlyMessage: userFriendlyMessage || getDefaultUserMessage(type),
   };
+
+  if (data?.details) {
+    result.details = JSON.stringify(data.details);
+  }
+
+  const context: any = {
+    ...options.context,
+  };
+  if (status !== undefined) {
+    context.httpStatus = status;
+  }
+  if (data?.errors) {
+    context.apiErrors = data.errors;
+  }
+
+  if (Object.keys(context).length > 0 && Object.values(context).some(v => v !== undefined)) {
+    result.context = context;
+  }
+
+  return result;
 };
 
 // Get default user-friendly messages for error types

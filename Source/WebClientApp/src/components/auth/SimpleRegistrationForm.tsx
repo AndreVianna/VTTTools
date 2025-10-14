@@ -273,7 +273,7 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
 
         {error && hasAttemptedSubmit && (
           <VTTAlert severity="error" sx={{ mb: 3 }}>
-            {typeof error === 'string' ? error : error?.message || 'Registration failed. Please try again.'}
+            {typeof error === 'string' ? error : ('message' in error ? error.message : undefined) || 'Registration failed. Please try again.'}
           </VTTAlert>
         )}
 

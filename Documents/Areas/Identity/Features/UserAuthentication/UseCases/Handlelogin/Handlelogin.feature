@@ -40,15 +40,15 @@ Feature: Handle Login
       And my form is not submitted
       And the error appears below the password field
 
-  Rule: Email lookup is case-insensitive
+  # NOTE: Email case-insensitivity is backend behavior - tested in backend unit tests
 
     @happy-path
-    Scenario: Login with uppercase email matches lowercase stored email
+    Scenario: Login with case-insensitive email
       Given an account exists with email "user@example.com"
       And I enter email "USER@EXAMPLE.COM"
       And I enter the correct password
       When I submit the login form
-      Then I should be authenticated
+      Then I should be authenticated successfully
       And I should be redirected to the dashboard
 
   Rule: Password comparison is case-sensitive
@@ -62,17 +62,17 @@ Feature: Handle Login
       Then I should see error "Invalid email or password"
       And I should remain on the login page
 
-  @happy-path
+  @happy-path @critical
   Scenario: Successful login with valid credentials
     Given an account exists with email "gamemaster@example.com" and password "SecurePass123"
     And I enter email "gamemaster@example.com"
     And I enter password "SecurePass123"
     When I submit the login form
-    Then my credentials are validated
-    And I receive an authentication token
-    And my token is stored securely
+    Then I should be authenticated successfully
+    And a session cookie should be set by the server
     And I should be redirected to the dashboard
     And I should see my user information in the header
+    And my auth state should be stored in Redux
 
   @2fa @integration
   Scenario: Login with 2FA enabled account triggers verification
@@ -91,10 +91,10 @@ Feature: Handle Login
     And I enter email "user@example.com"
     And I enter incorrect password "WrongPassword"
     When I submit the login form
-    Then I should receive 401 status
-    And I should see error "Invalid email or password"
+    Then I should see error "Invalid email or password"
     And I should remain on the login page
     And the password field is cleared
+    And login should be prevented
 
   @error-handling
   Scenario: Handle non-existent email
@@ -102,27 +102,27 @@ Feature: Handle Login
     And I enter email "nonexistent@example.com"
     And I enter password "SomePassword123"
     When I submit the login form
-    Then I should receive 401 status
-    And I should see error "Invalid email or password"
+    Then I should see error "Invalid email or password"
     And I should not be able to determine if the email exists
+    And login should be prevented
 
   @security @error-handling
   Scenario: Handle account lockout after failed attempts
     Given an account exists with email "user@example.com"
     And the account is locked due to failed login attempts
     When I submit valid credentials for that account
-    Then I should receive 403 status
-    And I should see error "Account locked. Please contact support."
+    Then I should see error "Account locked. Please contact support."
     And I should not be authenticated
+    And login should be prevented
 
   @error-handling
   Scenario: Handle suspended account
     Given an account exists with email "suspended@example.com"
     And my account status is "suspended"
     When I submit valid credentials for that account
-    Then I should receive 403 status
-    And I should see error "Account suspended. Please contact support."
+    Then I should see error "Account suspended. Please contact support."
     And I should not be authenticated
+    And login should be prevented
 
   @validation @error-handling
   Scenario: Handle unconfirmed email address
@@ -130,9 +130,9 @@ Feature: Handle Login
     And the email is not confirmed
     And email confirmation is required email confirmation for login
     When I submit valid credentials for that account
-    Then I should receive 403 status
-    And I should see error "Please confirm your email address"
+    Then I should see error "Please confirm your email address"
     And I should see a link to resend confirmation email
+    And login should be prevented
 
   @loading-state @ui
   Scenario: Display loading state during authentication
@@ -156,22 +156,19 @@ Feature: Handle Login
   Scenario: Handle server error
     Given I have entered valid credentials
     When I submit the login form
-    And I receive 500 error
+    And the server returns an error
     Then I should see error "Login failed. Please try again later."
     And the form is enabled again
+    And I should be able to retry
 
-  @security @performance
-  Scenario: Password hashing verification completes quickly
-    Given an account exists with properly hashed password
-    When I submit valid credentials
-    Then my password verification completes in less than 500ms
-    And the secure hash comparison is performed server-side
+  # NOTE: Password hashing and verification is backend logic - tested in backend unit tests
 
-  @integration
-  Scenario: Login updates authentication context
+  @integration @redux
+  Scenario: Login updates Redux authentication state
     Given I successfully log in
     When the authentication completes
-    Then the Auth Context is updated with my user data
+    Then Redux authSlice.isAuthenticated should be true
+    And Redux authSlice.user should contain my user data
     And my authentication status should be available app-wide
     And protected routes should become accessible
 

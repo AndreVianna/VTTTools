@@ -7,7 +7,6 @@ import {
   Typography,
   Alert,
   CircularProgress,
-  Link,
   IconButton,
   InputAdornment,
   LinearProgress,
@@ -245,7 +244,7 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
           value={formData.newPassword}
           onChange={handleInputChange('newPassword')}
           error={!!validationErrors.newPassword}
-          helperText={validationErrors.newPassword}
+          helperText={validationErrors.newPassword || ''}
           disabled={isLoading}
           margin="normal"
           required
@@ -307,9 +306,8 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
       </Box>
 
       <Box sx={{ textAlign: 'center' }}>
-        <Link
-          component="button"
-          variant="body2"
+        <Button
+          variant="text"
           onClick={(e) => {
             e.preventDefault();
             onSwitchToLogin?.();
@@ -318,7 +316,7 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
           startIcon={<ArrowBack />}
         >
           Back to Login
-        </Link>
+        </Button>
       </Box>
     </Box>
   );

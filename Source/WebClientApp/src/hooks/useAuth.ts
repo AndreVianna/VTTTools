@@ -44,14 +44,6 @@ export const useAuth = () => {
   // This prevents cached user data from showing after logout
   const { data: currentUser, isLoading, error, refetch } = useGetCurrentUserQuery(undefined, {
     skip: globalAuthInitialized && !authState.isAuthenticated,  // Skip after init unless authenticated
-    // Handle query errors gracefully in development
-    retry: (failureCount, _error) => {
-      if (isDevelopment && failureCount < 2) {
-        devUtils.warn('getCurrentUserQuery retry attempt', failureCount);
-        return true;
-      }
-      return false;
-    },
   });
 
   // Initialize authentication state from server session cookie (runs once globally)
@@ -122,7 +114,7 @@ export const useAuth = () => {
     dispatch(clearAuthError());
 
     try {
-      const result = await loginMutation({ email, password, rememberMe }).unwrap();
+      const result = await loginMutation({ email, password, rememberMe: rememberMe ?? false }).unwrap();
 
       if (result.success) {
         // Check if 2FA is required
@@ -143,13 +135,21 @@ export const useAuth = () => {
             dispatch(setAuthenticated({ user: userResult.data }));
           } else if (isDevelopment) {
             // Use mock user in development mode
-            dispatch(setAuthenticated({ user: MOCK_DATA.user }));
+            const mockUser: any = { ...MOCK_DATA.user };
+            // Remove null values for optional properties
+            if (mockUser.phoneNumber === null) delete mockUser.phoneNumber;
+            if (mockUser.profilePictureUrl === null) delete mockUser.profilePictureUrl;
+            dispatch(setAuthenticated({ user: mockUser }));
             devUtils.log('Using mock user for successful login in development');
           }
         } catch (refetchError) {
           if (isDevelopment) {
             // In development, continue with mock user even if refetch fails
-            dispatch(setAuthenticated({ user: MOCK_DATA.user }));
+            const mockUser: any = { ...MOCK_DATA.user };
+            // Remove null values for optional properties
+            if (mockUser.phoneNumber === null) delete mockUser.phoneNumber;
+            if (mockUser.profilePictureUrl === null) delete mockUser.profilePictureUrl;
+            dispatch(setAuthenticated({ user: mockUser }));
             devUtils.warn('Refetch failed in development, using mock user', refetchError);
           } else {
             throw refetchError;
@@ -177,9 +177,13 @@ export const useAuth = () => {
       )) {
         devUtils.warn('Login API failed, using mock login in development', error);
 
-        const mockResult = await mockApi.mockLogin({ email, password, rememberMe });
+        const mockResult = await mockApi.mockLogin({ email, password, rememberMe: rememberMe ?? false });
 
-        dispatch(setAuthenticated({ user: MOCK_DATA.user }));
+        const mockUser: any = { ...MOCK_DATA.user };
+        // Remove null values for optional properties
+        if (mockUser.phoneNumber === null) delete mockUser.phoneNumber;
+        if (mockUser.profilePictureUrl === null) delete mockUser.profilePictureUrl;
+        dispatch(setAuthenticated({ user: mockUser }));
         dispatch(addNotification({
           type: 'success',
           message: 'Successfully logged in! (Development Mode)',
@@ -508,7 +512,7 @@ export const useAuth = () => {
   // Verify Two-Factor Code (during login)
   const verifyTwoFactor = useCallback(async (code: string, rememberMachine?: boolean) => {
     try {
-      const result = await verifyTwoFactorMutation({ code, rememberMachine }).unwrap();
+      const result = await verifyTwoFactorMutation({ code, rememberMachine: rememberMachine ?? false }).unwrap();
 
       if (result.success) {
         // Refetch user data after successful 2FA verification
@@ -685,7 +689,7 @@ export const useAuth = () => {
     isAuthenticated,
     isLoading: isLoading || authState.isLoading || isLoggingIn || isRegistering || isResettingPassword || isConfirmingReset || isLoggingOut || isSettingUpTwoFactor || isEnablingTwoFactor || isDisablingTwoFactor || isVerifyingTwoFactor || isVerifyingRecoveryCode || isGeneratingRecoveryCodes || isChangingPassword || isUpdatingProfile,
     isInitializing: !initComplete,  // True until initial auth check completes
-    error: authState.error || ((isDevelopment && error?.data?.isRecoverable) ? null : error),
+    error: authState.error || ((isDevelopment && error && 'data' in error && (error as any).data?.isRecoverable) ? null : error),
     loginAttempts: authState.loginAttempts,
 
     // Basic Actions

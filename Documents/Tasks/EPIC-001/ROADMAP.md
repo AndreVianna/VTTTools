@@ -16,8 +16,8 @@
 **Scope**: Remaining 33% of UI migration (Phases 6-11) covering Scene Editor completion, Content Management, Game Sessions with SignalR, and Account Management
 
 **Total Phases**: 11 (Phases 1-5 ✅ Complete, Phases 6-11 🔜 Remaining)
-**Estimated Complexity**: Very High (261 hours total, 127 hours remaining)
-**Current Status**: Phase 5 complete (67.4%), Phase 6 ready to start
+**Estimated Complexity**: Very High (243 hours total, 109 hours remaining)
+**Current Status**: Phase 5 complete (55.1%), Phase 6 ready to start
 
 **Deliverables**:
 
@@ -907,63 +907,68 @@
 
 ---
 
-### Phase 11: Testing, Optimization & Legacy Cleanup 🔜 FINAL
+### Phase 11: Performance Optimization & Production Prep 🔜 FINAL
 
-**Objective**: Comprehensive testing, performance optimization, BDD step definitions, legacy Blazor deprecation
+**Objective**: Optimize performance, reduce bundle size, deprecate legacy Blazor, prepare for production
+
+**Note**: BDD testing integrated into Phases 2-6 implementation (not batched at end)
 
 **Deliverables**:
 
-- Testing: BDD Step Definitions
-  - Description: Implement step definitions for 101 feature files (focus: UI scenarios)
-  - Complexity: Very High
-  - Dependencies: All phases complete
-- Testing: E2E Test Suite
-  - Description: Playwright tests for critical paths (auth, scene editor, game sessions)
+- Optimization: Scene Editor Performance
+  - Description: Scene editor optimization for 100-token @ 60fps target (Quality Gate 6)
   - Complexity: High
-  - Dependencies: All phases complete
-- Optimization: Performance Tuning
-  - Description: Scene editor optimization for 100-token target, bundle size reduction
-  - Complexity: High
-  - Dependencies: Scene editor complete
-- Documentation: Migration Guide
-  - Description: Document React architecture, component patterns, testing approach
+  - Dependencies: Phase 6 complete
+  - **Critical**: Konva caching, virtualization, progressive rendering
+- Optimization: Bundle Size Reduction
+  - Description: Analyze and reduce bundle size, code splitting, lazy loading
   - Complexity: Medium
-  - Dependencies: All implementation complete
-- Deprecation: Legacy Blazor
-  - Description: Mark VttTools.WebApp.WebAssembly and VttTools.WebApp.Common as legacy
+  - Dependencies: All UI features complete
+  - **Target**: Bundle < 500KB gzipped
+- Documentation: Migration Guide
+  - Description: React architecture guide, component catalog, deployment guide
+  - Complexity: Medium
+  - Dependencies: All patterns established
+- Deprecation: Legacy Blazor Cleanup
+  - Description: Mark Blazor projects as legacy, update README, remove unused references
   - Complexity: Low
   - Dependencies: React 100% complete
+- Deployment: Production Readiness
+  - Description: Build configuration, environment variables, deployment scripts
+  - Complexity: Medium
+  - Dependencies: All validation complete
 
 **Implementation Sequence**:
 
-1. **BDD Step Definitions** (Testing)
-   - Command: Implement step definitions for UI-focused scenarios
-   - Estimated Effort: 12 hours
-   - Dependencies: All UI implementation complete
-2. **E2E Test Suite** (Testing)
-   - Command: Playwright tests for auth, scene editor, game sessions
-   - Estimated Effort: 8 hours
-   - Dependencies: All features complete
-3. **Performance Optimization** (UI)
-   - Command: Scene editor profiling, Konva caching, bundle splitting
+1. **Scene Editor Performance** (UI) - **CRITICAL**
+   - Command: Profiling, Konva caching, virtualization for 100-token @ 60fps target
    - Estimated Effort: 6 hours
-   - Dependencies: Scene editor complete
-4. **Migration Documentation** (Docs)
-   - Command: Write architecture guide, component catalog, testing guide
-   - Estimated Effort: 4 hours
-   - Dependencies: All implementation patterns established
-5. **Legacy Deprecation** (Cleanup)
-   - Command: Update README, mark Blazor projects as legacy, update docs
+   - Dependencies: Phase 6 complete
+2. **Bundle Size Reduction** (UI)
+   - Command: Bundle analysis with Vite, code splitting, lazy loading optimization
+   - Estimated Effort: 3 hours
+   - Dependencies: All features complete
+3. **Migration Documentation** (Docs)
+   - Command: Architecture guide, deployment guide, component catalog
    - Estimated Effort: 2 hours
+   - Dependencies: Implementation complete
+4. **Legacy Blazor Deprecation** (Cleanup)
+   - Command: Update README, mark projects as legacy, remove unused references
+   - Estimated Effort: 1 hour
    - Dependencies: React 100% complete
+5. **Production Deployment Prep** (DevOps)
+   - Command: Build configuration, environment setup, deployment verification
+   - Estimated Effort: 2 hours
+   - Dependencies: All validation complete
 
 **Success Criteria**:
 
-- BDD step definitions cover all UI scenarios
-- E2E tests pass for critical paths
-- Scene editor meets 100-token @ 60fps target
-- Documentation complete
+- Scene editor achieves 100 tokens @ 60fps ⚡ (Quality Gate 6)
+- Bundle size < 500KB (gzipped)
+- All BDD scenarios documented (implemented per-phase)
+- Migration documentation complete
 - Blazor projects marked legacy
+- Production build verified and deployable
 
 **Dependencies**:
 
@@ -972,10 +977,10 @@
 
 **Validation**:
 
-- Validate after phase: Full test suite execution, performance benchmarking
-- Quality gate: All tests passing, performance targets met, documentation complete
+- Validate after phase: Performance benchmarking (100 tokens @ 60fps), bundle size < 500KB
+- Quality gate: Performance targets met, bundle optimized, documentation complete
 
-**Estimated Effort**: 32 hours
+**Estimated Effort**: 14 hours (reduced from 32 hours - BDD moved to per-phase implementation)
 
 ---
 
@@ -1004,12 +1009,12 @@ Phase 1 (Foundation) ✅
     │                               ↓
     │                               └─→ Phase 9 (Game Sessions/SignalR) 🔜 [22h]
     │
-    └─→ Phase 11 (Testing/Optimization/Cleanup) 🔜 FINAL [32h]
+    └─→ Phase 11 (Performance/Production Prep) 🔜 FINAL [14h]
             ↑
             └─ (Depends on ALL phases complete)
 ```
 
-**Critical Path** (Sequential - 107 hours):
+**Critical Path** (Sequential - 89 hours):
 
 - Phase 4: Grid/Layers (blocks token placement) - 12 hours
 - Phase 5: Asset Library (blocks token selection) - 16 hours
@@ -1017,7 +1022,7 @@ Phase 1 (Foundation) ✅
 - Phase 7: Epic/Campaign ⚠️ BLOCKED (blocks scene management) - 18 hours
 - Phase 8: Scene Management (blocks game sessions) - 14 hours
 - Phase 9: Game Sessions/SignalR (final feature) - 22 hours
-- Phase 11: Testing/Optimization - 10 hours (parallelizable with other work)
+- Phase 11: Performance/Production - 14 hours (some parallelizable)
 
 **Parallel Track** (Independent - 16 hours):
 
@@ -1238,16 +1243,17 @@ Implementation Order:
 **Phase 8**: 🔜 Depends on 7 (0/14 hours, 0%)
 **Phase 9**: 🔜 Planned (0/22 hours, 0%)
 **Phase 10**: 🔜 Parallel (0/16 hours, 0%) - Can start anytime
-**Phase 11**: 🔜 Final (0/32 hours, 0%)
+**Phase 11**: 🔜 Final (0/14 hours, 0%)
 
-**Remaining Effort**: 127 hours (32 hours blocked by backend)
+**Remaining Effort**: 109 hours (18 hours reduction from Phase 11 BDD removal, 32 hours blocked by backend)
 
 **Calculation Breakdown**:
 
-- Total Effort: 261 hours (updated with Phase 5 actual effort: 207 + 54 expansion hours)
+- Total Effort: 243 hours (reduced 18h from Phase 11 BDD removal)
 - Completed (Phases 1-5): 134 hours (8h + 16h + 28h + 12h + 70h)
-- Remaining (Phases 6-11): 127 hours
-- Progress: 67.4% (176/261)
+- Remaining (Phases 6-11): 109 hours
+- Progress: 55.1% (134/243)
+- Note: BDD testing now integrated into Phases 2-6 implementation (not separate Phase 11 task)
 
 **Phase Expansion Notes**:
 - Phase 3 expanded from 16h to 28h to include critical authentication improvements (8h) and authorization documentation (4h). These were essential for production-ready auth state management and future phase planning.
@@ -1257,6 +1263,7 @@ Implementation Order:
 
 ## Change Log
 
+- **2025-10-12** (v1.5.0): Phase 11 repurposed - Removed BDD step definitions (integrated into per-phase implementation). Reduced Phase 11 from 32h → 14h (performance optimization, bundle reduction, legacy cleanup, production prep). Updated total effort to 243 hours. BDD testing now continuous throughout Phases 2-6.
 - **2025-10-11** (v1.4.0): Phase 5 completed - Major scope expansion (16h → 70h) including multi-resource system (Phase 5.5, 14h), resource redesign and SVG conversion (Phase 5.6, 16h), blob storage architecture (Phase 5.7, 4h). Updated total effort to 261 hours, marked Phase 6 as NEXT, updated progress to 67.4%. Quality Gate 5 passed.
 - **2025-10-05** (v1.3.0): Phase 4 completed - Grid and layer system (12h), marked Phase 5 as NEXT, updated progress
 - **2025-10-04** (v1.2.0): Phase 3 completed - Added authentication improvements (8h), authorization documentation (4h), updated total effort to 207 hours, marked Phase 4 as NEXT, updated progress to 25.1%

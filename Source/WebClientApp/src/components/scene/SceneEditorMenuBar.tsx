@@ -528,7 +528,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                 open={assetPickerOpen}
                 onClose={() => setAssetPickerOpen(false)}
                 onSelect={handleAssetSelected}
-                kind={pickerKind}
+                {...(pickerKind !== undefined ? { kind: pickerKind } : {})}
             />
         </Paper>
     );

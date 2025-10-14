@@ -104,10 +104,15 @@ export const StageConfigPanel: React.FC<StageConfigPanelProps> = ({
     };
 
     const handleBackgroundChange = (value: string) => {
-        setStage(prev => ({
-            ...prev,
-            backgroundResourceId: value || undefined
-        }));
+        setStage(prev => {
+            const updated = { ...prev };
+            if (value) {
+                updated.backgroundResourceId = value;
+            } else {
+                delete updated.backgroundResourceId;
+            }
+            return updated;
+        });
     };
 
     const handleSave = async () => {

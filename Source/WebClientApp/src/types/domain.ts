@@ -108,6 +108,8 @@ export interface UpdateAssetRequest {
   name?: string;
   description?: string;
   resources?: AssetResource[];
+  isPublished?: boolean;
+  isPublic?: boolean;
   objectProps?: ObjectProperties;
   creatureProps?: CreatureProperties;
 }

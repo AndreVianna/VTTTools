@@ -240,7 +240,7 @@ export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> =
             onChange={(e) => {
               setEmail(e.target.value);
               if (validationErrors.email) {
-                setValidationErrors(prev => ({ ...prev, email: undefined }));
+                setValidationErrors({});
               }
             }}
             error={!!validationErrors.email}

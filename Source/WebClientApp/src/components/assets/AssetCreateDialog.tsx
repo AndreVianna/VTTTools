@@ -132,8 +132,10 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
         // Name must be at least 3 characters
         if (name.trim().length < 3) return false;
 
-        // Description must not be empty
-        if (description.trim().length === 0) return false;
+        // Description is optional - removed validation
+
+        // Publishing rule: published assets must be public
+        if (isPublished && !isPublic) return false;
 
         // Size dimensions must be positive
         if (selectedKind === AssetKind.Object) {

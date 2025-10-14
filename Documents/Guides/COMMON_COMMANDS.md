@@ -219,28 +219,35 @@ dotnet test VttTools.slnx --collect:"XPlat Code Coverage"
 
 # Run tests in specific project
 dotnet test Source/Assets.UnitTests
+dotnet test Source/Common.UnitTests
 
 # Run tests with filter
-dotnet test VttTools.slnx --filter "FullyQualifiedName~GameSessionService"
-dotnet test VttTools.slnx --filter "Category=Integration"
+dotnet test --filter "FullyQualifiedName~GameSessionService"
+dotnet test --filter "FullyQualifiedName~AssetServiceTests"
+dotnet test --filter "FullyQualifiedName~UserIdentificationHandlerTests"
+dotnet test --filter "Category=Integration"
+
+# Run authorization tests (Phase 5 - diagnose 403 bug)
+dotnet test --filter "FullyQualifiedName~GuidEncodingVerification"
+dotnet test --filter "FullyQualifiedName~UserIdentificationHandlerTests"
 
 # Run tests with detailed output
-dotnet test VttTools.slnx --verbosity detailed
+dotnet test --verbosity detailed
 
 # Run tests without building
-dotnet test VttTools.slnx --no-build
+dotnet test --no-build
 ```
 
-### Frontend Tests (Vitest)
+### Frontend Unit Tests (Vitest)
 
 ```bash
 # Navigate to frontend first
 cd Source/WebClientApp
 
-# Run tests (watch mode)
+# Run all unit tests (watch mode)
 npm test
 
-# Run tests once
+# Run unit tests once
 npm test -- --run
 
 # Run tests with coverage
@@ -251,10 +258,71 @@ npm test -- --ui
 
 # Run specific test file
 npm test -- LoginForm.test.tsx
+npm test -- enhancedBaseQuery.test.ts
+
+# Run authorization encoding tests (Phase 5 - critical)
+npm test -- enhancedBaseQuery.test.ts --run
 
 # Run tests matching pattern
 npm test -- --grep "GameSession"
 ```
+
+### BDD Integration Tests (Cucumber + Playwright) - Phase 5
+
+```bash
+# Navigate to frontend first
+cd Source/WebClientApp
+
+# Run ALL BDD scenarios (~200 scenarios)
+npm run test:bdd
+
+# Run by priority/tag
+npm run test:bdd:smoke          # Smoke tests (~8 scenarios)
+npm run test:bdd:happy-path     # Happy path tests (~80 scenarios)
+npm run test:bdd:critical       # Critical tests (~60 scenarios)
+
+# Run specific feature file
+npm run test:bdd -- features/assets-library.feature
+npm run test:bdd -- features/create-asset.feature
+npm run test:bdd -- features/update-asset.feature
+npm run test:bdd -- features/delete-asset.feature
+npm run test:bdd -- features/manage-resources.feature
+
+# Run specific scenario by name
+npm run test:bdd -- --name "Update existing seeded asset"
+npm run test:bdd -- --name "Upload image and assign Token role"
+
+# Run with headed browser (see what's happening - debugging)
+npm run test:bdd -- --world-parameters '{"headless": false}'
+
+# Run tests by tag combinations
+npm run test:bdd -- --tags "@critical and @authorization"
+npm run test:bdd -- --tags "@resources and @bug-prevention"
+npm run test:bdd -- --tags "not @skip"
+```
+
+### Test Philosophy (IMPORTANT)
+
+**E2E/BDD Tests (Cucumber + Playwright)**:
+- Purpose: Validate user-observable behavior independent of implementation
+- **May FAIL if app has bugs** (this is good - exposes bugs!)
+- Test like a real user would (don't inspect code, just interact with UI)
+- Example: "Update asset" scenario should FAIL if 403 bug exists
+
+**Unit Tests (Vitest/xUnit)**:
+- Purpose: Verify implementation details as currently written
+- **Should PASS even if implementation has bugs** (tests verify code does what it does)
+- Closely bound to source code
+- Example: GUID encoding tests verify `guidToByteArray()` produces specific bytes
+
+**Avoid**:
+- ❌ False Positives: Test passes but app has bug (adjusting test expectations to match buggy output)
+- ❌ False Negatives: Test fails but app works correctly (test expectations are wrong)
+
+**When BDD tests fail**:
+1. Investigate if it's a real bug or incorrect test expectation
+2. Fix the app, not the test (unless test expectation was wrong)
+3. Re-run to verify fix
 
 ### Coverage Reports
 

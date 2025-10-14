@@ -26,7 +26,7 @@ export const mediaApi = createApi({
     // Get single media resource
     getMediaResource: builder.query<MediaResource, string>({
       query: (id) => `/${id}`,
-      providesTags: (result, error, id) => [{ type: 'MediaResource', id }],
+      providesTags: (_result, _error, id) => [{ type: 'MediaResource', id }],
     }),
 
     // Upload file to /api/resources endpoint (matches backend ResourcesHandlers.UploadFileHandler)
@@ -79,7 +79,7 @@ export const mediaApi = createApi({
         method: 'PUT',
         body: request, // Matches existing C# contract exactly
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'MediaResource', id }],
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'MediaResource', id }],
     }),
 
     // Delete resource
@@ -205,7 +205,7 @@ export const mediaApi = createApi({
         method: 'POST',
         body: optimizations,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'MediaResource', id }],
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'MediaResource', id }],
     }),
   }),
 });

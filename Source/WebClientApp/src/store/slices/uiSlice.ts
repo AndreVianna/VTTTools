@@ -127,8 +127,9 @@ const uiSlice = createSlice({
     },
 
     closeModal: (state, action: PayloadAction<string>) => {
-      if (state.modals[action.payload]) {
-        state.modals[action.payload].open = false;
+      const modal = state.modals[action.payload];
+      if (modal) {
+        modal.open = false;
       }
     },
 
@@ -173,12 +174,14 @@ const uiSlice = createSlice({
     // Help system
     showHelp: (state, action: PayloadAction<string | undefined>) => {
       state.helpVisible = true;
-      state.helpTopic = action.payload;
+      if (action.payload !== undefined) {
+        state.helpTopic = action.payload;
+      }
     },
 
     hideHelp: (state) => {
       state.helpVisible = false;
-      state.helpTopic = undefined;
+      delete state.helpTopic;
     },
 
     toggleTooltips: (state) => {

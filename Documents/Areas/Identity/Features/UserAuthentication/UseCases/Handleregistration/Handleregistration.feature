@@ -36,9 +36,9 @@ Feature: Handle Registration
       And I enter email "existing@example.com"
       And I provide other valid registration data
       When I submit the registration form
-      Then I should receive 409 status
-      And I should see error "Email address already registered"
+      Then I should see error "Email address already registered"
       And my account should not be created
+      And the registration should be prevented
 
   Rule: Username must be 3-50 characters with allowed characters only
 
@@ -70,9 +70,9 @@ Feature: Handle Registration
       And I enter username "GameMaster"
       And I provide other valid registration data
       When I submit the registration form
-      Then I should receive 409 status
-      And I should see error "Username already taken"
+      Then I should see error "Username already taken"
       And my account should not be created
+      And the registration should be prevented
 
   Rule: Password must be at least 6 characters
 
@@ -83,7 +83,7 @@ Feature: Handle Registration
       And I provide other valid registration data
       When I submit the registration form
       Then my password should pass validation
-      And my account should be created with hashed password
+      And my account should be created successfully
 
     @validation @error-handling
     Scenario: Reject password below minimum length
@@ -103,19 +103,16 @@ Feature: Handle Registration
       And my form is not submitted
       And the error appears below the confirm password field
 
-  @happy-path
-  Scenario: Successful registration with all valid data
+  @happy-path @critical
+  Scenario: Successful registration redirects to login page
     Given I enter unique email "newgm@example.com"
-    And I enter valid username "NewGameMaster"
+    And I enter valid display name "New Game Master"
     And I enter password "SecurePassword123"
-    And I enter matching confirmation password "SecurePassword123"
     When I submit the registration form
-    Then my account is created in the system
-    And my password is securely hashed
-    And the default "User" role is assigned
-    And I should be automatically logged in
-    And my authentication token is stored
-    And I should be redirected to the dashboard
+    Then my account should be created successfully
+    And I should see success message "Account created successfully"
+    And I should be redirected to "/login"
+    And I should be able to log in with my new credentials
 
   @integration @email
   Scenario: Registration triggers verification email
@@ -130,32 +127,11 @@ Feature: Handle Registration
     Given I submit valid registration data
     When the email service fails to send verification email
     Then my account should still be created
-    And I should be logged in successfully
-    And the email failure should be logged server-side
-    And I should see a notification about checking spam folder
+    And I should be redirected to login page
+    And I should see notification about email verification
 
-  @security
-  Scenario: Password is hashed before storage
-    Given I register with password "MyPlainTextPassword"
-    When my account is created
-    Then my password is hashed using bcrypt or argon2
-    And the plain text password is never stored
-    And my password hash is irreversible
-
-  @validation
-  Scenario: Email addresses are normalized to lowercase
-    Given I enter email "NewUser@EXAMPLE.COM"
-    When I submit the registration form
-    Then my email is stored as "newuser@example.com"
-    And my future logins are case-insensitive
-
-  @validation
-  Scenario: Usernames are case-insensitive for uniqueness
-    Given an account exists with username "GameMaster"
-    And I enter username "gamemaster"
-    When I submit the registration form
-    Then I should see error "Username already taken"
-    And my account should not be created
+  # NOTE: Password hashing, email normalization, and username uniqueness are backend concerns
+  # Tested in backend unit tests (Identity.UnitTests)
 
   @loading-state @ui
   Scenario: Display loading state during registration
@@ -207,12 +183,8 @@ Feature: Handle Registration
     And my user information should appear in the header
     And I should be able to create game sessions
 
-  @performance
-  Scenario: Registration completes within acceptable time
-    Given I submit valid registration data
-    When my registration request is processed
-    Then I receive response in less than 1 second
-    And my password hashing uses appropriate cost factor
+  # NOTE: Performance testing belongs in dedicated performance test suite
+  # Password hashing cost factor is backend configuration
 
   @accessibility
   Scenario: Registration form is accessible

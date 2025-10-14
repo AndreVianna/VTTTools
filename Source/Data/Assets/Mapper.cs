@@ -85,9 +85,9 @@ internal static class Mapper {
                 Name = obj.Name,
                 Description = obj.Description,
                 Resources = [.. obj.Resources.Select(r => new Entities.AssetResource {
+                    AssetId = obj.Id,
                     ResourceId = r.ResourceId,
                     Role = r.Role
-                    // Resource navigation will be loaded by EF Core
                 })],
                 IsPublic = obj.IsPublic,
                 IsPublished = obj.IsPublished,
@@ -108,9 +108,9 @@ internal static class Mapper {
                 Name = creature.Name,
                 Description = creature.Description,
                 Resources = [.. creature.Resources.Select(r => new Entities.AssetResource {
+                    AssetId = creature.Id,
                     ResourceId = r.ResourceId,
                     Role = r.Role
-                    // Resource navigation will be loaded by EF Core
                 })],
                 IsPublic = creature.IsPublic,
                 IsPublished = creature.IsPublished,
@@ -134,10 +134,11 @@ internal static class Mapper {
         entity.Name = model.Name;
         entity.Description = model.Description;
 
-        // Update Resources collection
+        // Update Resources collection (join table entries)
         entity.Resources.Clear();
         foreach (var resource in model.Resources) {
             entity.Resources.Add(new Entities.AssetResource {
+                AssetId = entity.Id,
                 ResourceId = resource.ResourceId,
                 Role = resource.Role
             });

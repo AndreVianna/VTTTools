@@ -20,8 +20,7 @@ public record CreateAssetData
         var result = base.Validate(context);
         if (string.IsNullOrWhiteSpace(Name))
             result += new Error("The asset name cannot be null or empty.", nameof(Name));
-        if (string.IsNullOrWhiteSpace(Description))
-            result += new Error("The asset description cannot be null or empty.", nameof(Description));
+        // Description is optional per domain model - removed validation
 
         // Validate that properties match the Kind
         if (Kind == AssetKind.Object && ObjectProps is null)

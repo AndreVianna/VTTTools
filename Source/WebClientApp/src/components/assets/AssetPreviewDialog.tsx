@@ -8,7 +8,7 @@
  * Supports ObjectAsset and CreatureAsset with polymorphic property editing
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -42,7 +42,9 @@ import {
     AssetKind,
     CreatureCategory,
     UpdateAssetRequest,
-    NamedSize
+    NamedSize,
+    ObjectAsset,
+    CreatureAsset
 } from '@/types/domain';
 import { useUpdateAssetMutation, useDeleteAssetMutation } from '@/services/assetsApi';
 import {
@@ -51,8 +53,16 @@ import {
     CreaturePropertiesForm,
     AssetResourceManager
 } from './forms';
-import { getFirstDisplayResource, getResourceUrl } from '@/utils/assetHelpers';
 import { AssetResource } from '@/types/domain';
+
+// Type guards
+function isObjectAsset(asset: Asset): asset is ObjectAsset {
+    return asset.kind === AssetKind.Object && 'objectProps' in asset;
+}
+
+function isCreatureAsset(asset: Asset): asset is CreatureAsset {
+    return asset.kind === AssetKind.Creature && 'creatureProps' in asset;
+}
 
 export interface AssetPreviewDialogProps {
     open: boolean;
@@ -72,15 +82,15 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
     // Editable fields
     const [name, setName] = useState(asset.name);
     const [description, setDescription] = useState(asset.description);
-    const [resources, setResources] = useState<AssetResource[]>([]);
+    const [resources, setResources] = useState<AssetResource[]>(asset.resources);
     const [isPublic, setIsPublic] = useState(asset.isPublic);
     const [isPublished, setIsPublished] = useState(asset.isPublished);
 
     // Size state (shared by both Object and Creature)
     const [size, setSize] = useState<NamedSize>(() => {
-        if (asset.kind === AssetKind.Object && 'objectProps' in asset) {
+        if (isObjectAsset(asset)) {
             return asset.objectProps.size;
-        } else if (asset.kind === AssetKind.Creature && 'creatureProps' in asset) {
+        } else if (isCreatureAsset(asset)) {
             return asset.creatureProps.size;
         }
         return { width: 1, height: 1, isSquare: true };
@@ -88,15 +98,15 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
 
     // Object-specific properties
     const [isMovable, setIsMovable] = useState(
-        asset.kind === AssetKind.Object && 'objectProps' in asset ? asset.objectProps.isMovable : true
+        isObjectAsset(asset) ? asset.objectProps.isMovable : true
     );
     const [isOpaque, setIsOpaque] = useState(
-        asset.kind === AssetKind.Object && 'objectProps' in asset ? asset.objectProps.isOpaque : false
+        isObjectAsset(asset) ? asset.objectProps.isOpaque : false
     );
 
     // Creature-specific properties
     const [creatureCategory, setCreatureCategory] = useState<CreatureCategory>(
-        asset.kind === AssetKind.Creature && 'creatureProps' in asset
+        isCreatureAsset(asset)
             ? asset.creatureProps.category
             : CreatureCategory.Character
     );
@@ -104,6 +114,32 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
     // RTK Query mutations
     const [updateAsset, { isLoading: isSaving }] = useUpdateAssetMutation();
     const [deleteAsset, { isLoading: isDeleting }] = useDeleteAssetMutation();
+
+    // Reset state when asset changes (when dialog opens with different asset)
+    // Using asset.id as dependency to avoid triggering on every asset object change
+    useEffect(() => {
+        // Update all state in a single batch during mount/asset change
+        const updates = () => {
+            setName(asset.name);
+            setDescription(asset.description);
+            setResources(asset.resources);
+            setIsPublic(asset.isPublic);
+            setIsPublished(asset.isPublished);
+            setEditMode(false);
+
+            // Reset size
+            if (isObjectAsset(asset)) {
+                setSize(asset.objectProps.size);
+                setIsMovable(asset.objectProps.isMovable);
+                setIsOpaque(asset.objectProps.isOpaque);
+            } else if (isCreatureAsset(asset)) {
+                setSize(asset.creatureProps.size);
+                setCreatureCategory(asset.creatureProps.category);
+            }
+        };
+        updates();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [asset.id]); // Only depend on asset ID to avoid cascading renders
 
     const handleSave = async () => {
         try {
@@ -150,6 +186,7 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
         // Reset to original values
         setName(asset.name);
         setDescription(asset.description);
+        setResources(asset.resources);
         setIsPublic(asset.isPublic);
         setIsPublished(asset.isPublished);
         setEditMode(false);
@@ -178,37 +215,6 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                 <Divider />
 
                 <DialogContent>
-                    {/* Asset Image Preview */}
-                    <Box
-                        sx={{
-                            width: '100%',
-                            height: 200,
-                            bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.200',
-                            borderRadius: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            mb: 3
-                        }}
-                    >
-                        {(() => {
-                            const displayResource = getFirstDisplayResource(asset);
-                            return displayResource ? (
-                                <img
-                                    src={getResourceUrl(displayResource.resourceId)}
-                                    alt={asset.name}
-                                    style={{
-                                        maxWidth: '100%',
-                                        maxHeight: '100%',
-                                        objectFit: 'contain'
-                                    }}
-                                />
-                            ) : (
-                                <CategoryIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
-                            );
-                        })()}
-                    </Box>
-
                     {/* Resource Manager - Always visible at top */}
                     <AssetResourceManager
                         resources={resources}
@@ -304,7 +310,7 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                                 </AccordionSummary>
                                 <AccordionDetails sx={{ p: 3 }}>
                                     {/* Object-specific Properties */}
-                                    {asset.kind === AssetKind.Object && 'objectProps' in asset && (
+                                    {isObjectAsset(asset) && (
                                         <ObjectPropertiesForm
                                             size={size}
                                             isMovable={isMovable}
@@ -317,7 +323,7 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                                     )}
 
                                     {/* Creature-specific Properties */}
-                                    {asset.kind === AssetKind.Creature && 'creatureProps' in asset && (
+                                    {isCreatureAsset(asset) && (
                                         <CreaturePropertiesForm
                                             size={size}
                                             category={creatureCategory}
@@ -353,7 +359,7 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                             </Box>
 
                             {/* Object-specific Properties */}
-                            {asset.kind === AssetKind.Object && 'objectProps' in asset && (
+                            {isObjectAsset(asset) && (
                                 <ObjectPropertiesForm
                                     size={size}
                                     isMovable={isMovable}
@@ -366,7 +372,7 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                             )}
 
                             {/* Creature-specific Properties */}
-                            {asset.kind === AssetKind.Creature && 'creatureProps' in asset && (
+                            {isCreatureAsset(asset) && (
                                 <CreaturePropertiesForm
                                     size={size}
                                     category={creatureCategory}

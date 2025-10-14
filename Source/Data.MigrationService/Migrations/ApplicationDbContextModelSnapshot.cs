@@ -71,6 +71,24 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.UseTphMappingStrategy();
                 });
 
+            modelBuilder.Entity("VttTools.Data.Assets.Entities.AssetResource", b =>
+                {
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ResourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.HasKey("AssetId", "ResourceId");
+
+                    b.HasIndex("ResourceId");
+
+                    b.ToTable("AssetResources", (string)null);
+                });
+
             modelBuilder.Entity("VttTools.Data.Game.Entities.GameSession", b =>
                 {
                     b.Property<Guid>("Id")
@@ -395,12 +413,12 @@ namespace VttTools.Data.MigrationService.Migrations
                                     b2.Property<double>("Height")
                                         .ValueGeneratedOnAdd()
                                         .HasColumnType("float")
-                                        .HasDefaultValue(50.0);
+                                        .HasDefaultValue(64.0);
 
                                     b2.Property<double>("Width")
                                         .ValueGeneratedOnAdd()
                                         .HasColumnType("float")
-                                        .HasDefaultValue(50.0);
+                                        .HasDefaultValue(64.0);
                                 });
 
                             b1.ComplexProperty<Dictionary<string, object>>("Offset", "VttTools.Data.Library.Entities.Scene.Grid#Grid.Offset#Offset", b2 =>
@@ -1011,34 +1029,23 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasDiscriminator().HasValue("Object");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>
+            modelBuilder.Entity("VttTools.Data.Assets.Entities.AssetResource", b =>
                 {
-                    b.OwnsMany("VttTools.Data.Assets.Entities.AssetResource", "Resources", b1 =>
-                        {
-                            b1.Property<Guid>("AssetId")
-                                .HasColumnType("uniqueidentifier");
+                    b.HasOne("VttTools.Data.Assets.Entities.Asset", "Asset")
+                        .WithMany("Resources")
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                            b1.Property<int>("__synthesizedOrdinal")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("int");
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")
+                        .WithMany()
+                        .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                            b1.Property<Guid>("ResourceId")
-                                .HasColumnType("uniqueidentifier");
+                    b.Navigation("Asset");
 
-                            b1.Property<int>("Role")
-                                .HasColumnType("int");
-
-                            b1.HasKey("AssetId", "__synthesizedOrdinal");
-
-                            b1.ToTable("Assets");
-
-                            b1.ToJson("Resources");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AssetId");
-                        });
-
-                    b.Navigation("Resources");
+                    b.Navigation("Resource");
                 });
 
             modelBuilder.Entity("VttTools.Data.Game.Entities.GameSession", b =>
@@ -1468,6 +1475,11 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.Navigation("Properties")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("VttTools.Data.Assets.Entities.Asset", b =>
+                {
+                    b.Navigation("Resources");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Adventure", b =>

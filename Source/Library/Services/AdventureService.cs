@@ -64,7 +64,8 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
         var original = await adventureStorage.GetByIdAsync(templateId, ct);
         if (original is null)
             return Result.Failure("NotFound");
-        if (original.OwnerId != userId || original is { IsPublic: true, IsPublished: true })
+        // Fixed: Allow cloning if user is owner OR if asset is public+published
+        if (original.OwnerId != userId && !(original is { IsPublic: true, IsPublished: true }))
             return Result.Failure("NotAllowed");
         var clone = original.Clone(userId);
         await adventureStorage.AddAsync(clone, ct);

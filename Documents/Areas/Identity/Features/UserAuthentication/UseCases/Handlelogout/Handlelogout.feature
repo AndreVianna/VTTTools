@@ -76,22 +76,17 @@ Feature: Handle Logout
       And the logout should execute immediately
       And I should be logged out
 
-  @security
-  Scenario: Session token is invalidated server-side
-    Given I have an active session token
-    When I successfully log out
-    Then the session should be marked as terminated in the database
-    And the session token should be added to the blacklist
-    And future requests with that token should be rejected
-    And I should not be able to access protected resources
+  # NOTE: Session invalidation is backend logic - tested in backend unit tests
 
-  @security
-  Scenario: Token is cleared from client storage
-    Given my authentication token is stored in localStorage
+  @security @redux
+  Scenario: Logout clears client authentication state
+    Given I am authenticated with session cookie
     When I successfully log out
-    Then the token is removed from localStorage
-    And no authentication cookies should remain
-    And sensitive data should be cleared from memory
+    Then the session cookie should be cleared by the server
+    And Redux authSlice.isAuthenticated should be false
+    And Redux authSlice.user should be null
+    And RTK Query cache should be reset
+    And I should not be able to access protected routes
 
   @integration
   Scenario: Logout updates authentication context globally

@@ -1029,10 +1029,893 @@ Before submitting tests for review, verify:
 
 ---
 
+## BDD/E2E Testing (Cucumber + Playwright)
+
+### BDD Testing Philosophy
+
+**CRITICAL**: BDD tests are **independent validators** that verify behavior, not confirm implementation.
+
+**Core Principle**: If the app has bugs, tests MUST fail. That's their job.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  BDD Scenarios = SPECIFICATION (What should happen)     │
+│  Step Definitions = INDEPENDENT VALIDATOR               │
+│  Application Code = IMPLEMENTATION (What does happen)   │
+│                                                         │
+│  Tests must verify: SPECIFICATION = IMPLEMENTATION      │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Testing Approach: Black-Box
+
+**BDD E2E Tests** must test from user's perspective:
+- ✅ Interact through UI (click buttons, fill forms)
+- ✅ Query real database for persistence verification
+- ✅ Use real API calls (not mocks)
+- ✅ Assert on rendered output (what user sees)
+- ❌ Don't access component internals
+- ❌ Don't mock business logic
+- ❌ Don't check React state directly
+
+**Example**:
+```typescript
+// ✅ GOOD - Black-box testing
+When('I create asset {string}', async function(name) {
+  await this.page.click('button:has-text("Create")');
+  await this.page.fill('input[name="name"]', name);
+  await this.page.click('button:has-text("Save")');
+
+  // Wait for REAL backend response
+  const response = await this.page.waitForResponse('/api/assets');
+  if (response.status() !== 201) {
+    throw new Error(`Creation failed: ${response.status()}`);
+  }
+});
+
+Then('the asset should exist in database', async function() {
+  // Query REAL test database
+  const asset = await this.db.queryTable('Assets', { Name: 'Dragon' });
+  expect(asset).toBeDefined();
+  expect(asset.OwnerId).toBe(this.currentUser.id);
+});
+
+// ❌ BAD - White-box, mocked testing
+When('I create asset', async function() {
+  mockApi.post('/api/assets').reply(201, { id: 'fake' }); // Always passes!
+  await this.page.click('button:has-text("Create")');
+});
+
+Then('asset should exist', function() {
+  expect(mockDb.assets).toContainEqual({ name: 'Dragon' }); // Fake data!
+});
+```
+
+### False Positives vs False Negatives
+
+**False Positive** (WORSE): Test passes but app is broken
+- Caused by over-mocking, loose assertions, error swallowing
+- Result: Bugs reach production
+
+**False Negative** (BETTER): Test fails but app works
+- Caused by brittle selectors, timing issues
+- Result: Developer fixes test, app still works
+
+**Rule**: Choose semantic assertions over pixel-perfect checks to avoid false negatives.
+
+```typescript
+// ❌ FALSE NEGATIVE - Brittle
+Then('image has Token role', async function() {
+  const borderColor = await image.evaluate(el => getComputedStyle(el).borderColor);
+  expect(borderColor).toBe('rgb(33, 150, 243)'); // Exact blue
+  // Dev changes to teal → test fails even though feature works
+});
+
+// ✅ CORRECT - Semantic
+Then('image has Token role', async function() {
+  await expect(image.locator('[role="status"]:has-text("Token")')).toBeVisible();
+  // Or: await expect(image).toHaveAttribute('data-role', '1');
+});
+```
+
+### When to Mock vs Use Real Dependencies
+
+**NEVER Mock (Use Real)**:
+- ❌ Backend API endpoints
+- ❌ Database operations
+- ❌ File uploads
+- ❌ Authentication
+- ❌ Redux store
+
+**SOMETIMES Mock (With Caution)**:
+- ⚠️ External services (email, blob storage if unavailable)
+- ⚠️ Time-dependent operations (Date.now(), timers)
+- ⚠️ Browser APIs (clipboard if not available)
+
+**ALWAYS Mock (Safe)**:
+- ✅ Performance monitoring (FPS counters)
+- ✅ Analytics (Google Analytics, telemetry)
+- ✅ Payment gateways (use test mode)
+
+**VTTTools-Specific**:
+- ✅ Use Real: ASP.NET Core backend, SQL Server test DB, Redux, RTK Query, React Router
+- ✅ Mock: Azure Blob → local filesystem, SignalR if backend not ready
+
+### Implementation Checklist (Before Each Step)
+
+- [ ] Interacts through UI (not component methods)?
+- [ ] Uses real API calls (not mocks)?
+- [ ] Verifies real database state (not fixtures)?
+- [ ] Will FAIL if feature is broken?
+- [ ] Independent of implementation details?
+- [ ] Won't break during code refactoring?
+
+### When Tests Fail
+
+1. **Investigate**: Real bug or test issue?
+2. **If real bug**: Fix application code
+3. **If test issue**: Fix step definition (selector, timing)
+4. **Never**: Mock away the failure to make test pass
+
+**Example - The 403 Authorization Bug**:
+```gherkin
+Scenario: Owner can update their own asset
+  When I edit and save the asset
+  Then update should succeed with 204 No Content
+```
+
+When implemented, this test WILL FAIL with 403 error (exposing the bug). Let it fail, fix the app, then test passes.
+
+---
+
+## 🚨 CRITICAL ANTI-PATTERNS TO AVOID
+
+### Anti-Pattern #1: Step-to-Step Calls ❌ CRITICAL
+
+**Problem**: Calling Cucumber steps from within other steps
+
+```typescript
+// ❌ WRONG - Creates tight coupling, TypeScript errors, unmaintainable
+When('I Alt+Click the image', async function() {
+  await this.keyboard.altClick('[data-testid="resource-image"]');
+});
+
+When('I Alt+Click to assign Token role', async function() {
+  await this['I Alt+Click the image']();  // DON'T DO THIS!
+});
+```
+
+**Why It's Bad**:
+- TypeScript strict mode error: `Property 'I Alt+Click...' does not exist on type 'CustomWorld'`
+- Breaks test independence
+- Creates hidden step dependencies
+- Stack traces become unintelligible
+- Violates Cucumber best practices
+
+**✅ CORRECT - Extract to Helper Function**:
+```typescript
+// helpers/keyboard.helper.ts
+async function altClickImage(world: CustomWorld): Promise<void> {
+  const selector = '[data-testid="resource-image"]';
+  await world.keyboard.altClick(selector);
+}
+
+// keyboard-shortcuts.steps.ts
+When('I Alt+Click the image', async function() {
+  await altClickImage(this);
+});
+
+When('I Alt+Click to assign Token role', async function() {
+  await altClickImage(this);  // Reuse helper, not step
+});
+```
+
+**Impact**: Found 19 instances in agent-generated code - all fixed by extracting helpers.
+
+---
+
+### Anti-Pattern #2: Hard-Coded Credentials ❌ CRITICAL SECURITY
+
+**OWASP**: A02:2021 - Cryptographic Failures
+
+```typescript
+// ❌ WRONG - Hard-coded database credentials
+this.db = new DatabaseHelper(
+  process.env.DATABASE_CONNECTION_STRING ||
+  'Server=localhost;Database=VttTools;Integrated Security=true;TrustServerCertificate=true;'
+);
+```
+
+**Security Issues**:
+- Credentials exposed in repository
+- `TrustServerCertificate=true` disables SSL validation (MITM vulnerability)
+- Fallback allows tests to run without proper configuration
+
+**✅ CORRECT - Fail Fast**:
+```typescript
+this.db = new DatabaseHelper(
+  this.getRequiredEnv('DATABASE_CONNECTION_STRING')
+);
+
+private getRequiredEnv(key: string): string {
+  const value = process.env[key];
+  if (!value) {
+    throw new Error(`CRITICAL: Required environment variable ${key} is not set. Tests cannot run.`);
+  }
+  return value;
+}
+```
+
+**Action**: Tests must fail loudly if configuration is missing. Don't use insecure defaults.
+
+---
+
+### Anti-Pattern #3: SQL Injection in Table Names ❌ CRITICAL SECURITY
+
+**OWASP**: A03:2021 - Injection
+
+```typescript
+// ❌ WRONG - SQL injection via tableName parameter
+async queryTable(tableName: string, where?: Record<string, any>): Promise<any[]> {
+  const query = `SELECT * FROM ${tableName} ${conditions}`;  // INJECTION!
+  return await sql.query(query, where);
+}
+
+// Attack vector:
+await db.queryTable("Assets; DROP TABLE Assets--");
+```
+
+**✅ CORRECT - Whitelist Allowed Tables**:
+```typescript
+const ALLOWED_TABLES = [
+  'Assets.Assets',
+  'Assets.AssetResources',
+  'Media.Resources'
+] as const;
+
+async queryTable(
+  tableName: typeof ALLOWED_TABLES[number],
+  where?: Record<string, any>
+): Promise<any[]> {
+  if (!ALLOWED_TABLES.includes(tableName as any)) {
+    throw new Error(`Table ${tableName} is not allowed for testing`);
+  }
+  // Safe to use after validation
+  const query = `SELECT * FROM ${tableName} WHERE ...`;
+}
+```
+
+---
+
+### Anti-Pattern #4: Catch-All Regex Steps ❌ CRITICAL
+
+**Problem**: Using `/^(.*)$/` regex to catch undefined steps
+
+```typescript
+// ❌ WRONG - Hides missing implementations, causes 1932 ambiguous steps!
+Given(/^(.*)$/, async function(step: string) {
+  debugLog(`[PENDING] ${step}`);
+});
+```
+
+**Impact**: Every step matches the catch-all, causing "Multiple step definitions match" errors.
+
+**✅ CORRECT - Let Cucumber Report Undefined Steps**:
+```
+// Don't add catch-alls. Cucumber will report:
+? And I should see asset name "Wooden Crate"
+    Undefined. Implement with the following snippet:
+
+    Then('I should see asset name {string}', function(string) {
+      return 'pending';
+    });
+```
+
+**Action**: Remove all catch-all steps. Undefined steps are better than ambiguous steps.
+
+---
+
+### Anti-Pattern #5: Excessive `any` Types ❌ TYPE SAFETY
+
+```typescript
+// ❌ WRONG - Defeats TypeScript
+currentAsset: any = null;
+createdAssets: any[] = [];
+async queryTable(...): Promise<any[]> { }
+```
+
+**✅ CORRECT - Define Proper Interfaces**:
+```typescript
+interface Asset {
+  id: string;
+  name: string;
+  kind: AssetKind;
+  ownerId: string;
+  resources: AssetResource[];
+  isPublic: boolean;
+  isPublished: boolean;
+}
+
+currentAsset: Asset | null = null;
+createdAssets: Asset[] = [];
+async queryTable(...): Promise<DbRecord[]> { }
+```
+
+---
+
+### Anti-Pattern #6: Hard-Coded Timeouts ❌ FLAKY TESTS
+
+```typescript
+// ❌ WRONG - Race conditions, flaky on slow machines
+Then('checkbox should auto-check', async function(name) {
+  await this.page.waitForTimeout(100);  // Arbitrary wait
+  await expect(this.page.locator(`input[name="${name}"]`)).toBeChecked();
+});
+```
+
+**✅ CORRECT - Wait for Conditions**:
+```typescript
+Then('checkbox should auto-check', async function(name) {
+  const checkbox = this.page.locator(`input[name="${name}"]`);
+  await expect(checkbox).toBeChecked({ timeout: 5000 });
+});
+```
+
+---
+
+### Anti-Pattern #7: Brittle Text Selectors ❌ FRAGILE
+
+```typescript
+// ❌ WRONG - Breaks with whitespace, i18n, or text changes
+await expect(this.page.locator('text=Manage your objects and creatures')).toBeVisible();
+```
+
+**✅ CORRECT - Use data-testid or Flexible Regex**:
+```typescript
+await expect(this.page.getByTestId('page-subtitle')).toBeVisible();
+// Or:
+await expect(this.page.getByText(/manage.*objects.*creatures/i)).toBeVisible();
+```
+
+---
+
+### Anti-Pattern #8: XSS via evaluateAll() ❌ SECURITY
+
+**OWASP**: A03:2021 - Injection (XSS variant)
+
+```typescript
+// ❌ WRONG - Direct DOM manipulation vulnerability
+await this.page.locator('[role="dialog"]').evaluateAll((dialogEl) => {
+  const backdrop = dialogEl.parentElement?.querySelector('.MuiBackdrop-root');
+  (backdrop as HTMLElement).click();  // XSS risk
+});
+```
+
+**✅ CORRECT - Use Playwright Built-In**:
+```typescript
+await this.page.locator('.MuiBackdrop-root').click({ force: true });
+```
+
+---
+
+## BDD STEP DEFINITION BEST PRACTICES
+
+### Correct Reusability Pattern
+
+**✅ ALWAYS - Extract Shared Logic to Helpers**:
+
+```typescript
+// 1. Create helper function
+// helpers/accordion.helper.ts
+export async function expandAccordion(page: Page, name: string): Promise<void> {
+  const header = page.locator(`button:has-text("${name}")`);
+  if (await header.getAttribute('aria-expanded') !== 'true') {
+    await header.click();
+  }
+}
+
+// 2. Import and use in multiple steps
+// accordion.steps.ts
+import { expandAccordion, verifyExpanded } from '../helpers/accordion.helper.js';
+
+When('I expand the {string} accordion', async function(name) {
+  await expandAccordion(this.page, name);
+});
+
+When('I expand {string} accordion', async function(name) {
+  await expandAccordion(this.page, name);  // Same helper
+});
+
+Then('accordion should be expanded', async function(name) {
+  await verifyExpanded(this.page, name);  // Different helper
+});
+```
+
+**Refactoring Trigger**: Extract to helper on **3rd use** (Rule of Three)
+
+---
+
+### Helper Function Organization
+
+```
+e2e/support/helpers/
+├── keyboard.helper.ts      # Alt+Click, Ctrl+Click actions
+├── upload.helper.ts        # Image upload workflow
+├── database.helper.ts      # DB queries (with SQL injection protection)
+├── accordion.helper.ts     # Accordion expand/collapse/verify
+├── wait.helper.ts          # Timing utilities
+└── validation.helper.ts    # Common assertions
+```
+
+**Each helper exports**:
+- Pure functions (no side effects)
+- Accept Page/Locator as parameters
+- Return Promise<void> or data
+- Include error handling
+- JSDoc comments
+
+---
+
+### Security Checklist for BDD Code
+
+Before committing step definitions:
+- [ ] No hard-coded credentials or secrets
+- [ ] SQL queries use whitelisted table names
+- [ ] No direct DOM manipulation (evaluateAll)
+- [ ] All external input validated
+- [ ] Environment variables have no insecure defaults
+- [ ] File paths validated (no directory traversal)
+- [ ] No secrets in console.log() statements
+
+---
+
+## 🔧 BDD TEST DEBUGGING & COMMON FIXES
+
+### Quick Diagnostic Commands
+
+```bash
+# Check for issues before running
+npm run test:bdd:dry-run                           # Find undefined/ambiguous steps
+npx tsc --noEmit --project tsconfig.e2e.json      # TypeScript errors
+
+# Run tests
+npm run test:bdd:debug:scenario "Scenario Name"    # Single test with visible browser
+npm run test:bdd:scenario "Scenario Name"          # Single test headless
+npm run test:bdd                                   # All tests
+```
+
+### Common Error Patterns & Fixes
+
+#### 1. Cucumber Crash: "Cannot read properties of null"
+**Symptom**: TypeError in Cucumber's internal code
+**Cause**: Duplicate step definition (same pattern twice in file)
+**Fix**: DELETE duplicate, search: `grep -rn "Then('pattern'" e2e/step-definitions/`
+
+#### 2. Undefined Parameter Types
+**Symptom**: "Undefined parameter types: {id}, {guid}"
+**Cause**: Cucumber doesn't recognize custom types
+**Fix**: Use `{string}` or escape: `the asset DELETE API should be called`
+
+#### 3. Cucumber Expression Parsing Error
+**Symptom**: "Alternative may not be empty" at `/` character
+**Cause**: `/` is OR operator in Cucumber Expressions
+**Fix**: Remove `/` from step text or escape: `\/`
+
+#### 4. Empty Step Implementations
+**Symptom**: Step does nothing (comment: "declarative for BDD readability")
+**Fix**: `throw new Error('NOT IMPLEMENTED: describe what needs implementing');`
+
+#### 5. Wrong Table Names
+**Symptom**: "Invalid object name 'Assets.Assets'"
+**Cause**: Schema prefix doesn't exist in DB
+**Fix**: Check migrations, use actual table names (no prefixes)
+**Tables**: `Assets`, `Users`, `Scenes`, `GameSessions` (NOT `Assets.Assets`)
+
+#### 6. Production Code Pollution
+**Symptom**: Temptation to add `data-testid` to components
+**Fix**: Use semantic selectors: `text="Add Object"`, `role="button"`, `placeholder*="Search"`
+
+#### 7. Wrong Routes
+**Symptom**: Page not found / Navigation fails
+**Fix**: Check `App.tsx` routes - Asset Library is `/assets` not `/asset-library`
+
+#### 8. Authentication Fails
+**Symptom**: 401 Unauthorized on API calls after login
+**Cause**: Hard-coded headers override login cookies
+**Fix**: Remove `extraHTTPHeaders` from world.ts, let login set cookies
+
+#### 9. Database Connection Timeout (LocalDB)
+**Symptom**: "Failed to connect to localhost\MSSQLLocalDB"
+**Cause**: `mssql` library uses TCP/IP, LocalDB needs Named Pipes
+**Fix**: Use `msnodesqlv8` library + ODBC Driver 17
+**Connection String**: `Driver={ODBC Driver 17 for SQL Server};Server=(localdb)\...;Trusted_Connection=yes;`
+
+#### 10. Hardcoded Values
+**Symptom**: Passwords, IDs in code
+**Fix**: `.env` file + validation:
+```typescript
+const password = process.env.BDD_TEST_PASSWORD;
+if (!password) throw new Error('BDD_TEST_PASSWORD not set');
+```
+
+#### 11. Context Closure Causes about:blank
+**Symptom**: Browser briefly shows page, then redirects to `about:blank`
+**Cause**: Step closes browser context, destroying the current page
+**Example:**
+```typescript
+// ❌ WRONG - Destroys page
+Given('I am not authenticated', async function() {
+  await this.context.close();  // Kills current page!
+  this.context = await this.browser.newContext();
+  this.page = await this.context.newPage();  // New blank page
+});
+```
+**Fix:** Clear auth state without closing context:
+```typescript
+// ✅ CORRECT - Keeps page alive
+Given('I am not authenticated', async function() {
+  await this.context.clearCookies();
+  await this.page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  // Page stays at current URL, just auth cleared
+});
+```
+
+#### 12. Feature File Not Found (0 scenarios)
+**Symptom**: Test runs but reports "0 scenarios, 0 steps"
+**Cause**: Feature file not in `cucumber.cjs` paths for the profile being used
+**Fix:** Add feature to both `default` and `debug` profile paths
+**Check:** `cucumber.cjs` lines 33-40 and 75-82
+
+#### 13. @anonymous Tag for Guest Tests
+**Pattern:** Use `@anonymous` tag to skip user pool acquisition for guest/unauthenticated scenarios
+**Implementation:**
+```typescript
+// In Before hook - check tags
+const isAnonymous = testCase.pickle.tags.some(tag => tag.name === '@anonymous');
+if (isAnonymous) {
+  // Skip user acquisition, init without currentUser
+  await this.init();
+  return;
+}
+```
+**Benefits:** Faster test execution, no unnecessary user creation, clearer test intent
+
+### Test Infrastructure Setup Pattern
+
+**BeforeAll** (runs once per test run):
+```typescript
+1. Cleanup orphaned test users from crashed runs
+2. Create test user pool via backend API (NOT UI registration)
+3. Store users in global array
+```
+
+**Before** (runs before each scenario):
+```typescript
+1. Acquire free user from pool (thread-safe)
+2. Initialize browser + page objects
+3. Set currentUser = pool user
+```
+
+**After** (runs after each scenario):
+```typescript
+1. Cleanup user's data (DELETE WHERE OwnerId = userId)
+2. Release user back to pool
+3. Close browser
+```
+
+**AfterAll** (runs once at end):
+```typescript
+1. Delete all test users from pool
+2. Verify cleanup complete
+```
+
+### Cleanup Query Pattern
+
+```typescript
+// Delete in foreign key order:
+DELETE FROM AssetResources WHERE AssetId IN (SELECT Id FROM Assets WHERE OwnerId = ?);
+DELETE FROM SceneAssets WHERE SceneId IN (SELECT Id FROM Scenes WHERE OwnerId = ?);
+DELETE FROM Assets WHERE OwnerId = ?;
+DELETE FROM Scenes WHERE OwnerId = ?;
+// ... more tables
+DELETE FROM Users WHERE Id = ?;
+
+// Parameters: userId repeated N times (count your DELETE statements)
+const params = Array(14).fill(userId);
+```
+
+### Step Definition Best Practices for Agents
+
+**DO:**
+- ✅ Use actual production selectors (text, roles, not data-testids)
+- ✅ Wait for conditions: `expect(locator).toBeVisible({ timeout: 10000 })`
+- ✅ Query real database for verification
+- ✅ Use real API calls
+- ✅ Extract to helpers on 3rd use
+- ✅ Parameterize steps: `When('the {string} page loads', ...)`
+- ✅ Read backend migrations to verify schema
+
+**DON'T:**
+- ❌ Call steps from other steps
+- ❌ Add data-testids to production components
+- ❌ Mock backend business logic
+- ❌ Hardcode credentials/secrets
+- ❌ Use `waitForTimeout()` (use `waitFor` conditions)
+- ❌ Assume table names (check schema)
+- ❌ Create empty placeholder steps
+
+### Systematic Fix Approach
+
+1. **Run dry-run**: Identify undefined/ambiguous steps
+2. **Run one test**: `npm run test:bdd:debug:scenario "Name"`
+3. **Watch browser**: See where it fails visually
+4. **Check console**: Read error messages
+5. **Fix root cause**: Apply pattern from this guide
+6. **Verify**: Test should pass or fail for right reason
+7. **Document new patterns**: Add to this section
+8. **Move to next**: One test at a time
+
+### Configuration Files
+
+**`.env`** (required):
+```env
+PARALLEL_WORKERS=1
+BDD_TEST_PASSWORD=<secure-password>
+DATABASE_CONNECTION_STRING=Driver={ODBC Driver 17...};
+VITE_API_URL=http://localhost:5173/api
+```
+
+**`cucumber.cjs`**: Read `PARALLEL_WORKERS` from env, not hardcoded
+
+**`package.json`**: Suppress deprecation warnings:
+```json
+"test:bdd": "cross-env NODE_OPTIONS='--disable-warning=DEP0180' cucumber-js"
+"test:bdd:debug": "cross-env DEBUG_MODE=true NODE_OPTIONS='--disable-warning=DEP0180' cucumber-js --profile debug"
+```
+
+**`tsconfig.e2e.json`**: Include Node types:
+```json
+"types": ["node", "@cucumber/cucumber", "@playwright/test"]
+```
+
+---
+
+## Integration Testing
+
+### Purpose
+
+Integration tests verify that multiple components work together correctly:
+- Frontend → Backend API
+- Backend API → Database
+- Component → Component
+- Service → Storage
+
+### Frontend Integration Tests
+
+**Framework**: Vitest + MSW (Mock Service Worker)
+
+```typescript
+// Integration test with mocked API (Component Tests)
+import { rest } from 'msw';
+import { setupServer } from 'msw/node';
+
+const server = setupServer(
+  rest.post('/api/auth/login', (req, res, ctx) => {
+    return res(ctx.status(200), ctx.json({ user: { id: '1' } }));
+  })
+);
+
+beforeAll(() => server.listen());
+afterAll(() => server.close());
+
+it('should login user and update Redux state', async () => {
+  // This is grey-box: Tests component + Redux + API (mocked)
+  const { result } = renderHook(() => useAuth(), { wrapper: ReduxProvider });
+
+  await act(() => result.current.login('user@test.com', 'pass'));
+
+  expect(result.current.user).toBeDefined();
+  expect(result.current.isAuthenticated).toBe(true);
+});
+```
+
+### Backend Integration Tests
+
+**Framework**: xUnit + In-Memory Database
+
+```csharp
+public class AssetServiceIntegrationTests {
+    private readonly ApplicationDbContext _context;
+    private readonly AssetService _service;
+
+    public AssetServiceIntegrationTests() {
+        // Use in-memory database for integration tests
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        _context = new ApplicationDbContext(options);
+        var storage = new AssetStorage(_context);
+        var mediaStorage = new InMemoryMediaStorage();
+        _service = new AssetService(storage, mediaStorage);
+    }
+
+    [Fact]
+    public async Task CreateAsset_PersistsToDatabase() {
+        // Arrange
+        var userId = Guid.CreateVersion7();
+        var data = new CreateAssetData { Name = "Test" };
+
+        // Act - Uses REAL storage layer
+        var result = await _service.CreateAssetAsync(userId, data);
+
+        // Assert - Query REAL in-memory database
+        var asset = await _context.Assets.FindAsync(result.Value!.Id);
+        asset.Should().NotBeNull();
+        asset!.Name.Should().Be("Test");
+    }
+}
+```
+
+### Database Verification in BDD
+
+```typescript
+// In BDD step definitions - query REAL database
+Then('the database should contain the asset record', async function() {
+  const asset = await this.db.queryTable('Assets', { Id: this.assetId });
+
+  expect(asset).toBeDefined();
+  expect(asset.Name).toBe('Dragon');
+  expect(asset.OwnerId).toBe(this.currentUser.id);
+  expect(asset.CreatedAt).toBeDefined();
+});
+
+Then('AssetResources table should have {int} records', async function(count) {
+  const records = await this.db.queryTable('AssetResources', {
+    AssetId: this.assetId
+  });
+  expect(records.length).toBe(count);
+});
+```
+
+---
+
+## BDD Step Definition Reusability
+
+### Rule of Three
+
+**Don't abstract until 3rd use**:
+1. First use: Write inline
+2. Second use: Add TODO comment
+3. Third use: **REFACTOR to shared helper**
+
+### Reusability Tiers
+
+**Tier 1** (20+ uses) - Create immediately:
+- `When I click {string}` (60 uses)
+- `Then I should see {string}` (80 uses)
+- `When I fill in name {string}` (35 uses)
+- Button state assertions (25 uses)
+
+**Tier 2** (10-19 uses) - Create on 2nd use:
+- Upload workflow (18 uses)
+- Keyboard shortcuts (Alt+Click, Ctrl+Click - 15 uses)
+- Accordion operations (12 uses)
+- Checkbox operations (25 uses)
+
+**Tier 3** (5-9 uses) - Wait for 3rd use
+**Tier 4** (<5 uses) - Keep inline
+
+### Directory Structure
+
+```
+Source/WebClientApp/e2e/
+├── step-definitions/
+│   ├── shared/              # Tier 1: High frequency
+│   ├── domain/              # Tier 2: Domain-specific
+│   ├── feature-specific/    # Tier 3-4: Feature-specific
+│   └── integration/         # Database/API verification
+├── page-objects/            # Page Object Model
+├── support/
+│   ├── fixtures/            # Test data builders
+│   ├── helpers/             # Utilities
+│   └── world.ts             # Cucumber World
+└── test-data/images/        # Test assets
+```
+
+### Estimated Impact
+
+**Without Reusability**:
+- 200 scenarios × 5 steps = 1,000 implementations
+- 1,000 steps × 10 lines = 10,000 lines of code
+
+**With Reusability**:
+- ~80 unique step definitions
+- ~1,700 total lines (steps + helpers + page objects)
+- **83% reduction**, **~8,300 lines saved**
+
+---
+
+## Unit Testing for Authorization Bug Diagnosis
+
+### Problem: 403 Forbidden on Asset Update
+
+**Root Cause**: Unknown - could be GUID encoding, backend decoding, or ownership comparison
+
+**Solution**: Create unit tests to isolate each layer
+
+### Frontend: GUID Encoding Test
+
+**File**: `Source/WebClientApp/src/services/enhancedBaseQuery.test.ts` (CREATE)
+
+```typescript
+describe('GUID encoding for x-user header', () => {
+  it('should match .NET Guid.ToByteArray() format', () => {
+    const guid = '019639ea-c7de-7a01-8548-41edfccde206';
+    const expectedBase64Url = '6jmWAd7HAXqFSEHt_M3iBg';
+
+    // Test mixed endianness: Data1-3 little-endian, Data4 big-endian
+    const result = encodeGuidToBase64Url(guid);
+    expect(result).toBe(expectedBase64Url);
+  });
+
+  it('should handle mixed endianness correctly', () => {
+    const guid = '01020304-0506-0708-090a-0b0c0d0e0f10';
+    const bytes = guidToByteArray(guid);
+
+    // Verify little-endian for Data1-3
+    expect(bytes[0]).toBe(0x04); // Data1: 01020304 → [04,03,02,01]
+    expect(bytes[4]).toBe(0x06); // Data2: 0506 → [06,05]
+    expect(bytes[6]).toBe(0x08); // Data3: 0708 → [08,07]
+
+    // Verify big-endian for Data4
+    expect(bytes[8]).toBe(0x09); // Data4: 090a0b... → [09,0a,...]
+  });
+});
+```
+
+### Backend: UserIdentificationHandler Test
+
+**File**: `Source/Common.UnitTests/Middlewares/UserIdentificationHandlerTests.cs` (ENHANCE)
+
+```csharp
+[Theory]
+[InlineData("019639ea-c7de-7a01-8548-41edfccde206", "6jmWAd7HAXqFSEHt_M3iBg")]
+[InlineData("0199bf66-76d7-7e4a-9398-8022839c7d80", "Zr-ZAdf2SvaSk4AiQ5x9gA")]
+public async Task RoundTrip_EncodeDecodeGuid_ReturnsOriginal(
+    string originalGuid,
+    string base64Url)
+{
+    // Verify frontend encoding matches backend decoding
+    var guid = new Guid(originalGuid);
+    var bytes = guid.ToByteArray();
+    var encoded = Base64UrlTextEncoder.Encode(bytes);
+
+    encoded.Should().Be(base64Url);
+
+    var decoded = new Guid(Base64UrlTextEncoder.Decode(base64Url));
+    decoded.Should().Be(guid);
+}
+```
+
+### Diagnostic Process
+
+1. **Run frontend encoding test** - Verifies GUID→bytes→base64url
+2. **Run backend decoding test** - Verifies base64url→bytes→GUID
+3. **Run round-trip test** - Verifies frontend ↔ backend compatibility
+4. **If all pass but 403 still occurs** - Bug is in ownership comparison logic
+
+**See**: `Documents/Areas/Assets/UNIT_TEST_RECOMMENDATIONS.md` for complete examples
+
+---
+
 **Evidence-Based Confidence**: ★★★★★ (extracted from 100+ test files, verified patterns)
 
 **Enforcement**: Code review, coverage reports
 
-**Last Updated**: 2025-10-03
+**Last Updated**: 2025-10-12
 
-**Version**: 1.0
+**Version**: 2.0 (Added BDD/E2E and Integration Testing sections)

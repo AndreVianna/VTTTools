@@ -88,9 +88,9 @@ export const SceneRecoveryManager: React.FC<{
 
   const [recoverySnapshots, setRecoverySnapshots] = useState<RecoverySnapshot[]>([]);
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
-  const [currentTime, setCurrentTime] = useState(() => Date.now());
+  const [currentTime, setCurrentTime] = useState(Date.now());
   const lastSaveDataRef = useRef<string>('');
-  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Update current time every 10 seconds for timestamp display
   useEffect(() => {
@@ -485,7 +485,6 @@ const SceneRecoveryStatusBar: React.FC<SceneRecoveryStatusBarProps> = ({
 
       {autoSaveState.isAutoSaving && (
         <LinearProgress
-          size={16}
           sx={{ width: 60, height: 2, borderRadius: 1 }}
         />
       )}

@@ -1,4 +1,5 @@
 using Asset = VttTools.Data.Assets.Entities.Asset;
+using AssetResource = VttTools.Data.Assets.Entities.AssetResource;
 using CreatureAsset = VttTools.Data.Assets.Entities.CreatureAsset;
 using ObjectAsset = VttTools.Data.Assets.Entities.ObjectAsset;
 
@@ -19,20 +20,30 @@ internal static class AssetSchemaBuilder {
             entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
 
-            // Configure AssetResources collection (owned collection stored as JSON)
-            // Note: Resource navigation property must be loaded explicitly in service layer
-            // because EF Core doesn't support navigations to regular entities from JSON-owned types
-            entity.OwnsMany(e => e.Resources, resources => {
-                resources.ToJson("Resources");
-                resources.Property(r => r.ResourceId).IsRequired();
-                resources.Property(r => r.Role).IsRequired().HasConversion<int>();
-                resources.Ignore(r => r.Resource);  // Ignore navigation - loaded separately
-            });
+            // Configure many-to-many relationship through AssetResources join table
+            entity.HasMany(e => e.Resources)
+                .WithOne(ar => ar.Asset)
+                .HasForeignKey(ar => ar.AssetId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Configure TPH discriminator
             entity.HasDiscriminator<AssetKind>("Kind")
                 .HasValue<ObjectAsset>(AssetKind.Object)
                 .HasValue<CreatureAsset>(AssetKind.Creature);
+        });
+
+        // Configure AssetResource join table
+        builder.Entity<AssetResource>(entity => {
+            entity.ToTable("AssetResources");
+            entity.HasKey(ar => new { ar.AssetId, ar.ResourceId });  // Composite primary key
+
+            entity.Property(ar => ar.Role).IsRequired().HasConversion<int>();
+
+            // Relationship to Resource (many AssetResources can reference one Resource)
+            entity.HasOne(ar => ar.Resource)
+                .WithMany()
+                .HasForeignKey(ar => ar.ResourceId)
+                .OnDelete(DeleteBehavior.Restrict);  // Don't cascade delete resources when asset deleted
         });
 
         // Configure ObjectAsset with JSON properties

@@ -53,7 +53,7 @@ export const FormValidation: React.FC<FormValidationProps> = ({
   const errorList = React.useMemo(() => {
     return Object.entries(errors).map(([field, error]) => ({
       field,
-      message: getErrorMessage(error),
+      message: getErrorMessage(error as FieldError),
       type: 'error' as const,
     }));
   }, [errors]);
@@ -156,7 +156,7 @@ const DetailedFormValidation: React.FC<{
             <ValidationErrorItem
               key={index}
               error={error}
-              isTouched={touched[error.field]}
+              {...(touched[error.field] !== undefined ? { isTouched: touched[error.field] } : {})}
             />
           ))}
         </Box>
@@ -198,7 +198,6 @@ const ValidationErrorItem: React.FC<{
     <Alert
       severity={getSeverityColor()}
       variant="outlined"
-      size="small"
       icon={getSeverityIcon()}
       role="alert"
       aria-live="polite"

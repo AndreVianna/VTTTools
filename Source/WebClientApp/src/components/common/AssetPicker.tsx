@@ -65,7 +65,7 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
     // Fetch assets from API with optional kind filter
-    const { data: allAssets, isLoading, error } = useGetAssetsQuery({ kind });
+    const { data: allAssets, isLoading, error } = useGetAssetsQuery(kind ? { kind } : {});
 
     // Filter assets by search query
     const filteredAssets = useMemo(() => {

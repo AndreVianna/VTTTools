@@ -140,12 +140,6 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
     onComplete?.();
   };
 
-  const _steps = [
-    'Install Authenticator App',
-    'Scan QR Code & Verify',
-    'Save Recovery Codes'
-  ];
-
   if (!setupData) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -265,12 +259,12 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
                   setVerificationCode(value);
                   // Clear validation error when user starts typing
                   if (validationErrors.verificationCode) {
-                    setValidationErrors(prev => ({ ...prev, verificationCode: undefined }));
+                    setValidationErrors({});
                   }
                 }
               }}
               error={!!validationErrors.verificationCode}
-              helperText={validationErrors.verificationCode}
+              helperText={validationErrors.verificationCode || ''}
               disabled={isLoading}
               margin="normal"
               autoComplete="one-time-code"

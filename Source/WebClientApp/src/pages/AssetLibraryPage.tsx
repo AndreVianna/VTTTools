@@ -33,7 +33,7 @@ import {
     Category as CategoryIcon
 } from '@mui/icons-material';
 import { useGetAssetsQuery } from '@/services/assetsApi';
-import { Asset, AssetKind, CreatureCategory } from '@/types/domain';
+import { Asset, AssetKind, CreatureCategory, CreatureAsset, ObjectAsset } from '@/types/domain';
 import { AssetFilterPanel, AssetFilters, AssetSearchBar, AssetPreviewDialog, AssetCreateDialog } from '@/components/assets';
 import { useDebounce } from '@/hooks/useDebounce';
 import { getFirstTokenResource, getResourceUrl } from '@/utils/assetHelpers';
@@ -54,8 +54,6 @@ export const AssetLibraryPage: React.FC = () => {
 
     // Comprehensive filter state
     const [filters, setFilters] = useState<AssetFilters>({
-        kind: undefined, // Set from selectedKind
-        creatureCategory: undefined,
         showMine: true,
         showOthers: true,
         showPublic: true,
@@ -410,12 +408,12 @@ export const AssetLibraryPage: React.FC = () => {
                                     <CardContent sx={{ pt: 1, pb: 1, flexGrow: 1 }}>
                                         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', minHeight: '24px' }}>
                                             {/* Creature Category Badge (only for Creatures) */}
-                                            {asset.kind === AssetKind.Creature && 'creatureProps' in asset && (
+                                            {asset.kind === AssetKind.Creature && (asset as CreatureAsset).creatureProps && (
                                                 <Chip
-                                                    label={asset.creatureProps.category}
+                                                    label={(asset as CreatureAsset).creatureProps.category}
                                                     size="small"
                                                     sx={{
-                                                        bgcolor: getCreatureCategoryColor(asset.creatureProps.category),
+                                                        bgcolor: getCreatureCategoryColor((asset as CreatureAsset).creatureProps.category),
                                                         color: 'white',
                                                         fontSize: '0.7rem'
                                                     }}
@@ -438,10 +436,10 @@ export const AssetLibraryPage: React.FC = () => {
                                     {/* Card Actions */}
                                     <CardActions sx={{ pt: 0, px: 2, pb: 2 }}>
                                         <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
-                                            {asset.kind === AssetKind.Object && 'objectProps' in asset
-                                                ? `${asset.objectProps.size.width}×${asset.objectProps.size.height} cells`
-                                                : asset.kind === AssetKind.Creature && 'creatureProps' in asset
-                                                    ? `${asset.creatureProps.size.width}×${asset.creatureProps.size.width} cells`
+                                            {asset.kind === AssetKind.Object && (asset as ObjectAsset).objectProps
+                                                ? `${(asset as ObjectAsset).objectProps.size.width}×${(asset as ObjectAsset).objectProps.size.height} cells`
+                                                : asset.kind === AssetKind.Creature && (asset as CreatureAsset).creatureProps
+                                                    ? `${(asset as CreatureAsset).creatureProps.size.width}×${(asset as CreatureAsset).creatureProps.size.width} cells`
                                                     : ''
                                             }
                                         </Typography>

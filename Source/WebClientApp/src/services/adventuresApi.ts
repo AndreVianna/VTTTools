@@ -23,7 +23,7 @@ export const adventuresApi = createApi({
 
     getAdventure: builder.query<Adventure, string>({
       query: (id) => `/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Adventure', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Adventure', id }],
     }),
 
     // Create adventure using existing CreateAdventureRequest from Domain.Library.Adventures.ApiContracts
@@ -43,7 +43,7 @@ export const adventuresApi = createApi({
         method: 'PUT',
         body: request, // Matches existing C# contract exactly
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Adventure', id }],
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'Adventure', id }],
     }),
 
     deleteAdventure: builder.mutation<void, string>({
@@ -72,7 +72,7 @@ export const adventuresApi = createApi({
 
     getScene: builder.query<Scene, { adventureId: string; sceneId: string }>({
       query: ({ adventureId, sceneId }) => `/${adventureId}/scenes/${sceneId}`,
-      providesTags: (result, error, { sceneId }) => [{ type: 'Scene', id: sceneId }],
+      providesTags: (_result, _error, { sceneId }) => [{ type: 'Scene', id: sceneId }],
     }),
 
     createScene: builder.mutation<Scene, { adventureId: string; request: CreateSceneRequest }>({
@@ -94,7 +94,7 @@ export const adventuresApi = createApi({
         method: 'PUT',
         body: request, // Uses existing Domain.Library.Scenes.ApiContracts
       }),
-      invalidatesTags: (result, error, { sceneId }) => [{ type: 'Scene', id: sceneId }],
+      invalidatesTags: (_result, _error, { sceneId }) => [{ type: 'Scene', id: sceneId }],
     }),
 
     deleteScene: builder.mutation<void, { adventureId: string; sceneId: string }>({

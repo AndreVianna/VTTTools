@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": [
+        "node",
+        "@types/mssql",
+        "@cucumber/cucumber",
+        "@playwright/test"
+    ]
+  },
+  "include": [
+    "e2e/**/*.ts"
+  ],
+  "exclude": []
+}

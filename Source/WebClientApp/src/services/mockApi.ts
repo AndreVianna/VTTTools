@@ -4,6 +4,12 @@
  */
 
 import { MOCK_DATA, devUtils } from '@/config/development';
+import {
+  AssetKind,
+  CreatureCategory,
+  TokenShape,
+  AdventureType
+} from '@/types/domain';
 import type {
   User,
   LoginRequest,
@@ -12,6 +18,9 @@ import type {
   RegisterResponse,
   Adventure,
   Asset,
+  AssetResource,
+  CreatureAsset,
+  ObjectAsset,
   GameSession,
   MediaResource
 } from '@/types/domain';
@@ -57,7 +66,27 @@ export class MockApiService {
     devUtils.log('Mock get current user called');
     await delay(MOCK_DELAY);
 
-    return MOCK_DATA.user;
+    // Build user object omitting undefined optional properties
+    const user = MOCK_DATA.user;
+    const result: User = {
+      id: user.id,
+      email: user.email,
+      userName: user.userName,
+      emailConfirmed: user.emailConfirmed,
+      phoneNumberConfirmed: user.phoneNumberConfirmed,
+      twoFactorEnabled: user.twoFactorEnabled,
+      lockoutEnabled: user.lockoutEnabled,
+      accessFailedCount: user.accessFailedCount,
+      createdAt: user.createdAt
+    };
+
+    // Only include optional properties if they have values
+    if (user.phoneNumber) result.phoneNumber = user.phoneNumber;
+    if (user.lockoutEnd) result.lockoutEnd = user.lockoutEnd;
+    if (user.lastLoginAt) result.lastLoginAt = user.lastLoginAt;
+    if (user.profilePictureUrl) result.profilePictureUrl = user.profilePictureUrl;
+
+    return result;
   }
 
   async mockLogout(): Promise<void> {
@@ -75,11 +104,10 @@ export class MockApiService {
         id: 'mock-adventure-1',
         name: 'Demo Adventure',
         description: 'A mock adventure for development',
-        type: 'OneShot' as const,
-        campaignId: undefined,
-        backgroundId: undefined,
+        type: AdventureType.OneShot,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
+        // campaignId and backgroundId are optional, omit them
       }
     ];
   }
@@ -89,79 +117,127 @@ export class MockApiService {
     devUtils.log('Mock get assets called');
     await delay(MOCK_DELAY);
 
-    return [
-      // Active Assets - Entities
+    // Helper to create mock resources
+    const createMockResource = (): AssetResource[] => [
+      {
+        resourceId: crypto.randomUUID(),
+        role: 1, // Token role
+      }
+    ];
+
+    const creatureAssets: CreatureAsset[] = [
+      // Creature Assets - Character
       {
         id: 'mock-asset-1',
-        type: 'Character' as const,
-        category: 'Active' as const,
+        ownerId: 'mock-owner',
+        kind: AssetKind.Creature,
         name: 'Hero Character',
         description: 'A playable hero character',
-        displayId: undefined,
-        imageUrl: 'https://via.placeholder.com/100/4CAF50/FFFFFF?text=Hero',
+        isPublished: true,
+        isPublic: true,
+        resources: createMockResource(),
+        creatureProps: {
+          size: { width: 1, height: 1, isSquare: true },
+          category: CreatureCategory.Character,
+          tokenStyle: { shape: TokenShape.Circle }
+        },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
       {
         id: 'mock-asset-2',
-        type: 'Monster' as const,
-        category: 'Active' as const,
+        ownerId: 'mock-owner',
+        kind: AssetKind.Creature,
         name: 'Goblin',
         description: 'A hostile goblin enemy',
-        displayId: undefined,
-        imageUrl: 'https://via.placeholder.com/100/F44336/FFFFFF?text=Goblin',
+        isPublished: true,
+        isPublic: true,
+        resources: createMockResource(),
+        creatureProps: {
+          size: { width: 1, height: 1, isSquare: true },
+          category: CreatureCategory.Monster,
+          tokenStyle: { shape: TokenShape.Circle }
+        },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      },
+      }
+    ];
 
-      // Passive Assets - Objects
+    const objectAssets: ObjectAsset[] = [
+      // Object Assets - Items
       {
         id: 'mock-asset-3',
-        type: 'Item' as const,
-        category: 'Passive' as const,
+        ownerId: 'mock-owner',
+        kind: AssetKind.Object,
         name: 'Wooden Crate',
         description: 'A moveable wooden crate',
-        displayId: undefined,
-        imageUrl: 'https://via.placeholder.com/100/795548/FFFFFF?text=Crate',
+        isPublished: true,
+        isPublic: true,
+        resources: createMockResource(),
+        objectProps: {
+          size: { width: 1, height: 1, isSquare: true },
+          isMovable: true,
+          isOpaque: false
+        },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
       {
         id: 'mock-asset-4',
-        type: 'Item' as const,
-        category: 'Passive' as const,
+        ownerId: 'mock-owner',
+        kind: AssetKind.Object,
         name: 'Treasure Chest',
         description: 'A chest containing loot',
-        displayId: undefined,
-        imageUrl: 'https://via.placeholder.com/100/FFC107/FFFFFF?text=Chest',
+        isPublished: true,
+        isPublic: true,
+        resources: createMockResource(),
+        objectProps: {
+          size: { width: 1, height: 1, isSquare: true },
+          isMovable: true,
+          isOpaque: false
+        },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
 
-      // Static Assets - Structures
+      // Object Assets - Environment/Structures
       {
         id: 'mock-asset-5',
-        type: 'Environment' as const,
-        category: 'Static' as const,
+        ownerId: 'mock-owner',
+        kind: AssetKind.Object,
         name: 'Stone Wall',
         description: 'An immovable stone wall segment',
-        displayId: undefined,
-        imageUrl: 'https://via.placeholder.com/100/9E9E9E/FFFFFF?text=Wall',
+        isPublished: true,
+        isPublic: true,
+        resources: createMockResource(),
+        objectProps: {
+          size: { width: 1, height: 1, isSquare: true },
+          isMovable: false,
+          isOpaque: true
+        },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
       {
         id: 'mock-asset-6',
-        type: 'Environment' as const,
-        category: 'Static' as const,
+        ownerId: 'mock-owner',
+        kind: AssetKind.Object,
         name: 'Wooden Door',
         description: 'A locked structural door',
-        displayId: undefined,
-        imageUrl: 'https://via.placeholder.com/100/8D6E63/FFFFFF?text=Door',
+        isPublished: true,
+        isPublic: true,
+        resources: createMockResource(),
+        objectProps: {
+          size: { width: 1, height: 1, isSquare: true },
+          isMovable: false,
+          isOpaque: true
+        },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
     ];
+
+    return [...creatureAssets, ...objectAssets];
   }
 
   // Game Sessions Mock Responses

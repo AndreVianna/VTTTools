@@ -9,9 +9,69 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolk
 import { devUtils, isDevelopment } from '@/config/development';
 
 // Enhanced error type that includes network status
-interface EnhancedError extends FetchBaseQueryError {
+interface EnhancedError {
+  status: FetchBaseQueryError['status'];
+  data?: unknown;
+  error?: string;
   isNetworkError?: boolean;
   isCorsError?: boolean;
+}
+
+/**
+ * Convert GUID string to byte array matching .NET Guid.ToByteArray() format
+ * .NET uses mixed endianness:
+ * - Data1 (4 bytes): little-endian
+ * - Data2 (2 bytes): little-endian
+ * - Data3 (2 bytes): little-endian
+ * - Data4 (8 bytes): big-endian
+ *
+ * Exported for unit testing
+ */
+export function guidToByteArray(guidString: string): Uint8Array {
+  const parts = guidString.split('-');
+
+  if (parts.length !== 5) {
+    throw new Error(`Invalid GUID format: ${guidString}`);
+  }
+
+  const bytes = new Uint8Array(16);
+
+  // Data1 (4 bytes) - little endian
+  const data1 = parseInt(parts[0] || '0', 16);
+  bytes[0] = data1 & 0xFF;
+  bytes[1] = (data1 >> 8) & 0xFF;
+  bytes[2] = (data1 >> 16) & 0xFF;
+  bytes[3] = (data1 >> 24) & 0xFF;
+
+  // Data2 (2 bytes) - little endian
+  const data2 = parseInt(parts[1] || '0', 16);
+  bytes[4] = data2 & 0xFF;
+  bytes[5] = (data2 >> 8) & 0xFF;
+
+  // Data3 (2 bytes) - little endian
+  const data3 = parseInt(parts[2] || '0', 16);
+  bytes[6] = data3 & 0xFF;
+  bytes[7] = (data3 >> 8) & 0xFF;
+
+  // Data4 (8 bytes) - big endian
+  const data4 = (parts[3] || '') + (parts[4] || '');
+  for (let i = 0; i < 8; i++) {
+    bytes[8 + i] = parseInt(data4.substring(i * 2, i * 2 + 2), 16);
+  }
+
+  return bytes;
+}
+
+/**
+ * Encode GUID to base64url for x-user header
+ * Base64url: base64 encoding with URL-safe characters (no padding)
+ *
+ * Exported for unit testing
+ */
+export function encodeGuidToBase64Url(guidString: string): string {
+  const bytes = guidToByteArray(guidString);
+  const base64 = btoa(String.fromCharCode(...bytes));
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
 // Create a base query with enhanced error handling
@@ -23,7 +83,7 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
   const baseQuery = fetchBaseQuery({
     baseUrl,
     credentials: 'include',
-    prepareHeaders: (headers, { getState, _endpoint }) => {
+    prepareHeaders: (headers, { getState }) => {
       // Don't set Content-Type - let fetchBaseQuery handle it automatically
       // fetchBaseQuery will set application/json for objects, multipart/form-data for FormData
       headers.set('X-Requested-With', 'XMLHttpRequest');
@@ -37,38 +97,8 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
       }
 
       if (user?.id) {
-        // Convert GUID string to bytes matching .NET Guid.ToByteArray() format
-        // .NET uses mixed endianness: first 3 components little-endian, last 2 big-endian
-        const parts = user.id.split('-');
-        const bytes = new Uint8Array(16);
-
-        // Data1 (4 bytes) - little endian
-        const data1 = parseInt(parts[0], 16);
-        bytes[0] = data1 & 0xFF;
-        bytes[1] = (data1 >> 8) & 0xFF;
-        bytes[2] = (data1 >> 16) & 0xFF;
-        bytes[3] = (data1 >> 24) & 0xFF;
-
-        // Data2 (2 bytes) - little endian
-        const data2 = parseInt(parts[1], 16);
-        bytes[4] = data2 & 0xFF;
-        bytes[5] = (data2 >> 8) & 0xFF;
-
-        // Data3 (2 bytes) - little endian
-        const data3 = parseInt(parts[2], 16);
-        bytes[6] = data3 & 0xFF;
-        bytes[7] = (data3 >> 8) & 0xFF;
-
-        // Data4 (8 bytes) - big endian
-        const data4 = parts[3] + parts[4];
-        for (let i = 0; i < 8; i++) {
-          bytes[8 + i] = parseInt(data4.substr(i * 2, 2), 16);
-        }
-
-        // Convert to base64URL (base64 with URL-safe characters)
-        const base64 = btoa(String.fromCharCode(...bytes));
-        const base64Url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-
+        // Use extracted function for testability
+        const base64Url = encodeGuidToBase64Url(user.id);
         headers.set('x-user', base64Url);
 
         if (isDevelopment) {
@@ -92,7 +122,18 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
       }
 
       // Handle error cases
-      const error = result.error as EnhancedError;
+      const fetchError = result.error as FetchBaseQueryError;
+      const enhancedError: EnhancedError = {
+        status: fetchError.status,
+        data: fetchError.data
+      };
+
+      // Only add error property if it exists
+      if ('error' in fetchError) {
+        enhancedError.error = String(fetchError.error);
+      }
+
+      const error = enhancedError;
 
       // Detect network errors
       if (error.status === 'FETCH_ERROR' || error.status === 'TIMEOUT_ERROR') {
@@ -123,7 +164,7 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
         };
       }
 
-      return result;
+      return { error };
     } catch (unexpectedError) {
       devUtils.error('Unexpected error in base query', unexpectedError);
 
@@ -135,7 +176,7 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
             isRecoverable: isDevelopment
           },
           error: String(unexpectedError)
-        }
+        } as EnhancedError
       };
     }
   };

@@ -50,16 +50,21 @@ export const AssetFilterPanel: React.FC<AssetFilterPanelProps> = ({
     onFiltersChange
 }) => {
     const handleResetFilters = () => {
-        onFiltersChange({
-            ...filters, // Keep kind (controlled by Tabs in parent)
-            creatureCategory: undefined,
+        const resetFilters: AssetFilters = {
             showMine: true,
             showOthers: true,
             showPublic: true,
             showPrivate: true,
             showPublished: true,
             showDraft: true
-        });
+        };
+
+        // Keep kind if present (controlled by Tabs in parent)
+        if (filters.kind !== undefined) {
+            resetFilters.kind = filters.kind;
+        }
+
+        onFiltersChange(resetFilters);
     };
 
     const hasActiveFilters =

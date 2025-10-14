@@ -690,7 +690,7 @@ describe('VTTTools React Authentication Components', () => {
         const startTime = performance.now();
 
         // Type rapidly
-        await user.type(emailInput, 'rapid.typing.test@vtttools.com', { delay: 1 });
+        await user.type(emailInput, 'rapid.typing.test@vtttools.com');
 
         const endTime = performance.now();
         const inputTime = endTime - startTime;

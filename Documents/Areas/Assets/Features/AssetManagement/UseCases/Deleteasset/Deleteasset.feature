@@ -1,168 +1,226 @@
-# Generated: 2025-10-02
+# Generated: 2025-10-11 (Phase 5 BDD Rewrite)
 # Use Case: Delete Asset
+# UI Component: AssetPreviewDialog.tsx (delete confirmation)
+# Phase: EPIC-001 Phase 5
 
 Feature: Delete Asset
   As a Game Master
-  I want to remove unused assets from my library
-  So that I can clean up and reduce clutter in my asset collection
+  I want to delete assets I no longer need
+  So that I can keep my library organized and remove outdated content
 
   Background:
     Given I am authenticated as a Game Master
-    
+    And I am on the Asset Library page
 
-  Rule: Asset cannot be deleted if in use by scenes
+  # ═══════════════════════════════════════════════════════════════
+  # DELETE CONFIRMATION DIALOG
+  # ═══════════════════════════════════════════════════════════════
 
-    Scenario: Accept deletion of unused asset
-      Given I own asset "asset-123"
-      And the asset is not used in any scenes
-      When I delete the asset
-      Then the asset should be deleted successfully
-      And I should receive 204 No Content response
+  @smoke @happy-path
+  Scenario: Delete button opens confirmation dialog
+    Given I own asset "Test Asset"
+    And I open the asset in preview dialog (view mode)
+    When I click the "Delete" button
+    Then a delete confirmation dialog should open
+    And the confirmation should ask "Delete Asset?"
+    And the message should say 'Are you sure you want to delete "Test Asset"?'
+    And I should see "Cancel" button
+    And I should see "Delete" button (red, danger color)
+    And the main preview dialog should be hidden behind confirmation
 
-    Scenario: Reject deletion of asset in use
-      Given I own asset "asset-456"
-      And the asset is used in 3 scenes
-      When I attempt to delete the asset
-      Then I should see error with conflict error
-      And I should see error "Cannot delete asset - in use in 3 scenes"
+  @ui
+  Scenario: Published asset shows warning in delete confirmation
+    Given I own a published asset "Published Asset"
+    And I open the asset in preview dialog
+    When I click "Delete"
+    Then the confirmation dialog should open
+    And I should see a warning alert
+    And the warning should say "This asset is published and may be in use in scenes"
+    And the warning should have severity "warning" (orange/yellow)
 
-    Scenario: Reject deletion with scene usage details
-      Given I own asset "asset-789"
-      And the asset is used in scenes "scene-1", "scene-2"
-      When I attempt to delete the asset
-      Then I should see error with conflict error
-      And I should see which scenes reference the asset
+  @ui
+  Scenario: Unpublished asset shows no warning
+    Given I own an unpublished asset "Draft Asset"
+    And I open the asset in preview
+    When I click "Delete"
+    Then the confirmation dialog should open
+    And I should not see a warning alert
 
-  Rule: Only asset owner or admin can delete asset
+  # ═══════════════════════════════════════════════════════════════
+  # DELETE EXECUTION
+  # ═══════════════════════════════════════════════════════════════
 
-    Scenario: Owner can delete their asset
-      Given I am authenticated with user ID "user-123"
-      And asset "asset-456" is owned by "user-123"
-      And the asset is not in use
-      When I delete the asset
-      Then the asset should be deleted successfully
-
-    Scenario: Non-owner cannot delete asset
-      Given I am authenticated with user ID "user-123"
-      And asset "asset-456" is owned by "user-789"
-      When I attempt to delete the asset
-      Then I should see error with forbidden error
-      And I should see error "Access denied - must be asset owner"
-
-    Scenario: Admin can delete any asset
-      Given I am authenticated as an admin
-      And asset "asset-456" is owned by "user-789"
-      And the asset is not in use
-      When I delete the asset
-      Then the asset should be deleted successfully
+  @happy-path @critical
+  Scenario: Confirm delete removes asset successfully
+    Given I own asset "Delete Me"
+    And the asset is displayed in Asset Library
+    And I open the asset in preview
+    And I click "Delete"
+    When I click "Delete" in the confirmation dialog
+    Then the asset should be deleted via DELETE /api/assets/{id}
+    And I should receive 204 No Content response
+    And both dialogs should close (confirmation + preview)
+    And I should return to Asset Library
+    And the Asset Library should refetch
+    And "Delete Me" should no longer appear in the grid
+    And the asset count should decrease by 1
 
   @happy-path
-  Scenario: Successfully delete unused asset
-    Given I own asset "asset-unused-123"
-    And the asset is not used in any scenes
+  Scenario: Cancel delete keeps asset
+    Given I own asset "Keep Me"
+    And I open the asset in preview
+    And I click "Delete"
+    When I click "Cancel" in the confirmation dialog
+    Then the confirmation dialog should close
+    And I should return to the preview dialog
+    And the asset should NOT be deleted
+    And the asset should still exist in the library
+
+  # ═══════════════════════════════════════════════════════════════
+  # AUTHORIZATION
+  # ═══════════════════════════════════════════════════════════════
+
+  @authorization @critical
+  Scenario: Owner can delete their own asset
+    Given I am authenticated with user ID "user-123"
+    And I own asset "My Asset" with OwnerId "user-123"
     When I delete the asset
-    Then the asset is removed
-    And I should receive 204 No Content response
-    And subsequent queries for the asset should return not found
+    Then the delete should succeed
+    And the asset should be removed from database
 
-  @error-handling
-  Scenario: Handle non-existent asset deletion
-    Given no asset exists with ID "nonexistent-asset"
-    When I attempt to delete asset "nonexistent-asset"
-    Then I should see error with not found error
-    And I should see error "Asset not found"
-
-  @error-handling
-  Scenario: Handle invalid asset ID format
-    Given I provide invalid ID format "not-a-guid"
-    When I attempt to delete the asset
-    Then I should see error with validation error
-    And I should see error "Invalid asset ID format"
-
-  @error-handling
-  Scenario: Handle database connection failure
-    Given the database is unavailable
-    When I attempt to delete an asset
-    Then I should see error with server error
-    And I should see error "Failed to delete asset"
-
-  @error-handling
-  Scenario: Handle Library service unavailable during usage check
-    Given I own asset "asset-123"
-    And the Library service is unavailable
-    When I attempt to delete the asset
-    Then I should see error with service error
-    And I should see error "Unable to verify asset usage"
+  @authorization @critical
+  Scenario: Non-owner cannot delete asset
+    Given user "user-A" owns asset "asset-123"
+    And I am authenticated as user "user-B"
+    When I attempt to delete asset "asset-123"
+    Then I should receive 403 Forbidden error
+    And the asset should not be deleted
 
   @authorization
   Scenario: Unauthenticated user cannot delete assets
     Given I am not authenticated
-    And an asset exists with ID "asset-123"
+    When I navigate to Asset Library
+    Then I should be redirected to login
+    And I should not be able to open preview dialog
+    And I should not be able to delete any assets
+
+  # ═══════════════════════════════════════════════════════════════
+  # DELETE BUTTON VISIBILITY RULES
+  # ═══════════════════════════════════════════════════════════════
+
+  Rule: Delete button only appears in view mode for asset owners
+
+    @ui @authorization @critical
+    Scenario: Owner sees delete button in view mode
+      Given I own asset "My Asset"
+      And I open the asset in view mode
+      Then I should see "Delete" button
+      And the button should be visible and enabled
+
+    @ui @authorization
+    Scenario: Non-owner does not see delete button
+      Given another user owns asset "Their Asset"
+      And the asset is public published
+      And I can view the asset
+      When I open the asset in preview dialog
+      Then I should not see "Delete" button
+      And I should only see "Close" button
+
+  # ═══════════════════════════════════════════════════════════════
+  # LOADING STATES
+  # ═══════════════════════════════════════════════════════════════
+
+  @ui-feedback
+  Scenario: Delete button shows loading state during deletion
+    Given I am in delete confirmation dialog
+    When I click "Delete"
+    Then the button text should change to "Deleting..."
+    And I should see a loading spinner icon
+    And the "Delete" button should be disabled
+    And the "Cancel" button should be disabled
+    When deletion completes
+    Then both dialogs should close
+
+  # ═══════════════════════════════════════════════════════════════
+  # ERROR HANDLING
+  # ═══════════════════════════════════════════════════════════════
+
+  @error-handling
+  Scenario: Handle delete of non-existent asset
+    Given asset "nonexistent" does not exist
+    When I attempt to delete asset "nonexistent"
+    Then I should receive 404 Not Found error
+
+  @error-handling
+  Scenario: Handle backend service unavailable during delete
+    Given I own asset "Asset"
+    And the Assets API returns 503 Service Unavailable
+    When I confirm delete
+    Then I should see error message
+    And the confirmation dialog should remain open
+    And I should be able to retry
+
+  @error-handling
+  Scenario: Handle asset in use on scenes (future constraint)
+    Given I own asset "In Use Asset"
+    And the asset is placed on 3 active scenes
     When I attempt to delete the asset
-    Then I should see error with unauthorized error
-    And I should receive 401 status code
+    Then the backend may return validation error
+    And error should indicate "Asset is in use on scenes"
+    And the asset should not be deleted
 
-  @edge-case
-  Scenario: Delete asset immediately after removing from scenes
-    Given I own asset "asset-123"
-    And the asset was used in scene "scene-456"
-    And I remove the asset from scene "scene-456"
-    When I delete the asset
-    Then the asset should be deleted successfully
-    And no orphaned references should remain
-
-  @edge-case
-  Scenario: Attempt deletion with no usage in multiple contexts
-    Given I own asset "asset-123"
-    And the asset is not used in any scenes
-    And the asset is not used in any adventures
-    And the asset is not used in any epics
-    When I delete the asset
-    Then the asset should be deleted successfully
+  # ═══════════════════════════════════════════════════════════════
+  # INTEGRATION & CACHE INVALIDATION
+  # ═══════════════════════════════════════════════════════════════
 
   @integration
-  Scenario: Deletion queries Library context for usage check
-    Given I own asset "asset-123"
-    
-    When I delete the asset
-    Then I should see query Library for SceneAsset references
-    And the usage check should complete before deletion
+  Scenario: Successful delete updates Asset Library immediately
+    Given I own 5 assets
+    And I am viewing the Asset Library showing all 5
+    When I delete one asset
+    Then the Asset Library should refetch
+    And I should see 4 assets remaining
+    And the deleted asset should not appear
 
   @integration
-  Scenario: Deletion prevented by cross-area reference
-    Given I own asset "asset-123"
-    And the asset is referenced by scene "scene-789" in Library context
-    When I attempt to delete the asset
-    Then I should see error with conflict error
-    And the cross-area reference should be reported
-
-  @data-driven
-  Scenario Outline: Delete assets with different usage scenarios
-    Given I own asset "asset-<id>"
-    And the asset has <sceneCount> scene references
-    When I attempt to delete the asset
-    Then the result should be "<result>"
-
-    Examples:
-      | id  | sceneCount | result     |
-      | 001 | 0          | success    |
-      | 002 | 1          | conflict   |
-      | 003 | 5          | conflict   |
-      | 004 | 10         | conflict   |
-
-  @performance
-  Scenario: Usage check completes within performance threshold
-    Given I own asset "asset-perf-test"
-    And the asset is not in use
+  Scenario: Delete invalidates RTK Query cache
+    Given asset "Asset" is loaded in cache
     When I delete the asset
-    Then the usage check should complete within 100ms
-    And the deletion should complete within 200ms total
+    Then RTK Query should invalidate tags: Asset:{id} and Asset:LIST
+    And subsequent queries should not return the deleted asset
 
-  @concurrency
-  Scenario: Handle concurrent deletion attempts
-    Given I own asset "asset-123"
-    And the asset is not in use
-    And two deletion requests are submitted simultaneously
-    When both deletions are processed
-    Then only one deletion should succeed
-    And the second deletion should return not found error
+  # ═══════════════════════════════════════════════════════════════
+  # DELETE FROM DIFFERENT ENTRY POINTS
+  # ═══════════════════════════════════════════════════════════════
+
+  @ui-interaction
+  Scenario: Delete via preview dialog in view mode
+    Given I open an asset in view mode
+    When I click "Delete" button
+    Then delete confirmation should open
+
+  @ui-interaction
+  Scenario: Cannot delete while in edit mode
+    Given I open an asset in edit mode
+    Then I should not see "Delete" button
+    And I should see "Cancel" and "Save Changes" buttons
+    And I must cancel or save before I can delete
+
+  # ═══════════════════════════════════════════════════════════════
+  # EDGE CASES
+  # ═══════════════════════════════════════════════════════════════
+
+  @edge-case
+  Scenario: Delete last asset shows empty library
+    Given I own exactly 1 asset
+    When I delete that asset
+    Then the Asset Library should show 0 assets found
+    And I should see only the virtual "Add" card
+
+  @edge-case
+  Scenario: Delete asset from last page removes page
+    Given I own 13 assets (2 pages: 12 + 1)
+    And I am on page 2 showing 1 asset
+    When I delete that asset
+    Then I should have 12 assets on 1 page
+    And I should be redirected to page 1

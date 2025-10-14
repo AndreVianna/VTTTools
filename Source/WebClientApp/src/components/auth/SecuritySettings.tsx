@@ -25,7 +25,7 @@ import {
   Password,
   Close,
   CheckCircle,
-  Error,
+  Error as ErrorIcon,
 } from '@mui/icons-material';
 import { useAuth } from '@/hooks/useAuth';
 import { TwoFactorSetupForm } from './TwoFactorSetupForm';
@@ -82,7 +82,7 @@ export const SecuritySettings: React.FC = () => {
   const passwordStrength = getPasswordStrength(passwordData.newPassword);
 
   const validatePasswordChange = (): boolean => {
-    const errors: typeof validationErrors = {};
+    const errors: Record<string, string> = {};
 
     if (!passwordData.currentPassword) {
       errors.currentPassword = 'Current password is required';
@@ -105,7 +105,7 @@ export const SecuritySettings: React.FC = () => {
   };
 
   const validateDisablePassword = (): boolean => {
-    const errors: typeof validationErrors = {};
+    const errors: Record<string, string> = {};
 
     if (!disablePassword) {
       errors.disablePassword = 'Password is required to disable 2FA';
@@ -224,7 +224,7 @@ export const SecuritySettings: React.FC = () => {
                   {user.twoFactorEnabled ? (
                     <CheckCircle color="success" fontSize="small" />
                   ) : (
-                    <Error color="error" fontSize="small" />
+                    <ErrorIcon color="error" fontSize="small" />
                   )}
                 </Box>
               }
@@ -303,7 +303,7 @@ export const SecuritySettings: React.FC = () => {
             value={passwordData.currentPassword}
             onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
             error={!!validationErrors.currentPassword}
-            helperText={validationErrors.currentPassword}
+            helperText={validationErrors.currentPassword || ''}
             margin="normal"
             autoComplete="current-password"
           />
@@ -315,7 +315,7 @@ export const SecuritySettings: React.FC = () => {
             value={passwordData.newPassword}
             onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
             error={!!validationErrors.newPassword}
-            helperText={validationErrors.newPassword}
+            helperText={validationErrors.newPassword || ''}
             margin="normal"
             autoComplete="new-password"
           />
@@ -327,7 +327,7 @@ export const SecuritySettings: React.FC = () => {
             value={passwordData.confirmPassword}
             onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
             error={!!validationErrors.confirmPassword}
-            helperText={validationErrors.confirmPassword}
+            helperText={validationErrors.confirmPassword || ''}
             margin="normal"
             autoComplete="new-password"
           />

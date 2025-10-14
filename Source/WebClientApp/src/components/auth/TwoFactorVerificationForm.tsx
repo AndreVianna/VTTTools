@@ -105,7 +105,7 @@ export const TwoFactorVerificationForm: React.FC<TwoFactorVerificationFormProps>
               setVerificationCode(value);
               // Clear validation error when user starts typing
               if (validationErrors.verificationCode) {
-                setValidationErrors(prev => ({ ...prev, verificationCode: undefined }));
+                setValidationErrors({});
               }
             }
           }}
@@ -186,8 +186,9 @@ export const TwoFactorVerificationForm: React.FC<TwoFactorVerificationFormProps>
             onBack?.();
           }}
           disabled={isLoading}
-          startIcon={<ArrowBack />}
+          sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
         >
+          <ArrowBack fontSize="small" />
           Back to Login
         </Link>
       </Box>

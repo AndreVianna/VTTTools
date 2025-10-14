@@ -46,6 +46,8 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
+        if (scene.OwnerId != userId)
+            return Result.Failure("NotAllowed");
         var result = data.Validate();
         if (result.HasErrors)
             return result;
@@ -124,7 +126,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         var asset = await assetStorage.GetByIdAsync(assetId, ct);
         if (asset is null)
             return Result.Failure("NotFound");
-        if (asset.OwnerId != userId || asset is { IsPublic: true, IsPublished: true })
+        if (asset.OwnerId != userId && !(asset is { IsPublic: true, IsPublished: true }))
             return Result.Failure("NotAllowed");
         var result = data.Validate();
         if (result.HasErrors)

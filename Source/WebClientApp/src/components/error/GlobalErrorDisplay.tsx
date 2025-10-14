@@ -53,6 +53,8 @@ export const GlobalErrorDisplay: React.FC = () => {
 
       return () => clearTimeout(timer);
     }
+
+    return undefined;
   }, [errors, dispatch]);
 
   return (

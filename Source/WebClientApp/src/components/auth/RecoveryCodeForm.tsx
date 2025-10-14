@@ -106,7 +106,7 @@ export const RecoveryCodeForm: React.FC<RecoveryCodeFormProps> = ({
             setRecoveryCode(value);
             // Clear validation error when user starts typing
             if (validationErrors.recoveryCode) {
-              setValidationErrors(prev => ({ ...prev, recoveryCode: undefined }));
+              setValidationErrors({});
             }
           }}
           error={!!validationErrors.recoveryCode}
@@ -162,9 +162,8 @@ export const RecoveryCodeForm: React.FC<RecoveryCodeFormProps> = ({
       </Box>
 
       <Box sx={{ textAlign: 'center' }}>
-        <Link
-          component="button"
-          variant="body2"
+        <Button
+          variant="text"
           onClick={(e) => {
             e.preventDefault();
             onBack?.();
@@ -173,7 +172,7 @@ export const RecoveryCodeForm: React.FC<RecoveryCodeFormProps> = ({
           startIcon={<ArrowBack />}
         >
           Back to Login
-        </Link>
+        </Button>
       </Box>
     </Box>
   );

@@ -71,6 +71,15 @@ This file provides guidance to Claude Code when working with this solution.
 Setup:`pwsh -ExecutionPolicy Bypass -File .claude/scripts/setup.ps1`
 Log Viewer: `pwsh -ExecutionPolicy Bypass -File .claude/scripts/view_logs.ps1`
 
+### Testing
+**Frameworks**: xUnit (backend), Vitest (frontend unit), Cucumber+Playwright (BDD e2e)
+**Commands**: See `Documents/Guides/COMMON_COMMANDS.md` § Testing Commands
+**Quick Reference**:
+- Backend: `dotnet test --filter "FullyQualifiedName~TestClass"`
+- Frontend Unit: `npm test -- TestFile.test.ts --run`
+- BDD E2E: `npm run test:bdd` or `npm run test:bdd:critical`
+**Philosophy**: E2E tests may FAIL (exposing bugs). Unit tests should PASS (verifying implementation).
+
 ### MCP Integration
 **MCP_SERVERS**: memory, thinking
 **DYNAMIC_MEMORY_STRATEGY**: Use memory specific entries to store task progress and share information between tasks

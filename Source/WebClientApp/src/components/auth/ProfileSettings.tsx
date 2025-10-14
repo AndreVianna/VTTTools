@@ -10,7 +10,7 @@ import {
   Avatar,
   IconButton,
   Divider,
-  Grid,
+  Stack,
 } from '@mui/material';
 import {
   PhotoCamera,
@@ -145,12 +145,12 @@ export const ProfileSettings: React.FC = () => {
         </Alert>
       )}
 
-      <Grid container spacing={3}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
         {/* Profile Picture */}
-        <Grid item xs={12} sm={4} sx={{ textAlign: 'center' }}>
+        <Box sx={{ flex: '0 0 auto', textAlign: 'center' }}>
           <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
             <Avatar
-              src={formData.profilePictureUrl}
+              {...(formData.profilePictureUrl ? { src: formData.profilePictureUrl } : {})}
               alt={user.userName}
               sx={{ width: 120, height: 120, mx: 'auto' }}
             >
@@ -180,10 +180,10 @@ export const ProfileSettings: React.FC = () => {
               </IconButton>
             )}
           </Box>
-        </Grid>
+        </Box>
 
         {/* Profile Information */}
-        <Grid item xs={12} sm={8}>
+        <Box sx={{ flex: 1 }}>
           <Box sx={{ mb: 2 }}>
             <TextField
               fullWidth
@@ -202,7 +202,7 @@ export const ProfileSettings: React.FC = () => {
               value={formData.userName}
               onChange={handleInputChange('userName')}
               error={!!validationErrors.userName}
-              helperText={validationErrors.userName}
+              helperText={validationErrors.userName || ''}
               disabled={!isEditing || isLoading}
               margin="normal"
             />
@@ -242,8 +242,8 @@ export const ProfileSettings: React.FC = () => {
               </Button>
             </Box>
           )}
-        </Grid>
-      </Grid>
+        </Box>
+      </Stack>
 
       <Divider sx={{ my: 3 }} />
 
@@ -251,40 +251,40 @@ export const ProfileSettings: React.FC = () => {
         <Typography variant="h6" gutterBottom>
           Account Information
         </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
+        <Stack direction="row" spacing={2} flexWrap="wrap">
+          <Box sx={{ flex: '1 1 45%' }}>
             <Typography variant="body2" color="text.secondary">
               Account Created:
             </Typography>
             <Typography variant="body1">
               {new Date(user.createdAt).toLocaleDateString()}
             </Typography>
-          </Grid>
-          <Grid item xs={12} sm={6}>
+          </Box>
+          <Box sx={{ flex: '1 1 45%' }}>
             <Typography variant="body2" color="text.secondary">
               Last Login:
             </Typography>
             <Typography variant="body1">
               {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
             </Typography>
-          </Grid>
-          <Grid item xs={12} sm={6}>
+          </Box>
+          <Box sx={{ flex: '1 1 45%' }}>
             <Typography variant="body2" color="text.secondary">
               Email Verified:
             </Typography>
             <Typography variant="body1" color={user.emailConfirmed ? 'success.main' : 'error.main'}>
               {user.emailConfirmed ? 'Yes' : 'No'}
             </Typography>
-          </Grid>
-          <Grid item xs={12} sm={6}>
+          </Box>
+          <Box sx={{ flex: '1 1 45%' }}>
             <Typography variant="body2" color="text.secondary">
               Two-Factor Authentication:
             </Typography>
             <Typography variant="body1" color={user.twoFactorEnabled ? 'success.main' : 'text.primary'}>
               {user.twoFactorEnabled ? 'Enabled' : 'Disabled'}
             </Typography>
-          </Grid>
-        </Grid>
+          </Box>
+        </Stack>
       </Box>
     </Paper>
   );

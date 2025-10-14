@@ -45,7 +45,7 @@ export const AuthStatus: React.FC<AuthStatusProps> = ({
   };
 
   const handleMenuClose = () => {
-    setAnchorEl(false);
+    setAnchorEl(null);
   };
 
   if (isLoading) {
@@ -108,7 +108,7 @@ export const AuthStatus: React.FC<AuthStatusProps> = ({
         onClick={showFullControls ? handleMenuOpen : undefined}
       >
         <Avatar
-          src={user.profilePictureUrl}
+          {...(user.profilePictureUrl ? { src: user.profilePictureUrl } : {})}
           alt={user.userName}
           sx={{ width: 32, height: 32 }}
         >

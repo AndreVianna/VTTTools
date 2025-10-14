@@ -2,7 +2,7 @@
 // Single-panel image manager with keyboard shortcuts for role assignment
 // Ctrl+Click=Toggle Display, Alt+Click=Toggle Token, Ctrl+Alt+Click=Toggle Both
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     Typography,
@@ -50,6 +50,15 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [showManage, setShowManage] = useState(false);
 
+    // Auto-expand manage panel if editing existing asset with resources
+    // Initialize showManage based on entityId and resources
+    useEffect(() => {
+        if (entityId && resources.length > 0) {
+            setShowManage(true);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [entityId]); // Only run when entityId changes to avoid cascading renders
+
     // Get first resources by role
     const firstToken = resources.find(r => (r.role & ResourceRole.Token) === ResourceRole.Token);
     const firstDisplay = resources.find(r => (r.role & ResourceRole.Display) === ResourceRole.Display);
@@ -63,7 +72,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
         try {
             const result = await uploadFile({
                 file,
-                entityId  // Will be undefined for create, set for edit
+                ...(entityId ? { entityId } : {})  // Only include if defined
             }).unwrap();
 
             onResourcesChange([...resources, {

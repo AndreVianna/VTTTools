@@ -145,7 +145,7 @@ export const AssetLoadingError: React.FC<AssetErrorProps> = ({
         )}
 
         {lastError && (
-          <Alert severity="warning" size="small" sx={{ mb: 2, textAlign: 'left' }}>
+          <Alert severity="warning" sx={{ mb: 2, textAlign: 'left' }}>
             <Typography variant="caption">
               {lastError}
             </Typography>
@@ -240,6 +240,7 @@ interface AssetSkeletonProps {
   height?: number | string;
   variant?: 'rectangular' | 'circular' | 'text';
   errorProps?: AssetErrorProps;
+  children?: React.ReactNode;
 }
 
 export const AssetSkeleton: React.FC<AssetSkeletonProps> = ({
@@ -353,24 +354,29 @@ export const SafeImage: React.FC<SafeImageProps> = ({
     }
   };
 
+  const errorProps: AssetErrorProps = {
+    assetType: 'image',
+    ...(assetId ? { assetId } : {}),
+    ...(currentSrc ? { assetUrl: currentSrc } : {}),
+    ...(assetName || alt ? { assetName: assetName || alt } : {}),
+    onRetry: handleRetry,
+    ...(fallbackSrc ? { onFallback: handleFallback } : {}),
+    ...(maxRetries !== undefined ? { maxRetries } : {}),
+    showRetry: true,
+    showFallback: Boolean(fallbackSrc),
+  };
+
+  const assetSkeletonProps: AssetSkeletonProps = {
+    isLoading,
+    hasError,
+    ...(width !== undefined ? { width } : {}),
+    ...(height !== undefined ? { height } : {}),
+    variant: 'rectangular',
+    ...(errorProps ? { errorProps } : {}),
+  };
+
   return (
-    <AssetSkeleton
-      isLoading={isLoading}
-      hasError={hasError}
-      width={width}
-      height={height}
-      variant="rectangular"
-      errorProps={{
-        assetId,
-        assetType: 'image',
-        assetUrl: currentSrc,
-        assetName: assetName || alt,
-        onRetry: handleRetry,
-        onFallback: fallbackSrc ? handleFallback : undefined,
-        maxRetries,
-        showFallback: Boolean(fallbackSrc),
-      }}
-    >
+    <AssetSkeleton {...assetSkeletonProps}>
       <img
         {...imgProps}
         src={currentSrc}

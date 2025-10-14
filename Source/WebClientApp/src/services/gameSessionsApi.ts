@@ -30,7 +30,7 @@ export const gameSessionsApi = createApi({
     // Get single session
     getSession: builder.query<GameSession, string>({
       query: (id) => `/${id}`,
-      providesTags: (result, error, id) => [{ type: 'GameSession', id }],
+      providesTags: (_result, _error, id) => [{ type: 'GameSession', id }],
     }),
 
     // Create session using existing CreateGameSessionRequest from Domain.Game.Sessions.ApiContracts
@@ -50,7 +50,7 @@ export const gameSessionsApi = createApi({
         method: 'PUT',
         body: request, // Matches existing C# contract exactly
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'GameSession', id }],
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'GameSession', id }],
     }),
 
     // Delete session
@@ -69,7 +69,7 @@ export const gameSessionsApi = createApi({
         method: 'POST',
         body: request, // Uses existing Domain.Game.Sessions.ApiContracts
       }),
-      invalidatesTags: (result, error, { sessionId }) => [
+      invalidatesTags: (_result, _error, { sessionId }) => [
         { type: 'GameSession', id: sessionId },
         'SessionPlayer'
       ],
@@ -81,7 +81,7 @@ export const gameSessionsApi = createApi({
         url: `/${sessionId}/leave`,
         method: 'POST',
       }),
-      invalidatesTags: (result, error, { sessionId }) => [
+      invalidatesTags: (_result, _error, { sessionId }) => [
         { type: 'GameSession', id: sessionId },
         'SessionPlayer'
       ],
@@ -132,7 +132,7 @@ export const gameSessionsApi = createApi({
         url: `/${id}/start`,
         method: 'POST',
       }),
-      invalidatesTags: (result, error, id) => [{ type: 'GameSession', id }],
+      invalidatesTags: (_result, _error, id) => [{ type: 'GameSession', id }],
     }),
 
     // End session
@@ -141,7 +141,7 @@ export const gameSessionsApi = createApi({
         url: `/${id}/end`,
         method: 'POST',
       }),
-      invalidatesTags: (result, error, id) => [{ type: 'GameSession', id }],
+      invalidatesTags: (_result, _error, id) => [{ type: 'GameSession', id }],
     }),
 
     // Pause session
@@ -150,7 +150,7 @@ export const gameSessionsApi = createApi({
         url: `/${id}/pause`,
         method: 'POST',
       }),
-      invalidatesTags: (result, error, id) => [{ type: 'GameSession', id }],
+      invalidatesTags: (_result, _error, id) => [{ type: 'GameSession', id }],
     }),
 
     // Resume session
@@ -159,7 +159,7 @@ export const gameSessionsApi = createApi({
         url: `/${id}/resume`,
         method: 'POST',
       }),
-      invalidatesTags: (result, error, id) => [{ type: 'GameSession', id }],
+      invalidatesTags: (_result, _error, id) => [{ type: 'GameSession', id }],
     }),
 
     // Get my active sessions

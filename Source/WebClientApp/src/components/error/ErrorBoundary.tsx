@@ -277,11 +277,11 @@ const DefaultErrorFallback: React.FC<{
  */
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  fallback?: React.ComponentType<ErrorBoundaryFallbackProps>,
-  onError?: (error: Error, errorInfo: ErrorInfo) => void
+  fallback?: React.ComponentType<ErrorBoundaryFallbackProps> | undefined,
+  onError?: ((error: Error, errorInfo: ErrorInfo) => void) | undefined
 ) {
   const WrappedComponent = (props: P) => (
-    <ErrorBoundary fallback={fallback} onError={onError}>
+    <ErrorBoundary {...(fallback ? { fallback } : {})} {...(onError ? { onError } : {})}>
       <Component {...props} />
     </ErrorBoundary>
   );

@@ -11,6 +11,7 @@ public class AssetStorage(ApplicationDbContext context)
     public async Task<Asset[]> GetAllAsync(CancellationToken ct = default) {
         var entities = await context.Assets
                     .Include(a => a.Resources)
+                        .ThenInclude(ar => ar.Resource)
                   .AsNoTrackingWithIdentityResolution()
                   .ToArrayAsync(ct);
         return [.. entities.Select(e => e.ToModel()).OfType<Asset>()];
@@ -20,6 +21,7 @@ public class AssetStorage(ApplicationDbContext context)
     public async Task<Asset?> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Assets
                     .Include(a => a.Resources)
+                        .ThenInclude(ar => ar.Resource)
                   .AsNoTrackingWithIdentityResolution()
                   .FirstOrDefaultAsync(a => a.Id == id, ct);
         return entity?.ToModel();
@@ -29,6 +31,7 @@ public class AssetStorage(ApplicationDbContext context)
     public async Task<Asset?> GetByNameAndOwnerAsync(string name, Guid ownerId, CancellationToken ct = default) {
         var entity = await context.Assets
                     .Include(a => a.Resources)
+                        .ThenInclude(ar => ar.Resource)
                   .AsNoTrackingWithIdentityResolution()
                   .FirstOrDefaultAsync(a => a.Name == name && a.OwnerId == ownerId, ct);
         return entity?.ToModel();
@@ -43,7 +46,10 @@ public class AssetStorage(ApplicationDbContext context)
 
     /// <inheritdoc />
     public async Task<bool> UpdateAsync(Asset asset, CancellationToken ct = default) {
-        var entity = await context.Assets.FindAsync([asset.Id], ct);
+        // Must use Include to load Resources collection for UpdateFrom
+        var entity = await context.Assets
+            .Include(a => a.Resources)
+            .FirstOrDefaultAsync(a => a.Id == asset.Id, ct);
         if (entity == null)
             return false;
         entity.UpdateFrom(asset);
