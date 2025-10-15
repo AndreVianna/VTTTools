@@ -1511,9 +1511,50 @@ npm run test:bdd                                   # All tests
 **Fix**: Check migrations, use actual table names (no prefixes)
 **Tables**: `Assets`, `Users`, `Scenes`, `GameSessions` (NOT `Assets.Assets`)
 
-#### 6. Production Code Pollution
-**Symptom**: Temptation to add `data-testid` to components
-**Fix**: Use semantic selectors: `text="Add Object"`, `role="button"`, `placeholder*="Search"`
+#### 6. Use Semantic IDs, Not Text Selectors (CRITICAL)
+**Problem**: Text-based selectors are FRAGILE - break with text changes, I18n, refactoring
+**Anti-pattern**: `data-testid` (test-specific pollution)
+**Best Practice**: Semantic `id` attributes
+
+**Why Semantic IDs are Better:**
+- ✅ Stable across text changes
+- ✅ I18n/localization ready
+- ✅ Refactoring-safe
+- ✅ Help accessibility (screen readers)
+- ✅ Easier debugging
+
+**Example:**
+```typescript
+// ❌ FRAGILE - breaks with text change or I18n
+await this.page.locator('button:has-text("Browse Assets")').click();
+await expect(this.page.locator('button:has-text("Coming in Phase 7-8")')).toBeVisible();
+
+// ❌ ANTI-PATTERN - test pollution
+<Button data-testid="browse-assets-button">Browse Assets</Button>
+
+// ✅ BEST PRACTICE - semantic ID
+<Button id="btn-browse-assets">Browse Assets</Button>
+await this.page.locator('#btn-browse-assets').click();
+```
+
+**ID Naming Convention:**
+- Buttons: `#btn-{action}` (e.g., `#btn-open-editor`, `#btn-browse-assets`)
+- Cards: `#card-{name}` (e.g., `#card-scene-editor`)
+- Sections: `#section-{name}` (e.g., `#hero-section`, `#dashboard-section`)
+- Labels: `#label-{context}` (e.g., `#label-content-library-disabled`)
+- Headings: `#heading-{context}` or `#{type}-{context}` (e.g., `#hero-title`, `#dashboard-greeting`)
+
+**When to Use Text Selectors:**
+- ✅ Dynamic content (user names, counts)
+- ✅ Content that must match exactly for validation
+- ✅ Error messages (verify exact wording)
+
+**When to Use IDs:**
+- ✅ Interactive elements (buttons, links, inputs)
+- ✅ Section containers
+- ✅ Navigation elements
+- ✅ Cards/tiles
+- ✅ Any element tested frequently
 
 #### 7. Wrong Routes
 **Symptom**: Page not found / Navigation fails
@@ -1602,6 +1643,7 @@ if (isAnonymous) {
 **After** (runs after each scenario):
 ```typescript
 1. Cleanup user's data (DELETE WHERE OwnerId = userId)
+   CRITICAL: Use deleteUserDataOnly(), NOT deleteUserAndAllData()
 2. Release user back to pool
 3. Close browser
 ```
@@ -1611,6 +1653,176 @@ if (isAnonymous) {
 1. Delete all test users from pool
 2. Verify cleanup complete
 ```
+
+### BDD Test Isolation - Critical Lessons
+
+#### Problem: Tests Pass Individually, Fail in Suite
+
+**Symptom**: First 16 scenarios pass, then auth failures start occurring.
+
+**Root Cause**: User deletion in After hook - tests were calling `deleteUserAndAllData()` which deleted the **user account**, not just the user's data.
+
+**Impact**: After test #N uses `bdd-test-user-1`, that user no longer exists. Test #N+16 tries to login with deleted user → 400 Bad Request "Invalid email or password".
+
+**Solution**:
+```typescript
+// ❌ WRONG - Deletes user account from database
+async deleteUserAndAllData(userId: string): Promise<void> {
+    const query = `
+        DELETE FROM Assets WHERE OwnerId = ?;
+        DELETE FROM Scenes WHERE OwnerId = ?;
+        ...
+        DELETE FROM Users WHERE Id = ?;  // ← USER DELETED!
+    `;
+    await this.executeQuery(query, Array(14).fill(userId));
+}
+
+// ✅ CORRECT - Keeps user, deletes only their data
+async deleteUserDataOnly(userId: string): Promise<void> {
+    const query = `
+        DELETE FROM Assets WHERE OwnerId = ?;
+        DELETE FROM Scenes WHERE OwnerId = ?;
+        ...
+        // NO: DELETE FROM Users WHERE Id = ?;
+    `;
+    await this.executeQuery(query, Array(13).fill(userId));
+}
+
+// In After hook - use the correct function
+After(async function (this: CustomWorld, testCase) {
+    if (this.currentUser && this.db) {
+        await this.db.deleteUserDataOnly(this.currentUser.id); // ← Preserves user
+    }
+    if (this.currentUser) {
+        releaseUser(this.currentUser.id);
+    }
+});
+```
+
+**Verification**:
+1. Run single scenario → Should pass
+2. Run full feature (20+ scenarios) → All should pass
+3. Check database after test → Pool users still exist, but no test data
+
+#### Problem: Browser State Leakage Between Tests
+
+**Symptom**: Dashboard not rendering after login, even though cookie exists.
+
+**Root Cause**: React's `globalAuthInitialized` flag prevents `useGetCurrentUserQuery` from running when it's already been initialized.
+
+**Solution**: Force page reload after login to reset React's global state:
+
+```typescript
+// In authenticated setup steps
+When('I successfully log in', { timeout: 60000 }, async function (this: CustomWorld) {
+    await this.page.locator('#cta-explore-features').click();
+    await this.page.waitForURL(/login/);
+
+    const password = process.env.BDD_TEST_PASSWORD!;
+    await this.page.fill('input[type="email"]', this.currentUser.email);
+    await this.page.fill('input[type="password"]', password);
+    await this.page.click('button[type="submit"]');
+
+    await this.page.waitForURL(url => !url.pathname.includes('/login'));
+    await this.page.waitForLoadState('networkidle');
+
+    // CRITICAL: Reset React's global auth state
+    await this.page.reload({ waitUntil: 'networkidle' });
+
+    await this.page.goto('/');
+    await this.page.waitForLoadState('networkidle');
+
+    await this.page.waitForFunction(() => {
+        return document.querySelector('#dashboard-greeting') !== null;
+    }, { timeout: 30000 });
+});
+```
+
+#### Problem: Insufficient Browser State Cleanup
+
+**Initial (Wrong) Approach**:
+```typescript
+Given('I am viewing the landing page as unauthenticated visitor', async function() {
+    await this.context.clearCookies(); // Only cleared cookies
+    await this.page.reload();
+});
+```
+
+**Why It Failed**: localStorage and sessionStorage persisted between tests, causing auth state pollution.
+
+**Correct Approach**:
+```typescript
+Given('I am viewing the landing page as unauthenticated visitor', async function() {
+    await this.context.clearCookies();
+    await this.page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+    });
+    await this.page.goto('/');
+    await this.page.waitForLoadState('networkidle');
+});
+```
+
+#### Debugging BDD Test Failures - Systematic Approach
+
+When tests fail after N scenarios:
+
+1. **Add Debug Logging** (temporarily):
+```typescript
+console.log('[DEBUG] Login: Email:', this.currentUser.email);
+const response = await loginResponse;
+const responseBody = await response.json();
+console.log('[DEBUG] API Response:', JSON.stringify(responseBody));
+const cookies = await this.context.cookies();
+console.log('[DEBUG] Cookies count:', cookies.length);
+```
+
+2. **Identify the Pattern**:
+   - Does it always fail at the same scenario number?
+   - Does it fail on the same user?
+   - What's the actual error from the backend?
+
+3. **Common Causes**:
+   - User pool exhaustion (not enough users)
+   - User deletion instead of data cleanup
+   - Browser state leakage (cookies, localStorage)
+   - Backend session state not cleared
+   - Frontend global state not reset
+
+4. **Verification Steps**:
+```typescript
+// Check user exists in database
+const user = await db.queryTable('Users', { Email: 'bdd-test-user-1@test.local' });
+console.log('User exists:', !!user);
+
+// Check cookies after login
+const cookies = await this.context.cookies();
+const sessionCookie = cookies.find(c => c.name.includes('AspNetCore'));
+console.log('Session cookie:', sessionCookie ? 'EXISTS' : 'MISSING');
+
+// Check React auth state
+const authState = await this.page.evaluate(() => {
+    return window.localStorage.getItem('auth');
+});
+console.log('Auth state:', authState);
+```
+
+5. **Remove Debug Logging** after fix is confirmed.
+
+#### Test Isolation Checklist
+
+Before considering a BDD test suite "done":
+
+- [ ] Each test starts with completely clean state
+- [ ] After hook deletes data, NOT users
+- [ ] Browser context cleared (cookies + localStorage + sessionStorage)
+- [ ] Tests pass individually
+- [ ] Tests pass when run as full suite (all scenarios)
+- [ ] Tests pass in any order (randomize execution)
+- [ ] No hardcoded timeouts (use conditions)
+- [ ] No shared mutable state between scenarios
+- [ ] User pool size ≥ parallel workers
+- [ ] Database cleanup respects foreign keys
 
 ### Cleanup Query Pattern
 
@@ -1630,13 +1842,15 @@ const params = Array(14).fill(userId);
 ### Step Definition Best Practices for Agents
 
 **DO:**
-- ✅ Use actual production selectors (text, roles, not data-testids)
+- ✅ **Use semantic IDs as primary selectors** (`#btn-save`, `#card-scene-editor`)
+- ✅ Use text selectors only for dynamic content (user names, error messages)
 - ✅ Wait for conditions: `expect(locator).toBeVisible({ timeout: 10000 })`
 - ✅ Query real database for verification
 - ✅ Use real API calls
 - ✅ Extract to helpers on 3rd use
 - ✅ Parameterize steps: `When('the {string} page loads', ...)`
 - ✅ Read backend migrations to verify schema
+- ✅ Add semantic IDs to components (not data-testids)
 
 **DON'T:**
 - ❌ Call steps from other steps

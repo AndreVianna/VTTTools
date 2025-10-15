@@ -163,6 +163,15 @@ Feature: Handle Logout
     But my mobile session should remain active
     And I should still be authenticated on mobile
 
+
+  @edge-case @multi-device
+  Scenario: Handle concurrent login from multiple devices
+    Given I am logged in on my desktop browser
+    When I log in on my mobile device with the same account
+    Then both sessions are valid
+    And I should see my authentication status on both devices
+    And logging out from one device does not affect the other
+
   @performance
   Scenario: Logout completes quickly
     Given I confirm logout

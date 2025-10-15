@@ -20,9 +20,9 @@
 
 **Quick Action Cards**:
 1. **Scene Editor**: Active, navigates to /scene-editor (Phases 3-4 complete)
-2. **Content Library**: Disabled with "Phase 7-8" label (blocked by backend Epic/Campaign services)
-3. **Asset Library**: Disabled with "Phase 5" label (planned for implementation)
-4. **Account Settings**: Disabled with "Phase 10" label (planned for implementation)
+2. **Content Library**: Disabled with "Coming Soon" label (blocked by backend Epic/Campaign services)
+3. **Asset Library**: Disabled with "Coming Soon" label (planned for implementation)
+4. **Account Settings**: Disabled with "Coming Soon" label (planned for implementation)
 
 **Files Modified**:
 - Source/WebClientApp/src/pages/LandingPage.tsx (added Grid, Card components, removed logout button)
@@ -60,9 +60,9 @@
   - Workspace Title: "Your Creative Workspace" subtitle
   - Quick Action Grid: Material-UI Grid with 4 quick action cards (2x2 responsive layout)
   - Scene Editor Card: Icon, title, description, "Open Editor" button → navigates to /scene-editor (Phase 3-4 complete)
-  - Content Library Card: Icon, title, description, disabled button showing "Phase 7-8" (backend blocked)
-  - Asset Library Card: Icon, title, description, disabled button showing "Phase 5" (planned)
-  - Account Settings Card: Icon, title, description, disabled button showing "Phase 10" (planned)
+  - Content Library Card: Icon, title, description, disabled button showing "Coming Soon" (backend blocked)
+  - Asset Library Card: Icon, title, description, disabled button showing "Coming Soon" (planned)
+  - Account Settings Card: Icon, title, description, disabled button showing "Coming Soon" (planned)
   - **Note**: Landing page IS the dashboard preview - no separate /dashboard page exists
   - **Note**: Logout handled via user menu in header (not in dashboard preview)
 

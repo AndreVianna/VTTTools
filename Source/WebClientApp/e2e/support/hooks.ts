@@ -126,15 +126,7 @@ After(async function (this: CustomWorld, testCase) {
     try {
         if (this.currentUser && this.db) {
             debugLog(`[POOL] Cleaning up data for user: ${this.currentUser.email}`);
-            await this.db.deleteUserAndAllData(this.currentUser.id);
-
-            // Note: We DON'T delete the user, just their data
-            // Re-insert the user for next test
-            const poolUser = userPool.find(u => u.id === this.currentUser.id);
-            if (poolUser) {
-                // User still exists, just cleaned their data
-                // (User deletion happens in AfterAll only)
-            }
+            await this.db.deleteUserDataOnly(this.currentUser.id);
         }
     } catch (cleanupError) {
         console.error('Data cleanup error:', cleanupError);

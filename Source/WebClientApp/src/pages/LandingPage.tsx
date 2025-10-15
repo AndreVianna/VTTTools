@@ -125,6 +125,7 @@ export const LandingPage: React.FC = () => {
         // Dashboard Preview for authenticated users - Phase 2
         <Box>
           <Typography
+            id="dashboard-greeting"
             variant="h2"
             component="h1"
             sx={{
@@ -133,10 +134,11 @@ export const LandingPage: React.FC = () => {
               color: theme.palette.text.primary,
             }}
           >
-            Welcome back, {user?.userName || 'Game Master'}!
+            Welcome back, {user.displayName}!
           </Typography>
 
           <Typography
+            id="dashboard-subtitle"
             variant="h5"
             sx={{
               textAlign: 'center',
@@ -151,18 +153,19 @@ export const LandingPage: React.FC = () => {
           <Grid container spacing={3} sx={{ mb: 4 }}>
             {/* Scene Editor - Phase 3-4 Complete */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Card id="card-scene-editor" elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                  <MapIcon color="primary" sx={{ fontSize: 48, mb: 2 }} />
-                  <Typography variant="h6" gutterBottom>
+                  <MapIcon id="icon-scene-editor" color="primary" sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography id="title-scene-editor" variant="h6" gutterBottom>
                     Scene Editor
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography id="desc-scene-editor" variant="body2" color="text.secondary">
                     Create tactical maps with grids and tokens
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
                   <Button
+                    id="btn-open-editor"
                     size="small"
                     variant="contained"
                     onClick={() => navigate('/scene-editor')}
@@ -175,19 +178,19 @@ export const LandingPage: React.FC = () => {
 
             {/* Content Library - Phase 7-8 Blocked */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', opacity: 0.6 }}>
+              <Card id="card-content-library" elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', opacity: 0.6 }}>
                 <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                  <LibraryIcon color="disabled" sx={{ fontSize: 48, mb: 2 }} />
-                  <Typography variant="h6" gutterBottom>
+                  <LibraryIcon id="icon-content-library" color="disabled" sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography id="title-content-library" variant="h6" gutterBottom>
                     Content Library
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography id="desc-content-library" variant="body2" color="text.secondary">
                     Manage epics, campaigns, adventures
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
-                  <Button size="small" disabled variant="outlined">
-                    Phase 7-8
+                  <Button id="btn-content-library-disabled" size="small" disabled variant="outlined">
+                    Coming Soon
                   </Button>
                 </CardActions>
               </Card>
@@ -195,18 +198,19 @@ export const LandingPage: React.FC = () => {
 
             {/* Asset Library - Active */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Card id="card-asset-library" elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                  <CreateIcon color="primary" sx={{ fontSize: 48, mb: 2 }} />
-                  <Typography variant="h6" gutterBottom>
+                  <CreateIcon id="icon-asset-library" color="primary" sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography id="title-asset-library" variant="h6" gutterBottom>
                     Asset Library
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography id="desc-asset-library" variant="body2" color="text.secondary">
                     Browse creatures, characters, tokens
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
                   <Button
+                    id="btn-browse-assets"
                     size="small"
                     variant="contained"
                     onClick={() => navigate('/assets')}
@@ -219,19 +223,19 @@ export const LandingPage: React.FC = () => {
 
             {/* Account Settings - Phase 10 Planned */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', opacity: 0.6 }}>
+              <Card id="card-account-settings" elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', opacity: 0.6 }}>
                 <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                  <SettingsIcon color="disabled" sx={{ fontSize: 48, mb: 2 }} />
-                  <Typography variant="h6" gutterBottom>
+                  <SettingsIcon id="icon-account-settings" color="disabled" sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography id="title-account-settings" variant="h6" gutterBottom>
                     Account Settings
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography id="desc-account-settings" variant="body2" color="text.secondary">
                     Profile, security, 2FA settings
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
-                  <Button size="small" disabled variant="outlined">
-                    Phase 10
+                  <Button id="btn-account-settings-disabled" size="small" disabled variant="outlined">
+                    Coming Soon
                   </Button>
                 </CardActions>
               </Card>
@@ -240,21 +244,23 @@ export const LandingPage: React.FC = () => {
         </Box>
       ) : (
         // Hero section for non-authenticated users
-        <HeroContainer>
-          <HeroTitle variant="h1">
+        <HeroContainer id="hero-section">
+          <HeroTitle id="hero-title" variant="h1">
             Craft Legendary Adventures
           </HeroTitle>
-          <HeroSubtitle variant="h5">
+          <HeroSubtitle id="hero-subtitle" variant="h5">
             Professional Virtual Tabletop tools designed for Game Masters who create epic campaigns and immersive worlds
           </HeroSubtitle>
           <CTAContainer>
             <PrimaryCTA
+              id="cta-start-creating"
               variant="contained"
               onClick={() => navigate('/register')}
             >
               Start Creating
             </PrimaryCTA>
             <SecondaryCTA
+              id="cta-explore-features"
               variant="outlined"
               onClick={() => navigate('/login')}
             >

@@ -8,6 +8,84 @@ This file provides guidance to Claude Code when working with this solution.
 - **CRITICAL** NEVER SAY "You are right!", "You're absolutely right!", "You're absolutely correct!", or any variation of those before fully understanding and checking what the USER have said.
 - **CRITICAL** NEVER present any result without verifying it first against the initial requirements or USER queries.
 
+## ⚠️ [PRIORITY:CRITICAL] Code Comments Policy ⚠️
+
+- **MANDATORY** Comments are a LAST RESORT. Use ONLY when code cannot be made self-explanatory.
+- **MANDATORY** Before adding a comment, try these alternatives IN ORDER:
+  1. Use descriptive variable/property/method names
+  2. Extract complex logic into well-named helper methods
+  3. Simplify the code structure
+  4. ONLY THEN consider a comment if absolutely necessary
+- **MANDATORY** DELETE all useless, redundant, and verbose comments whenever found:
+  - Obvious comments (e.g., `// Set user name` above `user.Name = name;`)
+  - Commented-out code (delete it - use git history if needed)
+  - Outdated comments that don't match current code
+  - AI-generated placeholder comments (e.g., `// TODO: implement this`)
+  - Comments that just repeat what the code does
+- **CRITICAL** This applies to ALL code - even from other sessions/agents/developers
+- **GOOD comments** (rare cases):
+  - Complex algorithms with citations
+  - Non-obvious business rules
+  - Critical security/performance gotchas
+  - Intentional deviations from standard patterns (with WHY)
+
+**Examples:**
+```typescript
+// ❌ BAD - Obvious
+// Set the user name
+user.name = name;
+
+// ❌ BAD - Redundant
+// Loop through all users
+users.forEach(user => ...);
+
+// ✅ GOOD - Self-documenting, no comment needed
+const isEligibleForDiscount = user.isPremium && order.total > 100;
+
+// ✅ GOOD - Rare case where comment adds value
+// SECURITY: Use constant-time comparison to prevent timing attacks
+return crypto.timingSafeEqual(hash1, hash2);
+```
+
+## ⚠️ [PRIORITY:CRITICAL] File Creation Policy ⚠️
+
+### Persistent Files
+- **FORBIDDEN**: Creating persistent files (documents, reports, logs, etc.) WITHOUT explicit user request
+- **MANDATORY**: Ask user permission BEFORE creating any persistent file
+- **EXCEPTION**: Code files, configuration files, or project artifacts that are part of the requested work
+
+### Temporary Files
+- **ALLOWED**: Creating temporary files (.txt, .md, .json) to assist with analysis or complex work
+- **MANDATORY**: Delete ALL temporary files when task is complete
+- **LOCATION**: Use system temp directory or working directory for temporary files
+- **CLEANUP**: Always verify temp files are deleted before task completion
+
+### Reports and Analysis
+- **MANDATORY**: When user requests "report" or "analysis", present findings in CONSOLE output
+- **FORBIDDEN**: Creating document files for reports unless explicitly requested
+- **FORMAT**: Use clear, structured console output with markdown formatting
+
+**Examples:**
+```
+❌ BAD - User asks "analyze the code"
+→ Creates "CODE_ANALYSIS_REPORT.md" without permission
+
+✅ GOOD - User asks "analyze the code"
+→ Presents analysis in console output
+→ If temp files used for analysis, deletes them after
+
+❌ BAD - User asks "check for duplicates"
+→ Creates "DUPLICATES_REPORT.md"
+
+✅ GOOD - User asks "check for duplicates"
+→ Uses temp file for processing (if needed)
+→ Presents findings in console
+→ Deletes temp file
+
+✅ GOOD - User says "create a report document for this analysis"
+→ Creates the requested document file
+```
+
 ## ⚠️ [CRITICAL] Command Execution Standards ⚠️
 
 ### Multi-Phase Command Execution

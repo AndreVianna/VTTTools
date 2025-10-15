@@ -2,6 +2,43 @@
 
 This guide defines the C# coding standards for the VTTTools project, extracted from the existing codebase and .editorconfig rules. All standards are enforced through automated tooling.
 
+## ⚠️ [PRIORITY:CRITICAL] Code Comments Policy
+
+**Comments are a LAST RESORT.** Write self-documenting code.
+
+**Before Adding a Comment:**
+1. Use descriptive names (`CalculateMonthlyRevenue()` not `Calculate()`)
+2. Extract method (`IsEligibleForDiscount()` not inline complex condition)
+3. Simplify structure (early returns, guard clauses)
+4. **ONLY THEN** add comment if absolutely necessary
+
+**DELETE Immediately:**
+- ❌ Obvious: `// Create user` above `var user = new User()`
+- ❌ Commented-out code
+- ❌ Outdated comments
+- ❌ AI placeholders: `// TODO:`
+- ❌ Repetitive: `// Loop through` above `foreach`
+
+**GOOD Comments (Rare):**
+```csharp
+// SECURITY: Constant-time comparison prevents timing attacks
+return CryptographicOperations.FixedTimeEquals(hash1, hash2);
+
+// Business Rule: 24-hour grace period before permanent deletion
+if (deletedAt > DateTime.UtcNow.AddHours(-24)) return CanRecover();
+```
+
+**BAD Comments:**
+```csharp
+// ❌ Set email
+user.Email = email;
+
+// ❌ Return result
+return result;
+```
+
+**This applies to ALL code** - delete useless comments even from other sessions/developers.
+
 ## Table of Contents
 
 - [Quick Reference](#quick-reference)
@@ -755,11 +792,17 @@ Before submitting C# code for review, verify:
 - [ ] AAA pattern followed (Arrange, Act, Assert)
 - [ ] Test names follow `{MethodName}_{Scenario}_{ExpectedResult}` pattern
 
+### Code Comments (CRITICAL)
+- [ ] **No unnecessary comments** - code is self-documenting with clear names
+- [ ] **Useless comments deleted** - removed obvious/redundant/outdated comments
+- [ ] Comments only for complex algorithms, security notes, business rules
+- [ ] No commented-out code (use git history)
+- [ ] No AI-generated placeholder comments
+
 ### Documentation
-- [ ] Public APIs have XML documentation
-- [ ] Complex logic has explanatory comments
-- [ ] No commented-out code
-- [ ] TODO comments linked to GitHub issues
+- [ ] Public APIs have XML documentation (for external consumers)
+- [ ] No inline comments unless truly necessary
+- [ ] TODO comments linked to GitHub issues (rare - prefer immediate implementation)
 
 ---
 

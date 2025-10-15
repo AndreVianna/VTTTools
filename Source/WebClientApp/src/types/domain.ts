@@ -4,7 +4,8 @@
 export interface User {
   id: string;
   email: string;
-  userName: string;
+  name: string;          // Maps to backend UserInfo.Name
+  displayName: string;   // Maps to backend UserInfo.DisplayName (returns Name if empty)
   emailConfirmed: boolean;
   phoneNumber?: string;
   phoneNumberConfirmed: boolean;
@@ -15,6 +16,8 @@ export interface User {
   createdAt: string;
   lastLoginAt?: string;
   profilePictureUrl?: string;
+  // Backward compatibility - userName is alias for name
+  userName?: string;  // Deprecated: use 'name' instead
 }
 
 // Standard API response wrapper

@@ -195,3 +195,12 @@ Feature: Manage Client Auth State
     And I should not see LoadingOverlay on navigation
     And I should not be prompted to log in again
     And my session cookie should remain valid
+
+
+  @integration @cross-area
+  Scenario: Authentication state propagates across all areas
+    Given I am logged in as a Game Master
+    When I navigate to different areas of the application
+    Then authentication status is maintained
+    And I should see my user information in the header
+    And I have appropriate permissions in each area

@@ -64,6 +64,28 @@ module.exports = {
         tags: '@critical'
     },
     // Profile for debugging (headed mode - visible browser)
+    feature: {
+        import: [
+            'e2e/step-definitions/**/*.steps.ts',
+            'e2e/support/hooks.ts'
+        ],
+        loader: ['ts-node/esm'],
+        format: [
+            'progress-bar',
+            'html:e2e/reports/cucumber-report.html',
+            'json:e2e/reports/cucumber-report.json',
+            '@cucumber/pretty-formatter'
+        ],
+        formatOptions: {
+            snippetInterface: 'async-await',
+            colorsEnabled: true
+        },
+        parallel: parseInt(process.env.PARALLEL_WORKERS || '1'),
+        retry: 1,
+        strict: true,
+        dryRun: false
+    },
+    // Profile for debugging (headed mode - visible browser)
     debug: {
         import: ['e2e/step-definitions/**/*.steps.ts', 'e2e/support/hooks.ts'],
         loader: ['ts-node/esm'],
@@ -75,6 +97,7 @@ module.exports = {
         },
         paths: [
             '../../Documents/Areas/Onboarding/Features/LandingPage/LandingPage.feature',
+            '../../Documents/Areas/Identity/Features/UserAuthentication/UseCases/Handlelogin/Handlelogin.feature',
             '../../Documents/Areas/Assets/Features/AssetManagement/AssetLibrary.feature',
             '../../Documents/Areas/Assets/Features/AssetManagement/UseCases/Createasset/CreateAsset.feature',
             '../../Documents/Areas/Assets/Features/AssetManagement/UseCases/Updateasset/UpdateAsset.feature',

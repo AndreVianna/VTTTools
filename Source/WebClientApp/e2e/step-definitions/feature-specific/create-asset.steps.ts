@@ -1142,9 +1142,7 @@ Then('form fields should be styled for dark mode', async function (this: CustomW
     // Visual verification
 });
 
-Given('I am on a mobile device', async function (this: CustomWorld) {
-    await this.page.setViewportSize({ width: 375, height: 667 });
-});
+// REMOVED: Mobile not supported - "I am on a mobile device" step deleted
 
 Then('the dialog should be fullWidth', async function (this: CustomWorld) {
     const dialog = this.assetCreateDialog.dialog();

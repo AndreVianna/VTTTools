@@ -153,9 +153,9 @@
 - ✅ Does NOT show hero section
 - ✅ Does NOT show "Start Creating" button
 - ✅ **Scene Editor** card: Active, navigates to `/scene-editor`
-- ✅ **Content Library** card: Disabled, shows "Phase 7-8" label
+- ✅ **Content Library** card: Disabled, shows "Coming Soon" label
 - ✅ **Asset Library** card: Active, navigates to `/assets`
-- ✅ **Account Settings** card: Disabled, shows "Phase 10" label
+- ✅ **Account Settings** card: Disabled, shows "Coming Soon" label
 
 **Dashboard Personalization**:
 - ✅ Shows user's `userName` in greeting
@@ -206,8 +206,8 @@
    - Account Settings (Disabled - Phase 10)
 
 8. **Disabled action cards show phase labels** ✅
-   - Content Library shows "Coming in Phase 7-8"
-   - Account Settings shows "Coming in Phase 10"
+   - Content Library shows "Soon"
+   - Account Settings shows "Soon"
    - Disabled cards not clickable
 
 9. **Dashboard shows personalized greeting** ✅

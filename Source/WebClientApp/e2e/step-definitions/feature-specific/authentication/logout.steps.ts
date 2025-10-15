@@ -204,17 +204,11 @@ When('the logout completes successfully', async function (this: CustomWorld) {
     );
 });
 
-When('I log out', async function (this: CustomWorld) {
-    const logoutButton = this.page.getByRole('button', { name: /logout/i });
-    await logoutButton.click();
-
-    // Handle confirmation if present
-    const confirmButton = this.page.getByRole('button', { name: /confirm|logout/i }).last();
-    if (await confirmButton.isVisible()) {
-        await confirmButton.click();
-    }
-
-    // Wait for logout to complete
+When('I log out', { timeout: 15000 }, async function (this: CustomWorld) {
+    await this.page.locator('#btn-user-menu').click();
+    await this.page.waitForTimeout(500);
+    await this.page.locator('#menu-signout').click();
+    await this.page.waitForLoadState('networkidle');
     await expect(this.page).toHaveURL(/\/|\/login/, { timeout: 10000 });
 });
 

@@ -36,12 +36,6 @@ Given('the password reset service is available', async function (this: CustomWor
     expect(response.ok()).toBeTruthy();
 });
 
-Given('I am not currently authenticated', async function (this: CustomWorld) {
-    // Clear any existing authentication
-    await this.context.clearCookies();
-    await this.page.evaluate(() => localStorage.clear());
-    await this.page.evaluate(() => sessionStorage.clear());
-});
 
 Given('an account exists with email {string}', async function (this: CustomWorld, email: string) {
     // Query database to verify user exists
@@ -255,10 +249,6 @@ Given('I am on the success screen after requesting reset', async function (this:
 // WHEN STEPS - Actions
 // ============================================================================
 
-When('I enter email {string}', async function (this: CustomWorld, email: string) {
-    await this.page.fill('input[name="email"], input[type="email"]', email);
-});
-
 When('I submit the reset request form', async function (this: CustomWorld) {
     // Submit form and wait for response
     const responsePromise = this.page.waitForResponse(
@@ -418,9 +408,6 @@ When('I navigate to reset page without token parameter', async function (this: C
     await this.page.goto('/login?email=test@example.com');
 });
 
-// REMOVED: Duplicate of navigation.steps.ts "When('the page loads')"
-// When navigating, use navigation.steps.ts
-
 When('I navigate to reset page without email parameter', async function (this: CustomWorld) {
     await this.page.goto('/login?token=some-token');
 });
@@ -495,17 +482,9 @@ When('I enter my email and password {string}', async function (this: CustomWorld
     await this.page.fill('input[name="password"]', password);
 });
 
-When('I submit the login form', async function (this: CustomWorld) {
-    await this.page.click('button[type="submit"]:has-text("Sign In")');
-});
-
 When('I attempt to log in with password {string}', async function (this: CustomWorld, password: string) {
     await this.page.fill('input[name="email"]', this.currentUser.email);
     await this.page.fill('input[name="password"]', password);
-    await this.page.click('button[type="submit"]');
-});
-
-When('I attempt to submit the form again', async function (this: CustomWorld) {
     await this.page.click('button[type="submit"]');
 });
 
@@ -564,26 +543,10 @@ Then('the request should be processed', async function (this: CustomWorld) {
     expect(this.lastApiResponse.status()).toBe(200);
 });
 
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see error {string}', async function (this: CustomWorld, errorMessage: string) {
-//     await expect(this.page.locator(`text=${errorMessage}`)).toBeVisible();
-// });
-
-Then('my form is not submitted', async function (this: CustomWorld) {
-    // Form should still be visible
-    await expect(this.page.locator('form')).toBeVisible();
-    await expect(this.page.locator('button[type="submit"]')).toBeVisible();
-});
-
 Then('I should receive success', async function (this: CustomWorld) {
     // Check for success indication
     await expect(this.page.locator('text=/success|sent|check your email/i')).toBeVisible();
 });
-
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see success message {string}', async function (this: CustomWorld, message: string) {
-//     await expect(this.page.locator(`text=${message}`)).toBeVisible();
-// });
 
 Then('a reset email should be sent to {string}', async function (this: CustomWorld, email: string) {
     // Verify email was sent via database check
@@ -789,11 +752,6 @@ Then('I should see a success screen with email icon', async function (this: Cust
     await expect(this.page.locator('[data-testid="email-icon"], svg[data-icon="email"]')).toBeVisible();
 });
 
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see message {string}', async function (this: CustomWorld, message: string) {
-//     await expect(this.page.locator(`text=${message}`)).toBeVisible();
-// });
-
 Then('I should see my entered email address', async function (this: CustomWorld) {
     await expect(this.page.locator(`text=${this.currentUser.email}`)).toBeVisible();
 });
@@ -965,11 +923,6 @@ Then('my token be included as a query parameter', async function (this: CustomWo
     expect(latestEmail.Body).toMatch(/token=/);
 });
 
-Then('the second submission is prevented', async function (this: CustomWorld) {
-    // Button should remain disabled
-    await expect(this.page.locator('button[type="submit"]')).toBeDisabled();
-});
-
 Then('only one request should be processed', async function (this: CustomWorld) {
     // Check API call count via network monitoring
     this.attach('Single request verified');
@@ -1045,11 +998,6 @@ Then('the PasswordResetConfirmed action is logged', async function (this: Custom
 
     expect(logs.length).toBeGreaterThan(0);
 });
-
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see success message {string}', async function (this: CustomWorld, message: string) {
-//     await expect(this.page.locator(`text=${message}`)).toBeVisible();
-// });
 
 Then('I should be redirected to login page after {int} seconds', async function (this: CustomWorld, seconds: number) {
     // Wait for redirect
@@ -1226,11 +1174,6 @@ Then('only one update request should be sent', async function (this: CustomWorld
     this.attach('Single update request verified');
 });
 
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see error {string}', async function (this: CustomWorld, errorMessage: string) {
-//     await expect(this.page.locator(`text=${errorMessage}`)).toBeVisible();
-// });
-
 Then('the password hashing should use appropriate cost factor', async function (this: CustomWorld) {
     // Cost factor is a backend concern
     this.attach('Password hashing cost factor appropriate');
@@ -1259,12 +1202,4 @@ Then('validation errors should be announced', async function (this: CustomWorld)
     if (await errors.count() > 0) {
         expect(await errors.count()).toBeGreaterThan(0);
     }
-});
-
-Then('the submit button state is communicated', async function (this: CustomWorld) {
-    const submitButton = this.page.locator('button[type="submit"]');
-
-    // Should have aria-disabled or disabled attribute
-    const isDisabled = await submitButton.isDisabled();
-    expect(typeof isDisabled).toBe('boolean');
 });

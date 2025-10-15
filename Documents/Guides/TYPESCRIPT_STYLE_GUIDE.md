@@ -801,6 +801,46 @@ export const GameSessionList: React.FC = () => {
 };
 ```
 
+## ⚠️ Code Comments Policy (CRITICAL)
+
+**Comments are a LAST RESORT.** Write self-documenting code.
+
+**Before Adding a Comment, Try:**
+1. **Better naming:** `calculateTotalWithTax()` not `calc()`
+2. **Extract method:** Complex condition → `isEligibleForPromotion(user)`
+3. **Simplify structure:** Early returns, guard clauses
+4. **ONLY THEN** comment if truly needed
+
+**DELETE These Comments Immediately:**
+- ❌ Obvious: `// Render the button` above JSX
+- ❌ Redundant: `// Map over items` above `.map()`
+- ❌ Commented-out code
+- ❌ Outdated: Comments not matching code
+- ❌ AI placeholders: `// TODO:`, `// Implementation here`
+
+**GOOD Comments (Rare):**
+```typescript
+// WCAG: 4.5:1 contrast ratio required for normal text
+const minContrast = 4.5;
+
+// Performance: Debounce prevents excessive API calls during typing
+const debouncedSearch = useDebounce(searchTerm, 300);
+```
+
+**BAD Comments:**
+```typescript
+// ❌ Set loading state
+setLoading(true);
+
+// ❌ Check if user is authenticated
+if (isAuthenticated) { }
+
+// ❌ Return JSX
+return <div>...</div>;
+```
+
+**This Rule Applies To ALL Code** - delete useless comments from any source.
+
 ## Best Practices
 
 ### Error Handling
@@ -887,14 +927,198 @@ export const PlayerCard = React.memo<PlayerCardProps>(({ player, onClick }) => {
 });
 ```
 
+### Semantic IDs for Testability & Accessibility (MANDATORY)
+
+**CRITICAL**: All interactive elements, sections, and testable components MUST have semantic `id` attributes.
+
+**Why Semantic IDs:**
+- ✅ **Stable selectors** - Don't break with text changes or i18n
+- ✅ **Accessibility** - Help screen readers navigate
+- ✅ **Debugging** - Easy to locate in DevTools
+- ✅ **Refactor-safe** - Survive code restructuring
+- ✅ **Better than data-testid** - Serve production AND testing
+
+**ID Naming Convention:**
+```typescript
+// Buttons: #btn-{action}-{context}
+<Button id="btn-save">Save</Button>
+<Button id="btn-cancel">Cancel</Button>
+<Button id="btn-header-login">Login</Button>
+<Button id="btn-browse-assets">Browse Assets</Button>
+
+// Navigation: #nav-{destination}
+<Button id="nav-assets" onClick={() => navigate('/assets')}>Assets</Button>
+<Button id="nav-scene-editor">Scene Editor</Button>
+
+// Sections: #{name}-section
+<Box id="hero-section">...</Box>
+<Box id="dashboard-section">...</Box>
+
+// Cards/Tiles: #card-{name}
+<Card id="card-scene-editor">...</Card>
+<Card id="card-asset-library">...</Card>
+
+// Headings: #{type}-{context}
+<Typography id="hero-title" variant="h1">...</Typography>
+<Typography id="dashboard-greeting" variant="h2">...</Typography>
+
+// Form inputs: #input-{field}
+<TextField id="input-email" name="email" />
+<TextField id="input-password" name="password" />
+
+// Menus: #{context}-menu
+<Menu id="user-menu">...</Menu>
+<MenuItem id="menu-profile">Profile</MenuItem>
+
+// Footer links: #footer-link-{page}
+<Link id="footer-link-about" href="/about">About</Link>
+```
+
+**Elements That MUST Have Semantic IDs:**
+
+1. **Interactive Controls**
+   - Buttons (all types)
+   - Links/anchors (`<a>` tags)
+   - Icon buttons
+
+2. **Form Elements**
+   - Text inputs, textareas
+   - Dropdowns/selects
+   - Checkboxes, radio buttons
+   - Form labels (`<label>`)
+   - Form containers (`<form>`)
+
+3. **Major Page Sections**
+   - Header/AppBar
+   - Main content areas
+   - Footer
+   - Sidebars/panels
+   - Modal containers
+
+4. **Component Widgets**
+   - Cards, tiles
+   - Panels, containers with semantic purpose
+   - Tables (and actionable rows)
+   - Dialog boxes, modals, drawers
+   - Accordions (headers and content)
+
+5. **Navigation Elements**
+   - Menu containers and menu items
+   - Breadcrumbs
+   - Pagination controls
+   - Tab controls and tab panels
+
+6. **Feedback Elements**
+   - Alerts, notifications, toasts
+   - Status badges, chips (if independently meaningful)
+   - Error messages
+   - Loading indicators
+
+7. **Content Headings**
+   - h1-h6 when serving as section landmarks
+   - Page titles
+   - Section headers
+
+**Optional IDs (Use Judgment):**
+- Complex component internals (if parent ID + child selector works)
+- List items in dynamic lists (if parent + index works)
+- Decorative icons (non-interactive)
+- Spacing/layout containers
+
+**SKIP (Don't Add IDs):**
+- Purely decorative elements (spacers, dividers)
+- Layout-only containers (Box, Grid without semantic purpose)
+- Anonymous wrapper divs
+
+**Complex Components Pattern:**
+
+```typescript
+// ✅ GOOD - Minimal IDs when children are unique
+<Card id="card-user-profile">
+  <h6>User Profile</h6>           // ← Only one h6 in card
+  <p>Email: ...</p>                // ← Only one p tag
+  <Button>Edit</Button>            // ← Only one button
+</Card>
+// Selector: '#card-user-profile button'
+
+// ✅ BETTER - Full IDs when elements tested independently
+<Card id="card-user-profile">
+  <Typography id="title-user-profile">User Profile</Typography>
+  <Typography id="email-user-profile">Email: ...</Typography>
+  <Button id="btn-edit-profile">Edit</Button>
+</Card>
+// Selector: '#btn-edit-profile' ← More precise, reusable
+```
+
+**Rule:** Add full IDs when:
+- Element tested in multiple scenarios
+- Multiple similar elements exist
+- Element might appear in different contexts
+
+**Example - Complete Landing Page:**
+```typescript
+export const LandingPage: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+
+  return isAuthenticated ? (
+    <Box id="dashboard-section">
+      <Typography id="dashboard-greeting" variant="h2">
+        Welcome back!
+      </Typography>
+      <Card id="card-scene-editor">
+        <Typography id="title-scene-editor" variant="h6">Scene Editor</Typography>
+        <Button id="btn-open-editor">Open Editor</Button>
+      </Card>
+    </Box>
+  ) : (
+    <Box id="hero-section">
+      <Typography id="hero-title" variant="h1">Craft Legendary Adventures</Typography>
+      <Button id="cta-start-creating">Start Creating</Button>
+      <Button id="cta-explore-features">Explore Features</Button>
+    </Box>
+  );
+};
+```
+
+**Anti-Patterns:**
+```typescript
+// ❌ WRONG - data-testid pollutes production
+<Button data-testid="login-button">Login</Button>
+
+// ❌ WRONG - No ID, relies on fragile text selector
+<Button>Login</Button>  // Test breaks if text changes to "Sign In"
+
+// ❌ WRONG - Generic IDs that aren't unique
+<Button id="button1">Save</Button>
+<Button id="button2">Cancel</Button>
+
+// ❌ WRONG - Ambiguous label reference
+<label>Email</label>  // Which email field? Login? Register? Profile?
+// Correct: <label id="label-login-email" for="input-login-email">Email</label>
+```
+
+**BAD Ways to Locate Elements (Avoid in Tests):**
+- ❌ **By state** - `button:disabled` (which button?)
+- ❌ **By text** - `button:has-text("Save")` (text changes, i18n)
+- ❌ **By CSS class** - `[class*="MuiButton"]` (implementation detail)
+- ❌ **By position** - `.first()`, `:nth-child(2)` (order changes)
+- ❌ **By DOM hierarchy** - `div > div > button` (structure changes)
+- ❌ **By computed style** - Color/font checks (theme-dependent)
+
+**GOOD Ways (Prefer in Order):**
+1. ✅ **Semantic ID** - `#btn-save` (most stable)
+2. ✅ **ID + child selector** - `#card-user button` (when parent has ID)
+3. ✅ **Role + unique name** - `getByRole('button', { name: 'Save Changes' })` (when ID not available)
+4. ✅ **Label for inputs** - `getByLabelText('Email')` (semantic relationship)
+
 ### Accessibility
 
 ```typescript
-// ✅ Correct: Semantic HTML and ARIA attributes
+// ✅ Correct: Semantic HTML, ARIA attributes, AND semantic IDs
 export const LoginForm: React.FC = () => (
-    <form onSubmit={handleSubmit} aria-label="Login form">
+    <form id="form-login" onSubmit={handleSubmit} aria-label="Login form">
         <TextField
-            id="email"
+            id="input-email"
             label="Email Address"
             type="email"
             required
@@ -904,7 +1128,7 @@ export const LoginForm: React.FC = () => (
         />
         <span id="email-helper">Enter your registered email address</span>
 
-        <Button type="submit" aria-label="Sign in to your account">
+        <Button id="btn-submit-login" type="submit" aria-label="Sign in to your account">
             Sign In
         </Button>
     </form>
@@ -959,6 +1183,8 @@ Before submitting TypeScript/React code for review, verify:
 - [ ] No unused variables or imports
 - [ ] No console.logs in production code
 - [ ] Error boundaries wrap component trees
+- [ ] **CRITICAL: No unnecessary comments** - code is self-documenting
+- [ ] **CRITICAL: Useless comments deleted** - removed obvious/redundant/outdated comments
 
 ### State Management
 - [ ] Redux Toolkit slices properly structured
@@ -972,11 +1198,19 @@ Before submitting TypeScript/React code for review, verify:
 - [ ] React.memo for expensive components
 - [ ] Code splitting for large components/routes
 
+### Semantic IDs (MANDATORY)
+- [ ] All interactive elements have semantic `id` attributes
+- [ ] ID naming convention followed (btn-, nav-, card-, etc.)
+- [ ] No data-testid attributes (use semantic IDs instead)
+- [ ] IDs are unique across the page
+- [ ] Context-specific suffixes used (e.g., btn-header-login vs btn-footer-login)
+
 ### Accessibility
 - [ ] Semantic HTML elements used
-- [ ] ARIA attributes where needed
+- [ ] ARIA attributes where needed (aria-label, aria-describedby)
 - [ ] Keyboard navigation supported
-- [ ] Form labels properly associated
+- [ ] Form labels properly associated with inputs
+- [ ] All interactive elements have semantic IDs
 
 ### Theme Support (REQUIRED)
 - [ ] Component supports both dark and light modes

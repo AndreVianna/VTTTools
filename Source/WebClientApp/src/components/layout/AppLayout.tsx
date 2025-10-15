@@ -75,6 +75,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         <Toolbar>
           {/* VTT Tools Branding */}
           <Typography
+            id="app-logo"
             variant="h6"
             component="div"
             sx={{
@@ -91,6 +92,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           {isAuthenticated && user && (
             <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
               <Button
+                id="nav-assets"
                 color="inherit"
                 onClick={() => navigate('/assets')}
                 sx={{
@@ -103,6 +105,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 Assets
               </Button>
               <Button
+                id="nav-scene-editor"
                 color="inherit"
                 onClick={() => navigate('/scene-editor')}
                 sx={{
@@ -122,8 +125,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
           {/* Theme Toggle */}
           <IconButton
+            id="btn-theme-toggle"
             color="inherit"
             onClick={handleThemeToggle}
+            aria-label={`Switch to ${currentTheme === 'light' ? 'dark' : 'light'} mode`}
             sx={{
               mr: 1,
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -140,8 +145,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             // Logged in - show user menu
             <Box>
               <IconButton
+                id="btn-user-menu"
                 color="inherit"
                 onClick={handleUserMenuOpen}
+                aria-label="User menu"
                 sx={{
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   '&:hover': {
@@ -152,6 +159,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 <AccountCircle />
               </IconButton>
               <Menu
+                id="user-menu"
                 anchorEl={userMenuAnchor}
                 open={Boolean(userMenuAnchor)}
                 onClose={handleUserMenuClose}
@@ -164,13 +172,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   horizontal: 'right',
                 }}
               >
-                <MenuItem onClick={() => { handleUserMenuClose(); navigate('/profile'); }}>
+                <MenuItem id="menu-profile" onClick={() => { handleUserMenuClose(); navigate('/profile'); }}>
                   Profile
                 </MenuItem>
-                <MenuItem onClick={() => { handleUserMenuClose(); navigate('/settings'); }}>
+                <MenuItem id="menu-settings" onClick={() => { handleUserMenuClose(); navigate('/settings'); }}>
                   Settings
                 </MenuItem>
-                <MenuItem onClick={handleLogout}>
+                <MenuItem id="menu-signout" onClick={handleLogout}>
                   Sign Out
                 </MenuItem>
               </Menu>
@@ -179,6 +187,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             // Not logged in - show login/register buttons
             <Stack direction="row" spacing={1}>
               <Button
+                id="btn-header-login"
                 color="inherit"
                 onClick={handleLogin}
                 sx={{
@@ -191,6 +200,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 Login
               </Button>
               <Button
+                id="btn-header-register"
                 variant="contained"
                 onClick={handleRegister}
                 sx={{
@@ -214,6 +224,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
       {/* Footer */}
       <Box
+        id="app-footer"
         component="footer"
         sx={{
           backgroundColor: theme.palette.primary.main,
@@ -229,23 +240,23 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             spacing={2}
             sx={{ fontSize: '0.875rem' }}
           >
-            <Link href="/about" color="inherit" underline="hover">
+            <Link id="footer-link-about" href="/about" color="inherit" underline="hover">
               About
             </Link>
             <Box sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>|</Box>
-            <Link href="/contact" color="inherit" underline="hover">
+            <Link id="footer-link-contact" href="/contact" color="inherit" underline="hover">
               Contact
             </Link>
             <Box sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>|</Box>
-            <Link href="/terms" color="inherit" underline="hover">
+            <Link id="footer-link-terms" href="/terms" color="inherit" underline="hover">
               Terms
             </Link>
             <Box sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>|</Box>
-            <Link href="/privacy" color="inherit" underline="hover">
+            <Link id="footer-link-privacy" href="/privacy" color="inherit" underline="hover">
               Privacy
             </Link>
             <Box sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>|</Box>
-            <Typography variant="inherit" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+            <Typography id="footer-copyright" variant="inherit" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
               © 2025 VTT Tools
             </Typography>
           </Stack>

@@ -334,3 +334,18 @@ Feature: Setup Two Factor Authentication
     And buttons should be touch-friendly
     And verification code input should be large
     And keyboard should open appropriately
+
+  # ========================================
+  # Disable Two-Factor Authentication
+  # ========================================
+
+  Rule: Two-factor authentication can be disabled with password
+
+    @happy-path @2fa @disable
+    Scenario: Successfully disable two-factor authentication
+      Given I have two-factor authentication enabled
+      When I request to disable 2FA
+      And I provide my current password
+      Then 2FA should be disabled successfully
+      And my recovery codes should be invalidated
+      And I should see "2FA Disabled" in security settings

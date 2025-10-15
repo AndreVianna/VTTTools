@@ -37,13 +37,14 @@
       "mcp__playwright__browser_console_messages",
       "mcp__playwright__browser_evaluate",
       "mcp__playwright__browser_fill_form",
-      "mcp__playwright__browser_take_screenshot"
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_type"
     ],
     "deny": []
   },
   "outputStyle": "default",
   "statusLine": {
-    "command": "pwsh -ExecutionPolicy Bypass -File \"C:\\Projects\\Personal\\VTTTools\\.claude\\scripts\\utilities\\set_status_line.ps1\"",
+    "command": "pwsh -ExecutionPolicy Bypass -File \".claude\\scripts\\utilities\\set_status_line.ps1\"",
     "type": "command"
   }
 }

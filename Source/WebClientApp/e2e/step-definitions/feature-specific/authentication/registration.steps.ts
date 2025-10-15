@@ -150,22 +150,10 @@ Given('I successfully register', async function (this: CustomWorld) {
 // WHEN Steps - User Actions
 // ============================================================================
 
-When('I enter email {string}', async function (this: CustomWorld, email: string) {
-    const emailInput = this.page.getByLabel(/email/i);
-    await emailInput.clear();
-    await emailInput.fill(email);
-});
-
 When('I enter username {string}', async function (this: CustomWorld, username: string) {
     const usernameInput = this.page.getByLabel(/username/i);
     await usernameInput.clear();
     await usernameInput.fill(username);
-});
-
-When('I enter password {string}', async function (this: CustomWorld, password: string) {
-    const passwordInput = this.page.getByLabel(/^password$/i);
-    await passwordInput.clear();
-    await passwordInput.fill(password);
 });
 
 When('I enter confirmation password {string}', async function (
@@ -254,15 +242,6 @@ When('I correct the email to {string}', async function (this: CustomWorld, email
     await emailInput.fill(email);
 });
 
-When('the request is in progress', async function (this: CustomWorld) {
-    await expect(this.page.locator('[role="progressbar"]')).toBeVisible({ timeout: 2000 });
-});
-
-When('I attempt to submit the form again', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /create.*account/i });
-    await submitButton.click();
-});
-
 When('my account is created and I\'m logged in', async function (this: CustomWorld) {
     await this.page.waitForResponse(
         (response) => response.url().includes('/api/auth/register') && response.status() === 200
@@ -292,10 +271,6 @@ Then('my account should be created', async function (this: CustomWorld) {
     expect(this.lastApiResponse.status()).toBe(201);
 });
 
-Then('my form is not submitted', async function (this: CustomWorld) {
-    await expect(this.page).toHaveURL(/\/register|\/login/);
-});
-
 Then('my account should not be created', async function (this: CustomWorld) {
     // Verify we're still on registration page
     await expect(this.page.getByText(/start.*journey|create.*account/i)).toBeVisible();
@@ -318,14 +293,6 @@ Then('my password should pass validation', async function (this: CustomWorld) {
 Then('my account should be created successfully', async function (this: CustomWorld) {
     expect(this.lastApiResponse.status()).toBe(201);
 });
-
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see success message {string}', async function (
-//     this: CustomWorld,
-//     message: string
-// ) {
-//     await expect(this.page.getByText(new RegExp(message, 'i'))).toBeVisible({ timeout: 5000 });
-// });
 
 Then('I should be redirected to {string}', async function (
     this: CustomWorld,
@@ -419,11 +386,6 @@ Then('the email field should no longer show error styling', async function (this
     await expect(emailInput).not.toHaveAttribute('aria-invalid', 'true');
 });
 
-Then('the second submission is prevented', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /create.*account/i });
-    await expect(submitButton).toBeDisabled();
-});
-
 Then('only one registration request should be sent', async function (this: CustomWorld) {
     this.attach('Duplicate registration prevented by disabled state', 'text/plain');
 });
@@ -465,14 +427,6 @@ Then('validation errors should be announced immediately', async function (this: 
     const errorText = this.page.getByText(/invalid email/i);
     await expect(errorText).toBeVisible();
 });
-
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see error {string}', async function (
-//     this: CustomWorld,
-//     errorMessage: string
-// ) {
-//     await expect(this.page.getByText(new RegExp(errorMessage, 'i'))).toBeVisible();
-// });
 
 Then('the error appears below the confirm password field', async function (this: CustomWorld) {
     const errorText = this.page.getByText(/passwords.*not match/i);

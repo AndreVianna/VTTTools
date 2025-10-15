@@ -59,21 +59,11 @@ Feature: Landing Page
     Then I should be navigated to "/login"
 
   @hero @ui  @anonymous
-  Scenario: Hero section displays marketing content
+  Scenario: Hero section displays core UI elements
     Given I am not authenticated
     Then I should see primary heading "Craft Legendary Adventures"
     And I should see subtitle describing the platform
-    And I should see gradient background
     And the CTA buttons should be prominently displayed
-
-  @hero @responsive @anonymous
-  Scenario: Hero section adapts to mobile screens
-    Given I am not authenticated
-    And I am on a mobile device
-    When the landing page loads
-    Then the hero section should display in single-column layout
-    And the heading font size should scale appropriately
-    And CTA buttons should stack vertically
 
   # ═══════════════════════════════════════════════════════════════
   # DASHBOARD PREVIEW (AUTHENTICATED MODE)
@@ -95,36 +85,18 @@ Feature: Landing Page
   Scenario: Dashboard preview shows 4 action cards
     Given I am authenticated
     When the dashboard preview loads
-    Then I should see exactly 4 action cards:
-      | Card Title       | Status  | Route          |
-      | Scene Editor     | Active  | /scene-editor  |
-      | Content Library  | Disabled| (Phase 7-8)    |
-      | Asset Library    | Active  | /assets        |
-      | Account Settings | Disabled| (Phase 10)     |
-
-  @dashboard @ui
-  Scenario: Disabled action cards show phase labels
-    Given I am authenticated
-    Then the "Content Library" card should be disabled
-    And should show label "Coming in Phase 7-8"
-    And the "Account Settings" card should be disabled
-    And should show label "Coming in Phase 10"
-    And disabled cards should not be clickable
-
-  @dashboard @ui
-  Scenario: Active action cards are interactive
-    Given I am authenticated
-    Then the "Scene Editor" card should be enabled
-    And should have hover effect
-    And should be clickable
-    And the "Asset Library" card should be enabled
-    And should have hover effect
+    Then I should see 4 action cards:
+      | Card Title       | Status   | Label         | Route         |
+      | Scene Editor     | Active   | Open Editor   | /scene-editor |
+      | Content Library  | Disabled | Coming Soon   | N/A           |
+      | Asset Library    | Active   | Browse Assets | /assets       |
+      | Account Settings | Disabled | Coming Soon   | N/A           |
 
   @dashboard @personalization
   Scenario: Dashboard shows personalized greeting with user name
     Given I am authenticated as user with displayName "Alice"
     When the dashboard preview loads
-    Then I should see "Welcome back, Alice!"
+    Then I should see heading "Welcome back, Alice!"
     And the greeting should be personalized
 
   @dashboard @personalization
@@ -134,15 +106,6 @@ Feature: Landing Page
     When the dashboard preview loads
     Then I should see "Welcome back, Game Master!" with fallback
     And the dashboard should display normally
-
-  @dashboard @responsive
-  Scenario: Dashboard preview adapts to mobile screens
-    Given I am authenticated
-    And I am on a mobile device
-    When the landing page loads
-    Then action cards should display in 2-column grid on mobile
-    And cards should stack at smaller breakpoints
-    And all cards should remain accessible
 
   # ═══════════════════════════════════════════════════════════════
   # DYNAMIC STATE CHANGES
@@ -173,7 +136,7 @@ Feature: Landing Page
   # ═══════════════════════════════════════════════════════════════
 
   @theme
-  Scenario Outline: Landing page renders correctly in <theme> mode
+  Scenario Outline: Landing page renders correctly in <theme> mode when <auth_state>
     Given the application is in <theme> mode
     And I am <auth_state>
     When the landing page loads

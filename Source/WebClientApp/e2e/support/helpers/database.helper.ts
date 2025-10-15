@@ -722,8 +722,7 @@ export class DatabaseHelper {
      * Delete user and ALL their data (cascade cleanup)
      * Based on actual schema (AssetResources is a separate join table)
      */
-    async deleteUserAndAllData(userId: string): Promise<void> {
-        // Delete in order to respect foreign key constraints
+    async deleteUserDataOnly(userId: string): Promise<void> {
         const query = `
             DELETE FROM AssetResources WHERE AssetId IN (SELECT Id FROM Assets WHERE OwnerId = ?);
             DELETE FROM SceneAssets WHERE SceneId IN (SELECT Id FROM Scenes WHERE OwnerId = ?);
@@ -738,12 +737,15 @@ export class DatabaseHelper {
             DELETE FROM Effects WHERE OwnerId = ?;
             DELETE FROM GameSessions WHERE OwnerId = ?;
             DELETE FROM Schedule WHERE OwnerId = ?;
-            DELETE FROM Users WHERE Id = ?;
         `;
 
-        // userId repeated 14 times (4 in subqueries, 10 in WHERE clauses)
-        const params = Array(14).fill(userId);
+        const params = Array(13).fill(userId);
         await this.executeQuery(query, params);
+    }
+
+    async deleteUserAndAllData(userId: string): Promise<void> {
+        await this.deleteUserDataOnly(userId);
+        await this.executeQuery('DELETE FROM Users WHERE Id = ?', [userId]);
     }
 
     /**

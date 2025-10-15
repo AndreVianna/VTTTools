@@ -281,7 +281,13 @@ npm run test:bdd:smoke          # Smoke tests (~8 scenarios)
 npm run test:bdd:happy-path     # Happy path tests (~80 scenarios)
 npm run test:bdd:critical       # Critical tests (~60 scenarios)
 
-# Run specific feature file
+# Run specific feature file by name (using custom script - PREFERRED)
+npm run test:bdd:feature LandingPage
+npm run test:bdd:feature CreateAsset
+npm run test:bdd:feature Authentication
+npm run test:bdd:feature UpdateAsset
+
+# Run specific feature file by path (alternative method)
 npm run test:bdd -- features/assets-library.feature
 npm run test:bdd -- features/create-asset.feature
 npm run test:bdd -- features/update-asset.feature
@@ -292,7 +298,14 @@ npm run test:bdd -- features/manage-resources.feature
 npm run test:bdd -- --name "Update existing seeded asset"
 npm run test:bdd -- --name "Upload image and assign Token role"
 
-# Run with headed browser (see what's happening - debugging)
+# Debug mode - single scenario with visible browser and debug logging
+npm run test:bdd:debug:scenario "Scenario Name"
+npm run test:bdd:debug:scenario "Page re-renders when authentication state changes"
+
+# Debug mode - single scenario headless with debug logging
+npm run test:bdd:scenario "Scenario Name"
+
+# Run with headed browser (see what's happening - manual debugging)
 npm run test:bdd -- --world-parameters '{"headless": false}'
 
 # Run tests by tag combinations

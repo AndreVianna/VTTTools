@@ -773,10 +773,4 @@ Feature: Create Asset
     And accordions should have dark backgrounds
     And form fields should be styled for dark mode
 
-  @responsive
-  Scenario: Create dialog is responsive on mobile
-    Given I am on a mobile device
-    When the dialog opens
-    Then the dialog should be fullWidth
-    And form fields should stack vertically
-    And the Image Library grid should adjust to mobile layout
+  # REMOVED: Mobile not supported - responsive scenario deleted

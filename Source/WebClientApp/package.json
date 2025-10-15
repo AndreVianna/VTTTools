@@ -16,7 +16,7 @@
     "test:bdd": "cross-env NODE_OPTIONS='--disable-warning=DEP0180' cucumber-js",
     "test:bdd:dry-run": "cross-env NODE_OPTIONS='--disable-warning=DEP0180' cucumber-js --dry-run",
     "test:bdd:scenario": "cross-env NODE_OPTIONS='--disable-warning=DEP0180' cucumber-js --name",
-    "test:bdd:feature": "cross-env NODE_OPTIONS='--disable-warning=DEP0180' cucumber-js ../../Documents/Areas/**/Features/**/",
+    "test:bdd:feature": "node run-feature.cjs",
     "test:bdd:smoke": "cross-env NODE_OPTIONS='--disable-warning=DEP0180' cucumber-js --profile smoke",
     "test:bdd:happy-path": "cross-env NODE_OPTIONS='--disable-warning=DEP0180' cucumber-js --profile happy-path",
     "test:bdd:critical": "cross-env NODE_OPTIONS='--disable-warning=DEP0180' cucumber-js --profile critical",

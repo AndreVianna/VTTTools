@@ -115,6 +115,15 @@ Feature: Handle Login
     And I should not be authenticated
     And login should be prevented
 
+
+  @security
+  Scenario: Allow login after rate limit period expires
+    Given I was rate-limited due to failed attempts
+    And 5 minutes have passed since the last attempt
+    When I log in with valid credentials
+    Then authentication succeeds
+    And I have access to my account
+
   @error-handling
   Scenario: Handle suspended account
     Given an account exists with email "suspended@example.com"
