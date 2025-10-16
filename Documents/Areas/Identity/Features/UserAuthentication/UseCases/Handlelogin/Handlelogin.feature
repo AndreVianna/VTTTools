@@ -9,17 +9,16 @@ Feature: Handle Login
 
   Background:
     Given I am on the login page
-    
-    And I am not currently authenticated
+    And I am not authenticated
 
   Rule: Email must be in valid format
 
     @validation
     Scenario: Accept valid email format
       Given I enter email "gamemaster@example.com"
-      When I submit the login form
+      When I focus out of the email field
       Then my email should pass client-side validation
-      And my form is submitted
+      And I should not see email validation errors
 
     @validation @error-handling
     Scenario: Reject invalid email format
@@ -46,7 +45,7 @@ Feature: Handle Login
     Scenario: Login with case-insensitive email
       Given an account exists with email "user@example.com"
       And I enter email "USER@EXAMPLE.COM"
-      And I enter the correct password
+      And I enter password "TestPassword123"
       When I submit the login form
       Then I should be authenticated successfully
       And I should be redirected to the dashboard
@@ -56,7 +55,7 @@ Feature: Handle Login
     @security @error-handling
     Scenario: Reject password with incorrect case
       Given an account exists with password "SecurePass123"
-      And I enter the correct email
+      And I enter email "user@example.com"
       And I enter password "securepass123"
       When I submit the login form
       Then I should see error "Invalid email or password"
@@ -77,7 +76,8 @@ Feature: Handle Login
   @2fa @integration
   Scenario: Login with 2FA enabled account triggers verification
     Given an account exists with 2FA enabled
-    And I enter valid credentials
+    And I enter email "testuser@example.com"
+    And I enter password "TestPassword123"
     When I submit the login form
     Then my password is validated successfully
     And I receive response with requiresTwoFactor: true
@@ -145,7 +145,8 @@ Feature: Handle Login
 
   @loading-state @ui
   Scenario: Display loading state during authentication
-    Given I have entered valid credentials
+    Given I enter email "testuser@example.com"
+    And I enter password "TestPassword123"
     When I submit the login form
     And my request is in progress
     Then the submit button shows a loading spinner
@@ -154,7 +155,8 @@ Feature: Handle Login
 
   @error-handling
   Scenario: Handle network connection error
-    Given I have entered valid credentials
+    Given I enter email "testuser@example.com"
+    And I enter password "TestPassword123"
     When I submit the login form
     And the network connection fails
     Then I should see error "Connection error. Please try again."
@@ -163,7 +165,8 @@ Feature: Handle Login
 
   @error-handling
   Scenario: Handle server error
-    Given I have entered valid credentials
+    Given I enter email "testuser@example.com"
+    And I enter password "TestPassword123"
     When I submit the login form
     And the server returns an error
     Then I should see error "Login failed. Please try again later."

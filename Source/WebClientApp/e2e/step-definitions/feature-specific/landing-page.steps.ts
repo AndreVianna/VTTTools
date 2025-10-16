@@ -18,27 +18,6 @@ Given('I navigate to the root URL {string}', async function (this: CustomWorld, 
     await this.page.goto(url);
 });
 
-Given('I am authenticated', { timeout: 30000 }, async function (this: CustomWorld) {
-    // Simple auth - same as "I am authenticated as a Game Master"
-    const password = process.env.BDD_TEST_PASSWORD!;
-    await this.page.goto('/login');
-    await this.page.fill('input[type="email"], input[name="email"]', this.currentUser.email);
-    await this.page.fill('input[type="password"], input[name="password"]', password);
-    await this.page.click('button[type="submit"], button:has-text("Sign In")');
-    await this.page.waitForTimeout(2000);
-    await this.page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 10000 });
-});
-
-Given('I am authenticated as user with displayName {string}', { timeout: 30000 }, async function (this: CustomWorld, _displayName: string) {
-    // Same as regular auth - displayName is for test readability
-    const password = process.env.BDD_TEST_PASSWORD!;
-    await this.page.goto('/login');
-    await this.page.fill('input[type="email"], input[name="email"]', this.currentUser.email);
-    await this.page.fill('input[type="password"], input[name="password"]', password);
-    await this.page.click('button[type="submit"], button:has-text("Sign In")');
-    await this.page.waitForTimeout(2000);
-    await this.page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 10000 });
-});
 
 Given('the hero section is displayed', async function (this: CustomWorld) {
     // Verify hero is visible (implicit check - scenario setup)
@@ -93,29 +72,16 @@ Given('I am viewing the landing page as authenticated user', { timeout: 60000 },
 // WHEN - Actions
 // ============================================================================
 
-When('the landing page loads', { timeout: 15000 }, async function (this: CustomWorld) {
-    // Wait for page to finish loading (network requests complete)
-    await this.page.waitForLoadState('networkidle');
-    // Content verification happens in Then steps
-});
-
-When('the dashboard preview loads', { timeout: 15000 }, async function (this: CustomWorld) {
-    await this.page.waitForLoadState('networkidle');
-    // Dashboard has welcome heading
-    await this.page.waitForSelector('h1:has-text("Welcome")', { timeout: 10000 });
-});
 
 // ============================================================================
 // THEN - Assertions: Hero Section (Guest)
 // ============================================================================
 
 Then('I should see the hero section', { timeout: 10000 }, async function (this: CustomWorld) {
-    // Use semantic ID instead of text
     await expect(this.page.locator('#hero-section')).toBeVisible({ timeout: 8000 });
 });
 
 Then('I should see heading {string}', async function (this: CustomWorld, heading: string) {
-    // Use semantic IDs for stability
     if (heading.includes('Welcome back')) {
         await expect(this.page.locator('#dashboard-greeting')).toBeVisible();
     } else if (heading.includes('Craft Legendary Adventures')) {
@@ -126,17 +92,14 @@ Then('I should see heading {string}', async function (this: CustomWorld, heading
 });
 
 Then('I should see the value proposition subtitle', async function (this: CustomWorld) {
-    // Hero subtitle for guests
     await expect(this.page.locator('text=/Professional Virtual Tabletop tools|Game Masters/i')).toBeVisible();
 });
 
 Then('I should not see dashboard preview', async function (this: CustomWorld) {
-    // Dashboard has "Welcome back" greeting - should not be visible
     await expect(this.page.locator('text=/Welcome back/i')).not.toBeVisible();
 });
 
 Then('I should not see user greeting', async function (this: CustomWorld) {
-    // No personalized greeting for guests
     await expect(this.page.locator('text=/Welcome back/i')).not.toBeVisible();
 });
 
@@ -145,17 +108,14 @@ Then('I should not see user greeting', async function (this: CustomWorld) {
 // ============================================================================
 
 Then('I should see {int} action cards', async function (this: CustomWorld, count: number) {
-    // Dashboard cards have headings: "Scene Editor", "Content Library", "Asset Library", "Account Settings"
     await expect(this.page.locator('h6:has-text("Editor"), h6:has-text("Library"), h6:has-text("Settings")')).toHaveCount(count);
 });
 
 Then('I should not see hero section', async function (this: CustomWorld) {
-    // Hero heading should not be visible
     await expect(this.page.locator('h1:has-text("Craft Legendary Adventures")')).not.toBeVisible();
 });
 
 Then('I should see {string} subheading', async function (this: CustomWorld, subheading: string) {
-    // Use semantic ID for dashboard subtitle
     if (subheading.includes('Your Creative Workspace')) {
         await expect(this.page.locator('#dashboard-subtitle')).toBeVisible();
     } else {
@@ -164,7 +124,6 @@ Then('I should see {string} subheading', async function (this: CustomWorld, subh
 });
 
 Then('I should see primary heading {string}', async function (this: CustomWorld, heading: string) {
-    // Use semantic IDs
     if (heading.includes('Craft Legendary Adventures')) {
         await expect(this.page.locator('#hero-title')).toBeVisible();
     } else {
@@ -177,13 +136,9 @@ Then('I should see subtitle describing the platform', async function (this: Cust
     await expect(this.page.locator('#hero-subtitle')).toBeVisible();
 });
 
-Then('I should be navigated to {string}', async function (this: CustomWorld, path: string) {
-    await expect(this.page).toHaveURL(new RegExp(path));
-});
 
 Then('the {string} card should be disabled', async function (this: CustomWorld, cardTitle: string) {
-    // Use semantic IDs for cards
-    let cardId;
+    let cardId: string;
     if (cardTitle.includes('Content Library')) cardId = '#card-content-library';
     else if (cardTitle.includes('Account Settings')) cardId = '#card-account-settings';
     else cardId = `#card-${cardTitle.toLowerCase().replace(' ', '-')}`;
@@ -195,8 +150,7 @@ Then('the {string} card should be disabled', async function (this: CustomWorld, 
 });
 
 Then('the {string} card should be enabled', async function (this: CustomWorld, cardTitle: string) {
-    // Use semantic IDs for cards
-    let cardId;
+    let cardId: string;
     if (cardTitle.includes('Scene Editor')) cardId = '#card-scene-editor';
     else if (cardTitle.includes('Asset Library')) cardId = '#card-asset-library';
     else cardId = `#card-${cardTitle.toLowerCase().replace(' ', '-')}`;
@@ -208,13 +162,11 @@ Then('the {string} card should be enabled', async function (this: CustomWorld, c
 });
 
 When('I click the {string} button on {string} action card', async function (this: CustomWorld, _buttonText: string, cardTitle: string) {
-    // Use semantic IDs for card-specific buttons
     if (cardTitle.includes('Scene Editor')) {
         await this.page.locator('#btn-open-editor').click();
     } else if (cardTitle.includes('Asset Library')) {
         await this.page.locator('#btn-browse-assets').click();
     } else {
-        // Fallback for other cards
         const card = this.page.locator(`h6:has-text("${cardTitle}")`).locator('..').locator('..');
         await card.locator('button').click();
     }
@@ -242,9 +194,6 @@ When('I successfully log in', { timeout: 60000 }, async function (this: CustomWo
     }, { timeout: 30000 }).catch(() => {});
 });
 
-Then('the page should re-render automatically', async function (this: CustomWorld) {
-    await this.page.waitForLoadState('networkidle');
-});
 
 When('the dashboard preview renders', async function (this: CustomWorld) {
     await this.page.waitForLoadState('networkidle');
@@ -273,19 +222,45 @@ Then('all headings should have proper hierarchy', async function (this: CustomWo
 });
 
 Then('I should be able to Tab through all interactive elements', async function (this: CustomWorld) {
-    // Check for either guest OR authenticated elements
-    const guestCtas = await this.page.locator('#cta-start-creating, #cta-explore-features').count();
-    const dashboardCards = await this.page.locator('#btn-open-editor, #btn-browse-assets').count();
-    const headerBtns = await this.page.locator('#btn-header-login, #btn-header-register, #btn-user-menu').count();
-    const footerLinks = await this.page.locator('[id^="footer-link-"]').count();
-    const total = guestCtas + dashboardCards + headerBtns + footerLinks;
-    expect(total).toBeGreaterThan(0);
+    // Wait for page to fully load
+    await this.page.waitForLoadState('networkidle');
+
+    // Wait for either guest hero or authenticated dashboard to be visible
+    try {
+        await this.page.waitForSelector('#hero-section, #dashboard-greeting', { timeout: 5000 });
+    } catch {
+        // If neither is visible, reload page to ensure correct state
+        await this.page.reload({ waitUntil: 'networkidle' });
+        await this.page.waitForSelector('#hero-section, #dashboard-greeting', { timeout: 5000 });
+    }
+
+    // Determine if we're in guest or authenticated view
+    const heroVisible = await this.page.locator('#hero-section').isVisible();
+
+    if (heroVisible) {
+        // Guest view: header (3) + hero CTAs (2) + footer (4) = 9 elements
+        const headerBtns = await this.page.locator('#btn-theme-toggle, #btn-header-login, #btn-header-register').count();
+        const heroCtas = await this.page.locator('#cta-start-creating, #cta-explore-features').count();
+        const footerLinks = await this.page.locator('#footer-link-about, #footer-link-contact, #footer-link-terms, #footer-link-privacy').count();
+        const total = headerBtns + heroCtas + footerLinks;
+        expect(total).toBe(9); // Exactly 9 interactive elements for guest view
+    } else {
+        // Authenticated view: header (4) + enabled dashboard buttons (2) + footer (4) = 10 enabled elements
+        const headerBtns = await this.page.locator('#nav-assets, #nav-scene-editor, #btn-theme-toggle, #btn-user-menu').count();
+        const dashboardBtns = await this.page.locator('#btn-open-editor, #btn-browse-assets').count();
+        const footerLinks = await this.page.locator('#footer-link-about, #footer-link-contact, #footer-link-terms, #footer-link-privacy').count();
+        const total = headerBtns + dashboardBtns + footerLinks;
+        expect(total).toBe(10); // 10 enabled interactive elements for authenticated view
+    }
 });
 
 Then('available cards should display correctly', async function (this: CustomWorld) {
-    // At least some cards should be visible
-    const cards = await this.page.locator('h6').count();
-    expect(cards).toBeGreaterThan(0);
+    // Wait for dashboard to be visible
+    await this.page.waitForSelector('#dashboard-greeting', { timeout: 5000 });
+
+    // Authenticated view: should have 4 action cards (Scene Editor, Content Library, Asset Library, Account Settings)
+    const cardTitles = await this.page.locator('#title-scene-editor, #title-content-library, #title-asset-library, #title-account-settings').count();
+    expect(cardTitles).toBeGreaterThanOrEqual(1); // At least 1 card should be visible (handles edge case of missing data)
 });
 
 // Additional setup steps
@@ -483,22 +458,11 @@ Then('cards should stack at smaller breakpoints', async function (this: CustomWo
 });
 
 Then('all cards should remain accessible', async function (this: CustomWorld) {
-    // All 4 cards should be visible
     await expect(this.page.locator('h6')).toHaveCount(4);
 });
 
 // Dynamic State Changes
 Then('the dashboard preview should be displayed', { timeout: 20000 }, async function (this: CustomWorld) {
-    const isDebug = process.env.DEBUG_MODE === 'true';
-
-    if (isDebug) {
-        const heroExists = await this.page.locator('#hero-section').count();
-        const dashboardExists = await this.page.locator('#dashboard-greeting').count();
-        const h1Text = await this.page.locator('h1').textContent().catch(() => 'NONE');
-        console.log(`[DEBUG] Hero: ${heroExists}, Dashboard: ${dashboardExists}, h1: "${h1Text}"`);
-    }
-
-    // Additional wait for auth state to settle - increased for test suite context
     await this.page.waitForFunction(() => {
         const greeting = document.querySelector('#dashboard-greeting');
         return greeting !== null;

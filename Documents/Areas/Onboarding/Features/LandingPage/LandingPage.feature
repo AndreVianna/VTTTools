@@ -21,7 +21,7 @@ Feature: Landing Page
     @smoke @happy-path @critical @anonymous
     Scenario: Unauthenticated visitor sees hero section
       Given I am not authenticated
-      When the landing page loads
+      When the page loads
       Then I should see the hero section
       And I should see heading "Craft Legendary Adventures"
       And I should see the value proposition subtitle
@@ -32,8 +32,8 @@ Feature: Landing Page
 
     @smoke @happy-path @critical
     Scenario: Authenticated user sees dashboard preview
-      Given I am authenticated with displayName "GameMaster"
-      When the landing page loads
+      Given I am authenticated as "GameMaster"
+      When the page loads
       Then I should see heading "Welcome back, GameMaster!"
       And I should see "Your Creative Workspace" subheading
       And I should see 4 action cards
@@ -84,7 +84,7 @@ Feature: Landing Page
   @dashboard @ui
   Scenario: Dashboard preview shows 4 action cards
     Given I am authenticated
-    When the dashboard preview loads
+    When the page loads
     Then I should see 4 action cards:
       | Card Title       | Status   | Label         | Route         |
       | Scene Editor     | Active   | Open Editor   | /scene-editor |
@@ -94,8 +94,8 @@ Feature: Landing Page
 
   @dashboard @personalization
   Scenario: Dashboard shows personalized greeting with user name
-    Given I am authenticated as user with displayName "Alice"
-    When the dashboard preview loads
+    Given I am authenticated as "Alice"
+    When the page loads
     Then I should see heading "Welcome back, Alice!"
     And the greeting should be personalized
 
@@ -103,7 +103,7 @@ Feature: Landing Page
   Scenario: Dashboard shows fallback greeting when displayName missing
     Given I am authenticated
     But my user profile has no displayName
-    When the dashboard preview loads
+    When the page loads
     Then I should see "Welcome back, Game Master!" with fallback
     And the dashboard should display normally
 
@@ -116,7 +116,7 @@ Feature: Landing Page
     Given I am viewing the landing page as unauthenticated visitor
     And the hero section is displayed
     When I successfully log in
-    Then the page should re-render automatically
+    Then the page loads
     And the dashboard preview should be displayed
     And the hero section should not be visible
     And I should see my personalized greeting
@@ -126,7 +126,7 @@ Feature: Landing Page
     Given I am viewing the landing page as authenticated user
     And the dashboard preview is displayed
     When I log out
-    Then the page should re-render automatically
+    Then the page loads
     And the hero section should be displayed
     And the dashboard preview should not be visible
     And I should see CTA buttons
@@ -139,7 +139,7 @@ Feature: Landing Page
   Scenario Outline: Landing page renders correctly in <theme> mode when <auth_state>
     Given the application is in <theme> mode
     And I am <auth_state>
-    When the landing page loads
+    When the page loads
     Then the <theme> theme colors should be applied
     And text contrast should meet WCAG standards
     And the hero gradient should use <theme> color scheme
@@ -156,17 +156,34 @@ Feature: Landing Page
   # ACCESSIBILITY
   # ═══════════════════════════════════════════════════════════════
 
-  @accessibility
-  Scenario: Landing page is keyboard navigable
+  @accessibility @anonymous
+  Scenario: Guest landing page is keyboard navigable
+    Given I am viewing the landing page as unauthenticated visitor
     When I navigate using keyboard only
     Then I should be able to Tab through all interactive elements
     And I should be able to activate CTA buttons with Enter
+    And focus states should be clearly visible
+
+  @accessibility @anonymous
+  Scenario: Guest landing page has proper ARIA labels
+    Given I am viewing the landing page as unauthenticated visitor
+    When I use a screen reader
+    Then all headings should have proper hierarchy
+    And all buttons should have descriptive labels
+    And the page should have appropriate landmarks
+
+  @accessibility
+  Scenario: Authenticated landing page is keyboard navigable
+    Given I am authenticated
+    When the page loads
+    Then I should be able to Tab through all interactive elements
     And I should be able to activate action cards with Enter
     And focus states should be clearly visible
 
   @accessibility
-  Scenario: Landing page has proper ARIA labels
-    When I use a screen reader
+  Scenario: Authenticated landing page has proper ARIA labels
+    Given I am authenticated
+    When the page loads
     Then all headings should have proper hierarchy
     And all buttons should have descriptive labels
     And action cards should announce their status (active/disabled)
@@ -188,7 +205,7 @@ Feature: Landing Page
   Scenario: Handle missing action card data gracefully
     Given I am authenticated
     And some action card data is missing or malformed
-    When the dashboard preview renders
+    When the page loads
     Then available cards should display correctly
     And missing cards should be skipped or show placeholder
     And the page should not crash

@@ -5,8 +5,9 @@
  * Frequency: 20+ uses across all features
  */
 
-import { Given, When } from '@cucumber/cucumber';
+import { Given, When, Then } from '@cucumber/cucumber';
 import { CustomWorld } from '../../support/world.js';
+import { expect } from '@playwright/test';
 
 Given('I am on the Asset Library page', async function (this: CustomWorld) {
     await this.assetLibrary.goto();
@@ -43,4 +44,12 @@ When('I refresh the page', async function (this: CustomWorld) {
 
 Given('I navigate to Asset Library', async function (this: CustomWorld) {
     await this.assetLibrary.goto();
+});
+
+When('the page loads', async function (this: CustomWorld) {
+    await this.page.waitForLoadState('networkidle');
+});
+
+Then('I should be navigated to {string}', async function (this: CustomWorld, path: string) {
+    await expect(this.page).toHaveURL(new RegExp(path));
 });

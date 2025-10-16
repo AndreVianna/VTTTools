@@ -36,31 +36,6 @@ Given('the password reset service is available', async function (this: CustomWor
     expect(response.ok()).toBeTruthy();
 });
 
-
-Given('an account exists with email {string}', async function (this: CustomWorld, email: string) {
-    // Query database to verify user exists
-    const users = await this.db.queryTable('Users', { Email: email });
-
-    if (users.length === 0) {
-        // Create test user if doesn't exist
-        await this.db.insertUser({
-            email,
-            userName: email,
-            emailConfirmed: true,
-            passwordHash: 'hashed_password_placeholder'
-        });
-    }
-
-    // Store for cleanup
-    this.attach(`User verified/created: ${email}`);
-});
-
-Given('no account exists with email {string}', async function (this: CustomWorld, email: string) {
-    // Verify no user exists
-    const users = await this.db.queryTable('Users', { Email: email });
-    expect(users.length).toBe(0);
-});
-
 Given('I previously requested password reset', async function (this: CustomWorld) {
     // Simulate previous reset request by creating token in database
     const token = 'previous-token-' + Date.now();
@@ -309,13 +284,6 @@ When('the email service fails to send the email', async function (this: CustomWo
     this.attach('Email service failure simulated');
 });
 
-When('the network connection fails', async function (this: CustomWorld) {
-    // Simulate network failure
-    await this.context.route('**/api/auth/**', route => route.abort('failed'));
-
-    await this.page.click('button[type="submit"]');
-});
-
 When('the password reset service returns {int} error', async function (this: CustomWorld, statusCode: number) {
     // Mock error response
     await this.context.route('**/api/auth/**', route =>
@@ -342,11 +310,6 @@ When('the reset link is generated', async function (this: CustomWorld) {
 When('I submit a password reset request', async function (this: CustomWorld) {
     await this.page.fill('input[name="email"]', this.currentUser.email);
     await this.page.click('button[type="submit"]');
-});
-
-When('the request is in progress', async function (this: CustomWorld) {
-    // Wait for loading state
-    await expect(this.page.locator('button[disabled]')).toBeVisible();
 });
 
 When('I attempt to submit another request', async function (this: CustomWorld) {
@@ -490,11 +453,6 @@ When('I attempt to log in with password {string}', async function (this: CustomW
 
 When('I have entered a valid email', async function (this: CustomWorld) {
     await this.page.fill('input[name="email"]', this.currentUser.email);
-});
-
-When('my request is in progress', async function (this: CustomWorld) {
-    // Check loading state
-    await expect(this.page.locator('button[disabled]')).toBeVisible();
 });
 
 When('I successfully request password reset', async function (this: CustomWorld) {
@@ -768,20 +726,8 @@ Then('I should see {string} link', async function (this: CustomWorld, linkText: 
     await expect(this.page.locator(`a:has-text("${linkText}"), button:has-text("${linkText}")`)).toBeVisible();
 });
 
-Then('the submit button shows a loading spinner', async function (this: CustomWorld) {
-    await expect(this.page.locator('button[type="submit"] [role="progressbar"], button[type="submit"] svg.MuiCircularProgress-svg')).toBeVisible();
-});
-
 Then('the submit button text should change to {string}', async function (this: CustomWorld, text: string) {
     await expect(this.page.locator(`button[type="submit"]:has-text("${text}")`)).toBeVisible();
-});
-
-Then('all form inputs are disabled', async function (this: CustomWorld) {
-    const inputs = await this.page.locator('input').all();
-
-    for (const input of inputs) {
-        await expect(input).toBeDisabled();
-    }
 });
 
 Then('I should not be able to submit again', async function (this: CustomWorld) {
@@ -815,10 +761,6 @@ Then('I should not be informed of the email failure', async function (this: Cust
 Then('the failure should be tracked for monitoring', async function (this: CustomWorld) {
     // Already covered by error logging
     this.attach('Failure tracking verified');
-});
-
-Then('the form is enabled again', async function (this: CustomWorld) {
-    await expect(this.page.locator('button[type="submit"]')).toBeEnabled();
 });
 
 Then('my email input should be preserved', async function (this: CustomWorld) {

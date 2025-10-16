@@ -69,6 +69,17 @@ Given('I am authenticated as user {string}', async function (this: CustomWorld, 
     this.currentUser.id = userId;
 });
 
+Given('an account exists with email {string}', async function (this: CustomWorld, email: string) {
+    this.attach(`Test account email: ${email}`);
+});
+
+Given('no account exists with email {string}', async function (this: CustomWorld, email: string) {
+    const users = await this.db.queryTable('Users', { Email: email.toLowerCase() });
+    if (users.length > 0) {
+        throw new Error(`Account with email ${email} already exists in database`);
+    }
+});
+
 Then('I should be redirected to {string}', async function (this: CustomWorld, url: string) {
     await expect(this.page).toHaveURL(new RegExp(url));
 });

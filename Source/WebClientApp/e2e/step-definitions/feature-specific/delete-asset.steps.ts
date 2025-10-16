@@ -529,11 +529,6 @@ Then('the confirmation dialog should remain open', async function (this: CustomW
     await expect(this.deleteConfirmDialog.dialog()).toBeVisible();
 });
 
-Then('I should be able to retry', async function (this: CustomWorld) {
-    // Assert - Retry button or delete button still available
-    await expect(this.deleteConfirmDialog.deleteButton()).toBeEnabled();
-});
-
 // ═══════════════════════════════════════════════════════════════
 // THEN - Assertions: Cache & Integration
 // ═══════════════════════════════════════════════════════════════

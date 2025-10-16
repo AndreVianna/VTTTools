@@ -213,17 +213,6 @@ When('the email service fails to send verification email', async function (this:
     this.attach('Email service failure scenario', 'text/plain');
 });
 
-When('my request is in progress', async function (this: CustomWorld) {
-    await expect(this.page.locator('[role="progressbar"]')).toBeVisible({ timeout: 2000 });
-});
-
-When('the network connection fails', async function (this: CustomWorld) {
-    await this.page.route('**/api/auth/register', route => route.abort('failed'));
-
-    const submitButton = this.page.getByRole('button', { name: /create.*account/i });
-    await submitButton.click();
-});
-
 When('the registration service returns 500 error', async function (this: CustomWorld) {
     await this.page.route('**/api/auth/register', route =>
         route.fulfill({
@@ -342,32 +331,9 @@ Then('I should see notification about email verification', async function (this:
     await expect(notification).toContainText(/verif/i);
 });
 
-Then('the submit button shows a loading spinner', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /create.*account/i });
-    await expect(submitButton.locator('[role="progressbar"]')).toBeVisible();
-});
-
-Then('all form inputs are disabled', async function (this: CustomWorld) {
-    const emailInput = this.page.getByLabel(/email/i);
-    const nameInput = this.page.getByLabel(/name/i);
-    const passwordInput = this.page.getByLabel(/password/i);
-
-    await expect(emailInput).toBeDisabled();
-    await expect(nameInput).toBeDisabled();
-    await expect(passwordInput).toBeDisabled();
-});
-
 Then('I should not be able to submit again', async function (this: CustomWorld) {
     const submitButton = this.page.getByRole('button', { name: /create.*account/i });
     await expect(submitButton).toBeDisabled();
-});
-
-Then('the form is enabled again', async function (this: CustomWorld) {
-    const emailInput = this.page.getByLabel(/email/i);
-    const submitButton = this.page.getByRole('button', { name: /create.*account/i });
-
-    await expect(emailInput).toBeEnabled();
-    await expect(submitButton).toBeEnabled();
 });
 
 Then('my input data should be preserved', async function (this: CustomWorld) {

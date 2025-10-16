@@ -49,6 +49,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     password?: string;
   }>({});
 
+  const [clientValidationError, setClientValidationError] = useState<string>('');
+
   const validateForm = (): boolean => {
     const errors: { email?: string; password?: string } = {};
 
@@ -65,7 +67,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     }
 
     setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+
+    if (Object.keys(errors).length > 0) {
+      const firstError = errors.email || errors.password || '';
+      setClientValidationError(firstError);
+      return false;
+    }
+
+    setClientValidationError('');
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -119,10 +129,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           Sign In
         </Typography>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {renderAuthError(error)}
-            {isLockedOut && (
+        {(error || clientValidationError) && (
+          <Alert severity="error" sx={{ mb: 2 }} role="alert">
+            {clientValidationError || renderAuthError(error)}
+            {isLockedOut && !clientValidationError && (
               <Typography variant="caption" display="block" sx={{ mt: 1 }}>
                 Account temporarily locked. Try again in {Math.ceil(lockoutTime / 60000)} minutes.
               </Typography>
@@ -130,7 +140,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           </Alert>
         )}
 
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 2 }}>
           <TextField
             fullWidth
             id="email"
@@ -138,7 +148,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             label="Email Address"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (clientValidationError) setClientValidationError('');
+              if (validationErrors.email) setValidationErrors({});
+            }}
             error={!!validationErrors.email}
             helperText={validationErrors.email}
             disabled={isLoading || isLockedOut}
@@ -155,7 +169,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             label="Password"
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (clientValidationError) setClientValidationError('');
+              if (validationErrors.password) setValidationErrors({});
+            }}
             error={!!validationErrors.password}
             helperText={validationErrors.password}
             disabled={isLoading || isLockedOut}
