@@ -79,8 +79,7 @@ Given('I was rate-limited {int} hour ago', async function (this: CustomWorld, ho
 });
 
 Given('I received a password reset email', async function (this: CustomWorld) {
-    // Simulate having received email with valid token
-    this.attach('Reset email received (simulated for BDD)');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify password reset email was received (query database SentEmails table or use email testing service)');
 });
 
 Given('I clicked the reset link with valid email and token parameters', async function (this: CustomWorld) {
@@ -120,8 +119,7 @@ Given('the reset token was created {int} hours ago', async function (this: Custo
 });
 
 Given('the token has not been used', async function (this: CustomWorld) {
-    // Verify token hasn't been used (default state)
-    this.attach('Token usage status: unused');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify token has not been used yet (query database PasswordResetTokens table and check Used=false)');
 });
 
 Given('the reset token has already been used', async function (this: CustomWorld) {
@@ -139,8 +137,7 @@ Given('the reset token has already been used', async function (this: CustomWorld
 });
 
 Given('the reset link has email {string}', async function (this: CustomWorld, email: string) {
-    // Store for URL verification
-    this.attach(`Reset link email parameter: ${email}`);
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify reset link contains email parameter "${email}" (parse URL from email body or construct test URL)`);
 });
 
 Given('the token belongs to {string}', async function (this: CustomWorld, email: string) {
@@ -183,8 +180,7 @@ Given('I have multiple active reset tokens', async function (this: CustomWorld) 
 });
 
 Given('my old password was {string}', async function (this: CustomWorld, oldPassword: string) {
-    // Store for verification
-    this.attach(`Old password recorded (not stored in plain text): ${oldPassword.length} chars`);
+    throw new Error(`NOT IMPLEMENTED: Step needs to store old password for comparison after reset (${oldPassword.length} chars)`);
 });
 
 Given('the URL token parameter is malformed {string}', async function (this: CustomWorld, malformedToken: string) {
@@ -193,13 +189,11 @@ Given('the URL token parameter is malformed {string}', async function (this: Cus
 });
 
 Given('the system enforces password history', async function (this: CustomWorld) {
-    // Enable password history enforcement
-    this.attach('Password history enforcement: ENABLED');
+    throw new Error('NOT IMPLEMENTED: Step needs to enable password history enforcement (configure system setting or feature flag)');
 });
 
 Given('my current password is {string}', async function (this: CustomWorld, currentPassword: string) {
-    // Store current password hash
-    this.attach(`Current password length: ${currentPassword.length} chars`);
+    throw new Error(`NOT IMPLEMENTED: Step needs to store/verify current password for testing password history (${currentPassword.length} chars)`);
 });
 
 Given('I successfully submit reset request', async function (this: CustomWorld) {
@@ -279,9 +273,7 @@ When('I request password reset', async function (this: CustomWorld) {
 });
 
 When('the email service fails to send the email', async function (this: CustomWorld) {
-    // Mock email service failure at backend
-    // In real scenario, this would be configured via test configuration
-    this.attach('Email service failure simulated');
+    throw new Error('NOT IMPLEMENTED: Step needs to mock email service failure (route email API to return error or configure test backend)');
 });
 
 When('the password reset service returns {int} error', async function (this: CustomWorld, statusCode: number) {
@@ -298,13 +290,11 @@ When('I click {string} link', async function (this: CustomWorld, linkText: strin
 });
 
 When('the reset email is generated', async function (this: CustomWorld) {
-    // Email generation happens in background
-    this.attach('Email generation triggered');
+    throw new Error('NOT IMPLEMENTED: Step needs to wait for and verify email generation (check email queue or database)');
 });
 
 When('the reset link is generated', async function (this: CustomWorld) {
-    // Link generated with token
-    this.attach('Reset link generated');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify reset link was generated with valid token (check database PasswordResetTokens table)');
 });
 
 When('I submit a password reset request', async function (this: CustomWorld) {
@@ -759,8 +749,7 @@ Then('I should not be informed of the email failure', async function (this: Cust
 });
 
 Then('the failure should be tracked for monitoring', async function (this: CustomWorld) {
-    // Already covered by error logging
-    this.attach('Failure tracking verified');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify failure was tracked in monitoring system (check error logs, metrics, or telemetry)');
 });
 
 Then('my email input should be preserved', async function (this: CustomWorld) {
@@ -866,18 +855,15 @@ Then('my token be included as a query parameter', async function (this: CustomWo
 });
 
 Then('only one request should be processed', async function (this: CustomWorld) {
-    // Check API call count via network monitoring
-    this.attach('Single request verified');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify only one request was sent (check network requests via Playwright or count API calls)');
 });
 
 Then('I receive response with in less than {int}ms', async function (this: CustomWorld, maxTime: number) {
-    // Performance assertion - would need timing tracking
-    this.attach(`Response time under ${maxTime}ms`);
+    throw new Error(`NOT IMPLEMENTED: Step needs to measure response time and verify it's under ${maxTime}ms (use performance.now() or timing API)`);
 });
 
 Then('my email be sent asynchronously', async function (this: CustomWorld) {
-    // Email sending should not block response
-    this.attach('Asynchronous email sending verified');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify email sending doesn\'t block response (check response timing vs email sent timing)');
 });
 
 Then('the success screen should display immediately', async function (this: CustomWorld) {
@@ -909,8 +895,7 @@ Then('the success message should be announced when displayed', async function (t
 });
 
 Then('the token is validated', async function (this: CustomWorld) {
-    // Token validation happens server-side
-    this.attach('Token validation complete');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify token was validated server-side (check response or database)');
 });
 
 Then('my password is updated with secure hash', async function (this: CustomWorld) {
@@ -955,8 +940,7 @@ Then('I should receive {int} status', async function (this: CustomWorld, statusC
 });
 
 Then('my password should not be updated', async function (this: CustomWorld) {
-    // Password hash should remain unchanged
-    this.attach('Password update prevented');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify password hash remains unchanged in database');
 });
 
 Then('my password should pass validation', async function (this: CustomWorld) {
@@ -965,8 +949,7 @@ Then('my password should pass validation', async function (this: CustomWorld) {
 });
 
 Then('my password is updated', async function (this: CustomWorld) {
-    // Already covered by "my password is updated with secure hash"
-    this.attach('Password updated successfully');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify password was updated (check database Users table PasswordHash field)');
 });
 
 Then('the error appears below the confirmation field', async function (this: CustomWorld) {
@@ -999,8 +982,7 @@ Then('the plain text password should never be stored', async function (this: Cus
 });
 
 Then('the hash should be irreversible', async function (this: CustomWorld) {
-    // Hash format verification
-    this.attach('Password hash irreversibility verified');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify hash is one-way (check hash format and ensure it cannot be reversed)');
 });
 
 Then('all existing sessions should be terminated', async function (this: CustomWorld) {
@@ -1023,8 +1005,7 @@ Then('all session tokens should be invalidated', async function (this: CustomWor
 });
 
 Then('the user must log in again on all devices', async function (this: CustomWorld) {
-    // Session invalidation verified
-    this.attach('All sessions terminated');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify all user sessions were terminated (check UserSessions table)');
 });
 
 Then('all other reset tokens for my account should be invalidated', async function (this: CustomWorld) {
@@ -1037,8 +1018,7 @@ Then('all other reset tokens for my account should be invalidated', async functi
 });
 
 Then('they should not be usable', async function (this: CustomWorld) {
-    // Already verified by invalidation check
-    this.attach('Tokens marked as unusable');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify tokens are marked as unusable (check PasswordResetTokens table Invalidated/Used flags)');
 });
 
 Then('I should see a visual strength indicator', async function (this: CustomWorld) {
@@ -1057,11 +1037,6 @@ Then('the indicator should help me choose a secure password', async function (th
 Then('I should see success alert {string}', async function (this: CustomWorld, message: string) {
     await expect(this.page.locator(`[role="alert"]:has-text("${message}")`)).toBeVisible();
 });
-
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see message {string}', async function (this: CustomWorld, message: string) {
-//     await expect(this.page.locator(`text=${message}`)).toBeVisible();
-// });
 
 Then('I should be able to click {string} to redirect immediately', async function (this: CustomWorld, linkText: string) {
     await expect(this.page.locator(`a:has-text("${linkText}"), button:has-text("${linkText}")`)).toBeVisible();
@@ -1083,8 +1058,7 @@ Then('my reset token should remain valid', async function (this: CustomWorld) {
 });
 
 Then('I should be able to use the reset link again later', async function (this: CustomWorld) {
-    // Token remains valid
-    this.attach('Reset link remains valid');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify reset link/token remains valid for reuse (check token expiration and used status)');
 });
 
 Then('the error message should disappear', async function (this: CustomWorld) {
@@ -1112,13 +1086,11 @@ Then('my authentication should fail', async function (this: CustomWorld) {
 });
 
 Then('only one update request should be sent', async function (this: CustomWorld) {
-    // Verified via button disabled state
-    this.attach('Single update request verified');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify only one request was sent (monitor network requests via Playwright)');
 });
 
 Then('the password hashing should use appropriate cost factor', async function (this: CustomWorld) {
-    // Cost factor is a backend concern
-    this.attach('Password hashing cost factor appropriate');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify password hashing cost factor is appropriate (check backend configuration or hash metadata)');
 });
 
 Then('all fields should be properly labeled', async function (this: CustomWorld) {

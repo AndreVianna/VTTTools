@@ -14,9 +14,7 @@ import { Given, When, Then } from '@cucumber/cucumber';
 import { CustomWorld } from '../../support/world.js';
 import { expect } from '@playwright/test';
 
-// ============================================================================
 // GIVEN STEPS - Preconditions
-// ============================================================================
 
 Given('the React Router context is available', async function (this: CustomWorld) {
     // Router context is provided by app initialization
@@ -89,9 +87,7 @@ Given('the token parameter is missing', async function (this: CustomWorld) {
     expect(url).not.toContain('token=');
 });
 
-// ============================================================================
 // WHEN STEPS - Actions
-// ============================================================================
 
 When('the LoginPage component loads', async function (this: CustomWorld) {
     await this.page.waitForLoadState('domcontentloaded');
@@ -161,9 +157,7 @@ When('I switch between different modes {int} times', async function (this: Custo
     this.attach(`Mode switches completed in ${totalTime}ms`);
 });
 
-// ============================================================================
 // THEN STEPS - Assertions
-// ============================================================================
 
 Then('the SimpleLoginForm should be displayed', async function (this: CustomWorld) {
     // Login form has email and password, but not confirmPassword
@@ -247,9 +241,7 @@ Then('I should see the {string} link', async function (this: CustomWorld, linkTe
 });
 
 Then('the useEffect hook should detect the pathname change', async function (this: CustomWorld) {
-    // This is implementation detail - we verify by checking the mode changed
-    // Already covered by mode change assertions
-    this.attach('useEffect pathname detection verified by mode change');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify useEffect hook detected pathname change by monitoring React component re-rendering when URL path changes (verify mode updated based on pathname)');
 });
 
 Then('the RecoveryCodeForm should be displayed', async function (this: CustomWorld) {
@@ -268,8 +260,7 @@ Then('I should see instructions to enter my email', async function (this: Custom
 });
 
 Then('the switch statement should fall back to the default case', async function (this: CustomWorld) {
-    // Implementation detail - we verify by checking default form is shown
-    this.attach('Switch statement fallback verified');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify switch statement default case handling by providing an unknown mode value and confirming it triggers default case behavior or error handling');
 });
 
 Then('no errors should be thrown', async function (this: CustomWorld) {
@@ -335,21 +326,16 @@ Then('all form elements should be properly sized for mobile', async function (th
     }
 });
 
-Then('each mode switch should occur in less than {int}ms', async function (this: CustomWorld, maxTime: number) {
-    // Performance assertion - timing tracked in When step
-    this.attach(`Mode switches under ${maxTime}ms per switch`);
+Then('each mode switch should occur in less than {int}ms', async function (this: CustomWorld, _maxTime: number) {
+    throw new Error('NOT IMPLEMENTED: Step needs to verify mode switch performance by measuring time between UI state changes and asserting each switch completes within maxTime milliseconds');
 });
 
 Then('no unnecessary component re-renders should occur', async function (this: CustomWorld) {
-    // This is performance/implementation detail
-    // We verify by checking mode switches are fast
-    this.attach('Component re-renders optimized');
+    throw new Error('NOT IMPLEMENTED: Step needs to track React component render counts and verify no excessive re-renders occur during mode switches (may require performance monitoring or mock render tracking)');
 });
 
 Then('no page reloads should happen', async function (this: CustomWorld) {
-    // Verify URL changes without reload (SPA behavior)
-    // Already verified by fast mode switching
-    this.attach('SPA navigation verified - no page reloads');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify SPA navigation by monitoring that page reload events do not occur during mode switches (track navigation type and reload events)');
 });
 
 Then('the SimpleLoginForm should be displayed as default', async function (this: CustomWorld) {
@@ -358,3 +344,4 @@ Then('the SimpleLoginForm should be displayed as default', async function (this:
     await expect(this.page.locator('input[name="password"]')).toBeVisible();
     await expect(this.page.locator('input[name="confirmPassword"]')).not.toBeVisible();
 });
+

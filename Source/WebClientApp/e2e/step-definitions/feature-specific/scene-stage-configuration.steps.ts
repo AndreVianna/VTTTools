@@ -534,18 +534,3 @@ Then('I should see error with not found error', async function (this: CustomWorl
 Then('I should see error with forbidden error', async function (this: CustomWorld) {
     expect(this.lastApiResponse.status()).toBe(403); // Forbidden
 });
-
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see error {string}', async function (this: CustomWorld, expectedError: string) {
-//     const responseBody = await this.lastApiResponse.json();
-// 
-//     // Check if error message contains expected text
-//     const errors = responseBody.errors || responseBody.error || [responseBody.message];
-//     const errorMessages = Array.isArray(errors) ? errors : [errors];
-// 
-//     const hasExpectedError = errorMessages.some((msg: string) =>
-//         msg.toLowerCase().includes(expectedError.toLowerCase())
-//     );
-// 
-//     expect(hasExpectedError).toBeTruthy();
-// });

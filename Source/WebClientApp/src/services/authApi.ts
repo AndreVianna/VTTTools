@@ -58,12 +58,6 @@ export const authApi = createApi({
         return response;
       },
       transformErrorResponse: (response, _meta, _arg) => {
-        const enhancedError = response as any;
-        if (isDevelopment && (enhancedError.status === 'FETCH_ERROR' || enhancedError.data?.isRecoverable)) {
-          devUtils.warn('getCurrentUser failed, using mock user in development');
-          // Return null instead of error to prevent crash
-          return null;
-        }
         return response;
       },
     }),

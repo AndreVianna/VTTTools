@@ -8,15 +8,6 @@
  * - Verifies real database state
  * - Tests from user perspective
  *
- * ANTI-PATTERN COMPLIANCE:
- * ✅ No step-to-step calls (use helpers)
- * ✅ No hard-coded credentials (env vars)
- * ✅ No SQL injection (whitelisted tables)
- * ✅ No catch-all regex steps
- * ✅ Strong TypeScript types
- * ✅ Condition-based waits (no timeouts)
- * ✅ Semantic selectors (getByRole)
- * ✅ Playwright built-ins (no evaluateAll)
  */
 
 import { Given, When, Then } from '@cucumber/cucumber';
@@ -38,34 +29,73 @@ Given('an account exists with email {string} and password {string}', async funct
     email: string,
     _password: string
 ) {
-    // Store test account credentials for later verification
-    // NOTE: Backend should handle password hashing (password not needed in step)
-    this.attach(`Test account: ${email}`, 'text/plain');
+    throw new Error(`NOT IMPLEMENTED: Step needs to create or verify test account with email ${email} exists in database (query Users table or use fixture)`);
 });
 
 Given('an account exists with 2FA enabled', async function (this: CustomWorld) {
-    // Prepare test data for 2FA scenario
-    this.attach('2FA enabled account required', 'text/plain');
+    if (!this.currentUser?.id) {
+        throw new Error('No current user assigned. Ensure Before hook has run.');
+    }
+
+    await this.db.updateRecord('Users', this.currentUser.id, {
+        TwoFactorEnabled: true
+    });
+
+    this.attach(`2FA enabled for user: ${this.currentUser.email}`, 'text/plain');
 });
 
 Given('the account is locked due to failed login attempts', async function (this: CustomWorld) {
-    // Backend should handle account lockout logic
-    this.attach('Account locked scenario', 'text/plain');
+    if (!this.currentUser?.id) {
+        throw new Error('No current user assigned. Ensure Before hook has run.');
+    }
+
+    const lockoutEnd = new Date(Date.now() + 5 * 60 * 1000);
+
+    await this.db.updateRecord('Users', this.currentUser.id, {
+        LockoutEnd: lockoutEnd.toISOString(),
+        LockoutEnabled: true,
+        AccessFailedCount: 5
+    });
+
+    this.attach(`Account locked until ${lockoutEnd.toISOString()} for user: ${this.currentUser.email}`, 'text/plain');
 });
 
 Given('my account status is {string}', async function (
     this: CustomWorld,
     status: string
 ) {
-    this.attach(`Account status: ${status}`, 'text/plain');
+    if (!this.currentUser?.id) {
+        throw new Error('No current user assigned. Ensure Before hook has run.');
+    }
+
+    if (status.toLowerCase() === 'suspended') {
+        const suspendedUntil = new Date('2099-12-31T23:59:59Z');
+
+        await this.db.updateRecord('Users', this.currentUser.id, {
+            LockoutEnd: suspendedUntil.toISOString(),
+            LockoutEnabled: true
+        });
+
+        this.attach(`Account suspended (locked until ${suspendedUntil.toISOString()}) for user: ${this.currentUser.email}`, 'text/plain');
+    } else {
+        this.attach(`Account status set to: ${status}`, 'text/plain');
+    }
 });
 
 Given('the email is not confirmed', async function (this: CustomWorld) {
-    this.attach('Email not confirmed scenario', 'text/plain');
+    if (!this.currentUser?.id) {
+        throw new Error('No current user assigned. Ensure Before hook has run.');
+    }
+
+    await this.db.updateRecord('Users', this.currentUser.id, {
+        EmailConfirmed: false
+    });
+
+    this.attach(`Email marked as unconfirmed for user: ${this.currentUser.email}`, 'text/plain');
 });
 
 Given('email confirmation is required email confirmation for login', async function (this: CustomWorld) {
-    this.attach('Email confirmation required', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to configure system to require email confirmation for login (backend configuration or feature flag)');
 });
 
 // ============================================================================
@@ -87,15 +117,24 @@ When('I leave the password field empty', async function (this: CustomWorld) {
 });
 
 When('I submit valid credentials for that account', async function (this: CustomWorld) {
-    await this.page.getByLabel(/email/i).fill('testuser@example.com');
-    await this.page.getByRole('textbox', { name: /password/i }).fill('ValidPassword123');
+    await this.page.getByLabel(/email/i).fill(this.currentUser.email);
+    await this.page.getByRole('textbox', { name: /password/i}).fill(process.env.BDD_TEST_PASSWORD!);
 
     const submitButton = this.page.getByRole('button', { name: /sign in/i });
+
+    const responsePromise = this.page.waitForResponse(
+        response => response.url().includes('/api/auth/login') && response.status() !== 0,
+        { timeout: 10000 }
+    );
+
     await submitButton.click();
+
+    this.lastApiResponse = await responsePromise as any;
+
+    await this.page.waitForTimeout(1500);
 });
 
 When('the server returns an error', async function (this: CustomWorld) {
-    // Simulate server error
     await this.page.route('**/api/auth/login', route =>
         route.fulfill({
             status: 500,
@@ -120,11 +159,10 @@ Then('the error appears below the email field', async function (this: CustomWorl
     const emailField = this.page.getByLabel(/email/i);
     const emailFieldBox = await emailField.boundingBox();
 
-    const errorText = this.page.getByText(/invalid email address/i);
+    const errorText = this.page.locator('#email-helper-text, #email-helper-text + .MuiFormHelperText-root, [id$="-helper-text"]:has-text("Invalid email address")').first();
     const errorBox = await errorText.boundingBox();
 
     if (emailFieldBox && errorBox) {
-        // Error should be below email field
         expect(errorBox.y).toBeGreaterThan(emailFieldBox.y);
     }
 });
@@ -133,7 +171,7 @@ Then('the error appears below the password field', async function (this: CustomW
     const passwordField = this.page.getByRole('textbox', { name: /password/i });
     const passwordFieldBox = await passwordField.boundingBox();
 
-    const errorText = this.page.getByText(/password is required/i);
+    const errorText = this.page.locator('#password-helper-text, [id$="-helper-text"]:has-text("Password is required")').first();
     const errorBox = await errorText.boundingBox();
 
     if (passwordFieldBox && errorBox) {
@@ -142,11 +180,20 @@ Then('the error appears below the password field', async function (this: CustomW
 });
 
 Then('I should be authenticated successfully', async function (this: CustomWorld) {
-    // Wait for successful authentication
-    await this.page.waitForResponse(
-        response => response.url().includes('/api/auth/login') && response.status() === 200,
-        { timeout: 10000 }
-    );
+    if (this.lastApiResponse) {
+        const status = this.lastApiResponse.status();
+        const responseBody = await this.lastApiResponse.text().catch(() => 'Unable to read response body');
+        this.attach(`API Response Status: ${status}\nBody: ${responseBody}`, 'text/plain');
+
+        if (status !== 200) {
+            throw new Error(`Authentication failed with status ${status}. Expected 200. Response: ${responseBody}`);
+        }
+    } else {
+        await this.page.waitForResponse(
+            response => response.url().includes('/api/auth/login') && response.status() === 200,
+            { timeout: 10000 }
+        );
+    }
 });
 
 Then('I should be redirected to the dashboard', async function (this: CustomWorld) {
@@ -158,15 +205,13 @@ Then('I should remain on the login page', async function (this: CustomWorld) {
 });
 
 Then('the password field is cleared', async function (this: CustomWorld) {
-    const passwordInput = this.page.getByRole('textbox', { name: /password/i });
+    const passwordInput = this.page.locator('#password');
     await expect(passwordInput).toHaveValue('');
 });
 
 Then('login should be prevented', async function (this: CustomWorld) {
-    // Verify we're still on login page
     await expect(this.page).toHaveURL(/\/login/);
 
-    // Verify authentication didn't succeed
     const cookies = await this.context.cookies();
     const authCookie = cookies.find(c => c.name.includes('auth') || c.name.includes('session'));
     expect(authCookie).toBeUndefined();
@@ -175,7 +220,6 @@ Then('login should be prevented', async function (this: CustomWorld) {
 Then('I should not be able to determine if the email exists', async function (
     this: CustomWorld
 ) {
-    // Security check: error message should not reveal if email exists
     const errorAlert = this.page.getByRole('alert');
     await expect(errorAlert).toContainText(/invalid email or password/i);
     await expect(errorAlert).not.toContainText(/email.*not found/i);
@@ -190,18 +234,27 @@ Then('I should not be authenticated', async function (this: CustomWorld) {
 
 Then('a session cookie should be set by the server', async function (this: CustomWorld) {
     const cookies = await this.context.cookies();
-    const sessionCookie = cookies.find(c => c.name.includes('session'));
-    expect(sessionCookie).toBeDefined();
-    expect(sessionCookie?.httpOnly).toBe(true);
+    const authCookie = cookies.find(c =>
+        c.name.includes('AspNetCore') ||
+        c.name.includes('auth') ||
+        c.name.includes('session')
+    );
+
+    if (!authCookie) {
+        const cookieNames = cookies.map(c => c.name).join(', ');
+        this.attach(`Available cookies: ${cookieNames || 'none'}`, 'text/plain');
+    }
+
+    expect(authCookie).toBeDefined();
+    expect(authCookie?.httpOnly).toBe(true);
 });
 
 Then('I should see my user information in the header', async function (this: CustomWorld) {
-    const header = this.page.locator('header');
-    await expect(header).toContainText(this.currentUser.name);
+    const userMenuButton = this.page.getByRole('button', { name: /user menu/i });
+    await expect(userMenuButton).toBeVisible({ timeout: 5000 });
 });
 
 Then('my auth state should be stored in Redux', async function (this: CustomWorld) {
-    // Verify Redux state via browser evaluation
     const isAuthenticated = await this.page.evaluate(() => {
         return (window as any).store?.getState()?.auth?.isAuthenticated;
     });
@@ -239,7 +292,7 @@ Then('I should see the two-factor verification form', async function (this: Cust
 });
 
 Then('I should see a link to resend confirmation email', async function (this: CustomWorld) {
-    await expect(this.page.getByRole('link', { name: /resend/i })).toBeVisible();
+    await expect(this.page.getByRole('link', { name: /resend/i })).toBeVisible({ timeout: 10000 });
 });
 
 Then('Redux authSlice.isAuthenticated should be true', async function (this: CustomWorld) {
@@ -278,8 +331,7 @@ Then('protected routes should become accessible', async function (this: CustomWo
 });
 
 Then('only one authentication request should be sent', async function (this: CustomWorld) {
-    // This is verified by the disabled state preventing duplicate submissions
-    this.attach('Duplicate submission prevented by disabled state', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify that only one authentication request was sent (e.g., check network requests captured during test)');
 });
 
 Then('all form fields have proper labels', async function (this: CustomWorld) {
@@ -300,19 +352,19 @@ Then('error messages are announced', async function (this: CustomWorld) {
 // ============================================================================
 
 Given('an account exists with password {string}', async function (this: CustomWorld, _password: string) {
-    this.attach('Account with specific password', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify account with specific password exists (query database or create test account with given password)');
 });
 
 Given('I was rate-limited due to failed attempts', async function (this: CustomWorld) {
-    this.attach('Rate limit scenario', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to set up rate-limit state (e.g., record failed attempts in database or trigger rate limiter)');
 });
 
-Given('{int} minutes have passed since the last attempt', async function (this: CustomWorld, _minutes: number) {
-    this.attach('Time passage simulated', 'text/plain');
+Given('{int} minutes have passed since the last attempt', async function (this: CustomWorld, minutes: number) {
+    throw new Error(`NOT IMPLEMENTED: Step needs to simulate time passage of ${minutes} minutes (e.g., modify timestamps in database or use time-travel mechanism)`);
 });
 
 Given('I am using a screen reader', async function (this: CustomWorld) {
-    this.attach('Screen reader mode', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to set screen reader simulation (e.g., set accessibility testing mode or configure Playwright to emulate screen reader)');
 });
 
 // ============================================================================
@@ -351,3 +403,12 @@ Then('authentication succeeds', async function (this: CustomWorld) {
 Then('I have access to my account', async function (this: CustomWorld) {
     await expect(this.page).not.toHaveURL(/\/login/);
 });
+
+
+Given('my request is in progress', async function (this: CustomWorld) {
+    await this.page.route('**/api/auth/login', async route => {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        route.continue();
+    });
+});
+

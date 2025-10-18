@@ -65,6 +65,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* Header */}
       <AppBar
+        component="header"
         position="static"
         elevation={0}
         sx={{
@@ -143,7 +144,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           {/* Authentication Controls */}
           {isAuthenticated && user ? (
             // Logged in - show user menu
-            <Box>
+            <>
               <IconButton
                 id="btn-user-menu"
                 color="inherit"
@@ -182,7 +183,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   Sign Out
                 </MenuItem>
               </Menu>
-            </Box>
+            </>
           ) : (
             // Not logged in - show login/register buttons
             <Stack direction="row" spacing={1}>

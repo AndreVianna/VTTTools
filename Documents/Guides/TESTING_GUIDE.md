@@ -1294,7 +1294,7 @@ async queryTable(
 ```typescript
 // ❌ WRONG - Hides missing implementations, causes 1932 ambiguous steps!
 Given(/^(.*)$/, async function(step: string) {
-  debugLog(`[PENDING] ${step}`);
+  debugLog(`${step}`);
 });
 ```
 
@@ -1643,7 +1643,7 @@ if (isAnonymous) {
 **After** (runs after each scenario):
 ```typescript
 1. Cleanup user's data (DELETE WHERE OwnerId = userId)
-   CRITICAL: Use deleteUserDataOnly(), NOT deleteUserAndAllData()
+   CRITICAL: Use deleteUserDataOnly(), NOT deleteUser()
 2. Release user back to pool
 3. Close browser
 ```
@@ -1660,14 +1660,14 @@ if (isAnonymous) {
 
 **Symptom**: First 16 scenarios pass, then auth failures start occurring.
 
-**Root Cause**: User deletion in After hook - tests were calling `deleteUserAndAllData()` which deleted the **user account**, not just the user's data.
+**Root Cause**: User deletion in After hook - tests were calling `deleteUser()` which deleted the **user account**, not just the user's data.
 
 **Impact**: After test #N uses `bdd-test-user-1`, that user no longer exists. Test #N+16 tries to login with deleted user → 400 Bad Request "Invalid email or password".
 
 **Solution**:
 ```typescript
 // ❌ WRONG - Deletes user account from database
-async deleteUserAndAllData(userId: string): Promise<void> {
+async deleteUser(userId: string): Promise<void> {
     const query = `
         DELETE FROM Assets WHERE OwnerId = ?;
         DELETE FROM Scenes WHERE OwnerId = ?;

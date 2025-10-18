@@ -462,8 +462,7 @@ Then('Or show validation error {string}', async function (this: CustomWorld, err
 });
 
 Then('a PATCH request should be sent to update the scene', async function (this: CustomWorld) {
-    // Verify network request was made (captured in helper function)
-    // This was already verified in saveGridConfiguration helper
+    throw new Error('NOT IMPLEMENTED: PATCH request verification - should intercept and verify network request was made to update scene');
 });
 
 Then('the scene record should be updated with new grid config', async function (this: CustomWorld) {

@@ -37,9 +37,8 @@
       "@store/*": ["src/store/*"],
       "@types/*": ["src/types/*"],
       "@utils/*": ["src/utils/*"]
-    },
-    "types": ["node"]
+    }
   },
-  "include": ["src", "e2e"],
+  "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

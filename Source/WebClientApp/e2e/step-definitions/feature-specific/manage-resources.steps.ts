@@ -1,24 +1,9 @@
-/**
- * Manage Resources Step Definitions
- *
- * Feature-specific steps for Asset Resource Manager component
- * Covers: Upload, role assignment, collapsed/expanded views, removal, state management
- *
- * CRITICAL: NO ANTI-PATTERNS
- * - Extract helpers instead of calling steps from steps
- * - Use real database queries (not mocks)
- * - No hard-coded credentials
- * - SQL injection protection via whitelisted tables
- */
-
 import { Given, When, Then } from '@cucumber/cucumber';
 import { CustomWorld } from '../../support/world.js';
 import { expect } from '@playwright/test';
 import { uploadImage, uploadAndAssignRole, ResourceRole } from '../../support/helpers/upload.helper.js';
 
-// ============================================================================
 // BACKGROUND - COMPONENT VISIBILITY
-// ============================================================================
 
 Given('I am in the Asset Create or Edit Dialog', async function (this: CustomWorld) {
     await this.page.goto('/assets');
@@ -30,9 +15,7 @@ Given('the Asset Resource Manager component is visible', async function (this: C
     await expect(this.page.getByTestId('asset-resource-manager')).toBeVisible();
 });
 
-// ============================================================================
 // UPLOAD WORKFLOW
-// ============================================================================
 
 When('I select an image file {string}', async function (this: CustomWorld, filename: string) {
     const fileInput = this.page.locator('input[type="file"]');
@@ -96,8 +79,7 @@ Then('the file input should accept: {string}', async function (this: CustomWorld
 });
 
 Then('the file input should reject other file types', async function (this: CustomWorld) {
-    // Implicit - browser enforces accept attribute
-    // This is a documentation step
+    throw new Error('NOT IMPLEMENTED: Step needs to verify file input with accept attribute rejects invalid file types (validate accept attribute is set to image formats)');
 });
 
 When('I upload SVG file {string}', async function (this: CustomWorld, filename: string) {
@@ -142,9 +124,7 @@ Then('I should see the PNG image displayed', async function (this: CustomWorld) 
     await expect(this.page.locator(`[data-resource-id="${lastResourceId}"] img`)).toBeVisible();
 });
 
-// ============================================================================
 // UPLOAD LOADING STATE
-// ============================================================================
 
 When('I select a file to upload', async function (this: CustomWorld) {
     const fileInput = this.page.locator('input[type="file"]');
@@ -172,9 +152,7 @@ Then('the button should re-enable', async function (this: CustomWorld) {
     await expect(uploadButton).toBeEnabled();
 });
 
-// ============================================================================
 // UPLOAD ERROR HANDLING
-// ============================================================================
 
 When('I upload a file that fails to process', async function (this: CustomWorld) {
     // Simulate error by uploading invalid/corrupted file
@@ -217,9 +195,7 @@ Then('I should be able to upload a different file', async function (this: Custom
     await expect(uploadButton).toBeEnabled();
 });
 
-// ============================================================================
 // ROLE ASSIGNMENT SCENARIOS
-// ============================================================================
 
 Given('I have uploaded an image', async function (this: CustomWorld) {
     const resourceId = await uploadImage(this.page, 'test-image.png');
@@ -322,9 +298,7 @@ Then('both Token and Display previews should show this image', async function (t
     await expect(this.page.getByTestId('display-preview').locator(`img[src*="${lastResourceId}"]`)).toBeVisible();
 });
 
-// ============================================================================
 // ROLE TOGGLING
-// ============================================================================
 
 When('I Ctrl+Click', async function (this: CustomWorld) {
     const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
@@ -441,12 +415,10 @@ Then('the role should remain {string} \\({int})', async function (this: CustomWo
 });
 
 Then('no role change should occur', async function (this: CustomWorld) {
-    // Implicit - previous assertion confirms no change
+    throw new Error('NOT IMPLEMENTED: Step needs to verify clicking image without modifiers does not change role (verify data-role attribute remains unchanged)');
 });
 
-// ============================================================================
 // VISUAL FEEDBACK - BORDERS & BADGES
-// ============================================================================
 
 Then('the image border should be {string}', async function (this: CustomWorld, color: string) {
     const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
@@ -501,9 +473,7 @@ Then('the Display badge should have:', async function (this: CustomWorld, _dataT
     await expect(badge).toBeVisible();
 });
 
-// ============================================================================
 // MANAGE PANEL - EXPAND/COLLAPSE
-// ============================================================================
 
 Given('the Manage panel is collapsed', async function (this: CustomWorld) {
     const managePanel = this.page.getByTestId('manage-panel');
@@ -594,9 +564,7 @@ Then('the button should show ExpandLess icon \\(up arrow)', async function (this
     await expect(button.locator('[data-testid="ExpandLessIcon"]')).toBeVisible();
 });
 
-// ============================================================================
 // COLLAPSED VIEW - PREVIEWS (Continued in next file due to length)
-// ============================================================================
 
 Then('I should see two preview boxes in a 2-column grid', async function (this: CustomWorld) {
     const tokenPreview = this.page.getByTestId('token-preview');
@@ -650,7 +618,7 @@ Then('the Token preview should show {string} \\(first Token)', async function (t
 });
 
 Then('should not show {string} or {string}', async function (this: CustomWorld, _img1: string, _img2: string) {
-    // Implicit - only first Token is shown
+    throw new Error('NOT IMPLEMENTED: Step needs to verify Token preview shows only first Token image, not other Token images (verify only one image appears in token-preview)');
 });
 
 Given('I have {int} images with Display roles', async function (this: CustomWorld, count: number) {
@@ -689,7 +657,7 @@ Then('should display text {string}', async function (this: CustomWorld, text: st
 });
 
 Given('no images have Display role', async function (this: CustomWorld) {
-    // Implicit - no Display roles assigned
+    throw new Error('NOT IMPLEMENTED: Step needs to ensure no images in uploadedResourceIds have Display role (verify no images have data-role="2" or data-role="3")');
 });
 
 Then('the Display preview box should show placeholder', async function (this: CustomWorld) {
@@ -722,9 +690,7 @@ Then('the Display preview should show the same image', async function (this: Cus
     await expect(this.page.getByTestId('display-preview').locator(`img[src*="${lastResourceId}"]`)).toBeVisible();
 });
 
-// ============================================================================
 // EXPANDED VIEW - IMAGE LIBRARY GRID
-// ============================================================================
 
 Given('I have uploaded {int} images', async function (this: CustomWorld, count: number) {
     for (let i = 0; i < count; i++) {
@@ -759,11 +725,11 @@ Then('the image card should show:', async function (this: CustomWorld, _dataTabl
 });
 
 When('viewing on different screen sizes', async function (this: CustomWorld) {
-    // Responsive grid - implicit via CSS
+    throw new Error('NOT IMPLEMENTED: Step needs to simulate viewport changes and verify grid responsiveness (set viewport sizes and verify grid columns adjust)');
 });
 
 Then('the grid should adjust columns:', async function (this: CustomWorld, _dataTable) {
-    // CSS Grid responsive behavior - implicit
+    throw new Error('NOT IMPLEMENTED: Step needs to verify grid columns adjust based on screen size from dataTable rows (verify each breakpoint has correct column count)');
 });
 
 Given('I have no images uploaded', async function (this: CustomWorld) {

@@ -222,7 +222,7 @@ Then('the asset name length should be {int}', async function (this: CustomWorld,
 // ============================================================================
 
 Then('the asset description should be empty string', async function (this: CustomWorld) {
-    // Verify via API response - requires test infrastructure
+    throw new Error('NOT IMPLEMENTED: Step needs to verify asset description is empty string (check API response body after asset creation)');
 });
 
 Then('the description length should be {int}', async function (this: CustomWorld, length: number) {
@@ -242,12 +242,12 @@ Then('the asset should be created with size {float}×{float}', async function (t
     );
 });
 
-Then('the size should be named {string} in the backend', async function (this: CustomWorld, _sizeName: string) {
-    // Verify backend response includes correct named size
+Then('the size should be named {string} in the backend', async function (this: CustomWorld, sizeName: string) {
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify backend returns named size "${sizeName}" (check API response for size name field)`);
 });
 
-Then('size should be {string}', async function (this: CustomWorld, _sizeName: string) {
-    // Verify named size in response
+Then('size should be {string}', async function (this: CustomWorld, sizeName: string) {
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify size is "${sizeName}" (check API response for size field)`);
 });
 
 When('I create assets with sizes:', async function (this: CustomWorld, dataTable: DataTable) {
@@ -271,8 +271,8 @@ Then('all assets should be created with correct named sizes', async function (th
     await expect(this.page.locator('[role="alert"]')).not.toBeVisible();
 });
 
-Then('the size should be {int}×{int} cells', async function (this: CustomWorld, _width: number, _height: number) {
-    // Verify in API response
+Then('the size should be {int}×{int} cells', async function (this: CustomWorld, width: number, height: number) {
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify size is ${width}×${height} cells (check API response for width/height fields)`);
 });
 
 Then('the asset should be created with:', async function (this: CustomWorld, dataTable: DataTable) {
@@ -292,23 +292,23 @@ Then('I can now create a public published asset', async function (this: CustomWo
 });
 
 Then('the asset should be visible in public asset searches', async function (this: CustomWorld) {
-    // Would require querying public assets API
+    throw new Error('NOT IMPLEMENTED: Step needs to verify asset is visible in public searches (query public assets API endpoint or database IsPublic=true)');
 });
 
 Then('other users should be able to see this asset', async function (this: CustomWorld) {
-    // Would require multi-user test setup
+    throw new Error('NOT IMPLEMENTED: Step needs multi-user test setup to verify visibility (create second user, query assets API, verify asset appears)');
 });
 
 Then('the asset should be public but not published', async function (this: CustomWorld) {
-    // Verify via API response
+    throw new Error('NOT IMPLEMENTED: Step needs to verify asset is public but not published (check API response for IsPublic=true and IsPublished=false)');
 });
 
 Then('other users should not see this asset', async function (this: CustomWorld) {
-    // Would require multi-user test setup
+    throw new Error('NOT IMPLEMENTED: Step needs multi-user test setup to verify privacy (create second user, query assets API, verify asset does not appear)');
 });
 
 Then('only I should be able to see this asset', async function (this: CustomWorld) {
-    // Verify asset is private in API response
+    throw new Error('NOT IMPLEMENTED: Step needs to verify asset is private (check API response for IsPublic=false or IsPrivate=true)');
 });
 
 // ============================================================================
@@ -322,15 +322,15 @@ Then('only I should be able to see this asset', async function (this: CustomWorl
 // ============================================================================
 
 Given('I do not change the category', async function (this: CustomWorld) {
-    // Do nothing - keep default
+    throw new Error('NOT IMPLEMENTED: Step needs to verify default category is kept or explicitly leave category unchanged (check category field value)');
 });
 
 Given('I select category {string}', async function (this: CustomWorld, category: string) {
     await selectCategory(this, category);
 });
 
-Then('the asset creatureProps.category should be {string}', async function (this: CustomWorld, _category: string) {
-    // Verify via API response
+Then('the asset creatureProps.category should be {string}', async function (this: CustomWorld, category: string) {
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify creatureProps.category is "${category}" (check API response body for creatureProps.category field)`);
 });
 
 // ============================================================================
@@ -416,8 +416,8 @@ Then('the asset should be created with {int} resources', async function (this: C
     expect(body.resources).toHaveLength(count);
 });
 
-Then('resource[{int}].role should be {int} \\({word}\\)', async function (this: CustomWorld, _index: number, _roleValue: number, _roleName: string) {
-    // Verify role value in API response
+Then('resource[{int}].role should be {int} \\({word}\\)', async function (this: CustomWorld, index: number, roleValue: number, roleName: string) {
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify resource[${index}].role is ${roleValue} (${roleName}) in API response (check API response body resources array)`);
 });
 
 Then('the image should show both {string} and {string} badges', async function (this: CustomWorld, badge1: string, badge2: string) {
@@ -432,8 +432,8 @@ Then('both Token and Display previews should show the image', async function (th
     await expect(this.assetResourceManager.displayPreview()).toBeVisible();
 });
 
-Then('resource[{int}].role should be {int} \\({word} | {word}\\)', async function (this: CustomWorld, _index: number, _roleValue: number, _role1: string, _role2: string) {
-    // Verify role value in API response
+Then('resource[{int}].role should be {int} \\({word} | {word}\\)', async function (this: CustomWorld, index: number, roleValue: number, role1: string, role2: string) {
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify resource[${index}].role is ${roleValue} (${role1} | ${role2}) in API response (check API response body resources array)`);
 });
 
 // ============================================================================
@@ -466,19 +466,19 @@ Then('the image should have role {string} \\({int}\\)', async function (this: Cu
 });
 
 Then('the image border should be grey', async function (this: CustomWorld) {
-    // Verify border color for no role
+    throw new Error('NOT IMPLEMENTED: Step needs to verify image border is grey (check computed CSS border-color property)');
 });
 
-Then('role should be {int} \\({word}\\)', async function (this: CustomWorld, _roleValue: number, _roleName: string) {
-    // Verify role value
+Then('role should be {int} \\({word}\\)', async function (this: CustomWorld, roleValue: number, roleName: string) {
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify role is ${roleValue} (${roleName}) (check API response or UI badge state)`);
 });
 
-Then('role should be {int} \\({word} | {word}\\)', async function (this: CustomWorld, _roleValue: number, _role1: string, _role2: string) {
-    // Verify role value
+Then('role should be {int} \\({word} | {word}\\)', async function (this: CustomWorld, roleValue: number, role1: string, role2: string) {
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify role is ${roleValue} (${role1} | ${role2}) (check API response or UI badge state)`);
 });
 
-Then('role should be {int} \\({word} only\\)', async function (this: CustomWorld, _roleValue: number, _roleName: string) {
-    // Verify role value
+Then('role should be {int} \\({word} only\\)', async function (this: CustomWorld, roleValue: number, roleName: string) {
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify role is ${roleValue} (${roleName} only) (check API response or UI badge state)`);
 });
 
 // ============================================================================
@@ -527,13 +527,12 @@ Then('image{int} should have no badges', async function (this: CustomWorld, inde
     await expect(image.locator('[role="status"]')).not.toBeVisible();
 });
 
-Then('resources should have roles: array with {int} {int} {int} {int}', async function (this: CustomWorld, _role1: number, _role2: number, _role3: number, _role4: number) {
-    // Verify roles via API response
-    // Implementation would check API response
+Then('resources should have roles: array with {int} {int} {int} {int}', async function (this: CustomWorld, role1: number, role2: number, role3: number, role4: number) {
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify resources array has roles [${role1}, ${role2}, ${role3}, ${role4}] (check API response body resources array)`);
 });
 
 When('I do not use any keyboard shortcuts', async function (this: CustomWorld) {
-    // Do nothing - no shortcuts applied
+    throw new Error('NOT IMPLEMENTED: Step needs to explicitly verify no keyboard shortcuts were used (passive step, may require no action but should be documented)');
 });
 
 // ============================================================================
@@ -556,7 +555,7 @@ Then('I should see the image displayed as PNG', async function (this: CustomWorl
 });
 
 Then('the backend should store it in PNG format', async function (this: CustomWorld) {
-    // Verify via API - Content-Type should be image/png
+    throw new Error('NOT IMPLEMENTED: Step needs to verify image is stored as PNG (check Content-Type header in API response or database metadata)');
 });
 
 When('I upload {word} file', async function (this: CustomWorld, format: string) {
@@ -566,7 +565,7 @@ When('I upload {word} file', async function (this: CustomWorld, format: string) 
 });
 
 Then('the image should be converted to PNG', async function (this: CustomWorld) {
-    // Verify via API
+    throw new Error('NOT IMPLEMENTED: Step needs to verify image format converted to PNG (check API response Content-Type or resource metadata)');
 });
 
 Then('I should see the converted image in Manage panel', async function (this: CustomWorld) {
@@ -653,15 +652,15 @@ Then('I should see Creature properties form', async function (this: CustomWorld)
 });
 
 Then('Object properties should not be sent to backend', async function (this: CustomWorld) {
-    // Verify via API request body
+    throw new Error('NOT IMPLEMENTED: Step needs to verify objectProps not sent in API request (intercept POST /api/assets and check request body)');
 });
 
 Then('the asset should have creatureProps \\(not objectProps\\)', async function (this: CustomWorld) {
-    // Verify via API response
+    throw new Error('NOT IMPLEMENTED: Step needs to verify asset has creatureProps and no objectProps (check API response body)');
 });
 
 Then('the asset should have objectProps \\(not creatureProps\\)', async function (this: CustomWorld) {
-    // Verify via API response
+    throw new Error('NOT IMPLEMENTED: Step needs to verify asset has objectProps and no creatureProps (check API response body)');
 });
 
 // ============================================================================
@@ -695,7 +694,7 @@ Then('the dialog should remain open \\(no onClose by default\\)', async function
 });
 
 Then('no API call should be made', async function (this: CustomWorld) {
-    // Would require monitoring network requests - placeholder
+    throw new Error('NOT IMPLEMENTED: Step needs to verify no API call was made (monitor network requests or check no POST to /api/assets occurred)');
 });
 
 // ============================================================================
@@ -732,11 +731,6 @@ When('I upload an image that fails to process', async function (this: CustomWorl
     await this.page.click('button:has-text("Upload")');
     await this.page.setInputFiles('input[type="file"]', 'e2e/test-data/images/test-image.png');
 });
-
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see error {string}', async function (this: CustomWorld, _errorPattern: string) {
-//     await expect(this.page.locator('[role="alert"]')).toBeVisible();
-// });
 
 Then('the error should be displayed in an Alert component', async function (this: CustomWorld) {
     await expect(this.page.locator('[role="alert"]')).toBeVisible();
@@ -816,12 +810,15 @@ Then('the created asset OwnerId should be {string}', async function (this: Custo
 });
 
 Then('I should be able to immediately edit the asset without {int} error', async function (this: CustomWorld, _statusCode: number) {
-    // This tests the authorization bug - implementation would attempt edit
-    // and verify no 403 error occurs
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to test immediate edit capability after asset creation - verify no 403 Forbidden error (attempt PUT /api/assets/{assetId} and check response status)');
+    
 });
 
 Then('I should be able to delete the asset without {int} error', async function (this: CustomWorld, _statusCode: number) {
-    // Similar to edit test
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to test immediate delete capability after asset creation - verify no 403 Forbidden error (attempt DELETE /api/assets/{assetId} and check response status)');
+    
 });
 
 Given('I am viewing page {int} of Asset Library', async function (this: CustomWorld, _pageNumber: number) {
@@ -892,7 +889,9 @@ Then('{string} should have Display role badge', async function (this: CustomWorl
 });
 
 Then('both roles should be persisted in database', async function (this: CustomWorld) {
-    // Database verification would be done via DatabaseHelper
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify both role assignments persisted in database (query AssetResources table for matching AssetId and verify Role field values for each resource)');
+    
 });
 
 Given('I create an asset with {int} uploaded images', async function (this: CustomWorld, count: number) {
@@ -952,16 +951,21 @@ When('the creation succeeds', async function (this: CustomWorld) {
 });
 
 Then('querying the database should show:', async function (this: CustomWorld, _dataTable: DataTable) {
-    // Database verification using DatabaseHelper
-    // Implementation would query database
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to query database and verify asset record fields match expected values from DataTable (query Asset table and check fields against dataTable entries)');
+    
 });
 
 Then('the Asset record should have:', async function (this: CustomWorld, _dataTable: DataTable) {
-    // Verify asset record fields
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify Asset record fields in database match expected values (query Asset table and validate each field from dataTable)');
+    
 });
 
 Then('AssetResources table should have {int} records linking to the Asset', async function (this: CustomWorld, _count: number) {
-    // Database query via DatabaseHelper
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify AssetResources table has correct number of records (query AssetResources table WHERE AssetId={createdAssetId} and verify count matches expected)');
+    
 });
 
 Then('each AssetResource should have correct Role values \\({int} for {word}, {int} for {word}\\)', async function (
@@ -971,11 +975,13 @@ Then('each AssetResource should have correct Role values \\({int} for {word}, {i
     _role2Value: number,
     _role2Name: string
 ) {
-    // Database verification
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify role values in database (query AssetResources table WHERE AssetId={createdAssetId} and verify Role field matches expected values for each role type)`);
 });
 
 Then('Resources table should have {int} PNG image records', async function (this: CustomWorld, _count: number) {
-    // Database verification
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify Resources table has PNG records (query Resources table and verify count of PNG format entries matches expected)');
+    
 });
 
 When('I create asset with {int} resources:', async function (this: CustomWorld, _count: number, dataTable: DataTable) {
@@ -999,15 +1005,21 @@ When('I create asset with {int} resources:', async function (this: CustomWorld, 
 });
 
 Then('the AssetResources table should contain:', async function (this: CustomWorld, _dataTable: DataTable) {
-    // Database verification
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify AssetResources table contains expected records (query AssetResources table and validate fields match dataTable entries)');
+    
 });
 
 Then('each Resource should be queryable from Media.Resources table', async function (this: CustomWorld) {
-    // Database verification
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify resources are queryable in Media.Resources table (for each uploaded resource, query Resources table by ResourceId and verify record exists)');
+    
 });
 
 Then('each Resource should be PNG format stored in blob', async function (this: CustomWorld) {
-    // Blob storage verification
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify resources stored as PNG in blob (query Resources table and verify BlobPath contains PNG data, check Content-Type metadata field)');
+    
 });
 
 When('I upload image {string} during asset creation', async function (this: CustomWorld, filename: string) {
@@ -1023,7 +1035,9 @@ Then('the backend should generate GUID v7 resource ID \\(e.g., {string}\\)', asy
 });
 
 Then('the PNG image should be stored at blob path {string}', async function (this: CustomWorld, _pathPattern: string) {
-    // Blob path verification
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify PNG blob path pattern (query Resources table and verify BlobPath field matches expected pattern format)');
+    
 });
 
 Then('the blob should be accessible via \\/api\\/resources\\/{word}\\/download', async function (this: CustomWorld, _guidParam: string) {
@@ -1039,24 +1053,30 @@ Then('the Content-Type should be {string}', async function (this: CustomWorld, c
     expect(headers['content-type']).toContain(contentType);
 });
 
-Then('the Resource table should store metadata \\(dimensions, file size, mime type\\)', async function (this: CustomWorld) {
-    // Database verification
+Then('the Resource table should store metadata (dimensions, file size, mime type)', async function (this: CustomWorld) {
+    throw new Error('NOT IMPLEMENTED: Step needs to verify metadata storage (query Resources table and verify metadata field contains dimensions, file size, and mime type information)');
 });
 
 Then('backend uses Svg.Skia to convert to PNG', async function (this: CustomWorld) {
-    // Backend behavior verification - would check logs or response
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify SVG conversion library used (check backend logs or API response headers for Svg.Skia implementation details)');
+    
 });
 
-Then('the PNG is stored in blob \\(not the original SVG\\)', async function (this: CustomWorld) {
-    // Blob verification
+Then('the PNG is stored in blob (not the original SVG)', async function (this: CustomWorld) {
+    throw new Error('NOT IMPLEMENTED: Step needs to verify PNG blob storage (query Resources table BlobPath field and verify it contains PNG data, not SVG - check Content-Type field or file signature)');
 });
 
 Then('Resource.metadata.contentType should be {string}', async function (this: CustomWorld, _contentType: string) {
-    // Database field verification
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify Resource.metadata.contentType field (query Resources table metadata field and verify contentType value)');
+    
 });
 
 Then('Resource.metadata.imageSize should contain extracted dimensions', async function (this: CustomWorld) {
-    // Database field verification
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify Resource.metadata.imageSize extracted (query Resources table metadata field and verify imageSize contains width/height dimensions)');
+    
 });
 
 Given('I previously created asset {string}', async function (this: CustomWorld, name: string) {
@@ -1125,9 +1145,6 @@ When('I change height to {int} \\(making {int}×{int}\\)', async function (this:
 // THEME & RESPONSIVE
 // ============================================================================
 
-// REMOVED: Duplicate - Use domain/theme.steps.ts
-// Given('I have dark mode enabled') available in theme.steps.ts
-
 Then('the dialog should have dark styling', async function (this: CustomWorld) {
     const dialog = this.assetCreateDialog.dialog();
     await expect(dialog).toBeVisible();
@@ -1135,11 +1152,15 @@ Then('the dialog should have dark styling', async function (this: CustomWorld) {
 });
 
 Then('accordions should have dark backgrounds', async function (this: CustomWorld) {
-    // Visual verification
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify accordion styling for dark mode (check computed CSS background-color property for each accordion element)');
+    
 });
 
 Then('form fields should be styled for dark mode', async function (this: CustomWorld) {
-    // Visual verification
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify form field styling for dark mode (check computed CSS color/background properties for input fields in dark theme)');
+    
 });
 
 // REMOVED: Mobile not supported - "I am on a mobile device" step deleted
@@ -1151,11 +1172,15 @@ Then('the dialog should be fullWidth', async function (this: CustomWorld) {
 });
 
 Then('form fields should stack vertically', async function (this: CustomWorld) {
-    // Layout verification
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify form fields stack vertically on mobile (check flexbox direction and layout of form fields in mobile viewport)');
+    
 });
 
 Then('the Image Library grid should adjust to mobile layout', async function (this: CustomWorld) {
-    // Grid layout verification
+    
+    throw new Error('NOT IMPLEMENTED: Step needs to verify image grid responsive layout on mobile (check grid columns/layout changes in mobile viewport)');
+    
 });
 
 // ============================================================================
@@ -1175,3 +1200,4 @@ Then('the asset should have {int} resource with role {string} \\(value: {int}\\)
     expect(body.resources).toHaveLength(count);
     expect(body.resources[0].role).toBe(roleValue);
 });
+

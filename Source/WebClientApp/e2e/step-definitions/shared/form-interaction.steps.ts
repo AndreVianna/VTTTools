@@ -4,10 +4,6 @@
  * Common steps for interacting with forms across features
  * Used by: Login, Registration, Password Reset
  *
- * ANTI-PATTERN COMPLIANCE:
- * ✅ No step-to-step calls
- * ✅ Strong TypeScript types
- * ✅ Semantic selectors (getByLabel, getByRole)
  */
 
 import { When, Then } from '@cucumber/cucumber';
@@ -21,13 +17,38 @@ import { expect } from '@playwright/test';
 When('I enter email {string}', async function (this: CustomWorld, email: string) {
     const emailInput = this.page.getByLabel(/email/i);
     await emailInput.clear();
-    await emailInput.fill(email);
+
+    // For test scenarios with example emails, use pool user's email but preserve case transformation
+    // This allows feature files to remain readable while tests use actual pool users
+    if (this.currentUser && /^[^@]+@example\.com$/i.test(email)) {
+        // Apply same case transformation to pool user's email
+        const isUpperCase = email === email.toUpperCase();
+        const poolEmail = isUpperCase ? this.currentUser.email.toUpperCase() : this.currentUser.email;
+        await emailInput.fill(poolEmail);
+        this.attach(`Using pool user email: ${poolEmail} (based on pattern: ${email})`);
+    } else {
+        await emailInput.fill(email);
+    }
 });
 
 When('I enter password {string}', async function (this: CustomWorld, password: string) {
     const passwordInput = this.page.getByRole('textbox', { name: /password/i });
     await passwordInput.clear();
-    await passwordInput.fill(password);
+
+    // For test scenarios with example passwords, use BDD_TEST_PASSWORD
+    // Common test password patterns: TestPassword123, SecurePass123, ValidPassword123
+    // NOTE: Case-sensitive matching - lowercase variants (e.g., "securepass123") are intentionally wrong for testing
+    const testPasswordPatterns = /^(Test|Secure|Valid|Password)[A-Z][a-z]*\d+$/;
+    if (testPasswordPatterns.test(password)) {
+        const actualPassword = process.env.BDD_TEST_PASSWORD;
+        if (!actualPassword) {
+            throw new Error('CRITICAL: BDD_TEST_PASSWORD environment variable is not set');
+        }
+        await passwordInput.fill(actualPassword);
+        this.attach(`Using BDD_TEST_PASSWORD (pattern matched: ${password})`);
+    } else {
+        await passwordInput.fill(password);
+    }
 });
 
 When('I submit the login form', async function (this: CustomWorld) {
@@ -55,7 +76,14 @@ When('I focus out of the email field', async function (this: CustomWorld) {
 When('I enter valid email {string}', async function (this: CustomWorld, email: string) {
     const emailInput = this.page.getByLabel(/email/i);
     await emailInput.clear();
-    await emailInput.fill(email);
+
+    // For test scenarios with example emails, use pool user's email
+    if (this.currentUser && /^[^@]+@example\.com$/i.test(email)) {
+        await emailInput.fill(this.currentUser.email);
+        this.attach(`Using pool user email: ${this.currentUser.email} (based on pattern: ${email})`);
+    } else {
+        await emailInput.fill(email);
+    }
 });
 
 When('the network connection fails', async function (this: CustomWorld) {
@@ -63,13 +91,25 @@ When('the network connection fails', async function (this: CustomWorld) {
 });
 
 When('I attempt to submit the form again', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /sign in|create account|reset password/i });
-    await submitButton.click();
+    // Use button[type="submit"] to find the form submit button
+    const submitButton = this.page.locator('button[type="submit"]').first();
+    // Try to click even if disabled - this should be prevented by the UI
+    await submitButton.click({ force: true, timeout: 1000 }).catch(() => {
+        // Click may fail if button is disabled, which is expected
+    });
 });
 
 When('the request is in progress', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /sign in|create account|reset password/i });
-    await expect(submitButton).toBeDisabled({ timeout: 2000 });
+    await this.page.route('**/api/auth/**', async route => {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        route.continue();
+    });
+
+    // Use button[type="submit"] to find the form submit button
+    const submitButton = this.page.locator('button[type="submit"]').first();
+    await submitButton.click();
+
+    await expect(submitButton).toBeDisabled({ timeout: 1000 });
 });
 
 // ============================================================================
@@ -90,8 +130,9 @@ Then('my form is not submitted', async function (this: CustomWorld) {
 });
 
 Then('the second submission is prevented', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /sign in|create account|reset password/i });
-    await expect(submitButton).toBeDisabled();
+    // Use button[type="submit"] to find the form submit button
+    const submitButton = this.page.locator('button[type="submit"]').first();
+    await expect(submitButton).toBeDisabled({ timeout: 3000 });
 });
 
 Then('the submit button state is communicated', async function (this: CustomWorld) {

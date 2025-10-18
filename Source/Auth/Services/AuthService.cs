@@ -11,8 +11,7 @@ public class AuthService(
             if (user == null) {
                 logger.LogWarning("Login attempt with non-existent email: {Email}", request.Email);
                 return new AuthResponse {
-                    Success = false,
-                    Message = "Invalid email or password",
+                    Message = "FailedLogin",
                 };
             }
 
@@ -22,39 +21,49 @@ public class AuthService(
                 request.RememberMe,
                 lockoutOnFailure: true);
 
-            if (result.Succeeded) {
-                logger.LogInformation("User {Email} logged in successfully", request.Email);
-
-                // Get user roles for IsAdministrator flag
-                var roles = await userManager.GetRolesAsync(user);
-                user.IsAdministrator = roles.Contains("Administrator");
-
+            if (result.IsNotAllowed) {
+                logger.LogInformation("User {Email} not confirmed", request.Email);
                 return new AuthResponse {
-                    Success = true,
-                    Message = "Login successful",
-                    User = MapUserToUserInfo(user),
+                    Message = "NotAllowed"
                 };
             }
 
             if (result.IsLockedOut) {
                 logger.LogWarning("Account locked for email: {Email}", request.Email);
                 return new AuthResponse {
-                    Success = false,
-                    Message = "Account is locked due to multiple failed login attempts",
+                    Message = "LockedAccount",
                 };
             }
 
-            logger.LogWarning("Failed login attempt for email: {Email}", request.Email);
+            if (result.RequiresTwoFactor) {
+                logger.LogWarning("Two factor verification is required: {Email}", request.Email);
+                return new AuthResponse {
+                    Message = "RequiresTwoFactor",
+                };
+            }
+
+            if (!result.Succeeded) {
+                logger.LogWarning("Failed login attempt for email: {Email}", request.Email);
+                return new AuthResponse {
+                    Message = "FailedLogin",
+                };
+            }
+
+            logger.LogInformation("User {Email} logged in successfully", request.Email);
+
+            var roles = await userManager.GetRolesAsync(user);
+            user.IsAdministrator = roles.Contains("Administrator");
+
             return new AuthResponse {
-                Success = false,
-                Message = "Invalid email or password",
+                Success = true,
+                Message = "Success",
+                User = MapUserToUserInfo(user),
             };
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error during login for email: {Email}", request.Email);
             return new AuthResponse {
-                Success = false,
-                Message = "An error occurred during login",
+                Message = "InternalServerError",
             };
         }
     }
@@ -64,8 +73,7 @@ public class AuthService(
             var existingUser = await userManager.FindByEmailAsync(request.Email);
             if (existingUser != null) {
                 return new AuthResponse {
-                    Success = false,
-                    Message = "A user with this email already exists",
+                    Message = "DuplicatedUser",
                 };
             }
 
@@ -73,20 +81,19 @@ public class AuthService(
                 UserName = request.Email,
                 Email = request.Email,
                 Name = request.Name,
-                DisplayName = request.DisplayName ?? request.Name,  // Fallback to Name if DisplayName not provided
-                EmailConfirmed = true, // For now, skip email confirmation
+                DisplayName = request.DisplayName ?? request.Name,
+                EmailConfirmed = true,
             };
 
             var result = await userManager.CreateAsync(user, request.Password);
             if (result.Succeeded) {
                 logger.LogInformation("User {Email} registered successfully", request.Email);
 
-                // Sign in the user automatically after registration
                 await signInManager.SignInAsync(user, isPersistent: false);
 
                 return new AuthResponse {
                     Success = true,
-                    Message = "Registration successful",
+                    Message = "RegistrationSuccess",
                     User = MapUserToUserInfo(user),
                 };
             }
@@ -102,8 +109,7 @@ public class AuthService(
         catch (Exception ex) {
             logger.LogError(ex, "Error during registration for email: {Email}. Exception: {Message}", request.Email, ex.Message);
             return new AuthResponse {
-                Success = false,
-                Message = $"Registration error: {ex.Message}",  // Include exception message for debugging
+                Message = "InternalServerError",  // Include exception message for debugging
             };
         }
     }
@@ -114,15 +120,13 @@ public class AuthService(
             logger.LogInformation("User logged out successfully");
 
             return new AuthResponse {
-                Success = true,
-                Message = "Logout successful",
+                Message = "LogoutSuccess",
             };
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error during logout");
             return new AuthResponse {
-                Success = false,
-                Message = "An error occurred during logout",
+                Message = "InternalServerError",
             };
         }
     }
@@ -132,8 +136,7 @@ public class AuthService(
             var user = await userManager.FindByIdAsync(userId.ToString());
             if (user == null) {
                 return new AuthResponse {
-                    Success = false,
-                    Message = "User not found",
+                    Message = "NotFound",
                 };
             }
 
@@ -149,8 +152,7 @@ public class AuthService(
         catch (Exception ex) {
             logger.LogError(ex, "Error getting current user with ID: {UserId}", userId);
             return new AuthResponse {
-                Success = false,
-                Message = "An error occurred retrieving user information",
+                Message = "InternalServerError",
             };
         }
     }

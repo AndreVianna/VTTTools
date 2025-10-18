@@ -404,10 +404,12 @@ FodyWeavers.xsd
 *.src
 
 # Playwright MCP
-.playwright-mcp
+.playwright-mcp/
 
 # Azurite
-/**/.azurite
+.azurite/
+azurite-data/
+
 
 #Local files and Logs
 *.local.json

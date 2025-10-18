@@ -337,6 +337,35 @@ public void iLogInAs(String username) {
 • **Problem**: Slow test suite, maintenance burden
 • **Solution**: Focus on critical paths, use other test levels
 
+### 9. Stub Step Definitions (FALSE POSITIVES) ⚠️ CRITICAL
+• **Problem**: Steps that only log/attach messages without implementing actual functionality
+• **Impact**: Creates **FALSE POSITIVES** - steps appear to pass but don't set up required state
+• **Example of BAD stub**:
+```typescript
+Given('an account is locked', async function() {
+    this.attach('Account locked scenario', 'text/plain'); // ❌ FALSE POSITIVE
+});
+```
+• **Why it's dangerous**:
+  - Given step "passes" but doesn't actually lock the account
+  - Subsequent steps fail with confusing timeout errors
+  - Test results are misleading - scenario appears valid but isn't
+  - Hides missing implementation behind passing tests
+• **MANDATORY Solution**: Replace ALL stubs with explicit "NOT IMPLEMENTED" errors
+```typescript
+Given('an account is locked', async function() {
+    throw new Error('NOT IMPLEMENTED: Step needs to lock account in database');
+});
+```
+• **✅ Benefits**:
+  - Immediate, clear failure with descriptive message
+  - No confusion about what needs implementation
+  - Test results accurately reflect implementation status
+  - Team knows exactly what work remains
+• **⚠️ CRITICAL RULE**: NEVER commit step definitions that only use `this.attach()`, `console.log()`, or comments. ALL steps MUST either:
+  1. Implement the required functionality, OR
+  2. Throw an explicit "NOT IMPLEMENTED" error with description
+
 ## Hooks
 
 ### Types

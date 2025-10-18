@@ -414,6 +414,7 @@ export interface LoginResponse {
   requiresTwoFactor?: boolean;
   redirectUrl?: string;
   message?: string;
+  user?: User;
 }
 
 export interface RegisterRequest {

@@ -793,13 +793,6 @@ Then('I should NOT receive authorization errors', async function (this: CustomWo
     }
 });
 
-Then('I should see error message {string}', async function (
-    this: CustomWorld,
-    errorMessage: string
-) {
-    await expect(this.page.locator(`text=${errorMessage}`)).toBeVisible();
-});
-
 Then('the changes should not be saved', async function (this: CustomWorld) {
     // Verify database unchanged
     const asset = await this.db.queryTable('Assets', { Id: this.currentAsset.id });

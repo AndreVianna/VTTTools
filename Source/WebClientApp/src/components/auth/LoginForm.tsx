@@ -107,7 +107,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       }
     } catch (_error) {
       // Error is already handled by the useAuth hook
-      console.log('Login failed:', error);
     }
   };
 
@@ -130,8 +129,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </Typography>
 
         {(error || clientValidationError) && (
-          <Alert severity="error" sx={{ mb: 2 }} role="alert">
-            {clientValidationError || renderAuthError(error)}
+          <Alert severity="error" sx={{ mb: 2 }} role="alert" data-testid="login-error-alert">
+            {clientValidationError ? clientValidationError : renderAuthError(error)}
             {isLockedOut && !clientValidationError && (
               <Typography variant="caption" display="block" sx={{ mt: 1 }}>
                 Account temporarily locked. Try again in {Math.ceil(lockoutTime / 60000)} minutes.

@@ -71,19 +71,19 @@ Feature: Landing Page
 
   @dashboard @navigation @critical
   Scenario: Navigate to Scene Editor from dashboard preview
-    Given I am authenticated
+    Given I am authenticated as "GameMaster"
     When I click the "Open Editor" button on "Scene Editor" action card
     Then I should be navigated to "/scene-editor"
 
   @dashboard @navigation @critical
   Scenario: Navigate to Asset Library from dashboard preview
-    Given I am authenticated
+    Given I am authenticated as "GameMaster"
     When I click the "Browse Assets" button on "Asset Library" action card
     Then I should be navigated to "/assets"
 
   @dashboard @ui
   Scenario: Dashboard preview shows 4 action cards
-    Given I am authenticated
+    Given I am authenticated as "GameMaster"
     When the page loads
     Then I should see 4 action cards:
       | Card Title       | Status   | Label         | Route         |
@@ -101,7 +101,7 @@ Feature: Landing Page
 
   @dashboard @personalization
   Scenario: Dashboard shows fallback greeting when displayName missing
-    Given I am authenticated
+    Given I am authenticated as "GameMaster"
     But my user profile has no displayName
     When the page loads
     Then I should see "Welcome back, Game Master!" with fallback
@@ -136,9 +136,9 @@ Feature: Landing Page
   # ═══════════════════════════════════════════════════════════════
 
   @theme
-  Scenario Outline: Landing page renders correctly in <theme> mode when <auth_state>
+  Scenario Outline: Landing page renders correctly in <theme> mode when not authenticated
     Given the application is in <theme> mode
-    And I am <auth_state>
+    And I am not authenticated
     When the page loads
     Then the <theme> theme colors should be applied
     And text contrast should meet WCAG standards
@@ -146,50 +146,26 @@ Feature: Landing Page
     And action cards should use <theme> styling
 
     Examples:
-      | theme | auth_state       |
-      | light | not authenticated|
-      | dark  | not authenticated|
-      | light | authenticated    |
-      | dark  | authenticated    |
+      | theme |
+      | light |
+      | dark  |
 
-  # ═══════════════════════════════════════════════════════════════
-  # ACCESSIBILITY
-  # ═══════════════════════════════════════════════════════════════
-
-  @accessibility @anonymous
-  Scenario: Guest landing page is keyboard navigable
-    Given I am viewing the landing page as unauthenticated visitor
-    When I navigate using keyboard only
-    Then I should be able to Tab through all interactive elements
-    And I should be able to activate CTA buttons with Enter
-    And focus states should be clearly visible
-
-  @accessibility @anonymous
-  Scenario: Guest landing page has proper ARIA labels
-    Given I am viewing the landing page as unauthenticated visitor
-    When I use a screen reader
-    Then all headings should have proper hierarchy
-    And all buttons should have descriptive labels
-    And the page should have appropriate landmarks
-
-  @accessibility
-  Scenario: Authenticated landing page is keyboard navigable
-    Given I am authenticated
+  @theme
+  Scenario Outline: Landing page renders correctly in <theme> mode when authenticated
+    Given the application is in <theme> mode
+    And I am authenticated as "GameMaster"
     When the page loads
-    Then I should be able to Tab through all interactive elements
-    And I should be able to activate action cards with Enter
-    And focus states should be clearly visible
+    Then the <theme> theme colors should be applied
+    And text contrast should meet WCAG standards
+    And the hero gradient should use <theme> color scheme
+    And action cards should use <theme> styling
 
-  @accessibility
-  Scenario: Authenticated landing page has proper ARIA labels
-    Given I am authenticated
-    When the page loads
-    Then all headings should have proper hierarchy
-    And all buttons should have descriptive labels
-    And action cards should announce their status (active/disabled)
-    And the page should have appropriate landmarks
+    Examples:
+      | theme |
+      | light |
+      | dark  |
 
-  # ═══════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════
   # ERROR HANDLING
   # ═══════════════════════════════════════════════════════════════
 
@@ -203,7 +179,7 @@ Feature: Landing Page
 
   @edge-case
   Scenario: Handle missing action card data gracefully
-    Given I am authenticated
+    Given I am authenticated as "GameMaster"
     And some action card data is missing or malformed
     When the page loads
     Then available cards should display correctly

@@ -21,11 +21,88 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { setAuthenticated, setAuthError, logout as logoutAction, clearAuthError } from '@/store/slices/authSlice';
 import { addError } from '@/store/slices/errorSlice';
 import { addNotification } from '@/store/slices/uiSlice';
-import { mockApi } from '@/services/mockApi';
-import { isDevelopment, MOCK_DATA, devUtils } from '@/config/development';
+import { isDevelopment } from '@/config/development';
 
 // Global flag to track if we've checked for existing session (shared across all hook instances)
 let globalAuthInitialized = false;
+
+// Map backend error codes to user-friendly messages
+const mapToUserFriendlyMessage = (backendMessage: string): string => {
+  // Map backend message codes to user-friendly messages
+  switch (backendMessage) {
+    case 'FailedLogin':
+      return 'Invalid email or password.';
+
+    case 'LockedAccount':
+      return 'Your account is temporarely locked. Please try again later.';
+
+    case 'NotAllowed':
+      return 'You need to confirm your email before proceeding.';
+
+    case 'InternalServerError':
+      return 'An unexpected error has occurred. Please try again in a few minutes.';
+
+    case 'DuplicatedUser':
+      return 'A user with this email already exists.';
+
+    case 'NotFound':
+      return 'User not found.';
+
+    case 'Success':
+      return 'Login successful.';
+
+    case 'RegistrationSuccess':
+      return 'Registration successful.';
+
+    case 'LogoutSuccess':
+      return 'Logout successful.';
+
+    default:
+      return 'An unexpected error has occurred. Please try again in a few minutes.';
+  }
+};
+
+// Helper to extract error messages from ASP.NET ValidationProblem responses
+// ValidationProblem structure: { errors: { "": ["msg1"], "field": ["msg2"] }, title, status }
+const extractErrorMessage = (error: any, defaultMessage: string = 'Operation failed'): string => {
+  let backendMessage: string | null = null;
+
+  // Try ValidationProblem errors format first
+  if (error?.data?.errors) {
+    const errors = error.data.errors;
+    const allErrors: string[] = [];
+
+    // Extract all error messages from all fields
+    Object.keys(errors).forEach(key => {
+      const fieldErrors = errors[key];
+      if (Array.isArray(fieldErrors)) {
+        allErrors.push(...fieldErrors);
+      }
+    });
+
+    if (allErrors.length > 0) {
+      backendMessage = allErrors[0]; // Get first error message
+    }
+  }
+
+  // Fallback to simple message field
+  if (!backendMessage && error?.data?.message) {
+    backendMessage = error.data.message;
+  }
+
+  // Fallback to error string
+  if (!backendMessage && error?.message) {
+    backendMessage = error.message;
+  }
+
+  // Use default if nothing found
+  if (!backendMessage) {
+    backendMessage = defaultMessage;
+  }
+
+  // Map to user-friendly message
+  return mapToUserFriendlyMessage(backendMessage);
+};
 
 // Authentication hook integrating with existing WebApp Identity system
 export const useAuth = () => {
@@ -73,18 +150,9 @@ export const useAuth = () => {
       return currentUser;
     }
 
-    // If we have a network error in development, use mock user
-    if (isDevelopment && error && (
-      (error as any)?.status === 'FETCH_ERROR' ||
-      (error as any)?.data?.isRecoverable
-    )) {
-      devUtils.log('Using mock user due to API unavailability');
-      return MOCK_DATA.user;
-    }
-
     // Fallback to Redux stored user
     return authState.user;
-  }, [authState.isAuthenticated, authState.user, currentUser, error]);
+  }, [authState.isAuthenticated, authState.user, currentUser]);
 
   // IMPORTANT: Redux auth state is the ONLY source of truth for isAuthenticated
   // This prevents flickering and state inconsistencies
@@ -119,7 +187,6 @@ export const useAuth = () => {
       if (result.success) {
         // Check if 2FA is required
         if (result.requiresTwoFactor) {
-          // Don't redirect yet, 2FA verification needed
           dispatch(addNotification({
             type: 'info',
             message: 'Please enter your two-factor authentication code.',
@@ -127,33 +194,11 @@ export const useAuth = () => {
           return { ...result, requiresTwoFactor: true };
         }
 
-        // Try to refetch user data after successful login
-        try {
-          const userResult = await refetch();
-
-          if (userResult.data) {
-            dispatch(setAuthenticated({ user: userResult.data }));
-          } else if (isDevelopment) {
-            // Use mock user in development mode
-            const mockUser: any = { ...MOCK_DATA.user };
-            // Remove null values for optional properties
-            if (mockUser.phoneNumber === null) delete mockUser.phoneNumber;
-            if (mockUser.profilePictureUrl === null) delete mockUser.profilePictureUrl;
-            dispatch(setAuthenticated({ user: mockUser }));
-            devUtils.log('Using mock user for successful login in development');
-          }
-        } catch (refetchError) {
-          if (isDevelopment) {
-            // In development, continue with mock user even if refetch fails
-            const mockUser: any = { ...MOCK_DATA.user };
-            // Remove null values for optional properties
-            if (mockUser.phoneNumber === null) delete mockUser.phoneNumber;
-            if (mockUser.profilePictureUrl === null) delete mockUser.profilePictureUrl;
-            dispatch(setAuthenticated({ user: mockUser }));
-            devUtils.warn('Refetch failed in development, using mock user', refetchError);
-          } else {
-            throw refetchError;
-          }
+        // Use user data from login response
+        if (result.user) {
+          dispatch(setAuthenticated({ user: result.user }));
+        } else {
+          throw new Error('Login succeeded but user data was not returned');
         }
 
         dispatch(addNotification({
@@ -168,35 +213,7 @@ export const useAuth = () => {
 
       return result;
     } catch (error: any) {
-      // In development mode, allow mock login for testing
-      if (isDevelopment && (
-        error.status === 'FETCH_ERROR' ||
-        error.data?.isRecoverable ||
-        email?.includes('@dev') ||
-        email?.includes('@test')
-      )) {
-        devUtils.warn('Login API failed, using mock login in development', error);
-
-        const mockResult = await mockApi.mockLogin({ email, password, rememberMe: rememberMe ?? false });
-
-        const mockUser: any = { ...MOCK_DATA.user };
-        // Remove null values for optional properties
-        if (mockUser.phoneNumber === null) delete mockUser.phoneNumber;
-        if (mockUser.profilePictureUrl === null) delete mockUser.profilePictureUrl;
-        dispatch(setAuthenticated({ user: mockUser }));
-        dispatch(addNotification({
-          type: 'success',
-          message: 'Successfully logged in! (Development Mode)',
-        }));
-
-        // Redirect to intended destination or dashboard
-        const from = location.state?.from?.pathname || '/dashboard';
-        navigate(from, { replace: true });
-
-        return mockResult;
-      }
-
-      const errorMessage = error.data?.message || 'Login failed';
+      const errorMessage = extractErrorMessage(error, 'Login failed');
       dispatch(setAuthError(errorMessage));
       dispatch(addError({
         type: 'authentication',
@@ -210,7 +227,7 @@ export const useAuth = () => {
       }));
       throw error;
     }
-  }, [loginMutation, dispatch, refetch, location, navigate]);
+  }, [loginMutation, dispatch, location, navigate]);
 
   // Register new user with existing WebApp Identity
   const register = useCallback(async (
@@ -244,7 +261,7 @@ export const useAuth = () => {
       console.error('useAuth.register caught error:', error);
       console.error('Error details - status:', error?.status, 'data:', error?.data);
 
-      const errorMessage = error.data?.message || error.message || 'Registration failed';
+      const errorMessage = extractErrorMessage(error, 'Registration failed');
       dispatch(setAuthError(errorMessage));
       dispatch(addError({
         type: 'authentication',
@@ -318,7 +335,7 @@ export const useAuth = () => {
 
       return result;
     } catch (error: any) {
-      const errorMessage = error.data?.message || 'Password reset request failed';
+      const errorMessage = extractErrorMessage(error, 'Password reset request failed');
       dispatch(setAuthError(errorMessage));
       dispatch(addError({
         type: 'authentication',
@@ -408,7 +425,7 @@ export const useAuth = () => {
 
       return result;
     } catch (error: any) {
-      const errorMessage = error.data?.message || 'Password reset failed';
+      const errorMessage = extractErrorMessage(error, 'Password reset failed');
       dispatch(setAuthError(errorMessage));
       dispatch(addError({
         type: 'authentication',
@@ -430,7 +447,7 @@ export const useAuth = () => {
       const result = await setupTwoFactorMutation().unwrap();
       return result;
     } catch (error: any) {
-      const errorMessage = error.data?.message || '2FA setup failed';
+      const errorMessage = extractErrorMessage(error, '2FA setup failed');
       dispatch(setAuthError(errorMessage));
       dispatch(addError({
         type: 'authentication',
@@ -462,7 +479,7 @@ export const useAuth = () => {
 
       return result;
     } catch (error: any) {
-      const errorMessage = error.data?.message || '2FA enable failed';
+      const errorMessage = extractErrorMessage(error, '2FA enable failed');
       dispatch(setAuthError(errorMessage));
       dispatch(addError({
         type: 'authentication',
@@ -494,7 +511,7 @@ export const useAuth = () => {
 
       return result;
     } catch (error: any) {
-      const errorMessage = error.data?.message || '2FA disable failed';
+      const errorMessage = extractErrorMessage(error, '2FA disable failed');
       dispatch(setAuthError(errorMessage));
       dispatch(addError({
         type: 'authentication',
@@ -533,7 +550,7 @@ export const useAuth = () => {
 
       return result;
     } catch (error: any) {
-      const errorMessage = error.data?.message || '2FA verification failed';
+      const errorMessage = extractErrorMessage(error, '2FA verification failed');
       dispatch(setAuthError(errorMessage));
       dispatch(addError({
         type: 'authentication',
@@ -572,7 +589,7 @@ export const useAuth = () => {
 
       return result;
     } catch (error: any) {
-      const errorMessage = error.data?.message || 'Recovery code verification failed';
+      const errorMessage = extractErrorMessage(error, 'Recovery code verification failed');
       dispatch(setAuthError(errorMessage));
       dispatch(addError({
         type: 'authentication',
@@ -599,7 +616,7 @@ export const useAuth = () => {
 
       return result;
     } catch (error: any) {
-      const errorMessage = error.data?.message || 'Failed to generate recovery codes';
+      const errorMessage = extractErrorMessage(error, 'Failed to generate recovery codes');
       dispatch(setAuthError(errorMessage));
       dispatch(addError({
         type: 'authentication',
@@ -636,7 +653,7 @@ export const useAuth = () => {
 
       return result;
     } catch (error: any) {
-      const errorMessage = error.data?.message || 'Password change failed';
+      const errorMessage = extractErrorMessage(error, 'Password change failed');
       dispatch(setAuthError(errorMessage));
       dispatch(addError({
         type: 'authentication',
@@ -668,7 +685,7 @@ export const useAuth = () => {
 
       return result;
     } catch (error: any) {
-      const errorMessage = error.data?.message || 'Profile update failed';
+      const errorMessage = extractErrorMessage(error, 'Profile update failed');
       dispatch(setAuthError(errorMessage));
       dispatch(addError({
         type: 'authentication',
@@ -689,7 +706,7 @@ export const useAuth = () => {
     isAuthenticated,
     isLoading: isLoading || authState.isLoading || isLoggingIn || isRegistering || isResettingPassword || isConfirmingReset || isLoggingOut || isSettingUpTwoFactor || isEnablingTwoFactor || isDisablingTwoFactor || isVerifyingTwoFactor || isVerifyingRecoveryCode || isGeneratingRecoveryCodes || isChangingPassword || isUpdatingProfile,
     isInitializing: !initComplete,  // True until initial auth check completes
-    error: authState.error || ((isDevelopment && error && 'data' in error && (error as any).data?.isRecoverable) ? null : error),
+    error: authState.error || error,
     loginAttempts: authState.loginAttempts,
 
     // Basic Actions
@@ -719,6 +736,5 @@ export const useAuth = () => {
 
     // Development utilities
     isDevelopmentMode: isDevelopment,
-    isUsingMockData: isDevelopment && !!effectiveUser && effectiveUser.email?.includes('@vtttools.dev'),
   };
 };

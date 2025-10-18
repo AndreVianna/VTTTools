@@ -116,11 +116,11 @@ Then('the image should be removed', async function (this: CustomWorld) {
 });
 
 Then('the click should not trigger role assignment', async function (this: CustomWorld) {
-    // Implicit - removal happened, not role change
+    throw new Error('NOT IMPLEMENTED: Step needs to verify clicking X button on image removes it without triggering role assignment logic (verify image was removed and no data-role change occurred)');
 });
 
 Then('no keyboard modifiers should affect the removal', async function (this: CustomWorld) {
-    // Implicit - X button has stopPropagation()
+    throw new Error('NOT IMPLEMENTED: Step needs to verify removing image works even if modifier keys are held (verify image removed regardless of Ctrl/Alt/Shift state)');
 });
 
 // ============================================================================
@@ -197,7 +197,7 @@ Then('the Display preview should show {string} \\(first Display)', async functio
 });
 
 Then('should not show img3, img4, or img5 in previews', async function (this: CustomWorld) {
-    // Implicit - only first of each role shows
+    throw new Error('NOT IMPLEMENTED: Step needs to verify preview boxes only show first image of each role type (verify images 3-5 do not appear in either preview)');
 });
 
 When('I upload {int} images and assign all as Token', async function (this: CustomWorld, count: number) {
@@ -226,7 +226,7 @@ Then('the Token preview should show the first one', async function (this: Custom
 });
 
 Then('this should be valid \\(no constraint against multiple Token images)', async function (this: CustomWorld) {
-    // Implicit - system allows multiple images with same role
+    throw new Error('NOT IMPLEMENTED: Step needs to verify system allows multiple images with the same role without validation error (verify all Token images are accepted)');
 });
 
 When('I upload {int} images', async function (this: CustomWorld, count: number) {
@@ -326,7 +326,7 @@ Then('the Manage panel should be collapsed initially', async function (this: Cus
 });
 
 Then('entityId prop should be undefined \\(not editing)', async function (this: CustomWorld) {
-    // Implicit - in create mode, no entityId
+    throw new Error('NOT IMPLEMENTED: Step needs to verify component has undefined entityId in create mode (verify by checking component props or network requests have no entityId)');
 });
 
 Given('I am editing an existing asset with ID {string}', async function (this: CustomWorld, assetId: string) {
@@ -335,7 +335,7 @@ Given('I am editing an existing asset with ID {string}', async function (this: C
 });
 
 Then('entityId prop should be {string}', async function (this: CustomWorld, _assetId: string) {
-    // Implicit - edit mode has entityId
+    throw new Error('NOT IMPLEMENTED: Step needs to verify component has correct entityId in edit mode (verify by checking component props or network requests include entityId)');
 });
 
 Then('if resources exist, Manage panel should auto-expand', async function (this: CustomWorld) {
@@ -363,7 +363,7 @@ Then('the Token preview should render with {int}×{int} grid overlay', async fun
 });
 
 Then('the grid should match the asset size', async function (this: CustomWorld) {
-    // Implicit - grid dimensions match size prop
+    throw new Error('NOT IMPLEMENTED: Step needs to verify grid overlay dimensions match asset size (verify grid cell count matches width/height from size prop)');
 });
 
 // ============================================================================
@@ -406,7 +406,7 @@ When('I assign a role via keyboard shortcut', async function (this: CustomWorld)
 });
 
 Then('onResourcesChange should be called with updated roles', async function (this: CustomWorld) {
-    // Implicit - parent receives callback with role changes
+    throw new Error('NOT IMPLEMENTED: Step needs to verify parent onResourcesChange callback is invoked when image role changes (verify callback fired and includes updated role in resource array)');
 });
 
 When('I remove an image', async function (this: CustomWorld) {
@@ -415,7 +415,7 @@ When('I remove an image', async function (this: CustomWorld) {
 });
 
 Then('onResourcesChange should be called with filtered array', async function (this: CustomWorld) {
-    // Implicit - parent receives callback with removed image
+    throw new Error('NOT IMPLEMENTED: Step needs to verify parent onResourcesChange callback is invoked when image is removed (verify callback fired and removed image is not in resources array)');
 });
 
 // ============================================================================

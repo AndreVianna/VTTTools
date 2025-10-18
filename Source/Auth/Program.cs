@@ -55,7 +55,7 @@ internal static class Program {
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
             options.User.RequireUniqueEmail = true;
 
-            options.SignIn.RequireConfirmedEmail = false; // For now, skip email confirmation
+            options.SignIn.RequireConfirmedEmail = true;
             options.SignIn.RequireConfirmedPhoneNumber = false;
         })
             .AddEntityFrameworkStores<ApplicationDbContext>()

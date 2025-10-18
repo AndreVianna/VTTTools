@@ -48,6 +48,11 @@ export const store = configureStore({
   devTools: process.env.NODE_ENV !== 'production',
 });
 
+// Expose store to window for E2E testing
+if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
+  (window as any).store = store;
+}
+
 // Enable listener behavior for the store
 setupListeners(store.dispatch);
 

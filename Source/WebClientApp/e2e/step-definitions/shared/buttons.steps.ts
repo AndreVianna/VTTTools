@@ -96,7 +96,7 @@ Then('I should not see {string} button', async function (this: CustomWorld, butt
 });
 
 Then('the button should be visible and enabled', async function (this: CustomWorld) {
-    // Implicit - previous step already checked visibility
+    throw new Error('NOT IMPLEMENTED: Step needs to verify a specific button is visible and enabled (parameters expected or define button selector)');
 });
 
 Then('I should only see {string} button', async function (this: CustomWorld, buttonText: string) {

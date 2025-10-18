@@ -279,12 +279,6 @@ Then('update fails', async function (this: CustomWorld) {
   await expect(errorAlert).toBeVisible({ timeout: 5000 });
 });
 
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see error {string}', async function (this: CustomWorld, errorMessage: string) {
-//   const error = this.page.getByText(new RegExp(errorMessage, 'i'));
-//   await expect(error).toBeVisible({ timeout: 5000 });
-// });
-
 Then('original username remains unchanged', async function (this: CustomWorld) {
   const userNameField = this.page.getByLabel(/username/i);
   await expect(userNameField).not.toHaveValue(this.attemptedUserName || '');
@@ -500,13 +494,6 @@ Given('the Auth Context provider is available', async function (this: CustomWorl
   expect(pageContent).toBeTruthy();
 });
 
-// REMOVED: Duplicate - Use shared/authentication.steps.ts
-// Given('I am not authenticated', async function (this: CustomWorld) {
-//   await this.page.context().clearCookies();
-//   await this.page.goto('/');
-//   this.currentUser = { id: '', email: '', name: '' };
-// });
-
 Given('the showFullControls prop is true', async function (this: CustomWorld) {
   // This is a component prop - verified by checking for UI elements
   this.showFullControls = true;
@@ -562,12 +549,6 @@ Given('a network error occurs during submission', async function (this: CustomWo
 When('a network error occurs during submission', async function (this: CustomWorld) {
   await this.page.route('**/api/**', route => route.abort('failed'));
 });
-
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see error {string}', async function (this: CustomWorld, errorMessage: string) {
-//   const error = this.page.getByText(new RegExp(errorMessage, 'i'));
-//   await expect(error).toBeVisible({ timeout: 5000 });
-// });
 
 Then('I should remain on the password change dialog', async function (this: CustomWorld) {
   const dialog = this.page.getByRole('dialog');
@@ -630,12 +611,6 @@ Then('the update should fail', async function (this: CustomWorld) {
   expect(loginPage || errorMessage).toBeTruthy();
 });
 
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see message {string}', async function (this: CustomWorld, message: string) {
-//   const messageElement = this.page.getByText(new RegExp(message, 'i'));
-//   await expect(messageElement).toBeVisible({ timeout: 5000 });
-// });
-
 // ========================================
 // Cleanup Hooks
 // ========================================
@@ -650,3 +625,4 @@ After({ tags: '@account-management' }, async function (this: CustomWorld) {
   // Clear any network route mocks
   await this.page.unroute('**/api/**');
 });
+

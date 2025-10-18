@@ -58,11 +58,14 @@ Given('I am authenticated with displayName {string}', { timeout: 30000 }, async 
 Given('I am not authenticated', async function (this: CustomWorld) {
     // Clear authentication state without destroying the page
     await this.context.clearCookies();
+
+    // Wait for page to be in a stable state before evaluating
+    await this.page.waitForLoadState('domcontentloaded');
+
     await this.page.evaluate(() => {
         localStorage.clear();
         sessionStorage.clear();
     });
-    // Page remains at current URL, just auth cleared
 });
 
 Given('I am authenticated as user {string}', async function (this: CustomWorld, userId: string) {
@@ -70,7 +73,16 @@ Given('I am authenticated as user {string}', async function (this: CustomWorld, 
 });
 
 Given('an account exists with email {string}', async function (this: CustomWorld, email: string) {
-    this.attach(`Test account email: ${email}`);
+    if (!this.currentUser) {
+        throw new Error('No pool user assigned. The Before hook should have assigned a user from the pool.');
+    }
+
+    const users = await this.db.queryTable('Users', { Id: this.currentUser.id });
+    if (users.length === 0) {
+        throw new Error(`Pool user ${this.currentUser.email} (ID: ${this.currentUser.id}) does not exist in database`);
+    }
+
+    this.attach(`Test account email pattern: ${email} → using pool user: ${this.currentUser.email}`);
 });
 
 Given('no account exists with email {string}', async function (this: CustomWorld, email: string) {

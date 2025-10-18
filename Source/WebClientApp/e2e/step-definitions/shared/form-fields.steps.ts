@@ -55,7 +55,7 @@ When('I set size to {float}×{float}', async function (this: CustomWorld, width:
 });
 
 When('I leave description empty', async function (this: CustomWorld) {
-    // Do nothing - description is already empty
+    throw new Error('NOT IMPLEMENTED: Step needs to leave description field empty (clear field if filled or verify it is already empty)');
 });
 
 When('I clear the name', async function (this: CustomWorld) {
@@ -66,6 +66,3 @@ When('I change the name to {string}', async function (this: CustomWorld, name: s
     await this.page.fill('input[name="name"]', name);
 });
 
-// REMOVED: Duplicate - search bar steps moved to asset-library.steps.ts
-// When('I type {string} in the search bar') -> Use asset-library.steps.ts
-// When('I clear the search bar') -> Use asset-library.steps.ts

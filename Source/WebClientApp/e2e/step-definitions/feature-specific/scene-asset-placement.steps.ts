@@ -1099,19 +1099,12 @@ Then('I should see error with forbidden error', async function (this: CustomWorl
     expect(this.lastApiResponse.status()).toBe(403);
 });
 
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see error {string}', async function (this: CustomWorld, errorMessage: string) {
-//     const responseBody = await this.lastApiResponse.json();
-//     expect(responseBody.message || responseBody.error).toContain(errorMessage);
-// });
-
 Then('the asset should be moved successfully', async function (this: CustomWorld) {
     expect(this.lastApiResponse.status()).toBe(200);
 });
 
 Then('the asset is updated successfully', async function (this: CustomWorld) {
-    // Database update was successful
-    this.attach('Asset updated successfully', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Asset update success - should verify API response status and database update');
 });
 
 Then('all properties should be set correctly', async function (this: CustomWorld) {
@@ -1233,8 +1226,7 @@ Then('assets {int}, {int}, {int}, {int}, and {int} should remain intact', async 
 });
 
 Then('their positions should be unchanged', async function (this: CustomWorld) {
-    // Positions verified in previous step
-    this.attach('Asset positions unchanged', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Position verification - should verify asset positions in database match expected values');
 });
 
 Then('the scene should have the asset at new position', async function (this: CustomWorld) {

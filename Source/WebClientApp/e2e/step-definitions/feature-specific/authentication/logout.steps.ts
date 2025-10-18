@@ -4,15 +4,6 @@
  * Implements steps for HandleLogout use case
  * Follows BDD Black-Box Testing principles
  *
- * ANTI-PATTERN COMPLIANCE:
- * ✅ No step-to-step calls (use helpers)
- * ✅ No hard-coded credentials (env vars)
- * ✅ No SQL injection (whitelisted tables)
- * ✅ No catch-all regex steps
- * ✅ Strong TypeScript types
- * ✅ Condition-based waits (no timeouts)
- * ✅ Semantic selectors (getByRole)
- * ✅ Playwright built-ins (no evaluateAll)
  */
 
 import { Given, When, Then } from '@cucumber/cucumber';
@@ -24,8 +15,6 @@ import { expect } from '@playwright/test';
 // ============================================================================
 
 Given('I am authenticated and logged in', async function (this: CustomWorld) {
-    // Authentication is set up in CustomWorld via extraHTTPHeaders
-    // Verify we have auth cookies
     await this.page.goto('/dashboard');
     await expect(this.page).toHaveURL(/\/dashboard/);
 });
@@ -37,21 +26,17 @@ Given('I have an active session with a valid token', async function (this: Custo
 });
 
 Given('the LogoutButton has showConfirmation=true', async function (this: CustomWorld) {
-    // Component prop configuration - verified by dialog appearance
-    this.attach('Confirmation dialog should be enabled', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to configure LogoutButton component with showConfirmation=true prop');
 });
 
 Given('the LogoutButton has showConfirmation=false', async function (this: CustomWorld) {
-    // Component prop configuration - verified by immediate logout
-    this.attach('Confirmation dialog should be disabled', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to configure LogoutButton component with showConfirmation=false prop');
 });
 
 Given('the confirmation dialog is displayed', async function (this: CustomWorld) {
-    // First click logout to show dialog
     const logoutButton = this.page.getByRole('button', { name: /logout/i });
     await logoutButton.click();
 
-    // Verify dialog is visible
     const dialog = this.page.getByRole('dialog');
     await expect(dialog).toBeVisible();
 });
@@ -71,22 +56,20 @@ Given('I am logged in across multiple components', async function (this: CustomW
 Given('the LogoutButton has onLogoutStart callback defined', async function (
     this: CustomWorld
 ) {
-    this.attach('onLogoutStart callback should be triggered', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to configure LogoutButton component with onLogoutStart callback prop');
 });
 
 Given('the LogoutButton has onLogoutComplete callback defined', async function (
     this: CustomWorld
 ) {
-    this.attach('onLogoutComplete callback should be triggered', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to configure LogoutButton component with onLogoutComplete callback prop');
 });
 
 Given('my session token has expired', async function (this: CustomWorld) {
-    // Simulate expired token
     await this.context.clearCookies();
 });
 
 Given('my session was terminated by another process', async function (this: CustomWorld) {
-    // Simulate session termination
     await this.context.clearCookies();
 });
 
@@ -94,22 +77,16 @@ Given('I submit the logout request', async function (this: CustomWorld) {
     const logoutButton = this.page.getByRole('button', { name: /logout/i });
     await logoutButton.click();
 
-    // If confirmation dialog, confirm
     const confirmButton = this.page.getByRole('button', { name: /confirm|logout/i }).last();
     if (await confirmButton.isVisible()) {
         await confirmButton.click();
     }
 });
 
-Given('the request is in progress', async function (this: CustomWorld) {
-    // Wait for loading state
-    await expect(this.page.locator('[role="progressbar"]')).toBeVisible({ timeout: 1000 });
-});
 
 Given('I have loaded sensitive user data in the application', async function (
     this: CustomWorld
 ) {
-    // Verify Redux store has user data
     const user = await this.page.evaluate(() => {
         return (window as any).store?.getState()?.auth?.user;
     });
@@ -117,11 +94,11 @@ Given('I have loaded sensitive user data in the application', async function (
 });
 
 Given('I am logged in on my desktop browser', async function (this: CustomWorld) {
-    this.attach('Multi-device session scenario - desktop', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to set up multi-device session scenario (create desktop session in database)');
 });
 
 Given('I am also logged in on my mobile device', async function (this: CustomWorld) {
-    this.attach('Multi-device session scenario - mobile', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to set up multi-device session scenario (create mobile session in database)');
 });
 
 Given('I am on the dashboard page', async function (this: CustomWorld) {
@@ -136,13 +113,11 @@ Given('I am on the dashboard page', async function (this: CustomWorld) {
 When('I click the logout button', async function (this: CustomWorld) {
     const logoutButton = this.page.getByRole('button', { name: /logout/i });
 
-    // Store response promise before click
     this.lastApiResponse = await Promise.race([
         this.page.waitForResponse(
             response => response.url().includes('/api/auth/logout'),
             { timeout: 10000 }
         ).catch(() => null),
-        // Proceed even if API doesn't respond (resilience test)
         new Promise(resolve => setTimeout(resolve, 5000))
     ]) as any;
 
@@ -156,13 +131,11 @@ When('the logout request completes successfully', async function (this: CustomWo
 });
 
 When('the network connection fails during logout', async function (this: CustomWorld) {
-    // Intercept and fail logout request
     await this.page.route('**/api/auth/logout', route => route.abort('failed'));
 
     const logoutButton = this.page.getByRole('button', { name: /logout/i });
     await logoutButton.click();
 
-    // Confirm if dialog appears
     const confirmButton = this.page.getByRole('button', { name: /confirm|logout/i }).last();
     if (await confirmButton.isVisible()) {
         await confirmButton.click();
@@ -170,7 +143,6 @@ When('the network connection fails during logout', async function (this: CustomW
 });
 
 When('the logout API returns 500 error', async function (this: CustomWorld) {
-    // Intercept and return error
     await this.page.route('**/api/auth/logout', route =>
         route.fulfill({
             status: 500,
@@ -181,7 +153,6 @@ When('the logout API returns 500 error', async function (this: CustomWorld) {
     const logoutButton = this.page.getByRole('button', { name: /logout/i });
     await logoutButton.click();
 
-    // Confirm if dialog appears
     const confirmButton = this.page.getByRole('button', { name: /confirm|logout/i }).last();
     if (await confirmButton.isVisible()) {
         await confirmButton.click();
@@ -193,10 +164,6 @@ When('I confirm logout', async function (this: CustomWorld) {
     await confirmButton.click();
 });
 
-When('the logout request is in progress', async function (this: CustomWorld) {
-    // Verify loading state
-    await expect(this.page.locator('[role="progressbar"]')).toBeVisible({ timeout: 2000 });
-});
 
 When('the logout completes successfully', async function (this: CustomWorld) {
     await this.page.waitForResponse(
@@ -232,7 +199,6 @@ When('I successfully log out', async function (this: CustomWorld) {
     const logoutButton = this.page.getByRole('button', { name: /logout/i });
     await logoutButton.click();
 
-    // Handle confirmation
     const confirmButton = this.page.getByRole('button', { name: /confirm|logout/i }).last();
     if (await confirmButton.isVisible()) {
         await confirmButton.click();
@@ -250,7 +216,7 @@ When('the logout request is processed', async function (this: CustomWorld) {
 // ============================================================================
 
 Then('my session should be terminated on the server', async function (this: CustomWorld) {
-    // Verify logout API was called
+
     expect(this.lastApiResponse).toBeDefined();
     expect(this.lastApiResponse?.status()).toBe(200);
 });
@@ -286,7 +252,7 @@ Then('the authentication token should be cleared anyway', async function (this: 
 Then('I should see a warning notification about incomplete server logout', async function (
     this: CustomWorld
 ) {
-    // Look for warning/error message about network failure
+
     const notification = this.page.getByRole('alert');
     await expect(notification).toBeVisible({ timeout: 5000 });
 });
@@ -328,7 +294,7 @@ Then('the dialog should close', async function (this: CustomWorld) {
 });
 
 Then('no logout should occur', async function (this: CustomWorld) {
-    // Verify we're still on current page (not redirected)
+
     await expect(this.page).not.toHaveURL(/\/login/);
 });
 
@@ -385,8 +351,7 @@ Then('Redux authSlice.user should be null', async function (this: CustomWorld) {
 });
 
 Then('RTK Query cache should be reset', async function (this: CustomWorld) {
-    // Verify API cache is cleared
-    this.attach('RTK Query cache cleared', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify RTK Query cache was reset (check Redux store API cache state)');
 });
 
 Then('I should not be able to access protected routes', async function (this: CustomWorld) {
@@ -403,7 +368,7 @@ Then('the Auth Context user should be set to null', async function (this: Custom
 });
 
 Then('all components should reflect unauthenticated state', async function (this: CustomWorld) {
-    // Check header for login/register links instead of user info
+
     await expect(this.page.getByRole('link', { name: /login|sign in/i })).toBeVisible();
 });
 
@@ -433,13 +398,11 @@ Then('I should not be able to click logout again', async function (this: CustomW
 });
 
 Then('the onLogoutStart callback should be executed first', async function (this: CustomWorld) {
-    // Callback execution is internal - verified by any pre-logout actions
-    this.attach('onLogoutStart callback executed', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify onLogoutStart callback was executed (monitor callback invocation or side effects)');
 });
 
 Then('I should see any unsaved changes warning', async function (this: CustomWorld) {
-    // Would appear in callback implementation
-    this.attach('Unsaved changes warning (if applicable)', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify unsaved changes warning appears (check for warning dialog or message)');
 });
 
 Then('the logout should proceed after callback completes', async function (this: CustomWorld) {
@@ -447,12 +410,11 @@ Then('the logout should proceed after callback completes', async function (this:
 });
 
 Then('the onLogoutComplete callback should be executed', async function (this: CustomWorld) {
-    this.attach('onLogoutComplete callback executed', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify onLogoutComplete callback was executed (monitor callback invocation or side effects)');
 });
 
 Then('any cleanup operations should be performed', async function (this: CustomWorld) {
-    // Cleanup is internal - verified by state being cleared
-    this.attach('Cleanup operations completed', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify cleanup operations were performed (monitor cleanup side effects like localStorage clearing, resource disposal)');
 });
 
 Then('I should be redirected after callback completes', async function (this: CustomWorld) {
@@ -466,8 +428,7 @@ Then('the client should clear the token anyway', async function (this: CustomWor
 });
 
 Then('the server should return 401 error', async function (this: CustomWorld) {
-    // 401 is acceptable for expired token
-    this.attach('401 Unauthorized accepted for expired token', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify server returned 401 status (check lastApiResponse or network logs)');
 });
 
 Then('I should still be logged out successfully', async function (this: CustomWorld) {
@@ -475,8 +436,7 @@ Then('I should still be logged out successfully', async function (this: CustomWo
 });
 
 Then('the server should return 404 error', async function (this: CustomWorld) {
-    // 404 is acceptable for already-terminated session
-    this.attach('404 Not Found accepted for terminated session', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify server returned 404 status (check lastApiResponse or network logs)');
 });
 
 Then('the client should clear state anyway', async function (this: CustomWorld) {
@@ -491,7 +451,7 @@ Then('the second logout should be prevented', async function (this: CustomWorld)
 });
 
 Then('only one logout request should be sent', async function (this: CustomWorld) {
-    this.attach('Duplicate logout prevented by disabled state', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify only one logout API request was sent (check network logs or request count)');
 });
 
 Then('all user-specific data should be cleared from state', async function (this: CustomWorld) {
@@ -503,11 +463,11 @@ Then('all user-specific data should be cleared from state', async function (this
 });
 
 Then('cached API responses should be invalidated', async function (this: CustomWorld) {
-    this.attach('API cache invalidated', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify API cache was invalidated (check Redux RTK Query cache state)');
 });
 
 Then('any WebSocket connections should be closed', async function (this: CustomWorld) {
-    this.attach('WebSocket connections closed', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify WebSocket connections were closed (check WebSocket state or connection logs)');
 });
 
 Then('the desktop session should be terminated', async function (this: CustomWorld) {
@@ -515,17 +475,15 @@ Then('the desktop session should be terminated', async function (this: CustomWor
 });
 
 Then('my mobile session should remain active', async function (this: CustomWorld) {
-    // Multi-device session independence
-    this.attach('Mobile session unaffected (backend validation)', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify mobile session remains active (query database Sessions table for mobile device)');
 });
 
 Then('I should still be authenticated on mobile', async function (this: CustomWorld) {
-    this.attach('Mobile device still authenticated (backend validation)', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify mobile device is still authenticated (query database or use API call with mobile session token)');
 });
 
 Then('I receive response with in less than 200ms', async function (this: CustomWorld) {
-    // Performance assertion - logout should be fast
-    this.attach('Logout performance: <200ms', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify logout response time was under 200ms (measure lastApiResponse timing or performance metrics)');
 });
 
 Then('the client-side state should clear immediately', async function (this: CustomWorld) {

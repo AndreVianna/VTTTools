@@ -98,7 +98,7 @@ Given('I own {int} assets', async function (this: CustomWorld, count: number) {
 });
 
 Given('I own no assets', async function (this: CustomWorld) {
-    // Do nothing - no assets to create
+    throw new Error('NOT IMPLEMENTED: Step needs to verify no assets exist for current user (query database Assets table with OwnerId)');
 });
 
 Then('the asset should be created successfully', async function (this: CustomWorld) {
@@ -114,5 +114,5 @@ Then('the asset should be updated successfully', async function (this: CustomWor
 // Then('the dialog should close') - Use shared dialog steps
 
 Then('no asset should be created', async function (this: CustomWorld) {
-    // Verify no API call was made - implementation depends on test approach
+    throw new Error('NOT IMPLEMENTED: Step needs to verify no asset was created (check no POST to /api/assets or query database Assets table count unchanged)');
 });

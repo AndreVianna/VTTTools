@@ -4,15 +4,6 @@
  * Implements steps for HandleRegistration use case
  * Follows BDD Black-Box Testing principles
  *
- * ANTI-PATTERN COMPLIANCE:
- * ✅ No step-to-step calls (use helpers)
- * ✅ No hard-coded credentials (env vars)
- * ✅ No SQL injection (whitelisted tables)
- * ✅ No catch-all regex steps
- * ✅ Strong TypeScript types
- * ✅ Condition-based waits (no timeouts)
- * ✅ Semantic selectors (getByRole)
- * ✅ Playwright built-ins (no evaluateAll)
  */
 
 import { Given, When, Then } from '@cucumber/cucumber';
@@ -37,8 +28,7 @@ Given('I am on the registration page', async function (this: CustomWorld) {
 });
 
 Given('the registration service is available', async function (this: CustomWorld) {
-    // Service availability is tested by actual API calls
-    this.attach('Registration service expected to be available', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify registration service is available (health check or API probe)');
 });
 
 Given('an account already exists with email {string}', async function (
@@ -55,10 +45,9 @@ Given('an account already exists with email {string}', async function (
 
 Given('an account already exists with username {string}', async function (
     this: CustomWorld,
-    username: string
+    _username: string
 ) {
-    // Backend should handle username uniqueness
-    this.attach(`Username uniqueness test: ${username}`, 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to create or verify account with username exists (query database Users table by Username)');
 });
 
 Given('I provide other valid registration data', async function (this: CustomWorld) {
@@ -167,11 +156,9 @@ When('I enter confirmation password {string}', async function (
 
 When('I enter matching confirmation password {string}', async function (
     this: CustomWorld,
-    password: string
+    _password: string
 ) {
-    await this.page.getByLabel(/^password$/i).fill(password);
-    // SimpleRegistrationForm doesn't have confirmation field
-    this.attach('Password confirmation handled by form component', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to fill password confirmation field (find confirm password input and fill with matching password)');
 });
 
 When('I submit the registration form', async function (this: CustomWorld) {
@@ -209,8 +196,7 @@ When('my account is created', async function (this: CustomWorld) {
 });
 
 When('the email service fails to send verification email', async function (this: CustomWorld) {
-    // Backend should handle email service failures gracefully
-    this.attach('Email service failure scenario', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to mock email service failure (route email API to return error or configure test backend)');
 });
 
 When('the registration service returns 500 error', async function (this: CustomWorld) {
@@ -301,21 +287,20 @@ Then('I should be able to log in with my new credentials', async function (this:
 
 Then('I receive a verification email at {string}', async function (
     this: CustomWorld,
-    email: string
+    _email: string
 ) {
-    // Email verification is backend responsibility
-    this.attach(`Verification email sent to: ${email}`, 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify verification email was sent (check email service logs or test inbox)');
 });
 
 Then('my email contains a verification link', async function (this: CustomWorld) {
-    this.attach('Verification link included in email', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify verification email contains a link (check email content for verification URL)');
 });
 
 Then('my account is marked as {string}', async function (
     this: CustomWorld,
-    status: string
+    _status: string
 ) {
-    this.attach(`Account status: ${status}`, 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify account status in database (query Users table EmailConfirmed or Status field)');
 });
 
 Then('I should still be created', async function (this: CustomWorld) {
@@ -353,7 +338,7 @@ Then('the email field should no longer show error styling', async function (this
 });
 
 Then('only one registration request should be sent', async function (this: CustomWorld) {
-    this.attach('Duplicate registration prevented by disabled state', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify only one registration API request was sent (check network logs or request count)');
 });
 
 Then('I should have access to authenticated features', async function (this: CustomWorld) {
@@ -413,7 +398,7 @@ Then('account creation is prevented', async function (this: CustomWorld) {
 });
 
 Then('I should receive a confirmation email', async function (this: CustomWorld) {
-    this.attach('Confirmation email sent (backend validation)', 'text/plain');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify confirmation email was sent (check email service logs or test inbox)');
 });
 
 Then('my account is created', async function (this: CustomWorld) {

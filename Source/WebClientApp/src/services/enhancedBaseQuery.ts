@@ -148,20 +148,9 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
         devUtils.error('CORS error detected', error);
       }
 
-      // In development mode with network issues, don't fail completely
-      if (isDevelopment && (error.isNetworkError || error.isCorsError)) {
-        devUtils.warn(`API call failed, continuing in development mode: ${baseUrl}`);
-
-        // Return a recoverable error that components can handle
-        return {
-          error: {
-            ...error,
-            data: {
-              message: 'Service temporarily unavailable in development mode',
-              isRecoverable: true
-            }
-          }
-        };
+      // Network/CORS errors are never recoverable for authentication
+      if (error.isNetworkError || error.isCorsError) {
+        devUtils.error(`API call failed: ${baseUrl}`, error);
       }
 
       return { error };
@@ -173,7 +162,7 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
           status: 'CUSTOM_ERROR',
           data: {
             message: 'An unexpected error occurred',
-            isRecoverable: isDevelopment
+            isRecoverable: false
           },
           error: String(unexpectedError)
         } as EnhancedError
@@ -232,7 +221,7 @@ export const handleMutationError = (error: any, operationName: string) => {
 
   return {
     message,
-    isRecoverable: error?.data?.isRecoverable || isDevelopment,
+    isRecoverable: !!error?.data?.isRecoverable,
     originalError: isDevelopment ? error : undefined
   };
 };

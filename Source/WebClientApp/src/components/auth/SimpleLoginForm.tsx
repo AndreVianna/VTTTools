@@ -171,6 +171,8 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
     password?: string;
   }>({});
 
+  const [clientValidationError, setClientValidationError] = useState<string>('');
+
   const validateForm = (): boolean => {
     const errors: { email?: string; password?: string } = {};
 
@@ -185,7 +187,15 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
     }
 
     setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+
+    if (Object.keys(errors).length > 0) {
+      const firstError = errors.email || errors.password || '';
+      setClientValidationError(firstError);
+      return false;
+    }
+
+    setClientValidationError('');
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -199,7 +209,7 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
     try {
       await login(email, password, rememberMe);
     } catch (_error) {
-      // Error is already handled by the useAuth hook
+      setPassword('');
       console.log('Login failed:', error);
     }
   };
@@ -235,20 +245,24 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
           </Typography>
         </div>
 
-        {error && hasAttemptedSubmit && (
-          <VTTAlert severity="error" sx={{ mb: 3 }}>
-            {typeof error === 'string' ? error : 'Login failed. Please try again.'}
+        {(error && hasAttemptedSubmit) || clientValidationError ? (
+          <VTTAlert severity="error" sx={{ mb: 3 }} role="alert">
+            {clientValidationError || (typeof error === 'string' ? error : 'Login failed. Please try again.')}
           </VTTAlert>
-        )}
+        ) : null}
 
-        <Box component="form" onSubmit={handleSubmit} className="auth-form">
+        <Box component="form" onSubmit={handleSubmit} noValidate className="auth-form">
           <AuthTextField
             fullWidth
             id="email"
             label="Email Address"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (clientValidationError) setClientValidationError('');
+              if (validationErrors.email) setValidationErrors({});
+            }}
             error={!!validationErrors.email}
             helperText={validationErrors.email || 'Enter your registered email address'}
             disabled={isLoading}
@@ -264,7 +278,11 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
             label="Password"
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (clientValidationError) setClientValidationError('');
+              if (validationErrors.password) setValidationErrors({});
+            }}
             error={!!validationErrors.password}
             helperText={validationErrors.password || 'Password must be at least 8 characters'}
             disabled={isLoading}

@@ -265,13 +265,11 @@ Then('available cards should display correctly', async function (this: CustomWor
 
 // Additional setup steps
 Given('my user profile has no displayName', async function (this: CustomWorld) {
-    // User from pool may not have displayName - this is implicit state
-    // App should show fallback greeting
+    throw new Error('NOT IMPLEMENTED: Step needs to set up user profile with missing displayName (update user record or use fixture with null displayName field)');
 });
 
 Given('some action card data is missing or malformed', async function (this: CustomWorld) {
-    // Simulate malformed data (for now, just implicit test)
-    // App should handle gracefully without crashing
+    throw new Error('NOT IMPLEMENTED: Step needs to mock API response with malformed action card data (mock dashboard API to return missing or invalid card fields)');
 });
 
 Given('a session cookie exists', async function (this: CustomWorld) {
@@ -298,8 +296,7 @@ When('I navigate using keyboard only', async function (this: CustomWorld) {
 });
 
 When('I use a screen reader', async function (this: CustomWorld) {
-    // Screen reader simulation - verify ARIA attributes exist
-    // Implicit test - actual screen reader testing is manual
+    throw new Error('NOT IMPLEMENTED: Step needs to enable screen reader accessibility testing (configure accessibility testing framework like axe-core or Playwright accessibility checks)');
 });
 
 Then('the {word} theme colors should be applied', async function (this: CustomWorld, _theme: string) {

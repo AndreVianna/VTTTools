@@ -385,13 +385,6 @@ Then('the request should fail', async function (this: CustomWorld) {
     expect(this.lastApiResponse.status()).toBeGreaterThanOrEqual(400);
 });
 
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see error {string}', async function (this: CustomWorld, expectedError: string) {
-//     const errorBody = await this.lastApiResponse.json();
-//     const errorMessage = errorBody.message || errorBody.title || errorBody.error || '';
-//     expect(errorMessage).toContain(expectedError);
-// });
-
 Then('session start time should be recorded', async function (this: CustomWorld) {
     const session = getCurrentSession(this);
     const dbSession = await verifySessionInDatabase(this, session.id);

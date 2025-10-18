@@ -60,9 +60,8 @@ function isDebugMode(): boolean {
 }
 
 function debugLog(message: string): void {
-    if (isDebugMode()) {
-        console.log(message);
-    }
+    if (!isDebugMode()) return;
+    console.log(`[POOL] ${message}`);
 }
 
 export class DatabaseHelper {
@@ -203,7 +202,7 @@ export class DatabaseHelper {
      */
     async close(): Promise<void> {
         // msnodesqlv8 manages connections automatically - no explicit close needed
-        debugLog('[DB] Close called - msnodesqlv8 auto-manages connections');
+        debugLog('Close called - msnodesqlv8 auto-manages connections');
     }
 
     /**
@@ -289,46 +288,55 @@ export class DatabaseHelper {
      * Generate GUID v7 (time-ordered UUID)
      */
     generateGuidV7(): string {
-        // Simplified GUID v7 generation
         const timestamp = Date.now();
         const hex = timestamp.toString(16).padStart(12, '0');
-        const random = Math.random().toString(16).substring(2, 14);
+        const random1 = Math.random().toString(16).substring(2, 14);
+        const random2 = Math.random().toString(16).substring(2, 14);
 
-        return `${hex.substring(0, 8)}-${hex.substring(8, 12)}-7${random.substring(0, 3)}-${random.substring(3, 7)}-${random.substring(7, 19)}`;
+        return `${hex.substring(0, 8)}-${hex.substring(8, 12)}-7${random1.substring(0, 3)}-${random1.substring(3, 7)}-${random1.substring(7, 12)}${random2.substring(0, 7)}`;
     }
 
     /**
      * Insert user into database for testing
-     * NOTE: Prefer using backend API (/api/auth/register) which handles ID generation
-     * This method is for edge cases only
+     * Creates user with full control over initial state (confirmed/unconfirmed, locked/unlocked, etc.)
      */
     async insertUser(user: {
         email: string;
         userName: string;
         emailConfirmed: boolean;
         passwordHash: string;
+        name?: string;
+        displayName?: string;
     }): Promise<string> {
-        // Backend generates GUID v7 automatically - we query it after insert
+        const userId = this.generateGuidV7();
+        const displayName = user.displayName || user.name || '';
         const query = `
             INSERT INTO Users
-            (UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed, PasswordHash, SecurityStamp, ConcurrencyStamp)
-            OUTPUT INSERTED.Id
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (Id, UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed, PasswordHash,
+             SecurityStamp, ConcurrencyStamp, Name, DisplayName, LockoutEnabled, AccessFailedCount, TwoFactorEnabled, PhoneNumberConfirmed)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const params = [
+            userId,
             user.userName,
             user.userName.toUpperCase(),
             user.email,
             user.email.toUpperCase(),
             user.emailConfirmed,
             user.passwordHash,
-            this.generateGuidV7(),  // Security stamp
-            this.generateGuidV7()   // Concurrency stamp
+            this.generateGuidV7(),
+            this.generateGuidV7(),
+            user.name || '',
+            displayName,
+            true,
+            0,
+            false,
+            false
         ];
 
-        const result = await this.executeQuery(query, params);
-        return result[0]?.Id || '';
+        await this.executeQuery(query, params);
+        return userId;
     }
 
     /**
@@ -743,7 +751,7 @@ export class DatabaseHelper {
         await this.executeQuery(query, params);
     }
 
-    async deleteUserAndAllData(userId: string): Promise<void> {
+    async deleteUser(userId: string): Promise<void> {
         await this.deleteUserDataOnly(userId);
         await this.executeQuery('DELETE FROM Users WHERE Id = ?', [userId]);
     }
@@ -752,11 +760,14 @@ export class DatabaseHelper {
      * Cleanup all BDD test users
      */
     async cleanupAllTestUsers(): Promise<void> {
-        const testUsers = await this.findAllTestUsers();
-        debugLog(`[DB] Found ${testUsers.length} test users to cleanup`);
+        debugLog('Cleaning up orphaned test users from previous runs...');
 
+        const testUsers = await this.findAllTestUsers();
+        debugLog(`Found ${testUsers.length} test users to cleanup`);
         for (const user of testUsers) {
-            await this.deleteUserAndAllData(user.Id);
+            debugLog(`Deleting user ${user.Email} (ID: ${user.Id})`);
+            await this.deleteUser(user.Id);
         }
+        debugLog('Cleaning finished.');
     }
 }

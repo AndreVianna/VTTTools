@@ -27,9 +27,8 @@ function isDebugMode(): boolean {
 }
 
 function debugLog(message: string): void {
-    if (isDebugMode()) {
-        console.log(message);
-    }
+    if (!isDebugMode()) return;
+    console.log(`[POOL] ${message}`);
 }
 
 /**
@@ -40,14 +39,14 @@ function acquireUser(testName: string): TestUser {
     const freeUser = userPool.find(u => !u.inUse);
 
     if (!freeUser) {
-        throw new Error(`[POOL] No free users available (pool size: ${userPool.length})`);
+        throw new Error(`No free users available (pool size: ${userPool.length})`);
     }
 
     // Mark as in-use
     freeUser.inUse = true;
     freeUser.currentTest = testName;
 
-    debugLog(`[POOL] User acquired: ${freeUser.email} for test: ${testName}`);
+    debugLog(`User acquired: ${freeUser.email} for test: ${testName}`);
     return freeUser;
 }
 
@@ -59,25 +58,101 @@ function releaseUser(userId: string): void {
     if (user) {
         user.inUse = false;
         user.currentTest = null;
-        debugLog(`[POOL] User released: ${user.email}`);
+        debugLog(`User released: ${user.email}`);
     }
 }
+
+
+/**
+ * Before All Hook
+ */
+BeforeAll({ timeout: 60000 }, async function () {
+    console.log('='.repeat(120));
+    console.log('Starting BDD Test Suite - VTTTools');
+    console.log('Framework: Cucumber.js + Playwright + TypeScript');
+    console.log('='.repeat(120));
+
+    if (poolInitialized) {
+        debugLog('Already initialized by another worker');
+        return;
+    }
+
+    const poolSize = parseInt(process.env.PARALLEL_WORKERS || '1');
+    const password = process.env.BDD_TEST_PASSWORD;
+    if (!password) {
+        throw new Error('CRITICAL: BDD_TEST_PASSWORD environment variable is not set. Check your .env file.');
+    }
+    const passwordHash = process.env.BDD_TEST_PASSWORD_HASH
+    if (!passwordHash) {
+        throw new Error('CRITICAL: BDD_TEST_PASSWORD_HASH environment variable is not set. Check your .env file.');
+    }
+
+    debugLog(`Initializing test user pool (size: ${poolSize})`);
+    const db = new DatabaseHelper(process.env.DATABASE_CONNECTION_STRING!);
+    await db.cleanupAllTestUsers();
+
+    for (let i = 1; i <= poolSize; i++) {
+        const email = `bdd-test-user-${i}@test.local`;
+        const displayName = `BDD Test User ${i}`;
+
+        debugLog(`Creating user ${i}/${poolSize}: ${email}`);
+
+        const userId = await db.insertUser({
+            email,
+            userName: email,
+            emailConfirmed: true,
+            passwordHash,
+            displayName
+        });
+
+        debugLog(`User created in DB: ${userId}`);
+
+        userPool.push({
+            id: userId,
+            email,
+            username: email,
+            password,
+            inUse: false,
+            currentTest: null
+        });
+    }
+
+    poolInitialized = true;
+    debugLog(`User pool initialized with ${userPool.length} users`);
+});
+
+/**
+ * After All Hook
+ * Cleanup test user pool
+ */
+AfterAll({ timeout: 30000 }, async function () {
+    console.log('='.repeat(80));
+    console.log('BDD Test Suite Complete');
+    console.log('='.repeat(80));
+
+    if (userPool.length > 0) {
+        debugLog(`Cleaning up ${userPool.length} test users...`);
+        const db = new DatabaseHelper(process.env.DATABASE_CONNECTION_STRING!);
+        await db.cleanupAllTestUsers();
+        debugLog('User pool cleaned up');
+    }
+});
 
 /**
  * Before Scenario Hook
  * Acquire user from pool and initialize browser (skip user for @anonymous scenarios)
  */
-Before(async function (this: CustomWorld, testCase) {
-    debugLog(`[BEFORE HOOK] Starting init for: ${testCase.pickle.name}`);
+Before({ timeout: 30000 }, async function (this: CustomWorld, testCase) {
+    debugLog(`Starting init for: ${testCase.pickle.name}`);
 
     // Check if scenario is @anonymous (no user needed)
     const isAnonymous = testCase.pickle.tags.some(tag => tag.name === '@anonymous');
 
     if (isAnonymous) {
-        debugLog('[BEFORE] Anonymous scenario - skipping user acquisition');
+        debugLog('Anonymous scenario - skipping user acquisition');
         // Initialize without user (currentUser will be undefined for anonymous tests)
         await this.init();
-        debugLog(`[SCENARIO START] ${testCase.pickle.name}`);
+        debugLog(`Scenario started: ${testCase.pickle.name}`);
         return;
     }
 
@@ -92,12 +167,11 @@ Before(async function (this: CustomWorld, testCase) {
     };
 
     await this.init();
-    debugLog(`[SCENARIO START] ${testCase.pickle.name}`);
+    debugLog(`Scenario started: ${testCase.pickle.name}`);
 });
 
 /**
  * After Scenario Hook
- * Cleanup test data and release user back to pool
  */
 After(async function (this: CustomWorld, testCase) {
     if (testCase.result?.status === Status.FAILED) {
@@ -115,130 +189,38 @@ After(async function (this: CustomWorld, testCase) {
             }
         }
 
-        console.error(`[SCENARIO FAILED] ${testCase.pickle.name}`);
+        console.error(`Scenario failed: ${testCase.pickle.name}`);
         console.error(`Error: ${testCase.result.message}`);
     } else {
-        debugLog(`[SCENARIO ${testCase.result?.status}] ${testCase.pickle.name}`);
+        debugLog(`Scenario ${testCase.result?.status}: ${testCase.pickle.name}`);
     }
 
-    // Cleanup user's data (keep user for reuse)
-    // Skip cleanup for @anonymous scenarios (no user assigned)
     try {
         if (this.currentUser && this.db) {
-            debugLog(`[POOL] Cleaning up data for user: ${this.currentUser.email}`);
+            debugLog(`Cleaning up data for user: ${this.currentUser.email}`);
             await this.db.deleteUserDataOnly(this.currentUser.id);
+
+            // Reset user state to defaults (for reuse in next scenario)
+            debugLog(`Resetting user state for: ${this.currentUser.email}`);
+            await this.db.updateRecord('Users', this.currentUser.id, {
+                TwoFactorEnabled: false,
+                LockoutEnd: null,
+                LockoutEnabled: true,  // Keep lockout enabled (default ASP.NET Identity setting)
+                AccessFailedCount: 0,
+                EmailConfirmed: true  // Reset to confirmed (default for pool users)
+            });
         }
     } catch (cleanupError) {
         console.error('Data cleanup error:', cleanupError);
     }
 
-    // Cleanup browser
     try {
         await this.cleanup();
     } catch (cleanupError) {
         console.error('Browser cleanup error:', cleanupError);
     }
 
-    // Release user back to pool (skip for @anonymous)
     if (this.currentUser) {
         releaseUser(this.currentUser.id);
-    }
-});
-
-/**
- * Before All Hook
- * Initialize test user pool
- */
-BeforeAll({ timeout: 60000 }, async function () {
-    console.log('='.repeat(80));
-    console.log('Starting BDD Test Suite - VTTTools Asset Management Phase 5');
-    console.log('Framework: Cucumber.js + Playwright + TypeScript');
-    console.log('='.repeat(80));
-
-    // Only initialize pool once (BeforeAll runs per worker in parallel mode)
-    if (poolInitialized) {
-        debugLog('[POOL] Already initialized by another worker');
-        return;
-    }
-
-    // Note: User pool is created for all test runs
-    // Individual scenarios with @anonymous tag skip user acquisition in Before hook
-    const poolSize = parseInt(process.env.PARALLEL_WORKERS || '1');
-    const password = process.env.BDD_TEST_PASSWORD;
-
-    if (!password) {
-        throw new Error('CRITICAL: BDD_TEST_PASSWORD environment variable is not set. Check your .env file.');
-    }
-
-    debugLog(`[POOL] Initializing test user pool (size: ${poolSize})`);
-
-    // Connect to database for cleanup
-    const db = new DatabaseHelper(process.env.DATABASE_CONNECTION_STRING!);
-
-    // Step 1: Cleanup orphaned test users from crashed runs
-    debugLog('[POOL] Cleaning up orphaned test users from previous runs...');
-    await db.cleanupAllTestUsers();
-
-    debugLog('[POOL] Cleaning finished.');
-    // Step 2: Create test user pool via backend API (not UI)
-    // This is test infrastructure setup - registration page has its own tests
-    const apiBaseUrl = process.env.VITE_API_URL || 'http://localhost:5173/api';
-
-    for (let i = 1; i <= poolSize; i++) {
-        const email = `bdd-test-user-${i}@test.local`;
-        const displayName = `BDD Test User ${i}`;
-
-        debugLog(`[POOL] Creating user ${i}/${poolSize}: ${email}`);
-
-        // Call backend registration API directly
-        // Note: userName is same as email in this application
-        const response = await fetch(`${apiBaseUrl}/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                email,
-                userName: email,  // userName = email
-                displayName,
-                password
-            })
-        });
-
-        if (!response.ok) {
-            const errorBody = await response.text();
-            debugLog(`[POOL] Registration failed: ${response.status} - ${errorBody}`);
-            throw new Error(`Failed to create test user ${email}: ${response.status}`);
-        }
-
-        const result = await response.json();
-        debugLog(`[POOL] User created: ${result.user.id}`);
-
-        userPool.push({
-            id: result.user.id,
-            email,
-            username: email,  // username = email
-            password,
-            inUse: false,
-            currentTest: null
-        });
-    }
-
-    poolInitialized = true;
-    debugLog(`[POOL] User pool initialized with ${userPool.length} users`);
-});
-
-/**
- * After All Hook
- * Cleanup test user pool
- */
-AfterAll({ timeout: 30000 }, async function () {
-    console.log('='.repeat(80));
-    console.log('BDD Test Suite Complete');
-    console.log('='.repeat(80));
-
-    if (userPool.length > 0) {
-        debugLog(`[POOL] Cleaning up ${userPool.length} test users...`);
-        const db = new DatabaseHelper(process.env.DATABASE_CONNECTION_STRING!);
-        await db.cleanupAllTestUsers();
-        debugLog('[POOL] User pool cleaned up');
     }
 });

@@ -31,10 +31,10 @@ POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
 {
-  "email": "test2@example.com",
+  "email": "test@example.com",
   "password": "Test123!",
   "confirmPassword": "Test123!",
-  "name": "Test User 2"
+  "name": "Test User"
 }
 
 ### 2. Login (Cookie auto-captured)

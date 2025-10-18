@@ -1,13 +1,3 @@
-/**
- * Configure Grid Step Definitions
- *
- * BDD step definitions for Scene Grid Configuration
- * Feature: Configuregrid.feature
- *
- * BLACK-BOX TESTING: Tests through UI interactions and API responses
- * NO ANTI-PATTERNS: No step-to-step calls, proper security, type safety
- */
-
 import { Given, When, Then, DataTable } from '@cucumber/cucumber';
 import { CustomWorld } from '../../support/world.js';
 import { expect } from '@playwright/test';
@@ -525,12 +515,6 @@ Then('the grid size should be {int}', async function (this: CustomWorld, size: n
 Then('I should see error with validation error', async function (this: CustomWorld) {
     expect(this.lastApiResponse.status()).toBe(400);
 });
-
-// REMOVED: Duplicate - Use shared/messages.steps.ts
-// Then('I should see error {string}', async function (this: CustomWorld, errorMessage: string) {
-//     const responseBody = await this.lastApiResponse.json();
-//     expect(responseBody.error || responseBody.message).toContain(errorMessage);
-// });
 
 Then('all grid properties should be set correctly', async function (this: CustomWorld) {
     const sceneId = (this as any).currentSceneId;

@@ -332,8 +332,7 @@ Given('I filter to show {string} only', async function (this: CustomWorld, visib
 });
 
 Given('I filter to show only {int} assets', async function (this: CustomWorld, _count: number) {
-    // This is a placeholder - actual filtering depends on test scenario
-    // In practice, this would involve setting specific filters to match exactly N assets
+    throw new Error('NOT IMPLEMENTED: Step needs to set filters to show only ${count} assets. Check AssetLibraryPage filters (showPublic, showPrivate, showMine, showOthers) and use page.check/uncheck to match exactly ${count} visible assets');
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -590,8 +589,7 @@ Then('the results count should update', async function (this: CustomWorld) {
 // ═══════════════════════════════════════════════════════════════
 
 Then('the API should not be called yet', async function (this: CustomWorld) {
-    // Verify no API call has been made (check network requests)
-    // This is validated by timing - if we wait 100ms and no call, it passed
+    throw new Error('NOT IMPLEMENTED: Step needs to verify no GET /api/assets requests were made. Check this.page.context().tracing or network requests interceptor to ensure API call has not occurred yet');
 });
 
 Then('the API should be called once with search={string}', async function (
@@ -605,7 +603,7 @@ Then('the API should be called once with search={string}', async function (
 });
 
 Then('the API should not be called during typing', async function (this: CustomWorld) {
-    // Verified by absence of network calls during rapid typing
+    throw new Error('NOT IMPLEMENTED: Step needs to verify no API calls occurred during rapid text input. Check network request history or use this.page.waitForEvent("requestfinished") timeout to validate debounce is working');
 });
 
 Then('the API should be called exactly once with search={string}', async function (
@@ -643,8 +641,7 @@ Then('I should not see the other user\'s assets', async function (this: CustomWo
 });
 
 Then('I should not see draft or private assets from others', async function (this: CustomWorld) {
-    // Black-box verification: Only public published assets should be visible
-    // We can't check ownership directly, but we can verify count matches expected
+    throw new Error('NOT IMPLEMENTED: Step needs to verify filter state is hiding non-public/non-published assets from other users. Check visible asset cards against expected public published assets only. Validate ownership is not current user and status is published');
 });
 
 Then('each asset card should show a {string} badge', async function (
@@ -685,8 +682,7 @@ Then('the asset cards should show assets {int}-{int}', async function (
     _start: number,
     _end: number
 ) {
-    // Verify that correct range of assets is displayed
-    // This is implicitly verified by pagination state
+    throw new Error('NOT IMPLEMENTED: Step needs to verify asset cards display items ${start} through ${end} based on pagination. Get visible asset names and verify they match expected range from Asset Library API response or database');
 });
 
 Then('pagination controls should not be visible', async function (this: CustomWorld) {
