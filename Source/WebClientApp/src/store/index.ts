@@ -12,6 +12,12 @@ import { adventuresApi } from '../services/adventuresApi';
 import { assetsApi } from '../services/assetsApi';
 import { gameSessionsApi } from '../services/gameSessionsApi';
 import { mediaApi } from '../services/mediaApi';
+import { sceneApi } from '../services/sceneApi';
+import { persistMiddleware, hydrateFromStorage } from '../services/offlineSync';
+
+const preloadedState = {
+  [sceneApi.reducerPath]: hydrateFromStorage()
+};
 
 export const store = configureStore({
   reducer: {
@@ -26,14 +32,15 @@ export const store = configureStore({
     [assetsApi.reducerPath]: assetsApi.reducer,
     [gameSessionsApi.reducerPath]: gameSessionsApi.reducer,
     [mediaApi.reducerPath]: mediaApi.reducer,
+    [sceneApi.reducerPath]: sceneApi.reducer,
   },
+  preloadedState,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [
           'persist/PERSIST',
           'persist/REHYDRATE',
-          // Ignore RTK Query actions
           'authApi/executeMutation/pending',
           'authApi/executeMutation/fulfilled',
           'authApi/executeMutation/rejected',
@@ -44,7 +51,9 @@ export const store = configureStore({
     .concat(adventuresApi.middleware)
     .concat(assetsApi.middleware)
     .concat(gameSessionsApi.middleware)
-    .concat(mediaApi.middleware),
+    .concat(mediaApi.middleware)
+    .concat(sceneApi.middleware)
+    .concat(persistMiddleware),
   devTools: process.env.NODE_ENV !== 'production',
 });
 
