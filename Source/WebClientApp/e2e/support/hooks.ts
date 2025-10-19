@@ -210,6 +210,15 @@ After(async function (this: CustomWorld, testCase) {
                 EmailConfirmed: true  // Reset to confirmed (default for pool users)
             });
         }
+
+        // Cleanup test users created during scenario (via createTestUser helper)
+        if (this.createdTestUsers && this.createdTestUsers.length > 0) {
+            debugLog(`Cleaning up ${this.createdTestUsers.length} test users created during scenario`);
+            for (const userId of this.createdTestUsers) {
+                await this.db.deleteUser(userId);
+            }
+            this.createdTestUsers = [];
+        }
     } catch (cleanupError) {
         console.error('Data cleanup error:', cleanupError);
     }

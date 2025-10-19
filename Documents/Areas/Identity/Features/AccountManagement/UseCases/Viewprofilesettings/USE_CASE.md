@@ -2,7 +2,7 @@
 
 **Original Request**: Display user profile information in settings interface
 
-**View Profile Settings** is a UI presentation operation that displays the current user's profile information including username, email, phone number, avatar, and account metadata. This use case operates within the Identity area and enables users to view their profile information.
+**View Profile Settings** is a UI presentation operation that displays the current user's profile information including name, displayName, email, phone number, avatar, and account metadata. This use case operates within the Identity area and enables users to view their profile information.
 
 ---
 
@@ -38,7 +38,8 @@
 - **Key UI Elements**:
   - Avatar: Profile picture (120x120) with fallback initials, photo upload button (edit mode only)
   - TextField: Email address (readonly, cannot be changed)
-  - TextField: Username (readonly in view mode, editable in edit mode)
+  - TextField: Name (readonly in view mode, editable in edit mode)
+  - TextField: DisplayName (readonly in view mode, editable in edit mode)
   - TextField: Phone number (optional, readonly in view mode, editable in edit mode)
   - Button: "Edit Profile" (view mode) / "Save Changes" + "Cancel" (edit mode)
   - Grid: Account information (created date, last login, email verified status, 2FA status)
@@ -55,7 +56,7 @@
   2. User views profile data, account information
   3. User clicks "Edit Profile" to enable editing
   4. Fields become editable (except email)
-  5. User can modify username, phone, avatar
+  5. User can modify name, displayName, phone, avatar
   6. User clicks "Save Changes" or "Cancel"
   7. On save, data is validated and submitted
   8. On success, edit mode exits and updated data displays
@@ -132,7 +133,8 @@
   ```typescript
   interface UserProfile {
     email: string
-    userName: string
+    name: string
+    displayName: string
     phoneNumber?: string
     profilePictureUrl?: string
     emailConfirmed: boolean

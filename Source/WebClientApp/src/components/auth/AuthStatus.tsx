@@ -109,15 +109,15 @@ export const AuthStatus: React.FC<AuthStatusProps> = ({
       >
         <Avatar
           {...(user.profilePictureUrl ? { src: user.profilePictureUrl } : {})}
-          alt={user.userName}
+          alt={user.email}
           sx={{ width: 32, height: 32 }}
         >
-          {user.userName.charAt(0).toUpperCase()}
+          {user.displayName.charAt(0).toUpperCase()}
         </Avatar>
 
         <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
           <Typography variant="body2" fontWeight="medium">
-            {user.userName}
+            {user.displayName}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Typography variant="caption" color="text.secondary">
@@ -178,7 +178,7 @@ export const AuthStatus: React.FC<AuthStatusProps> = ({
           {/* User Info Header */}
           <Box sx={{ px: 2, py: 1 }}>
             <Typography variant="subtitle2" fontWeight="medium">
-              {user.userName}
+              {user.displayName}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               {user.email}

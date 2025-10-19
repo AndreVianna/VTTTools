@@ -175,7 +175,7 @@ Feature: Request Password Reset
     Given I successfully request password reset
     When the reset email is generated
     Then the email subject should be "VTT Tools Password Reset"
-    And my email include greeting with username or "VTT Tools User"
+    And my email include greeting with display name or "VTT Tools User"
     And my email explain someone requested password reset
     And my email include the reset link button
     And my email mention 24-hour expiration

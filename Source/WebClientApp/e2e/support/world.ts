@@ -50,6 +50,7 @@ export class CustomWorld extends World {
     currentAssetInstanceId?: string;  // Added: For asset placement tests
     createdAssets: any[] = [];
     createdSessions: any[] = [];  // Added: Track sessions for cleanup
+    createdTestUsers: string[] = [];  // Added: Track test users created via DB for cleanup
     uploadedResourceIds: string[] = [];
     lastApiResponse!: APIResponse;
 

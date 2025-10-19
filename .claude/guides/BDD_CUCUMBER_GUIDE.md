@@ -133,13 +133,13 @@ Scenario: Successful login with valid credentials
 ```gherkin
 Scenario Outline: Login with different users
   Given I am on login page
-  When I login as "<username>" with password "<password>"
+  When I login as "<email>" with password "<password>"
   Then I should see "<result>"
   
   Examples:
-    | username | password | result        |
-    | admin    | pass123  | Welcome Admin |
-    | user     | pass456  | Welcome User  |
+    | email             | password | result        |
+    | admin@host.com    | pass123  | Welcome Admin |
+    | user@test.net     | pass456  | Welcome User  |
 ```
 
 ### Step Keywords
@@ -271,7 +271,7 @@ Scenario: Admin login
 ```gherkin
 Given I open browser
 When I navigate to "/login"
-And I find element with id "username"
+And I find element with id "email"
 And I type "john@email.com"
 And I find element with id "password"
 And I type "secret123"
@@ -295,11 +295,11 @@ Then I should see the dashboard
 • **Group related steps** - Organize by feature/domain
 
 #### Example
-```java
+```csharp
 @When("I log in as {string}")
-public void iLogInAs(String username) {
+public void iLogInAs(String email) {
     // Implementation details hidden here
-    loginPage.loginAs(username);
+    loginPage.loginAs(email);
 }
 ```
 
@@ -406,9 +406,9 @@ Feature: User Authentication
 
 Background:
   Given the system has the following users:
-    | username | password | role  |
-    | admin    | pass123  | admin |
-    | user     | pass456  | user  |
+    | email             | password | role  |
+    | admin@host.com    | pass123  | admin |
+    | user@test.net     | pass456  | user  |
 
 Scenario: Successful login
   When I log in as "admin" with password "pass123"
@@ -1009,6 +1009,631 @@ Use this checklist to ensure complete scenario coverage:
 - Various category filters ✓
 
 **Result**: Comprehensive coverage achieved!
+
+---
+
+## BDD Implementation Lessons Learned - HandleLogin Case Study
+
+This section documents critical lessons learned from refactoring the HandleLogin feature BDD tests, particularly the shift from API-based user creation to database fixtures.
+
+### Context
+
+**Initial Problem**: Tests were using `/api/auth/register` endpoint to create test users, but this endpoint has business logic (validation, email confirmation, etc.) that could interfere with test isolation.
+
+**Solution**: Refactor to use direct database insertion via DatabaseHelper for precise control over test user state.
+
+### Lesson 1: Database Fixtures vs API Endpoints
+
+**Problem**: Using API endpoints for test setup introduces:
+- Business logic side effects (email validation, confirmation tokens, etc.)
+- Unpredictable state (what if registration rules change?)
+- Slower execution (HTTP overhead)
+- Coupling to API implementation details
+
+**Solution**: Direct database insertion for test fixtures.
+
+**Implementation**:
+```typescript
+// helpers/test-user.helper.ts
+async function createTestUser(
+    world: CustomWorld,
+    email: string,
+    options?: {
+        name?: string;
+        displayName?: string;
+        emailConfirmed?: boolean;
+        lockoutEnd?: Date;
+        accessFailedCount?: number;
+        twoFactorEnabled?: boolean;
+    }
+): Promise<string> {
+    const userToInsert = {
+        email,
+        userName: email,  // Domain requirement: userName = email
+        emailConfirmed: options?.emailConfirmed ?? true,
+        passwordHash: process.env.BDD_TEST_PASSWORD_HASH!
+    };
+
+    // Only add optional properties if they have values
+    if (options?.name) userToInsert.name = options.name;
+    if (options?.displayName) userToInsert.displayName = options.displayName;
+
+    const userId = await world.db.insertUser(userToInsert);
+
+    // Apply additional settings via updateRecord
+    if (options?.lockoutEnd || options?.accessFailedCount !== undefined || options?.twoFactorEnabled !== undefined) {
+        const updates: Record<string, any> = {};
+        if (options.lockoutEnd) {
+            updates.LockoutEnd = options.lockoutEnd.toISOString();
+            updates.LockoutEnabled = true;
+        }
+        if (options.accessFailedCount !== undefined) {
+            updates.AccessFailedCount = options.accessFailedCount;
+        }
+        if (options.twoFactorEnabled !== undefined) {
+            updates.TwoFactorEnabled = options.twoFactorEnabled;
+        }
+        await world.db.updateRecord('Users', userId, updates);
+    }
+
+    // Track for cleanup
+    world.createdTestUsers.push(userId);
+    return userId;
+}
+```
+
+**Benefits**:
+- ✅ Precise control over user state (confirmed/unconfirmed, locked/unlocked, 2FA enabled/disabled)
+- ✅ Faster test execution (no HTTP overhead)
+- ✅ Test isolation (no side effects from business logic)
+- ✅ Decoupled from API implementation changes
+
+**When to Use Database Fixtures**:
+- ✅ Test setup and preconditions
+- ✅ Creating users with specific states (locked, unconfirmed, etc.)
+- ✅ Setting up complex data relationships
+
+**When to Use API Endpoints**:
+- ✅ Testing the API itself (authentication flow, registration validation)
+- ✅ Integration tests verifying end-to-end behavior
+
+### Lesson 2: Domain-Specific Requirements (userName = email)
+
+**Critical Domain Rule**: In VTTTools, `userName` must ALWAYS equal `email` per `AuthService.cs:81`.
+
+**Implementation**:
+```typescript
+const userToInsert = {
+    email,
+    userName: email,  // CRITICAL: userName is ALWAYS email per AuthService.cs:81
+    // ...
+};
+```
+
+**Why This Matters**:
+- Backend expects userName == email for authentication
+- Tests will fail with 400 Bad Request if userName differs
+- This is a domain invariant that must be respected in all test fixtures
+
+**Lesson**: Always document domain-specific requirements in helper functions. Add comments explaining WHY constraints exist, not just WHAT they are.
+
+### Lesson 3: TypeScript Strict Mode Compliance (exactOptionalPropertyTypes)
+
+**Problem**: With `exactOptionalPropertyTypes: true`, you cannot pass `undefined` to optional properties.
+
+**Compilation Error**:
+```typescript
+// ❌ WRONG - Passes undefined
+const userId = await world.db.insertUser({
+    email,
+    userName: email,
+    name: options?.name,  // Can be undefined - ERROR!
+    displayName: options?.displayName  // Can be undefined - ERROR!
+});
+
+// Error: Type 'string | undefined' is not assignable to type 'string'
+```
+
+**Solution**: Conditional property assignment - only add properties when they have values.
+
+```typescript
+// ✅ CORRECT - Only adds properties with values
+const userToInsert: {
+    email: string;
+    userName: string;
+    emailConfirmed: boolean;
+    passwordHash: string;
+    name?: string;
+    displayName?: string;
+} = {
+    email,
+    userName: email,
+    emailConfirmed: options?.emailConfirmed ?? true,
+    passwordHash: process.env.BDD_TEST_PASSWORD_HASH!
+};
+
+// Only add optional properties if they have values
+if (options?.name) {
+    userToInsert.name = options.name;
+}
+if (options?.displayName) {
+    userToInsert.displayName = options.displayName;
+}
+
+const userId = await world.db.insertUser(userToInsert);
+```
+
+**Pattern**: Build object with required properties, then conditionally add optional properties only when they exist.
+
+**When to Use This Pattern**:
+- ✅ TypeScript projects with `exactOptionalPropertyTypes: true`
+- ✅ Database insertion functions with optional fields
+- ✅ API request builders with optional parameters
+
+### Lesson 4: User Cleanup Strategies
+
+**Critical Distinction**: `deleteUser()` vs `deleteUserDataOnly()`
+
+**Problem**: After hook was calling `deleteUser()` which deleted the user account, not just their data. This caused tests to fail after N scenarios when user pool was exhausted.
+
+**Wrong Approach**:
+```typescript
+// ❌ WRONG - Deletes user account from database
+async deleteUser(userId: string): Promise<void> {
+    const query = `
+        DELETE FROM Assets WHERE OwnerId = ?;
+        DELETE FROM Scenes WHERE OwnerId = ?;
+        ...
+        DELETE FROM Users WHERE Id = ?;  // ← USER DELETED!
+    `;
+    await this.executeQuery(query, Array(14).fill(userId));
+}
+
+// In After hook - WRONG
+After(async function (this: CustomWorld, testCase) {
+    await this.db.deleteUser(this.currentUser.id); // Deletes pool user!
+});
+```
+
+**Correct Approach**:
+```typescript
+// ✅ CORRECT - Keeps user, deletes only their data
+async deleteUserDataOnly(userId: string): Promise<void> {
+    const query = `
+        DELETE FROM Assets WHERE OwnerId = ?;
+        DELETE FROM Scenes WHERE OwnerId = ?;
+        DELETE FROM GameSessions WHERE OwnerId = ?;
+        ...
+        -- NO: DELETE FROM Users WHERE Id = ?;
+    `;
+    await this.executeQuery(query, Array(13).fill(userId));
+}
+
+// In After hook - CORRECT
+After(async function (this: CustomWorld, testCase) {
+    if (this.currentUser && this.db) {
+        // Delete user's data but preserve the user account for reuse
+        await this.db.deleteUserDataOnly(this.currentUser.id);
+
+        // Reset user state to defaults (for reuse in next scenario)
+        await this.db.updateRecord('Users', this.currentUser.id, {
+            TwoFactorEnabled: false,
+            LockoutEnd: null,
+            LockoutEnabled: true,
+            AccessFailedCount: 0,
+            EmailConfirmed: true
+        });
+    }
+
+    // Cleanup test users created during scenario (via createTestUser helper)
+    if (this.createdTestUsers && this.createdTestUsers.length > 0) {
+        for (const userId of this.createdTestUsers) {
+            await this.db.deleteUser(userId);  // Delete these completely
+        }
+        this.createdTestUsers = [];
+    }
+});
+```
+
+**Two Types of Test Users**:
+1. **Pool Users** (created in BeforeAll):
+   - Created once, reused across scenarios
+   - Clean data only, preserve account
+   - Reset state after each test
+
+2. **Scenario-Specific Users** (created via createTestUser):
+   - Created during test execution
+   - Delete completely after test
+   - Tracked in `world.createdTestUsers`
+
+**Verification**:
+```bash
+# All scenarios should pass, regardless of execution order
+npm run test:bdd -- HandleLogin.feature
+```
+
+### Lesson 5: Password Hashing Approach
+
+**Security**: Never hardcode passwords or generate hashes in test code.
+
+**Solution**: Pre-generate password hash and store in `.env` file.
+
+**Setup**:
+```bash
+# .env file
+BDD_TEST_PASSWORD=YourSecureTestPassword123!
+BDD_TEST_PASSWORD_HASH=<pre-generated-hash-matching-password>
+```
+
+**Usage**:
+```typescript
+const userToInsert = {
+    email,
+    userName: email,
+    passwordHash: process.env.BDD_TEST_PASSWORD_HASH!
+};
+
+// In test steps
+await this.page.fill('input[type="password"]', process.env.BDD_TEST_PASSWORD!);
+```
+
+**Why Pre-Generate**:
+- ✅ Consistent across all test users
+- ✅ Matches backend hashing algorithm (ASP.NET Identity)
+- ✅ Faster test execution (no hash generation)
+- ✅ Secure (not exposed in code)
+
+### Lesson 6: Flexible Test Helpers with Optional Parameters
+
+**Pattern**: Use optional parameters for flexible test setup without assumptions.
+
+**Anti-Pattern**:
+```typescript
+// ❌ BAD - Assumes values
+async function createTestUser(world: CustomWorld, email: string): Promise<string> {
+    return await world.db.insertUser({
+        email,
+        userName: email,
+        emailConfirmed: true,  // ASSUMPTION!
+        displayName: 'Test User',  // ASSUMPTION!
+        passwordHash: process.env.BDD_TEST_PASSWORD_HASH!
+    });
+}
+```
+
+**Why This Is Bad**: You need unconfirmed email for some tests, or no displayName for others. Every variation requires a new function.
+
+**Best Practice**:
+```typescript
+// ✅ GOOD - Flexible with sensible defaults
+async function createTestUser(
+    world: CustomWorld,
+    email: string,
+    options?: {
+        name?: string;
+        displayName?: string;
+        emailConfirmed?: boolean;  // Default: true
+        lockoutEnd?: Date;
+        accessFailedCount?: number;
+        twoFactorEnabled?: boolean;
+    }
+): Promise<string> {
+    const userToInsert = {
+        email,
+        userName: email,
+        emailConfirmed: options?.emailConfirmed ?? true,  // Sensible default
+        passwordHash: process.env.BDD_TEST_PASSWORD_HASH!
+    };
+
+    // Only add if specified
+    if (options?.name) userToInsert.name = options.name;
+    if (options?.displayName) userToInsert.displayName = options.displayName;
+
+    // ... rest of implementation
+}
+```
+
+**Usage Flexibility**:
+```typescript
+// Default user (confirmed email)
+const userId1 = await createTestUser(this, 'user1@test.com');
+
+// Unconfirmed email
+const userId2 = await createTestUser(this, 'user2@test.com', {
+    emailConfirmed: false
+});
+
+// Locked account
+const userId3 = await createTestUser(this, 'user3@test.com', {
+    lockoutEnd: new Date(Date.now() + 5 * 60 * 1000),
+    accessFailedCount: 5
+});
+```
+
+### Lesson 7: Empty Implementations Are FORBIDDEN (CRITICAL)
+
+**⚠️ ANTI-PATTERN #9 UPDATE**: Not only empty functions, but also functions with ONLY `this.attach()` or `console.log()` are **STRICTLY FORBIDDEN**.
+
+**Why This Matters**: These create **FALSE POSITIVES** - tests appear to pass but don't actually set up required state or perform assertions.
+
+**Examples of FORBIDDEN Patterns**:
+
+```typescript
+// ❌ FORBIDDEN #1 - Empty function
+Given('an account is locked', async function() {
+    // Empty - no implementation
+});
+
+// ❌ FORBIDDEN #2 - Only this.attach()
+Given('an account is locked', async function() {
+    this.attach('Account locked scenario', 'text/plain');
+});
+
+// ❌ FORBIDDEN #3 - Only console.log()
+Given('an account is locked', async function() {
+    console.log('TODO: Lock account');
+});
+
+// ❌ FORBIDDEN #4 - Only comments
+Given('an account is locked', async function() {
+    // Declarative step for BDD readability
+    // The actual locking happens in the When step
+});
+```
+
+**Why These Are Dangerous**:
+- Given step "passes" but doesn't actually lock the account
+- Subsequent steps fail with confusing timeout errors
+- Test results are misleading - scenario appears valid but isn't
+- Hides missing implementation behind passing tests
+
+**MANDATORY Solution**:
+```typescript
+// ✅ REQUIRED - Explicit NOT IMPLEMENTED error
+Given('an account is locked', async function() {
+    throw new Error('NOT IMPLEMENTED: Step needs to lock account in database by setting LockoutEnd and LockoutEnabled=true');
+});
+```
+
+**Benefits of NOT IMPLEMENTED Pattern**:
+- ✅ Immediate, clear failure with descriptive message
+- ✅ No confusion about what needs implementation
+- ✅ Test results accurately reflect implementation status
+- ✅ Team knows exactly what work remains
+- ✅ Can track progress by counting NOT IMPLEMENTED steps
+
+**Detection**: Search for stub patterns:
+```bash
+# Find potential stubs
+grep -rn "this.attach(" e2e/step-definitions/
+grep -rn "console.log(" e2e/step-definitions/
+grep -rn "async function.*{$" e2e/step-definitions/
+```
+
+**Rule**: ALL step definitions MUST either:
+1. **Implement the required functionality**, OR
+2. **Throw an explicit "NOT IMPLEMENTED" error with description**
+
+No middle ground. No "I'll implement it later" comments. Make failures explicit.
+
+### Lesson 8: BDD Step Organization
+
+**Three-Tier Structure**:
+
+```
+e2e/step-definitions/
+├── shared/              # Tier 1: Universal steps (20+ uses)
+│   ├── authentication.steps.ts
+│   ├── form-interaction.steps.ts
+│   ├── navigation.steps.ts
+│   └── visibility.steps.ts
+├── domain/              # Tier 2: Domain-specific (10-19 uses)
+│   ├── accordion.steps.ts
+│   ├── checkbox.steps.ts
+│   └── keyboard-shortcuts.steps.ts
+└── feature-specific/    # Tier 3: Feature-specific (< 10 uses)
+    └── authentication/
+        └── login.steps.ts
+```
+
+**Where to Put HandleLogin Steps**:
+- Helper function: `helpers/test-user.helper.ts` (reusable)
+- Given/When/Then: `feature-specific/authentication/login.steps.ts` (specific to login)
+
+**When to Extract**:
+- 1st use: Write inline
+- 2nd use: Add TODO comment
+- 3rd use: Extract to helper
+
+### Lesson 9: API Mocking for Edge Cases
+
+**Pattern**: Use Playwright's `page.route()` for edge cases that can't be reproduced via database setup.
+
+**Example - Malformed API Response**:
+```typescript
+Given('some action card data is missing or malformed', async function() {
+    await this.page.route('**/api/auth/user', route => {
+        route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                id: this.currentUser.id,
+                email: this.currentUser.email,
+                // Missing displayName and name fields to simulate malformed data
+            })
+        });
+    });
+});
+```
+
+**When to Mock**:
+- ✅ Network failures (timeout, connection refused)
+- ✅ Malformed responses from backend
+- ✅ Edge cases that can't be set up via database
+- ✅ External service failures
+
+**When NOT to Mock**:
+- ❌ Normal success paths (use real API)
+- ❌ Standard error responses (use real API)
+- ❌ Authentication (use real cookies/sessions)
+
+### Lesson 10: Test Data Isolation
+
+**Key Principle**: Each test must start with completely clean state.
+
+**Implementation**:
+```typescript
+// Before hook - Clean state
+Before(async function (this: CustomWorld, testCase) {
+    const poolUser = acquireUser(testCase.pickle.name);
+    this.currentUser = {
+        id: poolUser.id,
+        email: poolUser.email,
+        name: poolUser.username
+    };
+    await this.init();
+});
+
+// After hook - Cleanup
+After(async function (this: CustomWorld, testCase) {
+    if (this.currentUser && this.db) {
+        // Delete user's data only
+        await this.db.deleteUserDataOnly(this.currentUser.id);
+
+        // Reset user state
+        await this.db.updateRecord('Users', this.currentUser.id, {
+            TwoFactorEnabled: false,
+            LockoutEnd: null,
+            AccessFailedCount: 0,
+            EmailConfirmed: true
+        });
+    }
+
+    // Cleanup created test users
+    if (this.createdTestUsers && this.createdTestUsers.length > 0) {
+        for (const userId of this.createdTestUsers) {
+            await this.db.deleteUser(userId);
+        }
+        this.createdTestUsers = [];
+    }
+
+    // Release pool user
+    if (this.currentUser) {
+        releaseUser(this.currentUser.id);
+    }
+});
+```
+
+**Verification Checklist**:
+- [ ] Each test starts with clean database state
+- [ ] Pool users are preserved across tests
+- [ ] Scenario-specific users are deleted
+- [ ] User state is reset to defaults
+- [ ] Tests pass when run individually
+- [ ] Tests pass when run as full suite
+- [ ] Tests pass in any order (randomize execution)
+
+### Lesson 11: Documentation Practices
+
+**What to Document**:
+- ✅ Domain-specific requirements (userName = email)
+- ✅ Why constraints exist (not just what they are)
+- ✅ TypeScript workarounds (exactOptionalPropertyTypes)
+- ✅ Security considerations (password hashing)
+- ✅ Cleanup strategies (deleteUserDataOnly vs deleteUser)
+
+**Where to Document**:
+- **Inline comments**: For critical domain rules and security considerations
+- **Helper function JSDoc**: For usage patterns and parameters
+- **Project guides**: For architectural patterns and best practices
+- **Feature files**: For business rules and acceptance criteria
+
+**Example - Well-Documented Helper**:
+```typescript
+/**
+ * Create test user via direct database insertion
+ *
+ * CRITICAL: userName is ALWAYS email per AuthService.cs:81 requirement
+ * Password is always BDD_TEST_PASSWORD_HASH from .env
+ *
+ * @param world - Test world context
+ * @param email - User email (also used as userName)
+ * @param options - Optional user configuration
+ * @returns User ID for cleanup
+ */
+async function createTestUser(
+    world: CustomWorld,
+    email: string,
+    options?: {
+        name?: string;
+        displayName?: string;
+        emailConfirmed?: boolean;
+        lockoutEnd?: Date;
+        accessFailedCount?: number;
+        twoFactorEnabled?: boolean;
+    }
+): Promise<string> {
+    // Implementation...
+}
+```
+
+### Lesson 12: Stub Detection Limitations
+
+**Problem**: Automated stub detection (grep, regex) has high false positive rate.
+
+**Why**:
+- Parameter storage patterns look like stubs
+- Test context setup looks like stubs
+- Documentation-only pass-through assertions look like stubs
+
+**Solution**: Manual review with understanding of BDD patterns.
+
+**Valid Patterns That Look Like Stubs**:
+```typescript
+// ✅ VALID - Parameter storage
+When('I enter email {string}', async function(email) {
+    this.lastEnteredEmail = email;
+});
+
+// ✅ VALID - Test context setup
+Given('I am not authenticated', async function() {
+    await this.context.clearCookies();
+    // More cleanup...
+});
+
+// ✅ VALID - Documentation assertion
+Then('I should be able to retry', async function() {
+    // No action needed - verifies form state allows retry
+    // Implicit: Previous steps didn't disable form
+});
+```
+
+**True Stubs to Fix**:
+```typescript
+// ❌ STUB - No implementation
+Given('an account is locked', async function() {
+    throw new Error('NOT IMPLEMENTED: Lock account via database update');
+});
+```
+
+**Lesson**: Use tools to identify candidates, but require human judgment for confirmation.
+
+---
+
+## Summary: Key Takeaways
+
+1. **Database Fixtures > API Endpoints** for test setup (isolation, speed, control)
+2. **TypeScript Strict Mode** requires conditional property assignment pattern
+3. **Empty Implementations** including `this.attach()` only methods are **STRICTLY FORBIDDEN**
+4. **User Cleanup Strategy** matters: deleteUserDataOnly() for pool users, deleteUser() for scenario users
+5. **Password Hashing** must be pre-generated and stored in .env
+6. **Optional Parameters** make helpers flexible without assumptions
+7. **Domain Rules** must be documented and enforced (userName = email)
+8. **API Mocking** is for edge cases only, use real APIs for normal paths
+9. **Test Isolation** requires careful cleanup and state reset
+10. **Documentation** should explain WHY, not just WHAT
+
+**Next Steps**: Apply these patterns to other authentication scenarios (logout, registration, password reset).
 
 ---
 

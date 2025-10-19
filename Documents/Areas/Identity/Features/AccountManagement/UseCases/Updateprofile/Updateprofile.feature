@@ -17,24 +17,24 @@ Feature: Update Profile
 
   @happy-path
   Scenario: Successfully update all editable profile fields
-    Given my current username is "olduser"
+    Given my current displayName is "olduser"
     And my current phone is "+1-555-0100"
-    When I update my username to "newuser"
+    When I update my displayName to "newuser"
     And I update my phone to "+1-555-0200"
     And I click "Save Changes"
     Then my profile is updated successfully
     And I should see confirmation message "Profile updated successfully"
-    And I should see my new username "newuser" displayed
+    And I should see my new displayName "newuser" displayed
     And I should see my new phone "+1-555-0200" displayed
     And I should exit edit mode automatically
 
   @happy-path
-  Scenario: Update only username
-    Given my current username is "johnsmith"
-    When I update my username to "john_smith_2025"
+  Scenario: Update only displayName
+    Given my current displayName is "johnsmith"
+    When I update my displayName to "john_smith_2025"
     And I leave other fields unchanged
     And I click "Save Changes"
-    Then only my username is updated
+    Then only my displayName is updated
     And my phone should remain unchanged
     And I should see confirmation message
 
@@ -45,100 +45,8 @@ Feature: Update Profile
     And I leave other fields unchanged
     And I click "Save Changes"
     Then only my phone is updated
-    And my username should remain unchanged
+    And my displayName should remain unchanged
     And I should see confirmation message
-
-  # ========================================
-  # Username Validation Rules
-  # ========================================
-
-  Rule: Username must be between 3 and 50 characters
-
-    @validation @username
-    Scenario: Reject username that is too short
-      When I update my username to "ab"
-      And I click "Save Changes"
-      Then the update should fail
-      And I should see error "Username must be at least 3 characters"
-      And the username field should be highlighted
-      And I should remain in edit mode
-
-    @validation @username
-    Scenario: Accept username at minimum length
-      When I update my username to "abc"
-      And I click "Save Changes"
-      Then the update should succeed
-      And my username should be changed to "abc"
-
-    @validation @username
-    Scenario: Reject username exceeding maximum length
-      When I update my username to a 51-character string
-      And I click "Save Changes"
-      Then the update should fail
-      And I should see error "Username cannot exceed 50 characters"
-      And I should remain in edit mode
-
-    @validation @username
-    Scenario: Accept username at maximum length
-      When I update my username to a 50-character string
-      And I click "Save Changes"
-      Then the update should succeed
-      And my username is updated
-
-  Rule: Username can only contain alphanumeric characters, underscores, and hyphens
-
-    @validation @username
-    Scenario: Accept valid username with mixed characters
-      When I update my username to "user_name-123"
-      And I click "Save Changes"
-      Then the update should succeed
-      And my username should be changed to "user_name-123"
-
-    @data-driven @validation @username
-    Scenario Outline: Validate username character restrictions
-      When I update my username to "<username>"
-      And I click "Save Changes"
-      Then the result should be "<result>"
-      And I should see message "<message>"
-
-      Examples:
-        | username        | result  | message                                           |
-        | validuser123    | success | Profile updated successfully                      |
-        | user_name       | success | Profile updated successfully                      |
-        | user-name       | success | Profile updated successfully                      |
-        | user.name       | failure | Username can only contain letters, numbers, _, -  |
-        | user name       | failure | Username can only contain letters, numbers, _, -  |
-        | user@name       | failure | Username can only contain letters, numbers, _, -  |
-        | user#123        | failure | Username can only contain letters, numbers, _, -  |
-
-  Rule: Username must be unique across all users
-
-    @validation @username
-    Scenario: Reject duplicate username
-      Given another user exists with username "existinguser"
-      When I update my username to "existinguser"
-      And I click "Save Changes"
-      Then the update should fail
-      And I should see error "Username already taken"
-      And my original username should remain unchanged
-      And I should remain in edit mode
-
-    @validation @username
-    Scenario: Allow keeping same username unchanged
-      Given my current username is "myusername"
-      When I update my username to "myusername"
-      And I click "Save Changes"
-      Then the update should succeed
-      And I should not see uniqueness error
-      And I should see confirmation message
-
-    @validation @username
-    Scenario: Case-insensitive username uniqueness check
-      Given another user exists with username "ExistingUser"
-      When I update my username to "existinguser"
-      And I click "Save Changes"
-      Then the update should fail
-      And I should see error "Username already taken"
 
   # ========================================
   # Phone Number Validation
@@ -268,7 +176,7 @@ Feature: Update Profile
 
   @happy-path @ux
   Scenario: Cancel profile edit discards changes
-    Given I have modified my username to "tempname"
+    Given I have modified my displayName to "tempname"
     And I have modified my phone
     When I click "Cancel"
     Then my changes should be discarded
@@ -332,12 +240,12 @@ Feature: Update Profile
   # ========================================
 
   @edge-case
-  Scenario: Update profile with Unicode characters in username
-    When I update my username to "用户名_user123"
+  Scenario: Update profile with Unicode characters in displayName
+    When I update my displayName to "用户名_user123"
     And I click "Save Changes"
     Then the update should succeed
     And Unicode characters should be preserved
-    And the username should display correctly
+    And the displayName should display correctly
 
   @edge-case
   Scenario: Concurrent update conflict handling
@@ -349,11 +257,11 @@ Feature: Update Profile
 
   @edge-case
   Scenario: Update with only whitespace changes
-    Given my username is "myusername"
-    When I update my username to "myusername   " with trailing spaces
+    Given my displayName is "My Display Name"
+    When I update my displayName to "My Display Name   " with trailing spaces
     And I click "Save Changes"
     Then I should see trim whitespace
-    And my username should remain "myusername"
+    And my displayName should remain "My Display Name"
     And the update should succeed without actual change
 
   # ========================================
@@ -376,7 +284,7 @@ Feature: Update Profile
 
   @integration @cross-area
   Scenario: Profile update publishes domain event
-    When I successfully update my username and avatar
+    When I successfully update my displayName and avatar
     Then a UserProfileUpdated action is logged
     And the event should include changed fields
     And other areas should receive the update notification
@@ -384,8 +292,8 @@ Feature: Update Profile
 
   @integration
   Scenario: Updated profile reflects in navigation
-    Given I am viewing navigation with my old username
-    When I update my username to "newname"
+    Given I am viewing navigation with my old displayName
+    When I update my displayName to "newname"
     And the update completes successfully
     Then the navigation should show "newname"
     And my avatar should update in header

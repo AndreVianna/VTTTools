@@ -72,6 +72,8 @@ export class MockApiService {
       id: user.id,
       email: user.email,
       userName: user.userName,
+      name: user.name,
+      displayName: user.displayName,
       emailConfirmed: user.emailConfirmed,
       phoneNumberConfirmed: user.phoneNumberConfirmed,
       twoFactorEnabled: user.twoFactorEnabled,

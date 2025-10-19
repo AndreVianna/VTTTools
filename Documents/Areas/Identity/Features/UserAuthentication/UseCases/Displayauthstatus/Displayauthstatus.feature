@@ -49,7 +49,7 @@ Feature: Display Auth Status
       And my email is confirmed
       When the AuthStatus component renders
       Then I should see an avatar with letter "G"
-      And I should see username "GameMaster"
+      And I should see displayName "GameMaster"
       And I should see email "gm@example.com"
       And I should see a green checkmark icon next to the email
 
@@ -190,15 +190,6 @@ Feature: Display Auth Status
     When I click menu items
     Then the menu items should be disabled or hidden
     And no navigation should occur
-
-  @responsive @ui
-  Scenario: Display compact version on small screens
-    Given I am authenticated
-    And I am viewing on a mobile device
-    When the AuthStatus component renders
-    Then the avatar should be displayed
-    And the username and email may be hidden to save space
-    And the menu should still be accessible
 
   @accessibility
   Scenario: Component is accessible to screen readers

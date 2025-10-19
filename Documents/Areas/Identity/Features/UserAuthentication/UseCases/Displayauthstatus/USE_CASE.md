@@ -45,7 +45,8 @@
     - Text: "Loading..."
   - **Authenticated State**:
     - Avatar: User profile picture or initials
-    - Text: Username (body2, fontWeight: medium)
+    - Text: Name (body2)
+    - Text: DisplayName (body2, fontWeight: medium)
     - Text: Email with verified checkmark icon (if emailConfirmed)
     - Chip: "2FA" badge (if twoFactorEnabled, success color)
     - Chip: "Verify Email" badge (if !emailConfirmed, warning color)
@@ -68,7 +69,7 @@
     1. User sees login/register icons (or "Not signed in" text)
     2. Click icons to navigate to login/register pages
   - **Authenticated**:
-    1. User sees avatar, username, email, badges
+    1. User sees avatar, displayName, email, badges
     2. Click avatar/info to open dropdown menu
     3. Select menu option (Profile, Security, or Logout)
     4. Navigate to selected page or execute action
@@ -202,9 +203,9 @@
   - **Then**: "Not signed in" text is displayed
 
 - **AC-04**: Authenticated user info display
-  - **Given**: User is authenticated with userName="GameMaster" and email="gm@test.com"
+  - **Given**: User is authenticated with displayName="GameMaster" and email="gm@test.com"
   - **When**: Component renders
-  - **Then**: Avatar shows "G", username "GameMaster" and email "gm@test.com" are displayed
+  - **Then**: Avatar shows "G", displayName "GameMaster" and email "gm@test.com" are displayed
 
 - **AC-05**: Email verified indicator
   - **Given**: User is authenticated with emailConfirmed=true

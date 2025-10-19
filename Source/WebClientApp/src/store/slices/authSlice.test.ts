@@ -41,6 +41,8 @@ describe('authSlice', () => {
       id: '019639ea-c7de-7a01-8548-41edfccde206',
       userName: 'testuser@vtttools.com',
       email: 'testuser@vtttools.com',
+      name: 'Test User',
+      displayName: 'Test User',
       emailConfirmed: true,
       phoneNumberConfirmed: false,
       twoFactorEnabled: false,

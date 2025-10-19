@@ -14,8 +14,33 @@ import { expect } from '@playwright/test';
 // GIVEN Steps - Setup Preconditions
 // ============================================================================
 
-Given('I am authenticated and logged in', async function (this: CustomWorld) {
+Given('I am authenticated and logged in', { timeout: 60000 }, async function (this: CustomWorld) {
+    // Navigate to login page
+    await this.page.goto('/login');
+    await this.page.waitForLoadState('networkidle');
+
+    // Perform login
+    const password = process.env.BDD_TEST_PASSWORD!;
+    await this.page.fill('input[type="email"], input[name="email"]', this.currentUser.email);
+    await this.page.fill('input[type="password"], input[name="password"]', password);
+    await this.page.click('button[type="submit"], button:has-text("Sign In")');
+
+    // Wait for successful login and redirect
+    await this.page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 15000 });
+    await this.page.waitForLoadState('networkidle');
+
+    // Force page reload to reset React's global auth state
+    await this.page.reload({ waitUntil: 'networkidle' });
+
+    // Navigate to dashboard to verify authentication
     await this.page.goto('/dashboard');
+    await this.page.waitForLoadState('networkidle');
+
+    // Wait for dashboard to be ready
+    await this.page.waitForFunction(() => {
+        return document.querySelector('#dashboard-greeting') !== null;
+    }, { timeout: 30000 });
+
     await expect(this.page).toHaveURL(/\/dashboard/);
 });
 

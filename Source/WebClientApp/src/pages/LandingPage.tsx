@@ -134,7 +134,7 @@ export const LandingPage: React.FC = () => {
               color: theme.palette.text.primary,
             }}
           >
-            Welcome back, {user.displayName}!
+            Welcome back, {user!.displayName}!
           </Typography>
 
           <Typography

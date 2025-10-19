@@ -20,7 +20,8 @@ Feature: View Profile Settings
     Given I have a complete profile with all fields populated
     When I navigate to profile settings page
     Then I should see my email address displayed
-    And I should see my username displayed
+    And I should see my name displayed
+    And I should see my displayName displayed
     And I should see my phone number displayed
     And I should see my profile picture
     And I should see my account created date
@@ -33,7 +34,8 @@ Feature: View Profile Settings
     And I have no profile picture uploaded
     When I navigate to profile settings page
     Then I should see my email address
-    And I should see my username
+    And I should see my name
+    And I should see my displayName
     And I should see a placeholder for phone number
     And I should see default avatar with my initials
 
@@ -52,7 +54,8 @@ Feature: View Profile Settings
   @happy-path @avatar
   Scenario: Display fallback avatar with initials
     Given I have not uploaded a profile picture
-    And my username is "John Doe"
+    And my name is "John Doe"
+    And my displayName is "JD"
     When I view my profile settings
     Then I should see a default avatar
     And the avatar should display initials "JD"
@@ -178,16 +181,16 @@ Feature: View Profile Settings
     And no errors should be displayed
 
   @edge-case
-  Scenario: Display long username without breaking layout
-    Given my username is "VeryLongUsernameWithManyCharacters123"
+  Scenario: Display long name without breaking layout
+    Given my name is "Very Long Name With Many Characters 123"
     When I view my profile settings
-    Then the username should be displayed completely
+    Then the name should be displayed completely
     And the layout should not be broken
     And the text should wrap or truncate gracefully
 
   @edge-case
   Scenario: Handle international characters in profile data
-    Given my username contains Unicode characters "用户名123"
+    Given my name contains Unicode characters "用户名123"
     And my phone has international format "+86 123 4567 8900"
     When I view my profile settings
     Then all characters should display correctly

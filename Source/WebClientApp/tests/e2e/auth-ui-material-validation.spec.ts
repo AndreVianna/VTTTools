@@ -85,7 +85,7 @@ test.describe('Authentication UI - Material UI Theme Validation', () => {
 
     // Verify form fields are present
     await expect(page.locator('input[name="email"]')).toBeVisible();
-    await expect(page.locator('input[name="userName"]')).toBeVisible();
+    await expect(page.locator('input[name="name"]')).toBeVisible();
     await expect(page.locator('input[name="password"]')).toBeVisible();
     await expect(page.locator('input[name="confirmPassword"]')).toBeVisible();
 

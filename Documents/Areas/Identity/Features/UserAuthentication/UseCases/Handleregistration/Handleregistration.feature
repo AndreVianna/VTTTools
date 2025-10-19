@@ -4,7 +4,7 @@
 @use-case @authentication @account-creation
 Feature: Handle Registration
   As a new VTT Tools user
-  I want to create an account with email, username, and password
+  I want to create an account with email, name, and password
   So that I can start using the platform
 
   Background:
@@ -40,37 +40,37 @@ Feature: Handle Registration
       And my account should not be created
       And the registration should be prevented
 
-  Rule: Username must be 3-50 characters with allowed characters only
+  Rule: name must be 3-50 characters with allowed characters only
 
     @validation
-    Scenario: Accept valid username
-      Given I enter username "GameMaster_2024"
+    Scenario: Accept valid name
+      Given I enter name "GameMaster_2024"
       And I provide other valid registration data
       When I submit the registration form
-      Then the username should pass validation
+      Then the name should pass validation
       And my account should be created
 
     @validation @error-handling
-    Scenario: Reject username that is too short
-      Given I enter username "ab"
+    Scenario: Reject name that is too short
+      Given I enter name "ab"
       When I attempt to submit the registration form
-      Then I should see error "Username must be at least 3 characters"
+      Then I should see error "name must be at least 3 characters"
       And my form is not submitted
 
     @validation @error-handling
-    Scenario: Reject username with invalid characters
-      Given I enter username "user@#$%"
+    Scenario: Reject name with invalid characters
+      Given I enter name "user@#$%"
       When I attempt to submit the registration form
-      Then I should see error "Username can only contain letters, numbers, underscores, and hyphens"
+      Then I should see error "name can only contain letters, numbers, underscores, and hyphens"
       And my form is not submitted
 
     @validation @error-handling
-    Scenario: Reject duplicate username
-      Given an account already exists with username "GameMaster"
-      And I enter username "GameMaster"
+    Scenario: Reject duplicate name
+      Given an account already exists with name "GameMaster"
+      And I enter name "GameMaster"
       And I provide other valid registration data
       When I submit the registration form
-      Then I should see error "Username already taken"
+      Then I should see error "name already taken"
       And my account should not be created
       And the registration should be prevented
 
@@ -130,7 +130,7 @@ Feature: Handle Registration
     And I should be redirected to login page
     And I should see notification about email verification
 
-  # NOTE: Password hashing, email normalization, and username uniqueness are backend concerns
+  # NOTE: Password hashing, email normalization, and name uniqueness are backend concerns
   # Tested in backend unit tests (Identity.UnitTests)
 
   @loading-state @ui

@@ -1861,6 +1861,278 @@ const params = Array(14).fill(userId);
 - ❌ Assume table names (check schema)
 - ❌ Create empty placeholder steps
 
+---
+
+## Database Fixture Patterns (BDD Tests)
+
+### Why Database Fixtures Over API Endpoints
+
+**Problem**: Using API endpoints (like `/api/auth/register`) for test setup introduces:
+- Business logic side effects (validation, email confirmation, password strength requirements)
+- Unpredictable state (what if registration rules change?)
+- Slower execution (HTTP overhead + business logic execution)
+- Coupling to API implementation details
+
+**Solution**: Direct database insertion for precise control over test user state.
+
+### Creating Test Users - The createTestUser Pattern
+
+This pattern allows flexible test user creation with optional parameters and sensible defaults.
+
+```typescript
+/**
+ * Create test user via direct database insertion
+ *
+ * CRITICAL: userName is ALWAYS email per AuthService.cs:81 requirement
+ * Password is always BDD_TEST_PASSWORD_HASH from .env
+ *
+ * @param world - Test world context
+ * @param email - User email (also used as userName)
+ * @param options - Optional user configuration
+ * @returns User ID for cleanup
+ */
+async function createTestUser(
+    world: CustomWorld,
+    email: string,
+    options?: {
+        name?: string;
+        displayName?: string;
+        emailConfirmed?: boolean;
+        lockoutEnd?: Date;
+        accessFailedCount?: number;
+        twoFactorEnabled?: boolean;
+    }
+): Promise<string> {
+    // Build user object with only defined properties (exactOptionalPropertyTypes compliance)
+    const userToInsert: {
+        email: string;
+        userName: string;
+        emailConfirmed: boolean;
+        passwordHash: string;
+        name?: string;
+        displayName?: string;
+    } = {
+        email,
+        userName: email,  // CRITICAL: userName is ALWAYS email per AuthService.cs:81
+        emailConfirmed: options?.emailConfirmed ?? true,  // Default confirmed unless specified
+        passwordHash: process.env.BDD_TEST_PASSWORD_HASH!
+    };
+
+    // Only add optional properties if they have values (TypeScript strict mode compliance)
+    if (options?.name) {
+        userToInsert.name = options.name;
+    }
+    if (options?.displayName) {
+        userToInsert.displayName = options.displayName;
+    }
+
+    const userId = await world.db.insertUser(userToInsert);
+
+    // Apply additional settings via updateRecord (for properties that need special handling)
+    if (options?.lockoutEnd || options?.accessFailedCount !== undefined || options?.twoFactorEnabled !== undefined) {
+        const updates: Record<string, any> = {};
+        if (options.lockoutEnd) {
+            updates.LockoutEnd = options.lockoutEnd.toISOString();
+            updates.LockoutEnabled = true;
+        }
+        if (options.accessFailedCount !== undefined) {
+            updates.AccessFailedCount = options.accessFailedCount;
+        }
+        if (options.twoFactorEnabled !== undefined) {
+            updates.TwoFactorEnabled = options.twoFactorEnabled;
+        }
+
+        await world.db.updateRecord('Users', userId, updates);
+    }
+
+    // Track for cleanup
+    world.createdTestUsers.push(userId);
+
+    return userId;
+}
+```
+
+### Usage Examples
+
+```typescript
+// Default user (confirmed email)
+Given('an account exists with email {string}', async function(email) {
+    const userId = await createTestUser(this, email);
+    this.currentUser = { id: userId, email, name: email.split('@')[0] };
+});
+
+// Unconfirmed email
+Given('an unconfirmed account exists with email {string}', async function(email) {
+    const userId = await createTestUser(this, email, {
+        emailConfirmed: false
+    });
+    this.currentUser = { id: userId, email, name: email.split('@')[0] };
+});
+
+// Locked account
+Given('the account is locked due to failed login attempts', async function() {
+    const lockoutEnd = new Date(Date.now() + 5 * 60 * 1000);
+    await createTestUser(this, 'locked@example.com', {
+        lockoutEnd,
+        accessFailedCount: 5
+    });
+});
+
+// 2FA enabled account
+Given('an account exists with 2FA enabled', async function() {
+    await this.db.updateRecord('Users', this.currentUser.id, {
+        TwoFactorEnabled: true
+    });
+});
+```
+
+### TypeScript Strict Mode Compliance (exactOptionalPropertyTypes)
+
+**Problem**: With `exactOptionalPropertyTypes: true`, you cannot pass `undefined` to optional properties.
+
+```typescript
+// ❌ WRONG - Compilation error
+const userId = await world.db.insertUser({
+    email,
+    userName: email,
+    name: options?.name,  // Can be undefined - ERROR!
+    displayName: options?.displayName  // Can be undefined - ERROR!
+});
+
+// Error: Type 'string | undefined' is not assignable to type 'string'
+```
+
+**Solution**: Conditional property assignment - only add properties when they have values.
+
+```typescript
+// ✅ CORRECT - Only adds properties with values
+const userToInsert = {
+    email,
+    userName: email,
+    emailConfirmed: options?.emailConfirmed ?? true,
+    passwordHash: process.env.BDD_TEST_PASSWORD_HASH!
+};
+
+// Only add optional properties if they have values
+if (options?.name) {
+    userToInsert.name = options.name;
+}
+if (options?.displayName) {
+    userToInsert.displayName = options.displayName;
+}
+
+const userId = await world.db.insertUser(userToInsert);
+```
+
+### User Cleanup Strategies
+
+**Critical Distinction**: `deleteUser()` vs `deleteUserDataOnly()`
+
+**Two Types of Test Users**:
+1. **Pool Users** (created in BeforeAll):
+   - Created once, reused across scenarios
+   - Clean data only, preserve account
+   - Reset state after each test
+
+2. **Scenario-Specific Users** (created via createTestUser):
+   - Created during test execution
+   - Delete completely after test
+   - Tracked in `world.createdTestUsers`
+
+```typescript
+// In After hook - CORRECT cleanup approach
+After(async function (this: CustomWorld, testCase) {
+    if (this.currentUser && this.db) {
+        // Delete pool user's data but preserve the account for reuse
+        await this.db.deleteUserDataOnly(this.currentUser.id);
+
+        // Reset pool user state to defaults (for reuse in next scenario)
+        await this.db.updateRecord('Users', this.currentUser.id, {
+            TwoFactorEnabled: false,
+            LockoutEnd: null,
+            LockoutEnabled: true,
+            AccessFailedCount: 0,
+            EmailConfirmed: true
+        });
+    }
+
+    // Cleanup test users created during scenario (via createTestUser helper)
+    if (this.createdTestUsers && this.createdTestUsers.length > 0) {
+        for (const userId of this.createdTestUsers) {
+            await this.db.deleteUser(userId);  // Delete these completely
+        }
+        this.createdTestUsers = [];
+    }
+
+    // Release pool user for next test
+    if (this.currentUser) {
+        releaseUser(this.currentUser.id);
+    }
+});
+```
+
+**deleteUserDataOnly Implementation**:
+```typescript
+// ✅ CORRECT - Keeps user, deletes only their data
+async deleteUserDataOnly(userId: string): Promise<void> {
+    const query = `
+        DELETE FROM AssetResources WHERE AssetId IN (SELECT Id FROM Assets WHERE OwnerId = ?);
+        DELETE FROM Assets WHERE OwnerId = ?;
+        DELETE FROM Scenes WHERE OwnerId = ?;
+        DELETE FROM GameSessions WHERE OwnerId = ?;
+        -- NO: DELETE FROM Users WHERE Id = ?;
+    `;
+    await this.executeQuery(query, Array(13).fill(userId));
+}
+```
+
+### Password Hashing Approach
+
+**Security**: Never hardcode passwords or generate hashes in test code.
+
+**Setup** (.env file):
+```bash
+BDD_TEST_PASSWORD=YourSecureTestPassword123!
+BDD_TEST_PASSWORD_HASH=<pre-generated-hash-matching-password>
+```
+
+**Benefits**:
+- ✅ Consistent across all test users
+- ✅ Matches backend hashing algorithm (ASP.NET Identity)
+- ✅ Faster test execution (no hash generation)
+- ✅ Secure (not exposed in code)
+
+**Usage**:
+```typescript
+const userToInsert = {
+    email,
+    userName: email,
+    passwordHash: process.env.BDD_TEST_PASSWORD_HASH!
+};
+
+// In test steps
+await this.page.fill('input[type="password"]', process.env.BDD_TEST_PASSWORD!);
+```
+
+### When to Use Database Fixtures vs API Endpoints
+
+**Use Database Fixtures For**:
+- ✅ Test setup and preconditions
+- ✅ Creating users with specific states (locked, unconfirmed, 2FA enabled)
+- ✅ Setting up complex data relationships
+- ✅ Scenarios requiring precise control over entity state
+
+**Use API Endpoints For**:
+- ✅ Testing the API itself (authentication flow, registration validation)
+- ✅ Integration tests verifying end-to-end behavior
+- ✅ Scenarios where you want to test the complete registration workflow
+
+### Related Patterns
+
+For more comprehensive documentation on BDD testing patterns, see:
+- `.claude/guides/BDD_CUCUMBER_GUIDE.md` - Complete BDD guide with HandleLogin case study
+- "BDD Implementation Lessons Learned - HandleLogin Case Study" section for detailed examples
+
 ### Systematic Fix Approach
 
 1. **Run dry-run**: Identify undefined/ambiguous steps

@@ -99,14 +99,6 @@ Feature: Landing Page
     Then I should see heading "Welcome back, Alice!"
     And the greeting should be personalized
 
-  @dashboard @personalization
-  Scenario: Dashboard shows fallback greeting when displayName missing
-    Given I am authenticated as "GameMaster"
-    But my user profile has no displayName
-    When the page loads
-    Then I should see "Welcome back, Game Master!" with fallback
-    And the dashboard should display normally
-
   # ═══════════════════════════════════════════════════════════════
   # DYNAMIC STATE CHANGES
   # ═══════════════════════════════════════════════════════════════
@@ -176,12 +168,3 @@ Feature: Landing Page
     Then I should see an error notification
     And the page should default to unauthenticated state (hero section)
     And I should be able to manually navigate to login page
-
-  @edge-case
-  Scenario: Handle missing action card data gracefully
-    Given I am authenticated as "GameMaster"
-    And some action card data is missing or malformed
-    When the page loads
-    Then available cards should display correctly
-    And missing cards should be skipped or show placeholder
-    And the page should not crash

@@ -12,7 +12,9 @@ async function mockAuthentication(page: Page) {
                 data: {
                     id: 'test-user-id',
                     email: 'test@example.com',
-                    userName: 'TestUser',
+                    userName: 'test@example.com',
+                    name: 'TestUser',
+                    displayName: 'TestUser',
                     emailConfirmed: true,
                 },
                 success: true

@@ -162,7 +162,6 @@ public class AuthService(
             Id = user.Id,
             Email = user.Email,
             Name = user.Name,
-            UserName = user.Name,  // Alias for frontend compatibility
             DisplayName = user.DisplayName,
             IsAdministrator = user.IsAdministrator,
         };

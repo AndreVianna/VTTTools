@@ -43,6 +43,8 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
   const [formData, setFormData] = useState({
     email: '',
     userName: '',
+    name: '',
+    displayName: '',
     password: '',
     confirmPassword: '',
     acceptTerms: false,

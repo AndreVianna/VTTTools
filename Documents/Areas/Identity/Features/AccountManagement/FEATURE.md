@@ -26,7 +26,7 @@
 ### Area Assignment
 - **Primary Area**: Identity
 - **Secondary Areas**: None (self-contained account management)
-- **Cross-Area Impact**: Other areas consume updated user profile data (username, avatar) via Identity
+- **Cross-Area Impact**: Other areas consume updated user profile data (email, displayName, avatar url) via Identity
 
 ---
 
@@ -57,11 +57,11 @@
 
 ### Area Impact Assessment
 - **Identity**: User profile management, security configuration, 2FA setup, password changes
-- **All Areas**: Consume updated user profile data (username, avatar URL) from Identity
+- **All Areas**: Consume updated user profile data (email, displayName, avatar URL) from Identity
 
 ### Use Case Breakdown
 - **View Profile Settings** (Identity): Display current user profile information in settings interface
-- **Update Profile** (Identity): Modify user profile data (username, phone, avatar)
+- **Update Profile** (Identity): Modify user profile data (email, displayName, phone, avatar)
 - **View Security Settings** (Identity): Display security status and available security options
 - **Setup Two Factor Authentication** (Identity): Configure TOTP-based 2FA with authenticator app
 - **Manage Recovery Codes** (Identity): View, regenerate, and download backup recovery codes

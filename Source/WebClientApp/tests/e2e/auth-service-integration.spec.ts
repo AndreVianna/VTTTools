@@ -97,7 +97,7 @@ test.describe('Authentication Service Integration', () => {
 
     // Fill registration form
     await page.fill('input[name="email"]', uniqueEmail);
-    await page.fill('input[name="userName"]', `testuser${Date.now()}`);
+    await page.fill('input[name="name"]', `testuser${Date.now()}`);
     await page.fill('input[name="password"]', 'StrongPassword123!');
     await page.fill('input[name="confirmPassword"]', 'StrongPassword123!');
 

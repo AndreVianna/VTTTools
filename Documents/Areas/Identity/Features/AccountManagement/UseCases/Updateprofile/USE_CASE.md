@@ -1,8 +1,8 @@
 # Update Profile Use Case
 
-**Original Request**: Modify user profile data (username, phone, avatar)
+**Original Request**: Modify user profile data (name, displayName, phone, avatar)
 
-**Update Profile** is a profile modification operation that validates and persists changes to user profile information. This use case operates within the Identity area and enables users to update their username, phone number, and profile picture.
+**Update Profile** is a profile modification operation that validates and persists changes to user profile information. This use case operates within the Identity area and enables users to update their name, displayName, phone number, and profile picture.
 
 ---
 
@@ -37,7 +37,8 @@
 - **Submit Action**: Validates inputs, calls useAuth().updateProfile(), saves changes
 - **Key UI Elements**:
   - Avatar: Profile picture with "Upload" icon button for file selection
-  - TextField: Username input with validation (3-50 chars, alphanumeric/underscore/hyphen)
+  - TextField: Name  input with validation (3-128 chars)
+  - TextField: DisplayName input with validation (upto 32 chars)
   - TextField: Phone number input (optional) with format validation
   - Button: "Save Changes" with loading state
   - Button: "Cancel" to discard changes
@@ -45,7 +46,7 @@
 
 ### UI State Requirements
 - **Data Dependencies**: useAuth hook (updateProfile function, isLoading, error)
-- **State Scope**: Local form state (formData: userName, phoneNumber, profilePictureUrl, validationErrors, isEditing)
+- **State Scope**: Local form state (formData: name, displayName, phoneNumber, profilePictureUrl, validationErrors, isEditing)
 - **API Calls**: PUT /api/users/profile, POST /api/users/avatar (for image upload)
 - **State Management**: React useState for form, Auth Context for profile updates
 
@@ -53,7 +54,7 @@
 - **User Interactions**:
   1. User clicks "Edit Profile"
   2. Fields become editable
-  3. User modifies username and/or phone
+  3. User modifies name, displayName and/or phone
   4. User optionally uploads new avatar
   5. User clicks "Save Changes"
   6. Client validates inputs
@@ -61,7 +62,8 @@
   8. On success, Auth Context updates, edit mode exits
   9. User sees updated profile in view mode
 - **Validation Feedback**:
-  - Username: 3-50 chars, alphanumeric/underscore/hyphen only, inline error messages
+  - Name: 3-128 chars, inline error messages
+  - DisplayName: up to 32 chars, inline error messages
   - Phone: Optional, format validation if provided
   - Avatar: File type validation (image files only)
 - **Loading States**: Save button shows spinner, all inputs disabled during save
@@ -75,13 +77,12 @@
 ### Clean Architecture Mapping
 - **Application Service**: ProfileService.UpdateProfile(UpdateProfileCommand)
 - **Domain Entities**: User (aggregate root)
-- **Domain Services**: UsernameUniquenessService, ProfileValidationService
+- **Domain Services**: ProfileValidationService
 - **Infrastructure Dependencies**: UserRepository, BlobStorageService (for avatar uploads)
 
 ### Hexagonal Architecture
 - **Primary Port Operation**: IProfileService.UpdateProfile(userId, updates)
 - **Secondary Port Dependencies**:
-  - IUserRepository.FindByUsername(username) [for uniqueness check]
   - IUserRepository.Update(user)
   - IBlobStorage.UploadFile(file) [for avatar]
   - IBlobStorage.DeleteFile(oldAvatarPath) [cleanup]
@@ -89,10 +90,8 @@
 
 ### DDD Alignment
 - **Bounded Context**: Identity
-- **Ubiquitous Language**: Profile update, username change, avatar upload, contact information
+- **Ubiquitous Language**: Profile update, display name change, avatar upload, contact information
 - **Business Invariants**:
-  - Username must be unique across platform
-  - Username can only contain valid characters
   - Email cannot be changed via profile settings
   - Phone number format must be valid (if provided)
 - **Domain Events**: UserProfileUpdated(userId, changes, timestamp)
@@ -103,19 +102,20 @@
 
 ### Input Requirements
 - **Input Data**:
-  - Username (string, 3-50 chars, alphanumeric/underscore/hyphen)
+  - Name (3-128 chars)
+  - DisplayName (0-32 chars)
   - Phone number (string, optional, valid phone format)
   - Avatar file (image file, optional, max 5MB)
 - **Input Validation**:
-  - Username: Length, character restrictions, uniqueness
+  - DisplayName: Length
   - Phone: Format validation if provided (regex)
   - Avatar: File type (image/*), file size (<5MB)
 - **Preconditions**: User is authenticated, in edit mode
 
 ### Business Logic
 - **Business Rules**:
-  - Username must be unique (case-insensitive check)
-  - Username validation: 3-50 chars, alphanumeric + underscore/hyphen
+  - Name validation: 3-128 chars
+  - DisplayName validation: 32 chars
   - Phone number optional, validated if provided
   - Avatar uploaded to blob storage, URL stored in profile
   - Old avatar deleted from storage when new one uploaded
@@ -126,16 +126,14 @@
   2. Identify changed fields (compare with original user data)
   3. If avatar changed, upload to blob storage first
   4. Submit ProfileService.UpdateProfile with changes
-  5. Server: Check username uniqueness (if changed)
-  6. Server: Validate business rules
-  7. Server: Update User entity
-  8. Server: Persist to repository
-  9. Server: Publish UserProfileUpdated event
-  10. Client: Update Auth Context with new user data
-  11. Client: Exit edit mode, show updated profile
+  5. Server: Validate business rules
+  6. Server: Update User entity
+  7. Server: Persist to repository
+  8. Server: Publish UserProfileUpdated event
+  9. Client: Update Auth Context with new user data
+  10. Client: Exit edit mode, show updated profile
 - **Domain Coordination**:
   - User entity validates changes
-  - UsernameUniquenessService ensures no conflicts
   - BlobStorageService handles avatar upload/cleanup
 - **Validation Logic**:
   - Frontend: Format, length, character restrictions
@@ -152,9 +150,9 @@
   - UserProfileUpdated event published
 
 ### Error Scenarios
-- **Username Too Short**: Client validation → "Username must be at least 3 characters"
-- **Invalid Username Characters**: Client validation → "Username can only contain letters, numbers, underscores, and hyphens"
-- **Username Taken**: Backend 409 → "Username already taken"
+- **Name Too Short**: Client validation → "Name must have at least 3 characters"
+- **Name Too Long**: Client validation → "Name must have a maximum of 128 characters"
+- **DisplayName Too Long**: Client validation → "Diplay name must have a maximum of 32 characters"
 - **Invalid Phone Format**: Client validation → "Invalid phone number format"
 - **Avatar Too Large**: Client validation → "Image must be less than 5MB"
 - **Invalid File Type**: Client validation → "Please upload an image file"
@@ -173,7 +171,8 @@
   }
 
   interface ProfileUpdates {
-    userName?: string
+    name?: string
+    displayName?: string
     phoneNumber?: string
     profilePictureUrl?: string
   }
@@ -190,8 +189,8 @@
 ### Testing Strategy
 - **Acceptance Criteria**:
   - AC-01: Valid profile updates save successfully
-  - AC-02: Username uniqueness enforced (409 if taken)
-  - AC-03: Username validation works (length, characters)
+  - AC-02: Name validation works (length)
+  - AC-03: DisplayName validation works (length)
   - AC-04: Phone validation works (format)
   - AC-05: Avatar upload works, old avatar deleted
   - AC-06: Cancel button discards changes
@@ -203,7 +202,6 @@
 ## Implementation Notes
 
 ### Security Considerations
-- **Username Enumeration**: Consider rate limiting to prevent username enumeration via uniqueness checks
 - **File Upload Security**: Validate file types, scan for malware, limit file sizes
 - **Avatar URLs**: Use signed URLs or CDN for avatar serving
 - **Input Sanitization**: Sanitize all inputs to prevent injection attacks

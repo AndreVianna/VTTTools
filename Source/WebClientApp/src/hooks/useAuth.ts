@@ -243,7 +243,7 @@ export const useAuth = () => {
         email,
         password,
         confirmPassword,
-        name: email,  // UserName = Email (ASP.NET Identity requirement)
+        name: displayName,  // UserName = Email (ASP.NET Identity requirement)
         displayName: displayName  // User's friendly display name
       }).unwrap();
 

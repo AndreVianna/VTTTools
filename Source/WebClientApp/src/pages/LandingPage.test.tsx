@@ -67,8 +67,10 @@ describe('LandingPage', () => {
   beforeEach(() => {
     mockUser = {
       id: '019639ea-c7de-7a01-8548-41edfccde206',
-      userName: 'GameMaster',
       email: 'gm@vtttools.com',
+      userName: 'gm@vtttools.com',
+      name: 'Game Master',
+      displayName: 'Master',
       emailConfirmed: true,
       phoneNumberConfirmed: false,
       twoFactorEnabled: false,
@@ -298,7 +300,7 @@ describe('LandingPage', () => {
   describe('BDD: Dashboard personalization', () => {
     it('should show personalized greeting with displayName', () => {
       // Arrange
-      const userWithDisplayName = { ...mockUser, userName: 'Alice', displayName: 'Alice' };
+      const userWithDisplayName = { ...mockUser, email: 'alice@vtttools.com', name: 'Alice', displayName: 'Alice' };
       store = createTestStore(true, userWithDisplayName);
 
       // Act
@@ -308,9 +310,9 @@ describe('LandingPage', () => {
       expect(screen.getByText(/welcome back, Alice!/i)).toBeInTheDocument();
     });
 
-    it('should show fallback greeting when userName missing', () => {
+    it('should show fallback greeting when displayName missing', () => {
       // Arrange
-      const userWithoutName = { ...mockUser, userName: '', displayName: '' };
+      const userWithoutName = { ...mockUser, name: '', displayName: '' };
       store = createTestStore(true, userWithoutName);
 
       // Act

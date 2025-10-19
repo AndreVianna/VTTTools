@@ -15,6 +15,81 @@ import { CustomWorld } from '../../../support/world.js';
 import { expect } from '@playwright/test';
 
 // ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Create test user via direct database insertion
+ *
+ * CRITICAL: userName is ALWAYS email per AuthService.cs:81 requirement
+ * Password is always BDD_TEST_PASSWORD_HASH from .env
+ *
+ * @param world - Test world context
+ * @param email - User email (also used as userName)
+ * @param options - Optional user configuration
+ * @returns User ID for cleanup
+ */
+async function createTestUser(
+    world: CustomWorld,
+    email: string,
+    options?: {
+        name?: string;
+        displayName?: string;
+        emailConfirmed?: boolean;
+        lockoutEnd?: Date;
+        accessFailedCount?: number;
+        twoFactorEnabled?: boolean;
+    }
+): Promise<string> {
+    // Build user object with only defined properties (exactOptionalPropertyTypes compliance)
+    const userToInsert: {
+        email: string;
+        userName: string;
+        emailConfirmed: boolean;
+        passwordHash: string;
+        name?: string;
+        displayName?: string;
+    } = {
+        email,
+        userName: email, // CRITICAL: userName is ALWAYS email per AuthService.cs:81
+        emailConfirmed: options?.emailConfirmed ?? true, // Default confirmed unless specified
+        passwordHash: process.env.BDD_TEST_PASSWORD_HASH!
+    };
+
+    // Only add optional properties if they have values
+    if (options?.name) {
+        userToInsert.name = options.name;
+    }
+    if (options?.displayName) {
+        userToInsert.displayName = options.displayName;
+    }
+
+    const userId = await world.db.insertUser(userToInsert);
+
+    // Apply additional settings if provided
+    if (options?.lockoutEnd || options?.accessFailedCount !== undefined || options?.twoFactorEnabled !== undefined) {
+        const updates: Record<string, any> = {};
+        if (options.lockoutEnd) {
+            updates.LockoutEnd = options.lockoutEnd.toISOString();
+            updates.LockoutEnabled = true;
+        }
+        if (options.accessFailedCount !== undefined) {
+            updates.AccessFailedCount = options.accessFailedCount;
+        }
+        if (options.twoFactorEnabled !== undefined) {
+            updates.TwoFactorEnabled = options.twoFactorEnabled;
+        }
+
+        await world.db.updateRecord('Users', userId, updates);
+    }
+
+    // Store for cleanup
+    world.createdTestUsers.push(userId);
+
+    return userId;
+}
+
+// ============================================================================
 // GIVEN Steps - Setup Preconditions
 // ============================================================================
 
@@ -22,14 +97,6 @@ Given('I am on the login page', async function (this: CustomWorld) {
     await this.page.goto('/login');
     await expect(this.page).toHaveURL(/\/login/);
     await expect(this.page.getByText(/welcome back/i)).toBeVisible();
-});
-
-Given('an account exists with email {string} and password {string}', async function (
-    this: CustomWorld,
-    email: string,
-    _password: string
-) {
-    throw new Error(`NOT IMPLEMENTED: Step needs to create or verify test account with email ${email} exists in database (query Users table or use fixture)`);
 });
 
 Given('an account exists with 2FA enabled', async function (this: CustomWorld) {
@@ -352,7 +419,9 @@ Then('error messages are announced', async function (this: CustomWorld) {
 // ============================================================================
 
 Given('an account exists with password {string}', async function (this: CustomWorld, _password: string) {
-    throw new Error('NOT IMPLEMENTED: Step needs to verify account with specific password exists (query database or create test account with given password)');
+    const email = 'user@example.com';
+    const userId = await createTestUser(this, email);
+    this.currentUser = { id: userId, email, name: 'user' };
 });
 
 Given('I was rate-limited due to failed attempts', async function (this: CustomWorld) {

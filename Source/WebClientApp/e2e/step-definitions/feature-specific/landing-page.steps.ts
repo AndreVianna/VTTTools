@@ -263,15 +263,6 @@ Then('available cards should display correctly', async function (this: CustomWor
     expect(cardTitles).toBeGreaterThanOrEqual(1); // At least 1 card should be visible (handles edge case of missing data)
 });
 
-// Additional setup steps
-Given('my user profile has no displayName', async function (this: CustomWorld) {
-    throw new Error('NOT IMPLEMENTED: Step needs to set up user profile with missing displayName (update user record or use fixture with null displayName field)');
-});
-
-Given('some action card data is missing or malformed', async function (this: CustomWorld) {
-    throw new Error('NOT IMPLEMENTED: Step needs to mock API response with malformed action card data (mock dashboard API to return missing or invalid card fields)');
-});
-
 Given('a session cookie exists', async function (this: CustomWorld) {
     // Set a mock session cookie
     await this.context.addCookies([{

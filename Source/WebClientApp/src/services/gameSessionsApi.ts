@@ -91,7 +91,8 @@ export const gameSessionsApi = createApi({
     getSessionPlayers: builder.query<Array<{
       id: string;
       userId: string;
-      userName: string;
+      email: string;
+      displayName: string;
       role: string;
       joinedAt: string;
       isOnline: boolean;
