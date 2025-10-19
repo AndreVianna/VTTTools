@@ -11,8 +11,8 @@ import { expect } from '@playwright/test';
 
 Then('I should see error {string}', async function (this: CustomWorld, errorMessage: string) {
     if (this.lastApiResponse) {
-        const status = this.lastApiResponse.status();
-        const responseBody = await this.lastApiResponse.text().catch(() => 'Unable to read response body');
+        const status = this.lastApiResponse!.status();
+        const responseBody = await this.lastApiResponse!.text().catch(() => 'Unable to read response body');
         this.attach(`API Response - Status: ${status}\nBody: ${responseBody}`, 'text/plain');
     }
 

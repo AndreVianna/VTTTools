@@ -252,8 +252,8 @@ When('I create the scene', async function (this: CustomWorld) {
         }
     });
 
-    if (this.lastApiResponse.ok()) {
-        const response = await this.lastApiResponse.json();
+    if (this.lastApiResponse!.ok()) {
+        const response = await this.lastApiResponse!.json();
         (this as any).currentSceneId = response.id;
     }
 });
@@ -323,8 +323,8 @@ When('I clone the scene', async function (this: CustomWorld) {
         }
     });
 
-    if (this.lastApiResponse.ok()) {
-        const response = await this.lastApiResponse.json();
+    if (this.lastApiResponse!.ok()) {
+        const response = await this.lastApiResponse!.json();
         (this as any).clonedSceneId = response.id;
     }
 });
@@ -334,7 +334,7 @@ When('I clone the scene', async function (this: CustomWorld) {
 // ═══════════════════════════════════════════════════════════════
 
 Then('the scene is created', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(201);
+    expect(this.lastApiResponse!.status()).toBe(201);
 });
 
 Then('I should see the scene in my library', async function (this: CustomWorld) {
@@ -362,12 +362,12 @@ Then('the grid should be configured as square', async function (this: CustomWorl
 });
 
 Then('I should see error', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBeGreaterThanOrEqual(400);
-    expect(this.lastApiResponse.status()).toBeLessThan(500);
+    expect(this.lastApiResponse!.status()).toBeGreaterThanOrEqual(400);
+    expect(this.lastApiResponse!.status()).toBeLessThan(500);
 });
 
 Then('the scene is removed successfully', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(204);
+    expect(this.lastApiResponse!.status()).toBe(204);
 
     const sceneId = (this as any).currentSceneId;
     const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
@@ -397,7 +397,7 @@ Then('all {int} assets should be placed', async function (this: CustomWorld, cou
 });
 
 Then('a new scene should be created', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(201);
+    expect(this.lastApiResponse!.status()).toBe(201);
 
     const clonedSceneId = (this as any).clonedSceneId;
     const scenes = await this.db.queryTable('Scenes', { Id: clonedSceneId });

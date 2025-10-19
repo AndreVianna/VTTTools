@@ -205,7 +205,7 @@ When('I create a new game session with title {string}', async function (this: Cu
 });
 
 Then('my session is created successfully', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(201);
+    expect(this.lastApiResponse!.status()).toBe(201);
     const session = getCurrentSession(this);
     expect(session.id).toBeTruthy();
     expect(session.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
@@ -280,11 +280,11 @@ Then('the title length is exactly {int} characters', async function (this: Custo
 // ============================================================================
 
 Then('I receive a {int} Bad Request error', async function (this: CustomWorld, statusCode: number) {
-    expect(this.lastApiResponse.status()).toBe(statusCode);
+    expect(this.lastApiResponse!.status()).toBe(statusCode);
 });
 
 Then('the error message is {string}', async function (this: CustomWorld, expectedMessage: string) {
-    const errorBody = await this.lastApiResponse.json();
+    const errorBody = await this.lastApiResponse!.json();
     expect(errorBody.message || errorBody.title || errorBody.error).toContain(expectedMessage);
 });
 
@@ -298,7 +298,7 @@ Given('my authentication context references a non-existent user', async function
 });
 
 Then('I receive a {int} Not Found error', async function (this: CustomWorld, statusCode: number) {
-    expect(this.lastApiResponse.status()).toBe(statusCode);
+    expect(this.lastApiResponse!.status()).toBe(statusCode);
 });
 
 Given('the game session repository is unavailable', async function (this: CustomWorld) {
@@ -309,7 +309,7 @@ Given('the game session repository is unavailable', async function (this: Custom
 });
 
 Then('I receive a {int} Internal Server Error', async function (this: CustomWorld, statusCode: number) {
-    expect(this.lastApiResponse.status()).toBe(statusCode);
+    expect(this.lastApiResponse!.status()).toBe(statusCode);
 });
 
 // ============================================================================
@@ -368,7 +368,7 @@ When('I attempt to start the game session', async function (this: CustomWorld) {
 });
 
 Then('the session status should be InProgress', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.ok()).toBe(true);
+    expect(this.lastApiResponse!.ok()).toBe(true);
 
     const session = getCurrentSession(this);
     const updatedSession = await getGameSession(this, session.id);
@@ -376,13 +376,13 @@ Then('the session status should be InProgress', async function (this: CustomWorl
 });
 
 Then('I should receive confirmation', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.ok()).toBe(true);
-    expect([200, 204]).toContain(this.lastApiResponse.status());
+    expect(this.lastApiResponse!.ok()).toBe(true);
+    expect([200, 204]).toContain(this.lastApiResponse!.status());
 });
 
 Then('the request should fail', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.ok()).toBe(false);
-    expect(this.lastApiResponse.status()).toBeGreaterThanOrEqual(400);
+    expect(this.lastApiResponse!.ok()).toBe(false);
+    expect(this.lastApiResponse!.status()).toBeGreaterThanOrEqual(400);
 });
 
 Then('session start time should be recorded', async function (this: CustomWorld) {
@@ -418,7 +418,7 @@ Given('the session is owned by another Game Master', async function (this: Custo
 });
 
 Then('the request should fail with authorization error', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(403);
+    expect(this.lastApiResponse!.status()).toBe(403);
 });
 
 // ============================================================================
@@ -438,7 +438,7 @@ Given('the session does not exist', async function (this: CustomWorld) {
 });
 
 Then('the request should fail with not found error', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(404);
+    expect(this.lastApiResponse!.status()).toBe(404);
 });
 
 // ============================================================================
@@ -456,7 +456,7 @@ When('I attempt to pause the game session', async function (this: CustomWorld) {
 });
 
 Then('the session status should be Paused', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.ok()).toBe(true);
+    expect(this.lastApiResponse!.ok()).toBe(true);
 
     const session = getCurrentSession(this);
     const updatedSession = await getGameSession(this, session.id);
@@ -509,7 +509,7 @@ When('I attempt to resume the game session', async function (this: CustomWorld) 
 // ============================================================================
 
 Then('my session is created with status {string}', async function (this: CustomWorld, expectedStatus: string) {
-    expect(this.lastApiResponse.status()).toBe(201);
+    expect(this.lastApiResponse!.status()).toBe(201);
     const session = getCurrentSession(this);
     expect(session.status).toBe(expectedStatus);
 });
@@ -530,7 +530,7 @@ When('I schedule my session for next Friday at 7 PM', async function (this: Cust
 });
 
 Then('my session status changes to {string}', async function (this: CustomWorld, expectedStatus: string) {
-    expect(this.lastApiResponse.ok()).toBe(true);
+    expect(this.lastApiResponse!.ok()).toBe(true);
 
     const session = getCurrentSession(this);
     const updatedSession = await getGameSession(this, session.id);
@@ -655,10 +655,10 @@ When('I attempt to start my session without scheduling it first', async function
 });
 
 Then('I receive an error indicating invalid status transition', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.ok()).toBe(false);
-    expect(this.lastApiResponse.status()).toBeGreaterThanOrEqual(400);
+    expect(this.lastApiResponse!.ok()).toBe(false);
+    expect(this.lastApiResponse!.status()).toBeGreaterThanOrEqual(400);
 
-    const errorBody = await this.lastApiResponse.json();
+    const errorBody = await this.lastApiResponse!.json();
     const errorMessage = (errorBody.message || errorBody.error || '').toLowerCase();
     expect(errorMessage.includes('transition') || errorMessage.includes('status')).toBe(true);
 });
@@ -680,9 +680,9 @@ When('I attempt to resume my active session', async function (this: CustomWorld)
 });
 
 Then('I receive an error indicating session is not paused', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.ok()).toBe(false);
+    expect(this.lastApiResponse!.ok()).toBe(false);
 
-    const errorBody = await this.lastApiResponse.json();
+    const errorBody = await this.lastApiResponse!.json();
     const errorMessage = (errorBody.message || errorBody.error || '').toLowerCase();
     expect(errorMessage.includes('paused') || errorMessage.includes('not')).toBe(true);
 });
@@ -697,8 +697,8 @@ When('I delete my draft session', async function (this: CustomWorld) {
 });
 
 Then('my session is permanently removed', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.ok()).toBe(true);
-    expect([200, 204]).toContain(this.lastApiResponse.status());
+    expect(this.lastApiResponse!.ok()).toBe(true);
+    expect([200, 204]).toContain(this.lastApiResponse!.status());
 });
 
 Then('my session no longer appears in my session list', async function (this: CustomWorld) {
@@ -713,9 +713,9 @@ When('I attempt to delete my scheduled session', async function (this: CustomWor
 });
 
 Then('I receive an error indicating only Draft sessions can be deleted', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.ok()).toBe(false);
+    expect(this.lastApiResponse!.ok()).toBe(false);
 
-    const errorBody = await this.lastApiResponse.json();
+    const errorBody = await this.lastApiResponse!.json();
     const errorMessage = errorBody.message || errorBody.error || '';
     expect(errorMessage.toLowerCase()).toContain('draft');
 });
@@ -750,7 +750,7 @@ When('I set {string} as the active scene for my session', async function (this: 
 });
 
 Then('my session active scene is set to {string}', async function (this: CustomWorld, _sceneName: string) {
-    expect(this.lastApiResponse.ok()).toBe(true);
+    expect(this.lastApiResponse!.ok()).toBe(true);
 
     // TODO: Validate sceneName if scene lookup is implemented
     const session = getCurrentSession(this);
@@ -805,15 +805,15 @@ When('I retrieve all active sessions', async function (this: CustomWorld) {
 });
 
 Then('I receive {int} active sessions', async function (this: CustomWorld, expectedCount: number) {
-    expect(this.lastApiResponse.ok()).toBe(true);
+    expect(this.lastApiResponse!.ok()).toBe(true);
 
-    const sessions = await this.lastApiResponse.json();
+    const sessions = await this.lastApiResponse!.json();
     expect(Array.isArray(sessions)).toBe(true);
     expect(sessions.length).toBe(expectedCount);
 });
 
 Then('all returned sessions have status {string}', async function (this: CustomWorld, expectedStatus: string) {
-    const sessions = await this.lastApiResponse.json();
+    const sessions = await this.lastApiResponse!.json();
 
     for (const session of sessions) {
         expect(session.status).toBe(expectedStatus);
@@ -839,15 +839,15 @@ When('I retrieve my game sessions', async function (this: CustomWorld) {
 });
 
 Then('I receive {int} sessions', async function (this: CustomWorld, expectedCount: number) {
-    expect(this.lastApiResponse.ok()).toBe(true);
+    expect(this.lastApiResponse!.ok()).toBe(true);
 
-    const sessions = await this.lastApiResponse.json();
+    const sessions = await this.lastApiResponse!.json();
     expect(Array.isArray(sessions)).toBe(true);
     expect(sessions.length).toBe(expectedCount);
 });
 
 Then('all returned sessions are owned by me', async function (this: CustomWorld) {
-    const sessions = await this.lastApiResponse.json();
+    const sessions = await this.lastApiResponse!.json();
 
     for (const session of sessions) {
         expect(session.ownerId).toBe(this.currentUser.id);

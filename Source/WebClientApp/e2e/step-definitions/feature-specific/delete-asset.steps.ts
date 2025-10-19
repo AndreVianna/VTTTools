@@ -419,7 +419,7 @@ Then('the asset should be removed from database', async function (this: CustomWo
 
 Then('I should receive {int} Forbidden error', async function (this: CustomWorld, statusCode: number) {
     // Assert - API returned 403 Forbidden
-    expect(this.lastApiResponse.status()).toBe(statusCode);
+    expect(this.lastApiResponse!.status()).toBe(statusCode);
 });
 
 Then('the asset should not be deleted', async function (this: CustomWorld) {
@@ -430,7 +430,7 @@ Then('the asset should not be deleted', async function (this: CustomWorld) {
 
 Then('I should receive {int} Not Found error', async function (this: CustomWorld, statusCode: number) {
     // Assert - API returned 404
-    expect(this.lastApiResponse.status()).toBe(statusCode);
+    expect(this.lastApiResponse!.status()).toBe(statusCode);
 });
 
 Then('the backend may return validation error', async function (this: CustomWorld) {
@@ -439,7 +439,7 @@ Then('the backend may return validation error', async function (this: CustomWorl
 
 Then('error should indicate {string}', async function (this: CustomWorld, errorMessage: string) {
     // Assert - Error message contains expected text
-    const body = await this.lastApiResponse.body();
+    const body = await this.lastApiResponse!.body();
     expect(body).toContain(errorMessage);
 });
 

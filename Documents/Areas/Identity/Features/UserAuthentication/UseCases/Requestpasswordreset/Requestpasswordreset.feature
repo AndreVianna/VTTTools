@@ -39,8 +39,8 @@ Feature: Request Password Reset
 
     @security @happy-path
     Scenario: Show success for existing email without revealing existence
-      Given an account exists with email "existing@example.com"
-      When I enter email "existing@example.com"
+      Given an account exists with email "gamemaster@example.com"
+      When I enter email "gamemaster@example.com"
       And I submit the reset request form
       Then I should receive success
       And I should see success message "If that email exists, reset instructions have been sent"
@@ -61,7 +61,7 @@ Feature: Request Password Reset
 
     @security
     Scenario: Generate token with 24-hour expiration
-      Given an account exists with email "user@example.com"
+      Given an account exists with email "gamemaster@example.com"
       When I successfully request password reset
       Then a reset I receive an authentication token
       And my token be cryptographically secure with 32+ bytes entropy
@@ -132,7 +132,7 @@ Feature: Request Password Reset
 
   @error-handling
   Scenario: Handle email service failure gracefully
-    Given an account exists with email "user@example.com"
+    Given an account exists with email "gamemaster@example.com"
     When I request password reset
     And the email service fails to send the email
     Then the error is logged server-side

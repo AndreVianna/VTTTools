@@ -393,7 +393,7 @@ When('I configure viewport to X={int} and Y={int}', async function (this: Custom
 // ============================================================================
 
 Then('the stage is updated successfully', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(204); // No Content success
+    expect(this.lastApiResponse!.status()).toBe(204); // No Content success
 });
 
 Then('the stage width should be {int}', async function (this: CustomWorld, expectedWidth: number) {
@@ -491,7 +491,7 @@ Then('the viewport coordinates should be set', async function (this: CustomWorld
 });
 
 Then('the stage is updated', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(204);
+    expect(this.lastApiResponse!.status()).toBe(204);
 });
 
 Then('the grid configuration should remain unchanged', async function (this: CustomWorld) {
@@ -524,13 +524,13 @@ Then('all asset placements should remain intact', async function (this: CustomWo
 // ============================================================================
 
 Then('I should see error with validation error', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(400); // Bad Request
+    expect(this.lastApiResponse!.status()).toBe(400); // Bad Request
 });
 
 Then('I should see error with not found error', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(404); // Not Found
+    expect(this.lastApiResponse!.status()).toBe(404); // Not Found
 });
 
 Then('I should see error with forbidden error', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(403); // Forbidden
+    expect(this.lastApiResponse!.status()).toBe(403); // Forbidden
 });

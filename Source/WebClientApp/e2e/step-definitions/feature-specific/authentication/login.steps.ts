@@ -248,8 +248,8 @@ Then('the error appears below the password field', async function (this: CustomW
 
 Then('I should be authenticated successfully', async function (this: CustomWorld) {
     if (this.lastApiResponse) {
-        const status = this.lastApiResponse.status();
-        const responseBody = await this.lastApiResponse.text().catch(() => 'Unable to read response body');
+        const status = this.lastApiResponse!.status();
+        const responseBody = await this.lastApiResponse!.text().catch(() => 'Unable to read response body');
         this.attach(`API Response Status: ${status}\nBody: ${responseBody}`, 'text/plain');
 
         if (status !== 200) {
@@ -330,11 +330,15 @@ Then('my auth state should be stored in Redux', async function (this: CustomWorl
 });
 
 Then('my password is validated successfully', async function (this: CustomWorld) {
-    await expect(this.lastApiResponse.status()).toBe(200);
+    expect(this.lastApiResponse).toBeDefined();
+    expect(this.lastApiResponse).not.toBeNull();
+    await expect(this.lastApiResponse!.status()).toBe(200);
 });
 
 Then('I receive response with requiresTwoFactor: true', async function (this: CustomWorld) {
-    const responseBody = await this.lastApiResponse.json();
+    expect(this.lastApiResponse).toBeDefined();
+    expect(this.lastApiResponse).not.toBeNull();
+    const responseBody = await this.lastApiResponse!.json();
     expect(responseBody.requiresTwoFactor).toBe(true);
 });
 

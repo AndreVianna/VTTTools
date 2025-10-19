@@ -9,6 +9,7 @@
 import { Given, When, Then } from '@cucumber/cucumber';
 import { CustomWorld } from '../../support/world.js';
 import { expect } from '@playwright/test';
+import { performPoolUserLogin } from '../../support/helpers/authentication.helper.js';
 
 // ============================================================================
 // GIVEN - Setup
@@ -47,14 +48,7 @@ Given('I am viewing the landing page as authenticated user', { timeout: 60000 },
         sessionStorage.clear();
     });
 
-    const password = process.env.BDD_TEST_PASSWORD!;
-    await this.page.goto('/login');
-    await this.page.fill('input[type="email"], input[name="email"]', this.currentUser.email);
-    await this.page.fill('input[type="password"], input[name="password"]', password);
-    await this.page.click('button[type="submit"], button:has-text("Sign In")');
-
-    await this.page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 10000 });
-    await this.page.waitForLoadState('networkidle');
+    await performPoolUserLogin(this);
 
     await this.page.reload({ waitUntil: 'networkidle' });
 
@@ -176,13 +170,7 @@ When('I successfully log in', { timeout: 60000 }, async function (this: CustomWo
     await this.page.locator('#cta-explore-features').click();
     await this.page.waitForURL(/login/);
 
-    const password = process.env.BDD_TEST_PASSWORD!;
-    await this.page.fill('input[type="email"], input[name="email"]', this.currentUser.email);
-    await this.page.fill('input[type="password"], input[name="password"]', password);
-    await this.page.click('button[type="submit"], button:has-text("Sign In")');
-
-    await this.page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 10000 });
-    await this.page.waitForLoadState('networkidle');
+    await performPoolUserLogin(this);
 
     await this.page.reload({ waitUntil: 'networkidle' });
 

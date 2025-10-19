@@ -1,18 +1,3 @@
-// GENERATED: 2025-10-11 by Claude Code Phase 6
-// EPIC: EPIC-001 Phase 6 - Scene Editor Tokens, Undo/Redo, Offline
-// LAYER: UI (Component)
-
-/**
- * TokenPlacement Component
- * Handles placing assets from the library onto the Konva canvas
- * Features:
- * - Drag asset from asset library onto scene
- * - Render as Konva Image with snap-to-grid
- * - Support for multi-resource assets (Token role for display)
- * - Z-index management by layer (Structure, Objects, Agents)
- * ACCEPTANCE_CRITERION: AC-01 - Token placement from asset library functional
- * ACCEPTANCE_CRITERION: AC-02 - Drag-and-drop with snap-to-grid working
- */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Layer, Image as KonvaImage } from 'react-konva';
@@ -27,9 +12,6 @@ import {
 } from '@/types/placement';
 import { LayerName } from '@/services/layerManager';
 
-/**
- * TokenPlacement component props
- */
 export interface TokenPlacementProps {
     /** Assets to place on canvas (managed by parent) */
     placedAssets: PlacedAsset[];
@@ -47,48 +29,33 @@ export interface TokenPlacementProps {
     onDragComplete: () => void;
 }
 
-/**
- * Get Token resource URL from asset
- * Prioritizes Token role, falls back to first Display resource
- */
 const getTokenImageUrl = (asset: Asset): string | null => {
-    // Find Token role resource
-    const tokenResource = asset.resources.find((r) => r.role === 1); // ResourceRole.Token
+    const tokenResource = asset.resources.find((r) => r.role === 1);
     if (tokenResource?.resource) {
         return tokenResource.resource.path;
     }
 
-    // Fallback to Display role
-    const displayResource = asset.resources.find((r) => r.role === 2); // ResourceRole.Display
+    const displayResource = asset.resources.find((r) => r.role === 2);
     if (displayResource?.resource) {
         return displayResource.resource.path;
     }
 
-    // No image available
     return null;
 };
 
-/**
- * Determine layer name based on asset kind
- */
 const getAssetLayer = (asset: Asset): LayerName => {
     if (asset.kind === 'Creature') {
-        return LayerName.Agents; // Characters and monsters
+        return LayerName.Agents;
     }
 
-    // Objects can go to Structure or Objects layer based on properties
-    const objectAsset = asset as any; // Type cast for objectProps
+    const objectAsset = asset as any;
     if (objectAsset.objectProps?.isOpaque) {
-        return LayerName.Structure; // Walls, doors (blocking)
+        return LayerName.Structure;
     }
 
-    return LayerName.Objects; // Furniture, decorations
+    return LayerName.Objects;
 };
 
-/**
- * TokenPlacement Component
- * Manages rendering placed assets as Konva Images
- */
 export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     placedAssets,
     onAssetPlaced,
@@ -98,16 +65,10 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     draggedAsset,
     onDragComplete,
 }) => {
-    // Track cursor position for preview
     const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | null>(null);
     const [previewValid, setPreviewValid] = useState(true);
-
-    // Image cache for performance
     const [imageCache, setImageCache] = useState<Map<string, HTMLImageElement>>(new Map());
 
-    /**
-     * Load image and cache it
-     */
     const loadImage = useCallback((url: string): Promise<HTMLImageElement> => {
         return new Promise((resolve, reject) => {
             const img = new window.Image();
@@ -118,16 +79,13 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         });
     }, []);
 
-    /**
-     * Preload images for all placed assets
-     */
     useEffect(() => {
         const loadImages = async () => {
-            const newCache = new Map(imageCache);
+            const newCache = new Map<string, HTMLImageElement>();
 
             for (const placedAsset of placedAssets) {
                 const imageUrl = getTokenImageUrl(placedAsset.asset);
-                if (imageUrl && !newCache.has(placedAsset.assetId)) {
+                if (imageUrl && !imageCache.has(placedAsset.assetId)) {
                     try {
                         const img = await loadImage(imageUrl);
                         newCache.set(placedAsset.assetId, img);
@@ -137,10 +95,9 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 }
             }
 
-            // Load dragged asset preview
             if (draggedAsset) {
                 const imageUrl = getTokenImageUrl(draggedAsset);
-                if (imageUrl && !newCache.has(draggedAsset.id)) {
+                if (imageUrl && !imageCache.has(draggedAsset.id)) {
                     try {
                         const img = await loadImage(imageUrl);
                         newCache.set(draggedAsset.id, img);
@@ -150,15 +107,18 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 }
             }
 
-            setImageCache(newCache);
+            if (newCache.size > 0) {
+                setImageCache((prevCache) => {
+                    const updatedCache = new Map(prevCache);
+                    newCache.forEach((img, key) => updatedCache.set(key, img));
+                    return updatedCache;
+                });
+            }
         };
 
         loadImages();
-    }, [placedAssets, draggedAsset, loadImage, imageCache]);
+    }, [placedAssets, draggedAsset, loadImage]);
 
-    /**
-     * Handle canvas mouse move for placement preview
-     */
     const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         if (!draggedAsset) return;
 
@@ -168,7 +128,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         const pointer = stage.getPointerPosition();
         if (!pointer) return;
 
-        // Convert to stage coordinates (account for zoom/pan)
         const scale = stage.scaleX();
         const position = {
             x: (pointer.x - stage.x()) / scale,
@@ -177,7 +136,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
 
         setCursorPosition(position);
 
-        // Validate placement
         const behavior = getPlacementBehavior(
             draggedAsset.kind,
             (draggedAsset as any).objectProps,
@@ -212,9 +170,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         setPreviewValid(validation.valid);
     }, [draggedAsset, gridConfig, placedAssets]);
 
-    /**
-     * Handle canvas click to place asset
-     */
     const handleClick = useCallback((_e: Konva.KonvaEventObject<MouseEvent>) => {
         if (!draggedAsset || !cursorPosition) return;
 
@@ -231,7 +186,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
 
         const snappedPosition = snapAssetPosition(cursorPosition, size, behavior, gridConfig);
 
-        // Validate placement
         const validation = validatePlacement(
             snappedPosition,
             size,
@@ -255,9 +209,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
             return;
         }
 
-        // Create placed asset
         const placedAsset: PlacedAsset = {
-            id: `placed-${Date.now()}-${Math.random()}`, // Unique ID
+            id: `placed-${Date.now()}-${Math.random()}`,
             assetId: draggedAsset.id,
             asset: draggedAsset,
             position: snappedPosition,
@@ -271,9 +224,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         setCursorPosition(null);
     }, [draggedAsset, cursorPosition, gridConfig, placedAssets, onAssetPlaced, onDragComplete]);
 
-    /**
-     * Render placed assets by layer
-     */
     const renderAssetsByLayer = (layerName: LayerName) => {
         return placedAssets
             .filter((placedAsset) => placedAsset.layer === layerName)
@@ -291,15 +241,12 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                         width={placedAsset.size.width}
                         height={placedAsset.size.height}
                         rotation={placedAsset.rotation}
-                        draggable={false} // Dragging handled by TokenDragHandle component
+                        draggable={false}
                     />
                 );
             });
     };
 
-    /**
-     * Render placement preview
-     */
     const renderPreview = () => {
         if (!draggedAsset || !cursorPosition) return null;
 
@@ -334,7 +281,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
 
     return (
         <>
-            {/* Structure Layer (walls, doors - blocking objects) */}
             <Layer
                 name={LayerName.Structure}
                 listening={!!draggedAsset}
@@ -344,7 +290,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 {renderAssetsByLayer(LayerName.Structure)}
             </Layer>
 
-            {/* Objects Layer (furniture, decorations) */}
             <Layer
                 name={LayerName.Objects}
                 listening={!!draggedAsset}
@@ -354,7 +299,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 {renderAssetsByLayer(LayerName.Objects)}
             </Layer>
 
-            {/* Agents Layer (characters, monsters - tokens) */}
             <Layer
                 name={LayerName.Agents}
                 listening={!!draggedAsset}

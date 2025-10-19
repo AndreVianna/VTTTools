@@ -92,9 +92,11 @@ describe('offlineSync', () => {
                         type: 'mutation',
                         endpointName: 'updateScene',
                         originalArgs: { id: '123', version: 1 }
-                    }
+                    },
+                    rejectedWithValue: true
                 },
-                payload: { status: 'FETCH_ERROR' }
+                payload: { status: 'FETCH_ERROR' },
+                error: { name: 'ConditionError', message: 'Network error' }
             };
 
             vi.mocked(storage.getItem).mockReturnValue([]);
@@ -134,9 +136,11 @@ describe('offlineSync', () => {
                         type: 'mutation',
                         endpointName: 'updateScene',
                         originalArgs: { id: '456' }
-                    }
+                    },
+                    rejectedWithValue: true
                 },
-                payload: { status: 'FETCH_ERROR' }
+                payload: { status: 'FETCH_ERROR' },
+                error: { message: 'Network error' }
             };
 
             vi.mocked(storage.getItem).mockReturnValue(existingMutations);

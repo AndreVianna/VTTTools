@@ -331,3 +331,24 @@ export async function verifyProtectedRouteBlocked(page: Page, path: string): Pro
     await page.goto(path);
     await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
 }
+
+/**
+ * Perform login using pool user credentials (currentUser from hooks)
+ * This is the common pattern used across most step definitions
+ */
+export async function performPoolUserLogin(world: CustomWorld): Promise<void> {
+    const password = process.env.BDD_TEST_PASSWORD;
+    if (!password) {
+        throw new Error('CRITICAL: BDD_TEST_PASSWORD environment variable is not set. Check your .env file.');
+    }
+
+    await world.page.goto('/login');
+    await world.page.waitForLoadState('networkidle');
+
+    await world.page.fill('input[type="email"], input[name="email"]', world.currentUser.email);
+    await world.page.fill('input[type="password"], input[name="password"]', password);
+    await world.page.click('button[type="submit"], button:has-text("Sign In")');
+
+    await world.page.waitForURL(url => !url.pathname.includes('/login') && !url.pathname.includes('/register'), { timeout: 15000 });
+    await world.page.waitForLoadState('networkidle');
+}

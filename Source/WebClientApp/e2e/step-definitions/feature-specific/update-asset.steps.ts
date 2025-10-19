@@ -672,7 +672,7 @@ Then('I should receive {int} No Content response', async function (
     this: CustomWorld,
     statusCode: number
 ) {
-    expect(this.lastApiResponse.status()).toBe(statusCode);
+    expect(this.lastApiResponse!.status()).toBe(statusCode);
 });
 
 Then('the Asset Library should refetch', async function (this: CustomWorld) {
@@ -724,7 +724,7 @@ Then('I should NOT receive {int} Forbidden error', async function (
     statusCode: number
 ) {
     if (this.lastApiResponse) {
-        expect(this.lastApiResponse.status()).not.toBe(statusCode);
+        expect(this.lastApiResponse!.status()).not.toBe(statusCode);
     }
 });
 
@@ -732,7 +732,7 @@ Then('the update should succeed without {int} error', async function (
     this: CustomWorld,
     errorCode: number
 ) {
-    const response = this.lastApiResponse;
+    const response = this.lastApiResponse!;
     expect(response.status()).not.toBe(errorCode);
 });
 
@@ -746,7 +746,7 @@ Then('I should receive {int} Forbidden error', async function (
     this: CustomWorld,
     statusCode: number
 ) {
-    const response = this.lastApiResponse;
+    const response = this.lastApiResponse!;
     expect(response.status()).toBe(statusCode);
 });
 
@@ -754,7 +754,7 @@ Then('the backend error message should be {string}', async function (
     this: CustomWorld,
     errorMessage: string
 ) {
-    const body = await this.lastApiResponse.json();
+    const body = await this.lastApiResponse!.json();
     expect(body.error || body.message).toContain(errorMessage);
 });
 
@@ -786,7 +786,7 @@ Then('the asset name should be updated in the library', async function (this: Cu
 
 Then('I should NOT receive authorization errors', async function (this: CustomWorld) {
     // No 403 or 401 errors
-    const response = this.lastApiResponse;
+    const response = this.lastApiResponse!;
     if (response) {
         expect(response.status()).not.toBe(403);
         expect(response.status()).not.toBe(401);

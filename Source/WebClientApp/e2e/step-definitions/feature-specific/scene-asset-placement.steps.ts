@@ -960,19 +960,19 @@ When('I place the new asset on the scene', async function (this: CustomWorld) {
 // ============================================================================
 
 Then('the asset should be placed successfully', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(201);
+    expect(this.lastApiResponse!.status()).toBe(201);
     await verifyAssetPlaced(this.page);
     this.attach('Asset placed successfully', 'text/plain');
 });
 
 Then('the asset should reference the correct template', async function (this: CustomWorld) {
-    const responseBody = await this.lastApiResponse.json();
+    const responseBody = await this.lastApiResponse!.json();
     expect(responseBody.assetId).toBe(this.currentAsset.id!);
 });
 
 Then('the asset should be placed on the scene', async function (this: CustomWorld) {
     // Fixed: Inline verification
-    expect(this.lastApiResponse.status()).toBe(201);
+    expect(this.lastApiResponse!.status()).toBe(201);
     await verifyAssetPlaced(this.page);
     this.attach('Asset placed successfully', 'text/plain');
 });
@@ -1092,15 +1092,15 @@ Then('the dimensions should be width {int} and height {int}', async function (
 });
 
 Then('I should see error with not found error', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(404);
+    expect(this.lastApiResponse!.status()).toBe(404);
 });
 
 Then('I should see error with forbidden error', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(403);
+    expect(this.lastApiResponse!.status()).toBe(403);
 });
 
 Then('the asset should be moved successfully', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(200);
+    expect(this.lastApiResponse!.status()).toBe(200);
 });
 
 Then('the asset is updated successfully', async function (this: CustomWorld) {
@@ -1161,7 +1161,7 @@ Then('the rotation should be {int} degrees', async function (this: CustomWorld, 
 });
 
 Then('the asset is removed successfully', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(204);
+    expect(this.lastApiResponse!.status()).toBe(204);
     await verifyAssetRemoved(this.page, this.currentAssetInstanceId!);
 });
 

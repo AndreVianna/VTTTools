@@ -494,7 +494,7 @@ When('I provide appropriate configuration for {string}', async function (this: C
 // ═══════════════════════════════════════════════════════════════
 
 Then('the grid is updated successfully', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(200);
+    expect(this.lastApiResponse!.status()).toBe(200);
 });
 
 Then('the grid type should be {string}', async function (this: CustomWorld, gridType: string) {
@@ -513,7 +513,7 @@ Then('the grid size should be {int}', async function (this: CustomWorld, size: n
 });
 
 Then('I should see error with validation error', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(400);
+    expect(this.lastApiResponse!.status()).toBe(400);
 });
 
 Then('all grid properties should be set correctly', async function (this: CustomWorld) {
@@ -537,11 +537,11 @@ Then('the scene should have no grid overlay', async function (this: CustomWorld)
 });
 
 Then('I should see error with not found error', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(404);
+    expect(this.lastApiResponse!.status()).toBe(404);
 });
 
 Then('I should see error with forbidden error', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(403);
+    expect(this.lastApiResponse!.status()).toBe(403);
 });
 
 Then('the offsets should be zero', async function (this: CustomWorld) {
@@ -561,7 +561,7 @@ Then('the negative offsets should be preserved', async function (this: CustomWor
 });
 
 Then('the grid is updated', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(200);
+    expect(this.lastApiResponse!.status()).toBe(200);
 });
 
 Then('the stage configuration should remain unchanged', async function (this: CustomWorld) {

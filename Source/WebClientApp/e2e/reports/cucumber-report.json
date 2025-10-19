@@ -1,0 +1,1147 @@
+[
+  {
+    "description": "  As an authenticated VTT Tools user\n  I want to securely log out of my account\n  So that my session is terminated and my account is secure",
+    "elements": [
+      {
+        "description": "",
+        "id": "handle-logout;logout-always-succeeds-client-side-regardless-of-server-response;logout-succeeds-despite-network-error",
+        "keyword": "Scenario",
+        "line": 17,
+        "name": "Logout succeeds despite network error",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 1943948000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am authenticated and logged in",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:18"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1626574000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "I have an active session with a valid token",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:21"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2936600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 18,
+            "name": "the logout API will fail with network error",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:99"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 56341000
+            },
+            "embeddings": [
+              {
+                "data": "TW9jayBzZXR1cDogbG9nb3V0IEFQSSB3aWxsIGZhaWwgd2l0aCBuZXR3b3JrIGVycm9y",
+                "mime_type": "text/plain"
+              }
+            ]
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 19,
+            "name": "I click the logout button",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:115"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 710779899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 20,
+            "name": "the authentication token should be cleared anyway",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:187"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 10656700
+            },
+            "embeddings": [
+              {
+                "data": "Q2xpZW50LXNpZGUgYXV0aCBzdGF0ZSBjbGVhcmVkIHN1Y2Nlc3NmdWxseSBkZXNwaXRlIEFQSSBmYWlsdXJl",
+                "mime_type": "text/plain"
+              }
+            ]
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 21,
+            "name": "the Auth Context should be reset",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:177"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5152500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 22,
+            "name": "I should be redirected to the landing page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:184"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 33631300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 23,
+            "name": "I should see a warning notification about incomplete server logout",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:199"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3006348899
+            },
+            "embeddings": [
+              {
+                "data": "V2FybmluZzogTm8gd2FybmluZyBub3RpZmljYXRpb24gZm91bmQuIFRoaXMgbWF5IGJlIGFjY2VwdGFibGUgaWYgZXJyb3IgaGFuZGxpbmcgaXMgc2ltcGxpZmllZC4=",
+                "mime_type": "text/plain"
+              }
+            ]
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 684870699
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@session-management",
+            "line": 4
+          },
+          {
+            "name": "@error-handling",
+            "line": 16
+          },
+          {
+            "name": "@resilience",
+            "line": 16
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "handle-logout;logout-always-succeeds-client-side-regardless-of-server-response;logout-succeeds-despite-server-error",
+        "keyword": "Scenario",
+        "line": 26,
+        "name": "Logout succeeds despite server error",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 970802999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am authenticated and logged in",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:18"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1601587700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "I have an active session with a valid token",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:21"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1259399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 27,
+            "name": "the logout API will return 500 error",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 51362000
+            },
+            "embeddings": [
+              {
+                "data": "TW9jayBzZXR1cDogbG9nb3V0IEFQSSB3aWxsIHJldHVybiA1MDAgZXJyb3I=",
+                "mime_type": "text/plain"
+              }
+            ]
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 28,
+            "name": "I click the logout button",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:115"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 682201900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 29,
+            "name": "the authentication token should be cleared anyway",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:187"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 24790199
+            },
+            "embeddings": [
+              {
+                "data": "Q2xpZW50LXNpZGUgYXV0aCBzdGF0ZSBjbGVhcmVkIHN1Y2Nlc3NmdWxseSBkZXNwaXRlIEFQSSBmYWlsdXJl",
+                "mime_type": "text/plain"
+              }
+            ]
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 30,
+            "name": "the Auth Context should be reset",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:177"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5511399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 31,
+            "name": "I should be redirected to the landing page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:184"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 4549799
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 631437299
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@session-management",
+            "line": 4
+          },
+          {
+            "name": "@error-handling",
+            "line": 25
+          },
+          {
+            "name": "@resilience",
+            "line": 25
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "handle-logout;logout-executes-immediately-without-confirmation;immediate-logout-without-confirmation-dialog",
+        "keyword": "Scenario",
+        "line": 36,
+        "name": "Immediate logout without confirmation dialog",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 363642500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am authenticated and logged in",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:18"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1602825600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "I have an active session with a valid token",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:21"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1219700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 37,
+            "name": "I click the logout button",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:115"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 712486799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 38,
+            "name": "the logout should execute immediately",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:255"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 16369300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 39,
+            "name": "I should be logged out",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:258"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 6237099
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 593772000
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@session-management",
+            "line": 4
+          },
+          {
+            "name": "@happy-path",
+            "line": 35
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "handle-logout;logout-executes-immediately-without-confirmation;logout-clears-client-authentication-state",
+        "keyword": "Scenario",
+        "line": 42,
+        "name": "Logout clears client authentication state",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 351952300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am authenticated and logged in",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:18"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1585538500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "I have an active session with a valid token",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:21"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 953399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 43,
+            "name": "I am authenticated with session cookie",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:42"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1300199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 44,
+            "name": "I successfully log out",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:152"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 729483000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 45,
+            "name": "the session cookie should be cleared by the server",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:264"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1642199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 46,
+            "name": "Redux authSlice.isAuthenticated should be false",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:269"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 8854800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 47,
+            "name": "Redux authSlice.user should be null",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:275"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5355000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 48,
+            "name": "I should not be able to access protected routes",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:284"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1200936300
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 587756900
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@session-management",
+            "line": 4
+          },
+          {
+            "name": "@security",
+            "line": 41
+          },
+          {
+            "name": "@redux",
+            "line": 41
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "handle-logout;logout-executes-immediately-without-confirmation;handle-logout-with-expired-token",
+        "keyword": "Scenario",
+        "line": 61,
+        "name": "Handle logout with expired token",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 965216500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am authenticated and logged in",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:18"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1602372800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "I have an active session with a valid token",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:21"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1245999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 62,
+            "name": "my session token has expired",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:59"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2293799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 63,
+            "name": "I click the logout button",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:115"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 781989399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 64,
+            "name": "the client should clear the token anyway",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:332"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1463400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 65,
+            "name": "the server should return 401 error",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:337"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 381900
+            },
+            "embeddings": [
+              {
+                "data": "U2VydmVyIHJldHVybmVkIDQwMSBmb3IgZXhwaXJlZCB0b2tlbiAoZXhwZWN0ZWQgYmVoYXZpb3Ip",
+                "mime_type": "text/plain"
+              }
+            ]
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 66,
+            "name": "I should still be logged out successfully",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:347"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 380127199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 67,
+            "name": "I should be redirected to the landing page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:184"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2180500
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 622230600
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@session-management",
+            "line": 4
+          },
+          {
+            "name": "@edge-case",
+            "line": 60
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "handle-logout;logout-executes-immediately-without-confirmation;handle-logout-with-already-terminated-session",
+        "keyword": "Scenario",
+        "line": 70,
+        "name": "Handle logout with already terminated session",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 964547799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am authenticated and logged in",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:18"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1588098900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "I have an active session with a valid token",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:21"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1132200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 71,
+            "name": "my session was terminated by another process",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:63"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1645799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 72,
+            "name": "I click the logout button",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:115"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 768806700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 73,
+            "name": "the server should return 404 error",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:350"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 477100
+            },
+            "embeddings": [
+              {
+                "data": "Tm8gcmVzcG9uc2UgY2FwdHVyZWQgLSBjbGllbnQtc2lkZSBjbGVhcmluZyBpcyB3aGF0IG1hdHRlcnM=",
+                "mime_type": "text/plain"
+              }
+            ]
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 74,
+            "name": "the client should clear state anyway",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:362"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1521399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 75,
+            "name": "I should be logged out successfully",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:445"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 377699000
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 627990599
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@session-management",
+            "line": 4
+          },
+          {
+            "name": "@edge-case",
+            "line": 69
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "handle-logout;logout-executes-immediately-without-confirmation;logout-clears-sensitive-application-state",
+        "keyword": "Scenario",
+        "line": 78,
+        "name": "Logout clears sensitive application state",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 366746599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am authenticated and logged in",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:18"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1645411599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "I have an active session with a valid token",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:21"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1647599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 79,
+            "name": "I have loaded sensitive user data in the application",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:82"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 51786799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 80,
+            "name": "I log out",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:134"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 713520400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 81,
+            "name": "all user-specific data should be cleared from state",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:378"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5104800
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 585210600
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@session-management",
+            "line": 4
+          },
+          {
+            "name": "@security",
+            "line": 77
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "handle-logout;logout-executes-immediately-without-confirmation;redirect-to-landing-page-after-logout",
+        "keyword": "Scenario",
+        "line": 85,
+        "name": "Redirect to landing page after logout",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 360986100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am authenticated and logged in",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:18"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1581964999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "I have an active session with a valid token",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:21"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1255099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 86,
+            "name": "I am on the dashboard page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 882657899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 87,
+            "name": "I successfully log out",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:152"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 696716699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 88,
+            "name": "I should be redirected to the landing page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:184"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5406900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 89,
+            "name": "I should see the public landing page content",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:417"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 128257899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 90,
+            "name": "I should see login and register options",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\authentication\\logout.steps.ts:421"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3884500
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 581445200
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@session-management",
+            "line": 4
+          },
+          {
+            "name": "@navigation",
+            "line": 84
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "handle-logout",
+    "line": 5,
+    "keyword": "Feature",
+    "name": "Handle Logout",
+    "tags": [
+      {
+        "name": "@use-case",
+        "line": 4
+      },
+      {
+        "name": "@authentication",
+        "line": 4
+      },
+      {
+        "name": "@session-management",
+        "line": 4
+      }
+    ],
+    "uri": "..\\..\\Documents\\Areas\\Identity\\Features\\UserAuthentication\\UseCases\\HandleLogout\\HandleLogout.feature"
+  }
+]

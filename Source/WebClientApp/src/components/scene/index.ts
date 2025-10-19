@@ -8,6 +8,7 @@ export { SceneEditorMenuBar } from './SceneEditorMenuBar';
 export { PlacementCursor } from './PlacementCursor';
 export { TokenPlacement } from './TokenPlacement';
 export { TokenDragHandle } from './TokenDragHandle';
+export { UndoRedoToolbar } from './UndoRedoToolbar';
 
 // Types
 export type { SceneCanvasProps, SceneCanvasHandle, Viewport } from './SceneCanvas';

@@ -52,7 +52,7 @@ export class CustomWorld extends World {
     createdSessions: any[] = [];  // Added: Track sessions for cleanup
     createdTestUsers: string[] = [];  // Added: Track test users created via DB for cleanup
     uploadedResourceIds: string[] = [];
-    lastApiResponse!: APIResponse;
+    lastApiResponse: APIResponse | null = null;
 
     // Configuration
     baseUrl: string;

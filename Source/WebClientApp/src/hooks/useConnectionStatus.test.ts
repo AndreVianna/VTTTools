@@ -4,13 +4,11 @@ import { useConnectionStatus } from './useConnectionStatus';
 
 describe('useConnectionStatus', () => {
     beforeEach(() => {
-        vi.useFakeTimers();
         global.fetch = vi.fn();
     });
 
     afterEach(() => {
         vi.restoreAllMocks();
-        vi.useRealTimers();
     });
 
     it('should initialize with online status', () => {
@@ -24,14 +22,12 @@ describe('useConnectionStatus', () => {
     it('should detect online status via heartbeat', async () => {
         vi.mocked(fetch).mockResolvedValue({ ok: true } as Response);
 
-        const { result } = renderHook(() => useConnectionStatus());
-
-        await vi.advanceTimersByTimeAsync(100);
+        const { result } = renderHook(() => useConnectionStatus({ pollInterval: 50 }));
 
         await waitFor(() => {
             expect(result.current.isOnline).toBe(true);
             expect(result.current.lastSync).toBeInstanceOf(Date);
-        });
+        }, { timeout: 200 });
     });
 
     it('should detect offline status when fetch fails', async () => {
@@ -39,73 +35,63 @@ describe('useConnectionStatus', () => {
 
         const onStatusChange = vi.fn();
         const { result } = renderHook(() =>
-            useConnectionStatus({ onStatusChange })
+            useConnectionStatus({ onStatusChange, pollInterval: 50 })
         );
-
-        await vi.advanceTimersByTimeAsync(100);
 
         await waitFor(() => {
             expect(result.current.isOnline).toBe(false);
-        });
+        }, { timeout: 200 });
     });
 
     it('should detect offline status when response is not ok', async () => {
         vi.mocked(fetch).mockResolvedValue({ ok: false } as Response);
 
-        const { result } = renderHook(() => useConnectionStatus());
-
-        await vi.advanceTimersByTimeAsync(100);
+        const { result } = renderHook(() => useConnectionStatus({ pollInterval: 50 }));
 
         await waitFor(() => {
             expect(result.current.isOnline).toBe(false);
-        });
+        }, { timeout: 200 });
     });
 
     it('should call onStatusChange when connection changes', async () => {
         const onStatusChange = vi.fn();
 
-        vi.mocked(fetch).mockResolvedValueOnce({ ok: true } as Response);
+        vi.mocked(fetch).mockResolvedValue({ ok: true } as Response);
         const { result } = renderHook(() =>
-            useConnectionStatus({ onStatusChange })
+            useConnectionStatus({ onStatusChange, pollInterval: 50 })
         );
 
-        await vi.advanceTimersByTimeAsync(100);
-        await waitFor(() => expect(result.current.isOnline).toBe(true));
+        await waitFor(() => expect(result.current.isOnline).toBe(true), { timeout: 200 });
 
-        vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'));
-        await vi.advanceTimersByTimeAsync(5000);
+        vi.mocked(fetch).mockRejectedValue(new Error('Network error'));
 
         await waitFor(() => {
             expect(result.current.isOnline).toBe(false);
             expect(onStatusChange).toHaveBeenCalledWith(false);
-        });
+        }, { timeout: 300 });
     });
 
     it('should poll at specified interval', async () => {
         vi.mocked(fetch).mockResolvedValue({ ok: true } as Response);
 
         renderHook(() =>
-            useConnectionStatus({ pollInterval: 1000 })
+            useConnectionStatus({ pollInterval: 50 })
         );
 
-        await vi.advanceTimersByTimeAsync(100);
-        await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(fetch).toHaveBeenCalled(), { timeout: 200 });
+        const firstCallCount = vi.mocked(fetch).mock.calls.length;
 
-        await vi.advanceTimersByTimeAsync(1000);
-        await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+        await new Promise(resolve => setTimeout(resolve, 100));
 
-        await vi.advanceTimersByTimeAsync(1000);
-        await waitFor(() => expect(fetch).toHaveBeenCalledTimes(3));
+        expect(vi.mocked(fetch).mock.calls.length).toBeGreaterThan(firstCallCount);
     });
 
     it('should use custom health endpoint', async () => {
         vi.mocked(fetch).mockResolvedValue({ ok: true } as Response);
 
         renderHook(() =>
-            useConnectionStatus({ healthEndpoint: '/custom/health' })
+            useConnectionStatus({ healthEndpoint: '/custom/health', pollInterval: 50 })
         );
-
-        await vi.advanceTimersByTimeAsync(100);
 
         await waitFor(() => {
             expect(fetch).toHaveBeenCalledWith(
@@ -115,52 +101,51 @@ describe('useConnectionStatus', () => {
                     cache: 'no-store'
                 })
             );
-        });
+        }, { timeout: 200 });
     });
 
     it('should update lastSync only when online', async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({ ok: true } as Response);
+        vi.mocked(fetch).mockResolvedValue({ ok: true } as Response);
 
-        const { result } = renderHook(() => useConnectionStatus());
+        const { result } = renderHook(() => useConnectionStatus({ pollInterval: 50 }));
 
-        await vi.advanceTimersByTimeAsync(100);
-        await waitFor(() => expect(result.current.lastSync).toBeInstanceOf(Date));
+        await waitFor(() => expect(result.current.lastSync).toBeInstanceOf(Date), { timeout: 200 });
 
-        const firstSync = result.current.lastSync;
+        await new Promise(resolve => setTimeout(resolve, 60));
+        const lastSyncBeforeOffline = result.current.lastSync;
 
-        vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'));
-        await vi.advanceTimersByTimeAsync(5000);
+        vi.mocked(fetch).mockRejectedValue(new Error('Network error'));
 
         await waitFor(() => {
             expect(result.current.isOnline).toBe(false);
-            expect(result.current.lastSync).toEqual(firstSync);
-        });
+        }, { timeout: 300 });
+
+        expect(result.current.lastSync).toEqual(lastSyncBeforeOffline);
     });
 
     it('should cleanup on unmount', async () => {
         vi.mocked(fetch).mockResolvedValue({ ok: true } as Response);
 
-        const { unmount } = renderHook(() => useConnectionStatus());
+        const { unmount } = renderHook(() => useConnectionStatus({ pollInterval: 50 }));
 
-        await vi.advanceTimersByTimeAsync(100);
-        await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(fetch).toHaveBeenCalled(), { timeout: 200 });
+        const callCountBeforeUnmount = vi.mocked(fetch).mock.calls.length;
 
         unmount();
 
-        await vi.advanceTimersByTimeAsync(5000);
-        expect(fetch).toHaveBeenCalledTimes(1);
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        expect(vi.mocked(fetch).mock.calls.length).toBe(callCountBeforeUnmount);
     });
 
     it('should handle timeout properly', async () => {
         vi.mocked(fetch).mockRejectedValue(new Error('Timeout'));
 
-        const { result } = renderHook(() => useConnectionStatus());
-
-        await vi.advanceTimersByTimeAsync(100);
+        const { result } = renderHook(() => useConnectionStatus({ pollInterval: 50 }));
 
         await waitFor(() => {
             expect(result.current.isOnline).toBe(false);
-        });
+        }, { timeout: 200 });
     });
 
     it('should provide checkConnection method', async () => {

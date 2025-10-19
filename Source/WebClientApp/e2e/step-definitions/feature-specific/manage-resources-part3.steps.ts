@@ -214,15 +214,15 @@ When('I call getResourceUrl\\(resourceId)', async function (this: CustomWorld) {
 Then('the URL should be {string}', async function (this: CustomWorld, _expectedUrl: string) {
     const resourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
     const expectedFullUrl = `/api/resources/${resourceId}/download`;
-    expect(this.lastApiResponse.url()).toContain(expectedFullUrl);
+    expect(this.lastApiResponse!.url()).toContain(expectedFullUrl);
 });
 
 Then('requesting this URL should return PNG image', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(200);
+    expect(this.lastApiResponse!.status()).toBe(200);
 });
 
 Then('Content-Type header should be {string}', async function (this: CustomWorld, contentType: string) {
-    expect(this.lastApiResponse.headers()['content-type']).toBe(contentType);
+    expect(this.lastApiResponse!.headers()['content-type']).toBe(contentType);
 });
 
 Then('backend uses Svg.Skia.SvgDocument.FromSvg\\(\\) to parse', async function (this: CustomWorld) {

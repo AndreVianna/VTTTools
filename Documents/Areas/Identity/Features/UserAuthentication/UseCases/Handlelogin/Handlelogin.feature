@@ -41,8 +41,8 @@ Feature: Handle Login
 
     @happy-path
     Scenario: Login with case-insensitive email
-      Given an account exists with email "user@example.com"
-      And I enter email "USER@EXAMPLE.COM"
+      Given an account exists with email "gamemaster@example.com"
+      And I enter email "GAMEMASTER@EXAMPLE.COM"
       And I enter password "Test123!"
       When I attempt to submit the login form
       Then I should be authenticated successfully
@@ -86,8 +86,8 @@ Feature: Handle Login
 
   @error-handling
   Scenario: Handle incorrect password
-    Given an account exists with email "user@example.com"
-    And I enter email "user@example.com"
+    Given an account exists with email "gamemaster@example.com"
+    And I enter email "gamemaster@example.com"
     And I enter incorrect password "WrongPassword"
     When I attempt to submit the login form
     Then I should see error "Invalid email or password."
@@ -97,8 +97,7 @@ Feature: Handle Login
 
   @error-handling
   Scenario: Handle non-existent email
-    Given no account exists with email "nonexistent@example.com"
-    And I enter email "nonexistent@example.com"
+    Given I enter email "nonexistent@example.com"
     And I enter password "SomePassword123"
     When I attempt to submit the login form
     Then I should see error "Invalid email or password."
@@ -107,7 +106,7 @@ Feature: Handle Login
 
   @security @error-handling
   Scenario: Handle account lockout after failed attempts
-    Given an account exists with email "user@example.com"
+    Given an account exists with email "gamemaster@example.com"
     And the account is locked due to failed login attempts
     When I submit valid credentials for that account
     Then I should see error "Your account is temporarely locked. Please try again later."

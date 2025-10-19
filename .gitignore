@@ -417,3 +417,9 @@ azurite-data/
 /**/*.local.json
 /**/*.local.md
 /**/logs
+
+# test coverage files
+/**/coverage/
+/**/obj/
+/**/test-output.txt/
+

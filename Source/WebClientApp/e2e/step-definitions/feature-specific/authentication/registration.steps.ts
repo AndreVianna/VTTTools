@@ -243,7 +243,9 @@ Then('my email should pass validation', async function (this: CustomWorld) {
 });
 
 Then('my account should be created', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(201);
+    expect(this.lastApiResponse).toBeDefined();
+    expect(this.lastApiResponse).not.toBeNull();
+    expect(this.lastApiResponse!.status()).toBe(201);
 });
 
 Then('my account should not be created', async function (this: CustomWorld) {
@@ -266,7 +268,9 @@ Then('my password should pass validation', async function (this: CustomWorld) {
 });
 
 Then('my account should be created successfully', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(201);
+    expect(this.lastApiResponse).toBeDefined();
+    expect(this.lastApiResponse).not.toBeNull();
+    expect(this.lastApiResponse!.status()).toBe(201);
 });
 
 Then('I should be redirected to {string}', async function (
@@ -304,7 +308,9 @@ Then('my account is marked as {string}', async function (
 });
 
 Then('I should still be created', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(201);
+    expect(this.lastApiResponse).toBeDefined();
+    expect(this.lastApiResponse).not.toBeNull();
+    expect(this.lastApiResponse!.status()).toBe(201);
 });
 
 Then('I should be redirected to login page', async function (this: CustomWorld) {
@@ -385,7 +391,9 @@ Then('the error appears below the confirm password field', async function (this:
 });
 
 Then('I should see my account created', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(201);
+    expect(this.lastApiResponse).toBeDefined();
+    expect(this.lastApiResponse).not.toBeNull();
+    expect(this.lastApiResponse!.status()).toBe(201);
 });
 
 Then('password is accepted', async function (this: CustomWorld) {
@@ -402,5 +410,7 @@ Then('I should receive a confirmation email', async function (this: CustomWorld)
 });
 
 Then('my account is created', async function (this: CustomWorld) {
-    expect(this.lastApiResponse.status()).toBe(201);
+    expect(this.lastApiResponse).toBeDefined();
+    expect(this.lastApiResponse).not.toBeNull();
+    expect(this.lastApiResponse!.status()).toBe(201);
 });

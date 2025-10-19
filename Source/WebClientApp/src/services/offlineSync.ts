@@ -1,5 +1,4 @@
 import type { Middleware, MiddlewareAPI } from '@reduxjs/toolkit';
-import { isRejectedWithValue } from '@reduxjs/toolkit';
 import { storage } from '@/utils/storage';
 
 const RTK_QUERY_CACHE_KEY = 'rtkQueryCache';
@@ -27,19 +26,21 @@ export const persistMiddleware: Middleware = (api: MiddlewareAPI) => (next) => (
         }
     }
 
-    if (isRejectedWithValue(action)) {
-        const mutation = action?.meta?.arg;
-        if (mutation?.type === 'mutation' && (action?.payload as any)?.status === 'FETCH_ERROR') {
-            const offlineMutation: OfflineMutation = {
-                id: `${mutation.endpointName}_${Date.now()}`,
-                endpoint: mutation.endpointName,
-                args: mutation.originalArgs,
-                timestamp: Date.now()
-            };
+    const mutation = action?.meta?.arg;
+    const isRejectedMutation = action?.type?.includes?.('/rejected');
+    const hasRejectedWithValue = action?.meta?.rejectedWithValue === true;
+    const isFetchError = (action?.payload as any)?.status === 'FETCH_ERROR';
 
-            const existingMutations = storage.getItem<OfflineMutation[]>(OFFLINE_MUTATIONS_KEY) || [];
-            storage.setItem(OFFLINE_MUTATIONS_KEY, [...existingMutations, offlineMutation]);
-        }
+    if (isRejectedMutation && hasRejectedWithValue && mutation?.type === 'mutation' && isFetchError) {
+        const offlineMutation: OfflineMutation = {
+            id: `${mutation.endpointName}_${Date.now()}`,
+            endpoint: mutation.endpointName,
+            args: mutation.originalArgs,
+            timestamp: Date.now()
+        };
+
+        const existingMutations = storage.getItem<OfflineMutation[]>(OFFLINE_MUTATIONS_KEY) || [];
+        storage.setItem(OFFLINE_MUTATIONS_KEY, [...existingMutations, offlineMutation]);
     }
 
     return result;

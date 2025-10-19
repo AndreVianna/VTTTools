@@ -488,7 +488,7 @@ Then('my email should pass format validation', async function (this: CustomWorld
 
 Then('the request should be processed', async function (this: CustomWorld) {
     // Verify API call was successful
-    expect(this.lastApiResponse.status()).toBe(200);
+    expect(this.lastApiResponse!.status()).toBe(200);
 });
 
 Then('I should receive success', async function (this: CustomWorld) {
@@ -610,7 +610,7 @@ Then('only the new token should be valid', async function (this: CustomWorld) {
 });
 
 Then('I should receive {int} status', async function (this: CustomWorld, expectedStatus: number) {
-    expect(this.lastApiResponse.status()).toBe(expectedStatus);
+    expect(this.lastApiResponse!.status()).toBe(expectedStatus);
 });
 
 Then('no email should be sent', async function (this: CustomWorld) {
@@ -936,7 +936,7 @@ Then('I should see a link to request new reset', async function (this: CustomWor
 });
 
 Then('I should receive {int} status', async function (this: CustomWorld, statusCode: number) {
-    expect(this.lastApiResponse.status()).toBe(statusCode);
+    expect(this.lastApiResponse!.status()).toBe(statusCode);
 });
 
 Then('my password should not be updated', async function (this: CustomWorld) {
