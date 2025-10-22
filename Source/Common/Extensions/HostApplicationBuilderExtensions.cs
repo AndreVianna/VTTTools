@@ -93,7 +93,6 @@ public static class HostApplicationBuilderExtensions {
     internal static void ConfigureJsonOptions(JsonOptions options) {
         options.SerializerOptions.PropertyNameCaseInsensitive = true;
         options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
         options.SerializerOptions.Converters.Add(new OptionalConverterFactory());
     }
 }

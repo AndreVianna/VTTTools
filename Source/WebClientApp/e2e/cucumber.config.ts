@@ -27,7 +27,8 @@ const config = {
     strict: true,
     dryRun: false,
     paths: [
-        '../../Documents/Areas/Assets/Features/AssetManagement/**/*.feature'
+        '../../Documents/Areas/Assets/Features/AssetManagement/**/*.feature',
+        '../../Documents/Areas/Identity/Features/**/*.feature'
     ],
     // Tag-based test execution
     // Run: npm run test:bdd -- --tags "@smoke"

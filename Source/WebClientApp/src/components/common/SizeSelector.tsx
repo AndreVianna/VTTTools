@@ -71,21 +71,39 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
     readOnly = false
 }) => {
     // Derive selectedName from value props
-    const selectedName = useMemo(
-        () => determineSizeName(value.width, value.height, value.isSquare),
-        [value.width, value.height, value.isSquare]
-    );
+    const selectedName = useMemo(() => {
+        const computed = determineSizeName(value.width, value.height, value.isSquare);
+        console.log('[SizeSelector] Computed selectedName:', {
+            width: value.width,
+            height: value.height,
+            isSquare: value.isSquare,
+            computed
+        });
+        return computed;
+    }, [value.width, value.height, value.isSquare]);
 
     const handleNameChange = (event: SelectChangeEvent<SizeName>) => {
         const newName = Number(event.target.value) as SizeName;
 
-        if (newName !== SizeName.Custom) {
+        console.log('[SizeSelector] handleNameChange:', { newName, currentValue: value });
+
+        if (newName === SizeName.Custom) {
+            const newValue = {
+                width: value.width || 1,
+                height: value.height || 1,
+                isSquare: false
+            };
+            console.log('[SizeSelector] Setting Custom size:', newValue);
+            onChange(newValue);
+        } else {
             const dimensions = SIZE_MAP[newName];
-            onChange({
+            const newValue = {
                 width: dimensions.width,
                 height: dimensions.height,
                 isSquare: true
-            });
+            };
+            console.log('[SizeSelector] Setting named size:', newValue);
+            onChange(newValue);
         }
     };
 
@@ -175,7 +193,7 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
                     </Select>
                 </FormControl>
 
-                {selectedName === SizeName.Custom && (
+                {(selectedName === SizeName.Custom || !value.isSquare) && (
                     <>
                         <TextField
                             label={value.isSquare ? '' : 'W'}
@@ -216,7 +234,7 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
                     </>
                 )}
             </Box>
-            {selectedName === SizeName.Custom && (!isValidSize(value.width) || (!value.isSquare && !isValidSize(value.height))) && (
+            {(selectedName === SizeName.Custom || !value.isSquare) && (!isValidSize(value.width) || (!value.isSquare && !isValidSize(value.height))) && (
                 <Typography variant="caption" color="error" sx={{ display: 'block', mt: 0.5 }}>
                     Valid: 0.125 (⅛), 0.25 (¼), 0.5 (½), or whole numbers
                 </Typography>

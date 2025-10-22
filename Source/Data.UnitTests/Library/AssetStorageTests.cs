@@ -137,6 +137,92 @@ public class AssetStorageTests
     }
 
     [Fact]
+    public async Task UpdateAsync_WithChangedResourceRoles_UpdatesRolesInDatabase() {
+        // Arrange
+        var resourceId = Guid.CreateVersion7();
+        var resource = new Data.Media.Entities.Resource {
+            Id = resourceId,
+            Type = ResourceType.Image,
+            Path = "assets/test-resource",
+            ContentType = "image/png",
+            FileName = "test_resource.png",
+            FileLength = 1000,
+        };
+        await _context.Resources.AddAsync(resource, _ct);
+
+        var entity = new Data.Assets.Entities.CreatureAsset {
+            Id = Guid.CreateVersion7(),
+            OwnerId = Guid.CreateVersion7(),
+            Kind = AssetKind.Creature,
+            Name = "Asset With Resource",
+            Description = "Test description",
+            IsPublished = false,
+            IsPublic = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            Properties = new Data.Assets.Entities.CreatureProperties {
+                CellSize = 1,
+                Category = CreatureCategory.Character,
+            },
+            Resources = [
+                new() {
+                    ResourceId = resourceId,
+                    Role = ResourceRole.Token
+                }
+            ]
+        };
+
+        await _context.Assets.AddAsync(entity, _ct);
+        await _context.SaveChangesAsync(_ct);
+
+        var updatedAsset = new CreatureAsset {
+            Id = entity.Id,
+            OwnerId = entity.OwnerId,
+            Name = entity.Name,
+            Description = entity.Description,
+            Resources = [
+                new() {
+                    ResourceId = resourceId,
+                    Role = ResourceRole.Token | ResourceRole.Display,
+                    Resource = new() {
+                        Id = resourceId,
+                        Type = ResourceType.Image,
+                        Path = "assets/test-resource",
+                        Metadata = new ResourceMetadata {
+                            FileName = "test_resource.png",
+                            ContentType = "image/png",
+                            FileLength = 1000,
+                            ImageSize = new(100, 100),
+                            Duration = TimeSpan.Zero,
+                        },
+                        Tags = [],
+                    },
+                },
+            ],
+            IsPublished = entity.IsPublished,
+            IsPublic = entity.IsPublic,
+            Properties = new() {
+                Size = new() { Width = 1, Height = 1, IsSquare = true },
+                Category = CreatureCategory.Character,
+            },
+        };
+
+        // Act
+        var result = await _storage.UpdateAsync(updatedAsset, _ct);
+
+        // Assert
+        result.Should().BeTrue();
+        var dbAsset = await _context.Assets
+            .Include(a => a.Resources)
+            .FirstAsync(a => a.Id == entity.Id, _ct);
+        dbAsset.Should().NotBeNull();
+        dbAsset.Resources.Should().HaveCount(1);
+        var dbResource = dbAsset.Resources.First();
+        dbResource.ResourceId.Should().Be(resourceId);
+        dbResource.Role.Should().Be(ResourceRole.Token | ResourceRole.Display);
+    }
+
+    [Fact]
     public async Task DeleteAsync_WithExistingAsset_RemovesFromDatabase() {
         // Arrange
         var asset = DbContextHelper.CreateTestAssetEntity("Asset To Delete");

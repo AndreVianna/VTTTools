@@ -105,7 +105,7 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
           console.log('🔐 Auth Debug - x-user header:', base64Url);
         }
       } else if (isDevelopment) {
-        console.warn('⚠️ No user ID found in state for x-user header');
+        console.debug('🔐 No user ID yet (auth loading)');
       }
 
       return headers;

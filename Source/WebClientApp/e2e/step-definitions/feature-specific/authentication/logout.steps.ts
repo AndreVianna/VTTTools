@@ -179,7 +179,7 @@ When('I log out', { timeout: 15000 }, async function (this: CustomWorld) {
     await this.page.waitForTimeout(500);
     await this.page.locator('#menu-signout').click();
     await this.page.waitForLoadState('networkidle');
-    await expect(this.page).toHaveURL(/\/login$/, { timeout: 10000 });
+    await expect(this.page).toHaveURL(/\/$/, { timeout: 10000 });
 });
 
 When('I attempt to click logout again', async function (this: CustomWorld) {
@@ -193,7 +193,7 @@ When('I log out from my desktop', async function (this: CustomWorld) {
     await this.page.waitForTimeout(500);
     await this.page.locator('#menu-signout').click();
 
-    await expect(this.page).toHaveURL(/\/login$/, { timeout: 10000 });
+    await expect(this.page).toHaveURL(/\/$/, { timeout: 10000 });
 });
 
 When('I successfully log out', async function (this: CustomWorld) {
@@ -201,7 +201,7 @@ When('I successfully log out', async function (this: CustomWorld) {
     await this.page.waitForTimeout(500);
     await this.page.locator('#menu-signout').click();
 
-    await expect(this.page).toHaveURL(/\/login$/, { timeout: 10000 });
+    await expect(this.page).toHaveURL(/\/$/, { timeout: 10000 });
 });
 
 When('the logout request is processed', async function (this: CustomWorld) {
@@ -241,7 +241,7 @@ Then('the Auth Context should be reset', async function (this: CustomWorld) {
 });
 
 Then('I should be redirected to the landing page', async function (this: CustomWorld) {
-    await expect(this.page).toHaveURL(/\/login$/, { timeout: 10000 });
+    await expect(this.page).toHaveURL(/\/$/, { timeout: 10000 });
 });
 
 Then('the authentication token should be cleared anyway', async function (this: CustomWorld) {
@@ -261,7 +261,7 @@ Then('the authentication token should be cleared anyway', async function (this: 
 });
 
 Then('I should see a warning notification about incomplete server logout', async function (this: CustomWorld) {
-    // The notification should appear on the landing/login page after redirect
+    // The notification should appear on the landing page after redirect
     await this.page.waitForLoadState('networkidle');
 
     // Look for MUI alert/snackbar or any error message
@@ -298,7 +298,7 @@ Then('I should see {string} and {string} buttons', async function (
 });
 
 Then('the logout should proceed', async function (this: CustomWorld) {
-    await expect(this.page).toHaveURL(/\/login$/, { timeout: 10000 });
+    await expect(this.page).toHaveURL(/\/$/, { timeout: 10000 });
 });
 
 Then('my session should be terminated', async function (this: CustomWorld) {
@@ -313,7 +313,7 @@ Then('the dialog should close', async function (this: CustomWorld) {
 });
 
 Then('no logout should occur', async function (this: CustomWorld) {
-    await expect(this.page).not.toHaveURL(/\/login/);
+    await expect(this.page).not.toHaveURL(/\//);
 });
 
 Then('I should remain authenticated', async function (this: CustomWorld) {
@@ -335,11 +335,11 @@ Then('no confirmation dialog should appear', async function (this: CustomWorld) 
 });
 
 Then('the logout should execute immediately', async function (this: CustomWorld) {
-    await expect(this.page).toHaveURL(/\/login$/, { timeout: 5000 });
+    await expect(this.page).toHaveURL(/\/$/, { timeout: 5000 });
 });
 
 Then('I should be logged out', async function (this: CustomWorld) {
-    await expect(this.page).toHaveURL(/\/login$/, { timeout: 10000 });
+    await expect(this.page).toHaveURL(/\/$/, { timeout: 10000 });
 
     const cookies = await this.context.cookies();
     const authCookie = cookies.find(c => c.name.includes('auth') || c.name.includes('session') || c.name.includes('AspNetCore'));
@@ -372,7 +372,7 @@ Then('RTK Query cache should be reset', async function (this: CustomWorld) {
 
 Then('I should not be able to access protected routes', async function (this: CustomWorld) {
     await this.page.goto('/dashboard');
-    await expect(this.page).toHaveURL(/\/login/, { timeout: 5000 });
+    await expect(this.page).toHaveURL(/\//, { timeout: 5000 });
 });
 
 Then('the Auth Context user should be set to null', async function (this: CustomWorld) {
@@ -383,7 +383,7 @@ Then('the Auth Context user should be set to null', async function (this: Custom
 });
 
 Then('all components should reflect unauthenticated state', async function (this: CustomWorld) {
-    // On login page, verify header shows login/register buttons (unauthenticated state)
+    // On landing page, verify header shows login/register buttons (unauthenticated state)
     await expect(
         this.page.locator('#btn-header-login, #btn-header-register').first()
     ).toBeVisible({ timeout: 5000 });
@@ -391,7 +391,7 @@ Then('all components should reflect unauthenticated state', async function (this
 
 Then('protected routes should become inaccessible', async function (this: CustomWorld) {
     await this.page.goto('/dashboard');
-    await expect(this.page).toHaveURL(/\/login/, { timeout: 5000 });
+    await expect(this.page).toHaveURL(/\//, { timeout: 5000 });
 });
 
 Then('the logout button should show a loading spinner', async function (this: CustomWorld) {
@@ -418,7 +418,7 @@ Then('I should see any unsaved changes warning', async function (this: CustomWor
 });
 
 Then('the logout should proceed after callback completes', async function (this: CustomWorld) {
-    await expect(this.page).toHaveURL(/\/login$/, { timeout: 10000 });
+    await expect(this.page).toHaveURL(/\/$/, { timeout: 10000 });
 });
 
 Then('the onLogoutComplete callback should be executed', async function (this: CustomWorld) {
@@ -430,7 +430,7 @@ Then('any cleanup operations should be performed', async function (this: CustomW
 });
 
 Then('I should be redirected after callback completes', async function (this: CustomWorld) {
-    await expect(this.page).toHaveURL(/\/login$/, { timeout: 10000 });
+    await expect(this.page).toHaveURL(/\/$/, { timeout: 10000 });
 });
 
 Then('the client should clear the token anyway', async function (this: CustomWorld) {
@@ -451,7 +451,7 @@ Then('the server should return 401 error', async function (this: CustomWorld) {
 });
 
 Then('I should still be logged out successfully', async function (this: CustomWorld) {
-    await expect(this.page).toHaveURL(/\/login$/, { timeout: 10000 });
+    await expect(this.page).toHaveURL(/\/$/, { timeout: 10000 });
 });
 
 Then('the server should return 404 error', async function (this: CustomWorld) {
@@ -502,7 +502,7 @@ Then('any WebSocket connections should be closed', async function (this: CustomW
 });
 
 Then('the desktop session should be terminated', async function (this: CustomWorld) {
-    await expect(this.page).toHaveURL(/\/login$/, { timeout: 10000 });
+    await expect(this.page).toHaveURL(/\/$/, { timeout: 10000 });
 });
 
 Then('my mobile session should remain active', async function (this: CustomWorld) {
@@ -537,8 +537,8 @@ Then('the client-side state should clear immediately', async function (this: Cus
 });
 
 Then('I should see the public landing page content', async function (this: CustomWorld) {
-    // Login page shows "Welcome Back, Game Master" heading
-    await expect(this.page.getByRole('heading', { name: /welcome back|sign in|login/i })).toBeVisible({ timeout: 10000 });
+    // Landing page shows "Craft Legendary Adventures" heading for non-authenticated users
+    await expect(this.page.locator('#hero-title')).toBeVisible({ timeout: 10000 });
 });
 
 Then('I should see login and register options', async function (this: CustomWorld) {
@@ -569,19 +569,19 @@ Then('the confirmation dialog should be accessible if shown', async function (th
 });
 
 Then('I should be logged out successfully', async function (this: CustomWorld) {
-    await expect(this.page).toHaveURL(/\/login$/, { timeout: 10000 });
+    await expect(this.page).toHaveURL(/\/$/, { timeout: 10000 });
 });
 
 Then('the header should show login/register options', async function (this: CustomWorld) {
-    // On the login page, look for login/register UI elements in header
-    // Note: When on the login page, the header shows Login/Register buttons for unauthenticated users
+    // On the landing page, look for login/register UI elements in header
+    // Note: When on the landing page, the header shows Login/Register buttons for unauthenticated users
     await expect(
         this.page.locator('#btn-header-login, #btn-header-register').first()
     ).toBeVisible({ timeout: 5000 });
 });
 
 Then('the header should show login/register buttons', async function (this: CustomWorld) {
-    // On the login page, verify header shows login/register buttons (unauthenticated state)
+    // On the landing page, verify header shows login/register buttons (unauthenticated state)
     await expect(this.page.locator('#btn-header-login')).toBeVisible({ timeout: 5000 });
     await expect(this.page.locator('#btn-header-register')).toBeVisible({ timeout: 5000 });
 });

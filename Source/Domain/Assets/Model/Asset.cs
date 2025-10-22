@@ -3,6 +3,9 @@
 /// <summary>
 /// Abstract base class for all asset types
 /// </summary>
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "kind")]
+[JsonDerivedType(typeof(ObjectAsset), typeDiscriminator: "Object")]
+[JsonDerivedType(typeof(CreatureAsset), typeDiscriminator: "Creature")]
 public abstract record Asset {
     /// <summary>
     /// Unique identifier for the asset

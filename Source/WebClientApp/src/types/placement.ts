@@ -9,6 +9,7 @@
 
 import type { AssetKind, CreatureCategory, NamedSize } from './domain';
 import type { GridConfig } from '@/utils/gridCalculator';
+import { snapToGrid } from '@/utils/gridCalculator';
 
 /**
  * Snap mode for asset placement
@@ -107,10 +108,14 @@ export const getPlacementBehavior = (
  * @returns Pixel dimensions for canvas rendering
  */
 export const calculateAssetSize = (
-    namedSize: NamedSize,
+    namedSize: NamedSize | undefined,
     gridConfig: GridConfig
 ): { width: number; height: number } => {
-    const { width, height } = namedSize;
+    // Default to 1x1 grid cell if size is not defined
+    const defaultSize = { width: 1, height: 1, isSquare: true };
+    const size = namedSize || defaultSize;
+
+    const { width, height } = size;
     const { cellWidth, cellHeight } = gridConfig;
 
     return {
@@ -136,9 +141,6 @@ export const snapAssetPosition = (
     if (!behavior.snapToGrid || behavior.snapMode === 'free') {
         return position;
     }
-
-    // Import snapToGrid from gridCalculator (dynamic import to avoid circular dependency)
-    const { snapToGrid } = require('@/utils/gridCalculator');
 
     // Snap center point to grid
     const snappedCenter = snapToGrid(position, gridConfig);

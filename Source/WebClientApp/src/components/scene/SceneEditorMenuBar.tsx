@@ -67,7 +67,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
     const [stageMenuAnchor, setStageMenuAnchor] = useState<null | HTMLElement>(null);
     const [structuresMenuAnchor, setStructuresMenuAnchor] = useState<null | HTMLElement>(null);
     const [objectsMenuAnchor, setObjectsMenuAnchor] = useState<null | HTMLElement>(null);
-    const [entitiesMenuAnchor, setEntitiesMenuAnchor] = useState<null | HTMLElement>(null);
+    const [creaturesMenuAnchor, setCreaturesMenuAnchor] = useState<null | HTMLElement>(null);
 
     // Asset picker state
     const [assetPickerOpen, setAssetPickerOpen] = useState(false);
@@ -97,12 +97,12 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
         setObjectsMenuAnchor(null);
     };
 
-    const handleEntitiesMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-        setEntitiesMenuAnchor(event.currentTarget);
+    const handleCreaturesMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+        setCreaturesMenuAnchor(event.currentTarget);
     };
 
-    const handleEntitiesMenuClose = () => {
-        setEntitiesMenuAnchor(null);
+    const handleCreaturesMenuClose = () => {
+        setCreaturesMenuAnchor(null);
     };
 
     // Asset picker handlers
@@ -112,7 +112,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
         // Close all menus
         handleStructuresMenuClose();
         handleObjectsMenuClose();
-        handleEntitiesMenuClose();
+        handleCreaturesMenuClose();
     };
 
     const handleAssetSelected = (asset: Asset) => {
@@ -490,19 +490,19 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                 </Button>
             </Menu>
 
-            {/* Entities Menu - Active Assets (characters, NPCs, monsters) */}
+            {/* Creatures Menu - Active Assets (characters, NPCs, monsters) */}
             <Button
-                onClick={handleEntitiesMenuOpen}
+                onClick={handleCreaturesMenuOpen}
                 endIcon={<ExpandMoreIcon />}
                 sx={{ textTransform: 'none', minWidth: 'auto', px: 1 }}
                 size="small"
             >
-                Entities
+                Creatures
             </Button>
             <Menu
-                anchorEl={entitiesMenuAnchor}
-                open={Boolean(entitiesMenuAnchor)}
-                onClose={handleEntitiesMenuClose}
+                anchorEl={creaturesMenuAnchor}
+                open={Boolean(creaturesMenuAnchor)}
+                onClose={handleCreaturesMenuClose}
                 PaperProps={{
                     sx: { minWidth: 200, p: 1.5 }
                 }}
@@ -511,7 +511,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                     Active Assets
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', display: 'block', mb: 1 }}>
-                    Interactive entities (characters, NPCs, monsters)
+                    Interactive creatures (characters, NPCs, monsters)
                 </Typography>
                 <Button
                     fullWidth
@@ -519,7 +519,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                     size="small"
                     onClick={() => handleOpenAssetPicker(AssetKind.Creature)}
                 >
-                    Browse Entities
+                    Browse Creatures
                 </Button>
             </Menu>
 

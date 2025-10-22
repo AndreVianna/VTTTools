@@ -21,7 +21,7 @@ Migrate VTTTools frontend from Blazor WebAssembly to React 19 + TypeScript + Mat
 
 - **User Authentication** (Area: Identity)
   - Impact: Migrate login/register/2FA pages from Blazor to React with Material-UI
-  - Use Cases Affected: RenderLoginPage, HandleLogin, HandleRegistration, HandleLogout, VerifyTwoFactorCode, ConfirmPasswordReset
+  - Use Cases Affected: HandleLogin, HandleRegistration, HandleLogout, VerifyTwoFactorCode, ConfirmPasswordReset
   - Status: ✅ Complete (LoginPage.tsx, SimpleLoginForm.tsx, SimpleRegistrationForm.tsx)
 
 - **Account Management** (Area: Identity)
@@ -78,7 +78,6 @@ Migrate VTTTools frontend from Blazor WebAssembly to React 19 + TypeScript + Mat
 **BDD Coverage Status**: ✅ 100% (101 feature files, 1,413 scenarios)
 
 **UI-Specific BDD Files to Implement**:
-- RenderLoginPage.feature (9 scenarios) - React implementation verification
 - DisplayHeroSection.feature (6 scenarios) - Hero component testing
 - DisplayDashboardPreview.feature (6 scenarios) - Dashboard preview testing
 - ConfigureStage.feature - Konva stage configuration

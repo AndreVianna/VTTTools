@@ -14,8 +14,8 @@ public class ObjectAsset : Asset {
 /// Properties for Object assets (serialized to JSON column)
 /// </summary>
 public class ObjectProperties {
-    public int CellWidth { get; set; } = 1;
-    public int CellHeight { get; set; } = 1;
+    public double CellWidth { get; set; } = 1;
+    public double CellHeight { get; set; } = 1;
     public bool IsMovable { get; set; } = true;
     public bool IsOpaque { get; set; }
     public Guid? TriggerEffectId { get; set; }

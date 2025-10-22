@@ -86,7 +86,28 @@ return crypto.timingSafeEqual(hash1, hash2);
 → Creates the requested document file
 ```
 
-## ⚠️ [CRITICAL] Command Execution Standards ⚠️
+## ⚠️ [PRIORITY:CRITICAL] Command Execution Standards ⚠️
+
+### Documented Commands - ABSOLUTE REQUIREMENT
+- **MANDATORY**: ALWAYS use commands EXACTLY as documented in `Documents/Guides/COMMON_COMMANDS.md`
+- **FORBIDDEN**: Running commands you see in npm/script output directly (e.g., `node run-feature.cjs`)
+- **FORBIDDEN**: Running raw `npx cucumber-js` or similar tools directly
+- **FORBIDDEN**: "Optimizing" or "simplifying" documented commands
+- **FORBIDDEN**: Using alternative commands even if they "should work"
+- **CRITICAL**: If a command is marked "PREFERRED", it is the ONLY acceptable command
+- **MANDATORY**: Before running ANY test/build/deploy command, verify against COMMON_COMMANDS.md
+- **FORBIDDEN**: Assuming you remember the correct command from earlier in the session
+
+### Examples - What You Must Do:
+```bash
+✅ CORRECT: npm run test:bdd:feature HandleRegistration    # From COMMON_COMMANDS.md line 285
+✅ CORRECT: npm run test:bdd:smoke                         # From COMMON_COMMANDS.md line 280
+✅ CORRECT: dotnet test VttTools.slnx                      # From COMMON_COMMANDS.md line 215
+
+❌ WRONG: node run-feature.cjs HandleRegistration          # Even if you see it in npm output
+❌ WRONG: npx cucumber-js "../../Documents/..."            # Even if it "should work"
+❌ WRONG: cross-env NODE_OPTIONS='...' cucumber-js         # Even if it's the underlying command
+```
 
 ### Multi-Phase Command Execution
 - **MANDATORY**: ALL phases of a command MUST be executed in sequence

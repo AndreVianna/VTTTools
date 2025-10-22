@@ -144,6 +144,10 @@ export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> =
           Check Your Email
         </Typography>
 
+        <Alert severity="success" sx={{ mb: 3 }}>
+          If that email exists, reset instructions have been sent
+        </Alert>
+
         <Paper
           sx={{
             p: 3,
@@ -230,7 +234,7 @@ export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> =
           </Alert>
         )}
 
-        <Box component="form" onSubmit={handleSubmit}>
+        <Box component="form" onSubmit={handleSubmit} noValidate>
           <AuthTextField
             fullWidth
             id="email"

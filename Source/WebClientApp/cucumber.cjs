@@ -32,7 +32,10 @@ module.exports = {
         tags: 'not @ignore',
         paths: [
             '../../Documents/Areas/Onboarding/Features/LandingPage/LandingPage.feature',
+            '../../Documents/Areas/Identity/Features/UserAuthentication/UseCases/HandleRegistration/HandleRegistration.feature',
             '../../Documents/Areas/Identity/Features/UserAuthentication/UseCases/Handlelogin/HandleLogin.feature',
+            '../../Documents/Areas/Identity/Features/UserAuthentication/UseCases/Handlelogout/HandleLogout.feature',
+            '../../Documents/Areas/Identity/Features/UserAuthentication/UseCases/RequestPasswordReset/RequestPasswordReset.feature',
             '../../Documents/Areas/Assets/Features/AssetManagement/AssetLibrary.feature',
             '../../Documents/Areas/Assets/Features/AssetManagement/UseCases/Createasset/CreateAsset.feature',
             '../../Documents/Areas/Assets/Features/AssetManagement/UseCases/Updateasset/UpdateAsset.feature',
@@ -52,7 +55,10 @@ module.exports = {
         tags: 'not @ignore',
         paths: [
             '../../Documents/Areas/Onboarding/Features/LandingPage/LandingPage.feature',
+            '../../Documents/Areas/Identity/Features/UserAuthentication/UseCases/HandleRegistration/HandleRegistration.feature',
             '../../Documents/Areas/Identity/Features/UserAuthentication/UseCases/Handlelogin/HandleLogin.feature',
+            '../../Documents/Areas/Identity/Features/UserAuthentication/UseCases/Handlelogout/HandleLogout.feature',
+            '../../Documents/Areas/Identity/Features/UserAuthentication/UseCases/RequestPasswordReset/RequestPasswordReset.feature',
             '../../Documents/Areas/Assets/Features/AssetManagement/AssetLibrary.feature',
             '../../Documents/Areas/Assets/Features/AssetManagement/UseCases/Createasset/CreateAsset.feature',
             '../../Documents/Areas/Assets/Features/AssetManagement/UseCases/Updateasset/UpdateAsset.feature',

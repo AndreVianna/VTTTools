@@ -53,7 +53,6 @@ public class AssetStorage(ApplicationDbContext context)
         if (entity == null)
             return false;
         entity.UpdateFrom(asset);
-        context.Assets.Update(entity);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
     }

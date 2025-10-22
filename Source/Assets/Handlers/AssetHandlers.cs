@@ -78,6 +78,7 @@ internal static class AssetHandlers {
 
     internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateAssetRequest request, [FromServices] IAssetService assetService) {
         var userId = context.User.GetUserId();
+
         var data = new UpdateAssetData {
             Name = request.Name,
             Description = request.Description,
@@ -90,6 +91,7 @@ internal static class AssetHandlers {
             ObjectProps = request.ObjectProps,
             CreatureProps = request.CreatureProps,
         };
+
         var result = await assetService.UpdateAssetAsync(userId, id, data);
         return result.IsSuccessful
             ? Results.NoContent()  // 204 No Content (UpdatedAt is audit metadata, not side effect)

@@ -35,7 +35,7 @@ export async function navigateToRegistrationPage(world: CustomWorld): Promise<vo
         await registerLink.click();
     }
 
-    await expect(world.page.getByText(/start.*journey|create.*account/i)).toBeVisible();
+    await expect(world.page.getByRole('heading', { name: /start.*journey/i })).toBeVisible();
 }
 
 /**
@@ -72,7 +72,8 @@ export async function fillRegistrationForm(
 ): Promise<void> {
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/name/i).fill(name);
-    await page.getByLabel(/password/i).fill(password);
+    // Use textbox role to avoid strict mode violation with password toggle button
+    await page.getByRole('textbox', { name: /^password$/i }).fill(password);
 }
 
 /**
@@ -93,14 +94,51 @@ export async function submitLoginForm(world: CustomWorld): Promise<void> {
  * Submit registration form and wait for API response
  */
 export async function submitRegistrationForm(world: CustomWorld): Promise<void> {
+    // Debug: Log form state before submission
+    const emailInput = world.page.getByLabel(/email/i);
+    const nameInput = world.page.getByLabel(/name/i);
+    const passwordInput = world.page.getByRole('textbox', { name: /^password$/i });
+
+    const emailValue = await emailInput.inputValue();
+    const nameValue = await nameInput.inputValue();
+    const passwordValue = await passwordInput.inputValue();
+
     const submitButton = world.page.getByRole('button', { name: /create.*account/i });
+    const isButtonDisabled = await submitButton.isDisabled();
+    const isButtonVisible = await submitButton.isVisible();
+
+    world.attach(`Form state before submission:
+Email: "${emailValue}"
+Name: "${nameValue}"
+Password: "${passwordValue}"
+Button visible: ${isButtonVisible}
+Button disabled: ${isButtonDisabled}`, 'text/plain');
+
+    // Check for validation errors (all error messages in form)
+    const allErrors = await world.page.locator('.MuiFormHelperText-root.Mui-error').allTextContents();
+    if (allErrors.length > 0) {
+        world.attach(`Validation errors found: ${allErrors.join(', ')}`, 'text/plain');
+    }
+
+    // Listen for console messages to see form submission logs
+    world.page.on('console', msg => {
+        if (msg.type() === 'log' || msg.type() === 'error') {
+            world.attach(`Browser console: [${msg.type()}] ${msg.text()}`, 'text/plain');
+        }
+    });
 
     const responsePromise = world.page.waitForResponse(
-        response => response.url().includes('/api/auth/register') && response.status() !== 0
+        response => response.url().includes('/api/auth/register') && response.status() !== 0,
+        { timeout: 10000 }
     );
 
     await submitButton.click();
+    world.attach('Submit button clicked, waiting for API response...', 'text/plain');
+
     world.lastApiResponse = await responsePromise as any;
+    if (world.lastApiResponse) {
+        world.attach(`API response received: ${world.lastApiResponse.status()}`, 'text/plain');
+    }
 }
 
 /**
@@ -330,6 +368,16 @@ export async function verifyProtectedRouteAccessible(page: Page, path: string): 
 export async function verifyProtectedRouteBlocked(page: Page, path: string): Promise<void> {
     await page.goto(path);
     await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
+}
+
+/**
+ * Generate unique email for registration tests
+ * Registration tests CANNOT reuse pool users - each registration needs unique email
+ */
+export function generateUniqueEmail(prefix: string = 'test'): string {
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 10000);
+    return `bdd-reg-${prefix}-${timestamp}-${random}@test.local`;
 }
 
 /**

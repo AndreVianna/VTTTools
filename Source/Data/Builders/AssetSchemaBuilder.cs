@@ -48,7 +48,7 @@ internal static class AssetSchemaBuilder {
 
         // Configure ObjectAsset with JSON properties
         builder.Entity<ObjectAsset>(entity => entity.OwnsOne(e => e.Properties, props => {
-            props.ToJson("ObjectProperties");  // Explicit column name
+            props.ToJson("ObjectProperties");
             props.Property(p => p.CellWidth).IsRequired();
             props.Property(p => p.CellHeight).IsRequired();
             props.Property(p => p.IsMovable).IsRequired();
@@ -58,7 +58,7 @@ internal static class AssetSchemaBuilder {
 
         // Configure CreatureAsset with JSON properties
         builder.Entity<CreatureAsset>(entity => entity.OwnsOne(e => e.Properties, props => {
-            props.ToJson("CreatureProperties");  // Explicit column name
+            props.ToJson("CreatureProperties");
             props.Property(p => p.CellSize).IsRequired();
             props.Property(p => p.StatBlockId);
             props.Property(p => p.Category).IsRequired().HasConversion<string>();

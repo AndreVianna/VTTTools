@@ -40,25 +40,35 @@ Given('an account exists with email {string}', async function (this: CustomWorld
         throw new Error('No pool user assigned. The Before hook should have assigned a user from the pool.');
     }
 
+    // Check if user exists by ID
     const users = await this.db.queryTable('Users', { Id: this.currentUser.id });
     if (users.length === 0) {
-        const passwordHash = process.env.BDD_TEST_PASSWORD_HASH;
-        if (!passwordHash) {
-            throw new Error('CRITICAL: BDD_TEST_PASSWORD_HASH environment variable is not set.');
+        // Also check by userName to avoid duplicate key errors
+        const usersByName = await this.db.queryTable('Users', { UserName: this.currentUser.email });
+        if (usersByName.length > 0) {
+            // User exists with this userName but different ID - use existing user
+            this.currentUser.id = usersByName[0].Id;
+            this.attach(`Found existing user with userName ${this.currentUser.email}, updated current ID to: ${this.currentUser.id}`, 'text/plain');
+        } else {
+            // User truly doesn't exist - create it
+            const passwordHash = process.env.BDD_TEST_PASSWORD_HASH;
+            if (!passwordHash) {
+                throw new Error('CRITICAL: BDD_TEST_PASSWORD_HASH environment variable is not set.');
+            }
+
+            this.attach(`Pool user ${this.currentUser.email} was missing, recreating it...`, 'text/plain');
+
+            const newUserId = await this.db.insertUser({
+                email: this.currentUser.email,
+                userName: this.currentUser.email,
+                emailConfirmed: true,
+                passwordHash,
+                displayName: this.currentUser.name
+            });
+
+            this.currentUser.id = newUserId;
+            this.attach(`Pool user recreated with ID: ${newUserId}`, 'text/plain');
         }
-
-        this.attach(`Pool user ${this.currentUser.email} was missing, recreating it...`, 'text/plain');
-
-        const newUserId = await this.db.insertUser({
-            email: this.currentUser.email,
-            userName: this.currentUser.email,
-            emailConfirmed: true,
-            passwordHash,
-            displayName: this.currentUser.name
-        });
-
-        this.currentUser.id = newUserId;
-        this.attach(`Pool user recreated with ID: ${newUserId}`, 'text/plain');
     }
 
     this.attach(`Test account email pattern: ${email} → using pool user: ${this.currentUser.email}`);
@@ -67,7 +77,9 @@ Given('an account exists with email {string}', async function (this: CustomWorld
 Given('no account exists with email {string}', async function (this: CustomWorld, email: string) {
     const users = await this.db.queryTable('Users', { Email: email.toLowerCase() });
     if (users.length > 0) {
-        throw new Error(`Account with email ${email} already exists in database`);
+        // Auto-delete conflicting user to ensure clean test state
+        await this.db.deleteUser(users[0].Id);
+        this.attach(`Deleted conflicting account with email: ${email}`, 'text/plain');
     }
 });
 

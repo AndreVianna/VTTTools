@@ -183,10 +183,10 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
     // Display name validation
     if (!formData.name) {
       errors.name = 'Name is required';
-    } else if (formData.name.length < 1) {
-      errors.name = 'Name must be at least 1 character';
-    } else if (formData.name.length > 32) {
-      errors.name = 'Name cannot exceed 32 characters';
+    } else if (formData.name.length < 3) {
+      errors.name = 'name must be at least 3 characters';
+    } else if (formData.name.length > 50) {
+      errors.name = 'Name cannot exceed 50 characters';
     }
 
     // Password validation
@@ -198,6 +198,42 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  const validateField = (field: keyof typeof formData): void => {
+    const errors: typeof validationErrors = {};
+
+    if (field === 'email') {
+      if (!formData.email) {
+        errors.email = 'Email is required';
+      } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
+        errors.email = 'Invalid email address';
+      }
+    }
+
+    if (field === 'name') {
+      if (!formData.name) {
+        errors.name = 'Name is required';
+      } else if (formData.name.length < 3) {
+        errors.name = 'name must be at least 3 characters';
+      } else if (formData.name.length > 50) {
+        errors.name = 'Name cannot exceed 50 characters';
+      }
+    }
+
+    if (field === 'password') {
+      if (!formData.password) {
+        errors.password = 'Password is required';
+      } else if (formData.password.length < 6) {
+        errors.password = 'Password must be at least 6 characters';
+      }
+    }
+
+    setValidationErrors(prev => ({ ...prev, [field]: errors[field] }));
+  };
+
+  const handleBlur = (field: keyof typeof formData) => () => {
+    validateField(field);
   };
 
   const handleInputChange = (field: keyof typeof formData) => (
@@ -213,31 +249,18 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Registration form submitted', formData);
     setHasAttemptedSubmit(true);
 
     if (!validateForm()) {
-      console.log('Form validation failed', validationErrors);
       return;
     }
 
-    console.log('Form validation passed, calling register...');
-
-    try {
-      const result = await register(
-        formData.email,
-        formData.password,
-        formData.password,  // confirmPassword = password (backend still requires it)
-        formData.name  // Send name as displayName
-      );
-      console.log('Registration result:', result);
-    } catch (error: any) {
-      // Log detailed error information
-      console.error('Registration failed - Full error:', error);
-      console.error('Error status:', error?.status);
-      console.error('Error data:', error?.data);
-      console.error('Error message:', error?.message);
-    }
+    await register(
+      formData.email,
+      formData.password,
+      formData.password,  // confirmPassword = password (backend still requires it)
+      formData.name  // Send name as displayName
+    );
   };
 
   return (
@@ -277,7 +300,7 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
           </VTTAlert>
         )}
 
-        <Box component="form" onSubmit={handleSubmit} className="auth-form">
+        <Box component="form" onSubmit={handleSubmit} noValidate className="auth-form">
           <AuthTextField
             fullWidth
             id="email"
@@ -285,6 +308,7 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
             type="email"
             value={formData.email}
             onChange={handleInputChange('email')}
+            onBlur={handleBlur('email')}
             error={!!validationErrors.email}
             helperText={validationErrors.email || 'Please enter a valid email address'}
             disabled={isLoading}
@@ -301,6 +325,7 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
             type="text"
             value={formData.name}
             onChange={handleInputChange('name')}
+            onBlur={handleBlur('name')}
             error={!!validationErrors.name}
             helperText={validationErrors.name || 'Your display name (e.g., John Smith)'}
             disabled={isLoading}
@@ -316,6 +341,7 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={handleInputChange('password')}
+            onBlur={handleBlur('password')}
             error={!!validationErrors.password}
             helperText={validationErrors.password || 'Password must be at least 6 characters'}
             disabled={isLoading}

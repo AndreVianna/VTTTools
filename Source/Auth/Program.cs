@@ -106,8 +106,10 @@ internal static class Program {
                       .AllowAnyHeader()
                       .AllowCredentials()));
 
-    internal static void AddServices(this IHostApplicationBuilder builder)
-        => builder.Services.AddScoped<IAuthService, AuthService>();
+    internal static void AddServices(this IHostApplicationBuilder builder) {
+        builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<IEmailService, ConsoleEmailService>();
+    }
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app)
         => app.MapAuthEndpoints();

@@ -3,6 +3,7 @@ namespace VttTools.Auth.Services;
 public class AuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
+    IEmailService emailService,
     ILogger<AuthService> logger) : IAuthService {
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request) {
@@ -81,7 +82,7 @@ public class AuthService(
                 UserName = request.Email,
                 Email = request.Email,
                 Name = request.Name,
-                DisplayName = request.DisplayName ?? request.Name,
+                DisplayName = request.DisplayName ?? request.Name?.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? request.Name,
                 EmailConfirmed = true,
             };
 
@@ -151,6 +152,116 @@ public class AuthService(
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error getting current user with ID: {UserId}", userId);
+            return new AuthResponse {
+                Message = "InternalServerError",
+            };
+        }
+    }
+
+    public async Task<AuthResponse> ForgotPasswordAsync(string email) {
+        try {
+            var user = await userManager.FindByEmailAsync(email);
+
+            if (user == null) {
+                logger.LogInformation("Password reset requested for non-existent email: {Email}", email);
+                return new AuthResponse {
+                    Success = true,
+                    Message = "If that email exists, reset instructions have been sent",
+                };
+            }
+
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+
+            var encodedEmail = Uri.EscapeDataString(email);
+            var encodedToken = Uri.EscapeDataString(token);
+            var resetLink = $"http://localhost:5000/api/auth/password/reset?email={encodedEmail}&token={encodedToken}";
+
+            await emailService.SendPasswordResetEmailAsync(email, resetLink);
+
+            logger.LogInformation("Password reset email sent to: {Email}", email);
+
+            return new AuthResponse {
+                Success = true,
+                Message = "If that email exists, reset instructions have been sent",
+            };
+        }
+        catch (Exception ex) {
+            logger.LogError(ex, "Error during forgot password for email: {Email}", email);
+            return new AuthResponse {
+                Message = "InternalServerError",
+            };
+        }
+    }
+
+    public async Task<AuthResponse> ValidateResetTokenAsync(string email, string token) {
+        try {
+            var user = await userManager.FindByEmailAsync(email);
+            if (user == null) {
+                logger.LogWarning("Token validation attempted for non-existent email: {Email}", email);
+                return new AuthResponse {
+                    Success = false,
+                    Message = "Invalid reset link",
+                };
+            }
+
+            var isValid = await userManager.VerifyUserTokenAsync(
+                user,
+                userManager.Options.Tokens.PasswordResetTokenProvider,
+                "ResetPassword",
+                token
+            );
+
+            if (!isValid) {
+                logger.LogWarning("Invalid or expired reset token for email: {Email}", email);
+                return new AuthResponse {
+                    Success = false,
+                    Message = "Reset link has expired or is invalid",
+                };
+            }
+
+            logger.LogInformation("Reset token validated successfully for email: {Email}", email);
+            return new AuthResponse {
+                Success = true,
+            };
+        }
+        catch (Exception ex) {
+            logger.LogError(ex, "Error validating reset token for email: {Email}", email);
+            return new AuthResponse {
+                Message = "InternalServerError",
+            };
+        }
+    }
+
+    public async Task<AuthResponse> ResetPasswordAsync(string email, string token, string newPassword) {
+        try {
+            var user = await userManager.FindByEmailAsync(email);
+            if (user == null) {
+                logger.LogWarning("Password reset attempted for non-existent email: {Email}", email);
+                return new AuthResponse {
+                    Success = false,
+                    Message = "Invalid reset link",
+                };
+            }
+
+            var result = await userManager.ResetPasswordAsync(user, token, newPassword);
+
+            if (!result.Succeeded) {
+                var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                logger.LogWarning("Password reset failed for email {Email}: {Errors}", email, errors);
+                return new AuthResponse {
+                    Success = false,
+                    Message = errors,
+                };
+            }
+
+            logger.LogInformation("Password reset successfully for email: {Email}", email);
+            return new AuthResponse {
+                Success = true,
+                Message = "Password updated successfully",
+            };
+        }
+        catch (Exception ex) {
+            logger.LogError(ex, "Error during password reset for email: {Email}", email);
             return new AuthResponse {
                 Message = "InternalServerError",
             };

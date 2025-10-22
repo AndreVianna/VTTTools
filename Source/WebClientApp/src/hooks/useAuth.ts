@@ -43,7 +43,7 @@ const mapToUserFriendlyMessage = (backendMessage: string): string => {
       return 'An unexpected error has occurred. Please try again in a few minutes.';
 
     case 'DuplicatedUser':
-      return 'A user with this email already exists.';
+      return 'Email address already registered';
 
     case 'NotFound':
       return 'User not found.';
@@ -88,6 +88,11 @@ const extractErrorMessage = (error: any, defaultMessage: string = 'Operation fai
   // Fallback to simple message field
   if (!backendMessage && error?.data?.message) {
     backendMessage = error.data.message;
+  }
+
+  // Fallback to simple error field (used by Conflict responses)
+  if (!backendMessage && error?.data?.error) {
+    backendMessage = error.data.error;
   }
 
   // Fallback to error string
@@ -243,8 +248,8 @@ export const useAuth = () => {
         email,
         password,
         confirmPassword,
-        name: displayName,  // UserName = Email (ASP.NET Identity requirement)
-        displayName: displayName  // User's friendly display name
+        name: displayName,  // User's full name (e.g., "Andre Vianna")
+        displayName: displayName.split(' ')[0]  // First word of name as display name (e.g., "Andre")
       }).unwrap();
 
       if (result.success) {
@@ -277,21 +282,11 @@ export const useAuth = () => {
     }
   }, [registerMutation, dispatch, navigate]);
 
-  // Logout using existing WebApp Identity
   const logout = useCallback(async () => {
     try {
-      // Clear local Redux state first (THIS is the source of truth)
       dispatch(logoutAction());
-
-      // Clear RTK Query cache (removes cached user data)
       dispatch(authApi.util.resetApiState());
-
-      // Call backend logout to clear server-side session FIRST
-      // This ensures cookie is cleared before we reset the init flag
       await logoutMutation().unwrap();
-
-      // THEN reset initialization flags (cookie is now cleared)
-      // If query runs after this, it will get 401 since cookie is cleared
       globalAuthInitialized = false;
       setInitComplete(false);
 
@@ -300,9 +295,8 @@ export const useAuth = () => {
         message: 'You have been logged out.',
       }));
 
-      navigate('/login', { replace: true });
+      navigate('/', { replace: true });
     } catch (_error) {
-      // Even if logout API fails, local state already cleared
       globalAuthInitialized = false;  // Still reset for next login attempt
       setInitComplete(false);
 
@@ -315,11 +309,10 @@ export const useAuth = () => {
         },
       }));
 
-      navigate('/login', { replace: true });
+      navigate('/', { replace: true });
     }
   }, [logoutMutation, dispatch, navigate]);
 
-  // Request password reset
   const resetPassword = useCallback(async (email: string) => {
     dispatch(clearAuthError());
 

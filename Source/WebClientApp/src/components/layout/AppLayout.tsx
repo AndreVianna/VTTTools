@@ -49,8 +49,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   };
 
   const handleLogout = async () => {
-    handleUserMenuClose();
     await logout();
+    handleUserMenuClose();
   };
 
   const handleLogin = () => {

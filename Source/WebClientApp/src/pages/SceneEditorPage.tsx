@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, useTheme } from '@mui/material';
+import { Box, useTheme, Backdrop, CircularProgress, Typography } from '@mui/material';
+import { Layer } from 'react-konva';
 import Konva from 'konva';
 import {
     SceneCanvas,
@@ -50,6 +51,9 @@ const SceneEditorPageInternal: React.FC = () => {
     const [backgroundImageUrl] = useState<string>(DEFAULT_BACKGROUND_IMAGE);
     const [draggedAsset, setDraggedAsset] = useState<Asset | null>(null);
     const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+    const [isSceneReady, setIsSceneReady] = useState<boolean>(false);
+    const [imagesLoaded, setImagesLoaded] = useState<boolean>(false);
+    const [handlersReady, setHandlersReady] = useState<boolean>(false);
 
     const [placedAssets, setPlacedAssets] = useState<PlacedAsset[]>(() => {
         const stored = localStorage.getItem('scene-placed-assets');
@@ -75,6 +79,12 @@ const SceneEditorPageInternal: React.FC = () => {
             layerManager.enforceZOrder();
         }
     }, []);
+
+    useEffect(() => {
+        if (stageRef.current && imagesLoaded && handlersReady && !isSceneReady) {
+            setIsSceneReady(true);
+        }
+    }, [imagesLoaded, handlersReady, isSceneReady]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -107,7 +117,7 @@ const SceneEditorPageInternal: React.FC = () => {
     };
 
     const handleBackgroundUpload = () => {
-        console.log('Background upload clicked');
+        // TODO: Implement background upload functionality
     };
 
     const handleOutsideClick = () => {
@@ -117,7 +127,9 @@ const SceneEditorPageInternal: React.FC = () => {
     };
 
     const handleAssetSelect = (asset: Asset) => {
-        if (!isOnline) return;
+        if (!isOnline) {
+            return;
+        }
         setDraggedAsset(asset);
     };
 
@@ -175,6 +187,14 @@ const SceneEditorPageInternal: React.FC = () => {
         setDraggedAsset(null);
     };
 
+    const handleImagesLoaded = () => {
+        setImagesLoaded(true);
+    };
+
+    const handleHandlersReady = () => {
+        setHandlersReady(true);
+    };
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', position: 'relative' }}>
             <ConnectionStatusBanner />
@@ -223,21 +243,24 @@ const SceneEditorPageInternal: React.FC = () => {
                     backgroundColor={theme.palette.background.default}
                     onViewportChange={handleViewportChange}
                 >
-                    <BackgroundLayer
-                        imageUrl={backgroundImageUrl}
-                        backgroundColor={theme.palette.background.default}
-                        stageWidth={STAGE_WIDTH}
-                        stageHeight={STAGE_HEIGHT}
-                        layerName={LayerName.Background}
-                    />
+                    {/* Layer 1: Static (background + grid) */}
+                    <Layer name={LayerName.Static} listening={false}>
+                        <BackgroundLayer
+                            imageUrl={backgroundImageUrl}
+                            backgroundColor={theme.palette.background.default}
+                            stageWidth={STAGE_WIDTH}
+                            stageHeight={STAGE_HEIGHT}
+                        />
 
-                    <GridRenderer
-                        grid={gridConfig}
-                        stageWidth={STAGE_WIDTH}
-                        stageHeight={STAGE_HEIGHT}
-                        visible={gridConfig.type !== GridType.NoGrid}
-                    />
+                        <GridRenderer
+                            grid={gridConfig}
+                            stageWidth={STAGE_WIDTH}
+                            stageHeight={STAGE_HEIGHT}
+                            visible={gridConfig.type !== GridType.NoGrid}
+                        />
+                    </Layer>
 
+                    {/* Layer 2: Game World (structure + objects + creatures) */}
                     <TokenPlacement
                         placedAssets={placedAssets}
                         onAssetPlaced={handleAssetPlaced}
@@ -246,8 +269,15 @@ const SceneEditorPageInternal: React.FC = () => {
                         gridConfig={gridConfig}
                         draggedAsset={draggedAsset}
                         onDragComplete={handleDragComplete}
+                        onImagesLoaded={handleImagesLoaded}
                     />
 
+                    {/* Layer 3: Effects (placeholder for future) */}
+                    <Layer name={LayerName.Effects}>
+                        {/* Future: effects components */}
+                    </Layer>
+
+                    {/* Layer 4: UI Overlay (transformer + selection) */}
                     <TokenDragHandle
                         placedAssets={placedAssets}
                         selectedAssetId={selectedAssetId}
@@ -256,6 +286,9 @@ const SceneEditorPageInternal: React.FC = () => {
                         onAssetDeleted={handleAssetDeleted}
                         gridConfig={gridConfig}
                         stageRef={stageRef as React.RefObject<Konva.Stage>}
+                        isPlacementMode={!!draggedAsset}
+                        enableDragMove={true}
+                        onReady={handleHandlersReady}
                     />
                 </SceneCanvas>
 
@@ -270,6 +303,45 @@ const SceneEditorPageInternal: React.FC = () => {
                     <UndoRedoToolbar />
                 </Box>
             </Box>
+
+            <Backdrop
+                open={!isSceneReady}
+                sx={{
+                    color: theme.palette.text.primary,
+                    bgcolor: theme.palette.background.default,
+                    zIndex: theme.zIndex.drawer + 1,
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0
+                }}
+            >
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: theme.spacing(2)
+                    }}
+                >
+                    <CircularProgress
+                        size={60}
+                        thickness={4}
+                        sx={{
+                            color: theme.palette.primary.main
+                        }}
+                    />
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            color: theme.palette.text.primary
+                        }}
+                    >
+                        Loading Scene...
+                    </Typography>
+                </Box>
+            </Backdrop>
         </Box>
     );
 };

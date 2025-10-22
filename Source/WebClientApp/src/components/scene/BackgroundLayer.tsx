@@ -14,8 +14,9 @@
  */
 
 import React from 'react';
-import { Layer, Rect, Image as KonvaImage } from 'react-konva';
+import { Group, Rect, Image as KonvaImage } from 'react-konva';
 import useImage from 'use-image';
+import { GroupName } from '@services/layerManager';
 
 export interface BackgroundLayerProps {
     /** Background image URL (optional) */
@@ -26,8 +27,6 @@ export interface BackgroundLayerProps {
     stageWidth: number;
     /** Stage height for background sizing */
     stageHeight: number;
-    /** Layer name for layer manager */
-    layerName?: string;
 }
 
 /**
@@ -53,17 +52,13 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
     imageUrl,
     backgroundColor = '#f5f5f5',
     stageWidth,
-    stageHeight,
-    layerName = 'background'
+    stageHeight
 }) => {
-    // Load background image using Konva's useImage hook
     const [image, status] = useImage(imageUrl || '', 'anonymous');
 
     return (
-        <Layer name={layerName} listening={false}>
-            {/* Render image if loaded, otherwise render solid color */}
+        <Group name={GroupName.Background}>
             {image && status === 'loaded' ? (
-                // Render image at 1:1 native resolution (no scaling)
                 <KonvaImage
                     image={image}
                     x={0}
@@ -73,7 +68,6 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
                     listening={false}
                 />
             ) : (
-                // Fallback: Solid color background
                 <Rect
                     x={0}
                     y={0}
@@ -83,6 +77,6 @@ export const BackgroundLayer: React.FC<BackgroundLayerProps> = ({
                     listening={false}
                 />
             )}
-        </Layer>
+        </Group>
     );
 };

@@ -17,7 +17,9 @@ public class User
     [NotNull]
     [MaxLength(32)]
     public string? DisplayName {
-        get => string.IsNullOrEmpty(field) ? Name : field;
+        get => string.IsNullOrEmpty(field)
+            ? (Name?.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? Name ?? string.Empty)
+            : field;
         set;
     }
 

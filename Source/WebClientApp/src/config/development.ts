@@ -17,19 +17,19 @@ export const API_CONFIG = {
     adventures: '/api/adventures',
     scenes: '/api/scenes',
     sessions: '/api/sessions',
-    media: '/api/media',
+    media: '/api/resources',
     health: '/health'
   },
 
-  // Standalone development mode - fallback to WebApp endpoints
+  // Standalone development mode - direct to microservices
   standalone: {
-    auth: 'https://localhost:7001/api/auth',
-    assets: 'https://localhost:7001/api/assets',
-    adventures: 'https://localhost:7001/api/adventures',
-    scenes: 'https://localhost:7001/api/scenes',
-    sessions: 'https://localhost:7001/api/sessions',
-    media: 'https://localhost:7001/api/media',
-    health: 'https://localhost:7001/health'
+    auth: 'https://localhost:7050/api/auth',
+    assets: 'https://localhost:7171/api/assets',
+    adventures: 'https://localhost:7172/api/adventures',
+    scenes: 'https://localhost:7172/api/scenes',
+    sessions: 'https://localhost:7173/api/sessions',
+    media: 'https://localhost:7174/api/resources',
+    health: 'https://localhost:7050/health'
   }
 };
 

@@ -11,8 +11,9 @@
  */
 
 import React, { useMemo } from 'react';
-import { Layer, Line } from 'react-konva';
+import { Group, Line } from 'react-konva';
 import { GridConfig, GridType } from '@utils/gridCalculator';
+import { GroupName } from '@services/layerManager';
 
 export interface GridRendererProps {
     grid: GridConfig;
@@ -214,14 +215,13 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
         return lines;
     }, [grid, stageWidth, stageHeight]);
 
-    // Don't render if NoGrid or not visible
     if (!visible || grid.type === GridType.NoGrid) {
         return null;
     }
 
     return (
-        <Layer name="grid" listening={false}>
+        <Group name={GroupName.Grid}>
             {gridLines}
-        </Layer>
+        </Group>
     );
 };

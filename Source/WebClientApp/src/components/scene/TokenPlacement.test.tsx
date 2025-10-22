@@ -59,7 +59,7 @@ const createMockAsset = (id: string, kind: AssetKind = AssetKind.Creature): Asse
 const createMockCreatureAsset = (id: string): CreatureAsset => ({
     ...createMockAsset(id, AssetKind.Creature),
     kind: AssetKind.Creature,
-    creatureProps: {
+    properties: {
         size: { width: 1, height: 1, isSquare: true },
         category: CreatureCategory.Character,
     },

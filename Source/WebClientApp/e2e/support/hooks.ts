@@ -152,6 +152,10 @@ Before({ timeout: 30000 }, async function (this: CustomWorld, testCase) {
         debugLog('Anonymous scenario - skipping user acquisition');
         // Initialize without user (currentUser will be undefined for anonymous tests)
         await this.init();
+
+        // Clear any custom route flags from previous scenarios
+        (this as any)._customRouteSet = false;
+
         debugLog(`Scenario started: ${testCase.pickle.name}`);
         return;
     }
@@ -167,6 +171,10 @@ Before({ timeout: 30000 }, async function (this: CustomWorld, testCase) {
     };
 
     await this.init();
+
+    // Clear any custom route flags from previous scenarios
+    (this as any)._customRouteSet = false;
+
     debugLog(`Scenario started: ${testCase.pickle.name}`);
 });
 
@@ -218,6 +226,15 @@ After(async function (this: CustomWorld, testCase) {
                 await this.db.deleteUser(userId);
             }
             this.createdTestUsers = [];
+        }
+
+        // Cleanup precondition users created in registration tests
+        if (this.createdUserIds && this.createdUserIds.length > 0) {
+            debugLog(`Cleaning up ${this.createdUserIds.length} precondition users`);
+            for (const userId of this.createdUserIds) {
+                await this.db.deleteUser(userId);
+            }
+            this.createdUserIds = [];
         }
     } catch (cleanupError) {
         console.error('Data cleanup error:', cleanupError);

@@ -21,19 +21,31 @@ import { expect } from '@playwright/test';
 // ============================================================================
 
 Given('I am on the password reset request page', async function (this: CustomWorld) {
-    await this.page.goto('/login');
+    // Navigate to login page
+    await this.page.goto('/login', { waitUntil: 'domcontentloaded' });
 
-    // Click "Forgot password?" link to switch to reset mode
-    await this.page.click('a:has-text("Forgot password?"), button:has-text("Forgot password?")');
+    // Wait for the login form to be ready
+    await expect(this.page.getByLabel(/email/i)).toBeVisible({ timeout: 10000 });
 
-    // Verify we're on reset request page
-    await expect(this.page.locator('h2:has-text("Reset Password")')).toBeVisible();
+    // Click "Forgot password?" link - it's rendered as a MUI Link component with component="button"
+    const forgotPasswordLink = this.page.getByRole('button', { name: /forgot password/i });
+    await forgotPasswordLink.waitFor({ state: 'visible', timeout: 10000 });
+    await forgotPasswordLink.click();
+
+    // Verify we're on reset request page by checking for the heading
+    await expect(this.page.getByRole('heading', { name: /reset password/i })).toBeVisible({ timeout: 10000 });
 });
 
 Given('the password reset service is available', async function (this: CustomWorld) {
     // Verify backend API is responding
     const response = await this.page.request.get('/api/health');
     expect(response.ok()).toBeTruthy();
+});
+
+Given('I have entered a valid email', async function (this: CustomWorld) {
+    const emailInput = this.page.getByLabel(/email/i);
+    await emailInput.waitFor({ state: 'visible', timeout: 10000 });
+    await emailInput.fill('testuser@example.com');
 });
 
 Given('I previously requested password reset', async function (this: CustomWorld) {
@@ -79,7 +91,7 @@ Given('I was rate-limited {int} hour ago', async function (this: CustomWorld, ho
 });
 
 Given('I received a password reset email', async function (this: CustomWorld) {
-    throw new Error('NOT IMPLEMENTED: Step needs to verify password reset email was received (query database SentEmails table or use email testing service)');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify password reset email was received (ConsoleEmailService does not store emails - need email testing service or database table)');
 });
 
 Given('I clicked the reset link with valid email and token parameters', async function (this: CustomWorld) {
@@ -123,21 +135,11 @@ Given('the token has not been used', async function (this: CustomWorld) {
 });
 
 Given('the reset token has already been used', async function (this: CustomWorld) {
-    // Mark token as used in database
-    const tokens = await this.db.queryTable('PasswordResetTokens', {
-        UserId: this.currentUser.id
-    });
-
-    if (tokens.length > 0) {
-        await this.db.updateRecord('PasswordResetTokens', tokens[0].Id, {
-            Used: true,
-            UsedAt: new Date()
-        });
-    }
+    throw new Error('NOT IMPLEMENTED: Step needs to mark token as used (ASP.NET Identity manages tokens internally - cannot manipulate via database)');
 });
 
 Given('the reset link has email {string}', async function (this: CustomWorld, email: string) {
-    throw new Error(`NOT IMPLEMENTED: Step needs to verify reset link contains email parameter "${email}" (parse URL from email body or construct test URL)`);
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify reset link contains email parameter "${email}" (ConsoleEmailService does not store emails - need email testing service)`);
 });
 
 Given('the token belongs to {string}', async function (this: CustomWorld, email: string) {
@@ -219,14 +221,31 @@ Given('I am on the success screen after requesting reset', async function (this:
 // ============================================================================
 
 When('I submit the reset request form', async function (this: CustomWorld) {
-    // Submit form and wait for response
-    const responsePromise = this.page.waitForResponse(
-        response => response.url().includes('/api/auth/reset-password') && response.status() === 200
-    );
+    // Set up a delayed route handler to allow subsequent steps to override with error mocks
+    // This handler will be replaced by error mock steps if they run before the delay completes
+    await this.page.route('**/api/auth/password/forgot', async route => {
+        // Delay to give subsequent steps time to unroute and set up error mocks
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
+        // Check if route is still valid (not already handled by override)
+        try {
+            // Continue with the real request if not overridden
+            await route.continue();
+        } catch (error: any) {
+            // Route was already handled by an override mock - this is expected
+            if (error.message?.includes('already handled')) {
+                // Silently ignore - the override took precedence
+                return;
+            }
+            throw error;
+        }
+    });
+
+    // Click submit button
     await this.page.click('button[type="submit"]:has-text("Send Reset Instructions")');
 
-    this.lastApiResponse = await responsePromise as any;
+    // Give a moment for the request to be initiated
+    await this.page.waitForTimeout(100);
 });
 
 When('I attempt to submit the reset request form', async function (this: CustomWorld) {
@@ -273,16 +292,29 @@ When('I request password reset', async function (this: CustomWorld) {
 });
 
 When('the email service fails to send the email', async function (this: CustomWorld) {
-    throw new Error('NOT IMPLEMENTED: Step needs to mock email service failure (route email API to return error or configure test backend)');
+    throw new Error('NOT IMPLEMENTED: Step needs to mock email service failure (requires dependency injection mock or service fault injection)');
 });
 
 When('the password reset service returns {int} error', async function (this: CustomWorld, statusCode: number) {
-    // Mock error response
-    await this.context.route('**/api/auth/**', route =>
-        route.fulfill({ status: statusCode, body: JSON.stringify({ error: 'Service error' }) })
+    // CRITICAL: This step overrides the route handler set up by "I submit the reset request form"
+    // Must unroute first, then set up the error response mock
+
+    // Remove any existing route handlers for this endpoint
+    await this.page.unroute('**/api/auth/password/forgot');
+
+    // Set up error response mock
+    await this.page.route('**/api/auth/password/forgot', route =>
+        route.fulfill({
+            status: statusCode,
+            contentType: 'application/json',
+            body: JSON.stringify({ error: 'Service error' })
+        })
     );
 
-    await this.page.click('button[type="submit"]');
+    this.attach(`Mocked ${statusCode} error response for password reset API`, 'text/plain');
+
+    // The request is still pending (delayed by previous step), wait for it to complete with error
+    await this.page.waitForTimeout(500);
 });
 
 When('I click {string} link', async function (this: CustomWorld, linkText: string) {
@@ -290,11 +322,11 @@ When('I click {string} link', async function (this: CustomWorld, linkText: strin
 });
 
 When('the reset email is generated', async function (this: CustomWorld) {
-    throw new Error('NOT IMPLEMENTED: Step needs to wait for and verify email generation (check email queue or database)');
+    throw new Error('NOT IMPLEMENTED: Step needs to wait for and verify email generation (ConsoleEmailService does not store emails - need email testing service or database table)');
 });
 
 When('the reset link is generated', async function (this: CustomWorld) {
-    throw new Error('NOT IMPLEMENTED: Step needs to verify reset link was generated with valid token (check database PasswordResetTokens table)');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify reset link was generated with valid token (ConsoleEmailService does not store emails - need email testing service)');
 });
 
 When('I submit a password reset request', async function (this: CustomWorld) {
@@ -441,10 +473,6 @@ When('I attempt to log in with password {string}', async function (this: CustomW
     await this.page.click('button[type="submit"]');
 });
 
-When('I have entered a valid email', async function (this: CustomWorld) {
-    await this.page.fill('input[name="email"]', this.currentUser.email);
-});
-
 When('I successfully request password reset', async function (this: CustomWorld) {
     await this.page.fill('input[name="email"]', this.currentUser.email);
     await this.page.click('button[type="submit"]');
@@ -497,13 +525,7 @@ Then('I should receive success', async function (this: CustomWorld) {
 });
 
 Then('a reset email should be sent to {string}', async function (this: CustomWorld, email: string) {
-    // Verify email was sent via database check
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: email,
-        Subject: 'VTT Tools Password Reset'
-    });
-
-    expect(emails.length).toBeGreaterThan(0);
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify email was sent to "${email}" (ConsoleEmailService does not store emails - need email testing service or SentEmails database table)`);
 });
 
 Then('the PasswordResetRequested action is logged', async function (this: CustomWorld) {
@@ -517,17 +539,7 @@ Then('the PasswordResetRequested action is logged', async function (this: Custom
 });
 
 Then('no email should actually be sent', async function (this: CustomWorld) {
-    // Verify no email in queue
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    // Filter to recent emails only
-    const recentEmails = emails.filter(e =>
-        new Date(e.SentAt).getTime() > Date.now() - 60000
-    );
-
-    expect(recentEmails.length).toBe(0);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify no email was sent (ConsoleEmailService does not store emails - need email testing service or SentEmails database table)');
 });
 
 Then('no error should indicate the email doesn\'t exist', async function (this: CustomWorld) {
@@ -536,77 +548,31 @@ Then('no error should indicate the email doesn\'t exist', async function (this: 
 });
 
 Then('a reset I receive an authentication token', async function (this: CustomWorld) {
-    // Check token was created
-    const tokens = await this.db.queryTable('PasswordResetTokens', {
-        UserId: this.currentUser.id
-    });
-
-    expect(tokens.length).toBeGreaterThan(0);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify token was generated (ASP.NET Identity manages tokens internally via Data Protection API - cannot verify via database)');
 });
 
 Then('my token be cryptographically secure with {int}+ bytes entropy', async function (this: CustomWorld, minBytes: number) {
-    const tokens = await this.db.queryTable('PasswordResetTokens', {
-        UserId: this.currentUser.id
-    });
-
-    const latestToken = tokens[tokens.length - 1];
-
-    // Token should be at least minBytes long
-    expect(latestToken.Token.length).toBeGreaterThanOrEqual(minBytes * 2); // Hex encoding
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify token has ${minBytes}+ bytes entropy (ASP.NET Identity tokens use Data Protection API - cannot inspect token structure)`);
 });
 
 Then('my token have expiration timestamp {int} hours from now', async function (this: CustomWorld, hours: number) {
-    const tokens = await this.db.queryTable('PasswordResetTokens', {
-        UserId: this.currentUser.id
-    });
-
-    const latestToken = tokens[tokens.length - 1];
-    const expiresAt = new Date(latestToken.ExpiresAt);
-    const expectedExpiry = new Date(Date.now() + hours * 60 * 60 * 1000);
-
-    // Allow 1 minute tolerance
-    const difference = Math.abs(expiresAt.getTime() - expectedExpiry.getTime());
-    expect(difference).toBeLessThan(60000);
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify token expires in ${hours} hours (ASP.NET Identity manages expiration internally - cannot inspect token timestamp)`);
 });
 
 Then('my token be URL-safe', async function (this: CustomWorld) {
-    const tokens = await this.db.queryTable('PasswordResetTokens', {
-        UserId: this.currentUser.id
-    });
-
-    const latestToken = tokens[tokens.length - 1];
-
-    // Should only contain URL-safe characters
-    expect(latestToken.Token).toMatch(/^[A-Za-z0-9_-]+$/);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify token uses URL-safe characters (ASP.NET Identity tokens use Data Protection API - cannot inspect token format)');
 });
 
 Then('the previous token should be invalidated', async function (this: CustomWorld) {
-    // Check that previous tokens are marked as invalid
-    const tokens = await this.db.queryTable('PasswordResetTokens', {
-        UserId: this.currentUser.id
-    });
-
-    // All but the latest should be invalidated
-    const validTokens = tokens.filter(t => !t.Invalidated);
-    expect(validTokens.length).toBe(1);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify previous token was invalidated (ASP.NET Identity manages tokens internally - cannot query token status via database)');
 });
 
 Then('a new I receive an authentication token', async function (this: CustomWorld) {
-    // Already covered by "a reset I receive an authentication token"
-    const tokens = await this.db.queryTable('PasswordResetTokens', {
-        UserId: this.currentUser.id
-    });
-
-    expect(tokens.length).toBeGreaterThan(0);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify new token was generated (ASP.NET Identity manages tokens internally - cannot verify via database)');
 });
 
 Then('only the new token should be valid', async function (this: CustomWorld) {
-    const tokens = await this.db.queryTable('PasswordResetTokens', {
-        UserId: this.currentUser.id
-    });
-
-    const validTokens = tokens.filter(t => !t.Invalidated && !t.Used);
-    expect(validTokens.length).toBe(1);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify only new token is valid (ASP.NET Identity manages token validity internally - cannot test without attempting password reset)');
 });
 
 Then('I should receive {int} status', async function (this: CustomWorld, expectedStatus: number) {
@@ -614,16 +580,7 @@ Then('I should receive {int} status', async function (this: CustomWorld, expecte
 });
 
 Then('no email should be sent', async function (this: CustomWorld) {
-    // Same as "no email should actually be sent"
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    const recentEmails = emails.filter(e =>
-        new Date(e.SentAt).getTime() > Date.now() - 60000
-    );
-
-    expect(recentEmails.length).toBe(0);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify no email was sent (ConsoleEmailService does not store emails - need email testing service or SentEmails database table)');
 });
 
 Then('the request should be processed normally', async function (this: CustomWorld) {
@@ -631,61 +588,27 @@ Then('the request should be processed normally', async function (this: CustomWor
 });
 
 Then('a reset email should be sent', async function (this: CustomWorld) {
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    expect(emails.length).toBeGreaterThan(0);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify email was sent (ConsoleEmailService does not store emails - need email testing service or SentEmails database table)');
 });
 
 Then('a secure reset I receive an authentication token', async function (this: CustomWorld) {
-    // Same as previous token assertions
-    const tokens = await this.db.queryTable('PasswordResetTokens', {
-        UserId: this.currentUser.id
-    });
-
-    expect(tokens.length).toBeGreaterThan(0);
-    expect(tokens[0].Token.length).toBeGreaterThan(32);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify secure token was generated (ASP.NET Identity manages tokens internally - cannot verify via database)');
 });
 
 Then('the token is saved with user association', async function (this: CustomWorld) {
-    const tokens = await this.db.queryTable('PasswordResetTokens', {
-        UserId: this.currentUser.id
-    });
-
-    expect(tokens.length).toBeGreaterThan(0);
-    expect(tokens[0].UserId).toBe(this.currentUser.id);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify token is associated with user (ASP.NET Identity manages token-user association internally - cannot verify via database)');
 });
 
 Then('an email should be sent to {string}', async function (this: CustomWorld, email: string) {
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: email
-    });
-
-    expect(emails.length).toBeGreaterThan(0);
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify email was sent to "${email}" (ConsoleEmailService does not store emails - need email testing service or SentEmails database table)`);
 });
 
-Then('my email contain reset link {string}', async function (this: CustomWorld, _linkPattern: string) {
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    const latestEmail = emails[emails.length - 1];
-
-    // Check email body contains link
-    expect(latestEmail.Body).toContain('/login?');
-    expect(latestEmail.Body).toContain('email=');
-    expect(latestEmail.Body).toContain('token=');
+Then('my email contain reset link {string}', async function (this: CustomWorld, linkPattern: string) {
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify email contains reset link "${linkPattern}" (ConsoleEmailService does not store emails - need email testing service)`);
 });
 
 Then('my email mention {int}-hour expiration', async function (this: CustomWorld, hours: number) {
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    const latestEmail = emails[emails.length - 1];
-    expect(latestEmail.Body).toContain(hours.toString());
-    expect(latestEmail.Body).toMatch(/expire|expiration/i);
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify email mentions ${hours}-hour expiration (ConsoleEmailService does not store emails - need email testing service)`);
 });
 
 Then('I should see the success screen', async function (this: CustomWorld) {
@@ -768,90 +691,39 @@ Then('the login form should be displayed', async function (this: CustomWorld) {
 });
 
 Then('the email subject should be {string}', async function (this: CustomWorld, subject: string) {
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    const latestEmail = emails[emails.length - 1];
-    expect(latestEmail.Subject).toBe(subject);
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify email subject is "${subject}" (ConsoleEmailService does not store emails - need email testing service or SentEmails database table)`);
 });
 
-Then('my email include greeting with username or {string}', async function (this: CustomWorld, _defaultGreeting: string) {
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    const latestEmail = emails[emails.length - 1];
-
-    // Should have greeting
-    expect(latestEmail.Body).toMatch(/hello|hi|dear/i);
+Then('my email include greeting with username or {string}', async function (this: CustomWorld, defaultGreeting: string) {
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify email includes greeting with username or "${defaultGreeting}" (ConsoleEmailService does not store emails - need email testing service)`);
 });
 
 Then('my email explain someone requested password reset', async function (this: CustomWorld) {
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    const latestEmail = emails[emails.length - 1];
-    expect(latestEmail.Body).toMatch(/requested.*password reset|reset.*password.*requested/i);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify email explains password reset request (ConsoleEmailService does not store emails - need email testing service)');
 });
 
 Then('my email include the reset link button', async function (this: CustomWorld) {
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    const latestEmail = emails[emails.length - 1];
-    expect(latestEmail.Body).toContain('<a href');
-    expect(latestEmail.Body).toMatch(/reset.*password|click here/i);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify email includes reset link button (ConsoleEmailService does not store emails - need email testing service)');
 });
 
 Then('my email include {string} message', async function (this: CustomWorld, message: string) {
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    const latestEmail = emails[emails.length - 1];
-    expect(latestEmail.Body).toContain(message);
+    throw new Error(`NOT IMPLEMENTED: Step needs to verify email includes "${message}" message (ConsoleEmailService does not store emails - need email testing service)`);
 });
 
 Then('my email include support contact information', async function (this: CustomWorld) {
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    const latestEmail = emails[emails.length - 1];
-    expect(latestEmail.Body).toMatch(/support|contact|help/i);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify email includes support contact information (ConsoleEmailService does not store emails - need email testing service)');
 });
 
 Then('the link should use HTTPS protocol', async function (this: CustomWorld) {
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    const latestEmail = emails[emails.length - 1];
-    expect(latestEmail.Body).toContain('https://');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify reset link uses HTTPS (ConsoleEmailService does not store emails - need email testing service)');
 });
 
 Then('the link should point to the correct domain', async function (this: CustomWorld) {
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    const latestEmail = emails[emails.length - 1];
-
-    // Extract domain from baseUrl
-    const domain = this.baseUrl.replace('http://', '').replace('https://', '');
-    expect(latestEmail.Body).toContain(domain);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify link points to correct domain (ConsoleEmailService does not store emails - need email testing service)');
 });
 
 Then('my token be included as a query parameter', async function (this: CustomWorld) {
-    const emails = await this.db.queryTable('SentEmails', {
-        RecipientEmail: this.currentUser.email
-    });
-
-    const latestEmail = emails[emails.length - 1];
-    expect(latestEmail.Body).toMatch(/token=/);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify token is in query parameter (ConsoleEmailService does not store emails - need email testing service)');
 });
 
 Then('only one request should be processed', async function (this: CustomWorld) {
@@ -863,7 +735,7 @@ Then('I receive response with in less than {int}ms', async function (this: Custo
 });
 
 Then('my email be sent asynchronously', async function (this: CustomWorld) {
-    throw new Error('NOT IMPLEMENTED: Step needs to verify email sending doesn\'t block response (check response timing vs email sent timing)');
+    throw new Error('NOT IMPLEMENTED: Step needs to verify email sending doesn\'t block response (requires timing comparison between API response and email send event)');
 });
 
 Then('the success screen should display immediately', async function (this: CustomWorld) {
@@ -909,12 +781,7 @@ Then('my password is updated with secure hash', async function (this: CustomWorl
 });
 
 Then('my token be marked as used', async function (this: CustomWorld) {
-    const tokens = await this.db.queryTable('PasswordResetTokens', {
-        UserId: this.currentUser.id
-    });
-
-    const latestToken = tokens[tokens.length - 1];
-    expect(latestToken.Used).toBe(true);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify token was marked as used (ASP.NET Identity manages tokens internally - cannot query token usage status via database)');
 });
 
 Then('the PasswordResetConfirmed action is logged', async function (this: CustomWorld) {
@@ -933,10 +800,6 @@ Then('I should be redirected to login page after {int} seconds', async function 
 
 Then('I should see a link to request new reset', async function (this: CustomWorld) {
     await expect(this.page.locator('a:has-text("request"), button:has-text("request")')).toBeVisible();
-});
-
-Then('I should receive {int} status', async function (this: CustomWorld, statusCode: number) {
-    expect(this.lastApiResponse!.status()).toBe(statusCode);
 });
 
 Then('my password should not be updated', async function (this: CustomWorld) {
@@ -1009,12 +872,7 @@ Then('the user must log in again on all devices', async function (this: CustomWo
 });
 
 Then('all other reset tokens for my account should be invalidated', async function (this: CustomWorld) {
-    const tokens = await this.db.queryTable('PasswordResetTokens', {
-        UserId: this.currentUser.id
-    });
-
-    const validTokens = tokens.filter(t => !t.Invalidated && !t.Used);
-    expect(validTokens.length).toBe(0);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify all other tokens were invalidated (ASP.NET Identity manages tokens internally - cannot query token status via database)');
 });
 
 Then('they should not be usable', async function (this: CustomWorld) {
@@ -1049,12 +907,7 @@ Then('my input data should be preserved', async function (this: CustomWorld) {
 });
 
 Then('my reset token should remain valid', async function (this: CustomWorld) {
-    const tokens = await this.db.queryTable('PasswordResetTokens', {
-        UserId: this.currentUser.id
-    });
-
-    const validTokens = tokens.filter(t => !t.Invalidated && !t.Used);
-    expect(validTokens.length).toBeGreaterThan(0);
+    throw new Error('NOT IMPLEMENTED: Step needs to verify token remains valid (ASP.NET Identity manages token validity internally - cannot verify without attempting to use token)');
 });
 
 Then('I should be able to use the reset link again later', async function (this: CustomWorld) {

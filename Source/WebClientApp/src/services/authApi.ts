@@ -17,8 +17,6 @@ import type {
   UpdateProfileRequest
 } from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
-// import { mockApi } from './mockApi'; // Unused - reserved for future mock API implementation
-import { devUtils, isDevelopment } from '@/config/development';
 
 // Authentication API using existing WebApp ASP.NET Core Identity
 export const authApi = createApi({
@@ -74,7 +72,7 @@ export const authApi = createApi({
     // Password reset using existing Identity
     resetPassword: builder.mutation<{ success: boolean }, ForgotPasswordRequest>({
       query: (data) => ({
-        url: '/forgot-password',
+        url: '/password/forgot',
         method: 'POST',
         body: data,
       }),
@@ -83,8 +81,8 @@ export const authApi = createApi({
     // Confirm password reset
     confirmResetPassword: builder.mutation<{ success: boolean }, ResetPasswordRequest>({
       query: (data) => ({
-        url: '/reset-password',
-        method: 'POST',
+        url: '/password/reset',
+        method: 'PUT',
         body: data,
       }),
     }),

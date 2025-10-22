@@ -16,8 +16,6 @@ public record UpdateAssetData
         var result = base.Validate(context);
         if (Name.IsSet && string.IsNullOrWhiteSpace(Name.Value))
             result += new Error("When set, the asset name cannot be null or empty.", nameof(Name));
-        if (Description.IsSet && string.IsNullOrWhiteSpace(Description.Value))
-            result += new Error("When set, the asset description cannot be null or empty.", nameof(Description));
 
         // Validate ObjectProps values if being updated
         if (ObjectProps.IsSet && ObjectProps.Value is not null) {

@@ -51,6 +51,7 @@ export class CustomWorld extends World {
     createdAssets: any[] = [];
     createdSessions: any[] = [];  // Added: Track sessions for cleanup
     createdTestUsers: string[] = [];  // Added: Track test users created via DB for cleanup
+    createdUserIds: string[] = [];  // Added: Track precondition users for cleanup (registration tests)
     uploadedResourceIds: string[] = [];
     lastApiResponse: APIResponse | null = null;
 

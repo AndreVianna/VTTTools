@@ -483,7 +483,7 @@ Then('the viewport should smoothly follow the pointer', async function (this: Cu
 async function createTestImageResource(this: CustomWorld): Promise<string> {
     const imagePath = 'e2e/test-data/images/test-background.png';
 
-    const uploadResponse = await this.page.request.post('/api/media/resources', {
+    const uploadResponse = await this.page.request.post('/api/resources', {
         multipart: {
             file: imagePath,
             resourceKind: '1' // Image

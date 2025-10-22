@@ -14,7 +14,7 @@ public class CreatureAsset : Asset {
 /// Properties for Creature assets (serialized to JSON column)
 /// </summary>
 public class CreatureProperties {
-    public int CellSize { get; set; } = 1;
+    public double CellSize { get; set; } = 1;
     public Guid? StatBlockId { get; set; }
     public CreatureCategory Category { get; set; } = CreatureCategory.Character;
     public TokenStyle? TokenStyle { get; set; }

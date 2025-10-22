@@ -133,13 +133,13 @@ export interface Asset {
 // ObjectAsset - environmental items
 export interface ObjectAsset extends Asset {
   kind: AssetKind.Object;
-  objectProps: ObjectProperties;
+  properties: ObjectProperties;
 }
 
 // CreatureAsset - characters and monsters
 export interface CreatureAsset extends Asset {
   kind: AssetKind.Creature;
-  creatureProps: CreatureProperties;
+  properties: CreatureProperties;
 }
 
 // Placed Asset - Frontend-only type for local placement state
@@ -150,7 +150,7 @@ export interface PlacedAsset {
   position: { x: number; y: number };  // Center position in stage coordinates
   size: { width: number; height: number };
   rotation: number;     // Degrees
-  layer: string;        // Layer name (Structure | Objects | Agents)
+  layer: string;        // Group name (Structure | Objects | Creatures)
 }
 
 // Structure Types (from Domain.Library.Scenes.Model)

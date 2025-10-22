@@ -74,7 +74,7 @@ Given('I have a valid image resource', async function (this: CustomWorld) {
     // Upload a test image resource
     const imagePath = ((this.page.context() as any)['testDataDir']) || 'e2e/test-data/images/test-background.png';
 
-    const uploadResponse = await this.page.request.post('/api/media/resources', {
+    const uploadResponse = await this.page.request.post('/api/resources', {
         multipart: {
             file: imagePath,
             resourceKind: '1' // Image kind
@@ -113,7 +113,7 @@ Given('my scene has stage with background resource', async function (this: Custo
     // First, create an image resource
     const imagePath = ((this.page.context() as any)['testDataDir']) || 'e2e/test-data/images/test-background.png';
 
-    const uploadResponse = await this.page.request.post('/api/media/resources', {
+    const uploadResponse = await this.page.request.post('/api/resources', {
         multipart: {
             file: imagePath,
             resourceKind: '1' // Image kind

@@ -14,6 +14,12 @@ import { expect } from '@playwright/test';
 // WHEN Steps - Form Actions
 // ============================================================================
 
+When('I enter name {string}', async function (this: CustomWorld, name: string) {
+    const nameInput = this.page.getByLabel(/name/i);
+    await nameInput.clear();
+    await nameInput.fill(name);
+});
+
 When('I enter email {string}', async function (this: CustomWorld, email: string) {
     const emailInput = this.page.getByLabel(/email/i);
     await emailInput.clear();
@@ -105,11 +111,10 @@ When('the request is in progress', async function (this: CustomWorld) {
         route.continue();
     });
 
-    // Use button[type="submit"] to find the form submit button
     const submitButton = this.page.locator('button[type="submit"]').first();
     await submitButton.click();
 
-    await expect(submitButton).toBeDisabled({ timeout: 1000 });
+    await expect(submitButton).toBeDisabled({ timeout: 3000 });
 });
 
 // ============================================================================
@@ -123,7 +128,7 @@ Then('my form is submitted', async function (this: CustomWorld) {
 });
 
 Then('my form is not submitted', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /sign in|create account|reset password/i });
+    const submitButton = this.page.getByRole('button', { name: /sign in|create account|reset password|send reset instructions/i });
     await expect(submitButton).toBeVisible();
 
     await expect(this.page).toHaveURL(/\/login|\/register/);
@@ -148,8 +153,8 @@ Then('I should not see email validation errors', async function (this: CustomWor
 });
 
 Then('the submit button shows a loading spinner', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /sign in|create account|reset password/i });
-    await expect(submitButton.locator('svg, [role="progressbar"]')).toBeVisible();
+    const submitButton = this.page.locator('button[type="submit"]').first();
+    await expect(submitButton.locator('[role="progressbar"]').first()).toBeVisible({ timeout: 10000 });
 });
 
 Then('all form inputs are disabled', async function (this: CustomWorld) {

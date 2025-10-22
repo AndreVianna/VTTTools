@@ -32,7 +32,7 @@ public static class AuthHandlers {
             return Results.Ok(response);
 
         // Return proper HTTP status based on error type
-        if (response.Message?.Contains("already exists") == true)
+        if (response.Message?.Contains("DuplicatedUser") == true || response.Message?.Contains("already exists") == true)
             return Results.Conflict(new { error = response.Message });
 
         // Parse Identity validation errors into ValidationProblemDetails format
@@ -81,5 +81,60 @@ public static class AuthHandlers {
         };
 
         return Results.ValidationProblem(errors);
+    }
+
+    public static async Task<Microsoft.AspNetCore.Http.IResult> ForgotPasswordHandler(
+        [FromBody] ForgotPasswordRequest request,
+        IAuthService authService) {
+
+        var response = await authService.ForgotPasswordAsync(request.Email);
+
+        if (response.Success)
+            return Results.Ok(response);
+
+        return Results.BadRequest(new { error = response.Message });
+    }
+
+    public static async Task<Microsoft.AspNetCore.Http.IResult> ValidateResetTokenHandler(
+        [FromQuery] string email,
+        [FromQuery] string token,
+        IAuthService authService) {
+
+        var response = await authService.ValidateResetTokenAsync(email, token);
+
+        if (!response.Success) {
+            var errorMessage = Uri.EscapeDataString(response.Message ?? "Invalid reset link");
+            return Results.Redirect($"http://localhost:3000/resetPassword?error={errorMessage}");
+        }
+
+        var encodedEmail = Uri.EscapeDataString(email);
+        var encodedToken = Uri.EscapeDataString(token);
+        return Results.Redirect($"http://localhost:3000/resetPassword?email={encodedEmail}&token={encodedToken}&validated=true");
+    }
+
+    public static async Task<Microsoft.AspNetCore.Http.IResult> ResetPasswordHandler(
+        [FromBody] ResetPasswordRequest request,
+        IAuthService authService) {
+
+        if (request.NewPassword != request.ConfirmPassword) {
+            var errors = new Dictionary<string, string[]> {
+                ["confirmPassword"] = ["Passwords do not match"]
+            };
+            return Results.ValidationProblem(errors);
+        }
+
+        var response = await authService.ResetPasswordAsync(
+            request.Email,
+            request.Token,
+            request.NewPassword
+        );
+
+        if (response.Success)
+            return Results.Ok(response);
+
+        var errorDict = new Dictionary<string, string[]> {
+            [""] = [response.Message ?? "Password reset failed"]
+        };
+        return Results.ValidationProblem(errorDict);
     }
 }

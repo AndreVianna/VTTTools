@@ -13,16 +13,29 @@
 import Konva from 'konva';
 
 /**
- * Standard layer names and z-index ordering
+ * Layer names for 4-layer architecture
+ * Reduced from 6+ layers to 4 for performance optimization
  */
 export enum LayerName {
+    Static = 'static',
+    GameWorld = 'game-world',
+    Effects = 'effects',
+    UIOverlay = 'ui-overlay'
+}
+
+/**
+ * Group names for organizing content within layers
+ * Groups provide logical organization without layer performance cost
+ */
+export enum GroupName {
     Background = 'background',
     Grid = 'grid',
     Structure = 'structure',
     Objects = 'objects',
-    Agents = 'agents',
-    Foreground = 'foreground',
-    UI = 'ui'
+    Creatures = 'creatures',
+    PersistentEffects = 'persistent-effects',
+    TemporaryEffects = 'temporary-effects',
+    Transformer = 'transformer'
 }
 
 /**
@@ -30,13 +43,30 @@ export enum LayerName {
  * Lower values render first (bottom), higher values render last (top)
  */
 export const LAYER_Z_INDEX = {
-    [LayerName.Background]: 0,
-    [LayerName.Grid]: 1,
-    [LayerName.Structure]: 2,
-    [LayerName.Objects]: 3,
-    [LayerName.Agents]: 4,
-    [LayerName.Foreground]: 5,
-    [LayerName.UI]: 6
+    [LayerName.Static]: 0,
+    [LayerName.GameWorld]: 1,
+    [LayerName.Effects]: 2,
+    [LayerName.UIOverlay]: 3
+} as const;
+
+/**
+ * Group render order reference (NOT used as zIndex props)
+ * React-Konva recommends using JSX render order instead of zIndex for Groups
+ * Groups should be rendered in this order:
+ * - Structure < Objects < Creatures for proper z-ordering
+ *
+ * NOTE: These constants are for reference only. Groups use JSX render order,
+ * not zIndex props, to avoid "Node has no parent" warnings.
+ */
+export const GROUP_Z_INDEX = {
+    [GroupName.Background]: 0,
+    [GroupName.Grid]: 1,
+    [GroupName.Structure]: 100,
+    [GroupName.Objects]: 200,
+    [GroupName.Creatures]: 300,
+    [GroupName.PersistentEffects]: 100,
+    [GroupName.TemporaryEffects]: 200,
+    [GroupName.Transformer]: 0
 } as const;
 
 /**

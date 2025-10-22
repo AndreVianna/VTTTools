@@ -150,7 +150,6 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         if (result.HasErrors)
             return result;
 
-        // Load Resource entities for updated Resources if provided
         var resources = asset.Resources.ToList();
         if (data.Resources.IsSet) {
             resources.Clear();
@@ -164,7 +163,6 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             }
         }
 
-        // Update based on asset type
         asset = asset switch {
             ObjectAsset obj => obj with {
                 Name = data.Name.IsSet ? data.Name.Value : obj.Name,
@@ -186,6 +184,13 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             },
             _ => throw new InvalidOperationException($"Unknown asset type: {asset.GetType()}")
         };
+
+        Console.WriteLine($"[AssetService] Final asset before storage update:");
+        Console.WriteLine($"[AssetService]   AssetId={asset.Id}, Name={asset.Name}");
+        Console.WriteLine($"[AssetService]   Resources.Count={asset.Resources.Count}");
+        foreach (var r in asset.Resources) {
+            Console.WriteLine($"[AssetService]   Final resource: ResourceId={r.ResourceId}, Role={r.Role}");
+        }
 
         await assetStorage.UpdateAsync(asset, ct);
         return asset;

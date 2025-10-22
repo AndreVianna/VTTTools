@@ -90,7 +90,7 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                 kind: selectedKind,
                 name,
                 description,
-                resources,
+                resources: resources.map(r => ({ resourceId: r.resourceId, role: r.role })),
                 isPublic,
                 isPublished
             };
@@ -116,6 +116,12 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                     category: creatureCategory
                 };
             }
+
+            console.log('[AssetCreateDialog] handleSave - Sending request:', {
+                request,
+                objectSize: selectedKind === AssetKind.Object ? objectSize : null,
+                creatureSize: selectedKind === AssetKind.Creature ? creatureSize : null
+            });
 
             await createAsset(request).unwrap();
             onClose();

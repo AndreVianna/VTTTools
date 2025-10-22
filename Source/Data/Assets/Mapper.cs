@@ -94,8 +94,8 @@ internal static class Mapper {
                 CreatedAt = obj.CreatedAt,
                 UpdatedAt = obj.UpdatedAt,
                 Properties = new Entities.ObjectProperties {
-                    CellWidth = (int)obj.Properties.Size.Width,
-                    CellHeight = (int)obj.Properties.Size.Height,
+                    CellWidth = Math.Round(obj.Properties.Size.Width, 3),
+                    CellHeight = Math.Round(obj.Properties.Size.Height, 3),
                     IsMovable = obj.Properties.IsMovable,
                     IsOpaque = obj.Properties.IsOpaque,
                     TriggerEffectId = obj.Properties.TriggerEffectId
@@ -117,7 +117,7 @@ internal static class Mapper {
                 CreatedAt = creature.CreatedAt,
                 UpdatedAt = creature.UpdatedAt,
                 Properties = new Entities.CreatureProperties {
-                    CellSize = (int)creature.Properties.Size.Width,
+                    CellSize = Math.Round(creature.Properties.Size.Width, 3),
                     StatBlockId = creature.Properties.StatBlockId,
                     Category = creature.Properties.Category,
                     TokenStyle = creature.Properties.TokenStyle != null ? new Entities.TokenStyle {
@@ -134,14 +134,25 @@ internal static class Mapper {
         entity.Name = model.Name;
         entity.Description = model.Description;
 
-        // Update Resources collection (join table entries)
-        entity.Resources.Clear();
+        var modelResourceIds = model.Resources.Select(r => r.ResourceId).ToHashSet();
+
+        foreach (var existing in entity.Resources.ToList()) {
+            if (!modelResourceIds.Contains(existing.ResourceId)) {
+                entity.Resources.Remove(existing);
+            }
+        }
+
         foreach (var resource in model.Resources) {
-            entity.Resources.Add(new Entities.AssetResource {
-                AssetId = entity.Id,
-                ResourceId = resource.ResourceId,
-                Role = resource.Role
-            });
+            var existing = entity.Resources.FirstOrDefault(r => r.ResourceId == resource.ResourceId);
+            if (existing != null) {
+                existing.Role = resource.Role;
+            } else {
+                entity.Resources.Add(new Entities.AssetResource {
+                    AssetId = entity.Id,
+                    ResourceId = resource.ResourceId,
+                    Role = resource.Role
+                });
+            }
         }
 
         entity.IsPublic = model.IsPublic;
@@ -151,14 +162,14 @@ internal static class Mapper {
         // Update polymorphic properties
         switch (entity, model) {
             case (ObjectAssetEntity objEntity, DomainObjectAsset objModel):
-                objEntity.Properties.CellWidth = (int)objModel.Properties.Size.Width;
-                objEntity.Properties.CellHeight = (int)objModel.Properties.Size.Height;
+                objEntity.Properties.CellWidth = Math.Round(objModel.Properties.Size.Width, 3);
+                objEntity.Properties.CellHeight = Math.Round(objModel.Properties.Size.Height, 3);
                 objEntity.Properties.IsMovable = objModel.Properties.IsMovable;
                 objEntity.Properties.IsOpaque = objModel.Properties.IsOpaque;
                 objEntity.Properties.TriggerEffectId = objModel.Properties.TriggerEffectId;
                 break;
             case (CreatureAssetEntity creatureEntity, DomainCreatureAsset creatureModel):
-                creatureEntity.Properties.CellSize = (int)creatureModel.Properties.Size.Width;
+                creatureEntity.Properties.CellSize = Math.Round(creatureModel.Properties.Size.Width, 3);
                 creatureEntity.Properties.StatBlockId = creatureModel.Properties.StatBlockId;
                 creatureEntity.Properties.Category = creatureModel.Properties.Category;
                 creatureEntity.Properties.TokenStyle = creatureModel.Properties.TokenStyle == null

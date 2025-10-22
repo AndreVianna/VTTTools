@@ -7,6 +7,7 @@ namespace VttTools.Auth.UnitTests;
 public class AuthServiceTests {
     private readonly UserManager<User> _mockUserManager;
     private readonly SignInManager<User> _mockSignInManager;
+    private readonly IEmailService _mockEmailService;
     private readonly ILogger<AuthService> _mockLogger;
     private readonly AuthService _authService;
 
@@ -22,11 +23,14 @@ public class AuthServiceTests {
         _mockSignInManager = Substitute.For<SignInManager<User>>(
             _mockUserManager, contextAccessor, userPrincipalFactory, null, null, null, null);
 
+        // Mock EmailService
+        _mockEmailService = Substitute.For<IEmailService>();
+
         // Mock Logger
         _mockLogger = Substitute.For<ILogger<AuthService>>();
 
         // Create AuthService with mocked dependencies
-        _authService = new AuthService(_mockUserManager, _mockSignInManager, _mockLogger);
+        _authService = new AuthService(_mockUserManager, _mockSignInManager, _mockEmailService, _mockLogger);
     }
 
     #region LoginAsync Tests

@@ -1,0 +1,86 @@
+
+> vtttools-webclientapp@1.0.0 test:bdd:debug:scenario
+> cross-env DEBUG_MODE=true NODE_OPTIONS='--disable-warning=DEP0180' cucumber-js --profile debug --name Reject name that is too short
+
+[dotenv@17.2.3] injecting env (7) from .env -- tip: ⚙️  override existing env vars with { override: true }
+========================================================================================================================
+Starting BDD Test Suite - VTTTools
+Framework: Cucumber.js + Playwright + TypeScript
+========================================================================================================================
+[POOL] Initializing test user pool (size: 1)
+[POOL] Cleaning up orphaned test users from previous runs...
+[POOL] Found 0 test users to cleanup
+[POOL] Cleaning finished.
+[POOL] Creating user 1/1: bdd-test-user-1@test.local
+[POOL] User created in DB: 019a0367-6b3d-7a50-a1b4-bd83dec45f50
+[POOL] User pool initialized with 1 users
+[POOL] Starting init for: Reject name that is too short
+[POOL] User acquired: bdd-test-user-1@test.local for test: Reject name that is too short
+@use-case @authentication @account-creation
+Feature: Handle Registration # ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\HandleRegistration\HandleRegistration.feature:5
+
+  As a new VTT Tools user
+  I want to create an account with email, name, and password
+  So that I can start using the platform
+
+  Rule: name must be 3-50 characters with allowed characters only
+
+    @use-case @authentication @account-creation @validation @error-handling
+    Scenario: Reject name that is too short # ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\HandleRegistration\HandleRegistration.feature:54
+[POOL] Scenario started: Reject name that is too short
+      Given I am on the registration page
+      And the registration service is available
+      And I am not currently authenticated
+      Given I enter name "ab"
+      When I attempt to submit the registration form
+      Then I should see error "name must be at least 3 characters"
+      × failed
+        Error: function timed out, ensure the promise resolves within 5000 milliseconds
+            at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+            at listOnTimeout (node:internal/timers:594:17)
+            at process.processTimers (node:internal/timers:529:7)
+      And my form is not submitted
+      - skipped
+Scenario failed: Reject name that is too short
+Error: Error: function timed out, ensure the promise resolves within 5000 milliseconds
+    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+[POOL] Cleaning up data for user: bdd-test-user-1@test.local
+[POOL] Resetting user state for: bdd-test-user-1@test.local
+[POOL] User released: bdd-test-user-1@test.local
+
+================================================================================
+BDD Test Suite Complete
+================================================================================
+[POOL] Cleaning up 1 test users...
+[POOL] Cleaning up orphaned test users from previous runs...
+[POOL] Found 1 test users to cleanup
+[POOL] Deleting user bdd-test-user-1@test.local (ID: 019A0367-6B3D-7A50-A1B4-BD83DEC45F50)
+[POOL] Cleaning finished.
+[POOL] User pool cleaned up
+Failures:
+
+1) Scenario: Reject name that is too short # ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\HandleRegistration\HandleRegistration.feature:54
+   √ Before # file:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:112
+   √ Given I am on the registration page # file:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\authentication\registration.steps.ts:14
+   √ And the registration service is available # file:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\authentication\registration.steps.ts:17
+   √ And I am not currently authenticated # file:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication-state.steps.ts:16
+   √ Given I enter name "ab" # file:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\form-interaction.steps.ts:13
+   √ When I attempt to submit the registration form # file:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\authentication\registration.steps.ts:149
+   × Then I should see error "name must be at least 3 characters" # file:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\messages.steps.ts:13
+       Attachment (text/plain): All helperTexts on page: ["Email is required","name must be at least 3 characters","Password is required"]
+       Attachment (text/plain): Name field state: value="ab", aria-invalid="true"
+       Error: function timed out, ensure the promise resolves within 5000 milliseconds
+           at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+           at listOnTimeout (node:internal/timers:594:17)
+           at process.processTimers (node:internal/timers:529:7)
+   - And my form is not submitted # file:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\form-interaction.steps.ts:106
+   √ After # file:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:137
+       Attachment (text/plain): Selector "[role="alert"]" failed: 0 elements found, none matched text
+       Attachment (image/png)
+       Attachment (text/html)
+
+1 scenario (1 failed)
+7 steps (1 failed, 1 skipped, 5 passed)
+0m14.298s (executing steps: 0m08.670s)

@@ -17,6 +17,14 @@ import { CustomWorld } from '../../support/world.js';
 // GIVEN Steps - Authentication State Setup
 // ============================================================================
 
+Given('I am not currently authenticated', async function (this: CustomWorld) {
+    await this.context.clearCookies();
+    await this.page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+    });
+});
+
 Given('I am authenticated as {string}', { timeout: 30000 }, async function (this: CustomWorld, _displayName: string) {
     const password = process.env.BDD_TEST_PASSWORD!;
     await this.page.goto('/login');

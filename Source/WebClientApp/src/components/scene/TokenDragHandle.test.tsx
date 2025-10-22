@@ -40,7 +40,7 @@ describe('TokenDragHandle Logic Tests', () => {
             resources: [],
             createdAt: '2025-10-19T00:00:00Z',
             updatedAt: '2025-10-19T00:00:00Z',
-            creatureProps: {
+            properties: {
                 size: { width: 1, height: 1, isSquare: true },
                 category: 0,
                 tokenStyle: { shape: 0, borderColor: '#000', backgroundColor: '#fff' },
@@ -57,7 +57,7 @@ describe('TokenDragHandle Logic Tests', () => {
             const behavior = getPlacementBehavior(
                 mockCreatureAsset.asset.kind,
                 undefined,
-                (mockCreatureAsset.asset as any).creatureProps
+                (mockCreatureAsset.asset as any).properties
             );
 
             expect(behavior.canMove).toBe(true);
@@ -67,7 +67,7 @@ describe('TokenDragHandle Logic Tests', () => {
             const behavior = getPlacementBehavior(
                 mockCreatureAsset.asset.kind,
                 undefined,
-                (mockCreatureAsset.asset as any).creatureProps
+                (mockCreatureAsset.asset as any).properties
             );
 
             expect(behavior.canRotate).toBe(false);
@@ -77,7 +77,7 @@ describe('TokenDragHandle Logic Tests', () => {
             const behavior = getPlacementBehavior(
                 mockCreatureAsset.asset.kind,
                 undefined,
-                (mockCreatureAsset.asset as any).creatureProps
+                (mockCreatureAsset.asset as any).properties
             );
 
             expect(behavior.canResize).toBe(false);
@@ -87,7 +87,7 @@ describe('TokenDragHandle Logic Tests', () => {
             const behavior = getPlacementBehavior(
                 mockCreatureAsset.asset.kind,
                 undefined,
-                (mockCreatureAsset.asset as any).creatureProps
+                (mockCreatureAsset.asset as any).properties
             );
 
             expect(behavior.canDelete).toBe(true);
@@ -97,7 +97,7 @@ describe('TokenDragHandle Logic Tests', () => {
             const behavior = getPlacementBehavior(
                 mockCreatureAsset.asset.kind,
                 undefined,
-                (mockCreatureAsset.asset as any).creatureProps
+                (mockCreatureAsset.asset as any).properties
             );
 
             expect(behavior.requiresGridAlignment).toBe(true);
@@ -107,7 +107,7 @@ describe('TokenDragHandle Logic Tests', () => {
             const behavior = getPlacementBehavior(
                 mockCreatureAsset.asset.kind,
                 undefined,
-                (mockCreatureAsset.asset as any).creatureProps
+                (mockCreatureAsset.asset as any).properties
             );
 
             expect(behavior.allowOverlap).toBe(false);
@@ -148,7 +148,7 @@ describe('TokenDragHandle Logic Tests', () => {
             const behavior = getPlacementBehavior(
                 mockCreatureAsset.asset.kind,
                 undefined,
-                (mockCreatureAsset.asset as any).creatureProps
+                (mockCreatureAsset.asset as any).properties
             );
 
             const validation = validatePlacement(
@@ -177,7 +177,7 @@ describe('TokenDragHandle Logic Tests', () => {
             const behavior = getPlacementBehavior(
                 mockCreatureAsset.asset.kind,
                 undefined,
-                (mockCreatureAsset.asset as any).creatureProps
+                (mockCreatureAsset.asset as any).properties
             );
 
             const validation = validatePlacement(
@@ -206,7 +206,7 @@ describe('TokenDragHandle Logic Tests', () => {
             const behavior = getPlacementBehavior(
                 mockCreatureAsset.asset.kind,
                 undefined,
-                (mockCreatureAsset.asset as any).creatureProps
+                (mockCreatureAsset.asset as any).properties
             );
 
             const validation = validatePlacement(
@@ -309,7 +309,7 @@ describe('TokenDragHandle Logic Tests', () => {
                 resources: [],
                 createdAt: '2025-10-19T00:00:00Z',
                 updatedAt: '2025-10-19T00:00:00Z',
-                objectProps: {
+                properties: {
                     size: { width: 2, height: 1, isSquare: false },
                     isMovable: false,
                     isOpaque: true,
@@ -324,7 +324,7 @@ describe('TokenDragHandle Logic Tests', () => {
         it('should not allow immovable objects to move', () => {
             const behavior = getPlacementBehavior(
                 immovableObjectAsset.asset.kind,
-                (immovableObjectAsset.asset as any).objectProps,
+                (immovableObjectAsset.asset as any).properties,
                 undefined
             );
 
@@ -346,7 +346,7 @@ describe('TokenDragHandle Logic Tests', () => {
 
             const behavior = getPlacementBehavior(
                 movableObjectAsset.asset.kind,
-                (movableObjectAsset.asset as any).objectProps,
+                (movableObjectAsset.asset as any).properties,
                 undefined
             );
 
@@ -356,7 +356,7 @@ describe('TokenDragHandle Logic Tests', () => {
         it('should not allow overlap for opaque objects', () => {
             const behavior = getPlacementBehavior(
                 immovableObjectAsset.asset.kind,
-                (immovableObjectAsset.asset as any).objectProps,
+                (immovableObjectAsset.asset as any).properties,
                 undefined
             );
 
@@ -378,7 +378,7 @@ describe('TokenDragHandle Logic Tests', () => {
 
             const behavior = getPlacementBehavior(
                 transparentObjectAsset.asset.kind,
-                (transparentObjectAsset.asset as any).objectProps,
+                (transparentObjectAsset.asset as any).properties,
                 undefined
             );
 

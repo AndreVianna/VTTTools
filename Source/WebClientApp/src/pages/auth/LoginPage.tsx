@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { Box } from '@mui/material';
-import { LoginForm } from '@/components/auth/LoginForm';
 import { SimpleLoginForm } from '@/components/auth/SimpleLoginForm';
 import { SimpleRegistrationForm } from '@/components/auth/SimpleRegistrationForm';
 import { PasswordResetRequestForm } from '@/components/auth/PasswordResetRequestForm';
@@ -32,12 +31,6 @@ export const LoginPage: React.FC = () => {
   }, [searchParams, location.pathname]);
 
   const [mode, setMode] = useState<AuthMode>(initialMode);
-
-  const handleLoginResult = (result: any) => {
-    if (result?.requiresTwoFactor) {
-      setMode('two-factor');
-    }
-  };
 
   const renderCurrentForm = () => {
     switch (mode) {
@@ -83,15 +76,6 @@ export const LoginPage: React.FC = () => {
           <RecoveryCodeForm
             onSwitchToTwoFactor={() => setMode('two-factor')}
             onBack={() => setMode('login')}
-          />
-        );
-
-      default:
-        return (
-          <LoginForm
-            onSwitchToRegister={() => setMode('register')}
-            onSwitchToResetPassword={() => setMode('reset-request')}
-            onLoginResult={handleLoginResult}
           />
         );
     }

@@ -1,14 +1,55 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Transformer, Rect } from 'react-konva';
+import { Layer, Transformer, Rect } from 'react-konva';
 import { useTheme } from '@mui/material/styles';
 import Konva from 'konva';
 import type { PlacedAsset } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
+import { GridType } from '@/utils/gridCalculator';
 import {
     getPlacementBehavior,
-    snapAssetPosition,
     validatePlacement,
 } from '@/types/placement';
+
+/**
+ * Snap position to grid based on asset size
+ * - Small assets (< 1 cell) snap at their size intervals
+ * - Medium/Large assets (>= 1 cell) snap every 1 cell
+ * Rule: snapInterval = min(assetSize, 1 cell) per dimension
+ * Note: assetSizePixels is in PIXELS (from placedAsset.size)
+ */
+const snapToGridCenter = (
+    position: { x: number; y: number },
+    assetSizePixels: { width: number; height: number },
+    gridConfig: GridConfig
+): { x: number; y: number } => {
+    if (!gridConfig.snapToGrid || gridConfig.type === GridType.NoGrid) {
+        return position;
+    }
+
+    const { cellWidth, cellHeight, offsetX, offsetY } = gridConfig;
+
+    // Convert asset size from pixels to cells
+    const assetWidthCells = assetSizePixels.width / cellWidth;
+    const assetHeightCells = assetSizePixels.height / cellHeight;
+
+    // Snap interval = min(asset size, 1 cell) - large assets move 1 cell at a time
+    const snapWidthCells = Math.min(assetWidthCells, 1);
+    const snapHeightCells = Math.min(assetHeightCells, 1);
+
+    // Convert back to pixels
+    const snapWidth = snapWidthCells * cellWidth;
+    const snapHeight = snapHeightCells * cellHeight;
+
+    // Offset = half asset size
+    const offsetWidthPixels = assetSizePixels.width / 2;
+    const offsetHeightPixels = assetSizePixels.height / 2;
+
+    // Find nearest snap position
+    const snapX = Math.round((position.x - offsetX - offsetWidthPixels) / snapWidth) * snapWidth + offsetX + offsetWidthPixels;
+    const snapY = Math.round((position.y - offsetY - offsetHeightPixels) / snapHeight) * snapHeight + offsetY + offsetHeightPixels;
+
+    return { x: snapX, y: snapY };
+};
 
 export interface TokenDragHandleProps {
     /** Placed assets on the canvas */
@@ -25,6 +66,12 @@ export interface TokenDragHandleProps {
     gridConfig: GridConfig;
     /** Konva Stage reference */
     stageRef: React.RefObject<Konva.Stage>;
+    /** Whether placement mode is active (disable layer listening) */
+    isPlacementMode?: boolean;
+    /** Whether to enable drag-based movement (default: true, set false for click-to-pick-up) */
+    enableDragMove?: boolean;
+    /** Callback when handlers are attached and component is ready */
+    onReady?: () => void;
 }
 
 export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
@@ -35,11 +82,15 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     onAssetDeleted,
     gridConfig,
     stageRef,
+    isPlacementMode = false,
+    enableDragMove = true,
+    onReady,
 }) => {
     const theme = useTheme();
     const transformerRef = useRef<Konva.Transformer>(null);
     const selectionRectRef = useRef<Konva.Rect>(null);
-    const [dragStartPos, setDragStartPos] = useState<{ x: number; y: number } | null>(null);
+    const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
+    const hasCalledReadyRef = useRef<boolean>(false);
 
     const getSelectedNode = useCallback((): Konva.Node | null => {
         if (!selectedAssetId || !stageRef.current) return null;
@@ -78,7 +129,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const handleDragStart = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
         const node = e.target;
         const position = node.position();
-        setDragStartPos(position);
+        dragStartPosRef.current = position;
     }, []);
 
     const handleDragMove = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
@@ -88,10 +139,11 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
         if (!placedAsset) return;
 
+        const assetWithProps = placedAsset.asset as any;
         const behavior = getPlacementBehavior(
             placedAsset.asset.kind,
-            (placedAsset.asset as any).objectProps,
-            (placedAsset.asset as any).creatureProps
+            placedAsset.asset.kind === 'Object' ? assetWithProps.properties : undefined,
+            placedAsset.asset.kind === 'Creature' ? assetWithProps.properties : undefined
         );
 
         const nodePos = node.position();
@@ -100,12 +152,8 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
             y: nodePos.y + placedAsset.size.height / 2,
         };
 
-        const snappedCenter = snapAssetPosition(
-            centerPos,
-            placedAsset.size,
-            behavior,
-            gridConfig
-        );
+        // Use size-aware snapping (same as TokenPlacement)
+        const snappedCenter = snapToGridCenter(centerPos, placedAsset.size, gridConfig);
 
         node.position({
             x: snappedCenter.x - placedAsset.size.width / 2,
@@ -118,12 +166,12 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         const assetId = node.id();
         const placedAsset = placedAssets.find((a) => a.id === assetId);
 
-        if (!placedAsset || !dragStartPos) return;
+        if (!placedAsset || !dragStartPosRef.current) return;
 
         const behavior = getPlacementBehavior(
             placedAsset.asset.kind,
-            (placedAsset.asset as any).objectProps,
-            (placedAsset.asset as any).creatureProps
+            placedAsset.asset.kind === 'Object' ? (placedAsset.asset as any).properties : undefined,
+            placedAsset.asset.kind === 'Creature' ? (placedAsset.asset as any).properties : undefined
         );
 
         const nodePos = node.position();
@@ -145,8 +193,8 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                     height: a.size.height,
                     allowOverlap: getPlacementBehavior(
                         a.asset.kind,
-                        (a.asset as any).objectProps,
-                        (a.asset as any).creatureProps
+                        a.asset.kind === 'Object' ? (a.asset as any).properties : undefined,
+                        a.asset.kind === 'Creature' ? (a.asset as any).properties : undefined
                     ).allowOverlap,
                 })),
             gridConfig
@@ -156,11 +204,11 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
             onAssetMoved(assetId, centerPos);
         } else {
             console.warn('Invalid drag placement:', validation.errors);
-            node.position(dragStartPos);
+            node.position(dragStartPosRef.current);
         }
 
-        setDragStartPos(null);
-    }, [placedAssets, dragStartPos, gridConfig, onAssetMoved]);
+        dragStartPosRef.current = null;
+    }, [placedAssets, gridConfig, onAssetMoved]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -178,6 +226,9 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     }, [selectedAssetId, onAssetDeleted, onAssetSelected]);
 
     useEffect(() => {
+        // Skip stage click handler if drag-move is disabled
+        if (!enableDragMove) return;
+
         const stage = stageRef.current;
         if (!stage) return;
 
@@ -191,44 +242,71 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         return () => {
             stage.off('click', handleStageClick);
         };
-    }, [stageRef, onAssetSelected]);
+    }, [enableDragMove, stageRef, onAssetSelected]);
+
+    // Track which assets have handlers attached
+    const attachedHandlersRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
+        // Skip attaching drag handlers if drag-move is disabled
+        if (!enableDragMove) return;
+
         const stage = stageRef.current;
         if (!stage) return;
 
-        placedAssets.forEach((placedAsset) => {
-            const node = stage.findOne(`#${placedAsset.id}`);
-            if (node) {
-                const behavior = getPlacementBehavior(
-                    placedAsset.asset.kind,
-                    (placedAsset.asset as any).objectProps,
-                    (placedAsset.asset as any).creatureProps
-                );
+        // Wait for next frame to ensure Konva has rendered all nodes
+        const frameId = requestAnimationFrame(() => {
+            const currentAssetIds = new Set(placedAssets.map(a => a.id));
 
-                node.draggable(behavior.canMove);
-                node.on('click', handleNodeClick);
-                node.on('dragstart', handleDragStart);
-                node.on('dragmove', handleDragMove);
-                node.on('dragend', handleDragEnd);
+            // Remove handlers from assets that no longer exist
+            attachedHandlersRef.current.forEach(assetId => {
+                if (!currentAssetIds.has(assetId)) {
+                    const node = stage.findOne(`#${assetId}`);
+                    if (node) {
+                        node.off('click', handleNodeClick);
+                        node.off('dragstart', handleDragStart);
+                        node.off('dragmove', handleDragMove);
+                        node.off('dragend', handleDragEnd);
+                    }
+                    attachedHandlersRef.current.delete(assetId);
+                }
+            });
+
+            // Attach handlers to new assets
+            placedAssets.forEach((placedAsset) => {
+                // Skip if already attached
+                if (attachedHandlersRef.current.has(placedAsset.id)) return;
+
+                const node = stage.findOne(`#${placedAsset.id}`);
+                if (node) {
+                    const behavior = getPlacementBehavior(
+                        placedAsset.asset.kind,
+                        placedAsset.asset.kind === 'Object' ? (placedAsset.asset as any).properties : undefined,
+                        placedAsset.asset.kind === 'Creature' ? (placedAsset.asset as any).properties : undefined
+                    );
+
+                    node.draggable(behavior.canMove);
+                    node.on('click', handleNodeClick);
+                    node.on('dragstart', handleDragStart);
+                    node.on('dragmove', handleDragMove);
+                    node.on('dragend', handleDragEnd);
+                    attachedHandlersRef.current.add(placedAsset.id);
+                }
+            });
+
+            if (!hasCalledReadyRef.current && onReady) {
+                hasCalledReadyRef.current = true;
+                onReady();
             }
         });
 
         return () => {
-            placedAssets.forEach((placedAsset) => {
-                const node = stage.findOne(`#${placedAsset.id}`);
-                if (node) {
-                    node.off('click', handleNodeClick);
-                    node.off('dragstart', handleDragStart);
-                    node.off('dragmove', handleDragMove);
-                    node.off('dragend', handleDragEnd);
-                }
-            });
+            cancelAnimationFrame(frameId);
         };
-    }, [placedAssets, stageRef, handleNodeClick, handleDragStart, handleDragMove, handleDragEnd]);
+    }, [enableDragMove, placedAssets, stageRef, handleNodeClick, handleDragStart, handleDragMove, handleDragEnd, onReady]);
 
     return (
-        <>
+        <Layer name="ui-overlay" listening={!isPlacementMode && enableDragMove}>
             <Transformer
                 ref={transformerRef}
                 rotateEnabled={false}
@@ -244,7 +322,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                 ref={selectionRectRef}
                 visible={false}
             />
-        </>
+        </Layer>
     );
 };
 

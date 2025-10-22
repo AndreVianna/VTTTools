@@ -28,7 +28,7 @@ const createMockPlacedAsset = (id: string): PlacedAsset => ({
     position: { x: 100, y: 100 },
     size: { width: 50, height: 50 },
     rotation: 0,
-    zIndex: 1,
+    layer: 'objects',
 });
 
 describe('createPlaceAssetCommand', () => {

@@ -70,7 +70,7 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
-        '/api/media': {
+        '/api/resources': {
           target: 'https://localhost:7174',
           changeOrigin: true,
           secure: false,
