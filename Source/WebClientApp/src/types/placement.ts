@@ -74,10 +74,10 @@ export const getPlacementBehavior = (
             canMove: objectProps.isMovable,
             snapMode: objectProps.isMovable ? 'grid' : 'free',
             snapToGrid: true,
-            requiresGridAlignment: false, // Objects can be placed anywhere
-            allowOverlap: !objectProps.isOpaque, // Opaque objects block movement
+            requiresGridAlignment: false,
+            allowOverlap: false, // Objects cannot overlap (isOpaque is for vision, not collision)
             lockAspectRatio: objectProps.size.isSquare,
-            zIndexRange: [10, 40], // Structure layer (10-30), Objects layer (30-40)
+            zIndexRange: [10, 40],
         };
     }
 
@@ -176,27 +176,30 @@ export const checkAssetOverlap = (
     asset1: { x: number; y: number; width: number; height: number },
     asset2: { x: number; y: number; width: number; height: number }
 ): boolean => {
-    // Convert center positions to bounding boxes
+    // Add 1px tolerance to prevent edge-touching from triggering overlap
+    const tolerance = 1;
+
+    // Convert center positions to bounding boxes (with tolerance)
     const box1 = {
-        left: asset1.x - asset1.width / 2,
-        right: asset1.x + asset1.width / 2,
-        top: asset1.y - asset1.height / 2,
-        bottom: asset1.y + asset1.height / 2,
+        left: asset1.x - asset1.width / 2 + tolerance,
+        right: asset1.x + asset1.width / 2 - tolerance,
+        top: asset1.y - asset1.height / 2 + tolerance,
+        bottom: asset1.y + asset1.height / 2 - tolerance,
     };
 
     const box2 = {
-        left: asset2.x - asset2.width / 2,
-        right: asset2.x + asset2.width / 2,
-        top: asset2.y - asset2.height / 2,
-        bottom: asset2.y + asset2.height / 2,
+        left: asset2.x - asset2.width / 2 + tolerance,
+        right: asset2.x + asset2.width / 2 - tolerance,
+        top: asset2.y - asset2.height / 2 + tolerance,
+        bottom: asset2.y + asset2.height / 2 - tolerance,
     };
 
     // Check for overlap
     return !(
-        box1.right < box2.left ||
-        box1.left > box2.right ||
-        box1.bottom < box2.top ||
-        box1.top > box2.bottom
+        box1.right <= box2.left ||
+        box1.left >= box2.right ||
+        box1.bottom <= box2.top ||
+        box1.top >= box2.bottom
     );
 };
 

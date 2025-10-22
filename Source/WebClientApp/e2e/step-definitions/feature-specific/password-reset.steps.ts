@@ -48,6 +48,11 @@ Given('I have entered a valid email', async function (this: CustomWorld) {
     await emailInput.fill('testuser@example.com');
 });
 
+Given('I leave the email field empty', async function (this: CustomWorld) {
+    const emailInput = this.page.getByLabel(/email/i);
+    await emailInput.clear();
+});
+
 Given('I previously requested password reset', async function (this: CustomWorld) {
     // Simulate previous reset request by creating token in database
     const token = 'previous-token-' + Date.now();
@@ -72,21 +77,21 @@ Given('I have an active reset token', async function (this: CustomWorld) {
     });
 });
 
-Given('I have requested password reset {int} times in the last hour', async function (this: CustomWorld, count: number) {
+Given('I have requested password reset {int} times in the {int} minutes', async function (this: CustomWorld, count: number, _minutes: number) {
     // Create multiple recent reset attempts
     for (let i = 0; i < count; i++) {
         await this.db.insertPasswordResetAttempt({
             email: this.currentUser.email,
-            attemptedAt: new Date(Date.now() - (i * 10 * 60 * 1000)) // Spread over last hour
+            attemptedAt: new Date(Date.now() - (i * 60 * 1000)) // Spread over last minutes
         });
     }
 });
 
-Given('I was rate-limited {int} hour ago', async function (this: CustomWorld, hours: number) {
+Given('I was rate-limited {int} minutes ago', async function (this: CustomWorld, minutes: number) {
     // Create rate limit record that has expired
     await this.db.insertPasswordResetAttempt({
         email: this.currentUser.email,
-        attemptedAt: new Date(Date.now() - (hours * 60 * 60 * 1000))
+        attemptedAt: new Date(Date.now() - (minutes * 60 * 1000))
     });
 });
 
@@ -103,7 +108,7 @@ Given('I clicked the reset link with valid email and token parameters', async fu
     await this.db.insertPasswordResetToken({
         userId: this.currentUser.id,
         token,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000)
     });
 
     await this.page.goto(`/login?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`);
@@ -115,9 +120,9 @@ Given('I am on the password reset confirmation page', async function (this: Cust
     await expect(this.page.locator('input[name="newPassword"]')).toBeVisible();
 });
 
-Given('the reset token was created {int} hours ago', async function (this: CustomWorld, hours: number) {
+Given('the reset token was created {int} minutes ago', async function (this: CustomWorld, minutes: number) {
     const token = 'time-test-token-' + Date.now();
-    const createdAt = new Date(Date.now() - (hours * 60 * 60 * 1000));
+    const createdAt = new Date(Date.now() - (minutes * 60 * 1000));
 
     await this.db.insertPasswordResetToken({
         userId: this.currentUser.id,
@@ -203,17 +208,15 @@ Given('I successfully submit reset request', async function (this: CustomWorld) 
     await this.page.click('button[type="submit"]');
 
     // Wait for success screen
-    await expect(this.page.locator('text=/Check Your Email|Reset instructions sent/i')).toBeVisible();
+    await expect(this.page.locator('text=/Check Your Email|Reset instructions sent/i').first()).toBeVisible();
 });
 
 Given('I am on the success screen after requesting reset', async function (this: CustomWorld) {
-    // Navigate through flow
     await this.page.goto('/login');
-    await this.page.click('a:has-text("Forgot password?")');
-    await this.page.fill('input[name="email"]', this.currentUser.email);
+    await this.page.getByRole('button', { name: /forgot password/i }).click();
+    await this.page.getByLabel(/email/i).fill(this.currentUser.email);
     await this.page.click('button[type="submit"]');
-
-    await expect(this.page.locator('text=/Check Your Email/i')).toBeVisible();
+    await expect(this.page.locator('text=/Check Your Email/i').first()).toBeVisible();
 });
 
 // ============================================================================
@@ -221,44 +224,18 @@ Given('I am on the success screen after requesting reset', async function (this:
 // ============================================================================
 
 When('I submit the reset request form', async function (this: CustomWorld) {
-    // Set up a delayed route handler to allow subsequent steps to override with error mocks
-    // This handler will be replaced by error mock steps if they run before the delay completes
-    await this.page.route('**/api/auth/password/forgot', async route => {
-        // Delay to give subsequent steps time to unroute and set up error mocks
-        await new Promise(resolve => setTimeout(resolve, 1500));
+    const responsePromise = this.page.waitForResponse(
+        response => response.url().includes('/api/auth/password/forgot')
+    );
 
-        // Check if route is still valid (not already handled by override)
-        try {
-            // Continue with the real request if not overridden
-            await route.continue();
-        } catch (error: any) {
-            // Route was already handled by an override mock - this is expected
-            if (error.message?.includes('already handled')) {
-                // Silently ignore - the override took precedence
-                return;
-            }
-            throw error;
-        }
-    });
-
-    // Click submit button
     await this.page.click('button[type="submit"]:has-text("Send Reset Instructions")');
 
-    // Give a moment for the request to be initiated
-    await this.page.waitForTimeout(100);
+    this.lastApiResponse = await responsePromise as any;
 });
 
 When('I attempt to submit the reset request form', async function (this: CustomWorld) {
-    // Attempt submit (may fail validation)
     await this.page.click('button[type="submit"]');
-
-    // Wait for validation to show
-    await this.page.waitForLoadState('networkidle');
-});
-
-When('I leave the email field empty', async function (this: CustomWorld) {
-    // Clear and leave empty
-    await this.page.fill('input[name="email"]', '');
+    await this.page.waitForTimeout(1000);
 });
 
 When('I request password reset again for the same email', async function (this: CustomWorld) {
@@ -318,7 +295,10 @@ When('the password reset service returns {int} error', async function (this: Cus
 });
 
 When('I click {string} link', async function (this: CustomWorld, linkText: string) {
-    await this.page.click(`a:has-text("${linkText}"), button:has-text("${linkText}")`);
+    const linkElement = this.page.getByRole('button', { name: new RegExp(linkText, 'i') })
+        .or(this.page.getByRole('link', { name: new RegExp(linkText, 'i') }));
+    await linkElement.waitFor({ state: 'visible', timeout: 5000 });
+    await linkElement.click();
 });
 
 When('the reset email is generated', async function (this: CustomWorld) {
@@ -477,11 +457,11 @@ When('I successfully request password reset', async function (this: CustomWorld)
     await this.page.fill('input[name="email"]', this.currentUser.email);
     await this.page.click('button[type="submit"]');
 
-    await expect(this.page.locator('text=/Check Your Email/i')).toBeVisible();
+    await expect(this.page.locator('text=/Check Your Email/i').first()).toBeVisible();
 });
 
 When('the request completes', async function (this: CustomWorld) {
-    await expect(this.page.locator('text=/Check Your Email/i')).toBeVisible();
+    await expect(this.page.locator('text=/Check Your Email/i').first()).toBeVisible();
 });
 
 When('I have entered valid password data', async function (this: CustomWorld) {
@@ -520,8 +500,7 @@ Then('the request should be processed', async function (this: CustomWorld) {
 });
 
 Then('I should receive success', async function (this: CustomWorld) {
-    // Check for success indication
-    await expect(this.page.locator('text=/success|sent|check your email/i')).toBeVisible();
+    await expect(this.page.locator('text=/success|sent|check your email/i').first()).toBeVisible();
 });
 
 Then('a reset email should be sent to {string}', async function (this: CustomWorld, email: string) {
@@ -547,7 +526,7 @@ Then('no error should indicate the email doesn\'t exist', async function (this: 
     await expect(this.page.locator('text=/email not found|user not found/i')).not.toBeVisible();
 });
 
-Then('a reset I receive an authentication token', async function (this: CustomWorld) {
+Then('a reset token is generated', async function (this: CustomWorld) {
     throw new Error('NOT IMPLEMENTED: Step needs to verify token was generated (ASP.NET Identity manages tokens internally via Data Protection API - cannot verify via database)');
 });
 
@@ -584,7 +563,7 @@ Then('no email should be sent', async function (this: CustomWorld) {
 });
 
 Then('the request should be processed normally', async function (this: CustomWorld) {
-    await expect(this.page.locator('text=/Check Your Email/i')).toBeVisible();
+    await expect(this.page.locator('text=/Check Your Email/i').first()).toBeVisible();
 });
 
 Then('a reset email should be sent', async function (this: CustomWorld) {
@@ -612,7 +591,7 @@ Then('my email mention {int}-hour expiration', async function (this: CustomWorld
 });
 
 Then('I should see the success screen', async function (this: CustomWorld) {
-    await expect(this.page.locator('text=/Check Your Email/i')).toBeVisible();
+    await expect(this.page.locator('text=/Check Your Email/i').first()).toBeVisible();
 });
 
 Then('the success screen should display the email address I entered', async function (this: CustomWorld) {
@@ -663,7 +642,7 @@ Then('the error is logged server-side', async function (this: CustomWorld) {
 });
 
 Then('the success message should still be shown to me', async function (this: CustomWorld) {
-    await expect(this.page.locator('text=/Check Your Email|success/i')).toBeVisible();
+    await expect(this.page.locator('text=/Check Your Email|success/i').first()).toBeVisible();
 });
 
 Then('I should not be informed of the email failure', async function (this: CustomWorld) {
@@ -685,9 +664,9 @@ Then('I should be returned to the login page', async function (this: CustomWorld
 });
 
 Then('the login form should be displayed', async function (this: CustomWorld) {
-    await expect(this.page.locator('input[name="email"]')).toBeVisible();
-    await expect(this.page.locator('input[name="password"]')).toBeVisible();
-    await expect(this.page.locator('button[type="submit"]:has-text("Sign In")')).toBeVisible();
+    await expect(this.page.getByLabel(/email/i)).toBeVisible();
+    await expect(this.page.getByRole('textbox', { name: /password/i })).toBeVisible();
+    await expect(this.page.getByRole('button', { name: /sign in/i })).toBeVisible();
 });
 
 Then('the email subject should be {string}', async function (this: CustomWorld, subject: string) {
@@ -739,7 +718,7 @@ Then('my email be sent asynchronously', async function (this: CustomWorld) {
 });
 
 Then('the success screen should display immediately', async function (this: CustomWorld) {
-    await expect(this.page.locator('text=/Check Your Email/i')).toBeVisible({ timeout: 1000 });
+    await expect(this.page.locator('text=/Check Your Email/i').first()).toBeVisible({ timeout: 1000 });
 });
 
 Then('the email field should be properly labeled', async function (this: CustomWorld) {

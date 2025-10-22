@@ -112,7 +112,7 @@ Error: Error: function timed out, ensure the promise resolves within 5000 millis
             at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
             at listOnTimeout (node:internal/timers:594:17)
             at process.processTimers (node:internal/timers:529:7)
-      [36mThen[39m a reset I receive an authentication token
+      [36mThen[39m a reset token is generated
       [36m- skipped[39m
       [36mAnd[39m my token be cryptographically secure with 32+ bytes entropy
       [36m- skipped[39m
@@ -160,7 +160,7 @@ Error: Error: function timed out, ensure the promise resolves within 5000 millis
       [36mGiven[39m I am on the password reset request page
       [36mAnd[39m the password reset service is available
       [36mAnd[39m I am not currently authenticated
-      [36mGiven[39m I have requested password reset 3 times in the last hour
+      [36mGiven[39m I have requested password reset 3 times in the 5 minutes
       [36mWhen[39m I attempt to request another reset for the same email
       [31m× failed[39m
         Error: function timed out, ensure the promise resolves within 5000 milliseconds
@@ -643,7 +643,7 @@ Failures:
        [31m    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)[39m
        [31m    at listOnTimeout (node:internal/timers:594:17)[39m
        [31m    at process.processTimers (node:internal/timers:529:7)[39m
-   [36m- Then a reset I receive an authentication token[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:373[39m
+   [36m- Then a reset token is generated[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:373[39m
    [36m- And my token be cryptographically secure with 32+ bytes entropy[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:379[39m
    [36m- And my token have expiration timestamp 24 hours from now[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:385[39m
    [36m- And my token be URL-safe[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:388[39m
@@ -676,7 +676,7 @@ Failures:
    [32m√ Given I am on the password reset request page[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:19[39m
    [32m√ And the password reset service is available[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:32[39m
    [32m√ And I am not currently authenticated[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication-state.steps.ts:16[39m
-   [32m√ Given I have requested password reset 3 times in the last hour[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:66[39m
+   [32m√ Given I have requested password reset 3 times in the 5 minutes[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:66[39m
        Attachment (text/plain): Made 3 password reset requests for: bdd-test-user-1@test.local
    [31m× When I attempt to request another reset for the same email[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:167[39m
        [31mError: function timed out, ensure the promise resolves within 5000 milliseconds[39m

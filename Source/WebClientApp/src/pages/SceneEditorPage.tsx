@@ -86,14 +86,43 @@ const SceneEditorPageInternal: React.FC = () => {
         }
     }, [imagesLoaded, handlersReady, isSceneReady]);
 
+    const [isAltPressed, setIsAltPressed] = useState(false);
+    const [isCtrlPressed, setIsCtrlPressed] = useState(false);
+
+    const snapMode: 'free' | 'grid' | 'half-step' =
+        isAltPressed && isCtrlPressed ? 'half-step' :
+        isAltPressed ? 'free' :
+        isCtrlPressed ? 'grid' :
+        gridConfig.snapToGrid ? 'grid' : 'free';
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && draggedAsset) {
                 setDraggedAsset(null);
             }
+            if (e.key === 'Alt') {
+                setIsAltPressed(true);
+            }
+            if (e.key === 'Control') {
+                setIsCtrlPressed(true);
+            }
         };
+
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === 'Alt') {
+                setIsAltPressed(false);
+            }
+            if (e.key === 'Control') {
+                setIsCtrlPressed(false);
+            }
+        };
+
         window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        };
     }, [draggedAsset]);
 
     const handleViewportChange = (newViewport: Viewport) => {
@@ -270,6 +299,7 @@ const SceneEditorPageInternal: React.FC = () => {
                         draggedAsset={draggedAsset}
                         onDragComplete={handleDragComplete}
                         onImagesLoaded={handleImagesLoaded}
+                        snapMode={snapMode}
                     />
 
                     {/* Layer 3: Effects (placeholder for future) */}
@@ -289,6 +319,7 @@ const SceneEditorPageInternal: React.FC = () => {
                         isPlacementMode={!!draggedAsset}
                         enableDragMove={true}
                         onReady={handleHandlersReady}
+                        snapMode={snapMode}
                     />
                 </SceneCanvas>
 

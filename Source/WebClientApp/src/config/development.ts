@@ -36,11 +36,11 @@ export const API_CONFIG = {
 // Get current API endpoints based on mode
 export const getApiEndpoints = () => {
   if (isStandalone && isDevelopment) {
-    console.info('🔧 VTT Tools: Running in standalone development mode');
+    //console.info('🔧 VTT Tools: Running in standalone development mode');
     return API_CONFIG.standalone;
   }
 
-  console.info('🚀 VTT Tools: Running in Aspire orchestration mode');
+  //console.info('🚀 VTT Tools: Running in Aspire orchestration mode');
   return API_CONFIG.aspire;
 };
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Layer, Transformer, Rect } from 'react-konva';
+import { Layer, Transformer, Rect, Group, Circle, Line } from 'react-konva';
 import { useTheme } from '@mui/material/styles';
 import Konva from 'konva';
 import type { PlacedAsset } from '@/types/domain';
@@ -11,18 +11,45 @@ import {
 } from '@/types/placement';
 
 /**
- * Snap position to grid based on asset size
- * - Small assets (< 1 cell) snap at their size intervals
- * - Medium/Large assets (>= 1 cell) snap every 1 cell
- * Rule: snapInterval = min(assetSize, 1 cell) per dimension
+ * Render invalid placement indicator (red X)
+ */
+const renderInvalidIndicator = (position: { x: number; y: number }) => (
+    <Group x={position.x} y={position.y}>
+        <Circle
+            radius={24}
+            fill="rgba(220, 38, 38, 0.9)"
+            stroke="white"
+            strokeWidth={2}
+        />
+        <Line
+            points={[-12, -12, 12, 12]}
+            stroke="white"
+            strokeWidth={3}
+            lineCap="round"
+        />
+        <Line
+            points={[12, -12, -12, 12]}
+            stroke="white"
+            strokeWidth={3}
+            lineCap="round"
+        />
+    </Group>
+);
+
+/**
+ * Snap position to grid based on asset size and snap mode
+ * - Small assets (<= 0.5 cell): Base snap 0.5 cells
+ * - Medium/Large assets (> 0.5 cell): Base snap 1 cell
+ * - Half-step mode: Divides base by 2
  * Note: assetSizePixels is in PIXELS (from placedAsset.size)
  */
 const snapToGridCenter = (
     position: { x: number; y: number },
     assetSizePixels: { width: number; height: number },
-    gridConfig: GridConfig
+    gridConfig: GridConfig,
+    snapMode: 'free' | 'grid' | 'half-step'
 ): { x: number; y: number } => {
-    if (!gridConfig.snapToGrid || gridConfig.type === GridType.NoGrid) {
+    if (snapMode === 'free' || gridConfig.type === GridType.NoGrid) {
         return position;
     }
 
@@ -32,9 +59,17 @@ const snapToGridCenter = (
     const assetWidthCells = assetSizePixels.width / cellWidth;
     const assetHeightCells = assetSizePixels.height / cellHeight;
 
-    // Snap interval = min(asset size, 1 cell) - large assets move 1 cell at a time
-    const snapWidthCells = Math.min(assetWidthCells, 1);
-    const snapHeightCells = Math.min(assetHeightCells, 1);
+    // Base snap interval per dimension: <= 0.5 → 0.5 cells, > 0.5 → 1.0 cells
+    const getBaseSnapIntervalCells = (sizeInCells: number) =>
+        sizeInCells <= 0.5 ? 0.5 : 1.0;
+
+    const baseSnapWidthCells = getBaseSnapIntervalCells(assetWidthCells);
+    const baseSnapHeightCells = getBaseSnapIntervalCells(assetHeightCells);
+
+    // Apply mode multiplier
+    const multiplier = snapMode === 'half-step' ? 0.5 : 1.0;
+    const snapWidthCells = baseSnapWidthCells * multiplier;
+    const snapHeightCells = baseSnapHeightCells * multiplier;
 
     // Convert back to pixels
     const snapWidth = snapWidthCells * cellWidth;
@@ -85,12 +120,21 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     isPlacementMode = false,
     enableDragMove = true,
     onReady,
+    snapMode,
 }) => {
     const theme = useTheme();
     const transformerRef = useRef<Konva.Transformer>(null);
     const selectionRectRef = useRef<Konva.Rect>(null);
     const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
+    const [isDragValid, setIsDragValid] = useState(true);
+    const [draggedAssetInfo, setDraggedAssetInfo] = useState<{ id: string; position: { x: number; y: number }; size: { width: number; height: number } } | null>(null);
     const hasCalledReadyRef = useRef<boolean>(false);
+    const snapModeRef = useRef(snapMode);
+
+    // Update snapModeRef when snapMode changes
+    useEffect(() => {
+        snapModeRef.current = snapMode;
+    }, [snapMode]);
 
     const getSelectedNode = useCallback((): Konva.Node | null => {
         if (!selectedAssetId || !stageRef.current) return null;
@@ -130,7 +174,17 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         const node = e.target;
         const position = node.position();
         dragStartPosRef.current = position;
-    }, []);
+        setIsDragValid(true);
+
+        // Move to drag-preview group to render above all other assets
+        const stage = stageRef.current;
+        if (stage) {
+            const dragPreviewGroup = stage.findOne('.drag-preview');
+            if (dragPreviewGroup) {
+                node.moveTo(dragPreviewGroup as Konva.Container);
+            }
+        }
+    }, [stageRef]);
 
     const handleDragMove = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
         const node = e.target;
@@ -152,12 +206,40 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
             y: nodePos.y + placedAsset.size.height / 2,
         };
 
-        // Use size-aware snapping (same as TokenPlacement)
-        const snappedCenter = snapToGridCenter(centerPos, placedAsset.size, gridConfig);
+        // Use size-aware snapping with keyboard mode support (use ref for current value)
+        const snappedCenter = snapToGridCenter(centerPos, placedAsset.size, gridConfig, snapModeRef.current);
 
         node.position({
             x: snappedCenter.x - placedAsset.size.width / 2,
             y: snappedCenter.y - placedAsset.size.height / 2,
+        });
+
+        // Validate placement for visual feedback
+        const validation = validatePlacement(
+            snappedCenter,
+            placedAsset.size,
+            behavior,
+            placedAssets
+                .filter((a) => a.id !== assetId)
+                .map((a) => ({
+                    x: a.position.x,
+                    y: a.position.y,
+                    width: a.size.width,
+                    height: a.size.height,
+                    allowOverlap: getPlacementBehavior(
+                        a.asset.kind,
+                        a.asset.kind === 'Object' ? (a.asset as any).properties : undefined,
+                        a.asset.kind === 'Creature' ? (a.asset as any).properties : undefined
+                    ).allowOverlap,
+                })),
+            gridConfig
+        );
+
+        setIsDragValid(validation.valid);
+        setDraggedAssetInfo({
+            id: assetId,
+            position: snappedCenter,
+            size: placedAsset.size
         });
     }, [placedAssets, gridConfig]);
 
@@ -167,6 +249,16 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         const placedAsset = placedAssets.find((a) => a.id === assetId);
 
         if (!placedAsset || !dragStartPosRef.current) return;
+
+        // Move asset back to its proper group
+        const stage = stageRef.current;
+        if (stage) {
+            const targetGroupName = placedAsset.layer;
+            const targetGroup = stage.findOne(`.${targetGroupName}`);
+            if (targetGroup) {
+                node.moveTo(targetGroup as Konva.Container);
+            }
+        }
 
         const behavior = getPlacementBehavior(
             placedAsset.asset.kind,
@@ -208,7 +300,9 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         }
 
         dragStartPosRef.current = null;
-    }, [placedAssets, gridConfig, onAssetMoved]);
+        setDraggedAssetInfo(null);
+        setIsDragValid(true);
+    }, [placedAssets, gridConfig, onAssetMoved, stageRef]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -322,6 +416,9 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                 ref={selectionRectRef}
                 visible={false}
             />
+
+            {/* Invalid placement indicator during drag */}
+            {draggedAssetInfo && !isDragValid && renderInvalidIndicator(draggedAssetInfo.position)}
         </Layer>
     );
 };

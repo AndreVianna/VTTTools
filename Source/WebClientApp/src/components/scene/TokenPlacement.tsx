@@ -1,12 +1,13 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Layer, Group, Image as KonvaImage, Rect } from 'react-konva';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Layer, Group, Image as KonvaImage, Rect, Circle, Line } from 'react-konva';
 import Konva from 'konva';
 import type { Asset, PlacedAsset } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { LayerName, GroupName } from '@/services/layerManager';
 import { getApiEndpoints } from '@/config/development';
+import { getPlacementBehavior, validatePlacement } from '@/types/placement';
 
 export interface TokenPlacementProps {
     /** Assets to place on canvas (managed by parent) */
@@ -25,6 +26,8 @@ export interface TokenPlacementProps {
     onDragComplete: () => void;
     /** Callback when all images are loaded */
     onImagesLoaded?: () => void;
+    /** Snap mode from keyboard modifiers */
+    snapMode: 'free' | 'grid' | 'half-step';
 }
 
 const getTokenImageUrl = (asset: Asset): string | null => {
@@ -79,26 +82,61 @@ const getAssetSize = (asset: Asset): { width: number; height: number } => {
 };
 
 /**
- * Snap position to grid based on asset size
- * - Small assets (< 1 cell) snap at their size intervals (0.5×0.5 snaps every 0.5 cells)
- * - Medium/Large assets (>= 1 cell) snap every 1 cell
- * Rule: snapInterval = min(assetSize, 1 cell) per dimension
- * Tie-breaker: right over left, bottom over top
+ * Render invalid placement indicator (red X)
+ */
+const renderInvalidIndicator = (position: { x: number; y: number }) => (
+    <Group x={position.x} y={position.y}>
+        <Circle
+            radius={24}
+            fill="rgba(220, 38, 38, 0.9)"
+            stroke="white"
+            strokeWidth={2}
+        />
+        <Line
+            points={[-12, -12, 12, 12]}
+            stroke="white"
+            strokeWidth={3}
+            lineCap="round"
+        />
+        <Line
+            points={[12, -12, -12, 12]}
+            stroke="white"
+            strokeWidth={3}
+            lineCap="round"
+        />
+    </Group>
+);
+
+/**
+ * Snap position to grid based on asset size and snap mode
+ * - Small assets (<= 0.5 cell): Base snap 0.5 cells
+ * - Medium/Large assets (> 0.5 cell): Base snap 1 cell
+ * - Half-step mode: Divides base by 2 (0.25 for small, 0.5 for medium+)
+ * - Each dimension calculated independently
  */
 const snapToGridCenter = (
     position: { x: number; y: number },
     assetSize: { width: number; height: number },
-    gridConfig: GridConfig
+    gridConfig: GridConfig,
+    snapMode: 'free' | 'grid' | 'half-step'
 ): { x: number; y: number } => {
-    if (!gridConfig.snapToGrid || gridConfig.type === GridType.NoGrid) {
+    if (snapMode === 'free' || gridConfig.type === GridType.NoGrid) {
         return position;
     }
 
     const { cellWidth, cellHeight, offsetX, offsetY } = gridConfig;
 
-    // Snap interval = min(asset size, 1 cell) - large assets move 1 cell at a time
-    const snapWidthCells = Math.min(assetSize.width, 1);
-    const snapHeightCells = Math.min(assetSize.height, 1);
+    // Base snap interval per dimension: <= 0.5 → 0.5 cells, > 0.5 → 1.0 cells
+    const getBaseSnapIntervalCells = (sizeInCells: number) =>
+        sizeInCells <= 0.5 ? 0.5 : 1.0;
+
+    const baseSnapWidthCells = getBaseSnapIntervalCells(assetSize.width);
+    const baseSnapHeightCells = getBaseSnapIntervalCells(assetSize.height);
+
+    // Apply mode multiplier
+    const multiplier = snapMode === 'half-step' ? 0.5 : 1.0;
+    const snapWidthCells = baseSnapWidthCells * multiplier;
+    const snapHeightCells = baseSnapHeightCells * multiplier;
 
     // Convert to pixels
     const snapWidth = snapWidthCells * cellWidth;
@@ -109,7 +147,6 @@ const snapToGridCenter = (
     const offsetHeightPixels = (assetSize.height / 2) * cellHeight;
 
     // Find nearest snap position
-    // Math.round() handles ties by rounding 0.5 up (right/bottom preference)
     const snapX = Math.round((position.x - offsetX - offsetWidthPixels) / snapWidth) * snapWidth + offsetX + offsetWidthPixels;
     const snapY = Math.round((position.y - offsetY - offsetHeightPixels) / snapHeight) * snapHeight + offsetY + offsetHeightPixels;
 
@@ -125,9 +162,16 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     draggedAsset,
     onDragComplete,
     onImagesLoaded,
+    snapMode,
 }) => {
     const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | null>(null);
     const [imageCache, setImageCache] = useState<Map<string, HTMLImageElement>>(new Map());
+    const [isValidPlacement, setIsValidPlacement] = useState(true);
+    const snapModeRef = useRef(snapMode);
+
+    useEffect(() => {
+        snapModeRef.current = snapMode;
+    }, [snapMode]);
 
     const loadImage = useCallback((url: string): Promise<HTMLImageElement> => {
         return new Promise((resolve, reject) => {
@@ -209,13 +253,52 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         // Get asset size for size-aware snapping
         const assetCellSize = getAssetSize(draggedAsset);
 
-        // Snap to grid if enabled
-        const position = snapToGridCenter(rawPosition, assetCellSize, gridConfig);
+        // Snap to grid based on mode (use ref for current value)
+        const position = snapToGridCenter(rawPosition, assetCellSize, gridConfig, snapModeRef.current);
         setCursorPosition(position);
-    }, [draggedAsset, gridConfig]);
+
+        // Validate placement for visual feedback
+        const assetWithProps = draggedAsset as any;
+
+        const behavior = getPlacementBehavior(
+            draggedAsset.kind,
+            draggedAsset.kind === 'Object' ? assetWithProps.properties : undefined,
+            draggedAsset.kind === 'Creature' ? assetWithProps.properties : undefined
+        );
+
+        const size = {
+            width: assetCellSize.width * gridConfig.cellWidth,
+            height: assetCellSize.height * gridConfig.cellHeight
+        };
+
+        const validation = validatePlacement(
+            position,
+            size,
+            behavior,
+            placedAssets.map((a) => ({
+                x: a.position.x,
+                y: a.position.y,
+                width: a.size.width,
+                height: a.size.height,
+                allowOverlap: getPlacementBehavior(
+                    a.asset.kind,
+                    a.asset.kind === 'Object' ? (a.asset as any).properties : undefined,
+                    a.asset.kind === 'Creature' ? (a.asset as any).properties : undefined
+                ).allowOverlap,
+            })),
+            gridConfig
+        );
+
+        setIsValidPlacement(validation.valid);
+    }, [draggedAsset, gridConfig, placedAssets]);
 
     const handleClick = useCallback((_e: Konva.KonvaEventObject<MouseEvent>) => {
         if (!draggedAsset || !cursorPosition) return;
+
+        if (!isValidPlacement) {
+            return;
+        }
+
         const assetCellSize = getAssetSize(draggedAsset);
         const size = {
             width: assetCellSize.width * gridConfig.cellWidth,
@@ -235,7 +318,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         onAssetPlaced(placedAsset);
         onDragComplete();
         setCursorPosition(null);
-    }, [draggedAsset, cursorPosition, gridConfig, onAssetPlaced, onDragComplete]);
+    }, [draggedAsset, cursorPosition, gridConfig, isValidPlacement, onAssetPlaced, onDragComplete]);
 
     const renderAssetsByGroup = (groupName: GroupName) => {
         return placedAssets
@@ -245,19 +328,20 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 if (!image) return null;
 
                 return (
-                    <KonvaImage
-                        key={placedAsset.id}
-                        id={placedAsset.id}
-                        name="placed-asset"
-                        image={image}
-                        x={placedAsset.position.x - placedAsset.size.width / 2}
-                        y={placedAsset.position.y - placedAsset.size.height / 2}
-                        width={placedAsset.size.width}
-                        height={placedAsset.size.height}
-                        rotation={placedAsset.rotation}
-                        draggable={false}
-                        listening={true}
-                    />
+                    <React.Fragment key={placedAsset.id}>
+                        <KonvaImage
+                            id={placedAsset.id}
+                            name="placed-asset"
+                            image={image}
+                            x={placedAsset.position.x - placedAsset.size.width / 2}
+                            y={placedAsset.position.y - placedAsset.size.height / 2}
+                            width={placedAsset.size.width}
+                            height={placedAsset.size.height}
+                            rotation={placedAsset.rotation}
+                            draggable={false}
+                            listening={true}
+                        />
+                    </React.Fragment>
                 );
             });
     };
@@ -278,19 +362,20 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         };
 
         return (
-            <KonvaImage
-                image={image}
-                x={cursorPosition.x - size.width / 2}
-                y={cursorPosition.y - size.height / 2}
-                width={size.width}
-                height={size.height}
-                opacity={0.6}
-                listening={false}
-            />
+            <>
+                <KonvaImage
+                    image={image}
+                    x={cursorPosition.x - size.width / 2}
+                    y={cursorPosition.y - size.height / 2}
+                    width={size.width}
+                    height={size.height}
+                    opacity={isValidPlacement ? 0.6 : 0.3}
+                    listening={false}
+                />
+                {!isValidPlacement && renderInvalidIndicator(cursorPosition)}
+            </>
         );
     };
-
-    const previewGroup = draggedAsset ? getAssetGroup(draggedAsset) : null;
 
     return (
         <Layer
@@ -312,18 +397,23 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
 
             <Group name={GroupName.Structure}>
                 {renderAssetsByGroup(GroupName.Structure)}
-                {previewGroup === GroupName.Structure && renderPreview()}
             </Group>
 
             <Group name={GroupName.Objects}>
                 {renderAssetsByGroup(GroupName.Objects)}
-                {previewGroup === GroupName.Objects && renderPreview()}
             </Group>
 
             <Group name={GroupName.Creatures}>
                 {renderAssetsByGroup(GroupName.Creatures)}
-                {previewGroup === GroupName.Creatures && renderPreview()}
             </Group>
+
+            {/* Preview Group - Renders last so preview is always on top */}
+            <Group name="preview">
+                {renderPreview()}
+            </Group>
+
+            {/* Drag Preview Group - For temporarily holding dragged assets (renders above everything) */}
+            <Group name="drag-preview" />
         </Layer>
     );
 };
