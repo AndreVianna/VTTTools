@@ -1,0 +1,492 @@
+
+> vtttools-webclientapp@1.0.0 test:bdd:feature
+> node run-feature.cjs ConfirmPasswordReset
+
+Running: ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature
+
+[dotenv@17.2.3] injecting env (7) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+========================================================================================================================
+Starting BDD Test Suite - VTTTools
+Framework: Cucumber.js + Playwright + TypeScript
+========================================================================================================================
+[36m@use-case[39m [36m@authentication[39m [36m@password-reset[39m
+[94m[1mFeature:[22m[39m [94m[4mConfirm Password Reset[24m[39m [2m# ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:5[22m
+
+  [90mAs a VTT Tools user who requested password reset[39m
+  [90mI want to set a new password using the email reset link[39m
+  [90mSo that I can regain access to my account with a new password[39m
+
+  [94m[1mRule:[22m[39m [94m[4mNew password must meet strength requirements[24m[39m
+
+    [36m@use-case[39m [36m@authentication[39m [36m@password-reset[39m [36m@validation[39m
+    [36m[1mScenario:[22m[39m [36m[4mAccept password meeting minimum requirements[24m[39m [2m# ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:19[22m
+      [36mGiven[39m an account exists with email "gamemaster@example.com"
+      [36mAnd[39m I navigate to password reset confirmation page with valid token
+      [36mAnd[39m the password reset service is available
+      [36mAnd[39m I am not currently authenticated
+      [36mGiven[39m I enter new password "SecurePass123"
+      [31m× failed[39m
+        Error: function timed out, ensure the promise resolves within 5000 milliseconds
+            at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+            at listOnTimeout (node:internal/timers:594:17)
+            at process.processTimers (node:internal/timers:529:7)
+      [36mAnd[39m I enter matching confirmation "SecurePass123"
+      [36m- skipped[39m
+      [36mWhen[39m I submit the password reset form
+      [36m- skipped[39m
+      [36mThen[39m my password should pass validation
+      [36m- skipped[39m
+      [36mAnd[39m my password is updated
+      [36m- skipped[39m
+      [36mAnd[39m I should see success message "Password updated successfully"
+      [36m- skipped[39m
+Scenario failed: Accept password meeting minimum requirements
+Error: Error: function timed out, ensure the promise resolves within 5000 milliseconds
+    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+
+    [36m@use-case[39m [36m@authentication[39m [36m@password-reset[39m [36m@validation[39m [36m@error-handling[39m
+    [36m[1mScenario:[22m[39m [36m[4mReject password below minimum length[24m[39m [2m# ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:28[22m
+      [36mGiven[39m an account exists with email "gamemaster@example.com"
+      [36mAnd[39m I navigate to password reset confirmation page with valid token
+      [36mAnd[39m the password reset service is available
+      [36mAnd[39m I am not currently authenticated
+      [36mGiven[39m I enter new password "Short1"
+      [31m× failed[39m
+        Error: function timed out, ensure the promise resolves within 5000 milliseconds
+            at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+            at listOnTimeout (node:internal/timers:594:17)
+            at process.processTimers (node:internal/timers:529:7)
+      [36mWhen[39m I attempt to submit the password reset form
+      [36m- skipped[39m
+      [36mThen[39m I should see error "Password must be at least 6 characters"
+      [36m- skipped[39m
+      [36mAnd[39m my form is not submitted
+      [36m- skipped[39m
+Scenario failed: Reject password below minimum length
+Error: Error: function timed out, ensure the promise resolves within 5000 milliseconds
+    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+
+    [36m@use-case[39m [36m@authentication[39m [36m@password-reset[39m [36m@validation[39m [36m@error-handling[39m
+    [36m[1mScenario:[22m[39m [36m[4mReject empty password field[24m[39m [2m# ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:35[22m
+      [36mGiven[39m an account exists with email "gamemaster@example.com"
+      [36mAnd[39m I navigate to password reset confirmation page with valid token
+      [36mAnd[39m the password reset service is available
+      [36mAnd[39m I am not currently authenticated
+      [36mGiven[39m I leave the new password field empty
+      [31m× failed[39m
+        Error: function timed out, ensure the promise resolves within 5000 milliseconds
+            at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+            at listOnTimeout (node:internal/timers:594:17)
+            at process.processTimers (node:internal/timers:529:7)
+      [36mWhen[39m I attempt to submit the password reset form
+      [36m- skipped[39m
+      [36mThen[39m I should see error "Password is required"
+      [36m- skipped[39m
+      [36mAnd[39m my form is not submitted
+      [36m- skipped[39m
+Scenario failed: Reject empty password field
+Error: Error: function timed out, ensure the promise resolves within 5000 milliseconds
+    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+
+  [94m[1mRule:[22m[39m [94m[4mPassword confirmation must match new password[24m[39m
+
+    [36m@use-case[39m [36m@authentication[39m [36m@password-reset[39m [36m@validation[39m [36m@error-handling[39m
+    [36m[1mScenario:[22m[39m [36m[4mReject mismatched password confirmation[24m[39m [2m# ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:44[22m
+      [36mGiven[39m an account exists with email "gamemaster@example.com"
+      [36mAnd[39m I navigate to password reset confirmation page with valid token
+      [36mAnd[39m the password reset service is available
+      [36mAnd[39m I am not currently authenticated
+      [36mGiven[39m I enter new password "SecurePass123"
+      [31m× failed[39m
+        Error: function timed out, ensure the promise resolves within 5000 milliseconds
+            at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+            at listOnTimeout (node:internal/timers:594:17)
+            at process.processTimers (node:internal/timers:529:7)
+      [36mAnd[39m I enter confirmation password "DifferentPass456"
+      [36m- skipped[39m
+      [36mWhen[39m I attempt to submit the password reset form
+      [36m- skipped[39m
+      [36mThen[39m I should see error "Passwords do not match"
+      [36m- skipped[39m
+      [36mAnd[39m my form is not submitted
+      [36m- skipped[39m
+Scenario failed: Reject mismatched password confirmation
+Error: Error: function timed out, ensure the promise resolves within 5000 milliseconds
+    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+
+  [94m[1mRule:[22m[39m [94m[4mMissing URL parameters render form invalid[24m[39m
+
+    [36m@use-case[39m [36m@authentication[39m [36m@password-reset[39m [36m@error-handling[39m
+    [36m[1mScenario:[22m[39m [36m[4mHandle missing token parameter[24m[39m [2m# ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:54[22m
+      [36mGiven[39m an account exists with email "gamemaster@example.com"
+      [36mAnd[39m I navigate to password reset confirmation page with valid token
+      [36mAnd[39m the password reset service is available
+      [36mAnd[39m I am not currently authenticated
+      [36mGiven[39m I navigate to reset page without token parameter
+      [36mWhen[39m the page loads
+      [36mThen[39m I should see error "Invalid reset link"
+      [31m× failed[39m
+        Error: Expected error message "Invalid reset link" not found on page. Backend returned error correctly, but frontend is not displaying it.
+            at CustomWorld.<anonymous> (file:///C:/Projects/Personal/VTTTools/Source/WebClientApp/e2e/step-definitions/shared/messages.steps.ts:72:15)
+            at async wrapPromiseWithTimeout (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:67:12)
+            at async Object.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\user_code_runner.js:64:22)
+            at async Object.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\step_runner.js:64:26)
+            at async TestCaseRunner.invokeStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:123:16)
+            at async TestCaseRunner.runStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:288:26)
+            at async C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:208:44
+            at async TestCaseRunner.aroundTestStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:148:32)
+            at async TestCaseRunner.runAttempt (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:190:13)
+            at async TestCaseRunner.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:164:35)
+      [36mAnd[39m the form should not be displayed
+      [36m- skipped[39m
+Scenario failed: Handle missing token parameter
+Error: Error: Expected error message "Invalid reset link" not found on page. Backend returned error correctly, but frontend is not displaying it.
+    at CustomWorld.<anonymous> (file:///C:/Projects/Personal/VTTTools/Source/WebClientApp/e2e/step-definitions/shared/messages.steps.ts:72:15)
+    at async wrapPromiseWithTimeout (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:67:12)
+    at async Object.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\user_code_runner.js:64:22)
+    at async Object.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\step_runner.js:64:26)
+    at async TestCaseRunner.invokeStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:123:16)
+    at async TestCaseRunner.runStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:288:26)
+    at async C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:208:44
+    at async TestCaseRunner.aroundTestStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:148:32)
+    at async TestCaseRunner.runAttempt (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:190:13)
+    at async TestCaseRunner.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:164:35)
+
+    [36m@use-case[39m [36m@authentication[39m [36m@password-reset[39m [36m@error-handling[39m
+    [36m[1mScenario:[22m[39m [36m[4mHandle missing email parameter[24m[39m [2m# ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:61[22m
+      [36mGiven[39m an account exists with email "gamemaster@example.com"
+      [36mAnd[39m I navigate to password reset confirmation page with valid token
+      [36mAnd[39m the password reset service is available
+      [36mAnd[39m I am not currently authenticated
+      [36mGiven[39m I navigate to reset page without email parameter
+      [36mWhen[39m the page loads
+      [36mThen[39m I should see error "Invalid reset link"
+      [31m× failed[39m
+        Error: Expected error message "Invalid reset link" not found on page. Backend returned error correctly, but frontend is not displaying it.
+            at CustomWorld.<anonymous> (file:///C:/Projects/Personal/VTTTools/Source/WebClientApp/e2e/step-definitions/shared/messages.steps.ts:72:15)
+            at async wrapPromiseWithTimeout (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:67:12)
+            at async Object.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\user_code_runner.js:64:22)
+            at async Object.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\step_runner.js:64:26)
+            at async TestCaseRunner.invokeStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:123:16)
+            at async TestCaseRunner.runStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:288:26)
+            at async C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:208:44
+            at async TestCaseRunner.aroundTestStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:148:32)
+            at async TestCaseRunner.runAttempt (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:190:13)
+            at async TestCaseRunner.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:164:35)
+      [36mAnd[39m the form should not be displayed
+      [36m- skipped[39m
+Scenario failed: Handle missing email parameter
+Error: Error: Expected error message "Invalid reset link" not found on page. Backend returned error correctly, but frontend is not displaying it.
+    at CustomWorld.<anonymous> (file:///C:/Projects/Personal/VTTTools/Source/WebClientApp/e2e/step-definitions/shared/messages.steps.ts:72:15)
+    at async wrapPromiseWithTimeout (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:67:12)
+    at async Object.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\user_code_runner.js:64:22)
+    at async Object.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\step_runner.js:64:26)
+    at async TestCaseRunner.invokeStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:123:16)
+    at async TestCaseRunner.runStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:288:26)
+    at async C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:208:44
+    at async TestCaseRunner.aroundTestStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:148:32)
+    at async TestCaseRunner.runAttempt (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:190:13)
+    at async TestCaseRunner.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:164:35)
+
+  [94m[1mRule:[22m[39m [94m[4mNavigate back to login[24m[39m
+
+    [36m@use-case[39m [36m@authentication[39m [36m@password-reset[39m [36m@navigation[39m [36m@ui[39m
+    [36m[1mScenario:[22m[39m [36m[4mReturn to login before completing reset[24m[39m [2m# ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:70[22m
+      [36mGiven[39m an account exists with email "gamemaster@example.com"
+      [36mAnd[39m I navigate to password reset confirmation page with valid token
+      [36mAnd[39m the password reset service is available
+      [36mAnd[39m I am not currently authenticated
+      [36mGiven[39m I am on the password reset confirmation page
+      [31m× failed[39m
+        Error: function timed out, ensure the promise resolves within 5000 milliseconds
+            at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+            at listOnTimeout (node:internal/timers:594:17)
+            at process.processTimers (node:internal/timers:529:7)
+      [36mWhen[39m I click "Back to Login" link
+      [36m- skipped[39m
+      [36mThen[39m I should be returned to the login page
+      [36m- skipped[39m
+Scenario failed: Return to login before completing reset
+Error: Error: function timed out, ensure the promise resolves within 5000 milliseconds
+    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+
+  [94m[1mRule:[22m[39m [94m[4mIntegration with login flow[24m[39m
+
+    [36m@use-case[39m [36m@authentication[39m [36m@password-reset[39m [36m@integration[39m [36m@happy-path[39m
+    [36m[1mScenario:[22m[39m [36m[4mAfter reset user can log in with new password[24m[39m [2m# ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:78[22m
+      [36mGiven[39m an account exists with email "gamemaster@example.com"
+      [36mAnd[39m I navigate to password reset confirmation page with valid token
+      [36mAnd[39m the password reset service is available
+      [36mAnd[39m I am not currently authenticated
+      [36mGiven[39m I enter new password "NewPassword123"
+      [31m× failed[39m
+        Error: function timed out, ensure the promise resolves within 5000 milliseconds
+            at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+            at listOnTimeout (node:internal/timers:594:17)
+            at process.processTimers (node:internal/timers:529:7)
+      [36mAnd[39m I enter matching confirmation "NewPassword123"
+      [36m- skipped[39m
+      [36mAnd[39m I submit the password reset form
+      [36m- skipped[39m
+      [36mAnd[39m I should see success message "Password updated successfully"
+      [36m- skipped[39m
+      [36mWhen[39m I navigate to the login page
+      [36m- skipped[39m
+      [36mAnd[39m I enter my email and password "NewPassword123"
+      [36m- skipped[39m
+      [36mAnd[39m I submit the login form
+      [36m- skipped[39m
+      [36mThen[39m my authentication should succeed
+      [36m- skipped[39m
+Scenario failed: After reset user can log in with new password
+Error: Error: function timed out, ensure the promise resolves within 5000 milliseconds
+    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+
+    [36m@use-case[39m [36m@authentication[39m [36m@password-reset[39m [36m@integration[39m
+    [36m[1mScenario:[22m[39m [36m[4mOld password no longer works after reset[24m[39m [2m# ..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:89[22m
+      [36mGiven[39m an account exists with email "gamemaster@example.com"
+      [36mAnd[39m I navigate to password reset confirmation page with valid token
+      [36mAnd[39m the password reset service is available
+      [36mAnd[39m I am not currently authenticated
+      [36mGiven[39m I enter new password "NewPassword123"
+      [31m× failed[39m
+        Error: function timed out, ensure the promise resolves within 5000 milliseconds
+            at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+            at listOnTimeout (node:internal/timers:594:17)
+            at process.processTimers (node:internal/timers:529:7)
+      [36mAnd[39m I enter matching confirmation "NewPassword123"
+      [36m- skipped[39m
+      [36mAnd[39m I submit the password reset form
+      [36m- skipped[39m
+      [36mAnd[39m I should see success message "Password updated successfully"
+      [36m- skipped[39m
+      [36mWhen[39m I navigate to the login page
+      [36m- skipped[39m
+      [36mAnd[39m I attempt to log in with password "OldTestPassword123!"
+      [36m- skipped[39m
+      [36mThen[39m I should see error "Invalid email or password"
+      [36m- skipped[39m
+Scenario failed: Old password no longer works after reset
+Error: Error: function timed out, ensure the promise resolves within 5000 milliseconds
+    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+
+================================================================================
+BDD Test Suite Complete
+================================================================================
+Failures:
+
+1) Scenario: Accept password meeting minimum requirements # [90m..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:19[39m
+   [32m√ Before[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:112[39m
+   [32m√ Given an account exists with email "gamemaster@example.com"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication.steps.ts:29[39m
+       Attachment (text/plain): Test account email pattern: gamemaster@example.com → using pool user: bdd-test-user-1@test.local
+   [32m√ And I navigate to password reset confirmation page with valid token[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:45[39m
+   [32m√ And the password reset service is available[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:31[39m
+   [32m√ And I am not currently authenticated[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication-state.steps.ts:16[39m
+   [31m× Given I enter new password "SecurePass123"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\account-management.steps.ts:265[39m
+       [31mError: function timed out, ensure the promise resolves within 5000 milliseconds[39m
+       [31m    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)[39m
+       [31m    at listOnTimeout (node:internal/timers:594:17)[39m
+       [31m    at process.processTimers (node:internal/timers:529:7)[39m
+   [36m- And I enter matching confirmation "SecurePass123"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:278[39m
+   [36m- When I submit the password reset form[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:281[39m
+   [36m- Then my password should pass validation[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:620[39m
+   [36m- And my password is updated[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:624[39m
+   [36m- And I should see success message "Password updated successfully"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\messages.steps.ts:75[39m
+   [32m√ After[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:141[39m
+       Attachment (image/png)
+       Attachment (text/html)
+
+2) Scenario: Reject password below minimum length # [90m..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:28[39m
+   [32m√ Before[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:112[39m
+   [32m√ Given an account exists with email "gamemaster@example.com"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication.steps.ts:29[39m
+       Attachment (text/plain): Test account email pattern: gamemaster@example.com → using pool user: bdd-test-user-1@test.local
+   [32m√ And I navigate to password reset confirmation page with valid token[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:45[39m
+   [32m√ And the password reset service is available[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:31[39m
+   [32m√ And I am not currently authenticated[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication-state.steps.ts:16[39m
+   [31m× Given I enter new password "Short1"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\account-management.steps.ts:265[39m
+       [31mError: function timed out, ensure the promise resolves within 5000 milliseconds[39m
+       [31m    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)[39m
+       [31m    at listOnTimeout (node:internal/timers:594:17)[39m
+       [31m    at process.processTimers (node:internal/timers:529:7)[39m
+   [36m- When I attempt to submit the password reset form[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:286[39m
+   [36m- Then I should see error "Password must be at least 6 characters"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\messages.steps.ts:13[39m
+   [36m- And my form is not submitted[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\form-interaction.steps.ts:105[39m
+   [32m√ After[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:141[39m
+       Attachment (image/png)
+       Attachment (text/html)
+
+3) Scenario: Reject empty password field # [90m..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:35[39m
+   [32m√ Before[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:112[39m
+   [32m√ Given an account exists with email "gamemaster@example.com"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication.steps.ts:29[39m
+       Attachment (text/plain): Test account email pattern: gamemaster@example.com → using pool user: bdd-test-user-1@test.local
+   [32m√ And I navigate to password reset confirmation page with valid token[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:45[39m
+   [32m√ And the password reset service is available[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:31[39m
+   [32m√ And I am not currently authenticated[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication-state.steps.ts:16[39m
+   [31m× Given I leave the new password field empty[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:53[39m
+       [31mError: function timed out, ensure the promise resolves within 5000 milliseconds[39m
+       [31m    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)[39m
+       [31m    at listOnTimeout (node:internal/timers:594:17)[39m
+       [31m    at process.processTimers (node:internal/timers:529:7)[39m
+   [36m- When I attempt to submit the password reset form[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:286[39m
+   [36m- Then I should see error "Password is required"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\messages.steps.ts:13[39m
+   [36m- And my form is not submitted[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\form-interaction.steps.ts:105[39m
+   [32m√ After[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:141[39m
+       Attachment (image/png)
+       Attachment (text/html)
+
+4) Scenario: Reject mismatched password confirmation # [90m..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:44[39m
+   [32m√ Before[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:112[39m
+   [32m√ Given an account exists with email "gamemaster@example.com"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication.steps.ts:29[39m
+       Attachment (text/plain): Test account email pattern: gamemaster@example.com → using pool user: bdd-test-user-1@test.local
+   [32m√ And I navigate to password reset confirmation page with valid token[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:45[39m
+   [32m√ And the password reset service is available[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:31[39m
+   [32m√ And I am not currently authenticated[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication-state.steps.ts:16[39m
+   [31m× Given I enter new password "SecurePass123"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\account-management.steps.ts:265[39m
+       [31mError: function timed out, ensure the promise resolves within 5000 milliseconds[39m
+       [31m    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)[39m
+       [31m    at listOnTimeout (node:internal/timers:594:17)[39m
+       [31m    at process.processTimers (node:internal/timers:529:7)[39m
+   [36m- And I enter confirmation password "DifferentPass456"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:305[39m
+   [36m- When I attempt to submit the password reset form[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:286[39m
+   [36m- Then I should see error "Passwords do not match"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\messages.steps.ts:13[39m
+   [36m- And my form is not submitted[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\form-interaction.steps.ts:105[39m
+   [32m√ After[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:141[39m
+       Attachment (image/png)
+       Attachment (text/html)
+
+5) Scenario: Handle missing token parameter # [90m..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:54[39m
+   [32m√ Before[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:112[39m
+   [32m√ Given an account exists with email "gamemaster@example.com"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication.steps.ts:29[39m
+       Attachment (text/plain): Test account email pattern: gamemaster@example.com → using pool user: bdd-test-user-1@test.local
+   [32m√ And I navigate to password reset confirmation page with valid token[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:45[39m
+   [32m√ And the password reset service is available[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:31[39m
+   [32m√ And I am not currently authenticated[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication-state.steps.ts:16[39m
+   [32m√ Given I navigate to reset page without token parameter[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:308[39m
+   [32m√ When the page loads[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\navigation.steps.ts:37[39m
+   [31m× Then I should see error "Invalid reset link"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\messages.steps.ts:13[39m
+       Attachment (text/plain): All helperTexts on page: []
+       Attachment (text/plain): Error message not found. Checked 7 selectors. Alerts found: 0
+       [31mError: Expected error message "Invalid reset link" not found on page. Backend returned error correctly, but frontend is not displaying it.[39m
+       [31m    at CustomWorld.<anonymous> (file:///C:/Projects/Personal/VTTTools/Source/WebClientApp/e2e/step-definitions/shared/messages.steps.ts:72:15)[39m
+       [31m    at async wrapPromiseWithTimeout (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:67:12)[39m
+       [31m    at async Object.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\user_code_runner.js:64:22)[39m
+       [31m    at async Object.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\step_runner.js:64:26)[39m
+       [31m    at async TestCaseRunner.invokeStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:123:16)[39m
+       [31m    at async TestCaseRunner.runStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:288:26)[39m
+       [31m    at async C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:208:44[39m
+       [31m    at async TestCaseRunner.aroundTestStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:148:32)[39m
+       [31m    at async TestCaseRunner.runAttempt (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:190:13)[39m
+       [31m    at async TestCaseRunner.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:164:35)[39m
+   [36m- And the form should not be displayed[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:633[39m
+   [32m√ After[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:141[39m
+       Attachment (image/png)
+       Attachment (text/html)
+
+6) Scenario: Handle missing email parameter # [90m..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:61[39m
+   [32m√ Before[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:112[39m
+   [32m√ Given an account exists with email "gamemaster@example.com"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication.steps.ts:29[39m
+       Attachment (text/plain): Test account email pattern: gamemaster@example.com → using pool user: bdd-test-user-1@test.local
+   [32m√ And I navigate to password reset confirmation page with valid token[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:45[39m
+   [32m√ And the password reset service is available[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:31[39m
+   [32m√ And I am not currently authenticated[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication-state.steps.ts:16[39m
+   [32m√ Given I navigate to reset page without email parameter[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:311[39m
+   [32m√ When the page loads[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\navigation.steps.ts:37[39m
+   [31m× Then I should see error "Invalid reset link"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\messages.steps.ts:13[39m
+       Attachment (text/plain): All helperTexts on page: []
+       Attachment (text/plain): Error message not found. Checked 7 selectors. Alerts found: 0
+       [31mError: Expected error message "Invalid reset link" not found on page. Backend returned error correctly, but frontend is not displaying it.[39m
+       [31m    at CustomWorld.<anonymous> (file:///C:/Projects/Personal/VTTTools/Source/WebClientApp/e2e/step-definitions/shared/messages.steps.ts:72:15)[39m
+       [31m    at async wrapPromiseWithTimeout (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:67:12)[39m
+       [31m    at async Object.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\user_code_runner.js:64:22)[39m
+       [31m    at async Object.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\step_runner.js:64:26)[39m
+       [31m    at async TestCaseRunner.invokeStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:123:16)[39m
+       [31m    at async TestCaseRunner.runStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:288:26)[39m
+       [31m    at async C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:208:44[39m
+       [31m    at async TestCaseRunner.aroundTestStep (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:148:32)[39m
+       [31m    at async TestCaseRunner.runAttempt (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:190:13)[39m
+       [31m    at async TestCaseRunner.run (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\runtime\test_case_runner.js:164:35)[39m
+   [36m- And the form should not be displayed[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:633[39m
+   [32m√ After[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:141[39m
+       Attachment (image/png)
+       Attachment (text/html)
+
+7) Scenario: Return to login before completing reset # [90m..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:70[39m
+   [32m√ Before[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:112[39m
+   [32m√ Given an account exists with email "gamemaster@example.com"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication.steps.ts:29[39m
+       Attachment (text/plain): Test account email pattern: gamemaster@example.com → using pool user: bdd-test-user-1@test.local
+   [32m√ And I navigate to password reset confirmation page with valid token[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:45[39m
+   [32m√ And the password reset service is available[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:31[39m
+   [32m√ And I am not currently authenticated[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication-state.steps.ts:16[39m
+   [31m× Given I am on the password reset confirmation page[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:108[39m
+       [31mError: function timed out, ensure the promise resolves within 5000 milliseconds[39m
+       [31m    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)[39m
+       [31m    at listOnTimeout (node:internal/timers:594:17)[39m
+       [31m    at process.processTimers (node:internal/timers:529:7)[39m
+   [36m- When I click "Back to Login" link[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:249[39m
+   [36m- Then I should be returned to the login page[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:524[39m
+   [32m√ After[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:141[39m
+       Attachment (image/png)
+       Attachment (text/html)
+
+8) Scenario: After reset user can log in with new password # [90m..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:78[39m
+   [32m√ Before[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:112[39m
+   [32m√ Given an account exists with email "gamemaster@example.com"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication.steps.ts:29[39m
+       Attachment (text/plain): Test account email pattern: gamemaster@example.com → using pool user: bdd-test-user-1@test.local
+   [32m√ And I navigate to password reset confirmation page with valid token[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:45[39m
+   [32m√ And the password reset service is available[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:31[39m
+   [32m√ And I am not currently authenticated[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication-state.steps.ts:16[39m
+   [31m× Given I enter new password "NewPassword123"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\account-management.steps.ts:265[39m
+       [31mError: function timed out, ensure the promise resolves within 5000 milliseconds[39m
+       [31m    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)[39m
+       [31m    at listOnTimeout (node:internal/timers:594:17)[39m
+       [31m    at process.processTimers (node:internal/timers:529:7)[39m
+   [36m- And I enter matching confirmation "NewPassword123"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:278[39m
+   [36m- And I submit the password reset form[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:281[39m
+   [36m- And I should see success message "Password updated successfully"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\messages.steps.ts:75[39m
+   [36m- When I navigate to the login page[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:290[39m
+   [36m- And I enter my email and password "NewPassword123"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:360[39m
+   [36m- And I submit the login form[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\form-interaction.steps.ts:53[39m
+   [36m- Then my authentication should succeed[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:710[39m
+   [32m√ After[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:141[39m
+       Attachment (image/png)
+       Attachment (text/html)
+
+9) Scenario: Old password no longer works after reset # [90m..\..\Documents\Areas\Identity\Features\UserAuthentication\UseCases\ConfirmPasswordReset\ConfirmPasswordReset.feature:89[39m
+   [32m√ Before[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:112[39m
+   [32m√ Given an account exists with email "gamemaster@example.com"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication.steps.ts:29[39m
+       Attachment (text/plain): Test account email pattern: gamemaster@example.com → using pool user: bdd-test-user-1@test.local
+   [32m√ And I navigate to password reset confirmation page with valid token[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:45[39m
+   [32m√ And the password reset service is available[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:31[39m
+   [32m√ And I am not currently authenticated[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\authentication-state.steps.ts:16[39m
+   [31m× Given I enter new password "NewPassword123"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\account-management.steps.ts:265[39m
+       [31mError: function timed out, ensure the promise resolves within 5000 milliseconds[39m
+       [31m    at Timeout.<anonymous> (C:\Projects\Personal\VTTTools\Source\WebClientApp\node_modules\@cucumber\cucumber\lib\time.js:64:20)[39m
+       [31m    at listOnTimeout (node:internal/timers:594:17)[39m
+       [31m    at process.processTimers (node:internal/timers:529:7)[39m
+   [36m- And I enter matching confirmation "NewPassword123"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:278[39m
+   [36m- And I submit the password reset form[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:281[39m
+   [36m- And I should see success message "Password updated successfully"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\messages.steps.ts:75[39m
+   [36m- When I navigate to the login page[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:290[39m
+   [36m- And I attempt to log in with password "OldTestPassword123!"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\feature-specific\password-reset.steps.ts:364[39m
+   [36m- Then I should see error "Invalid email or password"[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\step-definitions\shared\messages.steps.ts:13[39m
+   [32m√ After[39m # [90mfile:\C:\Projects\Personal\VTTTools\Source\WebClientApp\e2e\support\hooks.ts:141[39m
+       Attachment (image/png)
+       Attachment (text/html)
+
+9 scenarios ([31m9 failed[39m)
+81 steps ([31m9 failed[39m, [36m32 skipped[39m, [32m40 passed[39m)
+1m11.898s (executing steps: 1m05.393s)

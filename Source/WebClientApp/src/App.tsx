@@ -13,6 +13,7 @@ import { VTTThemeProvider } from '@/components/theme';
 import { LoadingOverlay } from '@/components/common';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/hooks/useAuth';
+import { PasswordResetRequestPage } from '@/pages/auth/PasswordResetRequestPage';
 
 // App Content - Wraps everything in Router
 function AppContent() {
@@ -55,6 +56,11 @@ function AppRoutes() {
             <Route path="/register" element={
               <ProtectedRoute authLevel="anonymous">
                 <LoginPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/forgot-password" element={
+              <ProtectedRoute authLevel="anonymous">
+                <PasswordResetRequestPage />
               </ProtectedRoute>
             } />
             <Route path="/reset-password" element={

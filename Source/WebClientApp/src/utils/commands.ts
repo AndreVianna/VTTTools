@@ -1,4 +1,5 @@
-import type { PlacedAsset } from '@/types/domain';
+import type { PlacedAsset, PlacedAssetSnapshot } from '@/types/domain';
+import { applyAssetSnapshot } from '@/types/domain';
 
 export interface Command {
     execute: () => void;
@@ -123,6 +124,58 @@ export const createBatchCommand = (params: BatchCommandParams): Command => {
         },
         undo: () => {
             [...commands].reverse().forEach((cmd) => cmd.undo());
+        },
+    };
+};
+
+export interface UpdateAssetCommandParams {
+    assetId: string;
+    beforeSnapshot: PlacedAssetSnapshot;
+    afterSnapshot: PlacedAssetSnapshot;
+    onUpdate: (assetId: string, snapshot: PlacedAssetSnapshot) => void;
+}
+
+export const createUpdateAssetCommand = (params: UpdateAssetCommandParams): Command => {
+    const { assetId, beforeSnapshot, afterSnapshot, onUpdate } = params;
+
+    return {
+        description: 'Update asset',
+        execute: () => {
+            onUpdate(assetId, afterSnapshot);
+        },
+        undo: () => {
+            onUpdate(assetId, beforeSnapshot);
+        },
+    };
+};
+
+export interface TransformAssetCommandParams {
+    assetIds: string[];
+    beforeSnapshots: Map<string, PlacedAssetSnapshot>;
+    afterSnapshots: Map<string, PlacedAssetSnapshot>;
+    onUpdate: (assetId: string, snapshot: PlacedAssetSnapshot) => void;
+}
+
+export const createTransformAssetCommand = (params: TransformAssetCommandParams): Command => {
+    const { assetIds, beforeSnapshots, afterSnapshots, onUpdate } = params;
+
+    return {
+        description: `Transform (${assetIds.length} assets)`,
+        execute: () => {
+            assetIds.forEach(id => {
+                const snapshot = afterSnapshots.get(id);
+                if (snapshot) {
+                    onUpdate(id, snapshot);
+                }
+            });
+        },
+        undo: () => {
+            assetIds.forEach(id => {
+                const snapshot = beforeSnapshots.get(id);
+                if (snapshot) {
+                    onUpdate(id, snapshot);
+                }
+            });
         },
     };
 };

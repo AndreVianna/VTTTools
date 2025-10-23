@@ -144,14 +144,40 @@ export interface CreatureAsset extends Asset {
 
 // Placed Asset - Frontend-only type for local placement state
 export interface PlacedAsset {
-  id: string;           // Unique instance ID (frontend-generated)
-  assetId: string;      // Reference to Asset template
-  asset: Asset;         // Full asset data (for image URL and metadata)
-  position: { x: number; y: number };  // Center position in stage coordinates
+  id: string;
+  assetId: string;
+  asset: Asset;
+  position: { x: number; y: number };
   size: { width: number; height: number };
-  rotation: number;     // Degrees
-  layer: string;        // Group name (Structure | Objects | Creatures)
+  rotation: number;
+  layer: string;
 }
+
+// PlacedAsset Snapshot - For undo/redo with Memento pattern
+export interface PlacedAssetSnapshot {
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  rotation: number;
+  layer: string;
+}
+
+export const createAssetSnapshot = (asset: PlacedAsset): PlacedAssetSnapshot => ({
+  position: { ...asset.position },
+  size: { ...asset.size },
+  rotation: asset.rotation,
+  layer: asset.layer
+});
+
+export const applyAssetSnapshot = (
+  asset: PlacedAsset,
+  snapshot: PlacedAssetSnapshot
+): PlacedAsset => ({
+  ...asset,
+  position: { ...snapshot.position },
+  size: { ...snapshot.size },
+  rotation: snapshot.rotation,
+  layer: snapshot.layer
+});
 
 // Structure Types (from Domain.Library.Scenes.Model)
 

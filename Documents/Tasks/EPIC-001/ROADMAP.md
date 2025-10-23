@@ -13,17 +13,19 @@
 
 **Objective**: Complete migration from Blazor WebAssembly to React 19 + TypeScript SPA with enhanced scene editor, asset library, and real-time collaboration features
 
-**Scope**: Remaining 35% of UI migration (Phases 7-11) covering Content Management, Game Sessions with SignalR, and Account Management
+**Scope**: Remaining 35% of UI migration (Phases 7-11) covering Scene/Adventure/Content Management, Game Sessions with SignalR, and Account Management
 
 **Total Phases**: 11 (Phases 1-6 ✅ Complete, Phases 7-11 🔜 Remaining)
 **Estimated Complexity**: Very High (243 hours total, 85 hours remaining)
-**Current Status**: Phase 6 complete (65.0%), Phase 7-8 BLOCKED by backend, Phase 9-10 ready
+**Current Status**: Phase 6 complete (65.0%), Phase 7-8-10-11 READY, Phase 9 BLOCKED by backend
 
 **Deliverables**:
 
 - ✅ Complete Konva-based scene editor with grid, tokens, layers, undo/redo, offline mode
 - ✅ Asset library UI with browsing, filtering, creation, Material-UI components
-- ⚠️ Content hierarchy UI (Epic→Campaign→Adventure→Scene management) - BLOCKED by backend
+- 🔜 Scene CRUD UI (create, edit, list, delete scenes) - READY
+- 🔜 Adventure management UI (organize scenes into adventures) - READY
+- ⚠️ Epic/Campaign hierarchy UI (optional advanced organization) - BLOCKED by backend
 - 🔜 Real-time game session collaboration with SignalR (chat, events, participants)
 - 🔜 Account management pages (profile, security, 2FA, password change)
 - 🚧 BDD step definitions for feature files (integrated per-phase)
@@ -194,7 +196,7 @@
 **Deliverables**:
 
 - Page: LoginPage
-  - Description: Multi-mode auth page (login, register, password reset) - 2FA modes exist but untestable until Phase 10
+  - Description: Multi-mode auth page (login, register, password reset) - 2FA modes exist but untestable until Phase 11
   - Complexity: High
   - Dependencies: Redux auth slice
 - Component: SimpleLoginForm
@@ -245,7 +247,7 @@
 **Dependencies**:
 
 - **Prerequisites**: Phase 1 (foundation)
-- **Blocks**: Phase 10 (account settings need auth working)
+- **Blocks**: Phase 11 (account settings need auth working)
 
 **Validation**:
 
@@ -597,7 +599,7 @@
 **Dependencies**:
 
 - **Prerequisites**: Phase 4 (grid), Phase 5 (asset library)
-- **Blocks**: Phase 9 (game sessions use scene editor)
+- **Blocks**: Phase 7 (scenes need editor), Phase 10 (sessions use scenes)
 
 **Validation**:
 
@@ -642,145 +644,195 @@
 
 ---
 
-### Phase 7: Content Management - Epic/Campaign/Adventure ⚠️ BLOCKED
+### Phase 7: Scene Management 🔜 READY
 
-**Objective**: Implement Epic→Campaign→Adventure hierarchy CRUD UI
+**Objective**: Implement Scene CRUD UI with standalone and adventure-linked support
+
+**Backend Status**: ✅ Scene API fully implemented (`/api/library/scenes`)
+
+**Deliverables**:
+
+- Page: SceneListPage
+  - Description: Browse user's scenes with Material-UI cards
+  - Complexity: Medium
+  - Dependencies: RTK Query scenesApi
+- Component: SceneCRUDDialog
+  - Description: Create/Edit scene with grid/stage configuration
+  - Complexity: Medium
+  - Dependencies: scenesApi
+- Component: ScenePreviewCard
+  - Description: Scene card with grid type, asset count, thumbnail
+  - Complexity: Low
+  - Dependencies: None
+- API: scenesApi RTK Query slice
+  - Description: Integration with `/api/library/scenes` endpoints
+  - Complexity: Medium
+  - Dependencies: None (backend exists)
+- Integration: Scene Editor Launch
+  - Description: Open Scene Editor with selected scene data
+  - Complexity: Low
+  - Dependencies: Phase 6 (Scene Editor)
+
+**Implementation Sequence**:
+
+1. **Scenes API Integration** (UI)
+   - Command: Create RTK Query endpoints for scenes
+   - Estimated Effort: 3 hours
+   - Dependencies: None
+2. **SceneCRUDDialog** (UI)
+   - Command: Create/Edit form (name, description, grid type, stage size, optional adventureId)
+   - Estimated Effort: 4 hours
+   - Dependencies: Scenes API
+3. **SceneListPage** (UI)
+   - Command: Card grid with filter/search
+   - Estimated Effort: 4 hours
+   - Dependencies: Scenes API
+4. **Scene Editor Integration** (UI)
+   - Command: Load scene by ID, save scene changes to backend
+   - Estimated Effort: 3 hours
+   - Dependencies: SceneListPage
+
+**Success Criteria**:
+
+- Create scenes (standalone or linked to adventure)
+- Edit scene metadata and configuration
+- Delete scenes with confirmation
+- Launch Scene Editor from scene list
+- Save placed assets to backend (via scene API)
+
+**Dependencies**:
+
+- **Prerequisites**: Phase 6 (Scene Editor complete)
+- **Blocks**: Phase 10 (game sessions reference scenes)
+
+**Validation**:
+
+- Validate after phase: Scene CRUD operations, editor integration, backend persistence
+- Quality gate: All operations work, assets save to backend
+
+**Estimated Effort**: 14 hours
+
+**Status**: 🔜 READY (can start immediately)
+
+---
+
+### Phase 8: Adventure Management 🔜 READY
+
+**Objective**: Implement Adventure CRUD UI to organize scenes
+
+**Backend Status**: ✅ Adventure API fully implemented (`/api/library/adventures`)
+
+**Deliverables**:
+
+- Page: AdventureListPage
+  - Description: Browse adventures with Material-UI cards
+  - Complexity: Medium
+  - Dependencies: RTK Query adventuresApi
+- Component: AdventureCRUDDialog
+  - Description: Create/Edit adventure (optional campaign parent)
+  - Complexity: Medium
+  - Dependencies: adventuresApi
+- Component: AdventureSceneList
+  - Description: List scenes within adventure context
+  - Complexity: Medium
+  - Dependencies: Phase 7 (scenes)
+- API: adventuresApi RTK Query slice
+  - Description: Integration with `/api/library/adventures` endpoints
+  - Complexity: Medium
+  - Dependencies: None (backend exists)
+
+**Implementation Sequence**:
+
+1. **Adventures API Integration** (UI)
+   - Command: Create RTK Query endpoints
+   - Estimated Effort: 3 hours
+   - Dependencies: None
+2. **AdventureCRUDDialog** (UI)
+   - Command: Create/Edit form
+   - Estimated Effort: 3 hours
+   - Dependencies: Adventures API
+3. **AdventureListPage** (UI)
+   - Command: Card grid with scene preview integration
+   - Estimated Effort: 4 hours
+   - Dependencies: Adventures API, Phase 7
+4. **Scene-Adventure Linking** (UI)
+   - Command: Update SceneCRUDDialog to select parent adventure
+   - Estimated Effort: 2 hours
+   - Dependencies: Phase 7
+
+**Success Criteria**:
+
+- Create/Edit/Delete adventures
+- Link scenes to adventures (optional)
+- Browse scenes within adventure context
+- Adventures can exist without campaigns
+
+**Dependencies**:
+
+- **Prerequisites**: Phase 7 (scenes)
+- **Blocks**: None (Epic/Campaign optional)
+
+**Validation**:
+
+- Validate after phase: Adventure CRUD, scene linking
+- Quality gate: All operations work, scenes can be organized
+
+**Estimated Effort**: 12 hours
+
+**Status**: 🔜 READY (can start after Phase 7)
+
+---
+
+### Phase 9: Epic/Campaign Hierarchy ⚠️ BLOCKED
+
+**Objective**: Implement Epic→Campaign hierarchy for advanced content organization
+
+**Backend Status**: ⚠️ Epic/Campaign services NOT IMPLEMENTED
+
+**CRITICAL BLOCKER**:
+
+- Backend Epic/Campaign services missing from VttTools.Library microservice
+- Backend development required: ~3 weeks
+- Recommendation: Defer until backend ready
 
 **Deliverables**:
 
 - Page: ContentHierarchyPage
-  - Description: Tree view navigation for Epic/Campaign/Adventure with Material-UI TreeView
+  - Description: Tree view for Epic→Campaign→Adventure
   - Complexity: High
-  - Dependencies: RTK Query libraryApi
-- Component: EpicCRUDDialog
-  - Description: Create/Edit Epic with Material-UI Dialog
-  - Complexity: Medium
-  - Dependencies: libraryApi
-- Component: CampaignCRUDDialog
-  - Description: Create/Edit Campaign with parent Epic selection
-  - Complexity: Medium
-  - Dependencies: libraryApi
-- Component: AdventureCRUDDialog
-  - Description: Create/Edit Adventure with parent Campaign selection
-  - Complexity: Medium
-  - Dependencies: libraryApi
-- API: libraryApi RTK Query slice
-  - Description: API integration for /api/epics, /api/campaigns, /api/adventures
+  - Dependencies: RTK Query epicApi, campaignApi
+- Component: EpicCRUDDialog, CampaignCRUDDialog
+  - Description: Create/Edit forms
+  - Complexity: Medium each
+  - Dependencies: Backend APIs
+- API: epicApi, campaignApi RTK Query slices
+  - Description: Integration with `/api/library/epics`, `/api/library/campaigns`
   - Complexity: High
-  - Dependencies: Backend Epic/Campaign services
-
-**CRITICAL BLOCKER**:
-
-- ⚠️ **Backend Epic/Campaign services NOT IMPLEMENTED** in VttTools.Library microservice
-- Backend development required: ~3 weeks (EpicService, CampaignService, AdventureService, API controllers)
-- **Recommendation**: Coordinate with backend team immediately or defer Phase 7-8 until backend ready
-
-**Implementation Sequence**:
-
-1. **Library API Slice** (UI) - ⚠️ BLOCKED
-   - Command: Create RTK Query endpoints (BLOCKED by backend)
-   - Estimated Effort: 4 hours
-   - Dependencies: Backend services must exist
-2. **ContentHierarchyPage** (UI) - ⚠️ BLOCKED
-   - Command: Implement tree navigation
-   - Estimated Effort: 6 hours
-   - Dependencies: Library API
-3. **Epic/Campaign/Adventure CRUD Dialogs** (UI) - ⚠️ BLOCKED
-   - Command: Build Material-UI forms for hierarchy management
-   - Estimated Effort: 8 hours
-   - Dependencies: Library API
+  - Dependencies: Backend services (missing)
 
 **Success Criteria**:
 
-- Create/Read/Update/Delete Epics, Campaigns, Adventures
-- Hierarchy relationships maintained (Epic → Campaign → Adventure)
-- Breadcrumb navigation functional
+- Create/Edit/Delete Epics and Campaigns
+- Hierarchy relationships maintained
+- Adventures can link to campaigns
+- Campaigns can link to epics
 
 **Dependencies**:
 
-- **Prerequisites**: ⚠️ Backend Epic/Campaign/Adventure services (NOT READY)
-- **Blocks**: Phase 8 (scene management within adventures)
-
-**Validation**:
-
-- Validate after phase: CRUD operations, hierarchy integrity checks
-- Quality gate: All hierarchy operations work, relationships validated
+- **Prerequisites**: Backend Epic/Campaign services (NOT READY)
+- **Blocks**: None (optional feature)
 
 **Estimated Effort**: 18 hours (BLOCKED - cannot start)
 
----
-
-### Phase 8: Content Management - Scene Management 🔜 DEPENDS ON PHASE 7
-
-**Objective**: Implement Scene CRUD UI within Adventure context
-
-**Deliverables**:
-
-- Component: SceneListView
-  - Description: List scenes within adventure with preview cards
-  - Complexity: Medium
-  - Dependencies: Phase 7 (adventure context)
-- Component: SceneCRUDDialog
-  - Description: Create/Edit Scene with Material-UI form
-  - Complexity: Medium
-  - Dependencies: RTK Query libraryApi (scenes endpoint)
-- Component: ScenePreviewCard
-  - Description: Scene thumbnail with metadata (grid type, asset count)
-  - Complexity: Low
-  - Dependencies: None
-- Component: BulkOperationsToolbar
-  - Description: Clone, delete multiple scenes
-  - Complexity: Medium
-  - Dependencies: SceneListView
-
-**Implementation Sequence**:
-
-1. **Scene API Endpoints** (UI)
-   - Command: Add scene endpoints to libraryApi RTK Query
-   - Estimated Effort: 3 hours
-   - Dependencies: Phase 7 complete
-2. **SceneListView Component** (UI)
-   - Command: Material-UI Card grid for scene browsing
-   - Estimated Effort: 4 hours
-   - Dependencies: Scene API
-3. **SceneCRUDDialog** (UI)
-   - Command: Create/Edit scene form with grid/stage config
-   - Estimated Effort: 4 hours
-   - Dependencies: Scene API
-4. **BulkOperationsToolbar** (UI)
-   - Command: Multi-select with clone/delete actions
-   - Estimated Effort: 3 hours
-   - Dependencies: SceneListView
-
-**Success Criteria**:
-
-- Create/Edit/Delete scenes within adventures
-- Scene preview cards display grid type and metadata
-- Bulk operations (clone, delete) functional
-- Integration with Scene Editor (Phase 6)
-
-**Dependencies**:
-
-- **Prerequisites**: Phase 7 (adventure context needed)
-- **Blocks**: Phase 9 (game sessions reference scenes)
-
-**Validation**:
-
-- Validate after phase: Scene CRUD operations, bulk actions, integration with Scene Editor
-- Quality gate: All operations work, scene editor launches from scene list
-
-**Estimated Effort**: 14 hours
+**Status**: ⚠️ BLOCKED by backend development
 
 ---
 
-### Phase 9: Game Sessions - Real-Time Collaboration 🔜 PLANNED
+### Phase 10: Game Sessions - Real-Time Collaboration 🔜 READY
 
 **Objective**: Implement real-time game session UI with SignalR for chat, events, and participant management
 
-**BLOCKER CHECK**:
-- ⚠️ **Backend SignalR Hubs Required**: ChatHub and GameSessionHub must be implemented in VttTools.Game microservice
-- **Verify Before Starting**: Check with backend team that SignalR hubs are ready
-- **If NOT Ready**: Mark Phase 9 as BLOCKED (similar to Phase 7-8)
+**Backend Status**: ✅ SignalR hubs implemented (ChatHub, GameSessionHub available)
 
 **Deliverables**:
 
@@ -846,12 +898,12 @@
 
 **Dependencies**:
 
-- **Prerequisites**: Phases 4-6 (scene editor complete - sessions use scenes)
-- **Optional**: Phases 7-8 (content hierarchy - sessions MAY reference adventures, but can reference scenes directly)
-- **Backend Dependency**: SignalR hubs (ChatHub, GameSessionHub) must be implemented
-- **Blocks**: None (final feature)
+- **Prerequisites**: Phase 7 (scenes - sessions reference scenes)
+- **Optional**: Phase 8 (adventures - sessions MAY reference adventures)
+- **Backend Dependency**: SignalR hubs (ChatHub, GameSessionHub) implemented
+- **Blocks**: None
 
-**Note**: Phase 9 can proceed if Phase 6 is complete, even if Phase 7-8 are blocked. Sessions reference scenes directly, not through hierarchy.
+**Note**: Phase 10 can proceed after Phase 7, even if Phase 9 is blocked. Sessions reference scenes directly.
 
 **Validation**:
 
@@ -862,7 +914,7 @@
 
 ---
 
-### Phase 10: Account Management 🔜 PARALLEL TRACK
+### Phase 11: Account Management 🔜 PARALLEL TRACK
 
 **Objective**: Implement profile settings, security settings, 2FA setup, password change pages
 
@@ -1027,46 +1079,47 @@ Phase 1 (Foundation) ✅
     ↓
     ├─→ Phase 2 (Auth & Landing) ✅
     │       ↓
-    │       └─→ Phase 10 (Account Mgmt) 🔜 [PARALLEL TRACK - 16h]
+    │       └─→ Phase 11 (Account Management) 🔜 [PARALLEL - 16h]
     │
     ├─→ Phase 3 (Scene: Pan/Zoom) ✅
     │       ↓
-    │       └─→ Phase 4 (Scene: Grid/Layers) 🔜 NEXT [12h]
+    │       └─→ Phase 4 (Scene: Grid/Layers) ✅
     │               ↓
     │               ├─→ Phase 5 (Asset Library) ✅ [70h]
     │               │       ↓
-    │               │       └─→ Phase 6 (Scene: Tokens/Undo/Offline) 🔜 [25h]
+    │               │       └─→ Phase 6 (Scene: Tokens/Undo/Offline) ✅ [24h]
     │               │               ↓
-    │               │               └─→ Phase 9 (Game Sessions/SignalR) 🔜 [22h]
+    │               │               ├─→ Phase 7 (Scene Management) 🔜 READY [14h]
+    │               │               │       ↓
+    │               │               │       ├─→ Phase 8 (Adventure Management) 🔜 [12h]
+    │               │               │       │       ↓
+    │               │               │       │       └─→ Phase 9 (Epic/Campaign) ⚠️ BLOCKED [18h]
+    │               │               │       └─→ Phase 10 (Game Sessions/SignalR) 🔜 [22h]
+    │               │               │                   ↓
+    │               │               │                   └─→ Phase 12 (Production Prep) 🔜 [14h]
+    │               │               └─→ Phase 11 (Account Management) 🔜 [PARALLEL - 16h]
     │               │
-    │               └─→ Phase 7 (Content: Epic/Campaign/Adventure) ⚠️ BLOCKED [18h]
-    │                       ↓
-    │                       └─→ Phase 8 (Content: Scene Management) 🔜 [14h]
-    │                               ↓
-    │                               └─→ Phase 9 (Game Sessions/SignalR) 🔜 [22h]
+    │               └─→ Phase 9 (Epic/Campaign) ⚠️ BLOCKED [18h]
     │
-    └─→ Phase 11 (Performance/Production Prep) 🔜 FINAL [14h]
+    └─→ Phase 12 (Performance/Production Prep) 🔜 FINAL [14h]
             ↑
-            └─ (Depends on ALL phases complete)
+            └─ (Depends on Phases 1-8, 10-11 complete)
 ```
 
 **Critical Path** (Sequential - 89 hours):
 
-- Phase 4: Grid/Layers (blocks token placement) - 12 hours
-- Phase 5: Asset Library (blocks token selection) - 16 hours
-- Phase 6: Tokens/Undo/Offline (blocks game sessions) - 25 hours
-- Phase 7: Epic/Campaign ⚠️ BLOCKED (blocks scene management) - 18 hours
-- Phase 8: Scene Management (blocks game sessions) - 14 hours
-- Phase 9: Game Sessions/SignalR (final feature) - 22 hours
-- Phase 11: Performance/Production - 14 hours (some parallelizable)
+- Phase 7: Scene Management (scenes for sessions) - 14 hours
+- Phase 8: Adventure Management (organize scenes) - 12 hours
+- Phase 10: Game Sessions/SignalR (final feature) - 22 hours
+- Phase 12: Performance/Production - 14 hours
 
 **Parallel Track** (Independent - 16 hours):
 
-- Phase 10: Account Management (can start immediately after Phase 2)
+- Phase 11: Account Management (can start after Phase 2)
 
-**Blocked Work**:
+**Deferred Work** (Optional Feature):
 
-- Phase 7-8: 32 hours BLOCKED by backend development (~3 weeks backend work needed)
+- Phase 9: Epic/Campaign - 18 hours ⚠️ BLOCKED by backend (~3 weeks backend work needed)
 
 ---
 
@@ -1093,22 +1146,24 @@ Implementation Order:
 
 - ✅ Phases 4-6: SceneManagement feature complete (2025-10-19)
 - ✅ Phase 5: AssetManagement feature complete (2025-10-11)
-- ⚠️ Phases 7-8: Epic/Campaign/Adventure/Scene hierarchy (BLOCKED by backend)
-- 🔜 Phase 9: SessionManagement feature (ready to start)
-- 🔜 Phase 10: AccountManagement feature (ready to start)
-- 🔜 Phase 11: Legacy cleanup + performance optimization
+- 🔜 Phase 7: SceneManagement feature (ready to start)
+- 🔜 Phase 8: AdventureManagement feature (ready after Phase 7)
+- ⚠️ Phase 9: Epic/Campaign hierarchy (BLOCKED by backend - optional)
+- 🔜 Phase 10: SessionManagement feature (ready after Phase 7)
+- 🔜 Phase 11: AccountManagement feature (ready to start)
+- 🔜 Phase 12: Legacy cleanup + performance optimization
 
 ---
 
 ## Risk Assessment
 
-### Risk: Phase 7 Backend Blocker
+### Risk: Phase 9 Backend Blocker
 
-- **Phase**: 7
-- **Probability**: High (services confirmed missing)
-- **Impact**: Critical (blocks Phases 7-8, delays Phase 9)
-- **Mitigation**: Immediate coordination with backend team, consider parallel backend/frontend sprint
-- **Contingency**: Defer Phases 7-8 to later release, proceed with Phases 4-6 and 9-11
+- **Phase**: 9
+- **Probability**: High (Epic/Campaign services confirmed missing)
+- **Impact**: Low (optional feature - doesn't block other work)
+- **Mitigation**: Defer as optional enhancement, proceed with Phases 7-8-10-11
+- **Contingency**: Skip Phase 9 entirely - users can organize via Adventures without Epic/Campaign
 
 ### Risk: 100-Token Performance Target
 
@@ -1269,31 +1324,33 @@ Implementation Order:
 
 ## Progress Tracking
 
-**Current Phase**: Phase 6 complete (96%), Phase 7 BLOCKED / Phase 9-10 ready to start
-**Overall Progress**: 200 hours / 243 hours (82.3%)
+**Current Phase**: Phase 6 complete (65.0%), Phases 7-8-10-11 READY, Phase 9 BLOCKED
+**Overall Progress**: 158 hours / 243 hours (65.0%)
 
 **Phase 1**: ✅ Complete (8/8 hours, 100%) - Completed 2025-09-28
 **Phase 2**: ✅ Complete (16/16 hours, 100%) - Completed 2025-10-01
 **Phase 3**: ✅ Complete (28/28 hours, 100%) - Completed 2025-10-04
 **Phase 4**: ✅ Complete (12/12 hours, 100%) - Completed 2025-10-05
-**Phase 5**: ✅ Complete (70/16 hours, 437%) - Completed 2025-10-11 - Scope expanded significantly
-**Phase 6**: ✅ Complete (24/25 hours, 96%) - Completed 2025-10-19 - Production ready
-**Phase 7**: ⚠️ BLOCKED (0/18 hours, 0%) - Backend services missing
-**Phase 8**: 🔜 Depends on 7 (0/14 hours, 0%)
-**Phase 9**: 🔜 **NEXT OPTION** (0/22 hours, 0%) - Can proceed (Phase 6 complete)
-**Phase 10**: 🔜 **PARALLEL OPTION** (0/16 hours, 0%) - Can start anytime
-**Phase 11**: 🔜 Final (0/14 hours, 0%)
+**Phase 5**: ✅ Complete (70/16 hours, 437%) - Completed 2025-10-11
+**Phase 6**: ✅ Complete (24/25 hours, 96%) - Completed 2025-10-19
+**Phase 7**: 🔜 **NEXT** (0/14 hours, 0%) - Scene Management - READY
+**Phase 8**: 🔜 (0/12 hours, 0%) - Adventure Management - READY after Phase 7
+**Phase 9**: ⚠️ BLOCKED (0/18 hours, 0%) - Epic/Campaign (optional - backend missing)
+**Phase 10**: 🔜 (0/22 hours, 0%) - Game Sessions - READY after Phase 7
+**Phase 11**: 🔜 PARALLEL (0/16 hours, 0%) - Account Management - READY
+**Phase 12**: 🔜 Final (0/14 hours, 0%) - Performance/Production
 
-**Remaining Effort**: 84 hours (32 hours blocked by backend, 52 hours available)
+**Remaining Effort**: 96 hours total (18 hours blocked, 78 hours available)
 
 **Calculation Breakdown**:
 
-- Total Effort: 243 hours (reduced 18h from Phase 11 BDD removal)
-- Completed (Phases 1-6): 158 hours (8h + 16h + 28h + 12h + 70h + 24h)
-- Remaining (Phases 7-11): 85 hours
-- Available Now (Phases 9-11): 52 hours (Phase 7-8 BLOCKED by backend)
+- Total Effort: 243 hours
+- Completed (Phases 1-6): 158 hours
+- Remaining (Phases 7-12): 96 hours (includes new Phase 12)
+- Available Now: 78 hours (Phases 7-8-10-11-12)
+- Blocked: 18 hours (Phase 9 Epic/Campaign - optional)
 - Progress: 65.0% (158/243)
-- Note: Phase 9 can proceed without Phase 7-8 (sessions reference scenes directly)
+- Note: Phase 10 can proceed after Phase 7 (sessions reference scenes, not Epic/Campaign)
 
 **Phase Expansion Notes**:
 - Phase 3 expanded from 16h to 28h to include critical authentication improvements (8h) and authorization documentation (4h). These were essential for production-ready auth state management and future phase planning.
@@ -1304,6 +1361,7 @@ Implementation Order:
 
 ## Change Log
 
+- **2025-10-23** (v1.7.0): Phase reorganization - Moved Scene Management to Phase 7 (unblocked by using nullable adventureId), created Phase 8 for Adventure Management, moved Epic/Campaign to Phase 9 as optional feature (BLOCKED). Renumbered Game Sessions→Phase 10, Account→Phase 11, added Phase 12 for Production. Scene CRUD now unblocked. Available work: 78 hours (was 52). Critical path: 62 hours (was 89).
 - **2025-10-19** (v1.6.0): Phase 6 completed - Complete reimplementation of scene editor (24h actual vs 25h estimated). Achieved GO FOR PRODUCTION approval with 255+ tests (85% coverage), 89.4% issue fix rate. Updated progress to 65.0% (158/243 hours). Marked Phase 9-10 as available (Phase 7-8 remain BLOCKED by backend). Quality Gate 6 passed.
 - **2025-10-12** (v1.5.0): Phase 11 repurposed - Removed BDD step definitions (integrated into per-phase implementation). Reduced Phase 11 from 32h → 14h (performance optimization, bundle reduction, legacy cleanup, production prep). Updated total effort to 243 hours. BDD testing now continuous throughout Phases 2-6.
 - **2025-10-11** (v1.4.0): Phase 5 completed - Major scope expansion (16h → 70h) including multi-resource system (Phase 5.5, 14h), resource redesign and SVG conversion (Phase 5.6, 16h), blob storage architecture (Phase 5.7, 4h). Updated total effort to 261 hours, marked Phase 6 as NEXT, updated progress to 67.4%. Quality Gate 5 passed.

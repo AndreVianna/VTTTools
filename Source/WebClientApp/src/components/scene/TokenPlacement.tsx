@@ -87,21 +87,21 @@ const getAssetSize = (asset: Asset): { width: number; height: number } => {
 const renderInvalidIndicator = (position: { x: number; y: number }) => (
     <Group x={position.x} y={position.y}>
         <Circle
-            radius={24}
+            radius={12}
             fill="rgba(220, 38, 38, 0.9)"
             stroke="white"
-            strokeWidth={2}
+            strokeWidth={1}
         />
         <Line
-            points={[-12, -12, 12, 12]}
+            points={[-6, -6, 6, 6]}
             stroke="white"
-            strokeWidth={3}
+            strokeWidth={2}
             lineCap="round"
         />
         <Line
-            points={[12, -12, -12, 12]}
+            points={[6, -6, -6, 6]}
             stroke="white"
-            strokeWidth={3}
+            strokeWidth={2}
             lineCap="round"
         />
     </Group>
@@ -381,20 +381,9 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         <Layer
             name={LayerName.GameWorld}
             listening={true}
-            onMouseMove={handleMouseMove}
-            onClick={handleClick}
+            onMouseMove={draggedAsset ? handleMouseMove : undefined}
+            onClick={draggedAsset ? handleClick : undefined}
         >
-            {draggedAsset && (
-                <Rect
-                    x={0}
-                    y={0}
-                    width={10000}
-                    height={10000}
-                    fill="transparent"
-                    listening={true}
-                />
-            )}
-
             <Group name={GroupName.Structure}>
                 {renderAssetsByGroup(GroupName.Structure)}
             </Group>

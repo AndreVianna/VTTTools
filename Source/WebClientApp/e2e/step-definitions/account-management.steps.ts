@@ -379,7 +379,8 @@ When('I provide a strong new password', async function (this: CustomWorld) {
 });
 
 When('I enter new password {string}', async function (this: CustomWorld, password: string) {
-  const newPasswordField = this.page.getByLabel(/^new password$/i);
+  const newPasswordField = this.page.getByLabel(/new password/i);
+  await newPasswordField.waitFor({ state: 'visible', timeout: 10000 });
   await newPasswordField.fill(password);
   this.newPassword = password;
 });

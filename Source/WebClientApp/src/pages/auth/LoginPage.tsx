@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { useSearchParams, useLocation } from 'react-router-dom';
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { SimpleLoginForm } from '@/components/auth/SimpleLoginForm';
 import { SimpleRegistrationForm } from '@/components/auth/SimpleRegistrationForm';
-import { PasswordResetRequestForm } from '@/components/auth/PasswordResetRequestForm';
 import { PasswordResetConfirmForm } from '@/components/auth/PasswordResetConfirmForm';
 import { TwoFactorVerificationForm } from '@/components/auth/TwoFactorVerificationForm';
 import { RecoveryCodeForm } from '@/components/auth/RecoveryCodeForm';
@@ -11,7 +10,6 @@ import { RecoveryCodeForm } from '@/components/auth/RecoveryCodeForm';
 type AuthMode =
   | 'login'
   | 'register'
-  | 'reset-request'
   | 'reset-confirm'
   | 'two-factor'
   | 'recovery-code';
@@ -19,8 +17,8 @@ type AuthMode =
 export const LoginPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // Derive initial mode from URL path and query parameters
   const initialMode = useMemo<AuthMode>(() => {
     const email = searchParams.get('email');
     const token = searchParams.get('token');
@@ -32,50 +30,83 @@ export const LoginPage: React.FC = () => {
 
   const [mode, setMode] = useState<AuthMode>(initialMode);
 
+  React.useEffect(() => {
+    const email = searchParams.get('email');
+    const token = searchParams.get('token');
+
+    if (email && token) {
+      setMode('reset-confirm');
+    } else if (location.pathname === '/register') {
+      setMode('register');
+    } else if (location.pathname === '/login') {
+      setMode('login');
+    }
+  }, [location.pathname, searchParams]);
+
+  const handleSwitchToLogin = () => {
+    navigate('/login');
+  };
+
+  const handleSwitchToRegister = () => {
+    navigate('/register');
+  };
+
+  const handleSwitchToResetPassword = () => {
+    navigate('/forgot-password');
+  };
+
+  const handleSwitchToRecoveryCode = () => {
+    setMode('recovery-code');
+  };
+
+  const handleSwitchToTwoFactor = () => {
+    setMode('two-factor');
+  };
+
   const renderCurrentForm = () => {
     switch (mode) {
       case 'login':
         return (
           <SimpleLoginForm
-            onSwitchToRegister={() => setMode('register')}
-            onSwitchToResetPassword={() => setMode('reset-request')}
+            onSwitchToRegister={handleSwitchToRegister}
+            onSwitchToResetPassword={handleSwitchToResetPassword}
           />
         );
 
       case 'register':
         return (
           <SimpleRegistrationForm
-            onSwitchToLogin={() => setMode('login')}
+            onSwitchToLogin={handleSwitchToLogin}
           />
         );
 
       case 'reset-request':
         return (
           <PasswordResetRequestForm
-            onSwitchToLogin={() => setMode('login')}
+            onSwitchToLogin={handleSwitchToLogin}
           />
         );
 
       case 'reset-confirm':
         return (
           <PasswordResetConfirmForm
-            onSwitchToLogin={() => setMode('login')}
+            onSwitchToLogin={handleSwitchToLogin}
           />
         );
 
       case 'two-factor':
         return (
           <TwoFactorVerificationForm
-            onSwitchToRecovery={() => setMode('recovery-code')}
-            onBack={() => setMode('login')}
+            onSwitchToRecovery={handleSwitchToRecoveryCode}
+            onBack={handleSwitchToLogin}
           />
         );
 
       case 'recovery-code':
         return (
           <RecoveryCodeForm
-            onSwitchToTwoFactor={() => setMode('two-factor')}
-            onBack={() => setMode('login')}
+            onSwitchToTwoFactor={handleSwitchToTwoFactor}
+            onBack={handleSwitchToLogin}
           />
         );
     }

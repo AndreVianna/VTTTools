@@ -124,6 +124,7 @@ export const SceneCanvas = forwardRef<SceneCanvasHandle, SceneCanvasProps>(({
 
     // Viewport state
     const [stagePos, setStagePos] = useState(initialPosition);
+    const stagePosRef = useRef(initialPosition);
     const [scale, setScale] = useState(initialScale);
 
     // Right-click panning state
@@ -167,6 +168,7 @@ export const SceneCanvas = forwardRef<SceneCanvasHandle, SceneCanvasProps>(({
 
         setScale(newScale);
         setStagePos(newPos);
+        stagePosRef.current = newPos;
         notifyViewportChange(newPos, newScale);
     }, [minZoom, maxZoom, notifyViewportChange]);
 
@@ -189,11 +191,13 @@ export const SceneCanvas = forwardRef<SceneCanvasHandle, SceneCanvasProps>(({
         const dx = e.evt.clientX - lastPanPos.current.x;
         const dy = e.evt.clientY - lastPanPos.current.y;
 
+        // Use ref for current position to avoid stale closure
         const newPos = {
-            x: stagePos.x + dx,
-            y: stagePos.y + dy
+            x: stagePosRef.current.x + dx,
+            y: stagePosRef.current.y + dy
         };
 
+        stagePosRef.current = newPos;
         setStagePos(newPos);
         notifyViewportChange(newPos, scale);
 
@@ -201,7 +205,7 @@ export const SceneCanvas = forwardRef<SceneCanvasHandle, SceneCanvasProps>(({
             x: e.evt.clientX,
             y: e.evt.clientY
         };
-    }, [isPanning, stagePos, scale, notifyViewportChange]);
+    }, [isPanning, scale, notifyViewportChange]);
 
     const handleMouseUp = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         if (e.evt.button === 2) {
@@ -250,6 +254,7 @@ export const SceneCanvas = forwardRef<SceneCanvasHandle, SceneCanvasProps>(({
     // Reset viewport to initial state
     const resetView = useCallback(() => {
         setStagePos(initialPosition);
+        stagePosRef.current = initialPosition;
         setScale(initialScale);
         notifyViewportChange(initialPosition, initialScale);
     }, [initialPosition, initialScale, notifyViewportChange]);
@@ -266,9 +271,11 @@ export const SceneCanvas = forwardRef<SceneCanvasHandle, SceneCanvasProps>(({
 
     // Set viewport position and scale programmatically
     const setViewportPosition = useCallback((viewport: Viewport) => {
-        setStagePos({ x: viewport.x, y: viewport.y });
+        const newPos = { x: viewport.x, y: viewport.y };
+        setStagePos(newPos);
+        stagePosRef.current = newPos;
         setScale(viewport.scale);
-        notifyViewportChange({ x: viewport.x, y: viewport.y }, viewport.scale);
+        notifyViewportChange(newPos, viewport.scale);
     }, [notifyViewportChange]);
 
     // Expose imperative handle

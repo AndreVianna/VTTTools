@@ -22,7 +22,8 @@ import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import {
     createPlaceAssetCommand,
     createMoveAssetCommand,
-    createRemoveAssetCommand
+    createRemoveAssetCommand,
+    createBatchCommand
 } from '@/utils/commands';
 
 const STAGE_WIDTH = 2800;
@@ -50,7 +51,17 @@ const SceneEditorPageInternal: React.FC = () => {
     const [gridConfig, setGridConfig] = useState<GridConfig>(getDefaultGrid());
     const [backgroundImageUrl] = useState<string>(DEFAULT_BACKGROUND_IMAGE);
     const [draggedAsset, setDraggedAsset] = useState<Asset | null>(null);
-    const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+    const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>(() => {
+        const stored = localStorage.getItem('scene-selected-assets');
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch {
+                return [];
+            }
+        }
+        return [];
+    });
     const [isSceneReady, setIsSceneReady] = useState<boolean>(false);
     const [imagesLoaded, setImagesLoaded] = useState<boolean>(false);
     const [handlersReady, setHandlersReady] = useState<boolean>(false);
@@ -72,6 +83,10 @@ const SceneEditorPageInternal: React.FC = () => {
     }, [placedAssets]);
 
     useEffect(() => {
+        localStorage.setItem('scene-selected-assets', JSON.stringify(selectedAssetIds));
+    }, [selectedAssetIds]);
+
+    useEffect(() => {
         const stage = canvasRef.current?.getStage();
         if (stage) {
             stageRef.current = stage;
@@ -88,6 +103,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
     const [isAltPressed, setIsAltPressed] = useState(false);
     const [isCtrlPressed, setIsCtrlPressed] = useState(false);
+    const [isShiftPressed, setIsShiftPressed] = useState(false);
 
     const snapMode: 'free' | 'grid' | 'half-step' =
         isAltPressed && isCtrlPressed ? 'half-step' :
@@ -97,6 +113,10 @@ const SceneEditorPageInternal: React.FC = () => {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Alt' || e.key === 'Control' || e.key === 'Shift') {
+                e.preventDefault();
+            }
+
             if (e.key === 'Escape' && draggedAsset) {
                 setDraggedAsset(null);
             }
@@ -106,22 +126,33 @@ const SceneEditorPageInternal: React.FC = () => {
             if (e.key === 'Control') {
                 setIsCtrlPressed(true);
             }
+            if (e.key === 'Shift') {
+                setIsShiftPressed(true);
+            }
         };
 
         const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === 'Alt' || e.key === 'Control' || e.key === 'Shift') {
+                e.preventDefault();
+            }
+
             if (e.key === 'Alt') {
                 setIsAltPressed(false);
             }
             if (e.key === 'Control') {
                 setIsCtrlPressed(false);
             }
+            if (e.key === 'Shift') {
+                setIsShiftPressed(false);
+            }
         };
 
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
+        window.addEventListener('keydown', handleKeyDown, { capture: true });
+        window.addEventListener('keyup', handleKeyUp, { capture: true });
+
         return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('keyup', handleKeyUp);
+            window.removeEventListener('keydown', handleKeyDown, { capture: true });
+            window.removeEventListener('keyup', handleKeyUp, { capture: true });
         };
     }, [draggedAsset]);
 
@@ -166,7 +197,12 @@ const SceneEditorPageInternal: React.FC = () => {
         const command = createPlaceAssetCommand({
             asset,
             onPlace: (placedAsset) => {
-                setPlacedAssets(prev => [...prev, placedAsset]);
+                setPlacedAssets(prev => {
+                    if (prev.some(a => a.id === placedAsset.id)) {
+                        return prev;
+                    }
+                    return [...prev, placedAsset];
+                });
             },
             onRemove: (assetId) => {
                 setPlacedAssets(prev => prev.filter(a => a.id !== assetId));
@@ -175,41 +211,87 @@ const SceneEditorPageInternal: React.FC = () => {
         execute(command);
     };
 
-    const handleAssetMoved = (assetId: string, newPosition: { x: number; y: number }) => {
-        const asset = placedAssets.find(a => a.id === assetId);
-        if (!asset) return;
+    const handleAssetMoved = (moves: Array<{ assetId: string; oldPosition: { x: number; y: number }; newPosition: { x: number; y: number } }>) => {
+        if (moves.length === 0) return;
 
-        const command = createMoveAssetCommand({
-            assetId,
-            oldPosition: asset.position,
-            newPosition,
-            onMove: (id, position) => {
-                setPlacedAssets(prev =>
-                    prev.map(a => (a.id === id ? { ...a, position } : a))
-                );
-            }
-        });
-        execute(command);
+        if (moves.length === 1) {
+            const { assetId, oldPosition, newPosition } = moves[0];
+
+            const command = createMoveAssetCommand({
+                assetId,
+                oldPosition,
+                newPosition,
+                onMove: (id, position) => {
+                    setPlacedAssets(prev =>
+                        prev.map(a => (a.id === id ? { ...a, position } : a))
+                    );
+                }
+            });
+            execute(command);
+        } else {
+            const commands = moves.map(({ assetId, oldPosition, newPosition }) => {
+                return createMoveAssetCommand({
+                    assetId,
+                    oldPosition,
+                    newPosition,
+                    onMove: (id, position) => {
+                        setPlacedAssets(prev =>
+                            prev.map(a => (a.id === id ? { ...a, position } : a))
+                        );
+                    }
+                });
+            });
+
+            execute(createBatchCommand({ commands }));
+        }
     };
 
-    const handleAssetDeleted = (assetId: string) => {
-        const asset = placedAssets.find(a => a.id === assetId);
-        if (!asset) return;
+    const handleAssetDeleted = () => {
+        if (selectedAssetIds.length === 0) return;
 
-        const command = createRemoveAssetCommand({
-            asset,
-            onPlace: (placedAsset) => {
-                setPlacedAssets(prev => [...prev, placedAsset]);
-            },
-            onRemove: (id) => {
-                setPlacedAssets(prev => prev.filter(a => a.id !== id));
-            }
-        });
-        execute(command);
+        const assetsToDelete = placedAssets.filter(a => selectedAssetIds.includes(a.id));
+
+        if (assetsToDelete.length === 1) {
+            const command = createRemoveAssetCommand({
+                asset: assetsToDelete[0],
+                onPlace: (placedAsset) => {
+                    setPlacedAssets(prev => {
+                        if (prev.some(a => a.id === placedAsset.id)) {
+                            return prev;
+                        }
+                        return [...prev, placedAsset];
+                    });
+                },
+                onRemove: (id) => {
+                    setPlacedAssets(prev => prev.filter(a => a.id !== id));
+                }
+            });
+            execute(command);
+        } else {
+            const commands = assetsToDelete.map(asset =>
+                createRemoveAssetCommand({
+                    asset,
+                    onPlace: (placedAsset) => {
+                        setPlacedAssets(prev => {
+                            if (prev.some(a => a.id === placedAsset.id)) {
+                                return prev;
+                            }
+                            return [...prev, placedAsset];
+                        });
+                    },
+                    onRemove: (id) => {
+                        setPlacedAssets(prev => prev.filter(a => a.id !== id));
+                    }
+                })
+            );
+            execute(createBatchCommand({ commands }));
+        }
+
+        setSelectedAssetIds([]);
     };
 
-    const handleAssetSelected = (assetId: string | null) => {
-        setSelectedAssetId(assetId);
+    const handleAssetSelected = (assetIds: string[]) => {
+        setSelectedAssetIds(assetIds);
     };
 
     const handleDragComplete = () => {
@@ -310,7 +392,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     {/* Layer 4: UI Overlay (transformer + selection) */}
                     <TokenDragHandle
                         placedAssets={placedAssets}
-                        selectedAssetId={selectedAssetId}
+                        selectedAssetIds={selectedAssetIds}
                         onAssetSelected={handleAssetSelected}
                         onAssetMoved={handleAssetMoved}
                         onAssetDeleted={handleAssetDeleted}
@@ -320,6 +402,8 @@ const SceneEditorPageInternal: React.FC = () => {
                         enableDragMove={true}
                         onReady={handleHandlersReady}
                         snapMode={snapMode}
+                        isShiftPressed={isShiftPressed}
+                        isCtrlPressed={isCtrlPressed}
                     />
                 </SceneCanvas>
 
