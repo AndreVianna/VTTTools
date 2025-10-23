@@ -108,6 +108,19 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 Assets
               </Button>
               <Button
+                id="nav-content-library"
+                color="inherit"
+                onClick={() => navigate('/content-library')}
+                sx={{
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  }
+                }}
+              >
+                Content Library
+              </Button>
+              <Button
                 id="nav-scene-editor"
                 color="inherit"
                 onClick={() => navigate('/scene-editor')}

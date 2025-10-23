@@ -14,6 +14,9 @@ import { LoadingOverlay } from '@/components/common';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { PasswordResetRequestPage } from '@/pages/auth/PasswordResetRequestPage';
+import { ContentLibraryPage } from '@/features/content-library/pages/ContentLibraryPage';
+import { SceneListView } from '@/features/content-library/components/scenes/SceneListView';
+import { SecuritySettingsPage } from '@/pages/settings/SecuritySettingsPage';
 
 // App Content - Wraps everything in Router
 function AppContent() {
@@ -78,12 +81,31 @@ function AppRoutes() {
             </AppLayout>
           } />
 
-          <Route path="/scene-editor" element={
+          <Route path="/content-library" element={
+            <AppLayout>
+              <ProtectedRoute authLevel="authorized">
+                <ContentLibraryPage />
+              </ProtectedRoute>
+            </AppLayout>
+          }>
+            <Route path="scenes" element={<SceneListView />} />
+            <Route index element={<Navigate to="scenes" replace />} />
+          </Route>
+
+          <Route path="/scene-editor/:sceneId?" element={
             <EditorLayout>
               <ProtectedRoute authLevel="authorized">
                 <SceneEditorPage />
               </ProtectedRoute>
             </EditorLayout>
+          } />
+
+          <Route path="/settings/security" element={
+            <AppLayout>
+              <ProtectedRoute authLevel="authorized">
+                <SecuritySettingsPage />
+              </ProtectedRoute>
+            </AppLayout>
           } />
 
           {/* Dashboard redirect - landing page IS the dashboard for authenticated users */}

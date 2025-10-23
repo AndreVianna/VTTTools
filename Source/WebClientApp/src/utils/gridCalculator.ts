@@ -20,17 +20,50 @@ export enum GridType {
 }
 
 /**
+ * Cell size matching backend CellSize value object
+ */
+export interface CellSize {
+    width: number;
+    height: number;
+}
+
+/**
+ * Offset matching backend Offset value object
+ */
+export interface Offset {
+    left: number;
+    top: number;
+}
+
+/**
  * Grid configuration matching backend Grid value object
  */
 export interface GridConfig {
     type: GridType;
-    cellWidth: number;
-    cellHeight: number;
-    offsetX: number;
-    offsetY: number;
-    color: string;
-    snapToGrid: boolean;
+    cellSize: CellSize;
+    offset: Offset;
+    snap: boolean;
 }
+
+/**
+ * Helper to get cell width from GridConfig
+ */
+export const getCellWidth = (grid: GridConfig): number => grid.cellSize.width;
+
+/**
+ * Helper to get cell height from GridConfig
+ */
+export const getCellHeight = (grid: GridConfig): number => grid.cellSize.height;
+
+/**
+ * Helper to get offset X from GridConfig
+ */
+export const getOffsetX = (grid: GridConfig): number => grid.offset.left;
+
+/**
+ * Helper to get offset Y from GridConfig
+ */
+export const getOffsetY = (grid: GridConfig): number => grid.offset.top;
 
 /**
  * Point in 2D space
@@ -56,49 +89,49 @@ export interface GridCell {
  * @returns Snapped position matching grid type
  */
 export const snapToGrid = (point: Point, grid: GridConfig): Point => {
-    if (!grid.snapToGrid || grid.type === GridType.NoGrid) {
+    if (!grid.snap || grid.type === GridType.NoGrid) {
         return point;
     }
 
+    const cellWidth = grid.cellSize.width;
+    const cellHeight = grid.cellSize.height;
+    const offsetX = grid.offset.left;
+    const offsetY = grid.offset.top;
+
     // Adjust for grid offset
-    const adjustedX = point.x - grid.offsetX;
-    const adjustedY = point.y - grid.offsetY;
+    const adjustedX = point.x - offsetX;
+    const adjustedY = point.y - offsetY;
 
     let snappedX: number;
     let snappedY: number;
 
     switch (grid.type) {
         case GridType.Square:
-            snappedX = Math.round(adjustedX / grid.cellWidth) * grid.cellWidth;
-            snappedY = Math.round(adjustedY / grid.cellHeight) * grid.cellHeight;
+            snappedX = Math.round(adjustedX / cellWidth) * cellWidth;
+            snappedY = Math.round(adjustedY / cellHeight) * cellHeight;
             break;
 
         case GridType.HexH: {
-            // Hexagonal horizontal (flat-top hexagons)
-            const col = Math.round(adjustedX / (grid.cellWidth * 0.75));
-            const row = Math.round((adjustedY - (col % 2) * (grid.cellHeight / 2)) / grid.cellHeight);
-            snappedX = col * (grid.cellWidth * 0.75);
-            snappedY = row * grid.cellHeight + (col % 2) * (grid.cellHeight / 2);
+            const col = Math.round(adjustedX / (cellWidth * 0.75));
+            const row = Math.round((adjustedY - (col % 2) * (cellHeight / 2)) / cellHeight);
+            snappedX = col * (cellWidth * 0.75);
+            snappedY = row * cellHeight + (col % 2) * (cellHeight / 2);
             break;
         }
 
         case GridType.HexV: {
-            // Hexagonal vertical (pointy-top hexagons)
-            const row = Math.round(adjustedY / (grid.cellHeight * 0.75));
-            const col = Math.round((adjustedX - (row % 2) * (grid.cellWidth / 2)) / grid.cellWidth);
-            snappedX = col * grid.cellWidth + (row % 2) * (grid.cellWidth / 2);
-            snappedY = row * (grid.cellHeight * 0.75);
+            const row = Math.round(adjustedY / (cellHeight * 0.75));
+            const col = Math.round((adjustedX - (row % 2) * (cellWidth / 2)) / cellWidth);
+            snappedX = col * cellWidth + (row % 2) * (cellWidth / 2);
+            snappedY = row * (cellHeight * 0.75);
             break;
         }
 
         case GridType.Isometric: {
-            // Isometric grid (diamond-shaped cells)
-            const tileWidth = grid.cellWidth;
-            const tileHeight = grid.cellHeight;
-            const col = Math.round((adjustedX / tileWidth + adjustedY / tileHeight) / 2);
-            const row = Math.round((adjustedY / tileHeight - adjustedX / tileWidth) / 2);
-            snappedX = (col - row) * tileWidth;
-            snappedY = (col + row) * tileHeight;
+            const col = Math.round((adjustedX / cellWidth + adjustedY / cellHeight) / 2);
+            const row = Math.round((adjustedY / cellHeight - adjustedX / cellWidth) / 2);
+            snappedX = (col - row) * cellWidth;
+            snappedY = (col + row) * cellHeight;
             break;
         }
 
@@ -106,10 +139,9 @@ export const snapToGrid = (point: Point, grid: GridConfig): Point => {
             return point;
     }
 
-    // Add offset back
     return {
-        x: snappedX + grid.offsetX,
-        y: snappedY + grid.offsetY
+        x: snappedX + offsetX,
+        y: snappedY + offsetY
     };
 };
 
@@ -120,33 +152,36 @@ export const snapToGrid = (point: Point, grid: GridConfig): Point => {
  * @returns Grid cell coordinates (col, row)
  */
 export const pointToCell = (point: Point, grid: GridConfig): GridCell => {
-    const adjustedX = point.x - grid.offsetX;
-    const adjustedY = point.y - grid.offsetY;
+    const cellWidth = grid.cellSize.width;
+    const cellHeight = grid.cellSize.height;
+    const offsetX = grid.offset.left;
+    const offsetY = grid.offset.top;
+
+    const adjustedX = point.x - offsetX;
+    const adjustedY = point.y - offsetY;
 
     let col: number;
     let row: number;
 
     switch (grid.type) {
         case GridType.Square:
-            col = Math.floor(adjustedX / grid.cellWidth);
-            row = Math.floor(adjustedY / grid.cellHeight);
+            col = Math.floor(adjustedX / cellWidth);
+            row = Math.floor(adjustedY / cellHeight);
             break;
 
         case GridType.HexH:
-            col = Math.floor(adjustedX / (grid.cellWidth * 0.75));
-            row = Math.floor((adjustedY - (col % 2) * (grid.cellHeight / 2)) / grid.cellHeight);
+            col = Math.floor(adjustedX / (cellWidth * 0.75));
+            row = Math.floor((adjustedY - (col % 2) * (cellHeight / 2)) / cellHeight);
             break;
 
         case GridType.HexV:
-            row = Math.floor(adjustedY / (grid.cellHeight * 0.75));
-            col = Math.floor((adjustedX - (row % 2) * (grid.cellWidth / 2)) / grid.cellWidth);
+            row = Math.floor(adjustedY / (cellHeight * 0.75));
+            col = Math.floor((adjustedX - (row % 2) * (cellWidth / 2)) / cellWidth);
             break;
 
         case GridType.Isometric: {
-            const tileWidth = grid.cellWidth;
-            const tileHeight = grid.cellHeight;
-            col = Math.floor((adjustedX / tileWidth + adjustedY / tileHeight) / 2);
-            row = Math.floor((adjustedY / tileHeight - adjustedX / tileWidth) / 2);
+            col = Math.floor((adjustedX / cellWidth + adjustedY / cellHeight) / 2);
+            row = Math.floor((adjustedY / cellHeight - adjustedX / cellWidth) / 2);
             break;
         }
 
@@ -165,30 +200,33 @@ export const pointToCell = (point: Point, grid: GridConfig): GridCell => {
  * @returns Pixel position at cell center
  */
 export const cellToPoint = (cell: GridCell, grid: GridConfig): Point => {
+    const cellWidth = grid.cellSize.width;
+    const cellHeight = grid.cellSize.height;
+    const offsetX = grid.offset.left;
+    const offsetY = grid.offset.top;
+
     let x: number;
     let y: number;
 
     switch (grid.type) {
         case GridType.Square:
-            x = cell.col * grid.cellWidth + grid.cellWidth / 2;
-            y = cell.row * grid.cellHeight + grid.cellHeight / 2;
+            x = cell.col * cellWidth + cellWidth / 2;
+            y = cell.row * cellHeight + cellHeight / 2;
             break;
 
         case GridType.HexH:
-            x = cell.col * (grid.cellWidth * 0.75) + grid.cellWidth / 2;
-            y = cell.row * grid.cellHeight + (cell.col % 2) * (grid.cellHeight / 2) + grid.cellHeight / 2;
+            x = cell.col * (cellWidth * 0.75) + cellWidth / 2;
+            y = cell.row * cellHeight + (cell.col % 2) * (cellHeight / 2) + cellHeight / 2;
             break;
 
         case GridType.HexV:
-            x = cell.col * grid.cellWidth + (cell.row % 2) * (grid.cellWidth / 2) + grid.cellWidth / 2;
-            y = cell.row * (grid.cellHeight * 0.75) + grid.cellHeight / 2;
+            x = cell.col * cellWidth + (cell.row % 2) * (cellWidth / 2) + cellWidth / 2;
+            y = cell.row * (cellHeight * 0.75) + cellHeight / 2;
             break;
 
         case GridType.Isometric: {
-            const tileWidth = grid.cellWidth;
-            const tileHeight = grid.cellHeight;
-            x = (cell.col - cell.row) * tileWidth + tileWidth / 2;
-            y = (cell.col + cell.row) * tileHeight + tileHeight / 2;
+            x = (cell.col - cell.row) * cellWidth + cellWidth / 2;
+            y = (cell.col + cell.row) * cellHeight + cellHeight / 2;
             break;
         }
 
@@ -198,8 +236,8 @@ export const cellToPoint = (cell: GridCell, grid: GridConfig): Point => {
     }
 
     return {
-        x: x + grid.offsetX,
-        y: y + grid.offsetY
+        x: x + offsetX,
+        y: y + offsetY
     };
 };
 
@@ -212,21 +250,13 @@ export const cellToPoint = (cell: GridCell, grid: GridConfig): Point => {
 export const validateGrid = (grid: GridConfig): string[] => {
     const errors: string[] = [];
 
-    // INV-10: Cell dimensions must be positive
-    if (grid.cellWidth <= 0) {
+    if (grid.cellSize.width <= 0) {
         errors.push('Grid cell width must be positive');
     }
-    if (grid.cellHeight <= 0) {
+    if (grid.cellSize.height <= 0) {
         errors.push('Grid cell height must be positive');
     }
 
-    // Validate color format (#RRGGBB)
-    const hexColorRegex = /^#[0-9A-Fa-f]{6}$/;
-    if (!hexColorRegex.test(grid.color)) {
-        errors.push('Grid color must be hex format #RRGGBB');
-    }
-
-    // Validate grid type is valid enum value
     if (!Object.values(GridType).includes(grid.type)) {
         errors.push('Invalid grid type');
     }
@@ -240,10 +270,7 @@ export const validateGrid = (grid: GridConfig): string[] => {
  */
 export const getDefaultGrid = (): GridConfig => ({
     type: GridType.Square,
-    cellWidth: 50,
-    cellHeight: 50,
-    offsetX: 0,
-    offsetY: 0,
-    color: '#000000',
-    snapToGrid: true
+    cellSize: { width: 50, height: 50 },
+    offset: { left: 0, top: 0 },
+    snap: true
 });
