@@ -687,73 +687,125 @@
 
 ### Phase 7: Scene Management ⏳ READY TO START
 
-**Objective**: Implement Scene CRUD UI with standalone and adventure-linked support
+**Objective**: Implement Content Library infrastructure with integrated Scene Editor as CRUD interface
+
+**Approach**: Revolutionary "Editor-as-CRUD" pattern - Scene Editor IS the scene form (no separate dialogs)
 
 **Backend Status**: ✅ Scene API fully implemented (`/api/library/scenes`)
 
+**Architecture Documents**:
+- `Documents/Architecture/CONTENT-LIBRARY.md` - Hierarchy model, patterns
+- `phases/PHASE-7-DESIGN.md` - User flows, UI specs
+- `Documents/Architecture/CONTENT-LIBRARY-COMPONENTS.md` - Component specifications
+
 **Deliverables**:
 
-- Page: SceneListPage
-  - Description: Browse user's scenes with Material-UI cards
-  - Complexity: Medium
-  - Dependencies: RTK Query scenesApi
-- Component: SceneCRUDDialog
-  - Description: Create/Edit scene with grid/stage configuration
-  - Complexity: Medium
-  - Dependencies: scenesApi
-- Component: ScenePreviewCard
-  - Description: Scene card with grid type, asset count, thumbnail
-  - Complexity: Low
-  - Dependencies: None
-- API: scenesApi RTK Query slice
-  - Description: Integration with `/api/library/scenes` endpoints
-  - Complexity: Medium
-  - Dependencies: None (backend exists)
-- Integration: Scene Editor Launch
-  - Description: Open Scene Editor with selected scene data
-  - Complexity: Low
-  - Dependencies: Phase 6 (Scene Editor)
+**Infrastructure** (Reusable in Phases 8-9):
+- Feature module: `src/features/content-library/`
+- ContentLibraryPage with tabs (Scenes active, others disabled)
+- Shared components: EditableTitle, ContentCard, ContentListLayout, PublishToggle
+- Generic hooks: useAutoSave, useContentList
+- Type system: ContentItem base with type discrimination
+
+**Scene-Specific**:
+- SceneListView (browse scenes with cards)
+- SceneCard (thumbnail, grid type, asset count)
+- scenesApi RTK Query slice (CRUD endpoints)
+- Scene menu in SceneEditorMenuBar (adventure, description, published)
+- Editable scene name in EditorLayout header
+- Enhanced Stage menu (grid configuration)
+- Auto-save framework (3s debounce)
+- Backend persistence (load/save scenes)
+
+**NOT Building** (Simplified):
+- ❌ SceneCRUDDialog (editor replaces dialog)
+- ❌ Separate create/edit forms
+- ❌ Modal-based workflows
 
 **Implementation Sequence**:
 
-1. **Scenes API Integration** (UI)
-   - Command: Create RTK Query endpoints for scenes
-   - Estimated Effort: 3 hours
-   - Dependencies: None
-2. **SceneCRUDDialog** (UI)
-   - Command: Create/Edit form (name, description, grid type, stage size, optional adventureId)
-   - Estimated Effort: 4 hours
-   - Dependencies: Scenes API
-3. **SceneListPage** (UI)
-   - Command: Card grid with filter/search
-   - Estimated Effort: 4 hours
-   - Dependencies: Scenes API
-4. **Scene Editor Integration** (UI)
-   - Command: Load scene by ID, save scene changes to backend
-   - Estimated Effort: 3 hours
-   - Dependencies: SceneListPage
+**Phase 7-Prep: Documentation** (4-6h) ✅ COMPLETE
+   - Architecture design documents
+   - Component specifications
+   - Updated roadmap
+
+**Phase 7A: Foundation** (4h)
+   - Create `features/content-library/` structure
+   - Define TypeScript interfaces (ContentItem, Scene)
+   - ContentLibraryPage with tabs
+   - Routing: `/content-library/scenes`
+   - Shared components: EditableTitle, ContentCard
+
+**Phase 7B: Scene List** (3h)
+   - SceneListView component
+   - SceneCard component
+   - Search/filter functionality
+   - New/Duplicate/Delete actions
+
+**Phase 7C: Scenes API** (3h)
+   - scenesApi RTK Query slice
+   - CRUD endpoints (create, read, update, delete, list)
+   - Cache invalidation
+   - SceneAsset ↔ PlacedAsset mappers
+
+**Phase 7D: Scene Menu** (3h)
+   - Add Scene menu to SceneEditorMenuBar (before Stage)
+   - SceneMetadataMenu component (adventure, description, published)
+   - Wire auto-save on changes
+   - Duplicate/Delete actions
+
+**Phase 7E: Header Enhancement** (2h)
+   - Back button in EditorLayout
+   - EditableTitle for scene name
+   - Save indicator ("Saving..." / "Saved")
+   - Navigation to Content Library
+
+**Phase 7F: Stage Menu Enhancement** (2h)
+   - Move grid config to Stage menu (from hardcoded)
+   - Grid changes auto-save to scene.grid
+   - Stage size configuration
+   - Reorganize menu sections
 
 **Success Criteria**:
 
-- Create scenes (standalone or linked to adventure)
-- Edit scene metadata and configuration
-- Delete scenes with confirmation
-- Launch Scene Editor from scene list
-- Save placed assets to backend (via scene API)
+- ✅ Content Library page with Scenes tab active
+- ✅ Browse scenes with search/filter
+- ✅ Click scene → Opens in editor with data loaded
+- ✅ Edit scene name in header (click-to-edit)
+- ✅ Edit metadata in Scene menu (auto-saves)
+- ✅ Edit grid in Stage menu (auto-saves)
+- ✅ Place/move/delete assets (auto-saves)
+- ✅ All changes persist to backend
+- ✅ Back button returns to scene list
+- ✅ Infrastructure ready for Phase 8 (60-70% reuse)
 
 **Dependencies**:
 
-- **Prerequisites**: Phase 6 (Scene Editor complete)
+- **Prerequisites**: Phase 6 (Scene Editor complete) ✅
 - **Blocks**: Phase 10 (game sessions reference scenes)
 
 **Validation**:
 
-- Validate after phase: Scene CRUD operations, editor integration, backend persistence
-- Quality gate: All operations work, assets save to backend
+- Scene CRUD operations functional
+- Editor-as-CRUD workflow seamless
+- Auto-save reliable (no data loss)
+- Backend persistence verified
+- Test coverage ≥70%
+- WCAG AA accessible
+- Material-UI theme compliant
 
-**Estimated Effort**: 14 hours
+**Estimated Effort**: 21 hours (17h implementation + 4h documentation)
 
-**Status**: ⏳ READY TO START (can start immediately)
+**Breakdown**:
+- Documentation: 4-6h ✅
+- Foundation: 4h
+- Scene List: 3h
+- Scenes API: 3h
+- Scene Menu: 3h
+- Header: 2h
+- Stage Menu: 2h
+
+**Status**: ⏳ READY TO START (documentation complete, implementation ready)
 
 ---
 

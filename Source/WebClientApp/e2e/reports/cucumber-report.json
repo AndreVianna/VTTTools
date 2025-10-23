@@ -1,136 +1,111 @@
 [
   {
-    "description": "  As a VTT Tools user who forgot my password\n  I want to request a password reset email\n  So that I can regain access to my account",
+    "description": "  As a VTT Tools user\n  I want to see my current authentication status in the header\n  So that I always know if I'm logged in and can quickly access account options",
     "elements": [
       {
         "description": "",
-        "id": "request-password-reset;email-must-be-in-valid-format;accept-valid-email-format",
+        "id": "display-auth-status;unauthenticated-state-shows-login-and-register-options;display-sign-in-and-sign-up-buttons-when-not-authenticated",
         "keyword": "Scenario",
-        "line": 19,
-        "name": "Accept valid email format",
+        "line": 17,
+        "name": "Display Sign In and Sign Up buttons when not authenticated",
         "steps": [
           {
             "keyword": "Before",
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 313727600
+              "duration": 352770400
             }
           },
           {
             "arguments": [],
             "keyword": "Given ",
             "line": 11,
-            "name": "an account exists with email \"gamemaster@example.com\"",
+            "name": "I am on the landing page",
             "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication.steps.ts:29"
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:3"
             },
             "result": {
               "status": "passed",
-              "duration": 8816700
-            },
-            "embeddings": [
-              {
-                "data": "VGVzdCBhY2NvdW50IGVtYWlsIHBhdHRlcm46IGdhbWVtYXN0ZXJAZXhhbXBsZS5jb20g4oaSIHVzaW5nIHBvb2wgdXNlcjogYmRkLXRlc3QtdXNlci0xQHRlc3QubG9jYWw=",
-                "mime_type": "text/plain"
-              }
-            ]
+              "duration": 1692961199
+            }
           },
           {
             "arguments": [],
             "keyword": "And ",
             "line": 12,
-            "name": "I am on the password reset request page",
+            "name": "the application header is displayed",
             "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:19"
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:7"
             },
             "result": {
               "status": "passed",
-              "duration": 1956872800
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 13,
-            "name": "the password reset service is available",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:31"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 17457900
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 14,
-            "name": "I am not currently authenticated",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication-state.steps.ts:16"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 4852699
+              "duration": 182075899
             }
           },
           {
             "arguments": [],
             "keyword": "Given ",
+            "line": 18,
+            "name": "I am not authenticated",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication.steps.ts:16"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 6868099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 19,
+            "name": "I view the application header",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:10"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2696299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
             "line": 20,
-            "name": "I enter email \"user@example.com\"",
+            "name": "I should see a \"Sign In\" button",
             "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\form-interaction.steps.ts:18"
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\visibility.steps.ts:72"
             },
             "result": {
               "status": "passed",
-              "duration": 25491700
-            },
-            "embeddings": [
-              {
-                "data": "VXNpbmcgcG9vbCB1c2VyIGVtYWlsOiBiZGQtdGVzdC11c2VyLTFAdGVzdC5sb2NhbCAoYmFzZWQgb24gcGF0dGVybjogdXNlckBleGFtcGxlLmNvbSk=",
-                "mime_type": "text/plain"
-              }
-            ]
+              "duration": 5467199
+            }
           },
           {
             "arguments": [],
-            "keyword": "When ",
+            "keyword": "And ",
             "line": 21,
-            "name": "I submit the reset request form",
+            "name": "I should see a \"Sign Up\" button",
             "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:196"
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\visibility.steps.ts:72"
             },
             "result": {
               "status": "passed",
-              "duration": 76260800
+              "duration": 2581199
             }
           },
           {
             "arguments": [],
-            "keyword": "Then ",
+            "keyword": "And ",
             "line": 22,
-            "name": "my email should pass format validation",
+            "name": "I should not see user account button",
             "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:408"
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:13"
             },
             "result": {
               "status": "passed",
-              "duration": 6554399
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 23,
-            "name": "the request should be processed",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:412"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 824700
+              "duration": 2544299
             }
           },
           {
@@ -138,7 +113,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 104199500
+              "duration": 97284999
             }
           }
         ],
@@ -150,828 +125,860 @@
           {
             "name": "@authentication",
             "line": 4
-          },
-          {
-            "name": "@password-reset",
-            "line": 4
-          },
-          {
-            "name": "@validation",
-            "line": 18
-          }
-        ],
-        "type": "scenario"
-      },
-      {
-        "description": "",
-        "id": "request-password-reset;email-must-be-in-valid-format;reject-invalid-email-format",
-        "keyword": "Scenario",
-        "line": 26,
-        "name": "Reject invalid email format",
-        "steps": [
-          {
-            "keyword": "Before",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 299834899
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 11,
-            "name": "an account exists with email \"gamemaster@example.com\"",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication.steps.ts:29"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 1899900
-            },
-            "embeddings": [
-              {
-                "data": "VGVzdCBhY2NvdW50IGVtYWlsIHBhdHRlcm46IGdhbWVtYXN0ZXJAZXhhbXBsZS5jb20g4oaSIHVzaW5nIHBvb2wgdXNlcjogYmRkLXRlc3QtdXNlci0xQHRlc3QubG9jYWw=",
-                "mime_type": "text/plain"
-              }
-            ]
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 12,
-            "name": "I am on the password reset request page",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:19"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 2077231900
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 13,
-            "name": "the password reset service is available",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:31"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 6970699
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 14,
-            "name": "I am not currently authenticated",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication-state.steps.ts:16"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 3111399
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 27,
-            "name": "I enter email \"not-a-valid-email\"",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\form-interaction.steps.ts:18"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 23862800
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "When ",
-            "line": 28,
-            "name": "I attempt to submit the reset request form",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:201"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 1068515399
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Then ",
-            "line": 29,
-            "name": "I should see error \"Invalid email address\"",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\messages.steps.ts:13"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 14926800
-            },
-            "embeddings": [
-              {
-                "data": "QWxsIGhlbHBlclRleHRzIG9uIHBhZ2U6IFsiSW52YWxpZCBlbWFpbCBhZGRyZXNzIl0=",
-                "mime_type": "text/plain"
-              },
-              {
-                "data": "RXJyb3IgbWVzc2FnZSBmb3VuZCBpbiBoZWxwZXJUZXh0czogIkludmFsaWQgZW1haWwgYWRkcmVzcyI=",
-                "mime_type": "text/plain"
-              }
-            ]
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 30,
-            "name": "my form is not submitted",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\form-interaction.steps.ts:105"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 5864000
-            }
-          },
-          {
-            "keyword": "After",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 52284900
-            }
-          }
-        ],
-        "tags": [
-          {
-            "name": "@use-case",
-            "line": 4
-          },
-          {
-            "name": "@authentication",
-            "line": 4
-          },
-          {
-            "name": "@password-reset",
-            "line": 4
-          },
-          {
-            "name": "@validation",
-            "line": 25
-          },
-          {
-            "name": "@error-handling",
-            "line": 25
-          }
-        ],
-        "type": "scenario"
-      },
-      {
-        "description": "",
-        "id": "request-password-reset;email-must-be-in-valid-format;reject-empty-email-field",
-        "keyword": "Scenario",
-        "line": 33,
-        "name": "Reject empty email field",
-        "steps": [
-          {
-            "keyword": "Before",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 276720100
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 11,
-            "name": "an account exists with email \"gamemaster@example.com\"",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication.steps.ts:29"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 1797099
-            },
-            "embeddings": [
-              {
-                "data": "VGVzdCBhY2NvdW50IGVtYWlsIHBhdHRlcm46IGdhbWVtYXN0ZXJAZXhhbXBsZS5jb20g4oaSIHVzaW5nIHBvb2wgdXNlcjogYmRkLXRlc3QtdXNlci0xQHRlc3QubG9jYWw=",
-                "mime_type": "text/plain"
-              }
-            ]
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 12,
-            "name": "I am on the password reset request page",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:19"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 1973102399
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 13,
-            "name": "the password reset service is available",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:31"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 5762300
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 14,
-            "name": "I am not currently authenticated",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication-state.steps.ts:16"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 3104100
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 34,
-            "name": "I leave the email field empty",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:41"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 5978399
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "When ",
-            "line": 35,
-            "name": "I attempt to submit the reset request form",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:201"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 1055917599
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Then ",
-            "line": 36,
-            "name": "I should see error \"Email is required\"",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\messages.steps.ts:13"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 14759100
-            },
-            "embeddings": [
-              {
-                "data": "QWxsIGhlbHBlclRleHRzIG9uIHBhZ2U6IFsiRW1haWwgaXMgcmVxdWlyZWQiXQ==",
-                "mime_type": "text/plain"
-              },
-              {
-                "data": "RXJyb3IgbWVzc2FnZSBmb3VuZCBpbiBoZWxwZXJUZXh0czogIkVtYWlsIGlzIHJlcXVpcmVkIg==",
-                "mime_type": "text/plain"
-              }
-            ]
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 37,
-            "name": "my form is not submitted",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\form-interaction.steps.ts:105"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 4565400
-            }
-          },
-          {
-            "keyword": "After",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 50382600
-            }
-          }
-        ],
-        "tags": [
-          {
-            "name": "@use-case",
-            "line": 4
-          },
-          {
-            "name": "@authentication",
-            "line": 4
-          },
-          {
-            "name": "@password-reset",
-            "line": 4
-          },
-          {
-            "name": "@validation",
-            "line": 32
-          },
-          {
-            "name": "@error-handling",
-            "line": 32
-          }
-        ],
-        "type": "scenario"
-      },
-      {
-        "description": "",
-        "id": "request-password-reset;system-never-reveals-whether-email-exists-(security);show-success-for-existing-email-without-revealing-existence",
-        "keyword": "Scenario",
-        "line": 42,
-        "name": "Show success for existing email without revealing existence",
-        "steps": [
-          {
-            "keyword": "Before",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 275596199
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 11,
-            "name": "an account exists with email \"gamemaster@example.com\"",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication.steps.ts:29"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 2038700
-            },
-            "embeddings": [
-              {
-                "data": "VGVzdCBhY2NvdW50IGVtYWlsIHBhdHRlcm46IGdhbWVtYXN0ZXJAZXhhbXBsZS5jb20g4oaSIHVzaW5nIHBvb2wgdXNlcjogYmRkLXRlc3QtdXNlci0xQHRlc3QubG9jYWw=",
-                "mime_type": "text/plain"
-              }
-            ]
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 12,
-            "name": "I am on the password reset request page",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:19"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 2062231800
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 13,
-            "name": "the password reset service is available",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:31"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 4876899
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 14,
-            "name": "I am not currently authenticated",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication-state.steps.ts:16"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 3844800
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 43,
-            "name": "I enter email \"gamemaster@example.com\"",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\form-interaction.steps.ts:18"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 23565699
-            },
-            "embeddings": [
-              {
-                "data": "VXNpbmcgcG9vbCB1c2VyIGVtYWlsOiBiZGQtdGVzdC11c2VyLTFAdGVzdC5sb2NhbCAoYmFzZWQgb24gcGF0dGVybjogZ2FtZW1hc3RlckBleGFtcGxlLmNvbSk=",
-                "mime_type": "text/plain"
-              }
-            ]
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 44,
-            "name": "I submit the reset request form",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:196"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 57854400
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Then ",
-            "line": 45,
-            "name": "I should receive success",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:416"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 127677899
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 46,
-            "name": "I should see success message \"If that email exists, reset instructions have been sent\"",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\messages.steps.ts:75"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 3995299
-            }
-          },
-          {
-            "keyword": "After",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 51377999
-            }
-          }
-        ],
-        "tags": [
-          {
-            "name": "@use-case",
-            "line": 4
-          },
-          {
-            "name": "@authentication",
-            "line": 4
-          },
-          {
-            "name": "@password-reset",
-            "line": 4
-          },
-          {
-            "name": "@security",
-            "line": 41
-          },
-          {
-            "name": "@happy-path",
-            "line": 41
-          }
-        ],
-        "type": "scenario"
-      },
-      {
-        "description": "",
-        "id": "request-password-reset;system-never-reveals-whether-email-exists-(security);show-same-success-message-for-non-existent-email",
-        "keyword": "Scenario",
-        "line": 49,
-        "name": "Show same success message for non-existent email",
-        "steps": [
-          {
-            "keyword": "Before",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 297172200
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 11,
-            "name": "an account exists with email \"gamemaster@example.com\"",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication.steps.ts:29"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 1477400
-            },
-            "embeddings": [
-              {
-                "data": "VGVzdCBhY2NvdW50IGVtYWlsIHBhdHRlcm46IGdhbWVtYXN0ZXJAZXhhbXBsZS5jb20g4oaSIHVzaW5nIHBvb2wgdXNlcjogYmRkLXRlc3QtdXNlci0xQHRlc3QubG9jYWw=",
-                "mime_type": "text/plain"
-              }
-            ]
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 12,
-            "name": "I am on the password reset request page",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:19"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 1947589299
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 13,
-            "name": "the password reset service is available",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:31"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 5170699
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 14,
-            "name": "I am not currently authenticated",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication-state.steps.ts:16"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 4029699
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 50,
-            "name": "I enter email \"nonexistent@example.com\"",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\form-interaction.steps.ts:18"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 24879600
-            },
-            "embeddings": [
-              {
-                "data": "VXNpbmcgcG9vbCB1c2VyIGVtYWlsOiBiZGQtdGVzdC11c2VyLTFAdGVzdC5sb2NhbCAoYmFzZWQgb24gcGF0dGVybjogbm9uZXhpc3RlbnRAZXhhbXBsZS5jb20p",
-                "mime_type": "text/plain"
-              }
-            ]
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 51,
-            "name": "I submit the reset request form",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:196"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 69884799
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Then ",
-            "line": 52,
-            "name": "I should receive success",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:416"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 128429400
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 53,
-            "name": "I should see success message \"If that email exists, reset instructions have been sent\"",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\messages.steps.ts:75"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 2573300
-            }
-          },
-          {
-            "keyword": "After",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 45688899
-            }
-          }
-        ],
-        "tags": [
-          {
-            "name": "@use-case",
-            "line": 4
-          },
-          {
-            "name": "@authentication",
-            "line": 4
-          },
-          {
-            "name": "@password-reset",
-            "line": 4
-          },
-          {
-            "name": "@security",
-            "line": 48
-          }
-        ],
-        "type": "scenario"
-      },
-      {
-        "description": "",
-        "id": "request-password-reset;navigate-back-to-login-from-reset-request-page-and-success-screen;return-to-login-from-reset-request-page",
-        "keyword": "Scenario",
-        "line": 75,
-        "name": "Return to login from reset request page",
-        "steps": [
-          {
-            "keyword": "Before",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 286993800
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 11,
-            "name": "an account exists with email \"gamemaster@example.com\"",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication.steps.ts:29"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 1744699
-            },
-            "embeddings": [
-              {
-                "data": "VGVzdCBhY2NvdW50IGVtYWlsIHBhdHRlcm46IGdhbWVtYXN0ZXJAZXhhbXBsZS5jb20g4oaSIHVzaW5nIHBvb2wgdXNlcjogYmRkLXRlc3QtdXNlci0xQHRlc3QubG9jYWw=",
-                "mime_type": "text/plain"
-              }
-            ]
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 12,
-            "name": "I am on the password reset request page",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:19"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 1975420700
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 13,
-            "name": "the password reset service is available",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:31"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 7106799
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 14,
-            "name": "I am not currently authenticated",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication-state.steps.ts:16"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 2829399
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 76,
-            "name": "I click \"Back to Login\" link",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:247"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 36146600
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Then ",
-            "line": 77,
-            "name": "I should be returned to the login page",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:536"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 2287700
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 78,
-            "name": "the login form should be displayed",
-            "match": {
-              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\password-reset.steps.ts:539"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 125264599
-            }
-          },
-          {
-            "keyword": "After",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 49397600
-            }
-          }
-        ],
-        "tags": [
-          {
-            "name": "@use-case",
-            "line": 4
-          },
-          {
-            "name": "@authentication",
-            "line": 4
-          },
-          {
-            "name": "@password-reset",
-            "line": 4
-          },
-          {
-            "name": "@navigation",
-            "line": 74
           },
           {
             "name": "@ui",
-            "line": 74
+            "line": 4
+          },
+          {
+            "name": "@widget",
+            "line": 4
+          },
+          {
+            "name": "@ui",
+            "line": 16
+          },
+          {
+            "name": "@happy-path",
+            "line": 16
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "display-auth-status;authenticated-state-shows-user-information-and-menu;display-user-name-on-account-button-when-authenticated",
+        "keyword": "Scenario",
+        "line": 27,
+        "name": "Display user name on account button when authenticated",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 299397800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am on the landing page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:3"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1734627000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "the application header is displayed",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:7"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 171324800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 28,
+            "name": "I am authenticated as \"Andre Vianna\"",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication-state.steps.ts:23"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1589251399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 29,
+            "name": "I navigate to the assets page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:58"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1106971299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 30,
+            "name": "I view the application header",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:10"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 221655699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 31,
+            "name": "the account button should display \"Andre Vianna\"",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:17"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 15593299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 32,
+            "name": "the button should have a dropdown arrow icon",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:24"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 26829599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 33,
+            "name": "I should not see Sign In and Sign Up buttons",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:29"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 18577999
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 85627599
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@ui",
+            "line": 4
+          },
+          {
+            "name": "@widget",
+            "line": 4
+          },
+          {
+            "name": "@ui",
+            "line": 26
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "display-auth-status;authenticated-state-shows-user-information-and-menu;display-user-menu-when-clicking-account-button",
+        "keyword": "Scenario",
+        "line": 36,
+        "name": "Display user menu when clicking account button",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 369703199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am on the landing page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:3"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1725631400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "the application header is displayed",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:7"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 175571500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 37,
+            "name": "I am authenticated as \"Andre Vianna\"",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication-state.steps.ts:23"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1495648100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 38,
+            "name": "I navigate to the assets page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:58"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1256649899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 39,
+            "name": "I click on the user account button",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:35"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 333238400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 40,
+            "name": "a dropdown menu should open",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:39"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 4322899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 41,
+            "name": "I should see \"Profile\" menu item",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5763799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 42,
+            "name": "I should see \"Settings\" menu item",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3828099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 43,
+            "name": "I should see \"Sign Out\" menu item",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3154299
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 78209100
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@ui",
+            "line": 4
+          },
+          {
+            "name": "@widget",
+            "line": 4
+          },
+          {
+            "name": "@ui",
+            "line": 35
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "display-auth-status;navigation-from-header;navigate-to-login-when-clicking-sign-in-button",
+        "keyword": "Scenario",
+        "line": 48,
+        "name": "Navigate to login when clicking Sign In button",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 326401799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am on the landing page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:3"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1700086199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "the application header is displayed",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:7"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 169507900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 49,
+            "name": "I am not authenticated",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication.steps.ts:16"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5769500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 50,
+            "name": "I click the \"Sign In\" button",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\buttons.steps.ts:12"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 50024300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 51,
+            "name": "I should be navigated to the login page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:62"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5385599
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 71697299
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@ui",
+            "line": 4
+          },
+          {
+            "name": "@widget",
+            "line": 4
+          },
+          {
+            "name": "@ui",
+            "line": 47
+          },
+          {
+            "name": "@navigation",
+            "line": 47
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "display-auth-status;navigation-from-header;navigate-to-registration-when-clicking-sign-up-button",
+        "keyword": "Scenario",
+        "line": 54,
+        "name": "Navigate to registration when clicking Sign Up button",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 338977500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am on the landing page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:3"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1773955099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "the application header is displayed",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:7"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 192058800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 55,
+            "name": "I am not authenticated",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication.steps.ts:16"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5899900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 56,
+            "name": "I click the \"Sign Up\" button",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\buttons.steps.ts:12"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 38135000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 57,
+            "name": "I should be navigated to the registration page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:65"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 4333299
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 61473200
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@ui",
+            "line": 4
+          },
+          {
+            "name": "@widget",
+            "line": 4
+          },
+          {
+            "name": "@ui",
+            "line": 53
+          },
+          {
+            "name": "@navigation",
+            "line": 53
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "display-auth-status;header-updates-based-on-authentication-state;header-updates-when-user-logs-in",
+        "keyword": "Scenario",
+        "line": 62,
+        "name": "Header updates when user logs in",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 315304700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am on the landing page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:3"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1628732700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "the application header is displayed",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:7"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 170811300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 63,
+            "name": "I am not authenticated",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\shared\\authentication.steps.ts:16"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 7303799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 64,
+            "name": "I am on the landing page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:3"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1103787199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 65,
+            "name": "I log in successfully",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:68"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1457366500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 66,
+            "name": "I should see the user account button with my name",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:79"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 135400799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 67,
+            "name": "I should not see Sign In and Sign Up buttons",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:29"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3400699
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 56778899
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@ui",
+            "line": 4
+          },
+          {
+            "name": "@widget",
+            "line": 4
+          },
+          {
+            "name": "@integration",
+            "line": 61
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "display-auth-status;header-updates-based-on-authentication-state;header-updates-when-user-logs-out",
+        "keyword": "Scenario",
+        "line": 70,
+        "name": "Header updates when user logs out",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 317380499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 11,
+            "name": "I am on the landing page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:3"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1683340000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 12,
+            "name": "the application header is displayed",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:7"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 184029200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 71,
+            "name": "I am authenticated",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:47"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1489503500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 72,
+            "name": "I am on the landing page",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:3"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1068256199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 73,
+            "name": "I log out successfully",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:86"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 467317900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 74,
+            "name": "I should see Sign In and Sign Up buttons",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:93"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 22817999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 75,
+            "name": "I should not see user account button",
+            "match": {
+              "location": "file:\\C:\\Projects\\Personal\\VTTTools\\Source\\WebClientApp\\e2e\\step-definitions\\feature-specific\\auth-status-display.steps.ts:13"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 6647100
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 69795600
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@use-case",
+            "line": 4
+          },
+          {
+            "name": "@authentication",
+            "line": 4
+          },
+          {
+            "name": "@ui",
+            "line": 4
+          },
+          {
+            "name": "@widget",
+            "line": 4
+          },
+          {
+            "name": "@integration",
+            "line": 69
           }
         ],
         "type": "scenario"
       }
     ],
-    "id": "request-password-reset",
+    "id": "display-auth-status",
     "line": 5,
     "keyword": "Feature",
-    "name": "Request Password Reset",
+    "name": "Display Auth Status",
     "tags": [
       {
         "name": "@use-case",
@@ -982,10 +989,14 @@
         "line": 4
       },
       {
-        "name": "@password-reset",
+        "name": "@ui",
+        "line": 4
+      },
+      {
+        "name": "@widget",
         "line": 4
       }
     ],
-    "uri": "..\\..\\Documents\\Areas\\Identity\\Features\\UserAuthentication\\UseCases\\RequestPasswordReset\\RequestPasswordReset.feature"
+    "uri": "..\\..\\Documents\\Areas\\Identity\\Features\\UserAuthentication\\UseCases\\DisplayAuthStatus\\DisplayAuthStatus.feature"
   }
 ]

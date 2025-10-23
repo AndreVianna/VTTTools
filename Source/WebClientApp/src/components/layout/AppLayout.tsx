@@ -16,7 +16,8 @@ import {
 import {
   LightMode,
   DarkMode,
-  AccountCircle
+  AccountCircle,
+  ArrowDropDown
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -145,22 +146,24 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
           {/* Authentication Controls */}
           {isAuthenticated && user ? (
-            // Logged in - show user menu
             <>
-              <IconButton
+              <Button
                 id="btn-user-menu"
                 color="inherit"
+                startIcon={<AccountCircle />}
+                endIcon={<ArrowDropDown />}
                 onClick={handleUserMenuOpen}
                 aria-label="User menu"
                 sx={{
+                  textTransform: 'none',
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.2)',
                   }
                 }}
               >
-                <AccountCircle />
-              </IconButton>
+                {user.displayName || user.name || user.email.split('@')[0]}
+              </Button>
               <Menu
                 id="user-menu"
                 anchorEl={userMenuAnchor}

@@ -30,6 +30,6 @@ Given('I am authenticated as {string}', { timeout: 30000 }, async function (this
     await this.page.goto('/login');
     await this.page.getByLabel(/email/i).fill(this.currentUser.email);
     await this.page.getByRole('textbox', { name: /password/i }).fill(password);
-    await this.page.getByRole('button', { name: /sign in/i }).click();
+    await this.page.locator('button[type="submit"]').click();
     await this.page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 10000 });
 });
