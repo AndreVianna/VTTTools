@@ -249,7 +249,7 @@ export const useAuth = () => {
         password,
         confirmPassword,
         name: displayName,  // User's full name (e.g., "Andre Vianna")
-        displayName: displayName.split(' ')[0]  // First word of name as display name (e.g., "Andre")
+        displayName: displayName.split(' ')[0]! // First word of name as display name (e.g., "Andre")
       }).unwrap();
 
       if (result.success) {
@@ -320,10 +320,11 @@ export const useAuth = () => {
       const result = await resetPasswordMutation({ email }).unwrap();
 
       if (result.success) {
-        dispatch(addNotification({
-          type: 'success',
-          message: 'Password reset instructions have been sent to your email.',
-        }));
+        navigate('/login', {
+          state: {
+            successMessage: 'If that email exists, reset instructions have been sent. Please check your email.'
+          }
+        });
       }
 
       return result;
@@ -408,12 +409,11 @@ export const useAuth = () => {
       }).unwrap();
 
       if (result.success) {
-        dispatch(addNotification({
-          type: 'success',
-          message: 'Password reset successfully! Please log in with your new password.',
-        }));
-
-        navigate('/login');
+        navigate('/login', {
+          state: {
+            successMessage: 'Password updated successfully. Please log in with your new password.'
+          }
+        });
       }
 
       return result;

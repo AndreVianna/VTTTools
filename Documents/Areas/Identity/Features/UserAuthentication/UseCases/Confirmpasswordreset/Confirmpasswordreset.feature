@@ -26,7 +26,7 @@ Feature: Confirm Password Reset
 
     @validation @error-handling
     Scenario: Reject password below minimum length
-      Given I enter new password "Short1"
+      Given I enter new password "Short"
       When I attempt to submit the password reset form
       Then I should see error "Password must be at least 6 characters"
       And my form is not submitted

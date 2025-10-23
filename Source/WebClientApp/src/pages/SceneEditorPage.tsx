@@ -10,10 +10,9 @@ import {
     GridRenderer,
     SceneEditorMenuBar,
     TokenPlacement,
-    TokenDragHandle,
-    UndoRedoToolbar
+    TokenDragHandle
 } from '@components/scene';
-import { ConnectionStatusBanner, EditingBlocker } from '@components/common';
+import { EditingBlocker } from '@components/common';
 import { GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
 import { layerManager, LayerName } from '@services/layerManager';
 import { Asset, PlacedAsset } from '@/types/domain';
@@ -30,9 +29,9 @@ const STAGE_WIDTH = 2800;
 const STAGE_HEIGHT = 2100;
 const DEFAULT_BACKGROUND_IMAGE = '/assets/backgrounds/default.png';
 
-const APP_BAR_HEIGHT = 64;
 const MENU_BAR_HEIGHT = 50;
-const TOTAL_TOP_OFFSET = APP_BAR_HEIGHT + MENU_BAR_HEIGHT;
+const EDITOR_HEADER_HEIGHT = 64;
+const TOTAL_TOP_HEIGHT = EDITOR_HEADER_HEIGHT + MENU_BAR_HEIGHT;
 
 const SceneEditorPageInternal: React.FC = () => {
     const theme = useTheme();
@@ -43,7 +42,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
     const initialViewport = {
         x: (window.innerWidth - STAGE_WIDTH) / 2,
-        y: ((window.innerHeight - TOTAL_TOP_OFFSET) - STAGE_HEIGHT) / 2,
+        y: ((window.innerHeight - TOTAL_TOP_HEIGHT) - STAGE_HEIGHT) / 2,
         scale: 1
     };
 
@@ -307,8 +306,7 @@ const SceneEditorPageInternal: React.FC = () => {
     };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', position: 'relative' }}>
-            <ConnectionStatusBanner />
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
             <EditingBlocker isBlocked={!isOnline} />
 
             <Box
@@ -406,17 +404,6 @@ const SceneEditorPageInternal: React.FC = () => {
                         isCtrlPressed={isCtrlPressed}
                     />
                 </SceneCanvas>
-
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        bottom: 16,
-                        right: 16,
-                        zIndex: 5
-                    }}
-                >
-                    <UndoRedoToolbar />
-                </Box>
             </Box>
 
             <Backdrop

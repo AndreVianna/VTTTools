@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
-import { Box } from '@mui/material';
+import { Box, Alert } from '@mui/material';
 import { SimpleLoginForm } from '@/components/auth/SimpleLoginForm';
 import { SimpleRegistrationForm } from '@/components/auth/SimpleRegistrationForm';
 import { PasswordResetConfirmForm } from '@/components/auth/PasswordResetConfirmForm';
@@ -20,28 +20,29 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   const initialMode = useMemo<AuthMode>(() => {
-    const email = searchParams.get('email');
-    const token = searchParams.get('token');
-
-    if (email && token) return 'reset-confirm';
+    if (location.pathname === '/reset-password') return 'reset-confirm';
     if (location.pathname === '/register') return 'register';
     return 'login';
   }, [searchParams, location.pathname]);
 
   const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   React.useEffect(() => {
-    const email = searchParams.get('email');
-    const token = searchParams.get('token');
-
-    if (email && token) {
+    if (location.pathname === '/reset-password') {
       setMode('reset-confirm');
     } else if (location.pathname === '/register') {
       setMode('register');
     } else if (location.pathname === '/login') {
       setMode('login');
     }
-  }, [location.pathname, searchParams]);
+
+    const message = location.state?.successMessage;
+    if (message) {
+      setSuccessMessage(message);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.pathname, location.state, searchParams]);
 
   const handleSwitchToLogin = () => {
     navigate('/login');
@@ -114,6 +115,19 @@ export const LoginPage: React.FC = () => {
 
   return (
     <Box>
+      {successMessage && (
+        <Alert
+          severity="success"
+          onClose={() => setSuccessMessage(null)}
+          sx={{
+            maxWidth: '440px',
+            margin: '0 auto 24px auto',
+            borderRadius: '12px',
+          }}
+        >
+          {successMessage}
+        </Alert>
+      )}
       {renderCurrentForm()}
     </Box>
   );

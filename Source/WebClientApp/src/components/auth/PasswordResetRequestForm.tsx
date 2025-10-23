@@ -89,7 +89,6 @@ export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> =
   onSwitchToLogin
 }) => {
   const [email, setEmail] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
   const { resetPassword, isLoading, error, clearError } = useAuth();
@@ -127,78 +126,10 @@ export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> =
 
     try {
       await resetPassword(email);
-      setIsSubmitted(true);
     } catch (_error) {
-      // Error is already handled by the useAuth hook
       console.log('Password reset request failed:', error);
     }
   };
-
-  if (isSubmitted) {
-    return (
-      <Box>
-        <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
-          VTT Tools
-        </Typography>
-        <Typography variant="h6" component="h2" gutterBottom align="center" color="text.secondary">
-          Check Your Email
-        </Typography>
-
-        <Alert severity="success" sx={{ mb: 3 }}>
-          If that email exists, reset instructions have been sent
-        </Alert>
-
-        <Paper
-          sx={{
-            p: 3,
-            textAlign: 'center',
-            mt: 3,
-            backgroundColor: 'success.light',
-            color: 'success.contrastText',
-          }}
-        >
-          <EmailIcon sx={{ fontSize: 48, mb: 2 }} />
-          <Typography variant="body1" gutterBottom>
-            Password reset instructions have been sent to:
-          </Typography>
-          <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-            {email}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            Please check your email and follow the instructions to reset your password.
-            The link will expire in 24 hours.
-          </Typography>
-        </Paper>
-
-        <Box sx={{ mt: 3, textAlign: 'center' }}>
-          <Button
-            startIcon={<ArrowBack />}
-            onClick={onSwitchToLogin}
-            disabled={isLoading}
-          >
-            Back to Login
-          </Button>
-        </Box>
-
-        <Box sx={{ mt: 2, textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            Didn&apos;t receive the email?{' '}
-            <Link
-              component="button"
-              variant="body2"
-              onClick={(e) => {
-                e.preventDefault();
-                setIsSubmitted(false);
-              }}
-              disabled={isLoading}
-            >
-              Try again
-            </Link>
-          </Typography>
-        </Box>
-      </Box>
-    );
-  }
 
   return (
     <Container maxWidth="sm" sx={{ py: 8 }}>

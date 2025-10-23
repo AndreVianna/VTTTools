@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { toggleTheme, selectTheme } from '@/store/slices/uiSlice';
+import { ConnectionStatusBanner } from '@/components/common';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -124,7 +125,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           {/* Spacer for non-authenticated users */}
           {(!isAuthenticated || !user) && <Box sx={{ flexGrow: 1 }} />}
 
-          {/* Theme Toggle */}
+          <ConnectionStatusBanner />
+
           <IconButton
             id="btn-theme-toggle"
             color="inherit"
@@ -198,7 +200,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   }
                 }}
               >
-                Login
+                Sign In
               </Button>
               <Button
                 id="btn-header-register"
@@ -211,7 +213,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   }
                 }}
               >
-                Register
+                Sign Up
               </Button>
             </Stack>
           )}

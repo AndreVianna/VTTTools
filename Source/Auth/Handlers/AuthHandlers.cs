@@ -137,4 +137,20 @@ public static class AuthHandlers {
         };
         return Results.ValidationProblem(errorDict);
     }
+
+#if DEBUG
+    public static async Task<Microsoft.AspNetCore.Http.IResult> GenerateTestResetTokenHandler(
+        [FromQuery] string email,
+        UserManager<User> userManager) {
+
+        var user = await userManager.FindByEmailAsync(email);
+        if (user == null) {
+            return Results.NotFound(new { error = "User not found" });
+        }
+
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+
+        return Results.Ok(new { email, token });
+    }
+#endif
 }

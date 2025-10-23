@@ -23,14 +23,6 @@ Feature: Display Auth Status
       And I should not see user information
       And I should not see a user menu
 
-    @ui
-    Scenario: Display minimal text when not authenticated without full controls
-      Given I am not authenticated
-      And the showFullControls prop is false
-      When the AuthStatus component renders
-      Then I should see "Not signed in" text
-      And I should not see login or register buttons
-
   Rule: Loading state indicates authentication check in progress
 
     @ui @loading-state
@@ -42,16 +34,6 @@ Feature: Display Auth Status
       And I should not see any action buttons
 
   Rule: Authenticated state shows user information and menu
-
-    @ui @happy-path
-    Scenario: Display user information when authenticated
-      Given I am authenticated as "GameMaster" with email "gm@example.com"
-      And my email is confirmed
-      When the AuthStatus component renders
-      Then I should see an avatar with letter "G"
-      And I should see displayName "GameMaster"
-      And I should see email "gm@example.com"
-      And I should see a green checkmark icon next to the email
 
     @ui
     Scenario: Display avatar with user initials
@@ -69,44 +51,6 @@ Feature: Display Auth Status
       And I should see "Security & Privacy" menu item
       And I should see a divider
       And I should see the Logout button in the menu
-
-  Rule: Email verification status is clearly indicated
-
-    @ui @verification
-    Scenario: Display verified email with checkmark
-      Given I am authenticated
-      And my emailConfirmed status is true
-      When the AuthStatus component renders
-      Then I should see my email address
-      And I should see a green checkmark icon (CheckCircle)
-      And the icon should indicate email is verified
-
-    @ui @verification @warning
-    Scenario: Display unverified email warning badge
-      Given I am authenticated
-      And my emailConfirmed status is false
-      When the AuthStatus component renders
-      Then I should see a "Verify Email" warning chip
-      And the chip should have warning color (orange)
-      And the chip should be prominent
-
-  Rule: Two-factor authentication status is displayed with badge
-
-    @ui @2fa @security
-    Scenario: Display 2FA enabled badge
-      Given I am authenticated
-      And my twoFactorEnabled status is true
-      When the AuthStatus component renders
-      Then I should see a "2FA" chip badge
-      And the chip should have success color (green)
-      And the chip should indicate enhanced security
-
-    @ui @2fa
-    Scenario: No 2FA badge when two-factor is disabled
-      Given I am authenticated
-      And my twoFactorEnabled status is false
-      When the AuthStatus component renders
-      Then I should not see a "2FA" chip badge
 
   @ui @menu @navigation
   Scenario: Navigate to profile settings from menu

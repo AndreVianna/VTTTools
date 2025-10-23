@@ -131,7 +131,7 @@ Then('my form is not submitted', async function (this: CustomWorld) {
     const submitButton = this.page.getByRole('button', { name: /sign in|create account|reset password|send reset instructions/i });
     await expect(submitButton).toBeVisible();
 
-    await expect(this.page).toHaveURL(/\/login|\/register/);
+    await expect(this.page).toHaveURL(/\/login|\/register|\/forgot-password|\/reset-password/);
 });
 
 Then('the second submission is prevented', async function (this: CustomWorld) {

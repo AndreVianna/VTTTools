@@ -9,15 +9,15 @@ internal static class AuthEndpointsMapper {
 
         // Public endpoints (no authorization required)
         auth.MapPost("/login", AuthHandlers.LoginHandler)
-            .WithName("Login")
+            .WithName("SignIn")
             .WithSummary("Authenticate user with email and password");
 
         auth.MapPost("/register", AuthHandlers.RegisterHandler)
-            .WithName("Register")
+            .WithName("SignUp")
             .WithSummary("Register new user account");
 
         auth.MapPost("/logout", AuthHandlers.LogoutHandler)
-            .WithName("Logout")
+            .WithName("SignOut")
             .WithSummary("Sign out current user");
 
         // Protected endpoints (requires authentication)
@@ -38,5 +38,11 @@ internal static class AuthEndpointsMapper {
         auth.MapPut("/password/reset", AuthHandlers.ResetPasswordHandler)
             .WithName("ResetPassword")
             .WithSummary("Reset password with valid token");
+
+#if DEBUG
+        auth.MapGet("/test/generate-reset-token", AuthHandlers.GenerateTestResetTokenHandler)
+            .WithName("GenerateTestResetToken")
+            .WithSummary("Generate password reset token for testing (Development only)");
+#endif
     }
 }

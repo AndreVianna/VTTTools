@@ -447,7 +447,7 @@ export interface RegisterRequest {
   password: string;
   confirmPassword: string;
   name: string;           // Maps to backend Name property
-  displayName?: string;   // Optional display name
+  displayName: string;   // Optional display name
 }
 
 export interface RegisterResponse {

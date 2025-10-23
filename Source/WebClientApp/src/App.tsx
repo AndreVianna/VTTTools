@@ -8,7 +8,7 @@ import { LandingPage } from '@/pages/LandingPage';
 import { SceneEditorPage } from '@/pages/SceneEditorPage';
 import { AssetLibraryPage } from '@/pages/AssetLibraryPage';
 import { ErrorBoundary, NetworkStatus, ServiceUnavailablePage } from '@/components/error';
-import { AppLayout } from '@/components/layout';
+import { AppLayout, EditorLayout } from '@/components/layout';
 import { VTTThemeProvider } from '@/components/theme';
 import { LoadingOverlay } from '@/components/common';
 import { ProtectedRoute } from '@/components/auth';
@@ -36,70 +36,73 @@ function AppRoutes() {
         message="Loading..."
       />
 
-      {/* Main app UI - only renders after auth initialization */}
       {!isInitializing && (
-        <AppLayout>
-          <Routes>
-            {/* Public Routes - Anonymous access */}
-            <Route path="/" element={
+        <Routes>
+          {/* Public Routes - Anonymous access */}
+          <Route path="/" element={
+            <AppLayout>
               <ProtectedRoute authLevel="anonymous">
                 <LandingPage />
               </ProtectedRoute>
-            } />
+            </AppLayout>
+          } />
 
-            {/* Authentication routes - Anonymous access */}
-            <Route path="/login" element={
-              <ProtectedRoute authLevel="anonymous">
-                <LoginPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/register" element={
-              <ProtectedRoute authLevel="anonymous">
-                <LoginPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/forgot-password" element={
-              <ProtectedRoute authLevel="anonymous">
-                <PasswordResetRequestPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/reset-password" element={
-              <ProtectedRoute authLevel="anonymous">
-                <LoginPage />
-              </ProtectedRoute>
-            } />
+          {/* Authentication routes - No layout (full screen) */}
+          <Route path="/login" element={
+            <AppLayout>
+              <LoginPage />
+            </AppLayout>
+          } />
+          <Route path="/register" element={
+            <AppLayout>
+              <LoginPage />
+            </AppLayout>
+          } />
+          <Route path="/forgot-password" element={
+            <AppLayout>
+              <PasswordResetRequestPage />
+            </AppLayout>
+          } />
+          <Route path="/reset-password" element={
+            <AppLayout>
+              <LoginPage />
+            </AppLayout>
+          } />
 
-            {/* Protected Routes - Require authentication */}
-            <Route path="/assets" element={
+          {/* Protected Routes - Require authentication */}
+          <Route path="/assets" element={
+            <AppLayout>
               <ProtectedRoute authLevel="authorized">
                 <AssetLibraryPage />
               </ProtectedRoute>
-            } />
+            </AppLayout>
+          } />
 
-            <Route path="/scene-editor" element={
+          <Route path="/scene-editor" element={
+            <EditorLayout>
               <ProtectedRoute authLevel="authorized">
                 <SceneEditorPage />
               </ProtectedRoute>
-            } />
+            </EditorLayout>
+          } />
 
-            {/* Dashboard redirect - landing page IS the dashboard for authenticated users */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute authLevel="authorized">
-                <Navigate to="/" replace />
-              </ProtectedRoute>
-            } />
+          {/* Dashboard redirect - landing page IS the dashboard for authenticated users */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute authLevel="authorized">
+              <Navigate to="/" replace />
+            </ProtectedRoute>
+          } />
 
-            {/* Error pages - Anonymous access */}
-            <Route path="/error/service-unavailable" element={
-              <ProtectedRoute authLevel="anonymous">
-                <ServiceUnavailablePage />
-              </ProtectedRoute>
-            } />
+          {/* Error pages - Anonymous access */}
+          <Route path="/error/service-unavailable" element={
+            <ProtectedRoute authLevel="anonymous">
+              <ServiceUnavailablePage />
+            </ProtectedRoute>
+          } />
 
-            {/* Default redirect to landing */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </AppLayout>
+          {/* Default redirect to landing */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       )}
 
       {/* Global error handling components */}

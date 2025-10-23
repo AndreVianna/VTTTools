@@ -4,7 +4,7 @@
 /**
  * SceneEditorMenuBar Component
  * Top menu bar with hierarchical dropdown menus
- * - Stage: Background (Upload), Grid (Type, Size, Offsets, Snap), Zoom (Controls, Reset)
+ * - Stage: Background (Upload), Grid (Type, Size, Offsets, Snap)
  * - Structures: (Coming soon)
  * - Assets: (Coming soon)
  *
@@ -37,11 +37,16 @@ import {
     Remove as RemoveIcon,
     ExpandMore as ExpandMoreIcon,
     Upload as UploadIcon,
-    RestartAlt as ResetIcon
+    RestartAlt as ResetIcon,
+    Undo as UndoIcon,
+    Redo as RedoIcon,
+    ZoomIn as ZoomInIcon,
+    ZoomOut as ZoomOutIcon
 } from '@mui/icons-material';
 import { GridConfig, GridType } from '@utils/gridCalculator';
 import { AssetPicker } from '@components/common';
 import { Asset, AssetKind } from '@/types/domain';
+import { useUndoRedoContext } from '@/contexts/UndoRedoContext';
 
 export interface SceneEditorMenuBarProps {
     gridConfig: GridConfig;
@@ -64,6 +69,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
     onBackgroundUpload,
     onAssetSelect
 }) => {
+    const { canUndo, canRedo, undo, redo } = useUndoRedoContext();
     const [stageMenuAnchor, setStageMenuAnchor] = useState<null | HTMLElement>(null);
     const [structuresMenuAnchor, setStructuresMenuAnchor] = useState<null | HTMLElement>(null);
     const [objectsMenuAnchor, setObjectsMenuAnchor] = useState<null | HTMLElement>(null);
@@ -374,54 +380,6 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                     </Box>
                 </Box>
 
-                <Divider sx={{ my: 1 }} />
-
-                {/* Zoom Section */}
-                <Box>
-                    <Typography variant="subtitle2" sx={{ mb: 0.5, fontSize: '0.875rem' }}>
-                        Zoom
-                    </Typography>
-                    <Box sx={{ ml: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        {/* Zoom Controls */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <IconButton size="small" onClick={onZoomOut} sx={{ p: 0.5 }}>
-                                <RemoveIcon fontSize="small" />
-                            </IconButton>
-                            <Typography
-                                variant="body2"
-                                sx={{
-                                    flexGrow: 1,
-                                    textAlign: 'center',
-                                    bgcolor: 'action.selected',
-                                    py: 0.25,
-                                    px: 0.5,
-                                    borderRadius: 0.5,
-                                    fontSize: '0.875rem',
-                                    minWidth: 60
-                                }}
-                            >
-                                {Math.round(zoomPercentage)}%
-                            </Typography>
-                            <IconButton size="small" onClick={onZoomIn} sx={{ p: 0.5 }}>
-                                <AddIcon fontSize="small" />
-                            </IconButton>
-                        </Box>
-
-                        {/* Reset Button */}
-                        <Button
-                            size="small"
-                            startIcon={<ResetIcon />}
-                            onClick={() => {
-                                onZoomReset();
-                                handleStageMenuClose();
-                            }}
-                            variant="outlined"
-                            fullWidth
-                        >
-                            Reset
-                        </Button>
-                    </Box>
-                </Box>
             </Menu>
 
             {/* Structures Menu - Static Assets (walls, doors, terrain) */}
@@ -530,6 +488,54 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                 onSelect={handleAssetSelected}
                 {...(pickerKind !== undefined ? { kind: pickerKind } : {})}
             />
+
+            <Box sx={{ flexGrow: 1 }} />
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <IconButton
+                    onClick={undo}
+                    disabled={!canUndo}
+                    size="small"
+                    title="Undo (Ctrl+Z)"
+                >
+                    <UndoIcon fontSize="small" />
+                </IconButton>
+
+                <IconButton
+                    onClick={redo}
+                    disabled={!canRedo}
+                    size="small"
+                    title="Redo (Ctrl+Y)"
+                >
+                    <RedoIcon fontSize="small" />
+                </IconButton>
+
+                <Box sx={{ width: 1, height: 24, bgcolor: 'divider', mx: 0.5 }} />
+
+                <IconButton
+                    onClick={onZoomOut}
+                    size="small"
+                    title="Zoom Out"
+                >
+                    <ZoomOutIcon fontSize="small" />
+                </IconButton>
+
+                <Typography
+                    variant="body2"
+                    sx={{ minWidth: 45, textAlign: 'center', fontSize: '0.75rem' }}
+                >
+                    {Math.round(zoomPercentage)}%
+                </Typography>
+
+                <IconButton
+                    onClick={onZoomIn}
+                    size="small"
+                    title="Zoom In"
+                >
+                    <ZoomInIcon fontSize="small" />
+                </IconButton>
+            </Box>
+
         </Paper>
     );
 };

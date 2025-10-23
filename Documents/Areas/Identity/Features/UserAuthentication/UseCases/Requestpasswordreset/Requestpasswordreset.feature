@@ -77,12 +77,6 @@ Feature: Request Password Reset
       Then I should be returned to the login page
       And the login form should be displayed
 
-    @navigation @ui
-    Scenario: Return to login from success screen
-      Given I am on the success screen after requesting reset
-      When I click "Back to Login" link
-      Then I should be returned to the login page
-
   @loading-state @ui @ignore
   Scenario: Display loading state during request
     Given I enter email "nonexistent@example.com"

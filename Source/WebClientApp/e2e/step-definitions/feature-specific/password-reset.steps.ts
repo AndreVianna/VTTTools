@@ -54,13 +54,12 @@ Given('I leave the email field empty', async function (this: CustomWorld) {
 });
 
 Given('I navigate to password reset confirmation page with valid token', async function (this: CustomWorld) {
-    const token = await this.page.request.post('/api/auth/password/forgot', {
-        data: { email: this.currentUser.email }
-    });
-    expect(token.ok()).toBeTruthy();
+    const response = await this.page.request.get(`/api/auth/test/generate-reset-token?email=${encodeURIComponent(this.currentUser.email)}`);
+    expect(response.ok()).toBeTruthy();
 
-    const resetToken = 'valid-token-' + Date.now();
-    await this.page.goto(`/reset-password?email=${encodeURIComponent(this.currentUser.email)}&token=${encodeURIComponent(resetToken)}&validated=true`);
+    const { token } = await response.json();
+
+    await this.page.goto(`/reset-password?email=${encodeURIComponent(this.currentUser.email)}&token=${encodeURIComponent(token)}&validated=true`);
     await this.page.waitForLoadState('domcontentloaded');
 });
 
@@ -132,7 +131,7 @@ Given('I clicked the reset link with valid email and token parameters', async fu
 
 Given('I am on the password reset confirmation page', async function (this: CustomWorld) {
     // Verify we're on the confirmation page
-    await expect(this.page.locator('h2:has-text("Reset Password")')).toBeVisible();
+    await expect(this.page.locator('h1:has-text("Reset Password"), h2:has-text("Reset Password")')).toBeVisible({ timeout: 10000 });
     await expect(this.page.locator('input[name="newPassword"]')).toBeVisible();
 });
 
@@ -394,11 +393,13 @@ When('I submit the form', async function (this: CustomWorld) {
 });
 
 When('I navigate to reset page without token parameter', async function (this: CustomWorld) {
-    await this.page.goto('/login?email=test@example.com');
+    await this.page.goto('/reset-password?email=test@example.com');
+    await this.page.waitForLoadState('domcontentloaded');
 });
 
 When('I navigate to reset page without email parameter', async function (this: CustomWorld) {
-    await this.page.goto('/login?token=some-token');
+    await this.page.goto('/reset-password?token=some-token');
+    await this.page.waitForLoadState('domcontentloaded');
 });
 
 When('I submit valid password reset with password {string}', async function (this: CustomWorld, password: string) {
@@ -463,13 +464,24 @@ When('I am redirected to the login page', async function (this: CustomWorld) {
 });
 
 When('I enter my email and password {string}', async function (this: CustomWorld, password: string) {
-    await this.page.fill('input[name="email"]', this.currentUser.email);
-    await this.page.fill('input[name="password"]', password);
+    const emailInput = this.page.getByLabel(/email/i);
+    await emailInput.waitFor({ state: 'visible', timeout: 10000 });
+    await emailInput.fill(this.currentUser.email);
+
+    const passwordInput = this.page.locator('#password');
+    await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
+    await passwordInput.fill(password);
 });
 
 When('I attempt to log in with password {string}', async function (this: CustomWorld, password: string) {
-    await this.page.fill('input[name="email"]', this.currentUser.email);
-    await this.page.fill('input[name="password"]', password);
+    const emailInput = this.page.getByLabel(/email/i);
+    await emailInput.waitFor({ state: 'visible', timeout: 10000 });
+    await emailInput.fill(this.currentUser.email);
+
+    const passwordInput = this.page.locator('#password');
+    await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
+    await passwordInput.fill(password);
+
     await this.page.click('button[type="submit"]');
 });
 

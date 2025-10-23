@@ -194,7 +194,9 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
     }
 
     if (!formData.newPassword) {
-      errors.newPassword = 'New password is required';
+      errors.newPassword = 'Password is required';
+    } else if (formData.newPassword.length < 6) {
+      errors.newPassword = 'Password must be at least 6 characters';
     } else if (passwordStrength.score < 3) {
       errors.newPassword = 'Password is too weak. Missing: ' + passwordStrength.feedback.join(', ');
     }
@@ -246,28 +248,30 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
 
   if (isInvalidToken) {
     return (
-      <Box>
-        <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
-          VTT Tools
-        </Typography>
-        <Typography variant="h6" component="h2" gutterBottom align="center" color="text.secondary">
-          Invalid Reset Link
-        </Typography>
+      <Container maxWidth="sm" sx={{ py: 8 }}>
+        <AuthCard>
+          <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+            VTT Tools
+          </Typography>
+          <Typography variant="h6" component="h2" gutterBottom align="center" color="text.secondary">
+            Invalid Reset Link
+          </Typography>
 
-        <Alert severity="error" sx={{ mb: 2 }}>
-          The password reset link is invalid or has expired. Please request a new password reset.
-        </Alert>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            Invalid reset link
+          </Alert>
 
-        <Box sx={{ textAlign: 'center', mt: 3 }}>
-          <Button
-            variant="contained"
-            startIcon={<ArrowBack />}
-            onClick={onSwitchToLogin}
-          >
-            Back to Login
-          </Button>
-        </Box>
-      </Box>
+          <Box sx={{ textAlign: 'center', mt: 3 }}>
+            <Button
+              variant="contained"
+              startIcon={<ArrowBack />}
+              onClick={onSwitchToLogin}
+            >
+              Back to Login
+            </Button>
+          </Box>
+        </AuthCard>
+      </Container>
     );
   }
 

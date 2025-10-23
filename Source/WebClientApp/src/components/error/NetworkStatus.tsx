@@ -33,6 +33,17 @@ interface NetworkStatusState {
  * Global network error detection with retry mechanisms and user feedback
  */
 export const NetworkStatus: React.FC = () => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const showNetworkStatus = searchParams.has('checkNetwork');
+
+  if (!showNetworkStatus) {
+    return null;
+  }
+
+  return <NetworkStatusComponent />;
+};
+
+const NetworkStatusComponent: React.FC = () => {
   const dispatch = useDispatch();
   const [networkStatus, setNetworkStatus] = useState<NetworkStatusState>({
     isOnline: navigator.onLine,
