@@ -24,7 +24,8 @@ public class AdventureStorage(ApplicationDbContext context)
             .Include(a => a.Scenes)
                 .ThenInclude(s => s.SceneAssets)
                     .ThenInclude(sa => sa.Asset)
-            .AsNoTrackingWithIdentityResolution();
+            .AsSplitQuery()
+            .AsNoTracking();
 
         switch (filterDefinition) {
             case not null when filterDefinition.Split(':') is ["OwnedBy", var id] && Guid.TryParse(id, out var ownerId):
@@ -48,7 +49,7 @@ public class AdventureStorage(ApplicationDbContext context)
             .Include(a => a.Scenes)
                 .ThenInclude(s => s.SceneAssets)
                     .ThenInclude(sa => sa.Asset)
-            .AsNoTrackingWithIdentityResolution();
+            .AsNoTracking();
         var result = await query.FirstOrDefaultAsync(a => a.Id == id, ct);
         return result.ToModel();
     }

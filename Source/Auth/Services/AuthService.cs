@@ -275,5 +275,6 @@ public class AuthService(
             Name = user.Name,
             DisplayName = user.DisplayName,
             IsAdministrator = user.IsAdministrator,
+            TwoFactorEnabled = user.TwoFactorEnabled,
         };
 }

@@ -289,12 +289,31 @@ Then('original username remains unchanged', async function (this: CustomWorld) {
 // ========================================
 
 Given('I have not enabled two-factor authentication', async function (this: CustomWorld) {
+  const response = await this.page.request.post(`/api/auth/test/set-two-factor?email=${this.currentUser.email}&enabled=false`);
+  expect(response.ok()).toBeTruthy();
+
+  await this.page.waitForTimeout(500);
+
   this.twoFactorEnabled = false;
+  await this.page.reload();
+  await this.page.waitForLoadState('networkidle');
+  await this.page.waitForTimeout(1000);
 });
 
 Given('I have enabled two-factor authentication', async function (this: CustomWorld) {
+  const response = await this.page.request.post(`/api/auth/test/set-two-factor?email=${this.currentUser.email}&enabled=true`);
+  expect(response.ok()).toBeTruthy();
+
+  await this.page.waitForTimeout(500);
+
+  const verifyResponse = await this.page.request.get('/api/auth/me');
+  const userData = await verifyResponse.json();
+  console.log(`[2FA] User data after enabling 2FA:`, JSON.stringify(userData));
+
   this.twoFactorEnabled = true;
-  // Note: Actual 2FA setup would be done in test data setup
+  await this.page.reload();
+  await this.page.waitForLoadState('networkidle');
+  await this.page.waitForTimeout(1000);
 });
 
 Given('I have recovery codes generated', async function (this: CustomWorld) {
@@ -393,11 +412,6 @@ When('I confirm the new password', async function (this: CustomWorld) {
 When('I confirm new password {string}', async function (this: CustomWorld, password: string) {
   const confirmField = this.page.getByLabel(/confirm.*password/i);
   await confirmField.fill(password);
-});
-
-When('I click {string} button', async function (this: CustomWorld, buttonText: string) {
-  const button = this.page.getByRole('button', { name: new RegExp(buttonText, 'i') });
-  await button.click();
 });
 
 Then('my password should be changed successfully', async function (this: CustomWorld) {

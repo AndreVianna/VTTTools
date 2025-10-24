@@ -23,7 +23,8 @@ public class ClonerTests {
                 },
             },
             Description = "Adventure description",
-            Type = AdventureType.Survival,
+            Style = AdventureStyle.Survival,
+            IsOneShot = false,
             IsPublished = true,
             IsPublic = true,
             Scenes = [
@@ -60,9 +61,10 @@ public class ClonerTests {
         clone.Name.Should().Be(original.Name);
         clone.Description.Should().Be(original.Description);
         clone.Background.Should().Be(original.Background);
-        clone.Type.Should().Be(original.Type);
+        clone.Style.Should().Be(original.Style);
         // NOTE: The cloner intentionally doesn't copy IsPublished and IsPublic - clones start as drafts
         clone.IsPublished.Should().BeFalse();
+        clone.IsOneShot.Should().BeFalse();
         clone.IsPublic.Should().BeFalse();
         // NOTE: Cloned scenes get new IDs, so exclude Id from comparison
         clone.Scenes.Should().BeEquivalentTo(original.Scenes, options => options.Excluding(s => s.Id));
@@ -87,7 +89,8 @@ public class ClonerTests {
                 },
             },
             Description = "Adventure description",
-            Type = AdventureType.Survival,
+            Style = AdventureStyle.Survival,
+            IsOneShot = false,
             IsPublished = true,
             IsPublic = true,
             Scenes = [
@@ -115,9 +118,10 @@ public class ClonerTests {
         clone.Name.Should().Be(original.Name);
         clone.Description.Should().Be(original.Description);
         clone.Background.Should().Be(original.Background);
-        clone.Type.Should().Be(original.Type);
+        clone.Style.Should().Be(original.Style);
         // NOTE: The cloner intentionally doesn't copy IsPublished and IsPublic - clones start as drafts
         clone.IsPublished.Should().BeFalse();
+        clone.IsOneShot.Should().BeFalse();
         clone.IsPublic.Should().BeFalse();
         // NOTE: The cloner actually includes scenes - the test name is misleading
         clone.Scenes.Should().NotBeEmpty();

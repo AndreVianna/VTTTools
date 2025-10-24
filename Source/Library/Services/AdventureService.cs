@@ -50,10 +50,11 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
             CampaignId = data.CampaignId,
             Name = data.Name,
             Description = data.Description,
-            Type = data.Type,
-            Background = data.BackgroundId is not null
-                ? await mediaStorage.GetByIdAsync(data.BackgroundId.Value, ct) ?? _defaultAssetDisplay
-                : _defaultAssetDisplay,
+            Style = data.Style,
+            IsOneShot = data.IsOneShot,
+            Background = data.BackgroundId.HasValue
+                ? await mediaStorage.GetByIdAsync(data.BackgroundId.Value, ct)
+                : null,
         };
         await adventureStorage.AddAsync(adventure, ct);
         return adventure;
@@ -85,11 +86,14 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
         adventure = adventure with {
             Name = data.Name.IsSet ? data.Name.Value : adventure.Name,
             Description = data.Description.IsSet ? data.Description.Value : adventure.Description,
-            Type = data.Type.IsSet ? data.Type.Value : adventure.Type,
+            Style = data.Style.IsSet ? data.Style.Value : adventure.Style,
             Background = data.BackgroundId.IsSet
-                ? await mediaStorage.GetByIdAsync(data.BackgroundId.Value, ct) ?? adventure.Background
+                ? data.BackgroundId.Value.HasValue
+                    ? await mediaStorage.GetByIdAsync(data.BackgroundId.Value.Value, ct)
+                    : null
                 : adventure.Background,
             IsPublished = data.IsListed.IsSet ? data.IsListed.Value : adventure.IsPublished,
+            IsOneShot = data.IsOneShot.IsSet ? data.IsOneShot.Value : adventure.IsOneShot,
             IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : adventure.IsPublic,
             CampaignId = data.CampaignId.IsSet ? data.CampaignId.Value : adventure.CampaignId,
         };

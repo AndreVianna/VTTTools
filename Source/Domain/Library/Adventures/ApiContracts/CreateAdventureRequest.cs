@@ -8,7 +8,8 @@ public record CreateAdventureRequest
     [Required]
     [MaxLength(1024)]
     public string Description { get; init; } = string.Empty;
-    public AdventureType Type { get; init; }
+    public AdventureStyle Style { get; init; }
+    public bool IsOneShot { get; init; }
     public Guid? CampaignId { get; init; }
     public Guid? BackgroundId { get; init; }
 }

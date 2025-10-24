@@ -187,14 +187,12 @@ When('I submit valid credentials for that account', async function (this: Custom
     await this.page.getByLabel(/email/i).fill(this.currentUser.email);
     await this.page.getByRole('textbox', { name: /password/i}).fill(process.env.BDD_TEST_PASSWORD!);
 
-    const submitButton = this.page.getByRole('button', { name: /sign in/i });
-
     const responsePromise = this.page.waitForResponse(
         response => response.url().includes('/api/auth/login') && response.status() !== 0,
         { timeout: 10000 }
     );
 
-    await submitButton.click();
+    await this.page.locator('button[type="submit"]').click();
 
     this.lastApiResponse = await responsePromise as any;
 
@@ -447,7 +445,7 @@ Given('I am using a screen reader', async function (this: CustomWorld) {
 When('I log in with valid credentials', async function (this: CustomWorld) {
     await this.page.getByLabel(/email/i).fill(this.currentUser.email);
     await this.page.getByRole('textbox', { name: /password/i }).fill(process.env.BDD_TEST_PASSWORD!);
-    await this.page.getByRole('button', { name: /sign in/i }).click();
+    await this.page.locator('button[type="submit"]').click();
 });
 
 When('the authentication completes', async function (this: CustomWorld) {

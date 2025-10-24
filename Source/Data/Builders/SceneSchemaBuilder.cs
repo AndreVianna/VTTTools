@@ -8,7 +8,7 @@ internal static class SceneSchemaBuilder {
         builder.Entity<Scene>(entity => {
             entity.ToTable("Scenes");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.AdventureId);
+            entity.Property(e => e.AdventureId).IsRequired();
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
             entity.Property(e => e.IsPublished).IsRequired();
@@ -18,10 +18,8 @@ internal static class SceneSchemaBuilder {
                 panningBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0.0);
                 panningBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0.0);
             });
-            entity.HasOne(e => e.Stage)
-                  .WithMany()
-                .HasForeignKey(e => e.StageId)
-                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Background).WithMany()
+                .HasForeignKey(e => e.BackgroundId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
             entity.ComplexProperty(s => s.Grid, gridBuilder => {
                 gridBuilder.IsRequired();
                 gridBuilder.Property(g => g.Type).IsRequired().HasConversion<string>().HasDefaultValue(GridType.NoGrid);

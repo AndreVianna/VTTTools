@@ -23,6 +23,7 @@ export function ContentCard({ item, onClick, actions, badges, metadata }: Conten
 
     return (
         <Card
+            id={`card-${item.type}-${item.id}`}
             sx={{
                 height: '100%',
                 display: 'flex',
@@ -47,6 +48,7 @@ export function ContentCard({ item, onClick, actions, badges, metadata }: Conten
         >
             {item.thumbnailUrl && (
                 <CardMedia
+                    id={`thumbnail-${item.id}`}
                     component="img"
                     height="140"
                     image={item.thumbnailUrl}
@@ -56,6 +58,7 @@ export function ContentCard({ item, onClick, actions, badges, metadata }: Conten
             )}
             {!item.thumbnailUrl && (
                 <Box
+                    id={`placeholder-${item.id}`}
                     sx={{
                         height: 140,
                         backgroundColor: 'action.hover',
@@ -69,8 +72,9 @@ export function ContentCard({ item, onClick, actions, badges, metadata }: Conten
                     </Typography>
                 </Box>
             )}
-            <CardContent sx={{ flexGrow: 1, pb: 1 }}>
+            <CardContent id={`content-${item.id}`} sx={{ flexGrow: 1, pb: 1 }}>
                 <Typography
+                    id={`title-${item.id}`}
                     variant="h6"
                     component="h3"
                     gutterBottom

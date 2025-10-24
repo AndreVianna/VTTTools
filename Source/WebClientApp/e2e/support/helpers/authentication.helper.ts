@@ -393,9 +393,23 @@ export async function performPoolUserLogin(world: CustomWorld): Promise<void> {
     await world.page.goto('/login');
     await world.page.waitForLoadState('networkidle');
 
-    await world.page.fill('input[type="email"], input[name="email"]', world.currentUser.email);
-    await world.page.fill('input[type="password"], input[name="password"]', password);
-    await world.page.click('button[type="submit"], button:has-text("Sign In")');
+    await world.page.getByLabel(/email/i).fill(world.currentUser.email);
+    await world.page.getByRole('textbox', { name: /password/i }).fill(password);
+
+    const responsePromise = world.page.waitForResponse(
+        response => response.url().includes('/api/auth/login') && response.status() !== 0,
+        { timeout: 10000 }
+    );
+
+    await world.page.locator('button[type="submit"]').click();
+
+    const response = await responsePromise;
+    const status = response.status();
+    const responseBody = await response.text();
+    console.log(`[LOGIN] API Response Status: ${status}`);
+    console.log(`[LOGIN] API Response Body: ${responseBody}`);
+
+    await world.page.waitForTimeout(1500);
 
     await world.page.waitForURL(url => !url.pathname.includes('/login') && !url.pathname.includes('/register'), { timeout: 15000 });
     await world.page.waitForLoadState('networkidle');

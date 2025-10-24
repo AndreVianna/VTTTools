@@ -108,7 +108,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 Assets
               </Button>
               <Button
-                id="nav-content-library"
+                id="nav-library"
                 color="inherit"
                 onClick={() => navigate('/content-library')}
                 sx={{
@@ -118,7 +118,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   }
                 }}
               >
-                Content Library
+                Library
               </Button>
               <Button
                 id="nav-scene-editor"

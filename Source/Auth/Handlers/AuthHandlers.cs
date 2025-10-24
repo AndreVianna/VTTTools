@@ -152,5 +152,20 @@ public static class AuthHandlers {
 
         return Results.Ok(new { email, token });
     }
+
+    public static async Task<Microsoft.AspNetCore.Http.IResult> SetTestTwoFactorHandler(
+        [FromQuery] string email,
+        [FromQuery] bool enabled,
+        UserManager<User> userManager) {
+
+        var user = await userManager.FindByEmailAsync(email);
+        if (user == null) {
+            return Results.NotFound(new { error = "User not found" });
+        }
+
+        await userManager.SetTwoFactorEnabledAsync(user, enabled);
+
+        return Results.Ok(new { email, twoFactorEnabled = enabled });
+    }
 #endif
 }

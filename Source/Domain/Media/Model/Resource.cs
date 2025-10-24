@@ -1,7 +1,7 @@
 namespace VttTools.Media.Model;
 
 public record Resource {
-    public Guid Id { get; init; }
+    public Guid Id { get; init; } = Guid.CreateVersion7();
     public ResourceType Type { get; init; }
     public string Path { get; init; } = string.Empty;
     public ResourceMetadata Metadata { get; init; } = new();

@@ -20,7 +20,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         if (result.HasErrors)
             return result;
         var id = Guid.CreateVersion7();
-        var stageId = data.StageId ?? Guid.Empty;
+        var stageId = data.BackgroundId ?? Guid.Empty;
         var background = await mediaStorage.GetByIdAsync(stageId, ct);
         var scene = new Scene {
             Id = id,
@@ -46,7 +46,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
-        if (scene.OwnerId != userId)
+        if (scene.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
         var result = data.Validate();
         if (result.HasErrors)
@@ -106,7 +106,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
-        if (scene.OwnerId != userId)
+        if (scene.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
         await sceneStorage.DeleteAsync(id, ct);
         return Result.Success();
@@ -171,7 +171,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
-        if (scene.OwnerId != userId)
+        if (scene.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
         var asset = scene.Assets.FirstOrDefault(sa => sa.Index == index);
         if (asset is null)
@@ -195,7 +195,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
-        if (scene.OwnerId != userId)
+        if (scene.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
         var sceneAsset = scene.Assets.FirstOrDefault(a => a.Index == index);
         if (sceneAsset == null)
@@ -225,7 +225,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
-        if (scene.OwnerId != userId)
+        if (scene.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
         scene.Assets.RemoveAll(a => a.Index == index);
         await sceneStorage.UpdateAsync(scene, ct);

@@ -176,21 +176,26 @@ export const LandingPage: React.FC = () => {
               </Card>
             </Grid>
 
-            {/* Content Library - Phase 7-8 Blocked */}
+            {/* Library - Phase 7 Active */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card id="card-content-library" elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', opacity: 0.6 }}>
+              <Card id="card-library" elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                  <LibraryIcon id="icon-content-library" color="disabled" sx={{ fontSize: 48, mb: 2 }} />
-                  <Typography id="title-content-library" variant="h6" gutterBottom>
-                    Content Library
+                  <LibraryIcon id="icon-library" color="primary" sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography id="title-library" variant="h6" gutterBottom>
+                    Library
                   </Typography>
-                  <Typography id="desc-content-library" variant="body2" color="text.secondary">
-                    Manage epics, campaigns, adventures
+                  <Typography id="desc-library" variant="body2" color="text.secondary">
+                    Manage scenes, adventures, campaigns
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
-                  <Button id="btn-content-library-disabled" size="small" disabled variant="outlined">
-                    Coming Soon
+                  <Button
+                    id="btn-open-library"
+                    size="small"
+                    variant="contained"
+                    onClick={() => navigate('/content-library')}
+                  >
+                    Browse Library
                   </Button>
                 </CardActions>
               </Card>

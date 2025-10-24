@@ -22,8 +22,9 @@ internal static class AdventureHandlers {
             CampaignId = request.CampaignId,
             Name = request.Name,
             Description = request.Description,
-            Type = request.Type,
+            Style = request.Style,
             BackgroundId = request.BackgroundId,
+            IsOneShot = request.IsOneShot,
         };
         var result = await adventureService.CreateAdventureAsync(userId, data);
         return result.IsSuccessful
@@ -48,7 +49,8 @@ internal static class AdventureHandlers {
         var data = new UpdatedAdventureData {
             Name = request.Name,
             Description = request.Description,
-            Type = request.Type,
+            Style = request.Style,
+            IsOneShot = request.IsOneShot,
             BackgroundId = request.BackgroundId,
             IsListed = request.IsPublished,
             IsPublic = request.IsPublic,

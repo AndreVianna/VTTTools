@@ -7,7 +7,8 @@ public class UpdateAdventureRequestTests {
         var original = new UpdateAdventureRequest {
             Name = "Title",
             Description = "Description",
-            Type = AdventureType.OpenWorld,
+            Style = AdventureStyle.OpenWorld,
+            IsOneShot = false,
             IsPublished = false,
             IsPublic = false,
             CampaignId = Guid.CreateVersion7(),
@@ -16,9 +17,10 @@ public class UpdateAdventureRequestTests {
 
         const string name = "Other Title";
         const string description = "Other Description";
-        const AdventureType type = AdventureType.DungeonCrawl;
+        const AdventureStyle style = AdventureStyle.DungeonCrawl;
         const bool isVisible = true;
         const bool isPublic = true;
+        const bool isOneShot = true;
         var campaignId = Guid.CreateVersion7();
         var backgroundId = Guid.CreateVersion7();
 
@@ -27,7 +29,8 @@ public class UpdateAdventureRequestTests {
         var data = original with {
             Name = name,
             Description = description,
-            Type = type,
+            Style = style,
+            IsOneShot = isOneShot,
             IsPublished = isVisible,
             IsPublic = isPublic,
             CampaignId = campaignId,
@@ -37,7 +40,8 @@ public class UpdateAdventureRequestTests {
         // Assert
         data.Name.Value.Should().Be(name);
         data.Description.Value.Should().Be(description);
-        data.Type.Value.Should().Be(type);
+        data.Style.Value.Should().Be(style);
+        data.IsOneShot.Value.Should().Be(isOneShot);
         data.IsPublished.Value.Should().Be(isVisible);
         data.IsPublic.Value.Should().Be(isPublic);
         data.CampaignId.Value.Should().Be(campaignId);

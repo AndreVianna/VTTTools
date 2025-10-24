@@ -35,13 +35,13 @@ Feature: View Security Settings
 
     @happy-path @navigation
     Scenario: Navigate to change password dialog
-      When I click "Change Password" button
+      When I click the "Change Password" button
       Then the password change dialog should open
 
     @happy-path @navigation
     Scenario: Navigate to 2FA setup dialog
       Given I have not enabled two-factor authentication
-      When I click "Enable 2FA" button
+      When I click the "Enable 2FA" button
       Then the 2FA setup dialog should open
 
   Rule: Authorization

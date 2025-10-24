@@ -6,4 +6,5 @@ public record UserInfo {
     public string Name { get; init; } = string.Empty;
     public string DisplayName { get; init; } = string.Empty;
     public bool IsAdministrator { get; init; }
+    public bool TwoFactorEnabled { get; init; }
 }

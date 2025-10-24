@@ -85,18 +85,29 @@ export const getDefaultStage = (): StageConfig => ({
 
 export const mapSceneAssetToPlaced = async (
     sceneAsset: SceneAssetData,
-    getAsset: (id: string) => Promise<import('@/types/domain').Asset>
+    getAsset: (id: string) => Promise<import('@/types/domain').Asset>,
+    gridConfig: GridConfig
 ): Promise<PlacedAsset> => {
     const asset = await getAsset(sceneAsset.assetId);
     if (!asset) {
         throw new Error(`Asset ${sceneAsset.assetId} not found`);
     }
+
+    const cellWidth = gridConfig.cellSize.width;
+    const cellHeight = gridConfig.cellSize.height;
+
     return {
-        id: `${sceneAsset.number}`,
+        id: `placed-${sceneAsset.index}`,
         assetId: sceneAsset.assetId,
         asset,
-        position: sceneAsset.position,
-        size: sceneAsset.size,
+        position: {
+            x: sceneAsset.position.x * cellWidth,
+            y: sceneAsset.position.y * cellHeight
+        },
+        size: {
+            width: sceneAsset.size.width * cellWidth,
+            height: sceneAsset.size.height * cellHeight
+        },
         rotation: sceneAsset.rotation,
         layer: 'assets'
     };
@@ -104,20 +115,36 @@ export const mapSceneAssetToPlaced = async (
 
 export const mapPlacedToSceneAsset = (
     placedAsset: PlacedAsset,
-    index: number = 0
-): SceneAssetData => ({
-    assetId: placedAsset.assetId,
-    index,
-    number: parseInt(placedAsset.id, 10) || index,
-    name: '',
-    description: null,
-    resourceId: placedAsset.asset.resources[0]?.resourceId || '',
-    size: placedAsset.size,
-    position: placedAsset.position,
-    rotation: placedAsset.rotation,
-    frame: null,
-    elevation: 0,
-    isLocked: false,
-    isVisible: true,
-    controlledBy: null
-});
+    index: number,
+    gridConfig: GridConfig
+): SceneAssetData => {
+    const cellWidth = gridConfig.cellSize.width;
+    const cellHeight = gridConfig.cellSize.height;
+
+    const tokenResource = placedAsset.asset.resources.find(
+        r => r.role === 1
+    );
+
+    return {
+        assetId: placedAsset.assetId,
+        index,
+        number: index + 1,
+        name: '',
+        description: null,
+        resourceId: tokenResource?.resourceId || placedAsset.asset.resources[0]?.resourceId || '',
+        size: {
+            width: Math.round(placedAsset.size.width / cellWidth),
+            height: Math.round(placedAsset.size.height / cellHeight)
+        },
+        position: {
+            x: Math.round(placedAsset.position.x / cellWidth),
+            y: Math.round(placedAsset.position.y / cellHeight)
+        },
+        rotation: placedAsset.rotation,
+        frame: null,
+        elevation: 0,
+        isLocked: false,
+        isVisible: true,
+        controlledBy: null
+    };
+};

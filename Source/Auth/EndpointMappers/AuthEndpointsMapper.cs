@@ -43,6 +43,10 @@ internal static class AuthEndpointsMapper {
         auth.MapGet("/test/generate-reset-token", AuthHandlers.GenerateTestResetTokenHandler)
             .WithName("GenerateTestResetToken")
             .WithSummary("Generate password reset token for testing (Development only)");
+
+        auth.MapPost("/test/set-two-factor", AuthHandlers.SetTestTwoFactorHandler)
+            .WithName("SetTestTwoFactor")
+            .WithSummary("Enable/disable 2FA for testing (Development only)");
 #endif
     }
 }

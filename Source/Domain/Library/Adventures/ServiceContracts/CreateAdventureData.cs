@@ -5,8 +5,9 @@ public record CreateAdventureData
     public Guid? CampaignId { get; init; }
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
-    public AdventureType Type { get; init; }
+    public AdventureStyle Style { get; init; }
     public Guid? BackgroundId { get; init; }
+    public bool IsOneShot { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);

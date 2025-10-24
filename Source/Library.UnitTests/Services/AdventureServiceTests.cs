@@ -58,8 +58,9 @@ public class AdventureServiceTests {
         var request = new CreateAdventureData {
             Name = "New Adventure",
             Description = "Adventure description",
-            Type = AdventureType.Survival,
+            Style = AdventureStyle.Survival,
             CampaignId = Guid.CreateVersion7(),
+            IsOneShot = false,
         };
 
         // Act
@@ -69,7 +70,8 @@ public class AdventureServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Name.Should().Be(request.Name);
         result.Value.Description.Should().Be(request.Description);
-        result.Value.Type.Should().Be(request.Type);
+        result.Value.Style.Should().Be(request.Style);
+        result.Value.IsOneShot.Should().Be(request.IsOneShot);
         result.Value.Background.Should().NotBeNull();
         result.Value.IsPublished.Should().BeFalse();
         result.Value.IsPublic.Should().BeFalse();
@@ -86,8 +88,9 @@ public class AdventureServiceTests {
         var request = new CreateAdventureData {
             Name = "",
             Description = "Adventure description",
-            Type = AdventureType.Survival,
+            Style = AdventureStyle.Survival,
             CampaignId = Guid.CreateVersion7(),
+            IsOneShot = false,
         };
 
         // Act
@@ -104,8 +107,9 @@ public class AdventureServiceTests {
         var request = new CreateAdventureData {
             Name = "   ",
             Description = "Adventure description",
-            Type = AdventureType.Survival,
+            Style = AdventureStyle.Survival,
             CampaignId = Guid.CreateVersion7(),
+            IsOneShot = false,
         };
 
         // Act
@@ -122,8 +126,9 @@ public class AdventureServiceTests {
         var request = new CreateAdventureData {
             Name = null!,
             Description = "Adventure description",
-            Type = AdventureType.Survival,
+            Style = AdventureStyle.Survival,
             CampaignId = Guid.CreateVersion7(),
+            IsOneShot = false,
         };
 
         // Act
@@ -157,7 +162,8 @@ public class AdventureServiceTests {
             CampaignId = Guid.CreateVersion7(),
             Name = "Updated Name",
             Description = "Adventure description",
-            Type = AdventureType.Survival,
+            Style = AdventureStyle.Survival,
+            IsOneShot = false,
             IsListed = true,
             IsPublic = true,
         };
@@ -171,7 +177,8 @@ public class AdventureServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Name.Should().Be(request.Name.Value);
         result.Value.Description.Should().Be(request.Description.Value);
-        result.Value.Type.Should().Be(request.Type.Value);
+        result.Value.Style.Should().Be(request.Style.Value);
+        result.Value.IsOneShot.Should().Be(request.IsOneShot.Value);
         result.Value.Background.Should().NotBeNull();
         result.Value.IsPublished.Should().BeTrue();
         result.Value.IsPublic.Should().BeTrue();
@@ -216,9 +223,11 @@ public class AdventureServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Name.Should().Be(request.Name.Value);
         result.Value.Description.Should().Be(adventure.Description);
-        result.Value.Type.Should().Be(adventure.Type);
+        result.Value.Style.Should().Be(adventure.Style);
+        result.Value.IsOneShot.Should().Be(adventure.IsOneShot);
         result.Value.Background.Should().NotBeNull();
         result.Value.IsPublished.Should().BeFalse();
+        result.Value.IsOneShot.Should().BeFalse();
         result.Value.IsPublic.Should().BeFalse();
         result.Value.CampaignId.Should().Be(adventure.CampaignId);
         result.Value.Id.Should().Be(adventureId);
@@ -334,7 +343,8 @@ public class AdventureServiceTests {
             Name = "Adventure",
             OwnerId = _userId,
             Description = "Adventure description",
-            Type = AdventureType.Survival,
+            Style = AdventureStyle.Survival,
+            IsOneShot = false,
             // NOTE: Service logic prevents cloning if both IsPublished=true AND IsPublic=true, even for owners
             IsPublished = false,
             IsPublic = false,
@@ -404,7 +414,8 @@ public class AdventureServiceTests {
             Name = "Adventure",
             OwnerId = _userId,
             Description = "Adventure description",
-            Type = AdventureType.Survival,
+            Style = AdventureStyle.Survival,
+            IsOneShot = false,
             IsPublished = true,
             IsPublic = true,
             CampaignId = Guid.CreateVersion7(),
@@ -495,6 +506,7 @@ public class AdventureServiceTests {
             OwnerId = Guid.CreateVersion7(),
             IsPublic = false,
             IsPublished = false,
+            IsOneShot = false,
         };
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);

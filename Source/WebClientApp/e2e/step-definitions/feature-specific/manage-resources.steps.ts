@@ -69,10 +69,6 @@ Then('the image should have a grey border \\(no role assigned)', async function 
     await expect(image.locator('[role="status"]')).not.toBeVisible();
 });
 
-When('I click {string} button', async function (this: CustomWorld, buttonText: string) {
-    await this.page.click(`button:has-text("${buttonText}")`);
-});
-
 Then('the file input should accept: {string}', async function (this: CustomWorld, acceptTypes: string) {
     const fileInput = this.page.locator('input[type="file"]');
     await expect(fileInput).toHaveAttribute('accept', acceptTypes);

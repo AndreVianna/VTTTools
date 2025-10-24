@@ -10,7 +10,7 @@ public class SceneStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public Task<Scene[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Scenes
-                  .Include(e => e.Stage)
+                  .Include(e => e.Background)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
                   .AsNoTrackingWithIdentityResolution()
@@ -22,7 +22,7 @@ public class SceneStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public Task<Scene[]> GetByParentIdAsync(Guid adventureId, CancellationToken ct = default) {
         var query = context.Scenes
-                  .Include(e => e.Stage)
+                  .Include(e => e.Background)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
                   .Where(e => e.AdventureId == adventureId)
@@ -35,7 +35,7 @@ public class SceneStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<Scene?> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Scenes
-                  .Include(e => e.Stage)
+                  .Include(e => e.Background)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
                   .AsNoTrackingWithIdentityResolution()
@@ -52,7 +52,7 @@ public class SceneStorage(ApplicationDbContext context)
 
     /// <inheritdoc />
     public async Task AddAsync(Scene scene, CancellationToken ct = default) {
-        var entity = scene.ToEntity();
+        var entity = scene.ToEntity(scene.Adventure.Id);
         await context.Scenes.AddAsync(entity, ct);
         await context.SaveChangesAsync(ct);
     }
@@ -67,7 +67,7 @@ public class SceneStorage(ApplicationDbContext context)
 
     /// <inheritdoc />
     public async Task<bool> UpdateAsync(Scene scene, CancellationToken ct = default) {
-        var entity = scene.ToEntity();
+        var entity = scene.ToEntity(scene.Adventure.Id);
         context.Scenes.Update(entity);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;

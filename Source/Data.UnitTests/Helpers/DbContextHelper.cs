@@ -123,19 +123,20 @@ internal static class DbContextHelper {
         context.SaveChanges();
     }
 
-    public static AdventureEntity CreateTestAdventureEntity(Guid id, string name, bool isPublished = false, bool isPublic = false, AdventureType type = AdventureType.OpenWorld, Guid? ownerId = null, Guid? backgroundId = null) => new() {
+    public static AdventureEntity CreateTestAdventureEntity(Guid id, string name, bool isOneShot = false, bool isPublished = false, bool isPublic = false, AdventureStyle style = AdventureStyle.OpenWorld, Guid? ownerId = null, Guid? backgroundId = null) => new() {
         Id = id,
         Name = name,
         Description = $"Description for {name}",
-        Type = type,
+        Style = style,
+        IsOneShot = isOneShot,
         IsPublished = isPublished,
         IsPublic = isPublic,
         OwnerId = ownerId ?? Guid.CreateVersion7(),
-        BackgroundId = backgroundId ?? Guid.CreateVersion7(),
+        BackgroundId = backgroundId,
     };
 
-    public static AdventureEntity CreateTestAdventureEntity(string name, bool isPublished = false, bool isPublic = false, AdventureType type = AdventureType.OpenWorld, Guid? ownerId = null, Guid? backgroundId = null)
-        => CreateTestAdventureEntity(Guid.CreateVersion7(), name, isPublished, isPublic, type, ownerId, backgroundId);
+    public static AdventureEntity CreateTestAdventureEntity(string name, bool isPublished = false, bool isPublic = false, bool isOneShot = false, AdventureStyle style = AdventureStyle.OpenWorld, Guid? ownerId = null, Guid? backgroundId = null)
+        => CreateTestAdventureEntity(Guid.CreateVersion7(), name, isPublished, isPublic, isOneShot, style, ownerId, backgroundId);
 
     public static SceneEntity CreateTestSceneEntity(Guid adventureId, string name, Guid? stageId = null)
         => new() {
@@ -144,7 +145,7 @@ internal static class DbContextHelper {
             Description = $"Description for {name}",
             ZoomLevel = 1.0f,
             Panning = new(0, 0),
-            StageId = stageId ?? Guid.CreateVersion7(),
+            BackgroundId = stageId ?? Guid.CreateVersion7(),
             Grid = new() {
                 Type = GridType.Square,
                 CellSize = new(1, 1),
@@ -200,11 +201,11 @@ internal static class DbContextHelper {
             Tags = [],
         };
 
-    public static Adventure CreateTestAdventure(Guid id, string name, bool isPublished = false, bool isPublic = false, AdventureType type = AdventureType.OpenWorld, Guid? ownerId = null) => new() {
+    public static Adventure CreateTestAdventure(Guid id, string name, bool isPublished = false, bool isPublic = false, AdventureStyle style = AdventureStyle.OpenWorld, Guid? ownerId = null) => new() {
         Id = id,
         Name = name,
         Description = $"Description for {name}",
-        Type = type,
+        Style = style,
         IsPublished = isPublished,
         IsPublic = isPublic,
         OwnerId = ownerId ?? Guid.CreateVersion7(),
@@ -224,7 +225,7 @@ internal static class DbContextHelper {
         Scenes = [],
     };
 
-    public static Adventure CreateTestAdventure(string name, bool isPublished = false, bool isPublic = false, AdventureType type = AdventureType.OpenWorld, Guid? ownerId = null)
+    public static Adventure CreateTestAdventure(string name, bool isPublished = false, bool isPublic = false, AdventureStyle type = AdventureStyle.OpenWorld, Guid? ownerId = null)
         => CreateTestAdventure(Guid.CreateVersion7(), name, isPublished, isPublic, type, ownerId);
 
     public static Scene CreateTestScene(Guid id, string name)

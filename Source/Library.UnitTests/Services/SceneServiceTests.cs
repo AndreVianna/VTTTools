@@ -210,7 +210,20 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            OwnerId = _userId,
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Adventure",
+                Description = "Adventure description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource {
+                    Id = Guid.CreateVersion7(),
+                    Type = ResourceType.Image,
+                },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
             Assets = [
                 // NOTE: Service uses Assets.Max(sa => sa.Index) and scene.Assets.Where(sa => sa.AssetId == assetId).Max() which fail on empty collections
                 new SceneAsset {
@@ -353,7 +366,20 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
-            OwnerId = _userId,
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Adventure",
+                Description = "Adventure description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource {
+                    Id = Guid.CreateVersion7(),
+                    Type = ResourceType.Image,
+                },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
             Assets = [
                 new() {
                     Index = number,

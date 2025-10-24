@@ -10,6 +10,7 @@ export interface EditableTitleProps {
     variant?: TypographyProps['variant'];
     disabled?: boolean;
     'aria-label'?: string;
+    id?: string;
 }
 
 export function EditableTitle({
@@ -19,7 +20,8 @@ export function EditableTitle({
     maxLength = 128,
     variant = 'h6',
     disabled = false,
-    'aria-label': ariaLabel = 'Edit title'
+    'aria-label': ariaLabel = 'Edit title',
+    id
 }: EditableTitleProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(value);
@@ -96,8 +98,9 @@ export function EditableTitle({
 
     if (isEditing) {
         return (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Box id="editable-title-edit-container" sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                 <TextField
+                    id="input-editable-title"
                     inputRef={inputRef}
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
@@ -125,6 +128,7 @@ export function EditableTitle({
 
     return (
         <Typography
+            id={id}
             variant={variant}
             component="h1"
             onClick={startEdit}

@@ -3,8 +3,7 @@
 public record Scene {
     public const string NewSceneName = "New Scene";
 
-    public Guid? AdventureId { get; init; }
-    public Guid OwnerId { get; init; }
+    public Adventure Adventure { get; init; } = null!;
     public Guid Id { get; init; } = Guid.CreateVersion7();
     [MaxLength(128)]
     public string Name { get; init; } = NewSceneName;

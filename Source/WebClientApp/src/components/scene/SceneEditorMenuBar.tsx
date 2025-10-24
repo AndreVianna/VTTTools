@@ -153,7 +153,10 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
         const delta = calculateDelta(direction, event);
         onGridChange({
             ...gridConfig,
-            cellWidth: Math.max(0.01, gridConfig.cellWidth + delta)
+            cellSize: {
+                ...gridConfig.cellSize,
+                width: Math.max(0.01, gridConfig.cellSize.width + delta)
+            }
         });
     };
 
@@ -161,7 +164,10 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
         const delta = calculateDelta(direction, event);
         onGridChange({
             ...gridConfig,
-            cellHeight: Math.max(0.01, gridConfig.cellHeight + delta)
+            cellSize: {
+                ...gridConfig.cellSize,
+                height: Math.max(0.01, gridConfig.cellSize.height + delta)
+            }
         });
     };
 
@@ -169,7 +175,10 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
         const delta = calculateDelta(direction, event);
         onGridChange({
             ...gridConfig,
-            offsetX: gridConfig.offsetX + delta
+            offset: {
+                ...gridConfig.offset,
+                left: gridConfig.offset.left + delta
+            }
         });
     };
 
@@ -177,14 +186,17 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
         const delta = calculateDelta(direction, event);
         onGridChange({
             ...gridConfig,
-            offsetY: gridConfig.offsetY + delta
+            offset: {
+                ...gridConfig.offset,
+                top: gridConfig.offset.top + delta
+            }
         });
     };
 
     const handleSnapToGridChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         onGridChange({
             ...gridConfig,
-            snapToGrid: event.target.checked
+            snap: event.target.checked
         });
     };
 
@@ -271,7 +283,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                                         fontSize: '0.875rem'
                                     }}
                                 >
-                                    {gridConfig.cellWidth.toFixed(2)}
+                                    {gridConfig.cellSize.width.toFixed(2)}
                                 </Typography>
                                 <IconButton size="small" onClick={(e) => handleCellWidthChange(1, e)} sx={{ p: 0.5 }}>
                                     <AddIcon fontSize="small" />
@@ -300,7 +312,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                                         fontSize: '0.875rem'
                                     }}
                                 >
-                                    {gridConfig.cellHeight.toFixed(2)}
+                                    {gridConfig.cellSize.height.toFixed(2)}
                                 </Typography>
                                 <IconButton size="small" onClick={(e) => handleCellHeightChange(1, e)} sx={{ p: 0.5 }}>
                                     <AddIcon fontSize="small" />
@@ -329,7 +341,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                                         fontSize: '0.875rem'
                                     }}
                                 >
-                                    {gridConfig.offsetX.toFixed(2)}
+                                    {gridConfig.offset.left.toFixed(2)}
                                 </Typography>
                                 <IconButton size="small" onClick={(e) => handleOffsetXChange(1, e)} sx={{ p: 0.5 }}>
                                     <AddIcon fontSize="small" />
@@ -358,7 +370,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                                         fontSize: '0.875rem'
                                     }}
                                 >
-                                    {gridConfig.offsetY.toFixed(2)}
+                                    {gridConfig.offset.top.toFixed(2)}
                                 </Typography>
                                 <IconButton size="small" onClick={(e) => handleOffsetYChange(1, e)} sx={{ p: 0.5 }}>
                                     <AddIcon fontSize="small" />
@@ -371,7 +383,7 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                             control={
                                 <Checkbox
                                     size="small"
-                                    checked={gridConfig.snapToGrid}
+                                    checked={gridConfig.snap}
                                     onChange={handleSnapToGridChange}
                                 />
                             }

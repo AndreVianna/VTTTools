@@ -16,9 +16,10 @@ public class AdventureTests {
         adventure.Scenes.Should().BeEmpty();
         adventure.Name.Should().BeEmpty();
         adventure.Description.Should().BeEmpty();
-        adventure.Type.Should().Be(AdventureType.Generic);
+        adventure.Style.Should().Be(AdventureStyle.Generic);
         adventure.Background.Should().BeNull();
         adventure.IsPublished.Should().BeFalse();
+        adventure.IsOneShot.Should().BeFalse();
         adventure.IsPublic.Should().BeFalse();
     }
 
@@ -28,7 +29,7 @@ public class AdventureTests {
         var id = Guid.CreateVersion7();
         const string name = "Some Adventure";
         const string description = "Adventure description";
-        const AdventureType type = AdventureType.DungeonCrawl;
+        const AdventureStyle style = AdventureStyle.DungeonCrawl;
         var display = new Resource {
             Id = Guid.CreateVersion7(),
             Type = ResourceType.Image,
@@ -41,6 +42,7 @@ public class AdventureTests {
         };
         const bool isVisible = true;
         const bool isPublic = true;
+        const bool isOneShot = true;
         var ownerId = Guid.CreateVersion7();
         var campaignId = Guid.CreateVersion7();
         var scene = new Scene {
@@ -52,9 +54,10 @@ public class AdventureTests {
             Id = id,
             Name = name,
             Description = description,
-            Type = type,
+            Style = style,
             Background = display,
             IsPublished = isVisible,
+            IsOneShot = isOneShot,
             IsPublic = isPublic,
             OwnerId = ownerId,
             CampaignId = campaignId,
@@ -65,9 +68,10 @@ public class AdventureTests {
         adventure.Id.Should().Be(id);
         adventure.Name.Should().Be(name);
         adventure.Description.Should().Be(description);
-        adventure.Type.Should().Be(type);
+        adventure.Style.Should().Be(style);
         adventure.Background.Should().BeEquivalentTo(display);
         adventure.IsPublished.Should().Be(isVisible);
+        adventure.IsOneShot.Should().Be(isOneShot);
         adventure.IsPublic.Should().Be(isPublic);
         adventure.OwnerId.Should().Be(ownerId);
         adventure.CampaignId.Should().Be(campaignId);

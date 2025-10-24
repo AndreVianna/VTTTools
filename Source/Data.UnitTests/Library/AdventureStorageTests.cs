@@ -70,13 +70,14 @@ public class AdventureStorageTests
         dbAdventure.Should().NotBeNull();
         dbAdventure.Id.Should().Be(adventure.Id);
         dbAdventure.Name.Should().Be(adventure.Name);
-        dbAdventure.Type.Should().Be(adventure.Type);
+        dbAdventure.Style.Should().Be(adventure.Style);
         dbAdventure.Description.Should().Be(adventure.Description);
-        dbAdventure.IsPublic.Should().Be(adventure.IsPublic);
+        dbAdventure.IsOneShot.Should().Be(adventure.IsOneShot);
         dbAdventure.IsPublished.Should().Be(adventure.IsPublished);
+        dbAdventure.IsPublic.Should().Be(adventure.IsPublic);
         dbAdventure.OwnerId.Should().Be(adventure.OwnerId);
         dbAdventure.CampaignId.Should().Be(adventure.CampaignId);
-        dbAdventure.BackgroundId.Should().Be(adventure.Background.Id);
+        dbAdventure.BackgroundId.Should().Be(adventure.Background?.Id);
     }
 
     [Fact]
@@ -92,16 +93,16 @@ public class AdventureStorageTests
             CampaignId = entity.CampaignId,
             Name = "Updated Name",
             Description = "Updated Description",
-            Type = AdventureType.OpenWorld,
-            Background = new() {
-                Id = entity.BackgroundId,
+            Style = AdventureStyle.OpenWorld,
+            Background = entity.BackgroundId.HasValue ? new() {
+                Id = entity.BackgroundId.Value,
                 Type = ResourceType.Image,
                 Path = "adventures/updated-background.jpg",
                 Metadata = new ResourceMetadata {
                     ContentType = "image/jpeg",
                     ImageSize = new(1920, 1080),
                 },
-            },
+            } : null,
             IsPublished = true,
             IsPublic = false,
             Scenes = [],
@@ -120,13 +121,14 @@ public class AdventureStorageTests
         dbAdventure.Should().NotBeNull();
         dbAdventure.Id.Should().Be(adventure.Id);
         dbAdventure.Name.Should().Be(adventure.Name);
-        dbAdventure.Type.Should().Be(adventure.Type);
+        dbAdventure.Style.Should().Be(adventure.Style);
         dbAdventure.Description.Should().Be(adventure.Description);
+        dbAdventure.IsOneShot.Should().Be(adventure.IsOneShot);
         dbAdventure.IsPublic.Should().Be(adventure.IsPublic);
         dbAdventure.IsPublished.Should().Be(adventure.IsPublished);
         dbAdventure.OwnerId.Should().Be(adventure.OwnerId);
         dbAdventure.CampaignId.Should().Be(adventure.CampaignId);
-        dbAdventure.BackgroundId.Should().Be(adventure.Background.Id);
+        dbAdventure.BackgroundId.Should().Be(adventure.Background?.Id);
     }
 
     [Fact]

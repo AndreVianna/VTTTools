@@ -1,6 +1,7 @@
 import { Given, When, Then } from '@cucumber/cucumber';
 import { CustomWorld } from '../../support/world.js';
 import { expect } from '@playwright/test';
+import { performPoolUserLogin } from '../../support/helpers/authentication.helper.js';
 
 Given('I am on the landing page', async function (this: CustomWorld) {
     await this.page.goto('/');
@@ -58,17 +59,8 @@ Then('I should see {string} menu item', async function (this: CustomWorld, menuI
     await expect(menuItem).toBeVisible();
 });
 
-Given('I am authenticated', async function (this: CustomWorld) {
-    const password = process.env.BDD_TEST_PASSWORD;
-    if (!password) {
-        throw new Error('BDD_TEST_PASSWORD environment variable is not set');
-    }
-
-    await this.page.goto('/login');
-    await this.page.getByLabel(/email/i).fill(this.currentUser.email);
-    await this.page.getByRole('textbox', { name: /password/i }).fill(password);
-    await this.page.click('button[type="submit"]');
-    await this.page.waitForURL('/');
+Given('I am authenticated', { timeout: 60000 }, async function (this: CustomWorld) {
+    await performPoolUserLogin(this);
 });
 
 Given('I navigate to the assets page', async function (this: CustomWorld) {

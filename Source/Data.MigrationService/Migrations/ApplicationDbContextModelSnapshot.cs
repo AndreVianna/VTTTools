@@ -195,7 +195,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("BackgroundId")
+                    b.Property<Guid?>("BackgroundId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("CampaignId")
@@ -205,6 +205,9 @@ namespace VttTools.Data.MigrationService.Migrations
                         .IsRequired()
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsOneShot")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsPublic")
                         .HasColumnType("bit");
@@ -220,7 +223,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Type")
+                    b.Property<string>("Style")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -364,7 +367,10 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("AdventureId")
+                    b.Property<Guid>("AdventureId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BackgroundId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
@@ -379,12 +385,6 @@ namespace VttTools.Data.MigrationService.Migrations
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("StageId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<float>("ZoomLevel")
                         .ValueGeneratedOnAdd()
@@ -456,7 +456,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasIndex("AdventureId");
 
-                    b.HasIndex("StageId");
+                    b.HasIndex("BackgroundId");
 
                     b.ToTable("Scenes", (string)null);
                 });
@@ -1164,8 +1164,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
                         .WithMany()
                         .HasForeignKey("BackgroundId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("VttTools.Data.Library.Entities.Campaign", "Campaign")
                         .WithMany("Adventures")
@@ -1221,17 +1220,17 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasOne("VttTools.Data.Library.Entities.Adventure", "Adventure")
                         .WithMany("Scenes")
                         .HasForeignKey("AdventureId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Stage")
-                        .WithMany()
-                        .HasForeignKey("StageId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
+                        .WithMany()
+                        .HasForeignKey("BackgroundId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Adventure");
 
-                    b.Navigation("Stage");
+                    b.Navigation("Background");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.SceneAsset", b =>
@@ -1396,8 +1395,8 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<int>("CellSize")
-                                .HasColumnType("int");
+                            b1.Property<double>("CellSize")
+                                .HasColumnType("float");
 
                             b1.Property<Guid?>("StatBlockId")
                                 .HasColumnType("uniqueidentifier");
@@ -1448,11 +1447,11 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.Property<Guid>("ObjectAssetId")
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<int>("CellHeight")
-                                .HasColumnType("int");
+                            b1.Property<double>("CellHeight")
+                                .HasColumnType("float");
 
-                            b1.Property<int>("CellWidth")
-                                .HasColumnType("int");
+                            b1.Property<double>("CellWidth")
+                                .HasColumnType("float");
 
                             b1.Property<bool>("IsMovable")
                                 .HasColumnType("bit");

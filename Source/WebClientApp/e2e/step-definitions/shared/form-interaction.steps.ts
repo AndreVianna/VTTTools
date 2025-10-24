@@ -58,20 +58,17 @@ When('I enter password {string}', async function (this: CustomWorld, password: s
 });
 
 When('I submit the login form', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /sign in/i });
-
     const responsePromise = this.page.waitForResponse(
         response => response.url().includes('/api/auth/login') && response.status() !== 0
     );
 
-    await submitButton.click();
+    await this.page.locator('button[type="submit"]').click();
 
     this.lastApiResponse = await responsePromise as any;
 });
 
 When('I attempt to submit the login form', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /sign in/i });
-    await submitButton.click();
+    await this.page.locator('button[type="submit"]').click();
 });
 
 When('I focus out of the email field', async function (this: CustomWorld) {
@@ -128,7 +125,7 @@ Then('my form is submitted', async function (this: CustomWorld) {
 });
 
 Then('my form is not submitted', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /sign in|create account|reset password|send reset instructions/i });
+    const submitButton = this.page.locator('button[type="submit"]');
     await expect(submitButton).toBeVisible();
 
     await expect(this.page).toHaveURL(/\/login|\/register|\/forgot-password|\/reset-password/);
@@ -141,7 +138,7 @@ Then('the second submission is prevented', async function (this: CustomWorld) {
 });
 
 Then('the submit button state is communicated', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /sign in|create account|reset password/i });
+    const submitButton = this.page.locator('button[type="submit"]');
     const ariaDisabled = await submitButton.getAttribute('aria-disabled');
 
     expect(ariaDisabled).toBeDefined();
@@ -165,16 +162,16 @@ Then('all form inputs are disabled', async function (this: CustomWorld) {
 });
 
 Then('the form is enabled again', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /sign in|create account|reset password/i });
+    const submitButton = this.page.locator('button[type="submit"]');
     await expect(submitButton).toBeEnabled();
 });
 
 Then('I should be able to retry', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /sign in|create account|reset password/i });
+    const submitButton = this.page.locator('button[type="submit"]');
     await expect(submitButton).toBeEnabled();
 });
 
 Then('I should not be able to submit the form again', async function (this: CustomWorld) {
-    const submitButton = this.page.getByRole('button', { name: /sign in|create account|reset password/i });
+    const submitButton = this.page.locator('button[type="submit"]');
     await expect(submitButton).toBeDisabled();
 });

@@ -5,8 +5,9 @@ public record UpdatedAdventureData
     public Optional<Guid?> CampaignId { get; init; }
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
-    public Optional<AdventureType> Type { get; init; }
-    public Optional<Guid> BackgroundId { get; init; }
+    public Optional<AdventureStyle> Style { get; init; }
+    public Optional<Guid?> BackgroundId { get; init; }
+    public Optional<bool> IsOneShot { get; init; }
     public Optional<bool> IsListed { get; init; }
     public Optional<bool> IsPublic { get; init; }
 

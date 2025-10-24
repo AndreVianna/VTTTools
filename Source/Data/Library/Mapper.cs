@@ -16,8 +16,9 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Type = entity.Type,
-            Background = entity.Background.ToModel(),
+            Style = entity.Style,
+            Background = entity.Background != null ? entity.Background.ToModel() : null,
+            IsOneShot = entity.IsOneShot,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
             Scenes = entity.Scenes.AsQueryable().Select(AsScene!).ToList(),
@@ -28,7 +29,11 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Stage = entity.Stage.ToModel(entity),
+            Stage = new() {
+                Background = entity.Background != null ? entity.Background.ToModel() : null,
+                ZoomLevel = entity.ZoomLevel,
+                Panning = entity.Panning,
+            },
             Assets = entity.SceneAssets.AsQueryable().Select(AsSceneAsset!).ToList(),
         };
 
@@ -73,8 +78,9 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Type = entity.Type,
-            Background = entity.Background.ToModel(),
+            Style = entity.Style,
+            Background = entity.Background?.ToModel(),
+            IsOneShot = entity.IsOneShot,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
             Scenes = entity.Scenes.Select(ToModel).ToList()!,
@@ -87,8 +93,9 @@ internal static class Mapper {
             Id = model.Id,
             Name = model.Name,
             Description = model.Description,
-            Type = model.Type,
-            BackgroundId = model.Background.Id,
+            Style = model.Style,
+            BackgroundId = model.Background?.Id,
+            IsOneShot = model.IsOneShot,
             IsPublic = model.IsPublic,
             IsPublished = model.IsPublished,
             Scenes = model.Scenes.ConvertAll(s => s.ToEntity(model.Id)),
@@ -100,10 +107,11 @@ internal static class Mapper {
         entity.Id = model.Id;
         entity.Name = model.Name;
         entity.Description = model.Description;
-        entity.Type = model.Type;
-        entity.BackgroundId = model.Background.Id;
+        entity.Style = model.Style;
+        entity.BackgroundId = model.Background?.Id;
         entity.IsPublic = model.IsPublic;
         entity.IsPublished = model.IsPublished;
+        entity.IsOneShot = model.IsOneShot;
         var existingScenes = entity.Scenes.Join(model.Scenes, se => se.Id, sm => sm.Id, UpdateFrom);
         var newScenes = model.Scenes.Where(sm => entity.Scenes.All(se => se.Id != sm.Id)).Select(s => s.ToEntity(model.Id));
         entity.Scenes = [.. existingScenes.Union(newScenes)];
@@ -115,23 +123,27 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Stage = entity.Stage.ToModel(entity),
+            Stage = new () {
+                Background = entity.Background?.ToModel(),
+                ZoomLevel = entity.ZoomLevel,
+                Panning = entity.Panning,
+            },
             Grid = entity.Grid,
             Assets = [.. entity.SceneAssets.Select(sa => sa.ToModel()!)],
         };
 
-    internal static SceneEntity ToEntity(this Scene model, Guid? adventureId = null)
+    internal static SceneEntity ToEntity(this Scene model, Guid adventureId)
         => new() {
             Id = model.Id,
             AdventureId = adventureId,
             Name = model.Name,
             Description = model.Description,
             IsPublished = model.IsPublished,
-            StageId = model.Stage.Background.Id,
+            BackgroundId = model.Stage.Background?.Id,
             ZoomLevel = model.Stage.ZoomLevel,
             Panning = model.Stage.Panning,
             Grid = model.Grid,
-            SceneAssets = model.Assets.ConvertAll(sa => ToEntity(sa, model.Id)),
+            SceneAssets = model.Assets?.ConvertAll(sa => ToEntity(sa, model.Id)) ?? [],
         };
 
     internal static SceneEntity UpdateFrom(this SceneEntity entity, Scene model) {
@@ -139,7 +151,7 @@ internal static class Mapper {
         entity.Name = model.Name;
         entity.Description = model.Description;
         entity.IsPublished = model.IsPublished;
-        entity.StageId = model.Stage.Background.Id;
+        entity.BackgroundId = model.Stage.Background?.Id;
         entity.ZoomLevel = model.Stage.ZoomLevel;
         entity.Panning = model.Stage.Panning;
         entity.Grid = model.Grid;
@@ -202,11 +214,4 @@ internal static class Mapper {
         entity.ControlledBy = model.ControlledBy;
         return entity;
     }
-
-    internal static Stage ToModel(this ResourceEntity background, SceneEntity scene)
-        => new() {
-            Background = background.ToModel(),
-            ZoomLevel = scene.ZoomLevel,
-            Panning = scene.Panning,
-        };
 }

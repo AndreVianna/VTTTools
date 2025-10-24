@@ -7,8 +7,8 @@ public static class Cloner {
             CampaignId = original.CampaignId,
             Name = original.Name,
             Description = original.Description,
-            Type = original.Type,
-            Background = original.Background.Clone(),
+            Style = original.Style,
+            Background = original.Background?.Clone(),
         };
         clone.Scenes.AddRange(original.Scenes.Select(ep => ep.Clone()));
         return clone;

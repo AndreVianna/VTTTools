@@ -914,10 +914,6 @@ When('I click the asset card to open preview dialog', async function (this: Cust
     await this.page.locator('[data-testid="asset-card"]').first().click();
 });
 
-When('I click {string} button', async function (this: CustomWorld, buttonText: string) {
-    await this.page.click(`button:has-text("${buttonText}")`);
-});
-
 Then('I should see both images immediately \\(not hidden\\)', async function (this: CustomWorld) {
     await expect(this.assetResourceManager.imageCards()).toHaveCount(2);
 });

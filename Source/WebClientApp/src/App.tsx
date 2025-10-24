@@ -15,7 +15,7 @@ import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { PasswordResetRequestPage } from '@/pages/auth/PasswordResetRequestPage';
 import { ContentLibraryPage } from '@/features/content-library/pages/ContentLibraryPage';
-import { SceneListView } from '@/features/content-library/components/scenes/SceneListView';
+import { AdventureListView } from '@/features/content-library/components/adventures';
 import { SecuritySettingsPage } from '@/pages/settings/SecuritySettingsPage';
 
 // App Content - Wraps everything in Router
@@ -88,8 +88,8 @@ function AppRoutes() {
               </ProtectedRoute>
             </AppLayout>
           }>
-            <Route path="scenes" element={<SceneListView />} />
-            <Route index element={<Navigate to="scenes" replace />} />
+            <Route path="adventures" element={<AdventureListView />} />
+            <Route index element={<Navigate to="adventures" replace />} />
           </Route>
 
           <Route path="/scene-editor/:sceneId?" element={

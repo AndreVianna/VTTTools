@@ -60,8 +60,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Authorized routes - require authentication
   if (authLevel === 'authorized') {
     if (!isAuthenticated) {
-      // Save the location they were trying to access for post-login redirect
-      return <Navigate to={redirectTo} state={{ from: location }} replace />;
+      const returnUrl = encodeURIComponent(location.pathname + location.search);
+      return <Navigate to={`${redirectTo}?returnUrl=${returnUrl}`} state={{ from: location }} replace />;
     }
 
     return <>{children}</>;
