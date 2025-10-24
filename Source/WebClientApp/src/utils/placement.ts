@@ -92,13 +92,14 @@ export const calculateAssetSize = (
 ): { width: number; height: number } => {
     if (namedSize === null || namedSize === undefined) {
         return {
-            width: gridConfig.cellWidth,
-            height: gridConfig.cellHeight,
+            width: gridConfig.cellSize.width,
+            height: gridConfig.cellSize.height,
         };
     }
 
     const { width, height } = namedSize;
-    const { cellWidth, cellHeight } = gridConfig;
+    const cellWidth = gridConfig.cellSize.width;
+    const cellHeight = gridConfig.cellSize.height;
 
     return {
         width: width * cellWidth,
@@ -184,10 +185,13 @@ export const validatePlacement = (
 ): { valid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
-    const minWidth = behavior.minSize.width * gridConfig.cellWidth;
-    const minHeight = behavior.minSize.height * gridConfig.cellHeight;
-    const maxWidth = behavior.maxSize.width * gridConfig.cellWidth;
-    const maxHeight = behavior.maxSize.height * gridConfig.cellHeight;
+    const cellWidth = gridConfig.cellSize.width;
+    const cellHeight = gridConfig.cellSize.height;
+
+    const minWidth = behavior.minSize.width * cellWidth;
+    const minHeight = behavior.minSize.height * cellHeight;
+    const maxWidth = behavior.maxSize.width * cellWidth;
+    const maxHeight = behavior.maxSize.height * cellHeight;
 
     if (size.width < minWidth) {
         errors.push(`Asset width too small (min: ${behavior.minSize.width} cells)`);

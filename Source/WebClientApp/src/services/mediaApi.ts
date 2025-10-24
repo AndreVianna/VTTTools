@@ -2,10 +2,9 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import type { UploadRequest, AddResourceRequest, UpdateResourceRequest, MediaResource } from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 
-// Media API consuming existing Media microservice
 export const mediaApi = createApi({
   reducerPath: 'mediaApi',
-  baseQuery: createEnhancedBaseQuery('https://localhost:7174/api'),  // Media service direct URL
+  baseQuery: createEnhancedBaseQuery('/api'),
   tagTypes: ['MediaResource'],
   endpoints: (builder) => ({
     // Get all media resources

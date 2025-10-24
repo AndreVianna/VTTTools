@@ -15,6 +15,7 @@ import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { PasswordResetRequestPage } from '@/pages/auth/PasswordResetRequestPage';
 import { ContentLibraryPage } from '@/features/content-library/pages/ContentLibraryPage';
+import { AdventureDetailPage } from '@/features/content-library/pages/AdventureDetailPage';
 import { AdventureListView } from '@/features/content-library/components/adventures';
 import { SecuritySettingsPage } from '@/pages/settings/SecuritySettingsPage';
 
@@ -91,6 +92,14 @@ function AppRoutes() {
             <Route path="adventures" element={<AdventureListView />} />
             <Route index element={<Navigate to="adventures" replace />} />
           </Route>
+
+          <Route path="/adventures/:adventureId" element={
+            <AppLayout>
+              <ProtectedRoute authLevel="authorized">
+                <AdventureDetailPage />
+              </ProtectedRoute>
+            </AppLayout>
+          } />
 
           <Route path="/scene-editor/:sceneId?" element={
             <EditorLayout>

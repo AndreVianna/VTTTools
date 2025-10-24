@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ContentCard, PublishedBadge } from '../shared';
 import { AdventureStyle } from '../../types';
 import type { Adventure } from '../../types';
+import { getApiEndpoints } from '@/config/development';
 
 export interface AdventureCardProps {
     adventure: Adventure;
@@ -117,6 +118,11 @@ export function AdventureCard({ adventure, onOpen, onDuplicate, onDelete }: Adve
         </IconButton>
     );
 
+    const apiEndpoints = getApiEndpoints();
+    const backgroundUrl = adventure.background
+        ? `${apiEndpoints.media}/${adventure.background.id}`
+        : undefined;
+
     return (
         <>
             <ContentCard
@@ -125,7 +131,7 @@ export function AdventureCard({ adventure, onOpen, onDuplicate, onDelete }: Adve
                     type: 'adventure',
                     name: adventure.name,
                     isPublished: adventure.isPublished,
-                    thumbnailUrl: undefined
+                    thumbnailUrl: backgroundUrl
                 }}
                 onClick={onOpen}
                 badges={badges}

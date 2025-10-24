@@ -267,8 +267,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         );
 
         const size = {
-            width: assetCellSize.width * gridConfig.cellWidth,
-            height: assetCellSize.height * gridConfig.cellHeight
+            width: assetCellSize.width * gridConfig.cellSize.width,
+            height: assetCellSize.height * gridConfig.cellSize.height
         };
 
         const validation = validatePlacement(
@@ -301,8 +301,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
 
         const assetCellSize = getAssetSize(draggedAsset);
         const size = {
-            width: assetCellSize.width * gridConfig.cellWidth,
-            height: assetCellSize.height * gridConfig.cellHeight
+            width: assetCellSize.width * gridConfig.cellSize.width,
+            height: assetCellSize.height * gridConfig.cellSize.height
         };
 
         const placedAsset: PlacedAsset = {
@@ -357,8 +357,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
 
         // Convert to pixel dimensions
         const size = {
-            width: assetCellSize.width * gridConfig.cellWidth,
-            height: assetCellSize.height * gridConfig.cellHeight
+            width: assetCellSize.width * gridConfig.cellSize.width,
+            height: assetCellSize.height * gridConfig.cellSize.height
         };
 
         return (

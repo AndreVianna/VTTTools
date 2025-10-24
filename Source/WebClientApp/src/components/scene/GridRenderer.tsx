@@ -37,10 +37,15 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
     const gridLines = useMemo(() => {
         const lines: React.ReactElement[] = [];
 
+        const cellWidth = grid.cellSize.width;
+        const cellHeight = grid.cellSize.height;
+        const offsetX = grid.offset.left;
+        const offsetY = grid.offset.top;
+
         switch (grid.type) {
             case GridType.Square:
                 // Vertical lines
-                for (let x = grid.offsetX; x <= stageWidth; x += grid.cellWidth) {
+                for (let x = offsetX; x <= stageWidth; x += cellWidth) {
                     lines.push(
                         <Line
                             key={`v-${x}`}
@@ -52,7 +57,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
                     );
                 }
                 // Horizontal lines
-                for (let y = grid.offsetY; y <= stageHeight; y += grid.cellHeight) {
+                for (let y = offsetY; y <= stageHeight; y += cellHeight) {
                     lines.push(
                         <Line
                             key={`h-${y}`}
@@ -74,15 +79,15 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
 
                 const sqrt3 = Math.sqrt(3);
 
-                const cellWidth = grid.cellWidth * (sqrt3 / 2);
-                const cellHeight = grid.cellHeight;
+                const hexCellWidth = cellWidth * (sqrt3 / 2);
+                const hexCellHeight = cellHeight;
 
                 // For flat-top: the outer radius equals cellHeight / √3
                 // This makes the point-to-point height = 2 * radius = 2 * cellHeight / √3 = (2/√3) * cellHeight
                 const size = cellHeight / sqrt3;
 
-                const horizSpacing = cellWidth;
-                const vertSpacing = cellHeight;
+                const horizSpacing = hexCellWidth;
+                const vertSpacing = hexCellHeight;
 
                 const cols = Math.ceil(stageWidth / horizSpacing) + 3;
                 const rows = Math.ceil(stageHeight / vertSpacing) + 3;
@@ -90,8 +95,8 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
                 for (let row = -1; row < rows; row++) {
                     for (let col = -1; col < cols; col++) {
                         // Odd-q offset: odd columns are shifted down by cellHeight/2
-                        const x = col * horizSpacing + grid.offsetX;
-                        const y = row * vertSpacing + (col & 1) * (vertSpacing / 2) + grid.offsetY;
+                        const x = col * horizSpacing + offsetX;
+                        const y = row * vertSpacing + (col & 1) * (vertSpacing / 2) + offsetY;
 
                         // Draw flat-top hexagon with vertices at 0°, 60°, 120°, 180°, 240°, 300°
                         const points = [];
@@ -125,15 +130,15 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
                 // width = (2/√3) * height OR height = (√3/2) * width
                 const sqrt3 = Math.sqrt(3);
 
-                const cellWidth = grid.cellWidth;
-                const cellHeight = grid.cellHeight * (sqrt3 / 2);
+                const hexVCellWidth = cellWidth;
+                const hexVCellHeight = cellHeight * (sqrt3 / 2);
 
                 // For pointy-top: the outer radius equals cellWidth / √3
                 // This makes the point-to-point width = 2 * radius = 2 * cellWidth / √3 = (2/√3) * cellWidth
                 const size = cellWidth / sqrt3;
 
-                const horizSpacing = cellWidth;
-                const vertSpacing = cellHeight;
+                const horizSpacing = hexVCellWidth;
+                const vertSpacing = hexVCellHeight;
 
                 const cols = Math.ceil(stageWidth / horizSpacing) + 3;
                 const rows = Math.ceil(stageHeight / vertSpacing) + 3;
@@ -141,8 +146,8 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
                 for (let row = -1; row < rows; row++) {
                     for (let col = -1; col < cols; col++) {
                         // Odd-r offset: odd rows are shifted right by cellWidth/2
-                        const x = col * horizSpacing + (row & 1) * (horizSpacing / 2) + grid.offsetX;
-                        const y = row * vertSpacing + grid.offsetY;
+                        const x = col * horizSpacing + (row & 1) * (horizSpacing / 2) + offsetX;
+                        const y = row * vertSpacing + offsetY;
 
                         // Draw pointy-top hexagon with vertices at 30°, 90°, 150°, 210°, 270°, 330°
                         const points = [];
@@ -173,8 +178,8 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
                 // Standard isometric projection with 2:1 ratio
                 // Horizontal spacing uses full width, vertical spacing uses half height
 
-                const tileWidth = grid.cellWidth;
-                const tileHeight = grid.cellHeight;
+                const tileWidth = cellWidth;
+                const tileHeight = cellHeight;
 
                 // Half dimensions for diamond vertices
                 const tileHeightHalf = tileHeight / 2;
@@ -185,8 +190,8 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
                 for (let row = -2; row < rows; row++) {
                     for (let col = -2; col < cols; col++) {
                         // Isometric projection: half is only applied to vertical direction
-                        const x = (col - row) * tileWidth + grid.offsetX;
-                        const y = (col + row) * tileHeightHalf + grid.offsetY;
+                        const x = (col - row) * tileWidth + offsetX;
+                        const y = (col + row) * tileHeightHalf + offsetY;
 
                         // Draw diamond outline (center point at x,y)
                         const points = [

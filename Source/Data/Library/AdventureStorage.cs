@@ -13,7 +13,10 @@ public class AdventureStorage(ApplicationDbContext context)
             .Include(a => a.Scenes)
                 .ThenInclude(s => s.SceneAssets)
                     .ThenInclude(sa => sa.Asset)
-            .AsNoTrackingWithIdentityResolution();
+            .Include(a => a.Background)
+            .Include(a => a.Campaign)
+            .AsSplitQuery()
+            .AsNoTracking();
         var result = await query.Select(Mapper.AsAdventure).ToArrayAsync(ct);
         return result;
     }
@@ -24,6 +27,8 @@ public class AdventureStorage(ApplicationDbContext context)
             .Include(a => a.Scenes)
                 .ThenInclude(s => s.SceneAssets)
                     .ThenInclude(sa => sa.Asset)
+            .Include(a => a.Background)
+            .Include(a => a.Campaign)
             .AsSplitQuery()
             .AsNoTracking();
 
@@ -49,6 +54,9 @@ public class AdventureStorage(ApplicationDbContext context)
             .Include(a => a.Scenes)
                 .ThenInclude(s => s.SceneAssets)
                     .ThenInclude(sa => sa.Asset)
+            .Include(a => a.Background)
+            .Include(a => a.Campaign)
+            .AsSplitQuery()
             .AsNoTracking();
         var result = await query.FirstOrDefaultAsync(a => a.Id == id, ct);
         return result.ToModel();

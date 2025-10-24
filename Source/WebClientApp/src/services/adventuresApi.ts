@@ -40,8 +40,8 @@ export const adventuresApi = createApi({
     updateAdventure: builder.mutation<Adventure, { id: string; request: UpdateAdventureRequest }>({
       query: ({ id, request }) => ({
         url: `/${id}`,
-        method: 'PUT',
-        body: request, // Matches existing C# contract exactly
+        method: 'PATCH',
+        body: request,
       }),
       invalidatesTags: (_result, _error, { id }) => [{ type: 'Adventure', id }],
     }),

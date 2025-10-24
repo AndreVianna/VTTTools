@@ -31,15 +31,6 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     public Task<Adventure?> GetAdventureByIdAsync(Guid id, CancellationToken ct = default)
         => adventureStorage.GetByIdAsync(id, ct);
 
-    private static readonly Resource _defaultAssetDisplay = new() {
-        Type = ResourceType.Image,
-        Path = "assets/default-asset-display",
-        Metadata = new ResourceMetadata {
-            ContentType = "image/png",
-            ImageSize = new(50, 50),
-        },
-    };
-
     /// <inheritdoc />
     public async Task<Result<Adventure>> CreateAdventureAsync(Guid userId, CreateAdventureData data, CancellationToken ct = default) {
         var result = data.Validate();

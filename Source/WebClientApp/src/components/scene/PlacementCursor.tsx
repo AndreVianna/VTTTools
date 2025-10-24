@@ -107,13 +107,16 @@ export const PlacementCursor: React.FC<PlacementCursorProps> = ({
 
     // Calculate image size to fit grid cell (maintain aspect ratio)
     const getImageSize = (): { width: number; height: number } => {
+        const cellWidth = gridConfig.cellSize.width;
+        const cellHeight = gridConfig.cellSize.height;
+
         if (!image) {
-            return { width: gridConfig.cellWidth, height: gridConfig.cellHeight };
+            return { width: cellWidth, height: cellHeight };
         }
 
         const scale = Math.min(
-            gridConfig.cellWidth / image.width,
-            gridConfig.cellHeight / image.height
+            cellWidth / image.width,
+            cellHeight / image.height
         );
 
         return {

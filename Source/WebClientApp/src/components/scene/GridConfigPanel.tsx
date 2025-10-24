@@ -65,8 +65,8 @@ export const GridConfigPanel: React.FC<GridConfigPanelProps> = ({
         setGrid(prev => ({ ...prev, color }));
     };
 
-    const handleSnapToggle = (snapToGrid: boolean) => {
-        setGrid(prev => ({ ...prev, snapToGrid }));
+    const handleSnapToggle = (snap: boolean) => {
+        setGrid(prev => ({ ...prev, snap }));
     };
 
     const handleSave = async () => {
@@ -128,10 +128,15 @@ export const GridConfigPanel: React.FC<GridConfigPanelProps> = ({
                     <TextField
                         label="Cell Width (px)"
                         type="number"
-                        value={grid.cellWidth}
-                        onChange={(e) => handleNumberChange('cellWidth', e.target.value)}
-                        error={grid.cellWidth <= 0}
-                        helperText={grid.cellWidth <= 0 ? 'Must be positive (INV-10)' : ''}
+                        value={grid.cellSize.width}
+                        onChange={(e) => {
+                            const value = parseInt(e.target.value, 10);
+                            if (!isNaN(value)) {
+                                setGrid(prev => ({ ...prev, cellSize: { ...prev.cellSize, width: value } }));
+                            }
+                        }}
+                        error={grid.cellSize.width <= 0}
+                        helperText={grid.cellSize.width <= 0 ? 'Must be positive (INV-10)' : ''}
                         disabled={grid.type === GridType.NoGrid}
                         fullWidth
                         inputProps={{ min: 1 }}
@@ -139,10 +144,15 @@ export const GridConfigPanel: React.FC<GridConfigPanelProps> = ({
                     <TextField
                         label="Cell Height (px)"
                         type="number"
-                        value={grid.cellHeight}
-                        onChange={(e) => handleNumberChange('cellHeight', e.target.value)}
-                        error={grid.cellHeight <= 0}
-                        helperText={grid.cellHeight <= 0 ? 'Must be positive (INV-10)' : ''}
+                        value={grid.cellSize.height}
+                        onChange={(e) => {
+                            const value = parseInt(e.target.value, 10);
+                            if (!isNaN(value)) {
+                                setGrid(prev => ({ ...prev, cellSize: { ...prev.cellSize, height: value } }));
+                            }
+                        }}
+                        error={grid.cellSize.height <= 0}
+                        helperText={grid.cellSize.height <= 0 ? 'Must be positive (INV-10)' : ''}
                         disabled={grid.type === GridType.NoGrid}
                         fullWidth
                         inputProps={{ min: 1 }}
@@ -154,16 +164,26 @@ export const GridConfigPanel: React.FC<GridConfigPanelProps> = ({
                     <TextField
                         label="Offset X (px)"
                         type="number"
-                        value={grid.offsetX}
-                        onChange={(e) => handleNumberChange('offsetX', e.target.value)}
+                        value={grid.offset.left}
+                        onChange={(e) => {
+                            const value = parseInt(e.target.value, 10);
+                            if (!isNaN(value)) {
+                                setGrid(prev => ({ ...prev, offset: { ...prev.offset, left: value } }));
+                            }
+                        }}
                         disabled={grid.type === GridType.NoGrid}
                         fullWidth
                     />
                     <TextField
                         label="Offset Y (px)"
                         type="number"
-                        value={grid.offsetY}
-                        onChange={(e) => handleNumberChange('offsetY', e.target.value)}
+                        value={grid.offset.top}
+                        onChange={(e) => {
+                            const value = parseInt(e.target.value, 10);
+                            if (!isNaN(value)) {
+                                setGrid(prev => ({ ...prev, offset: { ...prev.offset, top: value } }));
+                            }
+                        }}
                         disabled={grid.type === GridType.NoGrid}
                         fullWidth
                     />
@@ -184,7 +204,7 @@ export const GridConfigPanel: React.FC<GridConfigPanelProps> = ({
                 <FormControlLabel
                     control={
                         <Checkbox
-                            checked={grid.snapToGrid}
+                            checked={grid.snap}
                             onChange={(e) => handleSnapToggle(e.target.checked)}
                             disabled={grid.type === GridType.NoGrid}
                         />

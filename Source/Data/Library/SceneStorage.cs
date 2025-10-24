@@ -13,7 +13,8 @@ public class SceneStorage(ApplicationDbContext context)
                   .Include(e => e.Background)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
-                  .AsNoTrackingWithIdentityResolution()
+                  .AsSplitQuery()
+                  .AsNoTracking()
                   .Select(Mapper.AsScene);
         var result = query.ToArrayAsync(ct);
         return result;
@@ -26,7 +27,8 @@ public class SceneStorage(ApplicationDbContext context)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
                   .Where(e => e.AdventureId == adventureId)
-                  .AsNoTrackingWithIdentityResolution()
+                  .AsSplitQuery()
+                  .AsNoTracking()
                   .Select(Mapper.AsScene);
         var result = query.ToArrayAsync(ct);
         return result;
@@ -38,7 +40,8 @@ public class SceneStorage(ApplicationDbContext context)
                   .Include(e => e.Background)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
-                  .AsNoTrackingWithIdentityResolution()
+                  .AsSplitQuery()
+                  .AsNoTracking()
                   .FirstOrDefaultAsync(e => e.Id == id, ct);
         return entity.ToModel();
     }

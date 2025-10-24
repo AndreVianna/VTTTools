@@ -221,17 +221,19 @@ export const validatePlacement = (
 ): { valid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
-    // Check size constraints
-    if (size.width < behavior.minSize.width * gridConfig.cellWidth) {
+    const cellWidth = gridConfig.cellSize.width;
+    const cellHeight = gridConfig.cellSize.height;
+
+    if (size.width < behavior.minSize.width * cellWidth) {
         errors.push(`Asset width too small (min: ${behavior.minSize.width} cells)`);
     }
-    if (size.height < behavior.minSize.height * gridConfig.cellHeight) {
+    if (size.height < behavior.minSize.height * cellHeight) {
         errors.push(`Asset height too small (min: ${behavior.minSize.height} cells)`);
     }
-    if (size.width > behavior.maxSize.width * gridConfig.cellWidth) {
+    if (size.width > behavior.maxSize.width * cellWidth) {
         errors.push(`Asset width too large (max: ${behavior.maxSize.width} cells)`);
     }
-    if (size.height > behavior.maxSize.height * gridConfig.cellHeight) {
+    if (size.height > behavior.maxSize.height * cellHeight) {
         errors.push(`Asset height too large (max: ${behavior.maxSize.height} cells)`);
     }
 

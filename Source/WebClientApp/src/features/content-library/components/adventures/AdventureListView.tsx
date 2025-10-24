@@ -63,8 +63,7 @@ export function AdventureListView() {
             }).unwrap();
 
             navigate(`/adventures/${adventure.id}`);
-        } catch (err) {
-            console.error('Failed to create adventure:', err);
+        } catch (error) {
             setErrorMessage('Failed to create adventure. Please try again.');
         } finally {
             setIsCreating(false);
@@ -79,8 +78,7 @@ export function AdventureListView() {
         try {
             await cloneAdventure({ id: adventureId }).unwrap();
             setSuccessMessage('Adventure duplicated successfully');
-        } catch (err) {
-            console.error('Failed to duplicate adventure:', err);
+        } catch (error) {
             setErrorMessage('Failed to duplicate adventure. Please try again.');
         }
     };
@@ -95,8 +93,7 @@ export function AdventureListView() {
             try {
                 await deleteAdventure(adventureToDelete).unwrap();
                 setSuccessMessage('Adventure deleted successfully');
-            } catch (err) {
-                console.error('Failed to delete adventure:', err);
+            } catch (error) {
                 setErrorMessage('Failed to delete adventure. Please try again.');
             }
         }
