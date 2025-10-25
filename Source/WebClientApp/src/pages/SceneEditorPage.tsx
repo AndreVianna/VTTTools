@@ -96,6 +96,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
     useEffect(() => {
         if (stageRef.current && imagesLoaded && handlersReady && !isSceneReady) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsSceneReady(true);
         }
     }, [imagesLoaded, handlersReady, isSceneReady]);

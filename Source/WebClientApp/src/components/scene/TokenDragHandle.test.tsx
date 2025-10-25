@@ -8,7 +8,7 @@
  * ACCEPTANCE_CRITERION: 75% test coverage
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { PlacedAsset, CreatureAsset, ObjectAsset } from '@/types/domain';
 import { AssetKind } from '@/types/domain';
 import { GridType } from '@/utils/gridCalculator';

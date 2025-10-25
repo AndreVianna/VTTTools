@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Layer, Transformer, Rect, Group, Circle, Line } from 'react-konva';
+import { Layer, Rect, Group, Circle, Line } from 'react-konva';
 import { useTheme } from '@mui/material/styles';
 import Konva from 'konva';
 import type { PlacedAsset } from '@/types/domain';
@@ -7,7 +7,6 @@ import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import {
     getPlacementBehavior,
-    validatePlacement,
 } from '@/types/placement';
 
 /**
@@ -123,7 +122,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     onAssetDeleted,
     gridConfig,
     stageRef,
-    isPlacementMode = false,
     enableDragMove = true,
     onReady,
     snapMode,
@@ -132,12 +130,11 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 }) => {
     const theme = useTheme();
     const transformerRef = useRef<Konva.Transformer>(null);
-    const selectionRectRef = useRef<Konva.Rect>(null);
     const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
     const allDragStartPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
     const [isDragValid, setIsDragValid] = useState(true);
     const isDragValidRef = useRef(true);
-    const [draggedAssetInfo, setDraggedAssetInfo] = useState<{ id: string; position: { x: number; y: number }; size: { width: number; height: number } } | null>(null);
+    const [_draggedAssetInfo, setDraggedAssetInfo] = useState<{ id: string; position: { x: number; y: number }; size: { width: number; height: number } } | null>(null);
     const [invalidAssetPositions, setInvalidAssetPositions] = useState<Array<{ x: number; y: number }>>([]);
     const hasCalledReadyRef = useRef<boolean>(false);
     const snapModeRef = useRef(snapMode);
@@ -147,7 +144,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const [marqueeSelection, setMarqueeSelection] = useState<{ start: { x: number; y: number }; end: { x: number; y: number } } | null>(null);
     const [, forceUpdate] = useState(0);
     const marqueeActiveRef = useRef(false);
-    const lastLoggedSnapModeRef = useRef<string>('');
 
     // Calculate available actions for selected assets (intersection)
     const availableActions = React.useMemo(() => {
@@ -177,14 +173,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         placedAssetsRef.current = placedAssets;
         isDragValidRef.current = isDragValid;
     }, [snapMode, selectedAssetIds, isShiftPressed, placedAssets, isDragValid]);
-
-    const getSelectedNodes = useCallback((): Konva.Node[] => {
-        if (selectedAssetIds.length === 0 || !stageRef.current) return [];
-
-        return selectedAssetIds
-            .map(id => stageRef.current!.findOne(`#${id}`))
-            .filter((node): node is Konva.Node => node !== null);
-    }, [selectedAssetIds, stageRef]);
 
     // Transformer disabled for multi-selection (using blue borders instead)
     useEffect(() => {
@@ -403,7 +391,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         forceUpdate(prev => prev + 1);
     }, [placedAssets, gridConfig, stageRef]);
 
-    const handleDragEnd = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
+    const handleDragEnd = useCallback((_e: Konva.KonvaEventObject<DragEvent>) => {
         const stage = stageRef.current;
         if (!stage || !dragStartPosRef.current) return;
 
@@ -460,7 +448,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         setIsDragValid(true);
         isDragValidRef.current = true;
         setInvalidAssetPositions([]);
-    }, [placedAssets, gridConfig, onAssetMoved, stageRef]);
+    }, [placedAssets, onAssetMoved, stageRef]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -658,7 +646,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         return () => {
             cancelAnimationFrame(frameId);
         };
-    }, [enableDragMove, placedAssets, stageRef, handleNodeClick, handleDragStart, handleDragMove, handleDragEnd, onReady]);
+    }, [enableDragMove, placedAssets, stageRef, handleNodeClick, handleDragStart, handleDragMove, handleDragEnd, onReady, availableActions.canMove, selectedAssetIds]);
 
     // Helper to get actual node position (for selection borders during drag)
     const getAssetRenderPosition = useCallback((assetId: string) => {
@@ -690,6 +678,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     return (
         <Layer name="ui-overlay" listening={false}>
             {/* Selection borders - blue outline for each selected asset */}
+            {/* eslint-disable react-hooks/refs */}
             {selectedAssetIds.map(assetId => {
                 const renderPos = getAssetRenderPosition(assetId);
                 if (!renderPos) return null;
@@ -707,6 +696,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                     />
                 );
             })}
+            {/* eslint-enable react-hooks/refs */}
 
             {/* Marquee selection rectangle */}
             {marqueeSelection && (

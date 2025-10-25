@@ -1,9 +1,10 @@
-import { Chip, Typography, Box, IconButton, Menu, MenuItem } from '@mui/material';
+import { Chip, Typography, IconButton, Menu, MenuItem } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useState } from 'react';
+import type React from 'react';
 import { ContentCard, PublishedBadge } from '../shared';
 import { GridType } from '@/utils/gridCalculator';
-import type { Scene } from '../../types';
+import type { Scene } from '@/types/domain';
 
 export interface SceneCardProps {
     scene: Scene;
@@ -88,8 +89,7 @@ export function SceneCard({ scene, onOpen, onDuplicate, onDelete }: SceneCardPro
                     id: scene.id,
                     type: 'scene',
                     name: scene.name,
-                    isPublished: scene.isPublished,
-                    thumbnailUrl: undefined
+                    isPublished: scene.isPublished
                 }}
                 onClick={onOpen}
                 badges={badges}

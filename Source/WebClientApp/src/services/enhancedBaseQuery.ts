@@ -92,20 +92,10 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
       const state = getState() as any;
       const user = state?.auth?.user;
 
-      if (isDevelopment) {
-        console.log('🔐 Auth Debug - User from state:', user?.id);
-      }
-
       if (user?.id) {
         // Use extracted function for testability
         const base64Url = encodeGuidToBase64Url(user.id);
         headers.set('x-user', base64Url);
-
-        if (isDevelopment) {
-          console.log('🔐 Auth Debug - x-user header:', base64Url);
-        }
-      } else if (isDevelopment) {
-        console.debug('🔐 No user ID yet (auth loading)');
       }
 
       return headers;

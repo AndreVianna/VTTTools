@@ -274,46 +274,50 @@ export enum AdventureStyle {
   RandomlyGenerated = 6
 }
 
+export enum ContentType {
+  Adventure = 0,
+  Campaign = 1,
+  Epic = 2
+}
+
 export interface Adventure {
   id: string;
+  type: ContentType;
   name: string;
   description: string;
-  style: AdventureStyle;
-  isOneShot: boolean;
   isPublished: boolean;
-  isPublic: boolean;
+  ownerId: string;
+  style?: AdventureStyle | null;
+  isOneShot?: boolean | null;
+  sceneCount?: number | null;
+  background?: MediaResource | null;
   campaignId?: string;
-  backgroundId?: string;
   scenes?: Scene[];
-  createdAt: string;
-  updatedAt: string;
 }
 
 // Scenes (from Domain.Library.Scenes.ApiContracts)
 export interface CreateSceneRequest {
   name: string;
   description: string;
-  backgroundImageUrl?: string;
-  gridType: GridType;
-  gridSize: number;
-  width: number;
-  height: number;
+  backgroundId?: string;
+  grid?: {
+    type: number;
+    cellSize: { width: number; height: number };
+    offset: { left: number; top: number };
+    snap: boolean;
+  };
 }
 
 export interface UpdateSceneRequest {
   name?: string;
   description?: string;
-  backgroundImageUrl?: string;
-  gridType?: GridType;
-  gridSize?: number;
-  width?: number;
-  height?: number;
-}
-
-export enum GridType {
-  Square = 'Square',
-  Hexagonal = 'Hexagonal',
-  None = 'None'
+  backgroundId?: string;
+  grid?: {
+    type: number;
+    cellSize: { width: number; height: number };
+    offset: { left: number; top: number };
+    snap: boolean;
+  };
 }
 
 export interface Scene {
@@ -321,11 +325,18 @@ export interface Scene {
   adventureId: string;
   name: string;
   description: string;
-  backgroundImageUrl?: string;
-  gridType: GridType;
-  gridSize: number;
-  width: number;
-  height: number;
+  isPublished: boolean;
+  grid: {
+    type: number;
+    cellSize: { width: number; height: number };
+    offset: { left: number; top: number };
+    snap: boolean;
+  };
+  stage: {
+    background: MediaResource | null;
+    zoomLevel: number;
+    panning: { x: number; y: number };
+  };
   assets: SceneAsset[];
   createdAt: string;
   updatedAt: string;

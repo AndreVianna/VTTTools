@@ -37,7 +37,6 @@ import {
     Remove as RemoveIcon,
     ExpandMore as ExpandMoreIcon,
     Upload as UploadIcon,
-    RestartAlt as ResetIcon,
     Undo as UndoIcon,
     Redo as RedoIcon,
     ZoomIn as ZoomInIcon,
@@ -54,7 +53,6 @@ export interface SceneEditorMenuBarProps {
     zoomPercentage: number;
     onZoomIn: () => void;
     onZoomOut: () => void;
-    onZoomReset: () => void;
     onBackgroundUpload: () => void;
     onAssetSelect: (asset: Asset) => void;  // Callback when asset is selected for placement
 }
@@ -65,7 +63,6 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
     zoomPercentage,
     onZoomIn,
     onZoomOut,
-    onZoomReset,
     onBackgroundUpload,
     onAssetSelect
 }) => {

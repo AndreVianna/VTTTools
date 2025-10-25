@@ -705,7 +705,7 @@
 - ContentLibraryPage with tabs (Scenes active, others disabled)
 - Shared components: EditableTitle, ContentCard, ContentListLayout, PublishToggle
 - Generic hooks: useAutoSave, useContentList
-- Type system: ContentItem base with type discrimination
+- Type system: ContentListItem base with type discrimination
 
 **Scene-Specific**:
 - SceneListView (browse scenes with cards)
@@ -725,46 +725,46 @@
 **Implementation Sequence**:
 
 **Phase 7-Prep: Documentation** (4-6h) ✅ COMPLETE
-   - Architecture design documents
-   - Component specifications
-   - Updated roadmap
+- Architecture design documents
+- Component specifications
+- Updated roadmap
 
 **Phase 7A: Foundation** (4h)
-   - Create `features/content-library/` structure
-   - Define TypeScript interfaces (ContentItem, Scene)
-   - ContentLibraryPage with tabs
-   - Routing: `/content-library/scenes`
-   - Shared components: EditableTitle, ContentCard
+- Create `features/content-library/` structure
+- Define TypeScript interfaces (ContentListItem, Scene)
+- ContentLibraryPage with tabs
+- Routing: `/content-library/scenes`
+- Shared components: EditableTitle, ContentCard
 
 **Phase 7B: Scene List** (3h)
-   - SceneListView component
-   - SceneCard component
-   - Search/filter functionality
-   - New/Duplicate/Delete actions
+- SceneListView component
+- SceneCard component
+- Search/filter functionality
+- New/Duplicate/Delete actions
 
 **Phase 7C: Scenes API** (3h)
-   - scenesApi RTK Query slice
-   - CRUD endpoints (create, read, update, delete, list)
-   - Cache invalidation
-   - SceneAsset ↔ PlacedAsset mappers
+- scenesApi RTK Query slice
+- CRUD endpoints (create, read, update, delete, list)
+- Cache invalidation
+- SceneAsset ↔ PlacedAsset mappers
 
 **Phase 7D: Scene Menu** (3h)
-   - Add Scene menu to SceneEditorMenuBar (before Stage)
-   - SceneMetadataMenu component (adventure, description, published)
-   - Wire auto-save on changes
-   - Duplicate/Delete actions
+- Add Scene menu to SceneEditorMenuBar (before Stage)
+- SceneMetadataMenu component (adventure, description, published)
+- Wire auto-save on changes
+- Duplicate/Delete actions
 
 **Phase 7E: Header Enhancement** (2h)
-   - Back button in EditorLayout
-   - EditableTitle for scene name
-   - Save indicator ("Saving..." / "Saved")
-   - Navigation to Content Library
+- Back button in EditorLayout
+- EditableTitle for scene name
+- Save indicator ("Saving..." / "Saved")
+- Navigation to Content Library
 
 **Phase 7F: Stage Menu Enhancement** (2h)
-   - Move grid config to Stage menu (from hardcoded)
-   - Grid changes auto-save to scene.grid
-   - Stage size configuration
-   - Reorganize menu sections
+- Move grid config to Stage menu (from hardcoded)
+- Grid changes auto-save to scene.grid
+- Stage size configuration
+- Reorganize menu sections
 
 **Success Criteria**:
 
@@ -1167,7 +1167,7 @@
 
 ## Dependency Graph
 
-```
+```text
 Phase 1 (Foundation) ✅
     ↓
     ├─→ Phase 2 (Auth & Landing) ✅

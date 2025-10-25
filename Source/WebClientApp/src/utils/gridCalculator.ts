@@ -14,8 +14,8 @@
 export enum GridType {
     NoGrid = 0,
     Square = 1,
-    HexH = 2,      // Hexagonal Horizontal
-    HexV = 3,      // Hexagonal Vertical
+    HexV = 2,      // Hexagonal Vertical (backend order)
+    HexH = 3,      // Hexagonal Horizontal (backend order)
     Isometric = 4
 }
 

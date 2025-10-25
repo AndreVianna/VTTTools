@@ -39,7 +39,7 @@ Phase 7 implements Scene Management with an integrated editor-as-CRUD approach, 
 15. Returns to Content Library, sees new scene "Goblin Ambush" in list
 
 **Auto-Save Timeline**:
-```
+```text
 0:00 - Name changed → Timer starts
 0:03 - Save name
 0:05 - Adventure selected → Save immediately
@@ -111,7 +111,7 @@ Phase 7 implements Scene Management with an integrated editor-as-CRUD approach, 
 
 ### Content Library Page
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │  VTT Tools    Assets    Scene Editor         [☀][👤]   │
 └─────────────────────────────────────────────────────────┘
@@ -144,7 +144,7 @@ Phase 7 implements Scene Management with an integrated editor-as-CRUD approach, 
 
 ### Scene Editor (Enhanced)
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │  [← Back] [Goblin Ambush (click)] [💾] ...   [☀][👤]  │
 └─────────────────────────────────────────────────────────┘
@@ -340,7 +340,7 @@ interface SceneMetadataMenuProps {
 
 ### Scene Load Flow
 
-```
+```text
 User clicks scene card
   ↓
 Navigate to /scene-editor/:sceneId
@@ -370,7 +370,7 @@ Render canvas with assets
 
 ### Scene Save Flow
 
-```
+```text
 User makes change (moves asset)
   ↓
 Update local state (placedAssets)
@@ -616,7 +616,7 @@ const useAutoSave = (
 
 **Tasks**:
 1. Create folder structure: `src/features/content-library/`
-2. Define TypeScript interfaces (ContentItem, Scene, etc.)
+2. Define TypeScript interfaces (ContentListItem, Scene, etc.)
 3. Create ContentLibraryPage with tabs
 4. Set up routing: `/content-library/scenes`
 5. Create shared components: EditableTitle, ContentCard base

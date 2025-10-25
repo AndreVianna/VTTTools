@@ -12,5 +12,4 @@ builder.AddSqlServerDbContext<ApplicationDbContext>(
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
-
 await host.RunAsync();

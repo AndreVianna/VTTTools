@@ -49,7 +49,7 @@ export const useConnectionStatus = (
             } else if (!wasOffline && !nowOnline) {
                 onStatusChange?.(false);
             }
-        } catch (error) {
+        } catch (_error) {
             const wasOnline = isOnline;
             setIsOnline(false);
 
@@ -61,6 +61,7 @@ export const useConnectionStatus = (
 
     useEffect(() => {
         const interval = setInterval(checkConnection, pollInterval);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         checkConnection();
 
         return () => clearInterval(interval);

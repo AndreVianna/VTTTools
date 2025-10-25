@@ -64,7 +64,7 @@ export const SecuritySettingsPage: React.FC = () => {
                             </Box>
 
                             <Typography variant="body2" color="text.secondary">
-                                Keep your account secure with a strong password. We recommend changing your password regularly and using a unique password that you don't use elsewhere.
+                                Keep your account secure with a strong password. We recommend changing your password regularly and using a unique password that you don&apos;t use elsewhere.
                             </Typography>
 
                             <Divider />

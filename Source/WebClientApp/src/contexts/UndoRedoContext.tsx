@@ -137,6 +137,7 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
     );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useUndoRedoContext = (): UndoRedoContextValue => {
     const context = useContext(UndoRedoContext);
 

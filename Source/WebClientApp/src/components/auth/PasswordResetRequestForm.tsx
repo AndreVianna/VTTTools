@@ -11,10 +11,6 @@ import {
   Container,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import {
-  Email as EmailIcon,
-  ArrowBack,
-} from '@mui/icons-material';
 import { useAuth } from '@/hooks/useAuth';
 
 // Reuse AuthCard from SimpleLoginForm (Theme-Aware)

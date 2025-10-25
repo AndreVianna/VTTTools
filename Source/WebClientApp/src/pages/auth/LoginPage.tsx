@@ -3,6 +3,7 @@ import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Alert } from '@mui/material';
 import { SimpleLoginForm } from '@/components/auth/SimpleLoginForm';
 import { SimpleRegistrationForm } from '@/components/auth/SimpleRegistrationForm';
+import { PasswordResetRequestForm } from '@/components/Auth/PasswordResetRequestForm';
 import { PasswordResetConfirmForm } from '@/components/auth/PasswordResetConfirmForm';
 import { TwoFactorVerificationForm } from '@/components/auth/TwoFactorVerificationForm';
 import { RecoveryCodeForm } from '@/components/auth/RecoveryCodeForm';
@@ -23,7 +24,7 @@ export const LoginPage: React.FC = () => {
     if (location.pathname === '/reset-password') return 'reset-confirm';
     if (location.pathname === '/register') return 'register';
     return 'login';
-  }, [searchParams, location.pathname]);
+  }, [location.pathname]);
 
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Box,
     Typography,
@@ -16,7 +16,8 @@ import {
     DialogContentText,
     DialogActions,
     Alert,
-    Snackbar
+    Snackbar,
+    CircularProgress
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -25,18 +26,20 @@ import { AdventureCard } from './AdventureCard';
 import { AdventureStyle } from '../../types';
 import type { Adventure } from '../../types';
 import {
-    useGetAdventuresQuery,
     useCreateAdventureMutation,
     useDeleteAdventureMutation,
     useCloneAdventureMutation,
     useCreateSceneMutation
 } from '@/services/adventuresApi';
+import { useGetContentQuery } from '@/services/contentApi';
+import { useDebounce, useInfiniteScroll } from '../../hooks';
 
 type ContentTypeFilter = 'all' | 'single-scene' | 'one-shot' | 'adventure' | 'campaign' | 'epic';
 
 export function AdventureListView() {
     const navigate = useNavigate();
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchInput, setSearchInput] = useState('');
+    const searchQuery = useDebounce(searchInput, 500);
     const [contentTypeFilter, setContentTypeFilter] = useState<ContentTypeFilter>('all');
     const [styleFilter, setStyleFilter] = useState<AdventureStyle | 'all'>('all');
     const [publishedFilter, setPublishedFilter] = useState<'all' | 'published' | 'draft'>('all');
@@ -46,12 +49,48 @@ export function AdventureListView() {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [cursor, setCursor] = useState<string | undefined>(undefined);
 
-    const { data: adventures = [], isLoading, error } = useGetAdventuresQuery();
+    const filters = {
+        contentType: ['campaign', 'epic'].includes(contentTypeFilter) ? contentTypeFilter : undefined,
+        style: styleFilter === 'all' ? undefined : styleFilter,
+        isOneShot: contentTypeFilter === 'one-shot' ? true : undefined,
+        minSceneCount: contentTypeFilter === 'single-scene' ? 1
+            : contentTypeFilter === 'adventure' ? 2
+            : undefined,
+        maxSceneCount: contentTypeFilter === 'single-scene' ? 1 : undefined,
+        isPublished: publishedFilter === 'published' ? true
+            : publishedFilter === 'draft' ? false
+            : undefined,
+        search: searchQuery || undefined,
+        owner: ownershipFilter === 'all' ? undefined : ownershipFilter,
+        after: cursor,
+        limit: 20
+    };
+
+    const { data, isLoading, isFetching, error } = useGetContentQuery(filters);
+    const adventures: Adventure[] = data?.data || [];
+    const hasMore = data?.hasMore || false;
+    const nextCursor = data?.nextCursor;
+
     const [createAdventure] = useCreateAdventureMutation();
-    const [createScene] = useCreateSceneMutation();
-    const [deleteAdventure, { isLoading: isDeleting }] = useDeleteAdventureMutation();
-    const [cloneAdventure, { isLoading: isCloning }] = useCloneAdventureMutation();
+    const [_createScene] = useCreateSceneMutation();
+    const [deleteAdventure] = useDeleteAdventureMutation();
+    const [cloneAdventure] = useCloneAdventureMutation();
+
+    const { sentinelRef } = useInfiniteScroll({
+        hasMore,
+        isLoading: isFetching,
+        onLoadMore: () => {
+            if (nextCursor) {
+                setCursor(nextCursor);
+            }
+        }
+    });
+
+    useEffect(() => {
+        setCursor(undefined);
+    }, [searchQuery, contentTypeFilter, styleFilter, publishedFilter, ownershipFilter]);
 
     const handleCreateAdventure = async () => {
         setIsCreating(true);
@@ -63,7 +102,7 @@ export function AdventureListView() {
             }).unwrap();
 
             navigate(`/adventures/${adventure.id}`);
-        } catch (error) {
+        } catch (_error) {
             setErrorMessage('Failed to create adventure. Please try again.');
         } finally {
             setIsCreating(false);
@@ -78,7 +117,7 @@ export function AdventureListView() {
         try {
             await cloneAdventure({ id: adventureId }).unwrap();
             setSuccessMessage('Adventure duplicated successfully');
-        } catch (error) {
+        } catch (_error) {
             setErrorMessage('Failed to duplicate adventure. Please try again.');
         }
     };
@@ -93,7 +132,7 @@ export function AdventureListView() {
             try {
                 await deleteAdventure(adventureToDelete).unwrap();
                 setSuccessMessage('Adventure deleted successfully');
-            } catch (error) {
+            } catch (_error) {
                 setErrorMessage('Failed to delete adventure. Please try again.');
             }
         }
@@ -105,29 +144,6 @@ export function AdventureListView() {
         setDeleteDialogOpen(false);
         setAdventureToDelete(null);
     };
-
-    const filteredAdventures = adventures.filter((adventure) => {
-        const matchesSearch = adventure.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const sceneCount = adventure.scenes?.length || 0;
-
-        const matchesContentType =
-            contentTypeFilter === 'all' ||
-            (contentTypeFilter === 'single-scene' && sceneCount === 1) ||
-            (contentTypeFilter === 'one-shot' && adventure.isOneShot) ||
-            (contentTypeFilter === adventure.type);
-
-        const matchesStyle = styleFilter === 'all' || adventure.style === styleFilter;
-        const matchesPublished =
-            publishedFilter === 'all' ||
-            (publishedFilter === 'published' && adventure.isPublished) ||
-            (publishedFilter === 'draft' && !adventure.isPublished);
-        const matchesOwnership =
-            ownershipFilter === 'all' ||
-            (ownershipFilter === 'mine') ||
-            (ownershipFilter === 'public');
-
-        return matchesSearch && matchesContentType && matchesStyle && matchesPublished && matchesOwnership;
-    });
 
     return (
         <Box id="adventure-list-container">
@@ -151,8 +167,8 @@ export function AdventureListView() {
                 <TextField
                     id="input-search-adventures"
                     placeholder="Search adventures..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                     size="small"
                     sx={{ flex: 1, minWidth: 200 }}
                     InputProps={{
@@ -235,7 +251,7 @@ export function AdventureListView() {
                 </Typography>
             )}
 
-            {!isLoading && filteredAdventures.length === 0 && searchQuery === '' && (
+            {!isLoading && adventures.length === 0 && searchInput === '' && (
                 <Box id="adventure-list-empty-state" sx={{ textAlign: 'center', py: 8 }}>
                     <Typography variant="h6" gutterBottom>
                         No adventures yet
@@ -253,7 +269,7 @@ export function AdventureListView() {
                 </Box>
             )}
 
-            {!isLoading && filteredAdventures.length === 0 && searchQuery !== '' && (
+            {!isLoading && adventures.length === 0 && searchInput !== '' && (
                 <Box id="adventure-list-no-results" sx={{ textAlign: 'center', py: 8 }}>
                     <Typography variant="h6" gutterBottom>
                         No adventures found
@@ -264,9 +280,9 @@ export function AdventureListView() {
                 </Box>
             )}
 
-            {!isLoading && filteredAdventures.length > 0 && (
+            {!isLoading && adventures.length > 0 && (
                 <Grid id="adventure-list-grid" container spacing={3}>
-                    {filteredAdventures.map((adventure) => (
+                    {adventures.map((adventure) => (
                         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={adventure.id}>
                             <AdventureCard
                                 adventure={adventure}
@@ -277,6 +293,23 @@ export function AdventureListView() {
                         </Grid>
                     ))}
                 </Grid>
+            )}
+
+            {isFetching && cursor && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, py: 4 }}>
+                    <CircularProgress size={24} />
+                    <Typography>Loading more...</Typography>
+                </Box>
+            )}
+
+            {hasMore && !isFetching && (
+                <div ref={sentinelRef} style={{ height: 1 }} />
+            )}
+
+            {!hasMore && adventures.length > 0 && (
+                <Typography sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
+                    All adventures loaded
+                </Typography>
             )}
 
             <Dialog

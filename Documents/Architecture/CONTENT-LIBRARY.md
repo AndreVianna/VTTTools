@@ -14,7 +14,7 @@ The Content Library is VTTTools' organizational system for managing tabletop con
 
 ### Structure
 
-```
+```text
 Epic (optional)
   └─→ Campaign (optional)
         └─→ Adventure (optional)
@@ -36,7 +36,7 @@ Epic (optional)
 ### Common Properties (All Levels)
 
 ```typescript
-interface ContentItem {
+interface ContentListItem {
   id: string;
   ownerId: string;
   name: string;
@@ -51,7 +51,7 @@ interface ContentItem {
 
 **Scene** (Leaf - Visual Content):
 ```typescript
-interface Scene extends ContentItem {
+interface Scene extends ContentListItem {
   adventureId: string | null;
   grid: GridConfig;
   stage: StageConfig;
@@ -61,7 +61,7 @@ interface Scene extends ContentItem {
 
 **Adventure** (Container):
 ```typescript
-interface Adventure extends ContentItem {
+interface Adventure extends ContentListItem {
   campaignId: string | null;
   sceneIds: string[];
   thumbnailId: string | null;
@@ -70,7 +70,7 @@ interface Adventure extends ContentItem {
 
 **Campaign** (Container):
 ```typescript
-interface Campaign extends ContentItem {
+interface Campaign extends ContentListItem {
   epicId: string | null;
   adventureIds: string[];
   theme: string | null;
@@ -80,7 +80,7 @@ interface Campaign extends ContentItem {
 
 **Epic** (Top-Level Container):
 ```typescript
-interface Epic extends ContentItem {
+interface Epic extends ContentListItem {
   campaignIds: string[];
   coverImageId: string | null;
   genre: string | null;
@@ -93,7 +93,7 @@ interface Epic extends ContentItem {
 
 ### Traditional CRUD Pattern (NOT Using)
 
-```
+```text
 Content List → [Edit Button] → Dialog Form → [Save] → Back to List
               [New Button]  → Dialog Form → [Save] → Back to List
 ```
@@ -106,7 +106,7 @@ Content List → [Edit Button] → Dialog Form → [Save] → Back to List
 
 ### Editor-as-CRUD Pattern (Our Approach)
 
-```
+```text
 Content List → [Click Item] → Full Editor (properties in menus) → Auto-save → [Back] → List
               [New Button] → Full Editor (blank) → Auto-save → [Back] → List
 ```
@@ -130,7 +130,7 @@ Content List → [Click Item] → Full Editor (properties in menus) → Auto-sav
 ### 1. Routing Layer
 
 **Content Library:**
-```
+```text
 /content-library → ContentLibraryPage (tabs)
   ├─ /scenes → SceneListView
   ├─ /adventures → AdventureListView (Phase 8)
@@ -139,7 +139,7 @@ Content List → [Click Item] → Full Editor (properties in menus) → Auto-sav
 ```
 
 **Editors:**
-```
+```text
 /scene-editor/:sceneId → SceneEditorPage (EditorLayout)
 /scene-editor/new → SceneEditorPage (creates new)
 /adventure-editor/:adventureId → AdventureEditorPage (Phase 8)
@@ -153,7 +153,7 @@ Content List → [Click Item] → Full Editor (properties in menus) → Auto-sav
 
 **Shared Components (Built in Phase 7, Reused Later):**
 
-```
+```text
 content-library/components/shared/
   ├─ ContentCard.tsx          Base card for all content types
   ├─ ContentListLayout.tsx    Grid + search + filter framework
@@ -164,7 +164,7 @@ content-library/components/shared/
 
 **Type-Specific Components:**
 
-```
+```text
 content-library/components/scenes/
   ├─ SceneCard.tsx            Extends ContentCard
   ├─ SceneMetadataMenu.tsx    Scene menu contents
@@ -176,7 +176,7 @@ content-library/components/scenes/
 ### 3. State Management
 
 **RTK Query Slices:**
-```
+```text
 api/scenesApi.ts      → /api/library/scenes
 api/adventuresApi.ts  → /api/library/adventures (Phase 8)
 ```
@@ -271,12 +271,12 @@ const dehydratePlacedAssets = (
 ### Enhanced Menu Bar
 
 **Current Structure:**
-```
+```text
 [Stage ▼] [Structures ▼] [Objects ▼] [Creatures ▼] ... [↶ ↷ | ⊖ 100% ⊕]
 ```
 
 **New Structure (Phase 7)**:
-```
+```text
 [Scene ▼] [Stage ▼] [Structures ▼] [Objects ▼] [Creatures ▼] ... [↶ ↷ | ⊖ 100% ⊕]
 ```
 
@@ -292,7 +292,7 @@ const dehydratePlacedAssets = (
 - Delete Scene action
 
 **Organization**:
-```
+```text
 ┌──────────────────────────┐
 │ Scene Properties         │
 ├──────────────────────────┤
@@ -333,12 +333,12 @@ const dehydratePlacedAssets = (
 ### Header Enhancement
 
 **Current Header (EditorLayout)**:
-```
+```text
 [VTT Tools] ... [☀][👤]
 ```
 
 **Enhanced Header**:
-```
+```text
 [← Back to Scenes] [Scene Name (click to edit)] [💾 Saved] ... [☀][👤]
 ```
 
@@ -397,7 +397,7 @@ const dehydratePlacedAssets = (
 ```typescript
 type ContentType = 'scene' | 'adventure' | 'campaign' | 'epic';
 
-interface ContentItem {
+interface ContentListItem {
   id: string;
   ownerId: string;
   name: string;

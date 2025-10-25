@@ -124,25 +124,37 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
         const isDifferentAsset = prevAssetIdRef.current !== asset.id;
 
         if (open && (isDifferentAsset || prevAssetIdRef.current === null)) {
+             
             setName(asset.name);
+             
             setDescription(asset.description);
+             
             setResources(asset.resources);
+             
             setIsPublic(asset.isPublic);
+             
             setIsPublished(asset.isPublished);
+             
             setEditMode(false);
 
             // Reset size and kind-specific props
             if (isObjectAsset(asset)) {
+                 
                 setSize(asset.properties.size);
+                 
                 setIsMovable(asset.properties.isMovable);
+                 
                 setIsOpaque(asset.properties.isOpaque);
             } else if (isCreatureAsset(asset)) {
+                 
                 setSize(asset.properties.size);
+                 
                 setCreatureCategory(asset.properties.category);
             }
 
             prevAssetIdRef.current = asset.id;
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, asset.id]);
 
     const handleSave = async () => {

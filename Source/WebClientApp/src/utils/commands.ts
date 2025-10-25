@@ -1,5 +1,4 @@
 import type { PlacedAsset, PlacedAssetSnapshot } from '@/types/domain';
-import { applyAssetSnapshot } from '@/types/domain';
 
 export interface Command {
     execute: () => void;

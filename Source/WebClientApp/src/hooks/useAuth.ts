@@ -343,7 +343,7 @@ export const useAuth = () => {
       }));
       throw error;
     }
-  }, [resetPasswordMutation, dispatch]);
+  }, [resetPasswordMutation, dispatch, navigate]);
 
   // Check if user can retry login (rate limiting)
   const canRetryLogin = useCallback(() => {

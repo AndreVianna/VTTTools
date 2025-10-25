@@ -59,7 +59,7 @@ describe('useAuth', () => {
   };
 
   const wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(Provider, { store, children });
+    React.createElement(Provider, { store }, children);
 
   beforeEach(() => {
     store = createTestStore();

@@ -35,6 +35,7 @@ export function useAutoSave<T>({
         const hasChanges = currentData !== serverData;
 
         if (!hasChanges) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSaveStatus('idle');
             return;
         }

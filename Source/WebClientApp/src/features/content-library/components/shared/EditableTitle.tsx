@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import type React from 'react';
 import { Typography, TextField, Box, CircularProgress } from '@mui/material';
 import type { TypographyProps } from '@mui/material';
 

@@ -1,4 +1,4 @@
-import type { ContentItem } from './contentItem';
+import type { ContentListItem } from './contentListItem';
 import type { GridConfig } from '@/utils/gridCalculator';
 import type { PlacedAsset, MediaResource } from '@/types/domain';
 
@@ -37,7 +37,7 @@ export interface SceneAssetData {
     controlledBy: string | null;
 }
 
-export interface Scene extends ContentItem {
+export interface Scene extends ContentListItem {
     type: 'scene';
     adventureId: string | null;
     grid: GridConfig;

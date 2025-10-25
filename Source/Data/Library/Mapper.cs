@@ -123,7 +123,7 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Stage = new () {
+            Stage = new() {
                 Background = entity.Background?.ToModel(),
                 ZoomLevel = entity.ZoomLevel,
                 Panning = entity.Panning,

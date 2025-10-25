@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertTitle, Typography, Slide } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -9,11 +10,13 @@ export const ConnectionStatusBanner: React.FC = () => {
     const theme = useTheme();
 
     useEffect(() => {
-        let timeout: NodeJS.Timeout;
+        let timeout: ReturnType<typeof setTimeout>;
 
         if (!isOnline) {
+             
             timeout = setTimeout(() => setShowBanner(true), 2000);
         } else {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setShowBanner(false);
         }
 

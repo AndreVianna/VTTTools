@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import type React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme, alpha } from '@mui/material';
 import { getApiEndpoints } from '@/config/development';
@@ -17,12 +18,10 @@ import {
     Switch,
     CircularProgress,
     Alert,
-    Paper,
-    Divider
+    Paper
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
-import SaveIcon from '@mui/icons-material/Save';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import { SceneCard } from '../components/scenes';
@@ -36,28 +35,13 @@ import {
 } from '@/services/adventuresApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
 
-const getAdventureStyleLabel = (style: AdventureStyle): string => {
-    const labels: Record<AdventureStyle, string> = {
-        [AdventureStyle.Generic]: 'Generic',
-        [AdventureStyle.OpenWorld]: 'Open World',
-        [AdventureStyle.DungeonCrawl]: 'Dungeon Crawl',
-        [AdventureStyle.HackNSlash]: 'Hack-n-Slash',
-        [AdventureStyle.Survival]: 'Survival',
-        [AdventureStyle.GoalDriven]: 'Goal Driven',
-        [AdventureStyle.RandomlyGenerated]: 'Randomly Generated'
-    };
-    return labels[style] || 'Unknown';
-};
-
 export function AdventureDetailPage() {
     const { adventureId } = useParams<{ adventureId: string }>();
     const navigate = useNavigate();
     const theme = useTheme();
 
-    const useHeroBanner = false;
-
     const { data: adventure, isLoading: isLoadingAdventure, error: adventureError } = useGetAdventureQuery(adventureId!);
-    const { data: scenes = [], isLoading: isLoadingScenes, error: scenesError } = useGetScenesQuery(adventureId!);
+    const { data: scenes = [], isLoading: isLoadingScenes } = useGetScenesQuery(adventureId!);
     const [updateAdventure] = useUpdateAdventureMutation();
     const [createScene] = useCreateSceneMutation();
     const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation();
@@ -71,6 +55,7 @@ export function AdventureDetailPage() {
 
     useEffect(() => {
         if (adventure && !isInitialized) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setName(adventure.name);
             setDescription(adventure.description);
             setStyle(adventure.style);
@@ -126,7 +111,7 @@ export function AdventureDetailPage() {
             }).unwrap();
             setSaveStatus('saved');
             setTimeout(() => setSaveStatus('idle'), 2000);
-        } catch (error) {
+        } catch (_error) {
             setSaveStatus('error');
         }
     }, [adventureId, adventure, isInitialized, name, description, style, isOneShot, isPublished, updateAdventure]);
@@ -178,7 +163,7 @@ export function AdventureDetailPage() {
 
             setSaveStatus('saved');
             setTimeout(() => setSaveStatus('idle'), 2000);
-        } catch (error) {
+        } catch (_error) {
             setSaveStatus('error');
         }
     };
@@ -190,11 +175,17 @@ export function AdventureDetailPage() {
                     adventureId,
                     request: {
                         name: 'New Scene',
-                        description: ''
+                        description: '',
+                        grid: {
+                            type: 0,
+                            cellSize: { width: 50, height: 50 },
+                            offset: { left: 0, top: 0 },
+                            snap: true
+                        }
                     }
                 }).unwrap();
                 navigate(`/scene-editor/${scene.id}`);
-            } catch (error) {
+            } catch (_error) {
                 setSaveStatus('error');
             }
         }
@@ -204,11 +195,11 @@ export function AdventureDetailPage() {
         navigate(`/scene-editor/${sceneId}`);
     };
 
-    const handleDuplicateScene = async (sceneId: string) => {
+    const handleDuplicateScene = async (_sceneId: string) => {
         // TODO Phase 8: Implement scene duplication
     };
 
-    const handleDeleteScene = async (sceneId: string) => {
+    const handleDeleteScene = async (_sceneId: string) => {
         // TODO Phase 8: Implement scene deletion
     };
 
@@ -312,7 +303,7 @@ export function AdventureDetailPage() {
                                 id="input-adventure-name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                onBlur={saveChanges}
+                                onBlur={() => saveChanges()}
                                 variant="standard"
                                 fullWidth
                                 placeholder="Adventure Name"
@@ -459,7 +450,7 @@ export function AdventureDetailPage() {
                                 id="input-adventure-description"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                onBlur={saveChanges}
+                                onBlur={() => saveChanges()}
                                 multiline
                                 rows={5}
                                 fullWidth

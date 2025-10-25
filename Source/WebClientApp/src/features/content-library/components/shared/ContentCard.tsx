@@ -1,4 +1,5 @@
 import { Card, CardContent, CardMedia, CardActions, Typography, Box, Chip } from '@mui/material';
+import type React from 'react';
 import type { ContentItemSummary } from '../../types';
 
 export interface ContentCardProps {

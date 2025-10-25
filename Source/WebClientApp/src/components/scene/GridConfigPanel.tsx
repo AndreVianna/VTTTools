@@ -54,13 +54,6 @@ export const GridConfigPanel: React.FC<GridConfigPanelProps> = ({
         setGrid(prev => ({ ...prev, type }));
     };
 
-    const handleNumberChange = (field: keyof GridConfig, value: string) => {
-        const numValue = parseInt(value, 10);
-        if (!isNaN(numValue)) {
-            setGrid(prev => ({ ...prev, [field]: numValue }));
-        }
-    };
-
     const handleColorChange = (color: string) => {
         setGrid(prev => ({ ...prev, color }));
     };

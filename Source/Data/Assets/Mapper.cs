@@ -146,7 +146,8 @@ internal static class Mapper {
             var existing = entity.Resources.FirstOrDefault(r => r.ResourceId == resource.ResourceId);
             if (existing != null) {
                 existing.Role = resource.Role;
-            } else {
+            }
+            else {
                 entity.Resources.Add(new Entities.AssetResource {
                     AssetId = entity.Id,
                     ResourceId = resource.ResourceId,

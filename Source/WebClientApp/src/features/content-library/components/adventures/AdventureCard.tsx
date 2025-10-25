@@ -1,6 +1,7 @@
 import { Chip, Typography, IconButton, Menu, MenuItem } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useState } from 'react';
+import type React from 'react';
 import { ContentCard, PublishedBadge } from '../shared';
 import { AdventureStyle } from '../../types';
 import type { Adventure } from '../../types';
@@ -89,17 +90,19 @@ export function AdventureCard({ adventure, onOpen, onDuplicate, onDelete }: Adve
                     variant="filled"
                 />
             )}
-            <Chip
-                label={getAdventureStyleLabel(adventure.style)}
-                size="small"
-                color={getAdventureStyleColor(adventure.style)}
-                variant="outlined"
-            />
+            {adventure.style != null && (
+                <Chip
+                    label={getAdventureStyleLabel(adventure.style)}
+                    size="small"
+                    color={getAdventureStyleColor(adventure.style)}
+                    variant="outlined"
+                />
+            )}
             {adventure.isPublished && <PublishedBadge />}
         </>
     );
 
-    const sceneCount = adventure.scenes?.length || 0;
+    const sceneCount = adventure.sceneCount ?? adventure.scenes?.length ?? 0;
 
     const metadata = (
         <Typography variant="body2" color="text.secondary">

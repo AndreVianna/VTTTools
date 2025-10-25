@@ -2,6 +2,7 @@
 // EPIC: EPIC-001 Phase 6 - UndoRedoToolbar Tests
 // LAYER: UI (Tests)
 
+import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import { UndoRedoToolbar } from './UndoRedoToolbar';

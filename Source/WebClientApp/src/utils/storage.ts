@@ -52,7 +52,7 @@ export const storage = {
         try {
             const item = localStorage.getItem(key);
             return item ? new Blob([item]).size : 0;
-        } catch (error) {
+        } catch (_error) {
             return 0;
         }
     },
@@ -67,7 +67,7 @@ export const storage = {
                 }
             }
             return total;
-        } catch (error) {
+        } catch (_error) {
             return 0;
         }
     }

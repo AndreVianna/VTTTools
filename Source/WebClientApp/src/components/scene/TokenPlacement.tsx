@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Layer, Group, Image as KonvaImage, Rect, Circle, Line } from 'react-konva';
+import { Layer, Group, Image as KonvaImage, Circle, Line } from 'react-konva';
 import Konva from 'konva';
 import type { Asset, PlacedAsset } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
@@ -15,7 +15,7 @@ export interface TokenPlacementProps {
     /** Callback when new asset is placed */
     onAssetPlaced: (asset: PlacedAsset) => void;
     /** Callback when asset is moved */
-    onAssetMoved: (assetId: string, position: { x: number; y: number }) => void;
+    _onAssetMoved: (assetId: string, position: { x: number; y: number }) => void;
     /** Callback when asset is deleted */
     onAssetDeleted: (assetId: string) => void;
     /** Current grid configuration */
@@ -156,7 +156,7 @@ const snapToGridCenter = (
 export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     placedAssets,
     onAssetPlaced,
-    onAssetMoved,
+    _onAssetMoved,
     onAssetDeleted: _onAssetDeleted,
     gridConfig,
     draggedAsset,

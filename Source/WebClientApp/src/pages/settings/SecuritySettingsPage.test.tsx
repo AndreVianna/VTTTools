@@ -1,5 +1,6 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { BrowserRouter } from 'react-router-dom';
@@ -10,7 +11,6 @@ import type { User } from '@/types/domain';
 
 describe('SecuritySettingsPage', () => {
     let store: ReturnType<typeof configureStore>;
-    let mockUser: User;
 
     const createTestStore = (twoFactorEnabled: boolean) => {
         const user: User = {
@@ -54,21 +54,6 @@ describe('SecuritySettingsPage', () => {
             </Provider>
         );
     };
-
-    beforeEach(() => {
-        mockUser = {
-            id: '1',
-            email: 'test@example.com',
-            name: 'Test User',
-            displayName: 'Test',
-            emailConfirmed: true,
-            phoneNumberConfirmed: false,
-            twoFactorEnabled: false,
-            lockoutEnabled: false,
-            accessFailedCount: 0,
-            createdAt: '2025-01-01T00:00:00Z'
-        };
-    });
 
     describe('BDD: Security Settings Page rendering', () => {
         it('renders security settings heading', () => {

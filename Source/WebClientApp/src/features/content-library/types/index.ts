@@ -1,4 +1,4 @@
-export type { ContentItem, ContentItemSummary, ContentType } from './contentItem';
+export type { ContentListItem, ContentItemSummary, ContentType } from './contentListItem';
 export type {
     Scene,
     SceneAssetData,

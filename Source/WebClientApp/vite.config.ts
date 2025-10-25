@@ -60,6 +60,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
+        '/api/library': {
+          target: 'https://localhost:7172',
+          changeOrigin: true,
+          secure: false,
+        },
         '/api/scenes': {
           target: 'https://localhost:7172',
           changeOrigin: true,
