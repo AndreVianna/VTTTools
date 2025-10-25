@@ -685,194 +685,221 @@
 
 ---
 
-### Phase 7: Scene Management ⏳ READY TO START
+### Phase 7: Adventure Management ✅ COMPLETE
 
-**Objective**: Implement Content Library infrastructure with integrated Scene Editor as CRUD interface
+**Objective**: Implement Library (Content Library) with Adventure management as foundation for content hierarchy
 
-**Approach**: Revolutionary "Editor-as-CRUD" pattern - Scene Editor IS the scene form (no separate dialogs)
+**Approach**: Adventures as DDD aggregate roots with scenes as child entities
 
-**Backend Status**: ✅ Scene API fully implemented (`/api/library/scenes`)
+**Backend Status**: ✅ Adventure API fully implemented (`/api/library`)
+
+**Completion Date**: 2025-10-25
 
 **Architecture Documents**:
 - `Documents/Architecture/CONTENT-LIBRARY.md` - Hierarchy model, patterns
-- `phases/PHASE-7-DESIGN.md` - User flows, UI specs
-- `Documents/Architecture/CONTENT-LIBRARY-COMPONENTS.md` - Component specifications
+- `phases/PHASE-7-DESIGN.md` - Original design (revised during implementation)
+
+**Key Architectural Change**:
+- **Discovered**: Backend implements DDD aggregate pattern (Adventures→Scenes)
+- **Decision**: Swapped Phase 7 and 8 to respect backend architecture
+- **Impact**: Adventures implemented first, Scenes deferred to Phase 8
 
 **Deliverables**:
 
-**Infrastructure** (Reusable in Phases 8-9):
+**Infrastructure** (Built for Phase 7, Reusable in Phase 8-9):
 - Feature module: `src/features/content-library/`
-- ContentLibraryPage with tabs (Scenes active, others disabled)
-- Shared components: EditableTitle, ContentCard, ContentListLayout, PublishToggle
-- Generic hooks: useAutoSave, useContentList
-- Type system: ContentListItem base with type discrimination
-
-**Scene-Specific**:
-- SceneListView (browse scenes with cards)
-- SceneCard (thumbnail, grid type, asset count)
-- scenesApi RTK Query slice (CRUD endpoints)
-- Scene menu in SceneEditorMenuBar (adventure, description, published)
-- Editable scene name in EditorLayout header
-- Enhanced Stage menu (grid configuration)
-- Auto-save framework (3s debounce)
-- Backend persistence (load/save scenes)
-
-**NOT Building** (Simplified):
-- ❌ SceneCRUDDialog (editor replaces dialog)
-- ❌ Separate create/edit forms
-- ❌ Modal-based workflows
-
-**Implementation Sequence**:
-
-**Phase 7-Prep: Documentation** (4-6h) ✅ COMPLETE
-- Architecture design documents
-- Component specifications
-- Updated roadmap
-
-**Phase 7A: Foundation** (4h)
-- Create `features/content-library/` structure
-- Define TypeScript interfaces (ContentListItem, Scene)
-- ContentLibraryPage with tabs
-- Routing: `/content-library/scenes`
+- Library page (renamed from "Content Library")
 - Shared components: EditableTitle, ContentCard
+- Generic hooks: useDebounce, useInfiniteScroll, useAutoSave
+- Type system: ContentListItem matching backend ContentListItem.cs
+- contentApi: Unified content query with pagination
 
-**Phase 7B: Scene List** (3h)
-- SceneListView component
-- SceneCard component
-- Search/filter functionality
-- New/Duplicate/Delete actions
+**Adventure Management** (Phase 7 Core):
+- AdventureListView with search and 4 filters (Type, Style, Status, Ownership)
+- AdventureCard showing style badges, scene count, published status
+- AdventureDetailPage with inline editing and auto-save
+- adventuresApi RTK Query slice (full CRUD)
+- Background image upload
+- Scene list display within adventure
+- Add scene to adventure functionality
+- Navigate to Scene Editor integration
+- Delete/Duplicate adventure operations
+- Infinite scroll pagination with cursor
 
-**Phase 7C: Scenes API** (3h)
-- scenesApi RTK Query slice
-- CRUD endpoints (create, read, update, delete, list)
-- Cache invalidation
-- SceneAsset ↔ PlacedAsset mappers
+**Type System**:
+- AdventureStyle enum (0-6): Generic, OpenWorld, DungeonCrawl, HackNSlash, Survival, GoalDriven, RandomlyGenerated
+- ContentType enum (0-2): Adventure, Campaign, Epic
+- domain.ts as single source of truth
+- GridConfig updated: nested cellSize/offset structure
 
-**Phase 7D: Scene Menu** (3h)
-- Add Scene menu to SceneEditorMenuBar (before Stage)
-- SceneMetadataMenu component (adventure, description, published)
-- Wire auto-save on changes
-- Duplicate/Delete actions
+**Implementation Sequence** (As Executed):
 
-**Phase 7E: Header Enhancement** (2h)
-- Back button in EditorLayout
-- EditableTitle for scene name
-- Save indicator ("Saving..." / "Saved")
-- Navigation to Content Library
+**Phase 7A: Foundation** (4h) ✅ COMPLETE
+- Created `features/content-library/` folder structure
+- Defined TypeScript interfaces matching backend ContentListItem.cs
+- Library page (simplified, no tabs)
+- Routing: `/content-library/adventures`
+- Shared components: EditableTitle, ContentCard
+- Updated GridConfig structure (nested cellSize/offset)
 
-**Phase 7F: Stage Menu Enhancement** (2h)
-- Move grid config to Stage menu (from hardcoded)
-- Grid changes auto-save to scene.grid
-- Stage size configuration
-- Reorganize menu sections
+**Phase 7B: Adventure List** (4h) ✅ COMPLETE
+- AdventureListView with unified contentApi integration
+- AdventureCard with style/scene count/published badges
+- 4 comprehensive filters (Type, Style, Status, Ownership)
+- Debounced search (useDebounce hook - 500ms)
+- Infinite scroll (useInfiniteScroll hook with IntersectionObserver)
+- Create/Delete/Duplicate adventure operations
+
+**Phase 7C: API Integration** (3h) ✅ COMPLETE
+- contentApi RTK Query slice for /api/library
+- adventuresApi for adventure CRUD operations
+- Cursor-based pagination with cache merging
+- Filter parameter mapping to backend
+- Vite proxy configured for /api/library
+
+**Phase 7D: Adventure Detail Page** (6h) ✅ COMPLETE
+- AdventureDetailPage with full metadata editing
+- Auto-save on blur (name, description) and change (toggles)
+- Background image upload integration
+- Scene list display within adventure context
+- Add scene button (POST /api/adventures/{id}/scenes)
+- Navigation to Scene Editor
+- Save status indicators and unsaved changes warning
+
+**Phase 7E: Type System Alignment** (2h) ✅ COMPLETE
+- Consolidated Adventure types (domain.ts as source of truth)
+- Fixed nullable property handling
+- Removed duplicate type definitions
+- Updated all components to use unified types
 
 **Success Criteria**:
 
-- ✅ Content Library page with Scenes tab active
-- ✅ Browse scenes with search/filter
-- ✅ Click scene → Opens in editor with data loaded
-- ✅ Edit scene name in header (click-to-edit)
-- ✅ Edit metadata in Scene menu (auto-saves)
-- ✅ Edit grid in Stage menu (auto-saves)
-- ✅ Place/move/delete assets (auto-saves)
+- ✅ Library page with unified content view (no tabs)
+- ✅ Browse adventures with search (debounced 500ms)
+- ✅ Filter by Type (6 options), Style (8 options), Status, Ownership
+- ✅ Infinite scroll pagination with cursor
+- ✅ Click adventure → Opens Adventure Detail page
+- ✅ Edit adventure metadata (name, description, style, isOneShot, isPublished)
+- ✅ Auto-save on changes (blur for text, immediate for toggles)
+- ✅ Upload background images
+- ✅ View scenes within adventure
+- ✅ Add scene to adventure → Navigate to Scene Editor
+- ✅ Delete/Duplicate adventures with confirmation
 - ✅ All changes persist to backend
-- ✅ Back button returns to scene list
-- ✅ Infrastructure ready for Phase 8 (60-70% reuse)
+- ✅ Proper DDD pattern (Adventure = aggregate root, Scene = child entity)
+- ✅ Infrastructure ready for Phase 8 (70% reusable)
 
 **Dependencies**:
 
 - **Prerequisites**: Phase 6 (Scene Editor complete) ✅
-- **Blocks**: Phase 10 (game sessions reference scenes)
+- **Blocks**: Phase 8 (Scene management within adventures)
 
 **Validation**:
 
-- Scene CRUD operations functional
-- Editor-as-CRUD workflow seamless
-- Auto-save reliable (no data loss)
-- Backend persistence verified
-- Test coverage ≥70%
-- WCAG AA accessible
-- Material-UI theme compliant
+- ✅ Adventure CRUD operations functional
+- ✅ contentApi pagination working
+- ✅ Auto-save reliable with status indicators
+- ✅ Backend persistence verified
+- ⚠️ Test coverage: Backend ≥80%, Frontend ~10% (deferred to Phase 8)
+- ✅ WCAG AA accessible
+- ✅ Material-UI theme compliant
+- ✅ No console errors
+- ✅ DDD architecture compliance
 
-**Estimated Effort**: 21 hours (17h implementation + 4h documentation)
+**Actual Effort**: 19 hours (15h implementation + 4h architecture pivot)
 
 **Breakdown**:
-- Documentation: 4-6h ✅
-- Foundation: 4h
-- Scene List: 3h
-- Scenes API: 3h
-- Scene Menu: 3h
-- Header: 2h
-- Stage Menu: 2h
+- Foundation: 4h ✅
+- Adventure List: 4h ✅
+- API Integration: 3h ✅
+- Adventure Detail: 6h ✅
+- Type Alignment: 2h ✅
 
-**Status**: ⏳ READY TO START (documentation complete, implementation ready)
+**Status**: ✅ COMPLETE (2025-10-25)
 
 ---
 
-### Phase 8: Adventure Management 🔜 READY
+### Phase 8: Scene Management 🔜 READY
 
-**Objective**: Implement Adventure CRUD UI to organize scenes
+**Objective**: Implement Scene CRUD UI within Adventure context and Scene Editor backend integration
 
-**Backend Status**: ✅ Adventure API fully implemented (`/api/library/adventures`)
+**Backend Status**: ✅ Scene API fully implemented (`/api/scenes`, `/api/adventures/{id}/scenes`)
+
+**Note**: Originally Phase 7, swapped with Adventure Management to respect DDD aggregate pattern
 
 **Deliverables**:
 
-- Page: AdventureListPage
-  - Description: Browse adventures with Material-UI cards
-  - Complexity: Medium
-  - Dependencies: RTK Query adventuresApi
-- Component: AdventureCRUDDialog
-  - Description: Create/Edit adventure (optional campaign parent)
-  - Complexity: Medium
-  - Dependencies: adventuresApi
-- Component: AdventureSceneList
-  - Description: List scenes within adventure context
-  - Complexity: Medium
-  - Dependencies: Phase 7 (scenes)
-- API: adventuresApi RTK Query slice
-  - Description: Integration with `/api/library/adventures` endpoints
-  - Complexity: Medium
-  - Dependencies: None (backend exists)
+**Scene Operations** (Within Adventure Context):
+- Scene duplicate/delete from Adventure Detail page
+- Scene editing operations (name, description, published)
+- Scene thumbnail generation
+
+**Scene Editor Integration**:
+- Load scene from backend by ID
+- Scene Menu showing parent adventure (read-only link)
+- Auto-save scene changes to PATCH /api/scenes/{id}
+- Editable scene name in header (click-to-edit)
+- Enhanced Stage menu with grid configuration
+- Back button navigation to Adventure Detail
+- Save indicators for scene changes
+
+**Scene Management UI**:
+- SceneCard enhancements (grid type badge, asset count)
+- Scene operations menu in Adventure Detail
+- Grid configuration persistence
+- Asset placement persistence
 
 **Implementation Sequence**:
 
-1. **Adventures API Integration** (UI)
-   - Command: Create RTK Query endpoints
-   - Estimated Effort: 3 hours
-   - Dependencies: None
-2. **AdventureCRUDDialog** (UI)
-   - Command: Create/Edit form
-   - Estimated Effort: 3 hours
-   - Dependencies: Adventures API
-3. **AdventureListPage** (UI)
-   - Command: Card grid with scene preview integration
-   - Estimated Effort: 4 hours
-   - Dependencies: Adventures API, Phase 7
-4. **Scene-Adventure Linking** (UI)
-   - Command: Update SceneCRUDDialog to select parent adventure
-   - Estimated Effort: 2 hours
-   - Dependencies: Phase 7
+**Phase 8A: Scene Operations** (3h)
+- Implement scene duplicate in Adventure Detail
+- Implement scene delete with confirmation
+- Wire to backend endpoints
+
+**Phase 8B: Scene Editor Backend Integration** (4h)
+- Load scene via sceneId parameter
+- Fetch scene data from GET /api/scenes/{id}
+- Auto-save to PATCH /api/scenes/{id}
+- Scene state management integration
+
+**Phase 8C: Scene Menu** (3h)
+- Add Scene menu to SceneEditorMenuBar
+- Display parent adventure (read-only, clickable link)
+- Editable scene description
+- Published toggle
+
+**Phase 8D: Header & Navigation** (2h)
+- Editable scene name in EditorLayout header
+- Back button → Navigate to Adventure Detail
+- Save status indicators
 
 **Success Criteria**:
 
-- Create/Edit/Delete adventures
-- Link scenes to adventures (optional)
-- Browse scenes within adventure context
-- Adventures can exist without campaigns
+- ✅ Scene operations (duplicate/delete) functional in Adventure Detail
+- ✅ Scene Editor loads scene from backend
+- ✅ Scene metadata editable in Scene menu
+- ✅ Scene name editable in header
+- ✅ Grid configuration saved to backend
+- ✅ Asset placements persist
+- ✅ Auto-save reliable
+- ✅ Navigation: Adventure Detail ↔ Scene Editor
 
 **Dependencies**:
 
-- **Prerequisites**: Phase 7 (scenes)
-- **Blocks**: None (Epic/Campaign optional)
+- **Prerequisites**: Phase 7 (Adventure management) ✅
+- **Blocks**: Phase 10 (game sessions need scene persistence)
 
 **Validation**:
 
-- Validate after phase: Adventure CRUD, scene linking
-- Quality gate: All operations work, scenes can be organized
+- Scene CRUD within adventure context functional
+- Scene Editor backend persistence verified
+- Auto-save working without data loss
+- Test coverage ≥70% (add frontend tests)
+- Grid configuration persists correctly
 
 **Estimated Effort**: 12 hours
 
-**Status**: 🔜 READY (can start after Phase 7)
+**Status**: 🔜 READY (Phase 7 complete)
 
 ---
 
@@ -899,7 +926,7 @@
   - Complexity: Medium each
   - Dependencies: Backend APIs
 - API: epicApi, campaignApi RTK Query slices
-  - Description: Integration with `/api/library/epics`, `/api/library/campaigns`
+  - Description: Integration with `/api/library`
   - Complexity: High
   - Dependencies: Backend services (missing)
 
@@ -1417,8 +1444,8 @@ Implementation Order:
 
 ## Progress Tracking
 
-**Current Phase**: Phase 7 ready to start
-**Overall Progress**: 188 hours / 273 hours (68.9%)
+**Current Phase**: Phase 8 ready to start
+**Overall Progress**: 207 hours / 273 hours (75.8%)
 
 **Phase 1**: ✅ Complete (8/8 hours, 100%) - Completed 2025-09-28
 **Phase 2**: ✅ Complete (16/16 hours, 100%) - Completed 2025-10-01
@@ -1426,34 +1453,36 @@ Implementation Order:
 **Phase 4**: ✅ Complete (12/12 hours, 100%) - Completed 2025-10-05
 **Phase 5**: ✅ Complete (70/16 hours, 437%) - Completed 2025-10-11
 **Phase 6**: ✅ Complete (30/25 hours, 120%) - Completed 2025-10-23
-**Phase 7**: ⏳ **CURRENT** (0/14 hours, 0%) - Scene Management - READY TO START
-**Phase 8**: 🔜 (0/12 hours, 0%) - Adventure Management - READY after Phase 7
+**Phase 7**: ✅ Complete (19/21 hours, 90%) - Adventure Management - Completed 2025-10-25
+**Phase 8**: ⏳ **NEXT** (0/12 hours, 0%) - Scene Management - READY TO START
 **Phase 9**: ⚠️ BLOCKED (0/18 hours, 0%) - Epic/Campaign (optional - backend missing)
-**Phase 10**: 🔜 (0/22 hours, 0%) - Game Sessions - READY after Phase 7
+**Phase 10**: 🔜 (0/22 hours, 0%) - Game Sessions - READY after Phase 8
 **Phase 11**: 🔜 PARALLEL (0/16 hours, 0%) - Account Management - READY
 **Phase 12**: 🔜 Final (0/14 hours, 0%) - Performance/Production
 
-**Remaining Effort**: 85 hours total (18 hours blocked, 67 hours available)
+**Remaining Effort**: 66 hours total (18 hours blocked, 48 hours available)
 
 **Calculation Breakdown**:
 
 - Total Effort: 273 hours (243 originally + 30 hours expansion in Phase 6)
-- Completed (Phases 1-6): 188 hours (8+16+28+12+70+30)
-- Remaining (Phases 7-12): 85 hours
-- Available Now: 67 hours (Phases 7-8-10-11-12)
+- Completed (Phases 1-7): 207 hours (8+16+28+12+70+30+19)
+- Remaining (Phases 8-12): 66 hours
+- Available Now: 48 hours (Phases 8-10-11-12)
 - Blocked: 18 hours (Phase 9 Epic/Campaign - optional)
-- Progress: 68.9% (188/273)
-- Note: Phase 10 can proceed after Phase 7 (sessions reference scenes, not Epic/Campaign)
+- Progress: 75.8% (207/273)
+- Note: Phase 10 can proceed after Phase 8 (sessions reference scenes)
 
 **Phase Expansion Notes**:
 - Phase 3 expanded from 16h to 28h to include critical authentication improvements (8h) and authorization documentation (4h). These were essential for production-ready auth state management and future phase planning.
 - Phase 5 expanded from 16h to 70h to include multi-resource system (Phase 5.5), resource redesign and SVG conversion (Phase 5.6), and blob storage architecture (Phase 5.7). These expansions added critical asset management features required for scene editor integration.
 - Phase 6 expanded from 25h to 30h+ due to major enhancements beyond original specification. Added multi-asset selection, advanced snap modes, collision detection, group dragging, enhanced undo/redo architecture, and layout separation. Achieved GO FOR PRODUCTION approval with 5/5 stars from code-reviewer.
+- Phase 7 (19h actual vs 21h estimated): Architectural pivot during implementation - discovered backend DDD pattern requiring Adventure-first approach. Swapped Phase 7 (was Scenes) with Phase 8 (was Adventures). Delivered Library page, Adventure management with contentApi integration, Adventure Detail page with auto-save, infinite scroll, 4-filter system. Grade: B+ (88/100).
 
 ---
 
 ## Change Log
 
+- **2025-10-25** (v1.8.0): Phase 7 COMPLETION - Adventure Management delivered with architectural pivot. Discovered backend DDD aggregate pattern (Adventures→Scenes), swapped Phase 7/8 to align. Delivered: Library page (unified content view), Adventure List with contentApi integration (infinite scroll, 4 filters, debounced search), Adventure Detail page (inline editing, auto-save, background upload, scene management). Type system consolidated (domain.ts source of truth). GridConfig structure updated (nested cellSize/offset). Actual effort: 19h (vs 21h estimated, 90%). Updated progress to 75.8% (207/273 hours). Phase 8 (Scene Management) marked as NEXT. Code review: B+ (88/100) → A- (92/100) after critical fixes.
 - **2025-10-23** (v1.7.0): Phase 6 COMPLETION - Delivered major enhancements beyond spec: multi-asset selection, marquee selection, advanced snap modes (Alt/Ctrl/Ctrl+Alt), collision detection system, group dragging, enhanced undo/redo with Memento pattern, layout architecture separation (EditorLayout vs AppLayout). Expanded from 25h estimated to 30h+ actual due to enhancements. Updated progress to 68.9% (188/273 hours). Phase 7 marked as READY TO START. Code review: 5/5 stars, GO FOR PRODUCTION.
 - **2025-10-19** (v1.6.0): Phase 6 completed - Complete reimplementation of scene editor (24h actual vs 25h estimated). Achieved GO FOR PRODUCTION approval with 255+ tests (85% coverage), 89.4% issue fix rate. Updated progress to 65.0% (158/243 hours). Marked Phase 9-10 as available (Phase 7-8 remain BLOCKED by backend). Quality Gate 6 passed.
 - **2025-10-12** (v1.5.0): Phase 11 repurposed - Removed BDD step definitions (integrated into per-phase implementation). Reduced Phase 11 from 32h → 14h (performance optimization, bundle reduction, legacy cleanup, production prep). Updated total effort to 243 hours. BDD testing now continuous throughout Phases 2-6.

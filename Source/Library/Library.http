@@ -92,6 +92,10 @@ x-user: {{encodedUserId}}
   "description": "Updated gothic horror campaign"
 }
 
+### 2.1. Get Library
+GET {{baseUrl}}/api/library
+x-user: {{encodedUserId}}
+
 ### 5. Clone Adventure
 POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/clone
 x-user: {{encodedUserId}}

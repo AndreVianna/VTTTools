@@ -98,7 +98,8 @@ export function AdventureListView() {
             const adventure = await createAdventure({
                 name: 'Untitled Adventure',
                 description: 'A new adventure',
-                style: AdventureStyle.Generic
+                style: AdventureStyle.Generic,
+                isOneShot: false
             }).unwrap();
 
             navigate(`/adventures/${adventure.id}`);

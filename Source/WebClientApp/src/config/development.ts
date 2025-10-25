@@ -14,6 +14,7 @@ export const API_CONFIG = {
   aspire: {
     auth: '/api/auth',
     assets: '/api/assets',
+    library: '/api/library',
     adventures: '/api/adventures',
     scenes: '/api/scenes',
     sessions: '/api/sessions',
@@ -25,6 +26,7 @@ export const API_CONFIG = {
   standalone: {
     auth: 'https://localhost:7050/api/auth',
     assets: 'https://localhost:7171/api/assets',
+    library: 'https://localhost:7172/api/library',
     adventures: 'https://localhost:7172/api/adventures',
     scenes: 'https://localhost:7172/api/scenes',
     sessions: 'https://localhost:7173/api/sessions',

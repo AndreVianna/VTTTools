@@ -58,8 +58,8 @@ export function AdventureDetailPage() {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setName(adventure.name);
             setDescription(adventure.description);
-            setStyle(adventure.style);
-            setIsOneShot(adventure.isOneShot);
+            setStyle(adventure.style ?? AdventureStyle.Generic);
+            setIsOneShot(adventure.isOneShot ?? false);
             setIsPublished(adventure.isPublished);
             setIsInitialized(true);
         }

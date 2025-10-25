@@ -2,60 +2,99 @@
 
 **Quick Start Guide for New Sessions**
 
-**Current Phase**: Phase 7 (Scene Management)
-**Status**: Documentation complete, ready for implementation
-**Last Updated**: 2025-10-23
+**Current Phase**: Phase 8 (Scene Management)
+**Status**: Ready to start
+**Last Updated**: 2025-10-25
 
 ---
 
 ## 🚀 New Session? Start Here
 
-**Read in this order** (15 minutes total):
+**Read in this order** (10 minutes total):
 
 1. **This file** (you are here) - 2 minutes
-2. **ROADMAP.md** - Phase 7 section - 5 minutes
-3. **phases/PHASE-7-DESIGN.md** - Implementation details - 8 minutes
-4. **../Architecture/CONTENT-LIBRARY.md** - Architecture context - Optional
+2. **ROADMAP.md** - Phase 8 section - 5 minutes
+3. **../Architecture/CONTENT-LIBRARY.md** - Architecture context - 3 minutes
 
 ---
 
 ## Current Status Summary
 
-**Completed**: Phases 1-6 (68.9% of epic)
+**Completed**: Phases 1-7 (75.8% of epic)
 - ✅ Phase 1-2: Foundation, Auth, Landing
 - ✅ Phase 3-4: Scene Editor (Pan/Zoom, Grid/Layers)
 - ✅ Phase 5: Asset Library
 - ✅ Phase 6: Scene Editor enhancements (Tokens, Undo/Redo, Multi-select, Collision)
+- ✅ Phase 7: Adventure Management (Library page, Adventure CRUD, contentApi integration)
 
-**Current**: Phase 7 (Scene Management)
-- 📝 Documentation: COMPLETE
+**Current**: Phase 8 (Scene Management)
 - 🔧 Implementation: READY TO START
-- ⏱️ Estimated: 21 hours (17h code + 4h docs done)
+- ⏱️ Estimated: 12 hours
+- 📋 Deliverables: Scene operations, Scene Editor backend integration
 
-**Next**: Phase 8 (Adventures), Phase 10 (Game Sessions)
+**Next**: Phase 9 (Campaigns - blocked), Phase 10 (Game Sessions), Phase 11 (Account Settings)
 
 ---
 
-## What is Phase 7?
+## What Was Phase 7?
 
-**Objective**: Enable users to create, browse, edit, and manage scenes with backend persistence
+**Objective**: Implement Adventure Management as foundation for content hierarchy
 
-**Revolutionary Approach**: "Editor-as-CRUD"
-- Scene Editor IS the scene form (no separate dialogs)
-- Properties in menus (Scene menu, Stage menu)
-- Editable title in header
-- Auto-save (3s debounce)
-- Like Figma/Google Docs/Notion
+**Architectural Discovery**: Backend uses DDD aggregate pattern
+- Adventures are aggregate roots (containers)
+- Scenes are child entities (content)
+- Swapped Phase 7/8 to align with backend architecture
 
-**Key Deliverables**:
-1. Content Library page with tabs (Scenes active)
-2. Scene list with cards (browse, search, filter)
-3. Enhanced Scene Editor:
-   - Scene menu (adventure, description, published)
+**Key Deliverables** (COMPLETED 2025-10-25):
+1. Library page with unified content view (no tabs)
+2. Adventure List with contentApi integration:
+   - Infinite scroll pagination with cursor
+   - 4 comprehensive filters (Type, Style, Status, Ownership)
+   - Debounced search (500ms)
+   - Create/Delete/Duplicate operations
+3. Adventure Detail page:
+   - Inline metadata editing (name, description, style)
+   - Auto-save on blur/change
+   - IsOneShot and IsPublished toggles
+   - Background image upload
+   - Scene list display
+   - Add scene functionality
+4. Infrastructure for Phase 8 (Scenes) - 70% reusable
+
+**Grade**: B+ (88/100) → A- (92/100) after critical fixes
+
+---
+
+## What is Phase 8?
+
+**Objective**: Implement Scene Management within Adventure context
+
+**Approach**: Scenes as child entities of Adventures
+- Scenes created/edited within adventure
+- No standalone scene CRUD
+- Scene Editor integrated with backend persistence
+- Auto-save for scene changes
+
+**Key Deliverables** (12 hours estimated):
+1. Scene operations from Adventure Detail:
+   - Duplicate scene
+   - Delete scene with confirmation
+2. Scene Editor backend integration:
+   - Load scene by ID from `/api/scenes/{id}`
+   - Auto-save changes via PATCH `/api/scenes/{id}`
+   - Scene Menu showing parent adventure
    - Editable scene name in header
-   - Grid config in Stage menu
-   - Auto-save to backend
-4. Infrastructure for Adventures (Phase 8) - 60-70% reusable
+   - Grid configuration persistence
+3. Navigation improvements:
+   - Back button: Scene Editor → Adventure Detail
+   - Save status indicators
+   - Unsaved changes warning
+
+**Implementation Phases**:
+- Phase 8A: Scene operations in Adventure Detail (3h)
+- Phase 8B: Scene Editor backend integration (4h)
+- Phase 8C: Scene Menu component (3h)
+- Phase 8D: Header and navigation (2h)
 
 ---
 

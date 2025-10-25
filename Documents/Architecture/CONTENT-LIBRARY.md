@@ -177,8 +177,8 @@ content-library/components/scenes/
 
 **RTK Query Slices:**
 ```text
+api/adventuresApi.ts  → /api/library/adventures (Phase 7)
 api/scenesApi.ts      → /api/library/scenes
-api/adventuresApi.ts  → /api/library/adventures (Phase 8)
 ```
 
 **Cache Strategy:**
