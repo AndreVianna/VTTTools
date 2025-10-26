@@ -120,8 +120,26 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
 
     const handleConfirm = () => {
         if (selectedAsset) {
-            onSelect(selectedAsset);
-            handleClose();
+            const asset = selectedAsset;
+
+            // Close dialog first
+            setSelectedAsset(null);
+            setSearchQuery('');
+            onClose();
+
+            // Wait for MUI Dialog to fully cleanup and remove aria-hidden
+            const checkAndSelect = () => {
+                const root = document.getElementById('root');
+                const ariaHidden = root?.getAttribute('aria-hidden');
+
+                if (ariaHidden === 'true') {
+                    setTimeout(checkAndSelect, 50);
+                } else {
+                    onSelect(asset);
+                }
+            };
+
+            setTimeout(checkAndSelect, 50);
         }
     };
 

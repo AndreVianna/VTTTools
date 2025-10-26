@@ -596,24 +596,29 @@ const SceneEditorPageInternal: React.FC = () => {
             </Box>
 
             <Box
+                id="canvas-container"
                 sx={{
                     flexGrow: 1,
                     overflow: 'hidden',
                     bgcolor: 'background.default',
                     position: 'relative',
-                    width: '100%'
+                    width: '100%',
+                    height: '100%'
                 }}
             >
                 <SceneCanvas
                     ref={canvasRef}
                     width={window.innerWidth}
-                    height={window.innerHeight - TOTAL_TOP_HEIGHT}
+                    height={window.innerHeight - MENU_BAR_HEIGHT}
                     initialPosition={{ x: initialViewport.x, y: initialViewport.y }}
                     backgroundColor={theme.palette.background.default}
                     onViewportChange={handleViewportChange}
                 >
                     {/* Layer 1: Static (background + grid) */}
-                    <Layer name={LayerName.Static} listening={false}>
+                    <Layer
+                        name={LayerName.Static}
+                        listening={false}
+                    >
                         <BackgroundLayer
                             imageUrl={backgroundImageUrl}
                             backgroundColor={theme.palette.background.default}

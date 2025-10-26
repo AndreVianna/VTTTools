@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Layer, Group, Image as KonvaImage, Circle, Line } from 'react-konva';
+import { Layer, Group, Image as KonvaImage, Circle, Line, Rect } from 'react-konva';
 import Konva from 'konva';
 import type { Asset, PlacedAsset } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
@@ -239,10 +239,14 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         if (!draggedAsset) return;
 
         const stage = e.target.getStage();
-        if (!stage) return;
+        if (!stage) {
+            return;
+        }
 
         const pointer = stage.getPointerPosition();
-        if (!pointer) return;
+        if (!pointer) {
+            return;
+        }
 
         const scale = stage.scaleX();
         const rawPosition = {
@@ -377,13 +381,28 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         );
     };
 
+    const stableMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
+        if (draggedAsset) {
+            handleMouseMove(e);
+        }
+    };
+
     return (
         <Layer
             name={LayerName.GameWorld}
             listening={true}
-            onMouseMove={draggedAsset ? handleMouseMove : undefined}
+            onMouseMove={stableMouseMove}
             onClick={draggedAsset ? handleClick : undefined}
         >
+            {/* Invisible hit area - ensures Layer receives mouse events even when empty */}
+            <Rect
+                x={0}
+                y={0}
+                width={2800}
+                height={2100}
+                fill="transparent"
+            />
+
             <Group name={GroupName.Structure}>
                 {renderAssetsByGroup(GroupName.Structure)}
             </Group>

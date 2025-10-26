@@ -186,7 +186,9 @@ export const SceneCanvas = forwardRef<SceneCanvasHandle, SceneCanvasProps>(({
     }, []);
 
     const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-        if (!isPanning) return;
+        if (!isPanning) {
+            return;
+        }
 
         const dx = e.evt.clientX - lastPanPos.current.x;
         const dy = e.evt.clientY - lastPanPos.current.y;
@@ -299,7 +301,7 @@ export const SceneCanvas = forwardRef<SceneCanvasHandle, SceneCanvasProps>(({
             scaleY={scale}
             onWheel={handleWheel}
             onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
+            onMouseMove={isPanning ? handleMouseMove : undefined}
             onMouseUp={handleMouseUp}
             onClick={handleClick}
             onContextMenu={handleContextMenu}
