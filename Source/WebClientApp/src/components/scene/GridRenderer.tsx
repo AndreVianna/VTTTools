@@ -32,6 +32,9 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
     stageHeight,
     visible = true
 }) => {
+    // Default grid color (darker for better visibility in both light and dark themes)
+    const DEFAULT_GRID_COLOR = 'rgba(0, 0, 0, 0.4)';
+
     // Memoize grid lines for performance (60 FPS target)
     // MUST be called before any early returns (React Hooks Rules)
     const gridLines = useMemo(() => {
@@ -41,6 +44,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
         const cellHeight = grid.cellSize.height;
         const offsetX = grid.offset.left;
         const offsetY = grid.offset.top;
+        const gridColor = (grid as any).color || DEFAULT_GRID_COLOR;
 
         switch (grid.type) {
             case GridType.Square:
@@ -50,7 +54,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
                         <Line
                             key={`v-${x}`}
                             points={[x, 0, x, stageHeight]}
-                            stroke={grid.color}
+                            stroke={gridColor}
                             strokeWidth={1}
                             listening={false}
                         />
@@ -62,7 +66,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
                         <Line
                             key={`h-${y}`}
                             points={[0, y, stageWidth, y]}
-                            stroke={grid.color}
+                            stroke={gridColor}
                             strokeWidth={1}
                             listening={false}
                         />
@@ -111,7 +115,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
                             <Line
                                 key={`hex-${row}-${col}`}
                                 points={points}
-                                stroke={grid.color}
+                                stroke={gridColor}
                                 strokeWidth={1}
                                 closed={true}
                                 listening={false}
@@ -162,7 +166,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
                             <Line
                                 key={`hex-${row}-${col}`}
                                 points={points}
-                                stroke={grid.color}
+                                stroke={gridColor}
                                 strokeWidth={1}
                                 closed={true}
                                 listening={false}
@@ -205,7 +209,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
                             <Line
                                 key={`iso-${row}-${col}`}
                                 points={points}
-                                stroke={grid.color}
+                                stroke={gridColor}
                                 strokeWidth={1}
                                 closed={true}
                                 listening={false}
@@ -218,7 +222,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
         }
 
         return lines;
-    }, [grid, stageWidth, stageHeight]);
+    }, [grid, stageWidth, stageHeight, DEFAULT_GRID_COLOR]);
 
     if (!visible || grid.type === GridType.NoGrid) {
         return null;

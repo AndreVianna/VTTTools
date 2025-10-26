@@ -45,6 +45,20 @@ export const setupGlobalErrorHandling = () => {
 
   // Handle unhandled errors
   window.addEventListener('error', (event) => {
+    // Ignore errors from browser extensions (React DevTools, etc.)
+    if (event.filename && (
+      event.filename.includes('chrome-extension://') ||
+      event.filename.includes('moz-extension://') ||
+      event.filename.includes('safari-extension://')
+    )) {
+      return;
+    }
+
+    // Ignore React DevTools semver errors
+    if (event.error?.message?.includes('not valid semver')) {
+      return;
+    }
+
     console.error('Unhandled error:', event.error);
 
     handleError(event.error || new Error('An unexpected error occurred'), {

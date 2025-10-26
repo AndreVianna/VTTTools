@@ -5,7 +5,6 @@ import type {
   UpdateAdventureRequest,
   Adventure,
   CreateSceneRequest,
-  UpdateSceneRequest,
   Scene
 } from '@/types/domain';
 
@@ -13,7 +12,7 @@ import type {
 export const adventuresApi = createApi({
   reducerPath: 'adventuresApi',
   baseQuery: createEnhancedBaseQuery('/api/adventures'),
-  tagTypes: ['Adventure', 'Scene'],
+  tagTypes: ['Adventure', 'AdventureScenes'],
   endpoints: (builder) => ({
     // Adventure management endpoints
     getAdventures: builder.query<Adventure[], void>({
@@ -64,59 +63,35 @@ export const adventuresApi = createApi({
       invalidatesTags: ['Adventure'],
     }),
 
-    // Scene endpoints - also in Library microservice
+    // Adventure-scoped Scene endpoints (operations through Adventure aggregate)
+    // Uses 'AdventureScenes' tag to avoid conflict with sceneApi's 'Scene' tag
     getScenes: builder.query<Scene[], string>({
       query: (adventureId) => `/${adventureId}/scenes`,
-      providesTags: ['Scene'],
-    }),
-
-    getScene: builder.query<Scene, { adventureId: string; sceneId: string }>({
-      query: ({ adventureId, sceneId }) => `/${adventureId}/scenes/${sceneId}`,
-      providesTags: (_result, _error, { sceneId }) => [{ type: 'Scene', id: sceneId }],
+      providesTags: (_result, _error, adventureId) => [
+        { type: 'AdventureScenes', id: adventureId }
+      ],
     }),
 
     createScene: builder.mutation<Scene, { adventureId: string; request: CreateSceneRequest }>({
       query: ({ adventureId, request }) => ({
         url: `/${adventureId}/scenes`,
         method: 'POST',
-        body: request, // Uses existing Domain.Library.Scenes.ApiContracts
+        body: request,
       }),
-      invalidatesTags: ['Scene'],
+      invalidatesTags: (_result, _error, { adventureId }) => [
+        { type: 'AdventureScenes', id: adventureId }
+      ],
     }),
 
-    updateScene: builder.mutation<Scene, {
-      adventureId: string;
-      sceneId: string;
-      request: UpdateSceneRequest
-    }>({
-      query: ({ adventureId, sceneId, request }) => ({
-        url: `/${adventureId}/scenes/${sceneId}`,
-        method: 'PUT',
-        body: request, // Uses existing Domain.Library.Scenes.ApiContracts
-      }),
-      invalidatesTags: (_result, _error, { sceneId }) => [{ type: 'Scene', id: sceneId }],
-    }),
-
-    deleteScene: builder.mutation<void, { adventureId: string; sceneId: string }>({
-      query: ({ adventureId, sceneId }) => ({
-        url: `/${adventureId}/scenes/${sceneId}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['Scene'],
-    }),
-
-    // Clone scene
-    cloneScene: builder.mutation<Scene, {
-      adventureId: string;
-      sceneId: string;
-      name?: string
-    }>({
+    cloneScene: builder.mutation<Scene, { adventureId: string; sceneId: string; name?: string }>({
       query: ({ adventureId, sceneId, name }) => ({
-        url: `/${adventureId}/scenes/${sceneId}/clone`,
+        url: `/${adventureId}/scenes/clone/${sceneId}`,
         method: 'POST',
-        body: { name },
+        body: name ? { name } : undefined,
       }),
-      invalidatesTags: ['Scene'],
+      invalidatesTags: (_result, _error, { adventureId }) => [
+        { type: 'AdventureScenes', id: adventureId }
+      ],
     }),
 
     // Search adventures
@@ -143,10 +118,7 @@ export const {
   useDeleteAdventureMutation,
   useCloneAdventureMutation,
   useGetScenesQuery,
-  useGetSceneQuery,
   useCreateSceneMutation,
-  useUpdateSceneMutation,
-  useDeleteSceneMutation,
   useCloneSceneMutation,
   useSearchAdventuresQuery,
 } = adventuresApi;

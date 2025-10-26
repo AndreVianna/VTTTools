@@ -40,6 +40,7 @@ public class SceneStorage(ApplicationDbContext context)
                   .Include(e => e.Background)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
+                  .Include(e => e.Adventure)
                   .AsSplitQuery()
                   .AsNoTracking()
                   .FirstOrDefaultAsync(e => e.Id == id, ct);

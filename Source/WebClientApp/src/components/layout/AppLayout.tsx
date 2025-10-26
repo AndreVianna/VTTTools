@@ -95,19 +95,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           {isAuthenticated && user && (
             <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
               <Button
-                id="nav-assets"
-                color="inherit"
-                onClick={() => navigate('/assets')}
-                sx={{
-                  textTransform: 'none',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  }
-                }}
-              >
-                Assets
-              </Button>
-              <Button
                 id="nav-library"
                 color="inherit"
                 onClick={() => navigate('/content-library')}
@@ -121,9 +108,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 Library
               </Button>
               <Button
-                id="nav-scene-editor"
+                id="nav-assets"
                 color="inherit"
-                onClick={() => navigate('/scene-editor')}
+                onClick={() => navigate('/assets')}
                 sx={{
                   textTransform: 'none',
                   '&:hover': {
@@ -131,7 +118,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   }
                 }}
               >
-                Scene Editor
+                Assets
               </Button>
             </Box>
           )}

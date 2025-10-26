@@ -137,9 +137,9 @@
 **Implementation Sequence**:
 <foreach {item} in {phase.implementation_sequence}>
 {item.order}. **{item.name}** ({item.type})
-   - Command: {item.command_to_run}
-   - Estimated Effort: {item.effort}
-   - Dependencies: {item.dependencies}
+- Command: {item.command_to_run}
+- Estimated Effort: {item.effort}
+- Dependencies: {item.dependencies}
 </foreach>
 
 **Success Criteria**:

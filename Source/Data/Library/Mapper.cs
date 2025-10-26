@@ -29,6 +29,7 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
+            Adventure = entity.Adventure != null ? entity.Adventure.ToModel() : null!,
             Stage = new() {
                 Background = entity.Background != null ? entity.Background.ToModel() : null,
                 ZoomLevel = entity.ZoomLevel,
@@ -123,6 +124,19 @@ internal static class Mapper {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
+            IsPublished = entity.IsPublished,
+            Adventure = entity.Adventure != null ? new Adventure {
+                Id = entity.Adventure.Id,
+                OwnerId = entity.Adventure.OwnerId,
+                Name = entity.Adventure.Name,
+                Description = entity.Adventure.Description,
+                Style = entity.Adventure.Style,
+                Background = entity.Adventure.Background?.ToModel(),
+                IsOneShot = entity.Adventure.IsOneShot,
+                IsPublic = entity.Adventure.IsPublic,
+                IsPublished = entity.Adventure.IsPublished,
+                Scenes = [],  // Don't map scenes to avoid circular reference
+            } : null!,
             Stage = new() {
                 Background = entity.Background?.ToModel(),
                 ZoomLevel = entity.ZoomLevel,

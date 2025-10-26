@@ -31,9 +31,12 @@ import {
     useGetAdventureQuery,
     useGetScenesQuery,
     useUpdateAdventureMutation,
-    useCreateSceneMutation
+    useCreateSceneMutation,
+    useCloneSceneMutation
 } from '@/services/adventuresApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
+import { useDeleteSceneMutation } from '@/services/sceneApi';
+import { ConfirmDialog } from '@/components/common';
 
 export function AdventureDetailPage() {
     const { adventureId } = useParams<{ adventureId: string }>();
@@ -45,6 +48,8 @@ export function AdventureDetailPage() {
     const [updateAdventure] = useUpdateAdventureMutation();
     const [createScene] = useCreateSceneMutation();
     const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation();
+    const [cloneScene] = useCloneSceneMutation();
+    const [deleteScene, { isLoading: isDeleting }] = useDeleteSceneMutation();
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -52,6 +57,8 @@ export function AdventureDetailPage() {
     const [isOneShot, setIsOneShot] = useState(false);
     const [isPublished, setIsPublished] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [sceneToDelete, setSceneToDelete] = useState<{ id: string; name: string } | null>(null);
 
     useEffect(() => {
         if (adventure && !isInitialized) {
@@ -195,12 +202,45 @@ export function AdventureDetailPage() {
         navigate(`/scene-editor/${sceneId}`);
     };
 
-    const handleDuplicateScene = async (_sceneId: string) => {
-        // TODO Phase 8: Implement scene duplication
+    const handleDuplicateScene = async (sceneId: string) => {
+        if (!adventureId) return;
+
+        try {
+            await cloneScene({
+                adventureId,
+                sceneId
+            }).unwrap();
+        } catch (error) {
+            console.error('Failed to duplicate scene:', error);
+            setSaveStatus('error');
+        }
     };
 
-    const handleDeleteScene = async (_sceneId: string) => {
-        // TODO Phase 8: Implement scene deletion
+    const handleDeleteScene = (sceneId: string) => {
+        const scene = scenes.find(s => s.id === sceneId);
+        if (!scene) return;
+
+        setSceneToDelete({ id: sceneId, name: scene.name });
+        setDeleteDialogOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!sceneToDelete) return;
+
+        try {
+            await deleteScene(sceneToDelete.id).unwrap();
+
+            setDeleteDialogOpen(false);
+            setSceneToDelete(null);
+        } catch (error) {
+            console.error('Failed to delete scene:', error);
+            setSaveStatus('error');
+        }
+    };
+
+    const handleCancelDelete = () => {
+        setDeleteDialogOpen(false);
+        setSceneToDelete(null);
     };
 
     if (isLoadingAdventure) {
@@ -526,6 +566,18 @@ export function AdventureDetailPage() {
                 )}
                 </Paper>
             </Box>
+
+            <ConfirmDialog
+                open={deleteDialogOpen}
+                onClose={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
+                title="Delete Scene"
+                message={`Are you sure you want to delete "${sceneToDelete?.name}"? This action cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                severity="error"
+                isLoading={isDeleting}
+            />
         </Box>
     );
 }

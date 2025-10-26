@@ -20,6 +20,7 @@ internal static class SceneHandlers {
             AdventureId = request.AdventureId,
             Name = request.Name,
             Description = request.Description,
+            IsPublished = request.IsPublished,
             Stage = request.Stage.IsSet
                 ? new UpdateSceneData.StageUpdate {
                     BackgroundId = request.Stage.Value.BackgroundId,
@@ -37,13 +38,18 @@ internal static class SceneHandlers {
                 : new(),
         };
         var result = await sceneService.UpdateSceneAsync(userId, id, data);
-        return result.IsSuccessful
-            ? Results.NoContent()
-            : result.Errors[0].Message == "NotFound"
+        if (!result.IsSuccessful) {
+            return result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
+        }
+
+        var updatedScene = await sceneService.GetSceneByIdAsync(id);
+        return updatedScene is not null
+            ? Results.Ok(updatedScene)
+            : Results.NotFound();
     }
 
     internal static async Task<IResult> GetAssetsHandler([FromRoute] Guid id, [FromServices] ISceneService sceneService)

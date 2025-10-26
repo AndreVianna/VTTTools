@@ -12,19 +12,47 @@ import {
 import {
   LightMode,
   DarkMode,
-  AccountCircle
+  AccountCircle,
+  ArrowBack as ArrowBackIcon,
+  Tune as TuneIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { toggleTheme, selectTheme } from '@/store/slices/uiSlice';
-import { ConnectionStatusBanner } from '@/components/common';
+import { ConnectionStatusBanner, EditableSceneName, SaveStatusIndicator, SaveStatus } from '@/components/common';
+import { ScenePropertiesPanel } from '@/components/scene';
+import type { Scene } from '@/types/domain';
 
 interface EditorLayoutProps {
   children: React.ReactNode;
+  scene?: Scene;
+  onSceneNameChange?: (name: string) => void;
+  onSceneNameBlur?: (name: string) => void;
+  onBackClick?: () => void;
+  saveStatus?: SaveStatus;
+  onSceneDescriptionChange?: (description: string) => void;
+  onScenePublishedChange?: (published: boolean) => void;
+  onBackgroundUpload?: (file: File) => void;
+  onGridChange?: (grid: import('@/utils/gridCalculator').GridConfig) => void;
+  backgroundUrl?: string;
+  isUploadingBackground?: boolean;
 }
 
-export const EditorLayout: React.FC<EditorLayoutProps> = ({ children }) => {
+export const EditorLayout: React.FC<EditorLayoutProps> = ({
+  children,
+  scene,
+  onSceneNameChange,
+  onSceneNameBlur,
+  onBackClick,
+  saveStatus,
+  onSceneDescriptionChange,
+  onScenePublishedChange,
+  onBackgroundUpload,
+  onGridChange,
+  backgroundUrl,
+  isUploadingBackground
+}) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -32,6 +60,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
 
   const [userMenuAnchor, setUserMenuAnchor] = React.useState<null | HTMLElement>(null);
+  const [propertiesPanelOpen, setPropertiesPanelOpen] = React.useState(false);
 
   const handleThemeToggle = () => {
     dispatch(toggleTheme());
@@ -63,20 +92,69 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({ children }) => {
         }}
       >
         <Toolbar sx={{ minHeight: 64 }}>
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{
-              fontWeight: 600,
-              cursor: 'pointer',
-              mr: 4
-            }}
-            onClick={() => navigate('/')}
-          >
-            VTT Tools
-          </Typography>
+          {scene && onBackClick && (
+            <IconButton
+              color="inherit"
+              onClick={onBackClick}
+              aria-label="Back"
+              sx={{
+                mr: 2,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                }
+              }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+          )}
+
+          {scene && (
+            <IconButton
+              color="inherit"
+              onClick={() => setPropertiesPanelOpen(!propertiesPanelOpen)}
+              aria-label="Toggle properties panel"
+              sx={{
+                mr: 2,
+                backgroundColor: propertiesPanelOpen
+                  ? 'rgba(255, 255, 255, 0.2)'
+                  : 'rgba(255, 255, 255, 0.1)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                }
+              }}
+            >
+              <TuneIcon />
+            </IconButton>
+          )}
+
+          {scene && onSceneNameChange ? (
+            <EditableSceneName
+              value={scene.name}
+              onChange={onSceneNameChange}
+              onBlur={onSceneNameBlur}
+              disabled={!scene}
+            />
+          ) : (
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
+                fontWeight: 600,
+                cursor: 'pointer',
+                mr: 4
+              }}
+              onClick={() => navigate('/')}
+            >
+              VTT Tools
+            </Typography>
+          )}
 
           <Box sx={{ flexGrow: 1 }} />
+
+          {saveStatus && (
+            <SaveStatusIndicator status={saveStatus} compact />
+          )}
 
           <ConnectionStatusBanner />
 
@@ -137,6 +215,19 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({ children }) => {
           )}
         </Toolbar>
       </AppBar>
+
+      {scene && (
+        <ScenePropertiesPanel
+          open={propertiesPanelOpen}
+          scene={scene}
+          onDescriptionChange={onSceneDescriptionChange ?? (() => {})}
+          onPublishedChange={onScenePublishedChange ?? (() => {})}
+          onBackgroundUpload={onBackgroundUpload}
+          onGridChange={onGridChange}
+          backgroundUrl={backgroundUrl}
+          isUploadingBackground={isUploadingBackground}
+        />
+      )}
 
       <Box component="main" sx={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         {children}

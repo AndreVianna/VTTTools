@@ -6,7 +6,13 @@ export default defineConfig(({ mode }) => {
   const isStandalone = process.env.VITE_STANDALONE === 'true' || mode === 'standalone';
 
   return {
-    plugins: [react()],
+    plugins: [
+      react({
+        jsxRuntime: 'automatic',
+        jsxImportSource: undefined,
+        babel: undefined,
+      }),
+    ],
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src'),

@@ -322,7 +322,7 @@ export interface UpdateSceneRequest {
 
 export interface Scene {
   id: string;
-  adventureId: string;
+  adventure: Adventure | null;
   name: string;
   description: string;
   isPublished: boolean;

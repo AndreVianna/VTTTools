@@ -5,6 +5,7 @@ public record UpdateSceneRequest
     public Optional<Guid> AdventureId { get; init; }
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
+    public Optional<bool> IsPublished { get; init; }
     public Optional<StageUpdate> Stage { get; init; }
     public Optional<GridUpdate> Grid { get; init; }
 

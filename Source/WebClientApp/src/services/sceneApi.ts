@@ -21,7 +21,8 @@ export const sceneApi = createApi({
     endpoints: (builder) => ({
         getScene: builder.query<Scene, string>({
             query: (id) => `/${id}`,
-            providesTags: (_result, _error, id) => [{ type: 'Scene', id }]
+            providesTags: (_result, _error, id) => [{ type: 'Scene', id }],
+            keepUnusedDataFor: 0  // Don't cache - always fetch fresh
         }),
 
         getScenes: builder.query<Scene[], { adventureId?: string }>({
@@ -72,6 +73,15 @@ export const sceneApi = createApi({
                 }
             },
             invalidatesTags: (_result, _error, { id }) => [{ type: 'Scene', id }]
+        }),
+
+        patchScene: builder.mutation<Scene, { id: string; request: UpdateSceneRequest }>({
+            query: ({ id, request }) => ({
+                url: `/${id}`,
+                method: 'PATCH',
+                body: request
+            })
+            // No invalidatesTags - will manually refetch in component
         }),
 
         deleteScene: builder.mutation<void, string>({
@@ -150,6 +160,7 @@ export const {
     useGetScenesQuery,
     useCreateSceneMutation,
     useUpdateSceneMutation,
+    usePatchSceneMutation,
     useDeleteSceneMutation,
     useGetSceneAssetsQuery,
     useAddSceneAssetMutation,

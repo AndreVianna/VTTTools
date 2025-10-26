@@ -52,7 +52,7 @@ export const hydrateFromStorage = () => {
         if (!cached) return undefined;
 
         const age = Date.now() - cached.timestamp;
-        const MAX_CACHE_AGE = 24 * 60 * 60 * 1000;
+        const MAX_CACHE_AGE = 5 * 60 * 1000;
 
         if (age > MAX_CACHE_AGE) {
             storage.removeItem(RTK_QUERY_CACHE_KEY);
@@ -69,10 +69,8 @@ export const hydrateFromStorage = () => {
                 focused: true,
                 middlewareRegistered: false,
                 reducerPath: 'sceneApi',
-                keepUnusedDataFor: 60,
-                refetchOnMountOrArgChange: false,
                 refetchOnFocus: false,
-                refetchOnReconnect: false
+                refetchOnReconnect: true
             }
         };
     } catch (error) {

@@ -25,8 +25,8 @@ Creates context-aware implementation roadmap by analyzing item specifications an
 - **STEP 0C**: Locate item specification:
   <case {item_type}>
   <is feature>
-    - Use Glob: "Documents/Areas/*/Features/{item_name}.md"
-    - Abort if not found: "Feature not found. Run /add-feature first."
+  - Use Glob: "Documents/Areas/*/Features/{item_name}.md"
+  - Abort if not found: "Feature not found. Run /add-feature first."
   </is>
   <is use-case>
     - Use Glob: "Documents/Areas/*/Features/*/UseCases/{item_name}.md"
@@ -201,10 +201,10 @@ Creates context-aware implementation roadmap by analyzing item specifications an
 - **STEP 3E**: Determine roadmap file location:
   <case {item_type}>
   <is feature>
-    - Location: Feature directory (same location as feature spec)
-    - Parse feature directory from {specification_path}
-    - Filename: "ROADMAP.md" (always same name, no prefix)
-    - Example: "Documents/Areas/TaskManagement/Features/ROADMAP.md" (if feature is file) OR "Documents/Areas/TaskManagement/Features/PriorityManagement/ROADMAP.md" (if feature is folder)
+  - Location: Feature directory (same location as feature spec)
+  - Parse feature directory from {specification_path}
+  - Filename: "ROADMAP.md" (always same name, no prefix)
+  - Example: "Documents/Areas/TaskManagement/Features/ROADMAP.md" (if feature is file) OR "Documents/Areas/TaskManagement/Features/PriorityManagement/ROADMAP.md" (if feature is folder)
   </is>
   <is use-case>
     - Location: Use case directory (same location as use case spec)

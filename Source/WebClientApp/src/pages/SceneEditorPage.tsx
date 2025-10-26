@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Box, useTheme, Backdrop, CircularProgress, Typography } from '@mui/material';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Box, useTheme, Backdrop, CircularProgress, Typography, Alert } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Layer } from 'react-konva';
 import Konva from 'konva';
 import {
@@ -13,9 +14,10 @@ import {
     TokenDragHandle
 } from '@components/scene';
 import { EditingBlocker } from '@components/common';
+import { EditorLayout } from '@components/layout';
 import { GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
 import { layerManager, LayerName } from '@services/layerManager';
-import { Asset, PlacedAsset } from '@/types/domain';
+import { Asset, PlacedAsset, Scene } from '@/types/domain';
 import { UndoRedoProvider, useUndoRedoContext } from '@/contexts/UndoRedoContext';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import {
@@ -24,6 +26,11 @@ import {
     createRemoveAssetCommand,
     createBatchCommand
 } from '@/utils/commands';
+import { useGetSceneQuery, usePatchSceneMutation } from '@/services/sceneApi';
+import { useUploadFileMutation } from '@/services/mediaApi';
+import { hydratePlacedAssets, dehydratePlacedAssets } from '@/utils/sceneMappers';
+import { getApiEndpoints } from '@/config/development';
+import { SaveStatus } from '@/components/common';
 
 const STAGE_WIDTH = 2800;
 const STAGE_HEIGHT = 2100;
@@ -35,10 +42,31 @@ const TOTAL_TOP_HEIGHT = EDITOR_HEADER_HEIGHT + MENU_BAR_HEIGHT;
 
 const SceneEditorPageInternal: React.FC = () => {
     const theme = useTheme();
+    const navigate = useNavigate();
+    const { sceneId } = useParams<{ sceneId: string }>();
     const canvasRef = useRef<SceneCanvasHandle>(null);
     const stageRef = useRef<Konva.Stage>(null);
     const { execute } = useUndoRedoContext();
     const { isOnline } = useConnectionStatus();
+
+    const { data: sceneData, isLoading: isLoadingScene, error: sceneError, refetch } = useGetSceneQuery(
+        sceneId || '',
+        {
+            skip: !sceneId
+        }
+    );
+    const [patchScene] = usePatchSceneMutation();
+    const [uploadFile, { isLoading: isUploadingBackground }] = useUploadFileMutation();
+
+    // Force refetch on mount with forceRefetch option
+    useEffect(() => {
+        if (sceneId) {
+            refetch();
+        }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const [isInitialized, setIsInitialized] = useState(false);
+    const [scene, setScene] = useState<Scene | null>(null);
 
     const initialViewport = {
         x: (window.innerWidth - STAGE_WIDTH) / 2,
@@ -64,26 +92,153 @@ const SceneEditorPageInternal: React.FC = () => {
     const [isSceneReady, setIsSceneReady] = useState<boolean>(false);
     const [imagesLoaded, setImagesLoaded] = useState<boolean>(false);
     const [handlersReady, setHandlersReady] = useState<boolean>(false);
-
-    const [placedAssets, setPlacedAssets] = useState<PlacedAsset[]>(() => {
-        const stored = localStorage.getItem('scene-placed-assets');
-        if (stored) {
-            try {
-                return JSON.parse(stored);
-            } catch {
-                return [];
-            }
-        }
-        return [];
-    });
+    const [placedAssets, setPlacedAssets] = useState<PlacedAsset[]>([]);
+    const [isHydrating, setIsHydrating] = useState(false);
+    const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
     useEffect(() => {
-        localStorage.setItem('scene-placed-assets', JSON.stringify(placedAssets));
-    }, [placedAssets]);
+        if (sceneData && !isInitialized) {
+            const initializeScene = async () => {
+                setIsHydrating(true);
+                try {
+                    const hydratedAssets = await hydratePlacedAssets(
+                        sceneData.assets,
+                        async (assetId: string) => {
+                            const response = await fetch(`/api/assets/${assetId}`);
+                            if (!response.ok) throw new Error(`Failed to fetch asset ${assetId}`);
+                            return response.json();
+                        }
+                    );
+
+                    setScene(sceneData);
+                    setGridConfig({
+                        type: typeof sceneData.grid.type === 'string'
+                            ? GridType[sceneData.grid.type as keyof typeof GridType]
+                            : sceneData.grid.type,
+                        cellSize: sceneData.grid.cellSize,
+                        offset: sceneData.grid.offset,
+                        snap: sceneData.grid.snap
+                    });
+                    setPlacedAssets(hydratedAssets);
+                    setIsInitialized(true);
+                } catch (error) {
+                    console.error('Failed to hydrate scene assets:', error);
+                } finally {
+                    setIsHydrating(false);
+                }
+            };
+
+            initializeScene();
+        }
+    }, [sceneData, isInitialized]);
 
     useEffect(() => {
         localStorage.setItem('scene-selected-assets', JSON.stringify(selectedAssetIds));
     }, [selectedAssetIds]);
+
+    const saveChanges = useCallback(async (overrides?: Partial<{
+        name: string;
+        description: string;
+        isPublished: boolean;
+        grid: {
+            type: any;
+            cellSize: { width: number; height: number };
+            offset: { left: number; top: number };
+            snap: boolean;
+        };
+    }>) => {
+        if (!sceneId || !scene || !isInitialized) {
+            return;
+        }
+
+        const currentData = {
+            name: scene.name,
+            description: scene.description,
+            isPublished: scene.isPublished,
+            grid: {
+                type: gridConfig.type as any,
+                cellSize: gridConfig.cellSize,
+                offset: gridConfig.offset,
+                snap: gridConfig.snap
+            },
+            ...overrides
+        };
+
+        const hasChanges =
+            currentData.name !== scene.name ||
+            currentData.description !== scene.description ||
+            currentData.isPublished !== scene.isPublished ||
+            JSON.stringify(currentData.grid) !== JSON.stringify({
+                type: typeof scene.grid.type === 'string'
+                    ? GridType[scene.grid.type as keyof typeof GridType]
+                    : scene.grid.type,
+                cellSize: scene.grid.cellSize,
+                offset: scene.grid.offset,
+                snap: scene.grid.snap
+            });
+
+        if (!hasChanges) {
+            return;
+        }
+
+        setSaveStatus('saving');
+
+        const requestPayload = {
+            name: currentData.name,
+            description: currentData.description,
+            isPublished: currentData.isPublished,
+            grid: currentData.grid
+        };
+
+        try {
+            const result = await patchScene({
+                id: sceneId,
+                request: requestPayload
+            }).unwrap();
+
+            if (result) {
+                setScene(result);
+            } else {
+                await refetch();
+            }
+
+            setSaveStatus('saved');
+        } catch (error) {
+            console.error('Failed to save scene:', error);
+            setSaveStatus('error');
+        }
+    }, [sceneId, scene, isInitialized, gridConfig, patchScene, refetch]);
+
+    const handleSceneNameChange = useCallback((name: string) => {
+        if (!sceneId || !scene) return;
+        setScene(prev => prev ? { ...prev, name } : null);
+    }, [sceneId, scene]);
+
+    const handleSceneNameBlur = useCallback((name: string) => {
+        saveChanges({ name });
+    }, [saveChanges]);
+
+    const handleBackClick = useCallback(() => {
+        if (scene?.adventure?.id) {
+            navigate(`/adventures/${scene.adventure.id}`);
+        } else {
+            navigate('/content-library');
+        }
+    }, [scene, navigate]);
+
+    const handleSceneDescriptionChange = useCallback((description: string) => {
+        if (!sceneId || !scene) {
+            return;
+        }
+        setScene(prev => prev ? { ...prev, description } : null);
+        saveChanges({ description });
+    }, [sceneId, scene, saveChanges]);
+
+    const handleScenePublishedChange = useCallback((isPublished: boolean) => {
+        if (!sceneId) return;
+        setScene(prev => prev ? { ...prev, isPublished } : null);
+        saveChanges({ isPublished });
+    }, [sceneId, saveChanges]);
 
     useEffect(() => {
         const stage = canvasRef.current?.getStage();
@@ -95,8 +250,22 @@ const SceneEditorPageInternal: React.FC = () => {
     }, []);
 
     useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (saveStatus === 'saving') {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [saveStatus]);
+
+    useEffect(() => {
         if (stageRef.current && imagesLoaded && handlersReady && !isSceneReady) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsSceneReady(true);
         }
     }, [imagesLoaded, handlersReady, isSceneReady]);
@@ -109,7 +278,7 @@ const SceneEditorPageInternal: React.FC = () => {
         isAltPressed && isCtrlPressed ? 'half-step' :
         isAltPressed ? 'free' :
         isCtrlPressed ? 'grid' :
-        gridConfig.snapToGrid ? 'grid' : 'free';
+        gridConfig.snap ? 'grid' : 'free';
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -172,13 +341,59 @@ const SceneEditorPageInternal: React.FC = () => {
         canvasRef.current?.resetView();
     };
 
-    const handleGridChange = (newGrid: GridConfig) => {
-        setGridConfig(newGrid);
-    };
+    const handleGridChange = useCallback((newGrid: GridConfig) => {
+        if (!scene || !sceneId) return;
 
-    const handleBackgroundUpload = () => {
-        // TODO: Implement background upload functionality
-    };
+        const normalizedGrid = {
+            ...newGrid,
+            type: typeof newGrid.type === 'string'
+                ? GridType[newGrid.type as keyof typeof GridType]
+                : newGrid.type
+        };
+
+        setGridConfig(normalizedGrid);
+        setScene(prev => prev ? {
+            ...prev,
+            grid: {
+                type: newGrid.type as any,
+                cellSize: newGrid.cellSize,
+                offset: newGrid.offset,
+                snap: newGrid.snap
+            }
+        } : null);
+
+        saveChanges({
+            grid: {
+                type: newGrid.type as any,
+                cellSize: newGrid.cellSize,
+                offset: newGrid.offset,
+                snap: newGrid.snap
+            }
+        });
+    }, [scene, sceneId, saveChanges]);
+
+    const handleBackgroundUpload = useCallback(async (file: File) => {
+        if (!sceneId) return;
+
+        try {
+            const result = await uploadFile({
+                file,
+                type: 'scene',
+                resource: 'background',
+                entityId: sceneId
+            }).unwrap();
+
+            await patchScene({
+                id: sceneId,
+                request: {
+                    backgroundId: result.id
+                }
+            }).unwrap();
+
+        } catch (error) {
+            console.error('Failed to upload background:', error);
+        }
+    }, [sceneId, uploadFile, patchScene]);
 
     const handleOutsideClick = () => {
         if (draggedAsset) {
@@ -306,8 +521,52 @@ const SceneEditorPageInternal: React.FC = () => {
         setHandlersReady(true);
     };
 
+    if (isLoadingScene || isHydrating) {
+        return (
+            <EditorLayout>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                        <CircularProgress size={60} thickness={4} />
+                        <Typography variant="h6">
+                            {isLoadingScene ? 'Loading Scene...' : 'Preparing Assets...'}
+                        </Typography>
+                    </Box>
+                </Box>
+            </EditorLayout>
+        );
+    }
+
+    if (sceneError || (!sceneData && sceneId)) {
+        return (
+            <EditorLayout>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', p: 3 }}>
+                    <Alert severity="error">
+                        Failed to load scene. The scene may not exist or there was a network error.
+                    </Alert>
+                </Box>
+            </EditorLayout>
+        );
+    }
+
+    const backgroundUrl = scene?.stage?.background
+        ? `${getApiEndpoints().media}/${scene.stage.background.id}`
+        : undefined;
+
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+        <EditorLayout
+            scene={scene || undefined}
+            onSceneNameChange={handleSceneNameChange}
+            onSceneNameBlur={handleSceneNameBlur}
+            onBackClick={handleBackClick}
+            saveStatus={saveStatus}
+            onSceneDescriptionChange={handleSceneDescriptionChange}
+            onScenePublishedChange={handleScenePublishedChange}
+            onBackgroundUpload={handleBackgroundUpload}
+            onGridChange={handleGridChange}
+            backgroundUrl={backgroundUrl}
+            isUploadingBackground={isUploadingBackground}
+        >
+            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
             <EditingBlocker isBlocked={!isOnline} />
 
             <Box
@@ -323,14 +582,15 @@ const SceneEditorPageInternal: React.FC = () => {
             >
                 <Box sx={{ pointerEvents: 'auto' }}>
                     <SceneEditorMenuBar
-                        gridConfig={gridConfig}
-                        onGridChange={handleGridChange}
                         zoomPercentage={viewport.scale * 100}
                         onZoomIn={handleZoomIn}
                         onZoomOut={handleZoomOut}
                         onZoomReset={handleZoomReset}
-                        onBackgroundUpload={handleBackgroundUpload}
                         onAssetSelect={handleAssetSelect}
+                        viewport={{
+                            x: initialViewport.x - viewport.x,
+                            y: initialViewport.y - viewport.y
+                        }}
                     />
                 </Box>
             </Box>
@@ -341,14 +601,13 @@ const SceneEditorPageInternal: React.FC = () => {
                     overflow: 'hidden',
                     bgcolor: 'background.default',
                     position: 'relative',
-                    width: '100%',
-                    height: `calc(100vh - ${MENU_BAR_HEIGHT}px)`
+                    width: '100%'
                 }}
             >
                 <SceneCanvas
                     ref={canvasRef}
                     width={window.innerWidth}
-                    height={window.innerHeight - MENU_BAR_HEIGHT}
+                    height={window.innerHeight - TOTAL_TOP_HEIGHT}
                     initialPosition={{ x: initialViewport.x, y: initialViewport.y }}
                     backgroundColor={theme.palette.background.default}
                     onViewportChange={handleViewportChange}
@@ -407,45 +666,9 @@ const SceneEditorPageInternal: React.FC = () => {
                 </SceneCanvas>
             </Box>
 
-            <Backdrop
-                open={!isSceneReady}
-                sx={{
-                    color: theme.palette.text.primary,
-                    bgcolor: theme.palette.background.default,
-                    zIndex: theme.zIndex.drawer + 1,
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0
-                }}
-            >
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: theme.spacing(2)
-                    }}
-                >
-                    <CircularProgress
-                        size={60}
-                        thickness={4}
-                        sx={{
-                            color: theme.palette.primary.main
-                        }}
-                    />
-                    <Typography
-                        variant="h6"
-                        sx={{
-                            color: theme.palette.text.primary
-                        }}
-                    >
-                        Loading Scene...
-                    </Typography>
-                </Box>
-            </Backdrop>
+            {/* Backdrop removed - was causing infinite loading on refresh due to handlersReady never being called */}
         </Box>
+        </EditorLayout>
     );
 };
 

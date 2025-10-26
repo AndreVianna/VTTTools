@@ -23,51 +23,39 @@ import {
     Paper,
     Typography,
     IconButton,
-    Select,
-    MenuItem,
-    Checkbox,
-    FormControlLabel,
     Button,
-    Menu,
-    SelectChangeEvent,
-    Divider
+    Menu
 } from '@mui/material';
 import {
-    Add as AddIcon,
-    Remove as RemoveIcon,
     ExpandMore as ExpandMoreIcon,
-    Upload as UploadIcon,
     Undo as UndoIcon,
     Redo as RedoIcon,
     ZoomIn as ZoomInIcon,
-    ZoomOut as ZoomOutIcon
+    ZoomOut as ZoomOutIcon,
+    RestartAlt as RestartAltIcon
 } from '@mui/icons-material';
-import { GridConfig, GridType } from '@utils/gridCalculator';
 import { AssetPicker } from '@components/common';
 import { Asset, AssetKind } from '@/types/domain';
 import { useUndoRedoContext } from '@/contexts/UndoRedoContext';
 
 export interface SceneEditorMenuBarProps {
-    gridConfig: GridConfig;
-    onGridChange: (newGrid: GridConfig) => void;
     zoomPercentage: number;
     onZoomIn: () => void;
     onZoomOut: () => void;
-    onBackgroundUpload: () => void;
-    onAssetSelect: (asset: Asset) => void;  // Callback when asset is selected for placement
+    onZoomReset?: () => void;
+    onAssetSelect: (asset: Asset) => void;
+    viewport: { x: number; y: number };
 }
 
 export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
-    gridConfig,
-    onGridChange,
     zoomPercentage,
     onZoomIn,
     onZoomOut,
-    onBackgroundUpload,
-    onAssetSelect
+    onZoomReset,
+    onAssetSelect,
+    viewport
 }) => {
     const { canUndo, canRedo, undo, redo } = useUndoRedoContext();
-    const [stageMenuAnchor, setStageMenuAnchor] = useState<null | HTMLElement>(null);
     const [structuresMenuAnchor, setStructuresMenuAnchor] = useState<null | HTMLElement>(null);
     const [objectsMenuAnchor, setObjectsMenuAnchor] = useState<null | HTMLElement>(null);
     const [creaturesMenuAnchor, setCreaturesMenuAnchor] = useState<null | HTMLElement>(null);
@@ -75,14 +63,6 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
     // Asset picker state
     const [assetPickerOpen, setAssetPickerOpen] = useState(false);
     const [pickerKind, setPickerKind] = useState<AssetKind | undefined>(undefined);
-
-    const handleStageMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-        setStageMenuAnchor(event.currentTarget);
-    };
-
-    const handleStageMenuClose = () => {
-        setStageMenuAnchor(null);
-    };
 
     const handleStructuresMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         setStructuresMenuAnchor(event.currentTarget);
@@ -123,274 +103,8 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
         onAssetSelect(asset);
     };
 
-    // Calculate delta based on modifier keys
-    // Default: ±10, Shift: ±1, Ctrl: ±0.1, Ctrl+Shift: ±0.01
-    const calculateDelta = (baseDirection: number, event: React.MouseEvent) => {
-        if (event.ctrlKey && event.shiftKey) {
-            return baseDirection * 0.01;
-        } else if (event.ctrlKey) {
-            return baseDirection * 0.1;
-        } else if (event.shiftKey) {
-            return baseDirection * 1;
-        } else {
-            return baseDirection * 10;
-        }
-    };
-
-    // Grid type change handler
-    const handleGridTypeChange = (event: SelectChangeEvent<number>) => {
-        onGridChange({
-            ...gridConfig,
-            type: event.target.value as GridType
-        });
-    };
-
-    // Numeric field change handlers with increment/decrement
-    const handleCellWidthChange = (direction: number, event: React.MouseEvent) => {
-        const delta = calculateDelta(direction, event);
-        onGridChange({
-            ...gridConfig,
-            cellSize: {
-                ...gridConfig.cellSize,
-                width: Math.max(0.01, gridConfig.cellSize.width + delta)
-            }
-        });
-    };
-
-    const handleCellHeightChange = (direction: number, event: React.MouseEvent) => {
-        const delta = calculateDelta(direction, event);
-        onGridChange({
-            ...gridConfig,
-            cellSize: {
-                ...gridConfig.cellSize,
-                height: Math.max(0.01, gridConfig.cellSize.height + delta)
-            }
-        });
-    };
-
-    const handleOffsetXChange = (direction: number, event: React.MouseEvent) => {
-        const delta = calculateDelta(direction, event);
-        onGridChange({
-            ...gridConfig,
-            offset: {
-                ...gridConfig.offset,
-                left: gridConfig.offset.left + delta
-            }
-        });
-    };
-
-    const handleOffsetYChange = (direction: number, event: React.MouseEvent) => {
-        const delta = calculateDelta(direction, event);
-        onGridChange({
-            ...gridConfig,
-            offset: {
-                ...gridConfig.offset,
-                top: gridConfig.offset.top + delta
-            }
-        });
-    };
-
-    const handleSnapToGridChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        onGridChange({
-            ...gridConfig,
-            snap: event.target.checked
-        });
-    };
-
     return (
         <Paper elevation={1} sx={{ p: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* Stage Menu */}
-            <Button
-                onClick={handleStageMenuOpen}
-                endIcon={<ExpandMoreIcon />}
-                sx={{ textTransform: 'none', minWidth: 'auto', px: 1 }}
-                size="small"
-            >
-                Stage
-            </Button>
-            <Menu
-                anchorEl={stageMenuAnchor}
-                open={Boolean(stageMenuAnchor)}
-                onClose={handleStageMenuClose}
-                PaperProps={{
-                    sx: { minWidth: 280, p: 1.5 }
-                }}
-            >
-                {/* Background Section */}
-                <Box sx={{ mb: 1.5 }}>
-                    <Typography variant="subtitle2" sx={{ mb: 0.5, fontSize: '0.875rem' }}>
-                        Background
-                    </Typography>
-                    <Box sx={{ ml: 1 }}>
-                        <Button
-                            size="small"
-                            startIcon={<UploadIcon />}
-                            onClick={() => {
-                                onBackgroundUpload();
-                                handleStageMenuClose();
-                            }}
-                            variant="outlined"
-                            fullWidth
-                        >
-                            Upload
-                        </Button>
-                    </Box>
-                </Box>
-
-                <Divider sx={{ my: 1 }} />
-
-                {/* Grid Section */}
-                <Box>
-                    <Typography variant="subtitle2" sx={{ mb: 0.5, fontSize: '0.875rem' }}>
-                        Grid
-                    </Typography>
-                    <Box sx={{ ml: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        {/* Grid Type */}
-                        <Select
-                            size="small"
-                            value={gridConfig.type}
-                            onChange={handleGridTypeChange}
-                            fullWidth
-                        >
-                            <MenuItem value={GridType.NoGrid}>No Grid</MenuItem>
-                            <MenuItem value={GridType.Square}>Square</MenuItem>
-                            <MenuItem value={GridType.HexH}>Hex - Horizontal</MenuItem>
-                            <MenuItem value={GridType.HexV}>Hex - Vertical</MenuItem>
-                            <MenuItem value={GridType.Isometric}>Isometric</MenuItem>
-                        </Select>
-
-                        {/* Cell Width */}
-                        <Box>
-                            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.25, display: 'block', fontSize: '0.75rem' }}>
-                                Cell Width
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <IconButton size="small" onClick={(e) => handleCellWidthChange(-1, e)} sx={{ p: 0.5 }}>
-                                    <RemoveIcon fontSize="small" />
-                                </IconButton>
-                                <Typography
-                                    variant="body2"
-                                    sx={{
-                                        flexGrow: 1,
-                                        textAlign: 'center',
-                                        bgcolor: 'action.selected',
-                                        py: 0.25,
-                                        px: 0.5,
-                                        borderRadius: 0.5,
-                                        fontSize: '0.875rem'
-                                    }}
-                                >
-                                    {gridConfig.cellSize.width.toFixed(2)}
-                                </Typography>
-                                <IconButton size="small" onClick={(e) => handleCellWidthChange(1, e)} sx={{ p: 0.5 }}>
-                                    <AddIcon fontSize="small" />
-                                </IconButton>
-                            </Box>
-                        </Box>
-
-                        {/* Cell Height */}
-                        <Box>
-                            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.25, display: 'block', fontSize: '0.75rem' }}>
-                                Cell Height
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <IconButton size="small" onClick={(e) => handleCellHeightChange(-1, e)} sx={{ p: 0.5 }}>
-                                    <RemoveIcon fontSize="small" />
-                                </IconButton>
-                                <Typography
-                                    variant="body2"
-                                    sx={{
-                                        flexGrow: 1,
-                                        textAlign: 'center',
-                                        bgcolor: 'action.selected',
-                                        py: 0.25,
-                                        px: 0.5,
-                                        borderRadius: 0.5,
-                                        fontSize: '0.875rem'
-                                    }}
-                                >
-                                    {gridConfig.cellSize.height.toFixed(2)}
-                                </Typography>
-                                <IconButton size="small" onClick={(e) => handleCellHeightChange(1, e)} sx={{ p: 0.5 }}>
-                                    <AddIcon fontSize="small" />
-                                </IconButton>
-                            </Box>
-                        </Box>
-
-                        {/* Offset Left */}
-                        <Box>
-                            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.25, display: 'block', fontSize: '0.75rem' }}>
-                                Offset Left
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <IconButton size="small" onClick={(e) => handleOffsetXChange(-1, e)} sx={{ p: 0.5 }}>
-                                    <RemoveIcon fontSize="small" />
-                                </IconButton>
-                                <Typography
-                                    variant="body2"
-                                    sx={{
-                                        flexGrow: 1,
-                                        textAlign: 'center',
-                                        bgcolor: 'action.selected',
-                                        py: 0.25,
-                                        px: 0.5,
-                                        borderRadius: 0.5,
-                                        fontSize: '0.875rem'
-                                    }}
-                                >
-                                    {gridConfig.offset.left.toFixed(2)}
-                                </Typography>
-                                <IconButton size="small" onClick={(e) => handleOffsetXChange(1, e)} sx={{ p: 0.5 }}>
-                                    <AddIcon fontSize="small" />
-                                </IconButton>
-                            </Box>
-                        </Box>
-
-                        {/* Offset Top */}
-                        <Box>
-                            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.25, display: 'block', fontSize: '0.75rem' }}>
-                                Offset Top
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <IconButton size="small" onClick={(e) => handleOffsetYChange(-1, e)} sx={{ p: 0.5 }}>
-                                    <RemoveIcon fontSize="small" />
-                                </IconButton>
-                                <Typography
-                                    variant="body2"
-                                    sx={{
-                                        flexGrow: 1,
-                                        textAlign: 'center',
-                                        bgcolor: 'action.selected',
-                                        py: 0.25,
-                                        px: 0.5,
-                                        borderRadius: 0.5,
-                                        fontSize: '0.875rem'
-                                    }}
-                                >
-                                    {gridConfig.offset.top.toFixed(2)}
-                                </Typography>
-                                <IconButton size="small" onClick={(e) => handleOffsetYChange(1, e)} sx={{ p: 0.5 }}>
-                                    <AddIcon fontSize="small" />
-                                </IconButton>
-                            </Box>
-                        </Box>
-
-                        {/* Snap to Grid */}
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    size="small"
-                                    checked={gridConfig.snap}
-                                    onChange={handleSnapToGridChange}
-                                />
-                            }
-                            label={<Typography variant="body2">Snap to Grid</Typography>}
-                        />
-                    </Box>
-                </Box>
-
-            </Menu>
-
             {/* Structures Menu - Static Assets (walls, doors, terrain) */}
             <Button
                 onClick={handleStructuresMenuOpen}
@@ -501,6 +215,58 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
             <Box sx={{ flexGrow: 1 }} />
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography
+                    variant="body2"
+                    sx={{
+                        color: 'text.secondary',
+                        fontFamily: 'monospace',
+                        textAlign: 'center',
+                        userSelect: 'none'
+                    }}
+                >
+                    ({Math.round(-viewport.x)}, {Math.round(-viewport.y)})
+                </Typography>
+
+                <IconButton
+                    onClick={onZoomOut}
+                    size="small"
+                    title="Zoom Out"
+                >
+                    <ZoomOutIcon fontSize="small" />
+                </IconButton>
+
+                <Typography
+                    variant="body2"
+                    sx={{
+                        textAlign: 'center',
+                        userSelect: 'none'
+                    }}
+                >
+                    {Math.round(zoomPercentage)}%
+                </Typography>
+
+                <IconButton
+                    onClick={onZoomIn}
+                    size="small"
+                    title="Zoom In"
+                >
+                    <ZoomInIcon fontSize="small" />
+                </IconButton>
+
+                <IconButton
+                    onClick={onZoomReset}
+                    size="small"
+                    title="Reset View"
+                    sx={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        '&:hover': {
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }}
+                >
+                    <RestartAltIcon fontSize="small" />
+                </IconButton>
+
                 <IconButton
                     onClick={undo}
                     disabled={!canUndo}
@@ -517,31 +283,6 @@ export const SceneEditorMenuBar: React.FC<SceneEditorMenuBarProps> = ({
                     title="Redo (Ctrl+Y)"
                 >
                     <RedoIcon fontSize="small" />
-                </IconButton>
-
-                <Box sx={{ width: 1, height: 24, bgcolor: 'divider', mx: 0.5 }} />
-
-                <IconButton
-                    onClick={onZoomOut}
-                    size="small"
-                    title="Zoom Out"
-                >
-                    <ZoomOutIcon fontSize="small" />
-                </IconButton>
-
-                <Typography
-                    variant="body2"
-                    sx={{ minWidth: 45, textAlign: 'center', fontSize: '0.75rem' }}
-                >
-                    {Math.round(zoomPercentage)}%
-                </Typography>
-
-                <IconButton
-                    onClick={onZoomIn}
-                    size="small"
-                    title="Zoom In"
-                >
-                    <ZoomInIcon fontSize="small" />
                 </IconButton>
             </Box>
 

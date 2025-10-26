@@ -14,11 +14,12 @@ import { contentApi } from '../services/contentApi';
 import { gameSessionsApi } from '../services/gameSessionsApi';
 import { mediaApi } from '../services/mediaApi';
 import { sceneApi } from '../services/sceneApi';
-import { persistMiddleware, hydrateFromStorage } from '../services/offlineSync';
+// Offline sync temporarily disabled - causes cache invalidation errors
+// import { persistMiddleware, hydrateFromStorage } from '../services/offlineSync';
 
-const preloadedState = {
-  [sceneApi.reducerPath]: hydrateFromStorage()
-};
+// const preloadedState = {
+//   [sceneApi.reducerPath]: hydrateFromStorage()
+// };
 
 export const store = configureStore({
   reducer: {
@@ -36,7 +37,7 @@ export const store = configureStore({
     [mediaApi.reducerPath]: mediaApi.reducer,
     [sceneApi.reducerPath]: sceneApi.reducer,
   },
-  preloadedState,
+  // preloadedState, // Disabled - causes cache issues
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
@@ -55,8 +56,8 @@ export const store = configureStore({
     .concat(contentApi.middleware)
     .concat(gameSessionsApi.middleware)
     .concat(mediaApi.middleware)
-    .concat(sceneApi.middleware)
-    .concat(persistMiddleware),
+    .concat(sceneApi.middleware),
+    // .concat(persistMiddleware), // Disabled - causes cache invalidation errors
   devTools: process.env.NODE_ENV !== 'production',
 });
 

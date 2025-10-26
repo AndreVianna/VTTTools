@@ -185,13 +185,6 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             _ => throw new InvalidOperationException($"Unknown asset type: {asset.GetType()}")
         };
 
-        Console.WriteLine($"[AssetService] Final asset before storage update:");
-        Console.WriteLine($"[AssetService]   AssetId={asset.Id}, Name={asset.Name}");
-        Console.WriteLine($"[AssetService]   Resources.Count={asset.Resources.Count}");
-        foreach (var r in asset.Resources) {
-            Console.WriteLine($"[AssetService]   Final resource: ResourceId={r.ResourceId}, Role={r.Role}");
-        }
-
         await assetStorage.UpdateAsync(asset, ct);
         return asset;
     }

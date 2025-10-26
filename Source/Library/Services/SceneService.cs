@@ -51,10 +51,13 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         var result = data.Validate();
         if (result.HasErrors)
             return result;
+
         scene = scene with {
             Name = data.Name.IsSet ? data.Name.Value : scene.Name,
             Description = data.Description.IsSet ? data.Description.Value : scene.Description,
+            IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : scene.IsPublished,
         };
+
         if (data.Stage.IsSet)
             scene = await SetStage(scene, data, ct);
         if (data.Grid.IsSet)

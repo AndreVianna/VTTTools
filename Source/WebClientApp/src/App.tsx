@@ -8,7 +8,7 @@ import { LandingPage } from '@/pages/LandingPage';
 import { SceneEditorPage } from '@/pages/SceneEditorPage';
 import { AssetLibraryPage } from '@/pages/AssetLibraryPage';
 import { ErrorBoundary, NetworkStatus, ServiceUnavailablePage } from '@/components/error';
-import { AppLayout, EditorLayout } from '@/components/layout';
+import { AppLayout } from '@/components/layout';
 import { VTTThemeProvider } from '@/components/theme';
 import { LoadingOverlay } from '@/components/common';
 import { ProtectedRoute } from '@/components/auth';
@@ -102,11 +102,9 @@ function AppRoutes() {
           } />
 
           <Route path="/scene-editor/:sceneId?" element={
-            <EditorLayout>
-              <ProtectedRoute authLevel="authorized">
-                <SceneEditorPage />
-              </ProtectedRoute>
-            </EditorLayout>
+            <ProtectedRoute authLevel="authorized">
+              <SceneEditorPage />
+            </ProtectedRoute>
           } />
 
           <Route path="/settings/security" element={
