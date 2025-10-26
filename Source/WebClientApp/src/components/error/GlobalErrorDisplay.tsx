@@ -80,7 +80,7 @@ export const GlobalErrorDisplay: React.FC = () => {
 
   function handleErrorRetry(error: VTTError) {
     // Implementation would depend on error context
-    console.log('Retrying error:', error);
+    console.error('Retrying error:', error);
     dispatch(incrementRetryAttempt(error.id));
     // For now, just mark as recovered after delay
     setTimeout(() => {
@@ -120,7 +120,7 @@ const GlobalCriticalError: React.FC<GlobalCriticalErrorProps> = ({
       url: window.location.href,
     };
 
-    console.log('Error Report:', errorReport);
+    console.error('Error Report:', errorReport);
 
     dispatch(addNotification({
       type: 'info',

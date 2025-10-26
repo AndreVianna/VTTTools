@@ -110,7 +110,6 @@ describe('GUID encoding for x-user header (Authorization Bug Diagnosis)', () => 
             testCases.forEach(({ guid, expectedBase64Url, description }) => {
                 const actualBase64Url = encodeGuidToBase64Url(guid);
                 expect(actualBase64Url).toBe(expectedBase64Url);
-                console.log(`✅ ${description}: ${guid} → ${actualBase64Url}`);
             });
         });
 
@@ -144,8 +143,6 @@ describe('GUID encoding for x-user header (Authorization Bug Diagnosis)', () => 
                 // Should be valid base64url
                 expect(base64Url).toMatch(/^[A-Za-z0-9_-]+$/);
                 expect(base64Url.length).toBeGreaterThan(0);
-
-                console.log(`🔐 User GUID: ${guid} → x-user: ${base64Url}`);
             });
         });
 
@@ -159,18 +156,6 @@ describe('GUID encoding for x-user header (Authorization Bug Diagnosis)', () => 
             const actualHeader = encodeGuidToBase64Url(userId);
 
             expect(actualHeader).toBe(expectedHeader);
-
-            // Log for debugging
-            console.log(`
-                ========================================
-                GUID ENCODING VERIFICATION
-                ========================================
-                User ID (GUID): ${userId}
-                Expected x-user: ${expectedHeader}
-                Actual x-user:   ${actualHeader}
-                Match: ${actualHeader === expectedHeader ? '✅ YES' : '❌ NO'}
-                ========================================
-            `);
         });
     });
 
@@ -229,8 +214,6 @@ describe('GUID encoding for x-user header (Authorization Bug Diagnosis)', () => 
 
             const avgTime = (end - start) / iterations;
             expect(avgTime).toBeLessThan(1); // Should be < 1ms per encoding
-
-            console.log(`⚡ Average encoding time: ${avgTime.toFixed(4)}ms (${iterations} iterations)`);
         });
     });
 });

@@ -121,7 +121,7 @@ export class ErrorBoundary extends Component<Props, State> {
         retryCount: this.retryCount,
       };
 
-      console.log('Error Report:', errorReport);
+      console.error('Error Report:', errorReport);
 
       // Show success message
       alert('Error report sent successfully. Thank you for helping improve VTT Tools!');

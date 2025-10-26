@@ -61,7 +61,7 @@ function isDebugMode(): boolean {
 
 function debugLog(message: string): void {
     if (!isDebugMode()) return;
-    console.log(`[POOL] ${message}`);
+    console.log(`[DEBUG] ${message}`);
 }
 
 export class DatabaseHelper {

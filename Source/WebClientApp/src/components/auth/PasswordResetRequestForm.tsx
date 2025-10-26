@@ -123,7 +123,7 @@ export const PasswordResetRequestForm: React.FC<PasswordResetRequestFormProps> =
     try {
       await resetPassword(email);
     } catch (_error) {
-      console.log('Password reset request failed:', error);
+      console.error('Password reset request failed:', error);
     }
   };
 

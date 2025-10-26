@@ -242,7 +242,7 @@ export const PasswordResetConfirmForm: React.FC<PasswordResetConfirmFormProps> =
       );
     } catch (_error) {
       // Error is already handled by the useAuth hook
-      console.log('Password reset confirmation failed:', error);
+      console.error('Password reset confirmation failed:', error);
     }
   };
 

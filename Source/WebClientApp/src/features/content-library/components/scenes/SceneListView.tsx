@@ -43,7 +43,7 @@ export function SceneListView() {
     };
 
     const handleDuplicateScene = (sceneId: string) => {
-        console.log('Duplicate scene:', sceneId);
+        console.warn('[Not implemented] Duplicate scene:', sceneId);
     };
 
     const handleDeleteScene = (sceneId: string) => {
@@ -53,7 +53,7 @@ export function SceneListView() {
 
     const confirmDelete = () => {
         if (sceneToDelete) {
-            console.log('Delete scene:', sceneToDelete);
+            console.warn('[Not implemented] Delete scene:', sceneToDelete);
         }
         setDeleteDialogOpen(false);
         setSceneToDelete(null);

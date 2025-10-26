@@ -210,7 +210,7 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
       await login(email, password, rememberMe);
     } catch (_error) {
       setPassword('');
-      console.log('Login failed:', error);
+      console.error('Login failed:', error);
     }
   };
 

@@ -40,7 +40,7 @@ export default defineConfig(({ mode }) => {
           secure: false,
           configure: (proxy, _options) => {
             proxy.on('error', (err, _req, _res) => {
-              console.log('🔧 Proxy error (this is expected in standalone mode):', err.message);
+              console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
             });
           },
         },

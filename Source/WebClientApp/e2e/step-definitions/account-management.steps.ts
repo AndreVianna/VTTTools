@@ -306,10 +306,6 @@ Given('I have enabled two-factor authentication', async function (this: CustomWo
 
   await this.page.waitForTimeout(500);
 
-  const verifyResponse = await this.page.request.get('/api/auth/me');
-  const userData = await verifyResponse.json();
-  console.log(`[2FA] User data after enabling 2FA:`, JSON.stringify(userData));
-
   this.twoFactorEnabled = true;
   await this.page.reload();
   await this.page.waitForLoadState('networkidle');

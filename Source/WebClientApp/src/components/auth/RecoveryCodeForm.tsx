@@ -62,7 +62,7 @@ export const RecoveryCodeForm: React.FC<RecoveryCodeFormProps> = ({
       await verifyRecoveryCode(recoveryCode.replace(/\s/g, ''));
     } catch (_error) {
       // Error is already handled by the useAuth hook
-      console.log('Recovery code verification failed:', error);
+      console.error('Recovery code verification failed:', error);
     }
   };
 

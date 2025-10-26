@@ -901,6 +901,7 @@ export const PlayerList: React.FC<{ players: Player[] }> = ({ players }) => {
     // Memoize callbacks passed to child components
     const handlePlayerClick = useCallback((playerId: string) => {
         console.log('Player clicked:', playerId);
+        // callback implementation
     }, []);
 
     return (

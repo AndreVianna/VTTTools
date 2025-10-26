@@ -117,12 +117,6 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                 };
             }
 
-            console.log('[AssetCreateDialog] handleSave - Sending request:', {
-                request,
-                objectSize: selectedKind === AssetKind.Object ? objectSize : null,
-                creatureSize: selectedKind === AssetKind.Creature ? creatureSize : null
-            });
-
             await createAsset(request).unwrap();
             onClose();
         } catch (_error) {

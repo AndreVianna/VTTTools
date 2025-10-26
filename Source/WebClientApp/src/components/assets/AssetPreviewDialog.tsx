@@ -184,12 +184,6 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                 };
             }
 
-            console.log('[AssetPreviewDialog] handleSave - Sending request:', {
-                assetId: asset.id,
-                request,
-                currentSize: size
-            });
-
             await updateAsset({ id: asset.id, request }).unwrap();
             setEditMode(false);
         } catch (_error) {
@@ -333,17 +327,6 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                                     </Box>
                                 </AccordionSummary>
                                 <AccordionDetails sx={{ p: 3 }}>
-                                    {(() => {
-                                        console.log('[AssetPreviewDialog] Properties accordion expanded - Asset check:', {
-                                            assetKind: asset.kind,
-                                            isObjectAsset: isObjectAsset(asset),
-                                            isCreatureAsset: isCreatureAsset(asset),
-                                            hasProperties: 'properties' in asset,
-                                            asset
-                                        });
-                                        return null;
-                                    })()}
-
                                     {/* Object-specific Properties */}
                                     {isObjectAsset(asset) && (
                                         <ObjectPropertiesForm

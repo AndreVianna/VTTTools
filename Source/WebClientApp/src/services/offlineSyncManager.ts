@@ -128,7 +128,6 @@ export class OfflineSyncManager {
      * Handle online event
      */
     private handleOnline = (): void => {
-        console.log('Connection restored');
         this.isOnline = true;
         this.onConnectionChange?.(true);
 
@@ -182,7 +181,6 @@ export class OfflineSyncManager {
         try {
             const key = `${STORAGE_KEY_PREFIX}${this.sceneId}`;
             localStorage.setItem(key, JSON.stringify(state));
-            console.log('Scene saved to localStorage', state.version);
         } catch (error) {
             console.error('Failed to save to localStorage:', error);
         }
@@ -198,7 +196,6 @@ export class OfflineSyncManager {
 
             if (data) {
                 const state = JSON.parse(data) as OfflineSceneState;
-                console.log('Scene loaded from localStorage', state.version);
                 this.currentState = state;
                 this.pendingChanges = true;
                 return state;
@@ -217,7 +214,6 @@ export class OfflineSyncManager {
         try {
             const key = `${STORAGE_KEY_PREFIX}${this.sceneId}`;
             localStorage.removeItem(key);
-            console.log('Scene cleared from localStorage');
         } catch (error) {
             console.error('Failed to clear localStorage:', error);
         }
@@ -258,7 +254,6 @@ export class OfflineSyncManager {
             }
 
             // Sync successful
-            console.log('Scene synced to server', this.currentState.version);
             this.pendingChanges = false;
             this.clearLocalStorage();
             this.setSyncStatus(SyncStatus.Online);

@@ -73,19 +73,11 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
     // Derive selectedName from value props
     const selectedName = useMemo(() => {
         const computed = determineSizeName(value.width, value.height, value.isSquare);
-        console.log('[SizeSelector] Computed selectedName:', {
-            width: value.width,
-            height: value.height,
-            isSquare: value.isSquare,
-            computed
-        });
         return computed;
     }, [value.width, value.height, value.isSquare]);
 
     const handleNameChange = (event: SelectChangeEvent<SizeName>) => {
         const newName = Number(event.target.value) as SizeName;
-
-        console.log('[SizeSelector] handleNameChange:', { newName, currentValue: value });
 
         if (newName === SizeName.Custom) {
             const newValue = {
@@ -93,7 +85,6 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
                 height: value.height || 1,
                 isSquare: false
             };
-            console.log('[SizeSelector] Setting Custom size:', newValue);
             onChange(newValue);
         } else {
             const dimensions = SIZE_MAP[newName];
@@ -102,7 +93,6 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
                 height: dimensions.height,
                 isSquare: true
             };
-            console.log('[SizeSelector] Setting named size:', newValue);
             onChange(newValue);
         }
     };
