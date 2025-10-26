@@ -107,7 +107,7 @@ describe('GUID encoding for x-user header (Authorization Bug Diagnosis)', () => 
                 }
             ];
 
-            testCases.forEach(({ guid, expectedBase64Url, description }) => {
+            testCases.forEach(({ guid, expectedBase64Url, description: _description }) => {
                 const actualBase64Url = encodeGuidToBase64Url(guid);
                 expect(actualBase64Url).toBe(expectedBase64Url);
             });

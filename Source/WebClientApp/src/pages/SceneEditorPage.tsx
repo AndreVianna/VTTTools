@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Box, useTheme, Backdrop, CircularProgress, Typography, Alert } from '@mui/material';
+import { Box, useTheme, CircularProgress, Typography, Alert } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Layer } from 'react-konva';
 import Konva from 'konva';
@@ -28,7 +28,7 @@ import {
 } from '@/utils/commands';
 import { useGetSceneQuery, usePatchSceneMutation } from '@/services/sceneApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
-import { hydratePlacedAssets, dehydratePlacedAssets } from '@/utils/sceneMappers';
+import { hydratePlacedAssets } from '@/utils/sceneMappers';
 import { getApiEndpoints } from '@/config/development';
 import { SaveStatus } from '@/components/common';
 
