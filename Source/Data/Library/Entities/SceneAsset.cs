@@ -1,7 +1,7 @@
 ﻿using Asset = VttTools.Data.Assets.Entities.Asset;
 using Position = VttTools.Common.Model.Position;
 using Resource = VttTools.Data.Media.Entities.Resource;
-using Size = VttTools.Common.Model.Size;
+using NamedSize = VttTools.Common.Model.NamedSize;
 
 namespace VttTools.Data.Library.Entities;
 
@@ -21,8 +21,8 @@ public class SceneAsset {
     public Resource? Resource { get; set; }  // Navigation property for selected resource
 
     // Instance-specific data
-    public Frame? Frame { get; set; }
-    public Size Size { get; set; } = Size.Zero;
+    public Frame Frame { get; set; } = new Frame();
+    public NamedSize Size { get; set; } = NamedSize.Zero;
     public Position Position { get; set; } = Position.Zero;
     public float Rotation { get; set; }
     public float Elevation { get; set; }

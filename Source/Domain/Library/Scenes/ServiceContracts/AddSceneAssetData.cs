@@ -8,8 +8,8 @@ public record AddSceneAssetData
     public Optional<Guid> ResourceId { get; init; }
 
     // Instance-specific properties
-    public Size Size { get; init; } = Size.Zero;
-    public Frame? Frame { get; init; }
+    public NamedSize Size { get; init; } = NamedSize.Zero;
+    public Frame Frame { get; init; } = new Frame();
     public Position Position { get; init; } = Position.Zero;
     public float Rotation { get; init; }
     public float Elevation { get; init; }

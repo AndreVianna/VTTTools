@@ -15,7 +15,7 @@ export interface TokenPlacementProps {
     /** Callback when new asset is placed */
     onAssetPlaced: (asset: PlacedAsset) => void;
     /** Callback when asset is moved */
-    _onAssetMoved: (assetId: string, position: { x: number; y: number }) => void;
+    onAssetMoved: (assetId: string, position: { x: number; y: number }) => void;
     /** Callback when asset is deleted */
     onAssetDeleted: (assetId: string) => void;
     /** Current grid configuration */
@@ -124,7 +124,9 @@ const snapToGridCenter = (
         return position;
     }
 
-    const { cellWidth, cellHeight, offsetX, offsetY } = gridConfig;
+    const { cellSize, offset } = gridConfig;
+    const { width: cellWidth, height: cellHeight } = cellSize;
+    const { left: offsetX, top: offsetY } = offset;
 
     // Base snap interval per dimension: <= 0.5 → 0.5 cells, > 0.5 → 1.0 cells
     const getBaseSnapIntervalCells = (sizeInCells: number) =>
@@ -156,8 +158,8 @@ const snapToGridCenter = (
 export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     placedAssets,
     onAssetPlaced,
-    _onAssetMoved,
-    onAssetDeleted: _onAssetDeleted,
+    onAssetMoved,
+    onAssetDeleted,
     gridConfig,
     draggedAsset,
     onDragComplete,
@@ -168,10 +170,26 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     const [imageCache, setImageCache] = useState<Map<string, HTMLImageElement>>(new Map());
     const [isValidPlacement, setIsValidPlacement] = useState(true);
     const snapModeRef = useRef(snapMode);
+    const layerRef = useRef<any>(null);
 
     useEffect(() => {
         snapModeRef.current = snapMode;
     }, [snapMode]);
+
+    // Initialize cursor position when draggedAsset changes from null to non-null
+    useEffect(() => {
+        if (draggedAsset && !cursorPosition) {
+            // Get the center of the viewport as initial position
+            const stage = layerRef.current?.getStage();
+            if (stage) {
+                const centerX = (window.innerWidth / 2 - stage.x()) / stage.scaleX();
+                const centerY = (window.innerHeight / 2 - stage.y()) / stage.scaleY();
+                setCursorPosition({ x: centerX, y: centerY });
+            }
+        } else if (!draggedAsset) {
+            setCursorPosition(null);
+        }
+    }, [draggedAsset, cursorPosition]);
 
     const loadImage = useCallback((url: string): Promise<HTMLImageElement> => {
         return new Promise((resolve, reject) => {
@@ -275,6 +293,9 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
             height: assetCellSize.height * gridConfig.cellSize.height
         };
 
+        // Check if Shift key is pressed (skip collision check for visual feedback)
+        const isShiftPressed = e.evt.shiftKey;
+
         const validation = validatePlacement(
             position,
             size,
@@ -290,14 +311,21 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                     a.asset.kind === 'Creature' ? (a.asset as any).properties : undefined
                 ).allowOverlap,
             })),
-            gridConfig
+            gridConfig,
+            isShiftPressed
         );
 
         setIsValidPlacement(validation.valid);
     }, [draggedAsset, gridConfig, placedAssets]);
 
-    const handleClick = useCallback((_e: Konva.KonvaEventObject<MouseEvent>) => {
+    const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         if (!draggedAsset || !cursorPosition) return;
+
+        // Only handle left-clicks (button 0), right-click is for panning
+        if (e.evt.button !== 0) return;
+
+        // Only handle if clicking on the Layer itself or Rect, not on placed assets
+        if (e.target.getClassName() === 'Image') return;
 
         if (!isValidPlacement) {
             return;
@@ -320,8 +348,16 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         };
 
         onAssetPlaced(placedAsset);
-        onDragComplete();
-        setCursorPosition(null);
+
+        // Check if Shift key is pressed for continuous placement
+        const isShiftPressed = e.evt.shiftKey;
+
+        if (!isShiftPressed) {
+            // Normal click: exit placement mode
+            onDragComplete();
+            setCursorPosition(null);
+        }
+        // Shift-click: keep placement mode active, cursor stays for next placement
     }, [draggedAsset, cursorPosition, gridConfig, isValidPlacement, onAssetPlaced, onDragComplete]);
 
     const renderAssetsByGroup = (groupName: GroupName) => {
@@ -381,27 +417,38 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         );
     };
 
-    const stableMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
-        if (draggedAsset) {
-            handleMouseMove(e);
-        }
-    };
-
     return (
         <Layer
+            ref={layerRef}
             name={LayerName.GameWorld}
             listening={true}
-            onMouseMove={stableMouseMove}
+            onMouseMove={draggedAsset ? handleMouseMove : undefined}
             onClick={draggedAsset ? handleClick : undefined}
         >
-            {/* Invisible hit area - ensures Layer receives mouse events even when empty */}
-            <Rect
-                x={0}
-                y={0}
-                width={2800}
-                height={2100}
-                fill="transparent"
-            />
+            {/* Invisible hit area for placement cursor tracking
+
+                WHY THIS IS NEEDED:
+                - Konva Layers only capture events where shapes exist
+                - Without shapes in empty canvas areas, mousemove events don't reach the Layer
+                - This Rect provides a "catch-all" surface for event capture during placement
+
+                ONLY RENDERED DURING PLACEMENT MODE (draggedAsset !== null)
+
+                ALTERNATIVE ARCHITECTURE (Technical Debt - see ROADMAP.md):
+                - Could use separate PlacementOverlay Layer instead
+                - Would make purpose more explicit and separation cleaner
+                - Current approach works but mixing concerns
+            */}
+            {draggedAsset && (
+                <Rect
+                    x={-10000}
+                    y={-10000}
+                    width={20000}
+                    height={20000}
+                    fill="transparent"
+                    listening={true}
+                />
+            )}
 
             <Group name={GroupName.Structure}>
                 {renderAssetsByGroup(GroupName.Structure)}

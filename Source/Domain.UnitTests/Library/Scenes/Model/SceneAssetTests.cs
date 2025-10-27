@@ -13,7 +13,7 @@ public class SceneAssetTests {
         sceneAsset.Position.Y.Should().Be(0);
         sceneAsset.Size.Width.Should().Be(0);
         sceneAsset.Size.Height.Should().Be(0);
-        sceneAsset.Frame.Should().BeNull();
+        sceneAsset.Frame.Should().NotBeNull();
         sceneAsset.IsLocked.Should().BeFalse();
         sceneAsset.ControlledBy.Should().BeNull();
     }
@@ -23,7 +23,7 @@ public class SceneAssetTests {
         // Arrange
         const string name = "Test Asset";
         var position = new Position(10, 20);
-        var size = new Size(1000, 2000);
+        var size = new NamedSize { Width = 1000, Height = 2000, IsSquare = false };
         var frame = new Frame {
             Shape = FrameShape.Square,
             BorderThickness = 2,

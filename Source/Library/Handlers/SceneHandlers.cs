@@ -2,6 +2,8 @@ using static VttTools.Utilities.ErrorCollectionExtensions;
 
 using IResult = Microsoft.AspNetCore.Http.IResult;
 using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
+using BulkUpdateAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
+using SceneAssetUpdateData = VttTools.Library.Scenes.ServiceContracts.SceneAssetUpdateData;
 
 namespace VttTools.Library.Handlers;
 
@@ -102,6 +104,27 @@ internal static class SceneHandlers {
             ControlledBy = request.ControlledBy,
         };
         var result = await sceneService.UpdateAssetAsync(userId, id, number, data);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> BulkUpdateAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] BulkUpdateSceneAssetsRequest request, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var data = new BulkUpdateAssetsData {
+            Updates = request.Updates.Select(u => new SceneAssetUpdateData {
+                Index = u.Index,
+                Position = u.Position,
+                Size = u.Size,
+                Rotation = u.Rotation,
+                Elevation = u.Elevation,
+            }).ToList()
+        };
+        var result = await sceneService.BulkUpdateAssetsAsync(userId, id, data);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"

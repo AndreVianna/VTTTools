@@ -17,10 +17,10 @@ public record SceneAsset {
     public Guid ResourceId { get; init; }  // REQUIRED - must select a resource from Asset.Resources (for token display)
 
     // Instance-specific data
-    public Size Size { get; init; } = Size.Zero;
+    public NamedSize Size { get; init; } = NamedSize.Zero;
     public Position Position { get; init; } = Position.Zero;  // Cell-based placement position
     public float Rotation { get; init; }
-    public Frame? Frame { get; init; }
+    public Frame Frame { get; init; } = new Frame();
     public float Elevation { get; init; }
     public bool IsLocked { get; init; }
     public bool IsVisible { get; init; } = true;  // Whether visible to players (GM can hide traps, secret objects, etc.)

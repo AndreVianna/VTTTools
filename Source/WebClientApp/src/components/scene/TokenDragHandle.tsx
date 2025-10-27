@@ -52,7 +52,10 @@ const snapToGridCenter = (
         return position;
     }
 
-    const { cellWidth, cellHeight, offsetX, offsetY } = gridConfig;
+    // Extract cell size and offset from nested GridConfig structure
+    const { cellSize, offset } = gridConfig;
+    const { width: cellWidth, height: cellHeight } = cellSize;
+    const { left: offsetX, top: offsetY } = offset;
 
     // Convert asset size from pixels to cells
     const assetWidthCells = assetSizePixels.width / cellWidth;
@@ -255,7 +258,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const handleDragMove = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
         const node = e.target;
         const draggedAssetId = node.id();
-        const placedAsset = placedAssets.find((a) => a.id === draggedAssetId);
+        const placedAsset = placedAssetsRef.current.find((a) => a.id === draggedAssetId);  // Use ref
 
         if (!placedAsset || !dragStartPosRef.current) return;
 
@@ -286,7 +289,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
             if (id === draggedAssetId) return;
 
             const otherNode = stage.findOne(`#${id}`);
-            const asset = placedAssets.find(a => a.id === id);
+            const asset = placedAssetsRef.current.find(a => a.id === id);  // Use ref, not prop
             const originalCenterPos = allDragStartPositionsRef.current.get(id);
             if (otherNode && asset && originalCenterPos) {
                 const newCenterPos = {
@@ -305,10 +308,10 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         const collisionPoints: Array<{ x: number; y: number }> = [];
 
         // Get non-selected assets to check against
-        const otherAssets = placedAssets.filter((a) => !currentSelection.includes(a.id));
+        const otherAssets = placedAssetsRef.current.filter((a) => !currentSelection.includes(a.id));  // Use ref
 
         for (const id of currentSelection) {
-            const asset = placedAssets.find(a => a.id === id);
+            const asset = placedAssetsRef.current.find(a => a.id === id);  // Use ref
             if (!asset) continue;
 
             const assetNode = stage.findOne(`#${id}`);
@@ -389,7 +392,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         });
 
         forceUpdate(prev => prev + 1);
-    }, [placedAssets, gridConfig, stageRef]);
+    }, [gridConfig]);  // placedAssets removed - using ref now
 
     const handleDragEnd = useCallback((_e: Konva.KonvaEventObject<DragEvent>) => {
         const stage = stageRef.current;
@@ -399,7 +402,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         const isValid = isDragValidRef.current;
 
         currentSelection.forEach(id => {
-            const asset = placedAssets.find(a => a.id === id);
+            const asset = placedAssetsRef.current.find(a => a.id === id);  // Use ref
             const assetNode = stage.findOne(`#${id}`);
             if (asset && assetNode) {
                 const targetGroup = stage.findOne(`.${asset.layer}`);
@@ -412,7 +415,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         if (isValid) {
             const moves: Array<{ assetId: string; oldPosition: { x: number; y: number }; newPosition: { x: number; y: number } }> = [];
             currentSelection.forEach(id => {
-                const asset = placedAssets.find(a => a.id === id);
+                const asset = placedAssetsRef.current.find(a => a.id === id);  // Use ref
                 const assetNode = stage.findOne(`#${id}`);
                 const oldPosition = allDragStartPositionsRef.current.get(id);
                 if (asset && assetNode && oldPosition) {
@@ -430,7 +433,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         } else {
             currentSelection.forEach(id => {
                 const assetNode = stage.findOne(`#${id}`);
-                const asset = placedAssets.find(a => a.id === id);
+                const asset = placedAssetsRef.current.find(a => a.id === id);  // Use ref
                 const originalCenterPos = allDragStartPositionsRef.current.get(id);
                 if (assetNode && asset && originalCenterPos) {
                     // Convert center back to top-left for node position
@@ -448,7 +451,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         setIsDragValid(true);
         isDragValidRef.current = true;
         setInvalidAssetPositions([]);
-    }, [placedAssets, onAssetMoved, stageRef]);
+    }, [onAssetMoved]);  // placedAssets, stageRef removed - using refs now
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {

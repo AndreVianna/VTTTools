@@ -1,4 +1,6 @@
-﻿namespace VttTools.Library.Services;
+﻿using Size = VttTools.Common.Model.Size;
+
+namespace VttTools.Library.Services;
 
 public class AdventureServiceTests {
     private readonly IAdventureStorage _adventureStorage;
@@ -205,7 +207,7 @@ public class AdventureServiceTests {
                 Path = "test/adventure-background.jpg",
                 Metadata = new ResourceMetadata {
                     ContentType = "image/jpeg",
-                    ImageSize = new(1920, 1080),
+                    ImageSize = new Size(1920, 1080),
                 },
             },
         };
@@ -356,7 +358,7 @@ public class AdventureServiceTests {
                 Path = "adventures/background.jpg",
                 Metadata = new ResourceMetadata {
                     ContentType = "image/jpeg",
-                    ImageSize = new(1920, 1080),
+                    ImageSize = new Size(1920, 1080),
                 },
             },
         };
@@ -372,14 +374,14 @@ public class AdventureServiceTests {
                         Id = Guid.CreateVersion7(),
                         Type = ResourceType.Image,
                         Path = "path/to/image.png",
-                        Metadata = new() { ImageSize = new(100, 200) },
+                        Metadata = new() { ImageSize = new Size(100, 200) },
                     },
                 },
                 Assets = [
                     new SceneAsset {
                         Name = "Asset 1",
                         Position = new(20, 30),
-                        Size = new(40, 50),
+                        Size = new NamedSize { Width = 40, Height = 50, IsSquare = true },
                         Frame = new() {
                             Shape = FrameShape.Square,
                             BorderThickness = 1,

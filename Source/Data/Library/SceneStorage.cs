@@ -71,8 +71,31 @@ public class SceneStorage(ApplicationDbContext context)
 
     /// <inheritdoc />
     public async Task<bool> UpdateAsync(Scene scene, CancellationToken ct = default) {
-        var entity = scene.ToEntity(scene.Adventure.Id);
-        context.Scenes.Update(entity);
+        var entity = await context.Scenes
+            .Include(s => s.SceneAssets)
+            .FirstOrDefaultAsync(s => s.Id == scene.Id, ct);
+
+        if (entity == null)
+            return false;
+
+        entity.UpdateFrom(scene);  // ✅ Use existing UpdateFrom method
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> UpdateAsync(SceneAsset sceneAsset, Guid sceneId, CancellationToken ct = default) {
+        var entity = await context.Scenes
+            .Include(s => s.SceneAssets)
+                .ThenInclude(sa => sa.Asset)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(s => s.Id == sceneId, ct);
+        if (entity == null)
+            return false;
+        var sceneAssetEntity = entity.SceneAssets.FirstOrDefault(sa => sa.Index == sceneAsset.Index);
+        if (sceneAssetEntity == null)
+            return false;
+        sceneAssetEntity.UpdateFrom(sceneId, sceneAsset);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
     }

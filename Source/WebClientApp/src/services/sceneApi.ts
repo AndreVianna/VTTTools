@@ -14,6 +14,14 @@ export interface VersionConflictError {
     conflictType: 'version_mismatch';
 }
 
+export interface SceneAssetBulkUpdate {
+    index: number;
+    position?: { x: number; y: number };
+    size?: { width: number; height: number };
+    rotation?: number;
+    elevation?: number;
+}
+
 export const sceneApi = createApi({
     reducerPath: 'sceneApi',
     baseQuery: createEnhancedBaseQuery('/api/scenes'),
@@ -106,50 +114,63 @@ export const sceneApi = createApi({
                     : [{ type: 'SceneAsset', id: `SCENE_${sceneId}` }]
         }),
 
-        addSceneAsset: builder.mutation<SceneAsset, { sceneId: string; assetData: Partial<SceneAsset> }>({
-            query: ({ sceneId, assetData }) => ({
-                url: `/${sceneId}/assets`,
+        addSceneAsset: builder.mutation<void, { sceneId: string; libraryAssetId: string; position: { x: number; y: number }; size: { width: number; height: number }; rotation?: number }>({
+            query: ({ sceneId, libraryAssetId, position, size, rotation }) => ({
+                url: `/${sceneId}/assets/${libraryAssetId}`,
                 method: 'POST',
-                body: assetData
+                body: {
+                    position: { x: position.x, y: position.y },
+                    size: { width: size.width, height: size.height, isSquare: Math.abs(size.width - size.height) < 0.001 },
+                    rotation: rotation || 0,
+                    elevation: 0
+                }
             }),
             invalidatesTags: (_result, _error, { sceneId }) => [
-                { type: 'SceneAsset', id: `SCENE_${sceneId}` }
+                { type: 'Scene', id: sceneId }
             ]
         }),
 
-        updateSceneAsset: builder.mutation<SceneAsset, { sceneId: string; assetId: string; data: Partial<SceneAsset> }>({
-            query: ({ sceneId, assetId, data }) => ({
-                url: `/${sceneId}/assets/${assetId}`,
-                method: 'PUT',
-                body: data
-            }),
-            onQueryStarted: async ({ sceneId, assetId, data }, { dispatch, queryFulfilled }) => {
-                const patchResult = dispatch(
-                    sceneApi.util.updateQueryData('getSceneAssets', sceneId, (draft: SceneAsset[]) => {
-                        const index = draft.findIndex(a => a.id === assetId);
-                        if (index !== -1 && draft[index]) {
-                            Object.assign(draft[index]!, data);
-                        }
-                    })
-                );
-
-                try {
-                    await queryFulfilled;
-                } catch {
-                    patchResult.undo();
+        updateSceneAsset: builder.mutation<void, { sceneId: string; assetNumber: number; position?: { x: number; y: number }; size?: { width: number; height: number }; rotation?: number }>({
+            query: ({ sceneId, assetNumber, position, size, rotation }) => ({
+                url: `/${sceneId}/assets/${assetNumber}`,
+                method: 'PATCH',
+                body: {
+                    ...(position && { position: { x: position.x, y: position.y } }),
+                    ...(size && { size: { width: size.width, height: size.height, isSquare: Math.abs(size.width - size.height) < 0.001 } }),
+                    ...(rotation !== undefined && { rotation })
                 }
-            },
-            invalidatesTags: (_result, _error, { assetId }) => [{ type: 'SceneAsset', id: assetId }]
+            }),
+            invalidatesTags: (_result, _error, { sceneId }) => [
+                { type: 'Scene', id: sceneId }
+            ]
         }),
 
-        removeSceneAsset: builder.mutation<void, { sceneId: string; assetId: string }>({
-            query: ({ sceneId, assetId }) => ({
-                url: `/${sceneId}/assets/${assetId}`,
+        bulkUpdateSceneAssets: builder.mutation<void, { sceneId: string; updates: SceneAssetBulkUpdate[] }>({
+            query: ({ sceneId, updates }) => ({
+                url: `/${sceneId}/assets`,
+                method: 'PATCH',
+                body: {
+                    updates: updates.map(update => ({
+                        index: update.index,
+                        ...(update.position && { position: { x: update.position.x, y: update.position.y } }),
+                        ...(update.size && { size: { width: update.size.width, height: update.size.height, isSquare: Math.abs(update.size.width - update.size.height) < 0.001 } }),
+                        ...(update.rotation !== undefined && { rotation: update.rotation }),
+                        ...(update.elevation !== undefined && { elevation: update.elevation })
+                    }))
+                }
+            }),
+            invalidatesTags: (_result, _error, { sceneId }) => [
+                { type: 'Scene', id: sceneId }
+            ]
+        }),
+
+        removeSceneAsset: builder.mutation<void, { sceneId: string; assetNumber: number }>({
+            query: ({ sceneId, assetNumber }) => ({
+                url: `/${sceneId}/assets/${assetNumber}`,
                 method: 'DELETE'
             }),
-            invalidatesTags: (_result, _error, { sceneId, assetId }) => [
-                { type: 'SceneAsset', id: assetId },
-                { type: 'SceneAsset', id: `SCENE_${sceneId}` }
+            invalidatesTags: (_result, _error, { sceneId }) => [
+                { type: 'Scene', id: sceneId }
             ]
         })
     })
@@ -165,5 +186,6 @@ export const {
     useGetSceneAssetsQuery,
     useAddSceneAssetMutation,
     useUpdateSceneAssetMutation,
+    useBulkUpdateSceneAssetsMutation,
     useRemoveSceneAssetMutation
 } = sceneApi;

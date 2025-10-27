@@ -1,4 +1,5 @@
 import type { Asset, SceneAsset, PlacedAsset } from '@/types/domain';
+import { GroupName } from '@/services/layerManager';
 
 /**
  * Scene Asset Mappers - Convert between backend and frontend representations
@@ -6,6 +7,22 @@ import type { Asset, SceneAsset, PlacedAsset } from '@/types/domain';
  * Backend (SceneAsset): Stores asset references only (assetId)
  * Frontend (PlacedAsset): Needs full Asset objects with images and properties
  */
+
+/**
+ * Determine the layer group for an asset based on its kind and properties
+ */
+function getAssetLayer(asset: Asset): GroupName {
+    if (asset.kind === 'Creature') {
+        return GroupName.Creatures;
+    }
+
+    const objectAsset = asset as any;
+    if (objectAsset.objectProps?.isOpaque) {
+        return GroupName.Structure;
+    }
+
+    return GroupName.Objects;
+}
 
 /**
  * Hydrate SceneAssets to PlacedAssets by fetching full Asset objects
@@ -25,14 +42,26 @@ export async function hydratePlacedAssets(
             const asset = assets[index];
             if (!asset) return null;
 
+            // Handle both flat and nested property structures
+            // Backend stores pixel coordinates directly (despite Position model docs saying "cell-based")
+            const position = 'position' in sa
+                ? { x: (sa as any).position.x, y: (sa as any).position.y }
+                : { x: sa.x, y: sa.y };
+
+            const size = 'size' in sa
+                ? { width: (sa as any).size.width, height: (sa as any).size.height }
+                : { width: sa.width, height: sa.height };
+
+            // Backend SceneAsset doesn't have an id property, use index for unique identification
+            const sceneAssetAny = sa as any;
             return {
-                id: sa.id,
+                id: sceneAssetAny.id || `scene-asset-${sceneAssetAny.index || index}`,
                 assetId: sa.assetId,
                 asset,
-                position: { x: sa.x, y: sa.y },
-                size: { width: sa.width, height: sa.height },
+                position,
+                size,
                 rotation: sa.rotation,
-                layer: `layer-${sa.layer}`
+                layer: getAssetLayer(asset)
             };
         })
         .filter((pa): pa is PlacedAsset => pa !== null);

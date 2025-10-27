@@ -8,18 +8,18 @@ public record NamedSize {
     /// <summary>
     /// Width in grid cells (supports fractional: 0.125, 0.25, 0.5, or whole numbers)
     /// </summary>
-    public double Width { get; init; }
+    public double Width { get; init; } = 0;
 
     /// <summary>
     /// Height in grid cells (supports fractional: 0.125, 0.25, 0.5, or whole numbers)
     /// </summary>
-    public double Height { get; init; }
+    public double Height { get; init; } = 0;
 
     /// <summary>
     /// Whether this is a square size (Width = Height enforced)
     /// When true, changing Width should also update Height to match
     /// </summary>
-    public bool IsSquare { get; init; }
+    public bool IsSquare { get; init; } = false;
 
     /// <summary>
     /// Gets the named size category based on current Width, Height, and IsSquare

@@ -7,14 +7,14 @@ public class AddAssetDataTests {
         var original = new AddSceneAssetData {
             Name = "Asset Name",
             Position = new Position(1, 1),
-            Size = new Size(50, 50),
+            Size = new NamedSize { Width = 50, Height = 50, IsSquare = true },
             Frame = new(),
             Rotation = 0,
             Elevation = 0,
         };
         const string name = "Other Name";
         var position = new Position(10, 20);
-        var size = new Size(10, 20);
+        var size = new NamedSize { Width = 10, Height = 20, IsSquare = false };
         var frame = new Frame {
             Shape = FrameShape.Circle,
             BorderThickness = 2,
@@ -50,7 +50,7 @@ public class AddAssetDataTests {
         var data = new AddSceneAssetData {
             Name = "Asset Name",
             Position = new Position(1, 1),
-            Size = new Size(50, 50),
+            Size = new NamedSize { Width = 50, Height = 50, IsSquare = true },
             Frame = new(),
             Rotation = 0.0f,
             Elevation = 0.0f,
@@ -68,7 +68,7 @@ public class AddAssetDataTests {
         // Arrange
         var data = new AddSceneAssetData {
             Name = null!,
-            Size = new(1000, 1000),
+            Size = new NamedSize { Width = 1000, Height = 1000, IsSquare = true },
             Frame = new(),
             Rotation = -270,
             Elevation = 2000,

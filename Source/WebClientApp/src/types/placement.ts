@@ -210,6 +210,7 @@ export const checkAssetOverlap = (
  * @param behavior Placement behavior
  * @param existingAssets Existing assets on scene
  * @param gridConfig Grid configuration
+ * @param skipCollisionCheck If true, bypass overlap validation (Shift-click override)
  * @returns Validation result with errors
  */
 export const validatePlacement = (
@@ -217,7 +218,8 @@ export const validatePlacement = (
     size: { width: number; height: number },
     behavior: PlacementBehavior,
     existingAssets: Array<{ x: number; y: number; width: number; height: number; allowOverlap: boolean }>,
-    gridConfig: GridConfig
+    gridConfig: GridConfig,
+    skipCollisionCheck: boolean = false
 ): { valid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
@@ -237,8 +239,8 @@ export const validatePlacement = (
         errors.push(`Asset height too large (max: ${behavior.maxSize.height} cells)`);
     }
 
-    // Check overlap constraints
-    if (!behavior.allowOverlap) {
+    // Check overlap constraints (skip if Shift-click override)
+    if (!skipCollisionCheck && !behavior.allowOverlap) {
         for (const existing of existingAssets) {
             if (!existing.allowOverlap && checkAssetOverlap(
                 { x: position.x, y: position.y, width: size.width, height: size.height },

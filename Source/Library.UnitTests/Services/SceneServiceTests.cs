@@ -232,14 +232,14 @@ public class SceneServiceTests {
                     Number = 1,
                     Name = "Existing Asset Instance",
                     Position = new Position(0, 0),
-                    Size = new Size(1, 1)
+                    Size = new NamedSize { Width = 1, Height = 1, IsSquare = false }
                 }
             ],
         };
         var data = new AddSceneAssetData {
             Name = "New Asset",
             Position = new Position(20, 30),
-            Size = new Size(10, 50),
+            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -306,7 +306,7 @@ public class SceneServiceTests {
         var data = new AddSceneAssetData {
             Name = "New Asset",
             Position = new Position(20, 30),
-            Size = new Size(10, 50),
+            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -336,7 +336,7 @@ public class SceneServiceTests {
         var data = new AddSceneAssetData {
             Name = "New Asset",
             Position = new Position(20, 30),
-            Size = new Size(10, 50),
+            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -390,7 +390,7 @@ public class SceneServiceTests {
         };
         var data = new UpdateSceneAssetData {
             Position = new Position(20, 30),
-            Size = new Size(10, 50),
+            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -434,7 +434,7 @@ public class SceneServiceTests {
         };
         var data = new UpdateSceneAssetData {
             Position = new Position(20, 30),
-            Size = new Size(10, 50),
+            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -466,7 +466,7 @@ public class SceneServiceTests {
         const int number = 1;
         var data = new UpdateSceneAssetData {
             Position = new Position(20, 30),
-            Size = new Size(10, 50),
+            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -507,7 +507,7 @@ public class SceneServiceTests {
         };
         var data = new UpdateSceneAssetData {
             Position = new Position(20, 30),
-            Size = new Size(10, 50),
+            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,

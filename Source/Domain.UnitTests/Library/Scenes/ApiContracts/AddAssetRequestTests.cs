@@ -7,14 +7,14 @@ public class AddAssetRequestTests {
         var original = new AddSceneAssetRequest {
             Name = "Asset Name",
             Position = new(1, 1),
-            Size = new(50, 50),
+            Size = new NamedSize { Width = 50, Height = 50, IsSquare = true },
             Frame = new(),
             Rotation = 0,
             Elevation = 0,
         };
         const string name = "Other Name";
         var position = new Position(10, 20);
-        var size = new Size(100, 200);
+        var size = new NamedSize { Width = 100, Height = 200, IsSquare = false };
         var frame = new Frame {
             Shape = FrameShape.Circle,
             BorderThickness = 2,

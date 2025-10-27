@@ -40,6 +40,11 @@ public interface ISceneStorage {
     Task<bool> UpdateAsync(Scene scene, CancellationToken ct = default);
 
     /// <summary>
+    /// Updates a scene asset.
+    /// </summary>
+    Task<bool> UpdateAsync(SceneAsset sceneAsset, Guid sceneId, CancellationToken ct = default);
+
+    /// <summary>
     /// Deletes a scene template.
     /// </summary>
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);

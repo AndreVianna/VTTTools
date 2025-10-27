@@ -1,4 +1,5 @@
 ﻿using UpdateSceneAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
+using BulkUpdateSceneAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
 
 namespace VttTools.Library.Scenes.Services;
 
@@ -13,5 +14,6 @@ public interface ISceneService {
     Task<Result<SceneAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, AddSceneAssetData data, CancellationToken ct = default);
     Task<Result<SceneAsset>> CloneAssetAsync(Guid userId, Guid id, int index, CancellationToken ct = default);
     Task<Result> UpdateAssetAsync(Guid userId, Guid id, int index, UpdateSceneAssetData data, CancellationToken ct = default);
+    Task<Result> BulkUpdateAssetsAsync(Guid userId, Guid id, BulkUpdateSceneAssetsData data, CancellationToken ct = default);
     Task<Result> RemoveAssetAsync(Guid userId, Guid id, int index, CancellationToken ct = default);
 }

@@ -1,24 +1,11 @@
 namespace VttTools.Common.Model;
 
-/// <summary>
-/// Represents a cell-based position on the game grid (integer coordinates)
-/// Used for placing assets on the scene in discrete grid cells
-/// </summary>
 public record Position {
-    /// <summary>
-    /// Horizontal position (cell column index)
-    /// </summary>
-    public int X { get; init; }
+    public double X { get; init; }
 
-    /// <summary>
-    /// Vertical position (cell row index)
-    /// </summary>
-    public int Y { get; init; }
+    public double Y { get; init; }
 
-    /// <summary>
-    /// Creates a new Position with the specified coordinates
-    /// </summary>
-    public Position(int x, int y) {
+    public Position(double x, double y) {
         X = x;
         Y = y;
     }

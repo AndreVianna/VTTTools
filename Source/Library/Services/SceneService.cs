@@ -1,6 +1,7 @@
 using VttTools.Assets.Model;
 
 using UpdateSceneAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
+using BulkUpdateSceneAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
 
 namespace VttTools.Library.Services;
 
@@ -217,6 +218,42 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             IsLocked = data.IsLocked.IsSet ? data.IsLocked.Value : sceneAsset.IsLocked,
             ControlledBy = data.ControlledBy.IsSet ? data.ControlledBy.Value : sceneAsset.ControlledBy,
         };
+        await sceneStorage.UpdateAsync(sceneAsset, id, ct);
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> BulkUpdateAssetsAsync(Guid userId, Guid id, BulkUpdateSceneAssetsData data, CancellationToken ct = default) {
+        var scene = await sceneStorage.GetByIdAsync(id, ct);
+        if (scene is null)
+            return Result.Failure("NotFound");
+        if (scene.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        var result = data.Validate();
+        if (result.HasErrors)
+            return result;
+
+        // Validate all indices exist before applying any updates
+        var indices = data.Updates.Select(u => u.Index).ToHashSet();
+        var invalidIndices = indices.Where(idx => !scene.Assets.Any(a => a.Index == idx)).ToList();
+        if (invalidIndices.Count > 0)
+            return Result.Failure($"Assets with indices {string.Join(", ", invalidIndices)} not found");
+
+        // Apply all updates
+        foreach (var update in data.Updates) {
+            var assetIndex = scene.Assets.FindIndex(a => a.Index == update.Index);
+            if (assetIndex >= 0) {
+                var sceneAsset = scene.Assets[assetIndex];
+                scene.Assets[assetIndex] = sceneAsset with {
+                    Position = update.Position.IsSet ? update.Position.Value : sceneAsset.Position,
+                    Size = update.Size.IsSet ? update.Size.Value : sceneAsset.Size,
+                    Rotation = update.Rotation.IsSet ? update.Rotation.Value : sceneAsset.Rotation,
+                    Elevation = update.Elevation.IsSet ? update.Elevation.Value : sceneAsset.Elevation,
+                };
+            }
+        }
+
         await sceneStorage.UpdateAsync(scene, ct);
         return Result.Success();
     }

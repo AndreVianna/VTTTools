@@ -63,13 +63,14 @@ internal static class SceneSchemaBuilder {
             });
             entity.ComplexProperty(ea => ea.Size, sizeBuilder => {
                 sizeBuilder.IsRequired();
-                sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(0);
-                sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(0);
+                sizeBuilder.Property(s => s.Width).IsRequired().HasDefaultValue(0.0);
+                sizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(0.0);
+                sizeBuilder.Property(s => s.IsSquare).IsRequired().HasDefaultValue(true);
             });
             entity.ComplexProperty(ea => ea.Position, positionBuilder => {
                 positionBuilder.IsRequired();
-                positionBuilder.Property(p => p.X).IsRequired().HasDefaultValue(0);
-                positionBuilder.Property(p => p.Y).IsRequired().HasDefaultValue(0);
+                positionBuilder.Property(p => p.X).IsRequired().HasDefaultValue(0.0);
+                positionBuilder.Property(p => p.Y).IsRequired().HasDefaultValue(0.0);
             });
             entity.Property(ea => ea.Rotation).IsRequired().HasDefaultValue(0);
             entity.Property(ea => ea.Elevation).IsRequired().HasDefaultValue(0);

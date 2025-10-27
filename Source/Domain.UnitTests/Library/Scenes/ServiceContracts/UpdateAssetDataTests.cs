@@ -7,7 +7,7 @@ public class UpdateAssetDataTests {
         var original = new UpdateSceneAssetData {
             Name = "Original",
             Position = new Position(1, 1),
-            Size = new Size(50, 50),
+            Size = new NamedSize { Width = 50, Height = 50, IsSquare = true },
             Frame = new(),
             Rotation = 0.0f,
             Elevation = 0.0f,
@@ -16,7 +16,7 @@ public class UpdateAssetDataTests {
         };
         const string name = "New Name";
         var position = new Position(10, 20);
-        var size = new Size(1000, 2000);
+        var size = new NamedSize { Width = 1000, Height = 2000, IsSquare = false };
         var frame = new Frame {
             Shape = FrameShape.Circle,
             BorderThickness = 2,
@@ -58,7 +58,7 @@ public class UpdateAssetDataTests {
         var data = new UpdateSceneAssetData {
             Name = "Original",
             Position = new Position(1, 1),
-            Size = new Size(10, 20),
+            Size = new NamedSize { Width = 10, Height = 20, IsSquare = false },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 1,
@@ -82,7 +82,7 @@ public class UpdateAssetDataTests {
         var data = new UpdateSceneAssetData {
             Name = null!,
             Position = new Position(10, 20),
-            Size = new Size(1000, 2000),
+            Size = new NamedSize { Width = 1000, Height = 2000, IsSquare = false },
             Frame = new Frame {
                 Shape = FrameShape.Circle,
                 BorderThickness = 2,

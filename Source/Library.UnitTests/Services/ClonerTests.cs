@@ -1,3 +1,5 @@
+using Size = VttTools.Common.Model.Size;
+
 namespace VttTools.Library.Services;
 
 public class ClonerTests {
@@ -19,7 +21,7 @@ public class ClonerTests {
                 Type = ResourceType.Image,
                 Metadata = new ResourceMetadata {
                     ContentType = "image/png",
-                    ImageSize = new(1920, 1080),
+                    ImageSize = new Size(1920, 1080),
                 },
             },
             Description = "Adventure description",
@@ -37,13 +39,13 @@ public class ClonerTests {
                             Path = "path/to/scene/background.png",
                             Metadata = new ResourceMetadata {
                                 ContentType = "image/png",
-                                ImageSize = new(800, 600),
+                                ImageSize = new Size(800, 600),
                             },
                         },
                     },
                     Grid = new() {
                         Type = GridType.Square,
-                        CellSize = new(50, 50),
+                        CellSize = new CellSize(50, 50),
                         Offset = new(0, 0),
                         Snap = true,
                     },
@@ -85,7 +87,7 @@ public class ClonerTests {
                 Type = ResourceType.Image,
                 Metadata = new ResourceMetadata {
                     ContentType = "image/png",
-                    ImageSize = new(1920, 1080),
+                    ImageSize = new Size(1920, 1080),
                 },
             },
             Description = "Adventure description",
@@ -100,7 +102,7 @@ public class ClonerTests {
                     Stage = new(),
                     Grid = new() {
                         Type = GridType.Square,
-                        CellSize = new(50, 50),
+                        CellSize = new CellSize(50, 50),
                         Offset = new(0, 0),
                         Snap = true,
                     },
@@ -139,7 +141,7 @@ public class ClonerTests {
             Stage = new(),
             Grid = new() {
                 Type = GridType.Square,
-                CellSize = new(50, 50),
+                CellSize = new CellSize(50, 50),
                 Offset = new(0, 0),
                 Snap = true,
             },
@@ -149,7 +151,7 @@ public class ClonerTests {
                     Name = "Asset 1",
                     ResourceId = Guid.CreateVersion7(),
                     Position = new(20, 30),
-                    Size = new(1, 1),
+                    Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
                     Elevation = 1,
                     Rotation = 45,
                     IsLocked = true,
@@ -160,7 +162,7 @@ public class ClonerTests {
                     Name = "Asset 2",
                     ResourceId = Guid.CreateVersion7(),
                     Position = new(5, 10),
-                    Size = new(1, 1),
+                    Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
                     Elevation = 2,
                     Rotation = -45,
                     IsLocked = false,
@@ -196,7 +198,7 @@ public class ClonerTests {
                     Name = "Asset 1",
                     ResourceId = Guid.CreateVersion7(),
                     Position = new(20, 30),
-                    Size = new(1, 1),
+                    Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
                     Elevation = 1f,
                     Rotation = 45f,
                     IsLocked = true,
@@ -228,7 +230,7 @@ public class ClonerTests {
             Name = "Original Asset",
             ResourceId = Guid.CreateVersion7(),
             Position = new(20, 30),
-            Size = new(1, 1),
+            Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
             Elevation = 1f,
             Rotation = 45f,
             IsLocked = true,

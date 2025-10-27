@@ -131,7 +131,7 @@ public class SceneHandlersTests {
         const int number = 1;
         var request = new UpdateSceneAssetRequest {
             Position = new Position(20, 30),
-            Size = new Size(10, 50),
+            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -159,7 +159,7 @@ public class SceneHandlersTests {
         const int number = 1;
         var request = new UpdateSceneAssetRequest {
             Position = new Position(20, 30),
-            Size = new Size(10, 50),
+            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,

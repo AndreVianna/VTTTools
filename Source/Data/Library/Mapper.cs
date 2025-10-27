@@ -169,8 +169,9 @@ internal static class Mapper {
         entity.ZoomLevel = model.Stage.ZoomLevel;
         entity.Panning = model.Stage.Panning;
         entity.Grid = model.Grid;
-        var existingAssets = entity.SceneAssets.Join(model.Assets, esa => esa.AssetId, msa => msa.AssetId, (esa, msa) => UpdateFrom(esa, entity.Id, msa));
-        var newAssets = model.Assets.Where(sa => entity.SceneAssets.All(ea => ea.AssetId != sa.AssetId)).Select(msa => ToEntity(msa, entity.Id));
+        // Join on Index (unique identifier) not AssetId (multiple instances can have same AssetId)
+        var existingAssets = entity.SceneAssets.Join(model.Assets, esa => esa.Index, msa => msa.Index, (esa, msa) => UpdateFrom(esa, entity.Id, msa));
+        var newAssets = model.Assets.Where(sa => entity.SceneAssets.All(ea => ea.Index != sa.Index)).Select(msa => ToEntity(msa, entity.Id));
         entity.SceneAssets = [.. existingAssets.Union(newAssets)];
         return entity;
     }
