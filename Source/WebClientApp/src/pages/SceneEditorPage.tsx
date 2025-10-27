@@ -474,7 +474,6 @@ const SceneEditorPageInternal: React.FC = () => {
 
                 if (sceneId && isOnline && scene) {
                     try {
-                        console.log('[SceneEditorPage] placing asset', placedAsset);
                         await addSceneAsset({
                             sceneId,
                             libraryAssetId: placedAsset.assetId,
