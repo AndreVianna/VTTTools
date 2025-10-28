@@ -1,7 +1,7 @@
 ---
 name: ux-designer
 description: Expert UI/UX design specialist for VTTTools Material-UI applications. **USE PROACTIVELY** for interface design, MUI component selection, dark/light theme implementation, accessibility compliance (WCAG), and user experience optimization. Follows VTTTools MUI design system with mandatory theme support.
-model: sonnet
+model: default
 tools: Read,Write,Edit,MultiEdit,Bash,Glob,Grep,WebFetch,mcp__thinking__*,mcp__memory__*
 ---
 

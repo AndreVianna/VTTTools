@@ -85,7 +85,7 @@ export const adventuresApi = createApi({
 
     cloneScene: builder.mutation<Scene, { adventureId: string; sceneId: string; name?: string }>({
       query: ({ adventureId, sceneId, name }) => ({
-        url: `/${adventureId}/scenes/clone/${sceneId}`,
+        url: `/${adventureId}/scenes/${sceneId}/clone`,
         method: 'POST',
         body: name ? { name } : undefined,
       }),

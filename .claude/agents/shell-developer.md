@@ -1,7 +1,7 @@
 ---
 name: shell-developer
 description: Expert PowerShell and automation development specialist for VTTTools. **USE PROACTIVELY** for PowerShell scripting, build automation, system configuration, deployment scripts, and cross-platform command-line tool development. Follows VTTTools PowerShell conventions in .claude/scripts/.
-model: sonnet
+model: default
 tools: Read,Write,Edit,MultiEdit,Bash,Glob,Grep,WebFetch,mcp__thinking__*,mcp__memory__*
 ---
 

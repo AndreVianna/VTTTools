@@ -19,12 +19,12 @@ public class AdventureEndpointsMapperTests {
         groupDataSource.Endpoints.Should().HaveCount(9);
         groupDataSource.Endpoints[0].DisplayName.Should().Be("HTTP: GET /api/adventures/ => GetAdventuresHandler");
         groupDataSource.Endpoints[1].DisplayName.Should().Be("HTTP: POST /api/adventures/ => CreateAdventureHandler");
-        groupDataSource.Endpoints[2].DisplayName.Should().Be("HTTP: POST /api/adventures/clone/{id:guid} => CloneAdventureHandler");
+        groupDataSource.Endpoints[2].DisplayName.Should().Be("HTTP: POST /api/adventures/{id:guid}/clone => CloneAdventureHandler");
         groupDataSource.Endpoints[3].DisplayName.Should().Be("HTTP: GET /api/adventures/{id:guid} => GetAdventureByIdHandler");
         groupDataSource.Endpoints[4].DisplayName.Should().Be("HTTP: PATCH /api/adventures/{id:guid} => UpdateAdventureHandler");
         groupDataSource.Endpoints[5].DisplayName.Should().Be("HTTP: DELETE /api/adventures/{id:guid} => DeleteAdventureHandler");
         groupDataSource.Endpoints[6].DisplayName.Should().Be("HTTP: GET /api/adventures/{id:guid}/scenes => GetScenesHandler");
         groupDataSource.Endpoints[7].DisplayName.Should().Be("HTTP: POST /api/adventures/{id:guid}/scenes => AddNewSceneHandler");
-        groupDataSource.Endpoints[8].DisplayName.Should().Be("HTTP: POST /api/adventures/{id:guid}/scenes/clone/{sceneId:guid} => AddClonedSceneHandler");
+        groupDataSource.Endpoints[8].DisplayName.Should().Be("HTTP: POST /api/adventures/{id:guid}/scenes/{sceneId:guid}/clone => AddClonedSceneHandler");
     }
 }

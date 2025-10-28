@@ -109,7 +109,10 @@ export const mapSceneAssetToPlaced = async (
             height: sceneAsset.size.height * cellHeight
         },
         rotation: sceneAsset.rotation,
-        layer: 'assets'
+        layer: 'assets',
+        index: sceneAsset.index,
+        number: sceneAsset.number,
+        name: sceneAsset.name || asset.name
     };
 };
 

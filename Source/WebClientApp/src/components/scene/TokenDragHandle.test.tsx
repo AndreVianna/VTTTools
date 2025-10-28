@@ -50,6 +50,9 @@ describe('TokenDragHandle Logic Tests', () => {
         size: { width: 50, height: 50 },
         rotation: 0,
         layer: 'Agents',
+        index: 0,
+        number: 1,
+        name: 'Test Token'
     };
 
     describe('Placement Behavior', () => {
@@ -319,6 +322,9 @@ describe('TokenDragHandle Logic Tests', () => {
             size: { width: 100, height: 50 },
             rotation: 0,
             layer: 'Structure',
+            index: 0,
+            number: 1,
+            name: 'Immovable Wall'
         };
 
         it('should not allow immovable objects to move', () => {

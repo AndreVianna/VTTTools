@@ -54,7 +54,7 @@ public class ClonerTests {
         };
 
         // Act
-        var clone = original.Clone(_userId);
+        var clone = original.Clone(_userId, original.Name);
 
         // Assert
         clone.OwnerId.Should().Be(_userId);
@@ -111,7 +111,7 @@ public class ClonerTests {
         };
 
         // Act
-        var clone = original.Clone(_userId);
+        var clone = original.Clone(_userId, original.Name);
 
         // Assert
         clone.Should().NotBeNull();
@@ -172,7 +172,7 @@ public class ClonerTests {
         };
 
         // Act
-        var clone = original.Clone();
+        var clone = original.Clone(original.Name);
 
         // Assert
         clone.Should().NotBeNull();
@@ -209,7 +209,7 @@ public class ClonerTests {
         };
 
         // Act
-        var clone = original.Clone();
+        var clone = original.Clone(original.Name);
 
         // Assert
         clone.Assets.Should().HaveCount(1);

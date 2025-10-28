@@ -1,5 +1,6 @@
 ﻿using Point = VttTools.Common.Model.Point;
 using Size = VttTools.Common.Model.Size;
+using VttTools.Utilities;
 
 namespace VttTools.Library.Services;
 
@@ -527,5 +528,319 @@ public class SceneServiceTests {
         // Assert
         result.IsSuccessful.Should().BeFalse();
         await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task AddAssetAsync_WithCreatureAsset_GeneratesNumberedName() {
+        // Arrange
+        var sceneId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
+        var resourceId = Guid.CreateVersion7();
+        var scene = new Scene {
+            Id = sceneId,
+            Name = "Test Scene",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Test Adventure",
+                Description = "Test description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
+            Assets = [],
+        };
+        var asset = new CreatureAsset {
+            Id = assetId,
+            OwnerId = _userId,
+            Name = "Goblin",
+            Resources = [
+                new AssetResource {
+                    ResourceId = resourceId,
+                    Resource = new Resource {
+                        Id = resourceId,
+                        Type = ResourceType.Image,
+                        Path = "test/goblin-token.png",
+                        Metadata = new ResourceMetadata { ContentType = "image/png" },
+                    },
+                    Role = ResourceRole.Token
+                }
+            ],
+        };
+        var data = new AddSceneAssetData {
+            Name = Optional<string>.None,
+            Position = new Position(10, 20),
+            Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+        };
+
+        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
+        _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
+        _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await _service.AddAssetAsync(_userId, sceneId, assetId, data, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue($"Expected success but got errors: {string.Join(", ", result.Errors)}");
+        result.Value.Name.Should().Be("Goblin #1");
+    }
+
+    [Fact]
+    public async Task AddAssetAsync_WithMultipleCreatures_IncrementsNumbers() {
+        // Arrange
+        var sceneId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
+        var resourceId = Guid.CreateVersion7();
+        var scene = new Scene {
+            Id = sceneId,
+            Name = "Test Scene",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Test Adventure",
+                Description = "Test description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
+            Assets = [],
+        };
+        var asset = new CreatureAsset {
+            Id = assetId,
+            OwnerId = _userId,
+            Name = "Goblin",
+            Resources = [
+                new AssetResource {
+                    ResourceId = resourceId,
+                    Resource = new Resource {
+                        Id = resourceId,
+                        Type = ResourceType.Image,
+                        Path = "test/goblin-token.png",
+                        Metadata = new ResourceMetadata { ContentType = "image/png" },
+                    },
+                    Role = ResourceRole.Token
+                }
+            ],
+        };
+        var data = new AddSceneAssetData {
+            Name = Optional<string>.None,
+            Position = new Position(10, 20),
+            Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+        };
+
+        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
+        _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
+        _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result1 = await _service.AddAssetAsync(_userId, sceneId, assetId, data, _ct);
+        var result2 = await _service.AddAssetAsync(_userId, sceneId, assetId, data, _ct);
+
+        // Assert
+        result1.IsSuccessful.Should().BeTrue();
+        result1.Value.Name.Should().Be("Goblin #1");
+        result2.IsSuccessful.Should().BeTrue();
+        result2.Value.Name.Should().Be("Goblin #2");
+    }
+
+    [Fact]
+    public async Task AddAssetAsync_WithObjectAsset_UsesBaseName() {
+        // Arrange
+        var sceneId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
+        var resourceId = Guid.CreateVersion7();
+        var scene = new Scene {
+            Id = sceneId,
+            Name = "Test Scene",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Test Adventure",
+                Description = "Test description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
+            Assets = [],
+        };
+        var asset = new ObjectAsset {
+            Id = assetId,
+            OwnerId = _userId,
+            Name = "Treasure Chest",
+            Resources = [
+                new AssetResource {
+                    ResourceId = resourceId,
+                    Resource = new Resource {
+                        Id = resourceId,
+                        Type = ResourceType.Image,
+                        Path = "test/chest-token.png",
+                        Metadata = new ResourceMetadata { ContentType = "image/png" },
+                    },
+                    Role = ResourceRole.Token
+                }
+            ],
+        };
+        var data = new AddSceneAssetData {
+            Name = Optional<string>.None,
+            Position = new Position(10, 20),
+            Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+        };
+
+        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
+        _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
+        _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result1 = await _service.AddAssetAsync(_userId, sceneId, assetId, data, _ct);
+        var result2 = await _service.AddAssetAsync(_userId, sceneId, assetId, data, _ct);
+
+        // Assert
+        result1.IsSuccessful.Should().BeTrue();
+        result1.Value.Name.Should().Be("Treasure Chest");
+        result2.IsSuccessful.Should().BeTrue();
+        result2.Value.Name.Should().Be("Treasure Chest");
+    }
+
+    [Fact]
+    public async Task AddAssetAsync_WithCustomName_OverridesAutoNaming() {
+        // Arrange
+        var sceneId = Guid.CreateVersion7();
+        var assetId = Guid.CreateVersion7();
+        var resourceId = Guid.CreateVersion7();
+        var scene = new Scene {
+            Id = sceneId,
+            Name = "Test Scene",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Test Adventure",
+                Description = "Test description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
+            Assets = [],
+        };
+        var asset = new CreatureAsset {
+            Id = assetId,
+            OwnerId = _userId,
+            Name = "Goblin",
+            Resources = [
+                new AssetResource {
+                    ResourceId = resourceId,
+                    Resource = new Resource {
+                        Id = resourceId,
+                        Type = ResourceType.Image,
+                        Path = "test/goblin-token.png",
+                        Metadata = new ResourceMetadata { ContentType = "image/png" },
+                    },
+                    Role = ResourceRole.Token
+                }
+            ],
+        };
+        var data = new AddSceneAssetData {
+            Name = "Boss Goblin",
+            Position = new Position(10, 20),
+            Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+        };
+
+        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
+        _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
+        _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await _service.AddAssetAsync(_userId, sceneId, assetId, data, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        result.Value.Name.Should().Be("Boss Goblin");
+    }
+
+    [Fact]
+    public async Task AddAssetAsync_WithDifferentCreatureTypes_IndependentNumbering() {
+        // Arrange
+        var sceneId = Guid.CreateVersion7();
+        var goblinAssetId = Guid.CreateVersion7();
+        var orcAssetId = Guid.CreateVersion7();
+        var resourceId1 = Guid.CreateVersion7();
+        var resourceId2 = Guid.CreateVersion7();
+        var scene = new Scene {
+            Id = sceneId,
+            Name = "Test Scene",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Test Adventure",
+                Description = "Test description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
+            Assets = [],
+        };
+        var goblinAsset = new CreatureAsset {
+            Id = goblinAssetId,
+            OwnerId = _userId,
+            Name = "Goblin",
+            Resources = [
+                new AssetResource {
+                    ResourceId = resourceId1,
+                    Resource = new Resource {
+                        Id = resourceId1,
+                        Type = ResourceType.Image,
+                        Path = "test/goblin-token.png",
+                        Metadata = new ResourceMetadata { ContentType = "image/png" },
+                    },
+                    Role = ResourceRole.Token
+                }
+            ],
+        };
+        var orcAsset = new CreatureAsset {
+            Id = orcAssetId,
+            OwnerId = _userId,
+            Name = "Orc",
+            Resources = [
+                new AssetResource {
+                    ResourceId = resourceId2,
+                    Resource = new Resource {
+                        Id = resourceId2,
+                        Type = ResourceType.Image,
+                        Path = "test/orc-token.png",
+                        Metadata = new ResourceMetadata { ContentType = "image/png" },
+                    },
+                    Role = ResourceRole.Token
+                }
+            ],
+        };
+        var data = new AddSceneAssetData {
+            Name = Optional<string>.None,
+            Position = new Position(10, 20),
+            Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+        };
+
+        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
+        _assetStorage.GetByIdAsync(goblinAssetId, Arg.Any<CancellationToken>()).Returns(goblinAsset);
+        _assetStorage.GetByIdAsync(orcAssetId, Arg.Any<CancellationToken>()).Returns(orcAsset);
+        _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var goblinResult = await _service.AddAssetAsync(_userId, sceneId, goblinAssetId, data, _ct);
+        var orcResult = await _service.AddAssetAsync(_userId, sceneId, orcAssetId, data, _ct);
+
+        // Assert
+        goblinResult.IsSuccessful.Should().BeTrue();
+        goblinResult.Value.Name.Should().Be("Goblin #1");
+        orcResult.IsSuccessful.Should().BeTrue();
+        orcResult.Value.Name.Should().Be("Orc #1");
     }
 }

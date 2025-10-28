@@ -1,11 +1,11 @@
-import { Chip, Typography, IconButton, Menu, MenuItem } from '@mui/material';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useState } from 'react';
+import { Chip, Typography, Button, Box } from '@mui/material';
 import type React from 'react';
 import { ContentCard, PublishedBadge } from '../shared';
 import { AdventureStyle } from '../../types';
 import type { Adventure } from '../../types';
 import { getApiEndpoints } from '@/config/development';
+
+const ADVENTURE_DEFAULT_BACKGROUND = '/assets/backgrounds/adventure.png';
 
 export interface AdventureCardProps {
     adventure: Adventure;
@@ -57,26 +57,13 @@ const getAdventureStyleColor = (style: AdventureStyle): 'primary' | 'secondary' 
 };
 
 export function AdventureCard({ adventure, onOpen, onDuplicate, onDelete }: AdventureCardProps) {
-    const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
-
-    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    const handleClone = (event: React.MouseEvent) => {
         event.stopPropagation();
-        setMenuAnchor(event.currentTarget);
-    };
-
-    const handleMenuClose = () => {
-        setMenuAnchor(null);
-    };
-
-    const handleDuplicate = (event: React.MouseEvent) => {
-        event.stopPropagation();
-        handleMenuClose();
         onDuplicate(adventure.id);
     };
 
     const handleDelete = (event: React.MouseEvent) => {
         event.stopPropagation();
-        handleMenuClose();
         onDelete(adventure.id);
     };
 
@@ -111,48 +98,45 @@ export function AdventureCard({ adventure, onOpen, onDuplicate, onDelete }: Adve
     );
 
     const actions = (
-        <IconButton
-            id={`btn-menu-adventure-${adventure.id}`}
-            size="small"
-            onClick={handleMenuOpen}
-            aria-label="Adventure actions"
-        >
-            <MoreVertIcon />
-        </IconButton>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+            <Button
+                id={`btn-clone-adventure-${adventure.id}`}
+                size="small"
+                variant="outlined"
+                onClick={handleClone}
+            >
+                Clone
+            </Button>
+            <Button
+                id={`btn-delete-adventure-${adventure.id}`}
+                size="small"
+                variant="outlined"
+                color="error"
+                onClick={handleDelete}
+            >
+                Delete
+            </Button>
+        </Box>
     );
 
     const apiEndpoints = getApiEndpoints();
     const backgroundUrl = adventure.background
         ? `${apiEndpoints.media}/${adventure.background.id}`
-        : undefined;
+        : ADVENTURE_DEFAULT_BACKGROUND;
 
     return (
-        <>
-            <ContentCard
-                item={{
-                    id: adventure.id,
-                    type: 'adventure',
-                    name: adventure.name,
-                    isPublished: adventure.isPublished,
-                    thumbnailUrl: backgroundUrl
-                }}
-                onClick={onOpen}
-                badges={badges}
-                metadata={metadata}
-                actions={actions}
-            />
-            <Menu
-                anchorEl={menuAnchor}
-                open={Boolean(menuAnchor)}
-                onClose={handleMenuClose}
-            >
-                <MenuItem id={`menu-item-duplicate-${adventure.id}`} onClick={handleDuplicate}>
-                    Duplicate
-                </MenuItem>
-                <MenuItem id={`menu-item-delete-${adventure.id}`} onClick={handleDelete}>
-                    Delete
-                </MenuItem>
-            </Menu>
-        </>
+        <ContentCard
+            item={{
+                id: adventure.id,
+                type: 'adventure',
+                name: adventure.name,
+                isPublished: adventure.isPublished,
+                thumbnailUrl: backgroundUrl
+            }}
+            onClick={onOpen}
+            badges={badges}
+            metadata={metadata}
+            actions={actions}
+        />
     );
 }

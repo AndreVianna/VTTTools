@@ -153,9 +153,10 @@ return crypto.timingSafeEqual(hash1, hash2);
 ## Architecture
 
 ### Solution File
-**IMPORTANT**: Always use `VttTools.slnx` (not `VttTools.sln`) for all build operations.
-- **Build Command**: `dotnet build VttTools.slnx`
-- **Restore Command**: `dotnet restore VttTools.slnx`
+**IMPORTANT**: Always use `Source/VttTools.slnx` (not `VttTools.sln`) for all build operations.
+- **Build Command**: `dotnet build Source/VttTools.slnx`
+- **Restore Command**: `dotnet restore Source/VttTools.slnx`
+- **Test Command**: `dotnet test Source/VttTools.slnx`
 
 ### Key Files
 - DSL SYNTAX REFERENCE: @.claude/guides/COMMAND_SYNTAX.md
@@ -222,3 +223,5 @@ Log Viewer: `pwsh -ExecutionPolicy Bypass -File .claude/scripts/view_logs.ps1`
 - TESTING_GUIDE.md - VttTools testing approach
 - IMPLEMENTATION_GUIDE.md - VttTools Phase 2 implementation workflow
 - CODE_QUALITY_GUIDE.md - VttTools quality standards
+- No need for excessive comments, always use the clean code rule for comments.
+- Whenever you find any unecessary on redundant comment in the code, delete it immediatelly independent if it is part of the current change or not.

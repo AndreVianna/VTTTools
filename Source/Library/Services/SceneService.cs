@@ -1,7 +1,7 @@
 using VttTools.Assets.Model;
 
-using UpdateSceneAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
 using BulkUpdateSceneAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
+using UpdateSceneAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
 
 namespace VttTools.Library.Services;
 
@@ -122,6 +122,14 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         return scene?.Assets.ToArray() ?? [];
     }
 
+    private static string GenerateAssetInstanceName(Asset asset, uint number) {
+        if (asset.Kind == AssetKind.Creature) {
+            return $"{asset.Name} #{number}";
+        }
+
+        return asset.Name;
+    }
+
     /// <inheritdoc />
     public async Task<Result<SceneAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, AddSceneAssetData data, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
@@ -147,14 +155,16 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             resourceId = tokenResource?.ResourceId ?? asset.Resources.First().ResourceId;
         }
 
+        var number = scene.Assets.Any(sa => sa.AssetId == assetId)
+            ? scene.Assets.Where(sa => sa.AssetId == assetId).Max(sa => sa.Number) + 1
+            : 1u;
+
         var sceneAsset = new SceneAsset {
             AssetId = assetId,
             Index = scene.Assets.Count != 0 ? scene.Assets.Max(sa => sa.Index) + 1 : 0,
-            Number = scene.Assets.Any(sa => sa.AssetId == assetId)
-                ? scene.Assets.Where(sa => sa.AssetId == assetId).Max(sa => sa.Number) + 1
-                : 1,
-            Name = data.Name.IsSet ? data.Name.Value : asset.Name,
-            Description = data.Description.IsSet ? data.Description.Value : null,  // Override if provided
+            Number = number,
+            Name = data.Name.IsSet ? data.Name.Value : GenerateAssetInstanceName(asset, number),
+            Description = data.Description.IsSet ? data.Description.Value : null,
             ResourceId = resourceId.Value,
             Position = data.Position,
             Size = data.Size,
@@ -252,6 +262,115 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
                     Elevation = update.Elevation.IsSet ? update.Elevation.Value : sceneAsset.Elevation,
                 };
             }
+        }
+
+        await sceneStorage.UpdateAsync(scene, ct);
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> BulkCloneAssetsAsync(Guid userId, Guid id, List<uint> assetIndices, CancellationToken ct = default) {
+        var scene = await sceneStorage.GetByIdAsync(id, ct);
+        if (scene is null)
+            return Result.Failure("NotFound");
+        if (scene.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        // Validate all indices exist before cloning any
+        var invalidIndices = assetIndices.Where(idx => !scene.Assets.Any(a => a.Index == idx)).ToList();
+        if (invalidIndices.Count > 0)
+            return Result.Failure($"Assets with indices {string.Join(", ", invalidIndices)} not found");
+
+        // Track the current max index to ensure unique indices for clones
+        var currentMaxIndex = scene.Assets.Any() ? scene.Assets.Max(sa => sa.Index) : 0;
+
+        // Clone each asset
+        foreach (var index in assetIndices) {
+            var asset = scene.Assets.First(sa => sa.Index == index);
+            var currentMaxNumber = scene.Assets.Where(sa => sa.AssetId == asset.AssetId).Max(sa => sa.Number);
+
+            var sceneAsset = asset.Clone() with {
+                Index = ++currentMaxIndex,
+                Number = currentMaxNumber + 1,
+                ControlledBy = userId,
+                Position = new Position(0, 0),
+                IsLocked = false,
+            };
+            scene.Assets.Add(sceneAsset);
+        }
+
+        await sceneStorage.UpdateAsync(scene, ct);
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> BulkDeleteAssetsAsync(Guid userId, Guid id, List<uint> assetIndices, CancellationToken ct = default) {
+        var scene = await sceneStorage.GetByIdAsync(id, ct);
+        if (scene is null)
+            return Result.Failure("NotFound");
+        if (scene.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        // Validate all indices exist before deleting any
+        var invalidIndices = assetIndices.Where(idx => !scene.Assets.Any(a => a.Index == idx)).ToList();
+        if (invalidIndices.Count > 0)
+            return Result.Failure($"Assets with indices {string.Join(", ", invalidIndices)} not found");
+
+        // Remove all assets with matching indices
+        scene.Assets.RemoveAll(a => assetIndices.Contains(a.Index));
+
+        await sceneStorage.UpdateAsync(scene, ct);
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> BulkAddAssetsAsync(Guid userId, Guid id, List<AssetToAdd> assetsToAdd, CancellationToken ct = default) {
+        var scene = await sceneStorage.GetByIdAsync(id, ct);
+        if (scene is null)
+            return Result.Failure("NotFound");
+        if (scene.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        var currentMaxIndex = scene.Assets.Any() ? scene.Assets.Max(sa => sa.Index) : 0;
+
+        foreach (var (assetId, data) in assetsToAdd) {
+            var result = data.Validate();
+            if (result.HasErrors)
+                return result;
+
+            var asset = await assetStorage.GetByIdAsync(assetId, ct);
+            if (asset is null)
+                return Result.Failure("Asset not found");
+            if (asset.OwnerId != userId && !(asset is { IsPublic: true, IsPublished: true }))
+                return Result.Failure("NotAllowed");
+
+            Guid? resourceId = data.ResourceId.IsSet ? data.ResourceId.Value : null;
+            if (resourceId is null) {
+                if (asset.Resources.Count == 0)
+                    return Result.Failure("Asset has no resources available");
+                var tokenResource = asset.Resources.FirstOrDefault(r => r.Role == ResourceRole.Token);
+                resourceId = tokenResource?.ResourceId ?? asset.Resources.First().ResourceId;
+            }
+
+            var number = scene.Assets.Any(sa => sa.AssetId == assetId)
+                ? scene.Assets.Where(sa => sa.AssetId == assetId).Max(sa => sa.Number) + 1
+                : 1u;
+
+            var sceneAsset = new SceneAsset {
+                AssetId = assetId,
+                Index = ++currentMaxIndex,
+                Number = number,
+                Name = data.Name.IsSet ? data.Name.Value : GenerateAssetInstanceName(asset, number),
+                Description = data.Description.IsSet ? data.Description.Value : null,
+                ResourceId = resourceId.Value,
+                Position = data.Position,
+                Size = data.Size,
+                Frame = data.Frame,
+                Rotation = data.Rotation,
+                Elevation = data.Elevation,
+                ControlledBy = userId,
+            };
+            scene.Assets.Add(sceneAsset);
         }
 
         await sceneStorage.UpdateAsync(scene, ct);

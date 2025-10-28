@@ -1,7 +1,7 @@
 ---
 name: frontend-developer
 description: Expert frontend development specialist for VTTTools React/TypeScript frontend. **USE PROACTIVELY** for client-side development, React components, MUI integration, Redux state management, and Vitest testing. Follows VTTTools Material-UI design system with dark/light theme support.
-model: sonnet[1m]
+model: default
 tools: Read,Write,Edit,MultiEdit,Bash,Glob,Grep,WebFetch,mcp__thinking__*,mcp__memory__*
 ---
 

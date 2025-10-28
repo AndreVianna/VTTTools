@@ -1,7 +1,7 @@
 ---
 name: task-organizer
 description: Master task breakdown and strategic planning specialist for VTTTools. **USE PROACTIVELY** for complex requirements with multi-faceted tasks, feature implementations, DDD Contracts + Service Implementation planning, dependency mapping, and agent coordination across backend-developer, frontend-developer, and other specialized agents.
-model: opusplan
+model: default
 tools: Read,Write,Edit,MultiEdit,Bash,Glob,Grep,WebFetch,mcp__thinking__*,mcp__memory__*
 ---
 

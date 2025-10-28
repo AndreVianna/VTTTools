@@ -1,7 +1,7 @@
 ---
 name: test-automation-developer
 description: Expert test automation and quality assurance specialist for VTTTools. **USE PROACTIVELY** for creating xUnit/Vitest tests, BDD scenarios, integration testing, and achieving ≥80% backend / ≥70% frontend coverage. Follows VTTTools AAA pattern and FluentAssertions standards.
-model: sonnet[1m]
+model: default
 tools: Read,Write,Edit,MultiEdit,Bash,Glob,Grep,WebFetch,mcp__thinking__*,mcp__memory__*
 ---
 

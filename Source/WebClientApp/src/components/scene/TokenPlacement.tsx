@@ -1,13 +1,18 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Layer, Group, Image as KonvaImage, Circle, Line, Rect } from 'react-konva';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { Layer, Group, Image as KonvaImage, Circle, Line, Rect, Text } from 'react-konva';
 import Konva from 'konva';
+import { useTheme } from '@mui/material/styles';
 import type { Asset, PlacedAsset } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { LayerName, GroupName } from '@/services/layerManager';
 import { getApiEndpoints } from '@/config/development';
 import { getPlacementBehavior, validatePlacement } from '@/types/placement';
+
+const LABEL_PADDING = 4;
+const LABEL_HORIZONTAL_PADDING = 8;
+const LABEL_VERTICAL_PADDING = 4;
 
 export interface TokenPlacementProps {
     /** Assets to place on canvas (managed by parent) */
@@ -107,6 +112,57 @@ const renderInvalidIndicator = (position: { x: number; y: number }) => (
     </Group>
 );
 
+interface TooltipRendererProps {
+    tooltip: {
+        visible: boolean;
+        text: string;
+        x: number;
+        y: number;
+        canvasX: number;
+        canvasY: number;
+    };
+    labelColors: {
+        background: string;
+        border: string;
+        text: string;
+    };
+}
+
+const TooltipRenderer: React.FC<TooltipRendererProps> = ({ tooltip, labelColors }) => {
+    const tempText = new Konva.Text({
+        text: tooltip.text,
+        fontSize: 12,
+        fontFamily: 'Arial',
+    });
+
+    const tooltipWidth = tempText.width() + LABEL_HORIZONTAL_PADDING;
+    const tooltipHeight = tempText.height() + LABEL_VERTICAL_PADDING;
+    tempText.destroy();
+
+    return (
+        <Group x={tooltip.canvasX + 10} y={tooltip.canvasY + 10}>
+            <Rect
+                width={tooltipWidth}
+                height={tooltipHeight}
+                fill={labelColors.background}
+                stroke={labelColors.border}
+                strokeWidth={1}
+            />
+            <Text
+                text={tooltip.text}
+                fontSize={12}
+                fontFamily="Arial"
+                fill={labelColors.text}
+                padding={LABEL_HORIZONTAL_PADDING / 2}
+                width={tooltipWidth}
+                height={tooltipHeight}
+                align="center"
+                verticalAlign="middle"
+            />
+        </Group>
+    );
+};
+
 /**
  * Snap position to grid based on asset size and snap mode
  * - Small assets (<= 0.5 cell): Base snap 0.5 cells
@@ -166,11 +222,26 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     onImagesLoaded,
     snapMode,
 }) => {
+    const theme = useTheme();
     const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | null>(null);
     const [imageCache, setImageCache] = useState<Map<string, HTMLImageElement>>(new Map());
     const [isValidPlacement, setIsValidPlacement] = useState(true);
+    const [tooltip, setTooltip] = useState<{
+        visible: boolean;
+        text: string;
+        x: number;
+        y: number;
+        canvasX: number;
+        canvasY: number;
+    } | null>(null);
     const snapModeRef = useRef(snapMode);
     const layerRef = useRef<any>(null);
+
+    const labelColors = useMemo(() => ({
+        background: theme.palette.background.paper,
+        border: theme.palette.divider,
+        text: theme.palette.text.primary,
+    }), [theme.palette.background.paper, theme.palette.divider, theme.palette.text.primary]);
 
     useEffect(() => {
         snapModeRef.current = snapMode;
@@ -345,6 +416,9 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
             size,
             rotation: 0,
             layer: getAssetGroup(draggedAsset),
+            index: placedAssets.length,
+            number: 1,
+            name: draggedAsset.name
         };
 
         onAssetPlaced(placedAsset);
@@ -367,19 +441,113 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 const image = imageCache.get(placedAsset.assetId);
                 if (!image) return null;
 
+                const isCreature = placedAsset.asset.kind === 'Creature';
+                const imageX = placedAsset.position.x - placedAsset.size.width / 2;
+                const imageY = placedAsset.position.y - placedAsset.size.height / 2;
+
+                if (isCreature) {
+                    const tempText = new Konva.Text({
+                        text: placedAsset.name,
+                        fontSize: 12,
+                        fontFamily: 'Arial',
+                    });
+
+                    const labelWidth = tempText.width() + LABEL_HORIZONTAL_PADDING;
+                    const labelHeight = tempText.height() + LABEL_VERTICAL_PADDING;
+
+                    tempText.destroy();
+
+                    const labelX = placedAsset.position.x - labelWidth / 2;
+                    const labelY = placedAsset.position.y + placedAsset.size.height / 2 + LABEL_PADDING;
+
+                    return (
+                        <Group key={placedAsset.id}>
+                            <KonvaImage
+                                id={placedAsset.id}
+                                name="placed-asset"
+                                image={image}
+                                x={imageX}
+                                y={imageY}
+                                width={placedAsset.size.width}
+                                height={placedAsset.size.height}
+                                rotation={placedAsset.rotation}
+                                draggable={false}
+                                listening={true}
+                            />
+                            <Rect
+                                x={labelX}
+                                y={labelY}
+                                width={labelWidth}
+                                height={labelHeight}
+                                fill={labelColors.background}
+                                stroke={labelColors.border}
+                                strokeWidth={1}
+                                listening={false}
+                            />
+                            <Text
+                                x={labelX}
+                                y={labelY}
+                                width={labelWidth}
+                                height={labelHeight}
+                                text={placedAsset.name}
+                                fontSize={12}
+                                fontFamily="Arial"
+                                fill={labelColors.text}
+                                align="center"
+                                verticalAlign="middle"
+                                listening={false}
+                            />
+                        </Group>
+                    );
+                }
+
                 return (
                     <React.Fragment key={placedAsset.id}>
                         <KonvaImage
                             id={placedAsset.id}
                             name="placed-asset"
                             image={image}
-                            x={placedAsset.position.x - placedAsset.size.width / 2}
-                            y={placedAsset.position.y - placedAsset.size.height / 2}
+                            x={imageX}
+                            y={imageY}
                             width={placedAsset.size.width}
                             height={placedAsset.size.height}
                             rotation={placedAsset.rotation}
                             draggable={false}
                             listening={true}
+                            onMouseEnter={(e) => {
+                                const stage = e.target.getStage();
+                                const pointer = stage?.getPointerPosition();
+                                if (pointer && stage) {
+                                    const scale = stage.scaleX();
+                                    const stageX = stage.x();
+                                    const stageY = stage.y();
+                                    const canvasX = (pointer.x - stageX) / scale;
+                                    const canvasY = (pointer.y - stageY) / scale;
+                                    setTooltip({
+                                        visible: true,
+                                        text: placedAsset.name,
+                                        x: pointer.x,
+                                        y: pointer.y,
+                                        canvasX,
+                                        canvasY
+                                    });
+                                }
+                            }}
+                            onMouseMove={(e) => {
+                                const stage = e.target.getStage();
+                                const pointer = stage?.getPointerPosition();
+                                if (pointer && tooltip?.visible && stage) {
+                                    const scale = stage.scaleX();
+                                    const stageX = stage.x();
+                                    const stageY = stage.y();
+                                    const canvasX = (pointer.x - stageX) / scale;
+                                    const canvasY = (pointer.y - stageY) / scale;
+                                    setTooltip(prev => prev ? {...prev, x: pointer.x, y: pointer.y, canvasX, canvasY} : null);
+                                }
+                            }}
+                            onMouseLeave={() => {
+                                setTooltip(null);
+                            }}
                         />
                     </React.Fragment>
                 );
@@ -469,6 +637,13 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
 
             {/* Drag Preview Group - For temporarily holding dragged assets (renders above everything) */}
             <Group name="drag-preview" />
+
+            {tooltip?.visible && (
+                <TooltipRenderer
+                    tooltip={tooltip}
+                    labelColors={labelColors}
+                />
+            )}
         </Layer>
     );
 };

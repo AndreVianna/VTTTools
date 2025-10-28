@@ -59,7 +59,18 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
         // Fixed: Allow cloning if user is owner OR if asset is public+published
         if (original.OwnerId != userId && !(original is { IsPublic: true, IsPublished: true }))
             return Result.Failure("NotAllowed");
-        var clone = original.Clone(userId);
+
+        var allAdventures = await GetAdventuresAsync($"AvailableTo:{userId}", ct);
+        var existingNames = allAdventures.Select(a => a.Name);
+
+        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
+
+        if (newOriginalName != original.Name && original.OwnerId == userId) {
+            var renamedOriginal = original with { Name = newOriginalName };
+            await adventureStorage.UpdateAsync(renamedOriginal, ct);
+        }
+
+        var clone = original.Clone(userId, cloneName);
         await adventureStorage.AddAsync(clone, ct);
         return clone;
     }
@@ -129,7 +140,19 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
         var original = await sceneStorage.GetByIdAsync(templateId, ct);
         if (original is null)
             return Result.Failure("NotFound");
-        var clone = original.Clone();
+
+        var allScenes = await GetScenesAsync(id, ct);
+        var existingNames = allScenes.Select(s => s.Name);
+
+        var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
+
+        if (newOriginalName != original.Name) {
+            var renamedOriginal = original with { Name = newOriginalName };
+            await sceneStorage.UpdateAsync(renamedOriginal, ct);
+            original = renamedOriginal;
+        }
+
+        var clone = original.Clone(cloneName);
         await sceneStorage.AddAsync(clone, id, ct);
         return clone;
     }

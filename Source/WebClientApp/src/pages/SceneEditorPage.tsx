@@ -13,18 +13,23 @@ import {
     TokenPlacement,
     TokenDragHandle
 } from '@components/scene';
-import { EditingBlocker } from '@components/common';
+import { EditingBlocker, ConfirmDialog } from '@components/common';
 import { EditorLayout } from '@components/layout';
 import { GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
 import { layerManager, LayerName } from '@services/layerManager';
 import { Asset, PlacedAsset, Scene } from '@/types/domain';
 import { UndoRedoProvider, useUndoRedoContext } from '@/contexts/UndoRedoContext';
+import { ClipboardProvider, useClipboard } from '@/contexts/ClipboardContext';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import {
     createPlaceAssetCommand,
     createMoveAssetCommand,
     createRemoveAssetCommand,
-    createBatchCommand
+    createBatchCommand,
+    createBulkRemoveAssetsCommand,
+    createCopyAssetsCommand,
+    createCutAssetsCommand,
+    createPasteAssetsCommand
 } from '@/utils/commands';
 import {
     useGetSceneQuery,
@@ -32,7 +37,9 @@ import {
     useAddSceneAssetMutation,
     useUpdateSceneAssetMutation,
     useBulkUpdateSceneAssetsMutation,
-    useRemoveSceneAssetMutation
+    useRemoveSceneAssetMutation,
+    useBulkDeleteSceneAssetsMutation,
+    useBulkAddSceneAssetsMutation
 } from '@/services/sceneApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
 import { hydratePlacedAssets } from '@/utils/sceneMappers';
@@ -43,7 +50,7 @@ import { assetsApi } from '@/services/assetsApi';
 
 const STAGE_WIDTH = 2800;
 const STAGE_HEIGHT = 2100;
-const DEFAULT_BACKGROUND_IMAGE = '/assets/backgrounds/default.png';
+const SCENE_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 
 const MENU_BAR_HEIGHT = 50;
 const EDITOR_HEADER_HEIGHT = 64;
@@ -56,6 +63,7 @@ const SceneEditorPageInternal: React.FC = () => {
     const canvasRef = useRef<SceneCanvasHandle>(null);
     const stageRef = useRef<Konva.Stage>(null);
     const { execute } = useUndoRedoContext();
+    const { copyAssets, cutAssets, clipboard, canPaste, getClipboardAssets, clearClipboard } = useClipboard();
     const { isOnline } = useConnectionStatus();
     const dispatch = useAppDispatch();
 
@@ -71,6 +79,8 @@ const SceneEditorPageInternal: React.FC = () => {
     const [updateSceneAsset] = useUpdateSceneAssetMutation();
     const [bulkUpdateSceneAssets] = useBulkUpdateSceneAssetsMutation();
     const [removeSceneAsset] = useRemoveSceneAssetMutation();
+    const [bulkDeleteSceneAssets] = useBulkDeleteSceneAssetsMutation();
+    const [bulkAddSceneAssets] = useBulkAddSceneAssetsMutation();
 
     // Force refetch on mount with forceRefetch option
     useEffect(() => {
@@ -90,7 +100,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
     const [viewport, setViewport] = useState<Viewport>(initialViewport);
     const [gridConfig, setGridConfig] = useState<GridConfig>(getDefaultGrid());
-    const [backgroundImageUrl] = useState<string>(DEFAULT_BACKGROUND_IMAGE);
+    const [backgroundImageUrl] = useState<string>(SCENE_DEFAULT_BACKGROUND);
     const [draggedAsset, setDraggedAsset] = useState<Asset | null>(null);
     const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>(() => {
         const stored = localStorage.getItem('scene-selected-assets');
@@ -109,6 +119,8 @@ const SceneEditorPageInternal: React.FC = () => {
     const [placedAssets, setPlacedAssets] = useState<PlacedAsset[]>([]);
     const [isHydrating, setIsHydrating] = useState(false);
     const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [assetsToDelete, setAssetsToDelete] = useState<PlacedAsset[]>([]);
 
     useEffect(() => {
         if (sceneData && !isInitialized) {
@@ -332,6 +344,7 @@ const SceneEditorPageInternal: React.FC = () => {
             if (e.key === 'Escape' && draggedAsset) {
                 setDraggedAsset(null);
             }
+
             if (e.key === 'Alt') {
                 setIsAltPressed(true);
             }
@@ -359,8 +372,6 @@ const SceneEditorPageInternal: React.FC = () => {
             }
         };
 
-        // Reset all modifier keys when window loses focus
-        // Fixes: User holds Ctrl → switches window → releases Ctrl → returns → Ctrl stuck as pressed
         const handleBlur = () => {
             setIsAltPressed(false);
             setIsCtrlPressed(false);
@@ -491,12 +502,12 @@ const SceneEditorPageInternal: React.FC = () => {
                 }
             },
             onRemove: async (assetId) => {
-                const assetIndex = placedAssets.findIndex(a => a.id === assetId);
+                const asset = placedAssets.find(a => a.id === assetId);
                 setPlacedAssets(prev => prev.filter(a => a.id !== assetId));
 
-                if (sceneId && isOnline && scene && assetIndex !== -1) {
+                if (sceneId && isOnline && scene && asset) {
                     try {
-                        await removeSceneAsset({ sceneId, assetNumber: assetIndex }).unwrap();
+                        await removeSceneAsset({ sceneId, assetNumber: asset.index }).unwrap();
                         const { data: updatedScene } = await refetch();
                         if (updatedScene) {
                             setScene(updatedScene);
@@ -522,14 +533,15 @@ const SceneEditorPageInternal: React.FC = () => {
                 oldPosition,
                 newPosition,
                 onMove: async (id, position) => {
-                    // Find index INSIDE the setState callback to ensure we get current state
-                    let assetIndex = -1;
+                    // Find asset INSIDE the setState callback to ensure we get current state
+                    let assetIndex: number | undefined;
                     setPlacedAssets(prev => {
-                        assetIndex = prev.findIndex(a => a.id === id);
+                        const asset = prev.find(a => a.id === id);
+                        assetIndex = asset?.index;
                         return prev.map(a => (a.id === id ? { ...a, position } : a));
                     });
 
-                    if (sceneId && isOnline && scene && assetIndex !== -1) {
+                    if (sceneId && isOnline && scene && assetIndex !== undefined) {
                         try {
                             await updateSceneAsset({
                                 sceneId,
@@ -544,13 +556,13 @@ const SceneEditorPageInternal: React.FC = () => {
             });
             execute(command);
         } else {
-            // Collect asset indices and positions upfront for bulk update
+            // Collect backend asset indices and positions upfront for bulk update
             const bulkUpdates: Array<{ index: number; position: { x: number; y: number } }> = [];
 
             moves.forEach(({ assetId, newPosition }) => {
-                const assetIndex = placedAssets.findIndex(a => a.id === assetId);
-                if (assetIndex !== -1) {
-                    bulkUpdates.push({ index: assetIndex, position: newPosition });
+                const asset = placedAssets.find(a => a.id === assetId);
+                if (asset) {
+                    bulkUpdates.push({ index: asset.index, position: newPosition });
                 }
             });
 
@@ -586,109 +598,287 @@ const SceneEditorPageInternal: React.FC = () => {
     const handleAssetDeleted = () => {
         if (selectedAssetIds.length === 0) return;
 
-        const assetsToDelete = placedAssets.filter(a => selectedAssetIds.includes(a.id));
+        const assets = placedAssets.filter(a => selectedAssetIds.includes(a.id));
+        setAssetsToDelete(assets);
+        setDeleteConfirmOpen(true);
+    };
 
-        if (assetsToDelete.length === 1) {
-            const asset = assetsToDelete[0];
-            const command = createRemoveAssetCommand({
-                asset: asset as PlacedAsset,
-                onPlace: async (placedAsset) => {
-                    setPlacedAssets(prev => {
-                        if (prev.some(a => a.id === placedAsset.id)) {
-                            return prev;
-                        }
-                        return [...prev, placedAsset];
-                    });
+    const confirmDelete = useCallback(async () => {
+        if (assetsToDelete.length === 0) return;
 
-                    if (sceneId && isOnline && scene) {
-                        try {
-                            await addSceneAsset({
-                                sceneId,
-                                libraryAssetId: placedAsset.assetId,
-                                position: placedAsset.position,
-                                size: { width: placedAsset.size.width, height: placedAsset.size.height },
-                                rotation: placedAsset.rotation
-                            }).unwrap();
-                            const { data: updatedScene } = await refetch();
-                            if (updatedScene) {
-                                setScene(updatedScene);
-                            }
-                        } catch (error) {
-                            console.error('Failed to restore deleted asset:', error);
-                        }
-                    }
-                },
-                onRemove: async (id) => {
-                    const assetIndex = placedAssets.findIndex(a => a.id === id);
-                    setPlacedAssets(prev => prev.filter(a => a.id !== id));
+        const command = createBulkRemoveAssetsCommand({
+            assets: assetsToDelete,
+            onBulkRemove: async (assetIds) => {
+                if (sceneId && isOnline && scene) {
+                    try {
+                        const indices = assetsToDelete.map(asset => asset.index);
 
-                    if (sceneId && isOnline && scene && assetIndex !== -1) {
-                        try {
-                            await removeSceneAsset({ sceneId, assetNumber: assetIndex }).unwrap();
-                            const { data: updatedScene } = await refetch();
-                            if (updatedScene) {
-                                setScene(updatedScene);
-                            }
-                        } catch (error) {
-                            console.error('Failed to persist asset deletion:', error);
+                        await bulkDeleteSceneAssets({ sceneId, assetIndices: indices }).unwrap();
+                        const { data: updatedScene } = await refetch();
+                        if (updatedScene) {
+                            setScene(updatedScene);
+                            const hydratedAssets = await hydratePlacedAssets(
+                                updatedScene.assets,
+                                async (assetId: string) => {
+                                    const result = await dispatch(
+                                        assetsApi.endpoints.getAsset.initiate(assetId)
+                                    ).unwrap();
+                                    return result;
+                                }
+                            );
+                            setPlacedAssets(hydratedAssets);
                         }
+                    } catch (error) {
+                        console.error('Failed to persist bulk asset deletion:', error);
                     }
                 }
-            });
-            execute(command);
-        } else {
-            const commands = assetsToDelete.map(asset =>
-                createRemoveAssetCommand({
-                    asset,
-                    onPlace: async (placedAsset) => {
-                        setPlacedAssets(prev => {
-                            if (prev.some(a => a.id === placedAsset.id)) {
-                                return prev;
+            },
+            onBulkRestore: async (assets) => {
+                if (sceneId && isOnline && scene) {
+                    try {
+                        await bulkAddSceneAssets({
+                            sceneId,
+                            assets: assets.map(asset => ({
+                                assetId: asset.assetId,
+                                position: asset.position,
+                                size: { width: asset.size.width, height: asset.size.height },
+                                rotation: asset.rotation
+                            }))
+                        }).unwrap();
+
+                        const { data: updatedScene } = await refetch();
+                        if (updatedScene) {
+                            setScene(updatedScene);
+                            const hydratedAssets = await hydratePlacedAssets(
+                                updatedScene.assets,
+                                async (assetId: string) => {
+                                    const result = await dispatch(
+                                        assetsApi.endpoints.getAsset.initiate(assetId)
+                                    ).unwrap();
+                                    return result;
+                                }
+                            );
+                            setPlacedAssets(hydratedAssets);
+                        }
+                    } catch (error) {
+                        console.error('Failed to restore deleted assets:', error);
+                    }
+                }
+            }
+        });
+
+        execute(command);
+        setSelectedAssetIds([]);
+        setDeleteConfirmOpen(false);
+        setAssetsToDelete([]);
+    }, [assetsToDelete, sceneId, isOnline, scene, placedAssets, bulkDeleteSceneAssets, bulkAddSceneAssets, refetch, execute, dispatch]);
+
+    const handleCopyAssets = useCallback(() => {
+        if (selectedAssetIds.length === 0 || !sceneId) return;
+
+        const assets = placedAssets.filter(a => selectedAssetIds.includes(a.id));
+
+        const command = createCopyAssetsCommand({
+            assets,
+            onCopy: (copiedAssets) => {
+                copyAssets(copiedAssets, sceneId);
+            }
+        });
+
+        execute(command);
+    }, [selectedAssetIds, placedAssets, sceneId, copyAssets, execute]);
+
+    const handleCutAssets = useCallback(() => {
+        if (selectedAssetIds.length === 0 || !sceneId || !isOnline) return;
+
+        const assetsToDelete = placedAssets.filter(a => selectedAssetIds.includes(a.id));
+
+        const command = createCutAssetsCommand({
+            assets: assetsToDelete,
+            onCut: async (assets) => {
+                cutAssets(assets, sceneId);
+
+                if (sceneId && isOnline && scene) {
+                    try {
+                        const indices = assets.map(asset => asset.index);
+                        await bulkDeleteSceneAssets({ sceneId, assetIndices: indices }).unwrap();
+                        const { data: updatedScene } = await refetch();
+                        if (updatedScene) {
+                            setScene(updatedScene);
+                            const hydratedAssets = await hydratePlacedAssets(
+                                updatedScene.assets,
+                                async (assetId: string) => {
+                                    const result = await dispatch(
+                                        assetsApi.endpoints.getAsset.initiate(assetId)
+                                    ).unwrap();
+                                    return result;
+                                }
+                            );
+                            setPlacedAssets(hydratedAssets);
+                        }
+                    } catch (error) {
+                        console.error('Failed to persist cut operation:', error);
+                    }
+                }
+            },
+            onRestore: async (restoredAssets) => {
+                if (sceneId && isOnline && scene) {
+                    try {
+                        await bulkAddSceneAssets({
+                            sceneId,
+                            assets: restoredAssets.map(asset => ({
+                                assetId: asset.assetId,
+                                position: asset.position,
+                                size: { width: asset.size.width, height: asset.size.height },
+                                rotation: asset.rotation
+                            }))
+                        }).unwrap();
+
+                        const { data: updatedScene } = await refetch();
+                        if (updatedScene) {
+                            setScene(updatedScene);
+                            const hydratedAssets = await hydratePlacedAssets(
+                                updatedScene.assets,
+                                async (assetId: string) => {
+                                    const result = await dispatch(
+                                        assetsApi.endpoints.getAsset.initiate(assetId)
+                                    ).unwrap();
+                                    return result;
+                                }
+                            );
+                            setPlacedAssets(hydratedAssets);
+                        }
+                    } catch (error) {
+                        console.error('Failed to restore cut assets:', error);
+                    }
+                }
+            }
+        });
+
+        execute(command);
+        setSelectedAssetIds([]);
+    }, [selectedAssetIds, placedAssets, sceneId, isOnline, scene, cutAssets, bulkDeleteSceneAssets, bulkAddSceneAssets, refetch, execute, dispatch]);
+
+    const handlePasteAssets = useCallback(() => {
+        if (!canPaste || !sceneId || !isOnline || !scene) return;
+
+        const clipboardAssets = getClipboardAssets();
+        if (clipboardAssets.length === 0) return;
+
+        const command = createPasteAssetsCommand({
+            clipboardAssets,
+            onPaste: async (assets) => {
+                const PASTE_OFFSET = 20;
+
+                const newPlacedAssets: PlacedAsset[] = assets.map(asset => ({
+                    ...asset,
+                    id: `placed-${Date.now()}-${Math.random()}`,
+                    position: {
+                        x: asset.position.x + PASTE_OFFSET,
+                        y: asset.position.y + PASTE_OFFSET
+                    }
+                }));
+
+                if (sceneId && isOnline && scene) {
+                    try {
+                        await bulkAddSceneAssets({
+                            sceneId,
+                            assets: newPlacedAssets.map(pa => ({
+                                assetId: pa.assetId,
+                                position: pa.position,
+                                size: { width: pa.size.width, height: pa.size.height },
+                                rotation: pa.rotation
+                            }))
+                        }).unwrap();
+
+                        const { data: updatedScene } = await refetch();
+                        if (updatedScene) {
+                            setScene(updatedScene);
+                            const hydratedAssets = await hydratePlacedAssets(
+                                updatedScene.assets,
+                                async (assetId: string) => {
+                                    const result = await dispatch(
+                                        assetsApi.endpoints.getAsset.initiate(assetId)
+                                    ).unwrap();
+                                    return result;
+                                }
+                            );
+                            setPlacedAssets(hydratedAssets);
+
+                            if (clipboard.operation === 'cut') {
+                                clearClipboard();
                             }
-                            return [...prev, placedAsset];
+
+                            return hydratedAssets;
+                        }
+                    } catch (error) {
+                        console.error('Failed to persist pasted assets:', error);
+                        return [];
+                    }
+                }
+
+                return newPlacedAssets;
+            },
+            onUndo: async (assetIds) => {
+                if (sceneId && isOnline && scene) {
+                    try {
+                        let indicesToDelete: number[] = [];
+                        setPlacedAssets(prev => {
+                            const assetsToDelete = prev.filter(a => assetIds.includes(a.id));
+                            indicesToDelete = assetsToDelete.map(a => a.index);
+                            return prev.filter(a => !assetIds.includes(a.id));
                         });
 
-                        if (sceneId && isOnline && scene) {
-                            try {
-                                await addSceneAsset({
-                                    sceneId,
-                                    libraryAssetId: placedAsset.assetId,
-                                    position: placedAsset.position,
-                                    size: { width: placedAsset.size.width, height: placedAsset.size.height },
-                                    rotation: placedAsset.rotation
-                                }).unwrap();
-                                const { data: updatedScene } = await refetch();
-                                if (updatedScene) {
-                                    setScene(updatedScene);
-                                }
-                            } catch (error) {
-                                console.error('Failed to restore deleted asset:', error);
-                            }
-                        }
-                    },
-                    onRemove: async (id) => {
-                        const assetIndex = placedAssets.findIndex(a => a.id === id);
-                        setPlacedAssets(prev => prev.filter(a => a.id !== id));
+                        await bulkDeleteSceneAssets({ sceneId, assetIndices: indicesToDelete }).unwrap();
 
-                        if (sceneId && isOnline && scene && assetIndex !== -1) {
-                            try {
-                                await removeSceneAsset({ sceneId, assetNumber: assetIndex }).unwrap();
-                                const { data: updatedScene } = await refetch();
-                                if (updatedScene) {
-                                    setScene(updatedScene);
+                        const { data: updatedScene } = await refetch();
+                        if (updatedScene) {
+                            setScene(updatedScene);
+                            const hydratedAssets = await hydratePlacedAssets(
+                                updatedScene.assets,
+                                async (assetId: string) => {
+                                    const result = await dispatch(
+                                        assetsApi.endpoints.getAsset.initiate(assetId)
+                                    ).unwrap();
+                                    return result;
                                 }
-                            } catch (error) {
-                                console.error('Failed to persist asset deletion:', error);
-                            }
+                            );
+                            setPlacedAssets(hydratedAssets);
                         }
+                    } catch (error) {
+                        console.error('Failed to undo paste operation:', error);
                     }
-                })
-            );
-            execute(createBatchCommand({ commands }));
-        }
+                }
+            }
+        });
 
-        setSelectedAssetIds([]);
-    };
+        execute(command);
+    }, [canPaste, sceneId, isOnline, scene, getClipboardAssets, clipboard.operation, clearClipboard, bulkAddSceneAssets, bulkDeleteSceneAssets, refetch, execute, dispatch, placedAssets]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.ctrlKey && e.key === 'c' && !e.shiftKey && !e.altKey) {
+                e.preventDefault();
+                handleCopyAssets();
+            }
+
+            if (e.ctrlKey && e.key === 'x' && !e.shiftKey && !e.altKey) {
+                e.preventDefault();
+                handleCutAssets();
+            }
+
+            if (e.ctrlKey && e.key === 'v' && !e.shiftKey && !e.altKey) {
+                e.preventDefault();
+                handlePasteAssets();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown, { capture: true });
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown, { capture: true });
+        };
+    }, [handleCopyAssets, handleCutAssets, handlePasteAssets]);
 
     const handleAssetSelected = (assetIds: string[]) => {
         setSelectedAssetIds(assetIds);
@@ -858,14 +1048,26 @@ const SceneEditorPageInternal: React.FC = () => {
 
             {/* Backdrop removed - was causing infinite loading on refresh due to handlersReady never being called */}
         </Box>
+
+        <ConfirmDialog
+            open={deleteConfirmOpen}
+            onClose={() => setDeleteConfirmOpen(false)}
+            onConfirm={confirmDelete}
+            title="Delete Assets"
+            message={`Delete ${assetsToDelete.length} asset${assetsToDelete.length === 1 ? '' : 's'}?`}
+            confirmText="Delete"
+            severity="error"
+        />
         </EditorLayout>
     );
 };
 
 export const SceneEditorPage: React.FC = () => {
     return (
-        <UndoRedoProvider>
-            <SceneEditorPageInternal />
-        </UndoRedoProvider>
+        <ClipboardProvider>
+            <UndoRedoProvider>
+                <SceneEditorPageInternal />
+            </UndoRedoProvider>
+        </ClipboardProvider>
     );
 };

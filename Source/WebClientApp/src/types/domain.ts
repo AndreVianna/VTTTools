@@ -151,6 +151,9 @@ export interface PlacedAsset {
   size: { width: number; height: number };
   rotation: number;
   layer: string;
+  index: number; // Backend Index property - scene-wide unique identifier (never reused)
+  number: number; // Backend Number property - per-asset-type counter (e.g., "Goblin #3")
+  name: string;
 }
 
 // PlacedAsset Snapshot - For undo/redo with Memento pattern
@@ -527,7 +530,7 @@ export interface ChangePasswordRequest {
 
 export interface UpdateProfileRequest {
   name?: string;
-  dsiplayName?: string;
+  displayName?: string;
   phoneNumber?: string;
   profilePictureUrl?: string;
 }

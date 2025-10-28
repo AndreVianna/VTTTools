@@ -10,7 +10,7 @@ interface UndoRedoContextValue {
     canUndo: boolean;
     canRedo: boolean;
     execute: (command: Command) => void;
-    undo: () => void;
+    undo: () => Promise<void>;
     redo: () => void;
     clear: () => void;
 }
@@ -49,48 +49,61 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
         });
     }, [maxHistorySize]);
 
-    const undo = useCallback(() => {
+    const undo = useCallback(async () => {
+        let commandToUndo: Command | undefined;
+
         setState((prev) => {
             if (prev.past.length === 0) {
                 return prev;
             }
 
             const newPast = [...prev.past];
-            const command = newPast.pop();
+            commandToUndo = newPast.pop();
 
-            if (command === undefined) {
+            if (commandToUndo === undefined) {
                 return prev;
             }
 
-            command.undo();
-
             return {
                 past: newPast,
-                future: [command, ...prev.future],
+                future: [commandToUndo, ...prev.future],
             };
         });
+
+        if (commandToUndo) {
+            const result = commandToUndo.undo();
+            if (result instanceof Promise) {
+                await result;
+            }
+        }
     }, []);
 
     const redo = useCallback(() => {
+        // Get the command to redo BEFORE calling setState
+        let commandToRedo: Command | undefined;
+
         setState((prev) => {
             if (prev.future.length === 0) {
                 return prev;
             }
 
             const newFuture = [...prev.future];
-            const command = newFuture.shift();
+            commandToRedo = newFuture.shift();
 
-            if (command === undefined) {
+            if (commandToRedo === undefined) {
                 return prev;
             }
 
-            command.execute();
-
             return {
-                past: [...prev.past, command],
+                past: [...prev.past, commandToRedo],
                 future: newFuture,
             };
         });
+
+        // Execute the redo OUTSIDE of setState to prevent double execution
+        if (commandToRedo) {
+            commandToRedo.execute();
+        }
     }, []);
 
     const clear = useCallback(() => {
@@ -101,13 +114,13 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
     }, []);
 
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
+        const handleKeyDown = async (e: KeyboardEvent) => {
             const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
             const modifier = isMac ? e.metaKey : e.ctrlKey;
 
             if (modifier && e.key === 'z' && !e.shiftKey) {
                 e.preventDefault();
-                undo();
+                await undo();
             } else if (modifier && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
                 e.preventDefault();
                 redo();

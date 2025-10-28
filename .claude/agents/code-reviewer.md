@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Expert code quality assurance and security review specialist for VTTTools. **USE PROACTIVELY** after significant code changes to identify quality issues, security vulnerabilities, OWASP violations, and ensure compliance with VTTTools C#/.NET and TypeScript/React standards enforced by .editorconfig.
-model: sonnet[1m]
+model: default
 tools: Read,Glob,Grep,WebFetch,mcp__thinking__*,mcp__memory__*
 ---
 

@@ -1,22 +1,22 @@
 namespace VttTools.Library.Services;
 
 public static class Cloner {
-    internal static Adventure Clone(this Adventure original, Guid userId) {
+    internal static Adventure Clone(this Adventure original, Guid userId, string cloneName) {
         var clone = new Adventure {
             OwnerId = userId,
             CampaignId = original.CampaignId,
-            Name = original.Name,
+            Name = cloneName,
             Description = original.Description,
             Style = original.Style,
             Background = original.Background?.Clone(),
         };
-        clone.Scenes.AddRange(original.Scenes.Select(ep => ep.Clone()));
+        clone.Scenes.AddRange(original.Scenes.Select(ep => ep.Clone(ep.Name)));
         return clone;
     }
 
-    internal static Scene Clone(this Scene original) {
+    internal static Scene Clone(this Scene original, string cloneName) {
         var clone = new Scene {
-            Name = original.Name,
+            Name = cloneName,
             Description = original.Description,
             Stage = original.Stage,
             Grid = original.Grid,

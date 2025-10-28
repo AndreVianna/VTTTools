@@ -172,6 +172,51 @@ export const sceneApi = createApi({
             invalidatesTags: (_result, _error, { sceneId }) => [
                 { type: 'Scene', id: sceneId }
             ]
+        }),
+
+        bulkDeleteSceneAssets: builder.mutation<void, { sceneId: string; assetIndices: number[] }>({
+            query: ({ sceneId, assetIndices }) => ({
+                url: `/${sceneId}/assets`,
+                method: 'DELETE',
+                body: { assetIndices }
+            }),
+            invalidatesTags: (_result, _error, { sceneId }) => [
+                { type: 'Scene', id: sceneId }
+            ]
+        }),
+
+        bulkAddSceneAssets: builder.mutation<void, {
+            sceneId: string;
+            assets: Array<{
+                assetId: string;
+                position: { x: number; y: number };
+                size: { width: number; height: number };
+                rotation?: number;
+                elevation?: number;
+                resourceId?: string;
+                name?: string;
+                description?: string;
+            }>
+        }>({
+            query: ({ sceneId, assets }) => ({
+                url: `/${sceneId}/assets`,
+                method: 'POST',
+                body: {
+                    assets: assets.map(a => ({
+                        assetId: a.assetId,
+                        position: { x: a.position.x, y: a.position.y },
+                        size: { width: a.size.width, height: a.size.height, isSquare: Math.abs(a.size.width - a.size.height) < 0.001 },
+                        rotation: a.rotation || 0,
+                        elevation: a.elevation || 0,
+                        ...(a.resourceId && { resourceId: a.resourceId }),
+                        ...(a.name && { name: a.name }),
+                        ...(a.description && { description: a.description })
+                    }))
+                }
+            }),
+            invalidatesTags: (_result, _error, { sceneId }) => [
+                { type: 'Scene', id: sceneId }
+            ]
         })
     })
 });
@@ -187,5 +232,7 @@ export const {
     useAddSceneAssetMutation,
     useUpdateSceneAssetMutation,
     useBulkUpdateSceneAssetsMutation,
-    useRemoveSceneAssetMutation
+    useRemoveSceneAssetMutation,
+    useBulkDeleteSceneAssetsMutation,
+    useBulkAddSceneAssetsMutation
 } = sceneApi;

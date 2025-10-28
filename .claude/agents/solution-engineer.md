@@ -1,7 +1,7 @@
 ---
 name: solution-engineer
 description: Expert technical analysis and solution design specialist for VTTTools. **USE PROACTIVELY** for complex requirements analysis, architecture decisions, DDD Contracts + Service Implementation pattern guidance, full-stack coordination, and technology evaluation. Coordinates backend-developer, frontend-developer, and other specialized agents.
-model: opusplan
+model: default
 tools: Read,Write,Edit,MultiEdit,Bash,Glob,Grep,WebFetch,mcp__thinking__*,mcp__memory__*
 ---
 

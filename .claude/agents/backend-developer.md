@@ -1,7 +1,7 @@
 ---
 name: backend-developer
 description: Expert backend development specialist for VTTTools C#/.NET backend. **USE PROACTIVELY** for server-side development, API implementation, service layer logic, Entity Framework integration, and xUnit testing. Follows VTTTools DDD Contracts + Service Implementation pattern.
-model: sonnet[1m]
+model: default
 tools: Read,Write,Edit,MultiEdit,Bash,Glob,Grep,WebFetch,mcp__thinking__*,mcp__memory__*
 ---
 

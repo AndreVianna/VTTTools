@@ -1,7 +1,7 @@
 ---
 name: devops-specialist
 description: Expert DevOps and infrastructure automation specialist for VTTTools. **USE PROACTIVELY** for build automation, deployment pipelines, PowerShell scripting, Azure integration, and operational excellence. Works with VttTools.slnx solution file and cross-platform requirements.
-model: opusplan
+model: default
 tools: Read,Write,Edit,MultiEdit,Bash,Glob,Grep,WebFetch,mcp__thinking__*,mcp__memory__*
 ---
 

@@ -14,7 +14,7 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
     public async Task<PagedContentResponse> GetContentAsync(Guid authenticatedUserId, ContentFilters filters, CancellationToken ct = default) {
         var adventures = await QueryAdventuresAsync(authenticatedUserId, filters, ct);
         var hasMore = adventures.Length > filters.Limit;
-        var data = hasMore ? [..adventures.Take(filters.Limit)] : adventures;
+        var data = hasMore ? [.. adventures.Take(filters.Limit)] : adventures;
 
         return new PagedContentResponse {
             Data = data,

@@ -169,10 +169,27 @@ internal static class Mapper {
         entity.ZoomLevel = model.Stage.ZoomLevel;
         entity.Panning = model.Stage.Panning;
         entity.Grid = model.Grid;
-        // Join on Index (unique identifier) not AssetId (multiple instances can have same AssetId)
-        var existingAssets = entity.SceneAssets.Join(model.Assets, esa => esa.Index, msa => msa.Index, (esa, msa) => UpdateFrom(esa, entity.Id, msa));
-        var newAssets = model.Assets.Where(sa => entity.SceneAssets.All(ea => ea.Index != sa.Index)).Select(msa => ToEntity(msa, entity.Id));
-        entity.SceneAssets = [.. existingAssets.Union(newAssets)];
+
+        // Build lookup of model indices
+        var modelIndices = model.Assets.Select(sa => sa.Index).ToHashSet();
+
+        // 1. Remove assets that are no longer in the model (must do this first to maintain EF tracking)
+        var assetsToRemove = entity.SceneAssets.Where(ea => !modelIndices.Contains(ea.Index)).ToList();
+        foreach (var assetToRemove in assetsToRemove) {
+            entity.SceneAssets.Remove(assetToRemove);
+        }
+
+        // 2. Update existing assets
+        foreach (var modelAsset in model.Assets) {
+            var existingAsset = entity.SceneAssets.FirstOrDefault(ea => ea.Index == modelAsset.Index);
+            if (existingAsset != null) {
+                UpdateFrom(existingAsset, entity.Id, modelAsset);
+            } else {
+                // 3. Add new assets
+                entity.SceneAssets.Add(ToEntity(modelAsset, entity.Id));
+            }
+        }
+
         return entity;
     }
 

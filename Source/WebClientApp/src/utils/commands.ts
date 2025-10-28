@@ -2,7 +2,7 @@ import type { PlacedAsset, PlacedAssetSnapshot } from '@/types/domain';
 
 export interface Command {
     execute: () => void;
-    undo: () => void;
+    undo: () => void | Promise<void>;
     description: string;
 }
 
@@ -175,6 +175,92 @@ export const createTransformAssetCommand = (params: TransformAssetCommandParams)
                     onUpdate(id, snapshot);
                 }
             });
+        },
+    };
+};
+
+export interface BulkRemoveAssetsCommandParams {
+    assets: PlacedAsset[];
+    onBulkRemove: (assetIds: string[]) => void;
+    onBulkRestore: (assets: PlacedAsset[]) => void;
+}
+
+export const createBulkRemoveAssetsCommand = (params: BulkRemoveAssetsCommandParams): Command => {
+    const { assets, onBulkRemove, onBulkRestore } = params;
+
+    return {
+        description: `Delete (${assets.length} asset${assets.length === 1 ? '' : 's'})`,
+        execute: () => {
+            onBulkRemove(assets.map(a => a.id));
+        },
+        undo: () => {
+            onBulkRestore(assets);
+        },
+    };
+};
+
+export interface CopyAssetsCommandParams {
+    assets: PlacedAsset[];
+    onCopy: (assets: PlacedAsset[]) => void;
+}
+
+export const createCopyAssetsCommand = (params: CopyAssetsCommandParams): Command => {
+    const { assets, onCopy } = params;
+
+    return {
+        description: `Copy (${assets.length} asset${assets.length === 1 ? '' : 's'})`,
+        execute: () => {
+            onCopy(assets);
+        },
+        undo: () => {
+        },
+    };
+};
+
+export interface CutAssetsCommandParams {
+    assets: PlacedAsset[];
+    onCut: (assets: PlacedAsset[]) => Promise<void>;
+    onRestore: (assets: PlacedAsset[]) => Promise<void>;
+}
+
+export const createCutAssetsCommand = (params: CutAssetsCommandParams): Command => {
+    const { assets, onCut, onRestore } = params;
+
+    return {
+        description: `Cut (${assets.length} asset${assets.length === 1 ? '' : 's'})`,
+        execute: () => {
+            onCut(assets);
+        },
+        undo: () => {
+            onRestore(assets);
+        },
+    };
+};
+
+export interface PasteAssetsCommandParams {
+    clipboardAssets: PlacedAsset[];
+    onPaste: (assets: PlacedAsset[]) => Promise<PlacedAsset[]>;
+    onUndo: (assetIds: string[]) => Promise<void>;
+}
+
+export const createPasteAssetsCommand = (params: PasteAssetsCommandParams): Command => {
+    const { clipboardAssets, onPaste, onUndo } = params;
+    let pastedAssetIds: string[] = [];
+    let pastePromise: Promise<PlacedAsset[]> | null = null;
+
+    return {
+        description: `Paste (${clipboardAssets.length} asset${clipboardAssets.length === 1 ? '' : 's'})`,
+        execute: () => {
+            pastePromise = onPaste(clipboardAssets);
+            pastePromise.then(pastedAssets => {
+                pastedAssetIds = pastedAssets.map(a => a.id);
+            });
+        },
+        undo: async () => {
+            if (pastePromise) {
+                await pastePromise;
+            }
+            await onUndo(pastedAssetIds);
         },
     };
 };

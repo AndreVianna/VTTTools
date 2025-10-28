@@ -22,7 +22,7 @@ import { PhotoCamera as PhotoCameraIcon } from '@mui/icons-material';
 import { Scene } from '@/types/domain';
 import { GridConfig, GridType } from '@/utils/gridCalculator';
 
-const DEFAULT_BACKGROUND_IMAGE = '/assets/backgrounds/default.png';
+const SCENE_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 
 export interface ScenePropertiesPanelProps {
     open: boolean;
@@ -75,7 +75,7 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
     isUploadingBackground
 }) => {
     const theme = useTheme();
-    const effectiveBackgroundUrl = backgroundUrl || DEFAULT_BACKGROUND_IMAGE;
+    const effectiveBackgroundUrl = backgroundUrl || SCENE_DEFAULT_BACKGROUND;
 
     const handleDescriptionBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         const newDescription = e.target.value;

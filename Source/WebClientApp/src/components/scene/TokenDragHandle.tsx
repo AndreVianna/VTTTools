@@ -457,7 +457,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         const handleKeyDown = (e: KeyboardEvent) => {
             if (selectedAssetIds.length === 0 || !availableActions.canDelete) return;
 
-            if (e.key === 'Delete' || e.key === 'Backspace') {
+            if (e.key === 'Delete') {
                 e.preventDefault();
                 onAssetDeleted();
             }

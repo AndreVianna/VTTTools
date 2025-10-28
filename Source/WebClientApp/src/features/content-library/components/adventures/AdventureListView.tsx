@@ -118,7 +118,8 @@ export function AdventureListView() {
         try {
             await cloneAdventure({ id: adventureId }).unwrap();
             setSuccessMessage('Adventure duplicated successfully');
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to duplicate adventure:', error);
             setErrorMessage('Failed to duplicate adventure. Please try again.');
         }
     };

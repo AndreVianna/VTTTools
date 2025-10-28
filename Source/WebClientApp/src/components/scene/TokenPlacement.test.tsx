@@ -11,19 +11,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { TokenPlacement } from './TokenPlacement';
-import type { Asset, PlacedAsset, CreatureAsset } from '@/types/domain';
+import type { Asset, PlacedAsset, CreatureAsset, ObjectAsset } from '@/types/domain';
 import { AssetKind, CreatureCategory, ResourceType } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
+import { GroupName } from '@/services/layerManager';
 
 const mockGridConfig: GridConfig = {
     type: GridType.Square,
-    cellWidth: 50,
-    cellHeight: 50,
-    offsetX: 0,
-    offsetY: 0,
-    color: '#000000',
-    snapToGrid: true,
+    cellSize: { width: 50, height: 50 },
+    offset: { left: 0, top: 0 },
+    snap: true,
 };
 
 const createMockAsset = (id: string, kind: AssetKind = AssetKind.Creature): Asset => ({
@@ -65,6 +63,16 @@ const createMockCreatureAsset = (id: string): CreatureAsset => ({
     },
 });
 
+const createMockObjectAsset = (id: string): ObjectAsset => ({
+    ...createMockAsset(id, AssetKind.Object),
+    kind: AssetKind.Object,
+    properties: {
+        size: { width: 1, height: 1, isSquare: true },
+        isMovable: true,
+        isOpaque: false,
+    },
+});
+
 const createMockPlacedAsset = (id: string, assetId: string): PlacedAsset => ({
     id,
     assetId,
@@ -73,6 +81,9 @@ const createMockPlacedAsset = (id: string, assetId: string): PlacedAsset => ({
     size: { width: 50, height: 50 },
     rotation: 0,
     layer: 'agents',
+    index: 0,
+    number: 1,
+    name: `Asset ${id}`
 });
 
 describe('TokenPlacement', () => {
@@ -113,6 +124,7 @@ describe('TokenPlacement', () => {
                 gridConfig={mockGridConfig}
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
+                snapMode="grid"
             />
         );
 
@@ -131,6 +143,7 @@ describe('TokenPlacement', () => {
                 gridConfig={mockGridConfig}
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
+                snapMode="grid"
             />
         );
 
@@ -177,6 +190,7 @@ describe('TokenPlacement', () => {
                 gridConfig={mockGridConfig}
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
+                snapMode="grid"
             />
         );
 
@@ -221,6 +235,7 @@ describe('TokenPlacement', () => {
                 gridConfig={mockGridConfig}
                 draggedAsset={draggedAsset}
                 onDragComplete={mockOnDragComplete}
+                snapMode="grid"
             />
         );
 
@@ -271,6 +286,7 @@ describe('TokenPlacement', () => {
                 gridConfig={mockGridConfig}
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
+                snapMode="grid"
             />
         );
 
@@ -291,6 +307,7 @@ describe('TokenPlacement', () => {
                 gridConfig={mockGridConfig}
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
+                snapMode="grid"
             />
         );
 
@@ -315,6 +332,7 @@ describe('TokenPlacement', () => {
                 gridConfig={mockGridConfig}
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
+                snapMode="grid"
             />
         );
 
@@ -370,9 +388,98 @@ describe('TokenPlacement', () => {
                 gridConfig={mockGridConfig}
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
+                snapMode="grid"
             />
         );
 
         expect(mockOnAssetPlaced).not.toHaveBeenCalled();
+    });
+
+    it('renders creature assets with floating label below icon', async () => {
+        const creatureAsset = createMockCreatureAsset('creature-1');
+        const placedAsset = createMockPlacedAsset('placed-1', 'creature-1');
+        placedAsset.asset = creatureAsset;
+        placedAsset.name = 'Goblin #1';
+        placedAsset.layer = GroupName.Creatures;
+
+        const { container } = render(
+            <TokenPlacement
+                placedAssets={[placedAsset]}
+                onAssetPlaced={mockOnAssetPlaced}
+                onAssetMoved={mockOnAssetMoved}
+                onAssetDeleted={mockOnAssetDeleted}
+                gridConfig={mockGridConfig}
+                draggedAsset={null}
+                onDragComplete={mockOnDragComplete}
+                snapMode="grid"
+            />
+        );
+
+        await waitFor(() => {
+            const image = container.querySelector('#placed-1');
+            expect(image).toBeInTheDocument();
+        });
+    });
+
+    it('renders object assets without floating label', async () => {
+        const objectAsset = createMockObjectAsset('object-1');
+        const placedAsset = createMockPlacedAsset('placed-1', 'object-1');
+        placedAsset.asset = objectAsset;
+        placedAsset.name = 'Chair';
+        placedAsset.layer = GroupName.Objects;
+
+        const { container } = render(
+            <TokenPlacement
+                placedAssets={[placedAsset]}
+                onAssetPlaced={mockOnAssetPlaced}
+                onAssetMoved={mockOnAssetMoved}
+                onAssetDeleted={mockOnAssetDeleted}
+                gridConfig={mockGridConfig}
+                draggedAsset={null}
+                onDragComplete={mockOnDragComplete}
+                snapMode="grid"
+            />
+        );
+
+        await waitFor(() => {
+            const image = container.querySelector('#placed-1');
+            expect(image).toBeInTheDocument();
+        });
+    });
+
+    it('renders multiple creatures with unique labels', async () => {
+        const creatureAsset1 = createMockCreatureAsset('creature-1');
+        const creatureAsset2 = createMockCreatureAsset('creature-2');
+
+        const placedAsset1 = createMockPlacedAsset('placed-1', 'creature-1');
+        placedAsset1.asset = creatureAsset1;
+        placedAsset1.name = 'Goblin #1';
+        placedAsset1.layer = GroupName.Creatures;
+
+        const placedAsset2 = createMockPlacedAsset('placed-2', 'creature-2');
+        placedAsset2.asset = creatureAsset2;
+        placedAsset2.name = 'Goblin #2';
+        placedAsset2.layer = GroupName.Creatures;
+        placedAsset2.position = { x: 200, y: 200 };
+
+        const { container } = render(
+            <TokenPlacement
+                placedAssets={[placedAsset1, placedAsset2]}
+                onAssetPlaced={mockOnAssetPlaced}
+                onAssetMoved={mockOnAssetMoved}
+                onAssetDeleted={mockOnAssetDeleted}
+                gridConfig={mockGridConfig}
+                draggedAsset={null}
+                onDragComplete={mockOnDragComplete}
+                snapMode="grid"
+            />
+        );
+
+        await waitFor(() => {
+            const image1 = container.querySelector('#placed-1');
+            const image2 = container.querySelector('#placed-2');
+            expect(image1).toBeInTheDocument();
+            expect(image2).toBeInTheDocument();
+        });
     });
 });

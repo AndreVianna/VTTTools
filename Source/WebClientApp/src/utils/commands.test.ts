@@ -6,6 +6,9 @@ import {
     createResizeAssetCommand,
     createRotateAssetCommand,
     createBatchCommand,
+    createCopyAssetsCommand,
+    createCutAssetsCommand,
+    createPasteAssetsCommand,
 } from './commands';
 import type { PlacedAsset } from '@/types/domain';
 import { AssetKind } from '@/types/domain';
@@ -29,6 +32,9 @@ const createMockPlacedAsset = (id: string): PlacedAsset => ({
     size: { width: 50, height: 50 },
     rotation: 0,
     layer: 'objects',
+    index: 1,
+    number: 1,
+    name: `Asset ${id}`
 });
 
 describe('createPlaceAssetCommand', () => {
@@ -340,5 +346,213 @@ describe('createBatchCommand', () => {
         batch.undo();
 
         expect(commands.length).toBe(originalLength);
+    });
+});
+
+describe('createCopyAssetsCommand', () => {
+    it('should call onCopy callback with assets on execute', () => {
+        const onCopy = vi.fn();
+        const assets = [createMockPlacedAsset('1'), createMockPlacedAsset('2')];
+
+        const command = createCopyAssetsCommand({ assets, onCopy });
+
+        command.execute();
+
+        expect(onCopy).toHaveBeenCalledWith(assets);
+        expect(onCopy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should have descriptive description', () => {
+        const onCopy = vi.fn();
+        const assets = [createMockPlacedAsset('1')];
+
+        const command = createCopyAssetsCommand({ assets, onCopy });
+
+        expect(command.description).toContain('Copy');
+        expect(command.description).toContain('1');
+        expect(command.description).toContain('asset');
+    });
+
+    it('should handle multiple assets in description', () => {
+        const onCopy = vi.fn();
+        const assets = [createMockPlacedAsset('1'), createMockPlacedAsset('2')];
+
+        const command = createCopyAssetsCommand({ assets, onCopy });
+
+        expect(command.description).toContain('2');
+        expect(command.description).toContain('assets');
+    });
+
+    it('should not call onCopy on undo', async () => {
+        const onCopy = vi.fn();
+        const assets = [createMockPlacedAsset('1')];
+
+        const command = createCopyAssetsCommand({ assets, onCopy });
+
+        await command.undo();
+
+        expect(onCopy).not.toHaveBeenCalled();
+    });
+});
+
+describe('createCutAssetsCommand', () => {
+    it('should call onCut callback on execute', async () => {
+        const onCut = vi.fn();
+        const onRestore = vi.fn();
+        const assets = [createMockPlacedAsset('1')];
+
+        const command = createCutAssetsCommand({ assets, onCut, onRestore });
+
+        command.execute();
+
+        expect(onCut).toHaveBeenCalledWith(assets);
+    });
+
+    it('should call onRestore callback on undo', async () => {
+        const onCut = vi.fn();
+        const onRestore = vi.fn();
+        const assets = [createMockPlacedAsset('1')];
+
+        const command = createCutAssetsCommand({ assets, onCut, onRestore });
+
+        command.execute();
+
+        expect(onCut).toHaveBeenCalledTimes(1);
+
+        await command.undo();
+
+        expect(onRestore).toHaveBeenCalledWith(assets);
+        expect(onRestore).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle promise-based callbacks', async () => {
+        const onCut = vi.fn().mockResolvedValue(undefined);
+        const onRestore = vi.fn().mockResolvedValue(undefined);
+        const assets = [createMockPlacedAsset('1')];
+
+        const command = createCutAssetsCommand({ assets, onCut, onRestore });
+
+        command.execute();
+        await command.undo();
+
+        expect(onCut).toHaveBeenCalled();
+        expect(onRestore).toHaveBeenCalled();
+    });
+
+    it('should have descriptive description', () => {
+        const onCut = vi.fn();
+        const onRestore = vi.fn();
+        const assets = [createMockPlacedAsset('1'), createMockPlacedAsset('2')];
+
+        const command = createCutAssetsCommand({ assets, onCut, onRestore });
+
+        expect(command.description).toContain('Cut');
+        expect(command.description).toContain('2');
+        expect(command.description).toContain('assets');
+    });
+});
+
+describe('createPasteAssetsCommand', () => {
+    it('should call onPaste on execute', async () => {
+        const onPaste = vi.fn().mockResolvedValue([createMockPlacedAsset('3')]);
+        const onUndo = vi.fn();
+        const clipboardAssets = [createMockPlacedAsset('1')];
+
+        const command = createPasteAssetsCommand({ clipboardAssets, onPaste, onUndo });
+
+        command.execute();
+
+        expect(onPaste).toHaveBeenCalledWith(clipboardAssets);
+    });
+
+    it('should wait for paste to complete before calling undo', async () => {
+        const pastedAssets = [createMockPlacedAsset('3')];
+        const onPaste = vi.fn().mockResolvedValue(pastedAssets);
+        const onUndo = vi.fn().mockResolvedValue(undefined);
+        const clipboardAssets = [createMockPlacedAsset('1')];
+
+        const command = createPasteAssetsCommand({ clipboardAssets, onPaste, onUndo });
+
+        command.execute();
+
+        await command.undo();
+
+        expect(onPaste).toHaveBeenCalled();
+        expect(onUndo).toHaveBeenCalledWith(['3']);
+    });
+
+    it('should extract asset ids from pasted assets', async () => {
+        const pastedAssets = [
+            createMockPlacedAsset('3'),
+            createMockPlacedAsset('4'),
+            createMockPlacedAsset('5'),
+        ];
+        const onPaste = vi.fn().mockResolvedValue(pastedAssets);
+        const onUndo = vi.fn().mockResolvedValue(undefined);
+        const clipboardAssets = [createMockPlacedAsset('1')];
+
+        const command = createPasteAssetsCommand({ clipboardAssets, onPaste, onUndo });
+
+        command.execute();
+
+        await command.undo();
+
+        expect(onUndo).toHaveBeenCalledWith(['3', '4', '5']);
+    });
+
+    it('should handle async paste operations', async () => {
+        const pastedAssets = [createMockPlacedAsset('3')];
+        const onPaste = vi.fn(
+            () =>
+                new Promise((resolve) => {
+                    setTimeout(() => resolve(pastedAssets), 10);
+                })
+        );
+        const onUndo = vi.fn().mockResolvedValue(undefined);
+        const clipboardAssets = [createMockPlacedAsset('1')];
+
+        const command = createPasteAssetsCommand({ clipboardAssets, onPaste, onUndo });
+
+        command.execute();
+
+        await command.undo();
+
+        expect(onPaste).toHaveBeenCalled();
+        expect(onUndo).toHaveBeenCalled();
+    });
+
+    it('should have descriptive description', () => {
+        const onPaste = vi.fn();
+        const onUndo = vi.fn();
+        const clipboardAssets = [createMockPlacedAsset('1'), createMockPlacedAsset('2')];
+
+        const command = createPasteAssetsCommand({ clipboardAssets, onPaste, onUndo });
+
+        expect(command.description).toContain('Paste');
+        expect(command.description).toContain('2');
+        expect(command.description).toContain('assets');
+    });
+
+    it('should handle single asset description', () => {
+        const onPaste = vi.fn();
+        const onUndo = vi.fn();
+        const clipboardAssets = [createMockPlacedAsset('1')];
+
+        const command = createPasteAssetsCommand({ clipboardAssets, onPaste, onUndo });
+
+        expect(command.description).toContain('asset');
+        expect(command.description).not.toContain('assets');
+    });
+
+    it('should not call onUndo if paste not completed', async () => {
+        const onPaste = vi.fn().mockResolvedValue([]);
+        const onUndo = vi.fn();
+        const clipboardAssets = [createMockPlacedAsset('1')];
+
+        const command = createPasteAssetsCommand({ clipboardAssets, onPaste, onUndo });
+
+        await command.undo();
+
+        expect(onUndo).toHaveBeenCalledWith([]);
     });
 });

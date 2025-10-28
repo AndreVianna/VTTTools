@@ -32,16 +32,21 @@ import {
     useGetScenesQuery,
     useUpdateAdventureMutation,
     useCreateSceneMutation,
-    useCloneSceneMutation
+    useCloneSceneMutation,
+    adventuresApi
 } from '@/services/adventuresApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
 import { useDeleteSceneMutation } from '@/services/sceneApi';
 import { ConfirmDialog } from '@/components/common';
+import { useAppDispatch } from '@/store';
+
+const ADVENTURE_DEFAULT_BACKGROUND = '/assets/backgrounds/adventure.png';
 
 export function AdventureDetailPage() {
     const { adventureId } = useParams<{ adventureId: string }>();
     const navigate = useNavigate();
     const theme = useTheme();
+    const dispatch = useAppDispatch();
 
     const { data: adventure, isLoading: isLoadingAdventure, error: adventureError } = useGetAdventureQuery(adventureId!);
     const { data: scenes = [], isLoading: isLoadingScenes } = useGetScenesQuery(adventureId!);
@@ -184,7 +189,7 @@ export function AdventureDetailPage() {
                         name: 'New Scene',
                         description: '',
                         grid: {
-                            type: 0,
+                            type: 1,
                             cellSize: { width: 50, height: 50 },
                             offset: { left: 0, top: 0 },
                             snap: true
@@ -225,10 +230,12 @@ export function AdventureDetailPage() {
     };
 
     const handleConfirmDelete = async () => {
-        if (!sceneToDelete) return;
+        if (!sceneToDelete || !adventureId) return;
 
         try {
             await deleteScene(sceneToDelete.id).unwrap();
+
+            dispatch(adventuresApi.util.invalidateTags([{ type: 'AdventureScenes', id: adventureId }]));
 
             setDeleteDialogOpen(false);
             setSceneToDelete(null);
@@ -294,7 +301,7 @@ export function AdventureDetailPage() {
     const apiEndpoints = getApiEndpoints();
     const backgroundUrl = adventure.background
         ? `${apiEndpoints.media}/${adventure.background.id}`
-        : undefined;
+        : ADVENTURE_DEFAULT_BACKGROUND;
 
     return (
         <Box

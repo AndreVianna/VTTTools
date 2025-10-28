@@ -1,9 +1,9 @@
 using static VttTools.Utilities.ErrorCollectionExtensions;
 
-using IResult = Microsoft.AspNetCore.Http.IResult;
-using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
 using BulkUpdateAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
+using IResult = Microsoft.AspNetCore.Http.IResult;
 using SceneAssetUpdateData = VttTools.Library.Scenes.ServiceContracts.SceneAssetUpdateData;
+using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
 
 namespace VttTools.Library.Handlers;
 
@@ -79,9 +79,9 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> CloneAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int number, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> CloneAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var result = await sceneService.CloneAssetAsync(userId, id, number);
+        var result = await sceneService.CloneAssetAsync(userId, id, index);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -91,7 +91,7 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int number, [FromBody] UpdateSceneAssetRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] UpdateSceneAssetRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var data = new UpdateAssetData {
             Name = request.Name,
@@ -103,7 +103,7 @@ internal static class SceneHandlers {
             IsLocked = request.IsLocked,
             ControlledBy = request.ControlledBy,
         };
-        var result = await sceneService.UpdateAssetAsync(userId, id, number, data);
+        var result = await sceneService.UpdateAssetAsync(userId, id, index, data);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -134,9 +134,58 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> RemoveAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int number, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> BulkCloneAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] BulkCloneSceneAssetsRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var result = await sceneService.RemoveAssetAsync(userId, id, number);
+        var result = await sceneService.BulkCloneAssetsAsync(userId, id, request.AssetIndices);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> BulkDeleteAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] BulkDeleteSceneAssetsRequest request, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var result = await sceneService.BulkDeleteAssetsAsync(userId, id, request.AssetIndices);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> BulkAddAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] BulkAddSceneAssetsRequest request, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var assetsToAdd = request.Assets.Select(a => new AssetToAdd(
+            a.AssetId,
+            new AddSceneAssetData {
+                Name = a.Name,
+                Description = a.Description,
+                ResourceId = a.ResourceId,
+                Position = a.Position,
+                Size = a.Size,
+                Frame = new Frame(),
+                Rotation = a.Rotation,
+                Elevation = a.Elevation
+            }
+        )).ToList();
+        var result = await sceneService.BulkAddAssetsAsync(userId, id, assetsToAdd);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> RemoveAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var result = await sceneService.RemoveAssetAsync(userId, id, index);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
