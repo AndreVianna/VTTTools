@@ -10,4 +10,6 @@ public record SceneAssetUpdate {
     public Optional<NamedSize> Size { get; init; }
     public Optional<float> Rotation { get; init; }
     public Optional<float> Elevation { get; init; }
+    public Optional<DisplayName> DisplayName { get; init; } = Optional<DisplayName>.None;
+    public Optional<LabelPosition> LabelPosition { get; init; } = Optional<LabelPosition>.None;
 }

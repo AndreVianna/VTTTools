@@ -25,4 +25,14 @@ public record SceneAsset {
     public bool IsLocked { get; init; }
     public bool IsVisible { get; init; } = true;  // Whether visible to players (GM can hide traps, secret objects, etc.)
     public Guid? ControlledBy { get; init; }
+
+    /// <summary>
+    /// Display mode for this asset's label. Default uses scene default setting.
+    /// </summary>
+    public DisplayName DisplayName { get; init; } = DisplayName.Default;
+
+    /// <summary>
+    /// Label position for this asset. Default uses scene default setting.
+    /// </summary>
+    public LabelPosition LabelPosition { get; init; } = LabelPosition.Default;
 }

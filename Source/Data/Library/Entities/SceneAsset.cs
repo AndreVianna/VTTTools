@@ -29,4 +29,6 @@ public class SceneAsset {
     public bool IsLocked { get; set; }
     public bool IsVisible { get; set; } = true;
     public Guid? ControlledBy { get; set; }
+    public DisplayName DisplayName { get; set; } = DisplayName.Default;
+    public LabelPosition LabelPosition { get; set; } = LabelPosition.Default;
 }

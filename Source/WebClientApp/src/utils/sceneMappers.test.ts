@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { hydratePlacedAssets, dehydratePlacedAssets } from './sceneMappers';
 import type { SceneAsset, Asset, PlacedAsset } from '@/types/domain';
-import { AssetKind, ResourceRole } from '@/types/domain';
+import { AssetKind, ResourceRole, DisplayName, LabelPosition } from '@/types/domain';
 
 const mockCreatureAsset: Asset = {
     id: 'asset-1',
@@ -550,7 +550,9 @@ describe('dehydratePlacedAssets', () => {
             layer: 'creatures',
             index: 5,
             number: 3,
-            name: 'Goblin #3'
+            name: 'Goblin #3',
+            displayName: DisplayName.Default,
+            labelPosition: LabelPosition.Default
         };
 
         const result = dehydratePlacedAssets([placedAsset], 'scene-1');
@@ -586,7 +588,9 @@ describe('dehydratePlacedAssets', () => {
                 layer: 'creatures',
                 index: 0,
                 number: 1,
-                name: 'Goblin #1'
+                name: 'Goblin #1',
+                displayName: DisplayName.Default,
+                labelPosition: LabelPosition.Default
             },
             {
                 id: 'scene-asset-2',
@@ -598,7 +602,9 @@ describe('dehydratePlacedAssets', () => {
                 layer: 'objects',
                 index: 1,
                 number: 1,
-                name: 'Treasure Chest'
+                name: 'Treasure Chest',
+                displayName: DisplayName.Default,
+                labelPosition: LabelPosition.Default
             }
         ];
 

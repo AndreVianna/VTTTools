@@ -35,6 +35,8 @@ internal static class SceneSchemaBuilder {
                     cellSizeBuilder.Property(s => s.Height).IsRequired().HasDefaultValue(64.0);
                 });
             });
+            entity.Property(s => s.DefaultDisplayName).IsRequired().HasConversion<string>().HasDefaultValue(DisplayName.Always);
+            entity.Property(s => s.DefaultLabelPosition).IsRequired().HasConversion<string>().HasDefaultValue(LabelPosition.Bottom);
         });
         builder.Entity<SceneAsset>(entity => {
             entity.ToTable("SceneAssets");
@@ -77,6 +79,8 @@ internal static class SceneSchemaBuilder {
             entity.Property(ea => ea.IsLocked).IsRequired().HasDefaultValue(false);
             entity.Property(ea => ea.IsVisible).IsRequired().HasDefaultValue(true);
             entity.Property(ea => ea.ControlledBy);
+            entity.Property(ea => ea.DisplayName).IsRequired().HasConversion<string>().HasDefaultValue(DisplayName.Default);
+            entity.Property(ea => ea.LabelPosition).IsRequired().HasConversion<string>().HasDefaultValue(LabelPosition.Default);
             entity.HasOne<Scene>().WithMany(e => e.SceneAssets).IsRequired()
                   .HasForeignKey(ea => ea.SceneId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(ea => ea.Asset).WithMany().IsRequired()

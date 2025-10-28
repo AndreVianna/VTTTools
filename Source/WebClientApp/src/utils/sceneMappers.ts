@@ -1,5 +1,6 @@
 import type { Asset, SceneAsset, PlacedAsset } from '@/types/domain';
 import { GroupName } from '@/services/layerManager';
+import { DisplayName as DisplayNameEnum, LabelPosition as LabelPositionEnum } from '@/types/domain';
 
 /**
  * Scene Asset Mappers - Convert between backend and frontend representations
@@ -52,7 +53,9 @@ export async function hydratePlacedAssets(
                 layer: getAssetLayer(asset),
                 index: sceneAssetAny.index !== undefined ? sceneAssetAny.index : index,
                 number: sceneAssetAny.number !== undefined ? sceneAssetAny.number : 1,
-                name: sceneAssetAny.name || asset.name
+                name: sceneAssetAny.name || asset.name,
+                displayName: sceneAssetAny.displayName || DisplayNameEnum.Default,
+                labelPosition: sceneAssetAny.labelPosition || LabelPositionEnum.Default
             };
             return placedAsset;
         })
@@ -79,4 +82,12 @@ export function dehydratePlacedAssets(
         locked: false,
         asset: pa.asset
     }));
+}
+
+export function ensureSceneDefaults(scene: any): any {
+    return {
+        ...scene,
+        defaultDisplayName: scene.defaultDisplayName || DisplayNameEnum.Always,
+        defaultLabelPosition: scene.defaultLabelPosition || LabelPositionEnum.Bottom
+    };
 }

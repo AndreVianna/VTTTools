@@ -13,4 +13,14 @@ public record Scene {
     public Stage Stage { get; set; } = new();
     public Grid Grid { get; init; } = new();
     public List<SceneAsset> Assets { get; init; } = [];
+
+    /// <summary>
+    /// Default display mode for creature labels in this scene.
+    /// </summary>
+    public DisplayName DefaultDisplayName { get; init; } = DisplayName.Always;
+
+    /// <summary>
+    /// Default label position for all assets in this scene.
+    /// </summary>
+    public LabelPosition DefaultLabelPosition { get; init; } = LabelPosition.Bottom;
 }

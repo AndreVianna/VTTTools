@@ -11,13 +11,14 @@ import {
     GridRenderer,
     SceneEditorMenuBar,
     TokenPlacement,
-    TokenDragHandle
+    TokenDragHandle,
+    AssetContextMenu
 } from '@components/scene';
 import { EditingBlocker, ConfirmDialog } from '@components/common';
 import { EditorLayout } from '@components/layout';
 import { GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
 import { layerManager, LayerName } from '@services/layerManager';
-import { Asset, PlacedAsset, Scene } from '@/types/domain';
+import { Asset, PlacedAsset, Scene, DisplayName, LabelPosition } from '@/types/domain';
 import { UndoRedoProvider, useUndoRedoContext } from '@/contexts/UndoRedoContext';
 import { ClipboardProvider, useClipboard } from '@/contexts/ClipboardContext';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
@@ -29,7 +30,9 @@ import {
     createBulkRemoveAssetsCommand,
     createCopyAssetsCommand,
     createCutAssetsCommand,
-    createPasteAssetsCommand
+    createPasteAssetsCommand,
+    createRenameAssetCommand,
+    createUpdateAssetDisplayCommand
 } from '@/utils/commands';
 import {
     useGetSceneQuery,
@@ -42,7 +45,7 @@ import {
     useBulkAddSceneAssetsMutation
 } from '@/services/sceneApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
-import { hydratePlacedAssets } from '@/utils/sceneMappers';
+import { hydratePlacedAssets, ensureSceneDefaults } from '@/utils/sceneMappers';
 import { getApiEndpoints } from '@/config/development';
 import { SaveStatus } from '@/components/common';
 import { useAppDispatch } from '@/store';
@@ -121,6 +124,8 @@ const SceneEditorPageInternal: React.FC = () => {
     const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [assetsToDelete, setAssetsToDelete] = useState<PlacedAsset[]>([]);
+    const [contextMenuPosition, setContextMenuPosition] = useState<{ left: number; top: number } | null>(null);
+    const [contextMenuAsset, setContextMenuAsset] = useState<PlacedAsset | null>(null);
 
     useEffect(() => {
         if (sceneData && !isInitialized) {
@@ -137,7 +142,8 @@ const SceneEditorPageInternal: React.FC = () => {
                         }
                     );
 
-                    setScene(sceneData);
+                    const sceneWithDefaults = ensureSceneDefaults(sceneData);
+                    setScene(sceneWithDefaults);
                     setGridConfig({
                         type: typeof sceneData.grid.type === 'string'
                             ? GridType[sceneData.grid.type as keyof typeof GridType]
@@ -150,8 +156,8 @@ const SceneEditorPageInternal: React.FC = () => {
                     setIsInitialized(true);
                 } catch (error) {
                     console.error('Failed to hydrate scene assets:', error);
-                    // Still initialize the scene even if assets fail to load
-                    setScene(sceneData);
+                    const sceneWithDefaults = ensureSceneDefaults(sceneData);
+                    setScene(sceneWithDefaults);
                     setGridConfig({
                         type: typeof sceneData.grid.type === 'string'
                             ? GridType[sceneData.grid.type as keyof typeof GridType]
@@ -160,7 +166,7 @@ const SceneEditorPageInternal: React.FC = () => {
                         offset: sceneData.grid.offset,
                         snap: sceneData.grid.snap
                     });
-                    setPlacedAssets([]); // Empty assets if hydration fails
+                    setPlacedAssets([]);
                     setIsInitialized(true);
                 } finally {
                     setIsHydrating(false);
@@ -169,7 +175,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
             initializeScene();
         }
-    }, [sceneData, isInitialized]);
+    }, [sceneData, isInitialized, dispatch]);
 
     useEffect(() => {
         localStorage.setItem('scene-selected-assets', JSON.stringify(selectedAssetIds));
@@ -278,6 +284,12 @@ const SceneEditorPageInternal: React.FC = () => {
         setScene(prev => prev ? { ...prev, isPublished } : null);
         saveChanges({ isPublished });
     }, [sceneId, saveChanges]);
+
+    const handleSceneUpdate = useCallback((updates: Partial<Scene>) => {
+        if (!sceneId || !scene) return;
+        setScene(prev => prev ? { ...prev, ...updates } : null);
+        saveChanges(updates as any);
+    }, [sceneId, scene, saveChanges]);
 
     // Initialize Stage reference when SceneCanvas is ready
     // CRITICAL: TokenDragHandle depends on this ref being set to attach event handlers
@@ -896,6 +908,100 @@ const SceneEditorPageInternal: React.FC = () => {
         setHandlersReady(true);
     };
 
+    const handleAssetContextMenu = (assetId: string, position: { x: number; y: number }) => {
+        const asset = placedAssets.find((a) => a.id === assetId);
+        if (!asset) return;
+
+        setContextMenuPosition({ left: position.x, top: position.y });
+        setContextMenuAsset(asset);
+    };
+
+    const handleContextMenuClose = () => {
+        setContextMenuPosition(null);
+        setContextMenuAsset(null);
+    };
+
+    const handleAssetRename = async (assetId: string, newName: string) => {
+        if (!sceneId) return;
+
+        const asset = placedAssets.find((a) => a.id === assetId);
+        if (!asset) return;
+
+        const oldName = asset.name;
+
+        const command = createRenameAssetCommand({
+            assetId,
+            oldName,
+            newName,
+            onRename: async (id, name) => {
+                const assetToUpdate = placedAssets.find((a) => a.id === id);
+                if (!assetToUpdate) return;
+
+                await updateSceneAsset({
+                    sceneId,
+                    assetNumber: assetToUpdate.index,
+                    name,
+                }).unwrap();
+
+                setPlacedAssets(prev => prev.map(a => a.id === id ? { ...a, name } : a));
+            }
+        });
+
+        execute(command);
+    };
+
+    const handleAssetDisplayUpdate = async (
+        assetId: string,
+        displayName?: DisplayName,
+        labelPosition?: LabelPosition
+    ) => {
+        if (!sceneId) return;
+
+        const asset = placedAssets.find((a) => a.id === assetId);
+        if (!asset) return;
+
+        const oldDisplay = {
+            displayName: asset.displayName,
+            labelPosition: asset.labelPosition,
+        };
+        const newDisplay = {
+            displayName: displayName ?? asset.displayName,
+            labelPosition: labelPosition ?? asset.labelPosition,
+        };
+
+        const command = createUpdateAssetDisplayCommand({
+            assetId,
+            oldDisplay,
+            newDisplay,
+            onUpdate: async (id, dn, lp) => {
+                const assetToUpdate = placedAssets.find((a) => a.id === id);
+                if (!assetToUpdate) return;
+
+                const updateParams: any = {
+                    sceneId,
+                    assetNumber: assetToUpdate.index,
+                };
+                if (dn !== undefined) updateParams.displayName = dn;
+                if (lp !== undefined) updateParams.labelPosition = lp;
+
+                await updateSceneAsset(updateParams).unwrap();
+
+                setPlacedAssets(prev => prev.map(a => {
+                    if (a.id === id) {
+                        return {
+                            ...a,
+                            ...(dn !== undefined && { displayName: dn }),
+                            ...(lp !== undefined && { labelPosition: lp })
+                        };
+                    }
+                    return a;
+                }));
+            }
+        });
+
+        execute(command);
+    };
+
     if (isLoadingScene || isHydrating) {
         return (
             <EditorLayout>
@@ -940,6 +1046,7 @@ const SceneEditorPageInternal: React.FC = () => {
             onGridChange={handleGridChange}
             backgroundUrl={backgroundUrl}
             isUploadingBackground={isUploadingBackground}
+            onSceneUpdate={handleSceneUpdate}
         >
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
             <EditingBlocker isBlocked={!isOnline} />
@@ -1010,17 +1117,21 @@ const SceneEditorPageInternal: React.FC = () => {
                     </Layer>
 
                     {/* Layer 2: Game World (structure + objects + creatures) */}
-                    <TokenPlacement
-                        placedAssets={placedAssets}
-                        onAssetPlaced={handleAssetPlaced}
-                        onAssetMoved={handleAssetMoved}
-                        onAssetDeleted={handleAssetDeleted}
-                        gridConfig={gridConfig}
-                        draggedAsset={draggedAsset}
-                        onDragComplete={handleDragComplete}
-                        onImagesLoaded={handleImagesLoaded}
-                        snapMode={snapMode}
-                    />
+                    {scene && (
+                        <TokenPlacement
+                            placedAssets={placedAssets}
+                            onAssetPlaced={handleAssetPlaced}
+                            onAssetMoved={handleAssetMoved}
+                            onAssetDeleted={handleAssetDeleted}
+                            gridConfig={gridConfig}
+                            draggedAsset={draggedAsset}
+                            onDragComplete={handleDragComplete}
+                            onImagesLoaded={handleImagesLoaded}
+                            snapMode={snapMode}
+                            onContextMenu={handleAssetContextMenu}
+                            scene={scene}
+                        />
+                    )}
 
                     {/* Layer 3: Effects (placeholder for future) */}
                     <Layer name={LayerName.Effects}>
@@ -1057,6 +1168,15 @@ const SceneEditorPageInternal: React.FC = () => {
             message={`Delete ${assetsToDelete.length} asset${assetsToDelete.length === 1 ? '' : 's'}?`}
             confirmText="Delete"
             severity="error"
+        />
+
+        <AssetContextMenu
+            anchorPosition={contextMenuPosition}
+            open={contextMenuPosition !== null}
+            onClose={handleContextMenuClose}
+            asset={contextMenuAsset}
+            onRename={handleAssetRename}
+            onUpdateDisplay={handleAssetDisplayUpdate}
         />
         </EditorLayout>
     );

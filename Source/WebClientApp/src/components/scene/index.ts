@@ -11,6 +11,7 @@ export { PlacementCursor } from './PlacementCursor';
 export { TokenPlacement } from './TokenPlacement';
 export { TokenDragHandle } from './TokenDragHandle';
 export { UndoRedoToolbar } from './UndoRedoToolbar';
+export { AssetContextMenu } from './AssetContextMenu';
 
 // Types
 export type { SceneCanvasProps, SceneCanvasHandle, Viewport } from './SceneCanvas';

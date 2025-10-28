@@ -8,6 +8,8 @@ public record UpdateSceneRequest
     public Optional<bool> IsPublished { get; init; }
     public Optional<StageUpdate> Stage { get; init; }
     public Optional<GridUpdate> Grid { get; init; }
+    public Optional<DisplayName> DefaultDisplayName { get; init; } = Optional<DisplayName>.None;
+    public Optional<LabelPosition> DefaultLabelPosition { get; init; } = Optional<LabelPosition>.None;
 
     public record StageUpdate {
         public Optional<Guid?> BackgroundId { get; init; }

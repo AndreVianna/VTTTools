@@ -1,4 +1,4 @@
-import type { PlacedAsset, PlacedAssetSnapshot } from '@/types/domain';
+import type { PlacedAsset, PlacedAssetSnapshot, DisplayName, LabelPosition } from '@/types/domain';
 
 export interface Command {
     execute: () => void;
@@ -261,6 +261,48 @@ export const createPasteAssetsCommand = (params: PasteAssetsCommandParams): Comm
                 await pastePromise;
             }
             await onUndo(pastedAssetIds);
+        },
+    };
+};
+
+export interface RenameAssetCommandParams {
+    assetId: string;
+    oldName: string;
+    newName: string;
+    onRename: (assetId: string, name: string) => Promise<void>;
+}
+
+export const createRenameAssetCommand = (params: RenameAssetCommandParams): Command => {
+    const { assetId, oldName, newName, onRename } = params;
+
+    return {
+        description: `Rename "${oldName}" to "${newName}"`,
+        execute: async () => {
+            await onRename(assetId, newName);
+        },
+        undo: async () => {
+            await onRename(assetId, oldName);
+        },
+    };
+};
+
+export interface UpdateAssetDisplayCommandParams {
+    assetId: string;
+    oldDisplay: { displayName?: DisplayName; labelPosition?: LabelPosition };
+    newDisplay: { displayName?: DisplayName; labelPosition?: LabelPosition };
+    onUpdate: (assetId: string, displayName?: DisplayName, labelPosition?: LabelPosition) => Promise<void>;
+}
+
+export const createUpdateAssetDisplayCommand = (params: UpdateAssetDisplayCommandParams): Command => {
+    const { assetId, oldDisplay, newDisplay, onUpdate } = params;
+
+    return {
+        description: 'Update display settings',
+        execute: async () => {
+            await onUpdate(assetId, newDisplay.displayName, newDisplay.labelPosition);
+        },
+        undo: async () => {
+            await onUpdate(assetId, oldDisplay.displayName, oldDisplay.labelPosition);
         },
     };
 };

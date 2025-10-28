@@ -843,4 +843,319 @@ public class SceneServiceTests {
         orcResult.IsSuccessful.Should().BeTrue();
         orcResult.Value.Name.Should().Be("Orc #1");
     }
+
+    [Fact]
+    public async Task UpdateAssetAsync_WithDisplayName_UpdatesProperty() {
+        // Arrange
+        var sceneId = Guid.CreateVersion7();
+        const int assetIndex = 0;
+        var scene = new Scene {
+            Id = sceneId,
+            Name = "Test Scene",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Test Adventure",
+                Description = "Test description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
+            Assets = [
+                new() {
+                    Index = assetIndex,
+                    Name = "Test Asset",
+                    Position = new(1, 1),
+                    DisplayName = DisplayName.Default,
+                },
+            ],
+        };
+        var updateData = new UpdateSceneAssetData {
+            DisplayName = Optional<DisplayName>.Some(DisplayName.OnHover),
+        };
+
+        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
+        _sceneStorage.UpdateAsync(Arg.Any<SceneAsset>(), sceneId, Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await _service.UpdateAssetAsync(_userId, sceneId, assetIndex, updateData, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        await _sceneStorage.Received(1).UpdateAsync(Arg.Is<SceneAsset>(a => a.DisplayName == DisplayName.OnHover), sceneId, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UpdateAssetAsync_WithLabelPosition_UpdatesProperty() {
+        // Arrange
+        var sceneId = Guid.CreateVersion7();
+        const int assetIndex = 0;
+        var scene = new Scene {
+            Id = sceneId,
+            Name = "Test Scene",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Test Adventure",
+                Description = "Test description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
+            Assets = [
+                new() {
+                    Index = assetIndex,
+                    Name = "Test Asset",
+                    Position = new(1, 1),
+                    LabelPosition = LabelPosition.Default,
+                },
+            ],
+        };
+        var updateData = new UpdateSceneAssetData {
+            LabelPosition = Optional<LabelPosition>.Some(LabelPosition.Top),
+        };
+
+        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
+        _sceneStorage.UpdateAsync(Arg.Any<SceneAsset>(), sceneId, Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await _service.UpdateAssetAsync(_userId, sceneId, assetIndex, updateData, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        await _sceneStorage.Received(1).UpdateAsync(Arg.Is<SceneAsset>(a => a.LabelPosition == LabelPosition.Top), sceneId, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UpdateSceneAsync_WithDefaultDisplayName_UpdatesScene() {
+        // Arrange
+        var sceneId = Guid.CreateVersion7();
+        var scene = new Scene {
+            Id = sceneId,
+            Name = "Test Scene",
+            DefaultDisplayName = DisplayName.Always,
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Test Adventure",
+                Description = "Test description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
+        };
+        var updateData = new UpdateSceneData {
+            DefaultDisplayName = Optional<DisplayName>.Some(DisplayName.OnHover),
+        };
+
+        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
+        _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await _service.UpdateSceneAsync(_userId, sceneId, updateData, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        await _sceneStorage.Received(1).UpdateAsync(Arg.Is<Scene>(s => s.DefaultDisplayName == DisplayName.OnHover), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UpdateSceneAsync_WithDefaultLabelPosition_UpdatesScene() {
+        // Arrange
+        var sceneId = Guid.CreateVersion7();
+        var scene = new Scene {
+            Id = sceneId,
+            Name = "Test Scene",
+            DefaultLabelPosition = LabelPosition.Bottom,
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Test Adventure",
+                Description = "Test description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
+        };
+        var updateData = new UpdateSceneData {
+            DefaultLabelPosition = Optional<LabelPosition>.Some(LabelPosition.Middle),
+        };
+
+        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
+        _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await _service.UpdateSceneAsync(_userId, sceneId, updateData, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        await _sceneStorage.Received(1).UpdateAsync(Arg.Is<Scene>(s => s.DefaultLabelPosition == LabelPosition.Middle), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task BulkUpdateAssetsAsync_WithDisplayProperties_UpdatesMultipleAssets() {
+        // Arrange
+        var sceneId = Guid.CreateVersion7();
+        const uint assetIndex1 = 0;
+        const uint assetIndex2 = 1;
+        var scene = new Scene {
+            Id = sceneId,
+            Name = "Test Scene",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Test Adventure",
+                Description = "Test description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
+            Assets = [
+                new() {
+                    Index = assetIndex1,
+                    Name = "Test Asset 1",
+                    Position = new(1, 1),
+                    DisplayName = DisplayName.Default,
+                    LabelPosition = LabelPosition.Default,
+                },
+                new() {
+                    Index = assetIndex2,
+                    Name = "Test Asset 2",
+                    Position = new(2, 2),
+                    DisplayName = DisplayName.Default,
+                    LabelPosition = LabelPosition.Default,
+                },
+            ],
+        };
+        var updates = new BulkUpdateSceneAssetsData {
+            Updates = [
+                new SceneAssetUpdateData {
+                    Index = assetIndex1,
+                    DisplayName = Optional<DisplayName>.Some(DisplayName.Never),
+                    LabelPosition = Optional<LabelPosition>.Some(LabelPosition.Top),
+                },
+                new SceneAssetUpdateData {
+                    Index = assetIndex2,
+                    DisplayName = Optional<DisplayName>.Some(DisplayName.Always),
+                    LabelPosition = Optional<LabelPosition>.Some(LabelPosition.Bottom),
+                },
+            ],
+        };
+
+        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
+        _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await _service.BulkUpdateAssetsAsync(_userId, sceneId, updates, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        scene.Assets[0].DisplayName.Should().Be(DisplayName.Never);
+        scene.Assets[0].LabelPosition.Should().Be(LabelPosition.Top);
+        scene.Assets[1].DisplayName.Should().Be(DisplayName.Always);
+        scene.Assets[1].LabelPosition.Should().Be(LabelPosition.Bottom);
+        await _sceneStorage.Received(1).UpdateAsync(scene, Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData(DisplayName.Default)]
+    [InlineData(DisplayName.Always)]
+    [InlineData(DisplayName.OnHover)]
+    [InlineData(DisplayName.Never)]
+    public async Task UpdateAssetAsync_WithAllDisplayNameValues_UpdatesCorrectly(DisplayName displayName) {
+        // Arrange
+        var sceneId = Guid.CreateVersion7();
+        const int assetIndex = 0;
+        var scene = new Scene {
+            Id = sceneId,
+            Name = "Test Scene",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Test Adventure",
+                Description = "Test description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
+            Assets = [
+                new() {
+                    Index = assetIndex,
+                    Name = "Test Asset",
+                    Position = new(1, 1),
+                },
+            ],
+        };
+        var updateData = new UpdateSceneAssetData {
+            DisplayName = Optional<DisplayName>.Some(displayName),
+        };
+
+        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
+        _sceneStorage.UpdateAsync(Arg.Any<SceneAsset>(), sceneId, Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await _service.UpdateAssetAsync(_userId, sceneId, assetIndex, updateData, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        await _sceneStorage.Received(1).UpdateAsync(Arg.Is<SceneAsset>(a => a.DisplayName == displayName), sceneId, Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData(LabelPosition.Default)]
+    [InlineData(LabelPosition.Top)]
+    [InlineData(LabelPosition.Middle)]
+    [InlineData(LabelPosition.Bottom)]
+    public async Task UpdateAssetAsync_WithAllLabelPositionValues_UpdatesCorrectly(LabelPosition labelPosition) {
+        // Arrange
+        var sceneId = Guid.CreateVersion7();
+        const int assetIndex = 0;
+        var scene = new Scene {
+            Id = sceneId,
+            Name = "Test Scene",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Test Adventure",
+                Description = "Test description",
+                Style = AdventureStyle.OpenWorld,
+                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
+                IsOneShot = false,
+                IsPublished = false,
+                IsPublic = false,
+            },
+            Assets = [
+                new() {
+                    Index = assetIndex,
+                    Name = "Test Asset",
+                    Position = new(1, 1),
+                },
+            ],
+        };
+        var updateData = new UpdateSceneAssetData {
+            LabelPosition = Optional<LabelPosition>.Some(labelPosition),
+        };
+
+        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
+        _sceneStorage.UpdateAsync(Arg.Any<SceneAsset>(), sceneId, Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await _service.UpdateAssetAsync(_userId, sceneId, assetIndex, updateData, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        await _sceneStorage.Received(1).UpdateAsync(Arg.Is<SceneAsset>(a => a.LabelPosition == labelPosition), sceneId, Arg.Any<CancellationToken>());
+    }
 }

@@ -37,6 +37,7 @@ interface EditorLayoutProps {
   onGridChange?: (grid: import('@/utils/gridCalculator').GridConfig) => void;
   backgroundUrl?: string;
   isUploadingBackground?: boolean;
+  onSceneUpdate?: (updates: Partial<Scene>) => void;
 }
 
 export const EditorLayout: React.FC<EditorLayoutProps> = ({
@@ -51,7 +52,8 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
   onBackgroundUpload,
   onGridChange,
   backgroundUrl,
-  isUploadingBackground
+  isUploadingBackground,
+  onSceneUpdate
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -226,6 +228,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
           onGridChange={onGridChange}
           backgroundUrl={backgroundUrl}
           isUploadingBackground={isUploadingBackground}
+          onSceneUpdate={onSceneUpdate}
         />
       )}
 

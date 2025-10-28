@@ -3,16 +3,33 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Layer, Group, Image as KonvaImage, Circle, Line, Rect, Text } from 'react-konva';
 import Konva from 'konva';
 import { useTheme } from '@mui/material/styles';
-import type { Asset, PlacedAsset } from '@/types/domain';
+import type { Asset, PlacedAsset, Scene } from '@/types/domain';
+import { DisplayName as DisplayNameEnum, LabelPosition as LabelPositionEnum } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { LayerName, GroupName } from '@/services/layerManager';
 import { getApiEndpoints } from '@/config/development';
 import { getPlacementBehavior, validatePlacement } from '@/types/placement';
+import { getEffectiveDisplayName, getEffectiveLabelPosition } from '@/utils/displayHelpers';
 
 const LABEL_PADDING = 4;
 const LABEL_HORIZONTAL_PADDING = 8;
 const LABEL_VERTICAL_PADDING = 4;
+const MAX_LABEL_WIDTH_COLLAPSED = 75;
+const MIN_LABEL_WIDTH = 25;
+const LABEL_FONT_SIZE = 12;
+const LABEL_FONT_FAMILY = 'Arial';
+
+let measurementCanvas: HTMLCanvasElement | null = null;
+let measurementCtx: CanvasRenderingContext2D | null = null;
+
+const getMeasurementContext = (): CanvasRenderingContext2D => {
+    if (!measurementCanvas) {
+        measurementCanvas = document.createElement('canvas');
+        measurementCtx = measurementCanvas.getContext('2d')!;
+    }
+    return measurementCtx!;
+};
 
 export interface TokenPlacementProps {
     /** Assets to place on canvas (managed by parent) */
@@ -33,6 +50,10 @@ export interface TokenPlacementProps {
     onImagesLoaded?: () => void;
     /** Snap mode from keyboard modifiers */
     snapMode: 'free' | 'grid' | 'half-step';
+    /** Callback when context menu is requested */
+    onContextMenu?: (assetId: string, position: { x: number; y: number }) => void;
+    /** Current scene for display settings */
+    scene: Scene;
 }
 
 const getTokenImageUrl = (asset: Asset): string | null => {
@@ -82,8 +103,112 @@ const getAssetSize = (asset: Asset): { width: number; height: number } => {
         return { width: size.width, height: size.height };
     }
 
-    // Default to 1x1 grid cells
     return { width: 1, height: 1 };
+};
+
+const measureTextWidth = (text: string, fontSize: number = LABEL_FONT_SIZE, fontFamily: string = LABEL_FONT_FAMILY): number => {
+    const ctx = getMeasurementContext();
+    ctx.font = `${fontSize}px ${fontFamily}`;
+    return ctx.measureText(text).width;
+};
+
+const measureTextHeight = (fontSize: number = LABEL_FONT_SIZE): number => {
+    return fontSize * 1.2;
+};
+
+/**
+ * Format creature label with smart ellipsis that preserves #number suffix
+ * @param name The full creature name (e.g., "Goblin Warrior #5")
+ * @param maxWidth Maximum width in pixels for collapsed label
+ * @returns Formatted label information with dimensions
+ */
+export const formatCreatureLabel = (
+    name: string,
+    maxWidth: number
+): {
+    displayText: string;
+    isTruncated: boolean;
+    fullText: string;
+    displayWidth: number;
+    displayHeight: number;
+    fullWidth: number;
+} => {
+    const fullWidth = measureTextWidth(name, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
+
+    if (fullWidth <= maxWidth) {
+        const displayHeight = measureTextHeight(LABEL_FONT_SIZE);
+        return {
+            displayText: name,
+            isTruncated: false,
+            fullText: name,
+            displayWidth: fullWidth,
+            displayHeight,
+            fullWidth,
+        };
+    }
+
+    const numberPattern = /^(.+?)\s+(#\d+)$/;
+    const match = name.match(numberPattern);
+
+    if (match) {
+        const baseName = match[1];
+        const numberSuffix = match[2];
+
+        const numberWidth = measureTextWidth(numberSuffix, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
+        const ellipsis = '\u2026';
+        const ellipsisWidth = measureTextWidth(ellipsis, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
+        const spaceWidth = measureTextWidth(' ', LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
+
+        const availableForBaseName = maxWidth - numberWidth - ellipsisWidth - spaceWidth;
+
+        let truncatedBaseName = baseName;
+        for (let i = baseName.length - 1; i > 0; i--) {
+            const testWidth = measureTextWidth(baseName.substring(0, i), LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
+
+            if (testWidth <= availableForBaseName) {
+                truncatedBaseName = baseName.substring(0, i);
+                break;
+            }
+        }
+
+        const displayText = `${truncatedBaseName}${ellipsis} ${numberSuffix}`;
+        const displayWidth = measureTextWidth(displayText, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
+        const displayHeight = measureTextHeight(LABEL_FONT_SIZE);
+
+        return {
+            displayText,
+            isTruncated: true,
+            fullText: name,
+            displayWidth,
+            displayHeight,
+            fullWidth,
+        };
+    }
+
+    const ellipsis = '\u2026';
+    let truncatedName = name;
+
+    for (let i = name.length - 1; i > 0; i--) {
+        const testText = name.substring(0, i) + ellipsis;
+        const testWidth = measureTextWidth(testText, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
+
+        if (testWidth <= maxWidth) {
+            truncatedName = testText;
+            break;
+        }
+    }
+
+    const displayWidth = measureTextWidth(truncatedName, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
+    const displayHeight = measureTextHeight(LABEL_FONT_SIZE);
+
+    return {
+        displayText: truncatedName,
+        isTruncated: truncatedName !== name,
+        fullText: name,
+        displayWidth,
+        displayHeight,
+        fullWidth,
+    };
 };
 
 /**
@@ -129,15 +254,8 @@ interface TooltipRendererProps {
 }
 
 const TooltipRenderer: React.FC<TooltipRendererProps> = ({ tooltip, labelColors }) => {
-    const tempText = new Konva.Text({
-        text: tooltip.text,
-        fontSize: 12,
-        fontFamily: 'Arial',
-    });
-
-    const tooltipWidth = tempText.width() + LABEL_HORIZONTAL_PADDING;
-    const tooltipHeight = tempText.height() + LABEL_VERTICAL_PADDING;
-    tempText.destroy();
+    const tooltipWidth = measureTextWidth(tooltip.text, LABEL_FONT_SIZE, LABEL_FONT_FAMILY) + LABEL_HORIZONTAL_PADDING;
+    const tooltipHeight = measureTextHeight(LABEL_FONT_SIZE) + LABEL_VERTICAL_PADDING;
 
     return (
         <Group x={tooltip.canvasX + 10} y={tooltip.canvasY + 10}>
@@ -150,8 +268,8 @@ const TooltipRenderer: React.FC<TooltipRendererProps> = ({ tooltip, labelColors 
             />
             <Text
                 text={tooltip.text}
-                fontSize={12}
-                fontFamily="Arial"
+                fontSize={LABEL_FONT_SIZE}
+                fontFamily={LABEL_FONT_FAMILY}
                 fill={labelColors.text}
                 padding={LABEL_HORIZONTAL_PADDING / 2}
                 width={tooltipWidth}
@@ -221,6 +339,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     onDragComplete,
     onImagesLoaded,
     snapMode,
+    onContextMenu,
+    scene,
 }) => {
     const theme = useTheme();
     const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | null>(null);
@@ -234,6 +354,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         canvasX: number;
         canvasY: number;
     } | null>(null);
+    const [expandedAssetId, setExpandedAssetId] = useState<string | null>(null);
+    const [hoveredAssetId, setHoveredAssetId] = useState<string | null>(null);
     const snapModeRef = useRef(snapMode);
     const layerRef = useRef<any>(null);
 
@@ -418,7 +540,9 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
             layer: getAssetGroup(draggedAsset),
             index: placedAssets.length,
             number: 1,
-            name: draggedAsset.name
+            name: draggedAsset.name,
+            displayName: DisplayNameEnum.Default,
+            labelPosition: LabelPositionEnum.Default
         };
 
         onAssetPlaced(placedAsset);
@@ -446,19 +570,72 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 const imageY = placedAsset.position.y - placedAsset.size.height / 2;
 
                 if (isCreature) {
-                    const tempText = new Konva.Text({
-                        text: placedAsset.name,
-                        fontSize: 12,
-                        fontFamily: 'Arial',
-                    });
+                    const isHovered = hoveredAssetId === placedAsset.id;
+                    const isExpanded = expandedAssetId === placedAsset.id;
+                    const effectiveDisplay = getEffectiveDisplayName(placedAsset, scene);
+                    const effectivePosition = getEffectiveLabelPosition(placedAsset, scene);
 
-                    const labelWidth = tempText.width() + LABEL_HORIZONTAL_PADDING;
-                    const labelHeight = tempText.height() + LABEL_VERTICAL_PADDING;
+                    const showLabel =
+                        effectiveDisplay === DisplayNameEnum.Always ||
+                        (effectiveDisplay === DisplayNameEnum.OnHover && isHovered);
 
-                    tempText.destroy();
+                    if (effectiveDisplay === DisplayNameEnum.Never || !showLabel) {
+                        return (
+                            <KonvaImage
+                                key={placedAsset.id}
+                                id={placedAsset.id}
+                                name="placed-asset"
+                                image={image}
+                                x={imageX}
+                                y={imageY}
+                                width={placedAsset.size.width}
+                                height={placedAsset.size.height}
+                                rotation={placedAsset.rotation}
+                                draggable={false}
+                                listening={true}
+                                onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
+                                onMouseLeave={() => setHoveredAssetId(null)}
+                                onContextMenu={(e) => {
+                                    e.evt.preventDefault();
+                                    if (onContextMenu) {
+                                        onContextMenu(placedAsset.id, { x: e.evt.clientX, y: e.evt.clientY });
+                                    }
+                                }}
+                            />
+                        );
+                    }
+
+                    const labelInfo = formatCreatureLabel(placedAsset.name, MAX_LABEL_WIDTH_COLLAPSED);
+                    const displayText = isExpanded && labelInfo.isTruncated ? labelInfo.fullText : labelInfo.displayText;
+
+                    const measuredWidth = isExpanded && labelInfo.isTruncated
+                        ? labelInfo.fullWidth
+                        : labelInfo.displayWidth;
+
+                    const labelWidth = isExpanded && labelInfo.isTruncated
+                        ? measuredWidth + LABEL_HORIZONTAL_PADDING
+                        : Math.max(MIN_LABEL_WIDTH, Math.min(MAX_LABEL_WIDTH_COLLAPSED, measuredWidth + LABEL_HORIZONTAL_PADDING));
+
+                    const labelHeight = labelInfo.displayHeight + LABEL_VERTICAL_PADDING;
+
+                    const halfHeight = placedAsset.size.height / 2;
+                    let labelY: number;
+
+                    switch (effectivePosition) {
+                        case LabelPositionEnum.Top:
+                            labelY = placedAsset.position.y - halfHeight - LABEL_PADDING - labelHeight;
+                            break;
+                        case LabelPositionEnum.Middle:
+                            labelY = placedAsset.position.y - labelHeight / 2;
+                            break;
+                        case LabelPositionEnum.Bottom:
+                        case LabelPositionEnum.Default:
+                        default:
+                            labelY = placedAsset.position.y + halfHeight + LABEL_PADDING;
+                            break;
+                    }
 
                     const labelX = placedAsset.position.x - labelWidth / 2;
-                    const labelY = placedAsset.position.y + placedAsset.size.height / 2 + LABEL_PADDING;
 
                     return (
                         <Group key={placedAsset.id}>
@@ -473,6 +650,14 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                                 rotation={placedAsset.rotation}
                                 draggable={false}
                                 listening={true}
+                                onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
+                                onMouseLeave={() => setHoveredAssetId(null)}
+                                onContextMenu={(e) => {
+                                    e.evt.preventDefault();
+                                    if (onContextMenu) {
+                                        onContextMenu(placedAsset.id, { x: e.evt.clientX, y: e.evt.clientY });
+                                    }
+                                }}
                             />
                             <Rect
                                 x={labelX}
@@ -482,16 +667,26 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                                 fill={labelColors.background}
                                 stroke={labelColors.border}
                                 strokeWidth={1}
-                                listening={false}
+                                listening={true}
+                                onMouseEnter={() => {
+                                    setHoveredAssetId(placedAsset.id);
+                                    if (labelInfo.isTruncated) {
+                                        setExpandedAssetId(placedAsset.id);
+                                    }
+                                }}
+                                onMouseLeave={() => {
+                                    setHoveredAssetId(null);
+                                    setExpandedAssetId(null);
+                                }}
                             />
                             <Text
                                 x={labelX}
                                 y={labelY}
                                 width={labelWidth}
                                 height={labelHeight}
-                                text={placedAsset.name}
-                                fontSize={12}
-                                fontFamily="Arial"
+                                text={displayText}
+                                fontSize={LABEL_FONT_SIZE}
+                                fontFamily={LABEL_FONT_FAMILY}
                                 fill={labelColors.text}
                                 align="center"
                                 verticalAlign="middle"
@@ -500,6 +695,11 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                         </Group>
                     );
                 }
+
+                const effectiveDisplay = getEffectiveDisplayName(placedAsset, scene);
+                const shouldShowTooltip =
+                    effectiveDisplay === DisplayNameEnum.Always ||
+                    effectiveDisplay === DisplayNameEnum.OnHover;
 
                 return (
                     <React.Fragment key={placedAsset.id}>
@@ -514,7 +714,15 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                             rotation={placedAsset.rotation}
                             draggable={false}
                             listening={true}
+                            onContextMenu={(e) => {
+                                e.evt.preventDefault();
+                                if (onContextMenu) {
+                                    onContextMenu(placedAsset.id, { x: e.evt.clientX, y: e.evt.clientY });
+                                }
+                            }}
                             onMouseEnter={(e) => {
+                                if (!shouldShowTooltip) return;
+
                                 const stage = e.target.getStage();
                                 const pointer = stage?.getPointerPosition();
                                 if (pointer && stage) {
@@ -534,6 +742,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                                 }
                             }}
                             onMouseMove={(e) => {
+                                if (!shouldShowTooltip) return;
+
                                 const stage = e.target.getStage();
                                 const pointer = stage?.getPointerPosition();
                                 if (pointer && tooltip?.visible && stage) {

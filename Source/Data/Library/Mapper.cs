@@ -35,6 +35,9 @@ internal static class Mapper {
                 ZoomLevel = entity.ZoomLevel,
                 Panning = entity.Panning,
             },
+            Grid = entity.Grid,
+            DefaultDisplayName = entity.DefaultDisplayName,
+            DefaultLabelPosition = entity.DefaultLabelPosition,
             Assets = entity.SceneAssets.AsQueryable().Select(AsSceneAsset!).ToList(),
         };
 
@@ -53,6 +56,8 @@ internal static class Mapper {
             Frame = entity.Frame,
             IsLocked = entity.IsLocked,
             ControlledBy = entity.ControlledBy,
+            DisplayName = entity.DisplayName,
+            LabelPosition = entity.LabelPosition,
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
@@ -135,7 +140,7 @@ internal static class Mapper {
                 IsOneShot = entity.Adventure.IsOneShot,
                 IsPublic = entity.Adventure.IsPublic,
                 IsPublished = entity.Adventure.IsPublished,
-                Scenes = [],  // Don't map scenes to avoid circular reference
+                Scenes = [],
             } : null!,
             Stage = new() {
                 Background = entity.Background?.ToModel(),
@@ -143,6 +148,8 @@ internal static class Mapper {
                 Panning = entity.Panning,
             },
             Grid = entity.Grid,
+            DefaultDisplayName = entity.DefaultDisplayName,
+            DefaultLabelPosition = entity.DefaultLabelPosition,
             Assets = [.. entity.SceneAssets.Select(sa => sa.ToModel()!)],
         };
 
@@ -157,6 +164,8 @@ internal static class Mapper {
             ZoomLevel = model.Stage.ZoomLevel,
             Panning = model.Stage.Panning,
             Grid = model.Grid,
+            DefaultDisplayName = model.DefaultDisplayName,
+            DefaultLabelPosition = model.DefaultLabelPosition,
             SceneAssets = model.Assets?.ConvertAll(sa => ToEntity(sa, model.Id)) ?? [],
         };
 
@@ -169,6 +178,8 @@ internal static class Mapper {
         entity.ZoomLevel = model.Stage.ZoomLevel;
         entity.Panning = model.Stage.Panning;
         entity.Grid = model.Grid;
+        entity.DefaultDisplayName = model.DefaultDisplayName;
+        entity.DefaultLabelPosition = model.DefaultLabelPosition;
 
         // Build lookup of model indices
         var modelIndices = model.Assets.Select(sa => sa.Index).ToHashSet();
@@ -209,6 +220,8 @@ internal static class Mapper {
             Frame = entity.Frame,
             IsLocked = entity.IsLocked,
             ControlledBy = entity.ControlledBy,
+            DisplayName = entity.DisplayName,
+            LabelPosition = entity.LabelPosition,
         };
 
     internal static SceneAssetEntity ToEntity(this SceneAsset model, Guid sceneId)
@@ -227,6 +240,8 @@ internal static class Mapper {
             Rotation = model.Rotation,
             IsLocked = model.IsLocked,
             ControlledBy = model.ControlledBy,
+            DisplayName = model.DisplayName,
+            LabelPosition = model.LabelPosition,
         };
 
     internal static SceneAssetEntity UpdateFrom(this SceneAssetEntity entity, Guid sceneId, SceneAsset model) {
@@ -244,6 +259,8 @@ internal static class Mapper {
         entity.Rotation = model.Rotation;
         entity.IsLocked = model.IsLocked;
         entity.ControlledBy = model.ControlledBy;
+        entity.DisplayName = model.DisplayName;
+        entity.LabelPosition = model.LabelPosition;
         return entity;
     }
 }

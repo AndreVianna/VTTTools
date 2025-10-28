@@ -10,7 +10,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { TokenPlacement } from './TokenPlacement';
+import { TokenPlacement, formatCreatureLabel } from './TokenPlacement';
 import type { Asset, PlacedAsset, CreatureAsset, ObjectAsset } from '@/types/domain';
 import { AssetKind, CreatureCategory, ResourceType } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
@@ -112,6 +112,17 @@ describe('TokenPlacement', () => {
                 }, 0);
             }
         } as any;
+
+        const mockCanvas = {
+            getContext: vi.fn(() => ({
+                measureText: vi.fn((text: string) => ({ width: text.length * 7 })),
+                font: '',
+                fillText: vi.fn(),
+                strokeText: vi.fn(),
+            })),
+        };
+
+        HTMLCanvasElement.prototype.getContext = mockCanvas.getContext as any;
     });
 
     it('renders without crashing', () => {
@@ -480,6 +491,180 @@ describe('TokenPlacement', () => {
             const image2 = container.querySelector('#placed-2');
             expect(image1).toBeInTheDocument();
             expect(image2).toBeInTheDocument();
+        });
+    });
+
+    describe('Label Hover Expansion', () => {
+        it('renders creature label with truncated text', async () => {
+            const longName = 'Very Long Goblin Warrior Champion Name #5';
+            const creatureAsset = createMockCreatureAsset('creature-1');
+            const placedAsset = createMockPlacedAsset('placed-1', 'creature-1');
+            placedAsset.asset = creatureAsset;
+            placedAsset.name = longName;
+            placedAsset.layer = GroupName.Creatures;
+
+            const { container } = render(
+                <TokenPlacement
+                    placedAssets={[placedAsset]}
+                    onAssetPlaced={mockOnAssetPlaced}
+                    onAssetMoved={mockOnAssetMoved}
+                    onAssetDeleted={mockOnAssetDeleted}
+                    gridConfig={mockGridConfig}
+                    draggedAsset={null}
+                    onDragComplete={mockOnDragComplete}
+                    snapMode="grid"
+                />
+            );
+
+            await waitFor(() => {
+                const image = container.querySelector('#placed-1');
+                expect(image).toBeInTheDocument();
+            });
+        });
+
+        it('renders short creature label without truncation', async () => {
+            const shortName = 'Orc #1';
+            const creatureAsset = createMockCreatureAsset('creature-1');
+            const placedAsset = createMockPlacedAsset('placed-1', 'creature-1');
+            placedAsset.asset = creatureAsset;
+            placedAsset.name = shortName;
+            placedAsset.layer = GroupName.Creatures;
+
+            const { container } = render(
+                <TokenPlacement
+                    placedAssets={[placedAsset]}
+                    onAssetPlaced={mockOnAssetPlaced}
+                    onAssetMoved={mockOnAssetMoved}
+                    onAssetDeleted={mockOnAssetDeleted}
+                    gridConfig={mockGridConfig}
+                    draggedAsset={null}
+                    onDragComplete={mockOnDragComplete}
+                    snapMode="grid"
+                />
+            );
+
+            await waitFor(() => {
+                const image = container.querySelector('#placed-1');
+                expect(image).toBeInTheDocument();
+            });
+        });
+    });
+
+    describe('formatCreatureLabel', () => {
+        it('returns full name when text fits within max width', () => {
+            const result = formatCreatureLabel('Goblin', 100);
+
+            expect(result.isTruncated).toBe(false);
+            expect(result.displayText).toBe('Goblin');
+            expect(result.fullText).toBe('Goblin');
+            expect(result.displayWidth).toBeGreaterThan(0);
+            expect(result.displayHeight).toBeGreaterThan(0);
+            expect(result.fullWidth).toBeGreaterThan(0);
+        });
+
+        it('preserves #number suffix when truncating', () => {
+            const result = formatCreatureLabel('Very Long Goblin Warrior Name #5', 75);
+
+            expect(result.isTruncated).toBe(true);
+            expect(result.displayText).toMatch(/#5$/);
+            expect(result.displayText).toContain('\u2026');
+            expect(result.fullText).toBe('Very Long Goblin Warrior Name #5');
+            expect(result.displayWidth).toBeGreaterThan(0);
+            expect(result.displayHeight).toBeGreaterThan(0);
+            expect(result.fullWidth).toBeGreaterThan(result.displayWidth);
+        });
+
+        it('uses Unicode ellipsis (U+2026) not three dots', () => {
+            const result = formatCreatureLabel('Very Long Goblin Warrior Name #5', 75);
+
+            expect(result.isTruncated).toBe(true);
+            expect(result.displayText).toContain('\u2026');
+            expect(result.displayText).not.toContain('...');
+        });
+
+        it('handles names without #number suffix', () => {
+            const result = formatCreatureLabel('Very Long Goblin Warrior Name', 75);
+
+            expect(result.isTruncated).toBe(true);
+            expect(result.displayText).toContain('\u2026');
+            expect(result.displayText).not.toMatch(/#\d+$/);
+            expect(result.fullText).toBe('Very Long Goblin Warrior Name');
+        });
+
+        it('truncates only the baseName part, not the number', () => {
+            const result = formatCreatureLabel('Goblin Warrior #123', 75);
+
+            if (result.isTruncated) {
+                expect(result.displayText).toMatch(/^.+\u2026 #123$/);
+                const match = result.displayText.match(/^(.+)\u2026 #123$/);
+                expect(match).toBeTruthy();
+            }
+            expect(result.fullText).toBe('Goblin Warrior #123');
+        });
+
+        it('handles very short names below MIN_LABEL_WIDTH', () => {
+            const result = formatCreatureLabel('G', 25);
+
+            expect(result.isTruncated).toBe(false);
+            expect(result.displayText).toBe('G');
+        });
+
+        it('correctly identifies truncation status', () => {
+            const shortResult = formatCreatureLabel('Goblin #1', 100);
+            expect(shortResult.isTruncated).toBe(false);
+
+            const longResult = formatCreatureLabel('Very Long Goblin Warrior Name #5', 75);
+            expect(longResult.isTruncated).toBe(true);
+        });
+
+        it('handles names with multiple spaces correctly', () => {
+            const result = formatCreatureLabel('Goblin Warrior Chief #10', 75);
+
+            if (result.isTruncated) {
+                expect(result.displayText).toMatch(/#10$/);
+                expect(result.fullText).toBe('Goblin Warrior Chief #10');
+            }
+        });
+
+        it('handles names with numbers not at the end', () => {
+            const result = formatCreatureLabel('Goblin #5 Warrior', 75);
+
+            if (result.isTruncated) {
+                expect(result.displayText).toContain('\u2026');
+                expect(result.fullText).toBe('Goblin #5 Warrior');
+            }
+        });
+
+        it('handles double-digit and triple-digit numbers', () => {
+            const result1 = formatCreatureLabel('Very Long Goblin Name #99', 75);
+            if (result1.isTruncated) {
+                expect(result1.displayText).toMatch(/#99$/);
+            }
+
+            const result2 = formatCreatureLabel('Very Long Goblin Name #999', 75);
+            if (result2.isTruncated) {
+                expect(result2.displayText).toMatch(/#999$/);
+            }
+        });
+
+        it('returns consistent fullText regardless of truncation', () => {
+            const originalName = 'Goblin Warrior #5';
+            const result1 = formatCreatureLabel(originalName, 200);
+            const result2 = formatCreatureLabel(originalName, 50);
+
+            expect(result1.fullText).toBe(originalName);
+            expect(result2.fullText).toBe(originalName);
+        });
+
+        it('returns width and height dimensions for all results', () => {
+            const result = formatCreatureLabel('Goblin Warrior #5', 100);
+
+            expect(result.displayWidth).toBeGreaterThan(0);
+            expect(result.displayHeight).toBeGreaterThan(0);
+            expect(result.fullWidth).toBeGreaterThan(0);
+            expect(typeof result.displayWidth).toBe('number');
+            expect(typeof result.displayHeight).toBe('number');
+            expect(typeof result.fullWidth).toBe('number');
         });
     });
 });

@@ -154,6 +154,8 @@ export interface PlacedAsset {
   index: number; // Backend Index property - scene-wide unique identifier (never reused)
   number: number; // Backend Number property - per-asset-type counter (e.g., "Goblin #3")
   name: string;
+  displayName: DisplayName;
+  labelPosition: LabelPosition;
 }
 
 // PlacedAsset Snapshot - For undo/redo with Memento pattern
@@ -343,6 +345,8 @@ export interface Scene {
   assets: SceneAsset[];
   createdAt: string;
   updatedAt: string;
+  defaultDisplayName: DisplayName;
+  defaultLabelPosition: LabelPosition;
 }
 
 export interface SceneAsset {
@@ -533,4 +537,18 @@ export interface UpdateProfileRequest {
   displayName?: string;
   phoneNumber?: string;
   profilePictureUrl?: string;
+}
+
+export enum DisplayName {
+  Default = 'Default',
+  Always = 'Always',
+  OnHover = 'OnHover',
+  Never = 'Never',
+}
+
+export enum LabelPosition {
+  Default = 'Default',
+  Top = 'Top',
+  Middle = 'Middle',
+  Bottom = 'Bottom',
 }

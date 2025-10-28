@@ -57,6 +57,8 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             Name = data.Name.IsSet ? data.Name.Value : scene.Name,
             Description = data.Description.IsSet ? data.Description.Value : scene.Description,
             IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : scene.IsPublished,
+            DefaultDisplayName = data.DefaultDisplayName.IsSet ? data.DefaultDisplayName.Value : scene.DefaultDisplayName,
+            DefaultLabelPosition = data.DefaultLabelPosition.IsSet ? data.DefaultLabelPosition.Value : scene.DefaultLabelPosition,
         };
 
         if (data.Stage.IsSet)
@@ -227,6 +229,8 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             Elevation = data.Elevation.IsSet ? data.Elevation.Value : sceneAsset.Elevation,
             IsLocked = data.IsLocked.IsSet ? data.IsLocked.Value : sceneAsset.IsLocked,
             ControlledBy = data.ControlledBy.IsSet ? data.ControlledBy.Value : sceneAsset.ControlledBy,
+            DisplayName = data.DisplayName.IsSet ? data.DisplayName.Value : sceneAsset.DisplayName,
+            LabelPosition = data.LabelPosition.IsSet ? data.LabelPosition.Value : sceneAsset.LabelPosition,
         };
         await sceneStorage.UpdateAsync(sceneAsset, id, ct);
         return Result.Success();
@@ -260,6 +264,8 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
                     Size = update.Size.IsSet ? update.Size.Value : sceneAsset.Size,
                     Rotation = update.Rotation.IsSet ? update.Rotation.Value : sceneAsset.Rotation,
                     Elevation = update.Elevation.IsSet ? update.Elevation.Value : sceneAsset.Elevation,
+                    DisplayName = update.DisplayName.IsSet ? update.DisplayName.Value : sceneAsset.DisplayName,
+                    LabelPosition = update.LabelPosition.IsSet ? update.LabelPosition.Value : sceneAsset.LabelPosition,
                 };
             }
         }

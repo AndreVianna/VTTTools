@@ -4,8 +4,8 @@
 **Target Item**: EPIC-001
 **Item Specification**: Documents/Tasks/EPIC-001/TASK.md
 **Created**: 2025-10-03
-**Last Updated**: 2025-10-23
-**Version**: 1.7.0
+**Last Updated**: 2025-10-28
+**Version**: 1.9.0
 
 ---
 
@@ -13,18 +13,22 @@
 
 **Objective**: Complete migration from Blazor WebAssembly to React 19 + TypeScript SPA with enhanced scene editor, asset library, and real-time collaboration features
 
-**Scope**: Remaining 35% of UI migration (Phases 7-11) covering Scene/Adventure/Content Management, Game Sessions with SignalR, and Account Management
+**Scope**: Remaining 15% of UI migration (Phases 8.5-12) covering final polish, Game Sessions with SignalR, and Account Management
 
-**Total Phases**: 12 (Phases 1-6 ✅ Complete, Phases 7-12 🔜 Remaining)
-**Estimated Complexity**: Very High (273 hours total, 85 hours remaining)
-**Current Status**: Phase 6 complete (77.3%), Phase 7 ⏳ READY TO START, Phase 8-10-11 🔜 READY, Phase 9 ⚠️ BLOCKED by backend, Phase 12 🔜 FINAL
+**Total Phases**: 12 + 8.5 (Phases 1-8 ✅ Complete, Phase 8.5 🚧 Partial, Phases 9-12 🔜 Remaining)
+**Estimated Complexity**: Very High (282 hours total, 43 hours remaining)
+**Current Status**: Phase 8.5 partial (84.8%), Phase 9 ⚠️ BLOCKED by backend, Phases 10-11-12 🔜 READY
 
 **Deliverables**:
 
 - ✅ Complete Konva-based scene editor with grid, tokens, layers, undo/redo, offline mode
 - ✅ Asset library UI with browsing, filtering, creation, Material-UI components
-- 🔜 Scene CRUD UI (create, edit, list, delete scenes) - READY
-- 🔜 Adventure management UI (organize scenes into adventures) - READY
+- ✅ Scene CRUD UI with backend persistence and properties panel
+- ✅ Adventure management UI with smart duplication and inline editing
+- ✅ Scene/Adventure duplication with smart naming pattern
+- ✅ Bulk asset operations (clone/delete) with collection-level endpoints
+- 🚧 Auto-naming assets during placement (completed per user)
+- ⚠️ Structure placement type-specific logic (pending clarification)
 - ⚠️ Epic/Campaign hierarchy UI (optional advanced organization) - BLOCKED by backend
 - 🔜 Real-time game session collaboration with SignalR (chat, events, participants)
 - 🔜 Account management pages (profile, security, 2FA, password change)
@@ -1180,6 +1184,562 @@ The following improvements were identified but deferred to maintain stability an
 
 ---
 
+### Phase 8.5: Incomplete Items from Phases 6-8 🚧 PARTIAL COMPLETE
+
+**Objective**: Address 5 incomplete/missing items discovered during Phases 6-8 implementation
+
+**Completion Date**: 2025-10-28 (partial)
+
+**Background**: During Phase 6-8 implementation, several features were identified as incomplete or missing. Phase 8.5 addresses these gaps to ensure feature parity and polish.
+
+**Items**:
+
+**Item 1: Structures (Barriers, Regions, Sources)** 🚧 IN PROGRESS
+- **Status**: Implementation started - split into Phase 8.6 (Backend) and Phase 8.7 (Frontend)
+- **Estimated**: 88-118 hours total (Phase 8.6: 32-42h, Phase 8.7: 56-76h)
+- **Description**: Implement three structure categories for map elements (NOT assets):
+  - **Barriers**: Physical obstacles (walls, doors, cliffs) - open paths with vertices
+  - **Regions**: Environmental zones (illumination, elevation, fog, weather) - closed polygons
+  - **Sources**: Point-based effects (light, sound) - single vertex with range and line-of-sight
+- **Note**: Structures clarified as distinct from assets. See Phase 8.6 and 8.7 for detailed breakdown.
+
+**Item 2: Scene Duplication** ✅ COMPLETE
+- **Status**: Complete (3 hours)
+- **Deliverables**:
+  - Smart naming pattern with auto-increment (e.g., "Scene (1)", "Scene (2)")
+  - Clone/Delete buttons in scene cards (replaced 3-dot menu)
+  - Default tavern.png background for scenes
+  - Backend NamingHelper.cs utility
+  - REST-compliant route: `POST /api/adventures/{id}/scenes/{sceneId}/clone`
+
+**Item 3: Adventure Duplication** ✅ COMPLETE
+- **Status**: Complete (2 hours)
+- **Deliverables**:
+  - Same smart naming pattern as scenes
+  - Clone/Delete buttons in adventure cards
+  - Default adventure.png background
+  - REST-compliant route: `POST /api/adventures/{id}/clone`
+  - Fixed all clone endpoints to follow REST conventions
+
+**Item 4: Auto-Naming Assets During Placement** ✅ COMPLETE
+- **Status**: Complete
+- **Deliverables**:
+  - Objects: `{AssetName}` (no numbering)
+  - Creatures: `{AssetName} #{number}` (auto-increment)
+  - Structures: `{AssetName}` (no numbering, pending structure placement clarification)
+  - Display name on hover/selection
+  - Persistence to SceneAsset.Name field
+
+**Item 5: Selection in Undo/Redo Queue** ✅ VERIFIED CORRECT
+- **Status**: Complete (0 hours - already working correctly)
+- **Analysis**: Selection changes (SelectAssetsCommand, DeselectAllCommand) correctly do NOT create undo commands. Only transformations create undo entries.
+
+**Bulk Asset Operations** ✅ COMPLETE (Bonus Work)
+- **Status**: Complete (4 hours)
+- **Deliverables**:
+  - `POST /api/scenes/{id}/assets/clone` - Bulk clone assets
+  - `DELETE /api/scenes/{id}/assets` - Bulk delete assets
+  - Uses `AssetIndices` (List<uint>) for index-based operations
+- **Completed**:
+  - ✅ BulkCloneSceneAssetsRequest.cs created
+  - ✅ BulkDeleteSceneAssetsRequest.cs created
+  - ✅ Endpoints added to SceneEndpointsMapper.cs
+  - ✅ Handlers and service methods implemented
+
+**Success Criteria**:
+
+- ✅ Scene duplication with smart naming
+- ✅ Adventure duplication with smart naming
+- ✅ Auto-naming assets during placement
+- ✅ Selection correctly excluded from undo/redo
+- ⚠️ Structure placement (pending clarification)
+- ✅ Bulk asset operations complete
+
+**Dependencies**:
+
+- **Prerequisites**: Phase 8 (Scene Management) ✅
+- **Blocks**: None (enhancements, not blocking features)
+
+**Validation**:
+
+- ✅ Scene/Adventure duplication tested
+- ✅ Smart naming verified with multiple clones
+- ✅ Auto-naming tested with objects and creatures
+- ✅ Selection undo/redo behavior verified
+- ⚠️ Structure placement deferred pending clarification
+
+**Actual Effort**: 9 hours completed (Items 2, 3, 5, Bulk Ops), 4-6 hours pending (Item 1), 0 hours (Item 4 - per user confirmation)
+
+**Breakdown**:
+- Item 1 (Structure Placement): ⚠️ Pending clarification (4-6h estimated)
+- Item 2 (Scene Duplication): ✅ Complete (3h actual)
+- Item 3 (Adventure Duplication): ✅ Complete (2h actual)
+- Item 4 (Auto-Naming Assets): ✅ Complete (0h - per user)
+- Item 5 (Selection Undo/Redo): ✅ Complete (0h - verified correct)
+- Bonus (Bulk Operations): ✅ Complete (4h actual)
+
+**Status**: 🚧 PARTIAL COMPLETE (2025-10-28) - 5 of 6 items complete (including bonus), Item 1 → Phase 8.6 & 8.7
+
+---
+
+### Phase 8.6: Structures Backend API & Domain Model 🚧 IN PROGRESS
+
+**Objective**: Implement backend foundation for Structures (Barriers, Regions, Sources) - three distinct domain models with complete API layer
+
+**Approach**: Incremental implementation with review checkpoints after each category
+
+**Completion Date**: TBD
+
+**Architecture**: Three Distinct Models
+
+Structures are NOT assets. Three fundamentally different categories:
+
+| Category | Geometry | Properties | Use Cases |
+|----------|----------|------------|-----------|
+| **Barrier** | Open path (connected vertices) | isOpaque, isSolid, isSecret, isOpenable, isLocked | Walls, doors, windows, cliffs, portals |
+| **Region** | Closed polygon | RegionType (extensible string), LabelMap (Dict<int,string>), Value (int) | Illumination, elevation, fog of war, weather |
+| **Source** | Single point | SourceType (extensible string), Range (decimal cells), Intensity (0.0-1.0), IsGradient (bool) | Light sources, sound sources |
+
+**Key Design Decisions**:
+- RegionType and SourceType are strings (NOT enums) for extensibility
+- Range in fractional grid cells (e.g., 2.5 cells)
+- Sources interact with barriers (line-of-sight blocking in frontend)
+- Barriers can cross but not overlap
+- Regions can overlap if different types
+
+**Sub-Phases**:
+
+#### Phase 8.6A: Domain Models + Migration (10-13h)
+
+**Deliverables**:
+- Domain models (6 records):
+  - `Barrier.cs`, `SceneBarrier.cs`
+  - `Region.cs`, `SceneRegion.cs`
+  - `Source.cs`, `SceneSource.cs`
+- EF Core entities (6 classes) matching domain models
+- Schema builders (3 files):
+  - `BarrierSchemaBuilder.cs`
+  - `RegionSchemaBuilder.cs`
+  - `SourceSchemaBuilder.cs`
+- Database migration:
+  - Create 6 tables (Barriers, SceneBarriers, Regions, SceneRegions, Sources, SceneSources)
+  - Drop 2 old tables (Structures, SceneStructures)
+  - JSON columns for Vertices (Point arrays) and LabelMap (Dictionary)
+
+**Success Criteria**:
+- Domain models follow DDD patterns
+- EF entities correctly configured
+- Migration applies without errors
+- Old Structure tables removed
+
+**Review Checkpoint**: Code review after 8.6A complete
+
+---
+
+#### Phase 8.6B: Barriers API (7-9h)
+
+**Deliverables**:
+- API contracts (6 files):
+  - `CreateBarrierRequest.cs`, `UpdateBarrierRequest.cs`, `BarrierResponse.cs`
+  - `PlaceSceneBarrierRequest.cs`, `UpdateSceneBarrierRequest.cs`, `SceneBarrierResponse.cs`
+- `BarrierService.cs` (CRUD for templates)
+- `SceneService.cs` extensions:
+  - `PlaceBarrierAsync(sceneId, barrierId, vertices)`
+  - `UpdateSceneBarrierAsync(sceneBarrierId, vertices, isOpen, isLocked)`
+  - `RemoveSceneBarrierAsync(sceneBarrierId)`
+- `BarrierStorage.cs` (complete CRUD with EF Core)
+- `Mapper.cs` extensions (Barrier ↔ API contracts)
+- `BarrierEndpointsMapper.cs` (6 endpoints):
+  - `POST /api/library/barriers`
+  - `GET /api/library/barriers` (pagination)
+  - `GET /api/library/barriers/{id}`
+  - `PUT /api/library/barriers/{id}`
+  - `DELETE /api/library/barriers/{id}`
+  - Scene endpoints: `POST/PATCH/DELETE /api/scenes/{sceneId}/barriers`
+- Unit tests (BarrierServiceTests, BarrierStorageTests)
+
+**Success Criteria**:
+- 6 API endpoints functional
+- CRUD operations work end-to-end
+- Unit tests ≥80% coverage
+
+**Review Checkpoint**: Code review after 8.6B complete
+
+---
+
+#### Phase 8.6C: Regions API (7-9h)
+
+**Deliverables**:
+- API contracts (6 files for Region + SceneRegion)
+- `RegionService.cs`
+- `SceneService.cs` extensions (PlaceRegionAsync, UpdateSceneRegionAsync, RemoveSceneRegionAsync)
+- `RegionStorage.cs`
+- Mapper extensions
+- `RegionEndpointsMapper.cs` (6 endpoints)
+- Unit tests (RegionServiceTests, RegionStorageTests)
+
+**Success Criteria**:
+- 6 API endpoints functional
+- LabelMap JSON serialization working
+- RegionType extensibility verified (string, not enum)
+- Unit tests ≥80% coverage
+
+**Review Checkpoint**: Code review after 8.6C complete
+
+---
+
+#### Phase 8.6D: Sources API (8-11h)
+
+**Deliverables**:
+- API contracts (6 files for Source + SceneSource)
+- `SourceService.cs`
+- `SceneService.cs` extensions (PlaceSourceAsync, UpdateSceneSourceAsync, RemoveSceneSourceAsync)
+- `SourceStorage.cs`
+- Mapper extensions
+- `SourceEndpointsMapper.cs` (6 endpoints)
+- Unit tests (SourceServiceTests, SourceStorageTests)
+
+**Success Criteria**:
+- 6 API endpoints functional
+- Decimal Range (fractional grid cells) working
+- Intensity validation (0.0-1.0)
+- IsGradient flag functional
+- Unit tests ≥80% coverage
+
+**Review Checkpoint**: Code review after 8.6D complete
+
+---
+
+**Final Review Checkpoint 8.6** (End-to-End):
+- Integration testing (all 18 endpoints)
+- Overall architecture (DDD compliance)
+- Security (OWASP Top 10)
+- Test coverage (≥80% aggregate)
+- Build success (dotnet build VttTools.slnx)
+
+**Implementation Sequence**:
+
+1. Domain models + migration (8.6A)
+2. Code review checkpoint
+3. Barriers API (8.6B)
+4. Code review checkpoint
+5. Regions API (8.6C)
+6. Code review checkpoint
+7. Sources API (8.6D)
+8. Code review checkpoint
+9. Final end-to-end review
+
+**Success Criteria**:
+
+- ✅ 3 domain models (Barrier, Region, Source)
+- ✅ 3 scene placement models (SceneBarrier, SceneRegion, SceneSource)
+- ✅ 6 database tables created, 2 dropped
+- ✅ 18 API endpoints functional (6 per category)
+- ✅ 3 service classes + SceneService extensions
+- ✅ 3 storage classes (complete CRUD)
+- ✅ Unit tests ≥80% coverage
+- ✅ Grade B+ or higher (aggregate)
+
+**Dependencies**:
+
+- **Prerequisites**: Phase 8 (Scene Management) ✅
+- **Blocks**: Phase 8.7 (Frontend requires backend API)
+
+**Validation**:
+
+- Validate after sub-phase: Code review with grade
+- Quality gate: B+ minimum grade to proceed to next sub-phase
+- Final validation: End-to-end integration tests
+
+**Estimated Effort**: 32-42 hours
+
+**Status**: 🚧 IN PROGRESS (Not started)
+
+---
+
+### Phase 8.7: Structures Frontend Drawing Tools 🔜 READY
+
+**Objective**: Implement frontend drawing tools, Konva rendering, and Scene Editor integration for Structures
+
+**Approach**: Incremental implementation with review checkpoints after each tool
+
+**Prerequisites**: Phase 8.6 complete (backend API functional)
+
+**Sub-Phases**:
+
+#### Phase 8.7A: TypeScript Types + RTK Query (9-11h)
+
+**Deliverables**:
+- `src/types/domain.ts` (add 6 interfaces):
+  - `Barrier`, `SceneBarrier`
+  - `Region`, `SceneRegion`
+  - `Source`, `SceneSource`
+- RTK Query API slices (3 files):
+  - `src/services/barrierApi.ts` (6 endpoints)
+  - `src/services/regionApi.ts` (6 endpoints)
+  - `src/services/sourceApi.ts` (6 endpoints)
+- Cache invalidation tags configured
+- Optimistic updates configured
+- Type tests
+
+**Success Criteria**:
+- TypeScript interfaces match backend models
+- All 18 endpoints callable from frontend
+- Cache invalidation working
+- No TypeScript errors
+
+**Review Checkpoint**: Code review after 8.7A complete
+
+---
+
+#### Phase 8.7B: Structure Library UI (6-8h)
+
+**Deliverables**:
+- `src/components/structures/StructureLibraryPanel.tsx` (3 tabs)
+- `src/components/structures/BarrierList.tsx` (searchable)
+- `src/components/structures/RegionList.tsx` (searchable)
+- `src/components/structures/SourceList.tsx` (searchable)
+- `src/components/structures/CreateBarrierDialog.tsx`
+- `src/components/structures/CreateRegionDialog.tsx`
+- `src/components/structures/CreateSourceDialog.tsx`
+- Component tests (*.test.tsx)
+
+**Success Criteria**:
+- 3 tabs render correctly
+- Search works (debounced 300ms)
+- Click selects template for placement
+- Create dialogs submit to backend
+- WCAG AA accessible
+
+**Review Checkpoint**: Code review after 8.7B complete
+
+---
+
+#### Phase 8.7C: Barrier Drawing Tool + Rendering (13-18h)
+
+**Deliverables**:
+- Drawing tool:
+  - `src/components/scene/structures/BarrierDrawingTool.tsx` (click-to-place vertices)
+- Rendering:
+  - `src/components/scene/rendering/BarrierRenderer.tsx` (Konva Lines)
+- Utilities:
+  - `src/utils/structureSnapping.ts` (half-snap, quarter-snap, free)
+  - `src/utils/barrierValidation.ts` (min 2 vertices, no self-overlap)
+- Undo/redo commands:
+  - `PlaceBarrierCommand`, `RemoveBarrierCommand`, `UpdateBarrierCommand`
+- Tests (component, validation, snapping)
+
+**Snapping Behavior**:
+- Default: Half-snap (cell vertices, edge midpoints, cell centers)
+- Alt: Free placement (no snap)
+- Ctrl+Alt: Quarter-snap (0.25 cell precision)
+- Snap threshold: 10px
+
+**Visual Feedback**:
+- Snap indicator (small circle)
+- Preview line (dashed) from last vertex to cursor
+- Vertex markers at placed vertices
+- Validation errors (red X)
+
+**Success Criteria**:
+- Click-to-place vertices working
+- Double-click or Esc finishes barrier
+- Snapping working (3 modes)
+- Barriers render as Konva Lines
+- Colors: red=wall, blue=door, green=window, brown=cliff
+- Secret barriers use dash pattern
+- Undo/redo working
+- Tests ≥70% coverage
+
+**Review Checkpoint**: Code review after 8.7C complete
+
+---
+
+#### Phase 8.7D: Region Drawing Tool + Rendering (11-16h)
+
+**Deliverables**:
+- Drawing tool:
+  - `src/components/scene/structures/RegionDrawingTool.tsx` (click-to-place polygon)
+- Rendering:
+  - `src/components/scene/rendering/RegionRenderer.tsx` (Konva Polygons)
+- Utilities:
+  - `src/utils/regionValidation.ts` (min 3 vertices, closed polygon, no self-intersection)
+- Undo/redo commands:
+  - `PlaceRegionCommand`, `RemoveRegionCommand`, `UpdateRegionCommand`
+- Tests
+
+**Interaction**:
+- Same click-to-place as Barriers
+- Auto-close polygon: Click first vertex to close
+- Preview filled polygon during drawing
+- Minimum 3 vertices required
+
+**Rendering**:
+- Fill colors by type:
+  - Illumination: Yellow (alpha 0.3)
+  - Elevation: Brown (alpha 0.3)
+  - FogOfWar: Gray (alpha 0.5)
+  - Weather: Cyan (alpha 0.3)
+- Dashed outline (2px)
+- Value label at centroid (e.g., "Dim Light", "+10ft")
+
+**Success Criteria**:
+- Click-to-place polygon working
+- Auto-close on first vertex click
+- Regions render with color-coded fills
+- Value labels at centroid
+- Overlap validation (different types OK)
+- Undo/redo working
+- Tests ≥70% coverage
+
+**Review Checkpoint**: Code review after 8.7D complete
+
+---
+
+#### Phase 8.7E: Source Placement + Line-of-Sight Rendering (14-20h) ⚡ COMPLEX
+
+**Deliverables**:
+- Placement tool:
+  - `src/components/scene/structures/SourcePlacementTool.tsx` (click-drag range)
+- Rendering:
+  - `src/components/scene/rendering/SourceRenderer.tsx` (Konva with LOS blocking)
+- Utilities:
+  - `src/utils/lineOfSight.ts` (ray-casting, barrier intersection)
+  - `src/utils/rangeCalculator.ts` (fractional grid cells)
+  - `src/utils/sourceValidation.ts` (range > 0, intensity 0.0-1.0)
+- Undo/redo commands:
+  - `PlaceSourceCommand`, `RemoveSourceCommand`, `UpdateSourceCommand`
+- Tests (including LOS calculation accuracy)
+
+**Interaction**:
+- Click to place center point (with snap)
+- Hold and drag to set range radius
+- Release to confirm
+- Range displayed in fractional grid cells (e.g., "2.5 cells")
+- Range rounded to 0.5 precision
+
+**Line-of-Sight Calculation** (COMPLEX):
+1. Filter barriers by `isOpaque=true`
+2. Cast 72 rays (5° increments) from source position to range boundary
+3. For each ray, find closest intersection with opaque barrier segments
+4. If intersection found, truncate ray at intersection point
+5. Return polygon vertices from ray endpoints
+6. Render as Konva Polygon with fill
+
+**Rendering**:
+- Basic circle (if no opaque barriers nearby)
+- Visible region polygon (with LOS blocking)
+- Gradient fill if `isGradient=true`
+- Solid fill if `isGradient=false`
+- Opacity = intensity
+- Source icon at center (10px circle, yellow)
+
+**Performance**:
+- Cache visible region calculations
+- Only recalculate on source/barrier change
+- Use Konva layer caching
+- LOD: Reduce ray count for distant sources
+
+**Success Criteria**:
+- Click-drag sets range working
+- Range in fractional grid cells
+- Line-of-sight blocking operational
+- Ray-casting accurate (72 rays)
+- Performance acceptable (<100ms for 1 source + 10 barriers)
+- Cached calculations working
+- Gradient rendering if isGradient
+- Undo/redo working
+- Tests ≥70% coverage
+
+**Contingency**: If LOS performance poor, simplify to basic circles (defer blocking to future)
+
+**Review Checkpoint**: Code review after 8.7E complete
+
+---
+
+#### Phase 8.7F: Scene Editor Integration + Testing (7-10h)
+
+**Deliverables**:
+- `src/pages/SceneEditorPage.tsx` (integrate 3 drawing tools)
+- Menu bar updates:
+  - "Structures" menu
+  - Shortcuts: W=wall, D=door, R=region, L=light, Esc=cancel
+- Konva layer management:
+  - `regionLayer` (z=1, below grid)
+  - `sourceLayer` (z=3, between grid and barriers)
+  - `barrierLayer` (z=4, above grid, below assets)
+- Tool state management (active tool, selected template)
+- Integration tests (E2E placement workflows)
+- BDD scenarios (Gherkin feature files)
+
+**Success Criteria**:
+- All 3 drawing tools accessible from menu
+- Keyboard shortcuts working
+- Correct layer z-ordering
+- Tool switching works (deactivate previous)
+- Structures persist to backend on placement
+- Structures load from backend on scene load
+- Integration tests passing
+- BDD scenarios passing
+
+**Review Checkpoint**: Code review after 8.7F complete
+
+---
+
+**Final Review Checkpoint 8.7** (End-to-End):
+- End-to-end workflows (create → place → render → persist)
+- Cross-browser testing (Chrome, Firefox, Safari)
+- Performance (100+ structures on canvas)
+- Accessibility (WCAG AA compliance)
+- Test coverage (≥70% aggregate)
+- Build success (npm run build)
+- Linting (npm run lint)
+
+**Implementation Sequence**:
+
+1. Types + RTK Query (8.7A)
+2. Code review checkpoint
+3. Library UI (8.7B)
+4. Code review checkpoint
+5. Barrier tool (8.7C)
+6. Code review checkpoint
+7. Region tool (8.7D)
+8. Code review checkpoint
+9. Source tool + LOS (8.7E)
+10. Code review checkpoint
+11. Scene Editor integration (8.7F)
+12. Code review checkpoint
+13. Final end-to-end review
+
+**Success Criteria**:
+
+- ✅ 3 drawing tools functional (Barrier, Region, Source)
+- ✅ Snapping working (half-snap, quarter-snap, free)
+- ✅ 3 Konva renderers (Lines, Polygons, Circles with LOS)
+- ✅ Line-of-sight blocking operational
+- ✅ Validation prevents invalid placements
+- ✅ Undo/redo integrated
+- ✅ Structures persist and load
+- ✅ Tests ≥70% coverage
+- ✅ Grade B+ or higher (aggregate)
+
+**Dependencies**:
+
+- **Prerequisites**: Phase 8.6 (Backend API functional) ✅
+- **Blocks**: None (completes Phase 8.5 Item 1)
+
+**Validation**:
+
+- Validate after sub-phase: Code review with grade
+- Quality gate: B+ minimum grade to proceed
+- Final validation: End-to-end integration + BDD tests
+
+**Estimated Effort**: 56-76 hours
+
+**Status**: 🔜 READY (Blocked by Phase 8.6)
+
+---
+
 ### Phase 9: Epic/Campaign Hierarchy ⚠️ BLOCKED
 
 **Objective**: Implement Epic→Campaign hierarchy for advanced content organization
@@ -1721,8 +2281,8 @@ Implementation Order:
 
 ## Progress Tracking
 
-**Current Phase**: Phase 8 ready to start
-**Overall Progress**: 207 hours / 273 hours (75.8%)
+**Current Phase**: Phase 8.6 IN PROGRESS (Structures Backend), Phase 9 blocked, Phase 10-11-12 ready
+**Overall Progress**: 239 hours / 370 hours (64.6%)
 
 **Phase 1**: ✅ Complete (8/8 hours, 100%) - Completed 2025-09-28
 **Phase 2**: ✅ Complete (16/16 hours, 100%) - Completed 2025-10-01
@@ -1731,34 +2291,44 @@ Implementation Order:
 **Phase 5**: ✅ Complete (70/16 hours, 437%) - Completed 2025-10-11
 **Phase 6**: ✅ Complete (30/25 hours, 120%) - Completed 2025-10-23
 **Phase 7**: ✅ Complete (19/21 hours, 90%) - Adventure Management - Completed 2025-10-25
-**Phase 8**: ⏳ **NEXT** (0/12 hours, 0%) - Scene Management - READY TO START
+**Phase 8**: ✅ Complete (23/12 hours, 192%) - Scene Management - Completed 2025-10-26
+**Phase 8.5**: 🚧 PARTIAL (9/13 hours, 69%) - Incomplete Items - 5 of 6 complete, Item 1 → Phase 8.6 & 8.7
+**Phase 8.6**: 🚧 IN PROGRESS (0/32-42 hours, 0%) - Structures Backend (Barriers, Regions, Sources) - NOT STARTED
+**Phase 8.7**: 🔜 READY (0/56-76 hours, 0%) - Structures Frontend (Drawing Tools, Rendering, LOS) - Blocked by 8.6
 **Phase 9**: ⚠️ BLOCKED (0/18 hours, 0%) - Epic/Campaign (optional - backend missing)
-**Phase 10**: 🔜 (0/22 hours, 0%) - Game Sessions - READY after Phase 8
+**Phase 10**: 🔜 (0/22 hours, 0%) - Game Sessions - READY
 **Phase 11**: 🔜 PARALLEL (0/16 hours, 0%) - Account Management - READY
 **Phase 12**: 🔜 Final (0/14 hours, 0%) - Performance/Production
 
-**Remaining Effort**: 66 hours total (18 hours blocked, 48 hours available)
+**Remaining Effort**: 131-156 hours total (18 hours blocked, 113-138 hours available)
 
 **Calculation Breakdown**:
 
-- Total Effort: 273 hours (243 originally + 30 hours expansion in Phase 6)
-- Completed (Phases 1-7): 207 hours (8+16+28+12+70+30+19)
-- Remaining (Phases 8-12): 66 hours
-- Available Now: 48 hours (Phases 8-10-11-12)
+- Total Effort: 370 hours (282 original + 88-118 hours Phase 8.6+8.7 estimated)
+- Completed (Phases 1-8.5 partial): 239 hours (8+16+28+12+70+30+19+23+9)
+- Remaining (Phases 8.6-12): 131-156 hours
+- Phase 8.6 (Backend): 32-42 hours (NOT STARTED)
+- Phase 8.7 (Frontend): 56-76 hours (Blocked by 8.6)
+- Available Now: 113-138 hours (Phase 8.6-8.7 + 10-11-12)
 - Blocked: 18 hours (Phase 9 Epic/Campaign - optional)
-- Progress: 75.8% (207/273)
-- Note: Phase 10 can proceed after Phase 8 (sessions reference scenes)
+- Progress: 64.6% (239/370 using midpoint estimate)
+- Note: Phase 10 can proceed after Phase 8.7 (sessions reference scenes from Phase 8)
 
 **Phase Expansion Notes**:
 - Phase 3 expanded from 16h to 28h to include critical authentication improvements (8h) and authorization documentation (4h). These were essential for production-ready auth state management and future phase planning.
 - Phase 5 expanded from 16h to 70h to include multi-resource system (Phase 5.5), resource redesign and SVG conversion (Phase 5.6), and blob storage architecture (Phase 5.7). These expansions added critical asset management features required for scene editor integration.
 - Phase 6 expanded from 25h to 30h+ due to major enhancements beyond original specification. Added multi-asset selection, advanced snap modes, collision detection, group dragging, enhanced undo/redo architecture, and layout separation. Achieved GO FOR PRODUCTION approval with 5/5 stars from code-reviewer.
 - Phase 7 (19h actual vs 21h estimated): Architectural pivot during implementation - discovered backend DDD pattern requiring Adventure-first approach. Swapped Phase 7 (was Scenes) with Phase 8 (was Adventures). Delivered Library page, Adventure management with contentApi integration, Adventure Detail page with auto-save, infinite scroll, 4-filter system. Grade: B+ (88/100).
+- Phase 8 expanded from 12h to 23h due to extensive bug fixes and backend integration challenges (asset persistence, concurrency, hydration). Delivered Scene Editor backend integration, Properties panel, navigation, scene operations, and fixed 7 critical regressions from Phase 6.
+- Phase 8.5 (NEW - 9h completed of 13h estimated): Added mid-phase to address 5 incomplete items from Phases 6-8. Completed: Scene/Adventure duplication with smart naming (5h), Auto-naming assets (0h - user confirmed), Selection undo/redo verification (0h - already correct), Bulk asset operations (4h - collection-level clone/delete endpoints). Pending: Structure placement (4-6h - needs clarification on collision rules, snap behavior, constraints).
 
 ---
 
 ## Change Log
 
+- **2025-10-28** (v1.10.0): ROADMAP EXPANSION - Added Phase 8.6 (Structures Backend, 32-42h) and Phase 8.7 (Structures Frontend, 56-76h) with detailed sub-phases and review checkpoints. Phase 8.5 Item 1 clarified: Structures are NOT assets, but three distinct categories (Barriers, Regions, Sources) with fundamentally different behaviors. Total effort increased from 282h to 370h (88-118h added). Overall progress recalculated to 64.6% (239/370h using midpoint). Phase 8.6 marked as IN PROGRESS, Phase 8.7 blocked by 8.6. Implementation approach: Incremental with 11 review checkpoints (4 for Phase 8.6, 6 for Phase 8.7, 1 final comprehensive). Key design decisions documented: extensible types (strings not enums), fractional grid cells for Source range, line-of-sight blocking for Sources with opaque Barriers. Autonomous agent workflow: backend-developer → code-reviewer → frontend-developer → code-reviewer → final report, with Claude orchestrating corrections without user approval.
+- **2025-10-28** (v1.9.0): Phase 8.5 PARTIAL COMPLETION - Addressed 5 incomplete items from Phases 6-8 plus bonus bulk operations. Completed 5 of 6 items (9h actual): Item 2 (Scene Duplication with smart naming, 3h), Item 3 (Adventure Duplication with smart naming, 2h), Item 4 (Auto-naming assets, 0h - user confirmed complete), Item 5 (Selection undo/redo, 0h - verified correct), Bonus (Bulk asset operations, 4h - collection-level clone/delete endpoints with handlers and service methods). Pending: Item 1 (Structure placement, 4-6h - needs clarification on collision rules, snap behavior, size constraints). Created NamingHelper.cs for smart naming with auto-increment pattern. Fixed all clone endpoints to follow REST conventions. Bulk operations use AssetIndices (List<uint>) for index-based operations. Updated progress to 84.8% (239/282 hours). Phases 10-11-12 marked as READY.
+- **2025-10-26** (v1.8.1): Phase 8 COMPLETION - Scene Management delivered with extensive backend integration (23h actual vs 12h estimated, 192%). Delivered: Scene Editor backend persistence, Properties panel (collapsible, responsive 3-column layout), scene operations (duplicate/delete), navigation (back button, editable name), save status indicators, grid configuration persistence. Fixed 7 critical regressions: asset selection, marquee selection, grid aspect ratio, asset drag movement (NaN error), multi-asset drag (stale closure), stuck modifier key (window blur), asset persistence (HTTP 405→500→concurrency→header missing→401→rendering). Backend changes: IsPublished field added, Scene.ToModel() circular reference fixed, SceneStorage.UpdateAsync concurrency workaround. Updated progress to 83.9% (230/274 hours, excluding Phase 8.5).
 - **2025-10-25** (v1.8.0): Phase 7 COMPLETION - Adventure Management delivered with architectural pivot. Discovered backend DDD aggregate pattern (Adventures→Scenes), swapped Phase 7/8 to align. Delivered: Library page (unified content view), Adventure List with contentApi integration (infinite scroll, 4 filters, debounced search), Adventure Detail page (inline editing, auto-save, background upload, scene management). Type system consolidated (domain.ts source of truth). GridConfig structure updated (nested cellSize/offset). Actual effort: 19h (vs 21h estimated, 90%). Updated progress to 75.8% (207/273 hours). Phase 8 (Scene Management) marked as NEXT. Code review: B+ (88/100) → A- (92/100) after critical fixes.
 - **2025-10-23** (v1.7.0): Phase 6 COMPLETION - Delivered major enhancements beyond spec: multi-asset selection, marquee selection, advanced snap modes (Alt/Ctrl/Ctrl+Alt), collision detection system, group dragging, enhanced undo/redo with Memento pattern, layout architecture separation (EditorLayout vs AppLayout). Expanded from 25h estimated to 30h+ actual due to enhancements. Updated progress to 68.9% (188/273 hours). Phase 7 marked as READY TO START. Code review: 5/5 stars, GO FOR PRODUCTION.
 - **2025-10-19** (v1.6.0): Phase 6 completed - Complete reimplementation of scene editor (24h actual vs 25h estimated). Achieved GO FOR PRODUCTION approval with 255+ tests (85% coverage), 89.4% issue fix rate. Updated progress to 65.0% (158/243 hours). Marked Phase 9-10 as available (Phase 7-8 remain BLOCKED by backend). Quality Gate 6 passed.
