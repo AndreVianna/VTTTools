@@ -48,4 +48,64 @@ public interface ISceneStorage {
     /// Deletes a scene template.
     /// </summary>
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves a scene barrier by its ID.
+    /// </summary>
+    Task<SceneBarrier?> GetSceneBarrierByIdAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>
+    /// Adds a scene barrier to a scene.
+    /// </summary>
+    Task<bool> AddSceneBarrierAsync(SceneBarrier sceneBarrier, Guid sceneId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Updates a scene barrier.
+    /// </summary>
+    Task<bool> UpdateSceneBarrierAsync(SceneBarrier sceneBarrier, CancellationToken ct = default);
+
+    /// <summary>
+    /// Deletes a scene barrier.
+    /// </summary>
+    Task<bool> DeleteSceneBarrierAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves a scene region by its ID.
+    /// </summary>
+    Task<SceneRegion?> GetSceneRegionByIdAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>
+    /// Adds a scene region to a scene.
+    /// </summary>
+    Task<bool> AddSceneRegionAsync(SceneRegion sceneRegion, Guid sceneId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Updates a scene region.
+    /// </summary>
+    Task<bool> UpdateSceneRegionAsync(SceneRegion sceneRegion, CancellationToken ct = default);
+
+    /// <summary>
+    /// Deletes a scene region.
+    /// </summary>
+    Task<bool> DeleteSceneRegionAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves a scene source by its ID.
+    /// </summary>
+    Task<SceneSource?> GetSceneSourceByIdAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>
+    /// Adds a scene source to a scene.
+    /// </summary>
+    Task<bool> AddSceneSourceAsync(SceneSource sceneSource, Guid sceneId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Updates a scene source.
+    /// </summary>
+    Task<bool> UpdateSceneSourceAsync(SceneSource sceneSource, CancellationToken ct = default);
+
+    /// <summary>
+    /// Deletes a scene source.
+    /// </summary>
+    Task<bool> DeleteSceneSourceAsync(Guid id, CancellationToken ct = default);
 }

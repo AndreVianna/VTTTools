@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Box, useTheme, CircularProgress, Typography, Alert } from '@mui/material';
+import { Box, useTheme, CircularProgress, Typography, Alert, Snackbar } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Layer } from 'react-konva';
+import { Layer, Group } from 'react-konva';
 import Konva from 'konva';
 import {
     SceneCanvas,
@@ -12,13 +12,32 @@ import {
     SceneEditorMenuBar,
     TokenPlacement,
     TokenDragHandle,
-    AssetContextMenu
+    AssetContextMenu,
+    StructureToolbar,
+    StructureSelectionModal,
+    DrawingMode,
+    BarrierDrawingTool,
+    RegionDrawingTool,
+    SourceDrawingTool,
+    BarrierRenderer,
+    RegionRenderer,
+    SourceRenderer
 } from '@components/scene';
 import { EditingBlocker, ConfirmDialog } from '@components/common';
 import { EditorLayout } from '@components/layout';
 import { GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
-import { layerManager, LayerName } from '@services/layerManager';
-import { Asset, PlacedAsset, Scene, DisplayName, LabelPosition } from '@/types/domain';
+import { layerManager, LayerName, GroupName } from '@services/layerManager';
+import { isBarrier, isRegion, isSource } from '@/utils/structureTypeGuards';
+import {
+    Asset,
+    PlacedAsset,
+    Scene,
+    DisplayName,
+    LabelPosition,
+    Barrier,
+    Region,
+    Source
+} from '@/types/domain';
 import { UndoRedoProvider, useUndoRedoContext } from '@/contexts/UndoRedoContext';
 import { ClipboardProvider, useClipboard } from '@/contexts/ClipboardContext';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
@@ -50,6 +69,10 @@ import { getApiEndpoints } from '@/config/development';
 import { SaveStatus } from '@/components/common';
 import { useAppDispatch } from '@/store';
 import { assetsApi } from '@/services/assetsApi';
+import { useGetBarriersQuery } from '@/services/barrierApi';
+import { useGetRegionsQuery } from '@/services/regionApi';
+import { useGetSourcesQuery } from '@/services/sourceApi';
+import { PlaceBarrierCommand } from '@/utils/commands/structureCommands';
 
 const STAGE_WIDTH = 2800;
 const STAGE_HEIGHT = 2100;
@@ -84,6 +107,10 @@ const SceneEditorPageInternal: React.FC = () => {
     const [removeSceneAsset] = useRemoveSceneAssetMutation();
     const [bulkDeleteSceneAssets] = useBulkDeleteSceneAssetsMutation();
     const [bulkAddSceneAssets] = useBulkAddSceneAssetsMutation();
+
+    const { data: barriers } = useGetBarriersQuery({ page: 1, pageSize: 100 });
+    const { data: regions } = useGetRegionsQuery({ page: 1, pageSize: 100 });
+    const { data: sources } = useGetSourcesQuery({ page: 1, pageSize: 100 });
 
     // Force refetch on mount with forceRefetch option
     useEffect(() => {
@@ -125,7 +152,12 @@ const SceneEditorPageInternal: React.FC = () => {
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [assetsToDelete, setAssetsToDelete] = useState<PlacedAsset[]>([]);
     const [contextMenuPosition, setContextMenuPosition] = useState<{ left: number; top: number } | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [contextMenuAsset, setContextMenuAsset] = useState<PlacedAsset | null>(null);
+
+    const [drawingMode, setDrawingMode] = useState<DrawingMode>(null);
+    const [selectedStructure, setSelectedStructure] = useState<Barrier | Region | Source | null>(null);
+    const [showStructureModal, setShowStructureModal] = useState(false);
 
     useEffect(() => {
         if (sceneData && !isInitialized) {
@@ -349,6 +381,10 @@ const SceneEditorPageInternal: React.FC = () => {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                return;
+            }
+
             if (e.key === 'Alt' || e.key === 'Control' || e.key === 'Shift') {
                 e.preventDefault();
             }
@@ -1002,6 +1038,43 @@ const SceneEditorPageInternal: React.FC = () => {
         execute(command);
     };
 
+    const handleDrawingModeChange = (mode: DrawingMode) => {
+        setDrawingMode(mode);
+        if (mode) {
+            setShowStructureModal(true);
+            setSelectedStructure(null);
+        } else {
+            setShowStructureModal(false);
+            setSelectedStructure(null);
+        }
+    };
+
+    const handleStructureSelect = (structure: Barrier | Region | Source) => {
+        setSelectedStructure(structure);
+        setShowStructureModal(false);
+    };
+
+    const handleStructureModalCancel = () => {
+        setShowStructureModal(false);
+        setDrawingMode(null);
+        setSelectedStructure(null);
+    };
+
+    const handleStructurePlacementComplete = (success: boolean) => {
+        setDrawingMode(null);
+        setSelectedStructure(null);
+        if (success && sceneId) {
+            refetch();
+        } else if (!success) {
+            setErrorMessage('Failed to place structure. Please try again.');
+        }
+    };
+
+    const handleStructurePlacementCancel = () => {
+        setDrawingMode(null);
+        setSelectedStructure(null);
+    };
+
     if (isLoadingScene || isHydrating) {
         return (
             <EditorLayout>
@@ -1062,7 +1135,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     pointerEvents: 'none'
                 }}
             >
-                <Box sx={{ pointerEvents: 'auto' }}>
+                <Box sx={{ pointerEvents: 'auto', display: 'flex', gap: 2, alignItems: 'flex-start' }}>
                     <SceneEditorMenuBar
                         zoomPercentage={viewport.scale * 100}
                         onZoomIn={handleZoomIn}
@@ -1073,6 +1146,11 @@ const SceneEditorPageInternal: React.FC = () => {
                             x: initialViewport.x - viewport.x,
                             y: initialViewport.y - viewport.y
                         }}
+                    />
+                    <StructureToolbar
+                        drawingMode={drawingMode}
+                        onModeChange={handleDrawingModeChange}
+                        disabled={!isOnline}
                     />
                 </Box>
             </Box>
@@ -1116,7 +1194,60 @@ const SceneEditorPageInternal: React.FC = () => {
                         />
                     </Layer>
 
-                    {/* Layer 2: Game World (structure + objects + creatures) */}
+                    {/* Layer 2: GameWorld (structures, objects, creatures) */}
+                    <Layer name={LayerName.GameWorld}>
+                        {/* Regions - render first (bottom of GameWorld) */}
+                        {scene && scene.sceneRegions && regions && (
+                            <Group name={GroupName.Structure}>
+                                {scene.sceneRegions.map((sceneRegion) => {
+                                    const region = regions.find(r => r.id === sceneRegion.regionId);
+                                    return region ? (
+                                        <RegionRenderer
+                                            key={sceneRegion.id}
+                                            sceneRegion={sceneRegion}
+                                            region={region}
+                                        />
+                                    ) : null;
+                                })}
+                            </Group>
+                        )}
+
+                        {/* Sources - render second */}
+                        {scene && scene.sceneSources && sources && (
+                            <Group name={GroupName.Structure}>
+                                {scene.sceneSources.map((sceneSource) => {
+                                    const source = sources.find(s => s.id === sceneSource.sourceId);
+                                    return source ? (
+                                        <SourceRenderer
+                                            key={sceneSource.id}
+                                            sceneSource={sceneSource}
+                                            source={source}
+                                            barriers={scene.sceneBarriers || []}
+                                            gridConfig={gridConfig}
+                                        />
+                                    ) : null;
+                                })}
+                            </Group>
+                        )}
+
+                        {/* Barriers - render third (top of structures) */}
+                        {scene && scene.sceneBarriers && barriers && (
+                            <Group name={GroupName.Structure}>
+                                {scene.sceneBarriers.map((sceneBarrier) => {
+                                    const barrier = barriers.find(b => b.id === sceneBarrier.barrierId);
+                                    return barrier ? (
+                                        <BarrierRenderer
+                                            key={sceneBarrier.id}
+                                            sceneBarrier={sceneBarrier}
+                                            barrier={barrier}
+                                        />
+                                    ) : null;
+                                })}
+                            </Group>
+                        )}
+                    </Layer>
+
+                    {/* Layer 5: Assets (tokens/objects/creatures) */}
                     {scene && (
                         <TokenPlacement
                             placedAssets={placedAssets}
@@ -1133,12 +1264,46 @@ const SceneEditorPageInternal: React.FC = () => {
                         />
                     )}
 
-                    {/* Layer 3: Effects (placeholder for future) */}
+                    {/* Layer 6: Effects (placeholder for future) */}
                     <Layer name={LayerName.Effects}>
                         {/* Future: effects components */}
                     </Layer>
 
-                    {/* Layer 4: UI Overlay (transformer + selection) */}
+                    {/* Layer 4: Drawing Tools (in UIOverlay for topmost rendering) */}
+                    {scene && sceneId && drawingMode && selectedStructure && (
+                        <Layer name={LayerName.UIOverlay}>
+                            {drawingMode === 'barrier' && isBarrier(selectedStructure) && (
+                                <BarrierDrawingTool
+                                    sceneId={sceneId}
+                                    barrier={selectedStructure}
+                                    gridConfig={gridConfig}
+                                    onComplete={handleStructurePlacementComplete}
+                                    onCancel={handleStructurePlacementCancel}
+                                />
+                            )}
+                            {drawingMode === 'region' && isRegion(selectedStructure) && (
+                                <RegionDrawingTool
+                                    sceneId={sceneId}
+                                    region={selectedStructure}
+                                    gridConfig={gridConfig}
+                                    onComplete={handleStructurePlacementComplete}
+                                    onCancel={handleStructurePlacementCancel}
+                                />
+                            )}
+                            {drawingMode === 'source' && isSource(selectedStructure) && (
+                                <SourceDrawingTool
+                                    sceneId={sceneId}
+                                    source={selectedStructure}
+                                    barriers={scene.sceneBarriers || []}
+                                    gridConfig={gridConfig}
+                                    onComplete={handleStructurePlacementComplete}
+                                    onCancel={handleStructurePlacementCancel}
+                                />
+                            )}
+                        </Layer>
+                    )}
+
+                    {/* Layer 8: UI Overlay (transformer + selection) */}
                     <TokenDragHandle
                         placedAssets={placedAssets}
                         selectedAssetIds={selectedAssetIds}
@@ -1178,6 +1343,24 @@ const SceneEditorPageInternal: React.FC = () => {
             onRename={handleAssetRename}
             onUpdateDisplay={handleAssetDisplayUpdate}
         />
+
+        <StructureSelectionModal
+            open={showStructureModal}
+            mode={drawingMode}
+            onSelect={handleStructureSelect}
+            onCancel={handleStructureModalCancel}
+        />
+
+        <Snackbar
+            open={!!errorMessage}
+            autoHideDuration={6000}
+            onClose={() => setErrorMessage(null)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+            <Alert onClose={() => setErrorMessage(null)} severity="error" sx={{ width: '100%' }}>
+                {errorMessage}
+            </Alert>
+        </Snackbar>
         </EditorLayout>
     );
 };

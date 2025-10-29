@@ -18,6 +18,7 @@ public class Scene {
     public Resource? Background { get; set; }
     public Grid Grid { get; set; } = new();
     public ICollection<SceneAsset> SceneAssets { get; set; } = [];
+    public ICollection<SceneBarrier> SceneBarriers { get; set; } = [];
     public DisplayName DefaultDisplayName { get; set; } = DisplayName.Always;
     public LabelPosition DefaultLabelPosition { get; set; } = LabelPosition.Bottom;
 }

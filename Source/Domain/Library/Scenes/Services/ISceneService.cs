@@ -21,4 +21,16 @@ public interface ISceneService {
     Task<Result> BulkDeleteAssetsAsync(Guid userId, Guid id, List<uint> assetIndices, CancellationToken ct = default);
     Task<Result> BulkAddAssetsAsync(Guid userId, Guid id, List<AssetToAdd> assetsToAdd, CancellationToken ct = default);
     Task<Result> RemoveAssetAsync(Guid userId, Guid id, int index, CancellationToken ct = default);
+
+    Task<Result<SceneBarrier>> PlaceBarrierAsync(Guid sceneId, Guid barrierId, List<Common.Model.Point> vertices, bool? isOpen, bool? isLocked, Guid userId, CancellationToken ct = default);
+    Task<Result<SceneBarrier>> UpdateSceneBarrierAsync(Guid sceneBarrierId, Optional<List<Common.Model.Point>> vertices, Optional<bool?> isOpen, Optional<bool?> isLocked, Guid userId, CancellationToken ct = default);
+    Task<Result> RemoveSceneBarrierAsync(Guid sceneBarrierId, Guid userId, CancellationToken ct = default);
+
+    Task<Result<SceneRegion>> PlaceRegionAsync(Guid sceneId, Guid regionId, List<Common.Model.Point> vertices, int value, Guid userId, CancellationToken ct = default);
+    Task<Result<SceneRegion>> UpdateSceneRegionAsync(Guid sceneRegionId, Optional<List<Common.Model.Point>> vertices, Optional<int> value, Guid userId, CancellationToken ct = default);
+    Task<Result> RemoveSceneRegionAsync(Guid sceneRegionId, Guid userId, CancellationToken ct = default);
+
+    Task<Result<SceneSource>> PlaceSourceAsync(Guid sceneId, PlaceSceneSourceData data, Guid userId, CancellationToken ct = default);
+    Task<Result<SceneSource>> UpdateSceneSourceAsync(Guid sceneSourceId, UpdateSceneSourceData data, Guid userId, CancellationToken ct = default);
+    Task<Result> RemoveSceneSourceAsync(Guid sceneSourceId, Guid userId, CancellationToken ct = default);
 }

@@ -1,5 +1,6 @@
 using Scene = VttTools.Data.Library.Entities.Scene;
 using SceneAsset = VttTools.Data.Library.Entities.SceneAsset;
+using SceneBarrier = VttTools.Data.Library.Entities.SceneBarrier;
 
 namespace VttTools.Data.Builders;
 

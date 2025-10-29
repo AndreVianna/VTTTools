@@ -1,4 +1,7 @@
 using Scene = VttTools.Library.Scenes.Model.Scene;
+using SceneBarrierEntity = VttTools.Data.Library.Entities.SceneBarrier;
+using SceneRegionEntity = VttTools.Data.Library.Entities.SceneRegion;
+using SceneSourceEntity = VttTools.Data.Library.Entities.SceneSource;
 
 namespace VttTools.Data.Library;
 
@@ -106,6 +109,120 @@ public class SceneStorage(ApplicationDbContext context)
         if (scene == null)
             return false;
         context.Scenes.RemoveRange(context.Scenes.Where(a => a.Id == id));
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<SceneBarrier?> GetSceneBarrierByIdAsync(Guid id, CancellationToken ct = default) {
+        var entity = await context.Set<SceneBarrierEntity>()
+            .Include(sb => sb.Barrier)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(sb => sb.Id == id, ct);
+        return entity.ToModel();
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> AddSceneBarrierAsync(SceneBarrier sceneBarrier, Guid sceneId, CancellationToken ct = default) {
+        var entity = sceneBarrier.ToEntity(sceneId);
+        await context.Set<SceneBarrierEntity>().AddAsync(entity, ct);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> UpdateSceneBarrierAsync(SceneBarrier sceneBarrier, CancellationToken ct = default) {
+        var entity = await context.Set<SceneBarrierEntity>()
+            .FirstOrDefaultAsync(sb => sb.Id == sceneBarrier.Id, ct);
+        if (entity == null)
+            return false;
+        entity.UpdateFrom(sceneBarrier.SceneId, sceneBarrier);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> DeleteSceneBarrierAsync(Guid id, CancellationToken ct = default) {
+        var entity = await context.Set<SceneBarrierEntity>().FindAsync([id], ct);
+        if (entity == null)
+            return false;
+        context.Set<SceneBarrierEntity>().Remove(entity);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<SceneRegion?> GetSceneRegionByIdAsync(Guid id, CancellationToken ct = default) {
+        var entity = await context.Set<SceneRegionEntity>()
+            .Include(sr => sr.Region)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(sr => sr.Id == id, ct);
+        return entity.ToModel();
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> AddSceneRegionAsync(SceneRegion sceneRegion, Guid sceneId, CancellationToken ct = default) {
+        var entity = sceneRegion.ToEntity(sceneId);
+        await context.Set<SceneRegionEntity>().AddAsync(entity, ct);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> UpdateSceneRegionAsync(SceneRegion sceneRegion, CancellationToken ct = default) {
+        var entity = await context.Set<SceneRegionEntity>()
+            .FirstOrDefaultAsync(sr => sr.Id == sceneRegion.Id, ct);
+        if (entity == null)
+            return false;
+        entity.UpdateFrom(sceneRegion.SceneId, sceneRegion);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> DeleteSceneRegionAsync(Guid id, CancellationToken ct = default) {
+        var entity = await context.Set<SceneRegionEntity>().FindAsync([id], ct);
+        if (entity == null)
+            return false;
+        context.Set<SceneRegionEntity>().Remove(entity);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<SceneSource?> GetSceneSourceByIdAsync(Guid id, CancellationToken ct = default) {
+        var entity = await context.Set<SceneSourceEntity>()
+            .Include(ss => ss.Source)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(ss => ss.Id == id, ct);
+        return entity.ToModel();
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> AddSceneSourceAsync(SceneSource sceneSource, Guid sceneId, CancellationToken ct = default) {
+        var entity = sceneSource.ToEntity(sceneId);
+        await context.Set<SceneSourceEntity>().AddAsync(entity, ct);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> UpdateSceneSourceAsync(SceneSource sceneSource, CancellationToken ct = default) {
+        var entity = await context.Set<SceneSourceEntity>()
+            .FirstOrDefaultAsync(ss => ss.Id == sceneSource.Id, ct);
+        if (entity == null)
+            return false;
+        entity.UpdateFrom(sceneSource.SceneId, sceneSource);
+        var result = await context.SaveChangesAsync(ct);
+        return result > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> DeleteSceneSourceAsync(Guid id, CancellationToken ct = default) {
+        var entity = await context.Set<SceneSourceEntity>().FindAsync([id], ct);
+        if (entity == null)
+            return false;
+        context.Set<SceneSourceEntity>().Remove(entity);
         var result = await context.SaveChangesAsync(ct);
         return result > 0;
     }

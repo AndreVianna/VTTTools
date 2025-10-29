@@ -16,8 +16,8 @@ internal static class RegionSchemaBuilder {
             entity.Property(e => e.LabelMap)
                 .IsRequired()
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<Dictionary<int, string>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<int, string>()
+                    v => JsonSerializer.Serialize(v),
+                    v => JsonSerializer.Deserialize<Dictionary<int, string>>(v) ?? new()
                 );
             entity.Property(e => e.CreatedAt).IsRequired();
         });

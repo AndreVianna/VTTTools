@@ -12,8 +12,8 @@ internal static class SourceSchemaBuilder {
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Description).HasMaxLength(4096);
             entity.Property(e => e.SourceType).IsRequired().HasMaxLength(64);
-            entity.Property(e => e.DefaultRange).IsRequired().HasDefaultValue(5.0m);
-            entity.Property(e => e.DefaultIntensity).IsRequired().HasDefaultValue(1.0m);
+            entity.Property(e => e.DefaultRange).IsRequired().HasPrecision(5, 2).HasDefaultValue(5.0m);
+            entity.Property(e => e.DefaultIntensity).IsRequired().HasPrecision(3, 2).HasDefaultValue(1.0m);
             entity.Property(e => e.DefaultIsGradient).IsRequired().HasDefaultValue(true);
             entity.Property(e => e.CreatedAt).IsRequired();
         });
@@ -23,8 +23,8 @@ internal static class SourceSchemaBuilder {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.SceneId).IsRequired();
             entity.Property(e => e.SourceId).IsRequired();
-            entity.Property(e => e.Range).IsRequired().HasDefaultValue(5.0m);
-            entity.Property(e => e.Intensity).IsRequired().HasDefaultValue(1.0m);
+            entity.Property(e => e.Range).IsRequired().HasPrecision(5, 2).HasDefaultValue(5.0m);
+            entity.Property(e => e.Intensity).IsRequired().HasPrecision(3, 2).HasDefaultValue(1.0m);
             entity.Property(e => e.IsGradient).IsRequired().HasDefaultValue(true);
 
             entity.ComplexProperty(e => e.Position, position => {

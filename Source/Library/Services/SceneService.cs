@@ -1,4 +1,5 @@
 using VttTools.Assets.Model;
+using VttTools.Utilities;
 
 using BulkUpdateSceneAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
 using UpdateSceneAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
@@ -394,6 +395,203 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             return Result.Failure("NotAllowed");
         scene.Assets.RemoveAll(a => a.Index == index);
         await sceneStorage.UpdateAsync(scene, ct);
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<SceneBarrier>> PlaceBarrierAsync(Guid sceneId, Guid barrierId, List<Common.Model.Point> vertices, bool? isOpen, bool? isLocked, Guid userId, CancellationToken ct = default) {
+        var scene = await sceneStorage.GetByIdAsync(sceneId, ct);
+        if (scene is null)
+            return Result.Failure("NotFound");
+        if (scene.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        if (vertices.Count < 2)
+            return Result.Failure("Vertices must contain at least 2 points");
+
+        var sceneBarrier = new SceneBarrier {
+            Id = Guid.CreateVersion7(),
+            SceneId = sceneId,
+            BarrierId = barrierId,
+            Vertices = vertices,
+            IsOpen = isOpen,
+            IsLocked = isLocked,
+        };
+
+        await sceneStorage.AddSceneBarrierAsync(sceneBarrier, sceneId, ct);
+        return sceneBarrier;
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<SceneBarrier>> UpdateSceneBarrierAsync(Guid sceneBarrierId, Optional<List<Common.Model.Point>> vertices, Optional<bool?> isOpen, Optional<bool?> isLocked, Guid userId, CancellationToken ct = default) {
+        var sceneBarrier = await sceneStorage.GetSceneBarrierByIdAsync(sceneBarrierId, ct);
+        if (sceneBarrier is null)
+            return Result.Failure("NotFound");
+
+        var scene = await sceneStorage.GetByIdAsync(sceneBarrier.SceneId, ct);
+        if (scene is null)
+            return Result.Failure("NotFound");
+        if (scene.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        if (vertices.IsSet && vertices.Value.Count < 2)
+            return Result.Failure("Vertices must contain at least 2 points");
+
+        sceneBarrier = sceneBarrier with {
+            Vertices = vertices.IsSet ? vertices.Value : sceneBarrier.Vertices,
+            IsOpen = isOpen.IsSet ? isOpen.Value : sceneBarrier.IsOpen,
+            IsLocked = isLocked.IsSet ? isLocked.Value : sceneBarrier.IsLocked,
+        };
+
+        await sceneStorage.UpdateSceneBarrierAsync(sceneBarrier, ct);
+        return sceneBarrier;
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> RemoveSceneBarrierAsync(Guid sceneBarrierId, Guid userId, CancellationToken ct = default) {
+        var sceneBarrier = await sceneStorage.GetSceneBarrierByIdAsync(sceneBarrierId, ct);
+        if (sceneBarrier is null)
+            return Result.Failure("NotFound");
+
+        var scene = await sceneStorage.GetByIdAsync(sceneBarrier.SceneId, ct);
+        if (scene is null)
+            return Result.Failure("NotFound");
+        if (scene.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        await sceneStorage.DeleteSceneBarrierAsync(sceneBarrierId, ct);
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<SceneRegion>> PlaceRegionAsync(Guid sceneId, Guid regionId, List<Common.Model.Point> vertices, int value, Guid userId, CancellationToken ct = default) {
+        var scene = await sceneStorage.GetByIdAsync(sceneId, ct);
+        if (scene is null)
+            return Result.Failure("NotFound");
+        if (scene.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        if (vertices.Count < 3)
+            return Result.Failure("Vertices must contain at least 3 points");
+
+        var sceneRegion = new SceneRegion {
+            Id = Guid.CreateVersion7(),
+            SceneId = sceneId,
+            RegionId = regionId,
+            Vertices = vertices,
+            Value = value,
+        };
+
+        await sceneStorage.AddSceneRegionAsync(sceneRegion, sceneId, ct);
+        return sceneRegion;
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<SceneRegion>> UpdateSceneRegionAsync(Guid sceneRegionId, Optional<List<Common.Model.Point>> vertices, Optional<int> value, Guid userId, CancellationToken ct = default) {
+        var sceneRegion = await sceneStorage.GetSceneRegionByIdAsync(sceneRegionId, ct);
+        if (sceneRegion is null)
+            return Result.Failure("NotFound");
+
+        var scene = await sceneStorage.GetByIdAsync(sceneRegion.SceneId, ct);
+        if (scene is null)
+            return Result.Failure("NotFound");
+        if (scene.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        if (vertices.IsSet && vertices.Value.Count < 3)
+            return Result.Failure("Vertices must contain at least 3 points");
+
+        sceneRegion = sceneRegion with {
+            Vertices = vertices.IsSet ? vertices.Value : sceneRegion.Vertices,
+            Value = value.IsSet ? value.Value : sceneRegion.Value,
+        };
+
+        await sceneStorage.UpdateSceneRegionAsync(sceneRegion, ct);
+        return sceneRegion;
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> RemoveSceneRegionAsync(Guid sceneRegionId, Guid userId, CancellationToken ct = default) {
+        var sceneRegion = await sceneStorage.GetSceneRegionByIdAsync(sceneRegionId, ct);
+        if (sceneRegion is null)
+            return Result.Failure("NotFound");
+
+        var scene = await sceneStorage.GetByIdAsync(sceneRegion.SceneId, ct);
+        if (scene is null)
+            return Result.Failure("NotFound");
+        if (scene.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        await sceneStorage.DeleteSceneRegionAsync(sceneRegionId, ct);
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<SceneSource>> PlaceSourceAsync(Guid sceneId, PlaceSceneSourceData data, Guid userId, CancellationToken ct = default) {
+        var scene = await sceneStorage.GetByIdAsync(sceneId, ct);
+        if (scene is null)
+            return Result.Failure("NotFound");
+        if (scene.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        var result = data.Validate();
+        if (result.HasErrors)
+            return result;
+
+        var sceneSource = new SceneSource {
+            Id = Guid.CreateVersion7(),
+            SceneId = sceneId,
+            SourceId = data.SourceId,
+            Position = data.Position,
+            Range = data.Range ?? 5.0m,
+            Intensity = data.Intensity ?? 1.0m,
+            IsGradient = data.IsGradient ?? true,
+        };
+
+        await sceneStorage.AddSceneSourceAsync(sceneSource, sceneId, ct);
+        return sceneSource;
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<SceneSource>> UpdateSceneSourceAsync(Guid sceneSourceId, UpdateSceneSourceData data, Guid userId, CancellationToken ct = default) {
+        var sceneSource = await sceneStorage.GetSceneSourceByIdAsync(sceneSourceId, ct);
+        if (sceneSource is null)
+            return Result.Failure("NotFound");
+
+        var scene = await sceneStorage.GetByIdAsync(sceneSource.SceneId, ct);
+        if (scene is null)
+            return Result.Failure("NotFound");
+        if (scene.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        var result = data.Validate();
+        if (result.HasErrors)
+            return result;
+
+        sceneSource = sceneSource with {
+            Position = data.Position.IsSet ? data.Position.Value : sceneSource.Position,
+            Range = data.Range.IsSet ? data.Range.Value ?? sceneSource.Range : sceneSource.Range,
+            Intensity = data.Intensity.IsSet ? data.Intensity.Value ?? sceneSource.Intensity : sceneSource.Intensity,
+            IsGradient = data.IsGradient.IsSet ? data.IsGradient.Value ?? sceneSource.IsGradient : sceneSource.IsGradient,
+        };
+
+        await sceneStorage.UpdateSceneSourceAsync(sceneSource, ct);
+        return sceneSource;
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> RemoveSceneSourceAsync(Guid sceneSourceId, Guid userId, CancellationToken ct = default) {
+        var sceneSource = await sceneStorage.GetSceneSourceByIdAsync(sceneSourceId, ct);
+        if (sceneSource is null)
+            return Result.Failure("NotFound");
+
+        var scene = await sceneStorage.GetByIdAsync(sceneSource.SceneId, ct);
+        if (scene is null)
+            return Result.Failure("NotFound");
+        if (scene.Adventure.OwnerId != userId)
+            return Result.Failure("NotAllowed");
+
+        await sceneStorage.DeleteSceneSourceAsync(sceneSourceId, ct);
         return Result.Success();
     }
 }

@@ -10,10 +10,13 @@ import errorSlice from './slices/errorSlice';
 import { authApi } from '../services/authApi';
 import { adventuresApi } from '../services/adventuresApi';
 import { assetsApi } from '../services/assetsApi';
+import { barrierApi } from '../services/barrierApi';
 import { contentApi } from '../services/contentApi';
 import { gameSessionsApi } from '../services/gameSessionsApi';
 import { mediaApi } from '../services/mediaApi';
+import { regionApi } from '../services/regionApi';
 import { sceneApi } from '../services/sceneApi';
+import { sourceApi } from '../services/sourceApi';
 // Offline sync temporarily disabled - causes cache invalidation errors
 // import { persistMiddleware, hydrateFromStorage } from '../services/offlineSync';
 
@@ -32,10 +35,13 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     [adventuresApi.reducerPath]: adventuresApi.reducer,
     [assetsApi.reducerPath]: assetsApi.reducer,
+    [barrierApi.reducerPath]: barrierApi.reducer,
     [contentApi.reducerPath]: contentApi.reducer,
     [gameSessionsApi.reducerPath]: gameSessionsApi.reducer,
     [mediaApi.reducerPath]: mediaApi.reducer,
+    [regionApi.reducerPath]: regionApi.reducer,
     [sceneApi.reducerPath]: sceneApi.reducer,
+    [sourceApi.reducerPath]: sourceApi.reducer,
   },
   // preloadedState, // Disabled - causes cache issues
   middleware: (getDefaultMiddleware) =>
@@ -53,10 +59,13 @@ export const store = configureStore({
     .concat(authApi.middleware)
     .concat(adventuresApi.middleware)
     .concat(assetsApi.middleware)
+    .concat(barrierApi.middleware)
     .concat(contentApi.middleware)
     .concat(gameSessionsApi.middleware)
     .concat(mediaApi.middleware)
-    .concat(sceneApi.middleware),
+    .concat(regionApi.middleware)
+    .concat(sceneApi.middleware)
+    .concat(sourceApi.middleware),
     // .concat(persistMiddleware), // Disabled - causes cache invalidation errors
   devTools: process.env.NODE_ENV !== 'production',
 });
