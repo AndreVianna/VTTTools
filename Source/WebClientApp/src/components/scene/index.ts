@@ -7,6 +7,7 @@ export { StageConfigPanel } from './StageConfigPanel';
 export { SceneEditorMenuBar } from './SceneEditorMenuBar';
 export { SceneMenu } from './SceneMenu';
 export { ScenePropertiesPanel } from './ScenePropertiesPanel';
+export { ScenePropertiesDrawer } from './ScenePropertiesDrawer';
 export { PlacementCursor } from './PlacementCursor';
 export { TokenPlacement } from './TokenPlacement';
 export { TokenDragHandle } from './TokenDragHandle';
@@ -14,6 +15,14 @@ export { UndoRedoToolbar } from './UndoRedoToolbar';
 export { AssetContextMenu } from './AssetContextMenu';
 export { StructureToolbar } from './StructureToolbar';
 export { StructureSelectionModal } from './StructureSelectionModal';
+export { EditorStatusBar } from './EditorStatusBar';
+export { LeftToolBar } from './LeftToolBar';
+export { TopToolBar } from './TopToolBar';
+export { LayerToggleBar } from './LayerToggleBar';
+export { RightToolBar } from './RightToolBar';
+
+// Panel components
+export { BackgroundPanel, GridPanel } from './panels';
 
 // Drawing components
 export {
@@ -44,6 +53,7 @@ export type { StageConfigPanelProps, StageConfig } from './StageConfigPanel';
 export type { SceneEditorMenuBarProps } from './SceneEditorMenuBar';
 export type { SceneMenuProps } from './SceneMenu';
 export type { ScenePropertiesPanelProps } from './ScenePropertiesPanel';
+export type { ScenePropertiesDrawerProps } from './ScenePropertiesDrawer';
 export type { PlacementCursorProps } from './PlacementCursor';
 export type { TokenPlacementProps } from './TokenPlacement';
 export type { TokenDragHandleProps } from './TokenDragHandle';
@@ -65,3 +75,9 @@ export type {
 } from './rendering';
 export type { StructureToolbarProps, DrawingMode } from './StructureToolbar';
 export type { StructureSelectionModalProps } from './StructureSelectionModal';
+export type { EditorStatusBarProps } from './EditorStatusBar';
+export type { LeftToolBarProps, PanelType } from './LeftToolBar';
+export type { TopToolBarProps } from './TopToolBar';
+export type { LayerToggleBarProps, LayerVisibility } from './LayerToggleBar';
+export type { RightToolBarProps } from './RightToolBar';
+export type { BackgroundPanelProps, GridPanelProps } from './panels';

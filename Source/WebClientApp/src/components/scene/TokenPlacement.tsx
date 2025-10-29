@@ -265,6 +265,7 @@ const TooltipRenderer: React.FC<TooltipRendererProps> = ({ tooltip, labelColors 
                 fill={labelColors.background}
                 stroke={labelColors.border}
                 strokeWidth={1}
+                opacity={0.667}
             />
             <Text
                 text={tooltip.text}
@@ -276,6 +277,7 @@ const TooltipRenderer: React.FC<TooltipRendererProps> = ({ tooltip, labelColors 
                 height={tooltipHeight}
                 align="center"
                 verticalAlign="middle"
+                opacity={0.667}
             />
         </Group>
     );
@@ -593,6 +595,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                                 rotation={placedAsset.rotation}
                                 draggable={false}
                                 listening={true}
+                                opacity={0.667}
                                 onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
                                 onMouseLeave={() => setHoveredAssetId(null)}
                                 onContextMenu={(e) => {
@@ -650,6 +653,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                                 rotation={placedAsset.rotation}
                                 draggable={false}
                                 listening={true}
+                                opacity={0.667}
                                 onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
                                 onMouseLeave={() => setHoveredAssetId(null)}
                                 onContextMenu={(e) => {
@@ -668,6 +672,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                                 stroke={labelColors.border}
                                 strokeWidth={1}
                                 listening={true}
+                                opacity={0.667}
                                 onMouseEnter={() => {
                                     setHoveredAssetId(placedAsset.id);
                                     if (labelInfo.isTruncated) {
@@ -691,6 +696,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                                 align="center"
                                 verticalAlign="middle"
                                 listening={false}
+                                opacity={0.667}
                             />
                         </Group>
                     );

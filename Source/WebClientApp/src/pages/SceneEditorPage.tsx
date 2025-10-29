@@ -21,7 +21,10 @@ import {
     SourceDrawingTool,
     BarrierRenderer,
     RegionRenderer,
-    SourceRenderer
+    SourceRenderer,
+    LeftToolBar,
+    TopToolBar,
+    EditorStatusBar
 } from '@components/scene';
 import { EditingBlocker, ConfirmDialog } from '@components/common';
 import { EditorLayout } from '@components/layout';
@@ -30,6 +33,7 @@ import { layerManager, LayerName, GroupName } from '@services/layerManager';
 import { isBarrier, isRegion, isSource } from '@/utils/structureTypeGuards';
 import {
     Asset,
+    AssetKind,
     PlacedAsset,
     Scene,
     DisplayName,
@@ -78,9 +82,9 @@ const STAGE_WIDTH = 2800;
 const STAGE_HEIGHT = 2100;
 const SCENE_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 
-const MENU_BAR_HEIGHT = 50;
+// No menu bar anymore (toolbars are absolute overlays), only EditorLayout header
 const EDITOR_HEADER_HEIGHT = 64;
-const TOTAL_TOP_HEIGHT = EDITOR_HEADER_HEIGHT + MENU_BAR_HEIGHT;
+const TOTAL_TOP_HEIGHT = EDITOR_HEADER_HEIGHT;
 
 const SceneEditorPageInternal: React.FC = () => {
     const theme = useTheme();
@@ -158,6 +162,25 @@ const SceneEditorPageInternal: React.FC = () => {
     const [drawingMode, setDrawingMode] = useState<DrawingMode>(null);
     const [selectedStructure, setSelectedStructure] = useState<Barrier | Region | Source | null>(null);
     const [showStructureModal, setShowStructureModal] = useState(false);
+
+    interface LayerVisibility {
+        background: boolean;
+        grid: boolean;
+        structures: boolean;
+        objects: boolean;
+        creatures: boolean;
+        overlays: boolean;
+    }
+
+    const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>({
+        background: true,
+        grid: true,
+        structures: true,
+        objects: true,
+        creatures: true,
+        overlays: true
+    });
+    const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | undefined>(undefined);
 
     useEffect(() => {
         if (sceneData && !isInitialized) {
@@ -1075,6 +1098,30 @@ const SceneEditorPageInternal: React.FC = () => {
         setSelectedStructure(null);
     };
 
+    const handleLayerToggle = useCallback((layer: keyof LayerVisibility) => {
+        setLayerVisibility(prev => ({
+            ...prev,
+            [layer]: !prev[layer]
+        }));
+    }, []);
+
+    const handleResetLayers = useCallback(() => {
+        setLayerVisibility({
+            background: true,
+            grid: true,
+            structures: true,
+            objects: true,
+            creatures: true,
+            overlays: true
+        });
+    }, []);
+
+    const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        const canvasX = Math.round((e.clientX - viewport.x) / viewport.scale);
+        const canvasY = Math.round((e.clientY - viewport.y) / viewport.scale);
+        setCursorPosition({ x: canvasX, y: canvasY });
+    }, [viewport]);
+
     if (isLoadingScene || isHydrating) {
         return (
             <EditorLayout>
@@ -1125,38 +1172,8 @@ const SceneEditorPageInternal: React.FC = () => {
             <EditingBlocker isBlocked={!isOnline} />
 
             <Box
-                onClick={handleOutsideClick}
-                sx={{
-                    flexShrink: 0,
-                    height: MENU_BAR_HEIGHT,
-                    overflow: 'visible',
-                    position: 'relative',
-                    zIndex: 10,
-                    pointerEvents: 'none'
-                }}
-            >
-                <Box sx={{ pointerEvents: 'auto', display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-                    <SceneEditorMenuBar
-                        zoomPercentage={viewport.scale * 100}
-                        onZoomIn={handleZoomIn}
-                        onZoomOut={handleZoomOut}
-                        onZoomReset={handleZoomReset}
-                        onAssetSelect={handleAssetSelect}
-                        viewport={{
-                            x: initialViewport.x - viewport.x,
-                            y: initialViewport.y - viewport.y
-                        }}
-                    />
-                    <StructureToolbar
-                        drawingMode={drawingMode}
-                        onModeChange={handleDrawingModeChange}
-                        disabled={!isOnline}
-                    />
-                </Box>
-            </Box>
-
-            <Box
                 id="canvas-container"
+                onMouseMove={handleCanvasMouseMove}
                 sx={{
                     flexGrow: 1,
                     overflow: 'hidden',
@@ -1166,6 +1183,40 @@ const SceneEditorPageInternal: React.FC = () => {
                     height: '100%'
                 }}
             >
+                <TopToolBar
+                    drawingMode={drawingMode}
+                    onDrawingModeChange={handleDrawingModeChange}
+                    onUndoClick={() => execute('undo')}
+                    onRedoClick={() => execute('redo')}
+                    onZoomIn={handleZoomIn}
+                    onZoomOut={handleZoomOut}
+                    onGridToggle={() => setGridConfig(prev => ({ ...prev, type: prev.type === GridType.NoGrid ? GridType.Square : GridType.NoGrid }))}
+                    onClearSelection={() => handleAssetSelected([])}
+                    canUndo={false}
+                    canRedo={false}
+                    gridVisible={gridConfig.type !== GridType.NoGrid}
+                />
+
+                <LeftToolBar
+                    onPanelChange={(panel) => {
+                        console.log('Panel changed:', panel);
+                    }}
+                    backgroundUrl={backgroundUrl}
+                    isUploadingBackground={isUploadingBackground}
+                    onBackgroundUpload={handleBackgroundUpload}
+                    gridConfig={gridConfig}
+                    onGridChange={handleGridChange}
+                />
+
+                <EditorStatusBar
+                    cursorPosition={cursorPosition}
+                    totalAssets={placedAssets.length}
+                    selectedCount={selectedAssetIds.length}
+                    zoomPercentage={viewport.scale * 100}
+                    activeTool={drawingMode || undefined}
+                    gridSnapEnabled={gridConfig.snapToGrid}
+                />
+
                 <SceneCanvas
                     ref={canvasRef}
                     width={window.innerWidth}
@@ -1179,25 +1230,31 @@ const SceneEditorPageInternal: React.FC = () => {
                         name={LayerName.Static}
                         listening={false}
                     >
-                        <BackgroundLayer
-                            imageUrl={backgroundImageUrl}
-                            backgroundColor={theme.palette.background.default}
-                            stageWidth={STAGE_WIDTH}
-                            stageHeight={STAGE_HEIGHT}
-                        />
+                        {layerVisibility.background && (
+                            <BackgroundLayer
+                                imageUrl={backgroundImageUrl}
+                                backgroundColor={theme.palette.background.default}
+                                stageWidth={STAGE_WIDTH}
+                                stageHeight={STAGE_HEIGHT}
+                            />
+                        )}
 
-                        <GridRenderer
-                            grid={gridConfig}
-                            stageWidth={STAGE_WIDTH}
-                            stageHeight={STAGE_HEIGHT}
-                            visible={gridConfig.type !== GridType.NoGrid}
-                        />
+                        {layerVisibility.grid && (
+                            <GridRenderer
+                                grid={gridConfig}
+                                stageWidth={STAGE_WIDTH}
+                                stageHeight={STAGE_HEIGHT}
+                                visible={gridConfig.type !== GridType.NoGrid}
+                            />
+                        )}
                     </Layer>
 
                     {/* Layer 2: GameWorld (structures, objects, creatures) */}
                     <Layer name={LayerName.GameWorld}>
-                        {/* Regions - render first (bottom of GameWorld) */}
-                        {scene && scene.sceneRegions && regions && (
+                        {layerVisibility.structures && (
+                            <>
+                                {/* Regions - render first (bottom of GameWorld) */}
+                                {scene && scene.sceneRegions && regions && (
                             <Group name={GroupName.Structure}>
                                 {scene.sceneRegions.map((sceneRegion) => {
                                     const region = regions.find(r => r.id === sceneRegion.regionId);
@@ -1245,12 +1302,22 @@ const SceneEditorPageInternal: React.FC = () => {
                                 })}
                             </Group>
                         )}
+                            </>
+                        )}
                     </Layer>
 
                     {/* Layer 5: Assets (tokens/objects/creatures) */}
-                    {scene && (
+                    {scene && (layerVisibility.objects || layerVisibility.creatures) && (
                         <TokenPlacement
-                            placedAssets={placedAssets}
+                            placedAssets={placedAssets.filter(asset => {
+                                if (asset.asset.kind === AssetKind.Object && !layerVisibility.objects) {
+                                    return false;
+                                }
+                                if (asset.asset.kind === AssetKind.Creature && !layerVisibility.creatures) {
+                                    return false;
+                                }
+                                return true;
+                            })}
                             onAssetPlaced={handleAssetPlaced}
                             onAssetMoved={handleAssetMoved}
                             onAssetDeleted={handleAssetDeleted}
@@ -1270,7 +1337,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     </Layer>
 
                     {/* Layer 4: Drawing Tools (in UIOverlay for topmost rendering) */}
-                    {scene && sceneId && drawingMode && selectedStructure && (
+                    {layerVisibility.overlays && scene && sceneId && drawingMode && selectedStructure && (
                         <Layer name={LayerName.UIOverlay}>
                             {drawingMode === 'barrier' && isBarrier(selectedStructure) && (
                                 <BarrierDrawingTool

@@ -57,8 +57,9 @@ const AdventureLink: React.FC<AdventureLinkProps> = ({ adventure }) => {
                 justifyContent: 'flex-start',
                 p: 0,
                 minWidth: 'auto',
-                fontSize: '0.875rem',
-                fontWeight: 400
+                fontSize: '11px',
+                fontWeight: 400,
+                height: '20px'
             }}
         >
             {adventure.name}
@@ -79,6 +80,74 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
 }) => {
     const theme = useTheme();
     const effectiveBackgroundUrl = backgroundUrl || SCENE_DEFAULT_BACKGROUND;
+
+    // Ultra-compact styles
+    const compactStyles = {
+        sectionHeader: {
+            fontSize: '10px',
+            fontWeight: 700,
+            textTransform: 'uppercase' as const,
+            letterSpacing: '0.5px',
+            color: theme.palette.text.secondary,
+            mb: 0.5,
+            lineHeight: 1.2,
+            display: 'block'
+        },
+        textField: {
+            '& .MuiInputBase-root': {
+                height: '28px',
+                fontSize: '11px',
+                backgroundColor: theme.palette.background.default
+            },
+            '& .MuiInputBase-input': {
+                padding: '4px 8px',
+                fontSize: '11px'
+            },
+            '& .MuiInputLabel-root': {
+                fontSize: '9px',
+                transform: 'translate(8px, 6px) scale(1)',
+                '&.MuiInputLabel-shrink': {
+                    transform: 'translate(8px, -8px) scale(0.85)'
+                }
+            }
+        },
+        textFieldMultiline: {
+            '& .MuiInputBase-root': {
+                fontSize: '11px',
+                padding: '6px 8px',
+                backgroundColor: theme.palette.background.default
+            },
+            '& .MuiInputLabel-root': {
+                fontSize: '9px',
+                transform: 'translate(8px, 6px) scale(1)',
+                '&.MuiInputLabel-shrink': {
+                    transform: 'translate(8px, -8px) scale(0.85)'
+                }
+            }
+        },
+        select: {
+            height: '28px',
+            fontSize: '11px',
+            '& .MuiSelect-select': {
+                padding: '4px 8px',
+                fontSize: '11px'
+            }
+        },
+        inputLabel: {
+            fontSize: '9px',
+            transform: 'translate(8px, 6px) scale(1)',
+            '&.MuiInputLabel-shrink': {
+                transform: 'translate(8px, -8px) scale(0.85)'
+            }
+        },
+        toggleLabel: {
+            fontSize: '10px'
+        },
+        menuItem: {
+            fontSize: '11px',
+            minHeight: '32px'
+        }
+    };
 
     const handleDescriptionBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         const newDescription = e.target.value;
@@ -175,7 +244,7 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
                 sx={{
                     mx: 2,
                     mt: 1,
-                    p: 2,
+                    p: 1.5,
                     borderRadius: 2,
                     backgroundColor: theme.palette.background.paper
                 }}
@@ -185,9 +254,9 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
                     gridTemplateColumns: {
                         xs: '1fr',
                         sm: 'auto 1fr',
-                        lg: '320px auto 300px'
+                        lg: '320px auto 280px'
                     },
-                    gap: 3,
+                    gap: 2,
                     maxWidth: 1600,
                     mx: 'auto',
                     width: '100%'
@@ -274,17 +343,12 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
                     <Box sx={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 1.5
+                        gap: 0.75
                     }}>
                         <Box sx={{ mb: 0 }}>
                             <Typography
-                                variant="subtitle2"
-                                sx={{
-                                    mb: 0.5,
-                                    color: theme.palette.text.primary,
-                                    fontSize: '0.875rem',
-                                    fontWeight: 600
-                                }}
+                                variant="overline"
+                                sx={compactStyles.sectionHeader}
                             >
                                 Adventure
                             </Typography>
@@ -292,10 +356,9 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
                                 <AdventureLink adventure={scene.adventure} />
                             ) : (
                                 <Typography
-                                    variant="body2"
                                     sx={{
                                         color: theme.palette.text.disabled,
-                                        fontSize: '0.875rem'
+                                        fontSize: '11px'
                                     }}
                                 >
                                     None
@@ -309,16 +372,12 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
                             defaultValue={scene?.description ?? ''}
                             onBlur={handleDescriptionBlur}
                             multiline
-                            rows={3}
+                            rows={2}
                             fullWidth
                             variant="outlined"
                             placeholder="Scene description..."
                             size="small"
-                            sx={{
-                                '& .MuiInputBase-root': {
-                                    backgroundColor: theme.palette.background.default
-                                }
-                            }}
+                            sx={compactStyles.textFieldMultiline}
                         />
 
                         <FormControlLabel
@@ -331,10 +390,11 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
                                 />
                             }
                             label={
-                                <Typography variant="body2">
+                                <Typography sx={compactStyles.toggleLabel}>
                                     Published
                                 </Typography>
                             }
+                            sx={{ margin: 0 }}
                         />
                     </Box>
 
@@ -342,84 +402,82 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
                     <Box sx={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 1.5,
+                        gap: 0.75,
                         gridColumn: { xs: '1', sm: '2', lg: '3' },
                         gridRow: { xs: 'auto', sm: '2', lg: '1' }
                     }}>
-                        <Typography
-                            variant="subtitle2"
-                            sx={{
-                                color: theme.palette.text.primary,
-                                fontSize: '0.875rem',
-                                fontWeight: 600
-                            }}
-                        >
+                        <Typography variant="overline" sx={compactStyles.sectionHeader}>
                             Grid Configuration
                         </Typography>
 
                         {/* Grid Type Dropdown */}
                         <FormControl fullWidth size="small">
-                            <InputLabel id="label-grid-type">Grid Type</InputLabel>
+                            <InputLabel id="label-grid-type" sx={compactStyles.inputLabel}>Type</InputLabel>
                             <Select
                                 id="select-grid-type"
                                 labelId="label-grid-type"
                                 value={scene?.grid?.type ?? 'NoGrid'}
-                                label="Grid Type"
+                                label="Type"
                                 onChange={handleGridTypeChange}
+                                sx={compactStyles.select}
                             >
-                                <MenuItem value="NoGrid">No Grid</MenuItem>
-                                <MenuItem value="Square">Square</MenuItem>
-                                <MenuItem value="HexV">Hex (Vertical)</MenuItem>
-                                <MenuItem value="HexH">Hex (Horizontal)</MenuItem>
-                                <MenuItem value="Isometric">Isometric</MenuItem>
+                                <MenuItem sx={compactStyles.menuItem} value="NoGrid">No Grid</MenuItem>
+                                <MenuItem sx={compactStyles.menuItem} value="Square">Square</MenuItem>
+                                <MenuItem sx={compactStyles.menuItem} value="HexV">Hex (V)</MenuItem>
+                                <MenuItem sx={compactStyles.menuItem} value="HexH">Hex (H)</MenuItem>
+                                <MenuItem sx={compactStyles.menuItem} value="Isometric">Isometric</MenuItem>
                             </Select>
                         </FormControl>
 
                         {/* Cell Size (Row with W/H) */}
-                        <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
                             <TextField
                                 id="input-cell-width"
-                                label="Cell Width"
+                                label="W"
                                 type="number"
                                 value={scene?.grid.cellSize.width ?? 50}
                                 onChange={handleCellWidthChange}
                                 size="small"
                                 fullWidth
                                 InputProps={{ inputProps: { min: 10, max: 200, step: 1 } }}
+                                sx={compactStyles.textField}
                             />
                             <TextField
                                 id="input-cell-height"
-                                label="Cell Height"
+                                label="H"
                                 type="number"
                                 value={scene?.grid.cellSize.height ?? 50}
                                 onChange={handleCellHeightChange}
                                 size="small"
                                 fullWidth
                                 InputProps={{ inputProps: { min: 10, max: 200, step: 1 } }}
+                                sx={compactStyles.textField}
                             />
                         </Box>
 
                         {/* Offset (Row with X/Y) */}
-                        <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
                             <TextField
                                 id="input-offset-x"
-                                label="Offset X"
+                                label="X"
                                 type="number"
                                 value={scene?.grid.offset.left ?? 0}
                                 onChange={handleOffsetXChange}
                                 size="small"
                                 fullWidth
                                 InputProps={{ inputProps: { step: 1 } }}
+                                sx={compactStyles.textField}
                             />
                             <TextField
                                 id="input-offset-y"
-                                label="Offset Y"
+                                label="Y"
                                 type="number"
                                 value={scene?.grid.offset.top ?? 0}
                                 onChange={handleOffsetYChange}
                                 size="small"
                                 fullWidth
                                 InputProps={{ inputProps: { step: 1 } }}
+                                sx={compactStyles.textField}
                             />
                         </Box>
 
@@ -433,58 +491,53 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
                                     onChange={handleSnapChange}
                                 />
                             }
-                            label={<Typography variant="body2">Snap to Grid</Typography>}
+                            label={<Typography sx={compactStyles.toggleLabel}>Snap to Grid</Typography>}
+                            sx={{ margin: 0 }}
                         />
 
-                        <Divider sx={{ my: 2 }} />
+                        <Divider sx={{ my: 1 }} />
 
-                        <Typography
-                            variant="subtitle2"
-                            sx={{
-                                color: theme.palette.text.primary,
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                                mb: 1.5
-                            }}
-                        >
+                        <Typography variant="overline" sx={compactStyles.sectionHeader}>
                             Display Settings
                         </Typography>
 
-                        <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
-                            <InputLabel id="label-default-display">Default Creature Display</InputLabel>
+                        <FormControl fullWidth size="small">
+                            <InputLabel id="label-default-display" sx={compactStyles.inputLabel}>Creature</InputLabel>
                             <Select
                                 id="select-default-display"
                                 labelId="label-default-display"
                                 value={scene?.defaultDisplayName ?? DisplayName.Always}
-                                label="Default Creature Display"
+                                label="Creature"
                                 onChange={(e) => {
                                     if (onSceneUpdate) {
                                         onSceneUpdate({ defaultDisplayName: e.target.value as DisplayName });
                                     }
                                 }}
+                                sx={compactStyles.select}
                             >
-                                <MenuItem value={DisplayName.Always}>Always</MenuItem>
-                                <MenuItem value={DisplayName.OnHover}>On Hover</MenuItem>
-                                <MenuItem value={DisplayName.Never}>Never</MenuItem>
+                                <MenuItem sx={compactStyles.menuItem} value={DisplayName.Always}>Always</MenuItem>
+                                <MenuItem sx={compactStyles.menuItem} value={DisplayName.OnHover}>On Hover</MenuItem>
+                                <MenuItem sx={compactStyles.menuItem} value={DisplayName.Never}>Never</MenuItem>
                             </Select>
                         </FormControl>
 
                         <FormControl fullWidth size="small">
-                            <InputLabel id="label-default-position">Default Label Position</InputLabel>
+                            <InputLabel id="label-default-position" sx={compactStyles.inputLabel}>Label</InputLabel>
                             <Select
                                 id="select-default-position"
                                 labelId="label-default-position"
                                 value={scene?.defaultLabelPosition ?? LabelPosition.Bottom}
-                                label="Default Label Position"
+                                label="Label"
                                 onChange={(e) => {
                                     if (onSceneUpdate) {
                                         onSceneUpdate({ defaultLabelPosition: e.target.value as LabelPosition });
                                     }
                                 }}
+                                sx={compactStyles.select}
                             >
-                                <MenuItem value={LabelPosition.Top}>Top</MenuItem>
-                                <MenuItem value={LabelPosition.Middle}>Middle</MenuItem>
-                                <MenuItem value={LabelPosition.Bottom}>Bottom</MenuItem>
+                                <MenuItem sx={compactStyles.menuItem} value={LabelPosition.Top}>Top</MenuItem>
+                                <MenuItem sx={compactStyles.menuItem} value={LabelPosition.Middle}>Middle</MenuItem>
+                                <MenuItem sx={compactStyles.menuItem} value={LabelPosition.Bottom}>Bottom</MenuItem>
                             </Select>
                         </FormControl>
                     </Box>
