@@ -15,10 +15,11 @@ import {
     Chip,
     Stack
 } from '@mui/material';
-import { Add, Edit, Delete, Lock, LockOpen, Visibility, VisibilityOff } from '@mui/icons-material';
+import { Add, Edit, Delete, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useGetBarriersQuery, useDeleteBarrierMutation } from '@/services/barrierApi';
 import { BarrierEditor } from './BarrierEditor';
 import type { Barrier } from '@/types/domain';
+import { WallVisibility } from '@/types/domain';
 
 export interface BarrierListProps {
     onSelect?: (barrier: Barrier) => void;
@@ -145,37 +146,43 @@ export const BarrierList: React.FC<BarrierListProps> = ({ onSelect }) => {
                                             </Typography>
                                         )}
                                         <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }}>
-                                            {barrier.isOpaque && (
+                                            {barrier.visibility === WallVisibility.Normal && (
                                                 <Chip
                                                     icon={<VisibilityOff />}
-                                                    label="Opaque"
+                                                    label="Normal Wall"
                                                     size="small"
                                                     variant="outlined"
                                                 />
                                             )}
-                                            {barrier.isSolid && (
+                                            {barrier.visibility === WallVisibility.Fence && (
                                                 <Chip
-                                                    label="Solid"
-                                                    size="small"
-                                                    variant="outlined"
-                                                />
-                                            )}
-                                            {barrier.isOpenable && (
-                                                <Chip
-                                                    icon={barrier.isLocked ? <Lock /> : <LockOpen />}
-                                                    label={barrier.isLocked ? 'Locked Door' : 'Door'}
+                                                    icon={<Visibility />}
+                                                    label="Fence"
                                                     size="small"
                                                     variant="outlined"
                                                     color="primary"
                                                 />
                                             )}
-                                            {barrier.isSecret && (
+                                            {barrier.visibility === WallVisibility.Invisible && (
                                                 <Chip
-                                                    icon={<Visibility />}
-                                                    label="Secret"
+                                                    label="Invisible Barrier"
                                                     size="small"
                                                     variant="outlined"
                                                     color="secondary"
+                                                />
+                                            )}
+                                            {barrier.isClosed && (
+                                                <Chip
+                                                    label="Closed"
+                                                    size="small"
+                                                    variant="outlined"
+                                                />
+                                            )}
+                                            {barrier.material && (
+                                                <Chip
+                                                    label={barrier.material}
+                                                    size="small"
+                                                    variant="outlined"
                                                 />
                                             )}
                                         </Stack>

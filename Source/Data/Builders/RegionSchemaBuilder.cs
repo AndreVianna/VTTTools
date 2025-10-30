@@ -37,7 +37,7 @@ internal static class RegionSchemaBuilder {
             });
 
             entity.HasOne(e => e.Scene)
-                .WithMany()
+                .WithMany(s => s.SceneRegions)
                 .HasForeignKey(e => e.SceneId)
                 .OnDelete(DeleteBehavior.Cascade);
 

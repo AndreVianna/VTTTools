@@ -163,6 +163,9 @@ internal static class Mapper {
             DefaultDisplayName = entity.DefaultDisplayName,
             DefaultLabelPosition = entity.DefaultLabelPosition,
             Assets = [.. entity.SceneAssets.Select(sa => sa.ToModel()!)],
+            SceneBarriers = [.. entity.SceneBarriers.Select(sb => sb.ToModel()!)],
+            SceneRegions = [.. entity.SceneRegions.Select(sr => sr.ToModel()!)],
+            SceneSources = [.. entity.SceneSources.Select(ss => ss.ToModel()!)],
         };
 
     internal static SceneEntity ToEntity(this Scene model, Guid adventureId)

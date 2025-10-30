@@ -6,8 +6,9 @@ import type {
     UpdateBarrierRequest,
     PlaceSceneBarrierRequest,
     UpdateSceneBarrierRequest,
-    Point
+    Pole
 } from '../domain';
+import { WallVisibility } from '../domain';
 
 describe('Barrier Types', () => {
     it('should allow valid Barrier object', () => {
@@ -16,109 +17,108 @@ describe('Barrier Types', () => {
             ownerId: '123e4567-e89b-12d3-a456-426614174001',
             name: 'Stone Wall',
             description: 'A solid stone wall',
-            isOpaque: true,
-            isSolid: true,
-            isSecret: false,
-            isOpenable: false,
-            isLocked: false,
+            poles: [],
+            visibility: WallVisibility.Normal,
+            isClosed: false,
+            material: 'Stone',
             createdAt: '2025-10-28T00:00:00Z',
         };
         expect(barrier.name).toBe('Stone Wall');
-        expect(barrier.isOpaque).toBe(true);
-        expect(barrier.isSolid).toBe(true);
+        expect(barrier.visibility).toBe(WallVisibility.Normal);
+        expect(barrier.isClosed).toBe(false);
+        expect(barrier.material).toBe('Stone');
     });
 
-    it('should allow Barrier without optional description', () => {
+    it('should allow Barrier without optional fields', () => {
         const barrier: Barrier = {
             id: '123e4567-e89b-12d3-a456-426614174000',
             ownerId: '123e4567-e89b-12d3-a456-426614174001',
-            name: 'Door',
-            isOpaque: false,
-            isSolid: false,
-            isSecret: false,
-            isOpenable: true,
-            isLocked: true,
+            name: 'Fence',
+            poles: [],
+            visibility: WallVisibility.Fence,
+            isClosed: false,
             createdAt: '2025-10-28T00:00:00Z',
         };
         expect(barrier.description).toBeUndefined();
-        expect(barrier.isOpenable).toBe(true);
+        expect(barrier.material).toBeUndefined();
+        expect(barrier.visibility).toBe(WallVisibility.Fence);
     });
 
     it('should allow valid SceneBarrier object', () => {
-        const vertices: Point[] = [
-            { x: 0, y: 0 },
-            { x: 10, y: 10 },
+        const poles: Pole[] = [
+            { x: 0, y: 0, h: 10 },
+            { x: 10, y: 10, h: 10 },
         ];
 
         const sceneBarrier: SceneBarrier = {
             id: '789e4567-e89b-12d3-a456-426614174000',
             sceneId: 'abc-def-ghi',
             barrierId: '123e4567-e89b-12d3-a456-426614174000',
-            vertices,
+            poles,
         };
-        expect(sceneBarrier.vertices).toHaveLength(2);
-        expect(sceneBarrier.vertices[0]?.x).toBe(0);
-        expect(sceneBarrier.isOpen).toBeUndefined();
+        expect(sceneBarrier.poles).toHaveLength(2);
+        expect(sceneBarrier.poles[0]?.x).toBe(0);
+        expect(sceneBarrier.poles[0]?.h).toBe(10);
     });
 
-    it('should allow SceneBarrier with overrides', () => {
+    it('should allow SceneBarrier with different pole heights', () => {
         const sceneBarrier: SceneBarrier = {
             id: '789e4567-e89b-12d3-a456-426614174000',
             sceneId: 'abc-def-ghi',
             barrierId: '123e4567-e89b-12d3-a456-426614174000',
-            vertices: [
-                { x: 0, y: 0 },
-                { x: 5, y: 5 },
+            poles: [
+                { x: 0, y: 0, h: 5 },
+                { x: 5, y: 5, h: 15 },
             ],
-            isOpen: true,
-            isLocked: false,
         };
-        expect(sceneBarrier.isOpen).toBe(true);
-        expect(sceneBarrier.isLocked).toBe(false);
+        expect(sceneBarrier.poles[0]?.h).toBe(5);
+        expect(sceneBarrier.poles[1]?.h).toBe(15);
     });
 
     it('should allow valid CreateBarrierRequest', () => {
         const request: CreateBarrierRequest = {
-            name: 'Iron Door',
-            description: 'A heavy iron door',
-            isOpaque: true,
-            isSolid: true,
-            isSecret: false,
-            isOpenable: true,
-            isLocked: true,
+            name: 'Iron Wall',
+            description: 'A heavy iron wall',
+            poles: [],
+            visibility: WallVisibility.Normal,
+            isClosed: true,
+            material: 'Metal',
         };
-        expect(request.name).toBe('Iron Door');
-        expect(request.isOpenable).toBe(true);
+        expect(request.name).toBe('Iron Wall');
+        expect(request.visibility).toBe(WallVisibility.Normal);
+        expect(request.isClosed).toBe(true);
+        expect(request.material).toBe('Metal');
     });
 
     it('should allow UpdateBarrierRequest with partial updates', () => {
         const request: UpdateBarrierRequest = {
             name: 'Updated Wall',
-            isOpaque: false,
+            visibility: WallVisibility.Invisible,
         };
         expect(request.name).toBe('Updated Wall');
         expect(request.description).toBeUndefined();
+        expect(request.visibility).toBe(WallVisibility.Invisible);
     });
 
     it('should allow valid PlaceSceneBarrierRequest', () => {
         const request: PlaceSceneBarrierRequest = {
             barrierId: '123e4567-e89b-12d3-a456-426614174000',
-            vertices: [
-                { x: 0, y: 0 },
-                { x: 100, y: 100 },
+            poles: [
+                { x: 0, y: 0, h: 10 },
+                { x: 100, y: 100, h: 10 },
             ],
-            isOpen: false,
-            isLocked: true,
         };
         expect(request.barrierId).toBeDefined();
-        expect(request.vertices).toHaveLength(2);
+        expect(request.poles).toHaveLength(2);
     });
 
     it('should allow UpdateSceneBarrierRequest with partial updates', () => {
         const request: UpdateSceneBarrierRequest = {
-            isOpen: true,
+            poles: [
+                { x: 0, y: 0, h: 20 },
+            ],
         };
-        expect(request.isOpen).toBe(true);
-        expect(request.vertices).toBeUndefined();
+        expect(request.poles).toHaveLength(1);
+        expect(request.poles?.[0]?.h).toBe(20);
     });
 });

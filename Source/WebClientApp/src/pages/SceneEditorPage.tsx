@@ -42,7 +42,8 @@ import {
     SceneBarrier,
     Region,
     Source,
-    CreateBarrierRequest
+    CreateBarrierRequest,
+    WallVisibility
 } from '@/types/domain';
 import { UndoRedoProvider, useUndoRedoContext } from '@/contexts/UndoRedoContext';
 import { ClipboardProvider } from '@/contexts/ClipboardContext';
@@ -929,41 +930,6 @@ const SceneEditorPageInternal: React.FC = () => {
         setSelectedBarrierId(sceneBarrierId);
     }, []);
 
-    const handleToggleOpen = useCallback(async (sceneBarrierId: string) => {
-        if (!sceneId || !scene) return;
-
-        const sceneBarrier = scene.sceneBarriers?.find((b: SceneBarrier) => b.id === sceneBarrierId);
-        if (!sceneBarrier) return;
-
-        try {
-            await updateSceneBarrier({
-                sceneId,
-                id: sceneBarrierId,
-                body: { isOpen: !sceneBarrier.isOpen }
-            }).unwrap();
-        } catch (error) {
-            console.error('Failed to toggle barrier open state:', error);
-            setErrorMessage('Failed to toggle barrier. Please try again.');
-        }
-    }, [sceneId, scene, updateSceneBarrier]);
-
-    const handleToggleLock = useCallback(async (sceneBarrierId: string) => {
-        if (!sceneId || !scene) return;
-
-        const sceneBarrier = scene.sceneBarriers?.find((b: SceneBarrier) => b.id === sceneBarrierId);
-        if (!sceneBarrier) return;
-
-        try {
-            await updateSceneBarrier({
-                sceneId,
-                id: sceneBarrierId,
-                body: { isLocked: !sceneBarrier.isLocked }
-            }).unwrap();
-        } catch (error) {
-            console.error('Failed to toggle barrier lock state:', error);
-            setErrorMessage('Failed to toggle lock. Please try again.');
-        }
-    }, [sceneId, scene, updateSceneBarrier]);
 
     const handleEditVertices = useCallback((sceneBarrierId: string) => {
         setSelectedBarrierId(sceneBarrierId);
@@ -1200,42 +1166,42 @@ const SceneEditorPageInternal: React.FC = () => {
     }, []);
 
     const handlePlaceWall = useCallback(async (properties: {
-        isOpaque: boolean;
-        isSolid: boolean;
-        isSecret: boolean;
-        isOpenable: boolean;
-        isLocked: boolean;
+        visibility: WallVisibility;
+        isClosed: boolean;
         material?: string;
-        height?: number;
+        defaultHeight: number;
     }) => {
+        console.log('[SceneEditorPage] handlePlaceWall called', properties);
         try {
             const existingBarriers = barriers || [];
             const wallCount = existingBarriers.filter((b: Barrier) => b.name.startsWith('Wall ')).length;
             const wallName = `Wall ${wallCount + 1}`;
 
+            console.log('[SceneEditorPage] Creating barrier:', { wallName, wallCount });
+
             const barrierRequest: CreateBarrierRequest = {
                 name: wallName,
-                description: `${properties.material || 'Stone'} wall (${properties.height || 2.0}u high)`,
-                isOpaque: properties.isOpaque,
-                isSolid: properties.isSolid,
-                isSecret: properties.isSecret,
-                isOpenable: properties.isOpenable,
-                isLocked: properties.isLocked
+                description: `${properties.material || 'Stone'} wall (${properties.defaultHeight}ft high)`,
+                visibility: properties.visibility,
+                isClosed: properties.isClosed
             };
 
             if (properties.material !== undefined) {
                 barrierRequest.material = properties.material;
             }
-            if (properties.height !== undefined) {
-                barrierRequest.height = properties.height;
-            }
+
+            console.log('[SceneEditorPage] Barrier request:', barrierRequest);
 
             const newBarrier = await createBarrier(barrierRequest).unwrap();
 
+            console.log('[SceneEditorPage] Barrier created:', newBarrier);
+
             setSelectedStructure(newBarrier);
             setDrawingMode('barrier');
+
+            console.log('[SceneEditorPage] Entering drawing mode');
         } catch (error) {
-            console.error('Failed to create wall:', error);
+            console.error('[SceneEditorPage] Failed to create wall:', error);
             setErrorMessage('Failed to create wall. Please try again.');
         }
     }, [barriers, createBarrier]);
@@ -1325,8 +1291,6 @@ const SceneEditorPageInternal: React.FC = () => {
                     onBarrierEdit={handleBarrierEdit}
                     onBarrierDelete={handleBarrierDelete}
                     onPlaceWall={handlePlaceWall}
-                    onToggleOpen={handleToggleOpen}
-                    onToggleLock={handleToggleLock}
                     onEditVertices={handleEditVertices}
                 />
 
@@ -1552,8 +1516,6 @@ const SceneEditorPageInternal: React.FC = () => {
             sceneBarrier={contextMenuBarrier?.sceneBarrier || null}
             barrier={contextMenuBarrier?.barrier || null}
             onEditVertices={handleEditVertices}
-            onToggleOpen={handleToggleOpen}
-            onToggleLock={handleToggleLock}
             onDelete={handleBarrierDelete}
         />
 

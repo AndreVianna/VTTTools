@@ -567,13 +567,13 @@ export interface Point {
 export interface Pole {
   x: number;
   y: number;
-  h: number;
+  h: number;  // Height in feet
 }
 
 export enum WallVisibility {
-  Normal = 'normal',
-  Fence = 'fence',
-  Invisible = 'invisible'
+  Normal = 0,
+  Fence = 1,
+  Invisible = 2
 }
 
 export interface Barrier {

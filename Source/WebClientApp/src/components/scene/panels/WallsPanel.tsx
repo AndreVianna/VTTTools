@@ -61,7 +61,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = ({
     const [isClosed, setIsClosed] = useState(false);
     const [material, setMaterial] = useState<string>('Stone');
     const [customMaterial, setCustomMaterial] = useState<string>('');
-    const [defaultHeight, setDefaultHeight] = useState<number>(2.0);
+    const [defaultHeight, setDefaultHeight] = useState<number>(10.0);
 
     const compactStyles = {
         sectionHeader: {
@@ -126,6 +126,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = ({
     };
 
     const handlePlaceWall = () => {
+        console.log('[WallsPanel] Place Wall clicked', { visibility, isClosed, material, defaultHeight });
         onPlaceWall?.({
             visibility,
             isClosed,
@@ -138,27 +139,10 @@ export const WallsPanel: React.FC<WallsPanelProps> = ({
         setMaterial(e.target.value);
     };
 
-    const handleVisibilityChange = (e: SelectChangeEvent<string>) => {
-        setVisibility(e.target.value as WallVisibility);
-    };
-
     const selectedSceneBarrier = sceneBarriers.find(sb => sb.id === selectedBarrierId);
     const selectedBarrier = selectedSceneBarrier
         ? barriers.find(b => b.id === selectedSceneBarrier.barrierId)
         : null;
-
-    const getVisibilityHelperText = (vis: WallVisibility): string => {
-        switch (vis) {
-            case WallVisibility.Normal:
-                return 'Blocks movement and sight';
-            case WallVisibility.Fence:
-                return 'Blocks movement, allows sight';
-            case WallVisibility.Invisible:
-                return 'Blocks movement, hidden from players';
-            default:
-                return '';
-        }
-    };
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -196,31 +180,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = ({
 
             <Typography variant="overline" sx={compactStyles.sectionHeader}>
                 Wall Properties
-            </Typography>
-
-            <FormControl fullWidth size="small">
-                <InputLabel id="label-visibility" sx={compactStyles.inputLabel}>Visibility</InputLabel>
-                <Select
-                    labelId="label-visibility"
-                    value={visibility}
-                    label="Visibility"
-                    onChange={handleVisibilityChange}
-                    sx={compactStyles.select}
-                >
-                    <MenuItem value={WallVisibility.Normal} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                        Normal (Blocks Sight)
-                    </MenuItem>
-                    <MenuItem value={WallVisibility.Fence} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                        Fence (See Through)
-                    </MenuItem>
-                    <MenuItem value={WallVisibility.Invisible} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                        Invisible Barrier
-                    </MenuItem>
-                </Select>
-            </FormControl>
-
-            <Typography variant="caption" sx={{ fontSize: '9px', color: theme.palette.text.secondary, mt: -0.5 }}>
-                {getVisibilityHelperText(visibility)}
             </Typography>
 
             <FormControlLabel
@@ -265,7 +224,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = ({
             )}
 
             <TextField
-                label="Default Height (grid units)"
+                label="Default Height (feet)"
                 type="number"
                 value={defaultHeight}
                 onChange={(e) => setDefaultHeight(parseFloat(e.target.value))}

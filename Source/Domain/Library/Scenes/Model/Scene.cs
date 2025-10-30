@@ -13,6 +13,9 @@ public record Scene {
     public Stage Stage { get; set; } = new();
     public Grid Grid { get; init; } = new();
     public List<SceneAsset> Assets { get; init; } = [];
+    public List<SceneBarrier> SceneBarriers { get; init; } = [];
+    public List<SceneRegion> SceneRegions { get; init; } = [];
+    public List<SceneSource> SceneSources { get; init; } = [];
 
     /// <summary>
     /// Default display mode for creature labels in this scene.

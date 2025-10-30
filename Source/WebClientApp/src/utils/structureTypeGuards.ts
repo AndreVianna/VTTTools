@@ -1,7 +1,7 @@
 import type { Barrier, Region, Source } from '@/types/domain';
 
 export const isBarrier = (structure: Barrier | Region | Source): structure is Barrier => {
-    return 'isOpaque' in structure;
+    return 'visibility' in structure;
 };
 
 export const isRegion = (structure: Barrier | Region | Source): structure is Region => {

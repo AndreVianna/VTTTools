@@ -12,11 +12,16 @@ import {
     Typography,
     Divider,
     CircularProgress,
-    Alert
+    Alert,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from '@mui/material';
 import { Save, Cancel } from '@mui/icons-material';
 import { useCreateBarrierMutation, useUpdateBarrierMutation } from '@/services/barrierApi';
-import type { Barrier, CreateBarrierRequest, UpdateBarrierRequest } from '@/types/domain';
+import type { Barrier, CreateBarrierRequest, UpdateBarrierRequest, WallVisibility } from '@/types/domain';
+import { WallVisibility as WallVisibilityEnum } from '@/types/domain';
 
 interface BarrierEditorProps {
     open: boolean;
@@ -24,14 +29,15 @@ interface BarrierEditorProps {
     onClose: () => void;
 }
 
+const MATERIAL_OPTIONS = ['Stone', 'Wood', 'Metal', 'Glass', 'Magical', 'Custom'];
+
 const BarrierEditorInternal: React.FC<BarrierEditorProps> = ({ open, barrier, onClose }) => {
     const [name, setName] = useState(barrier?.name ?? '');
     const [description, setDescription] = useState(barrier?.description ?? '');
-    const [isOpaque, setIsOpaque] = useState(barrier?.isOpaque ?? true);
-    const [isSolid, setIsSolid] = useState(barrier?.isSolid ?? true);
-    const [isSecret, setIsSecret] = useState(barrier?.isSecret ?? false);
-    const [isOpenable, setIsOpenable] = useState(barrier?.isOpenable ?? false);
-    const [isLocked, setIsLocked] = useState(barrier?.isLocked ?? false);
+    const [visibility, setVisibility] = useState<WallVisibility>(barrier?.visibility ?? WallVisibilityEnum.Normal);
+    const [isClosed, setIsClosed] = useState(barrier?.isClosed ?? false);
+    const [material, setMaterial] = useState(barrier?.material ?? 'Stone');
+    const [customMaterial, setCustomMaterial] = useState('');
 
     const [createBarrier, { isLoading: isCreating, error: createError }] = useCreateBarrierMutation();
     const [updateBarrier, { isLoading: isUpdating, error: updateError }] = useUpdateBarrierMutation();
@@ -43,14 +49,15 @@ const BarrierEditorInternal: React.FC<BarrierEditorProps> = ({ open, barrier, on
         const trimmedName = name.trim();
         if (!trimmedName) return;
 
+        const finalMaterial = material === 'Custom' ? customMaterial.trim() : material;
+
         const data = {
             name: trimmedName,
             description: description.trim() || undefined,
-            isOpaque,
-            isSolid,
-            isSecret,
-            isOpenable,
-            isLocked: isOpenable ? isLocked : false
+            visibility,
+            isClosed,
+            material: finalMaterial || undefined,
+            poles: []
         };
 
         try {
@@ -105,100 +112,85 @@ const BarrierEditorInternal: React.FC<BarrierEditorProps> = ({ open, barrier, on
                     <Divider sx={{ my: 1 }} />
 
                     <Typography variant="subtitle2" color="text.secondary">
-                        Physical Properties
+                        Wall Properties
                     </Typography>
 
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={isOpaque}
-                                onChange={(e) => setIsOpaque(e.target.checked)}
-                            />
-                        }
-                        label={
-                            <Box>
-                                <Typography variant="body2">Opaque</Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Blocks line of sight
-                                </Typography>
-                            </Box>
-                        }
-                    />
-
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={isSolid}
-                                onChange={(e) => setIsSolid(e.target.checked)}
-                            />
-                        }
-                        label={
-                            <Box>
-                                <Typography variant="body2">Solid</Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Blocks movement
-                                </Typography>
-                            </Box>
-                        }
-                    />
-
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={isSecret}
-                                onChange={(e) => setIsSecret(e.target.checked)}
-                            />
-                        }
-                        label={
-                            <Box>
-                                <Typography variant="body2">Secret</Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Hidden until discovered
-                                </Typography>
-                            </Box>
-                        }
-                    />
-
-                    <Divider sx={{ my: 1 }} />
-
-                    <Typography variant="subtitle2" color="text.secondary">
-                        Door Properties
-                    </Typography>
-
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={isOpenable}
-                                onChange={(e) => setIsOpenable(e.target.checked)}
-                            />
-                        }
-                        label={
-                            <Box>
-                                <Typography variant="body2">Openable</Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Can be opened/closed (door, window, etc.)
-                                </Typography>
-                            </Box>
-                        }
-                    />
-
-                    {isOpenable && (
-                        <FormControlLabel
-                            sx={{ ml: 4 }}
-                            control={
-                                <Checkbox
-                                    checked={isLocked}
-                                    onChange={(e) => setIsLocked(e.target.checked)}
-                                />
-                            }
-                            label={
+                    <FormControl fullWidth>
+                        <InputLabel id="visibility-label">Visibility</InputLabel>
+                        <Select
+                            labelId="visibility-label"
+                            value={visibility}
+                            label="Visibility"
+                            onChange={(e) => setVisibility(e.target.value as WallVisibility)}
+                        >
+                            <MenuItem value={WallVisibilityEnum.Normal}>
                                 <Box>
-                                    <Typography variant="body2">Locked</Typography>
+                                    <Typography variant="body2">Normal</Typography>
                                     <Typography variant="caption" color="text.secondary">
-                                        Requires key or unlock action
+                                        Blocks sight and movement
                                     </Typography>
                                 </Box>
-                            }
+                            </MenuItem>
+                            <MenuItem value={WallVisibilityEnum.Fence}>
+                                <Box>
+                                    <Typography variant="body2">Fence</Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        Blocks movement, can see through
+                                    </Typography>
+                                </Box>
+                            </MenuItem>
+                            <MenuItem value={WallVisibilityEnum.Invisible}>
+                                <Box>
+                                    <Typography variant="body2">Invisible Barrier</Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                        Blocks movement only, invisible
+                                    </Typography>
+                                </Box>
+                            </MenuItem>
+                        </Select>
+                    </FormControl>
+
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={isClosed}
+                                onChange={(e) => setIsClosed(e.target.checked)}
+                            />
+                        }
+                        label={
+                            <Box>
+                                <Typography variant="body2">Closed (Enclosure/Room)</Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                    Forms a closed shape
+                                </Typography>
+                            </Box>
+                        }
+                    />
+
+                    <FormControl fullWidth>
+                        <InputLabel id="material-label">Material</InputLabel>
+                        <Select
+                            labelId="material-label"
+                            value={material}
+                            label="Material"
+                            onChange={(e) => setMaterial(e.target.value)}
+                        >
+                            {MATERIAL_OPTIONS.map((mat) => (
+                                <MenuItem key={mat} value={mat}>
+                                    {mat}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    {material === 'Custom' && (
+                        <TextField
+                            label="Custom Material Name"
+                            value={customMaterial}
+                            onChange={(e) => setCustomMaterial(e.target.value)}
+                            fullWidth
+                            placeholder="Enter material name..."
+                            inputProps={{ maxLength: 64 }}
                         />
                     )}
 

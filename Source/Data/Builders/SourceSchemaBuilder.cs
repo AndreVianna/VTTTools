@@ -34,7 +34,7 @@ internal static class SourceSchemaBuilder {
             });
 
             entity.HasOne(e => e.Scene)
-                .WithMany()
+                .WithMany(s => s.SceneSources)
                 .HasForeignKey(e => e.SceneId)
                 .OnDelete(DeleteBehavior.Cascade);
 

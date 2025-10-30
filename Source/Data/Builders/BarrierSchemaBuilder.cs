@@ -38,7 +38,7 @@ internal static class BarrierSchemaBuilder {
             });
 
             entity.HasOne(e => e.Scene)
-                .WithMany()
+                .WithMany(s => s.SceneBarriers)
                 .HasForeignKey(e => e.SceneId)
                 .OnDelete(DeleteBehavior.Cascade);
 

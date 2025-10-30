@@ -18,7 +18,7 @@ import {
 } from '@mui/icons-material';
 import { BackgroundPanel, GridPanel, WallsPanel } from './panels';
 import { GridConfig } from '@/utils/gridCalculator';
-import type { Barrier, SceneBarrier } from '@/types/domain';
+import type { Barrier, SceneBarrier, WallVisibility } from '@/types/domain';
 
 export type PanelType =
   | 'background'
@@ -50,16 +50,11 @@ export interface LeftToolBarProps {
   onBarrierEdit?: (barrierId: string) => void;
   onBarrierDelete?: (barrierId: string) => void;
   onPlaceWall?: (properties: {
-    isOpaque: boolean;
-    isSolid: boolean;
-    isSecret: boolean;
-    isOpenable: boolean;
-    isLocked: boolean;
+    visibility: WallVisibility;
+    isClosed: boolean;
     material?: string;
-    height?: number;
+    defaultHeight: number;
   }) => void;
-  onToggleOpen?: (sceneBarrierId: string) => void;
-  onToggleLock?: (sceneBarrierId: string) => void;
   onEditVertices?: (sceneBarrierId: string) => void;
 }
 
@@ -77,8 +72,6 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onBarrierEdit,
   onBarrierDelete,
   onPlaceWall,
-  onToggleOpen,
-  onToggleLock,
   onEditVertices
 }) => {
   const theme = useTheme();
@@ -203,8 +196,6 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               onBarrierEdit={onBarrierEdit}
               onBarrierDelete={onBarrierDelete}
               onPlaceWall={onPlaceWall}
-              onToggleOpen={onToggleOpen}
-              onToggleLock={onToggleLock}
               onEditVertices={onEditVertices}
             />
           )}
