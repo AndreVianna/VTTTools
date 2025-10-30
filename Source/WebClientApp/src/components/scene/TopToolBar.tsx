@@ -41,7 +41,7 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
   gridVisible = true
 }) => {
   const theme = useTheme();
-  const [expanded, setExpanded] = useState(true);
+  const [expanded] = useState(true);
 
   return (
     <Box

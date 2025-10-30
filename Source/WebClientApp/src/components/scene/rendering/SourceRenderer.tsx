@@ -42,7 +42,7 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
 
     const losPolygon = useMemo(() => {
         return calculateLineOfSight(sceneSource, effectiveRange, opaqueBarriers, gridConfig);
-    }, [sceneSource.position, effectiveRange, opaqueBarriers, gridConfig]);
+    }, [sceneSource, effectiveRange, opaqueBarriers, gridConfig]);
 
     const rangeInPixels = effectiveRange * gridConfig.cellSize.width;
 

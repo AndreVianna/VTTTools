@@ -13,10 +13,10 @@ using SceneBarrierEntity = VttTools.Data.Library.Entities.SceneBarrier;
 using SceneEntity = VttTools.Data.Library.Entities.Scene;
 using SceneRegion = VttTools.Library.Scenes.Model.SceneRegion;
 using SceneRegionEntity = VttTools.Data.Library.Entities.SceneRegion;
-using Source = VttTools.Library.Scenes.Model.Source;
-using SourceEntity = VttTools.Data.Library.Entities.Source;
 using SceneSource = VttTools.Library.Scenes.Model.SceneSource;
 using SceneSourceEntity = VttTools.Data.Library.Entities.SceneSource;
+using Source = VttTools.Library.Scenes.Model.Source;
+using SourceEntity = VttTools.Data.Library.Entities.Source;
 
 namespace VttTools.Data.Library;
 
@@ -207,7 +207,8 @@ internal static class Mapper {
             var existingAsset = entity.SceneAssets.FirstOrDefault(ea => ea.Index == modelAsset.Index);
             if (existingAsset != null) {
                 UpdateFrom(existingAsset, entity.Id, modelAsset);
-            } else {
+            }
+            else {
                 // 3. Add new assets
                 entity.SceneAssets.Add(ToEntity(modelAsset, entity.Id));
             }
@@ -282,11 +283,10 @@ internal static class Mapper {
             OwnerId = entity.OwnerId,
             Name = entity.Name,
             Description = entity.Description,
-            IsOpaque = entity.IsOpaque,
-            IsSolid = entity.IsSolid,
-            IsSecret = entity.IsSecret,
-            IsOpenable = entity.IsOpenable,
-            IsLocked = entity.IsLocked,
+            Poles = entity.Poles,
+            Visibility = entity.Visibility,
+            IsClosed = entity.IsClosed,
+            Material = entity.Material,
             CreatedAt = entity.CreatedAt,
         };
 
@@ -297,11 +297,10 @@ internal static class Mapper {
             OwnerId = entity.OwnerId,
             Name = entity.Name,
             Description = entity.Description,
-            IsOpaque = entity.IsOpaque,
-            IsSolid = entity.IsSolid,
-            IsSecret = entity.IsSecret,
-            IsOpenable = entity.IsOpenable,
-            IsLocked = entity.IsLocked,
+            Poles = entity.Poles,
+            Visibility = entity.Visibility,
+            IsClosed = entity.IsClosed,
+            Material = entity.Material,
             CreatedAt = entity.CreatedAt,
         };
 
@@ -311,11 +310,10 @@ internal static class Mapper {
             OwnerId = model.OwnerId,
             Name = model.Name,
             Description = model.Description,
-            IsOpaque = model.IsOpaque,
-            IsSolid = model.IsSolid,
-            IsSecret = model.IsSecret,
-            IsOpenable = model.IsOpenable,
-            IsLocked = model.IsLocked,
+            Poles = [.. model.Poles],
+            Visibility = model.Visibility,
+            IsClosed = model.IsClosed,
+            Material = model.Material,
             CreatedAt = model.CreatedAt,
         };
 
@@ -324,9 +322,7 @@ internal static class Mapper {
             Id = entity.Id,
             SceneId = entity.SceneId,
             BarrierId = entity.BarrierId,
-            Vertices = entity.Vertices,
-            IsOpen = entity.IsOpen,
-            IsLocked = entity.IsLocked,
+            Poles = entity.Poles,
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
@@ -335,9 +331,7 @@ internal static class Mapper {
             Id = entity.Id,
             SceneId = entity.SceneId,
             BarrierId = entity.BarrierId,
-            Vertices = entity.Vertices,
-            IsOpen = entity.IsOpen,
-            IsLocked = entity.IsLocked,
+            Poles = entity.Poles,
         };
 
     internal static SceneBarrierEntity ToEntity(this SceneBarrier model, Guid sceneId)
@@ -345,17 +339,13 @@ internal static class Mapper {
             Id = model.Id,
             SceneId = sceneId,
             BarrierId = model.BarrierId,
-            Vertices = [.. model.Vertices],
-            IsOpen = model.IsOpen,
-            IsLocked = model.IsLocked,
+            Poles = [.. model.Poles],
         };
 
     internal static SceneBarrierEntity UpdateFrom(this SceneBarrierEntity entity, Guid sceneId, SceneBarrier model) {
         entity.SceneId = sceneId;
         entity.BarrierId = model.BarrierId;
-        entity.Vertices = [.. model.Vertices];
-        entity.IsOpen = model.IsOpen;
-        entity.IsLocked = model.IsLocked;
+        entity.Poles = [.. model.Poles];
         return entity;
     }
 

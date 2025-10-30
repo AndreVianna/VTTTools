@@ -11,12 +11,17 @@ internal static class BarrierSchemaBuilder {
             entity.Property(e => e.OwnerId).IsRequired();
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Description).HasMaxLength(4096);
-            entity.Property(e => e.IsOpaque).IsRequired().HasDefaultValue(true);
-            entity.Property(e => e.IsSolid).IsRequired().HasDefaultValue(true);
-            entity.Property(e => e.IsSecret).IsRequired().HasDefaultValue(false);
-            entity.Property(e => e.IsOpenable).IsRequired().HasDefaultValue(false);
-            entity.Property(e => e.IsLocked).IsRequired().HasDefaultValue(false);
+            entity.Property(e => e.Visibility).IsRequired().HasDefaultValue(WallVisibility.Normal);
+            entity.Property(e => e.IsClosed).IsRequired().HasDefaultValue(false);
+            entity.Property(e => e.Material).HasMaxLength(64);
             entity.Property(e => e.CreatedAt).IsRequired();
+
+            entity.OwnsMany(e => e.Poles, poles => {
+                poles.ToJson();
+                poles.Property(p => p.X).IsRequired();
+                poles.Property(p => p.Y).IsRequired();
+                poles.Property(p => p.H).IsRequired();
+            });
         });
 
         builder.Entity<SceneBarrier>(entity => {
@@ -24,13 +29,12 @@ internal static class BarrierSchemaBuilder {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.SceneId).IsRequired();
             entity.Property(e => e.BarrierId).IsRequired();
-            entity.Property(e => e.IsOpen);
-            entity.Property(e => e.IsLocked);
 
-            entity.OwnsMany(e => e.Vertices, vertices => {
-                vertices.ToJson();
-                vertices.Property(v => v.X).IsRequired();
-                vertices.Property(v => v.Y).IsRequired();
+            entity.OwnsMany(e => e.Poles, poles => {
+                poles.ToJson();
+                poles.Property(p => p.X).IsRequired();
+                poles.Property(p => p.Y).IsRequired();
+                poles.Property(p => p.H).IsRequired();
             });
 
             entity.HasOne(e => e.Scene)

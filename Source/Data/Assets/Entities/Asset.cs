@@ -1,5 +1,3 @@
-using Resource = VttTools.Data.Media.Entities.Resource;
-
 namespace VttTools.Data.Assets.Entities;
 
 /// <summary>

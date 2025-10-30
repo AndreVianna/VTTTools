@@ -1,7 +1,5 @@
 using System.Security.Claims;
 
-using VttTools.Auth.ApiContracts;
-
 namespace VttTools.Auth.Handlers;
 
 public static class AuthHandlers {
@@ -89,10 +87,7 @@ public static class AuthHandlers {
 
         var response = await authService.ForgotPasswordAsync(request.Email);
 
-        if (response.Success)
-            return Results.Ok(response);
-
-        return Results.BadRequest(new { error = response.Message });
+        return response.Success ? Results.Ok(response) : Results.BadRequest(new { error = response.Message });
     }
 
     public static async Task<Microsoft.AspNetCore.Http.IResult> ValidateResetTokenHandler(

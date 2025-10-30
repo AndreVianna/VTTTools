@@ -5,9 +5,8 @@ public record UpdateBarrierRequest {
     public string Name { get; init; } = string.Empty;
     [MaxLength(4096)]
     public string? Description { get; init; }
-    public bool IsOpaque { get; init; } = true;
-    public bool IsSolid { get; init; } = true;
-    public bool IsSecret { get; init; }
-    public bool IsOpenable { get; init; }
-    public bool IsLocked { get; init; }
+    public WallVisibility Visibility { get; init; } = WallVisibility.Normal;
+    public bool IsClosed { get; init; }
+    [MaxLength(64)]
+    public string? Material { get; init; }
 }

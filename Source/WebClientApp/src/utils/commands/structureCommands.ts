@@ -221,3 +221,105 @@ export class RemoveSourceCommand implements Command {
         );
     }
 }
+
+export interface UpdateBarrierVerticesCommandParams {
+    sceneId: string;
+    sceneBarrierId: string;
+    oldVertices: Point[];
+    newVertices: Point[];
+    updateBarrierFn: (sceneId: string, sceneBarrierId: string, vertices: Point[]) => Promise<void>;
+}
+
+export class UpdateBarrierVerticesCommand implements Command {
+    private executePromise?: Promise<void>;
+    description: string;
+
+    constructor(private params: UpdateBarrierVerticesCommandParams) {
+        this.description = 'Update Barrier Vertices';
+    }
+
+    execute(): void {
+        this.executePromise = this.params.updateBarrierFn(
+            this.params.sceneId,
+            this.params.sceneBarrierId,
+            this.params.newVertices
+        );
+    }
+
+    async undo(): Promise<void> {
+        await this.executePromise;
+        await this.params.updateBarrierFn(
+            this.params.sceneId,
+            this.params.sceneBarrierId,
+            this.params.oldVertices
+        );
+    }
+}
+
+export interface ToggleBarrierOpenCommandParams {
+    sceneId: string;
+    sceneBarrierId: string;
+    oldIsOpen: boolean;
+    newIsOpen: boolean;
+    updateBarrierFn: (sceneId: string, sceneBarrierId: string, isOpen: boolean) => Promise<void>;
+}
+
+export class ToggleBarrierOpenCommand implements Command {
+    private executePromise?: Promise<void>;
+    description: string;
+
+    constructor(private params: ToggleBarrierOpenCommandParams) {
+        this.description = 'Toggle Barrier Open/Close';
+    }
+
+    execute(): void {
+        this.executePromise = this.params.updateBarrierFn(
+            this.params.sceneId,
+            this.params.sceneBarrierId,
+            this.params.newIsOpen
+        );
+    }
+
+    async undo(): Promise<void> {
+        await this.executePromise;
+        await this.params.updateBarrierFn(
+            this.params.sceneId,
+            this.params.sceneBarrierId,
+            this.params.oldIsOpen
+        );
+    }
+}
+
+export interface ToggleBarrierLockCommandParams {
+    sceneId: string;
+    sceneBarrierId: string;
+    oldIsLocked: boolean;
+    newIsLocked: boolean;
+    updateBarrierFn: (sceneId: string, sceneBarrierId: string, isLocked: boolean) => Promise<void>;
+}
+
+export class ToggleBarrierLockCommand implements Command {
+    private executePromise?: Promise<void>;
+    description: string;
+
+    constructor(private params: ToggleBarrierLockCommandParams) {
+        this.description = 'Toggle Barrier Lock/Unlock';
+    }
+
+    execute(): void {
+        this.executePromise = this.params.updateBarrierFn(
+            this.params.sceneId,
+            this.params.sceneBarrierId,
+            this.params.newIsLocked
+        );
+    }
+
+    async undo(): Promise<void> {
+        await this.executePromise;
+        await this.params.updateBarrierFn(
+            this.params.sceneId,
+            this.params.sceneBarrierId,
+            this.params.oldIsLocked
+        );
+    }
+}

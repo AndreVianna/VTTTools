@@ -1,4 +1,3 @@
-using VttTools.Common.Model;
 using VttTools.Media.Model;
 
 using Size = VttTools.Common.Model.Size;

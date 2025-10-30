@@ -20,7 +20,7 @@ export const RightToolBar: React.FC<RightToolBarProps> = ({
   onZoomOut,
   onLayersClick,
   onSettingsClick,
-  zoomPercentage = 100
+  _zoomPercentage = 100
 }) => {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);

@@ -1,8 +1,6 @@
 global using System.Diagnostics.CodeAnalysis;
 global using System.Threading.RateLimiting;
 
-global using DotNetToolbox.Results;
-
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.RateLimiting;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -24,42 +24,20 @@ interface BarrierEditorProps {
     onClose: () => void;
 }
 
-export const BarrierEditor: React.FC<BarrierEditorProps> = ({ open, barrier, onClose }) => {
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [isOpaque, setIsOpaque] = useState(true);
-    const [isSolid, setIsSolid] = useState(true);
-    const [isSecret, setIsSecret] = useState(false);
-    const [isOpenable, setIsOpenable] = useState(false);
-    const [isLocked, setIsLocked] = useState(false);
+const BarrierEditorInternal: React.FC<BarrierEditorProps> = ({ open, barrier, onClose }) => {
+    const [name, setName] = useState(barrier?.name ?? '');
+    const [description, setDescription] = useState(barrier?.description ?? '');
+    const [isOpaque, setIsOpaque] = useState(barrier?.isOpaque ?? true);
+    const [isSolid, setIsSolid] = useState(barrier?.isSolid ?? true);
+    const [isSecret, setIsSecret] = useState(barrier?.isSecret ?? false);
+    const [isOpenable, setIsOpenable] = useState(barrier?.isOpenable ?? false);
+    const [isLocked, setIsLocked] = useState(barrier?.isLocked ?? false);
 
     const [createBarrier, { isLoading: isCreating, error: createError }] = useCreateBarrierMutation();
     const [updateBarrier, { isLoading: isUpdating, error: updateError }] = useUpdateBarrierMutation();
 
     const isSaving = isCreating || isUpdating;
     const error = createError || updateError;
-
-    useEffect(() => {
-        if (open) {
-            if (barrier) {
-                setName(barrier.name);
-                setDescription(barrier.description ?? '');
-                setIsOpaque(barrier.isOpaque);
-                setIsSolid(barrier.isSolid);
-                setIsSecret(barrier.isSecret);
-                setIsOpenable(barrier.isOpenable);
-                setIsLocked(barrier.isLocked);
-            } else {
-                setName('');
-                setDescription('');
-                setIsOpaque(true);
-                setIsSolid(true);
-                setIsSecret(false);
-                setIsOpenable(false);
-                setIsLocked(false);
-            }
-        }
-    }, [barrier, open]);
 
     const handleSave = async () => {
         const trimmedName = name.trim();
@@ -251,4 +229,8 @@ export const BarrierEditor: React.FC<BarrierEditorProps> = ({ open, barrier, onC
             </DialogActions>
         </Dialog>
     );
+};
+
+export const BarrierEditor: React.FC<BarrierEditorProps> = (props) => {
+    return <BarrierEditorInternal key={props.barrier?.id ?? 'new'} {...props} />;
 };

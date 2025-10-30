@@ -249,30 +249,14 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsLocked")
+                    b.Property<bool>("IsClosed")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.Property<bool>("IsOpaque")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<bool>("IsOpenable")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("IsSecret")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("IsSolid")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                    b.Property<string>("Material")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -281,6 +265,11 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Visibility")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 
@@ -701,13 +690,10 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid>("BarrierId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool?>("IsLocked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool?>("IsOpen")
-                        .HasColumnType("bit");
-
                     b.Property<Guid>("SceneId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("SceneId1")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -715,6 +701,8 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasIndex("BarrierId");
 
                     b.HasIndex("SceneId");
+
+                    b.HasIndex("SceneId1");
 
                     b.ToTable("SceneBarriers", (string)null);
                 });
@@ -1443,6 +1431,39 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Campaign");
                 });
 
+            modelBuilder.Entity("VttTools.Data.Library.Entities.Barrier", b =>
+                {
+                    b.OwnsMany("VttTools.Library.Scenes.Model.Pole", "Poles", b1 =>
+                        {
+                            b1.Property<Guid>("BarrierId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            b1.Property<double>("H")
+                                .HasColumnType("float");
+
+                            b1.Property<double>("X")
+                                .HasColumnType("float");
+
+                            b1.Property<double>("Y")
+                                .HasColumnType("float");
+
+                            b1.HasKey("BarrierId", "__synthesizedOrdinal");
+
+                            b1.ToTable("Barriers");
+
+                            b1.ToJson("Poles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("BarrierId");
+                        });
+
+                    b.Navigation("Poles");
+                });
+
             modelBuilder.Entity("VttTools.Data.Library.Entities.Campaign", b =>
                 {
                     b.HasOne("VttTools.Data.Library.Entities.Epic", "Epic")
@@ -1539,7 +1560,11 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsMany("VttTools.Common.Model.Point", "Vertices", b1 =>
+                    b.HasOne("VttTools.Data.Library.Entities.Scene", null)
+                        .WithMany("SceneBarriers")
+                        .HasForeignKey("SceneId1");
+
+                    b.OwnsMany("VttTools.Library.Scenes.Model.Pole", "Poles", b1 =>
                         {
                             b1.Property<Guid>("SceneBarrierId")
                                 .HasColumnType("uniqueidentifier");
@@ -1547,6 +1572,9 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.Property<int>("__synthesizedOrdinal")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("int");
+
+                            b1.Property<double>("H")
+                                .HasColumnType("float");
 
                             b1.Property<double>("X")
                                 .HasColumnType("float");
@@ -1558,7 +1586,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
                             b1.ToTable("SceneBarriers");
 
-                            b1.ToJson("Vertices");
+                            b1.ToJson("Poles");
 
                             b1.WithOwner()
                                 .HasForeignKey("SceneBarrierId");
@@ -1566,9 +1594,9 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.Navigation("Barrier");
 
-                    b.Navigation("Scene");
+                    b.Navigation("Poles");
 
-                    b.Navigation("Vertices");
+                    b.Navigation("Scene");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.SceneEffect", b =>
@@ -1877,6 +1905,8 @@ namespace VttTools.Data.MigrationService.Migrations
             modelBuilder.Entity("VttTools.Data.Library.Entities.Scene", b =>
                 {
                     b.Navigation("SceneAssets");
+
+                    b.Navigation("SceneBarriers");
                 });
 #pragma warning restore 612, 618
         }

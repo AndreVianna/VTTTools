@@ -58,14 +58,13 @@ internal static class SourceHandlers {
             DefaultIsGradient = request.DefaultIsGradient,
         };
         var result = await sourceService.UpdateSourceAsync(id, data, userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.Ok(result.Value);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.Ok(result.Value);
     }
 
     internal static async Task<IResult> DeleteSourceHandler(
@@ -74,14 +73,13 @@ internal static class SourceHandlers {
         [FromServices] ISourceService sourceService) {
         var userId = context.User.GetUserId();
         var result = await sourceService.DeleteSourceAsync(id, userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.NoContent();
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.NoContent();
     }
 
     internal static async Task<IResult> PlaceSceneSourceHandler(
@@ -98,14 +96,13 @@ internal static class SourceHandlers {
             IsGradient = request.IsGradient,
         };
         var result = await sceneService.PlaceSourceAsync(sceneId, data, userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.Created($"/api/scenes/{sceneId}/sources/{result.Value!.Id}", result.Value);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.Created($"/api/scenes/{sceneId}/sources/{result.Value!.Id}", result.Value);
     }
 
     internal static async Task<IResult> UpdateSceneSourceHandler(
@@ -116,20 +113,19 @@ internal static class SourceHandlers {
         [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var data = new UpdateSceneSourceData {
-            Position = request.Position ?? default,
+            Position = request.Position ?? Point.Zero,
             Range = request.Range ?? default,
             Intensity = request.Intensity ?? default,
             IsGradient = request.IsGradient ?? default,
         };
         var result = await sceneService.UpdateSceneSourceAsync(id, data, userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.Ok(result.Value);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.Ok(result.Value);
     }
 
     internal static async Task<IResult> RemoveSceneSourceHandler(
@@ -139,13 +135,12 @@ internal static class SourceHandlers {
         [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var result = await sceneService.RemoveSceneSourceAsync(id, userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.NoContent();
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.NoContent();
     }
 }

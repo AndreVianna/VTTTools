@@ -28,7 +28,7 @@ public record UpdateSourceData
             result += new Error("Default range must be greater than 0.", nameof(DefaultRange));
         if (DefaultRange > 99.99m)
             result += new Error("Default range must not exceed 99.99.", nameof(DefaultRange));
-        if (DefaultIntensity < 0 || DefaultIntensity > 1.0m)
+        if (DefaultIntensity is < 0 or > 1.0m)
             result += new Error("Default intensity must be between 0.0 and 1.0.", nameof(DefaultIntensity));
         return result;
     }

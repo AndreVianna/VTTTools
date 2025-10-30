@@ -125,13 +125,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         return scene?.Assets.ToArray() ?? [];
     }
 
-    private static string GenerateAssetInstanceName(Asset asset, uint number) {
-        if (asset.Kind == AssetKind.Creature) {
-            return $"{asset.Name} #{number}";
-        }
-
-        return asset.Name;
-    }
+    private static string GenerateAssetInstanceName(Asset asset, uint number) => asset.Kind == AssetKind.Creature ? $"{asset.Name} #{number}" : asset.Name;
 
     /// <inheritdoc />
     public async Task<Result<SceneAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, AddSceneAssetData data, CancellationToken ct = default) {
@@ -399,23 +393,21 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
     }
 
     /// <inheritdoc />
-    public async Task<Result<SceneBarrier>> PlaceBarrierAsync(Guid sceneId, Guid barrierId, List<Common.Model.Point> vertices, bool? isOpen, bool? isLocked, Guid userId, CancellationToken ct = default) {
+    public async Task<Result<SceneBarrier>> PlaceBarrierAsync(Guid sceneId, Guid barrierId, List<Pole> poles, Guid userId, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(sceneId, ct);
         if (scene is null)
             return Result.Failure("NotFound");
         if (scene.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
 
-        if (vertices.Count < 2)
-            return Result.Failure("Vertices must contain at least 2 points");
+        if (poles.Count < 2)
+            return Result.Failure("Poles must contain at least 2 poles");
 
         var sceneBarrier = new SceneBarrier {
             Id = Guid.CreateVersion7(),
             SceneId = sceneId,
             BarrierId = barrierId,
-            Vertices = vertices,
-            IsOpen = isOpen,
-            IsLocked = isLocked,
+            Poles = poles,
         };
 
         await sceneStorage.AddSceneBarrierAsync(sceneBarrier, sceneId, ct);
@@ -423,7 +415,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
     }
 
     /// <inheritdoc />
-    public async Task<Result<SceneBarrier>> UpdateSceneBarrierAsync(Guid sceneBarrierId, Optional<List<Common.Model.Point>> vertices, Optional<bool?> isOpen, Optional<bool?> isLocked, Guid userId, CancellationToken ct = default) {
+    public async Task<Result<SceneBarrier>> UpdateSceneBarrierAsync(Guid sceneBarrierId, Optional<List<Pole>> poles, Guid userId, CancellationToken ct = default) {
         var sceneBarrier = await sceneStorage.GetSceneBarrierByIdAsync(sceneBarrierId, ct);
         if (sceneBarrier is null)
             return Result.Failure("NotFound");
@@ -434,13 +426,11 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         if (scene.Adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
 
-        if (vertices.IsSet && vertices.Value.Count < 2)
-            return Result.Failure("Vertices must contain at least 2 points");
+        if (poles.IsSet && poles.Value.Count < 2)
+            return Result.Failure("Poles must contain at least 2 poles");
 
         sceneBarrier = sceneBarrier with {
-            Vertices = vertices.IsSet ? vertices.Value : sceneBarrier.Vertices,
-            IsOpen = isOpen.IsSet ? isOpen.Value : sceneBarrier.IsOpen,
-            IsLocked = isLocked.IsSet ? isLocked.Value : sceneBarrier.IsLocked,
+            Poles = poles.IsSet ? poles.Value : sceneBarrier.Poles,
         };
 
         await sceneStorage.UpdateSceneBarrierAsync(sceneBarrier, ct);

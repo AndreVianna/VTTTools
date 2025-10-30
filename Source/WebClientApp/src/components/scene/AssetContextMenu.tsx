@@ -57,7 +57,7 @@ export const AssetContextMenu: React.FC<AssetContextMenuProps> = ({
             await onRename(asset.id, renameValue);
             setIsRenaming(false);
             onClose();
-        } catch (error) {
+        } catch (_error) {
             setRenameError('Failed to rename asset');
         }
     };

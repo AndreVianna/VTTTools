@@ -4,12 +4,8 @@ global using System.Linq.Expressions;
 
 global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore;
-global using Microsoft.EntityFrameworkCore.Design;
-global using Microsoft.EntityFrameworkCore.Infrastructure;
-global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
-global using Microsoft.Extensions.Logging;
 
 global using VttTools.Assets.Model;
 global using VttTools.Assets.Storage;
@@ -19,7 +15,6 @@ global using VttTools.Data.Builders;
 global using VttTools.Data.Game;
 global using VttTools.Data.Library;
 global using VttTools.Data.Media;
-global using VttTools.Data.Options;
 global using VttTools.Game.Schedule.Model;
 global using VttTools.Game.Sessions.Model;
 global using VttTools.Game.Sessions.Storage;

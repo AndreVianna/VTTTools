@@ -1,5 +1,4 @@
-﻿global using System.Drawing;
-global using System.Security.Claims;
+﻿global using System.Security.Claims;
 
 global using AwesomeAssertions;
 

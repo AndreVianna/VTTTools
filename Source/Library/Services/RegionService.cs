@@ -9,9 +9,7 @@ public class RegionService(IRegionStorage storage)
 
     public async Task<Region?> GetRegionByIdAsync(Guid id, Guid ownerId, CancellationToken ct = default) {
         var region = await storage.GetByIdAsync(id, ct);
-        if (region is null || region.OwnerId != ownerId)
-            return null;
-        return region;
+        return region is null || region.OwnerId != ownerId ? null : region;
     }
 
     public async Task<Result<Region>> CreateRegionAsync(CreateRegionData data, Guid ownerId, CancellationToken ct = default) {

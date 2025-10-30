@@ -1,51 +1,69 @@
 import React from 'react';
 import { Line } from 'react-konva';
 import { useTheme } from '@mui/material';
-import type { Point, Barrier } from '@/types/domain';
+import { WallVisibility, type Point, type Pole, type Barrier } from '@/types/domain';
 
 export interface BarrierPreviewProps {
-    vertices: Point[];
-    previewVertex: Point | null;
+    poles: Pole[];
+    previewPoint: Point | null;
     barrier: Barrier;
 }
 
 export const BarrierPreview: React.FC<BarrierPreviewProps> = ({
-    vertices,
-    previewVertex,
+    poles,
+    previewPoint,
     barrier
 }) => {
     const theme = useTheme();
 
-    if (vertices.length === 0) return null;
+    if (poles.length === 0) return null;
 
-    const getColor = (): string => {
-        if (barrier.isOpenable) {
-            return theme.palette.info.main;
+    const getBarrierStyle = (visibility: WallVisibility) => {
+        switch (visibility) {
+            case WallVisibility.Normal:
+                return {
+                    stroke: theme.palette.error.main,
+                    strokeWidth: 3,
+                    dash: undefined
+                };
+            case WallVisibility.Fence:
+                return {
+                    stroke: theme.palette.warning.main,
+                    strokeWidth: 2,
+                    dash: [8, 4]
+                };
+            case WallVisibility.Invisible:
+                return {
+                    stroke: theme.palette.grey[500],
+                    strokeWidth: 2,
+                    dash: [4, 4]
+                };
         }
-        return barrier.isOpaque ? theme.palette.error.main : theme.palette.grey[600];
     };
+
+    const style = getBarrierStyle(barrier.visibility);
 
     return (
         <>
-            {vertices.length > 0 && (
+            {poles.length > 0 && (
                 <Line
-                    points={vertices.flatMap(v => [v.x, v.y])}
-                    stroke={getColor()}
-                    strokeWidth={2}
-                    {...(barrier.isSecret && { dash: [5, 5] })}
+                    points={poles.flatMap(p => [p.x, p.y])}
+                    stroke={style.stroke}
+                    strokeWidth={style.strokeWidth}
+                    dash={style.dash}
                     listening={false}
                 />
             )}
-            {vertices.length > 0 && previewVertex && (() => {
-                const lastVertex = vertices[vertices.length - 1];
-                if (!lastVertex) return null;
+            {poles.length > 0 && previewPoint && (() => {
+                const lastPole = poles[poles.length - 1];
+                if (!lastPole) return null;
                 return (
                     <Line
                         points={[
-                            lastVertex.x,
-                            lastVertex.y,
-                            previewVertex.x,
-                            previewVertex.y
+                            lastPole.x,
+                            lastPole.y,
+                            previewPoint.x,
+                            previewPoint.y
                         ]}
                         stroke={theme.palette.grey[500]}
                         strokeWidth={1}

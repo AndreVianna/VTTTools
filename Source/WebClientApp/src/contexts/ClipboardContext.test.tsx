@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { ClipboardProvider, useClipboard } from './ClipboardContext';
+import { ClipboardProvider } from './ClipboardContext';
+import { useClipboard } from './useClipboard';
 import type { PlacedAsset } from '../types/domain';
 import { AssetKind } from '../types/domain';
 

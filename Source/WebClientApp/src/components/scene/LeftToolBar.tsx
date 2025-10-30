@@ -16,8 +16,9 @@ import {
   LightMode as GlobalLightingIcon,
   VisibilityOff as FogOfWarIcon
 } from '@mui/icons-material';
-import { BackgroundPanel, GridPanel } from './panels';
+import { BackgroundPanel, GridPanel, WallsPanel } from './panels';
 import { GridConfig } from '@/utils/gridCalculator';
+import type { Barrier, SceneBarrier } from '@/types/domain';
 
 export type PanelType =
   | 'background'
@@ -42,6 +43,24 @@ export interface LeftToolBarProps {
   onBackgroundUpload?: (file: File) => void;
   gridConfig?: GridConfig;
   onGridChange?: (grid: GridConfig) => void;
+  barriers?: Barrier[];
+  sceneBarriers?: SceneBarrier[];
+  selectedBarrierId?: string | null;
+  onBarrierSelect?: (barrierId: string) => void;
+  onBarrierEdit?: (barrierId: string) => void;
+  onBarrierDelete?: (barrierId: string) => void;
+  onPlaceWall?: (properties: {
+    isOpaque: boolean;
+    isSolid: boolean;
+    isSecret: boolean;
+    isOpenable: boolean;
+    isLocked: boolean;
+    material?: string;
+    height?: number;
+  }) => void;
+  onToggleOpen?: (sceneBarrierId: string) => void;
+  onToggleLock?: (sceneBarrierId: string) => void;
+  onEditVertices?: (sceneBarrierId: string) => void;
 }
 
 export const LeftToolBar: React.FC<LeftToolBarProps> = ({
@@ -50,7 +69,17 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   isUploadingBackground,
   onBackgroundUpload,
   gridConfig,
-  onGridChange
+  onGridChange,
+  barriers,
+  sceneBarriers,
+  selectedBarrierId,
+  onBarrierSelect,
+  onBarrierEdit,
+  onBarrierDelete,
+  onPlaceWall,
+  onToggleOpen,
+  onToggleLock,
+  onEditVertices
 }) => {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
@@ -166,10 +195,18 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
             />
           )}
           {activePanel === 'walls' && (
-            <Box>
-              <Box sx={{ mb: 2, fontWeight: 'bold' }}>Walls</Box>
-              <Box>Wall barrier controls</Box>
-            </Box>
+            <WallsPanel
+              barriers={barriers}
+              sceneBarriers={sceneBarriers}
+              selectedBarrierId={selectedBarrierId}
+              onBarrierSelect={onBarrierSelect}
+              onBarrierEdit={onBarrierEdit}
+              onBarrierDelete={onBarrierDelete}
+              onPlaceWall={onPlaceWall}
+              onToggleOpen={onToggleOpen}
+              onToggleLock={onToggleLock}
+              onEditVertices={onEditVertices}
+            />
           )}
           {activePanel === 'openings' && (
             <Box>

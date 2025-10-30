@@ -54,14 +54,13 @@ internal static class RegionHandlers {
             LabelMap = request.LabelMap,
         };
         var result = await regionService.UpdateRegionAsync(id, data, userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.Ok(result.Value);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.Ok(result.Value);
     }
 
     internal static async Task<IResult> DeleteRegionHandler(
@@ -70,14 +69,13 @@ internal static class RegionHandlers {
         [FromServices] IRegionService regionService) {
         var userId = context.User.GetUserId();
         var result = await regionService.DeleteRegionAsync(id, userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.NoContent();
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.NoContent();
     }
 
     internal static async Task<IResult> PlaceSceneRegionHandler(
@@ -92,14 +90,13 @@ internal static class RegionHandlers {
             request.Vertices,
             request.Value,
             userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.Created($"/api/scenes/{sceneId}/regions/{result.Value!.Id}", result.Value);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.Created($"/api/scenes/{sceneId}/regions/{result.Value!.Id}", result.Value);
     }
 
     internal static async Task<IResult> UpdateSceneRegionHandler(
@@ -114,14 +111,13 @@ internal static class RegionHandlers {
             request.Vertices,
             request.Value,
             userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.Ok(result.Value);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.Ok(result.Value);
     }
 
     internal static async Task<IResult> RemoveSceneRegionHandler(
@@ -131,13 +127,12 @@ internal static class RegionHandlers {
         [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var result = await sceneService.RemoveSceneRegionAsync(id, userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.NoContent();
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.NoContent();
     }
 }

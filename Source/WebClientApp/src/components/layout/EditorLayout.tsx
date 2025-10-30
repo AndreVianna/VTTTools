@@ -17,44 +17,27 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { toggleTheme, selectTheme } from '@/store/slices/uiSlice';
-import { SaveStatus } from '@/components/common';
-import { ScenePropertiesDrawer, EditorStatusBar } from '@/components/scene';
+import { ScenePropertiesDrawer } from '@/components/scene';
 import type { Scene } from '@/types/domain';
 
 interface EditorLayoutProps {
   children: React.ReactNode;
   scene?: Scene;
   onSceneNameChange?: (name: string) => void;
-  onSceneNameBlur?: (name: string) => void;
   onBackClick?: () => void;
-  saveStatus?: SaveStatus;
   onSceneDescriptionChange?: (description: string) => void;
   onScenePublishedChange?: (published: boolean) => void;
   onSceneUpdate?: (updates: Partial<Scene>) => void;
-  cursorPosition?: { x: number; y: number };
-  totalAssets?: number;
-  selectedCount?: number;
-  zoomPercentage?: number;
-  activeTool?: string;
-  gridSnapEnabled?: boolean;
 }
 
 export const EditorLayout: React.FC<EditorLayoutProps> = ({
   children,
   scene,
   onSceneNameChange,
-  onSceneNameBlur,
   onBackClick,
-  saveStatus,
   onSceneDescriptionChange,
   onScenePublishedChange,
-  onSceneUpdate,
-  cursorPosition,
-  totalAssets,
-  selectedCount,
-  zoomPercentage,
-  activeTool,
-  gridSnapEnabled
+  onSceneUpdate
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -219,17 +202,6 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
       <Box component="main" sx={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         {children}
       </Box>
-
-      {scene && (
-        <EditorStatusBar
-          cursorPosition={cursorPosition}
-          totalAssets={totalAssets}
-          selectedCount={selectedCount}
-          zoomPercentage={zoomPercentage}
-          activeTool={activeTool}
-          gridSnapEnabled={gridSnapEnabled}
-        />
-      )}
     </Box>
   );
 };

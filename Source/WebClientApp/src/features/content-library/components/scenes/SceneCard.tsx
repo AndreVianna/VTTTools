@@ -1,4 +1,4 @@
-import { Typography, Button, Box } from '@mui/material';
+import { Button, Box } from '@mui/material';
 import type React from 'react';
 import { ContentCard, PublishedBadge } from '../shared';
 import type { Scene } from '@/types/domain';

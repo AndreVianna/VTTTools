@@ -1,6 +1,4 @@
-﻿using Point = VttTools.Common.Model.Point;
-using Size = VttTools.Common.Model.Size;
-using VttTools.Utilities;
+﻿using VttTools.Utilities;
 
 namespace VttTools.Library.Services;
 

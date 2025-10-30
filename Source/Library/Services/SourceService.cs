@@ -9,9 +9,7 @@ public class SourceService(ISourceStorage storage)
 
     public async Task<Source?> GetSourceByIdAsync(Guid id, Guid ownerId, CancellationToken ct = default) {
         var source = await storage.GetByIdAsync(id, ct);
-        if (source is null || source.OwnerId != ownerId)
-            return null;
-        return source;
+        return source is null || source.OwnerId != ownerId ? null : source;
     }
 
     public async Task<Result<Source>> CreateSourceAsync(CreateSourceData data, Guid ownerId, CancellationToken ct = default) {

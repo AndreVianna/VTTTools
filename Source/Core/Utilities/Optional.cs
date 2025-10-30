@@ -1,6 +1,4 @@
-﻿using System.Linq.Expressions;
-
-namespace VttTools.Utilities;
+﻿namespace VttTools.Utilities;
 
 /// <summary>
 /// Represents a value that may or may not be present.

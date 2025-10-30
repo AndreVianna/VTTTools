@@ -1,13 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 
-using VttTools.Data;
-using VttTools.Data.Library;
-using VttTools.Data.Media;
-using VttTools.Library.Content.ApiContracts;
-using VttTools.Library.Content.Model;
-using VttTools.Library.Content.ServiceContracts;
-using VttTools.Library.Content.Services;
-
 namespace VttTools.Library.Services;
 
 public class ContentQueryService(ApplicationDbContext context) : IContentQueryService {

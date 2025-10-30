@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -25,39 +25,24 @@ interface SourceEditorProps {
     onClose: () => void;
 }
 
-export const SourceEditor: React.FC<SourceEditorProps> = ({ open, source, onClose }) => {
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [sourceType, setSourceType] = useState('');
-    const [defaultRange, setDefaultRange] = useState(5);
-    const [defaultIntensity, setDefaultIntensity] = useState(1.0);
-    const [defaultIsGradient, setDefaultIsGradient] = useState(true);
+interface SourceEditorFormProps {
+    source: Source | null;
+    onClose: () => void;
+}
+
+const SourceEditorForm: React.FC<SourceEditorFormProps> = ({ source, onClose }) => {
+    const [name, setName] = useState(source?.name ?? '');
+    const [description, setDescription] = useState(source?.description ?? '');
+    const [sourceType, setSourceType] = useState(source?.sourceType ?? '');
+    const [defaultRange, setDefaultRange] = useState(source?.defaultRange ?? 5);
+    const [defaultIntensity, setDefaultIntensity] = useState(source?.defaultIntensity ?? 1.0);
+    const [defaultIsGradient, setDefaultIsGradient] = useState(source?.defaultIsGradient ?? true);
 
     const [createSource, { isLoading: isCreating, error: createError }] = useCreateSourceMutation();
     const [updateSource, { isLoading: isUpdating, error: updateError }] = useUpdateSourceMutation();
 
     const isSaving = isCreating || isUpdating;
     const error = createError || updateError;
-
-    useEffect(() => {
-        if (open) {
-            if (source) {
-                setName(source.name);
-                setDescription(source.description ?? '');
-                setSourceType(source.sourceType);
-                setDefaultRange(source.defaultRange);
-                setDefaultIntensity(source.defaultIntensity);
-                setDefaultIsGradient(source.defaultIsGradient);
-            } else {
-                setName('');
-                setDescription('');
-                setSourceType('');
-                setDefaultRange(5);
-                setDefaultIntensity(1.0);
-                setDefaultIsGradient(true);
-            }
-        }
-    }, [source, open]);
 
     const handleSave = async () => {
         const trimmedName = name.trim();
@@ -97,7 +82,7 @@ export const SourceEditor: React.FC<SourceEditorProps> = ({ open, source, onClos
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <>
             <DialogTitle>
                 <Typography variant="h6">
                     {source ? 'Edit Source' : 'Create Source'}
@@ -136,85 +121,51 @@ export const SourceEditor: React.FC<SourceEditorProps> = ({ open, source, onClos
                         fullWidth
                         required
                         error={sourceType.trim().length > 0 && sourceType.trim().length < 2}
-                        helperText='e.g., "Light", "Sound", "Heat", "Magic"'
+                        helperText='e.g., "Torch", "Lantern", "Sunlight", "Magical Glow"'
                     />
 
                     <Divider sx={{ my: 1 }} />
 
-                    <Typography variant="subtitle2" color="text.secondary">
+                    <Typography variant="subtitle2" gutterBottom>
                         Default Properties
                     </Typography>
 
                     <Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                            <Typography variant="body2">Range (grid cells)</Typography>
-                            <TextField
-                                type="number"
-                                value={defaultRange}
-                                onChange={(e) => {
-                                    const val = parseFloat(e.target.value);
-                                    if (!isNaN(val)) {
-                                        setDefaultRange(Math.max(0.5, Math.min(99.9, val)));
-                                    }
-                                }}
-                                size="small"
-                                sx={{ width: 100 }}
-                                inputProps={{ step: 0.5, min: 0.5, max: 99.9 }}
-                            />
-                        </Box>
+                        <Typography variant="caption" color="text.secondary" gutterBottom>
+                            Default Range (cells): {defaultRange.toFixed(1)}
+                        </Typography>
                         <Slider
                             value={defaultRange}
-                            onChange={(_, value) => setDefaultRange(value as number)}
+                            onChange={(_e, value) => setDefaultRange(value as number)}
                             min={0.5}
-                            max={50}
+                            max={99.9}
                             step={0.5}
                             marks={[
                                 { value: 0.5, label: '0.5' },
-                                { value: 10, label: '10' },
                                 { value: 25, label: '25' },
-                                { value: 50, label: '50' }
+                                { value: 50, label: '50' },
+                                { value: 75, label: '75' },
+                                { value: 99.9, label: '100' }
                             ]}
-                            valueLabelDisplay="auto"
                         />
-                        <Typography variant="caption" color="text.secondary">
-                            Supports fractional values (e.g., 2.5 cells)
-                        </Typography>
                     </Box>
 
                     <Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                            <Typography variant="body2">Intensity</Typography>
-                            <TextField
-                                type="number"
-                                value={defaultIntensity}
-                                onChange={(e) => {
-                                    const val = parseFloat(e.target.value);
-                                    if (!isNaN(val)) {
-                                        setDefaultIntensity(Math.max(0.0, Math.min(1.0, val)));
-                                    }
-                                }}
-                                size="small"
-                                sx={{ width: 100 }}
-                                inputProps={{ step: 0.1, min: 0.0, max: 1.0 }}
-                            />
-                        </Box>
+                        <Typography variant="caption" color="text.secondary" gutterBottom>
+                            Default Intensity: {(defaultIntensity * 100).toFixed(0)}%
+                        </Typography>
                         <Slider
                             value={defaultIntensity}
-                            onChange={(_, value) => setDefaultIntensity(value as number)}
+                            onChange={(_e, value) => setDefaultIntensity(value as number)}
                             min={0.0}
                             max={1.0}
-                            step={0.1}
+                            step={0.05}
                             marks={[
                                 { value: 0.0, label: '0%' },
                                 { value: 0.5, label: '50%' },
                                 { value: 1.0, label: '100%' }
                             ]}
-                            valueLabelDisplay="auto"
-                            valueLabelFormat={(value) => `${(value * 100).toFixed(0)}%`}
                         />
-                        <Typography variant="caption" color="text.secondary">
-                            Default strength/brightness (0.0 to 1.0)
-                        </Typography>
                     </Box>
 
                     <FormControlLabel
@@ -224,14 +175,7 @@ export const SourceEditor: React.FC<SourceEditorProps> = ({ open, source, onClos
                                 onChange={(e) => setDefaultIsGradient(e.target.checked)}
                             />
                         }
-                        label={
-                            <Box>
-                                <Typography variant="body2">Gradient</Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Effect fades with distance from source
-                                </Typography>
-                            </Box>
-                        }
+                        label="Default to Gradient Effect"
                     />
 
                     {error && (
@@ -259,6 +203,14 @@ export const SourceEditor: React.FC<SourceEditorProps> = ({ open, source, onClos
                     {isSaving ? 'Saving...' : source ? 'Update' : 'Create'}
                 </Button>
             </DialogActions>
+        </>
+    );
+};
+
+export const SourceEditor: React.FC<SourceEditorProps> = ({ open, source, onClose }) => {
+    return (
+        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+            <SourceEditorForm key={source?.id ?? 'new'} source={source} onClose={onClose} />
         </Dialog>
     );
 };

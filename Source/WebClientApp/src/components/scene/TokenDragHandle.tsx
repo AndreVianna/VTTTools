@@ -392,7 +392,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         });
 
         forceUpdate(prev => prev + 1);
-    }, [gridConfig]);  // placedAssets removed - using ref now
+    }, [gridConfig, stageRef]);
 
     const handleDragEnd = useCallback((_e: Konva.KonvaEventObject<DragEvent>) => {
         const stage = stageRef.current;
@@ -451,7 +451,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         setIsDragValid(true);
         isDragValidRef.current = true;
         setInvalidAssetPositions([]);
-    }, [onAssetMoved]);  // placedAssets, stageRef removed - using refs now
+    }, [onAssetMoved, stageRef]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {

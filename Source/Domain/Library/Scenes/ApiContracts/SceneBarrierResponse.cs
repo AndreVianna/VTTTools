@@ -1,5 +1,3 @@
-using Point = VttTools.Common.Model.Point;
-
 namespace VttTools.Library.Scenes.ApiContracts;
 
 public record SceneBarrierResponse {
@@ -7,11 +5,8 @@ public record SceneBarrierResponse {
     public Guid SceneId { get; init; }
     public Guid BarrierId { get; init; }
     public string BarrierName { get; init; } = string.Empty;
-    public bool IsOpaque { get; init; }
-    public bool IsSolid { get; init; }
-    public bool IsSecret { get; init; }
-    public bool IsOpenable { get; init; }
-    public List<Point> Vertices { get; init; } = [];
-    public bool? IsOpen { get; init; }
-    public bool? IsLocked { get; init; }
+    public WallVisibility Visibility { get; init; }
+    public bool IsClosed { get; init; }
+    public List<Pole> Poles { get; init; } = [];
+    public string? Material { get; init; }
 }

@@ -13,6 +13,7 @@ export { TokenPlacement } from './TokenPlacement';
 export { TokenDragHandle } from './TokenDragHandle';
 export { UndoRedoToolbar } from './UndoRedoToolbar';
 export { AssetContextMenu } from './AssetContextMenu';
+export { BarrierContextMenu } from './BarrierContextMenu';
 export { StructureToolbar } from './StructureToolbar';
 export { StructureSelectionModal } from './StructureSelectionModal';
 export { EditorStatusBar } from './EditorStatusBar';
@@ -22,7 +23,7 @@ export { LayerToggleBar } from './LayerToggleBar';
 export { RightToolBar } from './RightToolBar';
 
 // Panel components
-export { BackgroundPanel, GridPanel } from './panels';
+export { BackgroundPanel, GridPanel, WallsPanel } from './panels';
 
 // Drawing components
 export {
@@ -43,6 +44,11 @@ export {
     SourceRenderer,
     SourceRangeDisplay
 } from './rendering';
+
+// Editing components
+export {
+    BarrierTransformer
+} from './editing';
 
 // Types
 export type { SceneCanvasProps, SceneCanvasHandle, Viewport } from './SceneCanvas';
@@ -73,6 +79,9 @@ export type {
     SourceRendererProps,
     SourceRangeDisplayProps
 } from './rendering';
+export type {
+    BarrierTransformerProps
+} from './editing';
 export type { StructureToolbarProps, DrawingMode } from './StructureToolbar';
 export type { StructureSelectionModalProps } from './StructureSelectionModal';
 export type { EditorStatusBarProps } from './EditorStatusBar';
@@ -80,4 +89,4 @@ export type { LeftToolBarProps, PanelType } from './LeftToolBar';
 export type { TopToolBarProps } from './TopToolBar';
 export type { LayerToggleBarProps, LayerVisibility } from './LayerToggleBar';
 export type { RightToolBarProps } from './RightToolBar';
-export type { BackgroundPanelProps, GridPanelProps } from './panels';
+export type { BackgroundPanelProps, GridPanelProps, WallsPanelProps } from './panels';

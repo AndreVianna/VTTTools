@@ -39,9 +39,8 @@ public record SceneAssetUpdateData {
                 return Result.Failure("Size dimensions must be positive");
         }
 
-        if (Rotation.IsSet && (Rotation.Value < 0 || Rotation.Value >= 360))
-            return Result.Failure("Rotation must be between 0 and 360 degrees");
-
-        return Result.Success();
+        return Rotation.IsSet && (Rotation.Value < 0 || Rotation.Value >= 360)
+            ? Result.Failure("Rotation must be between 0 and 360 degrees")
+            : Result.Success();
     }
 }

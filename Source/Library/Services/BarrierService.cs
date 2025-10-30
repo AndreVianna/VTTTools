@@ -9,9 +9,7 @@ public class BarrierService(IBarrierStorage storage)
 
     public async Task<Barrier?> GetBarrierByIdAsync(Guid id, Guid ownerId, CancellationToken ct = default) {
         var barrier = await storage.GetByIdAsync(id, ct);
-        if (barrier is null || barrier.OwnerId != ownerId)
-            return null;
-        return barrier;
+        return barrier is null || barrier.OwnerId != ownerId ? null : barrier;
     }
 
     public async Task<Result<Barrier>> CreateBarrierAsync(CreateBarrierData data, Guid ownerId, CancellationToken ct = default) {
@@ -24,11 +22,10 @@ public class BarrierService(IBarrierStorage storage)
             OwnerId = ownerId,
             Name = data.Name,
             Description = data.Description,
-            IsOpaque = data.IsOpaque,
-            IsSolid = data.IsSolid,
-            IsSecret = data.IsSecret,
-            IsOpenable = data.IsOpenable,
-            IsLocked = data.IsLocked,
+            Poles = [],
+            Visibility = data.Visibility,
+            IsClosed = data.IsClosed,
+            Material = data.Material,
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -50,11 +47,9 @@ public class BarrierService(IBarrierStorage storage)
         barrier = barrier with {
             Name = data.Name,
             Description = data.Description,
-            IsOpaque = data.IsOpaque,
-            IsSolid = data.IsSolid,
-            IsSecret = data.IsSecret,
-            IsOpenable = data.IsOpenable,
-            IsLocked = data.IsLocked,
+            Visibility = data.Visibility,
+            IsClosed = data.IsClosed,
+            Material = data.Material,
         };
 
         await storage.UpdateAsync(barrier, ct);

@@ -9,11 +9,10 @@ import {
     Viewport,
     BackgroundLayer,
     GridRenderer,
-    SceneEditorMenuBar,
     TokenPlacement,
     TokenDragHandle,
     AssetContextMenu,
-    StructureToolbar,
+    BarrierContextMenu,
     StructureSelectionModal,
     DrawingMode,
     BarrierDrawingTool,
@@ -22,6 +21,7 @@ import {
     BarrierRenderer,
     RegionRenderer,
     SourceRenderer,
+    BarrierTransformer,
     LeftToolBar,
     TopToolBar,
     EditorStatusBar
@@ -39,16 +39,18 @@ import {
     DisplayName,
     LabelPosition,
     Barrier,
+    SceneBarrier,
     Region,
-    Source
+    Source,
+    CreateBarrierRequest
 } from '@/types/domain';
 import { UndoRedoProvider, useUndoRedoContext } from '@/contexts/UndoRedoContext';
-import { ClipboardProvider, useClipboard } from '@/contexts/ClipboardContext';
+import { ClipboardProvider } from '@/contexts/ClipboardContext';
+import { useClipboard } from '@/contexts/useClipboard';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import {
     createPlaceAssetCommand,
     createMoveAssetCommand,
-    createRemoveAssetCommand,
     createBatchCommand,
     createBulkRemoveAssetsCommand,
     createCopyAssetsCommand,
@@ -73,10 +75,9 @@ import { getApiEndpoints } from '@/config/development';
 import { SaveStatus } from '@/components/common';
 import { useAppDispatch } from '@/store';
 import { assetsApi } from '@/services/assetsApi';
-import { useGetBarriersQuery } from '@/services/barrierApi';
+import { useGetBarriersQuery, useCreateBarrierMutation, useRemoveSceneBarrierMutation, useUpdateSceneBarrierMutation } from '@/services/barrierApi';
 import { useGetRegionsQuery } from '@/services/regionApi';
 import { useGetSourcesQuery } from '@/services/sourceApi';
-import { PlaceBarrierCommand } from '@/utils/commands/structureCommands';
 
 const STAGE_WIDTH = 2800;
 const STAGE_HEIGHT = 2100;
@@ -115,6 +116,10 @@ const SceneEditorPageInternal: React.FC = () => {
     const { data: barriers } = useGetBarriersQuery({ page: 1, pageSize: 100 });
     const { data: regions } = useGetRegionsQuery({ page: 1, pageSize: 100 });
     const { data: sources } = useGetSourcesQuery({ page: 1, pageSize: 100 });
+
+    const [createBarrier] = useCreateBarrierMutation();
+    const [removeSceneBarrier] = useRemoveSceneBarrierMutation();
+    const [updateSceneBarrier] = useUpdateSceneBarrierMutation();
 
     // Force refetch on mount with forceRefetch option
     useEffect(() => {
@@ -162,6 +167,10 @@ const SceneEditorPageInternal: React.FC = () => {
     const [drawingMode, setDrawingMode] = useState<DrawingMode>(null);
     const [selectedStructure, setSelectedStructure] = useState<Barrier | Region | Source | null>(null);
     const [showStructureModal, setShowStructureModal] = useState(false);
+    const [selectedBarrierId, setSelectedBarrierId] = useState<string | null>(null);
+    const [barrierContextMenuPosition, setBarrierContextMenuPosition] = useState<{ left: number; top: number } | null>(null);
+    const [contextMenuBarrier, setContextMenuBarrier] = useState<{ sceneBarrier: SceneBarrier; barrier: Barrier } | null>(null);
+    const [isEditingVertices, setIsEditingVertices] = useState(false);
 
     interface LayerVisibility {
         background: boolean;
@@ -172,7 +181,7 @@ const SceneEditorPageInternal: React.FC = () => {
         overlays: boolean;
     }
 
-    const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>({
+    const [layerVisibility, _setLayerVisibility] = useState<LayerVisibility>({
         background: true,
         grid: true,
         structures: true,
@@ -314,10 +323,6 @@ const SceneEditorPageInternal: React.FC = () => {
         setScene(prev => prev ? { ...prev, name } : null);
     }, [sceneId, scene]);
 
-    const handleSceneNameBlur = useCallback((name: string) => {
-        saveChanges({ name });
-    }, [saveChanges]);
-
     const handleBackClick = useCallback(() => {
         if (scene?.adventure?.id) {
             navigate(`/adventures/${scene.adventure.id}`);
@@ -351,13 +356,12 @@ const SceneEditorPageInternal: React.FC = () => {
     useEffect(() => {
         const stage = canvasRef.current?.getStage();
 
-        // Only update if stage exists and is different from current ref
         if (stage && stage !== stageRef.current) {
             stageRef.current = stage;
             layerManager.initialize(stage);
             layerManager.enforceZOrder();
         }
-    }, [canvasRef.current, isSceneReady]);
+    }, [isSceneReady]);
 
     // Validation: Ensure Stage is set when scene is ready
     // This catches initialization failures early in development
@@ -472,10 +476,6 @@ const SceneEditorPageInternal: React.FC = () => {
         canvasRef.current?.zoomOut();
     };
 
-    const handleZoomReset = () => {
-        canvasRef.current?.resetView();
-    };
-
     const handleGridChange = useCallback((newGrid: GridConfig) => {
         if (!scene || !sceneId) return;
 
@@ -529,19 +529,6 @@ const SceneEditorPageInternal: React.FC = () => {
             console.error('Failed to upload background:', error);
         }
     }, [sceneId, uploadFile, patchScene]);
-
-    const handleOutsideClick = () => {
-        if (draggedAsset) {
-            setDraggedAsset(null);
-        }
-    };
-
-    const handleAssetSelect = (asset: Asset) => {
-        if (!isOnline) {
-            return;
-        }
-        setDraggedAsset(asset);
-    };
 
     const handleAssetPlaced = (asset: PlacedAsset) => {
         const command = createPlaceAssetCommand({
@@ -679,7 +666,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
         const command = createBulkRemoveAssetsCommand({
             assets: assetsToDelete,
-            onBulkRemove: async (assetIds) => {
+            onBulkRemove: async (_assetIds) => {
                 if (sceneId && isOnline && scene) {
                     try {
                         const indices = assetsToDelete.map(asset => asset.index);
@@ -742,7 +729,7 @@ const SceneEditorPageInternal: React.FC = () => {
         setSelectedAssetIds([]);
         setDeleteConfirmOpen(false);
         setAssetsToDelete([]);
-    }, [assetsToDelete, sceneId, isOnline, scene, placedAssets, bulkDeleteSceneAssets, bulkAddSceneAssets, refetch, execute, dispatch]);
+    }, [assetsToDelete, sceneId, isOnline, scene, bulkDeleteSceneAssets, bulkAddSceneAssets, refetch, execute, dispatch]);
 
     const handleCopyAssets = useCallback(() => {
         if (selectedAssetIds.length === 0 || !sceneId) return;
@@ -757,7 +744,7 @@ const SceneEditorPageInternal: React.FC = () => {
         });
 
         execute(command);
-    }, [selectedAssetIds, placedAssets, sceneId, copyAssets, execute]);
+    }, [selectedAssetIds, sceneId, copyAssets, execute, placedAssets]);
 
     const handleCutAssets = useCallback(() => {
         if (selectedAssetIds.length === 0 || !sceneId || !isOnline) return;
@@ -828,7 +815,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
         execute(command);
         setSelectedAssetIds([]);
-    }, [selectedAssetIds, placedAssets, sceneId, isOnline, scene, cutAssets, bulkDeleteSceneAssets, bulkAddSceneAssets, refetch, execute, dispatch]);
+    }, [selectedAssetIds, sceneId, isOnline, scene, cutAssets, bulkDeleteSceneAssets, bulkAddSceneAssets, refetch, execute, dispatch, placedAssets]);
 
     const handlePasteAssets = useCallback(() => {
         if (!canPaste || !sceneId || !isOnline || !scene) return;
@@ -924,10 +911,87 @@ const SceneEditorPageInternal: React.FC = () => {
         });
 
         execute(command);
-    }, [canPaste, sceneId, isOnline, scene, getClipboardAssets, clipboard.operation, clearClipboard, bulkAddSceneAssets, bulkDeleteSceneAssets, refetch, execute, dispatch, placedAssets]);
+    }, [canPaste, sceneId, isOnline, scene, getClipboardAssets, clipboard.operation, clearClipboard, bulkAddSceneAssets, bulkDeleteSceneAssets, refetch, execute, dispatch]);
+
+    const handleBarrierDelete = useCallback(async (sceneBarrierId: string) => {
+        if (!sceneId) return;
+
+        try {
+            await removeSceneBarrier({ sceneId, id: sceneBarrierId }).unwrap();
+            setSelectedBarrierId(null);
+        } catch (error) {
+            console.error('Failed to remove barrier:', error);
+            setErrorMessage('Failed to remove barrier. Please try again.');
+        }
+    }, [sceneId, removeSceneBarrier]);
+
+    const handleBarrierEdit = useCallback((sceneBarrierId: string) => {
+        setSelectedBarrierId(sceneBarrierId);
+    }, []);
+
+    const handleToggleOpen = useCallback(async (sceneBarrierId: string) => {
+        if (!sceneId || !scene) return;
+
+        const sceneBarrier = scene.sceneBarriers?.find((b: SceneBarrier) => b.id === sceneBarrierId);
+        if (!sceneBarrier) return;
+
+        try {
+            await updateSceneBarrier({
+                sceneId,
+                id: sceneBarrierId,
+                body: { isOpen: !sceneBarrier.isOpen }
+            }).unwrap();
+        } catch (error) {
+            console.error('Failed to toggle barrier open state:', error);
+            setErrorMessage('Failed to toggle barrier. Please try again.');
+        }
+    }, [sceneId, scene, updateSceneBarrier]);
+
+    const handleToggleLock = useCallback(async (sceneBarrierId: string) => {
+        if (!sceneId || !scene) return;
+
+        const sceneBarrier = scene.sceneBarriers?.find((b: SceneBarrier) => b.id === sceneBarrierId);
+        if (!sceneBarrier) return;
+
+        try {
+            await updateSceneBarrier({
+                sceneId,
+                id: sceneBarrierId,
+                body: { isLocked: !sceneBarrier.isLocked }
+            }).unwrap();
+        } catch (error) {
+            console.error('Failed to toggle barrier lock state:', error);
+            setErrorMessage('Failed to toggle lock. Please try again.');
+        }
+    }, [sceneId, scene, updateSceneBarrier]);
+
+    const handleEditVertices = useCallback((sceneBarrierId: string) => {
+        setSelectedBarrierId(sceneBarrierId);
+        setIsEditingVertices(true);
+    }, []);
+
+    const handleVerticesChange = useCallback(async (sceneBarrierId: string, newVertices: { x: number; y: number }[]) => {
+        if (!sceneId) return;
+
+        try {
+            await updateSceneBarrier({
+                sceneId,
+                id: sceneBarrierId,
+                body: { vertices: newVertices }
+            }).unwrap();
+            setIsEditingVertices(false);
+        } catch (error) {
+            console.error('Failed to update barrier vertices:', error);
+            setErrorMessage('Failed to update vertices. Please try again.');
+        }
+    }, [sceneId, updateSceneBarrier]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                return;
+            }
+
             if (e.ctrlKey && e.key === 'c' && !e.shiftKey && !e.altKey) {
                 e.preventDefault();
                 handleCopyAssets();
@@ -942,6 +1006,17 @@ const SceneEditorPageInternal: React.FC = () => {
                 e.preventDefault();
                 handlePasteAssets();
             }
+
+            if (e.key === 'Delete' && selectedBarrierId) {
+                e.preventDefault();
+                handleBarrierDelete(selectedBarrierId);
+            }
+
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                setSelectedBarrierId(null);
+                setIsEditingVertices(false);
+            }
         };
 
         window.addEventListener('keydown', handleKeyDown, { capture: true });
@@ -949,7 +1024,7 @@ const SceneEditorPageInternal: React.FC = () => {
         return () => {
             window.removeEventListener('keydown', handleKeyDown, { capture: true });
         };
-    }, [handleCopyAssets, handleCutAssets, handlePasteAssets]);
+    }, [handleCopyAssets, handleCutAssets, handlePasteAssets, selectedBarrierId, handleBarrierDelete]);
 
     const handleAssetSelected = (assetIds: string[]) => {
         setSelectedAssetIds(assetIds);
@@ -1098,29 +1173,72 @@ const SceneEditorPageInternal: React.FC = () => {
         setSelectedStructure(null);
     };
 
-    const handleLayerToggle = useCallback((layer: keyof LayerVisibility) => {
-        setLayerVisibility(prev => ({
-            ...prev,
-            [layer]: !prev[layer]
-        }));
-    }, []);
-
-    const handleResetLayers = useCallback(() => {
-        setLayerVisibility({
-            background: true,
-            grid: true,
-            structures: true,
-            objects: true,
-            creatures: true,
-            overlays: true
-        });
-    }, []);
-
     const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         const canvasX = Math.round((e.clientX - viewport.x) / viewport.scale);
         const canvasY = Math.round((e.clientY - viewport.y) / viewport.scale);
         setCursorPosition({ x: canvasX, y: canvasY });
     }, [viewport]);
+
+    const handleBarrierSelect = useCallback((barrierId: string) => {
+        setSelectedBarrierId(barrierId);
+        setIsEditingVertices(false);
+    }, []);
+
+    const handleBarrierContextMenu = useCallback((barrierId: string, position: { x: number; y: number }) => {
+        const sceneBarrier = scene?.sceneBarriers?.find(sb => sb.id === barrierId);
+        const barrier = sceneBarrier ? barriers?.find(b => b.id === sceneBarrier.barrierId) : null;
+
+        if (sceneBarrier && barrier) {
+            setBarrierContextMenuPosition({ left: position.x, top: position.y });
+            setContextMenuBarrier({ sceneBarrier, barrier });
+        }
+    }, [scene, barriers]);
+
+    const handleBarrierContextMenuClose = useCallback(() => {
+        setBarrierContextMenuPosition(null);
+        setContextMenuBarrier(null);
+    }, []);
+
+    const handlePlaceWall = useCallback(async (properties: {
+        isOpaque: boolean;
+        isSolid: boolean;
+        isSecret: boolean;
+        isOpenable: boolean;
+        isLocked: boolean;
+        material?: string;
+        height?: number;
+    }) => {
+        try {
+            const existingBarriers = barriers || [];
+            const wallCount = existingBarriers.filter((b: Barrier) => b.name.startsWith('Wall ')).length;
+            const wallName = `Wall ${wallCount + 1}`;
+
+            const barrierRequest: CreateBarrierRequest = {
+                name: wallName,
+                description: `${properties.material || 'Stone'} wall (${properties.height || 2.0}u high)`,
+                isOpaque: properties.isOpaque,
+                isSolid: properties.isSolid,
+                isSecret: properties.isSecret,
+                isOpenable: properties.isOpenable,
+                isLocked: properties.isLocked
+            };
+
+            if (properties.material !== undefined) {
+                barrierRequest.material = properties.material;
+            }
+            if (properties.height !== undefined) {
+                barrierRequest.height = properties.height;
+            }
+
+            const newBarrier = await createBarrier(barrierRequest).unwrap();
+
+            setSelectedStructure(newBarrier);
+            setDrawingMode('barrier');
+        } catch (error) {
+            console.error('Failed to create wall:', error);
+            setErrorMessage('Failed to create wall. Please try again.');
+        }
+    }, [barriers, createBarrier]);
 
     if (isLoadingScene || isHydrating) {
         return (
@@ -1157,15 +1275,9 @@ const SceneEditorPageInternal: React.FC = () => {
         <EditorLayout
             scene={scene || undefined}
             onSceneNameChange={handleSceneNameChange}
-            onSceneNameBlur={handleSceneNameBlur}
             onBackClick={handleBackClick}
-            saveStatus={saveStatus}
             onSceneDescriptionChange={handleSceneDescriptionChange}
             onScenePublishedChange={handleScenePublishedChange}
-            onBackgroundUpload={handleBackgroundUpload}
-            onGridChange={handleGridChange}
-            backgroundUrl={backgroundUrl}
-            isUploadingBackground={isUploadingBackground}
             onSceneUpdate={handleSceneUpdate}
         >
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
@@ -1206,6 +1318,16 @@ const SceneEditorPageInternal: React.FC = () => {
                     onBackgroundUpload={handleBackgroundUpload}
                     gridConfig={gridConfig}
                     onGridChange={handleGridChange}
+                    barriers={barriers}
+                    sceneBarriers={scene?.sceneBarriers}
+                    selectedBarrierId={selectedBarrierId}
+                    onBarrierSelect={handleBarrierSelect}
+                    onBarrierEdit={handleBarrierEdit}
+                    onBarrierDelete={handleBarrierDelete}
+                    onPlaceWall={handlePlaceWall}
+                    onToggleOpen={handleToggleOpen}
+                    onToggleLock={handleToggleLock}
+                    onEditVertices={handleEditVertices}
                 />
 
                 <EditorStatusBar
@@ -1293,11 +1415,23 @@ const SceneEditorPageInternal: React.FC = () => {
                                 {scene.sceneBarriers.map((sceneBarrier) => {
                                     const barrier = barriers.find(b => b.id === sceneBarrier.barrierId);
                                     return barrier ? (
-                                        <BarrierRenderer
-                                            key={sceneBarrier.id}
-                                            sceneBarrier={sceneBarrier}
-                                            barrier={barrier}
-                                        />
+                                        <React.Fragment key={sceneBarrier.id}>
+                                            <BarrierRenderer
+                                                sceneBarrier={sceneBarrier}
+                                                barrier={barrier}
+                                                isSelected={selectedBarrierId === sceneBarrier.id}
+                                                onSelect={handleBarrierSelect}
+                                                onContextMenu={handleBarrierContextMenu}
+                                            />
+                                            {isEditingVertices && selectedBarrierId === sceneBarrier.id && (
+                                                <BarrierTransformer
+                                                    vertices={sceneBarrier.vertices}
+                                                    onVerticesChange={(newVertices) => handleVerticesChange(sceneBarrier.id, newVertices)}
+                                                    gridConfig={gridConfig}
+                                                    snapEnabled={gridConfig.snap}
+                                                />
+                                            )}
+                                        </React.Fragment>
                                     ) : null;
                                 })}
                             </Group>
@@ -1409,6 +1543,18 @@ const SceneEditorPageInternal: React.FC = () => {
             asset={contextMenuAsset}
             onRename={handleAssetRename}
             onUpdateDisplay={handleAssetDisplayUpdate}
+        />
+
+        <BarrierContextMenu
+            anchorPosition={barrierContextMenuPosition}
+            open={barrierContextMenuPosition !== null}
+            onClose={handleBarrierContextMenuClose}
+            sceneBarrier={contextMenuBarrier?.sceneBarrier || null}
+            barrier={contextMenuBarrier?.barrier || null}
+            onEditVertices={handleEditVertices}
+            onToggleOpen={handleToggleOpen}
+            onToggleLock={handleToggleLock}
+            onDelete={handleBarrierDelete}
         />
 
         <StructureSelectionModal

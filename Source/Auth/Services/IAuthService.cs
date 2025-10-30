@@ -1,5 +1,3 @@
-using VttTools.Auth.ApiContracts;
-
 namespace VttTools.Auth.Services;
 
 public interface IAuthService {

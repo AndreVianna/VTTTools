@@ -1,28 +1,12 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import type { PlacedAsset } from '../types/domain';
+import { ClipboardContext, INITIAL_CLIPBOARD_STATE, type ClipboardContextValue } from './clipboardContextDefinition';
 
 interface ClipboardState {
   assets: PlacedAsset[];
   operation: 'copy' | 'cut' | null;
   sourceSceneId: string | null;
 }
-
-interface ClipboardContextValue {
-  clipboard: ClipboardState;
-  canPaste: boolean;
-  copyAssets: (assets: PlacedAsset[], sceneId: string) => void;
-  cutAssets: (assets: PlacedAsset[], sceneId: string) => void;
-  clearClipboard: () => void;
-  getClipboardAssets: () => PlacedAsset[];
-}
-
-const ClipboardContext = createContext<ClipboardContextValue | undefined>(undefined);
-
-const INITIAL_CLIPBOARD_STATE: ClipboardState = {
-  assets: [],
-  operation: null,
-  sourceSceneId: null
-};
 
 export const ClipboardProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [clipboard, setClipboard] = useState<ClipboardState>(INITIAL_CLIPBOARD_STATE);
@@ -69,12 +53,4 @@ export const ClipboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       {children}
     </ClipboardContext.Provider>
   );
-};
-
-export const useClipboard = (): ClipboardContextValue => {
-  const context = useContext(ClipboardContext);
-  if (context === undefined) {
-    throw new Error('useClipboard must be used within a ClipboardProvider');
-  }
-  return context;
 };

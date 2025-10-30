@@ -564,16 +564,27 @@ export interface Point {
   y: number;
 }
 
+export interface Pole {
+  x: number;
+  y: number;
+  h: number;
+}
+
+export enum WallVisibility {
+  Normal = 'normal',
+  Fence = 'fence',
+  Invisible = 'invisible'
+}
+
 export interface Barrier {
   id: string;
   ownerId: string;
   name: string;
   description?: string;
-  isOpaque: boolean;
-  isSolid: boolean;
-  isSecret: boolean;
-  isOpenable: boolean;
-  isLocked: boolean;
+  poles: Pole[];
+  visibility: WallVisibility;
+  isClosed: boolean;
+  material?: string;
   createdAt: string;
 }
 
@@ -581,42 +592,34 @@ export interface SceneBarrier {
   id: string;
   sceneId: string;
   barrierId: string;
-  vertices: Point[];
-  isOpen?: boolean;
-  isLocked?: boolean;
+  poles: Pole[];
 }
 
 export interface CreateBarrierRequest {
   name: string;
   description?: string;
-  isOpaque: boolean;
-  isSolid: boolean;
-  isSecret: boolean;
-  isOpenable: boolean;
-  isLocked: boolean;
+  poles: Pole[];
+  visibility: WallVisibility;
+  isClosed: boolean;
+  material?: string;
 }
 
 export interface UpdateBarrierRequest {
   name?: string;
   description?: string;
-  isOpaque?: boolean;
-  isSolid?: boolean;
-  isSecret?: boolean;
-  isOpenable?: boolean;
-  isLocked?: boolean;
+  poles?: Pole[];
+  visibility?: WallVisibility;
+  isClosed?: boolean;
+  material?: string;
 }
 
 export interface PlaceSceneBarrierRequest {
   barrierId: string;
-  vertices: Point[];
-  isOpen?: boolean;
-  isLocked?: boolean;
+  poles: Pole[];
 }
 
 export interface UpdateSceneBarrierRequest {
-  vertices?: Point[];
-  isOpen?: boolean;
-  isLocked?: boolean;
+  poles?: Pole[];
 }
 
 export interface Region {

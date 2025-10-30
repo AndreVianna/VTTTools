@@ -5,10 +5,9 @@ public record BarrierResponse {
     public Guid OwnerId { get; init; }
     public string Name { get; init; } = string.Empty;
     public string? Description { get; init; }
-    public bool IsOpaque { get; init; }
-    public bool IsSolid { get; init; }
-    public bool IsSecret { get; init; }
-    public bool IsOpenable { get; init; }
-    public bool IsLocked { get; init; }
+    public IReadOnlyList<Pole> Poles { get; init; } = [];
+    public WallVisibility Visibility { get; init; }
+    public bool IsClosed { get; init; }
+    public string? Material { get; init; }
     public DateTime CreatedAt { get; init; }
 }

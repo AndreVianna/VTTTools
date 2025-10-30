@@ -5,13 +5,14 @@ import { usePlaceSceneBarrierMutation } from '@/services/barrierApi';
 import { snapToNearest, SnapMode } from '@/utils/structureSnapping';
 import { VertexMarker } from './VertexMarker';
 import { BarrierPreview } from './BarrierPreview';
-import type { Point, Barrier } from '@/types/domain';
+import type { Point, Pole, Barrier } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface BarrierDrawingToolProps {
     sceneId: string;
     barrier: Barrier;
     gridConfig: GridConfig;
+    defaultHeight: number;
     onComplete: (success: boolean) => void;
     onCancel: () => void;
 }
@@ -20,23 +21,24 @@ export const BarrierDrawingTool: React.FC<BarrierDrawingToolProps> = ({
     sceneId,
     barrier,
     gridConfig,
+    defaultHeight,
     onComplete,
     onCancel
 }) => {
-    const [vertices, setVertices] = useState<Point[]>([]);
-    const [previewVertex, setPreviewVertex] = useState<Point | null>(null);
+    const [poles, setPoles] = useState<Pole[]>([]);
+    const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
     const [snapMode, setSnapMode] = useState<SnapMode>(SnapMode.HalfSnap);
     const [placeBarrier] = usePlaceSceneBarrierMutation();
 
     const handleFinish = useCallback(async () => {
-        if (vertices.length < 2) return;
+        if (poles.length < 2) return;
 
         try {
             await placeBarrier({
                 sceneId,
                 body: {
                     barrierId: barrier.id,
-                    vertices,
+                    poles,
                 }
             }).unwrap();
 
@@ -45,13 +47,13 @@ export const BarrierDrawingTool: React.FC<BarrierDrawingToolProps> = ({
             console.error('Failed to place barrier:', error);
             onComplete(false);
         }
-    }, [vertices, sceneId, barrier.id, placeBarrier, onComplete]);
+    }, [poles, sceneId, barrier.id, placeBarrier, onComplete]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
                 onCancel();
-            } else if (e.key === 'Enter' && vertices.length >= 2) {
+            } else if (e.key === 'Enter' && poles.length >= 2) {
                 handleFinish();
             }
 
@@ -77,7 +79,7 @@ export const BarrierDrawingTool: React.FC<BarrierDrawingToolProps> = ({
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, [vertices, onCancel, handleFinish]);
+    }, [poles, onCancel, handleFinish]);
 
     const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         const stage = e.target.getStage();
@@ -93,7 +95,7 @@ export const BarrierDrawingTool: React.FC<BarrierDrawingToolProps> = ({
         };
 
         const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
-        setPreviewVertex(snappedPos);
+        setPreviewPoint(snappedPos);
     }, [gridConfig, snapMode]);
 
     const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -110,14 +112,19 @@ export const BarrierDrawingTool: React.FC<BarrierDrawingToolProps> = ({
         };
 
         const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
-        setVertices([...vertices, snappedPos]);
-    }, [vertices, gridConfig, snapMode]);
+        const newPole: Pole = {
+            x: snappedPos.x,
+            y: snappedPos.y,
+            h: defaultHeight
+        };
+        setPoles([...poles, newPole]);
+    }, [poles, gridConfig, snapMode, defaultHeight]);
 
     const handleDoubleClick = useCallback(() => {
-        if (vertices.length >= 2) {
+        if (poles.length >= 2) {
             handleFinish();
         }
-    }, [vertices.length, handleFinish]);
+    }, [poles.length, handleFinish]);
 
     return (
         <Layer
@@ -126,18 +133,18 @@ export const BarrierDrawingTool: React.FC<BarrierDrawingToolProps> = ({
             onDblClick={handleDoubleClick}
             listening={true}
         >
-            {vertices.map((vertex, index) => (
-                <VertexMarker key={index} position={vertex} />
+            {poles.map((pole, index) => (
+                <VertexMarker key={index} position={{ x: pole.x, y: pole.y }} />
             ))}
 
             <BarrierPreview
-                vertices={vertices}
-                previewVertex={previewVertex}
+                poles={poles}
+                previewPoint={previewPoint}
                 barrier={barrier}
             />
 
-            {previewVertex && (
-                <VertexMarker position={previewVertex} preview />
+            {previewPoint && (
+                <VertexMarker position={previewPoint} preview />
             )}
         </Layer>
     );

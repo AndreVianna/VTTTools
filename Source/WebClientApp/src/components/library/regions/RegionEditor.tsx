@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -26,34 +26,23 @@ interface RegionEditorProps {
     onClose: () => void;
 }
 
-export const RegionEditor: React.FC<RegionEditorProps> = ({ open, region, onClose }) => {
+interface RegionEditorFormProps {
+    region: Region | null;
+    onClose: () => void;
+}
+
+const RegionEditorForm: React.FC<RegionEditorFormProps> = ({ region, onClose }) => {
     const theme = useTheme();
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [regionType, setRegionType] = useState('');
-    const [labelMap, setLabelMap] = useState<Record<number, string>>({});
+    const [name, setName] = useState(region?.name ?? '');
+    const [description, setDescription] = useState(region?.description ?? '');
+    const [regionType, setRegionType] = useState(region?.regionType ?? '');
+    const [labelMap, setLabelMap] = useState<Record<number, string>>(region?.labelMap ?? {});
 
     const [createRegion, { isLoading: isCreating, error: createError }] = useCreateRegionMutation();
     const [updateRegion, { isLoading: isUpdating, error: updateError }] = useUpdateRegionMutation();
 
     const isSaving = isCreating || isUpdating;
     const error = createError || updateError;
-
-    useEffect(() => {
-        if (open) {
-            if (region) {
-                setName(region.name);
-                setDescription(region.description ?? '');
-                setRegionType(region.regionType);
-                setLabelMap({ ...region.labelMap });
-            } else {
-                setName('');
-                setDescription('');
-                setRegionType('');
-                setLabelMap({});
-            }
-        }
-    }, [region, open]);
 
     const handleSave = async () => {
         const trimmedName = name.trim();
@@ -100,7 +89,7 @@ export const RegionEditor: React.FC<RegionEditorProps> = ({ open, region, onClos
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <>
             <DialogTitle>
                 <Typography variant="h6">
                     {region ? 'Edit Region' : 'Create Region'}
@@ -139,7 +128,7 @@ export const RegionEditor: React.FC<RegionEditorProps> = ({ open, region, onClos
                         fullWidth
                         required
                         error={regionType.trim().length > 0 && regionType.trim().length < 2}
-                        helperText='e.g., "Illumination", "Elevation", "FogOfWar", "Weather", "Difficulty"'
+                        helperText='e.g., &quot;Illumination&quot;, &quot;Elevation&quot;, &quot;FogOfWar&quot;, &quot;Weather&quot;, &quot;Difficulty&quot;'
                     />
 
                     <Divider sx={{ my: 1 }} />
@@ -158,7 +147,7 @@ export const RegionEditor: React.FC<RegionEditorProps> = ({ open, region, onClos
                     </Box>
 
                     <Typography variant="caption" color="text.secondary">
-                        Define labels for region values (e.g., 0 = "Dark", 1 = "Dim", 2 = "Bright")
+                        Define labels for region values (e.g., 0 = &quot;Dark&quot;, 1 = &quot;Dim&quot;, 2 = &quot;Bright&quot;)
                     </Typography>
 
                     {Object.keys(labelMap).length === 0 ? (
@@ -234,6 +223,14 @@ export const RegionEditor: React.FC<RegionEditorProps> = ({ open, region, onClos
                     {isSaving ? 'Saving...' : region ? 'Update' : 'Create'}
                 </Button>
             </DialogActions>
+        </>
+    );
+};
+
+export const RegionEditor: React.FC<RegionEditorProps> = ({ open, region, onClose }) => {
+    return (
+        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+            <RegionEditorForm key={region?.id ?? 'new'} region={region} onClose={onClose} />
         </Dialog>
     );
 };

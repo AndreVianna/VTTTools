@@ -32,11 +32,9 @@ internal static class BarrierHandlers {
         var data = new CreateBarrierData {
             Name = request.Name,
             Description = request.Description,
-            IsOpaque = request.IsOpaque,
-            IsSolid = request.IsSolid,
-            IsSecret = request.IsSecret,
-            IsOpenable = request.IsOpenable,
-            IsLocked = request.IsLocked,
+            Visibility = request.Visibility,
+            IsClosed = request.IsClosed,
+            Material = request.Material,
         };
         var result = await barrierService.CreateBarrierAsync(data, userId);
         return result.IsSuccessful
@@ -53,21 +51,18 @@ internal static class BarrierHandlers {
         var data = new UpdateBarrierData {
             Name = request.Name,
             Description = request.Description,
-            IsOpaque = request.IsOpaque,
-            IsSolid = request.IsSolid,
-            IsSecret = request.IsSecret,
-            IsOpenable = request.IsOpenable,
-            IsLocked = request.IsLocked,
+            Visibility = request.Visibility,
+            IsClosed = request.IsClosed,
+            Material = request.Material,
         };
         var result = await barrierService.UpdateBarrierAsync(id, data, userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.Ok(result.Value);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.Ok(result.Value);
     }
 
     internal static async Task<IResult> DeleteBarrierHandler(
@@ -76,14 +71,13 @@ internal static class BarrierHandlers {
         [FromServices] IBarrierService barrierService) {
         var userId = context.User.GetUserId();
         var result = await barrierService.DeleteBarrierAsync(id, userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.NoContent();
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.NoContent();
     }
 
     internal static async Task<IResult> PlaceSceneBarrierHandler(
@@ -95,18 +89,15 @@ internal static class BarrierHandlers {
         var result = await sceneService.PlaceBarrierAsync(
             sceneId,
             request.BarrierId,
-            request.Vertices,
-            request.IsOpen,
-            request.IsLocked,
+            request.Poles,
             userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.Created($"/api/scenes/{sceneId}/barriers/{result.Value!.Id}", result.Value);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.Created($"/api/scenes/{sceneId}/barriers/{result.Value!.Id}", result.Value);
     }
 
     internal static async Task<IResult> UpdateSceneBarrierHandler(
@@ -118,18 +109,15 @@ internal static class BarrierHandlers {
         var userId = context.User.GetUserId();
         var result = await sceneService.UpdateSceneBarrierAsync(
             id,
-            request.Vertices,
-            request.IsOpen,
-            request.IsLocked,
+            request.Poles,
             userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.Ok(result.Value);
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.Ok(result.Value);
     }
 
     internal static async Task<IResult> RemoveSceneBarrierHandler(
@@ -139,13 +127,12 @@ internal static class BarrierHandlers {
         [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var result = await sceneService.RemoveSceneBarrierAsync(id, userId);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return !result.IsSuccessful
+            ? result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
-                    : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-        return Results.NoContent();
+                    : Results.ValidationProblem(result.Errors.GroupedBySource())
+            : Results.NoContent();
     }
 }

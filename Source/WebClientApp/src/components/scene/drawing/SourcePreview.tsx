@@ -50,7 +50,7 @@ export const SourcePreview: React.FC<SourcePreviewProps> = ({
             isGradient: source.defaultIsGradient
         };
         return calculateLineOfSight(tempSource, range, opaqueBarriers, gridConfig);
-    }, [centerPos, range, opaqueBarriers, gridConfig, source.id]);
+    }, [centerPos, range, opaqueBarriers, gridConfig, source.id, source.defaultIntensity, source.defaultIsGradient]);
 
     const rangeInPixels = range * gridConfig.cellSize.width;
 

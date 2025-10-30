@@ -1,7 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
-using VttTools.Common.ApiContracts;
-
 namespace VttTools.Auth.ApiContracts;
 
 public record LoginRequest : Request {

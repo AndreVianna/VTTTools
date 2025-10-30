@@ -11,6 +11,7 @@ import { LayerName, GroupName } from '@/services/layerManager';
 import { getApiEndpoints } from '@/config/development';
 import { getPlacementBehavior, validatePlacement } from '@/types/placement';
 import { getEffectiveDisplayName, getEffectiveLabelPosition } from '@/utils/displayHelpers';
+import { formatCreatureLabel } from './tokenPlacementUtils';
 
 const LABEL_PADDING = 4;
 const LABEL_HORIZONTAL_PADDING = 8;
@@ -19,17 +20,6 @@ const MAX_LABEL_WIDTH_COLLAPSED = 75;
 const MIN_LABEL_WIDTH = 25;
 const LABEL_FONT_SIZE = 12;
 const LABEL_FONT_FAMILY = 'Arial';
-
-let measurementCanvas: HTMLCanvasElement | null = null;
-let measurementCtx: CanvasRenderingContext2D | null = null;
-
-const getMeasurementContext = (): CanvasRenderingContext2D => {
-    if (!measurementCanvas) {
-        measurementCanvas = document.createElement('canvas');
-        measurementCtx = measurementCanvas.getContext('2d')!;
-    }
-    return measurementCtx!;
-};
 
 export interface TokenPlacementProps {
     /** Assets to place on canvas (managed by parent) */
@@ -107,108 +97,13 @@ const getAssetSize = (asset: Asset): { width: number; height: number } => {
 };
 
 const measureTextWidth = (text: string, fontSize: number = LABEL_FONT_SIZE, fontFamily: string = LABEL_FONT_FAMILY): number => {
-    const ctx = getMeasurementContext();
+    const ctx = document.createElement('canvas').getContext('2d')!;
     ctx.font = `${fontSize}px ${fontFamily}`;
     return ctx.measureText(text).width;
 };
 
 const measureTextHeight = (fontSize: number = LABEL_FONT_SIZE): number => {
     return fontSize * 1.2;
-};
-
-/**
- * Format creature label with smart ellipsis that preserves #number suffix
- * @param name The full creature name (e.g., "Goblin Warrior #5")
- * @param maxWidth Maximum width in pixels for collapsed label
- * @returns Formatted label information with dimensions
- */
-export const formatCreatureLabel = (
-    name: string,
-    maxWidth: number
-): {
-    displayText: string;
-    isTruncated: boolean;
-    fullText: string;
-    displayWidth: number;
-    displayHeight: number;
-    fullWidth: number;
-} => {
-    const fullWidth = measureTextWidth(name, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
-
-    if (fullWidth <= maxWidth) {
-        const displayHeight = measureTextHeight(LABEL_FONT_SIZE);
-        return {
-            displayText: name,
-            isTruncated: false,
-            fullText: name,
-            displayWidth: fullWidth,
-            displayHeight,
-            fullWidth,
-        };
-    }
-
-    const numberPattern = /^(.+?)\s+(#\d+)$/;
-    const match = name.match(numberPattern);
-
-    if (match) {
-        const baseName = match[1];
-        const numberSuffix = match[2];
-
-        const numberWidth = measureTextWidth(numberSuffix, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
-        const ellipsis = '\u2026';
-        const ellipsisWidth = measureTextWidth(ellipsis, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
-        const spaceWidth = measureTextWidth(' ', LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
-
-        const availableForBaseName = maxWidth - numberWidth - ellipsisWidth - spaceWidth;
-
-        let truncatedBaseName = baseName;
-        for (let i = baseName.length - 1; i > 0; i--) {
-            const testWidth = measureTextWidth(baseName.substring(0, i), LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
-
-            if (testWidth <= availableForBaseName) {
-                truncatedBaseName = baseName.substring(0, i);
-                break;
-            }
-        }
-
-        const displayText = `${truncatedBaseName}${ellipsis} ${numberSuffix}`;
-        const displayWidth = measureTextWidth(displayText, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
-        const displayHeight = measureTextHeight(LABEL_FONT_SIZE);
-
-        return {
-            displayText,
-            isTruncated: true,
-            fullText: name,
-            displayWidth,
-            displayHeight,
-            fullWidth,
-        };
-    }
-
-    const ellipsis = '\u2026';
-    let truncatedName = name;
-
-    for (let i = name.length - 1; i > 0; i--) {
-        const testText = name.substring(0, i) + ellipsis;
-        const testWidth = measureTextWidth(testText, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
-
-        if (testWidth <= maxWidth) {
-            truncatedName = testText;
-            break;
-        }
-    }
-
-    const displayWidth = measureTextWidth(truncatedName, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
-    const displayHeight = measureTextHeight(LABEL_FONT_SIZE);
-
-    return {
-        displayText: truncatedName,
-        isTruncated: truncatedName !== name,
-        fullText: name,
-        displayWidth,
-        displayHeight,
-        fullWidth,
-    };
 };
 
 /**
@@ -334,8 +229,8 @@ const snapToGridCenter = (
 export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     placedAssets,
     onAssetPlaced,
-    onAssetMoved,
-    onAssetDeleted,
+    _onAssetMoved,
+    _onAssetDeleted,
     gridConfig,
     draggedAsset,
     onDragComplete,
@@ -379,10 +274,14 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
             if (stage) {
                 const centerX = (window.innerWidth / 2 - stage.x()) / stage.scaleX();
                 const centerY = (window.innerHeight / 2 - stage.y()) / stage.scaleY();
-                setCursorPosition({ x: centerX, y: centerY });
+                requestAnimationFrame(() => {
+                    setCursorPosition({ x: centerX, y: centerY });
+                });
             }
         } else if (!draggedAsset) {
-            setCursorPosition(null);
+            requestAnimationFrame(() => {
+                setCursorPosition(null);
+            });
         }
     }, [draggedAsset, cursorPosition]);
 
@@ -558,7 +457,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
             setCursorPosition(null);
         }
         // Shift-click: keep placement mode active, cursor stays for next placement
-    }, [draggedAsset, cursorPosition, gridConfig, isValidPlacement, onAssetPlaced, onDragComplete]);
+    }, [draggedAsset, cursorPosition, gridConfig, isValidPlacement, onAssetPlaced, onDragComplete, placedAssets.length]);
 
     const renderAssetsByGroup = (groupName: GroupName) => {
         return placedAssets

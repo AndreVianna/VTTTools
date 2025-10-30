@@ -87,11 +87,9 @@ public class BarrierServiceTests {
         var data = new CreateBarrierData {
             Name = "New Barrier",
             Description = "Test barrier",
-            IsOpaque = true,
-            IsSolid = false,
-            IsSecret = true,
-            IsOpenable = true,
-            IsLocked = false,
+            Visibility = WallVisibility.Normal,
+            IsClosed = false,
+            Material = "Stone",
         };
 
         // Act
@@ -101,11 +99,9 @@ public class BarrierServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value!.Name.Should().Be(data.Name);
         result.Value.Description.Should().Be(data.Description);
-        result.Value.IsOpaque.Should().Be(data.IsOpaque);
-        result.Value.IsSolid.Should().Be(data.IsSolid);
-        result.Value.IsSecret.Should().Be(data.IsSecret);
-        result.Value.IsOpenable.Should().Be(data.IsOpenable);
-        result.Value.IsLocked.Should().Be(data.IsLocked);
+        result.Value.Visibility.Should().Be(data.Visibility);
+        result.Value.IsClosed.Should().Be(data.IsClosed);
+        result.Value.Material.Should().Be(data.Material);
         result.Value.OwnerId.Should().Be(_userId);
         result.Value.Id.Should().NotBe(Guid.Empty);
         await _barrierStorage.Received(1).AddAsync(Arg.Any<Barrier>(), Arg.Any<CancellationToken>());
@@ -146,6 +142,44 @@ public class BarrierServiceTests {
     }
 
     [Fact]
+    public async Task CreateBarrierAsync_ReturnsError_WhenMaterialTooLong() {
+        // Arrange
+        var data = new CreateBarrierData {
+            Name = "Test Barrier",
+            Material = new string('a', 65),
+        };
+
+        // Act
+        var result = await _service.CreateBarrierAsync(data, _userId, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.Message.Contains("64 characters"));
+        await _barrierStorage.DidNotReceive().AddAsync(Arg.Any<Barrier>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateBarrierAsync_CreatesBarrier_WithNullMaterial() {
+        // Arrange
+        var data = new CreateBarrierData {
+            Name = "Test Barrier",
+            Material = null,
+            Visibility = WallVisibility.Fence,
+            IsClosed = true,
+        };
+
+        // Act
+        var result = await _service.CreateBarrierAsync(data, _userId, _ct);
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue();
+        result.Value!.Material.Should().BeNull();
+        result.Value.Visibility.Should().Be(WallVisibility.Fence);
+        result.Value.IsClosed.Should().BeTrue();
+        await _barrierStorage.Received(1).AddAsync(Arg.Any<Barrier>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task UpdateBarrierAsync_UpdatesBarrier() {
         // Arrange
         var barrierId = Guid.CreateVersion7();
@@ -153,13 +187,14 @@ public class BarrierServiceTests {
             Id = barrierId,
             Name = "Old Name",
             OwnerId = _userId,
-            IsOpaque = true,
+            Visibility = WallVisibility.Normal,
         };
         var data = new UpdateBarrierData {
             Name = "Updated Barrier",
             Description = "Updated description",
-            IsOpaque = false,
-            IsSolid = true,
+            Visibility = WallVisibility.Invisible,
+            IsClosed = true,
+            Material = "Wood",
         };
         _barrierStorage.GetByIdAsync(barrierId, Arg.Any<CancellationToken>()).Returns(existingBarrier);
 
@@ -170,8 +205,9 @@ public class BarrierServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value!.Name.Should().Be(data.Name);
         result.Value.Description.Should().Be(data.Description);
-        result.Value.IsOpaque.Should().Be(data.IsOpaque);
-        result.Value.IsSolid.Should().Be(data.IsSolid);
+        result.Value.Visibility.Should().Be(data.Visibility);
+        result.Value.IsClosed.Should().Be(data.IsClosed);
+        result.Value.Material.Should().Be(data.Material);
         await _barrierStorage.Received(1).UpdateAsync(Arg.Any<Barrier>(), Arg.Any<CancellationToken>());
     }
 

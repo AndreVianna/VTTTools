@@ -1,6 +1,4 @@
-using VttTools.Library.Adventures.Model;
 using VttTools.Library.Content.Model;
-using VttTools.Media.Model;
 
 namespace VttTools.Library.Content.ApiContracts;
 

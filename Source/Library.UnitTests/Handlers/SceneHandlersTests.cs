@@ -1,6 +1,3 @@
-using Point = VttTools.Common.Model.Point;
-using Size = VttTools.Common.Model.Size;
-
 namespace VttTools.Library.Handlers;
 
 public class SceneHandlersTests {

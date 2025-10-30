@@ -10,7 +10,8 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { TokenPlacement, formatCreatureLabel } from './TokenPlacement';
+import { TokenPlacement } from './TokenPlacement';
+import { formatCreatureLabel } from './tokenPlacementUtils';
 import type { Asset, PlacedAsset, CreatureAsset, ObjectAsset } from '@/types/domain';
 import { AssetKind, CreatureCategory, ResourceType } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';

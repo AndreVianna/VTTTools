@@ -1,5 +1,3 @@
-using VttTools.Common.Model;
-
 namespace VttTools.Assets.ApiContracts;
 
 public class UpdateAssetRequestTests {

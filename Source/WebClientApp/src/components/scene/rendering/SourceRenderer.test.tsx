@@ -1,8 +1,9 @@
+import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { SourceRenderer, type SourceRendererProps } from './SourceRenderer';
-import type { Source, SceneSource, SceneBarrier, Point } from '@/types/domain';
+import type { Source, SceneSource, SceneBarrier } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 const mockSource: Source = {
