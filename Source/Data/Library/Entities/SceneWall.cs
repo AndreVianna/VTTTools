@@ -11,4 +11,6 @@ public class SceneWall {
     public bool IsClosed { get; set; }
     [MaxLength(32)]
     public string? Material { get; set; }
+    [MaxLength(16)]
+    public string? Color { get; set; }
 }

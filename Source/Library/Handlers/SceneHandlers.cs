@@ -215,16 +215,18 @@ internal static class SceneHandlers {
             Visibility = request.Visibility,
             IsClosed = request.IsClosed,
             Material = request.Material,
+            Color = request.Color,
         };
         var result = await sceneService.AddWallAsync(userId, id, data);
         return result.IsSuccessful
             ? Results.Ok(new SceneWallResponse {
                 Index = result.Value.Index,
                 Name = result.Value.Name,
-                Poles = result.Value.Poles.ToList(),
+                Poles = [..result.Value.Poles],
                 Visibility = result.Value.Visibility,
                 IsClosed = result.Value.IsClosed,
-                Material = result.Value.Material
+                Material = result.Value.Material,
+                Color = result.Value.Color,
             })
             : result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
@@ -241,6 +243,7 @@ internal static class SceneHandlers {
             Visibility = request.Visibility,
             IsClosed = request.IsClosed,
             Material = request.Material,
+            Color = request.Color,
         };
         var result = await sceneService.UpdateWallAsync(userId, id, (uint)index, data);
         return result.IsSuccessful

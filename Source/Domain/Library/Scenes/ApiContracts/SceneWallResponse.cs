@@ -7,4 +7,5 @@ public record SceneWallResponse {
     public bool IsClosed { get; init; }
     public List<Pole> Poles { get; init; } = [];
     public string? Material { get; init; }
+    public string? Color { get; init; }
 }

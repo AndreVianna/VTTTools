@@ -3,6 +3,7 @@ import {
     Box,
     Button,
     Checkbox,
+    Collapse,
     FormControl,
     FormControlLabel,
     InputLabel,
@@ -22,13 +23,17 @@ import {
 } from '@mui/material';
 import {
     Edit as EditIcon,
-    Delete as DeleteIcon
+    Delete as DeleteIcon,
+    ExpandMore as ExpandMoreIcon,
+    ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
 import { WallVisibility, type SceneWall } from '@/types/domain';
 import { WALL_PRESETS, MATERIAL_OPTIONS, type WallPreset } from './wallsPanelTypes';
 import { ConfirmDialog } from '@/components/common';
+import { useUpdateSceneWallMutation } from '@/services/sceneApi';
 
 export interface WallsPanelProps {
+    sceneId?: string;
     sceneWalls?: SceneWall[];
     selectedWallIndex?: number | null;
     onPresetSelect?: (preset: WallPreset) => void;
@@ -44,6 +49,7 @@ export interface WallsPanelProps {
 }
 
 export const WallsPanel: React.FC<WallsPanelProps> = React.memo(({
+    sceneId,
     sceneWalls = [],
     selectedWallIndex,
     onPresetSelect,
@@ -61,6 +67,11 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(({
     const [defaultHeight, setDefaultHeight] = useState<number>(10.0);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [wallToDelete, setWallToDelete] = useState<number | null>(null);
+    const [expandedWalls, setExpandedWalls] = useState<Set<number>>(new Set());
+    const [editedNames, setEditedNames] = useState<Map<number, string>>(new Map());
+    const [editedColors, setEditedColors] = useState<Map<number, string>>(new Map());
+
+    const [updateSceneWall] = useUpdateSceneWallMutation();
 
     const compactStyles = {
         sectionHeader: {
@@ -136,6 +147,37 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(({
 
     const handleMaterialChange = (e: SelectChangeEvent<string>) => {
         setMaterial(e.target.value);
+    };
+
+    const toggleWallExpanded = (wallIndex: number) => {
+        setExpandedWalls(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(wallIndex)) {
+                newSet.delete(wallIndex);
+            } else {
+                newSet.add(wallIndex);
+            }
+            return newSet;
+        });
+    };
+
+    const handleWallPropertyUpdate = async (wallIndex: number, updates: {
+        name?: string;
+        material?: string;
+        isClosed?: boolean;
+        color?: string;
+    }) => {
+        if (!sceneId) return;
+
+        try {
+            await updateSceneWall({
+                sceneId,
+                wallIndex,
+                ...updates
+            }).unwrap();
+        } catch (error) {
+            console.error('[WallsPanel] Failed to update wall:', error);
+        }
     };
 
     const selectedSceneWall = selectedWallIndex !== null && selectedWallIndex !== undefined
@@ -267,51 +309,171 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(({
                     </ListItem>
                 ) : (
                     sceneWalls.map((sceneWall) => {
+                        const isExpanded = expandedWalls.has(sceneWall.index);
+
                         return (
-                            <ListItem
-                                key={sceneWall.index}
-                                disablePadding
-                                secondaryAction={
-                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                        <IconButton
-                                            edge="end"
-                                            size="small"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onWallSelect?.(sceneWall.index);
-                                            }}
-                                            sx={{ width: 24, height: 24 }}
-                                        >
-                                            <EditIcon sx={{ fontSize: 14 }} />
-                                        </IconButton>
-                                        <IconButton
-                                            edge="end"
-                                            size="small"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setWallToDelete(sceneWall.index);
-                                                setDeleteConfirmOpen(true);
-                                            }}
-                                            sx={{ width: 24, height: 24, color: theme.palette.error.main }}
-                                        >
-                                            <DeleteIcon sx={{ fontSize: 14 }} />
-                                        </IconButton>
-                                    </Box>
-                                }
-                            >
-                                <ListItemButton
-                                    selected={selectedWallIndex === sceneWall.index}
-                                    onClick={() => onWallSelect?.(sceneWall.index)}
-                                    sx={{ py: 0.5, pr: 10 }}
+                            <React.Fragment key={sceneWall.index}>
+                                <ListItem
+                                    disablePadding
+                                    secondaryAction={
+                                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                            <IconButton
+                                                edge="end"
+                                                size="small"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onWallSelect?.(sceneWall.index);
+                                                }}
+                                                sx={{ width: 24, height: 24 }}
+                                            >
+                                                <EditIcon sx={{ fontSize: 14 }} />
+                                            </IconButton>
+                                            <IconButton
+                                                edge="end"
+                                                size="small"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setWallToDelete(sceneWall.index);
+                                                    setDeleteConfirmOpen(true);
+                                                }}
+                                                sx={{ width: 24, height: 24, color: theme.palette.error.main }}
+                                            >
+                                                <DeleteIcon sx={{ fontSize: 14 }} />
+                                            </IconButton>
+                                        </Box>
+                                    }
                                 >
-                                    <ListItemText
-                                        primary={sceneWall.name}
-                                        primaryTypographyProps={{ fontSize: '10px' }}
-                                        secondary={`${sceneWall.material || 'Unknown'} - ${sceneWall.poles.length} poles`}
-                                        secondaryTypographyProps={{ fontSize: '8px' }}
-                                    />
-                                </ListItemButton>
-                            </ListItem>
+                                    <ListItemButton
+                                        selected={selectedWallIndex === sceneWall.index}
+                                        onClick={() => onWallSelect?.(sceneWall.index)}
+                                        sx={{ py: 0.5, pr: 10, pl: 0.5 }}
+                                    >
+                                        <IconButton
+                                            size="small"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleWallExpanded(sceneWall.index);
+                                            }}
+                                            sx={{ width: 24, height: 24, mr: 0.5 }}
+                                        >
+                                            {isExpanded ? (
+                                                <ExpandLessIcon sx={{ fontSize: 14 }} />
+                                            ) : (
+                                                <ExpandMoreIcon sx={{ fontSize: 14 }} />
+                                            )}
+                                        </IconButton>
+
+                                        {isExpanded ? (
+                                            <TextField
+                                                value={editedNames.get(sceneWall.index) ?? sceneWall.name}
+                                                onChange={(e) => {
+                                                    setEditedNames(prev => {
+                                                        const newMap = new Map(prev);
+                                                        newMap.set(sceneWall.index, e.target.value);
+                                                        return newMap;
+                                                    });
+                                                }}
+                                                onBlur={(e) => {
+                                                    handleWallPropertyUpdate(sceneWall.index, {
+                                                        name: e.target.value
+                                                    });
+                                                }}
+                                                onClick={(e) => e.stopPropagation()}
+                                                size="small"
+                                                fullWidth
+                                                sx={{
+                                                    ...compactStyles.textField,
+                                                    mr: 1
+                                                }}
+                                            />
+                                        ) : (
+                                            <ListItemText
+                                                primary={sceneWall.name}
+                                                primaryTypographyProps={{ fontSize: '10px' }}
+                                                secondary={`${sceneWall.material || 'Unknown'} - ${sceneWall.poles.length} poles`}
+                                                secondaryTypographyProps={{ fontSize: '8px' }}
+                                            />
+                                        )}
+                                    </ListItemButton>
+                                </ListItem>
+
+                                <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                                    <Box sx={{
+                                        px: 2,
+                                        py: 1,
+                                        backgroundColor: theme.palette.background.default,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 1
+                                    }}>
+                                        <FormControl fullWidth size="small">
+                                            <InputLabel id={`label-material-${sceneWall.index}`} sx={compactStyles.inputLabel}>
+                                                Material
+                                            </InputLabel>
+                                            <Select
+                                                labelId={`label-material-${sceneWall.index}`}
+                                                value={sceneWall.material || 'Stone'}
+                                                label="Material"
+                                                onBlur={(e) => {
+                                                    handleWallPropertyUpdate(sceneWall.index, {
+                                                        material: (e.target as HTMLInputElement).value
+                                                    });
+                                                }}
+                                                sx={compactStyles.select}
+                                            >
+                                                {MATERIAL_OPTIONS.map((mat) => (
+                                                    <MenuItem key={mat} value={mat} sx={{ fontSize: '11px', minHeight: '32px' }}>
+                                                        {mat}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <input
+                                                type="color"
+                                                value={editedColors.get(sceneWall.index) ?? sceneWall.color ?? '#808080'}
+                                                onChange={(e) => {
+                                                    setEditedColors(prev => {
+                                                        const newMap = new Map(prev);
+                                                        newMap.set(sceneWall.index, e.target.value);
+                                                        return newMap;
+                                                    });
+                                                    handleWallPropertyUpdate(sceneWall.index, {
+                                                        color: e.target.value
+                                                    });
+                                                }}
+                                                style={{
+                                                    width: '60px',
+                                                    height: '28px',
+                                                    border: `1px solid ${theme.palette.divider}`,
+                                                    borderRadius: '4px',
+                                                    cursor: 'pointer'
+                                                }}
+                                            />
+                                            <Typography sx={{ fontSize: '10px', color: theme.palette.text.secondary }}>
+                                                Wall Color
+                                            </Typography>
+                                        </Box>
+
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    size="small"
+                                                    checked={sceneWall.isClosed}
+                                                    onChange={(e) => {
+                                                        handleWallPropertyUpdate(sceneWall.index, {
+                                                            isClosed: e.target.checked
+                                                        });
+                                                    }}
+                                                />
+                                            }
+                                            label={<Typography sx={compactStyles.toggleLabel}>Closed (Room/Enclosure)</Typography>}
+                                            sx={{ margin: 0, height: 24 }}
+                                        />
+                                    </Box>
+                                </Collapse>
+                            </React.Fragment>
                         );
                     })
                 )}

@@ -408,6 +408,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             Visibility = data.Visibility,
             Poles = data.Poles,
             Material = data.Material,
+            Color = data.Color,
         };
 
         await sceneStorage.AddWallAsync(id, sceneWall, ct);
@@ -432,6 +433,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             IsClosed = data.IsClosed.IsSet ? data.IsClosed.Value : sceneWall.IsClosed,
             Visibility = data.Visibility.IsSet ? data.Visibility.Value : sceneWall.Visibility,
             Material = data.Material.IsSet ? data.Material.Value : sceneWall.Material,
+            Color = data.Color.IsSet ? data.Color.Value : sceneWall.Color,
         };
 
         await sceneStorage.UpdateWallAsync(id, sceneWall, ct);

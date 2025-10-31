@@ -584,6 +584,7 @@ export interface SceneWall {
   visibility: WallVisibility;
   isClosed: boolean;
   material?: string;
+  color?: string;
 }
 
 export interface SceneRegion {

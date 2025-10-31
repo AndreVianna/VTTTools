@@ -1170,7 +1170,8 @@ const SceneEditorPageInternal: React.FC = () => {
                 poles: [],
                 visibility: properties.visibility,
                 isClosed: properties.isClosed,
-                material: properties.material
+                material: properties.material,
+                color: '#808080'
             }).unwrap();
 
             console.log('[SceneEditorPage] Wall created with index:', response.index);
@@ -1279,6 +1280,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     onBackgroundUpload={handleBackgroundUpload}
                     gridConfig={gridConfig}
                     onGridChange={handleGridChange}
+                    sceneId={sceneId}
                     sceneWalls={scene?.walls}
                     selectedWallIndex={selectedWallIndex}
                     onWallSelect={handleWallSelect}

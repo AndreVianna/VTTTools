@@ -1,5 +1,5 @@
 import React from 'react';
-import { Line } from 'react-konva';
+import { Line, Circle, Group } from 'react-konva';
 import { useTheme } from '@mui/material';
 import { WallVisibility, type SceneWall } from '@/types/domain';
 
@@ -19,25 +19,29 @@ export const WallRenderer: React.FC<WallRendererProps> = ({
     const theme = useTheme();
 
     const getWallStyle = (visibility: WallVisibility) => {
+        const wallColor = sceneWall.color || '#808080';
+        const strokeColor = isSelected ? theme.palette.primary.main : wallColor;
+        const strokeWidth = 3;
+
         switch (visibility) {
             case WallVisibility.Normal:
                 return {
-                    stroke: theme.palette.error.main,
-                    strokeWidth: isSelected ? 6 : 4,
+                    stroke: strokeColor,
+                    strokeWidth: strokeWidth,
                     opacity: 1,
                     dash: undefined
                 };
             case WallVisibility.Fence:
                 return {
-                    stroke: theme.palette.warning.main,
-                    strokeWidth: isSelected ? 5 : 3,
+                    stroke: strokeColor,
+                    strokeWidth: strokeWidth,
                     opacity: 0.9,
                     dash: [8, 4]
                 };
             case WallVisibility.Invisible:
                 return {
-                    stroke: theme.palette.grey[500],
-                    strokeWidth: isSelected ? 4 : 2,
+                    stroke: strokeColor,
+                    strokeWidth: strokeWidth,
                     opacity: 0.3,
                     dash: [4, 4]
                 };
@@ -61,12 +65,8 @@ export const WallRenderer: React.FC<WallRendererProps> = ({
 
     const style = getWallStyle(sceneWall.visibility);
 
-    const segments = sceneWall.isClosed
-        ? sceneWall.poles.length
-        : sceneWall.poles.length - 1;
-
     const points: number[] = [];
-    for (let i = 0; i < segments; i++) {
+    for (let i = 0; i < sceneWall.poles.length; i++) {
         const pole = sceneWall.poles[i];
         points.push(pole.x, pole.y);
     }
@@ -75,31 +75,47 @@ export const WallRenderer: React.FC<WallRendererProps> = ({
         points.push(firstPole.x, firstPole.y);
     }
 
+    const poleRadius = isSelected ? 5 : 1.5;
+    const poleColor = isSelected ? theme.palette.primary.main : (sceneWall.color || '#808080');
+
     return (
-        <Line
-            points={points}
-            stroke={isSelected ? theme.palette.primary.main : style.stroke}
-            strokeWidth={style.strokeWidth}
-            dash={style.dash}
-            opacity={style.opacity}
-            listening={true}
-            onClick={handleClick}
-            onTap={handleClick}
-            onContextMenu={handleContextMenu}
-            hitStrokeWidth={8}
-            onMouseEnter={(e) => {
-                const container = e.target.getStage()?.container();
-                if (container) {
-                    container.style.cursor = 'pointer';
-                }
-            }}
-            onMouseLeave={(e) => {
-                const container = e.target.getStage()?.container();
-                if (container) {
-                    container.style.cursor = 'default';
-                }
-            }}
-        />
+        <Group>
+            <Line
+                points={points}
+                stroke={style.stroke}
+                strokeWidth={style.strokeWidth}
+                dash={style.dash}
+                opacity={style.opacity}
+                listening={true}
+                onClick={handleClick}
+                onTap={handleClick}
+                onContextMenu={handleContextMenu}
+                hitStrokeWidth={8}
+                onMouseEnter={(e) => {
+                    const container = e.target.getStage()?.container();
+                    if (container) {
+                        container.style.cursor = 'pointer';
+                    }
+                }}
+                onMouseLeave={(e) => {
+                    const container = e.target.getStage()?.container();
+                    if (container) {
+                        container.style.cursor = 'default';
+                    }
+                }}
+            />
+
+            {sceneWall.poles.map((pole, index) => (
+                <Circle
+                    key={`pole-${index}`}
+                    x={pole.x}
+                    y={pole.y}
+                    radius={poleRadius}
+                    fill={poleColor}
+                    listening={false}
+                />
+            ))}
+        </Group>
     );
 };
 

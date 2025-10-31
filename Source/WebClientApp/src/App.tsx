@@ -18,6 +18,7 @@ import { ContentLibraryPage } from '@/features/content-library/pages/ContentLibr
 import { AdventureDetailPage } from '@/features/content-library/pages/AdventureDetailPage';
 import { AdventureListView } from '@/features/content-library/components/adventures';
 import { SecuritySettingsPage } from '@/pages/settings/SecuritySettingsPage';
+import { ProfilePage } from '@/pages/settings/ProfilePage';
 
 // App Content - Wraps everything in Router
 function AppContent() {
@@ -105,6 +106,22 @@ function AppRoutes() {
             <ProtectedRoute authLevel="authorized">
               <SceneEditorPage />
             </ProtectedRoute>
+          } />
+
+          <Route path="/profile" element={
+            <AppLayout>
+              <ProtectedRoute authLevel="authorized">
+                <ProfilePage />
+              </ProtectedRoute>
+            </AppLayout>
+          } />
+
+          <Route path="/settings" element={
+            <AppLayout>
+              <ProtectedRoute authLevel="authorized">
+                <ProfilePage />
+              </ProtectedRoute>
+            </AppLayout>
           } />
 
           <Route path="/settings/security" element={

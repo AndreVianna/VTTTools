@@ -71,9 +71,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
             <Line
                 points={polesToUse.flatMap(p => [p.x, p.y])}
                 stroke={theme.palette.primary.main}
-                strokeWidth={2}
-                opacity={0.5}
-                dash={[5, 5]}
+                strokeWidth={3}
                 listening={false}
             />
 
@@ -82,10 +80,8 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     key={index}
                     x={pole.x}
                     y={pole.y}
-                    radius={6}
+                    radius={5}
                     fill={theme.palette.primary.main}
-                    stroke={theme.palette.common.white}
-                    strokeWidth={2}
                     draggable
                     onDragStart={() => handleDragStart(index)}
                     onDragMove={(e) => handleDragMove(index, e)}

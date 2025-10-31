@@ -44,6 +44,7 @@ export interface LeftToolBarProps {
   onBackgroundUpload?: (file: File) => void;
   gridConfig?: GridConfig;
   onGridChange?: (grid: GridConfig) => void;
+  sceneId?: string;
   sceneWalls?: SceneWall[];
   selectedWallIndex?: number | null;
   onWallSelect?: (wallIndex: number) => void;
@@ -65,6 +66,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onBackgroundUpload,
   gridConfig,
   onGridChange,
+  sceneId,
   sceneWalls,
   selectedWallIndex,
   onWallSelect,
@@ -188,6 +190,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           )}
           {activePanel === 'walls' && (
             <WallsPanel
+              sceneId={sceneId}
               sceneWalls={sceneWalls}
               selectedWallIndex={selectedWallIndex}
               onWallSelect={onWallSelect}

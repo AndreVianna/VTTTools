@@ -5,7 +5,9 @@ public record UpdateSceneWallRequest {
     public Optional<string> Name { get; init; } = string.Empty;
     public Optional<WallVisibility> Visibility { get; init; } = WallVisibility.Normal;
     public Optional<bool> IsClosed { get; init; }
-    [MaxLength(64)]
+    [MaxLength(32)]
     public Optional<string?> Material { get; init; }
+    [MaxLength(16)]
+    public Optional<string?> Color { get; init; }
     public Optional<List<Pole>> Poles { get; init; }
 }

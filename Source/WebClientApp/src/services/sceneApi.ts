@@ -259,6 +259,7 @@ export const sceneApi = createApi({
             visibility: WallVisibility;
             isClosed: boolean;
             material?: string;
+            color?: string;
         }>({
             query: ({ sceneId, ...body }) => ({
                 url: `/${sceneId}/walls`,
@@ -279,6 +280,7 @@ export const sceneApi = createApi({
             visibility?: WallVisibility;
             isClosed?: boolean;
             material?: string;
+            color?: string;
         }>({
             query: ({ sceneId, wallIndex, ...body }) => ({
                 url: `/${sceneId}/walls/${wallIndex}`,

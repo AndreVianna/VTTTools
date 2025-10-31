@@ -1,5 +1,5 @@
 import React from 'react';
-import { Line } from 'react-konva';
+import { Line, Circle } from 'react-konva';
 import { useTheme } from '@mui/material';
 import { type Point, type Pole, type SceneWall } from '@/types/domain';
 
@@ -19,18 +19,18 @@ export const WallPreview: React.FC<WallPreviewProps> = ({
     if (poles.length === 0) return null;
 
     const isClosed = wall?.isClosed ?? false;
-    const redColor = theme.palette.error.main;
+    const blueColor = theme.palette.primary.main;
 
     return (
         <>
-            {/* Lines between consecutive poles (3px red) */}
+            {/* Lines between consecutive poles (3px blue) */}
             {poles.slice(0, -1).map((pole, index) => {
                 const nextPole = poles[index + 1];
                 return (
                     <Line
                         key={`segment-${index}`}
                         points={[pole.x, pole.y, nextPole.x, nextPole.y]}
-                        stroke={redColor}
+                        stroke={blueColor}
                         strokeWidth={3}
                         listening={false}
                     />
@@ -47,11 +47,23 @@ export const WallPreview: React.FC<WallPreviewProps> = ({
                         poles[poles.length - 1].x,
                         poles[poles.length - 1].y
                     ]}
-                    stroke={redColor}
+                    stroke={blueColor}
                     strokeWidth={3}
                     listening={false}
                 />
             )}
+
+            {/* Poles as 5px circles (blue) */}
+            {poles.map((pole, index) => (
+                <Circle
+                    key={`pole-${index}`}
+                    x={pole.x}
+                    y={pole.y}
+                    radius={5}
+                    fill={blueColor}
+                    listening={false}
+                />
+            ))}
 
             {/* Preview line from last pole to cursor (dashed grey) */}
             {previewPoint && poles.length > 0 && (

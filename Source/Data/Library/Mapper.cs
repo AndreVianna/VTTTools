@@ -282,6 +282,7 @@ internal static class Mapper {
             Visibility = entity.Visibility,
             IsClosed = entity.IsClosed,
             Material = entity.Material,
+            Color = entity.Color,
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
@@ -293,6 +294,7 @@ internal static class Mapper {
             Visibility = entity.Visibility,
             IsClosed = entity.IsClosed,
             Material = entity.Material,
+            Color = entity.Color,
         };
 
     internal static SceneWallEntity ToEntity(this SceneWall model, Guid sceneId)
@@ -304,6 +306,7 @@ internal static class Mapper {
             Visibility = model.Visibility,
             IsClosed = model.IsClosed,
             Material = model.Material,
+            Color = model.Color,
         };
 
     internal static SceneWallEntity UpdateFrom(this SceneWallEntity entity, Guid sceneId, SceneWall model) {
@@ -314,6 +317,7 @@ internal static class Mapper {
         entity.Visibility = model.Visibility;
         entity.IsClosed = model.IsClosed;
         entity.Material = model.Material;
+        entity.Color = model.Color;
         return entity;
     }
 
