@@ -13,7 +13,7 @@ export { TokenPlacement } from './TokenPlacement';
 export { TokenDragHandle } from './TokenDragHandle';
 export { UndoRedoToolbar } from './UndoRedoToolbar';
 export { AssetContextMenu } from './AssetContextMenu';
-export { BarrierContextMenu } from './BarrierContextMenu';
+export { WallContextMenu } from './WallContextMenu';
 export { StructureToolbar } from './StructureToolbar';
 export { StructureSelectionModal } from './StructureSelectionModal';
 export { EditorStatusBar } from './EditorStatusBar';
@@ -27,8 +27,8 @@ export { BackgroundPanel, GridPanel, WallsPanel } from './panels';
 
 // Drawing components
 export {
-    BarrierDrawingTool,
-    BarrierPreview,
+    WallDrawingTool,
+    WallPreview,
     VertexMarker,
     RegionDrawingTool,
     RegionPreview,
@@ -38,7 +38,7 @@ export {
 
 // Rendering components
 export {
-    BarrierRenderer,
+    WallRenderer,
     RegionRenderer,
     RegionLabelDisplay,
     SourceRenderer,
@@ -47,7 +47,7 @@ export {
 
 // Editing components
 export {
-    BarrierTransformer
+    WallTransformer
 } from './editing';
 
 // Types
@@ -64,8 +64,8 @@ export type { PlacementCursorProps } from './PlacementCursor';
 export type { TokenPlacementProps } from './TokenPlacement';
 export type { TokenDragHandleProps } from './TokenDragHandle';
 export type {
-    BarrierDrawingToolProps,
-    BarrierPreviewProps,
+    WallDrawingToolProps,
+    WallPreviewProps,
     VertexMarkerProps,
     RegionDrawingToolProps,
     RegionPreviewProps,
@@ -73,14 +73,14 @@ export type {
     SourcePreviewProps
 } from './drawing';
 export type {
-    BarrierRendererProps,
+    WallRendererProps,
     RegionRendererProps,
     RegionLabelDisplayProps,
     SourceRendererProps,
     SourceRangeDisplayProps
 } from './rendering';
 export type {
-    BarrierTransformerProps
+    WallTransformerProps
 } from './editing';
 export type { StructureToolbarProps, DrawingMode } from './StructureToolbar';
 export type { StructureSelectionModalProps } from './StructureSelectionModal';

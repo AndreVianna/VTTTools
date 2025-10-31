@@ -10,7 +10,7 @@ export const StructureLibraryPage: React.FC = () => {
                     Structure Library
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Manage barriers, regions, and sources for your scenes
+                    Manage Walls, regions, and sources for your scenes
                 </Typography>
             </Box>
 

@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Layer } from 'react-konva';
 import type Konva from 'konva';
-import { usePlaceSceneSourceMutation } from '@/services/sourceApi';
+import { useAddSceneSourceMutation } from '@/services/sceneApi';
 import { snapToNearest, SnapMode } from '@/utils/structureSnapping';
 import { SourcePreview } from './SourcePreview';
-import type { Point, Source, SceneBarrier } from '@/types/domain';
+import type { Point, SceneSource, SceneWall } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 const MIN_RANGE = 0.5;
@@ -12,8 +12,8 @@ const MAX_RANGE = 50.0;
 
 export interface SourceDrawingToolProps {
     sceneId: string;
-    source: Source;
-    barriers: SceneBarrier[];
+    source: SceneSource;
+    walls: SceneWall[];
     gridConfig: GridConfig;
     onComplete: (success: boolean) => void;
     onCancel: () => void;
@@ -22,31 +22,31 @@ export interface SourceDrawingToolProps {
 export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
     sceneId,
     source,
-    barriers,
+    walls,
     gridConfig,
     onComplete,
     onCancel
 }) => {
     const [centerPos, setCenterPos] = useState<Point | null>(null);
     const [currentMousePos, setCurrentMousePos] = useState<Point | null>(null);
-    const [range, setRange] = useState<number>(source.defaultRange);
+    const [range, setRange] = useState<number>(source.range ?? 5.0);
     const [snapMode, setSnapMode] = useState<SnapMode>(SnapMode.HalfSnap);
     const [isPlacing, setIsPlacing] = useState<boolean>(false);
-    const [placeSource] = usePlaceSceneSourceMutation();
+    const [addSource] = useAddSceneSourceMutation();
 
     const handleFinish = useCallback(async () => {
         if (!centerPos || range < MIN_RANGE || range > MAX_RANGE) return;
 
         try {
-            await placeSource({
+            await addSource({
                 sceneId,
-                body: {
-                    sourceId: source.id,
-                    position: centerPos,
-                    range,
-                    intensity: source.defaultIntensity,
-                    isGradient: source.defaultIsGradient
-                }
+                name: source.name,
+                type: source.type,
+                position: centerPos,
+                direction: source.direction,
+                range,
+                intensity: source.intensity ?? 1.0,
+                hasGradient: source.hasGradient
             }).unwrap();
 
             onComplete(true);
@@ -54,7 +54,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
             console.error('Failed to place source:', error);
             onComplete(false);
         }
-    }, [centerPos, range, sceneId, source, placeSource, onComplete]);
+    }, [centerPos, range, sceneId, source, addSource, onComplete]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -152,7 +152,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
                     centerPos={centerPos}
                     range={range}
                     source={source}
-                    barriers={barriers}
+                    walls={walls}
                     gridConfig={gridConfig}
                 />
             )}

@@ -28,7 +28,7 @@ internal static class ContentHandlers {
             return Results.BadRequest("Limit must be between 0 and 100");
         }
 
-        if (after.HasValue && after.Value == Guid.Empty) {
+        if (after == Guid.Empty) {
             return Results.BadRequest("Invalid cursor");
         }
 

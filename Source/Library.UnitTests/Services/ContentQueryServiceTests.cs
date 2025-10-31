@@ -160,14 +160,14 @@ public class ContentQueryServiceTests : IDisposable {
 
         // Assert
         result.Data.Should().HaveCount(5);
-        result.Data.Should().OnlyContain(x => x.IsPublished == true);
+        result.Data.Should().OnlyContain(x => x.IsPublished);
     }
 
     [Fact]
     public async Task GetContentAsync_WithOwnerMine_OnlyReturnsUserAdventures() {
         // Arrange
         await SeedAdventures(5, ownerId: _userId);
-        await SeedAdventures(5, ownerId: _otherUserId, isPublic: true, isPublished: true);
+        await SeedAdventures(5, ownerId: _otherUserId, isPublished: true, isPublic: true);
 
         var filters = new ContentFilters { Owner = "mine" };
 
@@ -183,7 +183,7 @@ public class ContentQueryServiceTests : IDisposable {
     public async Task GetContentAsync_WithOwnerPublic_OnlyReturnsPublicAdventures() {
         // Arrange
         await SeedAdventures(5, ownerId: _userId, isPublic: false);
-        await SeedAdventures(5, ownerId: _otherUserId, isPublic: true, isPublished: true);
+        await SeedAdventures(5, ownerId: _otherUserId, isPublished: true, isPublic: true);
 
         var filters = new ContentFilters { Owner = "public" };
 
@@ -192,7 +192,7 @@ public class ContentQueryServiceTests : IDisposable {
 
         // Assert
         result.Data.Should().HaveCount(5);
-        result.Data.Should().OnlyContain(x => x.IsPublished == true);
+        result.Data.Should().OnlyContain(x => x.IsPublished);
         result.Data.Should().OnlyContain(x => x.OwnerId == _otherUserId);
     }
 

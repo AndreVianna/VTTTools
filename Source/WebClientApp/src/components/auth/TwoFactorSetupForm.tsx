@@ -29,9 +29,8 @@ import {
   Download,
   Close,
 } from '@mui/icons-material';
-import { useAuth } from '@/hooks/useAuth';
+import { useInitiateSetupMutation, useVerifySetupMutation } from '@/api/twoFactorApi';
 import { handleValidationError } from '@/utils/errorHandling';
-import { renderAuthError } from '@/utils/renderError';
 
 interface TwoFactorSetupFormProps {
   onComplete?: () => void;
@@ -42,7 +41,6 @@ interface SetupData {
   sharedKey: string;
   authenticatorUri: string;
   qrCodeUri: string;
-  recoveryCodes: string[];
 }
 
 export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
@@ -56,7 +54,11 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
   const [recoveryCodesSaved, setRecoveryCodesSaved] = useState(false);
 
-  const { setupTwoFactor, enableTwoFactor, isLoading, error } = useAuth();
+  const [initiateSetup, { isLoading: isInitiating, error: initiateError }] = useInitiateSetupMutation();
+  const [verifySetup, { isLoading: isVerifying, error: verifyError }] = useVerifySetupMutation();
+
+  const isLoading = isInitiating || isVerifying;
+  const error = initiateError || verifyError;
 
   const [validationErrors, setValidationErrors] = useState<{
     verificationCode?: string;
@@ -66,15 +68,23 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
   useEffect(() => {
     const initializeSetup = async () => {
       try {
-        const data = await setupTwoFactor();
-        setSetupData(data);
+        const result = await initiateSetup().unwrap();
+        if (result.success) {
+          const qrCodeUri = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(result.authenticatorUri)}`;
+
+          setSetupData({
+            sharedKey: result.sharedKey,
+            authenticatorUri: result.authenticatorUri,
+            qrCodeUri,
+          });
+        }
       } catch (_error) {
         console.error('Failed to initialize 2FA setup:', _error);
       }
     };
 
     initializeSetup();
-  }, [setupTwoFactor]);
+  }, [initiateSetup]);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -121,7 +131,10 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
     }
 
     try {
-      const result = await enableTwoFactor(verificationCode.replace(/\s/g, ''));
+      const result = await verifySetup({
+        code: verificationCode.replace(/\s/g, ''),
+      }).unwrap();
+
       if (result.success && result.recoveryCodes) {
         setRecoveryCodes(result.recoveryCodes);
         setActiveStep(2);
@@ -159,7 +172,9 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {renderAuthError(error)}
+          {'data' in error && error.data && typeof error.data === 'object' && 'message' in error.data
+            ? String(error.data.message)
+            : 'An error occurred during two-factor authentication setup'}
         </Alert>
       )}
 

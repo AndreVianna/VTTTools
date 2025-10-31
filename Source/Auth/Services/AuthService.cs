@@ -104,13 +104,13 @@ public class AuthService(
 
             return new AuthResponse {
                 Success = false,
-                Message = errors,  // Return actual Identity errors, not generic message
+                Message = errors,
             };
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error during registration for email: {Email}. Exception: {Message}", request.Email, ex.Message);
             return new AuthResponse {
-                Message = "InternalServerError",  // Include exception message for debugging
+                Message = "InternalServerError",
             };
         }
     }

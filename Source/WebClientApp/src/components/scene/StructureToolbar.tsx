@@ -7,7 +7,7 @@ import {
     Cancel as CancelIcon
 } from '@mui/icons-material';
 
-export type DrawingMode = 'barrier' | 'region' | 'source' | null;
+export type DrawingMode = 'Wall' | 'region' | 'source' | null;
 
 export interface StructureToolbarProps {
     drawingMode: DrawingMode;
@@ -32,7 +32,7 @@ export const StructureToolbar: React.FC<StructureToolbarProps> = ({
 
             if (e.key === 'w' || e.key === 'W') {
                 e.preventDefault();
-                onModeChange('barrier');
+                onModeChange('Wall');
             } else if (e.key === 'r' || e.key === 'R') {
                 e.preventDefault();
                 onModeChange('region');
@@ -64,11 +64,11 @@ export const StructureToolbar: React.FC<StructureToolbarProps> = ({
             }}
         >
             <ButtonGroup variant="contained" size="small" disabled={disabled}>
-                <Tooltip title="Draw Barrier (W)" placement="bottom">
+                <Tooltip title="Draw Wall (W)" placement="bottom">
                     <Button
-                        onClick={() => onModeChange('barrier')}
-                        color={drawingMode === 'barrier' ? 'primary' : 'inherit'}
-                        aria-label="Draw Barrier"
+                        onClick={() => onModeChange('Wall')}
+                        color={drawingMode === 'Wall' ? 'primary' : 'inherit'}
+                        aria-label="Draw Wall"
                     >
                         <WallIcon />
                     </Button>

@@ -24,13 +24,13 @@ import {
     Edit as EditIcon,
     Delete as DeleteIcon
 } from '@mui/icons-material';
-import { WallVisibility, type Barrier, type SceneBarrier } from '@/types/domain';
+import { WallVisibility, type SceneWall } from '@/types/domain';
 import { WALL_PRESETS, MATERIAL_OPTIONS, type WallPreset } from './wallsPanelTypes';
+import { ConfirmDialog } from '@/components/common';
 
 export interface WallsPanelProps {
-    barriers?: Barrier[];
-    sceneBarriers?: SceneBarrier[];
-    selectedBarrierId?: string | null;
+    sceneWalls?: SceneWall[];
+    selectedWallIndex?: number | null;
     onPresetSelect?: (preset: WallPreset) => void;
     onPlaceWall?: (properties: {
         visibility: WallVisibility;
@@ -38,21 +38,18 @@ export interface WallsPanelProps {
         material?: string;
         defaultHeight: number;
     }) => void;
-    onBarrierSelect?: (barrierId: string) => void;
-    onBarrierEdit?: (barrierId: string) => void;
-    onBarrierDelete?: (barrierId: string) => void;
-    onEditVertices?: (sceneBarrierId: string) => void;
+    onWallSelect?: (wallIndex: number) => void;
+    onWallDelete?: (wallIndex: number) => void;
+    onEditVertices?: (wallIndex: number) => void;
 }
 
-export const WallsPanel: React.FC<WallsPanelProps> = ({
-    barriers = [],
-    sceneBarriers = [],
-    selectedBarrierId,
+export const WallsPanel: React.FC<WallsPanelProps> = React.memo(({
+    sceneWalls = [],
+    selectedWallIndex,
     onPresetSelect,
     onPlaceWall,
-    onBarrierSelect,
-    onBarrierEdit,
-    onBarrierDelete,
+    onWallSelect,
+    onWallDelete,
     onEditVertices
 }) => {
     const theme = useTheme();
@@ -62,6 +59,8 @@ export const WallsPanel: React.FC<WallsPanelProps> = ({
     const [material, setMaterial] = useState<string>('Stone');
     const [customMaterial, setCustomMaterial] = useState<string>('');
     const [defaultHeight, setDefaultHeight] = useState<number>(10.0);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [wallToDelete, setWallToDelete] = useState<number | null>(null);
 
     const compactStyles = {
         sectionHeader: {
@@ -139,9 +138,8 @@ export const WallsPanel: React.FC<WallsPanelProps> = ({
         setMaterial(e.target.value);
     };
 
-    const selectedSceneBarrier = sceneBarriers.find(sb => sb.id === selectedBarrierId);
-    const selectedBarrier = selectedSceneBarrier
-        ? barriers.find(b => b.id === selectedSceneBarrier.barrierId)
+    const selectedSceneWall = selectedWallIndex !== null && selectedWallIndex !== undefined
+        ? sceneWalls.find(sw => sw.index === selectedWallIndex)
         : null;
 
     return (
@@ -245,7 +243,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = ({
             <Divider sx={{ my: 0.5 }} />
 
             <Typography variant="overline" sx={compactStyles.sectionHeader}>
-                Placed Walls ({sceneBarriers.length})
+                Placed Walls ({sceneWalls.length})
             </Typography>
 
             <List
@@ -257,7 +255,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = ({
                     borderRadius: 1
                 }}
             >
-                {sceneBarriers.length === 0 ? (
+                {sceneWalls.length === 0 ? (
                     <ListItem>
                         <ListItemText
                             primary={
@@ -268,20 +266,20 @@ export const WallsPanel: React.FC<WallsPanelProps> = ({
                         />
                     </ListItem>
                 ) : (
-                    sceneBarriers.map((sceneBarrier) => {
-                        const barrier = barriers.find(b => b.id === sceneBarrier.barrierId);
-                        if (!barrier) return null;
-
+                    sceneWalls.map((sceneWall) => {
                         return (
                             <ListItem
-                                key={sceneBarrier.id}
+                                key={sceneWall.index}
                                 disablePadding
                                 secondaryAction={
                                     <Box sx={{ display: 'flex', gap: 0.5 }}>
                                         <IconButton
                                             edge="end"
                                             size="small"
-                                            onClick={() => onBarrierEdit?.(sceneBarrier.id)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onWallSelect?.(sceneWall.index);
+                                            }}
                                             sx={{ width: 24, height: 24 }}
                                         >
                                             <EditIcon sx={{ fontSize: 14 }} />
@@ -289,7 +287,11 @@ export const WallsPanel: React.FC<WallsPanelProps> = ({
                                         <IconButton
                                             edge="end"
                                             size="small"
-                                            onClick={() => onBarrierDelete?.(sceneBarrier.id)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setWallToDelete(sceneWall.index);
+                                                setDeleteConfirmOpen(true);
+                                            }}
                                             sx={{ width: 24, height: 24, color: theme.palette.error.main }}
                                         >
                                             <DeleteIcon sx={{ fontSize: 14 }} />
@@ -298,14 +300,14 @@ export const WallsPanel: React.FC<WallsPanelProps> = ({
                                 }
                             >
                                 <ListItemButton
-                                    selected={selectedBarrierId === sceneBarrier.id}
-                                    onClick={() => onBarrierSelect?.(sceneBarrier.id)}
+                                    selected={selectedWallIndex === sceneWall.index}
+                                    onClick={() => onWallSelect?.(sceneWall.index)}
                                     sx={{ py: 0.5, pr: 10 }}
                                 >
                                     <ListItemText
-                                        primary={barrier.name}
+                                        primary={sceneWall.name}
                                         primaryTypographyProps={{ fontSize: '10px' }}
-                                        secondary={`${barrier.material || 'Unknown'} - ${barrier.poles.length} poles`}
+                                        secondary={`${sceneWall.material || 'Unknown'} - ${sceneWall.poles.length} poles`}
                                         secondaryTypographyProps={{ fontSize: '8px' }}
                                     />
                                 </ListItemButton>
@@ -315,43 +317,23 @@ export const WallsPanel: React.FC<WallsPanelProps> = ({
                 )}
             </List>
 
-            {selectedBarrier && selectedSceneBarrier && (
-                <>
-                    <Divider sx={{ my: 0.5 }} />
 
-                    <Typography variant="overline" sx={compactStyles.sectionHeader}>
-                        Selected Wall
-                    </Typography>
-
-                    <Typography sx={{ fontSize: '11px', fontWeight: 600 }}>
-                        {selectedBarrier.name}
-                    </Typography>
-
-                    <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
-                        {selectedBarrier.visibility === WallVisibility.Normal && 'Normal (blocks sight)'}
-                        {selectedBarrier.visibility === WallVisibility.Fence && 'Fence (see through)'}
-                        {selectedBarrier.visibility === WallVisibility.Invisible && 'Invisible barrier'}
-                        {selectedBarrier.isClosed && ', Closed'}
-                    </Typography>
-
-                    <Button
-                        variant="outlined"
-                        onClick={() => onEditVertices?.(selectedSceneBarrier.id)}
-                        sx={compactStyles.button}
-                    >
-                        Edit Vertices
-                    </Button>
-
-                    <Button
-                        variant="contained"
-                        color="error"
-                        onClick={() => onBarrierDelete?.(selectedSceneBarrier.id)}
-                        sx={compactStyles.button}
-                    >
-                        Delete
-                    </Button>
-                </>
-            )}
+            <ConfirmDialog
+                open={deleteConfirmOpen}
+                title="Delete Wall"
+                message="Are you sure you want to delete this wall? This action cannot be undone."
+                onConfirm={() => {
+                    if (wallToDelete !== null) {
+                        onWallDelete?.(wallToDelete);
+                    }
+                    setDeleteConfirmOpen(false);
+                    setWallToDelete(null);
+                }}
+                onCancel={() => {
+                    setDeleteConfirmOpen(false);
+                    setWallToDelete(null);
+                }}
+            />
         </Box>
     );
-};
+});

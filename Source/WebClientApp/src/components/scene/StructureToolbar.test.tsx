@@ -8,7 +8,7 @@ describe('StructureToolbar', () => {
         const onModeChange = vi.fn();
         render(<StructureToolbar drawingMode={null} onModeChange={onModeChange} />);
 
-        expect(screen.getByLabelText('Draw Barrier')).toBeInTheDocument();
+        expect(screen.getByLabelText('Draw Wall')).toBeInTheDocument();
         expect(screen.getByLabelText('Draw Region')).toBeInTheDocument();
         expect(screen.getByLabelText('Place Light Source')).toBeInTheDocument();
         expect(screen.getByLabelText('Cancel')).toBeInTheDocument();
@@ -17,24 +17,24 @@ describe('StructureToolbar', () => {
     it('should highlight active drawing mode button', () => {
         const onModeChange = vi.fn();
         const { rerender } = render(
-            <StructureToolbar drawingMode="barrier" onModeChange={onModeChange} />
+            <StructureToolbar drawingMode="Wall" onModeChange={onModeChange} />
         );
 
-        const barrierButton = screen.getByLabelText('Draw Barrier');
-        expect(barrierButton).toHaveAttribute('color', 'primary');
+        const WallButton = screen.getByLabelText('Draw Wall');
+        expect(WallButton).toHaveAttribute('color', 'primary');
 
         rerender(<StructureToolbar drawingMode="region" onModeChange={onModeChange} />);
         const regionButton = screen.getByLabelText('Draw Region');
         expect(regionButton).toHaveAttribute('color', 'primary');
     });
 
-    it('should call onModeChange when barrier button clicked', () => {
+    it('should call onModeChange when Wall button clicked', () => {
         const onModeChange = vi.fn();
         render(<StructureToolbar drawingMode={null} onModeChange={onModeChange} />);
 
-        fireEvent.click(screen.getByLabelText('Draw Barrier'));
+        fireEvent.click(screen.getByLabelText('Draw Wall'));
 
-        expect(onModeChange).toHaveBeenCalledWith('barrier');
+        expect(onModeChange).toHaveBeenCalledWith('Wall');
     });
 
     it('should call onModeChange when region button clicked', () => {
@@ -57,7 +57,7 @@ describe('StructureToolbar', () => {
 
     it('should call onModeChange when cancel button clicked', () => {
         const onModeChange = vi.fn();
-        render(<StructureToolbar drawingMode="barrier" onModeChange={onModeChange} />);
+        render(<StructureToolbar drawingMode="Wall" onModeChange={onModeChange} />);
 
         fireEvent.click(screen.getByLabelText('Cancel'));
 
@@ -72,13 +72,13 @@ describe('StructureToolbar', () => {
         expect(cancelButton).toBeDisabled();
     });
 
-    it('should activate barrier mode with W key', () => {
+    it('should activate Wall mode with W key', () => {
         const onModeChange = vi.fn();
         render(<StructureToolbar drawingMode={null} onModeChange={onModeChange} />);
 
         fireEvent.keyDown(window, { key: 'w' });
 
-        expect(onModeChange).toHaveBeenCalledWith('barrier');
+        expect(onModeChange).toHaveBeenCalledWith('Wall');
     });
 
     it('should activate region mode with R key', () => {
@@ -101,7 +101,7 @@ describe('StructureToolbar', () => {
 
     it('should cancel drawing mode with Escape key', () => {
         const onModeChange = vi.fn();
-        render(<StructureToolbar drawingMode="barrier" onModeChange={onModeChange} />);
+        render(<StructureToolbar drawingMode="Wall" onModeChange={onModeChange} />);
 
         fireEvent.keyDown(window, { key: 'Escape' });
 
@@ -112,7 +112,7 @@ describe('StructureToolbar', () => {
         const onModeChange = vi.fn();
         render(<StructureToolbar drawingMode={null} onModeChange={onModeChange} disabled={true} />);
 
-        expect(screen.getByLabelText('Draw Barrier')).toBeDisabled();
+        expect(screen.getByLabelText('Draw Wall')).toBeDisabled();
         expect(screen.getByLabelText('Draw Region')).toBeDisabled();
         expect(screen.getByLabelText('Place Light Source')).toBeDisabled();
         expect(screen.getByLabelText('Cancel')).toBeDisabled();

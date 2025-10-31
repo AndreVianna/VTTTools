@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { SourceDrawingTool, type SourceDrawingToolProps } from './SourceDrawingTool';
 import { sourceApi } from '@/services/sourceApi';
-import type { Source, SceneBarrier } from '@/types/domain';
+import type { Source, SceneWall } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 const mockSource: Source = {
@@ -27,7 +27,7 @@ const mockGridConfig: GridConfig = {
     snap: true
 };
 
-const mockBarriers: SceneBarrier[] = [];
+const mockWalls: SceneWall[] = [];
 
 const createMockStore = () => {
     return configureStore({
@@ -48,7 +48,7 @@ describe('SourceDrawingTool', () => {
     const defaultProps: SourceDrawingToolProps = {
         sceneId: 'scene-1',
         source: mockSource,
-        barriers: mockBarriers,
+        Walls: mockWalls,
         gridConfig: mockGridConfig,
         onComplete: vi.fn(),
         onCancel: vi.fn()
@@ -132,12 +132,12 @@ describe('SourceDrawingTool', () => {
         expect(customSource.sourceType).toBe('Smell');
     });
 
-    it('should accept barriers prop', () => {
-        const barriers: SceneBarrier[] = [
+    it('should accept Walls prop', () => {
+        const Walls: SceneWall[] = [
             {
-                id: 'barrier-1',
+                id: 'Wall-1',
                 sceneId: 'scene-1',
-                barrierId: 'b1',
+                WallId: 'b1',
                 vertices: [
                     { x: 0, y: 0 },
                     { x: 100, y: 0 }
@@ -145,8 +145,8 @@ describe('SourceDrawingTool', () => {
             }
         ];
 
-        renderWithProvider(<SourceDrawingTool {...defaultProps} barriers={barriers} />);
-        expect(barriers).toHaveLength(1);
+        renderWithProvider(<SourceDrawingTool {...defaultProps} Walls={Walls} />);
+        expect(Walls).toHaveLength(1);
     });
 
     it('should handle gradient source', () => {

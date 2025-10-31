@@ -1,3 +1,3 @@
-export { BarrierTransformer } from './BarrierTransformer';
+export { WallTransformer } from './WallTransformer';
 
-export type { BarrierTransformerProps } from './BarrierTransformer';
+export type { WallTransformerProps } from './WallTransformer';

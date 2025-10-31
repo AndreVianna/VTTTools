@@ -3,14 +3,14 @@ import { Circle, Shape, Text } from 'react-konva';
 import { useTheme } from '@mui/material';
 import { calculateLineOfSight } from '@/utils/lineOfSightCalculation';
 import { VertexMarker } from './VertexMarker';
-import type { Point, Source, SceneBarrier, SceneSource } from '@/types/domain';
+import type { Point, SceneWall, SceneSource } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface SourcePreviewProps {
     centerPos: Point;
     range: number;
-    source: Source;
-    barriers: SceneBarrier[];
+    source: SceneSource;
+    walls: SceneWall[];
     gridConfig: GridConfig;
 }
 
@@ -29,28 +29,30 @@ export const SourcePreview: React.FC<SourcePreviewProps> = ({
     centerPos,
     range,
     source,
-    barriers,
+    walls,
     gridConfig
 }) => {
     const theme = useTheme();
-    const color = getSourceColor(source.sourceType, theme);
+    const color = getSourceColor(source.type, theme);
 
-    const opaqueBarriers = useMemo(() => {
-        return barriers.filter(b => b.isOpen !== true);
-    }, [barriers]);
+    const opaqueWalls = useMemo(() => {
+        return walls.filter(w => w.visibility !== 'Invisible');
+    }, [walls]);
 
     const losPolygon = useMemo(() => {
         const tempSource: SceneSource = {
-            id: 'preview',
             sceneId: 'preview',
-            sourceId: source.id,
+            index: -1,
+            name: source.name,
+            type: source.type,
             position: centerPos,
+            direction: source.direction,
             range,
-            intensity: source.defaultIntensity,
-            isGradient: source.defaultIsGradient
+            intensity: source.intensity ?? 1.0,
+            hasGradient: source.hasGradient
         };
-        return calculateLineOfSight(tempSource, range, opaqueBarriers, gridConfig);
-    }, [centerPos, range, opaqueBarriers, gridConfig, source.id, source.defaultIntensity, source.defaultIsGradient]);
+        return calculateLineOfSight(tempSource, range, opaqueWalls, gridConfig);
+    }, [centerPos, range, opaqueWalls, gridConfig, source]);
 
     const rangeInPixels = range * gridConfig.cellSize.width;
 
@@ -79,7 +81,7 @@ export const SourcePreview: React.FC<SourcePreviewProps> = ({
                     context.closePath();
 
                     context.fillStyle = color;
-                    context.globalAlpha = source.defaultIsGradient ? 0.3 : 0.2;
+                    context.globalAlpha = source.hasGradient ? 0.3 : 0.2;
                     context.fill();
                 }}
                 listening={false}

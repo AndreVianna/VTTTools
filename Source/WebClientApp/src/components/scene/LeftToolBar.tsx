@@ -18,7 +18,7 @@ import {
 } from '@mui/icons-material';
 import { BackgroundPanel, GridPanel, WallsPanel } from './panels';
 import { GridConfig } from '@/utils/gridCalculator';
-import type { Barrier, SceneBarrier, WallVisibility } from '@/types/domain';
+import type { SceneWall, WallVisibility } from '@/types/domain';
 
 export type PanelType =
   | 'background'
@@ -37,56 +37,55 @@ export type PanelType =
   | 'fogOfWar';
 
 export interface LeftToolBarProps {
+  activePanel?: string | null;
   onPanelChange?: (panel: PanelType | null) => void;
   backgroundUrl?: string;
   isUploadingBackground?: boolean;
   onBackgroundUpload?: (file: File) => void;
   gridConfig?: GridConfig;
   onGridChange?: (grid: GridConfig) => void;
-  barriers?: Barrier[];
-  sceneBarriers?: SceneBarrier[];
-  selectedBarrierId?: string | null;
-  onBarrierSelect?: (barrierId: string) => void;
-  onBarrierEdit?: (barrierId: string) => void;
-  onBarrierDelete?: (barrierId: string) => void;
+  sceneWalls?: SceneWall[];
+  selectedWallIndex?: number | null;
+  onWallSelect?: (wallIndex: number) => void;
+  onWallDelete?: (wallIndex: number) => void;
   onPlaceWall?: (properties: {
     visibility: WallVisibility;
     isClosed: boolean;
     material?: string;
     defaultHeight: number;
   }) => void;
-  onEditVertices?: (sceneBarrierId: string) => void;
+  onEditVertices?: (wallIndex: number) => void;
 }
 
 export const LeftToolBar: React.FC<LeftToolBarProps> = ({
+  activePanel: externalActivePanel,
   onPanelChange,
   backgroundUrl,
   isUploadingBackground,
   onBackgroundUpload,
   gridConfig,
   onGridChange,
-  barriers,
-  sceneBarriers,
-  selectedBarrierId,
-  onBarrierSelect,
-  onBarrierEdit,
-  onBarrierDelete,
+  sceneWalls,
+  selectedWallIndex,
+  onWallSelect,
+  onWallDelete,
   onPlaceWall,
   onEditVertices
 }) => {
   const theme = useTheme();
-  const [expanded, setExpanded] = useState(false);
-  const [activePanel, setActivePanel] = useState<PanelType | null>(null);
+  const [internalActivePanel, setInternalActivePanel] = useState<PanelType | null>(null);
+
+  const activePanel = externalActivePanel !== undefined ? (externalActivePanel as PanelType | null) : internalActivePanel;
+  const expanded = activePanel !== null;
 
   const handlePanelClick = (panel: PanelType) => {
-    if (activePanel === panel && expanded) {
-      setExpanded(false);
-      setActivePanel(null);
-      onPanelChange?.(null);
+    const newPanel = (activePanel === panel) ? null : panel;
+
+    if (externalActivePanel !== undefined) {
+      onPanelChange?.(newPanel);
     } else {
-      setExpanded(true);
-      setActivePanel(panel);
-      onPanelChange?.(panel);
+      setInternalActivePanel(newPanel);
+      onPanelChange?.(newPanel);
     }
   };
 
@@ -189,12 +188,10 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           )}
           {activePanel === 'walls' && (
             <WallsPanel
-              barriers={barriers}
-              sceneBarriers={sceneBarriers}
-              selectedBarrierId={selectedBarrierId}
-              onBarrierSelect={onBarrierSelect}
-              onBarrierEdit={onBarrierEdit}
-              onBarrierDelete={onBarrierDelete}
+              sceneWalls={sceneWalls}
+              selectedWallIndex={selectedWallIndex}
+              onWallSelect={onWallSelect}
+              onWallDelete={onWallDelete}
               onPlaceWall={onPlaceWall}
               onEditVertices={onEditVertices}
             />

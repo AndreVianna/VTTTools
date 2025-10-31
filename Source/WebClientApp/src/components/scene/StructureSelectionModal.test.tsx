@@ -7,7 +7,7 @@ import { StructureSelectionModal } from './StructureSelectionModal';
 const createMockStore = () => {
     return configureStore({
         reducer: {
-            barrierApi: (state = {}) => state,
+            WallApi: (state = {}) => state,
             regionApi: (state = {}) => state,
             sourceApi: (state = {}) => state,
         },
@@ -19,7 +19,7 @@ const createMockStore = () => {
 };
 
 describe('StructureSelectionModal', () => {
-    it('should render barrier title when mode is barrier', () => {
+    it('should render Wall title when mode is Wall', () => {
         const store = createMockStore();
         const onSelect = vi.fn();
         const onCancel = vi.fn();
@@ -28,14 +28,14 @@ describe('StructureSelectionModal', () => {
             <Provider store={store}>
                 <StructureSelectionModal
                     open={true}
-                    mode="barrier"
+                    mode="Wall"
                     onSelect={onSelect}
                     onCancel={onCancel}
                 />
             </Provider>
         );
 
-        expect(screen.getByText('Select Barrier')).toBeInTheDocument();
+        expect(screen.getByText('Select Wall')).toBeInTheDocument();
     });
 
     it('should render region title when mode is region', () => {
@@ -85,7 +85,7 @@ describe('StructureSelectionModal', () => {
             <Provider store={store}>
                 <StructureSelectionModal
                     open={true}
-                    mode="barrier"
+                    mode="Wall"
                     onSelect={onSelect}
                     onCancel={onCancel}
                 />
@@ -106,13 +106,13 @@ describe('StructureSelectionModal', () => {
             <Provider store={store}>
                 <StructureSelectionModal
                     open={false}
-                    mode="barrier"
+                    mode="Wall"
                     onSelect={onSelect}
                     onCancel={onCancel}
                 />
             </Provider>
         );
 
-        expect(screen.queryByText('Select Barrier')).not.toBeInTheDocument();
+        expect(screen.queryByText('Select Wall')).not.toBeInTheDocument();
     });
 });

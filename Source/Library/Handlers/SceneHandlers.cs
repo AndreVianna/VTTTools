@@ -116,13 +116,13 @@ internal static class SceneHandlers {
     internal static async Task<IResult> BulkUpdateAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] BulkUpdateSceneAssetsRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var data = new BulkUpdateAssetsData {
-            Updates = request.Updates.Select(u => new SceneAssetUpdateData {
+            Updates = [.. request.Updates.Select(u => new SceneAssetUpdateData {
                 Index = u.Index,
                 Position = u.Position,
                 Size = u.Size,
                 Rotation = u.Rotation,
                 Elevation = u.Elevation,
-            }).ToList()
+            })]
         };
         var result = await sceneService.BulkUpdateAssetsAsync(userId, id, data);
         return result.IsSuccessful
@@ -160,7 +160,7 @@ internal static class SceneHandlers {
 
     internal static async Task<IResult> BulkAddAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] BulkAddSceneAssetsRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var assetsToAdd = request.Assets.Select(a => new AssetToAdd(
+        var assetsToAdd = request.Assets.ConvertAll(a => new AssetToAdd(
             a.AssetId,
             new AddSceneAssetData {
                 Name = a.Name,
@@ -172,7 +172,7 @@ internal static class SceneHandlers {
                 Rotation = a.Rotation,
                 Elevation = a.Elevation
             }
-        )).ToList();
+        ));
         var result = await sceneService.BulkAddAssetsAsync(userId, id, assetsToAdd);
         return result.IsSuccessful
             ? Results.NoContent()
@@ -198,6 +198,186 @@ internal static class SceneHandlers {
     internal static async Task<IResult> DeleteSceneHandler(HttpContext context, [FromRoute] Guid id, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var result = await sceneService.DeleteSceneAsync(userId, id);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> AddWallHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddSceneWallRequest request, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var data = new AddSceneWallData {
+            Name = request.Name,
+            Poles = request.Poles,
+            Visibility = request.Visibility,
+            IsClosed = request.IsClosed,
+            Material = request.Material,
+        };
+        var result = await sceneService.AddWallAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.Ok(new SceneWallResponse {
+                Index = result.Value.Index,
+                Name = result.Value.Name,
+                Poles = result.Value.Poles.ToList(),
+                Visibility = result.Value.Visibility,
+                IsClosed = result.Value.IsClosed,
+                Material = result.Value.Material
+            })
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> UpdateWallHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] UpdateSceneWallRequest request, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var data = new UpdateSceneWallData {
+            Name = request.Name,
+            Poles = request.Poles,
+            Visibility = request.Visibility,
+            IsClosed = request.IsClosed,
+            Material = request.Material,
+        };
+        var result = await sceneService.UpdateWallAsync(userId, id, (uint)index, data);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> RemoveWallHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var result = await sceneService.RemoveWallAsync(userId, id, (uint)index);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> AddRegionHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddSceneRegionRequest request, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var data = new AddSceneRegionData {
+            Name = request.Name,
+            Type = request.Type,
+            Vertices = request.Vertices,
+            Value = request.Value,
+            Label = request.Label,
+            Color = request.Color,
+        };
+        var result = await sceneService.AddRegionAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.Ok(new SceneRegionResponse {
+                Index = result.Value.Index,
+                Name = result.Value.Name,
+                Type = result.Value.Type,
+                Vertices = [.. result.Value.Vertices],
+                Value = result.Value.Value,
+                Label = result.Value.Label,
+                Color = result.Value.Color,
+            })
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> UpdateRegionHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] UpdateSceneRegionRequest request, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var data = new UpdateSceneRegionData {
+            Name = request.Name,
+            Type = request.Type,
+            Vertices = request.Vertices,
+            Value = request.Value,
+            Label = request.Label,
+            Color = request.Color,
+        };
+        var result = await sceneService.UpdateRegionAsync(userId, id, (uint)index, data);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> RemoveRegionHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var result = await sceneService.RemoveRegionAsync(userId, id, (uint)index);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> AddSourceHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddSceneSourceRequest request, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var data = new AddSceneSourceData {
+            Name = request.Name,
+            Type = request.Type,
+            Position = request.Position,
+            Direction = request.Direction,
+            Range = request.Range,
+            Intensity = request.Intensity,
+            HasGradient = request.HasGradient,
+        };
+        var result = await sceneService.AddSourceAsync(userId, id, data);
+        return result.IsSuccessful
+            ? Results.Ok(new SceneSourceResponse {
+                Index = result.Value.Index,
+                Name = result.Value.Name,
+                Type = result.Value.Type,
+                Position = result.Value.Position,
+                Direction = result.Value.Direction,
+                Range = result.Value.Range,
+                Intensity = result.Value.Intensity,
+                HasGradient = result.Value.HasGradient,
+            })
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> UpdateSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] UpdateSceneSourceRequest request, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var data = new UpdateSceneSourceData {
+            Name = request.Name,
+            Type = request.Type,
+            Position = request.Position,
+            Direction = request.Direction,
+            Range = request.Range,
+            Intensity = request.Intensity,
+            HasGradient = request.HasGradient,
+        };
+        var result = await sceneService.UpdateSourceAsync(userId, id, (uint)index, data);
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
+                ? Results.NotFound()
+                : result.Errors[0].Message == "NotAllowed"
+                    ? Results.Forbid()
+                    : Results.ValidationProblem(result.Errors.GroupedBySource());
+    }
+
+    internal static async Task<IResult> RemoveSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromServices] ISceneService sceneService) {
+        var userId = context.User.GetUserId();
+        var result = await sceneService.RemoveSourceAsync(userId, id, (uint)index);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"

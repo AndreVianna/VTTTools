@@ -23,7 +23,7 @@ public class GuidEncodingVerification {
             Console.WriteLine($"GUID: {guid}");
             Console.WriteLine($"Bytes: [{string.Join(", ", bytes.Select(b => $"0x{b:X2}"))}]");
             Console.WriteLine($"Base64URL: {base64Url}");
-            Console.WriteLine($"TypeScript test case:");
+            Console.WriteLine("TypeScript test case:");
             Console.WriteLine($"  {{ guid: '{guid}', expectedBase64Url: '{base64Url}' }},");
             Console.WriteLine();
         }

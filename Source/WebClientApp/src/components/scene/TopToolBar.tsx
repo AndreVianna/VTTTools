@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, IconButton, Tooltip, ButtonGroup, Collapse, useTheme } from '@mui/material';
 import {
-  BorderStyle as BarrierIcon,
+  BorderStyle as WallIcon,
   Polyline as RegionIcon,
   Lightbulb as LightIcon,
   Undo as UndoIcon,
@@ -66,21 +66,21 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
           }}
         >
           <ButtonGroup variant="contained" size="small" sx={{ height: 28 }}>
-            <Tooltip title="Barrier (W)">
+            <Tooltip title="Wall (W)">
               <IconButton
                 size="small"
-                onClick={() => onDrawingModeChange?.('barrier')}
+                onClick={() => onDrawingModeChange?.('Wall')}
                 sx={{
                   width: 28,
                   height: 28,
-                  backgroundColor: drawingMode === 'barrier' ? theme.palette.primary.main : theme.palette.action.hover,
-                  color: drawingMode === 'barrier' ? theme.palette.primary.contrastText : theme.palette.text.primary,
+                  backgroundColor: drawingMode === 'Wall' ? theme.palette.primary.main : theme.palette.action.hover,
+                  color: drawingMode === 'Wall' ? theme.palette.primary.contrastText : theme.palette.text.primary,
                   '&:hover': {
-                    backgroundColor: drawingMode === 'barrier' ? theme.palette.primary.dark : theme.palette.action.selected
+                    backgroundColor: drawingMode === 'Wall' ? theme.palette.primary.dark : theme.palette.action.selected
                   }
                 }}
               >
-                <BarrierIcon sx={{ fontSize: 16 }} />
+                <WallIcon sx={{ fontSize: 16 }} />
               </IconButton>
             </Tooltip>
 

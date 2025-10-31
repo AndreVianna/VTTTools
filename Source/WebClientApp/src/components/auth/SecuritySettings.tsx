@@ -32,9 +32,13 @@ import { TwoFactorSetupForm } from './TwoFactorSetupForm';
 import { RecoveryCodesManager } from './RecoveryCodesManager';
 import { handleValidationError } from '@/utils/errorHandling';
 import { renderAuthError } from '@/utils/renderError';
+import { useChangePasswordMutation } from '@/api/securityApi';
+import { useDisableTwoFactorMutation } from '@/api/twoFactorApi';
 
 export const SecuritySettings: React.FC = () => {
-  const { user, changePassword, disableTwoFactor, isLoading, error } = useAuth();
+  const { user, error } = useAuth();
+  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
+  const [disableTwoFactor, { isLoading: isDisabling2FA }] = useDisableTwoFactorMutation();
 
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [showTwoFactorSetup, setShowTwoFactorSetup] = useState(false);
@@ -125,15 +129,18 @@ export const SecuritySettings: React.FC = () => {
     }
 
     try {
-      await changePassword(
-        passwordData.currentPassword,
-        passwordData.newPassword,
-        passwordData.confirmPassword
-      );
-      setShowPasswordChange(false);
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setValidationErrors({});
-    } catch (_error) {
+      const result = await changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword,
+      }).unwrap();
+
+      if (result.success) {
+        setShowPasswordChange(false);
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setValidationErrors({});
+      }
+    } catch (error) {
       console.error('Failed to change password:', error);
     }
   };
@@ -148,11 +155,16 @@ export const SecuritySettings: React.FC = () => {
     }
 
     try {
-      await disableTwoFactor(disablePassword);
-      setShowDisable2FA(false);
-      setDisablePassword('');
-      setValidationErrors({});
-    } catch (_error) {
+      const result = await disableTwoFactor({
+        password: disablePassword,
+      }).unwrap();
+
+      if (result.success) {
+        setShowDisable2FA(false);
+        setDisablePassword('');
+        setValidationErrors({});
+      }
+    } catch (error) {
       console.error('Failed to disable 2FA:', error);
     }
   };
@@ -339,9 +351,9 @@ export const SecuritySettings: React.FC = () => {
           <Button
             variant="contained"
             onClick={handlePasswordChange}
-            disabled={isLoading}
+            disabled={isChangingPassword}
           >
-            {isLoading ? <CircularProgress size={20} /> : 'Change Password'}
+            {isChangingPassword ? <CircularProgress size={20} /> : 'Change Password'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -419,9 +431,9 @@ export const SecuritySettings: React.FC = () => {
             variant="contained"
             color="error"
             onClick={handleDisableTwoFactor}
-            disabled={isLoading}
+            disabled={isDisabling2FA}
           >
-            {isLoading ? <CircularProgress size={20} /> : 'Disable 2FA'}
+            {isDisabling2FA ? <CircularProgress size={20} /> : 'Disable 2FA'}
           </Button>
         </DialogActions>
       </Dialog>

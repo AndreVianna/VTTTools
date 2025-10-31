@@ -42,7 +42,7 @@ public interface ISceneStorage {
     /// <summary>
     /// Updates a scene asset.
     /// </summary>
-    Task<bool> UpdateAsync(SceneAsset sceneAsset, Guid sceneId, CancellationToken ct = default);
+    Task<bool> UpdateAsync(Guid id, SceneAsset sceneAsset, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes a scene template.
@@ -50,62 +50,62 @@ public interface ISceneStorage {
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
-    /// Retrieves a scene barrier by its ID.
+    /// Retrieves a scene Wall by its ID.
     /// </summary>
-    Task<SceneBarrier?> GetSceneBarrierByIdAsync(Guid id, CancellationToken ct = default);
+    Task<SceneWall?> GetWallByIdAsync(Guid id, uint index, CancellationToken ct = default);
 
     /// <summary>
-    /// Adds a scene barrier to a scene.
+    /// Adds a scene Wall to a scene.
     /// </summary>
-    Task<bool> AddSceneBarrierAsync(SceneBarrier sceneBarrier, Guid sceneId, CancellationToken ct = default);
+    Task<bool> AddWallAsync(Guid id, SceneWall sceneWall, CancellationToken ct = default);
 
     /// <summary>
-    /// Updates a scene barrier.
+    /// Updates a scene Wall.
     /// </summary>
-    Task<bool> UpdateSceneBarrierAsync(SceneBarrier sceneBarrier, CancellationToken ct = default);
+    Task<bool> UpdateWallAsync(Guid id, SceneWall sceneWall, CancellationToken ct = default);
 
     /// <summary>
-    /// Deletes a scene barrier.
+    /// Deletes a scene Wall.
     /// </summary>
-    Task<bool> DeleteSceneBarrierAsync(Guid id, CancellationToken ct = default);
+    Task<bool> DeleteWallAsync(Guid id, uint index, CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves a scene region by its ID.
     /// </summary>
-    Task<SceneRegion?> GetSceneRegionByIdAsync(Guid id, CancellationToken ct = default);
+    Task<SceneRegion?> GetRegionByIdAsync(Guid id, uint index, CancellationToken ct = default);
 
     /// <summary>
     /// Adds a scene region to a scene.
     /// </summary>
-    Task<bool> AddSceneRegionAsync(SceneRegion sceneRegion, Guid sceneId, CancellationToken ct = default);
+    Task<bool> AddRegionAsync(Guid id, SceneRegion sceneRegion, CancellationToken ct = default);
 
     /// <summary>
     /// Updates a scene region.
     /// </summary>
-    Task<bool> UpdateSceneRegionAsync(SceneRegion sceneRegion, CancellationToken ct = default);
+    Task<bool> UpdateRegionAsync(Guid id, SceneRegion sceneRegion, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes a scene region.
     /// </summary>
-    Task<bool> DeleteSceneRegionAsync(Guid id, CancellationToken ct = default);
+    Task<bool> DeleteRegionAsync(Guid id, uint index, CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves a scene source by its ID.
     /// </summary>
-    Task<SceneSource?> GetSceneSourceByIdAsync(Guid id, CancellationToken ct = default);
+    Task<SceneSource?> GetSourceByIdAsync(Guid id, uint index, CancellationToken ct = default);
 
     /// <summary>
     /// Adds a scene source to a scene.
     /// </summary>
-    Task<bool> AddSceneSourceAsync(SceneSource sceneSource, Guid sceneId, CancellationToken ct = default);
+    Task<bool> AddSourceAsync(Guid id, SceneSource sceneSource, CancellationToken ct = default);
 
     /// <summary>
     /// Updates a scene source.
     /// </summary>
-    Task<bool> UpdateSceneSourceAsync(SceneSource sceneSource, CancellationToken ct = default);
+    Task<bool> UpdateSourceAsync(Guid id, SceneSource sceneSource, CancellationToken ct = default);
 
     /// <summary>
     /// Deletes a scene source.
     /// </summary>
-    Task<bool> DeleteSceneSourceAsync(Guid id, CancellationToken ct = default);
+    Task<bool> DeleteSourceAsync(Guid id, uint index, CancellationToken ct = default);
 }

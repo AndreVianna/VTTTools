@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Layer } from 'react-konva';
 import type Konva from 'konva';
-import { usePlaceSceneRegionMutation } from '@/services/regionApi';
+import { useAddSceneRegionMutation } from '@/services/sceneApi';
 import { snapToNearest, SnapMode } from '@/utils/structureSnapping';
 import { VertexMarker } from './VertexMarker';
 import { RegionPreview } from './RegionPreview';
-import type { Point, Region } from '@/types/domain';
+import type { Point, SceneRegion } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface RegionDrawingToolProps {
     sceneId: string;
-    region: Region;
+    region: SceneRegion;
     gridConfig: GridConfig;
     onComplete: (success: boolean) => void;
     onCancel: () => void;
@@ -26,19 +26,20 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
     const [vertices, setVertices] = useState<Point[]>([]);
     const [previewVertex, setPreviewVertex] = useState<Point | null>(null);
     const [snapMode, setSnapMode] = useState<SnapMode>(SnapMode.HalfSnap);
-    const [placeRegion] = usePlaceSceneRegionMutation();
+    const [addRegion] = useAddSceneRegionMutation();
 
     const handleFinish = useCallback(async () => {
         if (vertices.length < 3) return;
 
         try {
-            await placeRegion({
+            await addRegion({
                 sceneId,
-                body: {
-                    regionId: region.id,
-                    vertices,
-                    value: 0
-                }
+                name: region.name,
+                type: region.type,
+                vertices,
+                value: region.value ?? 0,
+                label: region.label,
+                color: region.color
             }).unwrap();
 
             onComplete(true);
@@ -46,7 +47,7 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
             console.error('Failed to place region:', error);
             onComplete(false);
         }
-    }, [vertices, sceneId, region.id, placeRegion, onComplete]);
+    }, [vertices, sceneId, region, addRegion, onComplete]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {

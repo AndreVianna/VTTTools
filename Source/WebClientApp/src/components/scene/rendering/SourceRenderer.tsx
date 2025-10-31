@@ -2,13 +2,13 @@ import React, { useMemo } from 'react';
 import { Shape } from 'react-konva';
 import { useTheme } from '@mui/material';
 import { calculateLineOfSight } from '@/utils/lineOfSightCalculation';
-import type { SceneSource, Source, SceneBarrier } from '@/types/domain';
+import type { SceneSource, SceneWall } from '@/types/domain';
+import { WallVisibility } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface SourceRendererProps {
     sceneSource: SceneSource;
-    source: Source;
-    barriers: SceneBarrier[];
+    walls: SceneWall[];
     gridConfig: GridConfig;
 }
 
@@ -25,24 +25,23 @@ const getSourceColor = (sourceType: string, theme: ReturnType<typeof useTheme>):
 
 export const SourceRenderer: React.FC<SourceRendererProps> = ({
     sceneSource,
-    source,
-    barriers,
+    walls,
     gridConfig
 }) => {
     const theme = useTheme();
-    const color = getSourceColor(source.sourceType, theme);
+    const color = getSourceColor(sceneSource.type, theme);
 
-    const opaqueBarriers = useMemo(() => {
-        return barriers.filter(b => b.isOpen !== true);
-    }, [barriers]);
+    const opaqueWalls = useMemo(() => {
+        return walls.filter(w => w.visibility !== WallVisibility.Invisible);
+    }, [walls]);
 
-    const effectiveRange = sceneSource.range;
-    const effectiveIntensity = sceneSource.intensity;
-    const effectiveIsGradient = sceneSource.isGradient;
+    const effectiveRange = sceneSource.range ?? 5.0;
+    const effectiveIntensity = sceneSource.intensity ?? 1.0;
+    const effectiveIsGradient = sceneSource.hasGradient;
 
     const losPolygon = useMemo(() => {
-        return calculateLineOfSight(sceneSource, effectiveRange, opaqueBarriers, gridConfig);
-    }, [sceneSource, effectiveRange, opaqueBarriers, gridConfig]);
+        return calculateLineOfSight(sceneSource, effectiveRange, opaqueWalls, gridConfig);
+    }, [sceneSource, effectiveRange, opaqueWalls, gridConfig]);
 
     const rangeInPixels = effectiveRange * gridConfig.cellSize.width;
 

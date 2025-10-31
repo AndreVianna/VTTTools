@@ -1,18 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import type {
-    Barrier,
-    SceneBarrier,
-    CreateBarrierRequest,
-    UpdateBarrierRequest,
-    PlaceSceneBarrierRequest,
-    UpdateSceneBarrierRequest,
+    Wall,
+    SceneWall,
+    CreateWallRequest,
+    UpdateWallRequest,
+    PlaceSceneWallRequest,
+    UpdateSceneWallRequest,
     Pole
 } from '../domain';
 import { WallVisibility } from '../domain';
 
-describe('Barrier Types', () => {
-    it('should allow valid Barrier object', () => {
-        const barrier: Barrier = {
+describe('Wall Types', () => {
+    it('should allow valid Wall object', () => {
+        const Wall: Wall = {
             id: '123e4567-e89b-12d3-a456-426614174000',
             ownerId: '123e4567-e89b-12d3-a456-426614174001',
             name: 'Stone Wall',
@@ -23,14 +23,14 @@ describe('Barrier Types', () => {
             material: 'Stone',
             createdAt: '2025-10-28T00:00:00Z',
         };
-        expect(barrier.name).toBe('Stone Wall');
-        expect(barrier.visibility).toBe(WallVisibility.Normal);
-        expect(barrier.isClosed).toBe(false);
-        expect(barrier.material).toBe('Stone');
+        expect(Wall.name).toBe('Stone Wall');
+        expect(Wall.visibility).toBe(WallVisibility.Normal);
+        expect(Wall.isClosed).toBe(false);
+        expect(Wall.material).toBe('Stone');
     });
 
-    it('should allow Barrier without optional fields', () => {
-        const barrier: Barrier = {
+    it('should allow Wall without optional fields', () => {
+        const Wall: Wall = {
             id: '123e4567-e89b-12d3-a456-426614174000',
             ownerId: '123e4567-e89b-12d3-a456-426614174001',
             name: 'Fence',
@@ -39,44 +39,44 @@ describe('Barrier Types', () => {
             isClosed: false,
             createdAt: '2025-10-28T00:00:00Z',
         };
-        expect(barrier.description).toBeUndefined();
-        expect(barrier.material).toBeUndefined();
-        expect(barrier.visibility).toBe(WallVisibility.Fence);
+        expect(Wall.description).toBeUndefined();
+        expect(Wall.material).toBeUndefined();
+        expect(Wall.visibility).toBe(WallVisibility.Fence);
     });
 
-    it('should allow valid SceneBarrier object', () => {
+    it('should allow valid SceneWall object', () => {
         const poles: Pole[] = [
             { x: 0, y: 0, h: 10 },
             { x: 10, y: 10, h: 10 },
         ];
 
-        const sceneBarrier: SceneBarrier = {
+        const sceneWall: SceneWall = {
             id: '789e4567-e89b-12d3-a456-426614174000',
             sceneId: 'abc-def-ghi',
-            barrierId: '123e4567-e89b-12d3-a456-426614174000',
+            WallId: '123e4567-e89b-12d3-a456-426614174000',
             poles,
         };
-        expect(sceneBarrier.poles).toHaveLength(2);
-        expect(sceneBarrier.poles[0]?.x).toBe(0);
-        expect(sceneBarrier.poles[0]?.h).toBe(10);
+        expect(sceneWall.poles).toHaveLength(2);
+        expect(sceneWall.poles[0]?.x).toBe(0);
+        expect(sceneWall.poles[0]?.h).toBe(10);
     });
 
-    it('should allow SceneBarrier with different pole heights', () => {
-        const sceneBarrier: SceneBarrier = {
+    it('should allow SceneWall with different pole heights', () => {
+        const sceneWall: SceneWall = {
             id: '789e4567-e89b-12d3-a456-426614174000',
             sceneId: 'abc-def-ghi',
-            barrierId: '123e4567-e89b-12d3-a456-426614174000',
+            WallId: '123e4567-e89b-12d3-a456-426614174000',
             poles: [
                 { x: 0, y: 0, h: 5 },
                 { x: 5, y: 5, h: 15 },
             ],
         };
-        expect(sceneBarrier.poles[0]?.h).toBe(5);
-        expect(sceneBarrier.poles[1]?.h).toBe(15);
+        expect(sceneWall.poles[0]?.h).toBe(5);
+        expect(sceneWall.poles[1]?.h).toBe(15);
     });
 
-    it('should allow valid CreateBarrierRequest', () => {
-        const request: CreateBarrierRequest = {
+    it('should allow valid CreateWallRequest', () => {
+        const request: CreateWallRequest = {
             name: 'Iron Wall',
             description: 'A heavy iron wall',
             poles: [],
@@ -90,8 +90,8 @@ describe('Barrier Types', () => {
         expect(request.material).toBe('Metal');
     });
 
-    it('should allow UpdateBarrierRequest with partial updates', () => {
-        const request: UpdateBarrierRequest = {
+    it('should allow UpdateWallRequest with partial updates', () => {
+        const request: UpdateWallRequest = {
             name: 'Updated Wall',
             visibility: WallVisibility.Invisible,
         };
@@ -100,20 +100,20 @@ describe('Barrier Types', () => {
         expect(request.visibility).toBe(WallVisibility.Invisible);
     });
 
-    it('should allow valid PlaceSceneBarrierRequest', () => {
-        const request: PlaceSceneBarrierRequest = {
-            barrierId: '123e4567-e89b-12d3-a456-426614174000',
+    it('should allow valid PlaceSceneWallRequest', () => {
+        const request: PlaceSceneWallRequest = {
+            WallId: '123e4567-e89b-12d3-a456-426614174000',
             poles: [
                 { x: 0, y: 0, h: 10 },
                 { x: 100, y: 100, h: 10 },
             ],
         };
-        expect(request.barrierId).toBeDefined();
+        expect(request.WallId).toBeDefined();
         expect(request.poles).toHaveLength(2);
     });
 
-    it('should allow UpdateSceneBarrierRequest with partial updates', () => {
-        const request: UpdateSceneBarrierRequest = {
+    it('should allow UpdateSceneWallRequest with partial updates', () => {
+        const request: UpdateSceneWallRequest = {
             poles: [
                 { x: 0, y: 0, h: 20 },
             ],

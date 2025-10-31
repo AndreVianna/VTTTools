@@ -1,2 +1,2 @@
-export { BarrierList } from './BarrierList';
-export { BarrierEditor } from './BarrierEditor';
+export { WallList } from './WallList';
+export { WallEditor } from './WallEditor';

@@ -34,18 +34,12 @@ internal static class Program {
     internal static void AddServices(this IHostApplicationBuilder builder) {
         builder.Services.AddScoped<IAdventureService, AdventureService>();
         builder.Services.AddScoped<ISceneService, SceneService>();
-        builder.Services.AddScoped<IBarrierService, BarrierService>();
-        builder.Services.AddScoped<IRegionService, RegionService>();
-        builder.Services.AddScoped<ISourceService, SourceService>();
         builder.Services.AddScoped<IContentQueryService, ContentQueryService>();
     }
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {
         app.MapAdventureEndpoints();
         app.MapSceneEndpoints();
-        app.MapBarrierEndpoints();
-        app.MapRegionEndpoints();
-        app.MapSourceEndpoints();
         app.MapContentEndpoints();
     }
 }

@@ -1,4 +1,3 @@
-export { StructureLibraryPanel } from './StructureLibraryPanel';
-export * from './barriers';
-export * from './regions';
-export * from './sources';
+// DEPRECATED: Structure library management removed - walls/regions/sources are now scene value objects only
+// All wall/region/source operations are now done through sceneApi.ts
+export {};

@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { SourcePreview, type SourcePreviewProps } from './SourcePreview';
-import type { Source, SceneBarrier, Point } from '@/types/domain';
+import type { Source, SceneWall, Point } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 const mockSource: Source = {
@@ -37,7 +37,7 @@ describe('SourcePreview', () => {
         centerPos: mockCenterPos,
         range: 5.0,
         source: mockSource,
-        barriers: [],
+        Walls: [],
         gridConfig: mockGridConfig
     };
 
@@ -94,56 +94,56 @@ describe('SourcePreview', () => {
         renderWithTheme(<SourcePreview {...defaultProps} range={0} />);
     });
 
-    it('should handle barriers', () => {
-        const barriers: SceneBarrier[] = [
+    it('should handle Walls', () => {
+        const Walls: SceneWall[] = [
             {
-                id: 'barrier-1',
+                id: 'Wall-1',
                 sceneId: 'scene-1',
-                barrierId: 'b1',
+                WallId: 'b1',
                 vertices: [
                     { x: 150, y: 50 },
                     { x: 150, y: 150 }
                 ]
             }
         ];
-        renderWithTheme(<SourcePreview {...defaultProps} barriers={barriers} />);
+        renderWithTheme(<SourcePreview {...defaultProps} Walls={Walls} />);
     });
 
-    it('should filter out open barriers', () => {
-        const barriers: SceneBarrier[] = [
+    it('should filter out open Walls', () => {
+        const Walls: SceneWall[] = [
             {
-                id: 'barrier-1',
+                id: 'Wall-1',
                 sceneId: 'scene-1',
-                barrierId: 'b1',
+                WallId: 'b1',
                 vertices: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
                 isOpen: true
             },
             {
-                id: 'barrier-2',
+                id: 'Wall-2',
                 sceneId: 'scene-1',
-                barrierId: 'b2',
+                WallId: 'b2',
                 vertices: [{ x: 0, y: 100 }, { x: 100, y: 100 }]
             }
         ];
-        renderWithTheme(<SourcePreview {...defaultProps} barriers={barriers} />);
+        renderWithTheme(<SourcePreview {...defaultProps} Walls={Walls} />);
     });
 
-    it('should handle multiple barriers', () => {
-        const barriers: SceneBarrier[] = [
+    it('should handle multiple Walls', () => {
+        const Walls: SceneWall[] = [
             {
                 id: 'b1',
                 sceneId: 'scene-1',
-                barrierId: 'barrier-1',
+                WallId: 'Wall-1',
                 vertices: [{ x: 0, y: 0 }, { x: 100, y: 0 }]
             },
             {
                 id: 'b2',
                 sceneId: 'scene-1',
-                barrierId: 'barrier-2',
+                WallId: 'Wall-2',
                 vertices: [{ x: 0, y: 100 }, { x: 100, y: 100 }]
             }
         ];
-        renderWithTheme(<SourcePreview {...defaultProps} barriers={barriers} />);
+        renderWithTheme(<SourcePreview {...defaultProps} Walls={Walls} />);
     });
 
     it('should handle different grid cell sizes', () => {

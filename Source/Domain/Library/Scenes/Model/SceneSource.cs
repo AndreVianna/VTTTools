@@ -3,11 +3,14 @@ using Point = VttTools.Common.Model.Point;
 namespace VttTools.Library.Scenes.Model;
 
 public record SceneSource {
-    public Guid Id { get; init; } = Guid.CreateVersion7();
-    public Guid SceneId { get; init; }
-    public Guid SourceId { get; init; }
-    public Point Position { get; init; } = Point.Zero;
-    public decimal Range { get; init; } = 5.0m;
-    public decimal Intensity { get; init; } = 1.0m;
-    public bool IsGradient { get; init; } = true;
+    public uint Index { get; init; }
+    [MaxLength(128)]
+    public string Name { get; init; } = string.Empty;
+    [MaxLength(32)]
+    public string Type { get; init; } = string.Empty;
+    public Point Position { get; set; } = Point.Zero;
+    public float Direction { get; init; }
+    public float? Range { get; init; }
+    public float? Intensity { get; init; }
+    public bool HasGradient { get; init; }
 }

@@ -17,41 +17,73 @@ import {
   Edit,
   Save,
   Cancel,
+  Delete,
 } from '@mui/icons-material';
 import { useAuth } from '@/hooks/useAuth';
 import { handleValidationError } from '@/utils/errorHandling';
 import { renderAuthError } from '@/utils/renderError';
+import {
+  useGetProfileQuery,
+  useUpdateProfileMutation,
+  useUploadAvatarMutation,
+  useDeleteAvatarMutation,
+} from '@/api/profileApi';
+import { getApiEndpoints } from '@/config/development';
+
+const getAvatarUrl = (avatarResourceId?: string): string | undefined => {
+  if (!avatarResourceId) return undefined;
+  const apiEndpoints = getApiEndpoints();
+  return `${apiEndpoints.media}/${avatarResourceId}`;
+};
 
 export const ProfileSettings: React.FC = () => {
-  const { user, updateProfile, isLoading, error } = useAuth();
+  const { user, error: authError } = useAuth();
+
+  const { data: profileData, isLoading: isLoadingProfile, error: profileError } = useGetProfileQuery();
+  const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
+  const [uploadAvatar, { isLoading: isUploadingAvatar }] = useUploadAvatarMutation();
+  const [deleteAvatar, { isLoading: isDeletingAvatar }] = useDeleteAvatarMutation();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    userName: user?.userName || '',
-    phoneNumber: user?.phoneNumber || '',
-    profilePictureUrl: user?.profilePictureUrl || '',
-  });
-
-  const [validationErrors, setValidationErrors] = useState<{
-    userName?: string;
+  const [editedValues, setEditedValues] = useState<{
+    name?: string;
+    displayName?: string;
     phoneNumber?: string;
   }>({});
+
+  const [validationErrors, setValidationErrors] = useState<{
+    name?: string;
+    displayName?: string;
+    phoneNumber?: string;
+  }>({});
+
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  const formData = {
+    name: editedValues.name ?? profileData?.name ?? '',
+    displayName: editedValues.displayName ?? profileData?.displayName ?? '',
+    phoneNumber: editedValues.phoneNumber ?? profileData?.phoneNumber ?? '',
+  };
 
   const validateForm = (): boolean => {
     const errors: typeof validationErrors = {};
 
-    // Username validation
-    if (!formData.userName) {
-      errors.userName = 'Username is required';
-    } else if (formData.userName.length < 3) {
-      errors.userName = 'Username must be at least 3 characters';
-    } else if (formData.userName.length > 50) {
-      errors.userName = 'Username must be less than 50 characters';
-    } else if (!/^[a-zA-Z0-9_-]+$/.test(formData.userName)) {
-      errors.userName = 'Username can only contain letters, numbers, underscores, and hyphens';
+    if (!formData.name) {
+      errors.name = 'Name is required';
+    } else if (formData.name.length < 3) {
+      errors.name = 'Name must be at least 3 characters';
+    } else if (formData.name.length > 100) {
+      errors.name = 'Name must be less than 100 characters';
     }
 
-    // Phone number validation (optional)
+    if (!formData.displayName) {
+      errors.displayName = 'Display name is required';
+    } else if (formData.displayName.length < 3) {
+      errors.displayName = 'Display name must be at least 3 characters';
+    } else if (formData.displayName.length > 50) {
+      errors.displayName = 'Display name must be less than 50 characters';
+    }
+
     if (formData.phoneNumber && !/^\+?[\d\s()-]+$/.test(formData.phoneNumber)) {
       errors.phoneNumber = 'Invalid phone number format';
     }
@@ -60,12 +92,11 @@ export const ProfileSettings: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleInputChange = (field: keyof typeof formData) => (
+  const handleInputChange = (field: keyof typeof editedValues) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+    setEditedValues(prev => ({ ...prev, [field]: e.target.value }));
 
-    // Clear validation error when user starts typing
     if (validationErrors[field as keyof typeof validationErrors]) {
       setValidationErrors(prev => ({ ...prev, [field]: undefined }));
     }
@@ -81,28 +112,33 @@ export const ProfileSettings: React.FC = () => {
     }
 
     try {
-      const updates: any = {};
-      if (formData.userName !== user?.userName) updates.userName = formData.userName;
-      if (formData.phoneNumber !== user?.phoneNumber) updates.phoneNumber = formData.phoneNumber || undefined;
-      if (formData.profilePictureUrl !== user?.profilePictureUrl) updates.profilePictureUrl = formData.profilePictureUrl || undefined;
+      setLocalError(null);
+      const updates: {
+        name?: string;
+        displayName?: string;
+        phoneNumber?: string;
+      } = {};
+
+      if (formData.name !== profileData?.name) updates.name = formData.name;
+      if (formData.displayName !== profileData?.displayName) updates.displayName = formData.displayName;
+      if (formData.phoneNumber !== profileData?.phoneNumber) updates.phoneNumber = formData.phoneNumber || undefined;
 
       if (Object.keys(updates).length > 0) {
-        await updateProfile(updates);
+        await updateProfile(updates).unwrap();
       }
 
       setIsEditing(false);
-    } catch (_error) {
+    } catch (error: any) {
+      const errorMessage = error?.data?.message || 'Failed to update profile';
+      setLocalError(errorMessage);
       console.error('Failed to update profile:', error);
     }
   };
 
   const handleCancel = () => {
-    setFormData({
-      userName: user?.userName || '',
-      phoneNumber: user?.phoneNumber || '',
-      profilePictureUrl: user?.profilePictureUrl || '',
-    });
+    setEditedValues({});
     setValidationErrors({});
+    setLocalError(null);
     setIsEditing(false);
   };
 
@@ -110,18 +146,49 @@ export const ProfileSettings: React.FC = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // For now, we'll just create a local URL. In production, this would upload to blob storage
-    const url = URL.createObjectURL(file);
-    setFormData(prev => ({ ...prev, profilePictureUrl: url }));
+    if (!file.type.startsWith('image/')) {
+      setLocalError('Please select a valid image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setLocalError('Image size must be less than 5MB');
+      return;
+    }
+
+    try {
+      setLocalError(null);
+      await uploadAvatar(file).unwrap();
+    } catch (error: any) {
+      const errorMessage = error?.data?.message || 'Failed to upload avatar';
+      setLocalError(errorMessage);
+      console.error('Failed to upload avatar:', error);
+    }
   };
 
-  if (!user) {
+  const handleDeleteAvatar = async () => {
+    try {
+      setLocalError(null);
+      await deleteAvatar().unwrap();
+    } catch (error: any) {
+      const errorMessage = error?.data?.message || 'Failed to delete avatar';
+      setLocalError(errorMessage);
+      console.error('Failed to delete avatar:', error);
+    }
+  };
+
+  const isLoading = isLoadingProfile || isUpdating || isUploadingAvatar || isDeletingAvatar;
+  const error = authError || profileError || localError;
+
+  if (isLoadingProfile || !user) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
         <CircularProgress />
       </Box>
     );
   }
+
+  const avatarUrl = getAvatarUrl(profileData?.avatarResourceId);
 
   return (
     <Paper sx={{ p: 3 }}>
@@ -141,20 +208,19 @@ export const ProfileSettings: React.FC = () => {
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {renderAuthError(error)}
+          {typeof error === 'string' ? error : renderAuthError(error)}
         </Alert>
       )}
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
-        {/* Profile Picture */}
         <Box sx={{ flex: '0 0 auto', textAlign: 'center' }}>
           <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
             <Avatar
-              {...(formData.profilePictureUrl ? { src: formData.profilePictureUrl } : {})}
-              alt={user.userName}
+              {...(avatarUrl ? { src: avatarUrl } : {})}
+              alt={profileData?.displayName || user.displayName}
               sx={{ width: 120, height: 120, mx: 'auto' }}
             >
-              {user.userName.charAt(0).toUpperCase()}
+              {(profileData?.displayName || user.displayName).charAt(0).toUpperCase()}
             </Avatar>
             {isEditing && (
               <IconButton
@@ -169,6 +235,7 @@ export const ProfileSettings: React.FC = () => {
                     backgroundColor: 'primary.dark',
                   },
                 }}
+                disabled={isUploadingAvatar}
               >
                 <PhotoCamera />
                 <input
@@ -180,9 +247,21 @@ export const ProfileSettings: React.FC = () => {
               </IconButton>
             )}
           </Box>
+          {isEditing && avatarUrl && (
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              startIcon={<Delete />}
+              onClick={handleDeleteAvatar}
+              disabled={isDeletingAvatar}
+              sx={{ mt: 1 }}
+            >
+              Remove Avatar
+            </Button>
+          )}
         </Box>
 
-        {/* Profile Information */}
         <Box sx={{ flex: 1 }}>
           <Box sx={{ mb: 2 }}>
             <TextField
@@ -198,11 +277,24 @@ export const ProfileSettings: React.FC = () => {
           <Box sx={{ mb: 2 }}>
             <TextField
               fullWidth
-              label="Username"
-              value={formData.userName}
-              onChange={handleInputChange('userName')}
-              error={!!validationErrors.userName}
-              helperText={validationErrors.userName || ''}
+              label="Full Name"
+              value={formData.name}
+              onChange={handleInputChange('name')}
+              error={!!validationErrors.name}
+              helperText={validationErrors.name || 'Your full name (e.g., John Doe)'}
+              disabled={!isEditing || isLoading}
+              margin="normal"
+            />
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <TextField
+              fullWidth
+              label="Display Name"
+              value={formData.displayName}
+              onChange={handleInputChange('displayName')}
+              error={!!validationErrors.displayName}
+              helperText={validationErrors.displayName || 'Name shown to other users (e.g., John)'}
               disabled={!isEditing || isLoading}
               margin="normal"
             />
@@ -230,7 +322,7 @@ export const ProfileSettings: React.FC = () => {
                 onClick={handleSave}
                 disabled={isLoading}
               >
-                {isLoading ? <CircularProgress size={20} /> : 'Save Changes'}
+                {isUpdating ? <CircularProgress size={20} /> : 'Save Changes'}
               </Button>
               <Button
                 variant="outlined"

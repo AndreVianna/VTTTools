@@ -1,12 +1,12 @@
 import React from 'react';
 import { Line } from 'react-konva';
 import { useTheme } from '@mui/material/styles';
-import type { Point, Region } from '@/types/domain';
+import type { Point, SceneRegion } from '@/types/domain';
 
 export interface RegionPreviewProps {
     vertices: Point[];
     previewVertex: Point | null;
-    region: Region;
+    region: SceneRegion;
 }
 
 export const RegionPreview: React.FC<RegionPreviewProps> = ({
@@ -19,7 +19,7 @@ export const RegionPreview: React.FC<RegionPreviewProps> = ({
     if (vertices.length === 0) return null;
 
     const getRegionColor = (): string => {
-        const regionType = region.regionType.toLowerCase();
+        const regionType = region.type.toLowerCase();
         switch (regionType) {
             case 'illumination':
                 return theme.palette.warning.main;

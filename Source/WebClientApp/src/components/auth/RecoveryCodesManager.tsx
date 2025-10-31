@@ -15,6 +15,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  TextField,
 } from '@mui/material';
 import {
   Warning,
@@ -24,8 +25,11 @@ import {
   Key,
   CheckCircle,
 } from '@mui/icons-material';
-import { useAuth } from '@/hooks/useAuth';
-import { renderAuthError } from '@/utils/renderError';
+import {
+  useGetRecoveryCodesStatusQuery,
+  useGenerateNewRecoveryCodesMutation,
+} from '@/api/recoveryCodesApi';
+import { handleMutationError } from '@/services/enhancedBaseQuery';
 
 interface RecoveryCodesManagerProps {
   onClose?: () => void;
@@ -36,9 +40,12 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
 }) => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [newRecoveryCodes, setNewRecoveryCodes] = useState<string[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [apiError, setApiError] = useState('');
 
-  const { generateRecoveryCodes, error } = useAuth();
+  const { data: statusData, isLoading: isLoadingStatus } = useGetRecoveryCodesStatusQuery();
+  const [generateNewCodes, { isLoading: isGenerating }] = useGenerateNewRecoveryCodesMutation();
 
   const downloadRecoveryCodes = (codes: string[]) => {
     const content = codes.map((code, index) => `${index + 1}. ${code}`).join('\n');
@@ -54,15 +61,27 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
   };
 
   const handleGenerateNewCodes = async () => {
-    setIsGenerating(true);
+    if (!password) {
+      setPasswordError('Password is required');
+      return;
+    }
+
+    setApiError('');
+
     try {
-      const result = await generateRecoveryCodes();
-      setNewRecoveryCodes(result.recoveryCodes);
-      setShowConfirmDialog(false);
-    } catch (_error) {
+      const result = await generateNewCodes({ password }).unwrap();
+      if (result.success && result.recoveryCodes) {
+        setNewRecoveryCodes(result.recoveryCodes);
+        setShowConfirmDialog(false);
+        setPassword('');
+        setPasswordError('');
+      } else {
+        setApiError(result.message || 'Failed to generate recovery codes');
+      }
+    } catch (error) {
       console.error('Failed to generate recovery codes:', error);
-    } finally {
-      setIsGenerating(false);
+      const errorInfo = handleMutationError(error, 'generateRecoveryCodes');
+      setApiError(errorInfo.message);
     }
   };
 
@@ -76,9 +95,9 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
         Recovery codes are used to access your account when you don&apos;t have access to your authenticator device.
       </Typography>
 
-      {error && (
+      {apiError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {renderAuthError(error)}
+          {apiError}
         </Alert>
       )}
 
@@ -143,37 +162,53 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
           </Box>
         ) : (
           <Box>
-            <List>
-              <ListItem>
-                <ListItemIcon>
-                  <Warning color="warning" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Important Security Information"
-                  secondary="Each recovery code can only be used once. If you&apos;ve used some codes or suspect they may be compromised, generate new ones."
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <CheckCircle color="success" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="When to Generate New Codes"
-                  secondary="Generate new recovery codes if you&apos;ve used some of your existing codes, or if you believe they may have been compromised."
-                />
-              </ListItem>
-            </List>
+            {isLoadingStatus ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <>
+                {statusData && (
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    <Typography variant="body2">
+                      You have {statusData.remainingCount} recovery code{statusData.remainingCount !== 1 ? 's' : ''} remaining.
+                    </Typography>
+                  </Alert>
+                )}
 
-            <Box sx={{ mt: 2 }}>
-              <Button
-                variant="outlined"
-                startIcon={<Refresh />}
-                onClick={() => setShowConfirmDialog(true)}
-                disabled={isGenerating}
-              >
-                {isGenerating ? <CircularProgress size={20} /> : 'Generate New Recovery Codes'}
-              </Button>
-            </Box>
+                <List>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Warning color="warning" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Important Security Information"
+                      secondary="Each recovery code can only be used once. If you&apos;ve used some codes or suspect they may be compromised, generate new ones."
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <CheckCircle color="success" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="When to Generate New Codes"
+                      secondary="Generate new recovery codes if you&apos;ve used some of your existing codes, or if you believe they may have been compromised."
+                    />
+                  </ListItem>
+                </List>
+
+                <Box sx={{ mt: 2 }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<Refresh />}
+                    onClick={() => setShowConfirmDialog(true)}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? <CircularProgress size={20} /> : 'Generate New Recovery Codes'}
+                  </Button>
+                </Box>
+              </>
+            )}
           </Box>
         )}
       </Paper>
@@ -209,20 +244,42 @@ export const RecoveryCodesManager: React.FC<RecoveryCodesManagerProps> = ({
             </Typography>
           </Alert>
 
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" gutterBottom>
             This action cannot be undone. Your current recovery codes will no longer work
             and you&apos;ll need to save the new ones in a safe place.
           </Typography>
+
+          <TextField
+            fullWidth
+            type="password"
+            label="Confirm Password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (passwordError) setPasswordError('');
+              if (apiError) setApiError('');
+            }}
+            error={!!passwordError}
+            helperText={passwordError || 'Enter your password to confirm'}
+            margin="normal"
+            autoComplete="current-password"
+            autoFocus
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowConfirmDialog(false)}>
+          <Button onClick={() => {
+            setShowConfirmDialog(false);
+            setPassword('');
+            setPasswordError('');
+            setApiError('');
+          }}>
             Cancel
           </Button>
           <Button
             variant="contained"
             color="warning"
             onClick={handleGenerateNewCodes}
-            disabled={isGenerating}
+            disabled={isGenerating || !password}
           >
             {isGenerating ? <CircularProgress size={20} /> : 'Generate New Codes'}
           </Button>

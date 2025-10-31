@@ -1,22 +1,16 @@
 using Adventure = VttTools.Library.Adventures.Model.Adventure;
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
-using Barrier = VttTools.Library.Scenes.Model.Barrier;
-using BarrierEntity = VttTools.Data.Library.Entities.Barrier;
-using Region = VttTools.Library.Scenes.Model.Region;
-using RegionEntity = VttTools.Data.Library.Entities.Region;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using Scene = VttTools.Library.Scenes.Model.Scene;
 using SceneAsset = VttTools.Library.Scenes.Model.SceneAsset;
 using SceneAssetEntity = VttTools.Data.Library.Entities.SceneAsset;
-using SceneBarrier = VttTools.Library.Scenes.Model.SceneBarrier;
-using SceneBarrierEntity = VttTools.Data.Library.Entities.SceneBarrier;
 using SceneEntity = VttTools.Data.Library.Entities.Scene;
 using SceneRegion = VttTools.Library.Scenes.Model.SceneRegion;
 using SceneRegionEntity = VttTools.Data.Library.Entities.SceneRegion;
 using SceneSource = VttTools.Library.Scenes.Model.SceneSource;
 using SceneSourceEntity = VttTools.Data.Library.Entities.SceneSource;
-using Source = VttTools.Library.Scenes.Model.Source;
-using SourceEntity = VttTools.Data.Library.Entities.Source;
+using SceneWall = VttTools.Library.Scenes.Model.SceneWall;
+using SceneWallEntity = VttTools.Data.Library.Entities.SceneWall;
 
 namespace VttTools.Data.Library;
 
@@ -163,9 +157,9 @@ internal static class Mapper {
             DefaultDisplayName = entity.DefaultDisplayName,
             DefaultLabelPosition = entity.DefaultLabelPosition,
             Assets = [.. entity.SceneAssets.Select(sa => sa.ToModel()!)],
-            SceneBarriers = [.. entity.SceneBarriers.Select(sb => sb.ToModel()!)],
-            SceneRegions = [.. entity.SceneRegions.Select(sr => sr.ToModel()!)],
-            SceneSources = [.. entity.SceneSources.Select(ss => ss.ToModel()!)],
+            Walls = [.. entity.Walls.Select(sb => sb.ToModel()!)],
+            Regions = [.. entity.Regions.Select(sr => sr.ToModel()!)],
+            Sources = [.. entity.Sources.Select(ss => ss.ToModel()!)],
         };
 
     internal static SceneEntity ToEntity(this Scene model, Guid adventureId)
@@ -280,229 +274,144 @@ internal static class Mapper {
         return entity;
     }
 
-    internal static Expression<Func<BarrierEntity, Barrier>> AsBarrier = entity
+    internal static Expression<Func<SceneWallEntity, SceneWall>> AsSceneWall = entity
         => new() {
-            Id = entity.Id,
-            OwnerId = entity.OwnerId,
+            Index = entity.Index,
             Name = entity.Name,
-            Description = entity.Description,
             Poles = entity.Poles,
             Visibility = entity.Visibility,
             IsClosed = entity.IsClosed,
             Material = entity.Material,
-            CreatedAt = entity.CreatedAt,
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static Barrier? ToModel(this BarrierEntity? entity)
+    internal static SceneWall? ToModel(this SceneWallEntity? entity)
         => entity == null ? null : new() {
-            Id = entity.Id,
-            OwnerId = entity.OwnerId,
+            Index = entity.Index,
             Name = entity.Name,
-            Description = entity.Description,
             Poles = entity.Poles,
             Visibility = entity.Visibility,
             IsClosed = entity.IsClosed,
             Material = entity.Material,
-            CreatedAt = entity.CreatedAt,
         };
 
-    internal static BarrierEntity ToEntity(this Barrier model)
+    internal static SceneWallEntity ToEntity(this SceneWall model, Guid sceneId)
         => new() {
-            Id = model.Id,
-            OwnerId = model.OwnerId,
+            SceneId = sceneId,
+            Index = model.Index,
             Name = model.Name,
-            Description = model.Description,
             Poles = [.. model.Poles],
             Visibility = model.Visibility,
             IsClosed = model.IsClosed,
             Material = model.Material,
-            CreatedAt = model.CreatedAt,
         };
 
-    internal static Expression<Func<SceneBarrierEntity, SceneBarrier>> AsSceneBarrier = entity
-        => new() {
-            Id = entity.Id,
-            SceneId = entity.SceneId,
-            BarrierId = entity.BarrierId,
-            Poles = entity.Poles,
-        };
-
-    [return: NotNullIfNotNull(nameof(entity))]
-    internal static SceneBarrier? ToModel(this SceneBarrierEntity? entity)
-        => entity == null ? null : new() {
-            Id = entity.Id,
-            SceneId = entity.SceneId,
-            BarrierId = entity.BarrierId,
-            Poles = entity.Poles,
-        };
-
-    internal static SceneBarrierEntity ToEntity(this SceneBarrier model, Guid sceneId)
-        => new() {
-            Id = model.Id,
-            SceneId = sceneId,
-            BarrierId = model.BarrierId,
-            Poles = [.. model.Poles],
-        };
-
-    internal static SceneBarrierEntity UpdateFrom(this SceneBarrierEntity entity, Guid sceneId, SceneBarrier model) {
+    internal static SceneWallEntity UpdateFrom(this SceneWallEntity entity, Guid sceneId, SceneWall model) {
         entity.SceneId = sceneId;
-        entity.BarrierId = model.BarrierId;
+        entity.Index = model.Index;
+        entity.Name = model.Name;
         entity.Poles = [.. model.Poles];
+        entity.Visibility = model.Visibility;
+        entity.IsClosed = model.IsClosed;
+        entity.Material = model.Material;
         return entity;
     }
 
-    internal static Expression<Func<RegionEntity, Region>> AsRegion = entity
-        => new() {
-            Id = entity.Id,
-            OwnerId = entity.OwnerId,
-            Name = entity.Name,
-            Description = entity.Description,
-            RegionType = entity.RegionType,
-            LabelMap = entity.LabelMap,
-            CreatedAt = entity.CreatedAt,
-        };
-
-    [return: NotNullIfNotNull(nameof(entity))]
-    internal static Region? ToModel(this RegionEntity? entity)
-        => entity == null ? null : new() {
-            Id = entity.Id,
-            OwnerId = entity.OwnerId,
-            Name = entity.Name,
-            Description = entity.Description,
-            RegionType = entity.RegionType,
-            LabelMap = entity.LabelMap,
-            CreatedAt = entity.CreatedAt,
-        };
-
-    internal static RegionEntity ToEntity(this Region model)
-        => new() {
-            Id = model.Id,
-            OwnerId = model.OwnerId,
-            Name = model.Name,
-            Description = model.Description,
-            RegionType = model.RegionType,
-            LabelMap = new Dictionary<int, string>(model.LabelMap),
-            CreatedAt = model.CreatedAt,
-        };
-
     internal static Expression<Func<SceneRegionEntity, SceneRegion>> AsSceneRegion = entity
         => new() {
-            Id = entity.Id,
-            SceneId = entity.SceneId,
-            RegionId = entity.RegionId,
+            Index = entity.Index,
+            Name = entity.Name,
+            Type = entity.Type,
             Vertices = entity.Vertices,
             Value = entity.Value,
+            Label = entity.Label,
+            Color = entity.Color,
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
     internal static SceneRegion? ToModel(this SceneRegionEntity? entity)
         => entity == null ? null : new() {
-            Id = entity.Id,
-            SceneId = entity.SceneId,
-            RegionId = entity.RegionId,
+            Index = entity.Index,
+            Name = entity.Name,
+            Type = entity.Type,
             Vertices = entity.Vertices,
             Value = entity.Value,
+            Label = entity.Label,
+            Color = entity.Color,
         };
 
     internal static SceneRegionEntity ToEntity(this SceneRegion model, Guid sceneId)
         => new() {
-            Id = model.Id,
             SceneId = sceneId,
-            RegionId = model.RegionId,
+            Index = model.Index,
+            Name = model.Name,
+            Type = model.Type,
             Vertices = [.. model.Vertices],
             Value = model.Value,
+            Label = model.Label,
+            Color = model.Color,
         };
 
     internal static SceneRegionEntity UpdateFrom(this SceneRegionEntity entity, Guid sceneId, SceneRegion model) {
         entity.SceneId = sceneId;
-        entity.RegionId = model.RegionId;
+        entity.Index = model.Index;
+        entity.Name = model.Name;
+        entity.Type = model.Type;
         entity.Vertices = [.. model.Vertices];
         entity.Value = model.Value;
+        entity.Label = model.Label;
+        entity.Color = model.Color;
         return entity;
     }
 
-    internal static Expression<Func<SourceEntity, Source>> AsSource = entity
-        => new() {
-            Id = entity.Id,
-            OwnerId = entity.OwnerId,
-            Name = entity.Name,
-            Description = entity.Description,
-            SourceType = entity.SourceType,
-            DefaultRange = entity.DefaultRange,
-            DefaultIntensity = entity.DefaultIntensity,
-            DefaultIsGradient = entity.DefaultIsGradient,
-            CreatedAt = entity.CreatedAt,
-        };
-
-    [return: NotNullIfNotNull(nameof(entity))]
-    internal static Source? ToModel(this SourceEntity? entity)
-        => entity == null ? null : new() {
-            Id = entity.Id,
-            OwnerId = entity.OwnerId,
-            Name = entity.Name,
-            Description = entity.Description,
-            SourceType = entity.SourceType,
-            DefaultRange = entity.DefaultRange,
-            DefaultIntensity = entity.DefaultIntensity,
-            DefaultIsGradient = entity.DefaultIsGradient,
-            CreatedAt = entity.CreatedAt,
-        };
-
-    internal static SourceEntity ToEntity(this Source model)
-        => new() {
-            Id = model.Id,
-            OwnerId = model.OwnerId,
-            Name = model.Name,
-            Description = model.Description,
-            SourceType = model.SourceType,
-            DefaultRange = model.DefaultRange,
-            DefaultIntensity = model.DefaultIntensity,
-            DefaultIsGradient = model.DefaultIsGradient,
-            CreatedAt = model.CreatedAt,
-        };
-
     internal static Expression<Func<SceneSourceEntity, SceneSource>> AsSceneSource = entity
         => new() {
-            Id = entity.Id,
-            SceneId = entity.SceneId,
-            SourceId = entity.SourceId,
+            Index = entity.Index,
+            Name = entity.Name,
+            Type = entity.Type,
             Position = entity.Position,
+            Direction = entity.Direction,
             Range = entity.Range,
             Intensity = entity.Intensity,
-            IsGradient = entity.IsGradient,
+            HasGradient = entity.HasGradient,
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
     internal static SceneSource? ToModel(this SceneSourceEntity? entity)
         => entity == null ? null : new() {
-            Id = entity.Id,
-            SceneId = entity.SceneId,
-            SourceId = entity.SourceId,
+            Index = entity.Index,
+            Name = entity.Name,
+            Type = entity.Type,
             Position = entity.Position,
+            Direction = entity.Direction,
             Range = entity.Range,
             Intensity = entity.Intensity,
-            IsGradient = entity.IsGradient,
+            HasGradient = entity.HasGradient,
         };
 
     internal static SceneSourceEntity ToEntity(this SceneSource model, Guid sceneId)
         => new() {
-            Id = model.Id,
             SceneId = sceneId,
-            SourceId = model.SourceId,
+            Index = model.Index,
+            Name = model.Name,
+            Type = model.Type,
             Position = model.Position,
+            Direction = model.Direction,
             Range = model.Range,
             Intensity = model.Intensity,
-            IsGradient = model.IsGradient,
+            HasGradient = model.HasGradient,
         };
 
     internal static SceneSourceEntity UpdateFrom(this SceneSourceEntity entity, Guid sceneId, SceneSource model) {
         entity.SceneId = sceneId;
-        entity.SourceId = model.SourceId;
+        entity.Index = model.Index;
+        entity.Name = model.Name;
+        entity.Type = model.Type;
         entity.Position = model.Position;
+        entity.Direction = model.Direction;
         entity.Range = model.Range;
         entity.Intensity = model.Intensity;
-        entity.IsGradient = model.IsGradient;
+        entity.HasGradient = model.HasGradient;
         return entity;
     }
 }

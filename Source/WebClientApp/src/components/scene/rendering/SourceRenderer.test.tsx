@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { SourceRenderer, type SourceRendererProps } from './SourceRenderer';
-import type { Source, SceneSource, SceneBarrier } from '@/types/domain';
+import type { Source, SceneSource, SceneWall } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 const mockSource: Source = {
@@ -44,7 +44,7 @@ describe('SourceRenderer', () => {
     const defaultProps: SourceRendererProps = {
         sceneSource: mockSceneSource,
         source: mockSource,
-        barriers: [],
+        Walls: [],
         gridConfig: mockGridConfig
     };
 
@@ -89,47 +89,47 @@ describe('SourceRenderer', () => {
         renderWithTheme(<SourceRenderer {...defaultProps} sceneSource={solidSceneSource} />);
     });
 
-    it('should filter opaque barriers', () => {
-        const barriers: SceneBarrier[] = [
+    it('should filter opaque Walls', () => {
+        const Walls: SceneWall[] = [
             {
-                id: 'barrier-1',
+                id: 'Wall-1',
                 sceneId: 'scene-1',
-                barrierId: 'b1',
+                WallId: 'b1',
                 vertices: [{ x: 0, y: 0 }, { x: 100, y: 0 }]
             }
         ];
-        renderWithTheme(<SourceRenderer {...defaultProps} barriers={barriers} />);
+        renderWithTheme(<SourceRenderer {...defaultProps} Walls={Walls} />);
     });
 
-    it('should exclude open barriers from LOS calculation', () => {
-        const barriers: SceneBarrier[] = [
+    it('should exclude open Walls from LOS calculation', () => {
+        const Walls: SceneWall[] = [
             {
-                id: 'barrier-1',
+                id: 'Wall-1',
                 sceneId: 'scene-1',
-                barrierId: 'b1',
+                WallId: 'b1',
                 vertices: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
                 isOpen: true
             }
         ];
-        renderWithTheme(<SourceRenderer {...defaultProps} barriers={barriers} />);
+        renderWithTheme(<SourceRenderer {...defaultProps} Walls={Walls} />);
     });
 
-    it('should handle multiple barriers', () => {
-        const barriers: SceneBarrier[] = [
+    it('should handle multiple Walls', () => {
+        const Walls: SceneWall[] = [
             {
                 id: 'b1',
                 sceneId: 'scene-1',
-                barrierId: 'barrier-1',
+                WallId: 'Wall-1',
                 vertices: [{ x: 0, y: 0 }, { x: 100, y: 0 }]
             },
             {
                 id: 'b2',
                 sceneId: 'scene-1',
-                barrierId: 'barrier-2',
+                WallId: 'Wall-2',
                 vertices: [{ x: 0, y: 100 }, { x: 100, y: 100 }]
             }
         ];
-        renderWithTheme(<SourceRenderer {...defaultProps} barriers={barriers} />);
+        renderWithTheme(<SourceRenderer {...defaultProps} Walls={Walls} />);
     });
 
     it('should handle minimum range', () => {
@@ -231,21 +231,21 @@ describe('SourceRenderer', () => {
         );
     });
 
-    it('should invalidate LOS cache on barrier change', () => {
-        const { rerender } = renderWithTheme(<SourceRenderer {...defaultProps} barriers={[]} />);
+    it('should invalidate LOS cache on Wall change', () => {
+        const { rerender } = renderWithTheme(<SourceRenderer {...defaultProps} Walls={[]} />);
 
-        const barriers: SceneBarrier[] = [
+        const Walls: SceneWall[] = [
             {
-                id: 'barrier-1',
+                id: 'Wall-1',
                 sceneId: 'scene-1',
-                barrierId: 'b1',
+                WallId: 'b1',
                 vertices: [{ x: 0, y: 0 }, { x: 100, y: 0 }]
             }
         ];
 
         rerender(
             <ThemeProvider theme={createTheme()}>
-                <SourceRenderer {...defaultProps} barriers={barriers} />
+                <SourceRenderer {...defaultProps} Walls={Walls} />
             </ThemeProvider>
         );
     });

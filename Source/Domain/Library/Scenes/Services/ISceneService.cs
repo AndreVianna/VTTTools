@@ -1,5 +1,11 @@
-﻿using BulkUpdateSceneAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
+﻿using AddRegionData = VttTools.Library.Scenes.ServiceContracts.AddSceneRegionData;
+using AddSourceData = VttTools.Library.Scenes.ServiceContracts.AddSceneSourceData;
+using AddWallData = VttTools.Library.Scenes.ServiceContracts.AddSceneWallData;
+using BulkUpdateAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
+using UpdateRegionData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneRegionData;
 using UpdateSceneAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
+using UpdateSourceData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneSourceData;
+using UpdateWallData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneWallData;
 
 namespace VttTools.Library.Scenes.Services;
 
@@ -16,21 +22,21 @@ public interface ISceneService {
     Task<Result<SceneAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, AddSceneAssetData data, CancellationToken ct = default);
     Task<Result<SceneAsset>> CloneAssetAsync(Guid userId, Guid id, int index, CancellationToken ct = default);
     Task<Result> UpdateAssetAsync(Guid userId, Guid id, int index, UpdateSceneAssetData data, CancellationToken ct = default);
-    Task<Result> BulkUpdateAssetsAsync(Guid userId, Guid id, BulkUpdateSceneAssetsData data, CancellationToken ct = default);
+    Task<Result> BulkUpdateAssetsAsync(Guid userId, Guid id, BulkUpdateAssetsData data, CancellationToken ct = default);
     Task<Result> BulkCloneAssetsAsync(Guid userId, Guid id, List<uint> assetIndices, CancellationToken ct = default);
     Task<Result> BulkDeleteAssetsAsync(Guid userId, Guid id, List<uint> assetIndices, CancellationToken ct = default);
     Task<Result> BulkAddAssetsAsync(Guid userId, Guid id, List<AssetToAdd> assetsToAdd, CancellationToken ct = default);
     Task<Result> RemoveAssetAsync(Guid userId, Guid id, int index, CancellationToken ct = default);
 
-    Task<Result<SceneBarrier>> PlaceBarrierAsync(Guid sceneId, Guid barrierId, List<Pole> poles, Guid userId, CancellationToken ct = default);
-    Task<Result<SceneBarrier>> UpdateSceneBarrierAsync(Guid sceneBarrierId, Optional<List<Pole>> poles, Guid userId, CancellationToken ct = default);
-    Task<Result> RemoveSceneBarrierAsync(Guid sceneBarrierId, Guid userId, CancellationToken ct = default);
+    Task<Result<SceneWall>> AddWallAsync(Guid userId, Guid id, AddSceneWallData data, CancellationToken ct = default);
+    Task<Result> UpdateWallAsync(Guid userId, Guid id, uint index, UpdateWallData data, CancellationToken ct = default);
+    Task<Result> RemoveWallAsync(Guid userId, Guid id, uint index, CancellationToken ct = default);
 
-    Task<Result<SceneRegion>> PlaceRegionAsync(Guid sceneId, Guid regionId, List<Common.Model.Point> vertices, int value, Guid userId, CancellationToken ct = default);
-    Task<Result<SceneRegion>> UpdateSceneRegionAsync(Guid sceneRegionId, Optional<List<Common.Model.Point>> vertices, Optional<int> value, Guid userId, CancellationToken ct = default);
-    Task<Result> RemoveSceneRegionAsync(Guid sceneRegionId, Guid userId, CancellationToken ct = default);
+    Task<Result<SceneRegion>> AddRegionAsync(Guid userId, Guid id, AddRegionData data, CancellationToken ct = default);
+    Task<Result> UpdateRegionAsync(Guid userId, Guid id, uint index, UpdateRegionData data, CancellationToken ct = default);
+    Task<Result> RemoveRegionAsync(Guid userId, Guid id, uint index, CancellationToken ct = default);
 
-    Task<Result<SceneSource>> PlaceSourceAsync(Guid sceneId, PlaceSceneSourceData data, Guid userId, CancellationToken ct = default);
-    Task<Result<SceneSource>> UpdateSceneSourceAsync(Guid sceneSourceId, UpdateSceneSourceData data, Guid userId, CancellationToken ct = default);
-    Task<Result> RemoveSceneSourceAsync(Guid sceneSourceId, Guid userId, CancellationToken ct = default);
+    Task<Result<SceneSource>> AddSourceAsync(Guid userId, Guid id, AddSourceData data, CancellationToken ct = default);
+    Task<Result> UpdateSourceAsync(Guid userId, Guid id, uint index, UpdateSourceData data, CancellationToken ct = default);
+    Task<Result> RemoveSourceAsync(Guid userId, Guid id, uint index, CancellationToken ct = default);
 }

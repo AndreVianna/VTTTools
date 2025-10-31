@@ -1,67 +1,67 @@
 import type { Command } from '@/utils/commands';
-import type { SceneBarrier, SceneRegion, SceneSource, Point } from '@/types/domain';
+import type { SceneWall, SceneRegion, SceneSource, Point } from '@/types/domain';
 
-export interface PlaceBarrierCommandParams {
+export interface PlaceWallCommandParams {
     sceneId: string;
-    barrierId: string;
+    WallId: string;
     vertices: Point[];
-    placeBarrierFn: (sceneId: string, barrierId: string, vertices: Point[]) => Promise<SceneBarrier>;
-    removeBarrierFn: (sceneId: string, sceneBarrierId: string) => Promise<void>;
+    placeWallFn: (sceneId: string, WallId: string, vertices: Point[]) => Promise<SceneWall>;
+    removeWallFn: (sceneId: string, sceneWallId: string) => Promise<void>;
 }
 
-export class PlaceBarrierCommand implements Command {
-    private sceneBarrierId?: string;
+export class PlaceWallCommand implements Command {
+    private sceneWallId?: string;
     private executePromise?: Promise<void>;
     description: string;
 
-    constructor(private params: PlaceBarrierCommandParams) {
-        this.description = 'Place Barrier';
+    constructor(private params: PlaceWallCommandParams) {
+        this.description = 'Place Wall';
     }
 
     execute(): void {
         this.executePromise = (async () => {
-            const sceneBarrier = await this.params.placeBarrierFn(
+            const sceneWall = await this.params.placeWallFn(
                 this.params.sceneId,
-                this.params.barrierId,
+                this.params.WallId,
                 this.params.vertices
             );
-            this.sceneBarrierId = sceneBarrier.id;
+            this.sceneWallId = sceneWall.id;
         })();
     }
 
     async undo(): Promise<void> {
         await this.executePromise;
-        if (this.sceneBarrierId) {
-            await this.params.removeBarrierFn(this.params.sceneId, this.sceneBarrierId);
+        if (this.sceneWallId) {
+            await this.params.removeWallFn(this.params.sceneId, this.sceneWallId);
         }
     }
 }
 
-export interface RemoveBarrierCommandParams {
+export interface RemoveWallCommandParams {
     sceneId: string;
-    sceneBarrier: SceneBarrier;
-    placeBarrierFn: (sceneId: string, barrierId: string, vertices: Point[]) => Promise<SceneBarrier>;
-    removeBarrierFn: (sceneId: string, sceneBarrierId: string) => Promise<void>;
+    sceneWall: SceneWall;
+    placeWallFn: (sceneId: string, WallId: string, vertices: Point[]) => Promise<SceneWall>;
+    removeWallFn: (sceneId: string, sceneWallId: string) => Promise<void>;
 }
 
-export class RemoveBarrierCommand implements Command {
+export class RemoveWallCommand implements Command {
     private executePromise?: Promise<void>;
     description: string;
 
-    constructor(private params: RemoveBarrierCommandParams) {
-        this.description = 'Remove Barrier';
+    constructor(private params: RemoveWallCommandParams) {
+        this.description = 'Remove Wall';
     }
 
     execute(): void {
-        this.executePromise = this.params.removeBarrierFn(this.params.sceneId, this.params.sceneBarrier.id);
+        this.executePromise = this.params.removeWallFn(this.params.sceneId, this.params.sceneWall.id);
     }
 
     async undo(): Promise<void> {
         await this.executePromise;
-        await this.params.placeBarrierFn(
+        await this.params.placeWallFn(
             this.params.sceneId,
-            this.params.sceneBarrier.barrierId,
-            this.params.sceneBarrier.vertices
+            this.params.sceneWall.WallId,
+            this.params.sceneWall.vertices
         );
     }
 }
@@ -222,35 +222,35 @@ export class RemoveSourceCommand implements Command {
     }
 }
 
-export interface UpdateBarrierVerticesCommandParams {
+export interface UpdateWallVerticesCommandParams {
     sceneId: string;
-    sceneBarrierId: string;
+    sceneWallId: string;
     oldVertices: Point[];
     newVertices: Point[];
-    updateBarrierFn: (sceneId: string, sceneBarrierId: string, vertices: Point[]) => Promise<void>;
+    updateWallFn: (sceneId: string, sceneWallId: string, vertices: Point[]) => Promise<void>;
 }
 
-export class UpdateBarrierVerticesCommand implements Command {
+export class UpdateWallVerticesCommand implements Command {
     private executePromise?: Promise<void>;
     description: string;
 
-    constructor(private params: UpdateBarrierVerticesCommandParams) {
-        this.description = 'Update Barrier Vertices';
+    constructor(private params: UpdateWallVerticesCommandParams) {
+        this.description = 'Update Wall Vertices';
     }
 
     execute(): void {
-        this.executePromise = this.params.updateBarrierFn(
+        this.executePromise = this.params.updateWallFn(
             this.params.sceneId,
-            this.params.sceneBarrierId,
+            this.params.sceneWallId,
             this.params.newVertices
         );
     }
 
     async undo(): Promise<void> {
         await this.executePromise;
-        await this.params.updateBarrierFn(
+        await this.params.updateWallFn(
             this.params.sceneId,
-            this.params.sceneBarrierId,
+            this.params.sceneWallId,
             this.params.oldVertices
         );
     }

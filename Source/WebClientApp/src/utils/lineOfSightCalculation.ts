@@ -1,4 +1,4 @@
-import { WallVisibility, type Point, type Barrier, type SceneBarrier, type SceneSource } from '@/types/domain';
+import { WallVisibility, type Point, type SceneWall, type SceneSource } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface Ray {
@@ -76,25 +76,21 @@ export function castRay(ray: Ray, opaqueSegments: LineSegment[]): Point {
     return closestIntersection ?? rayEnd;
 }
 
-export function extractOpaqueSegments(
-    sceneBarriers: SceneBarrier[],
-    barriers: Barrier[]
-): LineSegment[] {
+export function extractOpaqueSegments(sceneWalls: SceneWall[]): LineSegment[] {
     const segments: LineSegment[] = [];
 
-    for (const sceneBarrier of sceneBarriers) {
-        const barrier = barriers.find(b => b.id === sceneBarrier.barrierId);
-        if (!barrier || barrier.visibility !== WallVisibility.Normal) {
+    for (const sceneWall of sceneWalls) {
+        if (sceneWall.visibility !== WallVisibility.Normal) {
             continue;
         }
 
-        const segmentCount = barrier.isClosed
-            ? barrier.poles.length
-            : barrier.poles.length - 1;
+        const segmentCount = sceneWall.isClosed
+            ? sceneWall.poles.length
+            : sceneWall.poles.length - 1;
 
         for (let i = 0; i < segmentCount; i++) {
-            const start = barrier.poles[i];
-            const end = barrier.poles[(i + 1) % barrier.poles.length];
+            const start = sceneWall.poles[i];
+            const end = sceneWall.poles[(i + 1) % sceneWall.poles.length];
             segments.push({
                 start: { x: start.x, y: start.y },
                 end: { x: end.x, y: end.y }
@@ -108,15 +104,14 @@ export function extractOpaqueSegments(
 export function calculateLineOfSight(
     source: SceneSource,
     range: number,
-    sceneBarriers: SceneBarrier[],
-    barriers: Barrier[],
+    sceneWalls: SceneWall[],
     gridConfig: GridConfig
 ): Point[] {
     const rangeInPixels = range * gridConfig.cellSize.width;
     const rayCount = 72;
     const angleStep = (2 * Math.PI) / rayCount;
 
-    const segments = extractOpaqueSegments(sceneBarriers, barriers);
+    const segments = extractOpaqueSegments(sceneWalls);
 
     const losPoints: Point[] = [];
     for (let i = 0; i < rayCount; i++) {

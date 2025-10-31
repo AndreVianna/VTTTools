@@ -7,7 +7,6 @@ namespace VttTools.Data.Builders;
 
 internal static class AssetSchemaBuilder {
     public static void ConfigureModel(ModelBuilder builder) {
-        // Configure base Asset entity with TPH (Table-Per-Hierarchy) inheritance
         builder.Entity<Asset>(entity => {
             entity.ToTable("Assets");
             entity.HasKey(e => e.Id);
@@ -20,33 +19,28 @@ internal static class AssetSchemaBuilder {
             entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
 
-            // Configure many-to-many relationship through AssetResources join table
             entity.HasMany(e => e.Resources)
                 .WithOne(ar => ar.Asset)
                 .HasForeignKey(ar => ar.AssetId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure TPH discriminator
             entity.HasDiscriminator<AssetKind>("Kind")
                 .HasValue<ObjectAsset>(AssetKind.Object)
                 .HasValue<CreatureAsset>(AssetKind.Creature);
         });
 
-        // Configure AssetResource join table
         builder.Entity<AssetResource>(entity => {
             entity.ToTable("AssetResources");
             entity.HasKey(ar => new { ar.AssetId, ar.ResourceId });  // Composite primary key
 
             entity.Property(ar => ar.Role).IsRequired().HasConversion<int>();
 
-            // Relationship to Resource (many AssetResources can reference one Resource)
             entity.HasOne(ar => ar.Resource)
                 .WithMany()
                 .HasForeignKey(ar => ar.ResourceId)
                 .OnDelete(DeleteBehavior.Restrict);  // Don't cascade delete resources when asset deleted
         });
 
-        // Configure ObjectAsset with JSON properties
         builder.Entity<ObjectAsset>(entity => entity.OwnsOne(e => e.Properties, props => {
             props.ToJson("ObjectProperties");
             props.Property(p => p.CellWidth).IsRequired();
@@ -56,7 +50,6 @@ internal static class AssetSchemaBuilder {
             props.Property(p => p.TriggerEffectId);
         }));
 
-        // Configure CreatureAsset with JSON properties
         builder.Entity<CreatureAsset>(entity => entity.OwnsOne(e => e.Properties, props => {
             props.ToJson("CreatureProperties");
             props.Property(p => p.CellSize).IsRequired();

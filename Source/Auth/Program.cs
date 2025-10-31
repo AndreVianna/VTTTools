@@ -108,9 +108,18 @@ internal static class Program {
 
     internal static void AddServices(this IHostApplicationBuilder builder) {
         builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<IProfileService, ProfileService>();
+        builder.Services.AddScoped<ISecurityService, SecurityService>();
+        builder.Services.AddScoped<ITwoFactorService, TwoFactorAuthenticationService>();
+        builder.Services.AddScoped<IRecoveryCodeService, RecoveryCodeService>();
         builder.Services.AddScoped<IEmailService, ConsoleEmailService>();
     }
 
-    internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app)
-        => app.MapAuthEndpoints();
+    internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {
+        app.MapAuthEndpoints();
+        app.MapProfileEndpoints();
+        app.MapSecurityEndpoints();
+        app.MapTwoFactorEndpoints();
+        app.MapRecoveryCodeEndpoints();
+    }
 }

@@ -1,5 +1,5 @@
-export { BarrierRenderer } from './BarrierRenderer';
-export type { BarrierRendererProps } from './BarrierRenderer';
+export { WallRenderer } from './WallRenderer';
+export type { WallRendererProps } from './WallRenderer';
 
 export { RegionRenderer } from './RegionRenderer';
 export type { RegionRendererProps } from './RegionRenderer';

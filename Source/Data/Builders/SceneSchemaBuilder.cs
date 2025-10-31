@@ -1,5 +1,9 @@
 using Scene = VttTools.Data.Library.Entities.Scene;
 using SceneAsset = VttTools.Data.Library.Entities.SceneAsset;
+using SceneEffect = VttTools.Data.Library.Entities.SceneEffect;
+using SceneRegion = VttTools.Data.Library.Entities.SceneRegion;
+using SceneSource = VttTools.Data.Library.Entities.SceneSource;
+using SceneWall = VttTools.Data.Library.Entities.SceneWall;
 
 namespace VttTools.Data.Builders;
 
@@ -38,6 +42,7 @@ internal static class SceneSchemaBuilder {
             entity.Property(s => s.DefaultDisplayName).IsRequired().HasConversion<string>().HasDefaultValue(DisplayName.Always);
             entity.Property(s => s.DefaultLabelPosition).IsRequired().HasConversion<string>().HasDefaultValue(LabelPosition.Bottom);
         });
+
         builder.Entity<SceneAsset>(entity => {
             entity.ToTable("SceneAssets");
             entity.HasKey(ea => new { ea.SceneId, ea.Index });
@@ -51,7 +56,6 @@ internal static class SceneSchemaBuilder {
             entity.Property(ea => ea.Description).HasMaxLength(4096);
             entity.Property(ea => ea.ResourceId).IsRequired();  // REQUIRED - must select from Asset.Resources
 
-            // Resource navigation (required - selects which resource from Asset.Resources to display)
             entity.HasOne(s => s.Resource)
                   .WithMany()
                   .HasForeignKey(s => s.ResourceId)
@@ -85,6 +89,111 @@ internal static class SceneSchemaBuilder {
                   .HasForeignKey(ea => ea.SceneId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(ea => ea.Asset).WithMany().IsRequired()
                   .HasForeignKey(ea => ea.AssetId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<SceneWall>(entity => {
+            entity.ToTable("SceneWalls");
+            entity.HasKey(e => new { e.SceneId, e.Index });
+            entity.Property(e => e.SceneId).IsRequired();
+            entity.Property(e => e.Index).IsRequired();
+
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
+            entity.Property(e => e.Visibility).IsRequired().HasDefaultValue(WallVisibility.Normal);
+            entity.Property(e => e.IsClosed).IsRequired().HasDefaultValue(false);
+            entity.Property(e => e.Material).HasMaxLength(32);
+
+            entity.OwnsMany(e => e.Poles, poles => {
+                poles.ToJson();
+                poles.Property(p => p.X).IsRequired();
+                poles.Property(p => p.Y).IsRequired();
+                poles.Property(p => p.H).IsRequired();
+            });
+
+            entity.HasOne(e => e.Scene)
+                .WithMany(s => s.Walls)
+                .HasForeignKey(e => e.SceneId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.SceneId);
+        });
+
+        builder.Entity<SceneRegion>(entity => {
+            entity.ToTable("SceneRegions");
+            entity.HasKey(e => new { e.SceneId, e.Index });
+            entity.Property(e => e.SceneId).IsRequired();
+            entity.Property(e => e.Index).IsRequired();
+
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
+            entity.Property(e => e.Type).IsRequired().HasMaxLength(32);
+            entity.Property(e => e.Value).IsRequired(false);
+            entity.Property(e => e.Label).IsRequired(false).HasMaxLength(32);
+            entity.Property(e => e.Color).IsRequired(false).HasMaxLength(32);
+
+            entity.OwnsMany(e => e.Vertices, vertices => {
+                vertices.ToJson();
+                vertices.Property(v => v.X).IsRequired();
+                vertices.Property(v => v.Y).IsRequired();
+            });
+
+            entity.HasOne(e => e.Scene)
+                .WithMany(s => s.Regions)
+                .HasForeignKey(e => e.SceneId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.SceneId);
+        });
+
+        builder.Entity<SceneSource>(entity => {
+            entity.ToTable("SceneSources");
+            entity.HasKey(e => new { e.SceneId, e.Index });
+            entity.Property(e => e.SceneId).IsRequired();
+            entity.Property(e => e.Index).IsRequired();
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
+            entity.Property(e => e.Type).IsRequired().HasMaxLength(32);
+            entity.Property(e => e.Direction).IsRequired().HasDefaultValue(0.0);
+            entity.Property(e => e.Range);
+            entity.Property(e => e.Intensity);
+            entity.Property(e => e.HasGradient).IsRequired();
+
+            entity.ComplexProperty(e => e.Position, position => {
+                position.IsRequired();
+                position.Property(p => p.X).IsRequired().HasDefaultValue(0.0);
+                position.Property(p => p.Y).IsRequired().HasDefaultValue(0.0);
+            });
+
+            entity.HasOne(e => e.Scene)
+                .WithMany(s => s.Sources)
+                .HasForeignKey(e => e.SceneId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.SceneId);
+        });
+
+        builder.Entity<SceneEffect>(entity => {
+            entity.ToTable("SceneEffects");
+            entity.HasKey(e => new { e.SceneId, e.Index });
+            entity.Property(e => e.SceneId).IsRequired();
+            entity.Property(e => e.EffectId).IsRequired();
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
+            entity.Property(e => e.Size);
+            entity.Property(e => e.Direction);
+
+            // Store Origin as ComplexProperty (Point)
+            entity.ComplexProperty(e => e.Origin, origin => {
+                origin.IsRequired();
+                origin.Property(p => p.X).IsRequired();
+                origin.Property(p => p.Y).IsRequired();
+            });
+
+            entity.HasOne(e => e.Scene)
+                .WithMany()
+                .HasForeignKey(e => e.SceneId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Effect)
+                .WithMany()
+                .HasForeignKey(e => e.EffectId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

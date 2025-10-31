@@ -343,9 +343,9 @@ export interface Scene {
     panning: { x: number; y: number };
   };
   assets: SceneAsset[];
-  sceneBarriers: SceneBarrier[];
-  sceneRegions: SceneRegion[];
-  sceneSources: SceneSource[];
+  walls: SceneWall[];
+  regions: SceneRegion[];
+  sources: SceneSource[];
   createdAt: string;
   updatedAt: string;
   defaultDisplayName: DisplayName;
@@ -556,8 +556,8 @@ export enum LabelPosition {
   Bottom = 'Bottom',
 }
 
-// Structure Types - Phase 8.6 Backend Implementation
-// Barriers, Regions, and Sources for Scene Structures
+// Structure Types - Phase 8.8 Value Object Implementation
+// SceneWall, SceneRegion, and SceneSource as value objects embedded in Scene
 
 export interface Point {
   x: number;
@@ -576,146 +576,36 @@ export enum WallVisibility {
   Invisible = 2
 }
 
-export interface Barrier {
-  id: string;
-  ownerId: string;
-  name: string;
-  description?: string;
-  poles: Pole[];
-  visibility: WallVisibility;
-  isClosed: boolean;
-  material?: string;
-  createdAt: string;
-}
-
-export interface SceneBarrier {
-  id: string;
+export interface SceneWall {
   sceneId: string;
-  barrierId: string;
-  poles: Pole[];
-}
-
-export interface CreateBarrierRequest {
+  index: number;
   name: string;
-  description?: string;
   poles: Pole[];
   visibility: WallVisibility;
   isClosed: boolean;
   material?: string;
-}
-
-export interface UpdateBarrierRequest {
-  name?: string;
-  description?: string;
-  poles?: Pole[];
-  visibility?: WallVisibility;
-  isClosed?: boolean;
-  material?: string;
-}
-
-export interface PlaceSceneBarrierRequest {
-  barrierId: string;
-  poles: Pole[];
-}
-
-export interface UpdateSceneBarrierRequest {
-  poles?: Pole[];
-}
-
-export interface Region {
-  id: string;
-  ownerId: string;
-  name: string;
-  description?: string;
-  regionType: string;
-  labelMap: Record<number, string>;
-  createdAt: string;
 }
 
 export interface SceneRegion {
-  id: string;
   sceneId: string;
-  regionId: string;
-  vertices: Point[];
-  value: number;
-}
-
-export interface CreateRegionRequest {
+  index: number;
   name: string;
-  description?: string;
-  regionType: string;
-  labelMap: Record<number, string>;
-}
-
-export interface UpdateRegionRequest {
-  name?: string;
-  description?: string;
-  regionType?: string;
-  labelMap?: Record<number, string>;
-}
-
-export interface PlaceSceneRegionRequest {
-  regionId: string;
+  type: string;
   vertices: Point[];
-  value: number;
-}
-
-export interface UpdateSceneRegionRequest {
-  vertices?: Point[];
   value?: number;
-}
-
-export interface Source {
-  id: string;
-  ownerId: string;
-  name: string;
-  description?: string;
-  sourceType: string;
-  defaultRange: number;
-  defaultIntensity: number;
-  defaultIsGradient: boolean;
-  createdAt: string;
+  label?: string;
+  color?: string;
 }
 
 export interface SceneSource {
-  id: string;
   sceneId: string;
-  sourceId: string;
-  position: Point;
-  range: number;
-  intensity: number;
-  isGradient: boolean;
-}
-
-export interface CreateSourceRequest {
+  index: number;
   name: string;
-  description?: string;
-  sourceType: string;
-  defaultRange: number;
-  defaultIntensity: number;
-  defaultIsGradient: boolean;
-}
-
-export interface UpdateSourceRequest {
-  name?: string;
-  description?: string;
-  sourceType?: string;
-  defaultRange?: number;
-  defaultIntensity?: number;
-  defaultIsGradient?: boolean;
-}
-
-export interface PlaceSceneSourceRequest {
-  sourceId: string;
+  type: string;
   position: Point;
+  direction: number;
   range?: number;
   intensity?: number;
-  isGradient?: boolean;
+  hasGradient: boolean;
 }
 
-export interface UpdateSceneSourceRequest {
-  position?: Point;
-  range?: number;
-  intensity?: number;
-  isGradient?: boolean;
-}

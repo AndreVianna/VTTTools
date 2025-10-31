@@ -1,5 +1,5 @@
-export { BarrierDrawingTool } from './BarrierDrawingTool';
-export { BarrierPreview } from './BarrierPreview';
+export { WallDrawingTool } from './WallDrawingTool';
+export { WallPreview } from './WallPreview';
 export { VertexMarker } from './VertexMarker';
 
 export { RegionDrawingTool } from './RegionDrawingTool';
@@ -8,8 +8,8 @@ export { RegionPreview } from './RegionPreview';
 export { SourceDrawingTool } from './SourceDrawingTool';
 export { SourcePreview } from './SourcePreview';
 
-export type { BarrierDrawingToolProps } from './BarrierDrawingTool';
-export type { BarrierPreviewProps } from './BarrierPreview';
+export type { WallDrawingToolProps } from './WallDrawingTool';
+export type { WallPreviewProps } from './WallPreview';
 export type { VertexMarkerProps } from './VertexMarker';
 
 export type { RegionDrawingToolProps } from './RegionDrawingTool';

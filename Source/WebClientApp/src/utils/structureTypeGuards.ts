@@ -1,17 +1,34 @@
-import type { Barrier, Region, Source } from '@/types/domain';
+import type { SceneWall, SceneRegion, SceneSource } from '@/types/domain';
 
-export const isBarrier = (structure: Barrier | Region | Source): structure is Barrier => {
-    return 'visibility' in structure;
+export const isSceneWall = (structure: SceneWall | SceneRegion | SceneSource): structure is SceneWall => {
+    return (
+        'visibility' in structure &&
+        'poles' in structure &&
+        'isClosed' in structure &&
+        !('vertices' in structure) &&
+        !('position' in structure)
+    );
 };
 
-export const isRegion = (structure: Barrier | Region | Source): structure is Region => {
-    return 'regionType' in structure;
+export const isSceneRegion = (structure: SceneWall | SceneRegion | SceneSource): structure is SceneRegion => {
+    return (
+        'vertices' in structure &&
+        'type' in structure &&
+        !('poles' in structure) &&
+        !('position' in structure)
+    );
 };
 
-export const isSource = (structure: Barrier | Region | Source): structure is Source => {
-    return 'sourceType' in structure;
+export const isSceneSource = (structure: SceneWall | SceneRegion | SceneSource): structure is SceneSource => {
+    return (
+        'position' in structure &&
+        'direction' in structure &&
+        'hasGradient' in structure &&
+        !('poles' in structure) &&
+        !('vertices' in structure)
+    );
 };
 
-isBarrier.displayName = 'isBarrier';
-isRegion.displayName = 'isRegion';
-isSource.displayName = 'isSource';
+isSceneWall.displayName = 'isSceneWall';
+isSceneRegion.displayName = 'isSceneRegion';
+isSceneSource.displayName = 'isSceneSource';

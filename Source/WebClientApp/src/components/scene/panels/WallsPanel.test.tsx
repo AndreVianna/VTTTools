@@ -2,34 +2,21 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { WallsPanel } from './WallsPanel';
-import { WALL_PRESETS } from './wallsPanelTypes';
-import { WallVisibility, type Barrier, type SceneBarrier } from '@/types/domain';
+import { WallVisibility, type SceneWall } from '@/types/domain';
 
 const theme = createTheme();
 
-const mockBarrier: Barrier = {
-    id: 'barrier-1',
-    ownerId: 'user-1',
+const mockSceneWall: SceneWall = {
+    sceneId: 'scene-1',
+    index: 0,
     name: 'Stone Wall',
-    description: 'A solid stone wall',
     poles: [
         { x: 0, y: 0, h: 2.0 },
         { x: 100, y: 0, h: 2.0 }
     ],
     visibility: WallVisibility.Normal,
     isClosed: false,
-    material: 'Stone',
-    createdAt: new Date().toISOString()
-};
-
-const mockSceneBarrier: SceneBarrier = {
-    id: 'scene-barrier-1',
-    sceneId: 'scene-1',
-    barrierId: 'barrier-1',
-    poles: [
-        { x: 0, y: 0, h: 2.0 },
-        { x: 100, y: 0, h: 2.0 }
-    ]
+    material: 'Stone'
 };
 
 const renderComponent = (props = {}) => {
@@ -90,8 +77,7 @@ describe('WallsPanel', () => {
 
     it('displays placed walls list with pole count', () => {
         renderComponent({
-            barriers: [mockBarrier],
-            sceneBarriers: [mockSceneBarrier]
+            sceneWalls: [mockSceneWall]
         });
 
         expect(screen.getByText('Stone Wall')).toBeInTheDocument();
@@ -100,35 +86,32 @@ describe('WallsPanel', () => {
 
     it('displays "No walls placed" when empty', () => {
         renderComponent({
-            barriers: [],
-            sceneBarriers: []
+            sceneWalls: []
         });
 
         expect(screen.getByText('No walls placed')).toBeInTheDocument();
     });
 
-    it('shows selected wall editor when barrier is selected', () => {
+    it('shows selected wall editor when wall is selected', () => {
         renderComponent({
-            barriers: [mockBarrier],
-            sceneBarriers: [mockSceneBarrier],
-            selectedBarrierId: mockSceneBarrier.id
+            sceneWalls: [mockSceneWall],
+            selectedWallIndex: mockSceneWall.index
         });
 
         expect(screen.getByText('Selected Wall')).toBeInTheDocument();
         expect(screen.getByText('Edit Vertices')).toBeInTheDocument();
     });
 
-    it('calls onBarrierSelect when wall is clicked in list', () => {
-        const onBarrierSelect = vi.fn();
+    it('calls onWallSelect when wall is clicked in list', () => {
+        const onWallSelect = vi.fn();
         renderComponent({
-            barriers: [mockBarrier],
-            sceneBarriers: [mockSceneBarrier],
-            onBarrierSelect
+            sceneWalls: [mockSceneWall],
+            onWallSelect
         });
 
         const wallListItem = screen.getByText('Stone Wall').closest('button');
         fireEvent.click(wallListItem!);
 
-        expect(onBarrierSelect).toHaveBeenCalledWith(mockSceneBarrier.id);
+        expect(onWallSelect).toHaveBeenCalledWith(mockSceneWall.index);
     });
 });

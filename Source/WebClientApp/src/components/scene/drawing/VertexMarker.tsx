@@ -10,14 +10,15 @@ export interface VertexMarkerProps {
 
 export const VertexMarker: React.FC<VertexMarkerProps> = ({ position, preview = false }) => {
     const theme = useTheme();
+    const redColor = theme.palette.error.main;
 
     return (
         <Circle
             x={position.x}
             y={position.y}
-            radius={preview ? 3 : 5}
-            fill={preview ? theme.palette.grey[500] : theme.palette.error.main}
-            opacity={preview ? 0.5 : 1.0}
+            radius={5}
+            fill={redColor}
+            opacity={preview ? 0.7 : 1.0}
             listening={false}
         />
     );

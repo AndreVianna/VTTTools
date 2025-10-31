@@ -1,5 +1,16 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import type { Scene, UpdateSceneRequest, CreateSceneRequest, SceneAsset } from '@/types/domain';
+import type {
+    Scene,
+    UpdateSceneRequest,
+    CreateSceneRequest,
+    SceneAsset,
+    SceneWall,
+    SceneRegion,
+    SceneSource,
+    Pole,
+    Point,
+    WallVisibility
+} from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 
 export interface UpdateSceneWithVersionRequest extends UpdateSceneRequest {
@@ -25,7 +36,7 @@ export interface SceneAssetBulkUpdate {
 export const sceneApi = createApi({
     reducerPath: 'sceneApi',
     baseQuery: createEnhancedBaseQuery('/api/scenes'),
-    tagTypes: ['Scene', 'SceneAsset'],
+    tagTypes: ['Scene', 'SceneAsset', 'SceneWall', 'SceneRegion', 'SceneSource'],
     endpoints: (builder) => ({
         getScene: builder.query<Scene, string>({
             query: (id) => `/${id}`,
@@ -231,6 +242,190 @@ export const sceneApi = createApi({
             invalidatesTags: (_result, _error, { sceneId }) => [
                 { type: 'Scene', id: sceneId }
             ]
+        }),
+
+        getSceneWalls: builder.query<SceneWall[], string>({
+            query: (sceneId) => `/${sceneId}/walls`,
+            providesTags: (result, _error, sceneId) => [
+                ...(result?.map(({ index }) => ({ type: 'SceneWall' as const, id: `${sceneId}-${index}` })) ?? []),
+                { type: 'SceneWall', id: `SCENE_${sceneId}` }
+            ]
+        }),
+
+        addSceneWall: builder.mutation<SceneWall, {
+            sceneId: string;
+            name: string;
+            poles: Pole[];
+            visibility: WallVisibility;
+            isClosed: boolean;
+            material?: string;
+        }>({
+            query: ({ sceneId, ...body }) => ({
+                url: `/${sceneId}/walls`,
+                method: 'POST',
+                body
+            }),
+            invalidatesTags: (_result, _error, { sceneId }) => [
+                { type: 'SceneWall', id: `SCENE_${sceneId}` },
+                { type: 'Scene', id: sceneId }
+            ]
+        }),
+
+        updateSceneWall: builder.mutation<void, {
+            sceneId: string;
+            wallIndex: number;
+            name?: string;
+            poles?: Pole[];
+            visibility?: WallVisibility;
+            isClosed?: boolean;
+            material?: string;
+        }>({
+            query: ({ sceneId, wallIndex, ...body }) => ({
+                url: `/${sceneId}/walls/${wallIndex}`,
+                method: 'PATCH',
+                body
+            }),
+            invalidatesTags: (_result, _error, { sceneId, wallIndex }) => [
+                { type: 'SceneWall', id: `${sceneId}-${wallIndex}` },
+                { type: 'SceneWall', id: `SCENE_${sceneId}` },
+                { type: 'Scene', id: sceneId }
+            ]
+        }),
+
+        removeSceneWall: builder.mutation<void, { sceneId: string; wallIndex: number }>({
+            query: ({ sceneId, wallIndex }) => ({
+                url: `/${sceneId}/walls/${wallIndex}`,
+                method: 'DELETE'
+            }),
+            invalidatesTags: (_result, _error, { sceneId, wallIndex }) => [
+                { type: 'SceneWall', id: `${sceneId}-${wallIndex}` },
+                { type: 'SceneWall', id: `SCENE_${sceneId}` },
+                { type: 'Scene', id: sceneId }
+            ]
+        }),
+
+        getSceneRegions: builder.query<SceneRegion[], string>({
+            query: (sceneId) => `/${sceneId}/regions`,
+            providesTags: (result, _error, sceneId) => [
+                ...(result?.map(({ index }) => ({ type: 'SceneRegion' as const, id: `${sceneId}-${index}` })) ?? []),
+                { type: 'SceneRegion', id: `SCENE_${sceneId}` }
+            ]
+        }),
+
+        addSceneRegion: builder.mutation<SceneRegion, {
+            sceneId: string;
+            name: string;
+            type: string;
+            vertices: Point[];
+            value?: number;
+            label?: string;
+            color?: string;
+        }>({
+            query: ({ sceneId, ...body }) => ({
+                url: `/${sceneId}/regions`,
+                method: 'POST',
+                body
+            }),
+            invalidatesTags: (_result, _error, { sceneId }) => [
+                { type: 'SceneRegion', id: `SCENE_${sceneId}` },
+                { type: 'Scene', id: sceneId }
+            ]
+        }),
+
+        updateSceneRegion: builder.mutation<void, {
+            sceneId: string;
+            regionIndex: number;
+            name?: string;
+            type?: string;
+            vertices?: Point[];
+            value?: number;
+            label?: string;
+            color?: string;
+        }>({
+            query: ({ sceneId, regionIndex, ...body }) => ({
+                url: `/${sceneId}/regions/${regionIndex}`,
+                method: 'PATCH',
+                body
+            }),
+            invalidatesTags: (_result, _error, { sceneId, regionIndex }) => [
+                { type: 'SceneRegion', id: `${sceneId}-${regionIndex}` },
+                { type: 'Scene', id: sceneId }
+            ]
+        }),
+
+        removeSceneRegion: builder.mutation<void, { sceneId: string; regionIndex: number }>({
+            query: ({ sceneId, regionIndex }) => ({
+                url: `/${sceneId}/regions/${regionIndex}`,
+                method: 'DELETE'
+            }),
+            invalidatesTags: (_result, _error, { sceneId, regionIndex }) => [
+                { type: 'SceneRegion', id: `${sceneId}-${regionIndex}` },
+                { type: 'SceneRegion', id: `SCENE_${sceneId}` },
+                { type: 'Scene', id: sceneId }
+            ]
+        }),
+
+        getSceneSources: builder.query<SceneSource[], string>({
+            query: (sceneId) => `/${sceneId}/sources`,
+            providesTags: (result, _error, sceneId) => [
+                ...(result?.map(({ index }) => ({ type: 'SceneSource' as const, id: `${sceneId}-${index}` })) ?? []),
+                { type: 'SceneSource', id: `SCENE_${sceneId}` }
+            ]
+        }),
+
+        addSceneSource: builder.mutation<SceneSource, {
+            sceneId: string;
+            name: string;
+            type: string;
+            position: Point;
+            direction: number;
+            range?: number;
+            intensity?: number;
+            hasGradient: boolean;
+        }>({
+            query: ({ sceneId, ...body }) => ({
+                url: `/${sceneId}/sources`,
+                method: 'POST',
+                body
+            }),
+            invalidatesTags: (_result, _error, { sceneId }) => [
+                { type: 'SceneSource', id: `SCENE_${sceneId}` },
+                { type: 'Scene', id: sceneId }
+            ]
+        }),
+
+        updateSceneSource: builder.mutation<void, {
+            sceneId: string;
+            sourceIndex: number;
+            name?: string;
+            type?: string;
+            position?: Point;
+            direction?: number;
+            range?: number;
+            intensity?: number;
+            hasGradient?: boolean;
+        }>({
+            query: ({ sceneId, sourceIndex, ...body }) => ({
+                url: `/${sceneId}/sources/${sourceIndex}`,
+                method: 'PATCH',
+                body
+            }),
+            invalidatesTags: (_result, _error, { sceneId, sourceIndex }) => [
+                { type: 'SceneSource', id: `${sceneId}-${sourceIndex}` },
+                { type: 'Scene', id: sceneId }
+            ]
+        }),
+
+        removeSceneSource: builder.mutation<void, { sceneId: string; sourceIndex: number }>({
+            query: ({ sceneId, sourceIndex }) => ({
+                url: `/${sceneId}/sources/${sourceIndex}`,
+                method: 'DELETE'
+            }),
+            invalidatesTags: (_result, _error, { sceneId, sourceIndex }) => [
+                { type: 'SceneSource', id: `${sceneId}-${sourceIndex}` },
+                { type: 'SceneSource', id: `SCENE_${sceneId}` },
+                { type: 'Scene', id: sceneId }
+            ]
         })
     })
 });
@@ -248,5 +443,17 @@ export const {
     useBulkUpdateSceneAssetsMutation,
     useRemoveSceneAssetMutation,
     useBulkDeleteSceneAssetsMutation,
-    useBulkAddSceneAssetsMutation
+    useBulkAddSceneAssetsMutation,
+    useGetSceneWallsQuery,
+    useAddSceneWallMutation,
+    useUpdateSceneWallMutation,
+    useRemoveSceneWallMutation,
+    useGetSceneRegionsQuery,
+    useAddSceneRegionMutation,
+    useUpdateSceneRegionMutation,
+    useRemoveSceneRegionMutation,
+    useGetSceneSourcesQuery,
+    useAddSceneSourceMutation,
+    useUpdateSceneSourceMutation,
+    useRemoveSceneSourceMutation
 } = sceneApi;

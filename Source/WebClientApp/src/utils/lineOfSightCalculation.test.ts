@@ -8,7 +8,7 @@ import {
     type Ray,
     type LineSegment
 } from './lineOfSightCalculation';
-import { WallVisibility, type Point, type Barrier, type SceneBarrier, type SceneSource } from '@/types/domain';
+import { WallVisibility, type Point, type SceneWall, type SceneSource } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 describe('distanceBetweenPoints', () => {
@@ -120,7 +120,7 @@ describe('lineLineIntersection', () => {
 });
 
 describe('castRay', () => {
-    it('should return ray endpoint when no barriers', () => {
+    it('should return ray endpoint when no Walls', () => {
         const ray: Ray = {
             origin: { x: 0, y: 0 },
             angle: 0,
@@ -132,7 +132,7 @@ describe('castRay', () => {
         expect(result.y).toBeCloseTo(0, 5);
     });
 
-    it('should return intersection point when ray hits barrier', () => {
+    it('should return intersection point when ray hits Wall', () => {
         const ray: Ray = {
             origin: { x: 0, y: 0 },
             angle: 0,
@@ -149,7 +149,7 @@ describe('castRay', () => {
         expect(result.y).toBeCloseTo(0, 5);
     });
 
-    it('should find closest intersection with multiple barriers', () => {
+    it('should find closest intersection with multiple Walls', () => {
         const ray: Ray = {
             origin: { x: 0, y: 0 },
             angle: 0,
@@ -184,7 +184,7 @@ describe('castRay', () => {
         expect(result.y).toBeCloseTo(50, 5);
     });
 
-    it('should return ray endpoint when barrier is behind origin', () => {
+    it('should return ray endpoint when Wall is behind origin', () => {
         const ray: Ray = {
             origin: { x: 0, y: 0 },
             angle: 0,
@@ -220,25 +220,12 @@ describe('castRay', () => {
 });
 
 describe('extractOpaqueSegments', () => {
-    it('should extract segments from single barrier', () => {
-        const sceneBarriers: SceneBarrier[] = [
+    it('should extract segments from single Wall', () => {
+        const sceneWalls: SceneWall[] = [
             {
-                id: '1',
                 sceneId: 'scene-1',
-                barrierId: 'barrier-1',
-                poles: [
-                    { x: 0, y: 0, h: 2 },
-                    { x: 10, y: 0, h: 2 },
-                    { x: 10, y: 10, h: 2 }
-                ]
-            }
-        ];
-
-        const barriers: Barrier[] = [
-            {
-                id: 'barrier-1',
-                ownerId: 'user-1',
-                name: 'Test Barrier',
+                index: 0,
+                name: 'Test Wall',
                 poles: [
                     { x: 0, y: 0, h: 2 },
                     { x: 10, y: 0, h: 2 },
@@ -246,12 +233,11 @@ describe('extractOpaqueSegments', () => {
                 ],
                 visibility: WallVisibility.Normal,
                 isClosed: false,
-                material: 'Stone',
-                createdAt: '2025-01-01'
+                material: 'Stone'
             }
         ];
 
-        const segments = extractOpaqueSegments(sceneBarriers, barriers);
+        const segments = extractOpaqueSegments(sceneWalls);
         expect(segments).toHaveLength(2);
         expect(segments[0]).toEqual({
             start: { x: 0, y: 0 },
@@ -263,49 +249,36 @@ describe('extractOpaqueSegments', () => {
         });
     });
 
-    it('should return empty array for no barriers', () => {
-        const segments = extractOpaqueSegments([], []);
+    it('should return empty array for no Walls', () => {
+        const segments = extractOpaqueSegments([]);
         expect(segments).toHaveLength(0);
     });
 
-    it('should filter out non-Normal visibility barriers', () => {
-        const sceneBarriers: SceneBarrier[] = [
+    it('should filter out non-Normal visibility Walls', () => {
+        const sceneWalls: SceneWall[] = [
             {
-                id: '1',
                 sceneId: 'scene-1',
-                barrierId: 'barrier-1',
-                poles: [
-                    { x: 0, y: 0, h: 2 },
-                    { x: 10, y: 0, h: 2 }
-                ]
-            }
-        ];
-
-        const barriers: Barrier[] = [
-            {
-                id: 'barrier-1',
-                ownerId: 'user-1',
+                index: 0,
                 name: 'Fence',
                 poles: [
                     { x: 0, y: 0, h: 2 },
                     { x: 10, y: 0, h: 2 }
                 ],
                 visibility: WallVisibility.Fence,
-                isClosed: false,
-                createdAt: '2025-01-01'
+                isClosed: false
             }
         ];
 
-        const segments = extractOpaqueSegments(sceneBarriers, barriers);
+        const segments = extractOpaqueSegments(sceneWalls);
         expect(segments).toHaveLength(0);
     });
 
-    it('should extract segments from multiple barriers', () => {
-        const sceneBarriers: SceneBarrier[] = [
+    it('should extract segments from multiple Walls', () => {
+        const sceneWalls: SceneWall[] = [
             {
                 id: '1',
                 sceneId: 'scene-1',
-                barrierId: 'barrier-1',
+                WallId: 'Wall-1',
                 poles: [
                     { x: 0, y: 0, h: 2 },
                     { x: 10, y: 0, h: 2 }
@@ -314,7 +287,7 @@ describe('extractOpaqueSegments', () => {
             {
                 id: '2',
                 sceneId: 'scene-1',
-                barrierId: 'barrier-2',
+                WallId: 'Wall-2',
                 poles: [
                     { x: 20, y: 0, h: 2 },
                     { x: 30, y: 0, h: 2 },
@@ -323,9 +296,9 @@ describe('extractOpaqueSegments', () => {
             }
         ];
 
-        const barriers: Barrier[] = [
+        const Walls: Wall[] = [
             {
-                id: 'barrier-1',
+                id: 'Wall-1',
                 ownerId: 'user-1',
                 name: 'Wall 1',
                 poles: [
@@ -337,7 +310,7 @@ describe('extractOpaqueSegments', () => {
                 createdAt: '2025-01-01'
             },
             {
-                id: 'barrier-2',
+                id: 'Wall-2',
                 ownerId: 'user-1',
                 name: 'Wall 2',
                 poles: [
@@ -351,16 +324,16 @@ describe('extractOpaqueSegments', () => {
             }
         ];
 
-        const segments = extractOpaqueSegments(sceneBarriers, barriers);
+        const segments = extractOpaqueSegments(sceneWalls, Walls);
         expect(segments).toHaveLength(3);
     });
 
-    it('should handle closed barriers', () => {
-        const sceneBarriers: SceneBarrier[] = [
+    it('should handle closed Walls', () => {
+        const sceneWalls: SceneWall[] = [
             {
                 id: '1',
                 sceneId: 'scene-1',
-                barrierId: 'barrier-1',
+                WallId: 'Wall-1',
                 poles: [
                     { x: 0, y: 0, h: 2 },
                     { x: 10, y: 0, h: 2 },
@@ -369,9 +342,9 @@ describe('extractOpaqueSegments', () => {
             }
         ];
 
-        const barriers: Barrier[] = [
+        const Walls: Wall[] = [
             {
-                id: 'barrier-1',
+                id: 'Wall-1',
                 ownerId: 'user-1',
                 name: 'Room',
                 poles: [
@@ -385,16 +358,16 @@ describe('extractOpaqueSegments', () => {
             }
         ];
 
-        const segments = extractOpaqueSegments(sceneBarriers, barriers);
+        const segments = extractOpaqueSegments(sceneWalls, Walls);
         expect(segments).toHaveLength(3);
     });
 
-    it('should handle barrier with two poles', () => {
-        const sceneBarriers: SceneBarrier[] = [
+    it('should handle Wall with two poles', () => {
+        const sceneWalls: SceneWall[] = [
             {
                 id: '1',
                 sceneId: 'scene-1',
-                barrierId: 'barrier-1',
+                WallId: 'Wall-1',
                 poles: [
                     { x: 0, y: 0, h: 2 },
                     { x: 10, y: 10, h: 2 }
@@ -402,9 +375,9 @@ describe('extractOpaqueSegments', () => {
             }
         ];
 
-        const barriers: Barrier[] = [
+        const Walls: Wall[] = [
             {
-                id: 'barrier-1',
+                id: 'Wall-1',
                 ownerId: 'user-1',
                 name: 'Wall',
                 poles: [
@@ -417,7 +390,7 @@ describe('extractOpaqueSegments', () => {
             }
         ];
 
-        const segments = extractOpaqueSegments(sceneBarriers, barriers);
+        const segments = extractOpaqueSegments(sceneWalls, Walls);
         expect(segments).toHaveLength(1);
         expect(segments[0]).toEqual({
             start: { x: 0, y: 0 },
@@ -449,7 +422,7 @@ describe('calculateLineOfSight', () => {
         expect(result).toHaveLength(72);
     });
 
-    it('should create full circle when no barriers', () => {
+    it('should create full circle when no Walls', () => {
         const source: SceneSource = {
             id: '1',
             sceneId: 'scene-1',
@@ -470,7 +443,7 @@ describe('calculateLineOfSight', () => {
         });
     });
 
-    it('should truncate rays at opaque barrier', () => {
+    it('should truncate rays at opaque Wall', () => {
         const source: SceneSource = {
             id: '1',
             sceneId: 'scene-1',
@@ -481,11 +454,11 @@ describe('calculateLineOfSight', () => {
             isGradient: true
         };
 
-        const sceneBarriers: SceneBarrier[] = [
+        const sceneWalls: SceneWall[] = [
             {
                 id: '1',
                 sceneId: 'scene-1',
-                barrierId: 'barrier-1',
+                WallId: 'Wall-1',
                 poles: [
                     { x: 200, y: 50, h: 2 },
                     { x: 200, y: 150, h: 2 }
@@ -493,9 +466,9 @@ describe('calculateLineOfSight', () => {
             }
         ];
 
-        const barriers: Barrier[] = [
+        const Walls: Wall[] = [
             {
-                id: 'barrier-1',
+                id: 'Wall-1',
                 ownerId: 'user-1',
                 name: 'Wall',
                 poles: [
@@ -508,7 +481,7 @@ describe('calculateLineOfSight', () => {
             }
         ];
 
-        const result = calculateLineOfSight(source, source.range, sceneBarriers, barriers, gridConfig);
+        const result = calculateLineOfSight(source, source.range, sceneWalls, Walls, gridConfig);
 
         const eastRays = result.filter(p => p.x > source.position.x && Math.abs(p.y - source.position.y) < 50);
         const blockedRays = eastRays.filter(p => Math.abs(p.x - 200) < 5);
@@ -537,7 +510,7 @@ describe('calculateLineOfSight', () => {
         });
     });
 
-    it('should handle multiple barriers', () => {
+    it('should handle multiple Walls', () => {
         const source: SceneSource = {
             id: '1',
             sceneId: 'scene-1',
@@ -548,11 +521,11 @@ describe('calculateLineOfSight', () => {
             isGradient: true
         };
 
-        const sceneBarriers: SceneBarrier[] = [
+        const sceneWalls: SceneWall[] = [
             {
                 id: '1',
                 sceneId: 'scene-1',
-                barrierId: 'barrier-1',
+                WallId: 'Wall-1',
                 poles: [
                     { x: 200, y: 50, h: 2 },
                     { x: 200, y: 150, h: 2 }
@@ -561,7 +534,7 @@ describe('calculateLineOfSight', () => {
             {
                 id: '2',
                 sceneId: 'scene-1',
-                barrierId: 'barrier-2',
+                WallId: 'Wall-2',
                 poles: [
                     { x: 50, y: 0, h: 2 },
                     { x: 150, y: 0, h: 2 }
@@ -569,9 +542,9 @@ describe('calculateLineOfSight', () => {
             }
         ];
 
-        const barriers: Barrier[] = [
+        const Walls: Wall[] = [
             {
-                id: 'barrier-1',
+                id: 'Wall-1',
                 ownerId: 'user-1',
                 name: 'East Wall',
                 poles: [
@@ -583,7 +556,7 @@ describe('calculateLineOfSight', () => {
                 createdAt: '2025-01-01'
             },
             {
-                id: 'barrier-2',
+                id: 'Wall-2',
                 ownerId: 'user-1',
                 name: 'North Wall',
                 poles: [
@@ -596,7 +569,7 @@ describe('calculateLineOfSight', () => {
             }
         ];
 
-        const result = calculateLineOfSight(source, source.range, sceneBarriers, barriers, gridConfig);
+        const result = calculateLineOfSight(source, source.range, sceneWalls, Walls, gridConfig);
         expect(result).toHaveLength(72);
 
         const allAtMaxRange = result.every(p => {
