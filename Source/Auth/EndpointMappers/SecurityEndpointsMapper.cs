@@ -8,9 +8,5 @@ internal static class SecurityEndpointsMapper {
         security.MapGet("", SecurityHandlers.GetSecuritySettingsHandler)
             .WithName("GetSecuritySettings")
             .WithSummary("Get current user security settings");
-
-        security.MapPut("/password", SecurityHandlers.ChangePasswordHandler)
-            .WithName("ChangePassword")
-            .WithSummary("Change user password");
     }
 }

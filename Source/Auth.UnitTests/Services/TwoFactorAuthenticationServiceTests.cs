@@ -126,7 +126,7 @@ public class TwoFactorAuthenticationServiceTests {
     public async Task InitiateSetupAsync_WithUserWithoutEmail_UsesUserNameInUri() {
         // Arrange
         var testUser = CreateTestUser("testuser", "Test User");
-        testUser.Email = null;
+        testUser.Email = string.Empty;
         var sharedKey = "JBSWY3DPEHPK3PXP";
 
         _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
@@ -144,7 +144,7 @@ public class TwoFactorAuthenticationServiceTests {
     public async Task InitiateSetupAsync_WithUserWithoutEmailOrUserName_UsesUserIdInUri() {
         // Arrange
         var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.Email = null;
+        testUser.Email = string.Empty;
         testUser.UserName = null;
         var sharedKey = "JBSWY3DPEHPK3PXP";
 

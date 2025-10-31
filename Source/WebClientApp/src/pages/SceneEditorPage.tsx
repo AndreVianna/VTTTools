@@ -235,6 +235,13 @@ const SceneEditorPageInternal: React.FC = () => {
     }, [sceneData, isInitialized, dispatch]);
 
     useEffect(() => {
+        if (sceneData && isInitialized) {
+            const sceneWithDefaults = ensureSceneDefaults(sceneData);
+            setScene(sceneWithDefaults);
+        }
+    }, [sceneData, isInitialized]);
+
+    useEffect(() => {
         localStorage.setItem('scene-selected-assets', JSON.stringify(selectedAssetIds));
     }, [selectedAssetIds]);
 
@@ -1152,6 +1159,7 @@ const SceneEditorPageInternal: React.FC = () => {
         isClosed: boolean;
         material?: string;
         defaultHeight: number;
+        color?: string;
     }) => {
         if (!sceneId) return;
 
@@ -1171,7 +1179,7 @@ const SceneEditorPageInternal: React.FC = () => {
                 visibility: properties.visibility,
                 isClosed: properties.isClosed,
                 material: properties.material,
-                color: '#808080'
+                color: properties.color || '#808080'
             }).unwrap();
 
             console.log('[SceneEditorPage] Wall created with index:', response.index);
@@ -1252,7 +1260,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     position: 'relative',
                     width: '100%',
                     height: '100%',
-                    cursor: drawingMode === 'wall' ? 'crosshair' : 'default'
+                    cursor: (drawingMode === 'wall' || isEditingVertices) ? 'crosshair' : 'default'
                 }}
             >
                 <TopToolBar

@@ -268,10 +268,98 @@ public class AuthService(
         }
     }
 
+    public async Task<AuthResponse> ResendEmailConfirmationAsync(string email) {
+        try {
+            var user = await userManager.FindByEmailAsync(email);
+
+            if (user == null) {
+                logger.LogInformation("Email confirmation requested for non-existent email: {Email}", email);
+                return new AuthResponse {
+                    Success = true,
+                    Message = "If that email exists, confirmation instructions have been sent",
+                };
+            }
+
+            if (user.EmailConfirmed) {
+                logger.LogInformation("Email confirmation requested for already confirmed email: {Email}", email);
+                return new AuthResponse {
+                    Success = true,
+                    Message = "Email is already confirmed",
+                };
+            }
+
+            var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            var encodedEmail = Uri.EscapeDataString(email);
+            var encodedToken = Uri.EscapeDataString(token);
+            var confirmationLink = $"http://localhost:5000/api/auth/confirm-email?email={encodedEmail}&token={encodedToken}";
+
+            await emailService.SendEmailConfirmationAsync(email, confirmationLink);
+
+            logger.LogInformation("Email confirmation sent to: {Email}", email);
+
+            return new AuthResponse {
+                Success = true,
+                Message = "If that email exists, confirmation instructions have been sent",
+            };
+        }
+        catch (Exception ex) {
+            logger.LogError(ex, "Error during resend email confirmation for email: {Email}", email);
+            return new AuthResponse {
+                Message = "InternalServerError",
+            };
+        }
+    }
+
+    public async Task<AuthResponse> ConfirmEmailAsync(string email, string token) {
+        try {
+            var user = await userManager.FindByEmailAsync(email);
+            if (user == null) {
+                logger.LogWarning("Email confirmation attempted for non-existent email: {Email}", email);
+                return new AuthResponse {
+                    Success = false,
+                    Message = "Invalid confirmation link",
+                };
+            }
+
+            if (user.EmailConfirmed) {
+                logger.LogInformation("Email already confirmed for: {Email}", email);
+                return new AuthResponse {
+                    Success = true,
+                    Message = "Email already confirmed",
+                };
+            }
+
+            var result = await userManager.ConfirmEmailAsync(user, token);
+
+            if (!result.Succeeded) {
+                var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                logger.LogWarning("Email confirmation failed for email {Email}: {Errors}", email, errors);
+                return new AuthResponse {
+                    Success = false,
+                    Message = "Confirmation link has expired or is invalid",
+                };
+            }
+
+            logger.LogInformation("Email confirmed successfully for: {Email}", email);
+            return new AuthResponse {
+                Success = true,
+                Message = "Email confirmed successfully",
+            };
+        }
+        catch (Exception ex) {
+            logger.LogError(ex, "Error during email confirmation for email: {Email}", email);
+            return new AuthResponse {
+                Message = "InternalServerError",
+            };
+        }
+    }
+
     private static UserInfo MapUserToUserInfo(User user)
         => new() {
             Id = user.Id,
             Email = user.Email,
+            EmailConfirmed = user.EmailConfirmed,
             Name = user.Name,
             DisplayName = user.DisplayName,
             IsAdministrator = user.IsAdministrator,

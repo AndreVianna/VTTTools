@@ -11,6 +11,8 @@ import {
   IconButton,
   Divider,
   Stack,
+  InputAdornment,
+  Tooltip,
 } from '@mui/material';
 import {
   PhotoCamera,
@@ -18,7 +20,10 @@ import {
   Save,
   Cancel,
   Delete,
+  CheckCircle,
+  Warning,
 } from '@mui/icons-material';
+import { useTheme } from '@mui/material/styles';
 import { useAuth } from '@/hooks/useAuth';
 import { handleValidationError } from '@/utils/errorHandling';
 import { renderAuthError } from '@/utils/renderError';
@@ -28,6 +33,7 @@ import {
   useUploadAvatarMutation,
   useDeleteAvatarMutation,
 } from '@/api/profileApi';
+import { useResendEmailConfirmationMutation } from '@/services/authApi';
 import { getApiEndpoints } from '@/config/development';
 
 const getAvatarUrl = (avatarResourceId?: string): string | undefined => {
@@ -37,14 +43,17 @@ const getAvatarUrl = (avatarResourceId?: string): string | undefined => {
 };
 
 export const ProfileSettings: React.FC = () => {
+  const theme = useTheme();
   const { user, error: authError } = useAuth();
 
   const { data: profileData, isLoading: isLoadingProfile, error: profileError } = useGetProfileQuery();
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
   const [uploadAvatar, { isLoading: isUploadingAvatar }] = useUploadAvatarMutation();
   const [deleteAvatar, { isLoading: isDeletingAvatar }] = useDeleteAvatarMutation();
+  const [resendEmailConfirmation, { isLoading: isResendingConfirmation }] = useResendEmailConfirmationMutation();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [confirmationEmailSent, setConfirmationEmailSent] = useState(false);
   const [editedValues, setEditedValues] = useState<{
     name?: string;
     displayName?: string;
@@ -177,6 +186,21 @@ export const ProfileSettings: React.FC = () => {
     }
   };
 
+  const handleResendConfirmation = async () => {
+    if (!user?.email) return;
+
+    try {
+      setLocalError(null);
+      await resendEmailConfirmation({ email: user.email }).unwrap();
+      setConfirmationEmailSent(true);
+      setTimeout(() => setConfirmationEmailSent(false), 5000);
+    } catch (error: any) {
+      const errorMessage = error?.data?.message || 'Failed to send confirmation email';
+      setLocalError(errorMessage);
+      console.error('Failed to send confirmation email:', error);
+    }
+  };
+
   const isLoading = isLoadingProfile || isUpdating || isUploadingAvatar || isDeletingAvatar;
   const error = authError || profileError || localError;
 
@@ -271,8 +295,52 @@ export const ProfileSettings: React.FC = () => {
               disabled
               helperText="Email cannot be changed. Contact support if you need to update your email."
               margin="normal"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Tooltip
+                      title={user.emailConfirmed ? 'Email verified' : 'Email not verified'}
+                      arrow
+                    >
+                      {user.emailConfirmed ? (
+                        <CheckCircle
+                          sx={{
+                            color: theme.palette.success.main,
+                            fontSize: '1.5rem',
+                          }}
+                        />
+                      ) : (
+                        <Warning
+                          sx={{
+                            color: theme.palette.warning.main,
+                            fontSize: '1.5rem',
+                          }}
+                        />
+                      )}
+                    </Tooltip>
+                  </InputAdornment>
+                ),
+              }}
             />
           </Box>
+
+          {!user.emailConfirmed && (
+            <Box sx={{ mb: 2 }}>
+              {confirmationEmailSent && (
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  Confirmation email sent to {user.email}. Please check your inbox.
+                </Alert>
+              )}
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleResendConfirmation}
+                disabled={isResendingConfirmation}
+              >
+                {isResendingConfirmation ? <CircularProgress size={20} /> : 'Resend Confirmation Email'}
+              </Button>
+            </Box>
+          )}
 
           <Box sx={{ mb: 2 }}>
             <TextField
@@ -336,48 +404,6 @@ export const ProfileSettings: React.FC = () => {
           )}
         </Box>
       </Stack>
-
-      <Divider sx={{ my: 3 }} />
-
-      <Box>
-        <Typography variant="h6" gutterBottom>
-          Account Information
-        </Typography>
-        <Stack direction="row" spacing={2} flexWrap="wrap">
-          <Box sx={{ flex: '1 1 45%' }}>
-            <Typography variant="body2" color="text.secondary">
-              Account Created:
-            </Typography>
-            <Typography variant="body1">
-              {new Date(user.createdAt).toLocaleDateString()}
-            </Typography>
-          </Box>
-          <Box sx={{ flex: '1 1 45%' }}>
-            <Typography variant="body2" color="text.secondary">
-              Last Login:
-            </Typography>
-            <Typography variant="body1">
-              {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
-            </Typography>
-          </Box>
-          <Box sx={{ flex: '1 1 45%' }}>
-            <Typography variant="body2" color="text.secondary">
-              Email Verified:
-            </Typography>
-            <Typography variant="body1" color={user.emailConfirmed ? 'success.main' : 'error.main'}>
-              {user.emailConfirmed ? 'Yes' : 'No'}
-            </Typography>
-          </Box>
-          <Box sx={{ flex: '1 1 45%' }}>
-            <Typography variant="body2" color="text.secondary">
-              Two-Factor Authentication:
-            </Typography>
-            <Typography variant="body1" color={user.twoFactorEnabled ? 'success.main' : 'text.primary'}>
-              {user.twoFactorEnabled ? 'Enabled' : 'Disabled'}
-            </Typography>
-          </Box>
-        </Stack>
-      </Box>
     </Paper>
   );
 };

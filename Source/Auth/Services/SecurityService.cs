@@ -43,49 +43,4 @@ public class SecurityService(
             };
         }
     }
-
-    public async Task<PasswordChangeResponse> ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken ct = default) {
-        try {
-            var user = await userManager.FindByIdAsync(userId.ToString());
-            if (user is null) {
-                logger.LogWarning("Password change attempted for non-existent user ID: {UserId}", userId);
-                return new PasswordChangeResponse {
-                    Success = false,
-                    Message = "User not found"
-                };
-            }
-
-            var isCurrentPasswordValid = await userManager.CheckPasswordAsync(user, request.CurrentPassword);
-            if (!isCurrentPasswordValid) {
-                logger.LogWarning("Password change failed - incorrect current password for user: {UserId}", userId);
-                return new PasswordChangeResponse {
-                    Success = false,
-                    Message = "Current password is incorrect"
-                };
-            }
-
-            var result = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
-            if (!result.Succeeded) {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                logger.LogWarning("Password change failed for user {UserId}: {Errors}", userId, errors);
-                return new PasswordChangeResponse {
-                    Success = false,
-                    Message = errors
-                };
-            }
-
-            logger.LogInformation("Password changed successfully for user: {UserId}", userId);
-            return new PasswordChangeResponse {
-                Success = true,
-                Message = "Password changed successfully"
-            };
-        }
-        catch (Exception ex) {
-            logger.LogError(ex, "Error changing password for user ID: {UserId}", userId);
-            return new PasswordChangeResponse {
-                Success = false,
-                Message = "Internal server error"
-            };
-        }
-    }
 }

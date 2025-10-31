@@ -8,17 +8,6 @@ export interface SecuritySettingsResponse {
     message?: string;
 }
 
-export interface ChangePasswordRequest {
-    currentPassword: string;
-    newPassword: string;
-    confirmPassword: string;
-}
-
-export interface ChangePasswordResponse {
-    success: boolean;
-    message?: string;
-}
-
 export const securityApi = createApi({
     reducerPath: 'securityApi',
     baseQuery: createEnhancedBaseQuery('/api'),
@@ -28,17 +17,9 @@ export const securityApi = createApi({
             query: () => '/security',
             providesTags: ['SecuritySettings'],
         }),
-        changePassword: builder.mutation<ChangePasswordResponse, ChangePasswordRequest>({
-            query: (data) => ({
-                url: '/security/password',
-                method: 'PUT',
-                body: data,
-            }),
-        }),
     }),
 });
 
 export const {
     useGetSecuritySettingsQuery,
-    useChangePasswordMutation,
 } = securityApi;

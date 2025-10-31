@@ -28,27 +28,4 @@ public static class SecurityHandlers {
 
         return Results.ValidationProblem(errors);
     }
-
-    public static async Task<Microsoft.AspNetCore.Http.IResult> ChangePasswordHandler(
-        HttpContext context,
-        [FromBody] ChangePasswordRequest request,
-        [FromServices] ISecurityService securityService,
-        CancellationToken ct = default) {
-
-        var userId = context.User.GetUserId();
-        if (userId == Guid.Empty) {
-            return Results.Unauthorized();
-        }
-
-        var response = await securityService.ChangePasswordAsync(userId, request, ct);
-
-        if (response.Success)
-            return Results.Ok(response);
-
-        var errors = new Dictionary<string, string[]> {
-            [""] = [response.Message ?? "Failed to change password"]
-        };
-
-        return Results.ValidationProblem(errors);
-    }
 }

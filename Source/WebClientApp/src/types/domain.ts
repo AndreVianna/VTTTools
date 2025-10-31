@@ -529,12 +529,6 @@ export interface LinkExternalLoginRequest {
   provider: string;
 }
 
-export interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
 export interface UpdateProfileRequest {
   name?: string;
   displayName?: string;

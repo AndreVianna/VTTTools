@@ -228,7 +228,7 @@ export const authApi = createApi({
     // Resend email confirmation
     resendEmailConfirmation: builder.mutation<{ success: boolean }, { email: string }>({
       query: (data) => ({
-        url: '/resend-confirmation',
+        url: '/resend-confirmation-email',
         method: 'POST',
         body: data,
       }),

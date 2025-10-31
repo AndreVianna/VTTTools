@@ -2238,11 +2238,178 @@ const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) 
 
 ---
 
-### Phase 11: Performance Optimization & Production Prep 🔜 FINAL
+### Phase 12: Audit & Compliance Logging 🔜 INFRASTRUCTURE
 
-**Objective**: Optimize performance, reduce bundle size, deprecate legacy Blazor, prepare for production
+**Objective**: Implement comprehensive audit logging system for security, compliance, and user activity tracking
 
-**Note**: BDD testing integrated into Phases 2-6 implementation (not batched at end)
+**Deliverables**:
+
+- Domain: AuditLog Entity
+  - Description: Audit event storage with timestamp, userId, action type, resource, IP address, user agent, result, metadata JSON
+  - Complexity: Medium
+  - Dependencies: Core domain
+- Storage: AuditLogStorage
+  - Description: Repository pattern for audit log persistence with indexed queries (by user, action, date range)
+  - Complexity: Medium
+  - Dependencies: Entity Framework
+- Service: AuditLogService
+  - Description: Business logic for recording and querying audit events
+  - Complexity: Medium
+  - Dependencies: AuditLogStorage
+- Middleware: AuditMiddleware
+  - Description: HTTP middleware to intercept and log auditable actions automatically
+  - Complexity: High
+  - Dependencies: HTTP pipeline
+  - **Critical**: Action detection, user context extraction, performance impact minimal
+- API: User Audit Query Endpoints
+  - Description: RESTful endpoints for querying user's own audit events (account created, last login, recent activity)
+  - Complexity: Low
+  - Dependencies: AuditLogService
+  - **Security**: User can only query their own events
+- API: Admin Audit Query Endpoints (Backend Only)
+  - Description: RESTful endpoints for admin audit log queries (filtering, pagination, export)
+  - Complexity: Medium
+  - Dependencies: AuditLogService
+  - **Security**: Role-based access control (admin only)
+  - **Note**: Frontend admin viewer deferred to separate Admin Application
+- Integration: Account Created & Last Login
+  - Description: Update ProfileSettings to query audit logs for "account created" and "last login" timestamps
+  - Complexity: Low
+  - Dependencies: User Audit API, ProfileSettings component
+- Integration: Recent Activity (Security Tab)
+  - Description: Display recent security-related audit events (last 10 events) in SecuritySettings
+  - Complexity: Low
+  - Dependencies: User Audit API, SecuritySettings component
+
+**Auditable Actions**:
+
+- Authentication: Registration, login success/failure, logout, session timeout
+- Security: Email confirmation, password reset/change, 2FA enable/disable, recovery code generation
+- Profile: Profile updates, avatar upload/delete, email change requests
+- Authorization: Permission changes, role assignments (admin actions)
+- (Future) Game Actions: Scene creation/deletion, asset uploads, game session events
+
+**Implementation Sequence**:
+
+1. **Backend Domain & Storage** (Backend)
+   - Command: Create AuditLog entity, migration, storage layer
+   - Estimated Effort: 3 hours
+   - Dependencies: Entity Framework setup
+2. **Backend Service & User API** (Backend)
+   - Command: Implement AuditLogService, user-scoped query endpoints (my events)
+   - Estimated Effort: 2 hours
+   - Dependencies: AuditLogStorage
+3. **Backend Admin API** (Backend)
+   - Command: Implement admin query endpoints (all events, filtering, pagination)
+   - Estimated Effort: 2 hours
+   - Dependencies: AuditLogService
+   - **Note**: Admin frontend viewer deferred to separate Admin Application
+4. **Audit Middleware Integration** (Backend)
+   - Command: HTTP middleware for automatic action logging
+   - Estimated Effort: 4 hours
+   - Dependencies: AuditLogService
+   - **Critical**: Register auditable actions (auth, profile, security)
+5. **Profile/Security Integration** (Frontend)
+   - Command: Add "Account Created" / "Last Login" to Profile, "Recent Activity" to Security
+   - Estimated Effort: 2 hours
+   - Dependencies: User Audit API, existing components
+
+**Success Criteria**:
+
+- All authentication events logged automatically
+- All security events (2FA, password changes) logged
+- All profile changes logged
+- User can query their own audit events (account created, last login, recent activity)
+- Admin API endpoints functional (backend only - admin UI deferred)
+- Profile page shows accurate "Account Created" and "Last Login" from audit data
+- Security page shows recent activity (last 10 events)
+- Performance impact < 5ms per request
+- Audit log queries indexed and performant
+
+**Dependencies**:
+
+- **Prerequisites**: Phase 2 (auth), Phase 11 (account management)
+- **Blocks**: None (infrastructure enhancement)
+- **Feature Gap Identified**: Admin Application required for audit log viewer, user management, system configuration
+
+**Validation**:
+
+- Validate after phase: Audit logs recording correctly, queries performant, user UI displaying accurate data
+- Quality gate: All auditable actions logging, user-facing audit features functional, performance acceptable
+
+**Estimated Effort**: 13 hours
+
+**NOTE**: This phase implements audit infrastructure and user-facing audit features only. Admin audit viewer requires separate Admin Application (see Feature Gaps below). Audit logging is a cross-cutting infrastructure concern that can be implemented in parallel with other phases and provides value for compliance, security monitoring, and debugging production issues.
+
+---
+
+### Phase 13: Release Preparation 🔜 DEPLOYMENT
+
+**Objective**: Prepare application for production deployment - documentation, cleanup, build configuration
+
+**Deliverables**:
+
+- Documentation: Migration Guide
+  - Description: React architecture guide, component catalog, deployment guide
+  - Complexity: Medium
+  - Dependencies: All patterns established
+- Deprecation: Legacy Blazor Cleanup
+  - Description: Mark Blazor projects as legacy, update README, remove unused references
+  - Complexity: Low
+  - Dependencies: React 100% complete
+- Deployment: Production Readiness
+  - Description: Build configuration, environment variables, deployment scripts
+  - Complexity: Medium
+  - Dependencies: All validation complete
+- Configuration: Environment Management
+  - Description: Environment-specific configs (dev, staging, production)
+  - Complexity: Low
+  - Dependencies: All services identified
+
+**Implementation Sequence**:
+
+1. **Migration Documentation** (Docs)
+   - Command: Architecture guide, deployment guide, component catalog
+   - Estimated Effort: 2 hours
+   - Dependencies: Implementation complete
+2. **Legacy Blazor Deprecation** (Cleanup)
+   - Command: Update README, mark projects as legacy, remove unused references
+   - Estimated Effort: 1 hour
+   - Dependencies: React 100% complete
+3. **Production Deployment Prep** (DevOps)
+   - Command: Build configuration, environment setup, deployment verification
+   - Estimated Effort: 2 hours
+   - Dependencies: All validation complete
+
+**Success Criteria**:
+
+- Migration documentation complete
+- Blazor projects marked legacy
+- Production build verified and deployable
+- Environment configurations tested
+- Deployment scripts functional
+
+**Dependencies**:
+
+- **Prerequisites**:
+  - Phases 1-12 (all features implemented)
+  - EPIC-002 (Admin Application - REQUIRED for production operations)
+- **Blocks**: Phase 14 (refinements can start)
+
+**Validation**:
+
+- Validate after phase: Production build succeeds, deployment process documented
+- Quality gate: Documentation complete, build configuration validated
+
+**Estimated Effort**: 5 hours
+
+---
+
+### Phase 14: Performance & Quality Refinements 🔜 FINAL
+
+**Objective**: Optimize performance, improve accessibility, strengthen test coverage - polish for production
+
+**Note**: This is the FINAL phase - all refinements and optimizations before production launch
 
 **Deliverables**:
 
@@ -2256,62 +2423,122 @@ const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) 
   - Complexity: Medium
   - Dependencies: All UI features complete
   - **Target**: Bundle < 500KB gzipped
-- Documentation: Migration Guide
-  - Description: React architecture guide, component catalog, deployment guide
+- Quality: Accessibility Audit
+  - Description: WCAG 2.1 AA compliance audit and fixes
   - Complexity: Medium
-  - Dependencies: All patterns established
-- Deprecation: Legacy Blazor Cleanup
-  - Description: Mark Blazor projects as legacy, update README, remove unused references
-  - Complexity: Low
-  - Dependencies: React 100% complete
-- Deployment: Production Readiness
-  - Description: Build configuration, environment variables, deployment scripts
+  - Dependencies: All UI complete
+  - **Critical**: Keyboard navigation, screen reader support, color contrast
+- Quality: Test Coverage Improvements
+  - Description: Increase backend test coverage to ≥85%, frontend to ≥75%
   - Complexity: Medium
-  - Dependencies: All validation complete
+  - Dependencies: All features complete
+- Quality: E2E Test Expansion
+  - Description: Expand Playwright E2E tests to cover critical user journeys
+  - Complexity: Medium
+  - Dependencies: All features complete
+  - **Target**: 100% critical path coverage
 
 **Implementation Sequence**:
 
 1. **Scene Editor Performance** (UI) - **CRITICAL**
    - Command: Profiling, Konva caching, virtualization for 100-token @ 60fps target
-   - Estimated Effort: 6 hours
+   - Estimated Effort: 5 hours
    - Dependencies: Phase 6 complete
 2. **Bundle Size Reduction** (UI)
    - Command: Bundle analysis with Vite, code splitting, lazy loading optimization
+   - Estimated Effort: 2 hours
+   - Dependencies: All features complete
+3. **Accessibility Audit** (UI)
+   - Command: WCAG 2.1 AA compliance scan and fixes
+   - Estimated Effort: 3 hours
+   - Dependencies: All UI complete
+4. **Test Coverage Improvements** (Testing)
+   - Command: Add missing unit tests to reach coverage targets
    - Estimated Effort: 3 hours
    - Dependencies: All features complete
-3. **Migration Documentation** (Docs)
-   - Command: Architecture guide, deployment guide, component catalog
-   - Estimated Effort: 2 hours
-   - Dependencies: Implementation complete
-4. **Legacy Blazor Deprecation** (Cleanup)
-   - Command: Update README, mark projects as legacy, remove unused references
-   - Estimated Effort: 1 hour
-   - Dependencies: React 100% complete
-5. **Production Deployment Prep** (DevOps)
-   - Command: Build configuration, environment setup, deployment verification
-   - Estimated Effort: 2 hours
-   - Dependencies: All validation complete
+5. **E2E Test Expansion** (Testing)
+   - Command: Add critical path E2E scenarios with Playwright
+   - Estimated Effort: 3 hours
+   - Dependencies: All features complete
 
 **Success Criteria**:
 
 - Scene editor achieves 100 tokens @ 60fps ⚡ (Quality Gate 6)
 - Bundle size < 500KB (gzipped)
-- All BDD scenarios documented (implemented per-phase)
-- Migration documentation complete
-- Blazor projects marked legacy
-- Production build verified and deployable
+- WCAG 2.1 AA compliant
+- Backend test coverage ≥85%
+- Frontend test coverage ≥75%
+- E2E tests cover 100% of critical paths
+- All BDD scenarios passing
 
 **Dependencies**:
 
-- **Prerequisites**: Phases 4-10 (all implementation)
+- **Prerequisites**: Phases 1-13 (all implementation and deployment prep)
 - **Blocks**: None (final phase)
 
 **Validation**:
 
-- Validate after phase: Performance benchmarking (100 tokens @ 60fps), bundle size < 500KB
-- Quality gate: Performance targets met, bundle optimized, documentation complete
+- Validate after phase: Performance benchmarking (100 tokens @ 60fps), bundle size < 500KB, accessibility scan passing
+- Quality gate: All targets met, production ready
 
-**Estimated Effort**: 14 hours (reduced from 32 hours - BDD moved to per-phase implementation)
+**Estimated Effort**: 16 hours
+
+**NOTE**: This phase is OPTIONAL if time is constrained. Core functionality is complete after Phase 13. These refinements improve quality but are not blocking for initial release.
+
+---
+
+## Related EPICs
+
+### EPIC-002: VTTTools Admin Application (PARALLEL TRACK - Required for Release)
+
+**Status**: 🔜 NOT STARTED (Separate roadmap required)
+**Type**: Separate React Application
+**Priority**: CRITICAL (Required before Phase 13 Release Preparation)
+**Security Rationale**: Admin functionality must be isolated from main application to reduce attack surface
+
+**Overview**:
+The Admin Application is a completely separate React application with independent deployment, hosted at a different endpoint (e.g., admin.vtttools.com). It provides administrative capabilities for user management, audit log viewing, system configuration, and monitoring.
+
+**Scope**:
+- **Infrastructure**: Separate React app, independent deployment, different endpoint
+- **User Management**: View all users, search/filter, user details, role assignment, account status management
+- **Role Management**: Create/edit/delete roles, permission assignment, role hierarchy
+- **Audit Log Viewer**: Full audit log access with filtering (user, action type, date range), pagination, export (CSV/JSON)
+- **System Configuration**: Application settings, feature flags, maintenance mode
+- **Monitoring Dashboard**: System health, active users, performance metrics, error tracking
+- **Content Moderation**: Review user-generated content, handle reports (if applicable)
+
+**Estimated Effort**: 40-60 hours (midpoint: 50 hours)
+- Backend API extensions: 8-12 hours
+- Admin React app foundation: 10-15 hours
+- User management features: 8-12 hours
+- Audit log viewer: 6-8 hours
+- Role management: 6-8 hours
+- System configuration: 4-6 hours
+
+**Dependencies**:
+- Phase 2 (Auth - authentication/authorization patterns)
+- Phase 11 (Account management - user data models)
+- Phase 12 (Audit infrastructure - audit log backend)
+
+**Parallel Execution**:
+- Can run in PARALLEL with Phases 8.8, 10, and 12
+- MUST complete before Phase 13 (Release Preparation)
+
+**Security Considerations**:
+- Separate authentication/authorization from main app
+- IP whitelisting or VPN access recommended
+- All admin actions logged in audit system
+- Role-based access control with principle of least privilege
+- Separate deployment reduces main app attack surface
+
+**Next Steps**:
+1. Create EPIC-002 roadmap document (Documents/Tasks/EPIC-002/ROADMAP.md)
+2. Break down into phases (infrastructure, user management, audit viewer, etc.)
+3. Begin implementation in parallel with EPIC-001 Phases 8.8-12
+4. Must complete before EPIC-001 Phase 13
+
+**NOTE**: This is tracked as a separate EPIC with its own detailed roadmap. It is REQUIRED for production release and blocks Phase 13.
 
 ---
 
@@ -2584,22 +2811,30 @@ Implementation Order:
 **Phase 8.8**: 🔜 NEXT (0/8-12 hours, 0%) - Manual Tests & UI Refinements - READY
 **Phase 9**: ⚠️ BLOCKED (0/18 hours, 0%) - Epic/Campaign (optional - backend missing)
 **Phase 10**: 🔜 (0/22 hours, 0%) - Game Sessions - READY
-**Phase 11**: 🔜 PARALLEL (0/16 hours, 0%) - Account Management - READY
-**Phase 12**: 🔜 Final (0/14 hours, 0%) - Performance/Production
+**Phase 11**: ✅ Complete (16/16 hours, 100%) - Account Management - Completed 2025-10-31
+**Phase 12**: 🔜 (0/13 hours, 0%) - Audit & Compliance Logging - READY
+**Phase 13**: 🔜 (0/5 hours, 0%) - Release Preparation - READY (after Phase 12)
+**Phase 14**: 🔜 FINAL (0/16 hours, 0%) - Performance & Quality Refinements - OPTIONAL
 
-**Remaining Effort**: 80 hours total (18 hours blocked, 62 hours available)
+**Remaining Effort**: 82 hours total (18 hours blocked, 50 hours available, 14 hours deferred Phase 9, 16 hours optional Phase 14)
 
 **Calculation Breakdown**:
 
-- Total Effort: 399 hours (319 completed + 80 remaining)
-- Completed (Phases 1-8.7): 319 hours (8+16+28+12+70+30+19+23+9+37+67)
-- Remaining (Phases 8.8-12): 80 hours
+- Total Effort: 433 hours (335 completed + 98 remaining, including 16 hours optional Phase 14)
+- Core Required: 417 hours (335 completed + 82 remaining, excluding optional Phase 14)
+- Completed (Phases 1-11): 335 hours (8+16+28+12+70+30+19+23+9+37+67+16)
+- Remaining Core (Phases 8.8, 10, 12-13): 82 hours (10+22+13+5 = 50 available + 18 blocked + 14 deferred Phase 9)
+- Optional (Phase 14): 16 hours
+- EPIC-002 (Admin Application): 40-60 hours (separate EPIC, parallel track, REQUIRED for Phase 13)
 - Phase 8.6 (Backend): ✅ 37 hours COMPLETE
 - Phase 8.7 (Frontend): ✅ 67 hours COMPLETE
 - Phase 8.8 (Manual Tests): 8-12 hours (NEXT, user-guided)
-- Available Now: 62 hours (Phase 8.8 + 10-11-12)
-- Blocked: 18 hours (Phase 9 Epic/Campaign - optional)
-- Progress: 80.0% (319/399 hours completed)
+- Phase 11 (Account Management): ✅ 16 hours COMPLETE (Profile, Security, 2FA, Recovery Codes)
+- Available Now: 50 hours (Phase 8.8 + 10 + 12 + 13 = 10+22+13+5)
+- Blocked by EPIC-002: Phase 13 (Release Preparation - requires Admin App complete)
+- Deferred: Phase 9 Epic/Campaign (18h - optional feature, backend work required)
+- Parallel Track: EPIC-002 Admin Application (40-60h, separate roadmap - see Related EPICs)
+- Progress: 80.4% EPIC-001 core hours (335/417, excluding optional Phase 14)
 - Note: Phase 10 can proceed after Phase 8.8 (sessions reference scenes from Phase 8)
 
 **Phase Expansion Notes**:
@@ -2617,6 +2852,7 @@ Implementation Order:
 
 ## Change Log
 
+- **2025-10-31** (v1.13.0): Phase 11 COMPLETION & EPIC-002 DEFINED - Account Management delivered in 16 hours (100% of estimate). Implemented complete profile, security, 2FA setup, and email confirmation functionality. Delivered: ProfilePage with tabbed interface (Profile/Security/2FA/Recovery Codes tabs), ProfileSettings component with avatar upload/delete and profile editing, SecuritySettings component with password reset and 2FA management, TwoFactorSetupForm with QR code generation and horizontal stepper UI, RecoveryCodesDisplay with grid layout and download capability, email verification icon with resend confirmation flow. Backend: Added EmailConfirmed to UserInfo/ProfileResponse, implemented ResendEmailConfirmationAsync and ConfirmEmailAsync in AuthService, created email confirmation endpoints (POST /resend-confirmation-email, GET /confirm-email). Frontend: Updated authApi with resend mutation, added email verification indicator (CheckCircle/Warning icons), integrated Vite proxy for new endpoints. Critical dependency identified: Admin Application required for production operations (audit log viewer, user management, system configuration). Roadmap restructured: Added Phase 12 (Audit & Compliance Logging, 13h - user-facing only, admin backend API), split former Phase 12 into Phase 13 (Release Preparation, 5h) and Phase 14 (Performance & Quality Refinements, 16h optional). EPIC-002 (Admin Application, 40-60h) defined as separate parallel track - REQUIRED before Phase 13 release. Can execute in parallel with Phases 8.8, 10, 12. Admin app intentionally separated for security isolation (separate deployment, different endpoint). Phase 14 marked as OPTIONAL. EPIC-001 progress: 80.4% (335/417 core hours). Total effort: 433h (417h core + 16h optional). EPIC-002 requires separate roadmap. Phase 8.8 remains NEXT.
 - **2025-10-29** (v1.12.0): Phase 8.7 COMPLETION & Phase 8.8 ADDED - Structures Frontend delivered with A- grade (92/100) in 67 hours (89% of upper estimate). Implemented complete drawing tools, Konva rendering, and Scene Editor integration for all three structure types. Delivered: 6 TypeScript interfaces (Barrier, Region, Source + Scene variants), 3 RTK Query API slices integrating 18 backend endpoints, library UI with 3 searchable tabs and editor dialogs, 3 drawing tools (click-to-place vertices for barriers, polygons for regions, click-drag range for sources), snap-to-grid algorithm with 3 modes (HalfSnap/QuarterSnap/Free) and 10px threshold, 3 Konva renderers (Lines for barriers with color coding, Polygons for regions with labels, Circles with line-of-sight for sources), line-of-sight ray-casting algorithm (72 rays at 5° increments with parametric intersection), command pattern for undo/redo (synchronous execute(), async undo()), 4-layer Konva architecture (Static/GameWorld/Effects/UIOverlay), 246+ tests passing with ≥75% coverage. Sub-phase grades: 8.7A Types+RTK (A/94), 8.7B Library UI (A-/90), 8.7C Barrier Drawing (A/93), 8.7D Region Drawing (A/94), 8.7E Source LOS (A+/96), 8.7F Scene Integration (A-/90). Applied 5 critical/high priority fixes from code review: layer ordering consistency (LayerName/GroupName enums), error handling (Snackbar notifications), keyboard guards (input field protection), type guards (proper TypeScript narrowing, no duck typing), selection UX (visual indicators in all 3 lists). TypeScript strict mode with 0 errors. Production readiness: 90% (remaining gaps: integration tests, E2E tests, performance optimization with 100+ structures, lazy loading, accessibility audit). Autonomous workflow executed: frontend-developer agent → code-reviewer agent → Claude applies fixes → proceed without user approval. Phase 8.8 (Manual Tests & UI Refinements, 8-12h) added to roadmap, replacing originally planned "Performance Optimization" phase. Performance work deferred to Phase 12 if needed after user testing. Updated overall progress to 80.0% (319/399h completed, 80h remaining: 8.8+9+10+11+12). Phase 8.8 marked as NEXT for user-guided manual testing and interface refinements.
 - **2025-10-28** (v1.11.0): Phase 8.6 COMPLETION - Structures Backend delivered with A- grade (93/100). Implemented three distinct structure categories (Barriers, Regions, Sources) with complete API layer in 37 hours (97% of estimate). Delivered: 6 domain models (Barrier, Region, Source + Scene variants), database migration creating 6 tables, 18 functional API endpoints, 3 service classes with SceneService extensions, 3 storage classes with complete CRUD, 45 unit tests passing with ≥85% coverage. Sub-phase grades: 8.6A (A-/87), 8.6B (A-/92), 8.6C (A/95), 8.6D (A+/98). Final end-to-end review: A- (93/100) with pattern consistency 50/50 (perfect alignment across categories). Zero critical or major issues. Security: OWASP Top 10 compliant. Key technical achievements: RegionType/SourceType as extensible strings (NOT enums), decimal precision for Range (5,2) and Intensity (3,2), single Point position for Sources, JSON columns for complex types. Autonomous workflow executed with 4 review checkpoints. Updated overall progress to 74.6% (276/370h). Phase 8.7 (Structures Frontend) marked as NEXT.
 - **2025-10-28** (v1.10.0): ROADMAP EXPANSION - Added Phase 8.6 (Structures Backend, 32-42h) and Phase 8.7 (Structures Frontend, 56-76h) with detailed sub-phases and review checkpoints. Phase 8.5 Item 1 clarified: Structures are NOT assets, but three distinct categories (Barriers, Regions, Sources) with fundamentally different behaviors. Total effort increased from 282h to 370h (88-118h added). Overall progress recalculated to 64.6% (239/370h using midpoint). Phase 8.6 marked as IN PROGRESS, Phase 8.7 blocked by 8.6. Implementation approach: Incremental with 11 review checkpoints (4 for Phase 8.6, 6 for Phase 8.7, 1 final comprehensive). Key design decisions documented: extensible types (strings not enums), fractional grid cells for Source range, line-of-sight blocking for Sources with opaque Barriers. Autonomous agent workflow: backend-developer → code-reviewer → frontend-developer → code-reviewer → final report, with Claude orchestrating corrections without user approval.

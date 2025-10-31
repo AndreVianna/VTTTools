@@ -8,4 +8,6 @@ public interface IAuthService {
     Task<AuthResponse> ForgotPasswordAsync(string email);
     Task<AuthResponse> ValidateResetTokenAsync(string email, string token);
     Task<AuthResponse> ResetPasswordAsync(string email, string token, string newPassword);
+    Task<AuthResponse> ResendEmailConfirmationAsync(string email);
+    Task<AuthResponse> ConfirmEmailAsync(string email, string token);
 }

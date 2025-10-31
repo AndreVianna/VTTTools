@@ -133,6 +133,30 @@ public static class AuthHandlers {
         return Results.ValidationProblem(errorDict);
     }
 
+    public static async Task<Microsoft.AspNetCore.Http.IResult> ResendEmailConfirmationHandler(
+        [FromBody] ResendEmailConfirmationRequest request,
+        IAuthService authService) {
+
+        var response = await authService.ResendEmailConfirmationAsync(request.Email);
+
+        return response.Success ? Results.Ok(response) : Results.BadRequest(new { error = response.Message });
+    }
+
+    public static async Task<Microsoft.AspNetCore.Http.IResult> ConfirmEmailHandler(
+        [FromQuery] string email,
+        [FromQuery] string token,
+        IAuthService authService) {
+
+        var response = await authService.ConfirmEmailAsync(email, token);
+
+        if (!response.Success) {
+            var errorMessage = Uri.EscapeDataString(response.Message ?? "Invalid confirmation link");
+            return Results.Redirect($"http://localhost:3000/login?error={errorMessage}");
+        }
+
+        return Results.Redirect($"http://localhost:3000/login?emailConfirmed=true");
+    }
+
 #if DEBUG
     public static async Task<Microsoft.AspNetCore.Http.IResult> GenerateTestResetTokenHandler(
         [FromQuery] string email,

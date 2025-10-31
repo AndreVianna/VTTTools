@@ -15,8 +15,10 @@ public class ProfileService(
                 };
             }
 
-            logger.LogInformation("Profile retrieved for user: {UserId}", userId);
-            return MapUserToProfileResponse(user);
+            logger.LogInformation("Profile retrieved for user: {UserId}, EmailConfirmed: {EmailConfirmed}", userId, user.EmailConfirmed);
+            var response = MapUserToProfileResponse(user);
+            logger.LogInformation("ProfileResponse: EmailConfirmed={EmailConfirmed}, Email={Email}", response.EmailConfirmed, response.Email);
+            return response;
         }
         catch (Exception ex) {
             logger.LogError(ex, "Error getting profile for user ID: {UserId}", userId);
@@ -161,6 +163,7 @@ public class ProfileService(
             Name = user.Name,
             DisplayName = user.DisplayName ?? string.Empty,
             Email = user.Email ?? string.Empty,
+            EmailConfirmed = user.EmailConfirmed,
             PhoneNumber = user.PhoneNumber,
             AvatarResourceId = user.AvatarResourceId,
             AvatarUrl = user.AvatarResourceId.HasValue

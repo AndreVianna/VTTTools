@@ -39,6 +39,15 @@ internal static class AuthEndpointsMapper {
             .WithName("ResetPassword")
             .WithSummary("Reset password with valid token");
 
+        // Email confirmation endpoints
+        auth.MapPost("/resend-confirmation-email", AuthHandlers.ResendEmailConfirmationHandler)
+            .WithName("ResendEmailConfirmation")
+            .WithSummary("Resend email confirmation link");
+
+        auth.MapGet("/confirm-email", AuthHandlers.ConfirmEmailHandler)
+            .WithName("ConfirmEmail")
+            .WithSummary("Confirm email address with token");
+
 #if DEBUG
         auth.MapGet("/test/generate-reset-token", AuthHandlers.GenerateTestResetTokenHandler)
             .WithName("GenerateTestResetToken")

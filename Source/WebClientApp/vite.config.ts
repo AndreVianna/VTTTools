@@ -56,6 +56,26 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
+        '/api/profile': {
+          target: 'https://localhost:7050',
+          changeOrigin: true,
+          secure: false,
+        },
+        '/api/security': {
+          target: 'https://localhost:7050',
+          changeOrigin: true,
+          secure: false,
+        },
+        '/api/two-factor': {
+          target: 'https://localhost:7050',
+          changeOrigin: true,
+          secure: false,
+        },
+        '/api/recovery-codes': {
+          target: 'https://localhost:7050',
+          changeOrigin: true,
+          secure: false,
+        },
         '/api/assets': {
           target: 'https://localhost:7171',
           changeOrigin: true,

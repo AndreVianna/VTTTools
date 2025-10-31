@@ -32,80 +32,37 @@ import { TwoFactorSetupForm } from './TwoFactorSetupForm';
 import { RecoveryCodesManager } from './RecoveryCodesManager';
 import { handleValidationError } from '@/utils/errorHandling';
 import { renderAuthError } from '@/utils/renderError';
-import { useChangePasswordMutation } from '@/api/securityApi';
+import { useResetPasswordMutation } from '@/services/authApi';
 import { useDisableTwoFactorMutation } from '@/api/twoFactorApi';
 
 export const SecuritySettings: React.FC = () => {
   const { user, error } = useAuth();
-  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
+  const [resetPassword, { isLoading: isResettingPassword }] = useResetPasswordMutation();
   const [disableTwoFactor, { isLoading: isDisabling2FA }] = useDisableTwoFactorMutation();
 
-  const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [showTwoFactorSetup, setShowTwoFactorSetup] = useState(false);
   const [showRecoveryManager, setShowRecoveryManager] = useState(false);
   const [showDisable2FA, setShowDisable2FA] = useState(false);
-
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
+  const [resetPasswordSuccess, setResetPasswordSuccess] = useState(false);
 
   const [disablePassword, setDisablePassword] = useState('');
 
   const [validationErrors, setValidationErrors] = useState<{
-    currentPassword?: string;
-    newPassword?: string;
-    confirmPassword?: string;
     disablePassword?: string;
   }>({});
 
-  // Password strength checker
-  const getPasswordStrength = (password: string): { score: number; feedback: string[] } => {
-    let score = 0;
-    const feedback: string[] = [];
-
-    if (password.length >= 8) score += 1;
-    else feedback.push('At least 8 characters');
-
-    if (/[a-z]/.test(password)) score += 1;
-    else feedback.push('Lowercase letter');
-
-    if (/[A-Z]/.test(password)) score += 1;
-    else feedback.push('Uppercase letter');
-
-    if (/[0-9]/.test(password)) score += 1;
-    else feedback.push('Number');
-
-    if (/[^A-Za-z0-9]/.test(password)) score += 1;
-    else feedback.push('Special character');
-
-    return { score, feedback };
-  };
-
-  const passwordStrength = getPasswordStrength(passwordData.newPassword);
-
-  const validatePasswordChange = (): boolean => {
-    const errors: Record<string, string> = {};
-
-    if (!passwordData.currentPassword) {
-      errors.currentPassword = 'Current password is required';
+  const handleResetPassword = async () => {
+    if (!user?.email) {
+      return;
     }
 
-    if (!passwordData.newPassword) {
-      errors.newPassword = 'New password is required';
-    } else if (passwordStrength.score < 3) {
-      errors.newPassword = 'Password is too weak. Missing: ' + passwordStrength.feedback.join(', ');
+    try {
+      await resetPassword({ email: user.email }).unwrap();
+      setResetPasswordSuccess(true);
+      setTimeout(() => setResetPasswordSuccess(false), 5000);
+    } catch (error) {
+      console.error('Failed to send password reset email:', error);
     }
-
-    if (!passwordData.confirmPassword) {
-      errors.confirmPassword = 'Please confirm your password';
-    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
-    }
-
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
   };
 
   const validateDisablePassword = (): boolean => {
@@ -117,32 +74,6 @@ export const SecuritySettings: React.FC = () => {
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
-  };
-
-  const handlePasswordChange = async () => {
-    if (!validatePasswordChange()) {
-      handleValidationError(new Error('Form validation failed'), {
-        component: 'SecuritySettings',
-        validationErrors
-      });
-      return;
-    }
-
-    try {
-      const result = await changePassword({
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword,
-        confirmPassword: passwordData.confirmPassword,
-      }).unwrap();
-
-      if (result.success) {
-        setShowPasswordChange(false);
-        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-        setValidationErrors({});
-      }
-    } catch (error) {
-      console.error('Failed to change password:', error);
-    }
   };
 
   const handleDisableTwoFactor = async () => {
@@ -167,12 +98,6 @@ export const SecuritySettings: React.FC = () => {
     } catch (error) {
       console.error('Failed to disable 2FA:', error);
     }
-  };
-
-  const resetPasswordForm = () => {
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    setValidationErrors({});
-    setShowPasswordChange(false);
   };
 
   const resetDisableForm = () => {
@@ -202,6 +127,12 @@ export const SecuritySettings: React.FC = () => {
           </Alert>
         )}
 
+        {resetPasswordSuccess && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            Password reset email sent to {user.email}. Please check your inbox.
+          </Alert>
+        )}
+
         <List>
           {/* Password Management */}
           <ListItem>
@@ -210,14 +141,15 @@ export const SecuritySettings: React.FC = () => {
             </ListItemIcon>
             <ListItemText
               primary="Password"
-              secondary="Change your account password"
+              secondary="Reset your account password via email"
             />
             <ListItemSecondaryAction>
               <Button
                 variant="outlined"
-                onClick={() => setShowPasswordChange(true)}
+                onClick={handleResetPassword}
+                disabled={isResettingPassword}
               >
-                Change Password
+                {isResettingPassword ? <CircularProgress size={20} /> : 'Reset Password'}
               </Button>
             </ListItemSecondaryAction>
           </ListItem>
@@ -291,72 +223,6 @@ export const SecuritySettings: React.FC = () => {
           )}
         </List>
       </Paper>
-
-      {/* Change Password Dialog */}
-      <Dialog
-        open={showPasswordChange}
-        onClose={resetPasswordForm}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            Change Password
-            <IconButton onClick={resetPasswordForm}>
-              <Close />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            type="password"
-            label="Current Password"
-            value={passwordData.currentPassword}
-            onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-            error={!!validationErrors.currentPassword}
-            helperText={validationErrors.currentPassword || ''}
-            margin="normal"
-            autoComplete="current-password"
-          />
-
-          <TextField
-            fullWidth
-            type="password"
-            label="New Password"
-            value={passwordData.newPassword}
-            onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-            error={!!validationErrors.newPassword}
-            helperText={validationErrors.newPassword || ''}
-            margin="normal"
-            autoComplete="new-password"
-          />
-
-          <TextField
-            fullWidth
-            type="password"
-            label="Confirm New Password"
-            value={passwordData.confirmPassword}
-            onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-            error={!!validationErrors.confirmPassword}
-            helperText={validationErrors.confirmPassword || ''}
-            margin="normal"
-            autoComplete="new-password"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={resetPasswordForm}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handlePasswordChange}
-            disabled={isChangingPassword}
-          >
-            {isChangingPassword ? <CircularProgress size={20} /> : 'Change Password'}
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       {/* 2FA Setup Dialog */}
       <Dialog
