@@ -114,6 +114,14 @@ This document describes the technical implementation structure of VTTTools, incl
   - **Implements Features**: Authentication & User Management
   - **Dependencies**: VttTools.Common, VttTools.Data, VttTools.Domain
 
+- **VttTools.Admin** (WebApplication)
+  - **Path**: Source/Admin/VttTools.Admin.csproj
+  - **Purpose**: Administrative API microservice for admin app (user management, audit logs, system configuration, public library management)
+  - **Layer**: Application (Microservice / Admin)
+  - **Implements Features**: Admin Dashboard, User Management (Admin), Audit Log Viewing, System Configuration, Public Library Management
+  - **Dependencies**: VttTools.Common, VttTools.Data, VttTools.Domain
+  - **Security**: All endpoints require Administrator role, separate from main app API
+
 - **VttTools.Data.MigrationService** (Executable)
   - **Path**: Source/Data.MigrationService/VttTools.Data.MigrationService.csproj
   - **Purpose**: Database migration tool for applying EF Core migrations to SQL Server
@@ -136,6 +144,14 @@ This document describes the technical implementation structure of VTTTools, incl
   - **Layer**: UI (Primary SPA Client)
   - **Implements Features**: Authentication & User Management, Media Resource Management, Game Content Hierarchy, Asset Management, Interactive Scene Editor, Game Session Management
   - **Dependencies**: React 19.1.1, TypeScript 5.9.2, Material-UI 7.3.2, Redux Toolkit 2.9.0, React Router 7.9.1, Konva 10.0.2, SignalR 9.0.6, Axios 1.12.1
+
+- **WebAdminApp** (React SPA)
+  - **Path**: Source/WebAdminApp/
+  - **Purpose**: Separate React 19.1 + TypeScript 5.9 SPA with Material-UI 7.3 for administrative tasks, hosted independently from main app
+  - **Layer**: UI (Admin SPA Client)
+  - **Implements Features**: User Management (Admin), Audit Log Viewing, System Configuration, Public Library Management, Admin Dashboard, Role Management (deferred)
+  - **Dependencies**: React 19.1.1, TypeScript 5.9.2, Material-UI 7.3.2, Redux Toolkit 2.9.0, React Router 7.9.1, Chart.js 4.4.0, SignalR 9.0.6, Axios 1.12.1
+  - **Security**: Requires Administrator role, separate deployment endpoint, admin-only authentication
 
 ---
 
@@ -169,6 +185,9 @@ This document describes the technical implementation structure of VTTTools, incl
 - **VttTools.Auth**: Authentication contracts microservice
   - Contains: Authentication API contracts (LoginRequest, RegisterRequest, AuthResponse), JWT token generation, Identity framework integration
 
+- **VttTools.Admin**: Administrative API microservice
+  - Contains: Admin dashboard service (health checks, system stats, performance metrics), User management service (admin CRUD, role assignment, account locking), Audit log service (log storage, filtering, export, live monitoring), System configuration service (security settings, feature flags, storage/email/API config), Public library admin service (content upload, publish/unpublish, pricing), SignalR hub for live monitoring
+
 ### Infrastructure Layer
 
 - **VttTools.Data**: EF Core data access and repository implementations
@@ -193,6 +212,9 @@ This document describes the technical implementation structure of VTTTools, incl
 
 - **WebClientApp**: React 19.1 SPA (Primary UI)
   - Contains: Authentication pages (login, register, 2FA, password reset), content management UI (epics, campaigns, adventures, scenes), asset library browsing, Konva-based scene editor (panning, zoom, grid, token placement), real-time game session collaboration, Redux Toolkit state management, RTK Query API integration, Material-UI components, React Router routing
+
+- **WebAdminApp**: React 19.1 SPA (Admin UI)
+  - Contains: Admin dashboard (system health, alerts, activity feed, performance charts), User management UI (list, detail, role assignment, account locking, create user), Audit log viewer (infinite scroll, live monitoring with tail tracking, export), System configuration UI (security settings, feature flags, storage/email/API config, maintenance mode), Public library management (content upload, publish/unpublish, pricing, analytics), Redux Toolkit state management, RTK Query API integration, Material-UI DataGrid, Chart.js charts, SignalR for live monitoring
 
 ---
 

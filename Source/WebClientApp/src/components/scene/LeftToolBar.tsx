@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, IconButton, Drawer, Tooltip, useTheme, Typography } from '@mui/material';
 import {
   Wallpaper as BackgroundIcon,
@@ -47,7 +47,7 @@ export interface LeftToolBarProps {
   sceneId?: string;
   sceneWalls?: SceneWall[];
   selectedWallIndex?: number | null;
-  onWallSelect?: (wallIndex: number) => void;
+  onWallSelect?: (wallIndex: number | null) => void;
   onWallDelete?: (wallIndex: number) => void;
   onPlaceWall?: (properties: {
     visibility: WallVisibility;
@@ -76,6 +76,8 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
 }) => {
   const theme = useTheme();
   const [internalActivePanel, setInternalActivePanel] = useState<PanelType | null>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   const activePanel = externalActivePanel !== undefined ? (externalActivePanel as PanelType | null) : internalActivePanel;
   const expanded = activePanel !== null;
@@ -90,6 +92,32 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
       onPanelChange?.(newPanel);
     }
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!expanded) return;
+
+      const target = event.target as Node;
+      const isInsideToolbar = toolbarRef.current?.contains(target);
+      const isInsideDrawer = drawerRef.current?.contains(target);
+
+      if (!isInsideToolbar && !isInsideDrawer) {
+        if (externalActivePanel !== undefined) {
+          onPanelChange?.(null);
+        } else {
+          setInternalActivePanel(null);
+          onPanelChange?.(null);
+        }
+
+        if (activePanel === 'walls' && selectedWallIndex !== null) {
+          onWallSelect?.(null);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [expanded, externalActivePanel, onPanelChange, activePanel, selectedWallIndex, onWallSelect]);
 
   const panelConfigs: Array<{ key: PanelType; icon: typeof BackgroundIcon; label: string }> = [
     { key: 'background', icon: BackgroundIcon, label: 'Background' },
@@ -111,6 +139,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   return (
     <>
       <Box
+        ref={toolbarRef}
         sx={{
           position: 'absolute',
           left: 0,
@@ -168,7 +197,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           }
         }}
       >
-        <Box sx={{ p: 2 }}>
+        <Box ref={drawerRef} sx={{ p: 2 }}>
           {activePanel === 'background' && (
             <BackgroundPanel
               backgroundUrl={backgroundUrl}

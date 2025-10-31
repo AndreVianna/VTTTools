@@ -2007,22 +2007,122 @@ const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) 
 
 ---
 
-#### Phase 8.8B: Manual Testing & Remaining Refinements 🔜 NEXT
+#### Phase 8.8B: Manual Testing & Remaining Refinements 🔄 IN PROGRESS
 
 **Objective**: Continue user-guided manual testing of Structures feature workflows
 
+**Start Date**: 2025-10-31
+
+**Completion Date**: TBD (user-guided)
+
+---
+
+##### 8.8B.1: Wall (Barrier) Placement & Editing ✅ COMPLETE (Partial)
+
+**Completed Features**:
+
+1. **Wall Placement Mode** ✅ (WallDrawingTool.tsx):
+   - Click-to-place pole system with grid snapping
+   - Modifier keys: Alt=Free, Alt+Ctrl=Quarter snap, default=Half snap
+   - Visual feedback: VertexMarker for poles, WallPreview for lines
+   - Keyboard controls: Escape to end (min 1 pole), Ctrl+Z to undo
+   - Debounced backend updates (300ms)
+   - Minimum 1 pole requirement (changed from 2)
+
+2. **Wall Edit Mode - Pole Operations** ✅ (WallTransformer.tsx):
+   - Single pole selection and dragging with grid snapping
+   - Multi-pole selection (Ctrl+Click) and synchronized dragging
+   - Pole deletion with Delete key (minimum 2 poles enforced)
+   - Visual feedback: Red for selected, blue for unselected
+   - Escape key to clear selections
+
+3. **Wall Edit Mode - Line Operations** ✅:
+   - Line segment selection (click on line between poles)
+   - Line dragging: both endpoint poles move together maintaining geometry
+   - Snapping during line drag with modifier keys
+   - Visual feedback: Red stroke for selected line (strokeWidth=3)
+
+4. **Snapping System** ✅:
+   - Grid: 50px cells with configurable offset
+   - Snap modes: HalfSnap (corners+midpoints+centers), QuarterSnap (includes quarters), Free (no snap)
+   - Uses snapToNearest from structureSnapping.ts with 50px threshold
+   - Modifier key handling: Checked in mouse events (e.evt.altKey), NOT keyboard events
+   - Applied consistently in placement and edit modes
+
+**Critical Lessons Learned**:
+
+1. **Hit Area Sizing**: Interactive areas must be ≥2x maximum snap distance
+   - Grid cell: 50px → HalfSnap jumps: ±25px → Hit area: 100px minimum
+   - Line hit area increased from 15px to 100px (strokeWidth)
+   - Prevents mouse from exiting hit zone during snap jumps
+
+2. **Modifier Key Event Handling**: MUST check e.evt.altKey in mouse events
+   - WRONG: keydown/keyup events (causes toggle behavior)
+   - CORRECT: Check modifier state in every mouse event handler
+   - Pattern: `let snapMode = e.evt.altKey && e.evt.ctrlKey ? Quarter : e.evt.altKey ? Free : Half`
+
+3. **Coordinate Systems**:
+   - Screen coords: `stage.getPointerPosition()` (browser window)
+   - World coords: Transform with scale and offset
+   - Transformation: `{x: (pointer.x - stage.x()) / scale, y: (pointer.y - stage.y()) / scale}`
+   - Use `e.target.x()/y()` for draggable elements, not dragBoundFunc
+
+4. **Pole Dragging**:
+   - dragBoundFunc returns pos unchanged
+   - Actual snapping in handleDragMove/handleDragEnd
+   - Store original position in ref, not Circle position
+   - Multi-pole: Calculate delta from dragged pole, apply to all selected
+
+5. **Line Dragging**:
+   - Snap initial mouse position on mouseDown (prevents delta mismatch)
+   - Store both pole positions and mouse position in ref
+   - Calculate delta from snapped cursor position
+   - Apply same delta to both poles (maintains length/angle)
+
+**Current Work** 🔄:
+
+6. **Wall Edit Mode - Marquee Selection** 🐛 DEBUGGING:
+   - **Problem**: Marquee rectangle not showing despite events firing
+   - **Current Status**:
+     - Background Rect capturing onMouseDown events ✅
+     - Console logs show correct coordinates ✅
+     - onMouseMove and onMouseUp handlers added to background Rect ✅
+     - Structure: Outer Group > Background Rect (listening=true, -10000 to +10000) > Inner Group
+   - **Next Step**: Verify onMouseMove events fire during drag
+   - **Technical Challenge**: Konva Groups don't have clickable surface - requires background Rect
+   - **Expected Behavior**: Blue dashed rectangle shows during drag, selects poles within bounds
+
+**Deferred Features** (Will reimplement):
+- Pole insertion on line (add new pole in middle of line segment) - Removed during debugging
+
+**Files Modified**:
+- `Source/WebClientApp/src/components/scene/panels/WallsPanel.tsx` - Wall list UI
+- `Source/WebClientApp/src/components/scene/drawing/WallDrawingTool.tsx` - Placement mode
+- `Source/WebClientApp/src/components/scene/editing/WallTransformer.tsx` - Edit mode (IN PROGRESS)
+- `Source/WebClientApp/src/utils/gridCalculator.ts` - Grid snapping utilities
+- `Source/WebClientApp/src/utils/structureSnapping.ts` - Wall-specific snapping
+
+**Estimated Effort**: 6-8 hours (3-4h placement ✅, 3-4h editing 🔄)
+
+**Actual Effort**: 5+ hours (ongoing)
+
+---
+
+##### 8.8B.2: Remaining Structure Testing 🔜 NEXT
+
 **Remaining Work**:
-- Manual testing of Barrier workflows (placement, editing, deletion)
+- Complete Wall marquee selection debugging
+- Reimplement pole insertion on line segment
 - Manual testing of Region workflows (placement, editing, deletion)
 - Manual testing of Source workflows (placement, editing, deletion)
-- Line-of-sight visual verification
-- Snapping behavior verification (HalfSnap, QuarterSnap, Free)
+- Line-of-sight visual verification for Sources
+- Snapping behavior verification across all structure types
 - Undo/Redo testing for structure operations
 - Performance testing with multiple structures
 - Cross-browser testing
 - Additional UI refinements as needed
 
-**Status**: 🔜 NEXT (Ready for user testing)
+**Status**: 🔄 IN PROGRESS (Wall editing in progress, other structures NEXT)
 
 ---
 
@@ -2794,8 +2894,8 @@ Implementation Order:
 
 ## Progress Tracking
 
-**Current Phase**: Phase 8.8 NEXT (Manual Tests & UI Refinements), Phase 9 blocked, Phase 10-11-12 ready
-**Overall Progress**: 319 hours / 399 hours (80.0%)
+**Current Phase**: Phase 8.8 IN PROGRESS (Manual Tests & UI Refinements - Wall editing), Phase 9 blocked, Phase 10-11-12 ready
+**Overall Progress**: 324 hours / 399 hours (81.2%)
 
 **Phase 1**: ✅ Complete (8/8 hours, 100%) - Completed 2025-09-28
 **Phase 2**: ✅ Complete (16/16 hours, 100%) - Completed 2025-10-01
@@ -2808,7 +2908,7 @@ Implementation Order:
 **Phase 8.5**: 🚧 PARTIAL (9/13 hours, 69%) - Incomplete Items - 5 of 6 complete, Item 1 → Phase 8.6 & 8.7
 **Phase 8.6**: ✅ Complete (37/32-42 hours, 97%) - Structures Backend - Completed 2025-10-28
 **Phase 8.7**: ✅ Complete (67/56-76 hours, 89%) - Structures Frontend - Completed 2025-10-29
-**Phase 8.8**: 🔜 NEXT (0/8-12 hours, 0%) - Manual Tests & UI Refinements - READY
+**Phase 8.8**: 🔄 IN PROGRESS (5/8-12 hours, 50%) - Manual Tests & UI Refinements - Wall editing in progress
 **Phase 9**: ⚠️ BLOCKED (0/18 hours, 0%) - Epic/Campaign (optional - backend missing)
 **Phase 10**: 🔜 (0/22 hours, 0%) - Game Sessions - READY
 **Phase 11**: ✅ Complete (16/16 hours, 100%) - Account Management - Completed 2025-10-31
@@ -2852,6 +2952,7 @@ Implementation Order:
 
 ## Change Log
 
+- **2025-10-31** (v1.14.0): Phase 8.8 IN PROGRESS - Wall Editing Features - Wall placement and edit mode implementation started (5h actual). Phase 8.8B.1 "Wall (Barrier) Placement & Editing" in progress with significant features completed. Delivered: WallDrawingTool (placement mode) with click-to-place pole system, grid snapping (HalfSnap/QuarterSnap/Free modes via modifier keys), visual feedback (VertexMarker, WallPreview), keyboard controls (Escape, Ctrl+Z), debounced backend updates (300ms), minimum 1 pole requirement. WallTransformer (edit mode) with pole operations (single/multi selection, Ctrl+Click, synchronized dragging, Delete key with min 2 poles), line operations (line selection, line dragging maintaining geometry, snapping with modifier keys), visual feedback (red for selected, blue for unselected). Implemented complete snapping system using snapToNearest from structureSnapping.ts with 50px threshold and modifier key handling in mouse events (e.evt.altKey, NOT keyboard events). Critical lessons learned: (1) Hit area sizing - interactive areas must be ≥2x max snap distance (line hit area increased from 15px to 100px strokeWidth to prevent mouse exiting zone during snap jumps), (2) Modifier key handling - MUST check e.evt.altKey in mouse events not keydown/keyup to avoid toggle behavior, (3) Coordinate systems - use e.target.x()/y() for draggable elements with world coordinate transformation, (4) Pole dragging - dragBoundFunc returns pos unchanged, actual snapping in handleDragMove/handleDragEnd with original position in ref, (5) Line dragging - snap initial mouse position on mouseDown to prevent delta mismatch, store both pole positions and mouse position in ref. Current work: Debugging marquee selection (background Rect capturing onMouseDown events but rectangle not showing, onMouseMove/onMouseUp handlers added, next step verify onMouseMove fires during drag). Deferred: Pole insertion on line segment (will reimplement). Files modified: WallsPanel.tsx, WallDrawingTool.tsx, WallTransformer.tsx (IN PROGRESS), gridCalculator.ts, structureSnapping.ts. Memory entities created for context preservation: 12 entities (VTT Wall System, components, features, systems, patterns, lessons) with 26 relations documenting all implementation details, technical challenges, and solutions. Updated progress to 81.2% (324/399h). Phase 8.8B.1 estimated 6-8h, actual 5+h ongoing. Phase 8.8B.2 (Remaining Structure Testing) marked as NEXT.
 - **2025-10-31** (v1.13.0): Phase 11 COMPLETION & EPIC-002 DEFINED - Account Management delivered in 16 hours (100% of estimate). Implemented complete profile, security, 2FA setup, and email confirmation functionality. Delivered: ProfilePage with tabbed interface (Profile/Security/2FA/Recovery Codes tabs), ProfileSettings component with avatar upload/delete and profile editing, SecuritySettings component with password reset and 2FA management, TwoFactorSetupForm with QR code generation and horizontal stepper UI, RecoveryCodesDisplay with grid layout and download capability, email verification icon with resend confirmation flow. Backend: Added EmailConfirmed to UserInfo/ProfileResponse, implemented ResendEmailConfirmationAsync and ConfirmEmailAsync in AuthService, created email confirmation endpoints (POST /resend-confirmation-email, GET /confirm-email). Frontend: Updated authApi with resend mutation, added email verification indicator (CheckCircle/Warning icons), integrated Vite proxy for new endpoints. Critical dependency identified: Admin Application required for production operations (audit log viewer, user management, system configuration). Roadmap restructured: Added Phase 12 (Audit & Compliance Logging, 13h - user-facing only, admin backend API), split former Phase 12 into Phase 13 (Release Preparation, 5h) and Phase 14 (Performance & Quality Refinements, 16h optional). EPIC-002 (Admin Application, 40-60h) defined as separate parallel track - REQUIRED before Phase 13 release. Can execute in parallel with Phases 8.8, 10, 12. Admin app intentionally separated for security isolation (separate deployment, different endpoint). Phase 14 marked as OPTIONAL. EPIC-001 progress: 80.4% (335/417 core hours). Total effort: 433h (417h core + 16h optional). EPIC-002 requires separate roadmap. Phase 8.8 remains NEXT.
 - **2025-10-29** (v1.12.0): Phase 8.7 COMPLETION & Phase 8.8 ADDED - Structures Frontend delivered with A- grade (92/100) in 67 hours (89% of upper estimate). Implemented complete drawing tools, Konva rendering, and Scene Editor integration for all three structure types. Delivered: 6 TypeScript interfaces (Barrier, Region, Source + Scene variants), 3 RTK Query API slices integrating 18 backend endpoints, library UI with 3 searchable tabs and editor dialogs, 3 drawing tools (click-to-place vertices for barriers, polygons for regions, click-drag range for sources), snap-to-grid algorithm with 3 modes (HalfSnap/QuarterSnap/Free) and 10px threshold, 3 Konva renderers (Lines for barriers with color coding, Polygons for regions with labels, Circles with line-of-sight for sources), line-of-sight ray-casting algorithm (72 rays at 5° increments with parametric intersection), command pattern for undo/redo (synchronous execute(), async undo()), 4-layer Konva architecture (Static/GameWorld/Effects/UIOverlay), 246+ tests passing with ≥75% coverage. Sub-phase grades: 8.7A Types+RTK (A/94), 8.7B Library UI (A-/90), 8.7C Barrier Drawing (A/93), 8.7D Region Drawing (A/94), 8.7E Source LOS (A+/96), 8.7F Scene Integration (A-/90). Applied 5 critical/high priority fixes from code review: layer ordering consistency (LayerName/GroupName enums), error handling (Snackbar notifications), keyboard guards (input field protection), type guards (proper TypeScript narrowing, no duck typing), selection UX (visual indicators in all 3 lists). TypeScript strict mode with 0 errors. Production readiness: 90% (remaining gaps: integration tests, E2E tests, performance optimization with 100+ structures, lazy loading, accessibility audit). Autonomous workflow executed: frontend-developer agent → code-reviewer agent → Claude applies fixes → proceed without user approval. Phase 8.8 (Manual Tests & UI Refinements, 8-12h) added to roadmap, replacing originally planned "Performance Optimization" phase. Performance work deferred to Phase 12 if needed after user testing. Updated overall progress to 80.0% (319/399h completed, 80h remaining: 8.8+9+10+11+12). Phase 8.8 marked as NEXT for user-guided manual testing and interface refinements.
 - **2025-10-28** (v1.11.0): Phase 8.6 COMPLETION - Structures Backend delivered with A- grade (93/100). Implemented three distinct structure categories (Barriers, Regions, Sources) with complete API layer in 37 hours (97% of estimate). Delivered: 6 domain models (Barrier, Region, Source + Scene variants), database migration creating 6 tables, 18 functional API endpoints, 3 service classes with SceneService extensions, 3 storage classes with complete CRUD, 45 unit tests passing with ≥85% coverage. Sub-phase grades: 8.6A (A-/87), 8.6B (A-/92), 8.6C (A/95), 8.6D (A+/98). Final end-to-end review: A- (93/100) with pattern consistency 50/50 (perfect alignment across categories). Zero critical or major issues. Security: OWASP Top 10 compliant. Key technical achievements: RegionType/SourceType as extensible strings (NOT enums), decimal precision for Range (5,2) and Intensity (3,2), single Point position for Sources, JSON columns for complex types. Autonomous workflow executed with 4 review checkpoints. Updated overall progress to 74.6% (276/370h). Phase 8.7 (Structures Frontend) marked as NEXT.

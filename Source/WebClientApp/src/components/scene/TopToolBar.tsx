@@ -8,6 +8,7 @@ import {
   Redo as RedoIcon,
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon,
+  ZoomOutMap as ZoomResetIcon,
   GridOn as GridIcon,
   Clear as ClearIcon
 } from '@mui/icons-material';
@@ -20,6 +21,7 @@ export interface TopToolBarProps {
   onRedoClick?: () => void;
   onZoomIn?: () => void;
   onZoomOut?: () => void;
+  onZoomReset?: () => void;
   onGridToggle?: () => void;
   onClearSelection?: () => void;
   canUndo?: boolean;
@@ -34,6 +36,7 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
   onRedoClick,
   onZoomIn,
   onZoomOut,
+  onZoomReset,
   onGridToggle,
   onClearSelection,
   canUndo = false,
@@ -168,6 +171,16 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
               sx={{ width: 28, height: 28 }}
             >
               <ZoomOutIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Reset Zoom">
+            <IconButton
+              size="small"
+              onClick={onZoomReset}
+              sx={{ width: 28, height: 28 }}
+            >
+              <ZoomResetIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Tooltip>
 

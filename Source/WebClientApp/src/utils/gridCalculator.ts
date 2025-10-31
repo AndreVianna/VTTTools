@@ -140,8 +140,8 @@ export const snapToGrid = (point: Point, grid: GridConfig): Point => {
     }
 
     return {
-        x: snappedX + offsetX,
-        y: snappedY + offsetY
+        x: Math.round(snappedX + offsetX),
+        y: Math.round(snappedY + offsetY)
     };
 };
 

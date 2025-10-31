@@ -1,6 +1,6 @@
 # VTTTools - Product Backlog
 
-**Last Updated**: 2025-10-03
+**Last Updated**: 2025-10-31
 **Current Sprint**: N/A (Epic Planning)
 **Solution Version**: 1.0.0
 
@@ -8,10 +8,10 @@
 
 ## Backlog Overview
 
-**Total Tasks**: 1
+**Total Tasks**: 2
 **Completed**: 0 (0%)
 **In Progress**: 1
-**Planned**: 0
+**Planned**: 1
 **Blocked**: 0
 
 ---
@@ -20,7 +20,7 @@
 
 | Type | Total | Completed | In Progress | Planned | Blocked |
 |------|-------|-----------|-------------|---------|---------|
-| Epic | 1 | 0 | 1 | 0 | 0 |
+| Epic | 2 | 0 | 1 | 1 | 0 |
 | Feature | 0 | 0 | 0 | 0 | 0 |
 | Bug | 0 | 0 | 0 | 0 | 0 |
 | Refactor | 0 | 0 | 0 | 0 | 0 |
@@ -34,7 +34,7 @@
 
 | Priority | Total | Completed | Remaining |
 |----------|-------|-----------|-----------|
-| Critical | 1 | 0 | 1 |
+| Critical | 2 | 0 | 2 |
 | High | 0 | 0 | 0 |
 | Medium | 0 | 0 | 0 |
 | Low | 0 | 0 | 0 |
@@ -46,20 +46,43 @@
 ### In Progress (1)
 
 - [🔨] **EPIC-001**: UI Migration - Blazor to React (epic, Critical)
-  - Effort: 120-160 hours
-  - Progress: 35%
-  - Affects: UserAuthentication ✅, AccountManagement, LandingPage ✅, AssetManagement 🚧, SceneManagement 🚧, SessionManagement
+  - Effort: 273 hours total (188 complete, 85 remaining)
+  - Progress: 68.9%
+  - Affects: UserAuthentication ✅, AccountManagement, LandingPage ✅, AssetManagement ✅, SceneManagement 🚧, SessionManagement
   - Components: WebClientApp (React SPA), VttTools.WebApp.WebAssembly (legacy), VttTools.WebApp.Common (legacy)
   - Phases:
     - ✅ Foundation & Authentication (100%)
-    - 🚧 Scene Editor with Konva (40%)
-    - 🔜 Asset Library, Content Management, Game Sessions
+    - ✅ Scene Editor with Konva (100%)
+    - ✅ Asset Library (100%)
+    - 🚧 Scene Management UI (0%)
+    - 🔜 Adventure Management, Game Sessions, Account Management
+
+---
+
+## Planned Work
+
+### Planned (1)
+
+- [📋] **EPIC-002**: Administration Application (epic, Critical)
+  - Effort: 280-320 hours
+  - Progress: 0%
+  - Affects: User Management (new), Role Management (new), Audit Logging (new), System Configuration (new)
+  - Components: WebAdminApp (React admin SPA - new), Admin backend (new area), AuditLog infrastructure (new)
+  - Phases:
+    - 🔜 Foundation & Infrastructure (40h)
+    - 🔜 User Management (60h)
+    - 🔜 Role Management (32h)
+    - 🔜 Audit Log Viewer (48h)
+    - 🔜 System Configuration (40h)
+    - 🔜 Testing & Security (48h)
+  - Dependencies: Must complete before EPIC-001 Phase 13 (Release Preparation)
+  - Strategic Importance: Production requirement for operational management
 
 ---
 
 ## Backlog (Unscheduled)
 
-Currently empty - all work captured in EPIC-001
+Currently empty - all work captured in EPIC-001 and EPIC-002
 
 ---
 
@@ -89,36 +112,64 @@ Currently empty - all work captured in EPIC-001
 
 ## Epic Breakdown
 
-### EPIC-001: UI Migration
-**Status**: In Progress (35%)
-**Duration**: 6-8 weeks
-**Phases**: 7 total
+### EPIC-001: UI Migration - Blazor to React
+**Status**: In Progress (68.9%)
+**Duration**: 8-10 weeks total
+**Phases**: 12 total
 
 **Phase Completion**:
 1. ✅ Foundation Setup (100%)
 2. ✅ Authentication & Onboarding (100%)
-3. 🚧 Scene Editor Core (40%)
-4. 🔜 Asset Library & Content (0%)
-5. 🔜 Game Sessions & Real-Time (0%)
-6. 🔜 Account Management (0%)
-7. 🔜 Testing & Optimization (0%)
+3. ✅ Scene Editor - Pan/Zoom (100%)
+4. ✅ Scene Editor - Grid System (100%)
+5. ✅ Asset Library (100%)
+6. ✅ Scene Editor - Tokens (100%)
+7. 🚧 Scene Management UI (0%)
+8. 🔜 Adventure Management (0%)
+9. 🔜 Epic/Campaign (0%)
+10. 🔜 Game Sessions & Real-Time (0%)
+11. 🔜 Account Management (0%)
+12. 🔜 Production Preparation (0%)
+
+### EPIC-002: Administration Application
+**Status**: Planned (0%)
+**Duration**: 8 weeks (full-time) or 12-16 weeks (part-time)
+**Phases**: 6 required + 1 optional
+
+**Phase Completion**:
+1. 🔜 Foundation & Infrastructure (40h)
+2. 🔜 User Management (60h)
+3. 🔜 Role Management (32h)
+4. 🔜 Audit Log Viewer (48h)
+5. 🔜 System Configuration (40h)
+6. 🔜 Testing & Security (48h)
+7. 🔜 System Monitoring - Optional (32h)
 
 ---
 
 ## Metrics & Insights
 
 ### Completion Rates
-- **Overall**: 35% (1 task, in-progress)
-- **Epic EPIC-001**: 35% complete
+- **Overall**: 34.4% (2 epics, 1 in-progress)
+- **EPIC-001**: 68.9% complete (188/273 hours)
+- **EPIC-002**: 0% complete (0/280 hours)
 
 ### Time Tracking
-- **Estimated Total**: 120-160 hours
-- **Completed**: ~63 hours (foundation, auth, scene editor partial)
-- **Remaining**: ~97 hours
+- **Estimated Total**: 553-593 hours (EPIC-001: 273h, EPIC-002: 280-320h)
+- **Completed**: 188 hours (EPIC-001 phases 1-6)
+- **Remaining**: 365-405 hours
+
+### Epic Dependencies
+- **EPIC-002** must complete before **EPIC-001 Phase 13** (Release Preparation)
+- **EPIC-002** leverages auth patterns from **EPIC-001 Phase 2** (complete)
+- **EPIC-002** manages user models from **EPIC-001 Phase 11** (can run in parallel)
 
 ---
 
 ## Change Log
+- **2025-10-31**: EPIC-002 (Administration Application) added to backlog
+- **2025-10-31**: Updated EPIC-001 progress to 68.9% (phases 1-6 complete)
+- **2025-10-31**: Updated metrics to reflect 2 epics (553-593 total hours)
 - **2025-10-03**: Backlog created, EPIC-001 added for UI migration tracking
 - **2025-10-03**: Naming conventions restructuring completed (all folders/files now PascalCase compliant)
 

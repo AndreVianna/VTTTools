@@ -79,10 +79,6 @@ const STAGE_WIDTH = 2800;
 const STAGE_HEIGHT = 2100;
 const SCENE_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 
-// No menu bar anymore (toolbars are absolute overlays), only EditorLayout header
-const EDITOR_HEADER_HEIGHT = 64;
-const TOTAL_TOP_HEIGHT = EDITOR_HEADER_HEIGHT;
-
 const SceneEditorPageInternal: React.FC = () => {
     const theme = useTheme();
     const navigate = useNavigate();
@@ -125,7 +121,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
     const initialViewport = {
         x: (window.innerWidth - STAGE_WIDTH) / 2,
-        y: ((window.innerHeight - TOTAL_TOP_HEIGHT) - STAGE_HEIGHT) / 2,
+        y: (window.innerHeight - STAGE_HEIGHT) / 2,
         scale: 1
     };
 
@@ -474,6 +470,10 @@ const SceneEditorPageInternal: React.FC = () => {
 
     const handleZoomOut = () => {
         canvasRef.current?.zoomOut();
+    };
+
+    const handleZoomReset = () => {
+        canvasRef.current?.resetView();
     };
 
     const handleGridChange = useCallback((newGrid: GridConfig) => {
@@ -935,13 +935,17 @@ const SceneEditorPageInternal: React.FC = () => {
     const handleEditVertices = useCallback((wallIndex: number) => {
         setSelectedWallIndex(wallIndex);
         setIsEditingVertices(true);
+        setActivePanel(null);
     }, []);
 
     const handleVerticesChange = useCallback(async (
         wallIndex: number,
         newPoles: Pole[]
     ) => {
-        if (!sceneId) return;
+        if (!sceneId) {
+            console.error('[SceneEditorPage] No sceneId, aborting');
+            return;
+        }
 
         try {
             await updateSceneWall({
@@ -949,12 +953,18 @@ const SceneEditorPageInternal: React.FC = () => {
                 wallIndex,
                 poles: newPoles
             }).unwrap();
-            setIsEditingVertices(false);
+
+            const { data: updatedScene } = await refetch();
+            if (updatedScene) {
+                setScene(updatedScene);
+            } else {
+                console.error('[SceneEditorPage] Refetch returned no data');
+            }
         } catch (error) {
-            console.error('Failed to update wall poles:', error);
+            console.error('[SceneEditorPage] Failed to update wall poles:', error);
             setErrorMessage('Failed to update poles. Please try again.');
         }
-    }, [sceneId, updateSceneWall]);
+    }, [sceneId, updateSceneWall, refetch]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -1132,7 +1142,7 @@ const SceneEditorPageInternal: React.FC = () => {
         setCursorPosition({ x: canvasX, y: canvasY });
     }, [viewport]);
 
-    const handleWallSelect = useCallback((wallIndex: number) => {
+    const handleWallSelect = useCallback((wallIndex: number | null) => {
         setSelectedWallIndex(wallIndex);
         setIsEditingVertices(false);
     }, []);
@@ -1250,6 +1260,21 @@ const SceneEditorPageInternal: React.FC = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
             <EditingBlocker isBlocked={!isOnline} />
 
+            <TopToolBar
+                drawingMode={drawingMode}
+                onDrawingModeChange={handleDrawingModeChange}
+                onUndoClick={() => execute('undo')}
+                onRedoClick={() => execute('redo')}
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onZoomReset={handleZoomReset}
+                onGridToggle={() => setGridConfig(prev => ({ ...prev, type: prev.type === GridType.NoGrid ? GridType.Square : GridType.NoGrid }))}
+                onClearSelection={() => handleAssetSelected([])}
+                canUndo={false}
+                canRedo={false}
+                gridVisible={gridConfig.type !== GridType.NoGrid}
+            />
+
             <Box
                 id="canvas-container"
                 onMouseMove={handleCanvasMouseMove}
@@ -1263,26 +1288,9 @@ const SceneEditorPageInternal: React.FC = () => {
                     cursor: (drawingMode === 'wall' || isEditingVertices) ? 'crosshair' : 'default'
                 }}
             >
-                <TopToolBar
-                    drawingMode={drawingMode}
-                    onDrawingModeChange={handleDrawingModeChange}
-                    onUndoClick={() => execute('undo')}
-                    onRedoClick={() => execute('redo')}
-                    onZoomIn={handleZoomIn}
-                    onZoomOut={handleZoomOut}
-                    onGridToggle={() => setGridConfig(prev => ({ ...prev, type: prev.type === GridType.NoGrid ? GridType.Square : GridType.NoGrid }))}
-                    onClearSelection={() => handleAssetSelected([])}
-                    canUndo={false}
-                    canRedo={false}
-                    gridVisible={gridConfig.type !== GridType.NoGrid}
-                />
-
                 <LeftToolBar
                     activePanel={activePanel}
-                    onPanelChange={(panel) => {
-                        console.log('Panel changed:', panel);
-                        setActivePanel(panel);
-                    }}
+                    onPanelChange={setActivePanel}
                     backgroundUrl={backgroundUrl}
                     isUploadingBackground={isUploadingBackground}
                     onBackgroundUpload={handleBackgroundUpload}
@@ -1297,19 +1305,10 @@ const SceneEditorPageInternal: React.FC = () => {
                     onEditVertices={handleEditVertices}
                 />
 
-                <EditorStatusBar
-                    cursorPosition={cursorPosition}
-                    totalAssets={placedAssets.length}
-                    selectedCount={selectedAssetIds.length}
-                    zoomPercentage={viewport.scale * 100}
-                    activeTool={drawingMode || undefined}
-                    gridSnapEnabled={gridConfig.snapToGrid}
-                />
-
                 <SceneCanvas
                     ref={canvasRef}
                     width={window.innerWidth}
-                    height={window.innerHeight - TOTAL_TOP_HEIGHT}
+                    height={window.innerHeight}
                     initialPosition={{ x: initialViewport.x, y: initialViewport.y }}
                     backgroundColor={theme.palette.background.default}
                     onViewportChange={handleViewportChange}
@@ -1373,12 +1372,14 @@ const SceneEditorPageInternal: React.FC = () => {
                             <Group name={GroupName.Structure}>
                                 {scene.walls.map((sceneWall) => (
                                     <React.Fragment key={sceneWall.index}>
-                                        <WallRenderer
-                                            sceneWall={sceneWall}
-                                            isSelected={selectedWallIndex === sceneWall.index}
-                                            onSelect={handleWallSelect}
-                                            onContextMenu={handleWallContextMenu}
-                                        />
+                                        {!(isEditingVertices && selectedWallIndex === sceneWall.index) && (
+                                            <WallRenderer
+                                                sceneWall={sceneWall}
+                                                isSelected={selectedWallIndex === sceneWall.index}
+                                                onSelect={handleWallSelect}
+                                                onContextMenu={handleWallContextMenu}
+                                            />
+                                        )}
                                         {isEditingVertices && selectedWallIndex === sceneWall.index && (
                                             <WallTransformer
                                                 poles={sceneWall.poles}
@@ -1387,6 +1388,10 @@ const SceneEditorPageInternal: React.FC = () => {
                                                 }
                                                 gridConfig={gridConfig}
                                                 snapEnabled={gridConfig.snap}
+                                                onClearSelections={() => {
+                                                    setSelectedWallIndex(null);
+                                                    setIsEditingVertices(false);
+                                                }}
                                             />
                                         )}
                                     </React.Fragment>
@@ -1463,7 +1468,14 @@ const SceneEditorPageInternal: React.FC = () => {
                 </SceneCanvas>
             </Box>
 
-            {/* Backdrop removed - was causing infinite loading on refresh due to handlersReady never being called */}
+            <EditorStatusBar
+                {...(cursorPosition && { cursorPosition })}
+                totalAssets={placedAssets.length}
+                selectedCount={selectedAssetIds.length}
+                zoomPercentage={viewport.scale * 100}
+                {...(drawingMode && { activeTool: drawingMode })}
+                gridSnapEnabled={gridConfig.snap}
+            />
         </Box>
 
         <ConfirmDialog

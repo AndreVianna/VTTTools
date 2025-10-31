@@ -25,7 +25,6 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
 }) => {
     const [poles, setPoles] = useState<Pole[]>([]);
     const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
-    const [snapMode, setSnapMode] = useState<SnapMode>(SnapMode.HalfSnap);
 
     const { data: scene } = useGetSceneQuery(sceneId);
     const wall = scene?.walls?.find(w => w.index === wallIndex);
@@ -86,29 +85,12 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
                 }
                 return;
             }
-
-            // Snap mode modifiers
-            if (e.altKey && e.ctrlKey) {
-                setSnapMode(SnapMode.QuarterSnap);
-            } else if (e.altKey) {
-                setSnapMode(SnapMode.Free);
-            } else {
-                setSnapMode(SnapMode.HalfSnap);
-            }
-        };
-
-        const handleKeyUp = (e: KeyboardEvent) => {
-            if (!e.altKey && !e.ctrlKey) {
-                setSnapMode(SnapMode.HalfSnap);
-            }
         };
 
         window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
 
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('keyup', handleKeyUp);
         };
     }, [poles, onCancel, debouncedUpdateWall]);
 
@@ -125,9 +107,17 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
             y: (pointer.y - stage.y()) / scale,
         };
 
-        const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
+        // Determine snap mode from modifier keys in the event
+        let currentSnapMode = SnapMode.HalfSnap;
+        if (e.evt.altKey && e.evt.ctrlKey) {
+            currentSnapMode = SnapMode.QuarterSnap;
+        } else if (e.evt.altKey) {
+            currentSnapMode = SnapMode.Free;
+        }
+
+        const snappedPos = snapToNearest(stagePos, gridConfig, currentSnapMode);
         setPreviewPoint(snappedPos);
-    }, [gridConfig, snapMode]);
+    }, [gridConfig]);
 
     const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         const stage = e.target.getStage();
@@ -142,7 +132,15 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
             y: (pointer.y - stage.y()) / scale,
         };
 
-        const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
+        // Determine snap mode from modifier keys in the event
+        let currentSnapMode = SnapMode.HalfSnap;
+        if (e.evt.altKey && e.evt.ctrlKey) {
+            currentSnapMode = SnapMode.QuarterSnap;
+        } else if (e.evt.altKey) {
+            currentSnapMode = SnapMode.Free;
+        }
+
+        const snappedPos = snapToNearest(stagePos, gridConfig, currentSnapMode);
         const newPole: Pole = {
             x: snappedPos.x,
             y: snappedPos.y,
@@ -152,7 +150,7 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
         console.log('[WallDrawingTool] Pole placed at', snappedPos, ', total:', newPoles.length);
         setPoles(newPoles);
         debouncedUpdateWall(newPoles);
-    }, [poles, gridConfig, snapMode, defaultHeight, debouncedUpdateWall]);
+    }, [poles, gridConfig, defaultHeight, debouncedUpdateWall]);
 
     return (
         <Group>

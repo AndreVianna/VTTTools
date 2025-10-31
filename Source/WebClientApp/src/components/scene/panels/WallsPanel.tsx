@@ -367,7 +367,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(({
                                                 size="small"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    onWallSelect?.(sceneWall.index);
+                                                    onEditVertices?.(sceneWall.index);
                                                 }}
                                                 sx={{ width: 20, height: 24 }}
                                             >
