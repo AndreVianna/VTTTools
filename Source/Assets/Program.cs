@@ -8,10 +8,14 @@ internal static class Program {
         builder.AddServiceDiscovery();
         builder.AddRequiredServices();
         builder.AddStorage();
+        builder.AddJwtAuthentication();
         builder.AddServices();
 
         var app = builder.Build();
         app.ApplyRequiredConfiguration(app.Environment);
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseAuditLogging();
         app.MapDefaultEndpoints();
         app.MapApplicationEndpoints();
 
@@ -31,8 +35,11 @@ internal static class Program {
         }
     }
 
-    internal static void AddServices(this IHostApplicationBuilder builder)
-        => builder.Services.AddScoped<IAssetService, AssetService>();
+    internal static void AddServices(this IHostApplicationBuilder builder) {
+        builder.Services.AddScoped<IAssetService, AssetService>();
+        builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
+        builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+    }
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app)
         => app.MapAssetEndpoints();

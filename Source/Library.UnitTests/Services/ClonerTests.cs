@@ -1,4 +1,3 @@
-using Size = VttTools.Common.Model.Size;
 
 namespace VttTools.Library.Services;
 

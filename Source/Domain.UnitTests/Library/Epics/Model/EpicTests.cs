@@ -1,4 +1,3 @@
-using VttTools.Media.Model;
 
 namespace VttTools.Library.Epics.Model;
 

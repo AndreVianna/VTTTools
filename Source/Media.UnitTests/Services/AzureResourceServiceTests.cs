@@ -18,11 +18,7 @@ public class AzureResourceServiceTests {
         _blobClient.UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>())
             .Returns(Response.FromValue(_blobContentInfo, _response));
         _service = new(_blobServiceClient, _mediaStorage);
-#if XUNITV3
         _ct = TestContext.Current.CancellationToken;
-#else
-        _ct = CancellationToken.None;
-#endif
     }
 
     [Fact]

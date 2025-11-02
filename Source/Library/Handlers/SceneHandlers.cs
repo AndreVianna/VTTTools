@@ -2,7 +2,6 @@ using static VttTools.Utilities.ErrorCollectionExtensions;
 
 using BulkUpdateAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
 using IResult = Microsoft.AspNetCore.Http.IResult;
-using SceneAssetUpdateData = VttTools.Library.Scenes.ServiceContracts.SceneAssetUpdateData;
 using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
 
 namespace VttTools.Library.Handlers;
@@ -222,7 +221,7 @@ internal static class SceneHandlers {
             ? Results.Ok(new SceneWallResponse {
                 Index = result.Value.Index,
                 Name = result.Value.Name,
-                Poles = [..result.Value.Poles],
+                Poles = [.. result.Value.Poles],
                 Visibility = result.Value.Visibility,
                 IsClosed = result.Value.IsClosed,
                 Material = result.Value.Material,

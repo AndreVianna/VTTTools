@@ -9,7 +9,7 @@ public class UpdateAssetRequestTests {
             Name = "Table",
             Description = "A table",
             Resources = new[] {
-                new AssetResourceDto {
+                new AssetResourceData {
                     ResourceId = originalResourceId,
                     Role = ResourceRole.Token
                 }
@@ -27,7 +27,7 @@ public class UpdateAssetRequestTests {
         var updated = original with {
             Name = newName,
             Resources = new[] {
-                new AssetResourceDto {
+                new AssetResourceData {
                     ResourceId = newResourceId,
                     Role = ResourceRole.Token
                 }

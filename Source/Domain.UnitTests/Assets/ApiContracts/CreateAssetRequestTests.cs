@@ -9,7 +9,7 @@ public class CreateAssetRequestTests {
             Name = "Table",
             Description = "A table",
             Resources = [
-                new AssetResourceDto {
+                new AssetResourceData {
                     ResourceId = Guid.CreateVersion7(),
                     Role = ResourceRole.Token
                 }

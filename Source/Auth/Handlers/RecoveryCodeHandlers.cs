@@ -1,13 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
-
-using VttTools.Auth.ApiContracts;
-using VttTools.Auth.Services;
-using VttTools.Extensions;
-
 namespace VttTools.Auth.Handlers;
 
 public static class RecoveryCodeHandlers {
-    public static async Task<Microsoft.AspNetCore.Http.IResult> GenerateNewCodesHandler(
+    public static async Task<IResult> GenerateNewCodesHandler(
         HttpContext context,
         [FromBody] GenerateRecoveryCodesRequest request,
         [FromServices] IRecoveryCodeService recoveryCodeService,
@@ -30,7 +24,7 @@ public static class RecoveryCodeHandlers {
         return Results.ValidationProblem(errors);
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> GetStatusHandler(
+    public static async Task<IResult> GetStatusHandler(
         HttpContext context,
         [FromServices] IRecoveryCodeService recoveryCodeService,
         CancellationToken ct = default) {

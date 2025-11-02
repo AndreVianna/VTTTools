@@ -1,13 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
-
-using VttTools.Auth.ApiContracts;
-using VttTools.Auth.Services;
-using VttTools.Extensions;
-
 namespace VttTools.Auth.Handlers;
 
 public static class SecurityHandlers {
-    public static async Task<Microsoft.AspNetCore.Http.IResult> GetSecuritySettingsHandler(
+    public static async Task<IResult> GetSecuritySettingsHandler(
         HttpContext context,
         [FromServices] ISecurityService securityService,
         CancellationToken ct = default) {

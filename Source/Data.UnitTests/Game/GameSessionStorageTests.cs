@@ -10,11 +10,7 @@ public class GameSessionStorageTests
     public GameSessionStorageTests() {
         _context = DbContextHelper.CreateInMemoryContext(_currentUserId);
         _storage = new(_context);
-#if XUNITV3
         _ct = TestContext.Current.CancellationToken;
-#else
-        _ct = CancellationToken.None;
-#endif
     }
 
     public void Dispose() {
@@ -126,7 +122,11 @@ public class GameSessionStorageTests
             Id = entity.Id,
             Title = "Updated GameSession",
             Status = GameSessionStatus.Scheduled,
-            Players = [.. entity.Players],
+            Players = [.. entity.Players.Select(p => new VttTools.Common.Model.Participant {
+                UserId = p.UserId,
+                IsRequired = p.IsRequired,
+                Type = p.Type,
+            })],
             OwnerId = entity.OwnerId,
         };
 

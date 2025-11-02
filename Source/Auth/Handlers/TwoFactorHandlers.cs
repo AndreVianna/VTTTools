@@ -1,13 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
-
-using VttTools.Auth.ApiContracts;
-using VttTools.Auth.Services;
-using VttTools.Extensions;
-
 namespace VttTools.Auth.Handlers;
 
 public static class TwoFactorHandlers {
-    public static async Task<Microsoft.AspNetCore.Http.IResult> InitiateSetupHandler(
+    public static async Task<IResult> InitiateSetupHandler(
         HttpContext context,
         [FromServices] ITwoFactorService twoFactorService,
         CancellationToken ct = default) {
@@ -29,7 +23,7 @@ public static class TwoFactorHandlers {
         return Results.ValidationProblem(errors);
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> VerifySetupHandler(
+    public static async Task<IResult> VerifySetupHandler(
         HttpContext context,
         [FromBody] VerifySetupRequest request,
         [FromServices] ITwoFactorService twoFactorService,
@@ -52,7 +46,7 @@ public static class TwoFactorHandlers {
         return Results.ValidationProblem(errors);
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> DisableTwoFactorHandler(
+    public static async Task<IResult> DisableTwoFactorHandler(
         HttpContext context,
         [FromBody] DisableTwoFactorRequest request,
         [FromServices] ITwoFactorService twoFactorService,

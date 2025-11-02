@@ -169,7 +169,7 @@ Build a secure, independently deployable React administration application that e
 **New Backend Components Required**:
 
 1. **Admin Authentication APIs** (`Source/Auth/`)
-   - **Endpoint**: `POST /api/admin/login` (separate from main app `/api/auth/login`)
+   - **Endpoint**: `POST /api/admin/auth/login` (separate from main app `/api/auth/login`)
    - **Validation Sequence** (all must pass):
      1. User exists
      2. Password correct

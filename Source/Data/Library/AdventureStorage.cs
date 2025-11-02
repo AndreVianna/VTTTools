@@ -1,5 +1,3 @@
-using Adventure = VttTools.Library.Adventures.Model.Adventure;
-
 namespace VttTools.Data.Library;
 
 /// <summary>

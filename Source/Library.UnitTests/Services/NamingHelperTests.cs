@@ -3,7 +3,7 @@ namespace VttTools.Library.UnitTests.Services;
 public class NamingHelperTests {
     [Fact]
     public void GenerateCloneNames_FirstCloneOfUnnumberedScene_RenamesOriginalAndCreatesNumberedClone() {
-        var originalName = "Forest Ambush";
+        const string originalName = "Forest Ambush";
         var existingNames = new[] { "Forest Ambush", "Dungeon Entrance" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
@@ -14,7 +14,7 @@ public class NamingHelperTests {
 
     [Fact]
     public void GenerateCloneNames_CloneOfNumberedScene_CreatesIncrementedClone() {
-        var originalName = "Forest Ambush (2)";
+        const string originalName = "Forest Ambush (2)";
         var existingNames = new[] { "Forest Ambush (1)", "Forest Ambush (2)", "Dungeon Entrance" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
@@ -25,7 +25,7 @@ public class NamingHelperTests {
 
     [Fact]
     public void GenerateCloneNames_CloneUnnumberedWhenNumberedExist_RenamesOriginalAndFindsNextNumber() {
-        var originalName = "Forest Ambush";
+        const string originalName = "Forest Ambush";
         var existingNames = new[] { "Forest Ambush", "Forest Ambush (2)", "Forest Ambush (3)" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
@@ -36,7 +36,7 @@ public class NamingHelperTests {
 
     [Fact]
     public void GenerateCloneNames_WithGapsInNumbering_UsesHighestNumber() {
-        var originalName = "Scene (5)";
+        const string originalName = "Scene (5)";
         var existingNames = new[] { "Scene (1)", "Scene (5)", "Scene (10)" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
@@ -47,7 +47,7 @@ public class NamingHelperTests {
 
     [Fact]
     public void GenerateCloneNames_CaseInsensitiveMatching_FindsAllMatches() {
-        var originalName = "forest ambush";
+        const string originalName = "forest ambush";
         var existingNames = new[] { "Forest Ambush", "FOREST AMBUSH (2)", "forest ambush (3)" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
@@ -58,7 +58,7 @@ public class NamingHelperTests {
 
     [Fact]
     public void GenerateCloneNames_EmptyExistingNames_CreatesFirstAndSecond() {
-        var originalName = "New Scene";
+        const string originalName = "New Scene";
         var existingNames = Array.Empty<string>();
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
@@ -69,7 +69,7 @@ public class NamingHelperTests {
 
     [Fact]
     public void GenerateCloneNames_NameWithParenthesesButNotNumber_TreatsAsUnnumbered() {
-        var originalName = "Scene (final version)";
+        const string originalName = "Scene (final version)";
         var existingNames = new[] { "Scene (final version)" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
@@ -80,7 +80,7 @@ public class NamingHelperTests {
 
     [Fact]
     public void GenerateCloneNames_NameEndingWithNumber_RecognizesPattern() {
-        var originalName = "Level 3";
+        const string originalName = "Level 3";
         var existingNames = new[] { "Level 3", "Other Scene" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
@@ -91,7 +91,7 @@ public class NamingHelperTests {
 
     [Fact]
     public void GenerateCloneNames_MultipleSpacesBeforeNumber_HandlesCorrectly() {
-        var originalName = "Scene   (5)";
+        const string originalName = "Scene   (5)";
         var existingNames = new[] { "Scene (1)", "Scene   (5)" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
@@ -102,7 +102,7 @@ public class NamingHelperTests {
 
     [Fact]
     public void GenerateCloneNames_OnlyNumberedScenesExist_DoesNotRenameOriginal() {
-        var originalName = "Scene (1)";
+        const string originalName = "Scene (1)";
         var existingNames = new[] { "Scene (1)", "Scene (2)" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);

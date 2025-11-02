@@ -1,8 +1,4 @@
-﻿using Asset = VttTools.Data.Assets.Entities.Asset;
-using NamedSize = VttTools.Common.Model.NamedSize;
-using Position = VttTools.Common.Model.Position;
-using Resource = VttTools.Data.Media.Entities.Resource;
-
+﻿
 namespace VttTools.Data.Library.Entities;
 
 public class SceneAsset {

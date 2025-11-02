@@ -1,15 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-
-using VttTools.Data;
-using VttTools.Library.Content.ServiceContracts;
-
-using Adventure = VttTools.Data.Library.Entities.Adventure;
+using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using AdventureStyle = VttTools.Library.Adventures.Model.AdventureStyle;
-using Grid = VttTools.Library.Scenes.Model.Grid;
-using Point = VttTools.Common.Model.Point;
-using Resource = VttTools.Data.Media.Entities.Resource;
+using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using ResourceType = VttTools.Media.Model.ResourceType;
-using Scene = VttTools.Data.Library.Entities.Scene;
+using SceneEntity = VttTools.Data.Library.Entities.Scene;
 
 namespace VttTools.Library.Services;
 
@@ -28,12 +21,7 @@ public class ContentQueryServiceTests : IDisposable {
         _context = new ApplicationDbContext(options);
         _context.Database.EnsureCreated();
         _service = new ContentQueryService(_context);
-
-#if XUNITV3
         _ct = TestContext.Current.CancellationToken;
-#else
-        _ct = CancellationToken.None;
-#endif
     }
 
     public void Dispose() {
@@ -278,7 +266,7 @@ public class ContentQueryServiceTests : IDisposable {
         bool isPublished = false,
         bool isPublic = false) {
         var owner = ownerId ?? _userId;
-        var background = new Resource {
+        var background = new ResourceEntity {
             Id = Guid.CreateVersion7(),
             Type = ResourceType.Image,
             Path = $"backgrounds/{name}.jpg",
@@ -287,7 +275,7 @@ public class ContentQueryServiceTests : IDisposable {
             FileLength = 1024,
         };
 
-        var adventure = new Adventure {
+        var adventure = new AdventureEntity {
             Id = Guid.CreateVersion7(),
             Name = name,
             OwnerId = owner,
@@ -304,7 +292,7 @@ public class ContentQueryServiceTests : IDisposable {
     }
 
     private async Task SeedAdventureWithScenes(string name, int sceneCount) {
-        var background = new Resource {
+        var background = new ResourceEntity {
             Id = Guid.CreateVersion7(),
             Type = ResourceType.Image,
             Path = $"backgrounds/{name}.jpg",
@@ -313,7 +301,7 @@ public class ContentQueryServiceTests : IDisposable {
             FileLength = 1024,
         };
 
-        var adventure = new Adventure {
+        var adventure = new AdventureEntity {
             Id = Guid.CreateVersion7(),
             Name = name,
             OwnerId = _userId,
@@ -324,7 +312,7 @@ public class ContentQueryServiceTests : IDisposable {
         };
 
         for (var i = 0; i < sceneCount; i++) {
-            adventure.Scenes.Add(new Scene {
+            adventure.Scenes.Add(new SceneEntity {
                 Id = Guid.CreateVersion7(),
                 Name = $"Scene {i + 1}",
                 Description = "Scene description",

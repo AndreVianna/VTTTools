@@ -97,7 +97,7 @@ public class AdventureHandlersTests {
         var result = await AdventureHandlers.CreateAdventureHandler(_httpContext, request, _adventureService);
 
         // Assert
-        result.Should().BeOfType<BadRequest<IReadOnlyList<DotNetToolbox.Error>>>();
+        result.Should().BeOfType<BadRequest<IReadOnlyList<Error>>>();
     }
 
     [Fact]
@@ -198,7 +198,7 @@ public class AdventureHandlersTests {
 
         // Assert
         // NOTE: Handler returns BadRequest with errors for generic failures, not NotFound
-        result.Should().BeOfType<BadRequest<IReadOnlyList<DotNetToolbox.Error>>>();
+        result.Should().BeOfType<BadRequest<IReadOnlyList<Error>>>();
     }
 
     [Fact]
@@ -256,6 +256,6 @@ public class AdventureHandlersTests {
 
         // Assert
         // NOTE: Handler returns BadRequest with error collection
-        result.Should().BeOfType<BadRequest<IReadOnlyList<DotNetToolbox.Error>>>();
+        result.Should().BeOfType<BadRequest<IReadOnlyList<Error>>>();
     }
 }

@@ -1,9 +1,5 @@
 namespace VttTools.Auth.Services;
 
-using VttTools.Auth.ApiContracts;
-using VttTools.Common.ApiContracts;
-using VttTools.Identity.Model;
-
 public class TwoFactorAuthenticationService(
     UserManager<User> userManager,
     ILogger<TwoFactorAuthenticationService> logger) : ITwoFactorService {
@@ -37,8 +33,12 @@ public class TwoFactorAuthenticationService(
                 }
             }
 
-            var email = user.Email ?? user.UserName ?? userId.ToString();
-            var authenticatorUri = $"otpauth://totp/VTTTools:{email}?secret={key}&issuer=VTTTools";
+            var accountIdentifier = !string.IsNullOrWhiteSpace(user.Email)
+                ? user.Email
+                : !string.IsNullOrWhiteSpace(user.UserName)
+                    ? user.UserName
+                    : userId.ToString();
+            var authenticatorUri = $"otpauth://totp/VTTTools:{accountIdentifier}?secret={key}&issuer=VTTTools";
 
             logger.LogInformation("Two-factor setup initiated for user: {UserId}", userId);
             return new TwoFactorSetupResponse {

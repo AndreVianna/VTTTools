@@ -33,9 +33,8 @@ export default defineConfig(({ mode }) => {
     server: {
       // Conditional proxy configuration based on mode
       proxy: isStandalone ? {
-        // Standalone mode - proxy to local WebApp
-        '/api': {
-          target: 'https://localhost:7001',
+        '/api/auth': {
+          target: 'https://localhost:7050',
           changeOrigin: true,
           secure: false,
           configure: (proxy, _options) => {
@@ -107,13 +106,13 @@ export default defineConfig(({ mode }) => {
           secure: false,
         },
         '/signalr': {
-          target: 'https://localhost:7173',
+          target: 'http://localhost:5173',
           ws: true,
           changeOrigin: true,
           secure: false,
         },
         '/health': {
-          target: 'https://localhost:7050',
+          target: 'http://localhost:5173',
           changeOrigin: true,
           secure: false,
         },

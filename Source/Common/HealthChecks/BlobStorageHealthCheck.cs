@@ -1,7 +1,3 @@
-using System.Diagnostics;
-
-using Azure;
-using Azure.Storage.Blobs;
 
 namespace VttTools.HealthChecks;
 

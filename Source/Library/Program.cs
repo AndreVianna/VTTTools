@@ -8,10 +8,14 @@ internal static class Program {
         builder.AddServiceDiscovery();
         builder.AddRequiredServices();
         builder.AddStorage();
+        builder.AddJwtAuthentication();
         builder.AddServices();
 
         var app = builder.Build();
         app.ApplyRequiredConfiguration(app.Environment);
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseAuditLogging();
         app.MapDefaultEndpoints();
         app.MapApplicationEndpoints();
 
@@ -35,6 +39,8 @@ internal static class Program {
         builder.Services.AddScoped<IAdventureService, AdventureService>();
         builder.Services.AddScoped<ISceneService, SceneService>();
         builder.Services.AddScoped<IContentQueryService, ContentQueryService>();
+        builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
+        builder.Services.AddScoped<IAuditLogService, AuditLogService>();
     }
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {

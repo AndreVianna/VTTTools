@@ -1,10 +1,7 @@
-﻿using System;
+﻿#nullable disable
 
-using Microsoft.EntityFrameworkCore.Migrations;
+namespace VttTools.Data.MigrationService.Migrations;
 
-#nullable disable
-
-namespace VttTools.Data.MigrationService.Migrations; 
 /// <inheritdoc />
 public partial class AddUserAvatar : Migration {
     /// <inheritdoc />

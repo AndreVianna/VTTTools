@@ -7,9 +7,7 @@ using DomainCreatureProperties = VttTools.Assets.Model.CreatureProperties;
 using DomainObjectAsset = VttTools.Assets.Model.ObjectAsset;
 using DomainObjectProperties = VttTools.Assets.Model.ObjectProperties;
 using DomainTokenStyle = VttTools.Assets.Model.TokenStyle;
-using NamedSize = VttTools.Common.Model.NamedSize;
 using ObjectAssetEntity = VttTools.Data.Assets.Entities.ObjectAsset;
-using Resource = VttTools.Media.Model.Resource;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 
 namespace VttTools.Data.Assets;
@@ -85,7 +83,6 @@ internal static class Mapper {
                 Name = obj.Name,
                 Description = obj.Description,
                 Resources = [.. obj.Resources.Select(r => new Entities.AssetResource {
-                    AssetId = obj.Id,
                     ResourceId = r.ResourceId,
                     Role = r.Role
                 })],
@@ -108,7 +105,6 @@ internal static class Mapper {
                 Name = creature.Name,
                 Description = creature.Description,
                 Resources = [.. creature.Resources.Select(r => new Entities.AssetResource {
-                    AssetId = creature.Id,
                     ResourceId = r.ResourceId,
                     Role = r.Role
                 })],
@@ -149,7 +145,6 @@ internal static class Mapper {
             }
             else {
                 entity.Resources.Add(new Entities.AssetResource {
-                    AssetId = entity.Id,
                     ResourceId = resource.ResourceId,
                     Role = resource.Role
                 });

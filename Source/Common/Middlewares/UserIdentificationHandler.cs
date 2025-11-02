@@ -1,3 +1,4 @@
+
 using static VttTools.Middlewares.UserIdentificationOptions;
 
 namespace VttTools.Middlewares;

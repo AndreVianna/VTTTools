@@ -1,4 +1,3 @@
-using VttTools.Common.Model;
 
 namespace VttTools.Game.Handlers;
 
@@ -53,7 +52,6 @@ public class GameSessionHandlersTests {
             Title = "",
             SceneId = _sceneId,
         };
-        var errors = new[] { new Error("Title", "Cannot be empty") };
 
         _sessionService.CreateGameSessionAsync(_userId, Arg.Any<CreateGameSessionData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Title: Cannot be empty"));
@@ -130,7 +128,6 @@ public class GameSessionHandlersTests {
     public async Task UpdateGameSessionHandler_WithInvalidRequest_ReturnsValidationProblem() {
         // Arrange
         var request = new UpdateGameSessionRequest { Title = "" };
-        var errors = new[] { new Error("Title", "Cannot be empty") };
 
         _sessionService.UpdateGameSessionAsync(
             _userId,
@@ -143,7 +140,7 @@ public class GameSessionHandlersTests {
         var result = await GameSessionHandlers.UpdateGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
 
         // Assert
-        result.Should().BeOfType<BadRequest<IReadOnlyList<Error>>>();
+        result.Should().BeOfType<ProblemHttpResult>();
     }
 
     [Fact]
@@ -184,7 +181,7 @@ public class GameSessionHandlersTests {
         var result = await GameSessionHandlers.JoinGameSessionHandler(_httpContext, _sessionId, request, _sessionService);
 
         // Assert
-        result.Should().BeOfType<BadRequest<IReadOnlyList<Error>>>();
+        result.Should().BeOfType<ProblemHttpResult>();
     }
 
     [Fact]

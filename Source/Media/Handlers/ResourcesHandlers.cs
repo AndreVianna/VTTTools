@@ -1,15 +1,3 @@
-using Microsoft.Extensions.Options;
-
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Png;
-
-using SkiaSharp;
-
-using Svg.Skia;
-
-using VttTools.Infrastructure;
-using VttTools.Media.Contracts;
-
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace VttTools.Media.Handlers;

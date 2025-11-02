@@ -1,4 +1,3 @@
-using Point = VttTools.Common.Model.Point;
 
 namespace VttTools.Data.Library.Entities;
 

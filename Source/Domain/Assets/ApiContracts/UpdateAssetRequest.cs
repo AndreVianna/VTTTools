@@ -8,7 +8,7 @@ public record UpdateAssetRequest
     : Request {
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
-    public Optional<AssetResourceDto[]> Resources { get; init; }
+    public Optional<AssetResourceData[]> Resources { get; init; }
     public Optional<bool> IsPublished { get; set; }
     public Optional<bool> IsPublic { get; set; }
 

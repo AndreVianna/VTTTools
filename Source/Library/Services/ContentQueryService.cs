@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace VttTools.Library.Services;
 
 public class ContentQueryService(ApplicationDbContext context) : IContentQueryService {

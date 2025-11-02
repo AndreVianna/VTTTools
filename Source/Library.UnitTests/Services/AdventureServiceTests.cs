@@ -1,5 +1,4 @@
-﻿using Size = VttTools.Common.Model.Size;
-
+﻿
 namespace VttTools.Library.Services;
 
 public class AdventureServiceTests {
@@ -15,11 +14,7 @@ public class AdventureServiceTests {
         _sceneStorage = Substitute.For<ISceneStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
         _service = new(_adventureStorage, _sceneStorage, _mediaStorage);
-#if XUNITV3
         _ct = TestContext.Current.CancellationToken;
-#else
-        _ct = CancellationToken.None;
-#endif
     }
 
     [Fact]

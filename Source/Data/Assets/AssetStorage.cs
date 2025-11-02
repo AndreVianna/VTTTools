@@ -1,5 +1,3 @@
-using Asset = VttTools.Assets.Model.Asset;
-
 namespace VttTools.Data.Assets;
 
 /// <summary>

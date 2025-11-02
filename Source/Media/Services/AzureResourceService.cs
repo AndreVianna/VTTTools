@@ -1,3 +1,5 @@
+using Size = VttTools.Common.Model.Size;
+
 namespace VttTools.Media.Services;
 
 /// <summary>

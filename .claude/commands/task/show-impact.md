@@ -1,5 +1,5 @@
 ---
-allowed-tools: [mcp__memory__search_nodes, mcp__memory__open_nodes, mcp__memory__read_graph, Task, Read, Glob, Grep, Bash]
+allowed-tools: mcp__memory__*, mcp__thinking__*, Task, Read, Glob, Grep, Bash
 description: Analyze task impact and show complete dependency graph
 argument-hint: {task_id:string}
 ---
@@ -9,96 +9,287 @@ argument-hint: {task_id:string}
 Analyzes complete impact of a task across all layers (business, technical, domain). Shows dependency graph, affected specifications, blast radius, and risk assessment.
 
 **Platform**: Cross-platform (Windows/Linux/macOS)
-**Reference**: See @Documents/Guides/IMPLEMENTATION_GUIDE.md for workflow context
 
-## 1. Validation & Extraction
+## Phase 0: Validation
 
-**STEP 1A**: Validate {task_id} and load task: "Documents/Tasks/{task_id}/TASK.md"
-- Abort if not found
+- **STEP 0A**: Validate {task_id} is not empty
+- **STEP 0B**: Use Read tool to load task: "Documents/Tasks/{task_id}/TASK.md"
+  - Abort if not found
 
-**STEP 1B**: Parse task specification to extract: {affected_features}, {affected_use_cases}, {affected_components}, {affected_domain_areas}, {affected_bdd_files}, {blocking_tasks}, {blocked_tasks}
+## Phase 1: Extract Task Cross-References
 
-## 2. Dependency Analysis
+- **STEP 1A**: Parse task specification to extract all references:
+  - {affected_features} - business layer
+  - {affected_use_cases} - use case layer
+  - {affected_components} - technical layer
+  - {affected_domain_areas} - domain layer
+  - {affected_bdd_files} - testing layer
+  - {blocking_tasks} - task dependencies
+  - {blocked_tasks} - dependent tasks
 
-**STEP 2A**: Read specifications and extract dependencies (Features → use_cases/components/domain; Components → dependencies/dependents from STRUCTURE.md; Use Cases → parent_feature/components/entities)
+## Phase 2: Expand Dependency Graph
 
-**STEP 2B**: Build dependency graph (direct + indirect), calculate blast radius
+- **STEP 2A**: For each affected feature:
+  - Read feature specification: "Documents/Areas/*/Features/{feature}.md"
+  - Extract: use_cases, implementing_components, domain_models
+  - Add to impact set
 
-**STEP 2C**: Use Task tool with solution-engineer agent to analyze: blast radius, risk level, high-risk items, hidden dependencies, downstream impact, mitigation recommendations
+- **STEP 2B**: For each affected component:
+  - Read STRUCTURE.md to find component details
+  - Extract: dependencies, dependent_components, implemented_features
+  - Add to impact set
 
-## 3. Display Impact Report
+- **STEP 2C**: For each affected use case:
+  - Read use case specification
+  - Extract: parent_feature, structure_components, domain_entities
+  - Add to impact set
 
-**STEP 3A**: Display comprehensive impact analysis:
-```
-## IMPACT ANALYSIS: {task_id}
-────────────────────────────────────────────────────
-Task: {task_title} | Type: {task_type} | Priority: {task_priority} | Status: {task_status}
+- **STEP 2D**: Build complete dependency graph:
+  - Direct references (from task spec)
+  - Indirect references (from expanded references)
+  - Calculate blast radius
 
-BLAST RADIUS - Risk: {risk_level} {risk_icon} | Total Affected: {blast_radius}
-────────────────────────────────────────────────────
-Features: {feature_count} direct, {indirect_feature_count} indirect
-Use Cases: {usecase_count} direct, {indirect_usecase_count} indirect
-Components: {component_count} direct, {indirect_component_count} indirect
-Domain: {domain_count} direct, {indirect_domain_count} indirect
-BDD: {bdd_count} direct, {indirect_bdd_count} indirect
+## Phase 3: Analyze Impact
 
-DIRECT IMPACT
-────────────────────────────────────────────────────
-🎯 Features: <foreach {feature} in {affected_features}>- {feature.name} ({feature.area}) | {feature.impact} | Use Cases: {feature.affected_use_cases}</foreach>
-🔧 Components: <foreach {component} in {affected_components}>- {component.name} ({component.layer}) | {component.change_type} | Deps: {component.dependencies} | Used By: {component.dependents}</foreach>
-📋 Use Cases: <foreach {usecase} in {affected_use_cases}>- {usecase.name} ({usecase.feature})</foreach>
-🏛️  Domain: <foreach {domain} in {affected_domain_areas}>- {domain.name} | Entities: {domain.entities}</foreach>
+- **STEP 3A**: Use Task tool with solution-engineer agent:
+  ```markdown
+  ROLE: Impact Analysis Specialist
 
-INDIRECT IMPACT
-────────────────────────────────────────────────────
-<if ({hidden_dependencies} not empty)>⚠️  Hidden Dependencies: <foreach {hidden} in {hidden_dependencies}>- {hidden.type}: {hidden.name} | {hidden.dependency_reason} | Risk: {hidden.risk_level}</foreach></if>
-<if ({downstream_impact} not empty)>⚠️  Downstream Impact: <foreach {downstream} in {downstream_impact}>- {downstream.type}: {downstream.name} | {downstream.impact_reason} | Mitigation: {downstream.mitigation}</foreach></if>
+  TASK: Analyze complete impact of task "{task_id}"
 
-DEPENDENCIES
-────────────────────────────────────────────────────
-<if ({blocking_tasks} not empty)>Blocked By: <foreach {blocker} in {blocking_tasks}>- {blocker.task_id}: {blocker.title} ({blocker.status})</foreach></if>
-<if ({blocked_tasks} not empty)>Blocks: <foreach {blocked} in {blocked_tasks}>- {blocked.task_id}: {blocked.title} ({blocked.status})</foreach></if>
+  DIRECT REFERENCES:
+  - Features: {affected_features}
+  - Components: {affected_components}
+  - Use Cases: {affected_use_cases}
+  - Domain: {affected_domain_areas}
 
-RISK ASSESSMENT - {risk_level}
-────────────────────────────────────────────────────
-High-Risk Items: <foreach {risk} in {high_risk_items}>- {risk.name}: {risk.reason} | Mitigation: {risk.mitigation}</foreach>
-Recommendations: <foreach {recommendation} in {mitigation_recommendations}>- {recommendation.description}</foreach>
+  EXPANDED REFERENCES (from dependency graph):
+  {expanded_impact_set}
 
-AFFECTED FILES ({total_file_count})
-────────────────────────────────────────────────────
-<foreach {feature} in {all_affected_features}>- Documents/Areas/{feature.area}/Features/{feature.name}.md</foreach>
-<foreach {usecase} in {all_affected_use_cases}>- Documents/Areas/{usecase.area}/Features/{usecase.feature}/UseCases/{usecase.name}.md</foreach>
-<foreach {domain} in {affected_domain_areas}>- Documents/Areas/{domain}/Domain/DOMAIN_MODEL.md</foreach>
-- Documents/Structure/STRUCTURE.md
-<foreach {bdd} in {affected_bdd_files}>- Documents/Areas/**/{bdd.file_name}</foreach>
-- Documents/Tasks/{task_id}/TASK.md
+  ANALYSIS REQUIRED:
+  1. Calculate blast radius (how many total items affected)
+  2. Identify high-risk changes (breaking changes, widely-used components)
+  3. Find hidden dependencies not in task spec
+  4. Estimate downstream impact (what else might break)
+  5. Assess risk level (Low/Medium/High/Critical)
+  6. Recommend mitigation strategies
 
-DEPENDENCY GRAPH
-────────────────────────────────────────────────────
-{task_id}
-├─ Features: <foreach {feature} in {affected_features}>{feature} ({usecases})</foreach>
-├─ Components: <foreach {component} in {affected_components}>{component} ({layer}) → {deps} | {dependents}</foreach>
-└─ Domain: <foreach {domain} in {affected_domain_areas}>{domain} ({entities})</foreach>
+  OUTPUT FORMAT:
+  BLAST_RADIUS: {total_affected_items}
+  RISK_LEVEL: [Low|Medium|High|Critical]
+  HIGH_RISK_ITEMS: [list]
+  HIDDEN_DEPENDENCIES: [items not in task spec]
+  DOWNSTREAM_IMPACT: [what might break]
+  MITIGATION_RECOMMENDATIONS: [list]
+  ```
 
-NEXT STEPS
-────────────────────────────────────────────────────
-Before: <foreach {rec} in {pre_implementation_recommendations}>- {rec.description}</foreach>
-During: <foreach {rec} in {during_implementation_recommendations}>- {rec.description}</foreach>
-Testing: <foreach {test} in {testing_recommendations}>- {test.description}</foreach>
+- **STEP 3B**: Parse analysis results
 
-Actions:
-- Review impact report
-- Validate: /validation:validate-task {task_id}
-- Implement: /implementation:implement-task {task_id}
-- If high-risk: Break into smaller tasks
-────────────────────────────────────────────────────
-```
+## Phase 4: Display Impact Report
 
-## Quick Reference
+- **STEP 4A**: Display comprehensive impact analysis:
+  ```
+  ═══════════════════════════════════════════════════════════════
+  IMPACT ANALYSIS: {task_id}
+  ═══════════════════════════════════════════════════════════════
 
-- **Architecture**: `Documents/Guides/ARCHITECTURE_PATTERN.md`
-- **Implementation Guide**: `Documents/Guides/IMPLEMENTATION_GUIDE.md`
-- **Templates**: `.claude/templates/TASK_TEMPLATE.md`
-- **Related**: `/validation:validate-task`, `/implementation:implement-task`, `/task:list-tasks`
+  Task: {task_title}
+  Type: {task_type}  |  Priority: {task_priority}  |  Status: {task_status}
 
-**CRITICAL**: Complete impact analysis prevents breaking changes. Use before implementation to assess risk and plan mitigation strategies.
+  ═══════════════════════════════════════════════════════════════
+  BLAST RADIUS
+  ═══════════════════════════════════════════════════════════════
+
+  Overall Risk: {risk_level} {risk_icon}
+
+  Total Items Affected: {blast_radius}
+
+  By Layer:
+  - Features: {feature_count} direct, {indirect_feature_count} indirect
+  - Use Cases: {usecase_count} direct, {indirect_usecase_count} indirect
+  - Components: {component_count} direct, {indirect_component_count} indirect
+  - Domain Models: {domain_count} direct, {indirect_domain_count} indirect
+  - BDD Files: {bdd_count} direct, {indirect_bdd_count} indirect
+
+  ═══════════════════════════════════════════════════════════════
+  DIRECT IMPACT (From Task Spec)
+  ═══════════════════════════════════════════════════════════════
+
+  🎯 Features:
+  <foreach {feature} in {affected_features}>
+  - {feature.name} (Area: {feature.area})
+    Impact: {feature.impact}
+    Use Cases: {feature.affected_use_cases}
+  </foreach>
+
+  🔧 Components:
+  <foreach {component} in {affected_components}>
+  - {component.name} (Layer: {component.layer})
+    Change Type: {component.change_type}
+    Depends On: {component.dependencies}
+    Used By: {component.dependents}
+  </foreach>
+
+  📋 Use Cases:
+  <foreach {usecase} in {affected_use_cases}>
+  - {usecase.name} (Feature: {usecase.feature})
+  </foreach>
+
+  🏛️  Domain Areas:
+  <foreach {domain} in {affected_domain_areas}>
+  - {domain.name}
+    Entities: {domain.entities}
+  </foreach>
+
+  ═══════════════════════════════════════════════════════════════
+  INDIRECT IMPACT (From Dependency Graph)
+  ═══════════════════════════════════════════════════════════════
+
+  <if ({hidden_dependencies} not empty)>
+  ⚠️  Hidden Dependencies (not in task spec):
+  <foreach {hidden} in {hidden_dependencies}>
+  - {hidden.type}: {hidden.name}
+    Reason: {hidden.dependency_reason}
+    Risk: {hidden.risk_level}
+  </foreach>
+  </if>
+
+  <if ({downstream_impact} not empty)>
+  ⚠️  Downstream Impact (might break):
+  <foreach {downstream} in {downstream_impact}>
+  - {downstream.type}: {downstream.name}
+    Reason: {downstream.impact_reason}
+    Mitigation: {downstream.mitigation}
+  </foreach>
+  </if>
+
+  ═══════════════════════════════════════════════════════════════
+  DEPENDENCY CHAIN
+  ═══════════════════════════════════════════════════════════════
+
+  Task Dependencies:
+  <if ({blocking_tasks} not empty)>
+  Blocked By:
+  <foreach {blocker} in {blocking_tasks}>
+  - {blocker.task_id}: {blocker.title} ({blocker.status})
+  </foreach>
+  </if>
+
+  <if ({blocked_tasks} not empty)>
+  Blocks:
+  <foreach {blocked} in {blocked_tasks}>
+  - {blocked.task_id}: {blocked.title} ({blocked.status})
+  </foreach>
+  </if>
+
+  ═══════════════════════════════════════════════════════════════
+  RISK ASSESSMENT
+  ═══════════════════════════════════════════════════════════════
+
+  Overall Risk: {risk_level}
+
+  High-Risk Items:
+  <foreach {risk} in {high_risk_items}>
+  - {risk.name}: {risk.reason}
+    Mitigation: {risk.mitigation}
+  </foreach>
+
+  Recommended Actions:
+  <foreach {recommendation} in {mitigation_recommendations}>
+  - {recommendation.description}
+  </foreach>
+
+  ═══════════════════════════════════════════════════════════════
+  AFFECTED FILES
+  ═══════════════════════════════════════════════════════════════
+
+  Specifications:
+  <foreach {feature} in {all_affected_features}>
+  - Documents/Areas/{feature.area}/Features/{feature.name}.md
+  </foreach>
+
+  <foreach {usecase} in {all_affected_use_cases}>
+  - Documents/Areas/{usecase.area}/Features/{usecase.feature}/UseCases/{usecase.name}.md
+  </foreach>
+
+  <foreach {domain} in {affected_domain_areas}>
+  - Documents/Areas/{domain}/Domain/DOMAIN_MODEL.md
+  </foreach>
+
+  Structure:
+  - Documents/Structure/STRUCTURE.md
+
+  BDD:
+  <foreach {bdd} in {affected_bdd_files}>
+  - Documents/Areas/**/{bdd.file_name}
+  </foreach>
+
+  Task:
+  - Documents/Tasks/{task_id}/TASK.md
+
+  Total Files Affected: {total_file_count}
+
+  ═══════════════════════════════════════════════════════════════
+  ```
+
+## Phase 5: Visualize Dependency Graph (Optional)
+
+- **STEP 5A**: Generate ASCII dependency graph:
+  ```
+  DEPENDENCY GRAPH FOR {task_id}
+
+  {task_id}
+  │
+  ├─ Features
+  │  ├─ {feature1}
+  │  │  └─ Use Cases: {usecase1}, {usecase2}
+  │  └─ {feature2}
+  │
+  ├─ Components
+  │  ├─ {component1} (Layer: {layer})
+  │  │  ├─ Depends on: {dep1}, {dep2}
+  │  │  └─ Used by: {dependent1}
+  │  └─ {component2}
+  │
+  └─ Domain
+     └─ {domain_area1}
+        └─ Entities: {entity1}, {entity2}
+  ```
+
+## Phase 6: Recommendations
+
+- **STEP 6A**: Provide actionable recommendations:
+  ```
+  RECOMMENDATIONS:
+
+  Before Implementation:
+  <foreach {recommendation} in {pre_implementation_recommendations}>
+  - {recommendation.description}
+  </foreach>
+
+  During Implementation:
+  <foreach {recommendation} in {during_implementation_recommendations}>
+  - {recommendation.description}
+  </foreach>
+
+  Testing Requirements:
+  <foreach {test} in {testing_recommendations}>
+  - {test.description}
+  </foreach>
+
+  Next Steps:
+  - Review impact report
+  - Validate cross-references are complete: /validate-task {task_id}
+  - If ready: /implement-task {task_id}
+  - If too risky: Break task into smaller tasks
+  ```
+
+**IMPORTANT NOTES**:
+- Analyzes complete task impact across all layers
+- Shows both direct and indirect (hidden) dependencies
+- Calculates blast radius (total affected items)
+- Identifies high-risk changes
+- Recommends mitigation strategies
+- Visualizes dependency graph
+- Helps decide if task should be broken down
+- Critical for understanding change impact before implementation

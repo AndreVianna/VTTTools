@@ -31,7 +31,7 @@ public class GuidEncodingVerification {
 
     [Theory]
     [InlineData("019639ea-c7de-7a01-8548-41edfccde206", "6jmWAd7HAXqFSEHt_M3iBg")]
-    [InlineData("0199bf66-76d7-7e4a-9398-8022839c7d80", "Zr-ZAdf2Sn6TmIAig5x9gA")]
+    [InlineData("0199bf66-76d7-7e4a-9398-8022839c7d80", "Zr-ZAdd2Sn6TmIAig5x9gA")]
     public void VerifyExpectedBase64UrlValues(string guidString, string expectedBase64Url) {
         // Verify the expected values used in frontend tests are correct
         var guid = new Guid(guidString);

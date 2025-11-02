@@ -1,4 +1,3 @@
-using UpdateAssetData = VttTools.Assets.ServiceContracts.UpdateAssetData;
 
 namespace VttTools.Assets.Services;
 

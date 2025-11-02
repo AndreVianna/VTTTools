@@ -9,11 +9,7 @@ public class AssetStorageTests
     public AssetStorageTests() {
         _context = DbContextHelper.CreateInMemoryContext(Guid.CreateVersion7());
         _storage = new(_context);
-#if XUNITV3
         _ct = TestContext.Current.CancellationToken;
-#else
-        _ct = CancellationToken.None;
-#endif
     }
 
     public void Dispose() {
@@ -137,7 +133,7 @@ public class AssetStorageTests
     public async Task UpdateAsync_WithChangedResourceRoles_UpdatesRolesInDatabase() {
         // Arrange
         var resourceId = Guid.CreateVersion7();
-        var resource = new Data.Media.Entities.Resource {
+        var resource = new Media.Entities.Resource {
             Id = resourceId,
             Type = ResourceType.Image,
             Path = "assets/test-resource",
@@ -147,7 +143,7 @@ public class AssetStorageTests
         };
         await _context.Resources.AddAsync(resource, _ct);
 
-        var entity = new Data.Assets.Entities.CreatureAsset {
+        var entity = new Assets.Entities.CreatureAsset {
             Id = Guid.CreateVersion7(),
             OwnerId = Guid.CreateVersion7(),
             Kind = AssetKind.Creature,
@@ -157,7 +153,7 @@ public class AssetStorageTests
             IsPublic = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            Properties = new Data.Assets.Entities.CreatureProperties {
+            Properties = new Assets.Entities.CreatureProperties {
                 CellSize = 1,
                 Category = CreatureCategory.Character,
             },

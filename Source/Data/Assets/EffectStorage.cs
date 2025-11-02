@@ -1,5 +1,3 @@
-using Effect = VttTools.Assets.Model.Effect;
-
 namespace VttTools.Data.Assets;
 
 /// <summary>

@@ -1,8 +1,3 @@
-using VttTools.Library.Content.ApiContracts;
-using VttTools.Library.Content.Model;
-using VttTools.Library.Content.ServiceContracts;
-using VttTools.Library.Content.Services;
-
 namespace VttTools.Library.Handlers;
 
 public class ContentHandlersTests {
@@ -42,19 +37,7 @@ public class ContentHandlersTests {
             .Returns(response);
 
         // Act
-        var result = await ContentHandlers.GetContentHandler(
-            _httpContext,
-            after: null,
-            limit: 20,
-            contentType: null,
-            style: null,
-            isPublished: null,
-            search: null,
-            owner: null,
-            isOneShot: null,
-            minSceneCount: null,
-            maxSceneCount: null,
-            _contentService);
+        var result = await ContentHandlers.GetContentHandler(_httpContext, after: null, limit: 20, contentType: null, style: null, isPublished: null, search: null, owner: null, isOneShot: null, minSceneCount: null, maxSceneCount: null, _contentService, ct: TestContext.Current.CancellationToken);
 
         // Assert
         var okResult = result.Should().BeOfType<Ok<PagedContentResponse>>().Subject;
@@ -64,19 +47,7 @@ public class ContentHandlersTests {
     [Fact]
     public async Task GetContentHandler_WithInvalidLimit_ReturnsBadRequest400() {
         // Arrange & Act
-        var result = await ContentHandlers.GetContentHandler(
-            _httpContext,
-            after: null,
-            limit: 150,
-            contentType: null,
-            style: null,
-            isPublished: null,
-            search: null,
-            owner: null,
-            isOneShot: null,
-            minSceneCount: null,
-            maxSceneCount: null,
-            _contentService);
+        var result = await ContentHandlers.GetContentHandler(_httpContext, after: null, limit: 150, contentType: null, style: null, isPublished: null, search: null, owner: null, isOneShot: null, minSceneCount: null, maxSceneCount: null, _contentService, ct: TestContext.Current.CancellationToken);
 
         // Assert
         var badRequest = result.Should().BeOfType<BadRequest<string>>().Subject;
@@ -89,19 +60,7 @@ public class ContentHandlersTests {
         var longSearch = new string('a', 101);
 
         // Act
-        var result = await ContentHandlers.GetContentHandler(
-            _httpContext,
-            after: null,
-            limit: 20,
-            contentType: null,
-            style: null,
-            isPublished: null,
-            search: longSearch,
-            owner: null,
-            isOneShot: null,
-            minSceneCount: null,
-            maxSceneCount: null,
-            _contentService);
+        var result = await ContentHandlers.GetContentHandler(_httpContext, after: null, limit: 20, contentType: null, style: null, isPublished: null, search: longSearch, owner: null, isOneShot: null, minSceneCount: null, maxSceneCount: null, _contentService, ct: TestContext.Current.CancellationToken);
 
         // Assert
         var badRequest = result.Should().BeOfType<BadRequest<string>>().Subject;
@@ -111,19 +70,7 @@ public class ContentHandlersTests {
     [Fact]
     public async Task GetContentHandler_WithInvalidCursor_ReturnsBadRequest400() {
         // Arrange & Act
-        var result = await ContentHandlers.GetContentHandler(
-            _httpContext,
-            after: Guid.Empty,
-            limit: 20,
-            contentType: null,
-            style: null,
-            isPublished: null,
-            search: null,
-            owner: null,
-            isOneShot: null,
-            minSceneCount: null,
-            maxSceneCount: null,
-            _contentService);
+        var result = await ContentHandlers.GetContentHandler(_httpContext, after: Guid.Empty, limit: 20, contentType: null, style: null, isPublished: null, search: null, owner: null, isOneShot: null, minSceneCount: null, maxSceneCount: null, _contentService, ct: TestContext.Current.CancellationToken);
 
         // Assert
         var badRequest = result.Should().BeOfType<BadRequest<string>>().Subject;

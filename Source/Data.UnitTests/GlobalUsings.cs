@@ -21,3 +21,6 @@ global using VttTools.Library.Adventures.Storage;
 global using VttTools.Library.Scenes.Model;
 global using VttTools.Library.Scenes.Storage;
 global using VttTools.Media.Model;
+
+global using CreatureAssetEntity = VttTools.Data.Assets.Entities.CreatureAsset;
+global using Scene = VttTools.Library.Scenes.Model.Scene;

@@ -1,9 +1,8 @@
-using System.Security.Claims;
 
 namespace VttTools.Auth.Handlers;
 
 public static class AuthHandlers {
-    public static async Task<Microsoft.AspNetCore.Http.IResult> LoginHandler(
+    public static async Task<IResult> LoginHandler(
         [FromBody] LoginRequest request,
         IAuthService authService) {
 
@@ -20,7 +19,7 @@ public static class AuthHandlers {
         return Results.ValidationProblem(errors);
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> RegisterHandler(
+    public static async Task<IResult> RegisterHandler(
         [FromBody] RegisterRequest request,
         IAuthService authService) {
 
@@ -54,12 +53,12 @@ public static class AuthHandlers {
         return Results.ValidationProblem(errors);
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> LogoutHandler(IAuthService authService) {
+    public static async Task<IResult> LogoutHandler(IAuthService authService) {
         var response = await authService.LogoutAsync();
         return Results.Ok(response);
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> GetCurrentUserHandler(
+    public static async Task<IResult> GetCurrentUserHandler(
         ClaimsPrincipal user,
         IAuthService authService) {
 
@@ -81,7 +80,7 @@ public static class AuthHandlers {
         return Results.ValidationProblem(errors);
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> ForgotPasswordHandler(
+    public static async Task<IResult> ForgotPasswordHandler(
         [FromBody] ForgotPasswordRequest request,
         IAuthService authService) {
 
@@ -90,24 +89,25 @@ public static class AuthHandlers {
         return response.Success ? Results.Ok(response) : Results.BadRequest(new { error = response.Message });
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> ValidateResetTokenHandler(
+    public static async Task<IResult> ValidateResetTokenHandler(
         [FromQuery] string email,
         [FromQuery] string token,
-        IAuthService authService) {
+        IAuthService authService,
+        IOptions<FrontendOptions> frontendOptions) {
 
         var response = await authService.ValidateResetTokenAsync(email, token);
 
         if (!response.Success) {
             var errorMessage = Uri.EscapeDataString(response.Message ?? "Invalid reset link");
-            return Results.Redirect($"http://localhost:3000/resetPassword?error={errorMessage}");
+            return Results.Redirect($"{frontendOptions.Value.BaseUrl}/resetPassword?error={errorMessage}");
         }
 
         var encodedEmail = Uri.EscapeDataString(email);
         var encodedToken = Uri.EscapeDataString(token);
-        return Results.Redirect($"http://localhost:3000/resetPassword?email={encodedEmail}&token={encodedToken}&validated=true");
+        return Results.Redirect($"{frontendOptions.Value.BaseUrl}/resetPassword?email={encodedEmail}&token={encodedToken}&validated=true");
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> ResetPasswordHandler(
+    public static async Task<IResult> ResetPasswordHandler(
         [FromBody] ResetPasswordRequest request,
         IAuthService authService) {
 
@@ -133,7 +133,7 @@ public static class AuthHandlers {
         return Results.ValidationProblem(errorDict);
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> ResendEmailConfirmationHandler(
+    public static async Task<IResult> ResendEmailConfirmationHandler(
         [FromBody] ResendEmailConfirmationRequest request,
         IAuthService authService) {
 
@@ -142,23 +142,24 @@ public static class AuthHandlers {
         return response.Success ? Results.Ok(response) : Results.BadRequest(new { error = response.Message });
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> ConfirmEmailHandler(
+    public static async Task<IResult> ConfirmEmailHandler(
         [FromQuery] string email,
         [FromQuery] string token,
-        IAuthService authService) {
+        IAuthService authService,
+        IOptions<FrontendOptions> frontendOptions) {
 
         var response = await authService.ConfirmEmailAsync(email, token);
 
         if (!response.Success) {
             var errorMessage = Uri.EscapeDataString(response.Message ?? "Invalid confirmation link");
-            return Results.Redirect($"http://localhost:3000/login?error={errorMessage}");
+            return Results.Redirect($"{frontendOptions.Value.BaseUrl}/login?error={errorMessage}");
         }
 
-        return Results.Redirect($"http://localhost:3000/login?emailConfirmed=true");
+        return Results.Redirect($"{frontendOptions.Value.BaseUrl}/login?emailConfirmed=true");
     }
 
 #if DEBUG
-    public static async Task<Microsoft.AspNetCore.Http.IResult> GenerateTestResetTokenHandler(
+    public static async Task<IResult> GenerateTestResetTokenHandler(
         [FromQuery] string email,
         UserManager<User> userManager) {
 
@@ -172,7 +173,7 @@ public static class AuthHandlers {
         return Results.Ok(new { email, token });
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> SetTestTwoFactorHandler(
+    public static async Task<IResult> SetTestTwoFactorHandler(
         [FromQuery] string email,
         [FromQuery] bool enabled,
         UserManager<User> userManager) {

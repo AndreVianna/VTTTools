@@ -1,7 +1,3 @@
-using System.Data.Common;
-
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
 
 namespace VttTools.HealthChecks;
 
@@ -54,7 +50,7 @@ public class DatabaseHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(expectedStatus);
@@ -75,7 +71,7 @@ public class DatabaseHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Unhealthy);
@@ -98,7 +94,7 @@ public class DatabaseHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Unhealthy);
@@ -117,7 +113,7 @@ public class DatabaseHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Unhealthy);
@@ -145,7 +141,7 @@ public class DatabaseHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Healthy);
@@ -166,7 +162,7 @@ public class DatabaseHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Healthy);

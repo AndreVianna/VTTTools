@@ -1,8 +1,3 @@
-using Azure;
-using Azure.Storage.Blobs.Models;
-
-using Microsoft.Extensions.Configuration;
-
 namespace VttTools.HealthChecks;
 
 public class BlobStorageHealthCheckTests {
@@ -62,7 +57,7 @@ public class BlobStorageHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Healthy);
@@ -83,7 +78,7 @@ public class BlobStorageHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Degraded);
@@ -105,7 +100,7 @@ public class BlobStorageHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Healthy);
@@ -124,7 +119,7 @@ public class BlobStorageHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Healthy);
@@ -146,7 +141,7 @@ public class BlobStorageHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Unhealthy);
@@ -168,7 +163,7 @@ public class BlobStorageHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Unhealthy);
@@ -185,7 +180,7 @@ public class BlobStorageHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Unhealthy);
@@ -217,7 +212,7 @@ public class BlobStorageHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Healthy);
@@ -239,7 +234,7 @@ public class BlobStorageHealthCheckTests {
         var context = new HealthCheckContext();
 
         // Act
-        var result = await healthCheck.CheckHealthAsync(context);
+        var result = await healthCheck.CheckHealthAsync(context, TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Healthy);

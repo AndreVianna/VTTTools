@@ -8,6 +8,7 @@ public class AuthServiceTests {
     private readonly UserManager<User> _mockUserManager;
     private readonly SignInManager<User> _mockSignInManager;
     private readonly IEmailService _mockEmailService;
+    private readonly IJwtTokenService _mockJwtTokenService;
     private readonly ILogger<AuthService> _mockLogger;
     private readonly AuthService _authService;
 
@@ -25,6 +26,9 @@ public class AuthServiceTests {
 
         // Mock EmailService
         _mockEmailService = Substitute.For<IEmailService>();
+
+        // Mock JwtTokenService
+        _mockJwtTokenService = Substitute.For<IJwtTokenService>();
 
         // Mock Logger
         _mockLogger = Substitute.For<ILogger<AuthService>>();
@@ -57,7 +61,7 @@ public class AuthServiceTests {
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal("Login successful", result.Message);
+        Assert.Equal("Success", result.Message);
         Assert.NotNull(result.User);
         Assert.Equal(request.Email, result.User.Email);
         Assert.Equal("Test User", result.User.Name);
@@ -85,7 +89,7 @@ public class AuthServiceTests {
 
         // Assert
         Assert.False(result.Success);
-        Assert.Equal("Invalid email or password", result.Message);
+        Assert.Equal("FailedLogin", result.Message);
         Assert.Null(result.User);
 
         // Verify only FindByEmailAsync was called
@@ -113,7 +117,7 @@ public class AuthServiceTests {
 
         // Assert
         Assert.False(result.Success);
-        Assert.Equal("Invalid email or password", result.Message);
+        Assert.Equal("FailedLogin", result.Message);
         Assert.Null(result.User);
 
         await _mockUserManager.Received(1).FindByEmailAsync(request.Email);
@@ -140,7 +144,7 @@ public class AuthServiceTests {
 
         // Assert
         Assert.False(result.Success);
-        Assert.Equal("Account is locked due to multiple failed login attempts", result.Message);
+        Assert.Equal("LockedAccount", result.Message);
         Assert.Null(result.User);
     }
 
@@ -186,7 +190,7 @@ public class AuthServiceTests {
 
         // Assert
         Assert.False(result.Success);
-        Assert.Equal("An error occurred during login", result.Message);
+        Assert.Equal("InternalServerError", result.Message);
         Assert.Null(result.User);
     }
 
@@ -214,7 +218,7 @@ public class AuthServiceTests {
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal("Registration successful", result.Message);
+        Assert.Equal("RegistrationSuccess", result.Message);
         Assert.NotNull(result.User);
         Assert.Equal(request.Email, result.User.Email);
         Assert.Equal(request.Name, result.User.Name);
@@ -248,10 +252,10 @@ public class AuthServiceTests {
 
         // Assert
         Assert.False(result.Success);
-        Assert.Equal("A user with this email already exists", result.Message);
+        Assert.Equal("DuplicatedUser", result.Message);
         Assert.Null(result.User);
 
-        // Verify CreateAsync was not called
+        // Verify AddAsync was not called
         await _mockUserManager.DidNotReceive().CreateAsync(Arg.Any<User>(), Arg.Any<string>());
     }
 
@@ -280,7 +284,7 @@ public class AuthServiceTests {
 
         // Assert
         Assert.False(result.Success);
-        Assert.Contains("Registration failed:", result.Message);
+        // Auth service returns errors directly, not prefixed
         Assert.Contains("Password too weak", result.Message);
         Assert.Contains("Password must contain uppercase letter", result.Message);
         Assert.Null(result.User);
@@ -306,7 +310,7 @@ public class AuthServiceTests {
         // Assert
         Assert.True(result.Success);
         Assert.NotNull(result.User);
-        Assert.Equal(request.Name, result.User.DisplayName); // DisplayName should fall back to Name
+        Assert.Equal("No", result.User.DisplayName); // DisplayName uses first word of Name
     }
 
     [Fact]
@@ -327,7 +331,7 @@ public class AuthServiceTests {
 
         // Assert
         Assert.False(result.Success);
-        Assert.Equal("An error occurred during registration", result.Message);
+        Assert.Equal("InternalServerError", result.Message);
         Assert.Null(result.User);
     }
 
@@ -345,7 +349,7 @@ public class AuthServiceTests {
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal("Logout successful", result.Message);
+        Assert.Equal("LogoutSuccess", result.Message);
         Assert.Null(result.User);
 
         await _mockSignInManager.Received(1).SignOutAsync();
@@ -361,7 +365,7 @@ public class AuthServiceTests {
 
         // Assert
         Assert.False(result.Success);
-        Assert.Equal("An error occurred during logout", result.Message);
+        Assert.Equal("InternalServerError", result.Message);
         Assert.Null(result.User);
     }
 
@@ -406,7 +410,7 @@ public class AuthServiceTests {
 
         // Assert
         Assert.False(result.Success);
-        Assert.Equal("User not found", result.Message);
+        Assert.Equal("NotFound", result.Message);
         Assert.Null(result.User);
 
         await _mockUserManager.Received(1).FindByIdAsync(userId.ToString());
@@ -443,7 +447,7 @@ public class AuthServiceTests {
 
         // Assert
         Assert.False(result.Success);
-        Assert.Equal("An error occurred retrieving user information", result.Message);
+        Assert.Equal("InternalServerError", result.Message);
         Assert.Null(result.User);
     }
 

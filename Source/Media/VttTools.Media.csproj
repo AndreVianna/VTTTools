@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>d44012eb-cfbb-4b28-93d2-785a1d880f9d</UserSecretsId>
-    <Configurations>Debug;Release;XUnitV3</Configurations>
+    <Configurations>Debug;Release</Configurations>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 

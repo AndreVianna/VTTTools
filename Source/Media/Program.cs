@@ -10,10 +10,14 @@ internal static class Program {
         builder.Services.Configure<ResourceUploadOptions>(
             builder.Configuration.GetSection(ResourceUploadOptions.SectionName));
         builder.AddStorage();
+        builder.AddJwtAuthentication();
         builder.AddServices();
 
         var app = builder.Build();
         app.ApplyRequiredConfiguration(app.Environment);
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseAuditLogging();
         app.MapDefaultEndpoints();
         app.MapApplicationEndpoints();
 
@@ -40,8 +44,11 @@ internal static class Program {
         }
     }
 
-    internal static void AddServices(this IHostApplicationBuilder builder)
-        => builder.Services.AddScoped<IResourceService, AzureResourceService>();
+    internal static void AddServices(this IHostApplicationBuilder builder) {
+        builder.Services.AddScoped<IResourceService, AzureResourceService>();
+        builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
+        builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+    }
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app)
         => app.MapResourcesEndpoints();

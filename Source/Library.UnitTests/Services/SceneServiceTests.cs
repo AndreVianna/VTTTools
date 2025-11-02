@@ -1,6 +1,4 @@
-﻿using VttTools.Utilities;
-
-namespace VttTools.Library.Services;
+﻿namespace VttTools.Library.Services;
 
 public class SceneServiceTests {
     private readonly ISceneStorage _sceneStorage;
@@ -15,11 +13,7 @@ public class SceneServiceTests {
         _assetStorage = Substitute.For<IAssetStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
         _service = new(_sceneStorage, _assetStorage, _mediaStorage);
-#if XUNITV3
         _ct = TestContext.Current.CancellationToken;
-#else
-        _ct = CancellationToken.None;
-#endif
     }
 
     [Fact]

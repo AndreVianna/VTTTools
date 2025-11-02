@@ -5,7 +5,7 @@ public record CreateAssetRequest
     public AssetKind Kind { get; init; }
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
-    public AssetResourceDto[] Resources { get; init; } = [];
+    public AssetResourceData[] Resources { get; init; } = [];
     public bool IsPublished { get; init; }
     public bool IsPublic { get; init; }
 

@@ -4,7 +4,11 @@ global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Mvc;
 
+global using VttTools.Audit.Services;
+global using VttTools.Audit.Storage;
+global using VttTools.Common.Model;
 global using VttTools.Data;
+global using VttTools.Data.Audit;
 global using VttTools.Data.Extensions;
 global using VttTools.Data.Options;
 global using VttTools.Extensions;
@@ -17,4 +21,5 @@ global using VttTools.Game.Sessions.ServiceContracts;
 global using VttTools.Game.Sessions.Services;
 global using VttTools.Game.Sessions.Storage;
 global using VttTools.HealthChecks;
+global using VttTools.Services;
 global using VttTools.Utilities;

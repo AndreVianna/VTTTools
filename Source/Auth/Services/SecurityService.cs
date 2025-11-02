@@ -1,8 +1,5 @@
 namespace VttTools.Auth.Services;
 
-using VttTools.Auth.ApiContracts;
-using VttTools.Identity.Model;
-
 public class SecurityService(
     UserManager<User> userManager,
     ILogger<SecurityService> logger) : ISecurityService {

@@ -1,15 +1,16 @@
-﻿using AddRegionData = VttTools.Library.Scenes.ServiceContracts.AddSceneRegionData;
+﻿using AddAssetData = VttTools.Library.Scenes.ServiceContracts.AddSceneAssetData;
+using AddRegionData = VttTools.Library.Scenes.ServiceContracts.AddSceneRegionData;
 using AddSourceData = VttTools.Library.Scenes.ServiceContracts.AddSceneSourceData;
 using AddWallData = VttTools.Library.Scenes.ServiceContracts.AddSceneWallData;
 using BulkUpdateAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
+using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
 using UpdateRegionData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneRegionData;
-using UpdateSceneAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
 using UpdateSourceData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneSourceData;
 using UpdateWallData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneWallData;
 
 namespace VttTools.Library.Scenes.Services;
 
-public record AssetToAdd(Guid AssetId, AddSceneAssetData Data);
+public record AssetToAdd(Guid AssetId, AddAssetData Data);
 
 public interface ISceneService {
     Task<Scene[]> GetScenesAsync(CancellationToken ct = default);
@@ -19,16 +20,16 @@ public interface ISceneService {
     Task<Result> DeleteSceneAsync(Guid userId, Guid id, CancellationToken ct = default);
 
     Task<SceneAsset[]> GetAssetsAsync(Guid id, CancellationToken ct = default);
-    Task<Result<SceneAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, AddSceneAssetData data, CancellationToken ct = default);
+    Task<Result<SceneAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, AddAssetData data, CancellationToken ct = default);
     Task<Result<SceneAsset>> CloneAssetAsync(Guid userId, Guid id, int index, CancellationToken ct = default);
-    Task<Result> UpdateAssetAsync(Guid userId, Guid id, int index, UpdateSceneAssetData data, CancellationToken ct = default);
+    Task<Result> UpdateAssetAsync(Guid userId, Guid id, int index, UpdateAssetData data, CancellationToken ct = default);
     Task<Result> BulkUpdateAssetsAsync(Guid userId, Guid id, BulkUpdateAssetsData data, CancellationToken ct = default);
     Task<Result> BulkCloneAssetsAsync(Guid userId, Guid id, List<uint> assetIndices, CancellationToken ct = default);
     Task<Result> BulkDeleteAssetsAsync(Guid userId, Guid id, List<uint> assetIndices, CancellationToken ct = default);
     Task<Result> BulkAddAssetsAsync(Guid userId, Guid id, List<AssetToAdd> assetsToAdd, CancellationToken ct = default);
     Task<Result> RemoveAssetAsync(Guid userId, Guid id, int index, CancellationToken ct = default);
 
-    Task<Result<SceneWall>> AddWallAsync(Guid userId, Guid id, AddSceneWallData data, CancellationToken ct = default);
+    Task<Result<SceneWall>> AddWallAsync(Guid userId, Guid id, AddWallData data, CancellationToken ct = default);
     Task<Result> UpdateWallAsync(Guid userId, Guid id, uint index, UpdateWallData data, CancellationToken ct = default);
     Task<Result> RemoveWallAsync(Guid userId, Guid id, uint index, CancellationToken ct = default);
 

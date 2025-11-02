@@ -1,17 +1,30 @@
 global using System.Diagnostics.CodeAnalysis;
+global using System.IdentityModel.Tokens.Jwt;
+global using System.Security.Claims;
+global using System.Text;
 global using System.Threading.RateLimiting;
 
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.RateLimiting;
+global using Microsoft.Extensions.Options;
+global using Microsoft.IdentityModel.Tokens;
 
+global using VttTools.Audit.Services;
+global using VttTools.Audit.Storage;
 global using VttTools.Auth.ApiContracts;
 global using VttTools.Auth.EndpointMappers;
 global using VttTools.Auth.Handlers;
 global using VttTools.Auth.Services;
+global using VttTools.Configuration;
 global using VttTools.Data;
+global using VttTools.Data.Audit;
 global using VttTools.Data.Extensions;
 global using VttTools.Data.Options;
 global using VttTools.Extensions;
 global using VttTools.HealthChecks;
 global using VttTools.Identity.Model;
+global using VttTools.Infrastructure;
+global using VttTools.Media.Services;
+global using VttTools.Services;
+global using VttTools.Utilities;

@@ -14,6 +14,7 @@ global using Microsoft.Extensions.Hosting;
 
 global using NSubstitute;
 
+global using VttTools.Common.Model;
 global using VttTools.Data.Game;
 global using VttTools.Extensions;
 global using VttTools.Game.Services;

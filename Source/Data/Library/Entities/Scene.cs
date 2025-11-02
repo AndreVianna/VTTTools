@@ -1,5 +1,4 @@
-﻿using Point = VttTools.Common.Model.Point;
-using Resource = VttTools.Data.Media.Entities.Resource;
+﻿using Resource = VttTools.Data.Media.Entities.Resource;
 
 namespace VttTools.Data.Library.Entities;
 

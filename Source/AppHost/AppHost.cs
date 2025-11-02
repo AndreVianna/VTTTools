@@ -33,6 +33,12 @@ internal static class AppHost {
                           .WithHttpHealthCheck("health")
                           .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
+        var admin = builder.AddProject<Projects.VttTools_Admin>("admin-api")
+                           .WithReference(cache)
+                           .WithReference(database)
+                           .WithHttpHealthCheck("health")
+                           .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
+
         var resources = builder.AddProject<Projects.VttTools_Media>("resources-api")
                                .WithReference(cache)
                                .WithReference(database)
@@ -88,6 +94,17 @@ internal static class AppHost {
                                  .WithEnvironment("NODE_ENV", isDevelopment ? "development" : "production")
                                  .WithEndpoint("https", endpoint => {
                                      endpoint.Port = isDevelopment ? 5173 : null; // Vite default port in dev
+                                     endpoint.IsProxied = !isDevelopment;
+                                 });
+
+        // Register Admin React SPA
+        builder.AddNpmApp("adminapp", "../WebAdminApp", "dev")
+                                 .WithReference(cache)
+                                 .WithReference(database)
+                                 .WithReference(admin).WaitFor(admin)
+                                 .WithEnvironment("NODE_ENV", isDevelopment ? "development" : "production")
+                                 .WithEndpoint("https", endpoint => {
+                                     endpoint.Port = isDevelopment ? 5193 : null; // Admin app port
                                      endpoint.IsProxied = !isDevelopment;
                                  });
 

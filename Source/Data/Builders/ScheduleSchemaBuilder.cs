@@ -1,4 +1,3 @@
-using Schedule = VttTools.Data.Game.Entities.Schedule;
 
 namespace VttTools.Data.Builders;
 
@@ -19,6 +18,7 @@ internal static class ScheduleSchemaBuilder {
             });
             entity.Property(s => s.Start).IsRequired();
             entity.Property(s => s.Duration).IsRequired();
+            entity.ComplexProperty(s => s.Recurrence).IsRequired();
             entity.ComplexProperty(s => s.Recurrence, rb => {
                 rb.Property(s => s.Frequency).IsRequired().HasConversion<string>().HasDefaultValue(Frequency.Daily);
                 rb.Property(s => s.Interval).IsRequired().HasDefaultValue(1);

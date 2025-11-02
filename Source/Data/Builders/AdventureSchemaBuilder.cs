@@ -1,4 +1,4 @@
-using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
+using Adventure = VttTools.Data.Library.Entities.Adventure;
 
 namespace VttTools.Data.Builders;
 
@@ -7,7 +7,7 @@ namespace VttTools.Data.Builders;
 /// </summary>
 internal static class AdventureSchemaBuilder {
     public static void ConfigureModel(ModelBuilder builder)
-        => builder.Entity<AdventureEntity>(entity => {
+        => builder.Entity<Adventure>(entity => {
             entity.ToTable("Adventures");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.OwnerId).IsRequired();

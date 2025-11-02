@@ -1,17 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
-
-using VttTools.Auth.ApiContracts;
-using VttTools.Auth.Services;
-using VttTools.Extensions;
-using VttTools.Infrastructure;
-using VttTools.Media.Contracts;
-using VttTools.Media.Services;
-using VttTools.Utilities;
 
 namespace VttTools.Auth.Handlers;
 
 public static class ProfileHandlers {
-    public static async Task<Microsoft.AspNetCore.Http.IResult> GetProfileHandler(
+    public static async Task<IResult> GetProfileHandler(
         HttpContext context,
         [FromServices] IProfileService profileService,
         CancellationToken ct = default) {
@@ -33,7 +24,7 @@ public static class ProfileHandlers {
         return Results.ValidationProblem(errors);
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> UpdateProfileHandler(
+    public static async Task<IResult> UpdateProfileHandler(
         HttpContext context,
         [FromBody] UpdateProfileRequest request,
         [FromServices] IProfileService profileService,
@@ -56,7 +47,7 @@ public static class ProfileHandlers {
         return Results.ValidationProblem(errors);
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> UpdateAvatarHandler(
+    public static async Task<IResult> UpdateAvatarHandler(
         HttpContext context,
         [FromForm] IFormFile file,
         [FromServices] IProfileService profileService,
@@ -133,7 +124,7 @@ public static class ProfileHandlers {
         }
     }
 
-    public static async Task<Microsoft.AspNetCore.Http.IResult> RemoveAvatarHandler(
+    public static async Task<IResult> RemoveAvatarHandler(
         HttpContext context,
         [FromServices] IProfileService profileService,
         CancellationToken ct = default) {

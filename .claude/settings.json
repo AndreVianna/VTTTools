@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "os": "windows",
+  "spinnerTipsEnabled": false,
   "permissions": {
     "allow": [
       "Bash",
@@ -41,10 +41,5 @@
       "mcp__playwright__browser_type"
     ],
     "deny": []
-  },
-  "outputStyle": "default",
-  "statusLine": {
-    "command": "pwsh -ExecutionPolicy Bypass -File \".claude\\scripts\\utilities\\set_status_line.ps1\"",
-    "type": "command"
   }
 }

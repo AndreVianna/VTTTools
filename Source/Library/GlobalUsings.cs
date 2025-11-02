@@ -1,12 +1,18 @@
 ﻿global using System.Diagnostics.CodeAnalysis;
+global using System.Text.RegularExpressions;
 
 global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.EntityFrameworkCore;
 
+global using VttTools.Assets.Model;
 global using VttTools.Assets.Storage;
+global using VttTools.Audit.Services;
+global using VttTools.Audit.Storage;
 global using VttTools.Common.Model;
 global using VttTools.Data;
+global using VttTools.Data.Audit;
 global using VttTools.Data.Extensions;
 global using VttTools.Data.Options;
 global using VttTools.Extensions;
@@ -30,3 +36,4 @@ global using VttTools.Library.Scenes.Storage;
 global using VttTools.Library.Services;
 global using VttTools.Media.Model;
 global using VttTools.Media.Storage;
+global using VttTools.Services;

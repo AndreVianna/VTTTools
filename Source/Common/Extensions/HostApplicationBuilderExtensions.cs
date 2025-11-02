@@ -1,3 +1,4 @@
+
 using static VttTools.Middlewares.UserIdentificationOptions;
 
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
@@ -30,8 +31,7 @@ public static class HostApplicationBuilderExtensions {
 
         builder.Services.AddCors(options => options.AddPolicy("AllowAllOrigins", policy => {
             if (builder.Environment.IsDevelopment()) {
-                // Development: Allow Vite dev server
-                policy.WithOrigins("http://localhost:5173")
+                policy.WithOrigins("http://localhost:5173", "http://localhost:5193")
                       .AllowAnyHeader()
                       .AllowAnyMethod()
                       .AllowCredentials();
@@ -89,6 +89,28 @@ public static class HostApplicationBuilderExtensions {
     /// <returns>The health checks builder for chaining additional health checks.</returns>
     public static IHealthChecksBuilder AddAsyncCustomHealthCheck(this IHealthChecksBuilder healthChecksBuilder,
         string name, Func<CancellationToken, Task<HealthCheckResult>> healthCheck, params string[] tags) => healthChecksBuilder.AddAsyncCheck(name, healthCheck, tags);
+
+    public static void AddJwtAuthentication(this IHostApplicationBuilder builder) {
+        var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? throw new InvalidOperationException("JWT configuration section 'Jwt' is missing from appsettings.json");
+
+        if (builder.Environment.IsProduction())
+            jwtOptions.ValidateForProduction();
+
+        builder.Services.AddAuthentication()
+            .AddJwtBearer(options => {
+                var key = Encoding.UTF8.GetBytes(jwtOptions.SecretKey);
+                options.TokenValidationParameters = new TokenValidationParameters {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = jwtOptions.Audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
+    }
 
     internal static void ConfigureJsonOptions(JsonOptions options) {
         options.SerializerOptions.PropertyNameCaseInsensitive = true;

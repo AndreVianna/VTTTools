@@ -17,7 +17,7 @@ public class TwoFactorAuthenticationServiceTests {
     public async Task InitiateSetupAsync_WithValidUser_ReturnsSetupResponse() {
         // Arrange
         var testUser = CreateTestUser("test@example.com", "Test User");
-        var sharedKey = "JBSWY3DPEHPK3PXP";
+        const string sharedKey = "JBSWY3DPEHPK3PXP";
 
         _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
         _mockUserManager.GetAuthenticatorKeyAsync(testUser).Returns(sharedKey);
@@ -60,11 +60,11 @@ public class TwoFactorAuthenticationServiceTests {
     public async Task InitiateSetupAsync_WithNullKey_ResetsAndReturnsNewKey() {
         // Arrange
         var testUser = CreateTestUser("test@example.com", "Test User");
-        var newSharedKey = "NEWKEY123456ABCD";
+        const string newSharedKey = "NEWKEY123456ABCD";
 
         _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.GetAuthenticatorKeyAsync(testUser).Returns((string?)null, newSharedKey);
-        _mockUserManager.ResetAuthenticatorKeyAsync(testUser).Returns(Task.CompletedTask);
+        _mockUserManager.GetAuthenticatorKeyAsync(testUser).Returns(null, newSharedKey);
+        _mockUserManager.ResetAuthenticatorKeyAsync(testUser).Returns(IdentityResult.Success);
 
         // Act
         var result = await _twoFactorService.InitiateSetupAsync(testUser.Id, TestContext.Current.CancellationToken);
@@ -86,8 +86,8 @@ public class TwoFactorAuthenticationServiceTests {
         var testUser = CreateTestUser("test@example.com", "Test User");
 
         _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
-        _mockUserManager.GetAuthenticatorKeyAsync(testUser).Returns((string?)null, (string?)null);
-        _mockUserManager.ResetAuthenticatorKeyAsync(testUser).Returns(Task.CompletedTask);
+        _mockUserManager.GetAuthenticatorKeyAsync(testUser).Returns(null, (string?)null);
+        _mockUserManager.ResetAuthenticatorKeyAsync(testUser).Returns(IdentityResult.Success);
 
         // Act
         var result = await _twoFactorService.InitiateSetupAsync(testUser.Id, TestContext.Current.CancellationToken);
@@ -127,7 +127,7 @@ public class TwoFactorAuthenticationServiceTests {
         // Arrange
         var testUser = CreateTestUser("testuser", "Test User");
         testUser.Email = string.Empty;
-        var sharedKey = "JBSWY3DPEHPK3PXP";
+        const string sharedKey = "JBSWY3DPEHPK3PXP";
 
         _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
         _mockUserManager.GetAuthenticatorKeyAsync(testUser).Returns(sharedKey);
@@ -146,7 +146,7 @@ public class TwoFactorAuthenticationServiceTests {
         var testUser = CreateTestUser("test@example.com", "Test User");
         testUser.Email = string.Empty;
         testUser.UserName = null;
-        var sharedKey = "JBSWY3DPEHPK3PXP";
+        const string sharedKey = "JBSWY3DPEHPK3PXP";
 
         _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
         _mockUserManager.GetAuthenticatorKeyAsync(testUser).Returns(sharedKey);

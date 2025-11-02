@@ -1,5 +1,4 @@
-﻿using VttTools.Common.Model;
-
+﻿
 namespace VttTools.Assets.Services;
 
 public class AssetServiceTests {
@@ -13,11 +12,7 @@ public class AssetServiceTests {
         _assetStorage = Substitute.For<IAssetStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
         _service = new(_assetStorage, _mediaStorage);
-#if XUNITV3
         _ct = TestContext.Current.CancellationToken;
-#else
-        _ct = CancellationToken.None;
-#endif
     }
 
     [Fact]

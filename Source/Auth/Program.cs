@@ -19,6 +19,7 @@ internal static class Program {
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseRateLimiter();
+        app.UseAuditLogging();
         app.MapDefaultEndpoints();
         app.MapApplicationEndpoints();
 
@@ -61,10 +62,34 @@ internal static class Program {
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
+        var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? throw new InvalidOperationException("JWT configuration section 'Jwt' is missing from appsettings.json");
+
+        if (builder.Environment.IsProduction())
+            jwtOptions.ValidateForProduction();
+
+        builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+
+        builder.Services.AddAuthentication()
+            .AddJwtBearer(options => {
+                var key = Encoding.UTF8.GetBytes(jwtOptions.SecretKey);
+                options.TokenValidationParameters = new TokenValidationParameters {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = jwtOptions.Audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
+
         // Configure cookie authentication for SPA
         builder.Services.ConfigureApplicationCookie(options => {
             options.Cookie.HttpOnly = true;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+                ? CookieSecurePolicy.SameAsRequest
+                : CookieSecurePolicy.Always;
             options.Cookie.SameSite = SameSiteMode.Lax;
             options.ExpireTimeSpan = TimeSpan.FromDays(30);
             options.SlidingExpiration = true;
@@ -96,23 +121,29 @@ internal static class Program {
 
             options.OnRejected = async (context, cancellationToken) => {
                 context.HttpContext.Response.StatusCode = 429;
-                await context.HttpContext.Response.WriteAsync(
-                                                              "Rate limit exceeded. Please try again later.", cancellationToken);
+                await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", cancellationToken);
             };
         });
 
-    internal static void AddCors(this IHostApplicationBuilder builder) => builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy.WithOrigins("http://localhost:5173", "https://localhost:5173") // React dev server
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials()));
+    internal static void AddCors(this IHostApplicationBuilder builder)
+     => builder.Services.AddCors(options
+         => options.AddDefaultPolicy(policy
+            => policy.WithOrigins("http://localhost:5173")
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials()));
 
     internal static void AddServices(this IHostApplicationBuilder builder) {
+        builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection(FrontendOptions.SectionName));
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IProfileService, ProfileService>();
         builder.Services.AddScoped<ISecurityService, SecurityService>();
         builder.Services.AddScoped<ITwoFactorService, TwoFactorAuthenticationService>();
         builder.Services.AddScoped<IRecoveryCodeService, RecoveryCodeService>();
         builder.Services.AddScoped<IEmailService, ConsoleEmailService>();
+        builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
+        builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+        builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
     }
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {

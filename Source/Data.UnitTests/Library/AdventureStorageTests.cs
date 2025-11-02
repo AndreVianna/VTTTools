@@ -9,11 +9,7 @@ public class AdventureStorageTests
     public AdventureStorageTests() {
         _context = DbContextHelper.CreateInMemoryContext(Guid.CreateVersion7());
         _storage = new(_context);
-#if XUNITV3
         _ct = TestContext.Current.CancellationToken;
-#else
-        _ct = CancellationToken.None;
-#endif
     }
 
     public void Dispose() {

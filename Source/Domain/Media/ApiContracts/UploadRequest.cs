@@ -1,4 +1,3 @@
-using VttTools.Media.Contracts;
 
 namespace VttTools.Media.ApiContracts;
 

@@ -1,5 +1,3 @@
-using VttTools.Common.ApiContracts;
-
 namespace VttTools.Auth.ApiContracts;
 
 public record RecoveryCodesStatusResponse : Response {

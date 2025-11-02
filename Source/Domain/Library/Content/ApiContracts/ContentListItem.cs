@@ -1,4 +1,3 @@
-using VttTools.Library.Content.Model;
 
 namespace VttTools.Library.Content.ApiContracts;
 

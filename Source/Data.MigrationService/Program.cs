@@ -1,5 +1,3 @@
-using VttTools.Data.MigrationService;
-
 var builder = Host.CreateApplicationBuilder(args);
 
 // Configure SQL Server DbContext using Aspire with explicit migrations assembly

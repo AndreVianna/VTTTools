@@ -1,5 +1,4 @@
-﻿using VttTools.Common.Model;
-
+﻿
 namespace VttTools.Game.Services;
 
 public class GameSessionServiceTests {
@@ -11,11 +10,7 @@ public class GameSessionServiceTests {
     public GameSessionServiceTests() {
         _sessionStorage = Substitute.For<IGameSessionStorage>();
         _service = new(_sessionStorage);
-#if XUNITV3
         _ct = TestContext.Current.CancellationToken;
-#else
-        _ct = CancellationToken.None;
-#endif
     }
 
     #region GetGameSessionsAsync

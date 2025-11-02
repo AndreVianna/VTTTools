@@ -1,5 +1,11 @@
-﻿using GameSession = VttTools.Game.Sessions.Model.GameSession;
+﻿using DomainGameSessionEvent = VttTools.Game.Sessions.Model.GameSessionEvent;
+using DomainGameSessionMessage = VttTools.Game.Sessions.Model.GameSessionMessage;
+using DomainParticipant = VttTools.Common.Model.Participant;
+using GameSession = VttTools.Game.Sessions.Model.GameSession;
 using GameSessionEntity = VttTools.Data.Game.Entities.GameSession;
+using GameSessionEventEntity = VttTools.Data.Game.Entities.GameSessionEvent;
+using GameSessionMessageEntity = VttTools.Data.Game.Entities.GameSessionMessage;
+using ParticipantEntity = VttTools.Data.Game.Entities.Participant;
 
 namespace VttTools.Data.Game;
 
@@ -17,9 +23,22 @@ public class GameSessionStorage(ApplicationDbContext context)
                 Title = s.Title,
                 Status = s.Status,
                 SceneId = s.SceneId,
-                Messages = s.Messages.ToList(),
-                Events = s.Events.ToList(),
-                Players = s.Players.ToList(),
+                Messages = s.Messages.Select(m => new DomainGameSessionMessage {
+                    SentAt = m.SentAt,
+                    SentBy = m.SentBy,
+                    SentTo = m.SentTo,
+                    Type = m.Type,
+                    Content = m.Content,
+                }).ToList(),
+                Events = s.Events.Select(e => new DomainGameSessionEvent {
+                    Timestamp = e.Timestamp,
+                    Description = e.Description,
+                }).ToList(),
+                Players = s.Players.Select(p => new DomainParticipant {
+                    UserId = p.UserId,
+                    IsRequired = p.IsRequired,
+                    Type = p.Type,
+                }).ToList(),
             })
             .FirstOrDefaultAsync(s => s.Id == id, ct);
 
@@ -35,9 +54,22 @@ public class GameSessionStorage(ApplicationDbContext context)
                 Title = s.Title,
                 Status = s.Status,
                 SceneId = s.SceneId,
-                Messages = s.Messages.ToList(),
-                Events = s.Events.ToList(),
-                Players = s.Players.ToList(),
+                Messages = s.Messages.Select(m => new DomainGameSessionMessage {
+                    SentAt = m.SentAt,
+                    SentBy = m.SentBy,
+                    SentTo = m.SentTo,
+                    Type = m.Type,
+                    Content = m.Content,
+                }).ToList(),
+                Events = s.Events.Select(e => new DomainGameSessionEvent {
+                    Timestamp = e.Timestamp,
+                    Description = e.Description,
+                }).ToList(),
+                Players = s.Players.Select(p => new DomainParticipant {
+                    UserId = p.UserId,
+                    IsRequired = p.IsRequired,
+                    Type = p.Type,
+                }).ToList(),
             })
             .ToArrayAsync(ct);
 
@@ -54,9 +86,22 @@ public class GameSessionStorage(ApplicationDbContext context)
                 Title = s.Title,
                 Status = s.Status,
                 SceneId = s.SceneId,
-                Messages = s.Messages.ToList(),
-                Events = s.Events.ToList(),
-                Players = s.Players.ToList(),
+                Messages = s.Messages.Select(m => new DomainGameSessionMessage {
+                    SentAt = m.SentAt,
+                    SentBy = m.SentBy,
+                    SentTo = m.SentTo,
+                    Type = m.Type,
+                    Content = m.Content,
+                }).ToList(),
+                Events = s.Events.Select(e => new DomainGameSessionEvent {
+                    Timestamp = e.Timestamp,
+                    Description = e.Description,
+                }).ToList(),
+                Players = s.Players.Select(p => new DomainParticipant {
+                    UserId = p.UserId,
+                    IsRequired = p.IsRequired,
+                    Type = p.Type,
+                }).ToList(),
             })
             .ToArrayAsync(ct);
 
@@ -67,9 +112,22 @@ public class GameSessionStorage(ApplicationDbContext context)
             Title = session.Title,
             Status = session.Status,
             SceneId = session.SceneId,
-            Messages = [.. session.Messages],
-            Events = [.. session.Events],
-            Players = [.. session.Players],
+            Messages = [.. session.Messages.Select(m => new GameSessionMessageEntity {
+                SentAt = m.SentAt,
+                SentBy = m.SentBy,
+                SentTo = m.SentTo,
+                Type = m.Type,
+                Content = m.Content,
+            })],
+            Events = [.. session.Events.Select(e => new GameSessionEventEntity {
+                Timestamp = e.Timestamp,
+                Description = e.Description,
+            })],
+            Players = [.. session.Players.Select(p => new ParticipantEntity {
+                UserId = p.UserId,
+                IsRequired = p.IsRequired,
+                Type = p.Type,
+            })],
         };
         await context.GameSessions.AddAsync(entity, ct);
         await context.SaveChangesAsync(ct);
@@ -84,9 +142,22 @@ public class GameSessionStorage(ApplicationDbContext context)
         entity.Title = session.Title;
         entity.Status = session.Status;
         entity.SceneId = session.SceneId;
-        entity.Messages = [.. session.Messages];
-        entity.Events = [.. session.Events];
-        entity.Players = [.. session.Players];
+        entity.Messages = [.. session.Messages.Select(m => new GameSessionMessageEntity {
+            SentAt = m.SentAt,
+            SentBy = m.SentBy,
+            SentTo = m.SentTo,
+            Type = m.Type,
+            Content = m.Content,
+        })];
+        entity.Events = [.. session.Events.Select(e => new GameSessionEventEntity {
+            Timestamp = e.Timestamp,
+            Description = e.Description,
+        })];
+        entity.Players = [.. session.Players.Select(p => new ParticipantEntity {
+            UserId = p.UserId,
+            IsRequired = p.IsRequired,
+            Type = p.Type,
+        })];
         context.GameSessions.Update(entity);
         var result = await context.SaveChangesAsync(ct);
         return result > 0 ? session : null;

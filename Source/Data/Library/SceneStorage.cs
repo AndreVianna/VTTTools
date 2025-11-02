@@ -1,4 +1,3 @@
-using Scene = VttTools.Library.Scenes.Model.Scene;
 using SceneRegionEntity = VttTools.Data.Library.Entities.SceneRegion;
 using SceneSourceEntity = VttTools.Data.Library.Entities.SceneSource;
 using SceneWallEntity = VttTools.Data.Library.Entities.SceneWall;

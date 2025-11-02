@@ -1,5 +1,3 @@
-using VttTools.Library.Content.ApiContracts;
-using VttTools.Library.Content.ServiceContracts;
 
 namespace VttTools.Library.Content.Services;
 

@@ -1,5 +1,6 @@
 using Adventure = VttTools.Data.Library.Entities.Adventure;
 using Asset = VttTools.Data.Assets.Entities.Asset;
+using AuditLog = VttTools.Data.Audit.Entities.AuditLog;
 using Effect = VttTools.Data.Assets.Entities.Effect;
 using GameSession = VttTools.Data.Game.Entities.GameSession;
 using Resource = VttTools.Data.Media.Entities.Resource;
@@ -19,12 +20,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<GameSession> GameSessions { get; set; }
     public DbSet<Schedule> Schedule { get; set; }
     public DbSet<StatBlock> StatBlocks { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
-        builder.Ignore<Size>();
-        builder.Ignore<NamedSize>();
-        builder.Ignore<ResourceMetadata>();
         IdentitySchemaBuilder.ConfigureModel(builder);
         IdentitySchemaBuilder.SeedIdentity(builder);
         ResourceSchemaBuilder.ConfigureModel(builder);
@@ -37,5 +36,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         SceneSchemaBuilder.ConfigureModel(builder);
         ScheduleSchemaBuilder.ConfigureModel(builder);
         GameSessionSchemaBuilder.ConfigureModel(builder);
+        AuditLogSchemaBuilder.ConfigureModel(builder);
     }
 }

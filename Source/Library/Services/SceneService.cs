@@ -1,5 +1,3 @@
-using VttTools.Assets.Model;
-using VttTools.Utilities;
 
 using BulkUpdateSceneAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
 using UpdateSceneAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;

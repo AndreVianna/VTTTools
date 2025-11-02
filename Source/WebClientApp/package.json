@@ -36,7 +36,6 @@
     "@vitejs/plugin-react": "^5.0.2",
     "axios": "^1.12.1",
     "konva": "^10.0.2",
-    "npm": "^11.6.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.65.0",

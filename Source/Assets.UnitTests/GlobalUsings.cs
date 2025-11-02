@@ -12,6 +12,7 @@ global using VttTools.Assets.Model;
 global using VttTools.Assets.ServiceContracts;
 global using VttTools.Assets.Services;
 global using VttTools.Assets.Storage;
+global using VttTools.Common.Model;
 global using VttTools.Data.Assets;
 global using VttTools.Extensions;
 global using VttTools.Media.Storage;

@@ -121,6 +121,7 @@ public class AuthService(
             logger.LogInformation("User logged out successfully");
 
             return new AuthResponse {
+                Success = true,
                 Message = "LogoutSuccess",
             };
         }
