@@ -1,4 +1,5 @@
-﻿
+﻿using Resource = VttTools.Data.Media.Entities.Resource;
+
 namespace VttTools.Data.Library.Entities;
 
 public class Campaign {

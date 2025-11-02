@@ -1,7 +1,8 @@
-﻿using DomainGameSessionEvent = VttTools.Game.Sessions.Model.GameSessionEvent;
-using DomainGameSessionMessage = VttTools.Game.Sessions.Model.GameSessionMessage;
-using DomainParticipant = VttTools.Common.Model.Participant;
-using GameSession = VttTools.Game.Sessions.Model.GameSession;
+﻿using GameSession = VttTools.Game.Sessions.Model.GameSession;
+using GameSessionEvent = VttTools.Game.Sessions.Model.GameSessionEvent;
+using GameSessionMessage = VttTools.Game.Sessions.Model.GameSessionMessage;
+using Participant = VttTools.Common.Model.Participant;
+
 using GameSessionEntity = VttTools.Data.Game.Entities.GameSession;
 using GameSessionEventEntity = VttTools.Data.Game.Entities.GameSessionEvent;
 using GameSessionMessageEntity = VttTools.Data.Game.Entities.GameSessionMessage;
@@ -23,18 +24,18 @@ public class GameSessionStorage(ApplicationDbContext context)
                 Title = s.Title,
                 Status = s.Status,
                 SceneId = s.SceneId,
-                Messages = s.Messages.Select(m => new DomainGameSessionMessage {
+                Messages = s.Messages.Select(m => new GameSessionMessage {
                     SentAt = m.SentAt,
                     SentBy = m.SentBy,
                     SentTo = m.SentTo,
                     Type = m.Type,
                     Content = m.Content,
                 }).ToList(),
-                Events = s.Events.Select(e => new DomainGameSessionEvent {
+                Events = s.Events.Select(e => new GameSessionEvent {
                     Timestamp = e.Timestamp,
                     Description = e.Description,
                 }).ToList(),
-                Players = s.Players.Select(p => new DomainParticipant {
+                Players = s.Players.Select(p => new Participant {
                     UserId = p.UserId,
                     IsRequired = p.IsRequired,
                     Type = p.Type,
@@ -54,18 +55,18 @@ public class GameSessionStorage(ApplicationDbContext context)
                 Title = s.Title,
                 Status = s.Status,
                 SceneId = s.SceneId,
-                Messages = s.Messages.Select(m => new DomainGameSessionMessage {
+                Messages = s.Messages.Select(m => new GameSessionMessage {
                     SentAt = m.SentAt,
                     SentBy = m.SentBy,
                     SentTo = m.SentTo,
                     Type = m.Type,
                     Content = m.Content,
                 }).ToList(),
-                Events = s.Events.Select(e => new DomainGameSessionEvent {
+                Events = s.Events.Select(e => new GameSessionEvent {
                     Timestamp = e.Timestamp,
                     Description = e.Description,
                 }).ToList(),
-                Players = s.Players.Select(p => new DomainParticipant {
+                Players = s.Players.Select(p => new Participant {
                     UserId = p.UserId,
                     IsRequired = p.IsRequired,
                     Type = p.Type,
@@ -86,18 +87,18 @@ public class GameSessionStorage(ApplicationDbContext context)
                 Title = s.Title,
                 Status = s.Status,
                 SceneId = s.SceneId,
-                Messages = s.Messages.Select(m => new DomainGameSessionMessage {
+                Messages = s.Messages.Select(m => new GameSessionMessage {
                     SentAt = m.SentAt,
                     SentBy = m.SentBy,
                     SentTo = m.SentTo,
                     Type = m.Type,
                     Content = m.Content,
                 }).ToList(),
-                Events = s.Events.Select(e => new DomainGameSessionEvent {
+                Events = s.Events.Select(e => new GameSessionEvent {
                     Timestamp = e.Timestamp,
                     Description = e.Description,
                 }).ToList(),
-                Players = s.Players.Select(p => new DomainParticipant {
+                Players = s.Players.Select(p => new Participant {
                     UserId = p.UserId,
                     IsRequired = p.IsRequired,
                     Type = p.Type,

@@ -1,8 +1,5 @@
 namespace VttTools.Data.Assets.Entities;
 
-/// <summary>
-/// Base entity class for all asset types (Table-Per-Hierarchy pattern)
-/// </summary>
 public abstract class Asset {
     public Guid Id { get; set; } = Guid.CreateVersion7();
     public Guid OwnerId { get; set; }

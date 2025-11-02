@@ -1,3 +1,4 @@
+using Schedule = VttTools.Data.Game.Entities.Schedule;
 
 namespace VttTools.Data.Builders;
 

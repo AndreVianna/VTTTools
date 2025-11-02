@@ -1,3 +1,5 @@
+using Campaign = VttTools.Data.Library.Entities.Campaign;
+
 namespace VttTools.Data.Builders;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace VttTools.Data.Builders;
 /// </summary>
 internal static class CampaignSchemaBuilder {
     public static void ConfigureModel(ModelBuilder builder)
-        => builder.Entity<Library.Entities.Campaign>(entity => {
+        => builder.Entity<Campaign>(entity => {
             entity.ToTable("Campaigns");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.OwnerId).IsRequired();

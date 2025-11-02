@@ -1,5 +1,5 @@
 using Resource = VttTools.Data.Media.Entities.Resource;
-
+using AssetResource = VttTools.Data.Assets.Entities.AssetResource;
 namespace VttTools.Data.Builders;
 
 internal static class ResourceSchemaBuilder {
@@ -18,5 +18,9 @@ internal static class ResourceSchemaBuilder {
             });
             entity.Property(e => e.Duration).HasDefaultValue(TimeSpan.Zero);
             entity.PrimitiveCollection(e => e.Tags).HasDefaultValue(Array.Empty<string>());
+            entity.HasMany<AssetResource>()
+                .WithOne(ar => ar.Resource)
+                .HasForeignKey(e => e.ResourceId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 }

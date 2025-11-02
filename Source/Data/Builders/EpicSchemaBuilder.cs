@@ -1,3 +1,5 @@
+using Epic = VttTools.Data.Library.Entities.Epic;
+
 namespace VttTools.Data.Builders;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace VttTools.Data.Builders;
 /// </summary>
 internal static class EpicSchemaBuilder {
     public static void ConfigureModel(ModelBuilder builder)
-        => builder.Entity<Library.Entities.Epic>(entity => {
+        => builder.Entity<Epic>(entity => {
             entity.ToTable("Epics");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.OwnerId).IsRequired();

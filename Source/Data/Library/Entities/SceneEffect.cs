@@ -1,3 +1,5 @@
+using Effect = VttTools.Data.Assets.Entities.Effect;
+
 namespace VttTools.Data.Library.Entities;
 
 /// <summary>

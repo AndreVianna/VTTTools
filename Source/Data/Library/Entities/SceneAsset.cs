@@ -1,4 +1,5 @@
-﻿
+﻿using Asset = VttTools.Data.Assets.Entities.Asset;
+
 namespace VttTools.Data.Library.Entities;
 
 public class SceneAsset {

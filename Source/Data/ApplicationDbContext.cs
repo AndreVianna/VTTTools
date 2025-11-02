@@ -24,6 +24,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
+        builder.Ignore<Size>();
+        builder.Ignore<NamedSize>();
+        builder.Ignore<ResourceMetadata>();
         IdentitySchemaBuilder.ConfigureModel(builder);
         IdentitySchemaBuilder.SeedIdentity(builder);
         ResourceSchemaBuilder.ConfigureModel(builder);
