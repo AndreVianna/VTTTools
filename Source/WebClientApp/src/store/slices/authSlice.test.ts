@@ -30,6 +30,7 @@ describe('authSlice', () => {
   beforeEach(() => {
     initialState = {
       user: null,
+      token: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
@@ -183,9 +184,9 @@ describe('authSlice', () => {
 
   describe('logout', () => {
     it('should clear all auth state on logout', () => {
-      // Arrange - BDD: Redux state cleared FIRST before navigation
       const previousState = {
         user: mockUser,
+        token: 'test-token',
         isAuthenticated: true,
         isLoading: false,
         error: 'Some error',
@@ -281,6 +282,7 @@ describe('authSlice', () => {
       mockState = {
         auth: {
           user: mockUser,
+          token: 'test-token',
           isAuthenticated: true,
           isLoading: false,
           error: 'Test error',

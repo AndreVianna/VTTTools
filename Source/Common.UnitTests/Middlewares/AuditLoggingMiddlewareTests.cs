@@ -8,8 +8,12 @@ public class AuditLoggingMiddlewareTests {
     public async Task InvokeAsync_WithPostRequest_CapturesRequestBody() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
         var middleware = new AuditLoggingMiddleware(
             _ => Task.CompletedTask,
+            serviceProvider,
+            options,
             logger);
 
         var httpContext = new DefaultHttpContext();
@@ -39,8 +43,12 @@ public class AuditLoggingMiddlewareTests {
     public async Task InvokeAsync_WithGetRequest_DoesNotCaptureRequestBody() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
         var middleware = new AuditLoggingMiddleware(
             _ => Task.CompletedTask,
+            serviceProvider,
+            options,
             logger);
 
         var httpContext = new DefaultHttpContext();
@@ -66,8 +74,12 @@ public class AuditLoggingMiddlewareTests {
     public async Task InvokeAsync_SanitizesRequestBodyBeforeLogging() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
         var middleware = new AuditLoggingMiddleware(
             _ => Task.CompletedTask,
+            serviceProvider,
+            options,
             logger);
 
         var httpContext = new DefaultHttpContext();
@@ -98,8 +110,12 @@ public class AuditLoggingMiddlewareTests {
         var auditLogService = Substitute.For<IAuditLogService>();
         const string responseBody = "{\"token\":\"abc123\",\"username\":\"john\"}";
 
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
         var middleware = new AuditLoggingMiddleware(
             async context => await context.Response.WriteAsync(responseBody),
+            serviceProvider,
+            options,
             logger);
 
         var httpContext = new DefaultHttpContext();
@@ -128,8 +144,12 @@ public class AuditLoggingMiddlewareTests {
     public async Task InvokeAsync_WithAuthenticatedUser_ExtractsUserId() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
         var middleware = new AuditLoggingMiddleware(
             _ => Task.CompletedTask,
+            serviceProvider,
+            options,
             logger);
 
         var userId = Guid.NewGuid();
@@ -166,11 +186,15 @@ public class AuditLoggingMiddlewareTests {
     public async Task InvokeAsync_WithSuccessStatusCode_SetsResultToSuccess() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
         var middleware = new AuditLoggingMiddleware(
             context => {
                 context.Response.StatusCode = 200;
                 return Task.CompletedTask;
             },
+            serviceProvider,
+            options,
             logger);
 
         var httpContext = new DefaultHttpContext();
@@ -197,11 +221,15 @@ public class AuditLoggingMiddlewareTests {
     public async Task InvokeAsync_WithClientErrorStatusCode_SetsResultToFailure() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
         var middleware = new AuditLoggingMiddleware(
             context => {
                 context.Response.StatusCode = 404;
                 return Task.CompletedTask;
             },
+            serviceProvider,
+            options,
             logger);
 
         var httpContext = new DefaultHttpContext();
@@ -228,11 +256,15 @@ public class AuditLoggingMiddlewareTests {
     public async Task InvokeAsync_WithServerErrorStatusCode_SetsResultToError() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
         var middleware = new AuditLoggingMiddleware(
             context => {
                 context.Response.StatusCode = 500;
                 return Task.CompletedTask;
             },
+            serviceProvider,
+            options,
             logger);
 
         var httpContext = new DefaultHttpContext();
@@ -259,8 +291,12 @@ public class AuditLoggingMiddlewareTests {
     public async Task InvokeAsync_WhenAuditLoggingFails_DoesNotCrashRequest() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
         var middleware = new AuditLoggingMiddleware(
             _ => Task.CompletedTask,
+            serviceProvider,
+            options,
             logger);
 
         var httpContext = new DefaultHttpContext();
@@ -279,8 +315,12 @@ public class AuditLoggingMiddlewareTests {
     public async Task InvokeAsync_WithQueryString_SanitizesIt() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
         var middleware = new AuditLoggingMiddleware(
             _ => Task.CompletedTask,
+            serviceProvider,
+            options,
             logger);
 
         var httpContext = new DefaultHttpContext();
@@ -306,11 +346,178 @@ public class AuditLoggingMiddlewareTests {
     }
 
     [Fact]
+    public async Task InvokeAsync_WithExcludedPath_DoesNotLogAudit() {
+        var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
+        var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions(excludedPaths: ["/health", "/alive"]);
+        var middleware = new AuditLoggingMiddleware(
+            _ => Task.CompletedTask,
+            serviceProvider,
+            options,
+            logger);
+
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Method = "GET";
+        httpContext.Request.Path = "/health";
+
+        await middleware.InvokeAsync(httpContext, auditLogService);
+
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+
+        await auditLogService.DidNotReceive().AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithPathStartingWithExcluded_DoesNotLogAudit() {
+        var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
+        var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions(excludedPaths: ["/health"]);
+        var middleware = new AuditLoggingMiddleware(
+            _ => Task.CompletedTask,
+            serviceProvider,
+            options,
+            logger);
+
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Method = "GET";
+        httpContext.Request.Path = "/health/checks/database";
+
+        await middleware.InvokeAsync(httpContext, auditLogService);
+
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+
+        await auditLogService.DidNotReceive().AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WhenDisabled_DoesNotLogAudit() {
+        var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
+        var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions(enabled: false);
+        var middleware = new AuditLoggingMiddleware(
+            _ => Task.CompletedTask,
+            serviceProvider,
+            options,
+            logger);
+
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Method = "GET";
+        httpContext.Request.Path = "/api/test";
+
+        await middleware.InvokeAsync(httpContext, auditLogService);
+
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+
+        await auditLogService.DidNotReceive().AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithGuidInPath_ReplacesWithIdPlaceholder() {
+        var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
+        var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
+        var middleware = new AuditLoggingMiddleware(
+            _ => Task.CompletedTask,
+            serviceProvider,
+            options,
+            logger);
+
+        var userId = Guid.NewGuid();
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Method = "GET";
+        httpContext.Request.Path = $"/api/admin/users/{userId}";
+
+        AuditLog? capturedLog = null;
+        auditLogService.AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => {
+                capturedLog = callInfo.Arg<AuditLog>();
+                return Task.FromResult(capturedLog);
+            });
+
+        await middleware.InvokeAsync(httpContext, auditLogService);
+
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+
+        capturedLog.Should().NotBeNull();
+        capturedLog!.Action.Should().Be("GET admin/users/{guid}");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithIntegerInPath_ReplacesWithIntPlaceholder() {
+        var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
+        var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
+        var middleware = new AuditLoggingMiddleware(
+            _ => Task.CompletedTask,
+            serviceProvider,
+            options,
+            logger);
+
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Method = "DELETE";
+        httpContext.Request.Path = "/api/admin/audit/12345";
+
+        AuditLog? capturedLog = null;
+        auditLogService.AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => {
+                capturedLog = callInfo.Arg<AuditLog>();
+                return Task.FromResult(capturedLog);
+            });
+
+        await middleware.InvokeAsync(httpContext, auditLogService);
+
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+
+        capturedLog.Should().NotBeNull();
+        capturedLog!.Action.Should().Be("DELETE admin/audit/{int}");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithFullApiPath_CapturesAllSegmentsAfterApi() {
+        var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
+        var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
+        var middleware = new AuditLoggingMiddleware(
+            _ => Task.CompletedTask,
+            serviceProvider,
+            options,
+            logger);
+
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Method = "POST";
+        httpContext.Request.Path = "/api/auth/login";
+
+        AuditLog? capturedLog = null;
+        auditLogService.AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => {
+                capturedLog = callInfo.Arg<AuditLog>();
+                return Task.FromResult(capturedLog);
+            });
+
+        await middleware.InvokeAsync(httpContext, auditLogService);
+
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+
+        capturedLog.Should().NotBeNull();
+        capturedLog!.Action.Should().Be("POST auth/login");
+    }
+
+    [Fact]
     public async Task InvokeAsync_MeasuresDurationCorrectly() {
         var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
         var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions();
         var middleware = new AuditLoggingMiddleware(
             async _ => await Task.Delay(50, TestContext.Current.CancellationToken),
+            serviceProvider,
+            options,
             logger);
 
         var httpContext = new DefaultHttpContext();
@@ -330,5 +537,20 @@ public class AuditLoggingMiddlewareTests {
 
         capturedLog.Should().NotBeNull();
         capturedLog!.DurationInMilliseconds.Should().BeGreaterThanOrEqualTo(50);
+    }
+
+    private static IServiceProvider CreateServiceProvider(IAuditLogService auditLogService) {
+        var services = new ServiceCollection();
+        services.AddScoped<IAuditLogService>(_ => auditLogService);
+        return services.BuildServiceProvider();
+    }
+
+    private static IOptions<AuditLoggingOptions> CreateAuditLoggingOptions(bool enabled = true, List<string>? excludedPaths = null) {
+        var options = Substitute.For<IOptions<AuditLoggingOptions>>();
+        options.Value.Returns(new AuditLoggingOptions {
+            Enabled = enabled,
+            ExcludedPaths = excludedPaths ?? []
+        });
+        return options;
     }
 }

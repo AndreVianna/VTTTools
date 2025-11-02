@@ -5,8 +5,8 @@
 
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
-// import { mockApi, shouldUseMockApi } from './mockApi'; // removed (unused)
 import { devUtils, isDevelopment } from '@/config/development';
+import type { RootState } from '@/store';
 
 // Enhanced error type that includes network status
 interface EnhancedError {
@@ -84,16 +84,17 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
     baseUrl,
     credentials: 'include',
     prepareHeaders: (headers, { getState }) => {
-      // Don't set Content-Type - let fetchBaseQuery handle it automatically
-      // fetchBaseQuery will set application/json for objects, multipart/form-data for FormData
+      const state = getState() as RootState;
+
       headers.set('X-Requested-With', 'XMLHttpRequest');
 
-      // Add x-user header for microservice authentication
-      const state = getState() as any;
-      const user = state?.auth?.user;
+      const token = state?.auth?.token;
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
 
+      const user = state?.auth?.user;
       if (user?.id) {
-        // Use extracted function for testability
         const base64Url = encodeGuidToBase64Url(user.id);
         headers.set('x-user', base64Url);
       }
@@ -106,24 +107,29 @@ export const createEnhancedBaseQuery = (baseUrl: string): BaseQueryFn<
     try {
       const result = await baseQuery(args, api, extraOptions);
 
-      // If request succeeded, return as normal
       if (!result.error) {
         return result;
       }
 
-      // Handle error cases
       const fetchError = result.error as FetchBaseQueryError;
       const enhancedError: EnhancedError = {
         status: fetchError.status,
         data: fetchError.data
       };
 
-      // Only add error property if it exists
       if ('error' in fetchError) {
         enhancedError.error = String(fetchError.error);
       }
 
       const error = enhancedError;
+
+      if (error.status === 401) {
+        const state = api.getState() as RootState;
+        if (state.auth.isAuthenticated) {
+          devUtils.warn('401 Unauthorized - JWT token expired or invalid. User will be logged out.');
+          api.dispatch({ type: 'auth/logout' });
+        }
+      }
 
       // Detect network errors
       if (error.status === 'FETCH_ERROR' || error.status === 'TIMEOUT_ERROR') {

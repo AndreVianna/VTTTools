@@ -17,6 +17,8 @@ export interface LoginResponse {
   success: boolean;
   requiresTwoFactor?: boolean;
   error?: string;
+  user?: AdminUser;
+  token?: string;
 }
 
 export interface AuthState {
@@ -24,4 +26,5 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  token: string | null;
 }

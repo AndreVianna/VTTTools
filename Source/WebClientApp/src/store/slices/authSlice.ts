@@ -3,6 +3,7 @@ import type { User } from '@/types/domain';
 
 export interface AuthState {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -10,8 +11,33 @@ export interface AuthState {
   lastLoginAttempt: number | null;
 }
 
+const TOKEN_STORAGE_KEY = 'vtt_auth_token';
+
+const loadTokenFromStorage = (): string | null => {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const saveTokenToStorage = (token: string): void => {
+  try {
+    localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  } catch {
+  }
+};
+
+const clearTokenFromStorage = (): void => {
+  try {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+  } catch {
+  }
+};
+
 const initialState: AuthState = {
   user: null,
+  token: loadTokenFromStorage(),
   isAuthenticated: false,
   isLoading: false,
   error: null,
@@ -29,12 +55,17 @@ const authSlice = createSlice({
     },
 
     // Set authentication success
-    setAuthenticated: (state, action: PayloadAction<{ user: User }>) => {
+    setAuthenticated: (state, action: PayloadAction<{ user: User; token?: string }>) => {
       state.user = action.payload.user;
       state.isAuthenticated = true;
       state.isLoading = false;
       state.error = null;
       state.loginAttempts = 0;
+
+      if (action.payload.token) {
+        state.token = action.payload.token;
+        saveTokenToStorage(action.payload.token);
+      }
     },
 
     // Set authentication failure
@@ -55,11 +86,13 @@ const authSlice = createSlice({
     // Logout user
     logout: (state) => {
       state.user = null;
+      state.token = null;
       state.isAuthenticated = false;
       state.isLoading = false;
       state.error = null;
       state.loginAttempts = 0;
       state.lastLoginAttempt = null;
+      clearTokenFromStorage();
     },
 
     // Update user profile
@@ -92,6 +125,7 @@ export default authSlice.reducer;
 // Selectors
 export const selectAuth = (state: { auth: AuthState }) => state.auth;
 export const selectUser = (state: { auth: AuthState }) => state.auth.user;
+export const selectToken = (state: { auth: AuthState }) => state.auth.token;
 export const selectIsAuthenticated = (state: { auth: AuthState }) => state.auth.isAuthenticated;
 export const selectAuthLoading = (state: { auth: AuthState }) => state.auth.isLoading;
 export const selectAuthError = (state: { auth: AuthState }) => state.auth.error;

@@ -1,6 +1,4 @@
 
-using static VttTools.Middlewares.UserIdentificationOptions;
-
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 namespace VttTools.Extensions;
@@ -51,8 +49,8 @@ public static class HostApplicationBuilderExtensions {
         //builder.Services.AddOpenApi();
         builder.AddDetailedHealthChecks();
 
-        builder.Services.AddAuthentication(Scheme)
-            .AddScheme<UserIdentificationOptions, UserIdentificationHandler>(Scheme, _ => { });
+        // REMOVED: Insecure x-user header authentication handler
+        // JWT Bearer authentication is now the default (configured via AddJwtAuthentication)
         builder.Services.AddAuthorization();
     }
 
@@ -96,7 +94,9 @@ public static class HostApplicationBuilderExtensions {
         if (builder.Environment.IsProduction())
             jwtOptions.ValidateForProduction();
 
-        builder.Services.AddAuthentication()
+        builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options => {
                 var key = Encoding.UTF8.GetBytes(jwtOptions.SecretKey);
                 options.TokenValidationParameters = new TokenValidationParameters {

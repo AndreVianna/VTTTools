@@ -17,6 +17,7 @@ global using VttTools.Audit.Model;
 global using VttTools.Common.ApiContracts;
 global using VttTools.Common.Model;
 global using VttTools.Common.ServiceContracts;
+global using VttTools.Identity.Model;
 global using VttTools.Game.Sessions.Model;
 global using VttTools.Game.Sessions.ServiceContracts;
 global using VttTools.Library.Adventures.Model;

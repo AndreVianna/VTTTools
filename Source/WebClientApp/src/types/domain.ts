@@ -471,6 +471,7 @@ export interface LoginResponse {
   redirectUrl?: string;
   message?: string;
   user?: User;
+  token?: string;
 }
 
 export interface RegisterRequest {
@@ -527,6 +528,12 @@ export interface ExternalLoginCallbackRequest {
 
 export interface LinkExternalLoginRequest {
   provider: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 export interface UpdateProfileRequest {

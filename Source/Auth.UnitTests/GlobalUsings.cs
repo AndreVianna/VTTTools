@@ -18,5 +18,6 @@ global using VttTools.Auth.Handlers;
 global using VttTools.Auth.Services;
 global using VttTools.Configuration;
 global using VttTools.Identity.Model;
+global using VttTools.Services;
 
 global using Xunit;

@@ -41,12 +41,12 @@ internal static class Program {
 
     internal static void AddIdentity(this IHostApplicationBuilder builder) {
         builder.Services.AddIdentity<User, Role>(options => {
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequiredLength = 6;
-            options.Password.RequiredUniqueChars = 1;
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequiredLength = 12;
+            options.Password.RequiredUniqueChars = 3;
 
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
             options.Lockout.MaxFailedAccessAttempts = 5;
@@ -69,7 +69,7 @@ internal static class Program {
 
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 
-        builder.Services.AddAuthentication()
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options => {
                 var key = Encoding.UTF8.GetBytes(jwtOptions.SecretKey);
                 options.TokenValidationParameters = new TokenValidationParameters {
@@ -144,6 +144,7 @@ internal static class Program {
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
         builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+        builder.AddAuditLogging();
     }
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {

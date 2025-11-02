@@ -3,9 +3,17 @@ namespace VttTools.Middlewares;
 
 public class AuditLoggingMiddleware(
     RequestDelegate next,
+    IServiceProvider serviceProvider,
+    IOptions<AuditLoggingOptions> options,
     ILogger<AuditLoggingMiddleware> logger) {
 
+    private readonly AuditLoggingOptions _options = options.Value;
+
     public async Task InvokeAsync(HttpContext context, IAuditLogService auditLogService) {
+        if (!_options.Enabled || IsPathExcluded(context.Request.Path)) {
+            await next(context);
+            return;
+        }
         var stopwatch = Stopwatch.StartNew();
         var originalResponseBody = context.Response.Body;
 
@@ -29,15 +37,40 @@ public class AuditLoggingMiddleware(
         }
         finally {
             stopwatch.Stop();
+
+            var user = context.User;
+            Guid? userId = null;
+            if (user?.Identity?.IsAuthenticated == true) {
+                var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (Guid.TryParse(userIdClaim, out var id)) {
+                    userId = id;
+                }
+            }
+            var userEmail = user?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var httpMethod = context.Request.Method;
+            var path = context.Request.Path;
+            var queryString = context.Request.QueryString.HasValue ? context.Request.QueryString.Value : null;
+            var ipAddress = context.Connection.RemoteIpAddress?.ToString();
+            var userAgent = context.Request.Headers.UserAgent.ToString();
+
             _ = Task.Run(async () => {
                 try {
+                    await using var scope = serviceProvider.CreateAsyncScope();
+                    var scopedAuditLogService = scope.ServiceProvider.GetRequiredService<IAuditLogService>();
+
                     await CreateAuditLogAsync(
-                        context,
+                        userId,
+                        userEmail,
+                        httpMethod,
+                        path,
+                        queryString,
+                        ipAddress,
+                        userAgent,
                         requestBody,
                         responseBody,
                         statusCode,
                         (int)stopwatch.ElapsedMilliseconds,
-                        auditLogService);
+                        scopedAuditLogService);
                 }
                 catch (Exception ex) {
                     logger.LogError(ex, "Failed to create audit log entry");
@@ -75,38 +108,30 @@ public class AuditLoggingMiddleware(
     }
 
     private static async Task CreateAuditLogAsync(
-        HttpContext context,
+        Guid? userId,
+        string? userEmail,
+        string httpMethod,
+        PathString path,
+        string? queryString,
+        string? ipAddress,
+        string? userAgent,
         string? requestBody,
         string? responseBody,
         int statusCode,
         int DurationInMilliseconds,
         IAuditLogService auditLogService) {
 
-        var user = context.User;
-        Guid? userId = null;
-        if (user?.Identity?.IsAuthenticated == true) {
-            var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (Guid.TryParse(userIdClaim, out var id)) {
-                userId = id;
-            }
-        }
-
-        var userEmail = user?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-
         var auditLog = new AuditLog {
             Timestamp = DateTime.UtcNow,
             UserId = userId,
             UserEmail = userEmail,
-            Action = DetermineAction(context.Request.Method, context.Request.Path),
-            HttpMethod = context.Request.Method,
-            Path = context.Request.Path,
-            QueryString = BodySanitizer.SanitizeQueryString(
-                context.Request.QueryString.HasValue
-                    ? context.Request.QueryString.Value
-                    : null),
+            Action = DetermineAction(httpMethod, path),
+            HttpMethod = httpMethod,
+            Path = path,
+            QueryString = BodySanitizer.SanitizeQueryString(queryString),
             StatusCode = statusCode,
-            IpAddress = context.Connection.RemoteIpAddress?.ToString(),
-            UserAgent = context.Request.Headers.UserAgent.ToString(),
+            IpAddress = ipAddress,
+            UserAgent = userAgent,
             RequestBody = requestBody,
             ResponseBody = responseBody,
             DurationInMilliseconds = DurationInMilliseconds,
@@ -118,8 +143,31 @@ public class AuditLoggingMiddleware(
 
     private static string DetermineAction(string method, PathString path) {
         var pathSegments = path.ToString().Split('/', StringSplitOptions.RemoveEmptyEntries);
-        var action = pathSegments.Length > 0 ? pathSegments[^1] : "Unknown";
 
+        if (pathSegments.Length == 0)
+            return $"{method} Unknown";
+
+        var startIndex = pathSegments[0].Equals("api", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+
+        if (startIndex >= pathSegments.Length)
+            return $"{method} Unknown";
+
+        var actionSegments = new List<string>();
+        for (var i = startIndex; i < pathSegments.Length; i++) {
+            var segment = pathSegments[i];
+
+            if (Guid.TryParse(segment, out _)) {
+                actionSegments.Add("{guid}");
+            }
+            else if (int.TryParse(segment, out _)) {
+                actionSegments.Add("{int}");
+            }
+            else {
+                actionSegments.Add(segment);
+            }
+        }
+
+        var action = string.Join('/', actionSegments);
         return $"{method} {action}";
     }
 
@@ -131,4 +179,14 @@ public class AuditLoggingMiddleware(
     };
 
     private static bool ShouldCaptureBody(string method) => method is "POST" or "PUT" or "PATCH" or "DELETE";
+
+    private bool IsPathExcluded(PathString path) {
+        if (_options.ExcludedPaths.Count == 0)
+            return false;
+
+        var pathString = path.ToString();
+        return _options.ExcludedPaths.Any(excluded =>
+            pathString.Equals(excluded, StringComparison.OrdinalIgnoreCase) ||
+            pathString.StartsWith(excluded, StringComparison.OrdinalIgnoreCase));
+    }
 }

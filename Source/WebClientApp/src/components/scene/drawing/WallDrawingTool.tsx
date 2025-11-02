@@ -5,7 +5,9 @@ import { useGetSceneQuery, useUpdateSceneWallMutation } from '@/services/sceneAp
 import { snapToNearest, SnapMode } from '@/utils/structureSnapping';
 import { VertexMarker } from './VertexMarker';
 import { WallPreview } from './WallPreview';
-import type { Point, Pole, SceneWall } from '@/types/domain';
+import { SnapModeIndicator } from '../SnapModeIndicator';
+import { StatusHintBar } from '../StatusHintBar';
+import type { Point, Pole } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface WallDrawingToolProps {
@@ -25,6 +27,7 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
 }) => {
     const [poles, setPoles] = useState<Pole[]>([]);
     const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
+    const [currentSnapMode, setCurrentSnapMode] = useState<SnapMode>(SnapMode.HalfSnap);
 
     const { data: scene } = useGetSceneQuery(sceneId);
     const wall = scene?.walls?.find(w => w.index === wallIndex);
@@ -63,18 +66,22 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            // Escape: End placement (requires minimum 1 pole)
             if (e.key === 'Escape') {
+                console.log('[WallDrawingTool] Canceling placement (Escape)');
+                onCancel();
+                return;
+            }
+
+            if (e.key === 'Enter') {
                 if (poles.length >= 1) {
-                    console.log('[WallDrawingTool] Ending placement with', poles.length, 'poles');
+                    console.log('[WallDrawingTool] Finishing placement (Enter)');
                     onCancel();
                 } else {
-                    console.warn('[WallDrawingTool] Need at least 1 pole to end placement');
+                    console.warn('[WallDrawingTool] Cannot finish - need at least 1 pole');
                 }
                 return;
             }
 
-            // Ctrl+Z: Undo last pole
             if (e.ctrlKey && e.key === 'z') {
                 e.preventDefault();
                 if (poles.length > 0) {
@@ -107,15 +114,15 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
             y: (pointer.y - stage.y()) / scale,
         };
 
-        // Determine snap mode from modifier keys in the event
-        let currentSnapMode = SnapMode.HalfSnap;
-        if (e.evt.altKey && e.evt.ctrlKey) {
-            currentSnapMode = SnapMode.QuarterSnap;
-        } else if (e.evt.altKey) {
-            currentSnapMode = SnapMode.Free;
-        }
+        const snapMode = e.evt.altKey && e.evt.ctrlKey
+            ? SnapMode.QuarterSnap
+            : e.evt.altKey
+                ? SnapMode.Free
+                : SnapMode.HalfSnap;
 
-        const snappedPos = snapToNearest(stagePos, gridConfig, currentSnapMode);
+        setCurrentSnapMode(snapMode);
+
+        const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
         setPreviewPoint(snappedPos);
     }, [gridConfig]);
 
@@ -132,15 +139,13 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
             y: (pointer.y - stage.y()) / scale,
         };
 
-        // Determine snap mode from modifier keys in the event
-        let currentSnapMode = SnapMode.HalfSnap;
-        if (e.evt.altKey && e.evt.ctrlKey) {
-            currentSnapMode = SnapMode.QuarterSnap;
-        } else if (e.evt.altKey) {
-            currentSnapMode = SnapMode.Free;
-        }
+        const snapMode = e.evt.altKey && e.evt.ctrlKey
+            ? SnapMode.QuarterSnap
+            : e.evt.altKey
+                ? SnapMode.Free
+                : SnapMode.HalfSnap;
 
-        const snappedPos = snapToNearest(stagePos, gridConfig, currentSnapMode);
+        const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
         const newPole: Pole = {
             x: snappedPos.x,
             y: snappedPos.y,
@@ -152,34 +157,52 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
         debouncedUpdateWall(newPoles);
     }, [poles, gridConfig, defaultHeight, debouncedUpdateWall]);
 
+    const handleDoubleClick = useCallback(() => {
+        if (poles.length >= 1) {
+            console.log('[WallDrawingTool] Finishing placement (double-click)');
+            onCancel();
+        }
+    }, [poles, onCancel]);
+
     return (
-        <Group>
-            {/* Transparent rectangle to capture all mouse events */}
-            <Rect
-                x={-10000}
-                y={-10000}
-                width={20000}
-                height={20000}
-                fill="transparent"
-                onMouseMove={handleMouseMove}
-                onClick={handleClick}
-                listening={true}
+        <>
+            <Group>
+                <Rect
+                    x={-10000}
+                    y={-10000}
+                    width={20000}
+                    height={20000}
+                    fill="transparent"
+                    onMouseMove={handleMouseMove}
+                    onClick={handleClick}
+                    onDblClick={handleDoubleClick}
+                    listening={true}
+                />
+
+                {poles.map((pole, index) => (
+                    <VertexMarker key={index} position={{ x: pole.x, y: pole.y }} />
+                ))}
+
+                <WallPreview
+                    poles={poles}
+                    previewPoint={previewPoint}
+                    wall={wall}
+                />
+
+                {previewPoint && (
+                    <VertexMarker position={previewPoint} preview />
+                )}
+            </Group>
+
+            <SnapModeIndicator
+                snapMode={currentSnapMode}
+                visible={true}
             />
-
-            {poles.map((pole, index) => (
-                <VertexMarker key={index} position={{ x: pole.x, y: pole.y }} />
-            ))}
-
-            <WallPreview
-                poles={poles}
-                previewPoint={previewPoint}
-                wall={wall}
+            <StatusHintBar
+                mode="placement"
+                visible={true}
             />
-
-            {previewPoint && (
-                <VertexMarker position={previewPoint} preview />
-            )}
-        </Group>
+        </>
     );
 };
 

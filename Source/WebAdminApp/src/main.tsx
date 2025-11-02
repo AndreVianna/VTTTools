@@ -5,7 +5,10 @@ import { BrowserRouter } from 'react-router-dom';
 import { store } from '@store/store';
 import { AdminThemeProvider } from './theme';
 import { ErrorBoundary } from '@components/error/ErrorBoundary';
+import { configureApiClient } from '@api/client';
 import App from './App';
+
+configureApiClient(store);
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');

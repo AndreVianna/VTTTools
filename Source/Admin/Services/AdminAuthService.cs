@@ -3,6 +3,7 @@ namespace VttTools.Admin.Services;
 public class AdminAuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
+    IJwtTokenService jwtTokenService,
     ILogger<AdminAuthService> logger)
     : IAdminAuthService {
 
@@ -70,6 +71,8 @@ public class AdminAuthService(
 
             logger.LogInformation("Admin user logged in successfully: {Email}", request.Email);
 
+            var token = jwtTokenService.GenerateToken(user, roles, rememberMe: false);
+
             return new AdminLoginResponse {
                 Success = true,
                 User = new AdminUserInfo {
@@ -77,7 +80,9 @@ public class AdminAuthService(
                     Email = user.Email,
                     Name = user.Name,
                     DisplayName = user.DisplayName,
-                }
+                    IsAdmin = true
+                },
+                Token = token
             };
         }
         catch (Exception ex) {
@@ -118,6 +123,7 @@ public class AdminAuthService(
                 Email = user.Email,
                 Name = user.Name,
                 DisplayName = user.DisplayName,
+                IsAdmin = true
             };
         }
         catch (Exception ex) {

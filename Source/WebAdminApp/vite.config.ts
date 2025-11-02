@@ -16,6 +16,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src'),
+        '@api': resolve(__dirname, 'src/api'),
         '@components': resolve(__dirname, 'src/components'),
         '@pages': resolve(__dirname, 'src/pages'),
         '@hooks': resolve(__dirname, 'src/hooks'),
@@ -24,6 +25,7 @@ export default defineConfig(({ mode }) => {
         '@types': resolve(__dirname, 'src/types'),
         '@utils': resolve(__dirname, 'src/utils'),
         '@config': resolve(__dirname, 'src/config'),
+        '@theme': resolve(__dirname, 'src/theme'),
       },
     },
     define: {

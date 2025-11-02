@@ -1,5 +1,5 @@
 
-namespace VttTools.Auth.Services;
+namespace VttTools.Services;
 
 public sealed class JwtTokenService(IOptions<JwtOptions> jwtOptions, ILogger<JwtTokenService> logger) : IJwtTokenService {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;

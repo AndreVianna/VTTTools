@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import type { User } from '@/types/domain';
 import {
   useLoginMutation,
   useLogoutMutation,
@@ -81,26 +82,22 @@ const extractErrorMessage = (error: any, defaultMessage: string = 'Operation fai
     });
 
     if (allErrors.length > 0) {
-      backendMessage = allErrors[0]; // Get first error message
+      backendMessage = allErrors[0] ?? null;
     }
   }
 
-  // Fallback to simple message field
   if (!backendMessage && error?.data?.message) {
     backendMessage = error.data.message;
   }
 
-  // Fallback to simple error field (used by Conflict responses)
   if (!backendMessage && error?.data?.error) {
     backendMessage = error.data.error;
   }
 
-  // Fallback to error string
   if (!backendMessage && error?.message) {
     backendMessage = error.message;
   }
 
-  // Use default if nothing found
   if (!backendMessage) {
     backendMessage = defaultMessage;
   }
@@ -190,7 +187,6 @@ export const useAuth = () => {
       const result = await loginMutation({ email, password, rememberMe: rememberMe ?? false }).unwrap();
 
       if (result.success) {
-        // Check if 2FA is required
         if (result.requiresTwoFactor) {
           dispatch(addNotification({
             type: 'info',
@@ -199,9 +195,12 @@ export const useAuth = () => {
           return { ...result, requiresTwoFactor: true };
         }
 
-        // Use user data from login response
         if (result.user) {
-          dispatch(setAuthenticated({ user: result.user }));
+          const payload: { user: User; token?: string } = { user: result.user };
+          if (result.token) {
+            payload.token = result.token;
+          }
+          dispatch(setAuthenticated(payload));
         } else {
           throw new Error('Login succeeded but user data was not returned');
         }
@@ -525,17 +524,19 @@ export const useAuth = () => {
       const result = await verifyTwoFactorMutation({ code, rememberMachine: rememberMachine ?? false }).unwrap();
 
       if (result.success) {
-        // Refetch user data after successful 2FA verification
         const userResult = await refetch();
 
         if (userResult.data) {
-          dispatch(setAuthenticated({ user: userResult.data }));
+          const payload: { user: User; token?: string } = { user: userResult.data };
+          if (result.token) {
+            payload.token = result.token;
+          }
+          dispatch(setAuthenticated(payload));
           dispatch(addNotification({
             type: 'success',
             message: 'Successfully logged in!',
           }));
 
-          // Redirect to intended destination or dashboard
           const from = location.state?.from?.pathname || '/dashboard';
           navigate(from, { replace: true });
         }
@@ -564,17 +565,19 @@ export const useAuth = () => {
       const result = await verifyRecoveryCodeMutation({ recoveryCode }).unwrap();
 
       if (result.success) {
-        // Refetch user data after successful recovery code verification
         const userResult = await refetch();
 
         if (userResult.data) {
-          dispatch(setAuthenticated({ user: userResult.data }));
+          const payload: { user: User; token?: string } = { user: userResult.data };
+          if (result.token) {
+            payload.token = result.token;
+          }
+          dispatch(setAuthenticated(payload));
           dispatch(addNotification({
             type: 'success',
             message: 'Successfully logged in!',
           }));
 
-          // Redirect to intended destination or dashboard
           const from = location.state?.from?.pathname || '/dashboard';
           navigate(from, { replace: true });
         }

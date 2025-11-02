@@ -1,12 +1,37 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { authService } from '@services/authService';
-import type { AdminUser, AuthState, LoginRequest } from '../../types/auth';
+import type { AdminUser, AuthState, LoginRequest } from '@types/auth';
+
+const TOKEN_STORAGE_KEY = 'vtttools_admin_token';
+
+const loadTokenFromStorage = (): string | null => {
+    try {
+        return localStorage.getItem(TOKEN_STORAGE_KEY);
+    } catch {
+        return null;
+    }
+};
+
+const saveTokenToStorage = (token: string): void => {
+    try {
+        localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    } catch {
+    }
+};
+
+const removeTokenFromStorage = (): void => {
+    try {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+    } catch {
+    }
+};
 
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
+  token: loadTokenFromStorage(),
 };
 
 export const login = createAsyncThunk(
@@ -16,15 +41,21 @@ export const login = createAsyncThunk(
     if (!result.success) {
       return rejectWithValue(result.error || 'Login failed');
     }
-    const user = await authService.getCurrentUser();
+
+    if (result.token) {
+      saveTokenToStorage(result.token);
+    }
+
+    const user = result.user || await authService.getCurrentUser();
     if (!user) {
       return rejectWithValue('Failed to get user information');
     }
-    return user;
+    return { user, token: result.token };
   }
 );
 
 export const logout = createAsyncThunk('auth/logout', async () => {
+  removeTokenFromStorage();
   await authService.logout();
 });
 
@@ -48,22 +79,25 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(login.fulfilled, (state, action: PayloadAction<AdminUser>) => {
+      .addCase(login.fulfilled, (state, action: PayloadAction<{ user: AdminUser; token?: string }>) => {
         state.isLoading = false;
         state.isAuthenticated = true;
-        state.user = action.payload;
+        state.user = action.payload.user;
+        state.token = action.payload.token || null;
         state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;
+        state.token = null;
         state.error = action.payload as string;
       })
       // Logout
       .addCase(logout.fulfilled, (state) => {
         state.isAuthenticated = false;
         state.user = null;
+        state.token = null;
         state.error = null;
       })
       // Check auth
@@ -78,15 +112,23 @@ const authSlice = createSlice({
         } else {
           state.isAuthenticated = false;
           state.user = null;
+          state.token = null;
+          removeTokenFromStorage();
         }
       })
       .addCase(checkAuth.rejected, (state) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;
+        state.token = null;
+        removeTokenFromStorage();
       });
   },
 });
 
 export const { clearError } = authSlice.actions;
+
+export const selectToken = (state: { auth: AuthState }) => state.auth.token;
+export const selectIsAuthenticated = (state: { auth: AuthState }) => state.auth.isAuthenticated;
+
 export default authSlice.reducer;

@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { isAuthenticated, isLoading, user } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isLoading, user, token } = useAppSelector((state) => state.auth);
   const checkedRef = useRef(false);
 
   useEffect(() => {
@@ -21,7 +21,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }, [dispatch, isAuthenticated, user]);
 
-  if (isLoading) {
+  const isCheckingAuth = token && !isAuthenticated && !checkedRef.current;
+
+  if (isLoading || isCheckingAuth) {
     return (
       <Box
         id="loading-admin-auth"

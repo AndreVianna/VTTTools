@@ -12,6 +12,7 @@ internal static class Program {
         builder.AddCors();
         builder.AddRateLimiting();
         builder.AddServices();
+        builder.AddAuditLogging();
 
         var app = builder.Build();
         app.ApplyRequiredConfiguration(app.Environment);
@@ -62,6 +63,8 @@ internal static class Program {
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
+        builder.AddJwtAuthentication();
+
         builder.Services.ConfigureApplicationCookie(options => {
             options.Cookie.HttpOnly = true;
             options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
@@ -111,6 +114,7 @@ internal static class Program {
         builder.Services.AddScoped<IAdminAuthService, AdminAuthService>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
+        builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
         builder.Services.AddSignalR();
     }
 

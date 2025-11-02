@@ -34,7 +34,7 @@ public class AuthServiceTests {
         _mockLogger = Substitute.For<ILogger<AuthService>>();
 
         // Create AuthService with mocked dependencies
-        _authService = new AuthService(_mockUserManager, _mockSignInManager, _mockEmailService, _mockLogger);
+        _authService = new AuthService(_mockUserManager, _mockSignInManager, _mockEmailService, _mockJwtTokenService, _mockLogger);
     }
 
     #region LoginAsync Tests
@@ -50,11 +50,13 @@ public class AuthServiceTests {
 
         var user = CreateTestUser("test@example.com", "Test User");
         var roles = new List<string> { "User" };
+        var expectedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
 
         _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
         _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
             .Returns(Microsoft.AspNetCore.Identity.SignInResult.Success);
         _mockUserManager.GetRolesAsync(user).Returns(roles);
+        _mockJwtTokenService.GenerateToken(user, roles, request.RememberMe).Returns(expectedToken);
 
         // Act
         var result = await _authService.LoginAsync(request);
@@ -66,11 +68,13 @@ public class AuthServiceTests {
         Assert.Equal(request.Email, result.User.Email);
         Assert.Equal("Test User", result.User.Name);
         Assert.False(result.User.IsAdministrator);
+        Assert.Equal(expectedToken, result.Token);
 
         // Verify method calls
         await _mockUserManager.Received(1).FindByEmailAsync(request.Email);
         await _mockSignInManager.Received(1).PasswordSignInAsync(user, request.Password, request.RememberMe, true);
         await _mockUserManager.Received(1).GetRolesAsync(user);
+        _mockJwtTokenService.Received(1).GenerateToken(user, roles, request.RememberMe);
     }
 
     [Fact]
@@ -209,9 +213,14 @@ public class AuthServiceTests {
             DisplayName = "NewUser"
         };
 
+        var roles = new List<string> { "User" };
+        var expectedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
+
         _mockUserManager.FindByEmailAsync(request.Email).Returns((User?)null);
         _mockUserManager.CreateAsync(Arg.Any<User>(), request.Password).Returns(IdentityResult.Success);
         _mockSignInManager.SignInAsync(Arg.Any<User>(), false).Returns(Task.CompletedTask);
+        _mockUserManager.GetRolesAsync(Arg.Any<User>()).Returns(roles);
+        _mockJwtTokenService.GenerateToken(Arg.Any<User>(), roles, false).Returns(expectedToken);
 
         // Act
         var result = await _authService.RegisterAsync(request);
@@ -223,6 +232,7 @@ public class AuthServiceTests {
         Assert.Equal(request.Email, result.User.Email);
         Assert.Equal(request.Name, result.User.Name);
         Assert.Equal(request.DisplayName, result.User.DisplayName);
+        Assert.Equal(expectedToken, result.Token);
 
         // Verify method calls
         await _mockUserManager.Received(1).FindByEmailAsync(request.Email);
@@ -231,6 +241,8 @@ public class AuthServiceTests {
             u.Name == request.Name &&
             u.DisplayName == request.DisplayName), request.Password);
         await _mockSignInManager.Received(1).SignInAsync(Arg.Any<User>(), false);
+        await _mockUserManager.Received(1).GetRolesAsync(Arg.Any<User>());
+        _mockJwtTokenService.Received(1).GenerateToken(Arg.Any<User>(), roles, false);
     }
 
     [Fact]

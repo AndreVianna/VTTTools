@@ -1,5 +1,6 @@
 ﻿global using System.Data.Common;
 global using System.Diagnostics;
+global using System.IdentityModel.Tokens.Jwt;
 global using System.Security.Claims;
 global using System.Text;
 global using System.Text.Encodings.Web;
@@ -13,6 +14,7 @@ global using Azure.Storage.Blobs;
 global using DotNetToolbox.Results;
 
 global using Microsoft.AspNetCore.Authentication;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Diagnostics;
 global using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -35,9 +37,11 @@ global using SixLabors.ImageSharp.Formats.Webp;
 global using VttTools.Audit.Model;
 global using VttTools.Audit.Services;
 global using VttTools.Audit.Storage;
+global using VttTools.Auth.Services;
 global using VttTools.Configuration;
 global using VttTools.EndpointMappers;
 global using VttTools.HealthChecks;
+global using VttTools.Identity.Model;
 global using VttTools.Media.Contracts;
 global using VttTools.Media.Model;
 global using VttTools.Media.ServiceContracts;

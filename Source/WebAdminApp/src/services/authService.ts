@@ -1,17 +1,24 @@
-import axios from 'axios';
-import type { AdminUser, LoginRequest, LoginResponse } from '../types/auth';
+import apiClient from '@api/client';
+import type { AdminUser, LoginRequest, LoginResponse } from '@types/auth';
 
 const API_BASE = '/api/admin/auth';
 
 export const authService = {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
-      await axios.post(`${API_BASE}/login`, credentials, {
-        withCredentials: true,
-      });
-      return { success: true };
+      const response = await apiClient.post<LoginResponse>(`${API_BASE}/login`, credentials);
+
+      if (response.data.success) {
+        return {
+          success: true,
+          user: response.data.user,
+          token: response.data.token,
+        };
+      }
+
+      return response.data;
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (apiClient.isAxiosError(error) && error.response) {
         if (error.response.status === 401 && error.response.data?.requiresTwoFactor) {
           return { success: false, requiresTwoFactor: true };
         }
@@ -26,16 +33,14 @@ export const authService = {
 
   async logout(): Promise<void> {
     try {
-      await axios.post(`${API_BASE}/logout`, {}, { withCredentials: true });
+      await apiClient.post(`${API_BASE}/logout`, {});
     } catch {
     }
   },
 
   async getCurrentUser(): Promise<AdminUser | null> {
     try {
-      const response = await axios.get<AdminUser>(`${API_BASE}/me`, {
-        withCredentials: true,
-      });
+      const response = await apiClient.get<AdminUser>(`${API_BASE}/me`);
       return response.data;
     } catch (error) {
       return null;
@@ -44,9 +49,7 @@ export const authService = {
 
   async checkSession(): Promise<boolean> {
     try {
-      const response = await axios.get(`${API_BASE}/session`, {
-        withCredentials: true,
-      });
+      const response = await apiClient.get(`${API_BASE}/session`);
       return response.status === 200;
     } catch (error) {
       return false;

@@ -4,6 +4,7 @@ public class AuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
     IEmailService emailService,
+    IJwtTokenService jwtTokenService,
     ILogger<AuthService> logger) : IAuthService {
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request) {
@@ -55,10 +56,13 @@ public class AuthService(
             var roles = await userManager.GetRolesAsync(user);
             user.IsAdministrator = roles.Contains("Administrator");
 
+            var token = jwtTokenService.GenerateToken(user, roles, request.RememberMe);
+
             return new AuthResponse {
                 Success = true,
                 Message = "Success",
                 User = MapUserToUserInfo(user),
+                Token = token,
             };
         }
         catch (Exception ex) {
@@ -92,10 +96,14 @@ public class AuthService(
 
                 await signInManager.SignInAsync(user, isPersistent: false);
 
+                var roles = await userManager.GetRolesAsync(user);
+                var token = jwtTokenService.GenerateToken(user, roles, rememberMe: false);
+
                 return new AuthResponse {
                     Success = true,
                     Message = "RegistrationSuccess",
                     User = MapUserToUserInfo(user),
+                    Token = token,
                 };
             }
 

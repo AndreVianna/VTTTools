@@ -15,6 +15,7 @@ global using VttTools.Admin.Services;
 global using VttTools.Audit.Model;
 global using VttTools.Audit.Services;
 global using VttTools.Audit.Storage;
+global using VttTools.Auth.Services;
 global using VttTools.Data;
 global using VttTools.Data.Audit;
 global using VttTools.Data.Extensions;

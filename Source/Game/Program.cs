@@ -39,6 +39,7 @@ internal static class Program {
         builder.Services.AddScoped<IGameSessionService, GameSessionService>();
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+        builder.AddAuditLogging();
     }
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app)

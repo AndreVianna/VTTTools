@@ -4,8 +4,31 @@ import { useTheme } from '@mui/material';
 import type { Pole } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { snapToNearest, SnapMode } from '@/utils/structureSnapping';
+import { StatusHintBar } from '../StatusHintBar';
 
 type SelectionMode = 'pole' | 'line' | 'marquee';
+
+function projectPointToLineSegment(
+    point: { x: number; y: number },
+    lineStart: { x: number; y: number },
+    lineEnd: { x: number; y: number }
+): { x: number; y: number } {
+    const dx = lineEnd.x - lineStart.x;
+    const dy = lineEnd.y - lineStart.y;
+
+    if (dx === 0 && dy === 0) {
+        return { x: lineStart.x, y: lineStart.y };
+    }
+
+    const t = Math.max(0, Math.min(1,
+        ((point.x - lineStart.x) * dx + (point.y - lineStart.y) * dy) / (dx * dx + dy * dy)
+    ));
+
+    return {
+        x: lineStart.x + t * dx,
+        y: lineStart.y + t * dy
+    };
+}
 
 export interface WallTransformerProps {
     poles: Pole[];
@@ -29,7 +52,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     const [previewPoles, setPreviewPoles] = useState<Pole[]>(poles);
     const [selectedPoles, setSelectedPoles] = useState<Set<number>>(new Set());
     const [selectedLines, setSelectedLines] = useState<Set<number>>(new Set());
-    const [selectionMode, setSelectionMode] = useState<SelectionMode>('pole');
+    const [_selectionMode, setSelectionMode] = useState<SelectionMode>('pole');
     const [marqueeStart, setMarqueeStart] = useState<{ x: number; y: number } | null>(null);
     const [marqueeEnd, setMarqueeEnd] = useState<{ x: number; y: number } | null>(null);
     const [draggingLine, setDraggingLine] = useState<number | null>(null);
@@ -37,7 +60,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     const lineDragStartRef = useRef<{ mouseX: number; mouseY: number; pole1: { x: number; y: number }; pole2: { x: number; y: number } } | null>(null);
     const circleRefs = useRef<Map<number, any>>(new Map());
 
-    const projectPointToLine = (point: { x: number; y: number }, p1: Pole, p2: Pole): { x: number; y: number; t: number } => {
+    const _projectPointToLine = (point: { x: number; y: number }, p1: Pole, p2: Pole): { x: number; y: number; t: number } => {
         const dx = p2.x - p1.x;
         const dy = p2.y - p1.y;
         const t = ((point.x - p1.x) * dx + (point.y - p1.y) * dy) / (dx * dx + dy * dy);
@@ -274,9 +297,8 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                         setMarqueeEnd(pointerPos);
                     }
                 }}
-                onMouseUp={(e) => {
+                onMouseUp={(_e) => {
                     console.log('[Background MouseUp] marqueeStart:', marqueeStart, 'marqueeEnd:', marqueeEnd);
-                    // Handle marquee selection
                     if (marqueeStart && marqueeEnd && marqueeRect) {
                         const newSelected = new Set<number>();
                         polesToUse.forEach((pole, index) => {
@@ -505,12 +527,71 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                             }
                         }}
                         onClick={(e) => {
+                            e.cancelBubble = true;
+
+                            if (e.evt.shiftKey) {
+                                console.log(`[WallTransformer] Inserting pole on line segment ${index}`);
+
+                                const stage = e.target.getStage();
+                                if (!stage) return;
+
+                                const pointerPos = stage.getPointerPosition();
+                                if (!pointerPos) return;
+
+                                const scale = stage.scaleX();
+                                const worldPos = {
+                                    x: (pointerPos.x - stage.x()) / scale,
+                                    y: (pointerPos.y - stage.y()) / scale
+                                };
+
+                                const projected = projectPointToLineSegment(worldPos, pole, nextPole);
+
+                                let insertPos = projected;
+                                if (snapEnabled && gridConfig) {
+                                    const snapMode = e.evt.altKey && e.evt.ctrlKey
+                                        ? SnapMode.QuarterSnap
+                                        : e.evt.altKey
+                                            ? SnapMode.Free
+                                            : SnapMode.HalfSnap;
+
+                                    insertPos = snapToNearest(projected, gridConfig, snapMode);
+                                    console.log(`[WallTransformer] Snap mode: ${SnapMode[snapMode]}`);
+                                }
+
+                                const newPoles = [...poles];
+                                newPoles.splice(index + 1, 0, {
+                                    x: insertPos.x,
+                                    y: insertPos.y,
+                                    h: pole.h
+                                });
+
+                                onPolesChange?.(newPoles);
+
+                                setSelectedPoles(new Set([index + 1]));
+                                setSelectedLines(new Set());
+
+                                console.log(`[WallTransformer] Inserted pole at index ${index + 1}`);
+                                return;
+                            }
+
                             handleLineClick(index, e);
                         }}
                         onMouseEnter={(e) => {
                             const container = e.target.getStage()?.container();
                             if (container) {
-                                container.style.cursor = isLineSelected ? 'move' : 'pointer';
+                                const cursor = e.evt.shiftKey
+                                    ? 'crosshair'
+                                    : (isLineSelected ? 'move' : 'pointer');
+                                container.style.cursor = cursor;
+                            }
+                        }}
+                        onMouseMove={(e) => {
+                            const container = e.target.getStage()?.container();
+                            if (container) {
+                                const cursor = e.evt.shiftKey
+                                    ? 'crosshair'
+                                    : (isLineSelected ? 'move' : 'pointer');
+                                container.style.cursor = cursor;
                             }
                         }}
                         onMouseLeave={(e) => {
@@ -583,6 +664,11 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                 return <Circle key={`pole-${index}`} {...circleProps} />;
             })}
             </Group>
+
+            <StatusHintBar
+                mode="edit"
+                visible={true}
+            />
         </Group>
     );
 };
