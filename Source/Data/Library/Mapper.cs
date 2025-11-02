@@ -2,6 +2,7 @@
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using SceneAssetEntity = VttTools.Data.Library.Entities.SceneAsset;
+using SceneEffectEntity = VttTools.Data.Library.Entities.SceneEffect;
 using SceneEntity = VttTools.Data.Library.Entities.Scene;
 using SceneRegionEntity = VttTools.Data.Library.Entities.SceneRegion;
 using SceneSourceEntity = VttTools.Data.Library.Entities.SceneSource;
@@ -40,6 +41,10 @@ internal static class Mapper {
             DefaultDisplayName = entity.DefaultDisplayName,
             DefaultLabelPosition = entity.DefaultLabelPosition,
             Assets = entity.SceneAssets.AsQueryable().Select(AsSceneAsset!).ToList(),
+            Walls = entity.Walls.AsQueryable().Select(AsSceneWall!).ToList(),
+            Regions = entity.Regions.AsQueryable().Select(AsSceneRegion!).ToList(),
+            Sources = entity.Sources.AsQueryable().Select(AsSceneSource!).ToList(),
+            Effects = entity.SceneEffects.AsQueryable().Select(AsSceneEffect!).ToList(),
         };
 
     internal static Expression<Func<SceneAssetEntity, SceneAsset>> AsSceneAsset = entity
@@ -155,6 +160,7 @@ internal static class Mapper {
             Walls = [.. entity.Walls.Select(sb => sb.ToModel()!)],
             Regions = [.. entity.Regions.Select(sr => sr.ToModel()!)],
             Sources = [.. entity.Sources.Select(ss => ss.ToModel()!)],
+            Effects = [.. entity.SceneEffects.Select(se => se.ToModel()!)],
         };
 
     internal static SceneEntity ToEntity(this Scene model, Guid adventureId)
@@ -171,6 +177,10 @@ internal static class Mapper {
             DefaultDisplayName = model.DefaultDisplayName,
             DefaultLabelPosition = model.DefaultLabelPosition,
             SceneAssets = model.Assets?.ConvertAll(sa => ToEntity(sa, model.Id)) ?? [],
+            Walls = model.Walls?.ConvertAll(sw => ToEntity(sw, model.Id)) ?? [],
+            Regions = model.Regions?.ConvertAll(sr => ToEntity(sr, model.Id)) ?? [],
+            Sources = model.Sources?.ConvertAll(ss => ToEntity(ss, model.Id)) ?? [],
+            SceneEffects = model.Effects?.ConvertAll(se => ToEntity(se, model.Id)) ?? [],
         };
 
     internal static SceneEntity UpdateFrom(this SceneEntity entity, Scene model) {
@@ -185,24 +195,83 @@ internal static class Mapper {
         entity.DefaultDisplayName = model.DefaultDisplayName;
         entity.DefaultLabelPosition = model.DefaultLabelPosition;
 
-        // Build lookup of model indices
-        var modelIndices = model.Assets.Select(sa => sa.Index).ToHashSet();
-
-        // 1. Remove assets that are no longer in the model (must do this first to maintain EF tracking)
-        var assetsToRemove = entity.SceneAssets.Where(ea => !modelIndices.Contains(ea.Index)).ToList();
+        // Update SceneAssets
+        var assetIndices = model.Assets.Select(sa => sa.Index).ToHashSet();
+        var assetsToRemove = entity.SceneAssets.Where(ea => !assetIndices.Contains(ea.Index)).ToList();
         foreach (var assetToRemove in assetsToRemove) {
             entity.SceneAssets.Remove(assetToRemove);
         }
-
-        // 2. Update existing assets
         foreach (var modelAsset in model.Assets) {
             var existingAsset = entity.SceneAssets.FirstOrDefault(ea => ea.Index == modelAsset.Index);
             if (existingAsset != null) {
                 UpdateFrom(existingAsset, entity.Id, modelAsset);
             }
             else {
-                // 3. Add new assets
                 entity.SceneAssets.Add(ToEntity(modelAsset, entity.Id));
+            }
+        }
+
+        // Update Walls
+        var wallIndices = model.Walls.Select(sw => sw.Index).ToHashSet();
+        var wallsToRemove = entity.Walls.Where(ew => !wallIndices.Contains(ew.Index)).ToList();
+        foreach (var wallToRemove in wallsToRemove) {
+            entity.Walls.Remove(wallToRemove);
+        }
+        foreach (var modelWall in model.Walls) {
+            var existingWall = entity.Walls.FirstOrDefault(ew => ew.Index == modelWall.Index);
+            if (existingWall != null) {
+                UpdateFrom(existingWall, entity.Id, modelWall);
+            }
+            else {
+                entity.Walls.Add(ToEntity(modelWall, entity.Id));
+            }
+        }
+
+        // Update Regions
+        var regionIndices = model.Regions.Select(sr => sr.Index).ToHashSet();
+        var regionsToRemove = entity.Regions.Where(er => !regionIndices.Contains(er.Index)).ToList();
+        foreach (var regionToRemove in regionsToRemove) {
+            entity.Regions.Remove(regionToRemove);
+        }
+        foreach (var modelRegion in model.Regions) {
+            var existingRegion = entity.Regions.FirstOrDefault(er => er.Index == modelRegion.Index);
+            if (existingRegion != null) {
+                UpdateFrom(existingRegion, entity.Id, modelRegion);
+            }
+            else {
+                entity.Regions.Add(ToEntity(modelRegion, entity.Id));
+            }
+        }
+
+        // Update Sources
+        var sourceIndices = model.Sources.Select(ss => ss.Index).ToHashSet();
+        var sourcesToRemove = entity.Sources.Where(es => !sourceIndices.Contains(es.Index)).ToList();
+        foreach (var sourceToRemove in sourcesToRemove) {
+            entity.Sources.Remove(sourceToRemove);
+        }
+        foreach (var modelSource in model.Sources) {
+            var existingSource = entity.Sources.FirstOrDefault(es => es.Index == modelSource.Index);
+            if (existingSource != null) {
+                UpdateFrom(existingSource, entity.Id, modelSource);
+            }
+            else {
+                entity.Sources.Add(ToEntity(modelSource, entity.Id));
+            }
+        }
+
+        // Update Effects
+        var effectIndices = model.Effects.Select(se => se.Index).ToHashSet();
+        var effectsToRemove = entity.SceneEffects.Where(ee => !effectIndices.Contains(ee.Index)).ToList();
+        foreach (var effectToRemove in effectsToRemove) {
+            entity.SceneEffects.Remove(effectToRemove);
+        }
+        foreach (var modelEffect in model.Effects) {
+            var existingEffect = entity.SceneEffects.FirstOrDefault(ee => ee.Index == modelEffect.Index);
+            if (existingEffect != null) {
+                UpdateFrom(existingEffect, entity.Id, modelEffect);
+            }
+            else {
+                entity.SceneEffects.Add(ToEntity(modelEffect, entity.Id));
             }
         }
 
@@ -411,6 +480,49 @@ internal static class Mapper {
         entity.Range = model.Range;
         entity.Intensity = model.Intensity;
         entity.HasGradient = model.HasGradient;
+        return entity;
+    }
+
+    internal static Expression<Func<SceneEffectEntity, SceneEffect>> AsSceneEffect = entity
+        => new() {
+            EffectId = entity.EffectId,
+            Index = entity.Index,
+            Name = entity.Name,
+            Origin = entity.Origin,
+            Size = entity.Size,
+            Direction = entity.Direction,
+        };
+
+    [return: NotNullIfNotNull(nameof(entity))]
+    internal static SceneEffect? ToModel(this SceneEffectEntity? entity)
+        => entity == null ? null : new() {
+            EffectId = entity.EffectId,
+            Index = entity.Index,
+            Name = entity.Name,
+            Origin = entity.Origin,
+            Size = entity.Size,
+            Direction = entity.Direction,
+        };
+
+    internal static SceneEffectEntity ToEntity(this SceneEffect model, Guid sceneId)
+        => new() {
+            SceneId = sceneId,
+            EffectId = model.EffectId,
+            Index = model.Index,
+            Name = model.Name,
+            Origin = model.Origin,
+            Size = model.Size,
+            Direction = model.Direction,
+        };
+
+    internal static SceneEffectEntity UpdateFrom(this SceneEffectEntity entity, Guid sceneId, SceneEffect model) {
+        entity.SceneId = sceneId;
+        entity.EffectId = model.EffectId;
+        entity.Index = model.Index;
+        entity.Name = model.Name;
+        entity.Origin = model.Origin;
+        entity.Size = model.Size;
+        entity.Direction = model.Direction;
         return entity;
     }
 }

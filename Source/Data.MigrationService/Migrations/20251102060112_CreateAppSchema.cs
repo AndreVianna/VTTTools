@@ -226,7 +226,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         column: x => x.AssetId,
                         principalTable: "Assets",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_AssetResources_Resources_ResourceId",
                         column: x => x.ResourceId,

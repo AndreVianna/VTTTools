@@ -21,7 +21,7 @@ internal static class AssetSchemaBuilder {
             entity.HasMany(e => e.Resources)
                 .WithOne(ar => ar.Asset)
                 .HasForeignKey(e => e.AssetId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasDiscriminator<AssetKind>("Kind")
                 .HasValue<ObjectAsset>(AssetKind.Object)

@@ -13,7 +13,7 @@ using VttTools.Data;
 namespace VttTools.Data.MigrationService.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251102055154_CreateAppSchema")]
+    [Migration("20251102060112_CreateAppSchema")]
     partial class CreateAppSchema
     {
         /// <inheritdoc />
@@ -1234,7 +1234,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasOne("VttTools.Data.Assets.Entities.Asset", "Asset")
                         .WithMany("Resources")
                         .HasForeignKey("AssetId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")

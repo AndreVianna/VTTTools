@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace VttTools.Data.Library;
 
 public class SceneStorageTests
@@ -111,14 +113,13 @@ public class SceneStorageTests
         var adventureId = await _context.Adventures.Where(p => p.Name == "Adventure 1").Select(a => a.Id).FirstAsync(_ct);
         var entity = DbContextHelper.CreateTestSceneEntity(adventureId, "Scene To Update");
 
+        var initialCount = await _context.Scenes.CountAsync(_ct);
         await _context.Scenes.AddAsync(entity, _ct);
         await _context.SaveChangesAsync(_ct);
+        initialCount = await _context.Scenes.CountAsync(_ct);
 
         // Create scene model for update
         var scene = DbContextHelper.CreateTestScene(entity.Id, "Updated Scene");
-
-        // NOTE: Clear context to avoid EF tracking conflicts
-        _context.ChangeTracker.Clear();
 
         // Act
         var result = await _storage.UpdateAsync(scene, _ct);

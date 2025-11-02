@@ -1231,7 +1231,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasOne("VttTools.Data.Assets.Entities.Asset", "Asset")
                         .WithMany("Resources")
                         .HasForeignKey("AssetId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")

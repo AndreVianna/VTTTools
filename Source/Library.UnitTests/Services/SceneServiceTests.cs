@@ -70,6 +70,11 @@ public class SceneServiceTests {
             Id = sceneId,
             Name = "Old Name",
             Description = "Old Description",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Adventure",
+            },
         };
         var data = new UpdateSceneData {
             Name = "Updated Name",
@@ -96,6 +101,11 @@ public class SceneServiceTests {
             Id = sceneId,
             Name = "Old Name",
             Description = "Old Description",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Adventure",
+            },
         };
         var data = new UpdateSceneData {
             Name = "Updated Name",
@@ -121,6 +131,11 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Adventure",
+            },
         };
         var data = new UpdateSceneData {
             Name = "Updated Name",
@@ -132,10 +147,9 @@ public class SceneServiceTests {
         var result = await _service.UpdateSceneAsync(nonOwnerId, sceneId, data, _ct);
 
         // Assert
-        // NOTE: Current SceneService.UpdateSceneAsync implementation doesn't check ownership
-        // so it succeeds even for non-owners. This may be a missing feature in the service.
-        result.IsSuccessful.Should().BeTrue();
-        await _sceneStorage.Received(1).UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
+        result.IsSuccessful.Should().BeFalse();
+        result.Errors.Should().ContainSingle().Which.Message.Should().Be("NotAllowed");
+        await _sceneStorage.DidNotReceive().UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -417,6 +431,11 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Adventure",
+            },
             Assets = [
                 new() {
                     Index = number,
@@ -490,6 +509,11 @@ public class SceneServiceTests {
         var scene = new Scene {
             Id = sceneId,
             Name = "Scene",
+            Adventure = new() {
+                OwnerId = _userId,
+                Id = Guid.CreateVersion7(),
+                Name = "Adventure",
+            },
             Assets = [
                 new() {
                     Index = number,
