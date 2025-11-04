@@ -78,6 +78,7 @@ export interface WallTransformerProps {
     wallIndex?: number;
     wall?: SceneWall;
     onWallBreak?: (breakData: WallBreakData) => void | Promise<void>;
+    enableBackgroundRect?: boolean;
 }
 
 export const WallTransformer: React.FC<WallTransformerProps> = ({
@@ -92,7 +93,8 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     sceneId,
     wallIndex,
     wall,
-    onWallBreak
+    onWallBreak,
+    enableBackgroundRect = true
 }) => {
     const theme = useTheme();
     const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
@@ -106,6 +108,8 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     const dragStartPositionRef = useRef<{ x: number; y: number } | null>(null);
     const lineDragStartRef = useRef<{ mouseX: number; mouseY: number; pole1: { x: number; y: number }; pole2: { x: number; y: number } } | null>(null);
     const circleRefs = useRef<Map<number, any>>(new Map());
+    const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
+    const [insertPreviewPos, setInsertPreviewPos] = useState<{x: number; y: number} | null>(null);
 
     const isPointInRect = (point: { x: number; y: number }, rect: { x: number; y: number; width: number; height: number }): boolean => {
         return point.x >= rect.x && point.x <= rect.x + rect.width &&
@@ -240,17 +244,22 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     e.stopPropagation();
                     setSelectedPoles(new Set());
                     setSelectedLines(new Set());
-                } else {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onClearSelections?.();
                 }
             }
         };
 
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === 'Shift') {
+                setInsertPreviewPos(null);
+                setHoveredLineIndex(null);
+            }
+        };
+
         window.addEventListener('keydown', handleKeyDown, { capture: true });
+        window.addEventListener('keyup', handleKeyUp);
         return () => {
             window.removeEventListener('keydown', handleKeyDown, { capture: true });
+            window.removeEventListener('keyup', handleKeyUp);
         };
     }, [selectedPoles, selectedLines, poles, onPolesChange, onClearSelections, isAltPressed, isClosed]);
 
@@ -369,51 +378,53 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     return (
         <Group>
             {/* Background rect to capture clicks on empty space - MUST be first for z-order */}
-            <Rect
-                x={INTERACTION_RECT_OFFSET}
-                y={INTERACTION_RECT_OFFSET}
-                width={INTERACTION_RECT_SIZE}
-                height={INTERACTION_RECT_SIZE}
-                fill="transparent"
-                listening={true}
-                onMouseDown={(e) => {
-                    const stage = e.target.getStage();
-                    if (stage) {
-                        const pointerPos = stage.getPointerPosition();
-                        if (pointerPos) {
-                            setMarqueeStart(pointerPos);
-                            setMarqueeEnd(pointerPos);
-                            setSelectionMode('marquee');
-                        }
-                    }
-                }}
-                onMouseMove={(e) => {
-                    const stage = e.target.getStage();
-                    if (!stage) return;
-
-                    const pointerPos = stage.getPointerPosition();
-                    if (!pointerPos) return;
-
-                    if (marqueeStart) {
-                        setMarqueeEnd(pointerPos);
-                    }
-                }}
-                onMouseUp={(_e) => {
-                    if (marqueeStart && marqueeEnd && marqueeRect) {
-                        const newSelected = new Set<number>();
-                        polesToUse.forEach((pole, index) => {
-                            if (isPointInRect(pole, marqueeRect)) {
-                                newSelected.add(index);
+            {enableBackgroundRect && (
+                <Rect
+                    x={INTERACTION_RECT_OFFSET}
+                    y={INTERACTION_RECT_OFFSET}
+                    width={INTERACTION_RECT_SIZE}
+                    height={INTERACTION_RECT_SIZE}
+                    fill="transparent"
+                    listening={true}
+                    onMouseDown={(e) => {
+                        const stage = e.target.getStage();
+                        if (stage) {
+                            const pointerPos = stage.getPointerPosition();
+                            if (pointerPos) {
+                                setMarqueeStart(pointerPos);
+                                setMarqueeEnd(pointerPos);
+                                setSelectionMode('marquee');
                             }
-                        });
-                        setSelectedPoles(newSelected);
-                        setSelectedLines(new Set());
-                    }
-                    setMarqueeStart(null);
-                    setMarqueeEnd(null);
-                    setSelectionMode('pole');
-                }}
-            />
+                        }
+                    }}
+                    onMouseMove={(e) => {
+                        const stage = e.target.getStage();
+                        if (!stage) return;
+
+                        const pointerPos = stage.getPointerPosition();
+                        if (!pointerPos) return;
+
+                        if (marqueeStart) {
+                            setMarqueeEnd(pointerPos);
+                        }
+                    }}
+                    onMouseUp={(_e) => {
+                        if (marqueeStart && marqueeEnd && marqueeRect) {
+                            const newSelected = new Set<number>();
+                            polesToUse.forEach((pole, index) => {
+                                if (isPointInRect(pole, marqueeRect)) {
+                                    newSelected.add(index);
+                                }
+                            });
+                            setSelectedPoles(newSelected);
+                            setSelectedLines(new Set());
+                        }
+                        setMarqueeStart(null);
+                        setMarqueeEnd(null);
+                        setSelectionMode('pole');
+                    }}
+                />
+            )}
 
             <Group
             onMouseMove={(e) => {
@@ -648,6 +659,9 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                                     : (isLineSelected ? getMoveCursor() : getPointerCursor());
                                 container.style.cursor = cursor;
                             }
+
+                            // Initialize preview if Shift already pressed
+                            setHoveredLineIndex(index);
                         }}
                         onMouseMove={(e) => {
                             const container = e.target.getStage()?.container();
@@ -657,11 +671,48 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                                     : (isLineSelected ? getMoveCursor() : getPointerCursor());
                                 container.style.cursor = cursor;
                             }
+
+                            // Update preview position if Shift is pressed
+                            if (e.evt.shiftKey && !draggingIndex && !draggingLine && !marqueeStart) {
+                                const stage = e.target.getStage();
+                                if (!stage) return;
+
+                                const pointerPos = stage.getPointerPosition();
+                                if (!pointerPos) return;
+
+                                const scale = stage.scaleX();
+                                const worldPos = {
+                                    x: (pointerPos.x - stage.x()) / scale,
+                                    y: (pointerPos.y - stage.y()) / scale
+                                };
+
+                                // Project onto line segment
+                                const projected = projectPointToLineSegment(worldPos, pole, nextPole);
+
+                                // Apply snap
+                                let finalPos = projected;
+                                if (snapEnabled && gridConfig) {
+                                    const currentSnapMode = getSnapModeFromEvent(e.evt, externalSnapMode);
+                                    finalPos = snapToNearest(projected, gridConfig, currentSnapMode, 50);
+                                }
+
+                                setInsertPreviewPos(finalPos);
+                                setHoveredLineIndex(index);
+                            } else {
+                                setInsertPreviewPos(null);
+                                setHoveredLineIndex(null);
+                            }
                         }}
                         onMouseLeave={(e) => {
                             const container = e.target.getStage()?.container();
                             if (container) {
                                 container.style.cursor = 'default';
+                            }
+
+                            // Clear preview when leaving line
+                            if (hoveredLineIndex === index) {
+                                setInsertPreviewPos(null);
+                                setHoveredLineIndex(null);
                             }
                         }}
                     />
@@ -779,6 +830,21 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     </Group>
                 );
             })}
+
+            {/* Pole insertion preview circle */}
+            {insertPreviewPos && (
+                <Circle
+                    x={insertPreviewPos.x}
+                    y={insertPreviewPos.y}
+                    radius={5}
+                    fill="transparent"
+                    stroke={theme.palette.warning.main}
+                    strokeWidth={2}
+                    dash={[4, 4]}
+                    listening={false}
+                    opacity={0.8}
+                />
+            )}
 
             {/* Closing line segment for closed walls (last to first pole) - interactive - rendered AFTER poles for proper z-order */}
             {isClosed && polesToUse.length > 1 && (() => {

@@ -956,19 +956,32 @@ const SceneEditorPageInternal: React.FC = () => {
     const handleCancelEditing = useCallback(async () => {
         if (!scene || selectedWallIndex === null) return;
 
+        const segments = wallTransaction.getActiveSegments();
+        const originalWall = wallTransaction.transaction.originalWall;
+
         wallTransaction.rollbackTransaction();
 
-        if (originalWallPoles) {
-            const revertedScene = updateWallOptimistic(scene, selectedWallIndex, {
-                poles: originalWallPoles
+        let cleanedScene = scene;
+
+        segments.forEach(segment => {
+            if (segment.wallIndex === null) {
+                cleanedScene = removeWallOptimistic(cleanedScene, segment.tempId);
+            }
+        });
+
+        if (originalWall) {
+            cleanedScene = updateWallOptimistic(cleanedScene, selectedWallIndex, {
+                poles: originalWall.poles,
+                isClosed: originalWall.isClosed,
+                name: originalWall.name
             });
-            setScene(revertedScene);
         }
 
+        setScene(cleanedScene);
         setSelectedWallIndex(null);
         setIsEditingVertices(false);
         setOriginalWallPoles(null);
-    }, [scene, selectedWallIndex, originalWallPoles, wallTransaction, setScene]);
+    }, [scene, selectedWallIndex, wallTransaction, setScene]);
 
     const handleFinishEditing = useCallback(async () => {
         if (!sceneId || !scene || selectedWallIndex === null) return;
@@ -1557,31 +1570,25 @@ const SceneEditorPageInternal: React.FC = () => {
 
                                 {isEditingVertices && wallTransaction.transaction.isActive && (
                                     <>
-                                        {wallTransaction.getActiveSegments().map((segment) => {
-                                            const wall = scene.walls?.find(w =>
-                                                w.index === segment.wallIndex || w.index === segment.tempId
-                                            );
-                                            if (!wall) return null;
-
-                                            return (
-                                                <WallTransformer
-                                                    key={`transformer-${segment.tempId}`}
-                                                    poles={segment.poles}
-                                                    isClosed={segment.isClosed}
-                                                    onPolesChange={(newPoles, newIsClosed) =>
-                                                        handleVerticesChange(segment.wallIndex || segment.tempId, newPoles, newIsClosed)
-                                                    }
-                                                    gridConfig={gridConfig}
-                                                    snapEnabled={gridConfig.snap}
-                                                    onClearSelections={handleFinishEditing}
-                                                    isAltPressed={isAltPressed}
-                                                    sceneId={sceneId}
-                                                    wallIndex={segment.wallIndex || segment.tempId}
-                                                    wall={wall}
-                                                    onWallBreak={handleWallBreak}
-                                                />
-                                            );
-                                        })}
+                                        {wallTransaction.getActiveSegments().map((segment) => (
+                                            <WallTransformer
+                                                key={`transformer-${segment.tempId}`}
+                                                poles={segment.poles}
+                                                isClosed={segment.isClosed}
+                                                onPolesChange={(newPoles, newIsClosed) =>
+                                                    handleVerticesChange(segment.wallIndex || segment.tempId, newPoles, newIsClosed)
+                                                }
+                                                gridConfig={gridConfig}
+                                                snapEnabled={gridConfig.snap}
+                                                onClearSelections={handleFinishEditing}
+                                                isAltPressed={isAltPressed}
+                                                sceneId={sceneId}
+                                                wallIndex={segment.wallIndex || segment.tempId}
+                                                wall={undefined}
+                                                onWallBreak={handleWallBreak}
+                                                enableBackgroundRect={false}
+                                            />
+                                        ))}
                                     </>
                                 )}
                             </Group>
