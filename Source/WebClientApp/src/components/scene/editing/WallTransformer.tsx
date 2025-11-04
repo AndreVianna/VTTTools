@@ -110,6 +110,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     const circleRefs = useRef<Map<number, any>>(new Map());
     const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
     const [insertPreviewPos, setInsertPreviewPos] = useState<{x: number; y: number} | null>(null);
+    const [isShiftPressed, setIsShiftPressed] = useState<boolean>(false);
 
     const isPointInRect = (point: { x: number; y: number }, rect: { x: number; y: number; width: number; height: number }): boolean => {
         return point.x >= rect.x && point.x <= rect.x + rect.width &&
@@ -206,6 +207,10 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                 return;
             }
 
+            if (e.key === 'Shift') {
+                setIsShiftPressed(true);
+            } 
+            
             if (e.key === 'Delete') {
                 e.preventDefault();
                 e.stopPropagation();
@@ -250,6 +255,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
 
         const handleKeyUp = (e: KeyboardEvent) => {
             if (e.key === 'Shift') {
+                setIsShiftPressed(false);
                 setInsertPreviewPos(null);
                 setHoveredLineIndex(null);
             }
@@ -726,6 +732,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
 
                 const groupProps: any = {
                     draggable: true,
+                    listening: !isShiftPressed,
                     ref: (node: any) => {
                         if (node) {
                             circleRefs.current.set(index, node);
@@ -764,7 +771,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                             });
 
                             onPolesChange?.(newPoles, isClosed);
-                            setSelectedPoles(new Set());
+                            setSelectedPoles(new Set([insertIndex]));
                             setSelectedLines(new Set());
                             return;
                         }

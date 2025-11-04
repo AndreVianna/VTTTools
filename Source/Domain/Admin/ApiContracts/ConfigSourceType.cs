@@ -12,6 +12,7 @@ public enum ConfigSourceType {
     AzureKeyVault,
     AzureAppConfiguration,
     InMemory,
+    FrontendEnvFile,
     Unknown,
     NotFound
 }
