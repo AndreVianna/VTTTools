@@ -24,6 +24,7 @@ import {
     DataGrid,
     GridColDef,
     GridRenderCellParams,
+    GridRowsProp,
 } from '@mui/x-data-grid';
 import {
     FilterList as FilterListIcon,
@@ -31,13 +32,15 @@ import {
     FiberManualRecord as LiveIndicatorIcon,
     ExpandMore as ExpandMoreIcon,
     ExpandLess as ExpandLessIcon,
+    Download as DownloadIcon,
 } from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
-import { format } from 'date-fns';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 import { auditLogService, AuditLog, AuditLogQueryParams } from '@services/auditLogService';
+import { exportToCSV, exportToJSON } from '@utils/auditLogExport';
 
 const DATE_PRESETS = [
     { label: 'Last Hour', hours: 1 },
@@ -56,6 +59,18 @@ const formatJson = (json: string | undefined | null): string => {
     } catch {
         return json;
     }
+};
+
+interface DetailRow {
+    id: string;
+    isDetailRow: true;
+    parentLog: AuditLog;
+}
+
+type GridRow = AuditLog | DetailRow;
+
+const isDetailRow = (row: GridRow): row is DetailRow => {
+    return 'isDetailRow' in row && row.isDetailRow === true;
 };
 
 export function AuditLogsPage() {
@@ -176,6 +191,16 @@ export function AuditLogsPage() {
         });
     };
 
+    const handleExportCSV = () => {
+        const timestamp = dayjs().format('YYYYMMDD_HHmmss');
+        exportToCSV(logs, `audit_logs_${timestamp}.csv`);
+    };
+
+    const handleExportJSON = () => {
+        const timestamp = dayjs().format('YYYYMMDD_HHmmss');
+        exportToJSON(logs, `audit_logs_${timestamp}.json`);
+    };
+
     const getResultColor = (result: string): 'success' | 'warning' | 'error' | 'default' => {
         switch (result.toLowerCase()) {
             case 'success':
@@ -201,6 +226,23 @@ export function AuditLogsPage() {
         });
     };
 
+    const transformLogsToGridRows = (logs: AuditLog[]): GridRow[] => {
+        const rows: GridRow[] = [];
+        logs.forEach((log) => {
+            rows.push(log);
+            if (expandedRows.has(log.id)) {
+                rows.push({
+                    id: `${log.id}_detail`,
+                    isDetailRow: true,
+                    parentLog: log,
+                });
+            }
+        });
+        return rows;
+    };
+
+    const gridRows = transformLogsToGridRows(logs);
+
     const columns: GridColDef[] = [
         {
             field: 'expand',
@@ -208,27 +250,143 @@ export function AuditLogsPage() {
             width: 50,
             sortable: false,
             disableColumnMenu: true,
-            renderCell: (params: GridRenderCellParams) => (
-                <IconButton
-                    size="small"
-                    onClick={() => handleToggleExpand(params.row.id)}
-                    aria-label={expandedRows.has(params.row.id) ? 'Collapse row' : 'Expand row'}
-                >
-                    {expandedRows.has(params.row.id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </IconButton>
-            ),
+            renderCell: (params: GridRenderCellParams<GridRow>) => {
+                const row = params.row;
+                if (isDetailRow(row)) {
+                    const log = row.parentLog;
+                    return (
+                        <Box
+                            sx={{
+                                width: '100%',
+                                p: 3,
+                                bgcolor: 'background.default',
+                                position: 'absolute',
+                                left: 0,
+                                right: 0,
+                                zIndex: 1,
+                            }}
+                        >
+                            <Grid container spacing={3}>
+                                <Grid size={{ xs: 12 }}>
+                                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                        Request Details
+                                    </Typography>
+                                </Grid>
+
+                                <Grid size={{ xs: 12 }}>
+                                    <Typography variant="caption" color="text.secondary">
+                                        User Agent
+                                    </Typography>
+                                    <Typography
+                                        variant="body2"
+                                        sx={{
+                                            fontFamily: 'monospace',
+                                            fontSize: '0.875rem',
+                                            wordBreak: 'break-word',
+                                        }}
+                                    >
+                                        {log.userAgent || 'N/A'}
+                                    </Typography>
+                                </Grid>
+
+                                {log.queryString && (
+                                    <Grid size={{ xs: 12 }}>
+                                        <Typography variant="caption" color="text.secondary">
+                                            Query String
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                fontFamily: 'monospace',
+                                                fontSize: '0.875rem',
+                                                wordBreak: 'break-word',
+                                            }}
+                                        >
+                                            {log.queryString}
+                                        </Typography>
+                                    </Grid>
+                                )}
+
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <Typography variant="caption" color="text.secondary" gutterBottom>
+                                        Request Body
+                                    </Typography>
+                                    <Box
+                                        sx={{
+                                            maxHeight: 300,
+                                            overflow: 'auto',
+                                            bgcolor: 'background.paper',
+                                            p: 2,
+                                            borderRadius: 1,
+                                            border: 1,
+                                            borderColor: 'divider',
+                                        }}
+                                    >
+                                        <pre
+                                            style={{
+                                                margin: 0,
+                                                fontSize: '0.75rem',
+                                                whiteSpace: 'pre-wrap',
+                                                wordBreak: 'break-word',
+                                            }}
+                                        >
+                                            {formatJson(log.requestBody)}
+                                        </pre>
+                                    </Box>
+                                </Grid>
+
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <Typography variant="caption" color="text.secondary" gutterBottom>
+                                        Response Body
+                                    </Typography>
+                                    <Box
+                                        sx={{
+                                            maxHeight: 300,
+                                            overflow: 'auto',
+                                            bgcolor: 'background.paper',
+                                            p: 2,
+                                            borderRadius: 1,
+                                            border: 1,
+                                            borderColor: 'divider',
+                                        }}
+                                    >
+                                        <pre
+                                            style={{
+                                                margin: 0,
+                                                fontSize: '0.75rem',
+                                                whiteSpace: 'pre-wrap',
+                                                wordBreak: 'break-word',
+                                            }}
+                                        >
+                                            {formatJson(log.responseBody)}
+                                        </pre>
+                                    </Box>
+                                </Grid>
+                            </Grid>
+                        </Box>
+                    );
+                }
+
+                return (
+                    <IconButton
+                        size="small"
+                        onClick={() => handleToggleExpand(params.row.id)}
+                        aria-label={expandedRows.has(params.row.id) ? 'Collapse row' : 'Expand row'}
+                    >
+                        {expandedRows.has(params.row.id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    </IconButton>
+                );
+            },
         },
         {
             field: 'timestamp',
             headerName: 'Timestamp',
             width: 180,
-            renderCell: (params: GridRenderCellParams) => {
-                if (expandedRows.has(params.row.id)) {
-                    return null;
-                }
+            renderCell: (params: GridRenderCellParams<GridRow>) => {
+                if (isDetailRow(params.row)) return null;
                 return (
                     <Typography variant="body2">
-                        {format(new Date(params.value), 'MM/dd/yyyy HH:mm:ss')}
+                        {dayjs(params.value).format('MM/DD/YYYY HH:mm:ss')}
                     </Typography>
                 );
             },
@@ -237,10 +395,8 @@ export function AuditLogsPage() {
             field: 'userEmail',
             headerName: 'User',
             width: 200,
-            renderCell: (params: GridRenderCellParams) => {
-                if (expandedRows.has(params.row.id)) {
-                    return null;
-                }
+            renderCell: (params: GridRenderCellParams<GridRow>) => {
+                if (isDetailRow(params.row)) return null;
                 return <Typography variant="body2">{params.value || 'Anonymous'}</Typography>;
             },
         },
@@ -249,13 +405,12 @@ export function AuditLogsPage() {
             headerName: 'Action',
             flex: 1,
             minWidth: 250,
-            renderCell: (params: GridRenderCellParams) => {
-                if (expandedRows.has(params.row.id)) {
-                    return null;
-                }
+            renderCell: (params: GridRenderCellParams<GridRow>) => {
+                if (isDetailRow(params.row)) return null;
+                const log = params.row as AuditLog;
                 return (
                     <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                        {params.row.httpMethod} {params.row.path}
+                        {log.httpMethod} {log.path}
                     </Typography>
                 );
             },
@@ -264,10 +419,8 @@ export function AuditLogsPage() {
             field: 'result',
             headerName: 'Result',
             width: 120,
-            renderCell: (params: GridRenderCellParams) => {
-                if (expandedRows.has(params.row.id)) {
-                    return null;
-                }
+            renderCell: (params: GridRenderCellParams<GridRow>) => {
+                if (isDetailRow(params.row)) return null;
                 return (
                     <Chip
                         label={params.value}
@@ -282,10 +435,8 @@ export function AuditLogsPage() {
             headerName: 'Status',
             width: 80,
             align: 'center',
-            renderCell: (params: GridRenderCellParams) => {
-                if (expandedRows.has(params.row.id)) {
-                    return null;
-                }
+            renderCell: (params: GridRenderCellParams<GridRow>) => {
+                if (isDetailRow(params.row)) return null;
                 return params.value;
             },
         },
@@ -294,10 +445,8 @@ export function AuditLogsPage() {
             headerName: 'Duration (ms)',
             width: 120,
             align: 'right',
-            renderCell: (params: GridRenderCellParams) => {
-                if (expandedRows.has(params.row.id)) {
-                    return null;
-                }
+            renderCell: (params: GridRenderCellParams<GridRow>) => {
+                if (isDetailRow(params.row)) return null;
                 return <Typography variant="body2">{params.value}</Typography>;
             },
         },
@@ -305,123 +454,12 @@ export function AuditLogsPage() {
             field: 'ipAddress',
             headerName: 'IP Address',
             width: 140,
-            renderCell: (params: GridRenderCellParams) => {
-                if (expandedRows.has(params.row.id)) {
-                    return null;
-                }
+            renderCell: (params: GridRenderCellParams<GridRow>) => {
+                if (isDetailRow(params.row)) return null;
                 return (
                     <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
                         {params.value || '-'}
                     </Typography>
-                );
-            },
-        },
-        {
-            field: 'details',
-            headerName: '',
-            flex: 1,
-            sortable: false,
-            disableColumnMenu: true,
-            renderCell: (params: GridRenderCellParams) => {
-                if (!expandedRows.has(params.row.id)) {
-                    return null;
-                }
-                const row = params.row as AuditLog;
-                return (
-                    <Box
-                        sx={{
-                            width: '100%',
-                            p: 2,
-                            backgroundColor: theme.palette.background.default,
-                        }}
-                    >
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2" gutterBottom>
-                                    User Agent
-                                </Typography>
-                                <Typography
-                                    variant="body2"
-                                    sx={{
-                                        fontFamily: 'monospace',
-                                        fontSize: '0.8rem',
-                                        wordBreak: 'break-word',
-                                    }}
-                                >
-                                    {row.userAgent || '-'}
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="subtitle2" gutterBottom>
-                                    Query String
-                                </Typography>
-                                <Typography
-                                    variant="body2"
-                                    sx={{
-                                        fontFamily: 'monospace',
-                                        fontSize: '0.8rem',
-                                        wordBreak: 'break-word',
-                                    }}
-                                >
-                                    {row.queryString || '-'}
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Typography variant="subtitle2" gutterBottom>
-                                    Request Body
-                                </Typography>
-                                <Paper
-                                    sx={{
-                                        p: 1,
-                                        backgroundColor: theme.palette.mode === 'dark'
-                                            ? 'rgba(0, 0, 0, 0.3)'
-                                            : 'rgba(0, 0, 0, 0.02)',
-                                        maxHeight: 200,
-                                        overflow: 'auto',
-                                    }}
-                                >
-                                    <pre
-                                        style={{
-                                            margin: 0,
-                                            fontFamily: 'monospace',
-                                            fontSize: '0.75rem',
-                                            whiteSpace: 'pre-wrap',
-                                            wordBreak: 'break-word',
-                                        }}
-                                    >
-                                        {formatJson(row.requestBody)}
-                                    </pre>
-                                </Paper>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Typography variant="subtitle2" gutterBottom>
-                                    Response Body
-                                </Typography>
-                                <Paper
-                                    sx={{
-                                        p: 1,
-                                        backgroundColor: theme.palette.mode === 'dark'
-                                            ? 'rgba(0, 0, 0, 0.3)'
-                                            : 'rgba(0, 0, 0, 0.02)',
-                                        maxHeight: 200,
-                                        overflow: 'auto',
-                                    }}
-                                >
-                                    <pre
-                                        style={{
-                                            margin: 0,
-                                            fontFamily: 'monospace',
-                                            fontSize: '0.75rem',
-                                            whiteSpace: 'pre-wrap',
-                                            wordBreak: 'break-word',
-                                        }}
-                                    >
-                                        {formatJson(row.responseBody)}
-                                    </pre>
-                                </Paper>
-                            </Grid>
-                        </Grid>
-                    </Box>
                 );
             },
         },
@@ -449,37 +487,43 @@ export function AuditLogsPage() {
             </Stack>
 
             <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <DateTimePicker
                         label="Start Date"
                         value={tempFilters.startDate ? new Date(tempFilters.startDate) : null}
-                        onChange={(newValue) =>
-                            setTempFilters({
-                                ...tempFilters,
-                                startDate: newValue?.toISOString() || undefined,
-                            })
-                        }
+                        onChange={(newValue) => {
+                            const newFilters = { ...tempFilters };
+                            if (newValue) {
+                                newFilters.startDate = newValue.toISOString();
+                            } else {
+                                delete newFilters.startDate;
+                            }
+                            setTempFilters(newFilters);
+                        }}
                         slotProps={{
                             textField: { fullWidth: true },
                         }}
                     />
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <DateTimePicker
                         label="End Date"
                         value={tempFilters.endDate ? new Date(tempFilters.endDate) : null}
-                        onChange={(newValue) =>
-                            setTempFilters({
-                                ...tempFilters,
-                                endDate: newValue?.toISOString() || undefined,
-                            })
-                        }
+                        onChange={(newValue) => {
+                            const newFilters = { ...tempFilters };
+                            if (newValue) {
+                                newFilters.endDate = newValue.toISOString();
+                            } else {
+                                delete newFilters.endDate;
+                            }
+                            setTempFilters(newFilters);
+                        }}
                         slotProps={{
                             textField: { fullWidth: true },
                         }}
                     />
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                         fullWidth
                         label="User Email"
@@ -489,7 +533,7 @@ export function AuditLogsPage() {
                         }
                     />
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                         fullWidth
                         label="Action (Path)"
@@ -499,7 +543,7 @@ export function AuditLogsPage() {
                         }
                     />
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <FormControl fullWidth>
                         <InputLabel>Result</InputLabel>
                         <Select
@@ -518,7 +562,7 @@ export function AuditLogsPage() {
                         </Select>
                     </FormControl>
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                         fullWidth
                         label="IP Address"
@@ -528,7 +572,7 @@ export function AuditLogsPage() {
                         }
                     />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                     <TextField
                         fullWidth
                         label="Keyword (searches request/response)"
@@ -561,7 +605,7 @@ export function AuditLogsPage() {
     );
 
     return (
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h4">Audit Logs</Typography>
@@ -596,13 +640,29 @@ export function AuditLogsPage() {
                                         </Typography>
                                         {lastUpdate && (
                                             <Typography variant="caption" color="text.secondary">
-                                                (Last update: {format(lastUpdate, 'HH:mm:ss')})
+                                                (Last update: {dayjs(lastUpdate).format('HH:mm:ss')})
                                             </Typography>
                                         )}
                                     </Stack>
                                 )}
                             </>
                         )}
+                        <Button
+                            variant="outlined"
+                            startIcon={<DownloadIcon />}
+                            onClick={handleExportCSV}
+                            disabled={logs.length === 0}
+                        >
+                            Export CSV
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            startIcon={<DownloadIcon />}
+                            onClick={handleExportJSON}
+                            disabled={logs.length === 0}
+                        >
+                            Export JSON
+                        </Button>
                         <Button
                             id="btn-toggle-filters"
                             variant="outlined"
@@ -643,17 +703,36 @@ export function AuditLogsPage() {
                 ) : (
                     <Paper sx={{ height: 600, width: '100%' }}>
                         <DataGrid
-                            rows={logs}
+                            rows={gridRows}
                             columns={columns}
-                            rowCount={activeTab === 0 ? totalCount : logs.length}
                             loading={loading}
                             pageSizeOptions={[25, 50, 100]}
-                            paginationModel={paginationModel}
-                            paginationMode={activeTab === 0 ? 'server' : 'client'}
-                            onPaginationModelChange={setPaginationModel}
                             disableRowSelectionOnClick
-                            getDetailPanelContent={getDetailPanelContent}
-                            getDetailPanelHeight={() => 'auto'}
+                            getRowHeight={(params) => {
+                                if (isDetailRow(params.model as GridRow)) {
+                                    return 'auto';
+                                }
+                                return 52;
+                            }}
+                            getRowClassName={(params) => {
+                                if (isDetailRow(params.row as GridRow)) {
+                                    return 'detail-row';
+                                }
+                                return '';
+                            }}
+                            {...(activeTab === 0
+                                ? {
+                                    paginationMode: 'server' as const,
+                                    rowCount: totalCount,
+                                    paginationModel: paginationModel,
+                                    onPaginationModelChange: setPaginationModel,
+                                }
+                                : {
+                                    paginationMode: 'client' as const,
+                                    paginationModel: paginationModel,
+                                    onPaginationModelChange: setPaginationModel,
+                                }
+                            )}
                             slots={{
                                 noRowsOverlay: () => (
                                     <Box
@@ -676,6 +755,16 @@ export function AuditLogsPage() {
                                 },
                                 '& .MuiDataGrid-cell': {
                                     borderBottom: `1px solid ${theme.palette.divider}`,
+                                },
+                                '& .detail-row': {
+                                    bgcolor: 'background.default',
+                                },
+                                '& .detail-row .MuiDataGrid-cell': {
+                                    borderBottom: 'none',
+                                    overflow: 'visible',
+                                },
+                                '& .detail-row .MuiDataGrid-cell:first-of-type': {
+                                    position: 'relative',
                                 },
                             }}
                         />

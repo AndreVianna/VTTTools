@@ -84,8 +84,8 @@ internal static class Program {
                 };
             });
 
-        // Configure cookie authentication for SPA
         builder.Services.ConfigureApplicationCookie(options => {
+            options.Cookie.Name = ".VttTools.Auth";
             options.Cookie.HttpOnly = true;
             options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
                 ? CookieSecurePolicy.SameAsRequest
@@ -97,7 +97,6 @@ internal static class Program {
             options.LogoutPath = "/api/auth/logout";
             options.AccessDeniedPath = "/api/auth/access-denied";
 
-            // Return JSON responses for API calls instead of redirects
             options.Events.OnRedirectToLogin = context => {
                 context.Response.StatusCode = 401;
                 return Task.CompletedTask;

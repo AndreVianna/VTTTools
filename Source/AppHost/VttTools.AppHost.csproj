@@ -28,8 +28,6 @@
     <ProjectReference Include="..\Library\VttTools.Library.csproj" />
     <ProjectReference Include="..\Game\VttTools.Game.csproj" />
     <ProjectReference Include="..\Media\VttTools.Media.csproj" />
-    <!-- Temporarily disabled - legacy Blazor WASM (migrating to React) -->
-    <!-- <ProjectReference Include="..\WebApp\VttTools.WebApp.csproj" /> -->
     <ProjectReference Include="..\Auth\VttTools.Auth.csproj" />
   </ItemGroup>
 

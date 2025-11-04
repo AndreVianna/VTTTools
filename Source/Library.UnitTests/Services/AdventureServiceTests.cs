@@ -69,7 +69,7 @@ public class AdventureServiceTests {
         result.Value.Description.Should().Be(request.Description);
         result.Value.Style.Should().Be(request.Style);
         result.Value.IsOneShot.Should().Be(request.IsOneShot);
-        result.Value.Background.Should().NotBeNull();
+        result.Value.Background.Should().BeNull();
         result.Value.IsPublished.Should().BeFalse();
         result.Value.IsPublic.Should().BeFalse();
         result.Value.CampaignId.Should().Be(request.CampaignId);
@@ -414,7 +414,7 @@ public class AdventureServiceTests {
             Style = AdventureStyle.Survival,
             IsOneShot = false,
             IsPublished = true,
-            IsPublic = true,
+            IsPublic = false,
             CampaignId = Guid.CreateVersion7(),
         };
 

@@ -1,0 +1,267 @@
+import { useState, useCallback } from 'react';
+import type { Scene, SceneWall, Pole } from '@/types/domain';
+import { WallVisibility } from '@/types/domain';
+import { cleanWallPoles } from '@/utils/wallUtils';
+import type {
+    useAddSceneWallMutation,
+    useUpdateSceneWallMutation
+} from '@/services/sceneApi';
+
+export type TransactionType = 'placement' | 'editing' | null;
+
+export interface WallSegment {
+    tempId: number;
+    wallIndex: number | null;
+    name: string;
+    poles: Pole[];
+    isClosed: boolean;
+    visibility: WallVisibility;
+    material?: string;
+    color?: string;
+}
+
+export interface WallTransaction {
+    type: TransactionType;
+    originalWall: SceneWall | null;
+    segments: WallSegment[];
+    isActive: boolean;
+}
+
+export interface CommitResult {
+    success: boolean;
+    segmentResults: Array<{
+        tempId: number;
+        wallIndex?: number;
+        error?: string;
+    }>;
+}
+
+interface ApiHooks {
+    addSceneWall: ReturnType<typeof useAddSceneWallMutation>[0];
+    updateSceneWall: ReturnType<typeof useUpdateSceneWallMutation>[0];
+}
+
+const INITIAL_TRANSACTION: WallTransaction = {
+    type: null,
+    originalWall: null,
+    segments: [],
+    isActive: false
+};
+
+function generateBrokenWallNames(originalName: string, segmentCount: number): string[] {
+    const numberSuffixPattern = /^(.*?)(\d+)$/;
+    const match = originalName.match(numberSuffixPattern);
+
+    const names: string[] = [];
+
+    if (match) {
+        const [, baseName, numberStr] = match;
+        const baseNumber = parseInt(numberStr, 10);
+
+        for (let i = 1; i <= segmentCount; i++) {
+            names.push(`${baseName}${baseNumber}.${i}`);
+        }
+    } else {
+        for (let i = 1; i <= segmentCount; i++) {
+            names.push(`${originalName} ${i}`);
+        }
+    }
+
+    return names;
+}
+
+export const useWallTransaction = () => {
+    const [transaction, setTransaction] = useState<WallTransaction>(INITIAL_TRANSACTION);
+    const [nextTempId, setNextTempId] = useState<number>(0);
+
+    const startTransaction = useCallback((
+        type: TransactionType,
+        wall?: SceneWall,
+        placementProperties?: {
+            name?: string;
+            visibility?: WallVisibility;
+            isClosed?: boolean;
+            material?: string;
+            color?: string;
+        }
+    ) => {
+        if (wall) {
+            setTransaction({
+                type,
+                originalWall: wall,
+                segments: [{
+                    tempId: 0,
+                    wallIndex: wall.index,
+                    name: wall.name,
+                    poles: [...wall.poles],
+                    isClosed: wall.isClosed,
+                    visibility: wall.visibility,
+                    material: wall.material,
+                    color: wall.color
+                }],
+                isActive: true
+            });
+            setNextTempId(1);
+        } else {
+            setTransaction({
+                type,
+                originalWall: null,
+                segments: [{
+                    tempId: -1,
+                    wallIndex: null,
+                    name: placementProperties?.name || '',
+                    poles: [],
+                    visibility: placementProperties?.visibility ?? WallVisibility.Normal,
+                    isClosed: placementProperties?.isClosed ?? false,
+                    material: placementProperties?.material,
+                    color: placementProperties?.color || '#808080'
+                }],
+                isActive: true
+            });
+            setNextTempId(0);
+        }
+    }, []);
+
+    const addSegment = useCallback((segment: Omit<WallSegment, 'tempId'>): number => {
+        const newTempId = -(nextTempId + 1);
+
+        setTransaction(prev => ({
+            ...prev,
+            segments: [
+                ...prev.segments,
+                {
+                    ...segment,
+                    tempId: newTempId
+                }
+            ]
+        }));
+
+        setNextTempId(Math.abs(newTempId));
+        return newTempId;
+    }, [nextTempId]);
+
+    const updateSegment = useCallback((tempId: number, changes: Partial<WallSegment>) => {
+        setTransaction(prev => ({
+            ...prev,
+            segments: prev.segments.map(segment =>
+                segment.tempId === tempId
+                    ? { ...segment, ...changes }
+                    : segment
+            )
+        }));
+    }, []);
+
+    const commitTransaction = useCallback(async (
+        sceneId: string,
+        apiHooks: ApiHooks
+    ): Promise<CommitResult> => {
+        const { addSceneWall, updateSceneWall } = apiHooks;
+        const results: CommitResult['segmentResults'] = [];
+
+        try {
+            const segmentsToProcess = transaction.segments.map(segment => {
+                const cleaned = cleanWallPoles(segment.poles, segment.isClosed);
+                return {
+                    ...segment,
+                    poles: cleaned.poles,
+                    isClosed: cleaned.isClosed
+                };
+            });
+
+            const needsNaming = transaction.type === 'editing' &&
+                                transaction.originalWall !== null &&
+                                segmentsToProcess.length > 1;
+
+            const names = needsNaming
+                ? generateBrokenWallNames(
+                    transaction.originalWall!.name,
+                    segmentsToProcess.length
+                  )
+                : segmentsToProcess.map(s => s.name);
+
+            for (let i = 0; i < segmentsToProcess.length; i++) {
+                const segment = segmentsToProcess[i];
+                const assignedName = names[i];
+
+                try {
+                    if (segment.wallIndex !== null) {
+                        await updateSceneWall({
+                            sceneId,
+                            wallIndex: segment.wallIndex,
+                            name: assignedName,
+                            poles: segment.poles,
+                            visibility: segment.visibility,
+                            isClosed: segment.isClosed,
+                            material: segment.material,
+                            color: segment.color
+                        }).unwrap();
+
+                        results.push({
+                            tempId: segment.tempId,
+                            wallIndex: segment.wallIndex
+                        });
+                    } else {
+                        const result = await addSceneWall({
+                            sceneId,
+                            name: assignedName,
+                            poles: segment.poles,
+                            visibility: segment.visibility,
+                            isClosed: segment.isClosed,
+                            material: segment.material,
+                            color: segment.color
+                        }).unwrap();
+
+                        results.push({
+                            tempId: segment.tempId,
+                            wallIndex: result.index
+                        });
+                    }
+                } catch (error) {
+                    results.push({
+                        tempId: segment.tempId,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    });
+                }
+            }
+
+            const hasErrors = results.some(r => r.error !== undefined);
+
+            if (!hasErrors) {
+                setTransaction(INITIAL_TRANSACTION);
+                setNextTempId(0);
+            }
+
+            return {
+                success: !hasErrors,
+                segmentResults: results
+            };
+        } catch (error) {
+            return {
+                success: false,
+                segmentResults: [{
+                    tempId: -1,
+                    error: error instanceof Error ? error.message : 'Transaction commit failed'
+                }]
+            };
+        }
+    }, [transaction]);
+
+    const rollbackTransaction = useCallback(() => {
+        setTransaction(INITIAL_TRANSACTION);
+        setNextTempId(0);
+    }, []);
+
+    const getActiveSegments = useCallback((): WallSegment[] => {
+        return transaction.segments;
+    }, [transaction.segments]);
+
+    return {
+        transaction,
+        startTransaction,
+        addSegment,
+        updateSegment,
+        commitTransaction,
+        rollbackTransaction,
+        getActiveSegments
+    };
+};

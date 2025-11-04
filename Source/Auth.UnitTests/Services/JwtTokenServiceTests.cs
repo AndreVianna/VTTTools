@@ -208,11 +208,11 @@ public class JwtTokenServiceTests {
 
         var now = DateTime.UtcNow;
         var tokenDescriptor = new SecurityTokenDescriptor {
-            Subject = new ClaimsIdentity(new[]
-            {
+            Subject = new ClaimsIdentity(
+            [
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email)
-            }),
+            ]),
             NotBefore = now.AddMinutes(-10),
             Expires = now.AddSeconds(-1),
             Issuer = _jwtOptions.Issuer,
@@ -352,11 +352,11 @@ public class JwtTokenServiceTests {
 
         var now = DateTime.UtcNow;
         var tokenDescriptor = new SecurityTokenDescriptor {
-            Subject = new ClaimsIdentity(new[]
-            {
+            Subject = new ClaimsIdentity(
+            [
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email)
-            }),
+            ]),
             NotBefore = now.AddMinutes(-10),
             Expires = now.AddSeconds(-1),
             Issuer = _jwtOptions.Issuer,

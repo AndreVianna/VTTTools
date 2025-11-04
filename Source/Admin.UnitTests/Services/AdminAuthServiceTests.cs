@@ -181,7 +181,7 @@ public class AdminAuthServiceTests {
         _mockUserManager.GetRolesAsync(user).Returns(["Administrator"]);
         _mockUserManager.CheckPasswordAsync(user, request.Password).Returns(true);
 
-        var signInResult = Microsoft.AspNetCore.Identity.SignInResult.Failed;
+        var signInResult = SignInResult.Failed;
         _mockSignInManager.TwoFactorAuthenticatorSignInAsync(
             request.TwoFactorCode,
             false,
@@ -212,7 +212,7 @@ public class AdminAuthServiceTests {
         _mockUserManager.GetRolesAsync(user).Returns(["Administrator"]);
         _mockUserManager.CheckPasswordAsync(user, request.Password).Returns(true);
 
-        var signInResult = Microsoft.AspNetCore.Identity.SignInResult.Success;
+        var signInResult = SignInResult.Success;
         _mockSignInManager.TwoFactorAuthenticatorSignInAsync(
             request.TwoFactorCode,
             false,

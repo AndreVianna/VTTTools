@@ -37,8 +37,8 @@ export const WallPreview: React.FC<WallPreviewProps> = ({
                 );
             })}
 
-            {/* Closing line for closed walls (first to last pole) */}
-            {isClosed && poles.length > 1 && (
+            {/* Closing line for closed walls (first to last pole) - only when NOT actively placing */}
+            {isClosed && poles.length > 1 && !previewPoint && (
                 <Line
                     key="closing-line"
                     points={[
@@ -49,6 +49,9 @@ export const WallPreview: React.FC<WallPreviewProps> = ({
                     ]}
                     stroke={blueColor}
                     strokeWidth={3}
+                    dash={[8, 4]}
+                    dashEnabled={true}
+                    perfectDrawEnabled={false}
                     listening={false}
                 />
             )}
@@ -65,7 +68,7 @@ export const WallPreview: React.FC<WallPreviewProps> = ({
                 />
             ))}
 
-            {/* Preview line from last pole to cursor (dashed grey) */}
+            {/* Preview line from last pole to cursor - solid blue (same as normal wall segments) */}
             {previewPoint && poles.length > 0 && (
                 <Line
                     points={[
@@ -74,10 +77,26 @@ export const WallPreview: React.FC<WallPreviewProps> = ({
                         previewPoint.x,
                         previewPoint.y
                     ]}
-                    stroke={theme.palette.grey[500]}
-                    strokeWidth={1}
-                    dash={[5, 5]}
-                    opacity={0.5}
+                    stroke={blueColor}
+                    strokeWidth={3}
+                    listening={false}
+                />
+            )}
+
+            {/* Additional dashed line from cursor to first pole when wall is closed */}
+            {previewPoint && isClosed && poles.length > 0 && (
+                <Line
+                    points={[
+                        previewPoint.x,
+                        previewPoint.y,
+                        poles[0].x,
+                        poles[0].y
+                    ]}
+                    stroke={blueColor}
+                    strokeWidth={3}
+                    dash={[8, 4]}
+                    dashEnabled={true}
+                    perfectDrawEnabled={false}
                     listening={false}
                 />
             )}

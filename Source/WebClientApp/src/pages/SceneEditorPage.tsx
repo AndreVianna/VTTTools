@@ -23,6 +23,7 @@ import {
     TopToolBar,
     EditorStatusBar
 } from '@components/scene';
+import type { WallBreakData } from '@components/scene/editing/WallTransformer';
 import { EditingBlocker, ConfirmDialog } from '@components/common';
 import { EditorLayout } from '@components/layout';
 import { GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
@@ -44,6 +45,8 @@ import { UndoRedoProvider, useUndoRedoContext } from '@/contexts/UndoRedoContext
 import { ClipboardProvider } from '@/contexts/ClipboardContext';
 import { useClipboard } from '@/contexts/useClipboard';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
+import { useWallTransaction } from '@/hooks/useWallTransaction';
+import { addWallOptimistic, removeWallOptimistic, syncWallIndices, updateWallOptimistic } from '@/utils/sceneStateUtils';
 import {
     createPlaceAssetCommand,
     createMoveAssetCommand,
@@ -70,6 +73,7 @@ import {
 } from '@/services/sceneApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
 import { hydratePlacedAssets, ensureSceneDefaults } from '@/utils/sceneMappers';
+import { cleanWallPoles } from '@/utils/wallUtils';
 import { getApiEndpoints } from '@/config/development';
 import { SaveStatus } from '@/components/common';
 import { useAppDispatch } from '@/store';
@@ -88,6 +92,7 @@ const SceneEditorPageInternal: React.FC = () => {
     const { execute } = useUndoRedoContext();
     const { copyAssets, cutAssets, clipboard, canPaste, getClipboardAssets, clearClipboard } = useClipboard();
     const { isOnline } = useConnectionStatus();
+    const wallTransaction = useWallTransaction();
     const dispatch = useAppDispatch();
 
     const { data: sceneData, isLoading: isLoadingScene, error: sceneError, refetch } = useGetSceneQuery(
@@ -159,6 +164,7 @@ const SceneEditorPageInternal: React.FC = () => {
     const [WallContextMenuPosition, setWallContextMenuPosition] = useState<{ left: number; top: number } | null>(null);
     const [contextMenuWall, setContextMenuWall] = useState<SceneWall | null>(null);
     const [isEditingVertices, setIsEditingVertices] = useState(false);
+    const [originalWallPoles, setOriginalWallPoles] = useState<Pole[] | null>(null);
 
     interface LayerVisibility {
         background: boolean;
@@ -914,7 +920,9 @@ const SceneEditorPageInternal: React.FC = () => {
     }, [canPaste, sceneId, isOnline, scene, getClipboardAssets, clipboard.operation, clearClipboard, bulkAddSceneAssets, bulkDeleteSceneAssets, refetch, execute, dispatch]);
 
     const handleWallDelete = useCallback(async (wallIndex: number) => {
-        if (!sceneId) return;
+        if (!sceneId) {
+            return;
+        }
 
         try {
             await removeSceneWall({ sceneId, wallIndex }).unwrap();
@@ -933,38 +941,163 @@ const SceneEditorPageInternal: React.FC = () => {
 
 
     const handleEditVertices = useCallback((wallIndex: number) => {
+        const wall = scene?.walls?.find(w => w.index === wallIndex);
+        if (!wall) return;
+
+        setOriginalWallPoles([...wall.poles]);
+
+        wallTransaction.startTransaction('editing', wall);
+
         setSelectedWallIndex(wallIndex);
         setIsEditingVertices(true);
         setActivePanel(null);
-    }, []);
+    }, [scene, wallTransaction]);
 
-    const handleVerticesChange = useCallback(async (
-        wallIndex: number,
-        newPoles: Pole[]
-    ) => {
-        if (!sceneId) {
-            console.error('[SceneEditorPage] No sceneId, aborting');
-            return;
+    const handleCancelEditing = useCallback(async () => {
+        if (!scene || selectedWallIndex === null) return;
+
+        wallTransaction.rollbackTransaction();
+
+        if (originalWallPoles) {
+            const revertedScene = updateWallOptimistic(scene, selectedWallIndex, {
+                poles: originalWallPoles
+            });
+            setScene(revertedScene);
         }
 
-        try {
-            await updateSceneWall({
-                sceneId,
-                wallIndex,
-                poles: newPoles
-            }).unwrap();
+        setSelectedWallIndex(null);
+        setIsEditingVertices(false);
+        setOriginalWallPoles(null);
+    }, [scene, selectedWallIndex, originalWallPoles, wallTransaction, setScene]);
 
+    const handleFinishEditing = useCallback(async () => {
+        if (!sceneId || !scene || selectedWallIndex === null) return;
+
+        const result = await wallTransaction.commitTransaction(sceneId, {
+            addSceneWall,
+            updateSceneWall
+        });
+
+        if (result.success) {
             const { data: updatedScene } = await refetch();
             if (updatedScene) {
                 setScene(updatedScene);
-            } else {
-                console.error('[SceneEditorPage] Refetch returned no data');
             }
-        } catch (error) {
-            console.error('[SceneEditorPage] Failed to update wall poles:', error);
-            setErrorMessage('Failed to update poles. Please try again.');
+        } else {
+            wallTransaction.rollbackTransaction();
+
+            if (originalWallPoles && selectedWallIndex !== null) {
+                const revertedScene = updateWallOptimistic(scene, selectedWallIndex, {
+                    poles: originalWallPoles
+                });
+                setScene(revertedScene);
+            }
+
+            setErrorMessage('Failed to save wall changes. Please try again.');
         }
-    }, [sceneId, updateSceneWall, refetch]);
+
+        setSelectedWallIndex(null);
+        setIsEditingVertices(false);
+        setOriginalWallPoles(null);
+    }, [sceneId, scene, selectedWallIndex, originalWallPoles, wallTransaction, addSceneWall, updateSceneWall, setScene, refetch]);
+
+    const handleVerticesChange = useCallback(async (
+        wallIndex: number,
+        newPoles: Pole[],
+        newIsClosed?: boolean
+    ) => {
+        if (!scene) return;
+
+        if (!wallTransaction.transaction.isActive) {
+            console.warn('[handleVerticesChange] No active transaction');
+            return;
+        }
+
+        if (newPoles.length < 2) {
+            console.warn('[handleVerticesChange] Wall must have at least 2 poles');
+            return;
+        }
+
+        const wall = scene.walls?.find(w => w.index === wallIndex);
+        if (!wall) return;
+
+        const effectiveIsClosed = newIsClosed !== undefined ? newIsClosed : wall.isClosed;
+
+        const segments = wallTransaction.getActiveSegments();
+        const segment = segments.find(s =>
+            s.wallIndex === wallIndex || s.tempId === wallIndex
+        );
+
+        if (!segment) {
+            console.warn(`[handleVerticesChange] Segment not found for wallIndex ${wallIndex}`);
+            return;
+        }
+
+        wallTransaction.updateSegment(segment.tempId, {
+            poles: newPoles,
+            isClosed: effectiveIsClosed
+        });
+
+        const updatedScene = updateWallOptimistic(scene, wallIndex, {
+            poles: newPoles,
+            isClosed: effectiveIsClosed
+        });
+        setScene(updatedScene);
+    }, [scene, wallTransaction, setScene]);
+
+    const handleWallBreak = useCallback(async (breakData: WallBreakData) => {
+        if (!sceneId || selectedWallIndex === null || !scene) {
+            console.error('[SceneEditorPage] No sceneId or selectedWallIndex');
+            return;
+        }
+
+        const wall = scene.walls?.find(w => w.index === selectedWallIndex);
+        if (!wall) {
+            console.error('[SceneEditorPage] Wall not found');
+            return;
+        }
+
+        const segments = wallTransaction.getActiveSegments();
+        const currentSegment = segments.find(s => s.wallIndex === selectedWallIndex);
+        if (!currentSegment) {
+            console.error('[SceneEditorPage] Current segment not found in transaction');
+            return;
+        }
+
+        wallTransaction.updateSegment(currentSegment.tempId, {
+            poles: breakData.originalWallPoles,
+            isClosed: false
+        });
+
+        const newSegmentTempId = wallTransaction.addSegment({
+            wallIndex: null,
+            name: wall.name,
+            poles: breakData.newWallPoles,
+            isClosed: false,
+            visibility: wall.visibility,
+            material: wall.material,
+            color: wall.color
+        });
+
+        let updatedScene = updateWallOptimistic(scene, selectedWallIndex, {
+            poles: breakData.originalWallPoles,
+            isClosed: false
+        });
+
+        const tempWall: SceneWall = {
+            sceneId,
+            index: newSegmentTempId,
+            name: wall.name,
+            poles: breakData.newWallPoles,
+            isClosed: false,
+            visibility: wall.visibility,
+            material: wall.material,
+            color: wall.color
+        };
+
+        updatedScene = addWallOptimistic(updatedScene, tempWall);
+        setScene(updatedScene);
+    }, [sceneId, selectedWallIndex, scene, wallTransaction, setScene]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -987,15 +1120,26 @@ const SceneEditorPageInternal: React.FC = () => {
                 handlePasteAssets();
             }
 
-            if (e.key === 'Delete' && selectedWallIndex !== null) {
+            if (e.key === 'Delete' && selectedWallIndex !== null && !isEditingVertices) {
                 e.preventDefault();
                 handleWallDelete(selectedWallIndex);
             }
 
             if (e.key === 'Escape') {
                 e.preventDefault();
-                setSelectedWallIndex(null);
-                setIsEditingVertices(false);
+                if (isEditingVertices) {
+                    handleCancelEditing();
+                } else {
+                    setSelectedWallIndex(null);
+                    setIsEditingVertices(false);
+                }
+            }
+
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (isEditingVertices) {
+                    handleFinishEditing();
+                }
             }
         };
 
@@ -1004,7 +1148,7 @@ const SceneEditorPageInternal: React.FC = () => {
         return () => {
             window.removeEventListener('keydown', handleKeyDown, { capture: true });
         };
-    }, [handleCopyAssets, handleCutAssets, handlePasteAssets, selectedWallIndex, handleWallDelete]);
+    }, [handleCopyAssets, handleCutAssets, handlePasteAssets, selectedWallIndex, handleWallDelete, isEditingVertices, handleCancelEditing, handleFinishEditing]);
 
     const handleAssetSelected = (assetIds: string[]) => {
         setSelectedAssetIds(assetIds);
@@ -1124,17 +1268,45 @@ const SceneEditorPageInternal: React.FC = () => {
     // Region and source drawing currently non-functional pending implementation
 
     const handleStructurePlacementCancel = useCallback(async () => {
-        console.log('[SceneEditorPage] Ending wall placement mode');
+        if (!scene) return;
 
-        // Refetch scene to get the latest wall data with poles
-        const { data: updatedScene } = await refetch();
-        if (updatedScene) {
-            setScene(updatedScene);
+        wallTransaction.rollbackTransaction();
+
+        const cleanScene = removeWallOptimistic(scene, -1);
+        setScene(cleanScene);
+
+        setDrawingWallIndex(null);
+        setDrawingMode(null);
+    }, [scene, wallTransaction]);
+
+    const handleStructurePlacementFinish = useCallback(async () => {
+        if (!sceneId || !scene) return;
+
+        const result = await wallTransaction.commitTransaction(sceneId, {
+            addSceneWall,
+            updateSceneWall
+        });
+
+        if (result.success && result.segmentResults.length > 0) {
+            const tempToReal = new Map<number, number>();
+            result.segmentResults.forEach(r => {
+                if (r.wallIndex !== undefined) {
+                    tempToReal.set(r.tempId, r.wallIndex);
+                }
+            });
+
+            const syncedScene = syncWallIndices(scene, tempToReal);
+            setScene(syncedScene);
+        } else {
+            wallTransaction.rollbackTransaction();
+            const cleanScene = removeWallOptimistic(scene, -1);
+            setScene(cleanScene);
+            setErrorMessage('Failed to place wall. Please try again.');
         }
 
         setDrawingWallIndex(null);
         setDrawingMode(null);
-    }, [refetch]);
+    }, [sceneId, scene, wallTransaction, addSceneWall, updateSceneWall]);
 
     const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         const canvasX = Math.round((e.clientX - viewport.x) / viewport.scale);
@@ -1171,51 +1343,47 @@ const SceneEditorPageInternal: React.FC = () => {
         defaultHeight: number;
         color?: string;
     }) => {
-        if (!sceneId) return;
+        if (!sceneId || !scene) return;
 
-        console.log('[SceneEditorPage] handlePlaceWall called', properties);
+        const existingWalls = scene.walls || [];
 
-        try {
-            const existingWalls = scene?.walls || [];
-            const wallCount = existingWalls.filter((w) => w.name.startsWith('Wall ')).length;
-            const wallName = `Wall ${wallCount + 1}`;
+        const wallNumbers = existingWalls
+            .map(w => {
+                const match = w.name.match(/^Wall (\d+)$/);
+                return match ? parseInt(match[1], 10) : null;
+            })
+            .filter((n): n is number => n !== null);
 
-            console.log('[SceneEditorPage] Creating wall with empty poles:', { wallName, wallCount });
+        const nextNumber = wallNumbers.length > 0 ? Math.max(...wallNumbers) + 1 : 1;
+        const wallName = `Wall ${nextNumber}`;
 
-            const response = await addSceneWall({
-                sceneId,
-                name: wallName,
-                poles: [],
-                visibility: properties.visibility,
-                isClosed: properties.isClosed,
-                material: properties.material,
-                color: properties.color || '#808080'
-            }).unwrap();
+        wallTransaction.startTransaction('placement', undefined, {
+            name: wallName,
+            visibility: properties.visibility,
+            isClosed: properties.isClosed,
+            material: properties.material,
+            color: properties.color || '#808080'
+        });
 
-            console.log('[SceneEditorPage] Wall created with index:', response.index);
+        const tempWall: SceneWall = {
+            sceneId,
+            index: -1,
+            name: wallName,
+            poles: [],
+            visibility: properties.visibility,
+            isClosed: properties.isClosed,
+            material: properties.material,
+            color: properties.color || '#808080'
+        };
 
-            const { data: updatedScene } = await refetch();
-            if (updatedScene) {
-                console.log('[SceneEditorPage] Scene refetched after wall creation:', {
-                    fullScene: updatedScene,
-                    wallsCount: updatedScene.walls?.length || 0,
-                    walls: updatedScene.walls
-                });
-                setScene(updatedScene);
-            }
+        const updatedScene = addWallOptimistic(scene, tempWall);
+        setScene(updatedScene);
 
-            setDrawingWallIndex(response.index);
-            setDrawingWallDefaultHeight(properties.defaultHeight);
-            setDrawingMode('wall');
-            setActivePanel(null);
-
-            console.log('[SceneEditorPage] Entering drawing mode for wall index:', response.index);
-
-        } catch (error) {
-            console.error('[SceneEditorPage] Failed to create wall:', error);
-            setErrorMessage('Failed to create wall. Please try again.');
-        }
-    }, [sceneId, scene, addSceneWall, refetch]);
+        setDrawingWallIndex(-1);
+        setDrawingWallDefaultHeight(properties.defaultHeight);
+        setDrawingMode('wall');
+        setActivePanel(null);
+    }, [sceneId, scene, wallTransaction]);
 
     if (isLoadingScene || isHydrating) {
         return (
@@ -1285,7 +1453,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     position: 'relative',
                     width: '100%',
                     height: '100%',
-                    cursor: (drawingMode === 'wall' || isEditingVertices) ? 'crosshair' : 'default'
+                    cursor: drawingMode === 'wall' ? 'crosshair' : 'default'
                 }}
             >
                 <LeftToolBar
@@ -1370,32 +1538,52 @@ const SceneEditorPageInternal: React.FC = () => {
                         {/* Walls - render third (top of structures) */}
                         {scene && scene.walls && (
                             <Group name={GroupName.Structure}>
-                                {scene.walls.map((sceneWall) => (
-                                    <React.Fragment key={sceneWall.index}>
-                                        {!(isEditingVertices && selectedWallIndex === sceneWall.index) && (
-                                            <WallRenderer
-                                                sceneWall={sceneWall}
-                                                isSelected={selectedWallIndex === sceneWall.index}
-                                                onSelect={handleWallSelect}
-                                                onContextMenu={handleWallContextMenu}
-                                            />
-                                        )}
-                                        {isEditingVertices && selectedWallIndex === sceneWall.index && (
-                                            <WallTransformer
-                                                poles={sceneWall.poles}
-                                                onPolesChange={(newPoles) =>
-                                                    handleVerticesChange(sceneWall.index, newPoles)
-                                                }
-                                                gridConfig={gridConfig}
-                                                snapEnabled={gridConfig.snap}
-                                                onClearSelections={() => {
-                                                    setSelectedWallIndex(null);
-                                                    setIsEditingVertices(false);
-                                                }}
-                                            />
-                                        )}
-                                    </React.Fragment>
-                                ))}
+                                {scene.walls.map((sceneWall) => {
+                                    const isInTransaction = wallTransaction.transaction.isActive &&
+                                        wallTransaction.getActiveSegments().some(s => s.wallIndex === sceneWall.index || s.tempId === sceneWall.index);
+                                    const shouldRender = !isInTransaction && !(drawingWallIndex === sceneWall.index);
+
+                                    return (
+                                        <React.Fragment key={sceneWall.index}>
+                                            {shouldRender && (
+                                                <WallRenderer
+                                                    sceneWall={sceneWall}
+                                                    onContextMenu={handleWallContextMenu}
+                                                />
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })}
+
+                                {isEditingVertices && wallTransaction.transaction.isActive && (
+                                    <>
+                                        {wallTransaction.getActiveSegments().map((segment) => {
+                                            const wall = scene.walls?.find(w =>
+                                                w.index === segment.wallIndex || w.index === segment.tempId
+                                            );
+                                            if (!wall) return null;
+
+                                            return (
+                                                <WallTransformer
+                                                    key={`transformer-${segment.tempId}`}
+                                                    poles={segment.poles}
+                                                    isClosed={segment.isClosed}
+                                                    onPolesChange={(newPoles, newIsClosed) =>
+                                                        handleVerticesChange(segment.wallIndex || segment.tempId, newPoles, newIsClosed)
+                                                    }
+                                                    gridConfig={gridConfig}
+                                                    snapEnabled={gridConfig.snap}
+                                                    onClearSelections={handleFinishEditing}
+                                                    isAltPressed={isAltPressed}
+                                                    sceneId={sceneId}
+                                                    wallIndex={segment.wallIndex || segment.tempId}
+                                                    wall={wall}
+                                                    onWallBreak={handleWallBreak}
+                                                />
+                                            );
+                                        })}
+                                    </>
+                                )}
                             </Group>
                         )}
                             </>
@@ -1442,6 +1630,15 @@ const SceneEditorPageInternal: React.FC = () => {
                                     gridConfig={gridConfig}
                                     defaultHeight={drawingWallDefaultHeight}
                                     onCancel={handleStructurePlacementCancel}
+                                    onFinish={handleStructurePlacementFinish}
+                                    onPolesChange={(newPoles) => {
+                                        wallTransaction.updateSegment(-1, { poles: newPoles });
+
+                                        if (scene) {
+                                            const updatedScene = updateWallOptimistic(scene, -1, { poles: newPoles });
+                                            setScene(updatedScene);
+                                        }
+                                    }}
                                 />
                             )}
                             {/* TODO: Implement RegionDrawingTool with progressive creation like WallDrawingTool */}
@@ -1478,15 +1675,17 @@ const SceneEditorPageInternal: React.FC = () => {
             />
         </Box>
 
-        <ConfirmDialog
-            open={deleteConfirmOpen}
-            onClose={() => setDeleteConfirmOpen(false)}
-            onConfirm={confirmDelete}
-            title="Delete Assets"
-            message={`Delete ${assetsToDelete.length} asset${assetsToDelete.length === 1 ? '' : 's'}?`}
-            confirmText="Delete"
-            severity="error"
-        />
+        {deleteConfirmOpen && (
+            <ConfirmDialog
+                open={deleteConfirmOpen}
+                onClose={() => setDeleteConfirmOpen(false)}
+                onConfirm={confirmDelete}
+                title="Delete Assets"
+                message={`Delete ${assetsToDelete.length} asset${assetsToDelete.length === 1 ? '' : 's'}?`}
+                confirmText="Delete"
+                severity="error"
+            />
+        )}
 
         <AssetContextMenu
             anchorPosition={contextMenuPosition}

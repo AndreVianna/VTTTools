@@ -50,11 +50,11 @@ public class AuthServiceTests {
 
         var user = CreateTestUser("test@example.com", "Test User");
         var roles = new List<string> { "User" };
-        var expectedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
+        const string expectedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
 
         _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
         _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
-            .Returns(Microsoft.AspNetCore.Identity.SignInResult.Success);
+            .Returns(SignInResult.Success);
         _mockUserManager.GetRolesAsync(user).Returns(roles);
         _mockJwtTokenService.GenerateToken(user, roles, request.RememberMe).Returns(expectedToken);
 
@@ -114,7 +114,7 @@ public class AuthServiceTests {
 
         _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
         _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
-            .Returns(Microsoft.AspNetCore.Identity.SignInResult.Failed);
+            .Returns(SignInResult.Failed);
 
         // Act
         var result = await _authService.LoginAsync(request);
@@ -141,7 +141,7 @@ public class AuthServiceTests {
 
         _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
         _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
-            .Returns(Microsoft.AspNetCore.Identity.SignInResult.LockedOut);
+            .Returns(SignInResult.LockedOut);
 
         // Act
         var result = await _authService.LoginAsync(request);
@@ -166,7 +166,7 @@ public class AuthServiceTests {
 
         _mockUserManager.FindByEmailAsync(request.Email).Returns(user);
         _mockSignInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, true)
-            .Returns(Microsoft.AspNetCore.Identity.SignInResult.Success);
+            .Returns(SignInResult.Success);
         _mockUserManager.GetRolesAsync(user).Returns(roles);
 
         // Act
@@ -214,7 +214,7 @@ public class AuthServiceTests {
         };
 
         var roles = new List<string> { "User" };
-        var expectedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
+        const string expectedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
 
         _mockUserManager.FindByEmailAsync(request.Email).Returns((User?)null);
         _mockUserManager.CreateAsync(Arg.Any<User>(), request.Password).Returns(IdentityResult.Success);

@@ -319,7 +319,7 @@ export const SimpleLoginForm: React.FC<SimpleLoginFormProps> = ({
               }
               label={
                 <Typography variant="body2" color="text.secondary">
-                  Remember me
+                  Remember me for 30 days
                 </Typography>
               }
             />

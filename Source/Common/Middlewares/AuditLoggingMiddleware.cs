@@ -9,7 +9,7 @@ public class AuditLoggingMiddleware(
 
     private readonly AuditLoggingOptions _options = options.Value;
 
-    public async Task InvokeAsync(HttpContext context, IAuditLogService auditLogService) {
+    public async Task InvokeAsync(HttpContext context) {
         if (!_options.Enabled || IsPathExcluded(context.Request.Path)) {
             await next(context);
             return;
@@ -41,19 +41,19 @@ public class AuditLoggingMiddleware(
             var user = context.User;
             Guid? userId = null;
             if (user?.Identity?.IsAuthenticated == true) {
-                var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (Guid.TryParse(userIdClaim, out var id)) {
                     userId = id;
                 }
             }
-            var userEmail = user?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var userEmail = user?.FindFirst(ClaimTypes.Email)?.Value;
             var httpMethod = context.Request.Method;
             var path = context.Request.Path;
             var queryString = context.Request.QueryString.HasValue ? context.Request.QueryString.Value : null;
             var ipAddress = context.Connection.RemoteIpAddress?.ToString();
             var userAgent = context.Request.Headers.UserAgent.ToString();
 
-            _ = Task.Run(async () => {
+            await Task.Run(async () => {
                 try {
                     await using var scope = serviceProvider.CreateAsyncScope();
                     var scopedAuditLogService = scope.ServiceProvider.GetRequiredService<IAuditLogService>();
@@ -118,7 +118,7 @@ public class AuditLoggingMiddleware(
         string? requestBody,
         string? responseBody,
         int statusCode,
-        int DurationInMilliseconds,
+        int durationInMilliseconds,
         IAuditLogService auditLogService) {
 
         var auditLog = new AuditLog {
@@ -134,7 +134,7 @@ public class AuditLoggingMiddleware(
             UserAgent = userAgent,
             RequestBody = requestBody,
             ResponseBody = responseBody,
-            DurationInMilliseconds = DurationInMilliseconds,
+            DurationInMilliseconds = durationInMilliseconds,
             Result = DetermineResult(statusCode)
         };
 

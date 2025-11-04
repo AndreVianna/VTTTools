@@ -4,6 +4,8 @@ import { AdminLayout } from '@components/layout/AdminLayout';
 import { LoginPage } from '@pages/LoginPage';
 import { DashboardPage } from '@pages/DashboardPage';
 import { AuditLogsPage } from '@pages/AuditLogsPage';
+import { UserListPage } from '@pages/Users/UserListPage';
+import { MaintenanceModePage } from '@pages/MaintenanceModePage';
 
 function App() {
   return (
@@ -19,8 +21,9 @@ function App() {
       >
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="users" element={<div>User Management (Coming soon)</div>} />
+        <Route path="users" element={<UserListPage />} />
         <Route path="audit" element={<AuditLogsPage />} />
+        <Route path="maintenance" element={<MaintenanceModePage />} />
         <Route path="config" element={<div>System Config (Coming soon)</div>} />
         <Route path="library" element={<div>Public Library (Coming soon)</div>} />
       </Route>

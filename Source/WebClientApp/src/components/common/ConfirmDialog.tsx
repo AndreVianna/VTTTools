@@ -1,4 +1,3 @@
-import type React from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -48,10 +47,19 @@ export function ConfirmDialog({
         }
     };
 
+    const handleClose = (_event: object, reason: 'backdropClick' | 'escapeKeyDown') => {
+        if (reason === 'backdropClick') {
+            return;
+        }
+        if (!isLoading) {
+            onClose();
+        }
+    };
+
     return (
         <Dialog
             open={open}
-            onClose={isLoading ? undefined : onClose}
+            onClose={handleClose}
             aria-labelledby="confirm-dialog-title"
             aria-describedby="confirm-dialog-description"
         >

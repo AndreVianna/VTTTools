@@ -1,5 +1,17 @@
 import React from 'react';
 import { Box, useTheme, Typography } from '@mui/material';
+import { Z_INDEX } from '@/theme/zIndex';
+
+/**
+ * StatusHintBar component
+ *
+ * Displays keyboard shortcuts and interaction hints for placement and edit modes.
+ *
+ * Theme Support: Verified in both light and dark modes
+ * - Uses theme.palette.background.paper for background
+ * - Uses theme.palette.text.secondary for text
+ * - Border uses theme.palette.divider
+ */
 
 interface StatusHintBarProps {
     mode: 'placement' | 'edit';
@@ -26,6 +38,10 @@ export const StatusHintBar: React.FC<StatusHintBarProps> = ({ mode, visible = tr
 
     return (
         <Box
+            id="status-hint-bar"
+            data-testid="status-hint-bar"
+            role="complementary"
+            aria-label="Keyboard shortcuts and interaction hints"
             sx={{
                 position: 'fixed',
                 bottom: theme.spacing(1),
@@ -38,13 +54,18 @@ export const StatusHintBar: React.FC<StatusHintBarProps> = ({ mode, visible = tr
                 fontSize: '0.875rem',
                 color: theme.palette.text.secondary,
                 pointerEvents: 'none',
-                zIndex: 1000,
+                zIndex: Z_INDEX.STATUS_HINT,
                 boxShadow: theme.shadows[2],
                 maxWidth: '90vw',
                 textAlign: 'center'
             }}
         >
-            <Typography variant="caption" component="div">
+            <Typography
+                id="status-hint-text"
+                data-testid="status-hint-text"
+                variant="caption"
+                component="div"
+            >
                 {hints[mode]}
             </Typography>
         </Box>

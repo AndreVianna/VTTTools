@@ -5,22 +5,18 @@ import { WallVisibility, type SceneWall } from '@/types/domain';
 
 export interface WallRendererProps {
     sceneWall: SceneWall;
-    isSelected?: boolean;
-    onSelect?: (index: number) => void;
     onContextMenu?: (index: number, position: { x: number; y: number }) => void;
 }
 
 export const WallRenderer: React.FC<WallRendererProps> = ({
     sceneWall,
-    isSelected = false,
-    onSelect,
     onContextMenu
 }) => {
     const theme = useTheme();
 
     const getWallStyle = (visibility: WallVisibility) => {
         const wallColor = sceneWall.color || '#808080';
-        const strokeColor = isSelected ? theme.palette.primary.main : wallColor;
+        const strokeColor = wallColor;
         const strokeWidth = 3;
 
         switch (visibility) {
@@ -48,12 +44,6 @@ export const WallRenderer: React.FC<WallRendererProps> = ({
         }
     };
 
-    const handleClick = () => {
-        if (onSelect) {
-            onSelect(sceneWall.index);
-        }
-    };
-
     const handleContextMenu = (e: any) => {
         e.evt.preventDefault();
         if (onContextMenu) {
@@ -75,8 +65,8 @@ export const WallRenderer: React.FC<WallRendererProps> = ({
         points.push(firstPole.x, firstPole.y);
     }
 
-    const poleRadius = isSelected ? 5 : 1.5;
-    const poleColor = isSelected ? theme.palette.primary.main : (sceneWall.color || '#808080');
+    const poleRadius = 1.5;
+    const poleColor = sceneWall.color || '#808080';
 
     return (
         <Group>
@@ -87,14 +77,12 @@ export const WallRenderer: React.FC<WallRendererProps> = ({
                 dash={style.dash}
                 opacity={style.opacity}
                 listening={true}
-                onClick={handleClick}
-                onTap={handleClick}
                 onContextMenu={handleContextMenu}
                 hitStrokeWidth={8}
                 onMouseEnter={(e) => {
                     const container = e.target.getStage()?.container();
                     if (container) {
-                        container.style.cursor = 'pointer';
+                        container.style.cursor = 'context-menu';
                     }
                 }}
                 onMouseLeave={(e) => {

@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer, { login, logout } from './authSlice';
+import authReducer, { login, logout, updateToken } from './authSlice';
 import { authService } from '@services/authService';
-import type { AuthState } from '@types/auth';
+import type { AuthState } from '../../types/auth';
 
 vi.mock('@services/authService');
 
@@ -140,6 +140,49 @@ describe('authSlice', () => {
                     },
                 });
             }).not.toThrow();
+        });
+    });
+
+    describe('updateToken', () => {
+        it('should update token in state', () => {
+            const newToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new.token';
+
+            store.dispatch(updateToken(newToken));
+
+            const state = store.getState().auth as AuthState;
+            expect(state.token).toBe(newToken);
+        });
+
+        it('should replace existing token', () => {
+            const oldToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.old.token';
+            const newToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.new.token';
+
+            store = configureStore({
+                reducer: {
+                    auth: authReducer,
+                },
+                preloadedState: {
+                    auth: {
+                        user: {
+                            id: '123',
+                            email: 'admin@test.com',
+                            displayName: 'Admin User',
+                            isAdmin: true,
+                            emailConfirmed: true,
+                            twoFactorEnabled: false,
+                        },
+                        isAuthenticated: true,
+                        isLoading: false,
+                        error: null,
+                        token: oldToken,
+                    },
+                },
+            });
+
+            store.dispatch(updateToken(newToken));
+
+            const state = store.getState().auth as AuthState;
+            expect(state.token).toBe(newToken);
         });
     });
 });

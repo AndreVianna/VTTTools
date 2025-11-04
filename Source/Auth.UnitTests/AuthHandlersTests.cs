@@ -177,7 +177,7 @@ public class AuthHandlersTests {
         var result = await AuthHandlers.RegisterHandler(request, _mockAuthService);
 
         // Assert
-        var conflictResult = Assert.IsAssignableFrom<IStatusCodeHttpResult>(result);
+        var conflictResult = Assert.IsType<IStatusCodeHttpResult>(result, exactMatch: false);
         Assert.Equal(409, conflictResult.StatusCode);
 
         await _mockAuthService.Received(1).RegisterAsync(request);

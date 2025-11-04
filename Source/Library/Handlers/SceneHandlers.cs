@@ -47,10 +47,7 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
         }
 
-        var updatedScene = await sceneService.GetSceneByIdAsync(id);
-        return updatedScene is not null
-            ? Results.Ok(updatedScene)
-            : Results.NotFound();
+        return Results.NoContent();
     }
 
     internal static async Task<IResult> GetAssetsHandler([FromRoute] Guid id, [FromServices] ISceneService sceneService)

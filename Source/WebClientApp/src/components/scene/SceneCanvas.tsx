@@ -14,6 +14,8 @@ import React, { useState, useRef, useCallback, useImperativeHandle, forwardRef }
 import { Stage } from 'react-konva';
 import Konva from 'konva';
 
+Konva.showWarnings = false;
+
 /**
  * Viewport state (position and scale)
  */

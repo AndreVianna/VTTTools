@@ -30,7 +30,7 @@ public class AuditLoggingMiddlewareTests {
                 return Task.FromResult(capturedLog);
             });
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -62,7 +62,7 @@ public class AuditLoggingMiddlewareTests {
                 return Task.FromResult(capturedLog);
             });
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -95,7 +95,7 @@ public class AuditLoggingMiddlewareTests {
                 return Task.FromResult(capturedLog);
             });
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -130,7 +130,7 @@ public class AuditLoggingMiddlewareTests {
                 return Task.FromResult(capturedLog);
             });
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -173,7 +173,7 @@ public class AuditLoggingMiddlewareTests {
                 return Task.FromResult(capturedLog);
             });
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -208,7 +208,7 @@ public class AuditLoggingMiddlewareTests {
                 return Task.FromResult(capturedLog);
             });
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -243,7 +243,7 @@ public class AuditLoggingMiddlewareTests {
                 return Task.FromResult(capturedLog);
             });
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -278,7 +278,7 @@ public class AuditLoggingMiddlewareTests {
                 return Task.FromResult(capturedLog);
             });
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -306,7 +306,7 @@ public class AuditLoggingMiddlewareTests {
         auditLogService.AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>())
             .Returns(_ => throw new InvalidOperationException("Database error"));
 
-        var act = async () => await middleware.InvokeAsync(httpContext, auditLogService);
+        var act = async () => await middleware.InvokeAsync(httpContext);
 
         await act.Should().NotThrowAsync();
     }
@@ -335,7 +335,7 @@ public class AuditLoggingMiddlewareTests {
                 return Task.FromResult(capturedLog);
             });
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -343,6 +343,29 @@ public class AuditLoggingMiddlewareTests {
         capturedLog!.QueryString.Should().NotBeNull();
         capturedLog.QueryString.Should().Contain("token=***REDACTED***");
         capturedLog.QueryString.Should().Contain("user=john");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithAuditEndpoint_DoesNotLogAudit() {
+        var logger = Substitute.For<ILogger<AuditLoggingMiddleware>>();
+        var auditLogService = Substitute.For<IAuditLogService>();
+        var serviceProvider = CreateServiceProvider(auditLogService);
+        var options = CreateAuditLoggingOptions(excludedPaths: ["/api/admin/audit"]);
+        var middleware = new AuditLoggingMiddleware(
+            _ => Task.CompletedTask,
+            serviceProvider,
+            options,
+            logger);
+
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Method = "GET";
+        httpContext.Request.Path = "/api/admin/audit";
+
+        await middleware.InvokeAsync(httpContext);
+
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+
+        await auditLogService.DidNotReceive().AddAsync(Arg.Any<AuditLog>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -361,7 +384,7 @@ public class AuditLoggingMiddlewareTests {
         httpContext.Request.Method = "GET";
         httpContext.Request.Path = "/health";
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -384,7 +407,7 @@ public class AuditLoggingMiddlewareTests {
         httpContext.Request.Method = "GET";
         httpContext.Request.Path = "/health/checks/database";
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -407,7 +430,7 @@ public class AuditLoggingMiddlewareTests {
         httpContext.Request.Method = "GET";
         httpContext.Request.Path = "/api/test";
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -438,7 +461,7 @@ public class AuditLoggingMiddlewareTests {
                 return Task.FromResult(capturedLog);
             });
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -469,7 +492,7 @@ public class AuditLoggingMiddlewareTests {
                 return Task.FromResult(capturedLog);
             });
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -500,7 +523,7 @@ public class AuditLoggingMiddlewareTests {
                 return Task.FromResult(capturedLog);
             });
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -531,7 +554,7 @@ public class AuditLoggingMiddlewareTests {
                 return Task.FromResult(capturedLog);
             });
 
-        await middleware.InvokeAsync(httpContext, auditLogService);
+        await middleware.InvokeAsync(httpContext);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 

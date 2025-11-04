@@ -1,4 +1,3 @@
-
 namespace VttTools.Admin.UnitTests.Handlers;
 
 public class AuditLogHandlersTests {

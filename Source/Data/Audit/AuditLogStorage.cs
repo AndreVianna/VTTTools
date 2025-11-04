@@ -63,4 +63,75 @@ public class AuditLogStorage(ApplicationDbContext context)
 
     public async Task<int> GetCountAsync(CancellationToken ct = default)
         => await context.AuditLogs.CountAsync(ct);
+
+    public async Task<int> GetDistinctActiveUsersCountAsync(DateTime startDate, CancellationToken ct = default)
+        => await context.AuditLogs
+            .AsNoTracking()
+            .Where(a => a.Timestamp >= startDate && a.UserId != null)
+            .Select(a => a.UserId!.Value)
+            .Distinct()
+            .CountAsync(ct);
+
+    public async Task<int> GetCountInPeriodAsync(DateTime startDate, CancellationToken ct = default)
+        => await context.AuditLogs
+            .AsNoTracking()
+            .Where(a => a.Timestamp >= startDate)
+            .CountAsync(ct);
+
+    public async Task<double> GetAverageResponseTimeAsync(DateTime startDate, CancellationToken ct = default) {
+        var logsWithDuration = await context.AuditLogs
+            .AsNoTracking()
+            .Where(a => a.Timestamp >= startDate && a.DurationInMilliseconds > 0)
+            .ToListAsync(ct);
+
+        return logsWithDuration.Count != 0
+            ? logsWithDuration.Average(a => (double)a.DurationInMilliseconds)
+            : 0;
+    }
+
+    public async Task<List<TimeSeriesDataPoint>> GetHourlyAverageResponseTimesAsync(
+        DateTime startDate,
+        CancellationToken ct = default) {
+
+        var logs = await context.AuditLogs
+            .AsNoTracking()
+            .Where(a => a.Timestamp >= startDate && a.DurationInMilliseconds > 0)
+            .Select(a => new {
+                a.Timestamp,
+                a.DurationInMilliseconds
+            })
+            .ToListAsync(ct);
+
+        var results = logs
+            .GroupBy(a => new DateTime(a.Timestamp.Year, a.Timestamp.Month, a.Timestamp.Day, a.Timestamp.Hour, 0, 0, DateTimeKind.Utc))
+            .Select(g => new TimeSeriesDataPoint {
+                Timestamp = g.Key,
+                Value = g.Average(a => (double)a.DurationInMilliseconds)
+            })
+            .OrderBy(dp => dp.Timestamp)
+            .ToList();
+
+        return results;
+    }
+
+    public async Task<DateTime> GetUserCreatedDateAsync(Guid userId, CancellationToken ct = default) {
+        var createdDate = await context.AuditLogs
+            .AsNoTracking()
+            .Where(a => a.UserId == userId)
+            .MinAsync(a => (DateTime?)a.Timestamp, ct);
+
+        return createdDate ?? DateTime.MinValue;
+    }
+
+    public async Task<DateTime?> GetUserLastLoginDateAsync(Guid userId, CancellationToken ct = default)
+        => await context.AuditLogs
+            .AsNoTracking()
+            .Where(a => a.UserId == userId && a.Action == "Login")
+            .MaxAsync(a => (DateTime?)a.Timestamp, ct);
+
+    public async Task<DateTime?> GetUserLastModifiedDateAsync(Guid userId, CancellationToken ct = default)
+        => await context.AuditLogs
+            .AsNoTracking()
+            .Where(a => a.UserId == userId)
+            .MaxAsync(a => (DateTime?)a.Timestamp, ct);
 }

@@ -8,8 +8,9 @@
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <RootNamespace>VttTools.Data</RootNamespace>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
     <Configurations>Debug;Release</Configurations>
-    <DisableTestingPlatformServerCapability>true</DisableTestingPlatformServerCapability>
   </PropertyGroup>
 
   <ItemGroup>

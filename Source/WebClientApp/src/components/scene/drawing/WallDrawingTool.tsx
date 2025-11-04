@@ -1,14 +1,16 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Group, Rect } from 'react-konva';
 import type Konva from 'konva';
-import { useGetSceneQuery, useUpdateSceneWallMutation } from '@/services/sceneApi';
-import { snapToNearest, SnapMode } from '@/utils/structureSnapping';
+import { useGetSceneQuery } from '@/services/sceneApi';
+import { snapToNearest } from '@/utils/structureSnapping';
+import { getSnapModeFromEvent } from '@/utils/snapUtils';
 import { VertexMarker } from './VertexMarker';
 import { WallPreview } from './WallPreview';
-import { SnapModeIndicator } from '../SnapModeIndicator';
-import { StatusHintBar } from '../StatusHintBar';
 import type { Point, Pole } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
+
+const INTERACTION_RECT_SIZE = 20000;
+const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
 
 export interface WallDrawingToolProps {
     sceneId: string;
@@ -16,6 +18,8 @@ export interface WallDrawingToolProps {
     gridConfig: GridConfig;
     defaultHeight: number;
     onCancel: () => void;
+    onFinish: () => void;
+    onPolesChange?: (poles: Pole[]) => void;
 }
 
 export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
@@ -23,62 +27,34 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
     wallIndex,
     gridConfig,
     defaultHeight,
-    onCancel
+    onCancel,
+    onFinish,
+    onPolesChange
 }) => {
     const [poles, setPoles] = useState<Pole[]>([]);
     const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
-    const [currentSnapMode, setCurrentSnapMode] = useState<SnapMode>(SnapMode.HalfSnap);
 
     const { data: scene } = useGetSceneQuery(sceneId);
     const wall = scene?.walls?.find(w => w.index === wallIndex);
-    const [updateSceneWall] = useUpdateSceneWallMutation();
 
-    // Debounced backend update (300ms)
-    const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    const debouncedUpdateWall = useCallback((newPoles: Pole[]) => {
-        if (updateTimeoutRef.current) {
-            clearTimeout(updateTimeoutRef.current);
+    const handleFinish = useCallback(async () => {
+        if (poles.length < 1) {
+            console.warn('Cannot finish wall with no poles');
+            return;
         }
 
-        updateTimeoutRef.current = setTimeout(async () => {
-            try {
-                console.log('[WallDrawingTool] Updating wall with', newPoles.length, 'poles');
-                await updateSceneWall({
-                    sceneId,
-                    wallIndex,
-                    poles: newPoles
-                }).unwrap();
-            } catch (error) {
-                console.error('[WallDrawingTool] Failed to update wall:', error);
-            }
-        }, 300);
-    }, [sceneId, wallIndex, updateSceneWall]);
-
-    // Cleanup timeout on unmount
-    useEffect(() => {
-        return () => {
-            if (updateTimeoutRef.current) {
-                clearTimeout(updateTimeoutRef.current);
-            }
-        };
-    }, []);
+        onFinish();
+    }, [poles, onFinish]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
-                console.log('[WallDrawingTool] Canceling placement (Escape)');
                 onCancel();
                 return;
             }
 
             if (e.key === 'Enter') {
-                if (poles.length >= 1) {
-                    console.log('[WallDrawingTool] Finishing placement (Enter)');
-                    onCancel();
-                } else {
-                    console.warn('[WallDrawingTool] Cannot finish - need at least 1 pole');
-                }
+                handleFinish();
                 return;
             }
 
@@ -86,9 +62,8 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
                 e.preventDefault();
                 if (poles.length > 0) {
                     const newPoles = poles.slice(0, -1);
-                    console.log('[WallDrawingTool] Undo - removing last pole, now', newPoles.length, 'poles');
                     setPoles(newPoles);
-                    debouncedUpdateWall(newPoles);
+                    onPolesChange?.(newPoles);
                 }
                 return;
             }
@@ -99,7 +74,7 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [poles, onCancel, debouncedUpdateWall]);
+    }, [poles, onCancel, onPolesChange, handleFinish]);
 
     const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         const stage = e.target.getStage();
@@ -114,14 +89,7 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
             y: (pointer.y - stage.y()) / scale,
         };
 
-        const snapMode = e.evt.altKey && e.evt.ctrlKey
-            ? SnapMode.QuarterSnap
-            : e.evt.altKey
-                ? SnapMode.Free
-                : SnapMode.HalfSnap;
-
-        setCurrentSnapMode(snapMode);
-
+        const snapMode = getSnapModeFromEvent(e.evt);
         const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
         setPreviewPoint(snappedPos);
     }, [gridConfig]);
@@ -129,6 +97,8 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
     const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         const stage = e.target.getStage();
         if (!stage) return;
+
+        e.cancelBubble = true;
 
         const pointer = stage.getPointerPosition();
         if (!pointer) return;
@@ -139,12 +109,7 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
             y: (pointer.y - stage.y()) / scale,
         };
 
-        const snapMode = e.evt.altKey && e.evt.ctrlKey
-            ? SnapMode.QuarterSnap
-            : e.evt.altKey
-                ? SnapMode.Free
-                : SnapMode.HalfSnap;
-
+        const snapMode = getSnapModeFromEvent(e.evt);
         const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
         const newPole: Pole = {
             x: snappedPos.x,
@@ -152,26 +117,25 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
             h: defaultHeight
         };
         const newPoles = [...poles, newPole];
-        console.log('[WallDrawingTool] Pole placed at', snappedPos, ', total:', newPoles.length);
         setPoles(newPoles);
-        debouncedUpdateWall(newPoles);
-    }, [poles, gridConfig, defaultHeight, debouncedUpdateWall]);
+
+        onPolesChange?.(newPoles);
+    }, [poles, gridConfig, defaultHeight, onPolesChange]);
 
     const handleDoubleClick = useCallback(() => {
         if (poles.length >= 1) {
-            console.log('[WallDrawingTool] Finishing placement (double-click)');
-            onCancel();
+            handleFinish();
         }
-    }, [poles, onCancel]);
+    }, [poles.length, handleFinish]);
 
     return (
         <>
             <Group>
                 <Rect
-                    x={-10000}
-                    y={-10000}
-                    width={20000}
-                    height={20000}
+                    x={INTERACTION_RECT_OFFSET}
+                    y={INTERACTION_RECT_OFFSET}
+                    width={INTERACTION_RECT_SIZE}
+                    height={INTERACTION_RECT_SIZE}
                     fill="transparent"
                     onMouseMove={handleMouseMove}
                     onClick={handleClick}
@@ -193,15 +157,6 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
                     <VertexMarker position={previewPoint} preview />
                 )}
             </Group>
-
-            <SnapModeIndicator
-                snapMode={currentSnapMode}
-                visible={true}
-            />
-            <StatusHintBar
-                mode="placement"
-                visible={true}
-            />
         </>
     );
 };

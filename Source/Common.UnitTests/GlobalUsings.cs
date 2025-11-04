@@ -27,4 +27,7 @@ global using NSubstitute;
 
 global using VttTools.Audit.Model;
 global using VttTools.Configuration;
+global using VttTools.Maintenance.Model;
+global using VttTools.Maintenance.Services;
+global using VttTools.Middlewares;
 global using VttTools.Utilities;

@@ -1,4 +1,3 @@
-
 namespace VttTools.Admin.UnitTests.Services;
 
 public class AuditLogServiceTests {

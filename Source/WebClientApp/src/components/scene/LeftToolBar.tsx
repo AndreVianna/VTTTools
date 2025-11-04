@@ -101,7 +101,9 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
       const isInsideToolbar = toolbarRef.current?.contains(target);
       const isInsideDrawer = drawerRef.current?.contains(target);
 
-      if (!isInsideToolbar && !isInsideDrawer) {
+      const isInsideDialog = (target as Element).closest?.('[role="dialog"]') !== null;
+
+      if (!isInsideToolbar && !isInsideDrawer && !isInsideDialog) {
         if (externalActivePanel !== undefined) {
           onPanelChange?.(null);
         } else {

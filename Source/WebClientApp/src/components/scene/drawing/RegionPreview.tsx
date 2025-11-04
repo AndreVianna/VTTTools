@@ -76,7 +76,7 @@ export const RegionPreview: React.FC<RegionPreviewProps> = ({
                             previewVertex.y
                         ]}
                         stroke={theme.palette.grey[500]}
-                        strokeWidth={1}
+                        strokeWidth={3}
                         dash={[5, 5]}
                         opacity={0.5}
                         listening={false}

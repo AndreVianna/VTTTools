@@ -117,4 +117,7 @@ public static class HostApplicationBuilderExtensions {
         options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.SerializerOptions.Converters.Add(new OptionalConverterFactory());
     }
+
+    public static IApplicationBuilder UseMaintenanceModeMiddleware(this IApplicationBuilder app)
+        => app.UseMiddleware<MaintenanceModeMiddleware>();
 }

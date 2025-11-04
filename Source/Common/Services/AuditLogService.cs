@@ -1,3 +1,5 @@
+using VttTools.Domain.Admin.ApiContracts;
+
 namespace VttTools.Services;
 
 public class AuditLogService(IAuditLogStorage storage, ILogger<AuditLogService> logger)
@@ -97,5 +99,78 @@ public class AuditLogService(IAuditLogStorage storage, ILogger<AuditLogService> 
         logger.LogDebug("Total audit log count: {Count}", count);
 
         return count;
+    }
+
+    public async Task<int> GetDistinctActiveUsersCountAsync(DateTime startDate, CancellationToken ct = default) {
+        logger.LogDebug("Retrieving distinct active users count since {StartDate}", startDate);
+
+        var count = await storage.GetDistinctActiveUsersCountAsync(startDate, ct);
+
+        logger.LogDebug("Distinct active users count: {Count}", count);
+
+        return count;
+    }
+
+    public async Task<int> GetCountInPeriodAsync(DateTime startDate, CancellationToken ct = default) {
+        logger.LogDebug("Retrieving audit log count since {StartDate}", startDate);
+
+        var count = await storage.GetCountInPeriodAsync(startDate, ct);
+
+        logger.LogDebug("Audit log count in period: {Count}", count);
+
+        return count;
+    }
+
+    public async Task<double> GetAverageResponseTimeAsync(DateTime startDate, CancellationToken ct = default) {
+        logger.LogDebug("Retrieving average response time since {StartDate}", startDate);
+
+        var average = await storage.GetAverageResponseTimeAsync(startDate, ct);
+
+        logger.LogDebug("Average response time: {Average}ms", average);
+
+        return average;
+    }
+
+    public async Task<List<TimeSeriesDataPoint>> GetHourlyAverageResponseTimesAsync(
+        DateTime startDate,
+        CancellationToken ct = default) {
+
+        logger.LogDebug("Retrieving hourly average response times since {StartDate}", startDate);
+
+        var dataPoints = await storage.GetHourlyAverageResponseTimesAsync(startDate, ct);
+
+        logger.LogDebug("Retrieved {Count} time series data points", dataPoints.Count);
+
+        return dataPoints;
+    }
+
+    public async Task<DateTime> GetUserCreatedDateAsync(Guid userId, CancellationToken ct = default) {
+        logger.LogDebug("Retrieving created date for user {UserId}", userId);
+
+        var createdDate = await storage.GetUserCreatedDateAsync(userId, ct);
+
+        logger.LogDebug("User {UserId} created date: {CreatedDate}", userId, createdDate);
+
+        return createdDate;
+    }
+
+    public async Task<DateTime?> GetUserLastLoginDateAsync(Guid userId, CancellationToken ct = default) {
+        logger.LogDebug("Retrieving last login date for user {UserId}", userId);
+
+        var lastLoginDate = await storage.GetUserLastLoginDateAsync(userId, ct);
+
+        logger.LogDebug("User {UserId} last login date: {LastLoginDate}", userId, lastLoginDate?.ToString() ?? "Never");
+
+        return lastLoginDate;
+    }
+
+    public async Task<DateTime?> GetUserLastModifiedDateAsync(Guid userId, CancellationToken ct = default) {
+        logger.LogDebug("Retrieving last modified date for user {UserId}", userId);
+
+        var lastModifiedDate = await storage.GetUserLastModifiedDateAsync(userId, ct);
+
+        logger.LogDebug("User {UserId} last modified date: {LastModifiedDate}", userId, lastModifiedDate);
+
+        return lastModifiedDate;
     }
 }

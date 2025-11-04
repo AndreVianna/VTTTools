@@ -175,7 +175,7 @@ public class SceneHandlersTests {
 
         // Assert
         // NOTE: Handler returns BadRequest<IReadOnlyList<Error>>, not BadRequest
-        result.Should().BeOfType<BadRequest<IReadOnlyList<Error>>>();
+        result.Should().BeOfType<ProblemHttpResult>();
     }
 
     [Fact]

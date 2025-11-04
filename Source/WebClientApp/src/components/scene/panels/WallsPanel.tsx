@@ -140,7 +140,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(({
     };
 
     const handlePlaceWall = () => {
-        console.log('[WallsPanel] Place Wall clicked', { visibility, isClosed, material, defaultHeight, defaultColor });
         onPlaceWall?.({
             visibility,
             isClosed,
@@ -609,7 +608,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(({
                     setDeleteConfirmOpen(false);
                     setWallToDelete(null);
                 }}
-                onCancel={() => {
+                onClose={() => {
                     setDeleteConfirmOpen(false);
                     setWallToDelete(null);
                 }}

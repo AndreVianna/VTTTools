@@ -11,12 +11,17 @@ global using DotNetToolbox.Validation;
 global using Microsoft.AspNetCore.Identity;
 
 global using VttTools.Admin.ApiContracts;
+global using VttTools.Domain.Admin.ApiContracts;
 global using VttTools.Assets.Model;
 global using VttTools.Assets.ServiceContracts;
 global using VttTools.Audit.Model;
 global using VttTools.Common.ApiContracts;
 global using VttTools.Common.Model;
 global using VttTools.Common.ServiceContracts;
+global using VttTools.Maintenance.ApiContracts;
+global using VttTools.Maintenance.Model;
+global using VttTools.Maintenance.Services;
+global using VttTools.Maintenance.Storage;
 global using VttTools.Identity.Model;
 global using VttTools.Game.Sessions.Model;
 global using VttTools.Game.Sessions.ServiceContracts;

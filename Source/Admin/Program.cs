@@ -19,6 +19,7 @@ internal static class Program {
         app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseTokenRefresh();
         app.UseRateLimiter();
         app.UseAuditLogging();
         app.MapDefaultEndpoints();
@@ -66,11 +67,12 @@ internal static class Program {
         builder.AddJwtAuthentication();
 
         builder.Services.ConfigureApplicationCookie(options => {
+            options.Cookie.Name = ".VttTools.Admin";
             options.Cookie.HttpOnly = true;
             options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
             options.Cookie.SameSite = SameSiteMode.Lax;
-            options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-            options.SlidingExpiration = false;
+            options.ExpireTimeSpan = TimeSpan.FromHours(1);
+            options.SlidingExpiration = true;
             options.LoginPath = "/api/admin/auth/login";
             options.LogoutPath = "/api/admin/auth/logout";
             options.AccessDeniedPath = "/api/admin/auth/access-denied";
@@ -89,11 +91,27 @@ internal static class Program {
     internal static void AddRateLimiting(this IHostApplicationBuilder builder)
         => builder.Services.AddRateLimiter(options => {
             options.AddSlidingWindowLimiter("admin", rateLimiterOptions => {
-                rateLimiterOptions.PermitLimit = 5;
-                rateLimiterOptions.Window = TimeSpan.FromMinutes(15);
-                rateLimiterOptions.SegmentsPerWindow = 3;
+                rateLimiterOptions.PermitLimit = 30;
+                rateLimiterOptions.Window = TimeSpan.FromMinutes(1);
+                rateLimiterOptions.SegmentsPerWindow = 6;
                 rateLimiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                rateLimiterOptions.QueueLimit = 2;
+                rateLimiterOptions.QueueLimit = 5;
+            });
+
+            options.AddSlidingWindowLimiter("audit", rateLimiterOptions => {
+                rateLimiterOptions.PermitLimit = 200;
+                rateLimiterOptions.Window = TimeSpan.FromMinutes(1);
+                rateLimiterOptions.SegmentsPerWindow = 6;
+                rateLimiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                rateLimiterOptions.QueueLimit = 10;
+            });
+
+            options.AddSlidingWindowLimiter("dashboard", rateLimiterOptions => {
+                rateLimiterOptions.PermitLimit = 100;
+                rateLimiterOptions.Window = TimeSpan.FromMinutes(1);
+                rateLimiterOptions.SegmentsPerWindow = 6;
+                rateLimiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                rateLimiterOptions.QueueLimit = 5;
             });
 
             options.OnRejected = async (context, cancellationToken) => {
@@ -108,19 +126,28 @@ internal static class Program {
             => policy.WithOrigins("http://localhost:5193")
                   .AllowAnyMethod()
                   .AllowAnyHeader()
-                  .AllowCredentials()));
+                  .AllowCredentials()
+                  .WithExposedHeaders("X-Refreshed-Token")));
 
     internal static void AddServices(this IHostApplicationBuilder builder) {
         builder.Services.AddScoped<IAdminAuthService, AdminAuthService>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+        builder.Services.AddScoped<IDashboardService, DashboardService>();
+        builder.Services.AddScoped<IUserAdminService, UserAdminService>();
+        builder.Services.AddScoped<IMaintenanceModeStorage, MaintenanceModeStorage>();
+        builder.Services.AddScoped<IMaintenanceModeService, MaintenanceModeService>();
         builder.Services.AddSignalR();
     }
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {
         app.MapAdminAuthEndpoints();
         app.MapAuditLogEndpoints();
+        app.MapDashboardEndpoints();
+        app.MapHealthCheckEndpoints();
+        app.MapUserAdminEndpoints();
+        app.MapMaintenanceModeEndpoints();
         app.MapHub<VttTools.Admin.Hubs.AuditLogHub>("/hubs/audit");
     }
 }

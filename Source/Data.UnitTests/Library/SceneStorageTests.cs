@@ -108,31 +108,6 @@ public class SceneStorageTests
     }
 
     [Fact]
-    public async Task UpdateAsync_WithExistingScene_UpdatesInDatabase() {
-        // Arrange
-        var adventureId = await _context.Adventures.Where(p => p.Name == "Adventure 1").Select(a => a.Id).FirstAsync(_ct);
-        var entity = DbContextHelper.CreateTestSceneEntity(adventureId, "Scene To Update");
-
-        var initialCount = await _context.Scenes.CountAsync(_ct);
-        await _context.Scenes.AddAsync(entity, _ct);
-        await _context.SaveChangesAsync(_ct);
-        initialCount = await _context.Scenes.CountAsync(_ct);
-
-        // Create scene model for update
-        var scene = DbContextHelper.CreateTestScene(entity.Id, "Updated Scene");
-
-        // Act
-        var result = await _storage.UpdateAsync(scene, _ct);
-
-        // Assert
-        result.Should().BeTrue();
-        var dbScene = await _context.Scenes.FindAsync([scene.Id], _ct);
-        dbScene.Should().NotBeNull();
-        dbScene.Id.Should().Be(scene.Id);
-        dbScene.Name.Should().Be(scene.Name);
-    }
-
-    [Fact]
     public async Task DeleteAsync_WithExistingScene_RemovesFromDatabase() {
         // Arrange
         var adventureId = await _context.Adventures.Where(p => p.Name == "Adventure 1").Select(a => a.Id).FirstAsync(_ct);

@@ -5,8 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Exe</OutputType>
-    <Configurations>Debug;Release</Configurations>
     <UserSecretsId>baea3805-3deb-4047-9bce-09578509e342</UserSecretsId>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

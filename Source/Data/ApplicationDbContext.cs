@@ -3,6 +3,7 @@ using Asset = VttTools.Data.Assets.Entities.Asset;
 using AuditLog = VttTools.Data.Audit.Entities.AuditLog;
 using Effect = VttTools.Data.Assets.Entities.Effect;
 using GameSession = VttTools.Data.Game.Entities.GameSession;
+using MaintenanceMode = VttTools.Data.Maintenance.Entities.MaintenanceMode;
 using Resource = VttTools.Data.Media.Entities.Resource;
 using Scene = VttTools.Data.Library.Entities.Scene;
 using Schedule = VttTools.Data.Game.Entities.Schedule;
@@ -21,6 +22,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Schedule> Schedule { get; set; }
     public DbSet<StatBlock> StatBlocks { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<MaintenanceMode> MaintenanceMode { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder) {
         base.OnModelCreating(builder);
@@ -40,5 +42,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         ScheduleSchemaBuilder.ConfigureModel(builder);
         GameSessionSchemaBuilder.ConfigureModel(builder);
         AuditLogSchemaBuilder.ConfigureModel(builder);
+        MaintenanceModeSchemaBuilder.ConfigureModel(builder);
     }
 }

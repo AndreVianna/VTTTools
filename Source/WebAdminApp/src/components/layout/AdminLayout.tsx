@@ -24,6 +24,7 @@ import {
   Assignment as AssignmentIcon,
   Settings as SettingsIcon,
   LibraryBooks as LibraryIcon,
+  Build as BuildIcon,
   AccountCircle,
   LightMode,
   DarkMode,
@@ -38,6 +39,7 @@ const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard', id: 'menu-item-dashboard' },
   { text: 'User Management', icon: <PeopleIcon />, path: '/admin/users', id: 'menu-item-users' },
   { text: 'Audit Logs', icon: <AssignmentIcon />, path: '/admin/audit', id: 'menu-item-audit' },
+  { text: 'Maintenance Mode', icon: <BuildIcon />, path: '/admin/maintenance', id: 'menu-item-maintenance' },
   { text: 'System Config', icon: <SettingsIcon />, path: '/admin/config', id: 'menu-item-config' },
   { text: 'Public Library', icon: <LibraryIcon />, path: '/admin/library', id: 'menu-item-library' },
 ];
@@ -75,7 +77,7 @@ export function AdminLayout() {
   };
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <AppBar
         position="fixed"
         sx={{
@@ -209,7 +211,7 @@ export function AdminLayout() {
           mt: 8,
           ml: drawerOpen ? 0 : `-${DRAWER_WIDTH}px`,
           backgroundColor: theme.palette.background.default,
-          minHeight: '100vh',
+          minHeight: 'calc(100vh - 64px)',
           transition: (theme) =>
             theme.transitions.create('margin', {
               easing: theme.transitions.easing.sharp,

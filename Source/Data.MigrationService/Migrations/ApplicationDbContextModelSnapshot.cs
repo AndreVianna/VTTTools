@@ -871,6 +871,55 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("SceneWalls", (string)null);
                 });
 
+            modelBuilder.Entity("VttTools.Data.Maintenance.Entities.MaintenanceMode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DisabledAt")
+                        .HasColumnType("DATETIME2");
+
+                    b.Property<Guid?>("DisabledBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("EnabledAt")
+                        .HasColumnType("DATETIME2");
+
+                    b.Property<Guid?>("EnabledBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("ScheduledEndTime")
+                        .HasColumnType("DATETIME2");
+
+                    b.Property<DateTime?>("ScheduledStartTime")
+                        .HasColumnType("DATETIME2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnabledBy");
+
+                    b.HasIndex("IsEnabled");
+
+                    b.HasIndex("ScheduledEndTime");
+
+                    b.HasIndex("ScheduledStartTime");
+
+                    b.HasIndex("IsEnabled", "ScheduledStartTime");
+
+                    b.ToTable("MaintenanceMode", (string)null);
+                });
+
             modelBuilder.Entity("VttTools.Data.Media.Entities.Resource", b =>
                 {
                     b.Property<Guid>("Id")
