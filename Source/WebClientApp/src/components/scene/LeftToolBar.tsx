@@ -17,11 +17,11 @@ import {
   VisibilityOff as FogOfWarIcon,
   AddCircleOutline as AddCircleOutlineIcon
 } from '@mui/icons-material';
-import { BackgroundPanel, GridPanel, WallsPanel } from './panels';
+import { BackgroundPanel, GridPanel, WallsPanel, ObjectsPanel, CreaturesPanel } from './panels';
 import { AssetPicker } from '@/components/common';
 import { GridConfig } from '@/utils/gridCalculator';
 import { AssetKind } from '@/types/domain';
-import type { SceneWall, WallVisibility, Asset } from '@/types/domain';
+import type { SceneWall, WallVisibility, Asset, PlacedAsset } from '@/types/domain';
 
 export type PanelType =
   | 'background'
@@ -59,7 +59,12 @@ export interface LeftToolBarProps {
     defaultHeight: number;
   }) => void;
   onEditVertices?: (wallIndex: number) => void;
-  onAssetSelect?: (asset: Asset) => void;
+  placedAssets?: PlacedAsset[];
+  selectedAssetIds?: string[];
+  onAssetSelectForPlacement?: (asset: Asset) => void;
+  onPlacedAssetSelect?: (assetId: string) => void;
+  onPlacedAssetDelete?: (assetId: string) => void;
+  onPlacedAssetRename?: (assetId: string, newName: string) => void;
 }
 
 export const LeftToolBar: React.FC<LeftToolBarProps> = ({
@@ -77,7 +82,12 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onWallDelete,
   onPlaceWall,
   onEditVertices,
-  onAssetSelect
+  placedAssets = [],
+  selectedAssetIds = [],
+  onAssetSelectForPlacement,
+  onPlacedAssetSelect,
+  onPlacedAssetDelete,
+  onPlacedAssetRename
 }) => {
   const theme = useTheme();
   const [internalActivePanel, setInternalActivePanel] = useState<PanelType | null>(null);
@@ -243,60 +253,29 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
             </Box>
           )}
           {activePanel === 'objects' && (
-            <Box>
-              <Typography sx={{ mb: 2, fontWeight: 'bold', fontSize: '12px', textTransform: 'uppercase' }}>
-                Objects
-              </Typography>
-              <Typography sx={{ fontSize: '11px', color: 'text.secondary', mb: 2 }}>
-                Place furniture, props, and static elements on the scene
-              </Typography>
-              <Button
-                fullWidth
-                variant="contained"
-                size="small"
-                startIcon={<AddCircleOutlineIcon />}
-                onClick={() => setAssetPickerOpen({ open: true, kind: AssetKind.Object })}
-              >
-                Browse Objects
-              </Button>
-            </Box>
+            <ObjectsPanel
+              placedAssets={placedAssets}
+              selectedAssetIds={selectedAssetIds}
+              onBrowseAssets={() => setAssetPickerOpen({ open: true, kind: AssetKind.Object })}
+              onAssetSelect={onPlacedAssetSelect}
+              onAssetDelete={onPlacedAssetDelete}
+              onAssetRename={onPlacedAssetRename}
+            />
           )}
           {activePanel === 'creatures' && (
-            <Box>
-              <Typography sx={{ mb: 2, fontWeight: 'bold', fontSize: '12px', textTransform: 'uppercase' }}>
-                Creatures
-              </Typography>
-              <Typography sx={{ fontSize: '11px', color: 'text.secondary', mb: 2 }}>
-                Place NPCs, monsters, and creatures on the scene
-              </Typography>
-              <Button
-                fullWidth
-                variant="contained"
-                size="small"
-                startIcon={<AddCircleOutlineIcon />}
-                onClick={() => setAssetPickerOpen({ open: true, kind: AssetKind.Creature })}
-              >
-                Browse Creatures
-              </Button>
-            </Box>
+            <CreaturesPanel
+              placedAssets={placedAssets}
+              selectedAssetIds={selectedAssetIds}
+              onBrowseAssets={() => setAssetPickerOpen({ open: true, kind: AssetKind.Creature })}
+              onAssetSelect={onPlacedAssetSelect}
+              onAssetDelete={onPlacedAssetDelete}
+              onAssetRename={onPlacedAssetRename}
+            />
           )}
           {activePanel === 'players' && (
             <Box>
-              <Typography sx={{ mb: 2, fontWeight: 'bold', fontSize: '12px', textTransform: 'uppercase' }}>
-                Players
-              </Typography>
-              <Typography sx={{ fontSize: '11px', color: 'text.secondary', mb: 2 }}>
-                Place player character tokens on the scene (uses creature assets)
-              </Typography>
-              <Button
-                fullWidth
-                variant="contained"
-                size="small"
-                startIcon={<AddCircleOutlineIcon />}
-                onClick={() => setAssetPickerOpen({ open: true, kind: AssetKind.Creature })}
-              >
-                Browse Player Tokens
-              </Button>
+              <Box sx={{ mb: 2, fontWeight: 'bold' }}>Players</Box>
+              <Box>Player token controls (coming soon)</Box>
             </Box>
           )}
           {activePanel === 'effects' && (
@@ -343,7 +322,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         onClose={() => setAssetPickerOpen({ open: false })}
         onSelect={(asset) => {
           setAssetPickerOpen({ open: false });
-          onAssetSelect?.(asset);
+          onAssetSelectForPlacement?.(asset);
         }}
         kind={assetPickerOpen.kind}
       />

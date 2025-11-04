@@ -1751,7 +1751,18 @@ const SceneEditorPageInternal: React.FC = () => {
                     onWallDelete={handleWallDelete}
                     onPlaceWall={handlePlaceWall}
                     onEditVertices={handleEditVertices}
-                    onAssetSelect={setDraggedAsset}
+                    placedAssets={placedAssets}
+                    selectedAssetIds={selectedAssetIds}
+                    onAssetSelectForPlacement={setDraggedAsset}
+                    onPlacedAssetSelect={handleAssetSelected}
+                    onPlacedAssetDelete={(assetId) => {
+                        const asset = placedAssets.find(a => a.id === assetId);
+                        if (asset) {
+                            setAssetsToDelete([asset]);
+                            setDeleteConfirmOpen(true);
+                        }
+                    }}
+                    onPlacedAssetRename={handleAssetRename}
                 />
 
                 <SceneCanvas
