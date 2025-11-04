@@ -7,33 +7,17 @@ public class ConfigurationService(
     IConfiguration configuration,
     ConfigurationSourceDetector sourceDetector,
     FrontendConfigurationService frontendConfigService,
-    UserManager<User> userManager) : IConfigurationService {
+    UserManager<User> userManager,
+    ILogger<ConfigurationService> logger) : IConfigurationService {
 
-    public Task<ConfigurationResponse> GetServiceConfigurationAsync(string serviceName, CancellationToken ct = default) {
-        return serviceName switch {
-            "Admin" => GetLocalConfigurationAsync(ct),
-            "Frontend" => GetFrontendConfigurationAsync(ct),
-            _ => Task.FromResult(new ConfigurationResponse {
-                ServiceName = serviceName,
-                Entries = Array.Empty<ConfigEntry>()
-            })
-        };
-    }
-
-    public async Task<IReadOnlyList<ConfigurationResponse>> GetAggregatedConfigurationAsync(CancellationToken ct = default) {
-        var tasks = new[] {
-            GetServiceConfigurationAsync("Admin", ct),
-            GetServiceConfigurationAsync("Auth", ct),
-            GetServiceConfigurationAsync("Library", ct),
-            GetServiceConfigurationAsync("Assets", ct),
-            GetServiceConfigurationAsync("Media", ct),
-            GetServiceConfigurationAsync("Game", ct),
-            GetServiceConfigurationAsync("Frontend", ct)
+    public async Task<ConfigurationResponse> GetServiceConfigurationAsync(string serviceName, CancellationToken ct = default)
+        => serviceName switch {
+            "Admin" => await GetLocalConfigurationAsync(ct),
+            "WebClientApp" => await GetFrontendConfigurationAsync("WebClientApp", ct),
+            "WebAdminApp" => await GetFrontendConfigurationAsync("WebAdminApp", ct),
+            _ => throw new NotSupportedException($"Service '{serviceName}' is not supported by Admin API. Use direct service calls.")
         };
 
-        var responses = await Task.WhenAll(tasks);
-        return responses.ToList().AsReadOnly();
-    }
 
     public async Task<string> RevealConfigValueAsync(
         Guid userId,
@@ -42,8 +26,8 @@ public class ConfigurationService(
         string totpCode,
         CancellationToken ct = default) {
 
-        if (serviceName != "Admin" && serviceName != "Frontend") {
-            throw new NotSupportedException($"Configuration reveal not supported for service: {serviceName}. Only 'Admin' and 'Frontend' are supported.");
+        if (serviceName != "Admin" && serviceName != "WebClientApp" && serviceName != "WebAdminApp") {
+            throw new NotSupportedException($"Configuration reveal not supported for service: {serviceName}. Only 'Admin', 'WebClientApp', and 'WebAdminApp' are supported.");
         }
 
         var user = await userManager.FindByIdAsync(userId.ToString());
@@ -71,16 +55,11 @@ public class ConfigurationService(
             return configuration[key] ?? "[Configuration value not available]";
         }
 
-        if (serviceName == "Frontend") {
-            var appName = DetermineAppNameFromKey(key);
-            if (appName != "WebAdminApp" && appName != "WebClientApp") {
-                throw new ArgumentException($"Invalid application name: {appName}");
-            }
-
+        if (serviceName == "WebClientApp" || serviceName == "WebAdminApp") {
             var envFilePath = Path.Combine(
                 Directory.GetCurrentDirectory(),
                 "..",
-                appName,
+                serviceName,
                 ".env");
 
             if (File.Exists(envFilePath)) {
@@ -102,17 +81,32 @@ public class ConfigurationService(
         return "[Configuration value not available]";
     }
 
-    private async Task<ConfigurationResponse> GetLocalConfigurationAsync(CancellationToken ct = default) {
+    private Task<ConfigurationResponse> GetLocalConfigurationAsync(CancellationToken ct = default) {
         var entries = new List<ConfigEntry>();
 
         if (configuration is not IConfigurationRoot configRoot) {
             throw new InvalidOperationException("Configuration root not available for source detection");
         }
 
-        foreach (var section in configuration.AsEnumerable()) {
-            if (string.IsNullOrEmpty(section.Key) || string.IsNullOrEmpty(section.Value)) {
+        var allConfig = configuration.AsEnumerable().ToList();
+        logger.LogInformation("GetLocalConfigurationAsync: Total config items from AsEnumerable: {Count}", allConfig.Count);
+
+        var validCount = 0;
+        var skippedNullKey = 0;
+        var skippedNullValue = 0;
+
+        foreach (var section in allConfig) {
+            if (string.IsNullOrEmpty(section.Key)) {
+                skippedNullKey++;
                 continue;
             }
+
+            if (string.IsNullOrEmpty(section.Value)) {
+                skippedNullValue++;
+                continue;
+            }
+
+            validCount++;
 
             var source = sourceDetector.DetectSource(section.Key);
             var isSensitive = IsSensitiveKey(section.Key);
@@ -122,27 +116,29 @@ public class ConfigurationService(
                 Key = section.Key,
                 Value = value,
                 Source = source,
-                Category = DetermineCategory(section.Key)
+                Category = ConfigurationSourceDetector.DetermineCategory(section.Key)
             });
         }
 
-        return await Task.FromResult(new ConfigurationResponse {
+        logger.LogInformation(
+            "GetLocalConfigurationAsync: Valid entries={ValidCount}, SkippedNullKey={NullKey}, SkippedNullValue={NullValue}, Final entries count={EntriesCount}",
+            validCount, skippedNullKey, skippedNullValue, entries.Count);
+
+        return Task.FromResult(new ConfigurationResponse {
             ServiceName = "Admin",
             Entries = entries.AsReadOnly()
         });
     }
 
-    private async Task<ConfigurationResponse> GetFrontendConfigurationAsync(CancellationToken ct = default) {
-        var clientConfig = await frontendConfigService.GetFrontendConfigurationAsync("WebClientApp", ct);
-        var adminConfig = await frontendConfigService.GetFrontendConfigurationAsync("WebAdminApp", ct);
-
-        var combined = clientConfig.Concat(adminConfig).ToList();
+    private async Task<ConfigurationResponse> GetFrontendConfigurationAsync(string appName, CancellationToken ct = default) {
+        var entries = await frontendConfigService.GetFrontendConfigurationAsync(appName, ct);
 
         return new ConfigurationResponse {
-            ServiceName = "Frontend",
-            Entries = combined.AsReadOnly()
+            ServiceName = appName,
+            Entries = entries
         };
     }
+
 
     private static bool IsSensitiveKey(string key) {
         var lowerKey = key.ToLowerInvariant();
@@ -155,46 +151,6 @@ public class ConfigurationService(
             "hash"
         };
 
-        return sensitiveKeywords.Any(keyword => lowerKey.Contains(keyword));
-    }
-
-    private static string? DetermineCategory(string key) {
-        var lowerKey = key.ToLowerInvariant();
-
-        if (lowerKey.Contains("jwt") || lowerKey.Contains("token") || lowerKey.Contains("secret")) {
-            return "Security";
-        }
-
-        if (lowerKey.Contains("connectionstring") || lowerKey.Contains("database") || lowerKey.Contains("storage")) {
-            return "Storage";
-        }
-
-        if (lowerKey.Contains("log") || lowerKey.Contains("applicationinsights")) {
-            return "Logging";
-        }
-
-        if (lowerKey.Contains("cors") || lowerKey.Contains("allowedhost")) {
-            return "Security";
-        }
-
-        if (lowerKey.Contains("azure") || lowerKey.Contains("blob")) {
-            return "Cloud";
-        }
-
-        if (lowerKey.StartsWith("aspnetcore_") || lowerKey.StartsWith("dotnet_")) {
-            return "Runtime";
-        }
-
-        return "General";
-    }
-
-    private static string DetermineAppNameFromKey(string key) {
-        var lowerKey = key.ToLowerInvariant();
-
-        if (lowerKey.Contains("admin")) {
-            return "WebAdminApp";
-        }
-
-        return "WebClientApp";
+        return sensitiveKeywords.Any(lowerKey.Contains);
     }
 }

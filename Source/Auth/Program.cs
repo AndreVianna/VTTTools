@@ -127,10 +127,11 @@ internal static class Program {
     internal static void AddCors(this IHostApplicationBuilder builder)
      => builder.Services.AddCors(options
          => options.AddDefaultPolicy(policy
-            => policy.WithOrigins("http://localhost:5173")
+            => policy.WithOrigins("http://localhost:5173", "http://localhost:5193")
                   .AllowAnyMethod()
                   .AllowAnyHeader()
-                  .AllowCredentials()));
+                  .AllowCredentials()
+                  .WithExposedHeaders("X-Refreshed-Token")));
 
     internal static void AddServices(this IHostApplicationBuilder builder) {
         builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection(FrontendOptions.SectionName));
@@ -143,6 +144,13 @@ internal static class Program {
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
         builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+        builder.Services.AddSingleton(sp => {
+            var config = sp.GetRequiredService<IConfiguration>();
+            return config is not IConfigurationRoot root
+                ? throw new InvalidOperationException("Configuration root not available for source detection")
+                : new ConfigurationSourceDetector(root);
+        });
+        builder.Services.AddSingleton<InternalConfigurationService>();
         builder.AddAuditLogging();
     }
 
@@ -152,5 +160,6 @@ internal static class Program {
         app.MapSecurityEndpoints();
         app.MapTwoFactorEndpoints();
         app.MapRecoveryCodeEndpoints();
+        app.MapConfigurationEndpoints();
     }
 }

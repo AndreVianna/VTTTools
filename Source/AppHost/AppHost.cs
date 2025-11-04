@@ -33,12 +33,6 @@ internal static class AppHost {
                           .WithHttpHealthCheck("health")
                           .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
-        var admin = builder.AddProject<Projects.VttTools_Admin>("admin-api")
-                           .WithReference(cache)
-                           .WithReference(database)
-                           .WithHttpHealthCheck("health")
-                           .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
-
         var resources = builder.AddProject<Projects.VttTools_Media>("resources-api")
                                .WithReference(cache)
                                .WithReference(database)
@@ -68,20 +62,13 @@ internal static class AppHost {
                           .WithHttpHealthCheck("health")
                           .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
-        //var webApp = builder.AddProject<Projects.VttTools_WebApp>("webapp")
-        //                   .WithReference(cache)
-        //                   .WithReference(database)
-        //                   .WithReference(blobs)
-        //                   .WithReference(auth).WaitFor(auth)
-        //                   .WithReference(resources).WaitFor(resources)
-        //                   .WithReference(assets).WaitFor(assets)
-        //                   .WithReference(library).WaitFor(library)
-        //                   .WithReference(game).WaitFor(game)
-        //                   .WaitFor(migration)
-        //                   .WithHttpHealthCheck("health")
-        //                   .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
+        var admin = builder.AddProject<Projects.VttTools_Admin>("admin-api")
+                           .WithReference(cache)
+                           .WithReference(database)
+                           .WithReference(blobs)
+                           .WithHttpHealthCheck("health")
+                           .WithEndpoint("https", endpoint => endpoint.IsProxied = !isDevelopment);
 
-        // Register React SPA with .NET Aspire
         builder.AddNpmApp("webapp", "../WebClientApp", "dev")
                                  .WithReference(cache)
                                  .WithReference(database)
@@ -97,7 +84,6 @@ internal static class AppHost {
                                      endpoint.IsProxied = !isDevelopment;
                                  });
 
-        // Register Admin React SPA
         builder.AddNpmApp("adminapp", "../WebAdminApp", "dev")
                                  .WithReference(cache)
                                  .WithReference(database)

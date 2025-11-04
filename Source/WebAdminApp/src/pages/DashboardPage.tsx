@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react';
 import { Box, Typography, Paper, Grid, Skeleton, Alert } from '@mui/material';
 import {
     dashboardService,
-    type HealthCheckResponse,
     type DashboardStats,
     type PerformanceMetrics,
 } from '@services/dashboardService';
+import { healthCheckService, type AllServicesHealth } from '@services/healthCheckService';
 import { HealthStatusCard } from '@components/dashboard/HealthStatusCard';
 import { PerformanceChart } from '@components/dashboard/PerformanceChart';
 
 export function DashboardPage() {
-    const [healthData, setHealthData] = useState<HealthCheckResponse | null>(null);
+    const [allHealth, setAllHealth] = useState<AllServicesHealth>({});
+    const [infrastructure, setInfrastructure] = useState<AllServicesHealth>({});
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
     const [loading, setLoading] = useState(true);
@@ -21,13 +22,24 @@ export function DashboardPage() {
             setLoading(true);
             setError(null);
 
-            const [healthResponse, statsResponse, metricsResponse] = await Promise.all([
-                dashboardService.getHealthChecks(),
+            const [allServicesHealth, statsResponse, metricsResponse] = await Promise.all([
+                healthCheckService.getAllHealth(),
                 dashboardService.getStats(),
                 dashboardService.getMetrics(24),
             ]);
 
-            setHealthData(healthResponse);
+            setAllHealth(allServicesHealth);
+
+            const adminHealthData = allServicesHealth['Admin']?.healthData;
+            if (adminHealthData) {
+                const infraHealth = healthCheckService.extractInfrastructureHealth(adminHealthData);
+                setInfrastructure({
+                    Database: infraHealth.database,
+                    Redis: infraHealth.redis,
+                    BlobStorage: infraHealth.blobStorage,
+                });
+            }
+
             setStats(statsResponse);
             setMetrics(metricsResponse);
         } catch (err) {
@@ -138,17 +150,80 @@ export function DashboardPage() {
             </Grid>
 
             <Grid container spacing={3} sx={{ mt: 3 }}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    {loading ? (
-                        <Paper sx={{ p: 2, height: 400 }}>
-                            <Skeleton variant="rectangular" height="100%" />
-                        </Paper>
-                    ) : (
-                        <HealthStatusCard healthData={healthData} loading={loading} />
-                    )}
+                <Grid size={{ xs: 12 }}>
+                    <Typography variant="h5" sx={{ mb: 2 }}>
+                        Infrastructure Health
+                    </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                    <HealthStatusCard
+                        serviceName="Database"
+                        healthData={infrastructure['Database']?.healthData || null}
+                        error={infrastructure['Database']?.error || null}
+                        loading={loading}
+                    />
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                    <HealthStatusCard
+                        serviceName="Blob Storage"
+                        healthData={infrastructure['BlobStorage']?.healthData || null}
+                        error={infrastructure['BlobStorage']?.error || null}
+                        loading={loading}
+                    />
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                    <HealthStatusCard
+                        serviceName="Redis Cache"
+                        healthData={infrastructure['Redis']?.healthData || null}
+                        error={infrastructure['Redis']?.error || null}
+                        loading={loading}
+                    />
                 </Grid>
 
+                <Grid size={{ xs: 12 }}>
+                    <Typography variant="h5" sx={{ mb: 2, mt: 3 }}>
+                        Frontend Applications
+                    </Typography>
+                </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
+                    <HealthStatusCard
+                        serviceName="Admin App"
+                        healthData={allHealth['AdminApp']?.healthData || null}
+                        error={allHealth['AdminApp']?.error || null}
+                        loading={loading}
+                    />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <HealthStatusCard
+                        serviceName="Main App"
+                        healthData={allHealth['MainApp']?.healthData || null}
+                        error={allHealth['MainApp']?.error || null}
+                        loading={loading}
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                    <Typography variant="h5" sx={{ mb: 2, mt: 3 }}>
+                        Backend Services
+                    </Typography>
+                </Grid>
+                {['Admin', 'Auth', 'Assets', 'Library', 'Game', 'Media'].map((service) => (
+                    <Grid key={service} size={{ xs: 12, sm: 6, md: 4 }}>
+                        <HealthStatusCard
+                            serviceName={`${service} API`}
+                            healthData={allHealth[service]?.healthData || null}
+                            error={allHealth[service]?.error || null}
+                            loading={loading}
+                        />
+                    </Grid>
+                ))}
+
+                <Grid size={{ xs: 12 }}>
+                    <Typography variant="h5" sx={{ mb: 2, mt: 3 }}>
+                        Performance Metrics
+                    </Typography>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
                     {loading ? (
                         <Paper sx={{ p: 2, height: 400 }}>
                             <Skeleton variant="rectangular" height="100%" />

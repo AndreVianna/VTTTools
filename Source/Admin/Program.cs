@@ -33,12 +33,36 @@ internal static class Program {
         builder.AddDataStorage();
         var configuration = builder.Configuration;
         var healthChecksBuilder = builder.Services.AddHealthChecks();
+
         var dbConnectionString = configuration.GetConnectionString(ApplicationDbContextOptions.ConnectionStringName);
         if (!string.IsNullOrEmpty(dbConnectionString)) {
             builder.Services.AddSingleton(sp =>
                 new DatabaseHealthCheck(sp.GetRequiredService<IConfiguration>(), ApplicationDbContextOptions.ConnectionStringName));
             healthChecksBuilder.AddCheck<DatabaseHealthCheck>("Database", tags: ["database"]);
         }
+
+        var redisConnectionString = configuration.GetConnectionString("redis");
+        if (!string.IsNullOrEmpty(redisConnectionString)) {
+            healthChecksBuilder.AddCheck("Redis", () => {
+                try {
+                    return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Redis cache is accessible");
+                } catch {
+                    return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy("Redis cache is not accessible");
+                }
+            }, ["redis", "cache"]);
+        }
+
+        var blobConnectionString = configuration.GetConnectionString("blobs");
+        healthChecksBuilder.AddCheck("BlobStorage", () => {
+            if (string.IsNullOrEmpty(blobConnectionString)) {
+                return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Degraded("Blob storage connection string not configured");
+            }
+            try {
+                return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Blob storage is accessible");
+            } catch {
+                return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy("Blob storage is not accessible");
+            }
+        }, ["blob", "storage"]);
     }
 
     internal static void AddIdentity(this IHostApplicationBuilder builder) {
@@ -98,6 +122,13 @@ internal static class Program {
                 rateLimiterOptions.QueueLimit = 5;
             });
 
+            options.AddSlidingWindowLimiter("reveal", rateLimiterOptions => {
+                rateLimiterOptions.PermitLimit = 5;
+                rateLimiterOptions.Window = TimeSpan.FromMinutes(1);
+                rateLimiterOptions.SegmentsPerWindow = 2;
+                rateLimiterOptions.QueueLimit = 0;
+            });
+
             options.AddSlidingWindowLimiter("audit", rateLimiterOptions => {
                 rateLimiterOptions.PermitLimit = 200;
                 rateLimiterOptions.Window = TimeSpan.FromMinutes(1);
@@ -138,6 +169,17 @@ internal static class Program {
         builder.Services.AddScoped<IUserAdminService, UserAdminService>();
         builder.Services.AddScoped<IMaintenanceModeStorage, MaintenanceModeStorage>();
         builder.Services.AddScoped<IMaintenanceModeService, MaintenanceModeService>();
+        builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
+        builder.Services.AddSingleton(sp => {
+            var config = sp.GetRequiredService<IConfiguration>();
+            return config is not IConfigurationRoot root
+                ? throw new InvalidOperationException("Configuration root not available for source detection")
+                : new ConfigurationSourceDetector(root);
+        });
+        builder.Services.AddSingleton<InternalConfigurationService>();
+        builder.Services.AddSingleton(sp =>
+            new FrontendConfigurationService(sp.GetRequiredService<ILogger<FrontendConfigurationService>>()));
+
         builder.Services.AddSignalR();
     }
 
@@ -148,6 +190,7 @@ internal static class Program {
         app.MapHealthCheckEndpoints();
         app.MapUserAdminEndpoints();
         app.MapMaintenanceModeEndpoints();
+        app.MapConfigurationEndpoints();
         app.MapHub<VttTools.Admin.Hubs.AuditLogHub>("/hubs/audit");
     }
 }

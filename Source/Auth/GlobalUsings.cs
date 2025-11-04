@@ -17,6 +17,7 @@ global using VttTools.Auth.ApiContracts;
 global using VttTools.Auth.EndpointMappers;
 global using VttTools.Auth.Handlers;
 global using VttTools.Auth.Services;
+global using VttTools.Common.Utilities;
 global using VttTools.Configuration;
 global using VttTools.Data;
 global using VttTools.Data.Audit;

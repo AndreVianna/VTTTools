@@ -39,9 +39,18 @@ internal static class Program {
         builder.Services.AddScoped<IAssetService, AssetService>();
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+        builder.Services.AddSingleton(sp => {
+            var config = sp.GetRequiredService<IConfiguration>();
+            return config is not IConfigurationRoot root
+                ? throw new InvalidOperationException("Configuration root not available for source detection")
+                : new ConfigurationSourceDetector(root);
+        });
+        builder.Services.AddSingleton<InternalConfigurationService>();
         builder.AddAuditLogging();
     }
 
-    internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app)
-        => app.MapAssetEndpoints();
+    internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {
+        app.MapAssetEndpoints();
+        app.MapConfigurationEndpoints();
+    }
 }

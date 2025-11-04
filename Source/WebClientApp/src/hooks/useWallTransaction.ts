@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
-import type { Scene, SceneWall, Pole } from '@/types/domain';
+import type { SceneWall, Pole } from '@/types/domain';
 import { WallVisibility } from '@/types/domain';
 import { cleanWallPoles } from '@/utils/wallUtils';
+import type { LocalAction } from '@/types/wallUndoActions';
 import type {
     useAddSceneWallMutation,
     useUpdateSceneWallMutation
@@ -25,6 +26,8 @@ export interface WallTransaction {
     originalWall: SceneWall | null;
     segments: WallSegment[];
     isActive: boolean;
+    localUndoStack: LocalAction[];
+    localRedoStack: LocalAction[];
 }
 
 export interface CommitResult {
@@ -45,7 +48,9 @@ const INITIAL_TRANSACTION: WallTransaction = {
     type: null,
     originalWall: null,
     segments: [],
-    isActive: false
+    isActive: false,
+    localUndoStack: [],
+    localRedoStack: []
 };
 
 function generateBrokenWallNames(originalName: string, segmentCount: number): string[] {
@@ -99,7 +104,9 @@ export const useWallTransaction = () => {
                     material: wall.material,
                     color: wall.color
                 }],
-                isActive: true
+                isActive: true,
+                localUndoStack: [],
+                localRedoStack: []
             });
             setNextTempId(1);
         } else {
@@ -116,7 +123,9 @@ export const useWallTransaction = () => {
                     material: placementProperties?.material,
                     color: placementProperties?.color || '#808080'
                 }],
-                isActive: true
+                isActive: true,
+                localUndoStack: [],
+                localRedoStack: []
             });
             setNextTempId(0);
         }
@@ -148,6 +157,13 @@ export const useWallTransaction = () => {
                     ? { ...segment, ...changes }
                     : segment
             )
+        }));
+    }, []);
+
+    const removeSegment = useCallback((tempId: number) => {
+        setTransaction(prev => ({
+            ...prev,
+            segments: prev.segments.filter(segment => segment.tempId !== tempId)
         }));
     }, []);
 
@@ -255,13 +271,89 @@ export const useWallTransaction = () => {
         return transaction.segments;
     }, [transaction.segments]);
 
+    const pushLocalAction = useCallback((action: LocalAction) => {
+        setTransaction(prev => ({
+            ...prev,
+            localUndoStack: [...prev.localUndoStack, action],
+            localRedoStack: []
+        }));
+    }, []);
+
+    const undoLocal = useCallback((onSyncScene?: (segments: WallSegment[]) => void) => {
+        setTransaction(prev => {
+            if (prev.localUndoStack.length === 0) {
+                return prev;
+            }
+
+            const action = prev.localUndoStack[prev.localUndoStack.length - 1];
+            if (!action) {
+                return prev;
+            }
+
+            action.undo();
+
+            const newState = {
+                ...prev,
+                localUndoStack: prev.localUndoStack.slice(0, -1),
+                localRedoStack: [...prev.localRedoStack, action]
+            };
+
+            if (onSyncScene) {
+                onSyncScene(newState.segments);
+            }
+
+            return newState;
+        });
+    }, []);
+
+    const redoLocal = useCallback((onSyncScene?: (segments: WallSegment[]) => void) => {
+        setTransaction(prev => {
+            if (prev.localRedoStack.length === 0) {
+                return prev;
+            }
+
+            const action = prev.localRedoStack[prev.localRedoStack.length - 1];
+            if (!action) {
+                return prev;
+            }
+
+            action.redo();
+
+            const newState = {
+                ...prev,
+                localRedoStack: prev.localRedoStack.slice(0, -1),
+                localUndoStack: [...prev.localUndoStack, action]
+            };
+
+            if (onSyncScene) {
+                onSyncScene(newState.segments);
+            }
+
+            return newState;
+        });
+    }, []);
+
+    const canUndoLocal = useCallback((): boolean => {
+        return transaction.localUndoStack.length > 0;
+    }, [transaction.localUndoStack]);
+
+    const canRedoLocal = useCallback((): boolean => {
+        return transaction.localRedoStack.length > 0;
+    }, [transaction.localRedoStack]);
+
     return {
         transaction,
         startTransaction,
         addSegment,
         updateSegment,
+        removeSegment,
         commitTransaction,
         rollbackTransaction,
-        getActiveSegments
+        getActiveSegments,
+        pushLocalAction,
+        undoLocal,
+        redoLocal,
+        canUndoLocal,
+        canRedoLocal
     };
 };

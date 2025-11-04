@@ -47,6 +47,7 @@ import { useClipboard } from '@/contexts/useClipboard';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
 import { addWallOptimistic, removeWallOptimistic, syncWallIndices, updateWallOptimistic } from '@/utils/sceneStateUtils';
+import { createBreakWallAction } from '@/types/wallUndoActions';
 import {
     createPlaceAssetCommand,
     createMoveAssetCommand,
@@ -58,6 +59,7 @@ import {
     createRenameAssetCommand,
     createUpdateAssetDisplayCommand
 } from '@/utils/commands';
+import { CreateWallCommand, EditWallCommand, BreakWallCommand } from '@/utils/commands/wallCommands';
 import {
     useGetSceneQuery,
     usePatchSceneMutation,
@@ -89,7 +91,7 @@ const SceneEditorPageInternal: React.FC = () => {
     const { sceneId } = useParams<{ sceneId: string }>();
     const canvasRef = useRef<SceneCanvasHandle>(null);
     const stageRef = useRef<Konva.Stage>(null);
-    const { execute } = useUndoRedoContext();
+    const { execute, undo, redo } = useUndoRedoContext();
     const { copyAssets, cutAssets, clipboard, canPaste, getClipboardAssets, clearClipboard } = useClipboard();
     const { isOnline } = useConnectionStatus();
     const wallTransaction = useWallTransaction();
@@ -123,6 +125,11 @@ const SceneEditorPageInternal: React.FC = () => {
 
     const [isInitialized, setIsInitialized] = useState(false);
     const [scene, setScene] = useState<Scene | null>(null);
+    const sceneRef = useRef<Scene | null>(null);
+
+    useEffect(() => {
+        sceneRef.current = scene;
+    }, [scene]);
 
     const initialViewport = {
         x: (window.innerWidth - STAGE_WIDTH) / 2,
@@ -992,9 +999,98 @@ const SceneEditorPageInternal: React.FC = () => {
         });
 
         if (result.success) {
+            const originalWall = wallTransaction.transaction.originalWall;
+            if (!originalWall) {
+                setSelectedWallIndex(null);
+                setIsEditingVertices(false);
+                setOriginalWallPoles(null);
+                return;
+            }
+
             const { data: updatedScene } = await refetch();
             if (updatedScene) {
                 setScene(updatedScene);
+
+                if (result.segmentResults.length > 1) {
+                    const newWalls: SceneWall[] = [];
+                    result.segmentResults.forEach(r => {
+                        if (r.wallIndex !== undefined) {
+                            const wall = updatedScene.walls?.find(w => w.index === r.wallIndex);
+                            if (wall) newWalls.push(wall);
+                        }
+                    });
+
+                    if (newWalls.length === 0) {
+                        console.error('Wall break succeeded but no segments found');
+                        setErrorMessage('Wall break failed. Please try again.');
+                        return;
+                    }
+
+                    const command = new BreakWallCommand({
+                        sceneId,
+                        originalWallIndex: selectedWallIndex,
+                        originalWall,
+                        newWalls,
+                        onAdd: async (sceneId, wallData) => {
+                            try {
+                                const result = await addSceneWall({ sceneId, ...wallData }).unwrap();
+                                return result;
+                            } catch (error) {
+                                console.error('Failed to recreate wall:', error);
+                                setErrorMessage('Failed to recreate wall. Please try again.');
+                                throw error;
+                            }
+                        },
+                        onUpdate: async (sceneId, wallIndex, updates) => {
+                            try {
+                                await updateSceneWall({ sceneId, wallIndex, ...updates }).unwrap();
+                            } catch (error) {
+                                console.error('Failed to update wall:', error);
+                                setErrorMessage('Failed to update wall. Please try again.');
+                                throw error;
+                            }
+                        },
+                        onRemove: async (sceneId, wallIndex) => {
+                            try {
+                                await removeSceneWall({ sceneId, wallIndex }).unwrap();
+                            } catch (error) {
+                                console.error('Failed to remove wall:', error);
+                                setErrorMessage('Failed to remove wall. Please try again.');
+                                throw error;
+                            }
+                        },
+                        onRefetch: async () => {
+                            const { data } = await refetch();
+                            if (data) setScene(data);
+                        }
+                    });
+                    command.execute();
+                    execute(command);
+                } else {
+                    const updatedWall = updatedScene.walls?.find(w => w.index === selectedWallIndex);
+                    if (updatedWall) {
+                        const command = new EditWallCommand({
+                            sceneId,
+                            wallIndex: selectedWallIndex,
+                            oldWall: originalWall,
+                            newWall: updatedWall,
+                            onUpdate: async (sceneId, wallIndex, updates) => {
+                                try {
+                                    await updateSceneWall({ sceneId, wallIndex, ...updates }).unwrap();
+                                } catch (error) {
+                                    console.error('Failed to update wall:', error);
+                                    setErrorMessage('Failed to update wall. Please try again.');
+                                    throw error;
+                                }
+                            },
+                            onRefetch: async () => {
+                                const { data } = await refetch();
+                                if (data) setScene(data);
+                            }
+                        });
+                        execute(command);
+                    }
+                }
             }
         } else {
             wallTransaction.rollbackTransaction();
@@ -1012,7 +1108,118 @@ const SceneEditorPageInternal: React.FC = () => {
         setSelectedWallIndex(null);
         setIsEditingVertices(false);
         setOriginalWallPoles(null);
-    }, [sceneId, scene, selectedWallIndex, originalWallPoles, wallTransaction, addSceneWall, updateSceneWall, setScene, refetch]);
+    }, [sceneId, scene, selectedWallIndex, originalWallPoles, wallTransaction, addSceneWall, updateSceneWall, removeSceneWall, setScene, refetch, execute]);
+
+    useEffect(() => {
+        const handleKeyDown = async (e: KeyboardEvent) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                return;
+            }
+
+            const isTransactionActive = wallTransaction.transaction.isActive;
+            const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+            const modifier = isMac ? e.metaKey : e.ctrlKey;
+
+            if (modifier && e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                if (isTransactionActive && wallTransaction.canUndoLocal()) {
+                    wallTransaction.undoLocal((segments) => {
+                        const currentScene = sceneRef.current;
+                        if (currentScene && selectedWallIndex !== null) {
+                            let syncedScene = currentScene;
+
+                            const tempWalls = currentScene.walls?.filter(w => w.index < 0) || [];
+                            tempWalls.forEach(tempWall => {
+                                const segmentExists = segments.some(s => s.tempId === tempWall.index);
+                                if (!segmentExists) {
+                                    syncedScene = removeWallOptimistic(syncedScene, tempWall.index);
+                                }
+                            });
+
+                            if (segments.length === 1) {
+                                syncedScene = updateWallOptimistic(syncedScene, selectedWallIndex, {
+                                    poles: segments[0].poles,
+                                    isClosed: segments[0].isClosed
+                                });
+                            } else {
+                                const mainSegment = segments.find(s => s.wallIndex === selectedWallIndex || s.tempId === 0);
+                                if (mainSegment) {
+                                    syncedScene = updateWallOptimistic(syncedScene, selectedWallIndex, {
+                                        poles: mainSegment.poles,
+                                        isClosed: mainSegment.isClosed
+                                    });
+                                }
+                            }
+
+                            setScene(syncedScene);
+                        }
+                    });
+                } else {
+                    await undo();
+                }
+                return;
+            }
+
+            if (modifier && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                if (isTransactionActive && wallTransaction.canRedoLocal()) {
+                    wallTransaction.redoLocal((segments) => {
+                        const currentScene = sceneRef.current;
+                        if (currentScene && selectedWallIndex !== null) {
+                            const selectedWall = currentScene.walls?.find(w => w.index === selectedWallIndex);
+                            let syncedScene = currentScene;
+
+                            if (segments.length === 1) {
+                                syncedScene = updateWallOptimistic(syncedScene, selectedWallIndex, {
+                                    poles: segments[0].poles,
+                                    isClosed: segments[0].isClosed
+                                });
+                            } else {
+                                segments.forEach(segment => {
+                                    if (segment.wallIndex === selectedWallIndex || segment.tempId === 0) {
+                                        syncedScene = updateWallOptimistic(syncedScene, selectedWallIndex, {
+                                            poles: segment.poles,
+                                            isClosed: segment.isClosed
+                                        });
+                                    } else if (segment.wallIndex === null) {
+                                        const existingWall = syncedScene.walls?.find(w => w.index === segment.tempId);
+                                        if (!existingWall && selectedWall) {
+                                            const tempWall: SceneWall = {
+                                                sceneId,
+                                                index: segment.tempId,
+                                                name: selectedWall.name,
+                                                poles: segment.poles,
+                                                isClosed: segment.isClosed,
+                                                visibility: selectedWall.visibility,
+                                                material: selectedWall.material,
+                                                color: selectedWall.color
+                                            };
+                                            syncedScene = addWallOptimistic(syncedScene, tempWall);
+                                        }
+                                    }
+                                });
+                            }
+
+                            setScene(syncedScene);
+                        }
+                    });
+                } else {
+                    await redo();
+                }
+                return;
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown, { capture: true });
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown, { capture: true });
+        };
+    }, [wallTransaction, undo, redo]);
 
     const handleVerticesChange = useCallback(async (
         wallIndex: number,
@@ -1091,6 +1298,27 @@ const SceneEditorPageInternal: React.FC = () => {
             material: wall.material,
             color: wall.color
         });
+
+        const action = createBreakWallAction(
+            currentSegment.tempId,
+            breakData.breakPoleIndex,
+            wall.poles,
+            wall.isClosed,
+            selectedWallIndex,
+            currentSegment.tempId,
+            newSegmentTempId,
+            breakData.originalWallPoles,
+            breakData.newWallPoles,
+            wall.name,
+            wall.visibility,
+            wall.material,
+            wall.color,
+            (tempId) => wallTransaction.removeSegment(tempId),
+            (tempId, changes) => wallTransaction.updateSegment(tempId, changes),
+            (segment) => wallTransaction.addSegment(segment)
+        );
+
+        wallTransaction.pushLocalAction(action);
 
         let updatedScene = updateWallOptimistic(scene, selectedWallIndex, {
             poles: breakData.originalWallPoles,
@@ -1310,6 +1538,45 @@ const SceneEditorPageInternal: React.FC = () => {
 
             const syncedScene = syncWallIndices(scene, tempToReal);
             setScene(syncedScene);
+
+            const createdWalls: SceneWall[] = [];
+            result.segmentResults.forEach(r => {
+                if (r.wallIndex !== undefined) {
+                    const wall = syncedScene.walls?.find(w => w.index === r.wallIndex);
+                    if (wall) createdWalls.push(wall);
+                }
+            });
+
+            createdWalls.forEach(wall => {
+                const command = new CreateWallCommand({
+                    sceneId,
+                    wall,
+                    onCreate: async (sceneId, wallData) => {
+                        try {
+                            const result = await addSceneWall({ sceneId, ...wallData }).unwrap();
+                            return result;
+                        } catch (error) {
+                            console.error('Failed to recreate wall:', error);
+                            setErrorMessage('Failed to recreate wall. Please try again.');
+                            throw error;
+                        }
+                    },
+                    onRemove: async (sceneId, wallIndex) => {
+                        try {
+                            await removeSceneWall({ sceneId, wallIndex }).unwrap();
+                        } catch (error) {
+                            console.error('Failed to remove wall:', error);
+                            setErrorMessage('Failed to remove wall. Please try again.');
+                            throw error;
+                        }
+                    },
+                    onRefetch: async () => {
+                        const { data } = await refetch();
+                        if (data) setScene(data);
+                    }
+                });
+                execute(command);
+            });
         } else {
             wallTransaction.rollbackTransaction();
             const cleanScene = removeWallOptimistic(scene, -1);
@@ -1319,7 +1586,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
         setDrawingWallIndex(null);
         setDrawingMode(null);
-    }, [sceneId, scene, wallTransaction, addSceneWall, updateSceneWall]);
+    }, [sceneId, scene, wallTransaction, addSceneWall, updateSceneWall, removeSceneWall, refetch, execute]);
 
     const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         const canvasX = Math.round((e.clientX - viewport.x) / viewport.scale);
@@ -1484,6 +1751,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     onWallDelete={handleWallDelete}
                     onPlaceWall={handlePlaceWall}
                     onEditVertices={handleEditVertices}
+                    onAssetSelect={setDraggedAsset}
                 />
 
                 <SceneCanvas
@@ -1587,6 +1855,7 @@ const SceneEditorPageInternal: React.FC = () => {
                                                 wall={undefined}
                                                 onWallBreak={handleWallBreak}
                                                 enableBackgroundRect={false}
+                                                wallTransaction={wallTransaction}
                                             />
                                         ))}
                                     </>
@@ -1646,6 +1915,7 @@ const SceneEditorPageInternal: React.FC = () => {
                                             setScene(updatedScene);
                                         }
                                     }}
+                                    wallTransaction={wallTransaction}
                                 />
                             )}
                             {/* TODO: Implement RegionDrawingTool with progressive creation like WallDrawingTool */}

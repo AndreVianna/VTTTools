@@ -36,7 +36,6 @@ export default defineConfig(({ mode }) => {
       port: 5193, // Different port from main app
       // Conditional proxy configuration based on mode
       proxy: isStandalone ? {
-        // Standalone mode - proxy to local Admin API
         '/api/admin': {
           target: 'https://localhost:7175',
           changeOrigin: true,
@@ -47,10 +46,132 @@ export default defineConfig(({ mode }) => {
             });
           },
         },
-        '/health': {
-          target: 'https://localhost:7001',
+        '/api/auth': {
+          target: 'https://localhost:7050',
           changeOrigin: true,
           secure: false,
+          rewrite: (path) => path.replace(/^\/api\/auth/, '/api'),
+          configure: (proxy, _options) => {
+            proxy.on('error', (err, _req, _res) => {
+              console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
+            });
+          },
+        },
+        '/api/library': {
+          target: 'https://localhost:7172',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api\/library/, '/api'),
+          configure: (proxy, _options) => {
+            proxy.on('error', (err, _req, _res) => {
+              console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
+            });
+          },
+        },
+        '/api/assets': {
+          target: 'https://localhost:7171',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api\/assets/, '/api'),
+          configure: (proxy, _options) => {
+            proxy.on('error', (err, _req, _res) => {
+              console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
+            });
+          },
+        },
+        '/api/media': {
+          target: 'https://localhost:7174',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api\/media/, '/api'),
+          configure: (proxy, _options) => {
+            proxy.on('error', (err, _req, _res) => {
+              console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
+            });
+          },
+        },
+        '/api/game': {
+          target: 'https://localhost:7173',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api\/game/, '/api'),
+          configure: (proxy, _options) => {
+            proxy.on('error', (err, _req, _res) => {
+              console.warn('🔧 Proxy error (this is expected in standalone mode):', err.message);
+            });
+          },
+        },
+        '/health/admin': {
+          target: 'https://localhost:7175',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/admin/, '/health'),
+        },
+        '/health/auth': {
+          target: 'https://localhost:7050',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/auth/, '/health'),
+        },
+        '/health/library': {
+          target: 'https://localhost:7172',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/library/, '/health'),
+        },
+        '/health/assets': {
+          target: 'https://localhost:7171',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/assets/, '/health'),
+        },
+        '/health/media': {
+          target: 'https://localhost:7174',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/media/, '/health'),
+        },
+        '/health/game': {
+          target: 'https://localhost:7173',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/game/, '/health'),
+        },
+        '/alive/admin': {
+          target: 'https://localhost:7175',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/admin/, '/alive'),
+        },
+        '/alive/auth': {
+          target: 'https://localhost:7050',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/auth/, '/alive'),
+        },
+        '/alive/library': {
+          target: 'https://localhost:7172',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/library/, '/alive'),
+        },
+        '/alive/assets': {
+          target: 'https://localhost:7171',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/assets/, '/alive'),
+        },
+        '/alive/media': {
+          target: 'https://localhost:7174',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/media/, '/alive'),
+        },
+        '/alive/game': {
+          target: 'https://localhost:7173',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/game/, '/alive'),
         },
       } : {
         '/api/admin': {
@@ -58,16 +179,113 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
+        '/api/auth': {
+          target: 'https://localhost:7050',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api\/auth/, '/api'),
+        },
+        '/api/library': {
+          target: 'https://localhost:7172',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api\/library/, '/api'),
+        },
+        '/api/assets': {
+          target: 'https://localhost:7171',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api\/assets/, '/api'),
+        },
+        '/api/media': {
+          target: 'https://localhost:7174',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api\/media/, '/api'),
+        },
+        '/api/game': {
+          target: 'https://localhost:7173',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api\/game/, '/api'),
+        },
         '/signalr/admin': {
           target: 'https://localhost:5193',
           ws: true,
           changeOrigin: true,
           secure: false,
         },
-        '/health': {
-          target: 'https://localhost:5193',
+        '/health/admin': {
+          target: 'https://localhost:7175',
           changeOrigin: true,
           secure: false,
+          rewrite: (path) => path.replace(/^\/health\/admin/, '/health'),
+        },
+        '/health/auth': {
+          target: 'https://localhost:7050',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/auth/, '/health'),
+        },
+        '/health/library': {
+          target: 'https://localhost:7172',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/library/, '/health'),
+        },
+        '/health/assets': {
+          target: 'https://localhost:7171',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/assets/, '/health'),
+        },
+        '/health/media': {
+          target: 'https://localhost:7174',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/media/, '/health'),
+        },
+        '/health/game': {
+          target: 'https://localhost:7173',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/health\/game/, '/health'),
+        },
+        '/alive/admin': {
+          target: 'https://localhost:7175',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/admin/, '/alive'),
+        },
+        '/alive/auth': {
+          target: 'https://localhost:7050',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/auth/, '/alive'),
+        },
+        '/alive/library': {
+          target: 'https://localhost:7172',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/library/, '/alive'),
+        },
+        '/alive/assets': {
+          target: 'https://localhost:7171',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/assets/, '/alive'),
+        },
+        '/alive/media': {
+          target: 'https://localhost:7174',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/media/, '/alive'),
+        },
+        '/alive/game': {
+          target: 'https://localhost:7173',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/alive\/game/, '/alive'),
         },
       },
     },

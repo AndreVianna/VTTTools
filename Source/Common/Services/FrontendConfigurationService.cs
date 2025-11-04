@@ -73,6 +73,6 @@ public class FrontendConfigurationService(ILogger<FrontendConfigurationService> 
 
     private static bool IsSensitiveKey(string key) {
         var lowerKey = key.ToLowerInvariant();
-        return _sensitiveKeywords.Any(keyword => lowerKey.Contains(keyword));
+        return _sensitiveKeywords.Any(lowerKey.Contains);
     }
 }

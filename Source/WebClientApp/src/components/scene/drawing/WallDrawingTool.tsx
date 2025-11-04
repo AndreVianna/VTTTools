@@ -8,6 +8,8 @@ import { VertexMarker } from './VertexMarker';
 import { WallPreview } from './WallPreview';
 import type { Point, Pole } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
+import type { useWallTransaction } from '@/hooks/useWallTransaction';
+import { createPlacePoleAction } from '@/types/wallUndoActions';
 
 const INTERACTION_RECT_SIZE = 20000;
 const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
@@ -20,6 +22,7 @@ export interface WallDrawingToolProps {
     onCancel: () => void;
     onFinish: () => void;
     onPolesChange?: (poles: Pole[]) => void;
+    wallTransaction: ReturnType<typeof useWallTransaction>;
 }
 
 export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
@@ -29,7 +32,8 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
     defaultHeight,
     onCancel,
     onFinish,
-    onPolesChange
+    onPolesChange,
+    wallTransaction
 }) => {
     const [poles, setPoles] = useState<Pole[]>([]);
     const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
@@ -57,16 +61,6 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
                 handleFinish();
                 return;
             }
-
-            if (e.ctrlKey && e.key === 'z') {
-                e.preventDefault();
-                if (poles.length > 0) {
-                    const newPoles = poles.slice(0, -1);
-                    setPoles(newPoles);
-                    onPolesChange?.(newPoles);
-                }
-                return;
-            }
         };
 
         window.addEventListener('keydown', handleKeyDown);
@@ -74,7 +68,7 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [poles, onCancel, onPolesChange, handleFinish]);
+    }, [onCancel, handleFinish]);
 
     const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         const stage = e.target.getStage();
@@ -116,11 +110,30 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
             y: snappedPos.y,
             h: defaultHeight
         };
+        const poleIndex = poles.length;
         const newPoles = [...poles, newPole];
         setPoles(newPoles);
-
         onPolesChange?.(newPoles);
-    }, [poles, gridConfig, defaultHeight, onPolesChange]);
+
+        const action = createPlacePoleAction(
+            poleIndex,
+            newPole,
+            (updatedPoles) => {
+                setPoles(updatedPoles);
+                onPolesChange?.(updatedPoles);
+            },
+            () => {
+                let currentPoles: Pole[] = [];
+                setPoles(p => {
+                    currentPoles = p;
+                    return p;
+                });
+                return currentPoles;
+            },
+            () => false
+        );
+        wallTransaction.pushLocalAction(action);
+    }, [poles, gridConfig, defaultHeight, onPolesChange, wallTransaction]);
 
     const handleDoubleClick = useCallback(() => {
         if (poles.length >= 1) {

@@ -3,9 +3,17 @@ import { Group, Circle, Line, Rect } from 'react-konva';
 import { useTheme } from '@mui/material';
 import type { Pole, SceneWall } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
+import type { useWallTransaction } from '@/hooks/useWallTransaction';
 import { snapToNearest, SnapMode } from '@/utils/structureSnapping';
 import { getSnapModeFromEvent } from '@/utils/snapUtils';
 import { getCrosshairPlusCursor, getMoveCursor, getGrabbingCursor, getPointerCursor } from '@/utils/customCursors';
+import {
+    createMovePoleAction,
+    createMultiMovePoleAction,
+    createInsertPoleAction,
+    createDeletePoleAction,
+    createMoveLineAction
+} from '@/types/wallUndoActions';
 
 type SelectionMode = 'pole' | 'line' | 'marquee';
 
@@ -79,6 +87,7 @@ export interface WallTransformerProps {
     wall?: SceneWall;
     onWallBreak?: (breakData: WallBreakData) => void | Promise<void>;
     enableBackgroundRect?: boolean;
+    wallTransaction?: ReturnType<typeof useWallTransaction>;
 }
 
 export const WallTransformer: React.FC<WallTransformerProps> = ({
@@ -94,7 +103,8 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     wallIndex,
     wall,
     onWallBreak,
-    enableBackgroundRect = true
+    enableBackgroundRect = true,
+    wallTransaction
 }) => {
     const theme = useTheme();
     const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
@@ -221,8 +231,27 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     }
                 } else {
                     if (selectedPoles.size > 0) {
+                        const indicesToDelete = Array.from(selectedPoles);
                         const newPoles = poles.filter((_, index) => !selectedPoles.has(index));
                         if (newPoles.length >= 2) {
+                            if (wallTransaction) {
+                                const action = createDeletePoleAction(
+                                    indicesToDelete,
+                                    poles.filter((_, i) => indicesToDelete.includes(i)),
+                                    (updatedPoles) => onPolesChange?.(updatedPoles, isClosed),
+                                    () => {
+                                        let currentPoles: Pole[] = [];
+                                        setPreviewPoles(p => {
+                                            currentPoles = p;
+                                            return p;
+                                        });
+                                        return currentPoles;
+                                    },
+                                    () => isClosed
+                                );
+                                wallTransaction.pushLocalAction(action);
+                            }
+
                             onPolesChange?.(newPoles, isClosed);
                             setSelectedPoles(new Set());
                             setSelectedLines(new Set());
@@ -233,8 +262,27 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                             indicesToDelete.add(lineIndex + 1);
                         });
 
+                        const indicesToDeleteArray = Array.from(indicesToDelete);
                         const newPoles = poles.filter((_, index) => !indicesToDelete.has(index));
                         if (newPoles.length >= 2) {
+                            if (wallTransaction) {
+                                const action = createDeletePoleAction(
+                                    indicesToDeleteArray,
+                                    poles.filter((_, i) => indicesToDelete.has(i)),
+                                    (updatedPoles) => onPolesChange?.(updatedPoles, isClosed),
+                                    () => {
+                                        let currentPoles: Pole[] = [];
+                                        setPreviewPoles(p => {
+                                            currentPoles = p;
+                                            return p;
+                                        });
+                                        return currentPoles;
+                                    },
+                                    () => isClosed
+                                );
+                                wallTransaction.pushLocalAction(action);
+                            }
+
                             onPolesChange?.(newPoles, isClosed);
                             setSelectedPoles(new Set());
                             setSelectedLines(new Set());
@@ -349,6 +397,12 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
         const newPoles = [...poles];
 
         if (selectedPoles.size > 1 && selectedPoles.has(index)) {
+            const moves = Array.from(selectedPoles).map(poleIndex => ({
+                poleIndex,
+                oldPosition: { x: poles[poleIndex].x, y: poles[poleIndex].y },
+                newPosition: { x: poles[poleIndex].x + deltaX, y: poles[poleIndex].y + deltaY }
+            }));
+
             selectedPoles.forEach(poleIndex => {
                 newPoles[poleIndex] = {
                     ...newPoles[poleIndex],
@@ -356,8 +410,44 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     y: poles[poleIndex].y + deltaY
                 };
             });
+
+            if (wallTransaction && (deltaX !== 0 || deltaY !== 0)) {
+                const action = createMultiMovePoleAction(
+                    moves,
+                    (updatedPoles) => onPolesChange?.(updatedPoles, isClosed),
+                    () => {
+                        let currentPoles: Pole[] = [];
+                        setPreviewPoles(p => {
+                            currentPoles = p;
+                            return p;
+                        });
+                        return currentPoles;
+                    },
+                    () => isClosed
+                );
+                wallTransaction.pushLocalAction(action);
+            }
         } else {
             newPoles[index] = { ...newPoles[index], x: finalX, y: finalY };
+
+            if (wallTransaction && (deltaX !== 0 || deltaY !== 0)) {
+                const action = createMovePoleAction(
+                    index,
+                    { x: oldX, y: oldY },
+                    { x: finalX, y: finalY },
+                    (updatedPoles) => onPolesChange?.(updatedPoles, isClosed),
+                    () => {
+                        let currentPoles: Pole[] = [];
+                        setPreviewPoles(p => {
+                            currentPoles = p;
+                            return p;
+                        });
+                        return currentPoles;
+                    },
+                    () => isClosed
+                );
+                wallTransaction.pushLocalAction(action);
+            }
         }
 
         setDraggingIndex(null);
@@ -516,6 +606,28 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                             newPoles[draggingLine] = { ...newPoles[draggingLine], x: newPole1X, y: newPole1Y };
                             newPoles[draggingLine + 1] = { ...newPoles[draggingLine + 1], x: newPole2X, y: newPole2Y };
 
+                            if (wallTransaction && (deltaX !== 0 || deltaY !== 0)) {
+                                const action = createMoveLineAction(
+                                    draggingLine,
+                                    draggingLine + 1,
+                                    lineDragStartRef.current.pole1,
+                                    lineDragStartRef.current.pole2,
+                                    { x: newPole1X, y: newPole1Y },
+                                    { x: newPole2X, y: newPole2Y },
+                                    (updatedPoles) => onPolesChange?.(updatedPoles, isClosed),
+                                    () => {
+                                        let currentPoles: Pole[] = [];
+                                        setPreviewPoles(p => {
+                                            currentPoles = p;
+                                            return p;
+                                        });
+                                        return currentPoles;
+                                    },
+                                    () => isClosed
+                                );
+                                wallTransaction.pushLocalAction(action);
+                            }
+
                             if (deltaX !== 0 || deltaY !== 0) {
                                 onPolesChange?.(newPoles, isClosed);
                             }
@@ -641,12 +753,32 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                                     insertPos = snapToNearest(projected, gridConfig, snapMode);
                                 }
 
-                                const newPoles = [...poles];
-                                newPoles.splice(index + 1, 0, {
+                                const insertedPole = {
                                     x: insertPos.x,
                                     y: insertPos.y,
                                     h: pole.h
-                                });
+                                };
+
+                                const newPoles = [...poles];
+                                newPoles.splice(index + 1, 0, insertedPole);
+
+                                if (wallTransaction) {
+                                    const action = createInsertPoleAction(
+                                        index + 1,
+                                        insertedPole,
+                                        (updatedPoles) => onPolesChange?.(updatedPoles, isClosed),
+                                        () => {
+                                            let currentPoles: Pole[] = [];
+                                            setPreviewPoles(p => {
+                                                currentPoles = p;
+                                                return p;
+                                            });
+                                            return currentPoles;
+                                        },
+                                        () => isClosed
+                                    );
+                                    wallTransaction.pushLocalAction(action);
+                                }
 
                                 onPolesChange?.(newPoles, isClosed);
 
