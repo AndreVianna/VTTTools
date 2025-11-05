@@ -188,19 +188,40 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const handleNodeClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         const clickedNode = e.target;
         const assetId = clickedNode.id();
-        if (!assetId) return;
+
+        console.log('[TokenDragHandle] handleNodeClick called:', {
+            assetId,
+            targetClass: clickedNode.getClassName(),
+            targetName: clickedNode.name(),
+            hasId: !!assetId
+        });
+
+        if (!assetId) {
+            console.log('[TokenDragHandle] No assetId, ignoring click');
+            return;
+        }
 
         const isCtrl = e.evt.ctrlKey || isCtrlPressed;
         const currentSelection = selectedAssetIdsRef.current;
         const isCurrentlySelected = currentSelection.includes(assetId);
 
+        console.log('[TokenDragHandle] Processing selection:', {
+            assetId,
+            isCtrl,
+            currentSelection,
+            isCurrentlySelected
+        });
+
         if (isCtrl) {
             if (isCurrentlySelected) {
+                console.log('[TokenDragHandle] Ctrl+Click: Deselecting asset');
                 onAssetSelected(currentSelection.filter(id => id !== assetId));
             } else {
+                console.log('[TokenDragHandle] Ctrl+Click: Adding to selection');
                 onAssetSelected([...currentSelection, assetId]);
             }
         } else {
+            console.log('[TokenDragHandle] Normal click: Selecting single asset');
             onAssetSelected([assetId]);
         }
     }, [onAssetSelected, isCtrlPressed]);
@@ -475,9 +496,19 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         if (!stage) return;
 
         const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+            console.log('[TokenDragHandle] Stage click:', {
+                targetClass: e.target.getClassName(),
+                targetName: e.target.name(),
+                targetId: e.target.id(),
+                isStage: e.target === stage,
+                marqueeActive: marqueeActiveRef.current,
+                button: e.evt.button
+            });
+
             // Only handle left-clicks
             if (e.evt.button !== 0) return;
             if (e.target === stage && !marqueeActiveRef.current) {
+                console.log('[TokenDragHandle] Clearing selection (clicked stage background)');
                 onAssetSelected([]);
             }
         };
@@ -613,11 +644,28 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
             });
 
             // Attach handlers to new assets
+            console.log('[TokenDragHandle] Attaching handlers to assets:', {
+                totalAssets: placedAssets.length,
+                alreadyAttached: Array.from(attachedHandlersRef.current),
+                enableDragMove
+            });
+
             placedAssets.forEach((placedAsset) => {
                 // Skip if already attached
-                if (attachedHandlersRef.current.has(placedAsset.id)) return;
+                if (attachedHandlersRef.current.has(placedAsset.id)) {
+                    console.log('[TokenDragHandle] Skipping asset (already attached):', placedAsset.id);
+                    return;
+                }
 
                 const node = stage.findOne(`#${placedAsset.id}`);
+                console.log('[TokenDragHandle] Finding node for asset:', {
+                    assetId: placedAsset.id,
+                    assetName: placedAsset.name,
+                    found: !!node,
+                    nodeClass: node?.getClassName(),
+                    nodeName: node?.name()
+                });
+
                 if (node) {
                     const behavior = getPlacementBehavior(
                         placedAsset.asset.kind,
@@ -637,6 +685,13 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                     node.on('dragmove', handleDragMove);
                     node.on('dragend', handleDragEnd);
                     attachedHandlersRef.current.add(placedAsset.id);
+                    console.log('[TokenDragHandle] Handlers attached to asset:', {
+                        assetId: placedAsset.id,
+                        isDraggable,
+                        listening: node.listening()
+                    });
+                } else {
+                    console.warn('[TokenDragHandle] Node not found for asset:', placedAsset.id);
                 }
             });
 
