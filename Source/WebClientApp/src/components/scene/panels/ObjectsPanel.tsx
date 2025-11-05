@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     Button,
@@ -27,6 +27,9 @@ import {
 } from '@mui/icons-material';
 import { AssetKind, DisplayName, LabelPosition, type PlacedAsset } from '@/types/domain';
 
+const STORAGE_KEY_VISIBILITY = 'vtt-objects-label-visibility';
+const STORAGE_KEY_POSITION = 'vtt-objects-label-position';
+
 export interface ObjectsPanelProps {
     placedAssets: PlacedAsset[];
     selectedAssetIds: string[];
@@ -50,11 +53,22 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
     const [expandedAssets, setExpandedAssets] = useState<Set<string>>(new Set());
     const [editedNames, setEditedNames] = useState<Map<string, string>>(new Map());
 
-    // Default values state
-    const [defaultLabelDisplay, setDefaultLabelDisplay] = useState<DisplayName>(DisplayName.Default);
-    const [defaultLabelPosition, setDefaultLabelPosition] = useState<LabelPosition>(LabelPosition.Default);
-    const [defaultVisible, setDefaultVisible] = useState<boolean>(true);
-    const [defaultLocked, setDefaultLocked] = useState<boolean>(false);
+    const [labelVisibility, setLabelVisibility] = useState<DisplayName>(() => {
+        const stored = localStorage.getItem(STORAGE_KEY_VISIBILITY);
+        return stored ? (stored as DisplayName) : DisplayName.Default;
+    });
+    const [labelPosition, setLabelPosition] = useState<LabelPosition>(() => {
+        const stored = localStorage.getItem(STORAGE_KEY_POSITION);
+        return stored ? (stored as LabelPosition) : LabelPosition.Default;
+    });
+
+    useEffect(() => {
+        localStorage.setItem(STORAGE_KEY_VISIBILITY, labelVisibility);
+    }, [labelVisibility]);
+
+    useEffect(() => {
+        localStorage.setItem(STORAGE_KEY_POSITION, labelPosition);
+    }, [labelPosition]);
 
     const objects = placedAssets.filter(a => a.asset.kind === AssetKind.Object);
 
@@ -117,16 +131,16 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
             <Divider sx={{ my: 0.5 }} />
 
             <Typography variant="overline" sx={compactStyles.sectionHeader}>
-                Default Values
+                Label Display
             </Typography>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <FormControl size="small" fullWidth sx={compactStyles.textField}>
-                    <InputLabel sx={{ fontSize: '11px' }}>Label Display</InputLabel>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+                <FormControl size="small" sx={{ ...compactStyles.textField, flex: 1 }}>
+                    <InputLabel sx={{ fontSize: '11px' }}>Visibility</InputLabel>
                     <Select
-                        value={defaultLabelDisplay}
-                        onChange={(e) => setDefaultLabelDisplay(e.target.value as DisplayName)}
-                        label="Label Display"
+                        value={labelVisibility}
+                        onChange={(e) => setLabelVisibility(e.target.value as DisplayName)}
+                        label="Visibility"
                         sx={{ fontSize: '11px' }}
                     >
                         <MenuItem value={DisplayName.Default} sx={{ fontSize: '11px' }}>Default</MenuItem>
@@ -136,12 +150,12 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
                     </Select>
                 </FormControl>
 
-                <FormControl size="small" fullWidth sx={compactStyles.textField}>
-                    <InputLabel sx={{ fontSize: '11px' }}>Label Position</InputLabel>
+                <FormControl size="small" sx={{ ...compactStyles.textField, flex: 1 }}>
+                    <InputLabel sx={{ fontSize: '11px' }}>Position</InputLabel>
                     <Select
-                        value={defaultLabelPosition}
-                        onChange={(e) => setDefaultLabelPosition(e.target.value as LabelPosition)}
-                        label="Label Position"
+                        value={labelPosition}
+                        onChange={(e) => setLabelPosition(e.target.value as LabelPosition)}
+                        label="Position"
                         sx={{ fontSize: '11px' }}
                     >
                         <MenuItem value={LabelPosition.Default} sx={{ fontSize: '11px' }}>Default</MenuItem>
@@ -150,31 +164,6 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
                         <MenuItem value={LabelPosition.Bottom} sx={{ fontSize: '11px' }}>Bottom</MenuItem>
                     </Select>
                 </FormControl>
-
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={defaultVisible}
-                                onChange={(e) => setDefaultVisible(e.target.checked)}
-                                size="small"
-                            />
-                        }
-                        label={<Typography sx={{ fontSize: '10px' }}>Visible</Typography>}
-                        sx={{ m: 0 }}
-                    />
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={defaultLocked}
-                                onChange={(e) => setDefaultLocked(e.target.checked)}
-                                size="small"
-                            />
-                        }
-                        label={<Typography sx={{ fontSize: '10px' }}>Locked</Typography>}
-                        sx={{ m: 0 }}
-                    />
-                </Box>
             </Box>
 
             <Divider sx={{ my: 0.5 }} />
@@ -299,59 +288,7 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
                                             Position: ({placedAsset.position.x.toFixed(0)}, {placedAsset.position.y.toFixed(0)})
                                         </Typography>
 
-                                        <TextField
-                                            label="Rotation"
-                                            type="number"
-                                            value={placedAsset.rotation}
-                                            onChange={(e) => onAssetUpdate?.(placedAsset.id, { rotation: Number(e.target.value) })}
-                                            size="small"
-                                            fullWidth
-                                            inputProps={{ min: 0, max: 360, step: 15 }}
-                                            sx={compactStyles.textField}
-                                        />
-
-                                        <TextField
-                                            label="Elevation"
-                                            type="number"
-                                            value={placedAsset.elevation || 0}
-                                            onChange={(e) => onAssetUpdate?.(placedAsset.id, { elevation: Number(e.target.value) })}
-                                            size="small"
-                                            fullWidth
-                                            inputProps={{ min: 0, max: 100, step: 1 }}
-                                            sx={compactStyles.textField}
-                                        />
-
-                                        <FormControl size="small" fullWidth sx={compactStyles.textField}>
-                                            <InputLabel sx={{ fontSize: '11px' }}>Label Display</InputLabel>
-                                            <Select
-                                                value={placedAsset.displayName || DisplayName.Default}
-                                                onChange={(e) => onAssetUpdate?.(placedAsset.id, { displayName: e.target.value as DisplayName })}
-                                                label="Label Display"
-                                                sx={{ fontSize: '11px' }}
-                                            >
-                                                <MenuItem value={DisplayName.Default} sx={{ fontSize: '11px' }}>Default</MenuItem>
-                                                <MenuItem value={DisplayName.Always} sx={{ fontSize: '11px' }}>Always</MenuItem>
-                                                <MenuItem value={DisplayName.OnHover} sx={{ fontSize: '11px' }}>On Hover</MenuItem>
-                                                <MenuItem value={DisplayName.Never} sx={{ fontSize: '11px' }}>Never</MenuItem>
-                                            </Select>
-                                        </FormControl>
-
-                                        <FormControl size="small" fullWidth sx={compactStyles.textField}>
-                                            <InputLabel sx={{ fontSize: '11px' }}>Label Position</InputLabel>
-                                            <Select
-                                                value={placedAsset.labelPosition || LabelPosition.Default}
-                                                onChange={(e) => onAssetUpdate?.(placedAsset.id, { labelPosition: e.target.value as LabelPosition })}
-                                                label="Label Position"
-                                                sx={{ fontSize: '11px' }}
-                                            >
-                                                <MenuItem value={LabelPosition.Default} sx={{ fontSize: '11px' }}>Default</MenuItem>
-                                                <MenuItem value={LabelPosition.Top} sx={{ fontSize: '11px' }}>Top</MenuItem>
-                                                <MenuItem value={LabelPosition.Middle} sx={{ fontSize: '11px' }}>Middle</MenuItem>
-                                                <MenuItem value={LabelPosition.Bottom} sx={{ fontSize: '11px' }}>Bottom</MenuItem>
-                                            </Select>
-                                        </FormControl>
-
-                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                        <Box sx={{ display: 'flex', gap: 2 }}>
                                             <FormControlLabel
                                                 control={
                                                     <Switch
