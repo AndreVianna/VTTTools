@@ -55,11 +55,11 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
 
     const [labelVisibility, setLabelVisibility] = useState<DisplayName>(() => {
         const stored = localStorage.getItem(STORAGE_KEY_VISIBILITY);
-        return stored ? (stored as DisplayName) : DisplayName.Default;
+        return stored ? (stored as DisplayName) : DisplayName.OnHover;
     });
     const [labelPosition, setLabelPosition] = useState<LabelPosition>(() => {
         const stored = localStorage.getItem(STORAGE_KEY_POSITION);
-        return stored ? (stored as LabelPosition) : LabelPosition.Default;
+        return stored ? (stored as LabelPosition) : LabelPosition.Middle;
     });
 
     useEffect(() => {
@@ -143,7 +143,6 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
                         label="Visibility"
                         sx={{ fontSize: '11px' }}
                     >
-                        <MenuItem value={DisplayName.Default} sx={{ fontSize: '11px' }}>Default</MenuItem>
                         <MenuItem value={DisplayName.Always} sx={{ fontSize: '11px' }}>Always</MenuItem>
                         <MenuItem value={DisplayName.OnHover} sx={{ fontSize: '11px' }}>On Hover</MenuItem>
                         <MenuItem value={DisplayName.Never} sx={{ fontSize: '11px' }}>Never</MenuItem>
@@ -158,7 +157,6 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
                         label="Position"
                         sx={{ fontSize: '11px' }}
                     >
-                        <MenuItem value={LabelPosition.Default} sx={{ fontSize: '11px' }}>Default</MenuItem>
                         <MenuItem value={LabelPosition.Top} sx={{ fontSize: '11px' }}>Top</MenuItem>
                         <MenuItem value={LabelPosition.Middle} sx={{ fontSize: '11px' }}>Middle</MenuItem>
                         <MenuItem value={LabelPosition.Bottom} sx={{ fontSize: '11px' }}>Bottom</MenuItem>
