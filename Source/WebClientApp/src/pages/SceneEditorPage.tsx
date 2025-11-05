@@ -1409,6 +1409,20 @@ const SceneEditorPageInternal: React.FC = () => {
         setSelectedAssetIds(assetIds);
     };
 
+    const handlePlacedAssetSelect = (assetId: string, isCtrlPressed: boolean) => {
+        if (isCtrlPressed) {
+            setSelectedAssetIds(prev => {
+                if (prev.includes(assetId)) {
+                    return prev.filter(id => id !== assetId);
+                } else {
+                    return [...prev, assetId];
+                }
+            });
+        } else {
+            setSelectedAssetIds([assetId]);
+        }
+    };
+
     const handleDragComplete = () => {
         setDraggedAsset(null);
     };
@@ -1768,7 +1782,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     placedAssets={placedAssets}
                     selectedAssetIds={selectedAssetIds}
                     onAssetSelectForPlacement={setDraggedAsset}
-                    onPlacedAssetSelect={handleAssetSelected}
+                    onPlacedAssetSelect={handlePlacedAssetSelect}
                     onPlacedAssetDelete={(assetId) => {
                         const asset = placedAssets.find(a => a.id === assetId);
                         if (asset) {

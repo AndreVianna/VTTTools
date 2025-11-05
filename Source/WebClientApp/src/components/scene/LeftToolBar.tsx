@@ -62,7 +62,7 @@ export interface LeftToolBarProps {
   placedAssets?: PlacedAsset[];
   selectedAssetIds?: string[];
   onAssetSelectForPlacement?: (asset: Asset) => void;
-  onPlacedAssetSelect?: (assetId: string) => void;
+  onPlacedAssetSelect?: (assetId: string, isCtrlPressed: boolean) => void;
   onPlacedAssetDelete?: (assetId: string) => void;
   onPlacedAssetRename?: (assetId: string, newName: string) => void;
 }

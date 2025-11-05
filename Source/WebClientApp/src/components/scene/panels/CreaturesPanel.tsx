@@ -25,7 +25,7 @@ export interface CreaturesPanelProps {
     placedAssets: PlacedAsset[];
     selectedAssetIds: string[];
     onBrowseAssets?: () => void;
-    onAssetSelect?: (assetId: string) => void;
+    onAssetSelect?: (assetId: string, isCtrlPressed: boolean) => void;
     onAssetDelete?: (assetId: string) => void;
     onAssetRename?: (assetId: string, newName: string) => void;
 }
@@ -150,7 +150,7 @@ export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
                                 >
                                     <ListItemButton
                                         selected={isSelected}
-                                        onClick={() => onAssetSelect?.(placedAsset.id)}
+                                        onClick={(e) => onAssetSelect?.(placedAsset.id, e.ctrlKey || e.metaKey)}
                                         sx={{ py: 0.5, pr: 6, pl: 0.5 }}
                                     >
                                         <IconButton
