@@ -11,6 +11,12 @@ import {
     Divider,
     Collapse,
     TextField,
+    Select,
+    MenuItem,
+    FormControl,
+    FormControlLabel,
+    Switch,
+    InputLabel,
     useTheme
 } from '@mui/material';
 import {
@@ -19,7 +25,7 @@ import {
     ExpandLess as ExpandLessIcon,
     AddCircleOutline as AddCircleOutlineIcon
 } from '@mui/icons-material';
-import { AssetKind, type PlacedAsset } from '@/types/domain';
+import { AssetKind, DisplayName, LabelPosition, type PlacedAsset } from '@/types/domain';
 
 export interface ObjectsPanelProps {
     placedAssets: PlacedAsset[];
@@ -28,6 +34,7 @@ export interface ObjectsPanelProps {
     onAssetSelect?: (assetId: string, isCtrlPressed: boolean) => void;
     onAssetDelete?: (assetId: string) => void;
     onAssetRename?: (assetId: string, newName: string) => void;
+    onAssetUpdate?: (assetId: string, updates: Partial<PlacedAsset>) => void;
 }
 
 export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
@@ -36,7 +43,8 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
     onBrowseAssets,
     onAssetSelect,
     onAssetDelete,
-    onAssetRename
+    onAssetRename,
+    onAssetUpdate
 }) => {
     const theme = useTheme();
     const [expandedAssets, setExpandedAssets] = useState<Set<string>>(new Set());
@@ -212,16 +220,91 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
                                 </ListItem>
 
                                 <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                                    <Box sx={{ px: 2, py: 1, bgcolor: theme.palette.action.hover }}>
-                                        <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
+                                    <Box sx={{ px: 2, py: 1, bgcolor: theme.palette.action.hover, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                        <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary, fontWeight: 600 }}>
                                             Asset: {placedAsset.asset.name}
                                         </Typography>
+
                                         <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
                                             Position: ({placedAsset.position.x.toFixed(0)}, {placedAsset.position.y.toFixed(0)})
                                         </Typography>
-                                        <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
-                                            Rotation: {placedAsset.rotation}°
-                                        </Typography>
+
+                                        <TextField
+                                            label="Rotation"
+                                            type="number"
+                                            value={placedAsset.rotation}
+                                            onChange={(e) => onAssetUpdate?.(placedAsset.id, { rotation: Number(e.target.value) })}
+                                            size="small"
+                                            fullWidth
+                                            inputProps={{ min: 0, max: 360, step: 15 }}
+                                            sx={compactStyles.textField}
+                                        />
+
+                                        <TextField
+                                            label="Elevation"
+                                            type="number"
+                                            value={placedAsset.elevation || 0}
+                                            onChange={(e) => onAssetUpdate?.(placedAsset.id, { elevation: Number(e.target.value) })}
+                                            size="small"
+                                            fullWidth
+                                            inputProps={{ min: 0, max: 100, step: 1 }}
+                                            sx={compactStyles.textField}
+                                        />
+
+                                        <FormControl size="small" fullWidth sx={compactStyles.textField}>
+                                            <InputLabel sx={{ fontSize: '11px' }}>Label Display</InputLabel>
+                                            <Select
+                                                value={placedAsset.displayName || DisplayName.Default}
+                                                onChange={(e) => onAssetUpdate?.(placedAsset.id, { displayName: e.target.value as DisplayName })}
+                                                label="Label Display"
+                                                sx={{ fontSize: '11px' }}
+                                            >
+                                                <MenuItem value={DisplayName.Default} sx={{ fontSize: '11px' }}>Default</MenuItem>
+                                                <MenuItem value={DisplayName.Always} sx={{ fontSize: '11px' }}>Always</MenuItem>
+                                                <MenuItem value={DisplayName.OnHover} sx={{ fontSize: '11px' }}>On Hover</MenuItem>
+                                                <MenuItem value={DisplayName.Never} sx={{ fontSize: '11px' }}>Never</MenuItem>
+                                            </Select>
+                                        </FormControl>
+
+                                        <FormControl size="small" fullWidth sx={compactStyles.textField}>
+                                            <InputLabel sx={{ fontSize: '11px' }}>Label Position</InputLabel>
+                                            <Select
+                                                value={placedAsset.labelPosition || LabelPosition.Default}
+                                                onChange={(e) => onAssetUpdate?.(placedAsset.id, { labelPosition: e.target.value as LabelPosition })}
+                                                label="Label Position"
+                                                sx={{ fontSize: '11px' }}
+                                            >
+                                                <MenuItem value={LabelPosition.Default} sx={{ fontSize: '11px' }}>Default</MenuItem>
+                                                <MenuItem value={LabelPosition.Top} sx={{ fontSize: '11px' }}>Top</MenuItem>
+                                                <MenuItem value={LabelPosition.Middle} sx={{ fontSize: '11px' }}>Middle</MenuItem>
+                                                <MenuItem value={LabelPosition.Bottom} sx={{ fontSize: '11px' }}>Bottom</MenuItem>
+                                            </Select>
+                                        </FormControl>
+
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={placedAsset.visible !== false}
+                                                        onChange={(e) => onAssetUpdate?.(placedAsset.id, { visible: e.target.checked })}
+                                                        size="small"
+                                                    />
+                                                }
+                                                label={<Typography sx={{ fontSize: '10px' }}>Visible</Typography>}
+                                                sx={{ m: 0 }}
+                                            />
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={placedAsset.locked || false}
+                                                        onChange={(e) => onAssetUpdate?.(placedAsset.id, { locked: e.target.checked })}
+                                                        size="small"
+                                                    />
+                                                }
+                                                label={<Typography sx={{ fontSize: '10px' }}>Locked</Typography>}
+                                                sx={{ m: 0 }}
+                                            />
+                                        </Box>
                                     </Box>
                                 </Collapse>
                             </React.Fragment>

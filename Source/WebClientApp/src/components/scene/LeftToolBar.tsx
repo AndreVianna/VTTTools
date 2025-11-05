@@ -65,6 +65,7 @@ export interface LeftToolBarProps {
   onPlacedAssetSelect?: (assetId: string, isCtrlPressed: boolean) => void;
   onPlacedAssetDelete?: (assetId: string) => void;
   onPlacedAssetRename?: (assetId: string, newName: string) => void;
+  onPlacedAssetUpdate?: (assetId: string, updates: Partial<PlacedAsset>) => void;
 }
 
 export const LeftToolBar: React.FC<LeftToolBarProps> = ({
@@ -87,7 +88,8 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onAssetSelectForPlacement,
   onPlacedAssetSelect,
   onPlacedAssetDelete,
-  onPlacedAssetRename
+  onPlacedAssetRename,
+  onPlacedAssetUpdate
 }) => {
   const theme = useTheme();
   const [internalActivePanel, setInternalActivePanel] = useState<PanelType | null>(null);
@@ -260,6 +262,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               onAssetSelect={onPlacedAssetSelect}
               onAssetDelete={onPlacedAssetDelete}
               onAssetRename={onPlacedAssetRename}
+              onAssetUpdate={onPlacedAssetUpdate}
             />
           )}
           {activePanel === 'creatures' && (
@@ -270,6 +273,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               onAssetSelect={onPlacedAssetSelect}
               onAssetDelete={onPlacedAssetDelete}
               onAssetRename={onPlacedAssetRename}
+              onAssetUpdate={onPlacedAssetUpdate}
             />
           )}
           {activePanel === 'players' && (
