@@ -186,7 +186,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     }, []);
 
     const handleNodeClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-        const clickedNode = e.target;
+        const clickedNode = e.currentTarget;
         const assetId = clickedNode.id();
 
         if (!assetId) {
@@ -209,7 +209,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     }, [onAssetSelected, isCtrlPressed]);
 
     const handleDragStart = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
-        const node = e.target;
+        const node = e.currentTarget;
         const draggedAssetId = node.id();
         const position = node.position();
         dragStartPosRef.current = position;
@@ -259,7 +259,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     }, [stageRef, onAssetSelected]);
 
     const handleDragMove = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
-        const node = e.target;
+        const node = e.currentTarget;
         const draggedAssetId = node.id();
         const placedAsset = placedAssetsRef.current.find((a) => a.id === draggedAssetId);  // Use ref
 
