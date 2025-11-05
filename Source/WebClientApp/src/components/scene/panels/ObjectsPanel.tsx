@@ -50,6 +50,12 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
     const [expandedAssets, setExpandedAssets] = useState<Set<string>>(new Set());
     const [editedNames, setEditedNames] = useState<Map<string, string>>(new Map());
 
+    // Default values state
+    const [defaultLabelDisplay, setDefaultLabelDisplay] = useState<DisplayName>(DisplayName.Default);
+    const [defaultLabelPosition, setDefaultLabelPosition] = useState<LabelPosition>(LabelPosition.Default);
+    const [defaultVisible, setDefaultVisible] = useState<boolean>(true);
+    const [defaultLocked, setDefaultLocked] = useState<boolean>(false);
+
     const objects = placedAssets.filter(a => a.asset.kind === AssetKind.Object);
 
     const toggleAssetExpanded = (assetId: string) => {
@@ -93,7 +99,7 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
     };
 
     return (
-        <Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 1.5 }}>
             <Typography variant="overline" sx={compactStyles.sectionHeader}>
                 Objects
             </Typography>
@@ -108,7 +114,70 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
                 Browse Objects
             </Button>
 
-            <Divider sx={{ my: 1 }} />
+            <Divider sx={{ my: 0.5 }} />
+
+            <Typography variant="overline" sx={compactStyles.sectionHeader}>
+                Default Values
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <FormControl size="small" fullWidth sx={compactStyles.textField}>
+                    <InputLabel sx={{ fontSize: '11px' }}>Label Display</InputLabel>
+                    <Select
+                        value={defaultLabelDisplay}
+                        onChange={(e) => setDefaultLabelDisplay(e.target.value as DisplayName)}
+                        label="Label Display"
+                        sx={{ fontSize: '11px' }}
+                    >
+                        <MenuItem value={DisplayName.Default} sx={{ fontSize: '11px' }}>Default</MenuItem>
+                        <MenuItem value={DisplayName.Always} sx={{ fontSize: '11px' }}>Always</MenuItem>
+                        <MenuItem value={DisplayName.OnHover} sx={{ fontSize: '11px' }}>On Hover</MenuItem>
+                        <MenuItem value={DisplayName.Never} sx={{ fontSize: '11px' }}>Never</MenuItem>
+                    </Select>
+                </FormControl>
+
+                <FormControl size="small" fullWidth sx={compactStyles.textField}>
+                    <InputLabel sx={{ fontSize: '11px' }}>Label Position</InputLabel>
+                    <Select
+                        value={defaultLabelPosition}
+                        onChange={(e) => setDefaultLabelPosition(e.target.value as LabelPosition)}
+                        label="Label Position"
+                        sx={{ fontSize: '11px' }}
+                    >
+                        <MenuItem value={LabelPosition.Default} sx={{ fontSize: '11px' }}>Default</MenuItem>
+                        <MenuItem value={LabelPosition.Top} sx={{ fontSize: '11px' }}>Top</MenuItem>
+                        <MenuItem value={LabelPosition.Middle} sx={{ fontSize: '11px' }}>Middle</MenuItem>
+                        <MenuItem value={LabelPosition.Bottom} sx={{ fontSize: '11px' }}>Bottom</MenuItem>
+                    </Select>
+                </FormControl>
+
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={defaultVisible}
+                                onChange={(e) => setDefaultVisible(e.target.checked)}
+                                size="small"
+                            />
+                        }
+                        label={<Typography sx={{ fontSize: '10px' }}>Visible</Typography>}
+                        sx={{ m: 0 }}
+                    />
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={defaultLocked}
+                                onChange={(e) => setDefaultLocked(e.target.checked)}
+                                size="small"
+                            />
+                        }
+                        label={<Typography sx={{ fontSize: '10px' }}>Locked</Typography>}
+                        sx={{ m: 0 }}
+                    />
+                </Box>
+            </Box>
+
+            <Divider sx={{ my: 0.5 }} />
 
             <Typography variant="overline" sx={compactStyles.sectionHeader}>
                 Placed Objects ({objects.length})
@@ -116,7 +185,8 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
 
             <List
                 sx={{
-                    maxHeight: 300,
+                    flex: 1,
+                    minHeight: 0,
                     overflowY: 'auto',
                     py: 0,
                     border: `1px solid ${theme.palette.divider}`,
