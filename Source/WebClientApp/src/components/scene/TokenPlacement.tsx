@@ -544,13 +544,11 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                     const labelX = placedAsset.position.x - labelWidth / 2;
 
                     return (
-                        <Group key={placedAsset.id}>
+                        <Group key={placedAsset.id} id={placedAsset.id} name="placed-asset" x={imageX} y={imageY}>
                             <KonvaImage
-                                id={placedAsset.id}
-                                name="placed-asset"
                                 image={image}
-                                x={imageX}
-                                y={imageY}
+                                x={0}
+                                y={0}
                                 width={placedAsset.size.width}
                                 height={placedAsset.size.height}
                                 rotation={placedAsset.rotation}
@@ -567,8 +565,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                                 }}
                             />
                             <Rect
-                                x={labelX}
-                                y={labelY}
+                                x={labelX - imageX}
+                                y={labelY - imageY}
                                 width={labelWidth}
                                 height={labelHeight}
                                 fill={labelColors.background}
@@ -588,8 +586,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                                 }}
                             />
                             <Text
-                                x={labelX}
-                                y={labelY}
+                                x={labelX - imageX}
+                                y={labelY - imageY}
                                 width={labelWidth}
                                 height={labelHeight}
                                 text={displayText}
