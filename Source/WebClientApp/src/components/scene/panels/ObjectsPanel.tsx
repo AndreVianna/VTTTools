@@ -63,7 +63,7 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
     const [labelPosition, setLabelPosition] = useState<LabelPosition>(() => {
         const stored = localStorage.getItem(STORAGE_KEY_POSITION);
         if (stored === LabelPosition.Default || !stored) {
-            return LabelPosition.Middle;
+            return LabelPosition.Bottom;
         }
         return stored as LabelPosition;
     });

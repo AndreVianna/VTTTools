@@ -625,7 +625,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                                 rotation={placedAsset.rotation}
                                 draggable={false}
                                 listening={true}
-                                opacity={0.667}
+                                opacity={0.75}
                                 onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
                                 onMouseLeave={() => setHoveredAssetId(null)}
                                 onContextMenu={(e) => {
@@ -682,7 +682,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                             rotation={placedAsset.rotation}
                             draggable={false}
                             listening={true}
-                            opacity={0.667}
+                            opacity={0.75}
                             onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
                             onMouseLeave={() => setHoveredAssetId(null)}
                             onContextMenu={(e) => {
@@ -701,7 +701,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                             stroke={labelColors.border}
                             strokeWidth={1}
                             listening={true}
-                            opacity={0.667}
+                            opacity={0.75}
                             onMouseEnter={() => {
                                 setHoveredAssetId(placedAsset.id);
                                 if (labelInfo.isTruncated) {
@@ -725,7 +725,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                             align="center"
                             verticalAlign="middle"
                             listening={false}
-                            opacity={0.667}
+                            opacity={0.75}
                         />
                     </Group>
                 );
