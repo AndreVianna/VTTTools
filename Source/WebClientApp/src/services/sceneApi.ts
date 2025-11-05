@@ -152,8 +152,10 @@ export const sceneApi = createApi({
             name?: string;
             displayName?: string;
             labelPosition?: string;
+            visible?: boolean;
+            locked?: boolean;
         }>({
-            query: ({ sceneId, assetNumber, position, size, rotation, elevation, name, displayName, labelPosition }) => ({
+            query: ({ sceneId, assetNumber, position, size, rotation, elevation, name, displayName, labelPosition, visible, locked }) => ({
                 url: `/${sceneId}/assets/${assetNumber}`,
                 method: 'PATCH',
                 body: {
@@ -163,7 +165,9 @@ export const sceneApi = createApi({
                     ...(elevation !== undefined && { elevation }),
                     ...(name !== undefined && { name }),
                     ...(displayName !== undefined && { displayName }),
-                    ...(labelPosition !== undefined && { labelPosition })
+                    ...(labelPosition !== undefined && { labelPosition }),
+                    ...(visible !== undefined && { visible }),
+                    ...(locked !== undefined && { locked })
                 }
             }),
             invalidatesTags: (_result, _error, { sceneId }) => [

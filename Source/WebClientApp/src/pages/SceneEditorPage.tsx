@@ -1409,6 +1409,20 @@ const SceneEditorPageInternal: React.FC = () => {
         setSelectedAssetIds(assetIds);
     };
 
+    const handlePlacedAssetSelect = (assetId: string, isCtrlPressed: boolean) => {
+        if (isCtrlPressed) {
+            setSelectedAssetIds(prev => {
+                if (prev.includes(assetId)) {
+                    return prev.filter(id => id !== assetId);
+                } else {
+                    return [...prev, assetId];
+                }
+            });
+        } else {
+            setSelectedAssetIds([assetId]);
+        }
+    };
+
     const handleDragComplete = () => {
         setDraggedAsset(null);
     };
@@ -1461,6 +1475,35 @@ const SceneEditorPageInternal: React.FC = () => {
         });
 
         execute(command);
+    };
+
+    const handlePlacedAssetUpdate = async (assetId: string, updates: Partial<PlacedAsset>) => {
+        if (!sceneId) return;
+
+        const asset = placedAssets.find((a) => a.id === assetId);
+        if (!asset) return;
+
+        const updateParams: any = {
+            sceneId,
+            assetNumber: asset.index,
+        };
+
+        if (updates.rotation !== undefined) updateParams.rotation = updates.rotation;
+        if (updates.elevation !== undefined) updateParams.elevation = updates.elevation;
+        if (updates.displayName !== undefined) updateParams.displayName = updates.displayName;
+        if (updates.labelPosition !== undefined) updateParams.labelPosition = updates.labelPosition;
+        if (updates.visible !== undefined) updateParams.visible = updates.visible;
+        if (updates.locked !== undefined) updateParams.locked = updates.locked;
+
+        try {
+            await updateSceneAsset(updateParams).unwrap();
+
+            setPlacedAssets(prev => prev.map(a =>
+                a.id === assetId ? { ...a, ...updates } : a
+            ));
+        } catch (error) {
+            console.error('Failed to update asset:', error);
+        }
     };
 
     const handleAssetDisplayUpdate = async (
@@ -1768,7 +1811,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     placedAssets={placedAssets}
                     selectedAssetIds={selectedAssetIds}
                     onAssetSelectForPlacement={setDraggedAsset}
-                    onPlacedAssetSelect={handleAssetSelected}
+                    onPlacedAssetSelect={handlePlacedAssetSelect}
                     onPlacedAssetDelete={(assetId) => {
                         const asset = placedAssets.find(a => a.id === assetId);
                         if (asset) {
@@ -1777,6 +1820,7 @@ const SceneEditorPageInternal: React.FC = () => {
                         }
                     }}
                     onPlacedAssetRename={handleAssetRename}
+                    onPlacedAssetUpdate={handlePlacedAssetUpdate}
                 />
 
                 <SceneCanvas
