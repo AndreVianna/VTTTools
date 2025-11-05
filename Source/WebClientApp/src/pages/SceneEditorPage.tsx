@@ -1488,10 +1488,6 @@ const SceneEditorPageInternal: React.FC = () => {
             assetNumber: asset.index,
         };
 
-        if (updates.rotation !== undefined) updateParams.rotation = updates.rotation;
-        if (updates.elevation !== undefined) updateParams.elevation = updates.elevation;
-        if (updates.displayName !== undefined) updateParams.displayName = updates.displayName;
-        if (updates.labelPosition !== undefined) updateParams.labelPosition = updates.labelPosition;
         if (updates.visible !== undefined) updateParams.visible = updates.visible;
         if (updates.locked !== undefined) updateParams.locked = updates.locked;
 

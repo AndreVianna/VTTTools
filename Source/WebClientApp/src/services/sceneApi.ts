@@ -147,25 +147,17 @@ export const sceneApi = createApi({
             assetNumber: number;
             position?: { x: number; y: number };
             size?: { width: number; height: number };
-            rotation?: number;
-            elevation?: number;
             name?: string;
-            displayName?: string;
-            labelPosition?: string;
             visible?: boolean;
             locked?: boolean;
         }>({
-            query: ({ sceneId, assetNumber, position, size, rotation, elevation, name, displayName, labelPosition, visible, locked }) => ({
+            query: ({ sceneId, assetNumber, position, size, name, visible, locked }) => ({
                 url: `/${sceneId}/assets/${assetNumber}`,
                 method: 'PATCH',
                 body: {
                     ...(position && { position: { x: position.x, y: position.y } }),
                     ...(size && { size: { width: size.width, height: size.height, isSquare: Math.abs(size.width - size.height) < 0.001 } }),
-                    ...(rotation !== undefined && { rotation }),
-                    ...(elevation !== undefined && { elevation }),
                     ...(name !== undefined && { name }),
-                    ...(displayName !== undefined && { displayName }),
-                    ...(labelPosition !== undefined && { labelPosition }),
                     ...(visible !== undefined && { visible }),
                     ...(locked !== undefined && { locked })
                 }
