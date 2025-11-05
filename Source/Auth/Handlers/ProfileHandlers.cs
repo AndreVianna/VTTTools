@@ -111,7 +111,7 @@ public static class ProfileHandlers {
                 return Results.Ok(response);
 
             var profileErrors = new Dictionary<string, string[]> {
-                ["avatarResourceId"] = [response.Message ?? "Failed to update avatar"]
+                ["avatarId"] = [response.Message ?? "Failed to update avatar"]
             };
 
             return Results.ValidationProblem(profileErrors);

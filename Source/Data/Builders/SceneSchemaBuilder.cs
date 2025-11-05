@@ -23,7 +23,8 @@ internal static class SceneSchemaBuilder {
                 panningBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0.0);
             });
             entity.HasOne(e => e.Background).WithMany()
-                .HasForeignKey(e => e.BackgroundId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(e => e.BackgroundId).IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
             entity.ComplexProperty(s => s.Grid, gridBuilder => {
                 gridBuilder.IsRequired();
                 gridBuilder.Property(g => g.Type).IsRequired().HasConversion<string>().HasDefaultValue(GridType.NoGrid);

@@ -283,7 +283,7 @@ public record UserAdminDto {
     public bool IsLockedOut { get; init; }
     public DateTimeOffset? LockoutEnd { get; init; }
     public DateTime CreatedDate { get; init; }
-    public string? AvatarResourceId { get; init; }
+    public string? AvatarId { get; init; }
 }
 ```
 

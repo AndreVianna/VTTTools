@@ -23,7 +23,7 @@ public class User
         set;
     }
 
-    public Guid? AvatarResourceId { get; set; }
+    public Guid? AvatarId { get; set; }
 
     [NotMapped]
     public bool IsAdministrator { get; set; }

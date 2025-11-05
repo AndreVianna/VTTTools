@@ -5,7 +5,7 @@ export interface ProfileResponse {
     name: string;
     displayName: string;
     phoneNumber?: string;
-    avatarResourceId?: string;
+    avatarId?: string;
     success: boolean;
     message?: string;
 }
@@ -17,7 +17,7 @@ export interface UpdateProfileRequest {
 }
 
 export interface UploadAvatarResponse {
-    avatarResourceId: string;
+    avatarId: string;
     success: boolean;
     message?: string;
 }

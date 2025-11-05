@@ -1,4 +1,5 @@
 ﻿using Asset = VttTools.Data.Assets.Entities.Asset;
+using Resource = VttTools.Data.Media.Entities.Resource;
 
 namespace VttTools.Data.Library.Entities;
 

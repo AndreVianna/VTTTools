@@ -1,4 +1,3 @@
-
 using BulkUpdateSceneAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
 using UpdateSceneAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
 
@@ -149,7 +148,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             var tokenResource = asset.Resources.FirstOrDefault(r => r.Role == ResourceRole.Token);
             resourceId = tokenResource?.ResourceId ?? asset.Resources.First().ResourceId;
         }
-
+        
         var number = scene.Assets.Any(sa => sa.AssetId == assetId)
             ? scene.Assets.Where(sa => sa.AssetId == assetId).Max(sa => sa.Number) + 1
             : 1u;

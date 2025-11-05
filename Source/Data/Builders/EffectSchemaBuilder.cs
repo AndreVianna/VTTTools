@@ -18,7 +18,7 @@ internal static class EffectSchemaBuilder {
             entity.Property(e => e.CreatedAt).IsRequired();
             entity.HasOne(e => e.Resource)
                 .WithMany()
-                .HasForeignKey(e => e.ResourceId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(e => e.ResourceId).IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 }

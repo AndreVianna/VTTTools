@@ -50,11 +50,11 @@ public class ProfileServiceTests {
     }
 
     [Fact]
-    public async Task GetProfileAsync_WithAvatarResourceId_ReturnsAvatarUrl() {
+    public async Task GetProfileAsync_WithAvatarId_ReturnsAvatarUrl() {
         // Arrange
-        var avatarResourceId = Guid.CreateVersion7();
+        var avatarId = Guid.CreateVersion7();
         var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.AvatarResourceId = avatarResourceId;
+        testUser.AvatarId = avatarId;
         _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
 
         // Act
@@ -62,8 +62,8 @@ public class ProfileServiceTests {
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal(avatarResourceId, result.AvatarResourceId);
-        Assert.Equal($"/api/resources/{avatarResourceId}", result.AvatarUrl);
+        Assert.Equal(avatarId, result.AvatarId);
+        Assert.Equal($"/api/resources/{avatarId}", result.AvatarUrl);
 
         await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
     }
@@ -72,7 +72,7 @@ public class ProfileServiceTests {
     public async Task GetProfileAsync_WithoutAvatarResourceId_ReturnsNullAvatarUrl() {
         // Arrange
         var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.AvatarResourceId = null;
+        testUser.AvatarId = null;
         _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
 
         // Act
@@ -80,7 +80,7 @@ public class ProfileServiceTests {
 
         // Assert
         Assert.True(result.Success);
-        Assert.Null(result.AvatarResourceId);
+        Assert.Null(result.AvatarId);
         Assert.Null(result.AvatarUrl);
 
         await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
@@ -316,19 +316,19 @@ public class ProfileServiceTests {
     public async Task UpdateAvatarAsync_WithValidResourceId_UpdatesAvatar() {
         // Arrange
         var testUser = CreateTestUser("test@example.com", "Test User");
-        var avatarResourceId = Guid.CreateVersion7();
+        var avatarId = Guid.CreateVersion7();
 
         _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
         _mockUserManager.UpdateAsync(testUser).Returns(IdentityResult.Success);
 
         // Act
-        var result = await _profileService.UpdateAvatarAsync(testUser.Id, avatarResourceId, TestContext.Current.CancellationToken);
+        var result = await _profileService.UpdateAvatarAsync(testUser.Id, avatarId, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal(avatarResourceId, testUser.AvatarResourceId);
-        Assert.Equal(avatarResourceId, result.AvatarResourceId);
-        Assert.Equal($"/api/resources/{avatarResourceId}", result.AvatarUrl);
+        Assert.Equal(avatarId, testUser.AvatarId);
+        Assert.Equal(avatarId, result.AvatarId);
+        Assert.Equal($"/api/resources/{avatarId}", result.AvatarUrl);
 
         await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
         await _mockUserManager.Received(1).UpdateAsync(testUser);
@@ -338,12 +338,12 @@ public class ProfileServiceTests {
     public async Task UpdateAvatarAsync_WithNonExistentUser_ReturnsNotFoundError() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        var avatarResourceId = Guid.CreateVersion7();
+        var avatarId = Guid.CreateVersion7();
 
         _mockUserManager.FindByIdAsync(userId.ToString()).Returns((User?)null);
 
         // Act
-        var result = await _profileService.UpdateAvatarAsync(userId, avatarResourceId, TestContext.Current.CancellationToken);
+        var result = await _profileService.UpdateAvatarAsync(userId, avatarId, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(result.Success);
@@ -357,7 +357,7 @@ public class ProfileServiceTests {
     public async Task UpdateAvatarAsync_WithIdentityError_ReturnsErrorMessage() {
         // Arrange
         var testUser = CreateTestUser("test@example.com", "Test User");
-        var avatarResourceId = Guid.CreateVersion7();
+        var avatarId = Guid.CreateVersion7();
 
         var identityErrors = new List<IdentityError> {
             new() { Description = "Avatar resource not found" }
@@ -368,7 +368,7 @@ public class ProfileServiceTests {
         _mockUserManager.UpdateAsync(testUser).Returns(failedResult);
 
         // Act
-        var result = await _profileService.UpdateAvatarAsync(testUser.Id, avatarResourceId, TestContext.Current.CancellationToken);
+        var result = await _profileService.UpdateAvatarAsync(testUser.Id, avatarId, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(result.Success);
@@ -381,13 +381,13 @@ public class ProfileServiceTests {
     public async Task UpdateAvatarAsync_WhenExceptionThrown_ReturnsInternalServerError() {
         // Arrange
         var userId = Guid.CreateVersion7();
-        var avatarResourceId = Guid.CreateVersion7();
+        var avatarId = Guid.CreateVersion7();
 
         _mockUserManager.FindByIdAsync(userId.ToString())
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
-        var result = await _profileService.UpdateAvatarAsync(userId, avatarResourceId, TestContext.Current.CancellationToken);
+        var result = await _profileService.UpdateAvatarAsync(userId, avatarId, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(result.Success);
@@ -402,7 +402,7 @@ public class ProfileServiceTests {
     public async Task RemoveAvatarAsync_WithValidUserId_RemovesAvatar() {
         // Arrange
         var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.AvatarResourceId = Guid.CreateVersion7();
+        testUser.AvatarId = Guid.CreateVersion7();
 
         _mockUserManager.FindByIdAsync(testUser.Id.ToString()).Returns(testUser);
         _mockUserManager.UpdateAsync(testUser).Returns(IdentityResult.Success);
@@ -412,8 +412,8 @@ public class ProfileServiceTests {
 
         // Assert
         Assert.True(result.Success);
-        Assert.Null(testUser.AvatarResourceId);
-        Assert.Null(result.AvatarResourceId);
+        Assert.Null(testUser.AvatarId);
+        Assert.Null(result.AvatarId);
         Assert.Null(result.AvatarUrl);
 
         await _mockUserManager.Received(1).FindByIdAsync(testUser.Id.ToString());
@@ -442,7 +442,7 @@ public class ProfileServiceTests {
     public async Task RemoveAvatarAsync_WithIdentityError_ReturnsErrorMessage() {
         // Arrange
         var testUser = CreateTestUser("test@example.com", "Test User");
-        testUser.AvatarResourceId = Guid.CreateVersion7();
+        testUser.AvatarId = Guid.CreateVersion7();
 
         var identityErrors = new List<IdentityError> {
             new() { Description = "Failed to update user" }
@@ -496,7 +496,7 @@ public class ProfileServiceTests {
             Name = name,
             DisplayName = name,
             EmailConfirmed = true,
-            AvatarResourceId = null
+            AvatarId = null
         };
 
     #endregion

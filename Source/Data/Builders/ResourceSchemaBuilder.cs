@@ -21,6 +21,10 @@ internal static class ResourceSchemaBuilder {
             entity.HasMany<AssetResource>()
                 .WithOne(ar => ar.Resource)
                 .HasForeignKey(e => e.ResourceId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<User>()
+                .WithOne()
+                .HasForeignKey<User>(u => u.AvatarId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 }

@@ -87,7 +87,7 @@ public class ProfileService(
         }
     }
 
-    public async Task<ProfileResponse> UpdateAvatarAsync(Guid userId, Guid avatarResourceId, CancellationToken ct = default) {
+    public async Task<ProfileResponse> UpdateAvatarAsync(Guid userId, Guid avatarId, CancellationToken ct = default) {
         try {
             var user = await userManager.FindByIdAsync(userId.ToString());
             if (user is null) {
@@ -98,7 +98,7 @@ public class ProfileService(
                 };
             }
 
-            user.AvatarResourceId = avatarResourceId;
+            user.AvatarId = avatarId;
 
             var result = await userManager.UpdateAsync(user);
             if (!result.Succeeded) {
@@ -133,7 +133,7 @@ public class ProfileService(
                 };
             }
 
-            user.AvatarResourceId = null;
+            user.AvatarId = null;
 
             var result = await userManager.UpdateAsync(user);
             if (!result.Succeeded) {
@@ -165,9 +165,9 @@ public class ProfileService(
             Email = user.Email ?? string.Empty,
             EmailConfirmed = user.EmailConfirmed,
             PhoneNumber = user.PhoneNumber,
-            AvatarResourceId = user.AvatarResourceId,
-            AvatarUrl = user.AvatarResourceId.HasValue
-                ? $"/api/resources/{user.AvatarResourceId.Value}"
+            AvatarId = user.AvatarId,
+            AvatarUrl = user.AvatarId.HasValue
+                ? $"/api/resources/{user.AvatarId.Value}"
                 : null,
             Success = true,
             Message = null

@@ -1060,7 +1060,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("AvatarResourceId")
+                    b.Property<Guid?>("AvatarId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -1120,7 +1120,9 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AvatarResourceId");
+                    b.HasIndex("AvatarId")
+                        .IsUnique()
+                        .HasFilter("[AvatarId] IS NOT NULL");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -1239,28 +1241,6 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Media.Model.Resource", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Path")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.PrimitiveCollection<string>("Tags")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Resource");
-                });
-
             modelBuilder.Entity("VttTools.Data.Assets.Entities.CreatureAsset", b =>
                 {
                     b.HasBaseType("VttTools.Data.Assets.Entities.Asset");
@@ -1299,7 +1279,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")
                         .WithMany()
                         .HasForeignKey("ResourceId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Resource");
                 });
@@ -1420,7 +1400,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
                         .WithMany()
                         .HasForeignKey("BackgroundId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("VttTools.Data.Library.Entities.Campaign", "Campaign")
                         .WithMany("Adventures")
@@ -1472,7 +1452,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
                         .WithMany()
                         .HasForeignKey("BackgroundId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Adventure");
 
@@ -1487,7 +1467,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Media.Model.Resource", "Resource")
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")
                         .WithMany()
                         .HasForeignKey("ResourceId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1634,9 +1614,9 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Identity.Model.User", b =>
                 {
-                    b.HasOne("VttTools.Media.Model.Resource", null)
-                        .WithMany()
-                        .HasForeignKey("AvatarResourceId")
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", null)
+                        .WithOne()
+                        .HasForeignKey("VttTools.Identity.Model.User", "AvatarId")
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 

@@ -7,7 +7,7 @@ public record ProfileResponse : Response {
     public string Email { get; init; } = string.Empty;
     public bool EmailConfirmed { get; init; }
     public string? PhoneNumber { get; init; }
-    public Guid? AvatarResourceId { get; init; }
+    public Guid? AvatarId { get; init; }
     public string? AvatarUrl { get; init; }
     public bool Success { get; init; }
     public string? Message { get; init; }

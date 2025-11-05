@@ -14,7 +14,7 @@ public class Adventure {
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
     public Guid? BackgroundId { get; set; }
-    public Resource Background { get; set; } = null!;
+    public Resource? Background { get; set; }
     public bool IsOneShot { get; set; }
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }

@@ -36,10 +36,10 @@ import {
 import { useResendEmailConfirmationMutation } from '@/services/authApi';
 import { getApiEndpoints } from '@/config/development';
 
-const getAvatarUrl = (avatarResourceId?: string): string | undefined => {
-  if (!avatarResourceId) return undefined;
+const getAvatarUrl = (avatarId?: string): string | undefined => {
+  if (!avatarId) return undefined;
   const apiEndpoints = getApiEndpoints();
-  return `${apiEndpoints.media}/${avatarResourceId}`;
+  return `${apiEndpoints.media}/${avatarId}`;
 };
 
 export const ProfileSettings: React.FC = () => {
@@ -212,7 +212,7 @@ export const ProfileSettings: React.FC = () => {
     );
   }
 
-  const avatarUrl = getAvatarUrl(profileData?.avatarResourceId);
+  const avatarUrl = getAvatarUrl(profileData?.avatarId);
 
   return (
     <Paper sx={{ p: 3 }}>

@@ -16,7 +16,8 @@ internal static class AdventureSchemaBuilder {
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
             entity.Property(e => e.Style).IsRequired().HasConversion<string>();
             entity.HasOne(s => s.Background).WithMany()
-                  .HasForeignKey(s => s.BackgroundId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+                  .HasForeignKey(s => s.BackgroundId).IsRequired(false)
+                  .OnDelete(DeleteBehavior.SetNull);
             entity.Property(e => e.IsOneShot).IsRequired();
             entity.Property(e => e.IsPublished).IsRequired();
             entity.Property(e => e.IsPublic).IsRequired();

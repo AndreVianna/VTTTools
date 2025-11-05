@@ -3,12 +3,6 @@ namespace VttTools.Data.Builders;
 internal static class IdentitySchemaBuilder {
     public static void ConfigureModel(ModelBuilder builder) {
         builder.Entity<User>().ToTable("Users");
-        builder.Entity<User>()
-            .HasOne<Resource>()
-            .WithMany()
-            .HasForeignKey(u => u.AvatarResourceId)
-            .OnDelete(DeleteBehavior.SetNull);
-
         builder.Entity<UserClaim>().ToTable("UserClaims");
         builder.Entity<UserLogin>().ToTable("UserLogins");
         builder.Entity<UserToken>().ToTable("UserTokens");
