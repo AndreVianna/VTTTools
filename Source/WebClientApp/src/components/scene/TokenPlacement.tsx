@@ -724,7 +724,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         <Layer
             ref={layerRef}
             name={LayerName.GameWorld}
-            listening={!!draggedAsset}
             onMouseMove={draggedAsset ? handleMouseMove : undefined}
             onClick={draggedAsset ? handleClick : undefined}
         >
