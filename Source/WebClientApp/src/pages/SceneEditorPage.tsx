@@ -557,7 +557,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
                 if (sceneId && isOnline && scene) {
                     try {
-                        const createdAsset = await addSceneAsset({
+                        await addSceneAsset({
                             sceneId,
                             libraryAssetId: placedAsset.assetId,
                             position: placedAsset.position,
@@ -565,23 +565,21 @@ const SceneEditorPageInternal: React.FC = () => {
                             rotation: placedAsset.rotation
                         }).unwrap();
 
-                        // Update the placed asset with backend-computed properties
-                        setPlacedAssets(prev => prev.map(a =>
-                            a.id === placedAsset.id
-                                ? {
-                                    ...a,
-                                    index: createdAsset.index,
-                                    number: createdAsset.number,
-                                    name: createdAsset.name,
-                                    displayName: createdAsset.displayName,
-                                    labelPosition: createdAsset.labelPosition
-                                }
-                                : a
-                        ));
-
                         const { data: updatedScene } = await refetch();
                         if (updatedScene) {
                             setScene(updatedScene);
+
+                            // Re-hydrate placed assets to get backend-computed properties
+                            const hydratedAssets = await hydratePlacedAssets(
+                                updatedScene.assets,
+                                async (assetId: string) => {
+                                    const result = await dispatch(
+                                        assetsApi.endpoints.getAsset.initiate(assetId)
+                                    ).unwrap();
+                                    return result;
+                                }
+                            );
+                            setPlacedAssets(hydratedAssets);
                         }
                     } catch (error) {
                         console.error('Failed to persist placed asset:', error);

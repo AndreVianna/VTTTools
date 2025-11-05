@@ -125,7 +125,7 @@ export const sceneApi = createApi({
                     : [{ type: 'SceneAsset', id: `SCENE_${sceneId}` }]
         }),
 
-        addSceneAsset: builder.mutation<SceneAsset, { sceneId: string; libraryAssetId: string; position: { x: number; y: number }; size: { width: number; height: number }; rotation?: number }>({
+        addSceneAsset: builder.mutation<void, { sceneId: string; libraryAssetId: string; position: { x: number; y: number }; size: { width: number; height: number }; rotation?: number }>({
             query: ({ sceneId, libraryAssetId, position, size, rotation }) => ({
                 url: `/${sceneId}/assets/${libraryAssetId}`,
                 method: 'POST',
