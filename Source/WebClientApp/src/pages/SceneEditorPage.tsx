@@ -1477,6 +1477,35 @@ const SceneEditorPageInternal: React.FC = () => {
         execute(command);
     };
 
+    const handlePlacedAssetUpdate = async (assetId: string, updates: Partial<PlacedAsset>) => {
+        if (!sceneId) return;
+
+        const asset = placedAssets.find((a) => a.id === assetId);
+        if (!asset) return;
+
+        const updateParams: any = {
+            sceneId,
+            assetNumber: asset.index,
+        };
+
+        if (updates.rotation !== undefined) updateParams.rotation = updates.rotation;
+        if (updates.elevation !== undefined) updateParams.elevation = updates.elevation;
+        if (updates.displayName !== undefined) updateParams.displayName = updates.displayName;
+        if (updates.labelPosition !== undefined) updateParams.labelPosition = updates.labelPosition;
+        if (updates.visible !== undefined) updateParams.visible = updates.visible;
+        if (updates.locked !== undefined) updateParams.locked = updates.locked;
+
+        try {
+            await updateSceneAsset(updateParams).unwrap();
+
+            setPlacedAssets(prev => prev.map(a =>
+                a.id === assetId ? { ...a, ...updates } : a
+            ));
+        } catch (error) {
+            console.error('Failed to update asset:', error);
+        }
+    };
+
     const handleAssetDisplayUpdate = async (
         assetId: string,
         displayName?: DisplayName,
@@ -1791,6 +1820,7 @@ const SceneEditorPageInternal: React.FC = () => {
                         }
                     }}
                     onPlacedAssetRename={handleAssetRename}
+                    onPlacedAssetUpdate={handlePlacedAssetUpdate}
                 />
 
                 <SceneCanvas
