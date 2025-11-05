@@ -20,7 +20,6 @@ import {
     AddCircleOutline as AddCircleOutlineIcon
 } from '@mui/icons-material';
 import { AssetKind, type PlacedAsset } from '@/types/domain';
-import { ConfirmDialog } from '@/components/common';
 
 export interface CreaturesPanelProps {
     placedAssets: PlacedAsset[];
@@ -40,8 +39,6 @@ export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
     onAssetRename
 }) => {
     const theme = useTheme();
-    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-    const [assetToDelete, setAssetToDelete] = useState<string | null>(null);
     const [expandedAssets, setExpandedAssets] = useState<Set<string>>(new Set());
     const [editedNames, setEditedNames] = useState<Map<string, string>>(new Map());
 
@@ -57,19 +54,6 @@ export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
             }
             return newSet;
         });
-    };
-
-    const handleDeleteClick = (assetId: string) => {
-        setAssetToDelete(assetId);
-        setDeleteConfirmOpen(true);
-    };
-
-    const handleDeleteConfirm = () => {
-        if (assetToDelete) {
-            onAssetDelete?.(assetToDelete);
-        }
-        setDeleteConfirmOpen(false);
-        setAssetToDelete(null);
     };
 
     const compactStyles = {
@@ -156,7 +140,7 @@ export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
                                             size="small"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleDeleteClick(placedAsset.id);
+                                                onAssetDelete?.(placedAsset.id);
                                             }}
                                             sx={{ width: 20, height: 24, color: theme.palette.error.main }}
                                         >
@@ -245,17 +229,6 @@ export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
                     })
                 )}
             </List>
-
-            <ConfirmDialog
-                open={deleteConfirmOpen}
-                title="Delete Object"
-                message="Are you sure you want to delete this object?"
-                onConfirm={handleDeleteConfirm}
-                onCancel={() => {
-                    setDeleteConfirmOpen(false);
-                    setAssetToDelete(null);
-                }}
-            />
         </Box>
     );
 };
