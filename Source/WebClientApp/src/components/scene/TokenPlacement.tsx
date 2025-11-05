@@ -413,37 +413,21 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     }, [draggedAsset, gridConfig, placedAssets]);
 
     const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-        console.log('[TokenPlacement] Layer onClick:', {
-            draggedAsset: draggedAsset?.name,
-            cursorPosition,
-            targetClass: e.target.getClassName(),
-            targetName: e.target.name(),
-            targetId: e.target.id()
-        });
-
         if (!draggedAsset || !cursorPosition) {
-            console.log('[TokenPlacement] Ignoring click - no draggedAsset or cursorPosition');
             return;
         }
 
-        // Only handle left-clicks (button 0), right-click is for panning
         if (e.evt.button !== 0) {
-            console.log('[TokenPlacement] Ignoring click - not left button');
             return;
         }
 
-        // Only handle if clicking on the Layer itself or Rect, not on placed assets
         if (e.target.getClassName() === 'Image') {
-            console.log('[TokenPlacement] Ignoring click - target is Image (placed asset)');
             return;
         }
 
         if (!isValidPlacement) {
-            console.log('[TokenPlacement] Ignoring click - invalid placement');
             return;
         }
-
-        console.log('[TokenPlacement] Processing asset placement...');
 
         const assetCellSize = getAssetSize(draggedAsset);
         const size = {
