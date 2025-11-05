@@ -627,14 +627,29 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const attachedHandlersRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
+        console.log('[TokenDragHandle] Handler attachment useEffect called', {
+            enableDragMove,
+            hasStageRef: !!stageRef.current,
+            placedAssetsCount: placedAssets.length
+        });
+
         // Skip attaching drag handlers if drag-move is disabled
-        if (!enableDragMove) return;
+        if (!enableDragMove) {
+            console.log('[TokenDragHandle] Skipping - enableDragMove is false');
+            return;
+        }
 
         const stage = stageRef.current;
-        if (!stage) return;
+        if (!stage) {
+            console.log('[TokenDragHandle] Skipping - no stage reference');
+            return;
+        }
+
+        console.log('[TokenDragHandle] Scheduling requestAnimationFrame for handler attachment');
 
         // Wait for next frame to ensure Konva has rendered all nodes
         const frameId = requestAnimationFrame(() => {
+            console.log('[TokenDragHandle] requestAnimationFrame callback executing');
             const currentAssetIds = new Set(placedAssets.map(a => a.id));
 
             // Remove handlers from assets that no longer exist
