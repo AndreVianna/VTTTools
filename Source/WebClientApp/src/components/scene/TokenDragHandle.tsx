@@ -427,6 +427,12 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                         x: nodePos.x + asset.size.width / 2,
                         y: nodePos.y + asset.size.height / 2
                     };
+                    console.log('=== Drag End Position ===');
+                    console.log('Asset ID:', id);
+                    console.log('Node position (top-left):', nodePos);
+                    console.log('Asset size:', asset.size);
+                    console.log('Calculated center position:', newPosition);
+                    console.log('========================');
                     moves.push({ assetId: id, oldPosition, newPosition });
                 }
             });
