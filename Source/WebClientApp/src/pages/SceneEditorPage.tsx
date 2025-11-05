@@ -555,20 +555,27 @@ const SceneEditorPageInternal: React.FC = () => {
                 });
 
                 if (sceneId && isOnline && scene) {
+                    const payload = {
+                        sceneId,
+                        libraryAssetId: placedAsset.assetId,
+                        position: placedAsset.position,
+                        size: { width: placedAsset.size.width, height: placedAsset.size.height },
+                        rotation: placedAsset.rotation
+                    };
+
+                    console.log('[DEBUG] Adding scene asset with payload:', payload);
+                    console.log('[DEBUG] PlacedAsset object:', placedAsset);
+
                     try {
-                        await addSceneAsset({
-                            sceneId,
-                            libraryAssetId: placedAsset.assetId,
-                            position: placedAsset.position,
-                            size: { width: placedAsset.size.width, height: placedAsset.size.height },
-                            rotation: placedAsset.rotation
-                        }).unwrap();
+                        await addSceneAsset(payload).unwrap();
                         const { data: updatedScene } = await refetch();
                         if (updatedScene) {
                             setScene(updatedScene);
                         }
                     } catch (error) {
-                        console.error('Failed to persist placed asset:', error);
+                        console.error('[ERROR] Failed to persist placed asset:', error);
+                        console.error('[ERROR] Payload that failed:', payload);
+                        console.error('[ERROR] PlacedAsset:', placedAsset);
                     }
                 }
             },
