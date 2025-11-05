@@ -555,16 +555,32 @@ const SceneEditorPageInternal: React.FC = () => {
                 });
 
                 if (sceneId && isOnline && scene) {
+                    const cellPosition = {
+                        x: placedAsset.position.x / gridConfig.cellSize.width,
+                        y: placedAsset.position.y / gridConfig.cellSize.height
+                    };
+
+                    const cellSize = {
+                        width: placedAsset.size.width / gridConfig.cellSize.width,
+                        height: placedAsset.size.height / gridConfig.cellSize.height
+                    };
+
                     const payload = {
                         sceneId,
                         libraryAssetId: placedAsset.assetId,
-                        position: placedAsset.position,
-                        size: { width: placedAsset.size.width, height: placedAsset.size.height },
+                        position: cellPosition,
+                        size: cellSize,
                         rotation: placedAsset.rotation
                     };
 
                     console.log('[DEBUG] Adding scene asset with payload:', payload);
-                    console.log('[DEBUG] PlacedAsset object:', placedAsset);
+                    console.log('[DEBUG] Converted from pixels to cells:', {
+                        pixelPosition: placedAsset.position,
+                        cellPosition,
+                        pixelSize: placedAsset.size,
+                        cellSize,
+                        gridCellSize: gridConfig.cellSize
+                    });
 
                     try {
                         await addSceneAsset(payload).unwrap();
@@ -575,7 +591,6 @@ const SceneEditorPageInternal: React.FC = () => {
                     } catch (error) {
                         console.error('[ERROR] Failed to persist placed asset:', error);
                         console.error('[ERROR] Payload that failed:', payload);
-                        console.error('[ERROR] PlacedAsset:', placedAsset);
                     }
                 }
             },
