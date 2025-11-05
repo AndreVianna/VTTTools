@@ -557,13 +557,28 @@ const SceneEditorPageInternal: React.FC = () => {
 
                 if (sceneId && isOnline && scene) {
                     try {
-                        await addSceneAsset({
+                        const createdAsset = await addSceneAsset({
                             sceneId,
                             libraryAssetId: placedAsset.assetId,
                             position: placedAsset.position,
                             size: { width: placedAsset.size.width, height: placedAsset.size.height },
                             rotation: placedAsset.rotation
                         }).unwrap();
+
+                        // Update the placed asset with backend-computed properties
+                        setPlacedAssets(prev => prev.map(a =>
+                            a.id === placedAsset.id
+                                ? {
+                                    ...a,
+                                    index: createdAsset.index,
+                                    number: createdAsset.number,
+                                    name: createdAsset.name,
+                                    displayName: createdAsset.displayName,
+                                    labelPosition: createdAsset.labelPosition
+                                }
+                                : a
+                        ));
+
                         const { data: updatedScene } = await refetch();
                         if (updatedScene) {
                             setScene(updatedScene);
