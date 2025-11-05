@@ -603,70 +603,131 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                     );
                 }
 
+                const isHovered = hoveredAssetId === placedAsset.id;
+                const isExpanded = expandedAssetId === placedAsset.id;
+
                 const effectiveDisplay = getEffectiveDisplayName(placedAsset, scene);
-                const shouldShowTooltip =
+                const effectivePosition = getEffectiveLabelPosition(placedAsset, scene);
+
+                const showLabel =
                     effectiveDisplay === DisplayNameEnum.Always ||
-                    effectiveDisplay === DisplayNameEnum.OnHover;
+                    (effectiveDisplay === DisplayNameEnum.OnHover && isHovered);
+
+                if (effectiveDisplay === DisplayNameEnum.Never || !showLabel) {
+                    return (
+                        <Group key={placedAsset.id} id={placedAsset.id} name="placed-asset" x={imageX} y={imageY}>
+                            <KonvaImage
+                                image={image}
+                                x={0}
+                                y={0}
+                                width={placedAsset.size.width}
+                                height={placedAsset.size.height}
+                                rotation={placedAsset.rotation}
+                                draggable={false}
+                                listening={true}
+                                opacity={0.667}
+                                onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
+                                onMouseLeave={() => setHoveredAssetId(null)}
+                                onContextMenu={(e) => {
+                                    e.evt.preventDefault();
+                                    if (onContextMenu) {
+                                        onContextMenu(placedAsset.id, { x: e.evt.clientX, y: e.evt.clientY });
+                                    }
+                                }}
+                            />
+                        </Group>
+                    );
+                }
+
+                const labelInfo = formatCreatureLabel(placedAsset.name, MAX_LABEL_WIDTH_COLLAPSED);
+                const displayText = isExpanded && labelInfo.isTruncated ? labelInfo.fullText : labelInfo.displayText;
+
+                const measuredWidth = isExpanded && labelInfo.isTruncated
+                    ? labelInfo.fullWidth
+                    : labelInfo.displayWidth;
+
+                const labelWidth = isExpanded && labelInfo.isTruncated
+                    ? measuredWidth + LABEL_HORIZONTAL_PADDING
+                    : Math.max(MIN_LABEL_WIDTH, Math.min(MAX_LABEL_WIDTH_COLLAPSED, measuredWidth + LABEL_HORIZONTAL_PADDING));
+
+                const labelHeight = labelInfo.displayHeight + LABEL_VERTICAL_PADDING;
+
+                const halfHeight = placedAsset.size.height / 2;
+                let labelY: number;
+
+                switch (effectivePosition) {
+                    case LabelPositionEnum.Top:
+                        labelY = placedAsset.position.y - halfHeight - LABEL_PADDING - labelHeight;
+                        break;
+                    case LabelPositionEnum.Middle:
+                        labelY = placedAsset.position.y - labelHeight / 2;
+                        break;
+                    case LabelPositionEnum.Bottom:
+                    case LabelPositionEnum.Default:
+                    default:
+                        labelY = placedAsset.position.y + halfHeight + LABEL_PADDING;
+                        break;
+                }
+
+                const labelX = placedAsset.position.x - labelWidth / 2;
 
                 return (
-                    <React.Fragment key={placedAsset.id}>
+                    <Group key={placedAsset.id} id={placedAsset.id} name="placed-asset" x={imageX} y={imageY}>
                         <KonvaImage
-                            id={placedAsset.id}
-                            name="placed-asset"
                             image={image}
-                            x={imageX}
-                            y={imageY}
+                            x={0}
+                            y={0}
                             width={placedAsset.size.width}
                             height={placedAsset.size.height}
                             rotation={placedAsset.rotation}
                             draggable={false}
                             listening={true}
+                            opacity={0.667}
+                            onMouseEnter={() => setHoveredAssetId(placedAsset.id)}
+                            onMouseLeave={() => setHoveredAssetId(null)}
                             onContextMenu={(e) => {
                                 e.evt.preventDefault();
                                 if (onContextMenu) {
                                     onContextMenu(placedAsset.id, { x: e.evt.clientX, y: e.evt.clientY });
                                 }
                             }}
-                            onMouseEnter={(e) => {
-                                if (!shouldShowTooltip) return;
-
-                                const stage = e.target.getStage();
-                                const pointer = stage?.getPointerPosition();
-                                if (pointer && stage) {
-                                    const scale = stage.scaleX();
-                                    const stageX = stage.x();
-                                    const stageY = stage.y();
-                                    const canvasX = (pointer.x - stageX) / scale;
-                                    const canvasY = (pointer.y - stageY) / scale;
-                                    setTooltip({
-                                        visible: true,
-                                        text: placedAsset.name,
-                                        x: pointer.x,
-                                        y: pointer.y,
-                                        canvasX,
-                                        canvasY
-                                    });
-                                }
-                            }}
-                            onMouseMove={(e) => {
-                                if (!shouldShowTooltip) return;
-
-                                const stage = e.target.getStage();
-                                const pointer = stage?.getPointerPosition();
-                                if (pointer && tooltip?.visible && stage) {
-                                    const scale = stage.scaleX();
-                                    const stageX = stage.x();
-                                    const stageY = stage.y();
-                                    const canvasX = (pointer.x - stageX) / scale;
-                                    const canvasY = (pointer.y - stageY) / scale;
-                                    setTooltip(prev => prev ? {...prev, x: pointer.x, y: pointer.y, canvasX, canvasY} : null);
+                        />
+                        <Rect
+                            x={labelX - imageX}
+                            y={labelY - imageY}
+                            width={labelWidth}
+                            height={labelHeight}
+                            fill={labelColors.background}
+                            stroke={labelColors.border}
+                            strokeWidth={1}
+                            listening={true}
+                            opacity={0.667}
+                            onMouseEnter={() => {
+                                setHoveredAssetId(placedAsset.id);
+                                if (labelInfo.isTruncated) {
+                                    setExpandedAssetId(placedAsset.id);
                                 }
                             }}
                             onMouseLeave={() => {
-                                setTooltip(null);
+                                setHoveredAssetId(null);
+                                setExpandedAssetId(null);
                             }}
                         />
-                    </React.Fragment>
+                        <Text
+                            x={labelX - imageX}
+                            y={labelY - imageY}
+                            width={labelWidth}
+                            height={labelHeight}
+                            text={displayText}
+                            fontSize={LABEL_FONT_SIZE}
+                            fontFamily={LABEL_FONT_FAMILY}
+                            fill={labelColors.text}
+                            align="center"
+                            verticalAlign="middle"
+                            listening={false}
+                            opacity={0.667}
+                        />
+                    </Group>
                 );
             });
     };
