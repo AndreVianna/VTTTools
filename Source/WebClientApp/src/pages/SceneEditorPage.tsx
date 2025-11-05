@@ -362,10 +362,13 @@ const SceneEditorPageInternal: React.FC = () => {
 
     // Initialize Stage reference when SceneCanvas is ready
     // CRITICAL: TokenDragHandle depends on this ref being set to attach event handlers
+    // NOTE: Runs when imagesLoaded or handlersReady changes to retry stage initialization
     useEffect(() => {
         console.log('[SceneEditorPage] stageRef initialization useEffect called', {
             hasCanvasRef: !!canvasRef.current,
-            isSceneReady
+            isSceneReady,
+            imagesLoaded,
+            handlersReady
         });
 
         const stage = canvasRef.current?.getStage();
@@ -386,7 +389,7 @@ const SceneEditorPageInternal: React.FC = () => {
                 reason: !stage ? 'no stage' : 'stage already set'
             });
         }
-    }, [isSceneReady]);
+    }, [isSceneReady, imagesLoaded, handlersReady]);
 
     // Validation: Ensure Stage is set when scene is ready
     // This catches initialization failures early in development
