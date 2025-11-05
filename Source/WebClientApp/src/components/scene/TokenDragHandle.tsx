@@ -131,13 +131,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     isShiftPressed,
     isCtrlPressed,
 }) => {
-    console.log('[TokenDragHandle] COMPONENT RENDER/MOUNT', {
-        placedAssetsCount: placedAssets.length,
-        selectedAssetIdsCount: selectedAssetIds.length,
-        enableDragMove,
-        timestamp: new Date().toISOString()
-    });
-
     const theme = useTheme();
     const transformerRef = useRef<Konva.Transformer>(null);
     const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -177,7 +170,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     }, [selectedAssetIds, placedAssets]);
 
     useEffect(() => {
-        console.log('[TokenDragHandle] useEffect - Component mounted/refs updated');
         snapModeRef.current = snapMode;
         selectedAssetIdsRef.current = selectedAssetIds;
         isShiftPressedRef.current = isShiftPressed;

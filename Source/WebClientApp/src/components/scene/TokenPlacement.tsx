@@ -239,13 +239,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     onContextMenu,
     scene,
 }) => {
-    console.log('[TokenPlacement] COMPONENT RENDER/MOUNT', {
-        placedAssetsCount: placedAssets.length,
-        hasDraggedAsset: !!draggedAsset,
-        draggedAssetName: draggedAsset?.name,
-        timestamp: new Date().toISOString()
-    });
-
     const theme = useTheme();
     const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | null>(null);
     const [imageCache, setImageCache] = useState<Map<string, HTMLImageElement>>(new Map());
@@ -270,7 +263,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     }), [theme.palette.background.paper, theme.palette.divider, theme.palette.text.primary]);
 
     useEffect(() => {
-        console.log('[TokenPlacement] useEffect - Component mounted/initialized');
         snapModeRef.current = snapMode;
     }, [snapMode]);
 
