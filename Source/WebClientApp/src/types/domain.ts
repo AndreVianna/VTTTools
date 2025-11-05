@@ -356,6 +356,11 @@ export interface SceneAsset {
   id: string;
   sceneId: string;
   assetId: string;
+  index: number;
+  number: number;
+  name: string;
+  description?: string;
+  resourceId: string;
   x: number;
   y: number;
   width: number;
@@ -364,8 +369,11 @@ export interface SceneAsset {
   scaleX: number;
   scaleY: number;
   layer: number;
+  elevation: number;
   visible: boolean;
   locked: boolean;
+  displayName: DisplayName;
+  labelPosition: LabelPosition;
   asset: Asset;
   // Placement behavior derived from asset.category but can be customized
   customBehavior?: Partial<import('./placement').PlacementBehavior>;

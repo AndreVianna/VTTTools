@@ -413,13 +413,17 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     }, [draggedAsset, gridConfig, placedAssets]);
 
     const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-        if (!draggedAsset || !cursorPosition) return;
+        if (!draggedAsset || !cursorPosition) {
+            return;
+        }
 
-        // Only handle left-clicks (button 0), right-click is for panning
-        if (e.evt.button !== 0) return;
+        if (e.evt.button !== 0) {
+            return;
+        }
 
-        // Only handle if clicking on the Layer itself or Rect, not on placed assets
-        if (e.target.getClassName() === 'Image') return;
+        if (e.target.getClassName() === 'Image') {
+            return;
+        }
 
         if (!isValidPlacement) {
             return;
@@ -704,7 +708,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         <Layer
             ref={layerRef}
             name={LayerName.GameWorld}
-            listening={true}
             onMouseMove={draggedAsset ? handleMouseMove : undefined}
             onClick={draggedAsset ? handleClick : undefined}
         >

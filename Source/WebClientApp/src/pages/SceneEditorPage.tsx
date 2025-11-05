@@ -362,6 +362,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
     // Initialize Stage reference when SceneCanvas is ready
     // CRITICAL: TokenDragHandle depends on this ref being set to attach event handlers
+    // NOTE: Runs when imagesLoaded or handlersReady changes to retry stage initialization
     useEffect(() => {
         const stage = canvasRef.current?.getStage();
 
@@ -370,7 +371,7 @@ const SceneEditorPageInternal: React.FC = () => {
             layerManager.initialize(stage);
             layerManager.enforceZOrder();
         }
-    }, [isSceneReady]);
+    }, [isSceneReady, imagesLoaded, handlersReady]);
 
     // Validation: Ensure Stage is set when scene is ready
     // This catches initialization failures early in development
@@ -563,9 +564,22 @@ const SceneEditorPageInternal: React.FC = () => {
                             size: { width: placedAsset.size.width, height: placedAsset.size.height },
                             rotation: placedAsset.rotation
                         }).unwrap();
+
                         const { data: updatedScene } = await refetch();
                         if (updatedScene) {
                             setScene(updatedScene);
+
+                            // Re-hydrate placed assets to get backend-computed properties
+                            const hydratedAssets = await hydratePlacedAssets(
+                                updatedScene.assets,
+                                async (assetId: string) => {
+                                    const result = await dispatch(
+                                        assetsApi.endpoints.getAsset.initiate(assetId)
+                                    ).unwrap();
+                                    return result;
+                                }
+                            );
+                            setPlacedAssets(hydratedAssets);
                         }
                     } catch (error) {
                         console.error('Failed to persist placed asset:', error);

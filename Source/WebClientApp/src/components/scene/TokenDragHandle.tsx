@@ -188,7 +188,10 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const handleNodeClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         const clickedNode = e.target;
         const assetId = clickedNode.id();
-        if (!assetId) return;
+
+        if (!assetId) {
+            return;
+        }
 
         const isCtrl = e.evt.ctrlKey || isCtrlPressed;
         const currentSelection = selectedAssetIdsRef.current;
@@ -475,7 +478,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         if (!stage) return;
 
         const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-            // Only handle left-clicks
             if (e.evt.button !== 0) return;
             if (e.target === stage && !marqueeActiveRef.current) {
                 onAssetSelected([]);
@@ -588,7 +590,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const attachedHandlersRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
-        // Skip attaching drag handlers if drag-move is disabled
         if (!enableDragMove) return;
 
         const stage = stageRef.current;
@@ -614,10 +615,12 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
             // Attach handlers to new assets
             placedAssets.forEach((placedAsset) => {
-                // Skip if already attached
-                if (attachedHandlersRef.current.has(placedAsset.id)) return;
+                if (attachedHandlersRef.current.has(placedAsset.id)) {
+                    return;
+                }
 
                 const node = stage.findOne(`#${placedAsset.id}`);
+
                 if (node) {
                     const behavior = getPlacementBehavior(
                         placedAsset.asset.kind,
@@ -625,7 +628,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                         placedAsset.asset.kind === 'Creature' ? (placedAsset.asset as any).properties : undefined
                     );
 
-                    // Asset is draggable only if it individually can move AND if all selected can move
                     const isDraggable = behavior.canMove && (
                         selectedAssetIds.length === 0 ||
                         !selectedAssetIds.includes(placedAsset.id) ||
