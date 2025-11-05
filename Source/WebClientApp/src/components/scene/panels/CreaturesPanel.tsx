@@ -55,11 +55,17 @@ export const CreaturesPanel: React.FC<CreaturesPanelProps> = ({
 
     const [labelVisibility, setLabelVisibility] = useState<DisplayName>(() => {
         const stored = localStorage.getItem(STORAGE_KEY_VISIBILITY);
-        return stored ? (stored as DisplayName) : DisplayName.Always;
+        if (stored === DisplayName.Default || !stored) {
+            return DisplayName.Always;
+        }
+        return stored as DisplayName;
     });
     const [labelPosition, setLabelPosition] = useState<LabelPosition>(() => {
         const stored = localStorage.getItem(STORAGE_KEY_POSITION);
-        return stored ? (stored as LabelPosition) : LabelPosition.Bottom;
+        if (stored === LabelPosition.Default || !stored) {
+            return LabelPosition.Bottom;
+        }
+        return stored as LabelPosition;
     });
 
     useEffect(() => {

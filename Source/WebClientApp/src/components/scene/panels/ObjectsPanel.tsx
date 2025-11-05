@@ -55,11 +55,17 @@ export const ObjectsPanel: React.FC<ObjectsPanelProps> = ({
 
     const [labelVisibility, setLabelVisibility] = useState<DisplayName>(() => {
         const stored = localStorage.getItem(STORAGE_KEY_VISIBILITY);
-        return stored ? (stored as DisplayName) : DisplayName.OnHover;
+        if (stored === DisplayName.Default || !stored) {
+            return DisplayName.OnHover;
+        }
+        return stored as DisplayName;
     });
     const [labelPosition, setLabelPosition] = useState<LabelPosition>(() => {
         const stored = localStorage.getItem(STORAGE_KEY_POSITION);
-        return stored ? (stored as LabelPosition) : LabelPosition.Middle;
+        if (stored === LabelPosition.Default || !stored) {
+            return LabelPosition.Middle;
+        }
+        return stored as LabelPosition;
     });
 
     useEffect(() => {
