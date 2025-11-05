@@ -132,6 +132,7 @@ export const sceneApi = createApi({
                 body: {
                     position: { x: position.x, y: position.y },
                     size: { width: size.width, height: size.height, isSquare: Math.abs(size.width - size.height) < 0.001 },
+                    frame: { shape: 'None', borderColor: '#0078D4', borderThickness: 1, background: 'transparent' },
                     rotation: rotation || 0,
                     elevation: 0
                 }
@@ -231,6 +232,7 @@ export const sceneApi = createApi({
                         assetId: a.assetId,
                         position: { x: a.position.x, y: a.position.y },
                         size: { width: a.size.width, height: a.size.height, isSquare: Math.abs(a.size.width - a.size.height) < 0.001 },
+                        frame: { shape: 'None', borderColor: '#0078D4', borderThickness: 1, background: 'transparent' },
                         rotation: a.rotation || 0,
                         elevation: a.elevation || 0,
                         ...(a.resourceId && { resourceId: a.resourceId }),
