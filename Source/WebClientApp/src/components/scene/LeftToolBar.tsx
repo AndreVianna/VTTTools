@@ -116,14 +116,14 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
       if (!expanded) return;
 
       const target = event.target as Node;
+      const targetElement = target as Element;
       const isInsideToolbar = toolbarRef.current?.contains(target);
       const isInsideDrawer = drawerRef.current?.contains(target);
 
-      const isInsideDialog = (target as Element).closest?.('[role="dialog"]') !== null;
-      const isInsidePopover = (target as Element).closest?.('.MuiPopover-root') !== null;
-      const isInsideMenu = (target as Element).closest?.('[role="presentation"]') !== null;
+      const isInsideDialog = targetElement.closest?.('[role="dialog"]') !== null;
+      const isInsideMenu = targetElement.closest?.('.MuiMenu-root, .MuiPopover-paper') !== null;
 
-      if (!isInsideToolbar && !isInsideDrawer && !isInsideDialog && !isInsidePopover && !isInsideMenu) {
+      if (!isInsideToolbar && !isInsideDrawer && !isInsideDialog && !isInsideMenu) {
         if (externalActivePanel !== undefined) {
           onPanelChange?.(null);
         } else {
