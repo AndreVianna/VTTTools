@@ -36,7 +36,7 @@ import { useGetAssetsQuery } from '@/services/assetsApi';
 import { Asset, AssetKind, CreatureCategory, CreatureAsset } from '@/types/domain';
 import { AssetFilterPanel, AssetFilters, AssetSearchBar, AssetEditDialog, AssetCreateDialog } from '@/components/assets';
 import { useDebounce } from '@/hooks/useDebounce';
-import { getDefaultToken, getResourceUrl } from '@/utils/assetHelpers';
+import { getDefaultToken, getPortrait, getResourceUrl } from '@/utils/assetHelpers';
 
 /**
  * Asset Library Page Component
@@ -385,10 +385,13 @@ export const AssetLibraryPage: React.FC = () => {
                                                 }}
                                             >
                                             {(() => {
-                                                const tokenResource = getDefaultToken(asset);
-                                                return tokenResource ? (
+                                                const portrait = getPortrait(asset);
+                                                const defaultToken = getDefaultToken(asset);
+                                                const imageId = portrait?.id || defaultToken?.tokenId || asset.tokens?.[0]?.tokenId;
+
+                                                return imageId ? (
                                                     <img
-                                                        src={getResourceUrl(tokenResource.resourceId)}
+                                                        src={getResourceUrl(imageId)}
                                                         alt={asset.name}
                                                         style={{
                                                             width: '100%',

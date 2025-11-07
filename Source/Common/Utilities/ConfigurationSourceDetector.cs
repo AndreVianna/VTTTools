@@ -51,15 +51,11 @@ public class ConfigurationSourceDetector(IConfigurationRoot configRoot) {
 
     public static string DetermineCategory(string key) {
         var lower = key.ToLowerInvariant();
-        if (lower.StartsWith("jwt") || lower.StartsWith("identity") || lower.StartsWith("auth"))
-            return "Security";
-        if (lower.StartsWith("connectionstrings") || lower.StartsWith("blob"))
-            return "Storage";
-        if (lower.StartsWith("logging"))
-            return "Application";
-        if (lower.StartsWith("email") || lower.StartsWith("smtp"))
-            return "Email";
-        return "General";
+        return lower.StartsWith("jwt") || lower.StartsWith("identity") || lower.StartsWith("auth") ? "Security"
+            : lower.StartsWith("connectionstrings") || lower.StartsWith("blob") ? "Storage"
+            : lower.StartsWith("logging") ? "Application"
+            : lower.StartsWith("email") || lower.StartsWith("smtp") ? "Email"
+            : "General";
     }
 
     private static ConfigurationSource CreateJsonSource(IConfigurationProvider provider) {
