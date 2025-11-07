@@ -14,13 +14,12 @@ import {
     Select,
     MenuItem,
     IconButton,
-    SelectChangeEvent,
-    Divider
+    SelectChangeEvent
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { PhotoCamera as PhotoCameraIcon } from '@mui/icons-material';
-import { Scene, DisplayName, LabelPosition } from '@/types/domain';
+import { Scene } from '@/types/domain';
 import { GridConfig, GridType } from '@/utils/gridCalculator';
 
 const SCENE_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
@@ -34,7 +33,6 @@ export interface ScenePropertiesPanelProps {
     onGridChange?: (grid: GridConfig) => void;
     backgroundUrl?: string;
     isUploadingBackground?: boolean;
-    onSceneUpdate?: (updates: Partial<Scene>) => void;
 }
 
 interface AdventureLinkProps {
@@ -75,8 +73,7 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
     onBackgroundUpload,
     onGridChange,
     backgroundUrl,
-    isUploadingBackground,
-    onSceneUpdate
+    isUploadingBackground
 }) => {
     const theme = useTheme();
     const effectiveBackgroundUrl = backgroundUrl || SCENE_DEFAULT_BACKGROUND;
@@ -495,51 +492,7 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
                             sx={{ margin: 0 }}
                         />
 
-                        <Divider sx={{ my: 1 }} />
-
-                        <Typography variant="overline" sx={compactStyles.sectionHeader}>
-                            Display Settings
-                        </Typography>
-
-                        <FormControl fullWidth size="small">
-                            <InputLabel id="label-default-display" sx={compactStyles.inputLabel}>Creature</InputLabel>
-                            <Select
-                                id="select-default-display"
-                                labelId="label-default-display"
-                                value={scene?.defaultDisplayName ?? DisplayName.Always}
-                                label="Creature"
-                                onChange={(e) => {
-                                    if (onSceneUpdate) {
-                                        onSceneUpdate({ defaultDisplayName: e.target.value as DisplayName });
-                                    }
-                                }}
-                                sx={compactStyles.select}
-                            >
-                                <MenuItem sx={compactStyles.menuItem} value={DisplayName.Always}>Always</MenuItem>
-                                <MenuItem sx={compactStyles.menuItem} value={DisplayName.OnHover}>On Hover</MenuItem>
-                                <MenuItem sx={compactStyles.menuItem} value={DisplayName.Never}>Never</MenuItem>
-                            </Select>
-                        </FormControl>
-
-                        <FormControl fullWidth size="small">
-                            <InputLabel id="label-default-position" sx={compactStyles.inputLabel}>Label</InputLabel>
-                            <Select
-                                id="select-default-position"
-                                labelId="label-default-position"
-                                value={scene?.defaultLabelPosition ?? LabelPosition.Bottom}
-                                label="Label"
-                                onChange={(e) => {
-                                    if (onSceneUpdate) {
-                                        onSceneUpdate({ defaultLabelPosition: e.target.value as LabelPosition });
-                                    }
-                                }}
-                                sx={compactStyles.select}
-                            >
-                                <MenuItem sx={compactStyles.menuItem} value={LabelPosition.Top}>Top</MenuItem>
-                                <MenuItem sx={compactStyles.menuItem} value={LabelPosition.Middle}>Middle</MenuItem>
-                                <MenuItem sx={compactStyles.menuItem} value={LabelPosition.Bottom}>Bottom</MenuItem>
-                            </Select>
-                        </FormControl>
+                        {/* Display Settings - Removed: defaultDisplayName and defaultLabelPosition are now handled in localStorage */}
                     </Box>
                 </Box>
             </Paper>

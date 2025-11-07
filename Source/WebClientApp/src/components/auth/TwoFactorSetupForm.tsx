@@ -251,6 +251,7 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
           <Grid container spacing={3} sx={{ mb: 3 }}>
             {/* Left Column: QR Code */}
             <Grid
+              item
               xs={12}
               md={5}
               sx={{
@@ -279,7 +280,7 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
             </Grid>
 
             {/* Right Column: Manual Key and Verification Code */}
-            <Grid xs={12} md={7}>
+            <Grid item xs={12} md={7}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                 {/* Manual Key Box */}
                 <Box>

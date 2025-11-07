@@ -2,14 +2,14 @@ import { DisplayName, LabelPosition, PlacedAsset, Scene } from '../types/domain'
 
 export const getEffectiveDisplayName = (
     asset: PlacedAsset,
-    scene: Scene
+    _scene: Scene
 ): DisplayName => {
     if (asset.displayName !== DisplayName.Default) {
         return asset.displayName;
     }
 
     if (asset.asset.kind === 'Creature') {
-        return scene.defaultDisplayName;
+        return DisplayName.Always;
     }
 
     return DisplayName.OnHover;
@@ -17,9 +17,9 @@ export const getEffectiveDisplayName = (
 
 export const getEffectiveLabelPosition = (
     asset: PlacedAsset,
-    scene: Scene
+    _scene: Scene
 ): LabelPosition => {
     return asset.labelPosition === LabelPosition.Default
-        ? scene.defaultLabelPosition
+        ? LabelPosition.Bottom
         : asset.labelPosition;
 };

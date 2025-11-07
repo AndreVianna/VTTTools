@@ -129,7 +129,11 @@ export const ProfileSettings: React.FC = () => {
 
       if (formData.name !== profileData?.name) updates.name = formData.name;
       if (formData.displayName !== profileData?.displayName) updates.displayName = formData.displayName;
-      if (formData.phoneNumber !== profileData?.phoneNumber) updates.phoneNumber = formData.phoneNumber || undefined;
+      if (formData.phoneNumber !== profileData?.phoneNumber) {
+        if (formData.phoneNumber) {
+          updates.phoneNumber = formData.phoneNumber;
+        }
+      }
 
       if (Object.keys(updates).length > 0) {
         await updateProfile(updates).unwrap();

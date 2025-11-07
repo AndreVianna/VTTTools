@@ -303,7 +303,7 @@ export const SceneCanvas = forwardRef<SceneCanvasHandle, SceneCanvasProps>(({
             scaleY={scale}
             onWheel={handleWheel}
             onMouseDown={handleMouseDown}
-            onMouseMove={isPanning ? handleMouseMove : undefined}
+            {...(isPanning && { onMouseMove: handleMouseMove })}
             onMouseUp={handleMouseUp}
             onClick={handleClick}
             onContextMenu={handleContextMenu}

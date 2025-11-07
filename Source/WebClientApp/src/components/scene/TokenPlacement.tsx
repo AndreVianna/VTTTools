@@ -764,8 +764,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         <Layer
             ref={layerRef}
             name={LayerName.GameWorld}
-            onMouseMove={draggedAsset ? handleMouseMove : undefined}
-            onClick={draggedAsset ? handleClick : undefined}
+            {...(draggedAsset && { onMouseMove: handleMouseMove })}
+            {...(draggedAsset && { onClick: handleClick })}
         >
             {/* Invisible hit area for placement cursor tracking
 

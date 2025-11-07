@@ -195,7 +195,6 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
           scene={scene}
           onDescriptionChange={onSceneDescriptionChange ?? (() => {})}
           onPublishedChange={onScenePublishedChange ?? (() => {})}
-          onSceneUpdate={onSceneUpdate}
         />
       )}
 
