@@ -225,8 +225,8 @@ export function createPlacePoleAction(
  */
 export function createMovePoleAction(
     poleIndex: number,
-    oldPosition: { x: number; y: number },
-    newPosition: { x: number; y: number },
+    oldPosition: { x: number; y: number; h: number },
+    newPosition: { x: number; y: number; h: number },
     onPolesChange: (poles: Pole[], isClosed?: boolean) => void,
     getCurrentPoles: () => Pole[],
     getCurrentIsClosed: () => boolean
@@ -322,7 +322,7 @@ export function createDeletePoleAction(
             const currentPoles = getCurrentPoles();
             const updatedPoles = [...currentPoles];
             const sortedEntries = poleIndices
-                .map((index, i) => ({ index, pole: poles[i] }))
+                .map((index, i) => ({ index, pole: poles[i] as Pole }))
                 .sort((a, b) => b.index - a.index);
 
             for (const entry of sortedEntries) {
@@ -360,7 +360,7 @@ export function createDeletePoleAction(
  * @returns MultiMovePoleAction with undo/redo implementations
  */
 export function createMultiMovePoleAction(
-    moves: Array<{ poleIndex: number; oldPosition: { x: number; y: number }; newPosition: { x: number; y: number } }>,
+    moves: Array<{ poleIndex: number; oldPosition: { x: number; y: number; h: number }; newPosition: { x: number; y: number; h: number } }>,
     onPolesChange: (poles: Pole[], isClosed?: boolean) => void,
     getCurrentPoles: () => Pole[],
     getCurrentIsClosed: () => boolean
@@ -415,10 +415,10 @@ export function createMultiMovePoleAction(
 export function createMoveLineAction(
     pole1Index: number,
     pole2Index: number,
-    oldPole1: { x: number; y: number },
-    oldPole2: { x: number; y: number },
-    newPole1: { x: number; y: number },
-    newPole2: { x: number; y: number },
+    oldPole1: { x: number; y: number; h: number },
+    oldPole2: { x: number; y: number; h: number },
+    newPole1: { x: number; y: number; h: number },
+    newPole2: { x: number; y: number; h: number },
     onPolesChange: (poles: Pole[], isClosed?: boolean) => void,
     getCurrentPoles: () => Pole[],
     getCurrentIsClosed: () => boolean
