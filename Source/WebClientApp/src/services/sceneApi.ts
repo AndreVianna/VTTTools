@@ -276,12 +276,12 @@ export const sceneApi = createApi({
 
         addSceneWall: builder.mutation<SceneWall, {
             sceneId: string;
-            name: string;
-            poles: Pole[];
-            visibility: WallVisibility;
-            isClosed: boolean;
-            material?: string;
-            color?: string;
+            name: string | undefined;
+            poles: Pole[] | undefined;
+            visibility: WallVisibility | undefined;
+            isClosed: boolean | undefined;
+            material?: string | undefined;
+            color?: string | undefined;
         }>({
             query: ({ sceneId, ...body }) => ({
                 url: `/${sceneId}/walls`,
@@ -297,12 +297,12 @@ export const sceneApi = createApi({
         updateSceneWall: builder.mutation<void, {
             sceneId: string;
             wallIndex: number;
-            name?: string;
-            poles?: Pole[];
-            visibility?: WallVisibility;
-            isClosed?: boolean;
-            material?: string;
-            color?: string;
+            name?: string | undefined;
+            poles?: Pole[] | undefined;
+            visibility?: WallVisibility | undefined;
+            isClosed?: boolean | undefined;
+            material?: string | undefined;
+            color?: string | undefined;
         }>({
             query: ({ sceneId, wallIndex, ...body }) => ({
                 url: `/${sceneId}/walls/${wallIndex}`,

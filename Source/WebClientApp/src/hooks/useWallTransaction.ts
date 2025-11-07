@@ -17,8 +17,8 @@ export interface WallSegment {
     poles: Pole[];
     isClosed: boolean;
     visibility: WallVisibility;
-    material?: string;
-    color?: string;
+    material?: string | undefined;
+    color?: string | undefined;
 }
 
 export interface WallTransaction {
@@ -61,7 +61,7 @@ function generateBrokenWallNames(originalName: string, segmentCount: number): st
 
     if (match) {
         const [, baseName, numberStr] = match;
-        const baseNumber = parseInt(numberStr, 10);
+        const baseNumber = parseInt(numberStr || '0', 10);
 
         for (let i = 1; i <= segmentCount; i++) {
             names.push(`${baseName}${baseNumber}.${i}`);
@@ -101,8 +101,8 @@ export const useWallTransaction = () => {
                     poles: [...wall.poles],
                     isClosed: wall.isClosed,
                     visibility: wall.visibility,
-                    material: wall.material,
-                    color: wall.color
+                    material: wall.material || undefined,
+                    color: wall.color || undefined
                 }],
                 isActive: true,
                 localUndoStack: [],
@@ -200,31 +200,31 @@ export const useWallTransaction = () => {
                 const assignedName = names[i];
 
                 try {
-                    if (segment.wallIndex !== null) {
+                    if (segment?.wallIndex !== null) {
                         await updateSceneWall({
                             sceneId,
-                            wallIndex: segment.wallIndex,
+                            wallIndex: segment?.wallIndex || 1,
                             name: assignedName,
-                            poles: segment.poles,
-                            visibility: segment.visibility,
-                            isClosed: segment.isClosed,
-                            material: segment.material,
-                            color: segment.color
+                            poles: segment?.poles,
+                            visibility: segment?.visibility,
+                            isClosed: segment?.isClosed || false,
+                            material: segment?.material || undefined,
+                            color: segment?.color || undefined
                         }).unwrap();
 
                         results.push({
-                            tempId: segment.tempId,
-                            wallIndex: segment.wallIndex
+                            tempId: segment?.tempId || 0,
+                            wallIndex: segment?.wallIndex || 0
                         });
                     } else {
                         const result = await addSceneWall({
                             sceneId,
-                            name: assignedName,
-                            poles: segment.poles,
-                            visibility: segment.visibility,
-                            isClosed: segment.isClosed,
-                            material: segment.material,
-                            color: segment.color
+                            name: assignedName || '',
+                            poles: segment?.poles || [],
+                            visibility: segment?.visibility || WallVisibility.Normal,
+                            isClosed: segment?.isClosed || false,
+                            material: segment?.material || undefined,
+                            color: segment?.color || undefined
                         }).unwrap();
 
                         results.push({
@@ -234,7 +234,7 @@ export const useWallTransaction = () => {
                     }
                 } catch (error) {
                     results.push({
-                        tempId: segment.tempId,
+                        tempId: segment?.tempId || 0,
                         error: error instanceof Error ? error.message : 'Unknown error'
                     });
                 }
