@@ -1,6 +1,6 @@
 import type { ContentListItem } from './contentListItem';
 import type { GridConfig } from '@/utils/gridCalculator';
-import type { PlacedAsset, MediaResource } from '@/types/domain';
+import { type PlacedAsset, type MediaResource, DisplayName, LabelPosition } from '@/types/domain';
 
 export interface Point {
     x: number;
@@ -112,7 +112,9 @@ export const mapSceneAssetToPlaced = async (
         layer: 'assets',
         index: sceneAsset.index,
         number: sceneAsset.number,
-        name: sceneAsset.name || asset.name
+        name: sceneAsset.name || asset.name,
+        displayName: DisplayName.Always,
+        labelPosition: LabelPosition.Bottom,
     };
 };
 

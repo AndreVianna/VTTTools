@@ -9,9 +9,8 @@ describe('displayHelpers', () => {
                 displayName: DisplayName.Never,
                 asset: { kind: 'Creature' },
             } as any;
-            const scene = { defaultDisplayName: DisplayName.Always } as any;
 
-            expect(getEffectiveDisplayName(asset, scene)).toBe(DisplayName.Never);
+            expect(getEffectiveDisplayName(asset)).toBe(DisplayName.Never);
         });
 
         it('returns scene default for Creatures when asset is Default', () => {
@@ -19,9 +18,8 @@ describe('displayHelpers', () => {
                 displayName: DisplayName.Default,
                 asset: { kind: 'Creature' },
             } as any;
-            const scene = { defaultDisplayName: DisplayName.OnHover } as any;
 
-            expect(getEffectiveDisplayName(asset, scene)).toBe(DisplayName.OnHover);
+            expect(getEffectiveDisplayName(asset)).toBe(DisplayName.OnHover);
         });
 
         it('returns OnHover for Objects when asset is Default (ignores scene default)', () => {
@@ -29,9 +27,8 @@ describe('displayHelpers', () => {
                 displayName: DisplayName.Default,
                 asset: { kind: 'Object' },
             } as any;
-            const scene = { defaultDisplayName: DisplayName.Always } as any;
 
-            expect(getEffectiveDisplayName(asset, scene)).toBe(DisplayName.OnHover);
+            expect(getEffectiveDisplayName(asset)).toBe(DisplayName.OnHover);
         });
 
         it('returns asset override for Objects when not Default', () => {
@@ -39,25 +36,22 @@ describe('displayHelpers', () => {
                 displayName: DisplayName.Always,
                 asset: { kind: 'Object' },
             } as any;
-            const scene = { defaultDisplayName: DisplayName.Never } as any;
 
-            expect(getEffectiveDisplayName(asset, scene)).toBe(DisplayName.Always);
+            expect(getEffectiveDisplayName(asset)).toBe(DisplayName.Always);
         });
     });
 
     describe('getEffectiveLabelPosition', () => {
         it('returns asset override when not Default', () => {
             const asset = { labelPosition: LabelPosition.Top } as any;
-            const scene = { defaultLabelPosition: LabelPosition.Bottom } as any;
 
-            expect(getEffectiveLabelPosition(asset, scene)).toBe(LabelPosition.Top);
+            expect(getEffectiveLabelPosition(asset)).toBe(LabelPosition.Top);
         });
 
         it('returns scene default when asset is Default', () => {
             const asset = { labelPosition: LabelPosition.Default } as any;
-            const scene = { defaultLabelPosition: LabelPosition.Middle } as any;
 
-            expect(getEffectiveLabelPosition(asset, scene)).toBe(LabelPosition.Middle);
+            expect(getEffectiveLabelPosition(asset)).toBe(LabelPosition.Middle);
         });
     });
 });

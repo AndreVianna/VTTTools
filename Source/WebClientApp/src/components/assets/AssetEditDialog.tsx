@@ -147,14 +147,18 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({
             setEditMode(false);
 
             if (isObjectAsset(asset)) {
-                setObjectData(objectData);
+                setIsMovable(asset.isMovable);
+                setIsOpaque(asset.isOpaque);
+                setTriggerEffectId(asset.triggerEffectId);
             } else if (isCreatureAsset(asset)) {
-                setCreatureData(creatureData);
+                setCategory(asset.category);
+                setStatBlockId(asset.statBlockId);
+                setTokenStyle(asset.tokenStyle);
             }
 
             prevAssetIdRef.current = asset.id;
         }
-    }, [open, asset.id, asset, objectData, creatureData]);
+    }, [open, asset]);
 
     const handleSave = async () => {
         try {

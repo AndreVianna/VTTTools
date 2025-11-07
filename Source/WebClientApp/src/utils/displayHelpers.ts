@@ -1,8 +1,7 @@
-import { DisplayName, LabelPosition, PlacedAsset, Scene } from '../types/domain';
+import { DisplayName, LabelPosition, PlacedAsset } from '../types/domain';
 
 export const getEffectiveDisplayName = (
-    asset: PlacedAsset,
-    _scene: Scene
+    asset: PlacedAsset
 ): DisplayName => {
     if (asset.displayName !== DisplayName.Default) {
         return asset.displayName;
@@ -16,8 +15,7 @@ export const getEffectiveDisplayName = (
 };
 
 export const getEffectiveLabelPosition = (
-    asset: PlacedAsset,
-    _scene: Scene
+    asset: PlacedAsset
 ): LabelPosition => {
     return asset.labelPosition === LabelPosition.Default
         ? LabelPosition.Bottom

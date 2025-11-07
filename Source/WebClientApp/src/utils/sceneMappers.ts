@@ -15,7 +15,7 @@ function getAssetLayer(asset: Asset): GroupName {
     }
 
     const objectAsset = asset as ObjectAsset;
-    if (objectAsset.properties?.isOpaque) {
+    if (objectAsset.isOpaque) {
         return GroupName.Structure;
     }
 
@@ -86,12 +86,4 @@ export function dehydratePlacedAssets(
         locked: false,
         asset: pa.asset
     }));
-}
-
-export function ensureSceneDefaults(scene: any): any {
-    return {
-        ...scene,
-        defaultDisplayName: scene.defaultDisplayName || DisplayNameEnum.Always,
-        defaultLabelPosition: scene.defaultLabelPosition || LabelPositionEnum.Bottom
-    };
 }

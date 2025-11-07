@@ -474,8 +474,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 if (isCreature) {
                     const isHovered = hoveredAssetId === placedAsset.id;
                     const isExpanded = expandedAssetId === placedAsset.id;
-                    const effectiveDisplay = getEffectiveDisplayName(placedAsset, scene);
-                    const effectivePosition = getEffectiveLabelPosition(placedAsset, scene);
+                    const effectiveDisplay = getEffectiveDisplayName(placedAsset);
+                    const effectivePosition = getEffectiveLabelPosition(placedAsset);
 
                     const showLabel =
                         effectiveDisplay === DisplayNameEnum.Always ||
@@ -603,8 +603,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 const isHovered = hoveredAssetId === placedAsset.id;
                 const isExpanded = expandedAssetId === placedAsset.id;
 
-                const effectiveDisplay = getEffectiveDisplayName(placedAsset, scene);
-                const effectivePosition = getEffectiveLabelPosition(placedAsset, scene);
+                const effectiveDisplay = getEffectiveDisplayName(placedAsset);
+                const effectivePosition = getEffectiveLabelPosition(placedAsset);
 
                 const showLabel =
                     effectiveDisplay === DisplayNameEnum.Always ||

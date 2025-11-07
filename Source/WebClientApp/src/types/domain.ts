@@ -348,9 +348,6 @@ export interface Scene {
   walls: SceneWall[];
   regions: SceneRegion[];
   sources: SceneSource[];
-  createdAt: string;
-  updatedAt: string;
-  // defaultDisplayName and defaultLabelPosition removed - now handled in frontend localStorage
 }
 
 export interface SceneAsset {

@@ -12,7 +12,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { TokenPlacement } from './TokenPlacement';
 import { formatCreatureLabel } from './tokenPlacementUtils';
-import type { Asset, PlacedAsset, CreatureAsset, ObjectAsset } from '@/types/domain';
+import type { Asset, PlacedAsset, CreatureAsset, ObjectAsset, Scene } from '@/types/domain';
 import { AssetKind, CreatureCategory, DisplayName, LabelPosition } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
@@ -42,8 +42,6 @@ const createMockAsset = (id: string, kind: AssetKind = AssetKind.Creature): Asse
             isDefault: true
         })],
         size: { width: 1, height: 1, isSquare: true },
-        createdAt: '2025-01-01T00:00:00Z',
-        updatedAt: '2025-01-01T00:00:00Z',
     };
 };
 
@@ -89,6 +87,28 @@ describe('TokenPlacement', () => {
     let mockOnAssetMoved: ReturnType<typeof vi.fn>;
     let mockOnAssetDeleted: ReturnType<typeof vi.fn>;
     let mockOnDragComplete: ReturnType<typeof vi.fn>;
+    let mockScene: Scene = {
+        id: 'scene-1',
+        name: 'Scene 1',
+        description: 'Scene 1 description',
+        isPublished: true,
+        adventure: null,
+        grid: {
+            type: GridType.Square,
+            cellSize: { width: 50, height: 50 },
+            offset: { left: 0, top: 0 },
+            snap: true,
+        },
+        stage: {
+            background: null,
+            zoomLevel: 1,
+            panning: { x: 0, y: 0 },
+        },
+        assets: [],
+        walls: [],
+        regions: [],
+        sources: [],
+    };
 
     beforeEach(() => {
         mockOnAssetPlaced = vi.fn();
@@ -134,6 +154,7 @@ describe('TokenPlacement', () => {
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
                 snapMode="grid"
+                scene={mockScene}
             />
         );
 
@@ -153,6 +174,7 @@ describe('TokenPlacement', () => {
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
                 snapMode="grid"
+                scene={mockScene}
             />
         );
 
@@ -200,6 +222,7 @@ describe('TokenPlacement', () => {
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
                 snapMode="grid"
+                scene={mockScene}
             />
         );
 
@@ -245,6 +268,7 @@ describe('TokenPlacement', () => {
                 draggedAsset={draggedAsset}
                 onDragComplete={mockOnDragComplete}
                 snapMode="grid"
+                scene={mockScene}
             />
         );
 
@@ -296,6 +320,7 @@ describe('TokenPlacement', () => {
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
                 snapMode="grid"
+                scene={mockScene}
             />
         );
 
@@ -317,6 +342,7 @@ describe('TokenPlacement', () => {
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
                 snapMode="grid"
+                scene={mockScene}
             />
         );
 
@@ -342,6 +368,7 @@ describe('TokenPlacement', () => {
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
                 snapMode="grid"
+                scene={mockScene}
             />
         );
 
@@ -380,6 +407,7 @@ describe('TokenPlacement', () => {
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
                 snapMode="grid"
+                scene={mockScene}
             />
         );
 
@@ -403,6 +431,7 @@ describe('TokenPlacement', () => {
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
                 snapMode="grid"
+                scene={mockScene}
             />
         );
 
@@ -429,6 +458,7 @@ describe('TokenPlacement', () => {
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
                 snapMode="grid"
+                scene={mockScene}
             />
         );
 
@@ -463,6 +493,7 @@ describe('TokenPlacement', () => {
                 draggedAsset={null}
                 onDragComplete={mockOnDragComplete}
                 snapMode="grid"
+                scene={mockScene}
             />
         );
 
@@ -493,6 +524,7 @@ describe('TokenPlacement', () => {
                     draggedAsset={null}
                     onDragComplete={mockOnDragComplete}
                     snapMode="grid"
+                    scene={mockScene}
                 />
             );
 
@@ -520,6 +552,7 @@ describe('TokenPlacement', () => {
                     draggedAsset={null}
                     onDragComplete={mockOnDragComplete}
                     snapMode="grid"
+                    scene={mockScene}
                 />
             );
 
