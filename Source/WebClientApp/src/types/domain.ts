@@ -590,8 +590,8 @@ export interface SceneWall {
   poles: Pole[];
   visibility: WallVisibility;
   isClosed: boolean;
-  material?: string;
-  color?: string;
+  material?: string | undefined;
+  color?: string | undefined;
 }
 
 export interface SceneRegion {
