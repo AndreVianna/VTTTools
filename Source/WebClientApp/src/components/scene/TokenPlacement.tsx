@@ -47,22 +47,24 @@ export interface TokenPlacementProps {
 }
 
 const getTokenImageUrl = (asset: Asset): string | null => {
-    if (!asset?.resources || !Array.isArray(asset.resources)) {
+    if (!asset?.tokens || !Array.isArray(asset.tokens)) {
         return null;
     }
 
     const mediaBaseUrl = getApiEndpoints().media;
 
-    // Check for Token flag using bitwise AND (role & 1 checks if Token bit is set)
-    const tokenResource = asset.resources.find((r) => (r.role & 1) === 1);
-    if (tokenResource) {
-        return `${mediaBaseUrl}/${tokenResource.resourceId}`;
+    const defaultToken = asset.tokens.find(t => t.isDefault);
+
+    if (defaultToken) {
+        return `${mediaBaseUrl}/${defaultToken.tokenId}`;
     }
 
-    // Check for Display flag using bitwise AND (role & 2 checks if Display bit is set)
-    const displayResource = asset.resources.find((r) => (r.role & 2) === 2);
-    if (displayResource) {
-        return `${mediaBaseUrl}/${displayResource.resourceId}`;
+    if (asset.tokens.length > 0) {
+        return `${mediaBaseUrl}/${asset.tokens[0].tokenId}`;
+    }
+
+    if (asset.portrait) {
+        return `${mediaBaseUrl}/${asset.portrait.id}`;
     }
 
     return null;
@@ -73,24 +75,19 @@ const getAssetGroup = (asset: Asset): GroupName => {
         return GroupName.Creatures;
     }
 
-    const objectAsset = asset as any;
-    if (objectAsset.objectProps?.isOpaque) {
-        return GroupName.Structure;
+    if (asset.kind === 'Object') {
+        const objectAsset = asset as any;
+        if (objectAsset.properties?.isOpaque) {
+            return GroupName.Structure;
+        }
     }
 
     return GroupName.Objects;
 };
 
-/**
- * Get asset size from properties
- * Defaults to 1x1 if not defined
- */
 const getAssetSize = (asset: Asset): { width: number; height: number } => {
-    const assetWithProps = asset as any;
-    const size = assetWithProps.properties?.size;
-
-    if (size && size.width && size.height) {
-        return { width: size.width, height: size.height };
+    if (asset.size?.width && asset.size?.height) {
+        return { width: asset.size.width, height: asset.size.height };
     }
 
     return { width: 1, height: 1 };

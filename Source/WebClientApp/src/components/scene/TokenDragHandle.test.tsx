@@ -342,7 +342,7 @@ describe('TokenDragHandle Logic Tests', () => {
                 ...immovableObjectAsset,
                 asset: {
                     ...immovableObjectAsset.asset,
-                    objectProps: {
+                    properties: {
                         size: { width: 1, height: 1, isSquare: true },
                         isMovable: true,
                         isOpaque: false,
@@ -374,7 +374,7 @@ describe('TokenDragHandle Logic Tests', () => {
                 ...immovableObjectAsset,
                 asset: {
                     ...immovableObjectAsset.asset,
-                    objectProps: {
+                    properties: {
                         size: { width: 1, height: 1, isSquare: true },
                         isMovable: true,
                         isOpaque: false,

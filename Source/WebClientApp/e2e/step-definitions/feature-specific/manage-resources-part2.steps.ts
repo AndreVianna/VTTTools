@@ -7,7 +7,7 @@
 import { Given, When, Then } from '@cucumber/cucumber';
 import { CustomWorld } from '../../support/world.js';
 import { expect } from '@playwright/test';
-import { uploadImage, uploadAndAssignRole, ResourceRole } from '../../support/helpers/upload.helper.js';
+import { uploadImage, uploadToken, uploadPortrait } from '../../support/helpers/upload.helper.js';
 
 // ============================================================================
 // IMAGE REMOVAL
@@ -43,17 +43,20 @@ Given('I have {int} images:', async function (this: CustomWorld, count: number, 
     const rows = dataTable.hashes();
     expect(rows.length).toBe(count);
     for (const row of rows) {
-        const resourceId = await uploadImage(this.page, `${row.image}.png`);
-        this.uploadedResourceIds.push(resourceId);
-
-        // Assign role based on table
-        const selector = `[data-resource-id="${resourceId}"]`;
         if (row.role === 'Token') {
-            await this.keyboard.altClick(selector);
+            const tokenId = await uploadToken(this.page, `${row.image}.png`);
+            this.uploadedResourceIds.push(tokenId);
         } else if (row.role === 'Display') {
-            await this.keyboard.ctrlClick(selector);
+            const portraitId = await uploadPortrait(this.page, `${row.image}.png`);
+            this.uploadedResourceIds.push(portraitId);
         } else if (row.role === 'Token,Display') {
-            await this.keyboard.ctrlAltClick(selector);
+            const tokenId = await uploadToken(this.page, `${row.image}.png`, true);
+            this.uploadedResourceIds.push(tokenId);
+            const portraitId = await uploadPortrait(this.page, `${row.image}.png`);
+            this.uploadedResourceIds.push(portraitId);
+        } else {
+            const resourceId = await uploadImage(this.page, `${row.image}.png`);
+            this.uploadedResourceIds.push(resourceId);
         }
     }
 });
@@ -131,18 +134,21 @@ When('I upload {int} images and assign roles:', async function (this: CustomWorl
     const rows = dataTable.hashes();
     expect(rows.length).toBe(count);
     for (const row of rows) {
-        const resourceId = await uploadImage(this.page, `${row.image}.png`);
-        this.uploadedResourceIds.push(resourceId);
-
-        const selector = `[data-resource-id="${resourceId}"]`;
         if (row.role === 'Token') {
-            await this.keyboard.altClick(selector);
+            const tokenId = await uploadToken(this.page, `${row.image}.png`);
+            this.uploadedResourceIds.push(tokenId);
         } else if (row.role === 'Display') {
-            await this.keyboard.ctrlClick(selector);
+            const portraitId = await uploadPortrait(this.page, `${row.image}.png`);
+            this.uploadedResourceIds.push(portraitId);
         } else if (row.role === 'Token,Display') {
-            await this.keyboard.ctrlAltClick(selector);
+            const tokenId = await uploadToken(this.page, `${row.image}.png`, true);
+            this.uploadedResourceIds.push(tokenId);
+            const portraitId = await uploadPortrait(this.page, `${row.image}.png`);
+            this.uploadedResourceIds.push(portraitId);
+        } else {
+            const resourceId = await uploadImage(this.page, `${row.image}.png`);
+            this.uploadedResourceIds.push(resourceId);
         }
-        // 'None' = no action
     }
 });
 
@@ -202,8 +208,8 @@ Then('should not show img3, img4, or img5 in previews', async function (this: Cu
 
 When('I upload {int} images and assign all as Token', async function (this: CustomWorld, count: number) {
     for (let i = 0; i < count; i++) {
-        const resourceId = await uploadAndAssignRole(this.page, this.keyboard, `test-${i}.png`, ResourceRole.Token);
-        this.uploadedResourceIds.push(resourceId);
+        const tokenId = await uploadToken(this.page, `test-${i}.png`, i === 0);
+        this.uploadedResourceIds.push(tokenId);
     }
 });
 
@@ -248,11 +254,7 @@ Then('the grid should handle overflow with scrolling', async function (this: Cus
 });
 
 Then('I should be able to assign roles to any of them', async function (this: CustomWorld) {
-    // Test by assigning role to last image
-    const lastImage = this.page.locator('[data-testid="resource-image"]').last();
-    const lastId = await lastImage.getAttribute('data-resource-id');
-    await this.keyboard.altClick(`[data-resource-id="${lastId}"]`);
-    await expect(lastImage).toHaveAttribute('data-role', '1');
+    throw new Error('OBSOLETE: Role assignment via keyboard shortcuts no longer exists. Tokens/portraits are uploaded via dedicated UI sections.');
 });
 
 // ============================================================================
@@ -352,8 +354,8 @@ Given('the parent passes size prop: width={int}, height={int}', async function (
 });
 
 Given('I have a Token image', async function (this: CustomWorld) {
-    const resourceId = await uploadAndAssignRole(this.page, this.keyboard, 'test-image.png', ResourceRole.Token);
-    this.uploadedResourceIds.push(resourceId);
+    const tokenId = await uploadToken(this.page, 'test-image.png', true);
+    this.uploadedResourceIds.push(tokenId);
 });
 
 Then('the Token preview should render with {int}×{int} grid overlay', async function (this: CustomWorld, _width: number, _height: number) {
@@ -401,8 +403,7 @@ Then('onResourcesChange should be called with new resources array', async functi
 });
 
 When('I assign a role via keyboard shortcut', async function (this: CustomWorld) {
-    const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
-    await this.keyboard.altClick(`[data-resource-id="${lastResourceId}"]`);
+    throw new Error('OBSOLETE: Role assignment via keyboard shortcuts no longer exists.');
 });
 
 Then('onResourcesChange should be called with updated roles', async function (this: CustomWorld) {

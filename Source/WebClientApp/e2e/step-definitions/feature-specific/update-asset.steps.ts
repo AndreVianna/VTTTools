@@ -26,11 +26,9 @@ Given('I own an asset {string} with {int} uploaded images:', async function (
     _count: number,
     dataTable: any
 ) {
-    // Create asset with resources
     const rows = dataTable.hashes();
     const builder = this.assetBuilder().withName(assetName);
 
-    // Add resources based on table
     for (const row of rows) {
         const resourceId = await this.db.insertResource({
             filename: row.image,
@@ -38,8 +36,11 @@ Given('I own an asset {string} with {int} uploaded images:', async function (
         });
         this.uploadedResourceIds.push(resourceId);
 
-        // role is Token or Display based on row.role
-        builder.withTokenResource(resourceId);
+        if (row.role === 'Token') {
+            builder.withToken(resourceId, false);
+        } else if (row.role === 'Portrait') {
+            builder.withPortrait(resourceId);
+        }
     }
 
     const asset = await builder.create();
@@ -59,7 +60,7 @@ Given('an asset exists with {int} uploaded images', async function (
             ownerId: this.currentUser.id
         });
         this.uploadedResourceIds.push(resourceId);
-        builder.withTokenResource(resourceId);
+        builder.withToken(resourceId, i === 0);
     }
 
     const asset = await builder.create();
@@ -78,15 +79,15 @@ Given('the preview dialog is open in view mode', async function (this: CustomWor
     await this.assetLibrary.navigate();
     await this.assetLibrary.waitForLoad();
     await this.assetLibrary.clickAssetCard(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
+    await this.assetEditDialog.waitForOpen();
 });
 
 Given('I open the asset in edit mode', async function (this: CustomWorld) {
     await this.assetLibrary.navigate();
     await this.assetLibrary.waitForLoad();
     await this.assetLibrary.clickAssetCard(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
-    await this.assetPreviewDialog.clickEdit();
+    await this.assetEditDialog.waitForOpen();
+    await this.assetEditDialog.clickEdit();
 });
 
 Given('I am authenticated with user ID {string}', async function (
@@ -127,7 +128,7 @@ Given('I own asset with 2 images', async function (this: CustomWorld) {
             filename: `image-${i + 1}.png`,
             ownerId: this.currentUser.id
         });
-        builder.withTokenResource(resourceId);
+        builder.withToken(resourceId, i === 0);
     }
 
     const asset = await builder.create();
@@ -145,10 +146,8 @@ Given('I own Object asset with isMovable={word}, isOpaque={word}', async functio
         .withKind(AssetKind.Object)
         .create();
 
-    // Update props in database
     await this.db.updateAsset(asset.id, {
-        objectProps: {
-            size: { width: 1, height: 1, isSquare: true },
+        properties: {
             isMovable: isMovable === 'true',
             isOpaque: isOpaque === 'true'
         }
@@ -168,8 +167,7 @@ Given('I own Creature with category {string}', async function (
         .create();
 
     await this.db.updateAsset(asset.id, {
-        creatureProps: {
-            size: { width: 1, height: 1, isSquare: true },
+        properties: {
             category
         }
     });
@@ -190,7 +188,7 @@ Given('I own asset {string} with {int} Token image', async function (
         ownerId: this.currentUser.id
     });
     this.uploadedResourceIds.push(resourceId);
-    builder.withTokenResource(resourceId);
+    builder.withToken(resourceId, true);
 
     const asset = await builder.create();
     this.createdAssets.push(asset);
@@ -215,8 +213,8 @@ Given('I am editing an asset', async function (this: CustomWorld) {
     await this.assetLibrary.navigate();
     await this.assetLibrary.waitForLoad();
     await this.assetLibrary.clickAssetCard(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
-    await this.assetPreviewDialog.clickEdit();
+    await this.assetEditDialog.waitForOpen();
+    await this.assetEditDialog.clickEdit();
 });
 
 Given('I own asset {string} with:', async function (
@@ -229,9 +227,7 @@ Given('I own asset {string} with:', async function (
         .withName(data.name || assetName)
         .withDescription(data.description || '');
 
-    // Handle resources if specified
     if (data.resources) {
-        // Parse resources like "[image-1 (Token)]"
         const resourcePattern = /\[(.+?)\]/g;
         const matches = [...data.resources.matchAll(resourcePattern)];
 
@@ -243,9 +239,9 @@ Given('I own asset {string} with:', async function (
             this.uploadedResourceIds.push(resourceId);
 
             if (match[1].includes('Token')) {
-                builder.withTokenResource(resourceId);
-            } else if (match[1].includes('Display')) {
-                builder.withDisplayResource(resourceId);
+                builder.withToken(resourceId, false);
+            } else if (match[1].includes('Portrait')) {
+                builder.withPortrait(resourceId);
             }
         }
     }
@@ -321,7 +317,7 @@ Given('I own asset with image having Token role', async function (this: CustomWo
         ownerId: this.currentUser.id
     });
     this.uploadedResourceIds.push(resourceId);
-    builder.withTokenResource(resourceId);
+    builder.withToken(resourceId, true);
 
     const asset = await builder.create();
     this.createdAssets.push(asset);
@@ -340,7 +336,7 @@ Given('I own asset with ID {string} having {int} existing resource', async funct
             filename: `resource-${i + 1}.png`,
             ownerId: this.currentUser.id
         });
-        builder.withTokenResource(resourceId);
+        builder.withToken(resourceId, i === 0);
     }
 
     const asset = await builder.create();
@@ -359,7 +355,7 @@ Given('I own asset with resource having Role={int} \\(Token\\)', async function 
         ownerId: this.currentUser.id
     });
     this.uploadedResourceIds.push(resourceId);
-    builder.withTokenResource(resourceId);
+    builder.withToken(resourceId, true);
 
     const asset = await builder.create();
     this.createdAssets.push(asset);
@@ -382,20 +378,20 @@ Given('API returns {int}', async function (this: CustomWorld, statusCode: number
 
 When('I click the asset card to open preview dialog', async function (this: CustomWorld) {
     await this.assetLibrary.clickAssetCard(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
+    await this.assetEditDialog.waitForOpen();
 });
 
 When('I click the asset card to open preview', async function (this: CustomWorld) {
     await this.assetLibrary.clickAssetCard(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
+    await this.assetEditDialog.waitForOpen();
 });
 
 When('I open in edit mode', async function (this: CustomWorld) {
     await this.assetLibrary.navigate();
     await this.assetLibrary.waitForLoad();
     await this.assetLibrary.clickAssetCard(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
-    await this.assetPreviewDialog.clickEdit();
+    await this.assetEditDialog.waitForOpen();
+    await this.assetEditDialog.clickEdit();
 });
 
 When('I upload new image {string}', async function (
@@ -472,7 +468,7 @@ When('I immediately click the {string} card', async function (
     assetName: string
 ) {
     await this.assetLibrary.clickAssetCard(assetName);
-    await this.assetPreviewDialog.waitForOpen();
+    await this.assetEditDialog.waitForOpen();
 });
 
 When('I change the description to {string}', async function (
@@ -506,10 +502,10 @@ When('I edit {string} and save changes', async function (
     assetName: string
 ) {
     await this.assetLibrary.clickAssetCard(assetName);
-    await this.assetPreviewDialog.waitForOpen();
-    await this.assetPreviewDialog.clickEdit();
+    await this.assetEditDialog.waitForOpen();
+    await this.assetEditDialog.clickEdit();
     await this.page.fill('input[name="name"]', `${assetName} Updated`);
-    await this.assetPreviewDialog.clickSave();
+    await this.assetEditDialog.clickSave();
 });
 
 When('I try to access and edit that asset', async function (this: CustomWorld) {
@@ -519,7 +515,7 @@ When('I try to access and edit that asset', async function (this: CustomWorld) {
 });
 
 When('I attempt to save changes', async function (this: CustomWorld) {
-    await this.assetPreviewDialog.clickSave();
+    await this.assetEditDialog.clickSave();
 });
 
 When('I update to:', async function (this: CustomWorld, dataTable: any) {
@@ -539,7 +535,7 @@ When('I save the changes', async function (this: CustomWorld) {
         resp => resp.url().includes('/api/assets') && resp.request().method() === 'PUT'
     );
 
-    await this.assetPreviewDialog.clickSave();
+    await this.assetEditDialog.clickSave();
 
     const response = await responsePromise;
     this.lastApiResponse = response as any;
@@ -552,12 +548,12 @@ When('I upload new image and assign Token role', async function (this: CustomWor
 });
 
 When('I save', async function (this: CustomWorld) {
-    await this.assetPreviewDialog.clickSave();
+    await this.assetEditDialog.clickSave();
 });
 
 When('I remove one resource and save', async function (this: CustomWorld) {
     await this.assetResourceManager.removeImage(0);
-    await this.assetPreviewDialog.clickSave();
+    await this.assetEditDialog.clickSave();
 });
 
 When('I reopen the asset', async function (this: CustomWorld) {
@@ -568,14 +564,14 @@ When('I reopen the asset', async function (this: CustomWorld) {
 
     // Reopen asset
     await this.assetLibrary.clickAssetCard(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
+    await this.assetEditDialog.waitForOpen();
 });
 
 When('I reopen', async function (this: CustomWorld) {
     // Close and reopen
     await this.page.click('button:has-text("Close")');
     await this.assetLibrary.clickAssetCard(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
+    await this.assetEditDialog.waitForOpen();
 });
 
 // ============================================================================
@@ -653,7 +649,7 @@ Then('images should not be hidden behind collapsed panel', async function (this:
 });
 
 Then('the dialog should enter edit mode', async function (this: CustomWorld) {
-    await expect(this.assetPreviewDialog.saveButton()).toBeVisible();
+    await expect(this.assetEditDialog.saveButton()).toBeVisible();
 });
 
 Then('the dialog title should change to {string}', async function (
@@ -909,7 +905,7 @@ Then('objectProps should be updated to isMovable={word}, isOpaque={word}', async
     isOpaque: string
 ) {
     const asset = await this.db.queryTable('Assets', { Id: this.currentAsset.id });
-    const props = JSON.parse(asset[0].ObjectPropsJson);
+    const props = JSON.parse(asset[0].PropertiesJson);
     expect(props.isMovable).toBe(isMovable === 'true');
     expect(props.isOpaque).toBe(isOpaque === 'true');
 });
@@ -919,7 +915,7 @@ Then('creatureProps.category should be {string}', async function (
     category: string
 ) {
     const asset = await this.db.queryTable('Assets', { Id: this.currentAsset.id });
-    const props = JSON.parse(asset[0].CreaturePropsJson);
+    const props = JSON.parse(asset[0].PropertiesJson);
     expect(props.category).toBe(category);
 });
 
@@ -935,8 +931,8 @@ Then('asset card should show red {string} badge', async function (
 // Cancel & State Reset Assertions
 
 Then('dialog should return to view mode', async function (this: CustomWorld) {
-    await expect(this.assetPreviewDialog.editButton()).toBeVisible();
-    await expect(this.assetPreviewDialog.saveButton()).not.toBeVisible();
+    await expect(this.assetEditDialog.editButton()).toBeVisible();
+    await expect(this.assetEditDialog.saveButton()).not.toBeVisible();
 });
 
 Then('name should reset to {string}', async function (this: CustomWorld, name: string) {
@@ -1070,7 +1066,7 @@ Then('button should show {string} with spinner', async function (
 });
 
 Then('button should be disabled', async function (this: CustomWorld) {
-    const saveButton = this.assetPreviewDialog.saveButton();
+    const saveButton = this.assetEditDialog.saveButton();
     await expect(saveButton).toBeDisabled();
 });
 
@@ -1079,7 +1075,7 @@ Then('error should be shown', async function (this: CustomWorld) {
 });
 
 Then('dialog should stay in edit mode', async function (this: CustomWorld) {
-    await expect(this.assetPreviewDialog.saveButton()).toBeVisible();
+    await expect(this.assetEditDialog.saveButton()).toBeVisible();
 });
 
 Then('changes should be preserved for retry', async function (this: CustomWorld) {

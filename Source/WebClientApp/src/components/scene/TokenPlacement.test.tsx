@@ -13,10 +13,11 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { TokenPlacement } from './TokenPlacement';
 import { formatCreatureLabel } from './tokenPlacementUtils';
 import type { Asset, PlacedAsset, CreatureAsset, ObjectAsset } from '@/types/domain';
-import { AssetKind, CreatureCategory, ResourceType } from '@/types/domain';
+import { AssetKind, CreatureCategory } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { GroupName } from '@/services/layerManager';
+import { mockCreatureAsset, mockObjectAsset, mockAssetToken } from '@/test-utils/assetMocks';
 
 const mockGridConfig: GridConfig = {
     type: GridType.Square,
@@ -25,54 +26,52 @@ const mockGridConfig: GridConfig = {
     snap: true,
 };
 
-const createMockAsset = (id: string, kind: AssetKind = AssetKind.Creature): Asset => ({
-    id,
-    ownerId: 'owner-123',
-    kind,
-    name: `Test Asset ${id}`,
-    description: 'Test description',
-    isPublished: true,
-    isPublic: false,
-    resources: [
-        {
-            resourceId: 'resource-1',
-            role: 1,
-            resource: {
-                id: 'resource-1',
-                type: ResourceType.Image,
-                path: '/test-image.png',
-                metadata: {
-                    contentType: 'image/png',
-                    fileName: 'test.png',
-                    fileLength: 1024,
-                    imageSize: { width: 100, height: 100 },
-                },
-                tags: [],
-            },
+const createMockAsset = (id: string, kind: AssetKind = AssetKind.Creature): Asset => {
+    const baseAsset = kind === AssetKind.Creature
+        ? mockCreatureAsset({ id })
+        : mockObjectAsset({ id });
+
+    return {
+        ...baseAsset,
+        name: `Test Asset ${id}`,
+        description: 'Test description',
+        isPublished: true,
+        isPublic: false,
+        tokens: [mockAssetToken({
+            tokenId: 'resource-1',
+            isDefault: true
+        })],
+        size: { width: 1, height: 1, isSquare: true },
+        createdAt: '2025-01-01T00:00:00Z',
+        updatedAt: '2025-01-01T00:00:00Z',
+    };
+};
+
+const createMockCreatureAsset = (id: string): CreatureAsset => {
+    const asset = createMockAsset(id, AssetKind.Creature) as CreatureAsset;
+    return {
+        ...asset,
+        kind: AssetKind.Creature,
+        properties: {
+            statBlockId: undefined,
+            category: CreatureCategory.Character,
+            tokenStyle: undefined
         },
-    ],
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-01T00:00:00Z',
-});
+    };
+};
 
-const createMockCreatureAsset = (id: string): CreatureAsset => ({
-    ...createMockAsset(id, AssetKind.Creature),
-    kind: AssetKind.Creature,
-    properties: {
-        size: { width: 1, height: 1, isSquare: true },
-        category: CreatureCategory.Character,
-    },
-});
-
-const createMockObjectAsset = (id: string): ObjectAsset => ({
-    ...createMockAsset(id, AssetKind.Object),
-    kind: AssetKind.Object,
-    properties: {
-        size: { width: 1, height: 1, isSquare: true },
-        isMovable: true,
-        isOpaque: false,
-    },
-});
+const createMockObjectAsset = (id: string): ObjectAsset => {
+    const asset = createMockAsset(id, AssetKind.Object) as ObjectAsset;
+    return {
+        ...asset,
+        kind: AssetKind.Object,
+        properties: {
+            isMovable: true,
+            isOpaque: false,
+            triggerEffectId: undefined
+        },
+    };
+};
 
 const createMockPlacedAsset = (id: string, assetId: string): PlacedAsset => ({
     id,
@@ -326,10 +325,10 @@ describe('TokenPlacement', () => {
         unmount();
     });
 
-    it('handles assets without image resources', () => {
+    it('handles assets without image tokens', () => {
         const assetNoImage: Asset = {
             ...createMockAsset('asset-no-image'),
-            resources: [],
+            tokens: [],
         };
 
         const placedAsset = createMockPlacedAsset('placed-1', 'asset-no-image');
@@ -351,45 +350,27 @@ describe('TokenPlacement', () => {
         expect(mockOnAssetPlaced).not.toHaveBeenCalled();
     });
 
-    it('prioritizes Token role over Display role for image', () => {
-        const assetMultiResource: Asset = {
+    it('uses default token for rendering', () => {
+        const assetMultiToken: Asset = {
             ...createMockAsset('asset-multi'),
-            resources: [
-                {
-                    resourceId: 'display-resource',
-                    role: 2,
-                    resource: {
-                        id: 'display-resource',
-                        type: ResourceType.Image,
-                        path: '/display.png',
-                        metadata: {
-                            contentType: 'image/png',
-                            fileName: 'display.png',
-                            fileLength: 1024,
-                        },
-                        tags: [],
-                    },
-                },
-                {
-                    resourceId: 'token-resource',
-                    role: 1,
-                    resource: {
-                        id: 'token-resource',
-                        type: ResourceType.Image,
-                        path: '/token.png',
-                        metadata: {
-                            contentType: 'image/png',
-                            fileName: 'token.png',
-                            fileLength: 1024,
-                        },
-                        tags: [],
-                    },
-                },
+            tokens: [
+                mockAssetToken({
+                    tokenId: 'token-1',
+                    isDefault: false
+                }),
+                mockAssetToken({
+                    tokenId: 'token-2',
+                    isDefault: true
+                }),
+                mockAssetToken({
+                    tokenId: 'token-3',
+                    isDefault: false
+                })
             ],
         };
 
         const placedAsset = createMockPlacedAsset('placed-1', 'asset-multi');
-        placedAsset.asset = assetMultiResource;
+        placedAsset.asset = assetMultiToken;
 
         render(
             <TokenPlacement

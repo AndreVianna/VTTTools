@@ -8,13 +8,6 @@
 import { Page } from '@playwright/test';
 import { KeyboardModifierHelper } from './keyboard.helper.js';
 
-export enum ResourceRole {
-    None = 0,
-    Token = 1,
-    Display = 2,
-    Both = 3
-}
-
 /**
  * Upload image and wait for completion
  */
@@ -23,22 +16,18 @@ export async function uploadImage(
     filename: string,
     waitForCompletion: boolean = true
 ): Promise<string> {
-    // Click Upload button
     await page.click('button:has-text("Upload")');
 
-    // Set file input
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(`e2e/test-data/images/${filename}`);
 
     if (waitForCompletion) {
-        // Wait for upload API call
         const response = await page.waitForResponse(resp =>
             resp.url().includes('/api/resources') &&
             resp.request().method() === 'POST' &&
             resp.status() === 201
         );
 
-        // Extract resource ID from response
         const body = await response.json();
         return body.id;
     }
@@ -64,31 +53,40 @@ export async function uploadMultipleImages(
 }
 
 /**
- * Upload image and assign role via keyboard shortcut
+ * Upload image for token (new schema - tokens are managed via tokens array)
  */
-export async function uploadAndAssignRole(
+export async function uploadToken(
     page: Page,
-    keyboard: KeyboardModifierHelper,
     filename: string,
-    role: ResourceRole
+    setAsDefault: boolean = false
 ): Promise<string> {
-    const resourceId = await uploadImage(page, filename);
-    const selector = `[data-resource-id="${resourceId}"]`;
+    const tokenId = await uploadImage(page, filename);
 
-    switch (role) {
-        case ResourceRole.Token:
-            await keyboard.altClick(selector);
-            break;
-        case ResourceRole.Display:
-            await keyboard.ctrlClick(selector);
-            break;
-        case ResourceRole.Both:
-            await keyboard.ctrlAltClick(selector);
-            break;
-        case ResourceRole.None:
-            // No action needed
-            break;
+    if (setAsDefault) {
+        await page.locator(`[data-testid="token-${tokenId}"] input[type="radio"]`).check();
     }
 
-    return resourceId;
+    return tokenId;
+}
+
+/**
+ * Upload portrait (new schema - separate portrait field)
+ */
+export async function uploadPortrait(
+    page: Page,
+    filename: string
+): Promise<string> {
+    await page.locator('[data-testid="portrait-section"] button:has-text("Upload")').click();
+
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles(`e2e/test-data/images/${filename}`);
+
+    const response = await page.waitForResponse(resp =>
+        resp.url().includes('/api/resources') &&
+        resp.request().method() === 'POST' &&
+        resp.status() === 201
+    );
+
+    const body = await response.json();
+    return body.id;
 }

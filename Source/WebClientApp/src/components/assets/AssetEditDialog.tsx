@@ -3,8 +3,13 @@
 // LAYER: UI (Component)
 
 /**
- * AssetPreviewDialog Component
- * Modal dialog for viewing and editing asset details
+ * AssetEditDialog - Multi-modal dialog for viewing, editing, and deleting assets
+ *
+ * Modes:
+ * - View Mode (default): Read-only display of asset details with metadata
+ * - Edit Mode: Editable forms for updating asset properties
+ * - Delete Mode: Confirmation dialog for asset deletion
+ *
  * Supports ObjectAsset and CreatureAsset with polymorphic property editing
  */
 
@@ -40,11 +45,13 @@ import {
 import {
     Asset,
     AssetKind,
-    CreatureCategory,
     UpdateAssetRequest,
     NamedSize,
     ObjectAsset,
-    CreatureAsset
+    CreatureAsset,
+    AssetToken,
+    ObjectData,
+    CreatureData
 } from '@/types/domain';
 import { useUpdateAssetMutation, useDeleteAssetMutation } from '@/services/assetsApi';
 import {
@@ -53,7 +60,6 @@ import {
     CreaturePropertiesForm,
     AssetResourceManager
 } from './forms';
-import { AssetResource } from '@/types/domain';
 
 // Type guards
 function isObjectAsset(asset: Asset): asset is ObjectAsset {
@@ -64,13 +70,13 @@ function isCreatureAsset(asset: Asset): asset is CreatureAsset {
     return asset.kind === AssetKind.Creature && 'properties' in asset;
 }
 
-export interface AssetPreviewDialogProps {
+export interface AssetEditDialogProps {
     open: boolean;
     asset: Asset;
     onClose: () => void;
 }
 
-export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
+export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({
     open,
     asset,
     onClose
@@ -82,33 +88,22 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
     // Editable fields
     const [name, setName] = useState(asset.name);
     const [description, setDescription] = useState(asset.description);
-    const [resources, setResources] = useState<AssetResource[]>(asset.resources);
+    const [tokens, setTokens] = useState<AssetToken[]>(asset.tokens || []);
+    const [portraitId, setPortraitId] = useState<string | undefined>(asset.portrait?.id);
     const [isPublic, setIsPublic] = useState(asset.isPublic);
     const [isPublished, setIsPublished] = useState(asset.isPublished);
 
-    // Size state (shared by both Object and Creature)
-    const [size, setSize] = useState<NamedSize>(() => {
-        if (isObjectAsset(asset)) {
-            return asset.properties.size;
-        } else if (isCreatureAsset(asset)) {
-            return asset.properties.size;
-        }
-        return { width: 1, height: 1, isSquare: true };
-    });
+    // Size state (at root level in new schema)
+    const [size, setSize] = useState<NamedSize>(asset.size);
 
     // Object-specific properties
-    const [isMovable, setIsMovable] = useState(
-        isObjectAsset(asset) ? asset.properties.isMovable : true
-    );
-    const [isOpaque, setIsOpaque] = useState(
-        isObjectAsset(asset) ? asset.properties.isOpaque : false
+    const [objectData, setObjectData] = useState<ObjectData | undefined>(
+        isObjectAsset(asset) ? asset.properties : undefined
     );
 
     // Creature-specific properties
-    const [creatureCategory, setCreatureCategory] = useState<CreatureCategory>(
-        isCreatureAsset(asset)
-            ? asset.properties.category
-            : CreatureCategory.Character
+    const [creatureData, setCreatureData] = useState<CreatureData | undefined>(
+        isCreatureAsset(asset) ? asset.properties : undefined
     );
 
     // RTK Query mutations
@@ -124,64 +119,44 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
         const isDifferentAsset = prevAssetIdRef.current !== asset.id;
 
         if (open && (isDifferentAsset || prevAssetIdRef.current === null)) {
-             
             setName(asset.name);
-             
             setDescription(asset.description);
-             
-            setResources(asset.resources);
-             
+            setTokens(asset.tokens || []);
+            setPortraitId(asset.portrait?.id);
             setIsPublic(asset.isPublic);
-             
             setIsPublished(asset.isPublished);
-             
+            setSize(asset.size);
             setEditMode(false);
 
-            // Reset size and kind-specific props
             if (isObjectAsset(asset)) {
-                 
-                setSize(asset.properties.size);
-                 
-                setIsMovable(asset.properties.isMovable);
-                 
-                setIsOpaque(asset.properties.isOpaque);
+                setObjectData(asset.properties);
             } else if (isCreatureAsset(asset)) {
-                 
-                setSize(asset.properties.size);
-                 
-                setCreatureCategory(asset.properties.category);
+                setCreatureData(asset.properties);
             }
 
             prevAssetIdRef.current = asset.id;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, asset.id]);
 
     const handleSave = async () => {
         try {
             const request: UpdateAssetRequest = {
                 isPublic,
-                isPublished
+                isPublished,
+                description,
+                size,
+                tokens: tokens.map(t => ({ tokenId: t.tokenId, isDefault: t.isDefault })),
+                portraitId
             };
 
             if (name.trim()) {
                 request.name = name;
             }
 
-            request.description = description;
-            request.resources = resources.map(r => ({ resourceId: r.resourceId, role: r.role }));
-
-            if (asset.kind === AssetKind.Object) {
-                request.objectProps = {
-                    size,
-                    isMovable,
-                    isOpaque
-                };
-            } else if (asset.kind === AssetKind.Creature) {
-                request.creatureProps = {
-                    size,
-                    category: creatureCategory
-                };
+            if (asset.kind === AssetKind.Object && objectData) {
+                request.objectData = objectData;
+            } else if (asset.kind === AssetKind.Creature && creatureData) {
+                request.creatureData = creatureData;
             }
 
             await updateAsset({ id: asset.id, request }).unwrap();
@@ -201,12 +176,20 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
     };
 
     const handleCancel = () => {
-        // Reset to original values
         setName(asset.name);
         setDescription(asset.description);
-        setResources(asset.resources);
+        setTokens(asset.tokens || []);
+        setPortraitId(asset.portrait?.id);
         setIsPublic(asset.isPublic);
         setIsPublished(asset.isPublished);
+        setSize(asset.size);
+
+        if (isObjectAsset(asset)) {
+            setObjectData(asset.properties);
+        } else if (isCreatureAsset(asset)) {
+            setCreatureData(asset.properties);
+        }
+
         setEditMode(false);
     };
 
@@ -233,13 +216,14 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                 <Divider />
 
                 <DialogContent>
-                    {/* Resource Manager - Always visible at top */}
                     <AssetResourceManager
-                        resources={resources}
-                        onResourcesChange={setResources}
+                        entityId={asset.id}
+                        tokens={tokens}
+                        onTokensChange={setTokens}
+                        portraitId={portraitId}
+                        onPortraitIdChange={setPortraitId}
                         size={size}
                         readOnly={!editMode}
-                        entityId={asset.id}
                     />
 
                     {editMode ? (
@@ -327,27 +311,17 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                                     </Box>
                                 </AccordionSummary>
                                 <AccordionDetails sx={{ p: 3 }}>
-                                    {/* Object-specific Properties */}
-                                    {isObjectAsset(asset) && (
+                                    {isObjectAsset(asset) && objectData && (
                                         <ObjectPropertiesForm
-                                            size={size}
-                                            isMovable={isMovable}
-                                            isOpaque={isOpaque}
-                                            onSizeChange={setSize}
-                                            onIsMovableChange={setIsMovable}
-                                            onIsOpaqueChange={setIsOpaque}
-                                            readOnly={false}
+                                            objectData={objectData}
+                                            onChange={setObjectData}
                                         />
                                     )}
 
-                                    {/* Creature-specific Properties */}
-                                    {isCreatureAsset(asset) && (
+                                    {isCreatureAsset(asset) && creatureData && (
                                         <CreaturePropertiesForm
-                                            size={size}
-                                            category={creatureCategory}
-                                            onSizeChange={setSize}
-                                            onCategoryChange={setCreatureCategory}
-                                            readOnly={false}
+                                            creatureData={creatureData}
+                                            onChange={setCreatureData}
                                         />
                                     )}
                                 </AccordionDetails>
@@ -376,27 +350,17 @@ export const AssetPreviewDialog: React.FC<AssetPreviewDialogProps> = ({
                                 </Box>
                             </Box>
 
-                            {/* Object-specific Properties */}
-                            {isObjectAsset(asset) && (
+                            {isObjectAsset(asset) && objectData && (
                                 <ObjectPropertiesForm
-                                    size={size}
-                                    isMovable={isMovable}
-                                    isOpaque={isOpaque}
-                                    onSizeChange={setSize}
-                                    onIsMovableChange={setIsMovable}
-                                    onIsOpaqueChange={setIsOpaque}
-                                    readOnly={true}
+                                    objectData={objectData}
+                                    onChange={setObjectData}
                                 />
                             )}
 
-                            {/* Creature-specific Properties */}
-                            {isCreatureAsset(asset) && (
+                            {isCreatureAsset(asset) && creatureData && (
                                 <CreaturePropertiesForm
-                                    size={size}
-                                    category={creatureCategory}
-                                    onSizeChange={setSize}
-                                    onCategoryChange={setCreatureCategory}
-                                    readOnly={true}
+                                    creatureData={creatureData}
+                                    onChange={setCreatureData}
                                 />
                             )}
 

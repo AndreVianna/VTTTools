@@ -50,16 +50,11 @@ export interface TokenStyle {
   shape: TokenShape;
 }
 
-export enum ResourceRole {
-  None = 0,
-  Token = 1,
-  Display = 2
-}
-
-export interface AssetResource {
-  resourceId: string;
-  resource?: MediaResource;
-  role: ResourceRole;
+// AssetToken replaces AssetResource in new backend schema
+export interface AssetToken {
+  tokenId: string;  // Renamed from resourceId
+  token?: MediaResource;  // Renamed from resource
+  isDefault: boolean;  // Simplified from role enum
 }
 
 export enum SizeName {
@@ -81,15 +76,15 @@ export interface NamedSize {
   // Computed name derived from width/height/isSquare on backend
 }
 
-export interface ObjectProperties {
-  size: NamedSize;
+// ObjectData replaces ObjectProperties (size moved to Asset root level)
+export interface ObjectData {
   isMovable: boolean;
   isOpaque: boolean;
   triggerEffectId?: string;
 }
 
-export interface CreatureProperties {
-  size: NamedSize;
+// CreatureData replaces CreatureProperties (size moved to Asset root level)
+export interface CreatureData {
   statBlockId?: string;
   category: CreatureCategory;
   tokenStyle?: TokenStyle;
@@ -99,21 +94,25 @@ export interface CreateAssetRequest {
   kind: AssetKind;
   name: string;
   description: string;
-  resources: AssetResource[];
+  tokens: AssetToken[];  // Renamed from resources
+  portraitId?: string | undefined;  // New: separate portrait reference
+  size: NamedSize;  // New: moved from nested properties to root
   isPublished: boolean;
   isPublic: boolean;
-  objectProps?: ObjectProperties;
-  creatureProps?: CreatureProperties;
+  objectData?: ObjectData | undefined;  // Renamed from objectProps
+  creatureData?: CreatureData | undefined;  // Renamed from creatureProps
 }
 
 export interface UpdateAssetRequest {
-  name?: string;
-  description?: string;
-  resources?: AssetResource[];
-  isPublished?: boolean;
-  isPublic?: boolean;
-  objectProps?: ObjectProperties;
-  creatureProps?: CreatureProperties;
+  name?: string | undefined;
+  description?: string | undefined;
+  tokens?: AssetToken[] | undefined;  // Renamed from resources
+  portraitId?: string | undefined;  // New: separate portrait reference
+  size?: NamedSize | undefined;  // New: moved from nested properties to root
+  isPublished?: boolean | undefined;
+  isPublic?: boolean | undefined;
+  objectData?: ObjectData | undefined;  // Renamed from objectProps
+  creatureData?: CreatureData | undefined;  // Renamed from creatureProps
 }
 
 // Base Asset interface
@@ -125,7 +124,9 @@ export interface Asset {
   description: string;
   isPublished: boolean;
   isPublic: boolean;
-  resources: AssetResource[];
+  tokens: AssetToken[];  // Renamed from resources
+  portrait?: MediaResource;  // New: separate portrait
+  size: NamedSize;  // New: moved from nested properties to root
   createdAt: string;
   updatedAt: string;
 }
@@ -133,13 +134,13 @@ export interface Asset {
 // ObjectAsset - environmental items
 export interface ObjectAsset extends Asset {
   kind: AssetKind.Object;
-  properties: ObjectProperties;
+  properties: ObjectData;  // Changed from ObjectProperties
 }
 
 // CreatureAsset - characters and monsters
 export interface CreatureAsset extends Asset {
   kind: AssetKind.Creature;
-  properties: CreatureProperties;
+  properties: CreatureData;  // Changed from CreatureProperties
 }
 
 // Placed Asset - Frontend-only type for local placement state
@@ -348,8 +349,7 @@ export interface Scene {
   sources: SceneSource[];
   createdAt: string;
   updatedAt: string;
-  defaultDisplayName: DisplayName;
-  defaultLabelPosition: LabelPosition;
+  // defaultDisplayName and defaultLabelPosition removed - now handled in frontend localStorage
 }
 
 export interface SceneAsset {
@@ -359,8 +359,9 @@ export interface SceneAsset {
   index: number;
   number: number;
   name: string;
-  description?: string;
-  resourceId: string;
+  notes?: string;  // Renamed from description
+  token?: MediaResource;  // Changed from resourceId (string) to full MediaResource object
+  portrait?: MediaResource;  // New: separate portrait reference
   x: number;
   y: number;
   width: number;
@@ -372,8 +373,7 @@ export interface SceneAsset {
   elevation: number;
   visible: boolean;
   locked: boolean;
-  displayName: DisplayName;
-  labelPosition: LabelPosition;
+  // displayName and labelPosition removed - now handled in frontend localStorage
   asset: Asset;
   // Placement behavior derived from asset.category but can be customized
   customBehavior?: Partial<import('./placement').PlacementBehavior>;

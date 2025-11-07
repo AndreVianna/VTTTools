@@ -12,7 +12,6 @@ export type {
 export { getDefaultGrid, getDefaultStage, mapSceneAssetToPlaced, mapPlacedToSceneAsset } from './scene';
 export type {
     Adventure,
-    AdventureWithScenes,
     CreateAdventureRequest,
     UpdateAdventureRequest
 } from './adventure';

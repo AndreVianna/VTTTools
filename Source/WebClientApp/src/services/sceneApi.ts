@@ -125,8 +125,18 @@ export const sceneApi = createApi({
                     : [{ type: 'SceneAsset', id: `SCENE_${sceneId}` }]
         }),
 
-        addSceneAsset: builder.mutation<void, { sceneId: string; libraryAssetId: string; position: { x: number; y: number }; size: { width: number; height: number }; rotation?: number }>({
-            query: ({ sceneId, libraryAssetId, position, size, rotation }) => ({
+        addSceneAsset: builder.mutation<void, {
+            sceneId: string;
+            libraryAssetId: string;
+            position: { x: number; y: number };
+            size: { width: number; height: number };
+            rotation?: number;
+            tokenId?: string;
+            portraitId?: string;
+            notes?: string;
+            isVisible?: boolean;
+        }>({
+            query: ({ sceneId, libraryAssetId, position, size, rotation, tokenId, portraitId, notes, isVisible }) => ({
                 url: `/${sceneId}/assets/${libraryAssetId}`,
                 method: 'POST',
                 body: {
@@ -134,7 +144,11 @@ export const sceneApi = createApi({
                     size: { width: size.width, height: size.height, isSquare: Math.abs(size.width - size.height) < 0.001 },
                     frame: { shape: 0, borderColor: '#0d6efd', borderThickness: 1, background: '#00000000' },
                     rotation: rotation || 0,
-                    elevation: 0
+                    elevation: 0,
+                    ...(tokenId && { tokenId }),
+                    ...(portraitId && { portraitId }),
+                    ...(notes && { notes }),
+                    ...(isVisible !== undefined && { isVisible })
                 }
             }),
             invalidatesTags: (_result, _error, { sceneId }) => [
@@ -148,16 +162,22 @@ export const sceneApi = createApi({
             position?: { x: number; y: number };
             size?: { width: number; height: number };
             name?: string;
+            tokenId?: string;
+            portraitId?: string;
+            notes?: string;
             visible?: boolean;
             locked?: boolean;
         }>({
-            query: ({ sceneId, assetNumber, position, size, name, visible, locked }) => ({
+            query: ({ sceneId, assetNumber, position, size, name, tokenId, portraitId, notes, visible, locked }) => ({
                 url: `/${sceneId}/assets/${assetNumber}`,
                 method: 'PATCH',
                 body: {
                     ...(position && { position: { x: position.x, y: position.y } }),
                     ...(size && { size: { width: size.width, height: size.height, isSquare: Math.abs(size.width - size.height) < 0.001 } }),
                     ...(name !== undefined && { name }),
+                    ...(tokenId && { tokenId }),
+                    ...(portraitId && { portraitId }),
+                    ...(notes !== undefined && { notes }),
                     ...(visible !== undefined && { visible }),
                     ...(locked !== undefined && { locked })
                 }
@@ -215,9 +235,11 @@ export const sceneApi = createApi({
                 size: { width: number; height: number };
                 rotation?: number;
                 elevation?: number;
-                resourceId?: string;
+                tokenId?: string;
+                portraitId?: string;
                 name?: string;
-                description?: string;
+                notes?: string;
+                isVisible?: boolean;
             }>
         }>({
             query: ({ sceneId, assets }) => ({
@@ -231,9 +253,11 @@ export const sceneApi = createApi({
                         frame: { shape: 0, borderColor: '#0d6efd', borderThickness: 1, background: '#00000000' },
                         rotation: a.rotation || 0,
                         elevation: a.elevation || 0,
-                        ...(a.resourceId && { resourceId: a.resourceId }),
+                        ...(a.tokenId && { tokenId: a.tokenId }),
+                        ...(a.portraitId && { portraitId: a.portraitId }),
                         ...(a.name && { name: a.name }),
-                        ...(a.description && { description: a.description })
+                        ...(a.notes && { notes: a.notes }),
+                        ...(a.isVisible !== undefined && { isVisible: a.isVisible })
                     }))
                 }
             }),

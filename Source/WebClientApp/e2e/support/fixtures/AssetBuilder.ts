@@ -1,10 +1,3 @@
-/**
- * Asset Builder - Fluent Builder for Creating Test Assets
- *
- * Provides a fluent API for creating assets with various configurations
- * Used in Given steps to seed test data
- */
-
 import { DatabaseHelper } from '../helpers/database.helper.js';
 
 export enum AssetKind {
@@ -17,37 +10,83 @@ export enum CreatureCategory {
     Monster = 'Monster'
 }
 
-export enum ResourceRole {
-    None = 0,
-    Token = 1,
-    Display = 2,
-    Both = 3
+export enum ResourceType {
+    Image = 'Image',
+    Audio = 'Audio',
+    Video = 'Video',
+    Document = 'Document'
 }
 
-interface AssetResource {
-    resourceId: string;
-    role: ResourceRole;
+export interface AssetToken {
+    tokenId: string;
+    isDefault: boolean;
+    token?: MediaResource;
 }
 
-interface AssetSize {
+export interface MediaResource {
+    id: string;
+    type: ResourceType;
+    path: string;
+    metadata: {
+        contentType: string;
+        fileName: string;
+        fileLength: number;
+        imageSize?: { width: number; height: number };
+    };
+    tags: string[];
+}
+
+export interface NamedSize {
     width: number;
     height: number;
     isSquare: boolean;
 }
 
+export interface ObjectData {
+    isMovable: boolean;
+    isOpaque: boolean;
+    triggerEffectId?: string;
+}
+
+export interface CreatureData {
+    statBlockId?: string;
+    category: CreatureCategory;
+    tokenStyle?: {
+        borderColor?: string;
+        backgroundColor?: string;
+        shape: 'Circle' | 'Square';
+    };
+}
+
+export interface Asset {
+    id?: string;
+    ownerId: string;
+    kind: AssetKind;
+    name: string;
+    description: string;
+    isPublished: boolean;
+    isPublic: boolean;
+    tokens: AssetToken[];
+    portrait?: MediaResource;
+    size: NamedSize;
+    properties?: ObjectData | CreatureData;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 export class AssetBuilder {
-    private data: any = {
-        kind: AssetKind.Object,
-        name: 'Test Asset',
-        description: '',
-        resources: [] as AssetResource[],
-        isPublic: false,
-        isPublished: false,
-        objectProps: {
-            size: { width: 1, height: 1, isSquare: true },
-            isMovable: true,
-            isOpaque: false
-        }
+    private id?: string;
+    private kind: AssetKind = AssetKind.Object;
+    private name: string = 'Test Asset';
+    private description: string = '';
+    private tokens: AssetToken[] = [];
+    private portrait?: MediaResource;
+    private size: NamedSize = { width: 1, height: 1, isSquare: true };
+    private isPublic: boolean = false;
+    private isPublished: boolean = false;
+    private properties: ObjectData | CreatureData = {
+        isMovable: true,
+        isOpaque: false
     };
 
     constructor(
@@ -55,51 +94,44 @@ export class AssetBuilder {
         private ownerId: string
     ) {}
 
+    withId(id: string): this {
+        this.id = id;
+        return this;
+    }
+
     withName(name: string): this {
-        this.data.name = name;
+        this.name = name;
         return this;
     }
 
     withKind(kind: AssetKind): this {
-        this.data.kind = kind;
+        this.kind = kind;
 
-        // Set default properties for kind
         if (kind === AssetKind.Creature) {
-            this.data.creatureProps = {
-                size: { width: 1, height: 1, isSquare: true },
+            this.properties = {
                 category: CreatureCategory.Character
             };
-            delete this.data.objectProps;
         } else {
-            this.data.objectProps = {
-                size: { width: 1, height: 1, isSquare: true },
+            this.properties = {
                 isMovable: true,
                 isOpaque: false
             };
-            delete this.data.creatureProps;
         }
 
         return this;
     }
 
     withDescription(description: string): this {
-        this.data.description = description;
+        this.description = description;
         return this;
     }
 
     withSize(width: number, height: number): this {
-        const size: AssetSize = {
+        this.size = {
             width,
             height,
-            isSquare: width === height
+            isSquare: Math.abs(width - height) < 0.001
         };
-
-        if (this.data.objectProps) {
-            this.data.objectProps.size = size;
-        } else if (this.data.creatureProps) {
-            this.data.creatureProps.size = size;
-        }
-
         return this;
     }
 
@@ -108,113 +140,142 @@ export class AssetBuilder {
         return this;
     }
 
-    withTokenResource(resourceId: string): this {
-        this.data.resources.push({
-            resourceId,
-            role: ResourceRole.Token
+    withToken(tokenId: string, isDefault: boolean = false): this {
+        this.tokens.push({
+            tokenId,
+            isDefault,
+            token: undefined
         });
         return this;
     }
 
-    withDisplayResource(resourceId: string): this {
-        this.data.resources.push({
-            resourceId,
-            role: ResourceRole.Display
-        });
-        return this;
+    withDefaultToken(tokenId: string): this {
+        this.tokens.forEach(t => t.isDefault = false);
+        return this.withToken(tokenId, true);
     }
 
-    withBothRoles(resourceId: string): this {
-        this.data.resources.push({
-            resourceId,
-            role: ResourceRole.Both
-        });
+    withPortrait(resourceId: string): this {
+        this.portrait = {
+            id: resourceId,
+            type: ResourceType.Image,
+            path: `/test-media/${resourceId}.png`,
+            metadata: {
+                contentType: 'image/png',
+                fileName: `${resourceId}.png`,
+                fileLength: 1024,
+                imageSize: { width: 256, height: 256 }
+            },
+            tags: []
+        };
         return this;
     }
 
     public(): this {
-        this.data.isPublic = true;
+        this.isPublic = true;
         return this;
     }
 
     published(): this {
-        this.data.isPublic = true;
-        this.data.isPublished = true;
+        this.isPublic = true;
+        this.isPublished = true;
         return this;
     }
 
     immovable(): this {
-        if (this.data.objectProps) {
-            this.data.objectProps.isMovable = false;
+        if (this.kind === AssetKind.Object) {
+            (this.properties as ObjectData).isMovable = false;
         }
         return this;
     }
 
     opaque(): this {
-        if (this.data.objectProps) {
-            this.data.objectProps.isOpaque = true;
+        if (this.kind === AssetKind.Object) {
+            (this.properties as ObjectData).isOpaque = true;
         }
         return this;
     }
 
     asMonster(): this {
-        if (this.data.creatureProps) {
-            this.data.creatureProps.category = CreatureCategory.Monster;
-        }
+        this.kind = AssetKind.Creature;
+        this.properties = {
+            category: CreatureCategory.Monster
+        };
         return this;
     }
 
     asCharacter(): this {
-        if (this.data.creatureProps) {
-            this.data.creatureProps.category = CreatureCategory.Character;
-        }
+        this.kind = AssetKind.Creature;
+        this.properties = {
+            category: CreatureCategory.Character
+        };
         return this;
     }
 
-    withId(id: string): this {
-        this.data.id = id;
+    asObject(objectData?: Partial<ObjectData>): this {
+        this.kind = AssetKind.Object;
+        this.properties = {
+            isMovable: true,
+            isOpaque: false,
+            ...objectData
+        };
+        return this;
+    }
+
+    asCreature(creatureData?: Partial<CreatureData>): this {
+        this.kind = AssetKind.Creature;
+        this.properties = {
+            category: CreatureCategory.Monster,
+            statBlockId: undefined,
+            tokenStyle: undefined,
+            ...creatureData
+        };
         return this;
     }
 
     withResources(count: number): this {
-        // Add placeholder resources (will be created in test)
         for (let i = 0; i < count; i++) {
-            this.data.resources.push({
-                resourceId: `resource-${i}`,
-                role: ResourceRole.None
+            this.tokens.push({
+                tokenId: `resource-${i}`,
+                isDefault: i === 0,
+                token: undefined
             });
         }
         return this;
     }
 
-    /**
-     * Create asset in database
-     */
-    async create(): Promise<any> {
-        const assetId = this.data.id || await this.db.insertAsset({
-            name: this.data.name,
-            description: this.data.description,
+    async create(): Promise<Asset> {
+        const assetId = this.id || await this.db.insertAsset({
+            id: this.id,
+            name: this.name,
+            description: this.description,
             ownerId: this.ownerId,
-            kind: this.data.kind,
-            isPublic: this.data.isPublic,
-            isPublished: this.data.isPublished
+            kind: this.kind,
+            isPublic: this.isPublic,
+            isPublished: this.isPublished,
+            tokens: this.tokens,
+            portrait: this.portrait,
+            size: this.size,
+            properties: this.properties
         });
 
         return {
             id: assetId,
-            ...this.data,
-            ownerId: this.ownerId
+            ownerId: this.ownerId,
+            kind: this.kind,
+            name: this.name,
+            description: this.description,
+            isPublished: this.isPublished,
+            isPublic: this.isPublic,
+            tokens: this.tokens,
+            portrait: this.portrait,
+            size: this.size,
+            properties: this.properties,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
         };
     }
 
-    /**
-     * Build configuration (async for database creation)
-     */
-    async build(): Promise<any> {
+    async build(): Promise<Asset> {
         return await this.create();
     }
 }
-
-// Usage examples:
-// Simple: await builder.withName('Dragon').create();
-// Complex: await builder.withName('Wall').withSize(1, 2).immovable().opaque().public().create();

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Container, Box, Typography } from '@mui/material';
-import { StructureLibraryPanel } from '@/components/library';
+// TODO: Phase 8.8 - Re-enable when StructureLibraryPanel is implemented
+// import { StructureLibraryPanel } from '@/components/library';
 
 export const StructureLibraryPage: React.FC = () => {
     return (
@@ -15,7 +16,9 @@ export const StructureLibraryPage: React.FC = () => {
             </Box>
 
             <Box sx={{ flex: 1, overflow: 'hidden' }}>
-                <StructureLibraryPanel />
+                {/* TODO: Phase 8.8 - Re-enable when StructureLibraryPanel is implemented */}
+                {/* <StructureLibraryPanel /> */}
+                <div>Structure Library - Coming in Phase 8.8</div>
             </Box>
         </Container>
     );

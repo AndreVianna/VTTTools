@@ -1,7 +1,7 @@
 import { Given, When, Then } from '@cucumber/cucumber';
 import { CustomWorld } from '../../support/world.js';
 import { expect } from '@playwright/test';
-import { uploadImage, uploadAndAssignRole, ResourceRole } from '../../support/helpers/upload.helper.js';
+import { uploadImage, uploadToken, uploadPortrait } from '../../support/helpers/upload.helper.js';
 
 // BACKGROUND - COMPONENT VISIBILITY
 
@@ -206,31 +206,11 @@ Given('the image has role {string} \\({int})', async function (this: CustomWorld
 });
 
 Given('an image has role {string} \\({int})', async function (this: CustomWorld, _roleName: string, roleValue: number) {
-    // Create image with specific role
-    const resourceId = await uploadImage(this.page, 'test-image.png');
-    this.uploadedResourceIds.push(resourceId);
-
-    // Assign role based on value
-    const selector = `[data-resource-id="${resourceId}"]`;
-    if (roleValue === 1) { // Token
-        await this.keyboard.altClick(selector);
-    } else if (roleValue === 2) { // Display
-        await this.keyboard.ctrlClick(selector);
-    } else if (roleValue === 3) { // Both
-        await this.keyboard.ctrlAltClick(selector);
-    }
+    throw new Error('OBSOLETE: Role assignment via keyboard shortcuts no longer exists. Use token/portrait upload methods instead.');
 });
 
 Given('the image has role {string}', async function (this: CustomWorld, roleName: string) {
-    // Verify or set role without value
-    const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
-    const selector = `[data-resource-id="${lastResourceId}"]`;
-
-    if (roleName === 'Token') {
-        await this.keyboard.altClick(selector);
-    } else if (roleName === 'Display') {
-        await this.keyboard.ctrlClick(selector);
-    }
+    throw new Error('OBSOLETE: Role assignment via keyboard shortcuts no longer exists. Use token/portrait upload methods instead.');
 });
 
 Then('the image role should change to {string} \\({int})', async function (this: CustomWorld, _roleName: string, roleValue: number) {
@@ -294,26 +274,22 @@ Then('both Token and Display previews should show this image', async function (t
     await expect(this.page.getByTestId('display-preview').locator(`img[src*="${lastResourceId}"]`)).toBeVisible();
 });
 
-// ROLE TOGGLING
+// ROLE TOGGLING (OBSOLETE - keyboard shortcuts removed)
 
 When('I Ctrl+Click', async function (this: CustomWorld) {
-    const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
-    await this.keyboard.ctrlClick(`[data-resource-id="${lastResourceId}"]`);
+    throw new Error('OBSOLETE: Ctrl+Click keyboard shortcuts no longer exist.');
 });
 
 When('I Ctrl+Click again', async function (this: CustomWorld) {
-    const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
-    await this.keyboard.ctrlClick(`[data-resource-id="${lastResourceId}"]`);
+    throw new Error('OBSOLETE: Ctrl+Click keyboard shortcuts no longer exist.');
 });
 
 When('I Ctrl+Alt+Click', async function (this: CustomWorld) {
-    const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
-    await this.keyboard.ctrlAltClick(`[data-resource-id="${lastResourceId}"]`);
+    throw new Error('OBSOLETE: Ctrl+Alt+Click keyboard shortcuts no longer exist.');
 });
 
 When('I Ctrl+Alt+Click again', async function (this: CustomWorld) {
-    const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
-    await this.keyboard.ctrlAltClick(`[data-resource-id="${lastResourceId}"]`);
+    throw new Error('OBSOLETE: Ctrl+Alt+Click keyboard shortcuts no longer exist.');
 });
 
 Then('role should be {string} \\({int})', async function (this: CustomWorld, _roleName: string, roleValue: number) {
@@ -347,8 +323,7 @@ Then('role should be {int} \\(Token only)', async function (this: CustomWorld, r
 });
 
 When('I Alt+Click to add Token', async function (this: CustomWorld) {
-    const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
-    await this.keyboard.altClick(`[data-resource-id="${lastResourceId}"]`);
+    throw new Error('OBSOLETE: Alt+Click keyboard shortcuts no longer exist.');
 });
 
 Then('role should be {int} \\(Token | Display, bitwise OR)', async function (this: CustomWorld, roleValue: number) {
@@ -365,8 +340,7 @@ Then('both badges should be shown', async function (this: CustomWorld) {
 });
 
 When('I Alt+Click to remove Token', async function (this: CustomWorld) {
-    const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
-    await this.keyboard.altClick(`[data-resource-id="${lastResourceId}"]`);
+    throw new Error('OBSOLETE: Alt+Click keyboard shortcuts no longer exist.');
 });
 
 Then('role should be {int} \\(Display only)', async function (this: CustomWorld, roleValue: number) {
@@ -383,8 +357,7 @@ Then('only Display badge should remain', async function (this: CustomWorld) {
 });
 
 When('I Alt+Click to toggle Token off', async function (this: CustomWorld) {
-    const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
-    await this.keyboard.altClick(`[data-resource-id="${lastResourceId}"]`);
+    throw new Error('OBSOLETE: Alt+Click keyboard shortcuts no longer exist.');
 });
 
 Then('only Display badge should show', async function (this: CustomWorld) {
@@ -395,8 +368,7 @@ Then('only Display badge should show', async function (this: CustomWorld) {
 });
 
 When('I Alt+Click again to toggle Token back on', async function (this: CustomWorld) {
-    const lastResourceId = this.uploadedResourceIds[this.uploadedResourceIds.length - 1];
-    await this.keyboard.altClick(`[data-resource-id="${lastResourceId}"]`);
+    throw new Error('OBSOLETE: Alt+Click keyboard shortcuts no longer exist.');
 });
 
 When('I click the image without holding any keys', async function (this: CustomWorld) {
@@ -447,13 +419,13 @@ Then('I should see badges: {string}', async function (this: CustomWorld, badges:
 });
 
 Given('an image has Token role', async function (this: CustomWorld) {
-    const resourceId = await uploadAndAssignRole(this.page, this.keyboard, 'test-image.png', ResourceRole.Token);
-    this.uploadedResourceIds.push(resourceId);
+    const tokenId = await uploadToken(this.page, 'test-image.png', true);
+    this.uploadedResourceIds.push(tokenId);
 });
 
 Given('an image has Display role', async function (this: CustomWorld) {
-    const resourceId = await uploadAndAssignRole(this.page, this.keyboard, 'test-image.png', ResourceRole.Display);
-    this.uploadedResourceIds.push(resourceId);
+    const portraitId = await uploadPortrait(this.page, 'test-image.png');
+    this.uploadedResourceIds.push(portraitId);
 });
 
 Then('the Token badge should have:', async function (this: CustomWorld, _dataTable) {
@@ -586,17 +558,20 @@ Given('I have uploaded {int} images:', async function (this: CustomWorld, count:
     const rows = dataTable.hashes();
     expect(rows.length).toBe(count);
     for (const row of rows) {
-        const resourceId = await uploadImage(this.page, `${row.image}.png`);
-        this.uploadedResourceIds.push(resourceId);
-
-        // Assign role
-        const selector = `[data-resource-id="${resourceId}"]`;
         if (row.role === 'Token') {
-            await this.keyboard.altClick(selector);
+            const tokenId = await uploadToken(this.page, `${row.image}.png`);
+            this.uploadedResourceIds.push(tokenId);
         } else if (row.role === 'Display') {
-            await this.keyboard.ctrlClick(selector);
+            const portraitId = await uploadPortrait(this.page, `${row.image}.png`);
+            this.uploadedResourceIds.push(portraitId);
         } else if (row.role === 'Token,Display') {
-            await this.keyboard.ctrlAltClick(selector);
+            const tokenId = await uploadToken(this.page, `${row.image}.png`, true);
+            this.uploadedResourceIds.push(tokenId);
+            const portraitId = await uploadPortrait(this.page, `${row.image}.png`);
+            this.uploadedResourceIds.push(portraitId);
+        } else {
+            const resourceId = await uploadImage(this.page, `${row.image}.png`);
+            this.uploadedResourceIds.push(resourceId);
         }
     }
 });
@@ -619,8 +594,8 @@ Then('should not show {string} or {string}', async function (this: CustomWorld, 
 
 Given('I have {int} images with Display roles', async function (this: CustomWorld, count: number) {
     for (let i = 0; i < count; i++) {
-        const resourceId = await uploadAndAssignRole(this.page, this.keyboard, `test-${i}.png`, ResourceRole.Display);
-        this.uploadedResourceIds.push(resourceId);
+        const portraitId = await uploadPortrait(this.page, `test-${i}.png`);
+        this.uploadedResourceIds.push(portraitId);
     }
 });
 
@@ -662,17 +637,18 @@ Then('the Display preview box should show placeholder', async function (this: Cu
 });
 
 Given('I have {int} image with role {string} \\({int})', async function (this: CustomWorld, count: number, _roleName: string, roleValue: number) {
-    expect(count).toBe(1); // Verify single image
-    const resourceId = await uploadImage(this.page, 'test-image.png');
-    this.uploadedResourceIds.push(resourceId);
-
-    const selector = `[data-resource-id="${resourceId}"]`;
-    if (roleValue === 3) { // Both roles
-        await this.keyboard.ctrlAltClick(selector);
-    } else if (roleValue === 1) { // Token
-        await this.keyboard.altClick(selector);
-    } else if (roleValue === 2) { // Display
-        await this.keyboard.ctrlClick(selector);
+    expect(count).toBe(1);
+    if (roleValue === 3) {
+        const tokenId = await uploadToken(this.page, 'test-image.png', true);
+        this.uploadedResourceIds.push(tokenId);
+        const portraitId = await uploadPortrait(this.page, 'test-image.png');
+        this.uploadedResourceIds.push(portraitId);
+    } else if (roleValue === 1) {
+        const tokenId = await uploadToken(this.page, 'test-image.png', true);
+        this.uploadedResourceIds.push(tokenId);
+    } else if (roleValue === 2) {
+        const portraitId = await uploadPortrait(this.page, 'test-image.png');
+        this.uploadedResourceIds.push(portraitId);
     }
 });
 

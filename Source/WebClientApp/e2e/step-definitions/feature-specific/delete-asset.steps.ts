@@ -80,8 +80,8 @@ Given('I am viewing the Asset Library showing all {int}', async function (this: 
 Given('I am in delete confirmation dialog', async function (this: CustomWorld) {
     // Arrange - Open asset preview and click delete to open confirmation
     await this.assetLibrary.openAssetPreview(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
-    await this.assetPreviewDialog.clickDelete();
+    await this.assetEditDialog.waitForOpen();
+    await this.assetEditDialog.clickDelete();
     await this.deleteConfirmDialog.waitForOpen();
 });
 
@@ -171,25 +171,25 @@ Given('I am on page {int} showing {int} asset', async function (this: CustomWorl
 When('I open the asset in preview dialog', async function (this: CustomWorld) {
     // Act - Open asset preview (view mode)
     await this.assetLibrary.openAssetPreview(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
+    await this.assetEditDialog.waitForOpen();
 });
 
 When('I open the asset in preview dialog \\(view mode\\)', async function (this: CustomWorld) {
     // Act - Open asset preview (explicitly view mode)
     await this.assetLibrary.openAssetPreview(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
+    await this.assetEditDialog.waitForOpen();
 });
 
 When('I open the asset in preview', async function (this: CustomWorld) {
     // Act - Open asset preview
     await this.assetLibrary.openAssetPreview(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
+    await this.assetEditDialog.waitForOpen();
 });
 
 When('I open the asset in view mode', async function (this: CustomWorld) {
     // Act - Open asset preview in view mode
     await this.assetLibrary.openAssetPreview(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
+    await this.assetEditDialog.waitForOpen();
 });
 
 When('I open an asset in view mode', async function (this: CustomWorld) {
@@ -201,7 +201,7 @@ When('I open an asset in view mode', async function (this: CustomWorld) {
     }
 
     await this.assetLibrary.openAssetPreview(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
+    await this.assetEditDialog.waitForOpen();
 });
 
 When('I open an asset in edit mode', async function (this: CustomWorld) {
@@ -212,15 +212,15 @@ When('I open an asset in edit mode', async function (this: CustomWorld) {
     }
 
     await this.assetLibrary.openAssetPreview(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
-    await this.assetPreviewDialog.clickEdit();
+    await this.assetEditDialog.waitForOpen();
+    await this.assetEditDialog.clickEdit();
 });
 
 When('I delete the asset', async function (this: CustomWorld) {
     // Act - Full delete workflow: open preview → delete → confirm
     await this.assetLibrary.openAssetPreview(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
-    await this.assetPreviewDialog.clickDelete();
+    await this.assetEditDialog.waitForOpen();
+    await this.assetEditDialog.clickDelete();
     await this.deleteConfirmDialog.waitForOpen();
     await this.deleteConfirmDialog.clickDelete();
 });
@@ -259,8 +259,8 @@ When('I delete one asset', async function (this: CustomWorld) {
     this.currentAsset = this.createdAssets[0];
 
     await this.assetLibrary.openAssetPreview(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
-    await this.assetPreviewDialog.clickDelete();
+    await this.assetEditDialog.waitForOpen();
+    await this.assetEditDialog.clickDelete();
     await this.deleteConfirmDialog.waitForOpen();
     await this.deleteConfirmDialog.clickDelete();
 
@@ -275,8 +275,8 @@ When('I delete that asset', async function (this: CustomWorld) {
     this.currentAsset = this.createdAssets[0];
 
     await this.assetLibrary.openAssetPreview(this.currentAsset.name);
-    await this.assetPreviewDialog.waitForOpen();
-    await this.assetPreviewDialog.clickDelete();
+    await this.assetEditDialog.waitForOpen();
+    await this.assetEditDialog.clickDelete();
     await this.deleteConfirmDialog.waitForOpen();
     await this.deleteConfirmDialog.clickDelete();
 
@@ -365,13 +365,13 @@ Then('the confirmation dialog should close', async function (this: CustomWorld) 
 
 Then('I should return to the preview dialog', async function (this: CustomWorld) {
     // Assert - Preview dialog is still visible
-    await expect(this.assetPreviewDialog.dialog()).toBeVisible();
+    await expect(this.assetEditDialog.dialog()).toBeVisible();
 });
 
 Then('both dialogs should close confirmation and preview', async function (this: CustomWorld) {
     // Assert - Both dialogs are closed
     await expect(this.deleteConfirmDialog.dialog()).not.toBeVisible({ timeout: 3000 });
-    await expect(this.assetPreviewDialog.dialog()).not.toBeVisible({ timeout: 3000 });
+    await expect(this.assetEditDialog.dialog()).not.toBeVisible({ timeout: 3000 });
 });
 
 Then('I should return to Asset Library', async function (this: CustomWorld) {
@@ -457,7 +457,7 @@ Then('I should not be able to delete any assets', async function (this: CustomWo
 
 Then('the button should be visible and enabled', async function (this: CustomWorld) {
     // Assert - Delete button is enabled (already checked in previous step)
-    const deleteButton = this.assetPreviewDialog.deleteButton();
+    const deleteButton = this.assetEditDialog.deleteButton();
     await expect(deleteButton).toBeEnabled();
 });
 
@@ -495,7 +495,7 @@ Then('the asset should still exist in the library', async function (this: Custom
 
 Then('I must cancel or save before I can delete', async function (this: CustomWorld) {
     // Assert - Delete button not available in edit mode
-    await expect(this.assetPreviewDialog.deleteButton()).not.toBeVisible();
+    await expect(this.assetEditDialog.deleteButton()).not.toBeVisible();
 });
 
 // ═══════════════════════════════════════════════════════════════

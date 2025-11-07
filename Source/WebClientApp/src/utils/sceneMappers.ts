@@ -1,4 +1,4 @@
-import type { Asset, SceneAsset, PlacedAsset } from '@/types/domain';
+import type { Asset, ObjectAsset, SceneAsset, PlacedAsset } from '@/types/domain';
 import { GroupName } from '@/services/layerManager';
 import { DisplayName as DisplayNameEnum, LabelPosition as LabelPositionEnum } from '@/types/domain';
 
@@ -14,8 +14,8 @@ function getAssetLayer(asset: Asset): GroupName {
         return GroupName.Creatures;
     }
 
-    const objectAsset = asset as any;
-    if (objectAsset.objectProps?.isOpaque) {
+    const objectAsset = asset as ObjectAsset;
+    if (objectAsset.properties?.isOpaque) {
         return GroupName.Structure;
     }
 
@@ -70,6 +70,9 @@ export function dehydratePlacedAssets(
         id: pa.id,
         sceneId,
         assetId: pa.assetId,
+        index: pa.index,
+        number: pa.number,
+        name: pa.name,
         x: pa.position.x,
         y: pa.position.y,
         width: pa.size.width,
@@ -78,6 +81,7 @@ export function dehydratePlacedAssets(
         scaleX: 1,
         scaleY: 1,
         layer: parseInt(pa.layer.replace('layer-', ''), 10) || 0,
+        elevation: 0,
         visible: true,
         locked: false,
         asset: pa.asset

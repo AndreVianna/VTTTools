@@ -15,7 +15,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Group, Image as KonvaImage } from 'react-konva';
 import { Asset } from '@/types/domain';
 import { GridConfig, Point, pointToCell, cellToPoint } from '@/utils/gridCalculator';
-import { getFirstTokenResource, getResourceUrl } from '@/utils/assetHelpers';
+import { getDefaultToken, getResourceUrl } from '@/utils/assetHelpers';
 import { SceneCanvasHandle } from './SceneCanvas';
 
 export interface PlacementCursorProps {
@@ -44,7 +44,7 @@ export const PlacementCursor: React.FC<PlacementCursorProps> = ({
 
     // Load asset image
     useEffect(() => {
-        const tokenResource = getFirstTokenResource(asset);
+        const tokenResource = getDefaultToken(asset);
         if (!tokenResource) return;
 
         const img = new window.Image();

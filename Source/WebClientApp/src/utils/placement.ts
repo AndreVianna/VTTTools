@@ -21,21 +21,21 @@ export interface PlacementBehavior {
     zIndexRange: [number, number];
 }
 
-interface ObjectProps {
+interface ObjectProperties {
     size: NamedSize;
     isMovable: boolean;
     isOpaque: boolean;
 }
 
-interface CreatureProps {
+interface CreatureProperties {
     size: NamedSize;
     category: CreatureCategory;
 }
 
 export const getPlacementBehavior = (
     assetKind: AssetKind,
-    objectProps?: ObjectProps,
-    creatureProps?: CreatureProps
+    objectData?: ObjectProperties,
+    creatureData?: CreatureProperties
 ): PlacementBehavior => {
     const defaultBehavior: PlacementBehavior = {
         canMove: true,
@@ -54,20 +54,20 @@ export const getPlacementBehavior = (
         zIndexRange: [0, 100],
     };
 
-    if (assetKind === AssetKind.Object && objectProps !== undefined) {
+    if (assetKind === AssetKind.Object && objectData !== undefined) {
         return {
             ...defaultBehavior,
-            canMove: objectProps.isMovable,
-            snapMode: objectProps.isMovable ? 'grid' : 'free',
+            canMove: objectData.isMovable,
+            snapMode: objectData.isMovable ? 'grid' : 'free',
             snapToGrid: true,
             requiresGridAlignment: false,
-            allowOverlap: !objectProps.isOpaque,
-            lockAspectRatio: objectProps.size.isSquare,
+            allowOverlap: !objectData.isOpaque,
+            lockAspectRatio: objectData.size.isSquare,
             zIndexRange: [10, 40],
         };
     }
 
-    if (assetKind === AssetKind.Creature && creatureProps !== undefined) {
+    if (assetKind === AssetKind.Creature && creatureData !== undefined) {
         return {
             ...defaultBehavior,
             canMove: true,

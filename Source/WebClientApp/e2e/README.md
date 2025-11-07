@@ -45,7 +45,7 @@ e2e/
 │   │   └── AssetLibraryPage.ts       # Asset Library page
 │   ├── dialogs/
 │   │   ├── AssetCreateDialog.ts      # Create dialog
-│   │   ├── AssetPreviewDialog.ts     # Preview/Edit dialog
+│   │   ├── AssetEditDialog.ts        # Edit/View/Delete dialog
 │   │   └── DeleteConfirmDialog.ts    # Delete confirmation
 │   └── components/
 │       └── AssetResourceManager.ts   # Resource management

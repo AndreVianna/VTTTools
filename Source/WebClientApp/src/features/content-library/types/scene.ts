@@ -124,9 +124,8 @@ export const mapPlacedToSceneAsset = (
     const cellWidth = gridConfig.cellSize.width;
     const cellHeight = gridConfig.cellSize.height;
 
-    const tokenResource = placedAsset.asset.resources.find(
-        r => r.role === 1
-    );
+    const defaultToken = placedAsset.asset.tokens?.find(t => t.isDefault);
+    const resourceId = defaultToken?.tokenId || placedAsset.asset.tokens?.[0]?.tokenId || '';
 
     return {
         assetId: placedAsset.assetId,
@@ -134,7 +133,7 @@ export const mapPlacedToSceneAsset = (
         number: index + 1,
         name: '',
         description: null,
-        resourceId: tokenResource?.resourceId || placedAsset.asset.resources[0]?.resourceId || '',
+        resourceId,
         size: {
             width: Math.round(placedAsset.size.width / cellWidth),
             height: Math.round(placedAsset.size.height / cellHeight)

@@ -32,7 +32,9 @@ import {
     AssetKind,
     CreatureCategory,
     CreateAssetRequest,
-    NamedSize
+    NamedSize,
+    ObjectData,
+    CreatureData
 } from '@/types/domain';
 import { useCreateAssetMutation } from '@/services/assetsApi';
 import {
@@ -41,7 +43,7 @@ import {
     CreaturePropertiesForm,
     AssetResourceManager
 } from './forms';
-import { AssetResource } from '@/types/domain';
+import { AssetToken } from '@/types/domain';
 
 export interface AssetCreateDialogProps {
     open: boolean;
@@ -65,21 +67,27 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
 
-    // Resources (images)
-    const [resources, setResources] = useState<AssetResource[]>([]);
+    // Tokens (images) - renamed from resources
+    const [tokens, setTokens] = useState<AssetToken[]>([]);
+    const [portraitId, setPortraitId] = useState<string | undefined>(undefined);
 
     // Visibility fields
     const [isPublic, setIsPublic] = useState(false);
     const [isPublished, setIsPublished] = useState(false);
 
+    // Size moved to root level - shared between Object and Creature
+    const [size, setSize] = useState<NamedSize>({ width: 1, height: 1, isSquare: true });
+
     // Object-specific properties
-    const [objectSize, setObjectSize] = useState<NamedSize>({ width: 1, height: 1, isSquare: true });
-    const [isMovable, setIsMovable] = useState(true);
-    const [isOpaque, setIsOpaque] = useState(false);
+    const [objectData, setObjectData] = useState<ObjectData>({
+        isMovable: true,
+        isOpaque: false
+    });
 
     // Creature-specific properties
-    const [creatureSize, setCreatureSize] = useState<NamedSize>({ width: 1, height: 1, isSquare: true });
-    const [creatureCategory, setCreatureCategory] = useState<CreatureCategory>(CreatureCategory.Character);
+    const [creatureData, setCreatureData] = useState<CreatureData>({
+        category: CreatureCategory.Character
+    });
 
     // RTK Query mutation
     const [createAsset, { isLoading: isSaving }] = useCreateAssetMutation();
@@ -90,31 +98,21 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                 kind: selectedKind,
                 name,
                 description,
-                resources: resources.map(r => ({ resourceId: r.resourceId, role: r.role })),
+                tokens: tokens.map(t => ({ tokenId: t.tokenId, isDefault: t.isDefault })),
+                portraitId,
+                size: {
+                    width: size.width,
+                    height: size.height,
+                    isSquare: size.isSquare
+                },
                 isPublic,
                 isPublished
             };
 
-            // Add kind-specific properties
             if (selectedKind === AssetKind.Object) {
-                request.objectProps = {
-                    size: {
-                        width: objectSize.width,
-                        height: objectSize.height,
-                        isSquare: objectSize.isSquare
-                    },
-                    isMovable,
-                    isOpaque
-                };
+                request.objectData = objectData;
             } else if (selectedKind === AssetKind.Creature) {
-                request.creatureProps = {
-                    size: {
-                        width: creatureSize.width,
-                        height: creatureSize.height,
-                        isSquare: creatureSize.isSquare
-                    },
-                    category: creatureCategory
-                };
+                request.creatureData = creatureData;
             }
 
             await createAsset(request).unwrap();
@@ -129,20 +127,11 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
     };
 
     const isFormValid = () => {
-        // Name must be at least 3 characters
         if (name.trim().length < 3) return false;
 
-        // Description is optional - removed validation
-
-        // Publishing rule: published assets must be public
         if (isPublished && !isPublic) return false;
 
-        // Size dimensions must be positive
-        if (selectedKind === AssetKind.Object) {
-            if (objectSize.width <= 0 || objectSize.height <= 0) return false;
-        } else if (selectedKind === AssetKind.Creature) {
-            if (creatureSize.width <= 0 || creatureSize.height <= 0) return false;
-        }
+        if (size.width <= 0 || size.height <= 0) return false;
 
         return true;
     };
@@ -169,9 +158,11 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                 {/* PERMANENT SECTION: Asset Images (Always Visible - Visual Identity) */}
                 <Box sx={{ mb: 3 }}>
                     <AssetResourceManager
-                        resources={resources}
-                        onResourcesChange={setResources}
-                        size={selectedKind === AssetKind.Object ? objectSize : creatureSize}
+                        tokens={tokens}
+                        onTokensChange={setTokens}
+                        portraitId={portraitId}
+                        onPortraitIdChange={setPortraitId}
+                        size={size}
                     />
                 </Box>
 
@@ -274,26 +265,53 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                         </Box>
                     </AccordionSummary>
                     <AccordionDetails sx={{ p: 3 }}>
-                        {/* Kind-Specific Properties */}
-                        {selectedKind === AssetKind.Object && (
-                            <ObjectPropertiesForm
-                                size={objectSize}
-                                isMovable={isMovable}
-                                isOpaque={isOpaque}
-                                onSizeChange={setObjectSize}
-                                onIsMovableChange={setIsMovable}
-                                onIsOpaqueChange={setIsOpaque}
-                            />
-                        )}
+                        <Stack spacing={3}>
+                            {/* Size field - now at root level, common to all asset types */}
+                            <Box>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                                    Size (Grid Cells)
+                                </Typography>
+                                <Stack direction="row" spacing={2}>
+                                    <Box sx={{ flex: 1 }}>
+                                        <Typography variant="caption">Width</Typography>
+                                        <input
+                                            type="number"
+                                            value={size.width}
+                                            onChange={(e) => setSize({ ...size, width: Number(e.target.value) })}
+                                            min={0.5}
+                                            step={0.5}
+                                            style={{ width: '100%', padding: '8px' }}
+                                        />
+                                    </Box>
+                                    <Box sx={{ flex: 1 }}>
+                                        <Typography variant="caption">Height</Typography>
+                                        <input
+                                            type="number"
+                                            value={size.height}
+                                            onChange={(e) => setSize({ ...size, height: Number(e.target.value) })}
+                                            min={0.5}
+                                            step={0.5}
+                                            style={{ width: '100%', padding: '8px' }}
+                                        />
+                                    </Box>
+                                </Stack>
+                            </Box>
 
-                        {selectedKind === AssetKind.Creature && (
-                            <CreaturePropertiesForm
-                                size={creatureSize}
-                                category={creatureCategory}
-                                onSizeChange={setCreatureSize}
-                                onCategoryChange={setCreatureCategory}
-                            />
-                        )}
+                            {/* Kind-Specific Properties (without size) */}
+                            {selectedKind === AssetKind.Object && (
+                                <ObjectPropertiesForm
+                                    objectData={objectData}
+                                    onChange={setObjectData}
+                                />
+                            )}
+
+                            {selectedKind === AssetKind.Creature && (
+                                <CreaturePropertiesForm
+                                    creatureData={creatureData}
+                                    onChange={setCreatureData}
+                                />
+                            )}
+                        </Stack>
                     </AccordionDetails>
                 </Accordion>
             </DialogContent>

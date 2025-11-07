@@ -29,7 +29,7 @@ export interface ScenePropertiesDrawerProps {
     scene: Scene | null | undefined;
     onDescriptionChange: (description: string) => void;
     onPublishedChange: (published: boolean) => void;
-    onSceneUpdate?: (updates: Partial<Scene>) => void;
+    onSceneUpdate?: ((updates: Partial<Scene>) => void) | undefined;
 }
 
 interface AdventureLinkProps {

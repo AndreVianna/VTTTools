@@ -36,8 +36,8 @@ import {
     DisplayName,
     LabelPosition,
     SceneWall,
-    SceneRegion,
-    SceneSource,
+    
+    
     WallVisibility,
     Pole
 } from '@/types/domain';

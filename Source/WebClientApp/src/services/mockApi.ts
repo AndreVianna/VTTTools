@@ -8,7 +8,8 @@ import {
   AssetKind,
   CreatureCategory,
   TokenShape,
-  AdventureType
+  ContentType,
+  ResourceType
 } from '@/types/domain';
 import type {
   User,
@@ -18,7 +19,7 @@ import type {
   RegisterResponse,
   Adventure,
   Asset,
-  AssetResource,
+  AssetToken,
   CreatureAsset,
   ObjectAsset,
   GameSession,
@@ -104,12 +105,11 @@ export class MockApiService {
     return [
       {
         id: 'mock-adventure-1',
+        type: ContentType.Adventure,
         name: 'Demo Adventure',
         description: 'A mock adventure for development',
-        type: AdventureType.OneShot,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-        // campaignId and backgroundId are optional, omit them
+        isPublished: false,
+        ownerId: 'mock-owner'
       }
     ];
   }
@@ -119,27 +119,38 @@ export class MockApiService {
     devUtils.log('Mock get assets called');
     await delay(MOCK_DELAY);
 
-    // Helper to create mock resources
-    const createMockResource = (): AssetResource[] => [
-      {
-        resourceId: crypto.randomUUID(),
-        role: 1, // Token role
-      }
-    ];
+    const createMockMediaResource = (name: string, type: ResourceType = ResourceType.Image): MediaResource => ({
+      id: crypto.randomUUID(),
+      type,
+      path: `/mock/${name.toLowerCase().replace(/\s+/g, '-')}.png`,
+      metadata: {
+        contentType: 'image/png',
+        fileName: `${name.toLowerCase().replace(/\s+/g, '-')}.png`,
+        fileLength: Math.floor(Math.random() * 50000) + 10000,
+        imageSize: { width: 256, height: 256 }
+      },
+      tags: ['mock', 'development']
+    });
+
+    const createMockToken = (name: string, isDefault: boolean = true): AssetToken => ({
+      tokenId: crypto.randomUUID(),
+      token: createMockMediaResource(`${name}-token`),
+      isDefault
+    });
 
     const creatureAssets: CreatureAsset[] = [
-      // Creature Assets - Character
       {
         id: 'mock-asset-1',
         ownerId: 'mock-owner',
         kind: AssetKind.Creature,
         name: 'Hero Character',
-        description: 'A playable hero character',
+        description: 'A playable hero character with portrait',
         isPublished: true,
         isPublic: true,
-        resources: createMockResource(),
-        creatureProps: {
-          size: { width: 1, height: 1, isSquare: true },
+        tokens: [createMockToken('hero')],
+        portrait: createMockMediaResource('hero-portrait'),
+        size: { width: 1, height: 1, isSquare: true },
+        properties: {
           category: CreatureCategory.Character,
           tokenStyle: { shape: TokenShape.Circle }
         },
@@ -154,32 +165,33 @@ export class MockApiService {
         description: 'A hostile goblin enemy',
         isPublished: true,
         isPublic: true,
-        resources: createMockResource(),
-        creatureProps: {
-          size: { width: 1, height: 1, isSquare: true },
+        tokens: [createMockToken('goblin')],
+        portrait: undefined,
+        size: { width: 1, height: 1, isSquare: true },
+        properties: {
           category: CreatureCategory.Monster,
           tokenStyle: { shape: TokenShape.Circle }
         },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      }
-    ];
-
-    const objectAssets: ObjectAsset[] = [
-      // Object Assets - Items
+      },
       {
         id: 'mock-asset-3',
         ownerId: 'mock-owner',
-        kind: AssetKind.Object,
-        name: 'Wooden Crate',
-        description: 'A moveable wooden crate',
+        kind: AssetKind.Creature,
+        name: 'Ogre',
+        description: 'Large creature with multiple tokens',
         isPublished: true,
         isPublic: true,
-        resources: createMockResource(),
-        objectProps: {
-          size: { width: 1, height: 1, isSquare: true },
-          isMovable: true,
-          isOpaque: false
+        tokens: [
+          createMockToken('ogre-default', true),
+          createMockToken('ogre-alt', false)
+        ],
+        portrait: createMockMediaResource('ogre-portrait'),
+        size: { width: 2, height: 2, isSquare: true },
+        properties: {
+          category: CreatureCategory.Monster,
+          tokenStyle: { shape: TokenShape.Circle }
         },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -187,33 +199,90 @@ export class MockApiService {
       {
         id: 'mock-asset-4',
         ownerId: 'mock-owner',
-        kind: AssetKind.Object,
-        name: 'Treasure Chest',
-        description: 'A chest containing loot',
+        kind: AssetKind.Creature,
+        name: 'Dragon',
+        description: 'Huge creature with custom size',
         isPublished: true,
         isPublic: true,
-        resources: createMockResource(),
-        objectProps: {
-          size: { width: 1, height: 1, isSquare: true },
+        tokens: [createMockToken('dragon')],
+        portrait: createMockMediaResource('dragon-portrait'),
+        size: { width: 4, height: 3, isSquare: false },
+        properties: {
+          category: CreatureCategory.Monster,
+          tokenStyle: { shape: TokenShape.Circle, borderColor: '#ff0000' }
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-asset-5',
+        ownerId: 'mock-owner',
+        kind: AssetKind.Creature,
+        name: 'Portrait Only NPC',
+        description: 'NPC with portrait but no token (edge case)',
+        isPublished: true,
+        isPublic: false,
+        tokens: [],
+        portrait: createMockMediaResource('npc-portrait'),
+        size: { width: 1, height: 1, isSquare: true },
+        properties: {
+          category: CreatureCategory.Character,
+          tokenStyle: { shape: TokenShape.Square }
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+
+    const objectAssets: ObjectAsset[] = [
+      {
+        id: 'mock-asset-6',
+        ownerId: 'mock-owner',
+        kind: AssetKind.Object,
+        name: 'Wooden Crate',
+        description: 'A moveable wooden crate',
+        isPublished: true,
+        isPublic: true,
+        tokens: [createMockToken('crate')],
+        portrait: undefined,
+        size: { width: 1, height: 1, isSquare: true },
+        properties: {
           isMovable: true,
           isOpaque: false
         },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
-
-      // Object Assets - Environment/Structures
       {
-        id: 'mock-asset-5',
+        id: 'mock-asset-7',
+        ownerId: 'mock-owner',
+        kind: AssetKind.Object,
+        name: 'Treasure Chest',
+        description: 'A chest containing loot with portrait image',
+        isPublished: true,
+        isPublic: true,
+        tokens: [createMockToken('chest')],
+        portrait: createMockMediaResource('chest-portrait'),
+        size: { width: 1, height: 1, isSquare: true },
+        properties: {
+          isMovable: true,
+          isOpaque: false
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-asset-8',
         ownerId: 'mock-owner',
         kind: AssetKind.Object,
         name: 'Stone Wall',
         description: 'An immovable stone wall segment',
         isPublished: true,
         isPublic: true,
-        resources: createMockResource(),
-        objectProps: {
-          size: { width: 1, height: 1, isSquare: true },
+        tokens: [createMockToken('wall')],
+        portrait: undefined,
+        size: { width: 1, height: 1, isSquare: true },
+        properties: {
           isMovable: false,
           isOpaque: true
         },
@@ -221,18 +290,76 @@ export class MockApiService {
         updatedAt: new Date().toISOString()
       },
       {
-        id: 'mock-asset-6',
+        id: 'mock-asset-9',
         ownerId: 'mock-owner',
         kind: AssetKind.Object,
         name: 'Wooden Door',
         description: 'A locked structural door',
         isPublished: true,
         isPublic: true,
-        resources: createMockResource(),
-        objectProps: {
-          size: { width: 1, height: 1, isSquare: true },
+        tokens: [createMockToken('door')],
+        portrait: undefined,
+        size: { width: 1, height: 1, isSquare: true },
+        properties: {
           isMovable: false,
           isOpaque: true
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-asset-10',
+        ownerId: 'mock-owner',
+        kind: AssetKind.Object,
+        name: 'Large Boulder',
+        description: 'Large square obstacle (3x3)',
+        isPublished: true,
+        isPublic: true,
+        tokens: [createMockToken('boulder')],
+        portrait: undefined,
+        size: { width: 3, height: 3, isSquare: true },
+        properties: {
+          isMovable: false,
+          isOpaque: true
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-asset-11',
+        ownerId: 'mock-owner',
+        kind: AssetKind.Object,
+        name: 'Invalid Asset',
+        description: 'Edge case: no tokens and no portrait (should handle gracefully)',
+        isPublished: false,
+        isPublic: false,
+        tokens: [],
+        portrait: undefined,
+        size: { width: 1, height: 1, isSquare: true },
+        properties: {
+          isMovable: true,
+          isOpaque: false
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-asset-12',
+        ownerId: 'mock-owner',
+        kind: AssetKind.Object,
+        name: 'Multi-Default Edge Case',
+        description: 'Edge case: multiple default tokens (should handle gracefully)',
+        isPublished: false,
+        isPublic: false,
+        tokens: [
+          createMockToken('multi-1', true),
+          createMockToken('multi-2', true)
+        ],
+        portrait: undefined,
+        size: { width: 1, height: 1, isSquare: true },
+        properties: {
+          isMovable: true,
+          isOpaque: false
         },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()

@@ -84,7 +84,7 @@ export const assetsApi = createApi({
 
     /**
      * Create new asset (ObjectAsset or CreatureAsset)
-     * Request must include kind and corresponding properties (objectProps or creatureProps)
+     * Request must include kind and corresponding data (objectData or creatureData)
      */
     createAsset: builder.mutation<Asset, CreateAssetRequest>({
       query: (request) => ({

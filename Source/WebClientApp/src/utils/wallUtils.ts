@@ -18,7 +18,7 @@ export function cleanWallPoles(poles: Pole[], isClosed: boolean): CleanWallPoles
         const current = cleanedPoles[i];
         const previous = cleanedPoles[i - 1];
 
-        if (current.x === previous.x && current.y === previous.y) {
+        if (current?.x === previous?.x && current?.y === previous?.y) {
             cleanedPoles.splice(i, 1);
         }
     }
@@ -28,7 +28,7 @@ export function cleanWallPoles(poles: Pole[], isClosed: boolean): CleanWallPoles
         const first = cleanedPoles[0];
         const last = cleanedPoles[cleanedPoles.length - 1];
 
-        if (first.x === last.x && first.y === last.y) {
+        if (first?.x === last?.x && first?.y === last?.y) {
             cleanedPoles.splice(cleanedPoles.length - 1, 1);
             if (!isClosed) {
                 newIsClosed = true;

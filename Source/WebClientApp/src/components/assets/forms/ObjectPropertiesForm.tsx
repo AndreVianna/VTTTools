@@ -3,33 +3,24 @@
 
 import React from 'react';
 import { Box, Typography, FormControlLabel, Checkbox, Stack } from '@mui/material';
-import { NamedSize } from '@/types/domain';
-import { SizeSelector } from '@/components/common/SizeSelector';
+import { ObjectData } from '@/types/domain';
 
 export interface ObjectPropertiesFormProps {
-    size: NamedSize;
-    isMovable: boolean;
-    isOpaque: boolean;
-    onSizeChange: (value: NamedSize) => void;
-    onIsMovableChange: (value: boolean) => void;
-    onIsOpaqueChange: (value: boolean) => void;
+    objectData: ObjectData;
+    onChange: (value: ObjectData) => void;
     readOnly?: boolean;
 }
 
 export const ObjectPropertiesForm: React.FC<ObjectPropertiesFormProps> = ({
-    size,
-    isMovable,
-    isOpaque,
-    onSizeChange,
-    onIsMovableChange,
-    onIsOpaqueChange,
+    objectData,
+    onChange,
     readOnly = false
 }) => {
+    const { isMovable, isOpaque } = objectData;
     if (readOnly) {
         return (
             <Box>
                 <Stack spacing={1}>
-                    <SizeSelector value={size} onChange={onSizeChange} readOnly />
                     <Typography variant="body2">Movable: {isMovable ? 'Yes' : 'No'}</Typography>
                     <Typography variant="body2">Opaque: {isOpaque ? 'Yes' : 'No'}</Typography>
                 </Stack>
@@ -40,12 +31,11 @@ export const ObjectPropertiesForm: React.FC<ObjectPropertiesFormProps> = ({
     return (
         <Box>
             <Stack spacing={2}>
-                <SizeSelector value={size} onChange={onSizeChange} />
                 <FormControlLabel
                     control={
                         <Checkbox
                             checked={isMovable}
-                            onChange={(e) => onIsMovableChange(e.target.checked)}
+                            onChange={(e) => onChange({ ...objectData, isMovable: e.target.checked })}
                         />
                     }
                     label="Movable"
@@ -54,7 +44,7 @@ export const ObjectPropertiesForm: React.FC<ObjectPropertiesFormProps> = ({
                     control={
                         <Checkbox
                             checked={isOpaque}
-                            onChange={(e) => onIsOpaqueChange(e.target.checked)}
+                            onChange={(e) => onChange({ ...objectData, isOpaque: e.target.checked })}
                         />
                     }
                     label="Opaque (blocks vision)"

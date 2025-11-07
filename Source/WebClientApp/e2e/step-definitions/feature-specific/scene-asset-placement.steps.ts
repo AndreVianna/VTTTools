@@ -85,15 +85,14 @@ Given('my scene has configured stage', async function (this: CustomWorld) {
 });
 
 Given('I have asset template {string}', async function (this: CustomWorld, templateName: string) {
-    // Create asset template in database
     const assetId = await this.db.insertAsset({
         name: templateName,
         ownerId: this.currentUser.id,
         kind: 'Creature',
         isPublic: false,
         isPublished: false,
-        creatureProps: {
-            size: { width: 1, height: 1, isSquare: true },
+        size: { width: 1, height: 1, isSquare: true },
+        properties: {
             category: 'Monster'
         }
     });
@@ -104,15 +103,14 @@ Given('I have asset template {string}', async function (this: CustomWorld, templ
 });
 
 Given('I have asset template', async function (this: CustomWorld) {
-    // Create default asset template
     const assetId = await this.db.insertAsset({
         name: 'Default Token',
         ownerId: this.currentUser.id,
         kind: 'Creature',
         isPublic: false,
         isPublished: false,
-        creatureProps: {
-            size: { width: 1, height: 1, isSquare: true },
+        size: { width: 1, height: 1, isSquare: true },
+        properties: {
             category: 'Monster'
         }
     });
@@ -130,8 +128,8 @@ Given('I have {int} asset templates', async function (this: CustomWorld, count: 
             kind: 'Creature',
             isPublic: false,
             isPublished: false,
-            creatureProps: {
-                size: { width: 1, height: 1, isSquare: true },
+            size: { width: 1, height: 1, isSquare: true },
+            properties: {
                 category: 'Monster'
             }
         });
@@ -350,7 +348,6 @@ Given('my scene has asset {string} at position X={int}, Y={int}', async function
     x: number,
     y: number
 ) {
-    // Create asset template if not exists
     if (!this.currentAsset || this.currentAsset.name !== assetName) {
         const assetId = await this.db.insertAsset({
             name: assetName,
@@ -358,8 +355,8 @@ Given('my scene has asset {string} at position X={int}, Y={int}', async function
             kind: 'Creature',
             isPublic: false,
             isPublished: false,
-            creatureProps: {
-                size: { width: 1, height: 1, isSquare: true },
+            size: { width: 1, height: 1, isSquare: true },
+            properties: {
                 category: 'Monster'
             }
         });
@@ -369,7 +366,6 @@ Given('my scene has asset {string} at position X={int}, Y={int}', async function
         this.attach(`Asset template created: ${assetName} (${assetId})`, 'text/plain');
     }
 
-    // Place asset at position
     const assetInstanceId = await this.db.insertSceneAsset({
         sceneId: this.currentSceneId!,
         assetId: this.currentAsset.id!,
@@ -386,15 +382,14 @@ Given('my scene has asset {string} at position X={int}, Y={int}', async function
 });
 
 Given('a valid asset template exists', async function (this: CustomWorld) {
-    // Create default asset template
     const assetId = await this.db.insertAsset({
         name: 'Default Token',
         ownerId: this.currentUser.id,
         kind: 'Creature',
         isPublic: false,
         isPublished: false,
-        creatureProps: {
-            size: { width: 1, height: 1, isSquare: true },
+        size: { width: 1, height: 1, isSquare: true },
+        properties: {
             category: 'Monster'
         }
     });
@@ -481,15 +476,14 @@ Given('no asset with ID {string} exists on the scene', async function (
 });
 
 Given('I have a new asset template', async function (this: CustomWorld) {
-    // Create new asset template
     const assetId = await this.db.insertAsset({
         name: 'New Asset',
         ownerId: this.currentUser.id,
         kind: 'Creature',
         isPublic: false,
         isPublished: false,
-        creatureProps: {
-            size: { width: 1, height: 1, isSquare: true },
+        size: { width: 1, height: 1, isSquare: true },
+        properties: {
             category: 'Monster'
         }
     });

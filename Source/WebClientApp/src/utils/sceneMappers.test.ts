@@ -1,38 +1,44 @@
 import { describe, it, expect } from 'vitest';
 import { hydratePlacedAssets, dehydratePlacedAssets } from './sceneMappers';
 import type { SceneAsset, Asset, PlacedAsset } from '@/types/domain';
-import { AssetKind, ResourceRole, DisplayName, LabelPosition } from '@/types/domain';
+import { DisplayName, LabelPosition, CreatureCategory } from '@/types/domain';
+import { mockCreatureAsset, mockObjectAsset, mockAssetToken } from '@/test-utils/assetMocks';
 
-const mockCreatureAsset: Asset = {
+const mockCreatureAssetData: Asset = mockCreatureAsset({
     id: 'asset-1',
     ownerId: 'user-1',
-    kind: AssetKind.Creature,
     name: 'Goblin',
     description: 'A small goblin',
     isPublished: true,
     isPublic: false,
-    resources: [
-        {
-            resourceId: 'resource-1',
-            role: ResourceRole.Token
-        }
-    ],
+    tokens: [mockAssetToken({ tokenId: 'resource-1', isDefault: true })],
+    size: { width: 1, height: 1, isSquare: true },
+    properties: {
+        statBlockId: undefined,
+        category: CreatureCategory.Monster,
+        tokenStyle: undefined
+    },
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z'
-};
+});
 
-const mockObjectAsset: Asset = {
+const mockObjectAssetData: Asset = mockObjectAsset({
     id: 'asset-2',
     ownerId: 'user-1',
-    kind: AssetKind.Object,
     name: 'Treasure Chest',
     description: 'A wooden chest',
     isPublished: true,
     isPublic: false,
-    resources: [],
+    tokens: [],
+    size: { width: 1, height: 1, isSquare: true },
+    properties: {
+        isMovable: true,
+        isOpaque: false,
+        triggerEffectId: undefined
+    },
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z'
-};
+});
 
 describe('hydratePlacedAssets', () => {
     describe('name hydration', () => {
@@ -51,7 +57,7 @@ describe('hydratePlacedAssets', () => {
                 layer: 0,
                 visible: true,
                 locked: false,
-                asset: mockCreatureAsset
+                asset: mockCreatureAssetData
             };
 
             const sceneAssetWithName = {
@@ -61,7 +67,7 @@ describe('hydratePlacedAssets', () => {
                 number: 2
             } as any;
 
-            const getAsset = async () => mockCreatureAsset;
+            const getAsset = async () => mockCreatureAssetData;
 
             const result = await hydratePlacedAssets([sceneAssetWithName], getAsset);
 
@@ -84,10 +90,10 @@ describe('hydratePlacedAssets', () => {
                 layer: 0,
                 visible: true,
                 locked: false,
-                asset: mockCreatureAsset
+                asset: mockCreatureAssetData
             };
 
-            const getAsset = async () => mockCreatureAsset;
+            const getAsset = async () => mockCreatureAssetData;
 
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
@@ -110,7 +116,7 @@ describe('hydratePlacedAssets', () => {
                 layer: 0,
                 visible: true,
                 locked: false,
-                asset: mockCreatureAsset
+                asset: mockCreatureAssetData
             };
 
             const sceneAssetWithNullName = {
@@ -118,7 +124,7 @@ describe('hydratePlacedAssets', () => {
                 name: null
             } as any;
 
-            const getAsset = async () => mockCreatureAsset;
+            const getAsset = async () => mockCreatureAssetData;
 
             const result = await hydratePlacedAssets([sceneAssetWithNullName], getAsset);
 
@@ -141,7 +147,7 @@ describe('hydratePlacedAssets', () => {
                 layer: 0,
                 visible: true,
                 locked: false,
-                asset: mockCreatureAsset
+                asset: mockCreatureAssetData
             };
 
             const sceneAssetWithEmptyName = {
@@ -149,7 +155,7 @@ describe('hydratePlacedAssets', () => {
                 name: ''
             } as any;
 
-            const getAsset = async () => mockCreatureAsset;
+            const getAsset = async () => mockCreatureAssetData;
 
             const result = await hydratePlacedAssets([sceneAssetWithEmptyName], getAsset);
 
@@ -172,7 +178,7 @@ describe('hydratePlacedAssets', () => {
                 layer: 0,
                 visible: true,
                 locked: false,
-                asset: mockCreatureAsset
+                asset: mockCreatureAssetData
             };
 
             const sceneAssetWithNumberedName = {
@@ -182,7 +188,7 @@ describe('hydratePlacedAssets', () => {
                 number: 5
             } as any;
 
-            const getAsset = async () => mockCreatureAsset;
+            const getAsset = async () => mockCreatureAssetData;
 
             const result = await hydratePlacedAssets([sceneAssetWithNumberedName], getAsset);
 
@@ -206,7 +212,7 @@ describe('hydratePlacedAssets', () => {
                 layer: 0,
                 visible: true,
                 locked: false,
-                asset: mockObjectAsset
+                asset: mockObjectAssetData
             };
 
             const sceneAssetWithCustomName = {
@@ -214,7 +220,7 @@ describe('hydratePlacedAssets', () => {
                 name: 'Golden Chest'
             } as any;
 
-            const getAsset = async () => mockObjectAsset;
+            const getAsset = async () => mockObjectAssetData;
 
             const result = await hydratePlacedAssets([sceneAssetWithCustomName], getAsset);
 
@@ -238,7 +244,7 @@ describe('hydratePlacedAssets', () => {
                     layer: 0,
                     visible: true,
                     locked: false,
-                    asset: mockCreatureAsset,
+                    asset: mockCreatureAssetData,
                     name: 'Goblin #1',
                     index: 0,
                     number: 1
@@ -257,7 +263,7 @@ describe('hydratePlacedAssets', () => {
                     layer: 0,
                     visible: true,
                     locked: false,
-                    asset: mockCreatureAsset,
+                    asset: mockCreatureAssetData,
                     index: 1,
                     number: 2
                 },
@@ -275,13 +281,13 @@ describe('hydratePlacedAssets', () => {
                     layer: 0,
                     visible: true,
                     locked: false,
-                    asset: mockObjectAsset,
+                    asset: mockObjectAssetData,
                     name: 'Magic Chest'
                 }
             ] as any[];
 
             const getAsset = async (assetId: string) => {
-                return assetId === 'asset-1' ? mockCreatureAsset : mockObjectAsset;
+                return assetId === 'asset-1' ? mockCreatureAssetData : mockObjectAssetData;
             };
 
             const result = await hydratePlacedAssets(sceneAssets, getAsset);
@@ -309,10 +315,10 @@ describe('hydratePlacedAssets', () => {
                 layer: 0,
                 visible: true,
                 locked: false,
-                asset: mockCreatureAsset
+                asset: mockCreatureAssetData
             };
 
-            const getAsset = async () => mockCreatureAsset;
+            const getAsset = async () => mockCreatureAssetData;
 
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
@@ -335,10 +341,10 @@ describe('hydratePlacedAssets', () => {
                 layer: 0,
                 visible: true,
                 locked: false,
-                asset: mockCreatureAsset
+                asset: mockCreatureAssetData
             } as any;
 
-            const getAsset = async () => mockCreatureAsset;
+            const getAsset = async () => mockCreatureAssetData;
 
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
@@ -365,10 +371,10 @@ describe('hydratePlacedAssets', () => {
                 layer: 0,
                 visible: true,
                 locked: false,
-                asset: mockCreatureAsset
+                asset: mockCreatureAssetData
             };
 
-            const getAsset = async () => mockCreatureAsset;
+            const getAsset = async () => mockCreatureAssetData;
 
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
@@ -391,10 +397,10 @@ describe('hydratePlacedAssets', () => {
                 layer: 0,
                 visible: true,
                 locked: false,
-                asset: mockObjectAsset
+                asset: mockObjectAssetData
             };
 
-            const getAsset = async () => mockObjectAsset;
+            const getAsset = async () => mockObjectAssetData;
 
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
@@ -419,12 +425,12 @@ describe('hydratePlacedAssets', () => {
                 layer: 0,
                 visible: true,
                 locked: false,
-                asset: mockCreatureAsset,
+                asset: mockCreatureAssetData,
                 index: 5,
                 number: 3
             } as any;
 
-            const getAsset = async () => mockCreatureAsset;
+            const getAsset = async () => mockCreatureAssetData;
 
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
@@ -448,10 +454,10 @@ describe('hydratePlacedAssets', () => {
                 layer: 0,
                 visible: true,
                 locked: false,
-                asset: mockCreatureAsset
+                asset: mockCreatureAssetData
             };
 
-            const getAsset = async () => mockCreatureAsset;
+            const getAsset = async () => mockCreatureAssetData;
 
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
@@ -474,10 +480,10 @@ describe('hydratePlacedAssets', () => {
                 layer: 0,
                 visible: true,
                 locked: false,
-                asset: mockCreatureAsset
+                asset: mockCreatureAssetData
             };
 
-            const getAsset = async () => mockCreatureAsset;
+            const getAsset = async () => mockCreatureAssetData;
 
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
@@ -503,7 +509,7 @@ describe('hydratePlacedAssets', () => {
                     layer: 0,
                     visible: true,
                     locked: false,
-                    asset: mockCreatureAsset
+                    asset: mockCreatureAssetData
                 },
                 {
                     id: 'scene-asset-2',
@@ -519,7 +525,7 @@ describe('hydratePlacedAssets', () => {
                     layer: 0,
                     visible: true,
                     locked: false,
-                    asset: mockCreatureAsset
+                    asset: mockCreatureAssetData
                 }
             ];
 
@@ -527,7 +533,7 @@ describe('hydratePlacedAssets', () => {
                 if (assetId === 'asset-missing') {
                     return null as any;
                 }
-                return mockCreatureAsset;
+                return mockCreatureAssetData;
             };
 
             const result = await hydratePlacedAssets(sceneAssets, getAsset);
@@ -543,7 +549,7 @@ describe('dehydratePlacedAssets', () => {
         const placedAsset: PlacedAsset = {
             id: 'scene-asset-1',
             assetId: 'asset-1',
-            asset: mockCreatureAsset,
+            asset: mockCreatureAssetData,
             position: { x: 100, y: 150 },
             size: { width: 50, height: 75 },
             rotation: 45,
@@ -572,7 +578,7 @@ describe('dehydratePlacedAssets', () => {
             layer: 0,
             visible: true,
             locked: false,
-            asset: mockCreatureAsset
+            asset: mockCreatureAssetData
         });
     });
 
@@ -581,7 +587,7 @@ describe('dehydratePlacedAssets', () => {
             {
                 id: 'scene-asset-1',
                 assetId: 'asset-1',
-                asset: mockCreatureAsset,
+                asset: mockCreatureAssetData,
                 position: { x: 100, y: 100 },
                 size: { width: 50, height: 50 },
                 rotation: 0,
@@ -595,7 +601,7 @@ describe('dehydratePlacedAssets', () => {
             {
                 id: 'scene-asset-2',
                 assetId: 'asset-2',
-                asset: mockObjectAsset,
+                asset: mockObjectAssetData,
                 position: { x: 200, y: 200 },
                 size: { width: 75, height: 75 },
                 rotation: 90,

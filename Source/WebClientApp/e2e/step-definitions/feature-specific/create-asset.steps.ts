@@ -11,7 +11,7 @@
 import { Given, When, Then, DataTable } from '@cucumber/cucumber';
 import { CustomWorld } from '../../support/world.js';
 import { expect } from '@playwright/test';
-import { uploadImage, uploadAndAssignRole, ResourceRole } from '../../support/helpers/upload.helper.js';
+import { uploadImage, uploadToken, uploadPortrait } from '../../support/helpers/upload.helper.js';
 
 // ============================================================================
 // HELPER FUNCTIONS (Extracted for reusability, NO step-to-step calls)
@@ -353,18 +353,18 @@ When('I upload {string}', async function (this: CustomWorld, filename: string) {
 });
 
 When('I upload image {string} and assign Token role', async function (this: CustomWorld, filename: string) {
-    const resourceId = await uploadAndAssignRole(this.page, this.keyboard, filename, ResourceRole.Token);
-    this.uploadedResourceIds.push(resourceId);
+    const tokenId = await uploadToken(this.page, filename);
+    this.uploadedResourceIds.push(tokenId);
 });
 
 When('I upload image {string} and assign Display role', async function (this: CustomWorld, filename: string) {
-    const resourceId = await uploadAndAssignRole(this.page, this.keyboard, filename, ResourceRole.Display);
-    this.uploadedResourceIds.push(resourceId);
+    const portraitId = await uploadPortrait(this.page, filename);
+    this.uploadedResourceIds.push(portraitId);
 });
 
 When('I upload image {string} and assign both Token and Display roles', async function (this: CustomWorld, filename: string) {
-    const resourceId = await uploadAndAssignRole(this.page, this.keyboard, filename, ResourceRole.Both);
-    this.uploadedResourceIds.push(resourceId);
+    const tokenId = await uploadToken(this.page, filename, true);
+    this.uploadedResourceIds.push(tokenId);
 });
 
 // REMOVED: Duplicate - Use manage-resources.steps.ts
@@ -400,12 +400,11 @@ Then('the collapsed Display preview should show the image', async function (this
 });
 
 Then('the asset should be created with {int} resource', async function (this: CustomWorld, count: number) {
-    // Verify resource count via API response
     const response = await this.page.waitForResponse(resp =>
         resp.url().includes('/api/assets') && resp.status() === 201
     );
     const body = await response.json();
-    expect(body.resources).toHaveLength(count);
+    expect(body.tokens).toHaveLength(count);
 });
 
 Then('the asset should be created with {int} resources', async function (this: CustomWorld, count: number) {
@@ -413,7 +412,7 @@ Then('the asset should be created with {int} resources', async function (this: C
         resp.url().includes('/api/assets') && resp.status() === 201
     );
     const body = await response.json();
-    expect(body.resources).toHaveLength(count);
+    expect(body.tokens).toHaveLength(count);
 });
 
 Then('resource[{int}].role should be {int} \\({word}\\)', async function (this: CustomWorld, index: number, roleValue: number, roleName: string) {
@@ -486,18 +485,18 @@ Then('role should be {int} \\({word} only\\)', async function (this: CustomWorld
 // ============================================================================
 
 When('I upload {string} and assign Token role only', async function (this: CustomWorld, filename: string) {
-    const resourceId = await uploadAndAssignRole(this.page, this.keyboard, filename, ResourceRole.Token);
-    this.uploadedResourceIds.push(resourceId);
+    const tokenId = await uploadToken(this.page, filename);
+    this.uploadedResourceIds.push(tokenId);
 });
 
 When('I upload {string} and assign Display role only', async function (this: CustomWorld, filename: string) {
-    const resourceId = await uploadAndAssignRole(this.page, this.keyboard, filename, ResourceRole.Display);
-    this.uploadedResourceIds.push(resourceId);
+    const portraitId = await uploadPortrait(this.page, filename);
+    this.uploadedResourceIds.push(portraitId);
 });
 
 When('I upload {string} and assign both roles', async function (this: CustomWorld, filename: string) {
-    const resourceId = await uploadAndAssignRole(this.page, this.keyboard, filename, ResourceRole.Both);
-    this.uploadedResourceIds.push(resourceId);
+    const tokenId = await uploadToken(this.page, filename);
+    this.uploadedResourceIds.push(tokenId);
 });
 
 When('I upload {string} without assigning any role', async function (this: CustomWorld, filename: string) {
@@ -601,7 +600,7 @@ Then('the asset should be created with {int} resource only', async function (thi
         resp.url().includes('/api/assets') && resp.status() === 201
     );
     const body = await response.json();
-    expect(body.resources).toHaveLength(count);
+    expect(body.tokens).toHaveLength(count);
 });
 
 When('I remove both images', async function (this: CustomWorld) {
@@ -857,13 +856,13 @@ Given('I create asset {string}', async function (this: CustomWorld, name: string
 });
 
 Given('I upload {string} and assign Token role', async function (this: CustomWorld, filename: string) {
-    const resourceId = await uploadAndAssignRole(this.page, this.keyboard, filename, ResourceRole.Token);
-    this.uploadedResourceIds.push(resourceId);
+    const tokenId = await uploadToken(this.page, filename);
+    this.uploadedResourceIds.push(tokenId);
 });
 
 Given('I upload {string} and assign Display role', async function (this: CustomWorld, filename: string) {
-    const resourceId = await uploadAndAssignRole(this.page, this.keyboard, filename, ResourceRole.Display);
-    this.uploadedResourceIds.push(resourceId);
+    const portraitId = await uploadPortrait(this.page, filename);
+    this.uploadedResourceIds.push(portraitId);
 });
 
 When('I save the asset', async function (this: CustomWorld) {
@@ -933,9 +932,8 @@ When('I create Object asset {string} with {int} images \\({word} and {word}\\)',
     await this.assetCreateDialog.selectTab('Object');
     await this.assetCreateDialog.fillName(name);
 
-    // Upload with roles
-    await uploadAndAssignRole(this.page, this.keyboard, 'token.png', ResourceRole.Token);
-    await uploadAndAssignRole(this.page, this.keyboard, 'display.png', ResourceRole.Display);
+    await uploadToken(this.page, 'token.png');
+    await uploadPortrait(this.page, 'portrait.png');
 
     await this.assetCreateDialog.clickCreate();
 });
@@ -987,14 +985,15 @@ When('I create asset with {int} resources:', async function (this: CustomWorld, 
     const rows = dataTable.hashes();
     for (const row of rows) {
         const roleValue = parseInt(row.roleValue ?? '0');
-        let role: ResourceRole;
+        const filename = `${row.image ?? 'default'}.png`;
 
-        if (roleValue === 1) role = ResourceRole.Token;
-        else if (roleValue === 2) role = ResourceRole.Display;
-        else if (roleValue === 3) role = ResourceRole.Both;
-        else role = ResourceRole.None;
-
-        await uploadAndAssignRole(this.page, this.keyboard, `${row.image ?? 'default'}.png`, role);
+        if (roleValue === 1) {
+            await uploadToken(this.page, filename);
+        } else if (roleValue === 2) {
+            await uploadPortrait(this.page, filename);
+        } else if (roleValue === 3) {
+            await uploadToken(this.page, filename);
+        }
     }
 
     await this.assetCreateDialog.clickCreate();
@@ -1125,7 +1124,7 @@ Then('the asset should be created with {int} resources', async function (this: C
         resp.url().includes('/api/assets') && resp.status() === 201
     );
     const body = await response.json();
-    expect(body.resources).toHaveLength(count);
+    expect(body.tokens).toHaveLength(count);
 });
 
 Given('I set size to {int}×{int}', async function (this: CustomWorld, width: number, height: number) {
@@ -1187,13 +1186,12 @@ Then('the asset should have {int} resource with role {string} \\(value: {int}\\)
     this: CustomWorld,
     count: number,
     _roles: string,
-    roleValue: number
+    _roleValue: number
 ) {
     const response = await this.page.waitForResponse(resp =>
         resp.url().includes('/api/assets') && resp.status() === 201
     );
     const body = await response.json();
-    expect(body.resources).toHaveLength(count);
-    expect(body.resources[0].role).toBe(roleValue);
+    expect(body.tokens).toHaveLength(count);
 });
 

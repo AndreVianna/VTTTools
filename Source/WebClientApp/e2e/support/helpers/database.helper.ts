@@ -22,7 +22,6 @@ const ALLOWED_TABLES = [
     'RoleClaims',
     // Asset tables
     'Assets',
-    'AssetResources',  // Join table for Asset-Resource many-to-many
     // Library tables
     'Adventures',
     'Campaigns',
@@ -128,51 +127,73 @@ export class DatabaseHelper {
     }
 
     /**
-     * Verify asset resource count
+     * Verify asset token count (NEW SCHEMA)
      */
-    async verifyAssetResourceCount(assetId: string, expectedCount: number): Promise<void> {
-        const records = await this.queryTable('Assets', { AssetId: assetId });
+    async verifyAssetTokenCount(assetId: string, expectedCount: number): Promise<void> {
+        const [asset] = await this.queryTable('Assets', { Id: assetId });
 
-        if (records.length !== expectedCount) {
+        if (!asset) {
+            throw new Error(`Asset with ID ${assetId} not found in database`);
+        }
+
+        const tokens = asset.Tokens ? JSON.parse(asset.Tokens) : [];
+
+        if (tokens.length !== expectedCount) {
             throw new Error(
-                `Asset resource count mismatch: expected ${expectedCount}, got ${records.length}`
+                `Asset token count mismatch: expected ${expectedCount}, got ${tokens.length}`
             );
         }
     }
 
     /**
-     * Verify asset resource roles
+     * Verify asset has default token (NEW SCHEMA)
      */
-    async verifyAssetResourceRoles(assetId: string, expectedRoles: number[]): Promise<void> {
-        const records = await this.queryTable('Assets', { AssetId: assetId });
-        const actualRoles = records.map(r => r.Role).sort();
-        const sortedExpected = expectedRoles.sort();
+    async verifyAssetHasDefaultToken(assetId: string): Promise<void> {
+        const [asset] = await this.queryTable('Assets', { Id: assetId });
 
-        if (JSON.stringify(actualRoles) !== JSON.stringify(sortedExpected)) {
-            throw new Error(
-                `Asset resource roles mismatch: expected ${sortedExpected}, got ${actualRoles}`
-            );
+        if (!asset) {
+            throw new Error(`Asset with ID ${assetId} not found in database`);
+        }
+
+        const tokens = asset.Tokens ? JSON.parse(asset.Tokens) : [];
+        const hasDefault = tokens.some((t: any) => t.isDefault === true);
+
+        if (!hasDefault) {
+            throw new Error(`Asset ${assetId} has no default token`);
         }
     }
 
     /**
-     * Insert test asset into database
+     * Insert test asset into database (NEW SCHEMA)
      */
     async insertAsset(asset: Partial<any>): Promise<string> {
         const assetId = asset.id || this.generateGuidV7();
         const query = `
             INSERT INTO Assets
-            (Id, Name, OwnerId, Kind, IsPublic, IsPublished, CreatedAt, UpdatedAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (Id, Name, Description, OwnerId, Kind, IsPublic, IsPublished, Tokens, Portrait, Size, ObjectData, CreatureData, CreatedAt, UpdatedAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
+
+        const tokens = asset.tokens || [];
+        const portrait = asset.portrait || null;
+        const size = asset.size || { width: 1, height: 1, isSquare: true };
+
+        const objectData = asset.kind === 'Object' ? asset.properties : null;
+        const creatureData = asset.kind === 'Creature' ? asset.properties : null;
 
         const params = [
             assetId,
             asset.name,
+            asset.description || '',
             asset.ownerId,
             asset.kind || 'Object',
             asset.isPublic || false,
             asset.isPublished || false,
+            JSON.stringify(tokens),
+            portrait ? JSON.stringify(portrait) : null,
+            JSON.stringify(size),
+            objectData ? JSON.stringify(objectData) : null,
+            creatureData ? JSON.stringify(creatureData) : null,
             new Date(),
             new Date()
         ];
@@ -182,19 +203,15 @@ export class DatabaseHelper {
     }
 
     /**
-     * Clean up test assets and their resources
+     * Clean up test assets (NEW SCHEMA - no AssetResources join table)
      */
     async cleanupAssets(assetIds: string[]): Promise<void> {
         if (assetIds.length === 0) return;
 
         const placeholders = assetIds.map(() => '?').join(',');
-        const query = `
-            DELETE FROM AssetResources WHERE AssetId IN (${placeholders});
-            DELETE FROM Assets WHERE Id IN (${placeholders});
-        `;
+        const query = `DELETE FROM Assets WHERE Id IN (${placeholders})`;
 
-        // assetIds repeated twice
-        await this.executeQuery(query, [...assetIds, ...assetIds]);
+        await this.executeQuery(query, assetIds);
     }
 
     /**
@@ -221,7 +238,7 @@ export class DatabaseHelper {
     }
 
     /**
-     * Update asset properties
+     * Update asset properties (NEW SCHEMA)
      */
     async updateAsset(assetId: string, updates: Partial<any>): Promise<void> {
         const setClauses: string[] = [];
@@ -235,53 +252,41 @@ export class DatabaseHelper {
             setClauses.push('Description = ?');
             params.push(updates.description);
         }
-        if (updates.objectProps) {
-            setClauses.push('ObjectPropsJson = ?');
-            params.push(JSON.stringify(updates.objectProps));
+        if (updates.tokens) {
+            setClauses.push('Tokens = ?');
+            params.push(JSON.stringify(updates.tokens));
         }
-        if (updates.creatureProps) {
-            setClauses.push('CreaturePropsJson = ?');
-            params.push(JSON.stringify(updates.creatureProps));
+        if (updates.portrait !== undefined) {
+            setClauses.push('Portrait = ?');
+            params.push(updates.portrait ? JSON.stringify(updates.portrait) : null);
+        }
+        if (updates.size) {
+            setClauses.push('Size = ?');
+            params.push(JSON.stringify(updates.size));
+        }
+        if (updates.objectData) {
+            setClauses.push('ObjectData = ?');
+            params.push(JSON.stringify(updates.objectData));
+        }
+        if (updates.creatureData) {
+            setClauses.push('CreatureData = ?');
+            params.push(JSON.stringify(updates.creatureData));
         }
 
         setClauses.push('UpdatedAt = ?');
         params.push(new Date());
-        params.push(assetId); // WHERE Id = ?
+        params.push(assetId);
 
         const query = `UPDATE Assets SET ${setClauses.join(', ')} WHERE Id = ?`;
         await this.executeQuery(query, params);
     }
 
     /**
-     * Update asset ID (for pre-seeded test data)
+     * Update asset ID (for pre-seeded test data) - NEW SCHEMA
      */
     async updateAssetId(oldId: string, newId: string): Promise<void> {
-        const query = `
-            UPDATE AssetResources SET AssetId = ? WHERE AssetId = ?;
-            UPDATE Assets SET Id = ? WHERE Id = ?;
-        `;
-
-        await this.executeQuery(query, [newId, oldId, newId, oldId]);
-    }
-
-    /**
-     * Insert asset resource record into AssetResources join table
-     */
-    async insertAssetResource(assetId: string, resourceId: string, role: number): Promise<void> {
-        const query = `
-            INSERT INTO AssetResources (AssetId, ResourceId, Role)
-            VALUES (?, ?, ?)
-        `;
-
-        await this.executeQuery(query, [assetId, resourceId, role]);
-    }
-
-    /**
-     * Delete asset resource record from AssetResources join table
-     */
-    async deleteAssetResource(assetId: string, resourceId: string): Promise<void> {
-        const query = `DELETE FROM AssetResources WHERE AssetId = ? AND ResourceId = ?`;
-        await this.executeQuery(query, [assetId, resourceId]);
+        const query = `UPDATE Assets SET Id = ? WHERE Id = ?`;
+        await this.executeQuery(query, [newId, oldId]);
     }
 
     /**
@@ -727,12 +732,10 @@ export class DatabaseHelper {
     }
 
     /**
-     * Delete user and ALL their data (cascade cleanup)
-     * Based on actual schema (AssetResources is a separate join table)
+     * Delete user and ALL their data (cascade cleanup) - NEW SCHEMA
      */
     async deleteUserDataOnly(userId: string): Promise<void> {
         const query = `
-            DELETE FROM AssetResources WHERE AssetId IN (SELECT Id FROM Assets WHERE OwnerId = ?);
             DELETE FROM SceneAssets WHERE SceneId IN (SELECT Id FROM Scenes WHERE OwnerId = ?);
             DELETE FROM SceneEffects WHERE SceneId IN (SELECT Id FROM Scenes WHERE OwnerId = ?);
             DELETE FROM SceneStructures WHERE SceneId IN (SELECT Id FROM Scenes WHERE OwnerId = ?);
@@ -747,7 +750,7 @@ export class DatabaseHelper {
             DELETE FROM Schedule WHERE OwnerId = ?;
         `;
 
-        const params = Array(13).fill(userId);
+        const params = Array(12).fill(userId);
         await this.executeQuery(query, params);
     }
 

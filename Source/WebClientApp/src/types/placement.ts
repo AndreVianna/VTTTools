@@ -40,16 +40,15 @@ export interface PlacementBehavior {
 /**
  * Get placement behavior for an asset based on its kind and properties
  * @param assetKind Asset kind (Object | Creature)
- * @param objectProps Object properties (if Object asset)
- * @param creatureProps Creature properties (if Creature asset)
+ * @param objectData Object data (if Object asset)
+ * @param creatureData Creature data (if Creature asset)
  * @returns Placement behavior configuration
  */
 export const getPlacementBehavior = (
     assetKind: AssetKind,
-    objectProps?: { size: NamedSize; isMovable: boolean; isOpaque: boolean },
-    creatureProps?: { size: NamedSize; category: CreatureCategory }
+    objectData?: { size: NamedSize; isMovable: boolean; isOpaque: boolean },
+    creatureData?: { size: NamedSize; category: CreatureCategory }
 ): PlacementBehavior => {
-    // Default behavior for all assets
     const defaultBehavior: PlacementBehavior = {
         canMove: true,
         canRotate: true,
@@ -60,41 +59,39 @@ export const getPlacementBehavior = (
         snapToGrid: true,
         requiresGridAlignment: true,
         allowOverlap: false,
-        minSize: { width: 0.125, height: 0.125 }, // ⅛ cell (Miniscule)
-        maxSize: { width: 20, height: 20 }, // 20x20 cells (Gargantuan+)
+        minSize: { width: 0.125, height: 0.125 },
+        maxSize: { width: 20, height: 20 },
         lockAspectRatio: false,
         allowElevation: true,
         zIndexRange: [0, 100],
     };
 
-    // Object assets (walls, furniture, traps, etc.)
-    if (assetKind === 'Object' && objectProps) {
+    if (assetKind === 'Object' && objectData) {
         return {
             ...defaultBehavior,
-            canMove: objectProps.isMovable,
-            snapMode: objectProps.isMovable ? 'grid' : 'free',
+            canMove: objectData.isMovable,
+            snapMode: objectData.isMovable ? 'grid' : 'free',
             snapToGrid: true,
             requiresGridAlignment: false,
-            allowOverlap: false, // Objects cannot overlap (isOpaque is for vision, not collision)
-            lockAspectRatio: objectProps.size.isSquare,
+            allowOverlap: false,
+            lockAspectRatio: objectData.size.isSquare,
             zIndexRange: [10, 40],
         };
     }
 
-    // Creature assets (characters, monsters)
-    if (assetKind === 'Creature' && creatureProps) {
+    if (assetKind === 'Creature' && creatureData) {
         return {
             ...defaultBehavior,
             canMove: true,
-            canRotate: false, // Creatures typically don't rotate (tokens face forward)
-            canResize: false, // Creature size is fixed by stat block
+            canRotate: false,
+            canResize: false,
             snapMode: 'grid',
             snapToGrid: true,
-            requiresGridAlignment: true, // Creatures must align to grid
-            allowOverlap: false, // Creatures cannot overlap
-            lockAspectRatio: true, // Tokens are always square
-            allowElevation: false, // Future: flying creatures
-            zIndexRange: [50, 100], // Agents layer (characters and monsters)
+            requiresGridAlignment: true,
+            allowOverlap: false,
+            lockAspectRatio: true,
+            allowElevation: false,
+            zIndexRange: [50, 100],
         };
     }
 

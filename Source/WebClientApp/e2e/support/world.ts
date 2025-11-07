@@ -8,7 +8,7 @@ import { World, IWorldOptions, setWorldConstructor } from '@cucumber/cucumber';
 import { Browser, BrowserContext, Page, chromium, APIResponse } from '@playwright/test';
 import { AssetLibraryPage } from '../page-objects/pages/AssetLibraryPage.js';
 import { AssetCreateDialog } from '../page-objects/dialogs/AssetCreateDialog.js';
-import { AssetPreviewDialog } from '../page-objects/dialogs/AssetPreviewDialog.js';
+import { AssetEditDialog } from '../page-objects/dialogs/AssetEditDialog.js';
 import { DeleteConfirmDialog } from '../page-objects/dialogs/DeleteConfirmDialog.js';
 import { AssetResourceManager } from '../page-objects/components/AssetResourceManager.js';
 import { KeyboardModifierHelper } from './helpers/keyboard.helper.js';
@@ -31,7 +31,7 @@ export class CustomWorld extends World {
     // Page Objects
     assetLibrary!: AssetLibraryPage;
     assetCreateDialog!: AssetCreateDialog;
-    assetPreviewDialog!: AssetPreviewDialog;
+    assetEditDialog!: AssetEditDialog;
     deleteConfirmDialog!: DeleteConfirmDialog;
     assetResourceManager!: AssetResourceManager;
 
@@ -84,7 +84,7 @@ export class CustomWorld extends World {
         // Initialize page objects (lazy loading)
         this.assetLibrary = new AssetLibraryPage(this.page);
         this.assetCreateDialog = new AssetCreateDialog(this.page);
-        this.assetPreviewDialog = new AssetPreviewDialog(this.page);
+        this.assetEditDialog = new AssetEditDialog(this.page);
         this.deleteConfirmDialog = new DeleteConfirmDialog(this.page);
 
         // Initialize helpers

@@ -33,10 +33,10 @@ import {
     Category as CategoryIcon
 } from '@mui/icons-material';
 import { useGetAssetsQuery } from '@/services/assetsApi';
-import { Asset, AssetKind, CreatureCategory, CreatureAsset, ObjectAsset } from '@/types/domain';
-import { AssetFilterPanel, AssetFilters, AssetSearchBar, AssetPreviewDialog, AssetCreateDialog } from '@/components/assets';
+import { Asset, AssetKind, CreatureCategory, CreatureAsset } from '@/types/domain';
+import { AssetFilterPanel, AssetFilters, AssetSearchBar, AssetEditDialog, AssetCreateDialog } from '@/components/assets';
 import { useDebounce } from '@/hooks/useDebounce';
-import { getFirstTokenResource, getResourceUrl } from '@/utils/assetHelpers';
+import { getDefaultToken, getResourceUrl } from '@/utils/assetHelpers';
 
 /**
  * Asset Library Page Component
@@ -385,7 +385,7 @@ export const AssetLibraryPage: React.FC = () => {
                                                 }}
                                             >
                                             {(() => {
-                                                const tokenResource = getFirstTokenResource(asset);
+                                                const tokenResource = getDefaultToken(asset);
                                                 return tokenResource ? (
                                                     <img
                                                         src={getResourceUrl(tokenResource.resourceId)}
@@ -408,12 +408,12 @@ export const AssetLibraryPage: React.FC = () => {
                                     <CardContent sx={{ pt: 1, pb: 1, flexGrow: 1 }}>
                                         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', minHeight: '24px' }}>
                                             {/* Creature Category Badge (only for Creatures) */}
-                                            {asset.kind === AssetKind.Creature && (asset as CreatureAsset).creatureProps && (
+                                            {asset.kind === AssetKind.Creature && (asset as CreatureAsset).properties && (
                                                 <Chip
-                                                    label={(asset as CreatureAsset).creatureProps.category}
+                                                    label={(asset as CreatureAsset).properties.category}
                                                     size="small"
                                                     sx={{
-                                                        bgcolor: getCreatureCategoryColor((asset as CreatureAsset).creatureProps.category),
+                                                        bgcolor: getCreatureCategoryColor((asset as CreatureAsset).properties.category),
                                                         color: 'white',
                                                         fontSize: '0.7rem'
                                                     }}
@@ -436,11 +436,9 @@ export const AssetLibraryPage: React.FC = () => {
                                     {/* Card Actions */}
                                     <CardActions sx={{ pt: 0, px: 2, pb: 2 }}>
                                         <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
-                                            {asset.kind === AssetKind.Object && (asset as ObjectAsset).objectProps
-                                                ? `${(asset as ObjectAsset).objectProps.size.width}×${(asset as ObjectAsset).objectProps.size.height} cells`
-                                                : asset.kind === AssetKind.Creature && (asset as CreatureAsset).creatureProps
-                                                    ? `${(asset as CreatureAsset).creatureProps.size.width}×${(asset as CreatureAsset).creatureProps.size.width} cells`
-                                                    : ''
+                                            {asset.size
+                                                ? `${asset.size.width}×${asset.size.height} cells`
+                                                : ''
                                             }
                                         </Typography>
                                         <Typography variant="caption" color="text.secondary">
@@ -471,9 +469,9 @@ export const AssetLibraryPage: React.FC = () => {
                 </Grid>
             </Grid>
 
-            {/* Asset Preview Dialog */}
+            {/* Asset Edit Dialog */}
             {selectedAsset && (
-                <AssetPreviewDialog
+                <AssetEditDialog
                     key={selectedAsset.id}
                     open={previewOpen}
                     asset={selectedAsset}

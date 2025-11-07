@@ -82,7 +82,7 @@ export const AssetContextMenu: React.FC<AssetContextMenuProps> = ({
         <>
             <Menu
                 anchorReference="anchorPosition"
-                anchorPosition={anchorPosition ?? undefined}
+                anchorPosition={anchorPosition ?? { left: 0, top: 0 }}
                 open={open}
                 onClose={onClose}
                 transformOrigin={{ vertical: 'top', horizontal: 'left' }}

@@ -9,7 +9,6 @@ import {
   Paper,
   Avatar,
   IconButton,
-  Divider,
   Stack,
   InputAdornment,
   Tooltip,
@@ -57,13 +56,13 @@ export const ProfileSettings: React.FC = () => {
   const [editedValues, setEditedValues] = useState<{
     name?: string;
     displayName?: string;
-    phoneNumber?: string;
+    phoneNumber?: string | undefined;
   }>({});
 
   const [validationErrors, setValidationErrors] = useState<{
     name?: string;
     displayName?: string;
-    phoneNumber?: string;
+    phoneNumber?: string | undefined;
   }>({});
 
   const [localError, setLocalError] = useState<string | null>(null);
@@ -125,7 +124,7 @@ export const ProfileSettings: React.FC = () => {
       const updates: {
         name?: string;
         displayName?: string;
-        phoneNumber?: string;
+        phoneNumber?: string | undefined;
       } = {};
 
       if (formData.name !== profileData?.name) updates.name = formData.name;

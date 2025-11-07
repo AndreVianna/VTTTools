@@ -1,11 +1,12 @@
 /**
- * Asset Preview Dialog Page Object
+ * Asset Edit Dialog Page Object
+ * Multi-modal dialog supporting view, edit, and delete operations
  */
 
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from '../base/BasePage.js';
 
-export class AssetPreviewDialog extends BasePage {
+export class AssetEditDialog extends BasePage {
     readonly dialog = (): Locator => this.page.locator('[role="dialog"]');
     readonly editButton = (): Locator => this.page.locator('button:has-text("Edit")');
     readonly deleteButton = (): Locator => this.page.locator('button:has-text("Delete")');
