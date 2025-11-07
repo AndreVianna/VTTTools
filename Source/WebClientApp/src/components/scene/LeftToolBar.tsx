@@ -41,14 +41,14 @@ export type PanelType =
 export interface LeftToolBarProps {
   activePanel?: string | null;
   onPanelChange?: (panel: PanelType | null) => void;
-  backgroundUrl?: string;
-  isUploadingBackground?: boolean;
+  backgroundUrl?: string | undefined;
+  isUploadingBackground?: boolean | undefined;
   onBackgroundUpload?: (file: File) => void;
-  gridConfig?: GridConfig;
+  gridConfig?: GridConfig | undefined;
   onGridChange?: (grid: GridConfig) => void;
-  sceneId?: string;
-  sceneWalls?: SceneWall[];
-  selectedWallIndex?: number | null;
+  sceneId?: string | undefined;
+  sceneWalls?: SceneWall[] | undefined;
+  selectedWallIndex?: number | null | undefined;
   onWallSelect?: (wallIndex: number | null) => void;
   onWallDelete?: (wallIndex: number) => void;
   onPlaceWall?: (properties: {
@@ -58,8 +58,8 @@ export interface LeftToolBarProps {
     defaultHeight: number;
   }) => void;
   onEditVertices?: (wallIndex: number) => void;
-  placedAssets?: PlacedAsset[];
-  selectedAssetIds?: string[];
+  placedAssets?: PlacedAsset[] | undefined;
+  selectedAssetIds?: string[] | undefined;
   onAssetSelectForPlacement?: (asset: Asset) => void;
   onPlacedAssetSelect?: (assetId: string, isCtrlPressed: boolean) => void;
   onPlacedAssetDelete?: (assetId: string) => void;

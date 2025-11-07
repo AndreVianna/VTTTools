@@ -78,6 +78,8 @@ const createMockPlacedAsset = (id: string, assetId: string): PlacedAsset => ({
     index: 0,
     number: 1,
     name: `Asset ${id}`,
+    visible: true,
+    locked: false,
     displayName: DisplayName.Always,
     labelPosition: LabelPosition.Bottom,
 });

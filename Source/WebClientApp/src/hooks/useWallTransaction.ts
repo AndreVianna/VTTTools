@@ -86,8 +86,8 @@ export const useWallTransaction = () => {
             name?: string;
             visibility?: WallVisibility;
             isClosed?: boolean;
-            material?: string;
-            color?: string;
+            material?: string | undefined;
+            color?: string | undefined;
         }
     ) => {
         if (wall) {

@@ -27,7 +27,7 @@ export interface TokenPlacementProps {
     /** Callback when new asset is placed */
     onAssetPlaced: (asset: PlacedAsset) => void;
     /** Callback when asset is moved */
-    onAssetMoved: (assetId: string, position: { x: number; y: number }) => void;
+    onAssetMoved: (moves: Array<{ assetId: string; oldPosition: { x: number; y: number }; newPosition: { x: number; y: number } }>) => void;
     /** Callback when asset is deleted */
     onAssetDeleted: (assetId: string) => void;
     /** Current grid configuration */
@@ -232,7 +232,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     onImagesLoaded,
     snapMode,
     onContextMenu,
-    scene,
 }) => {
     const theme = useTheme();
     const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | null>(null);
@@ -441,6 +440,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
             index: placedAssets.length,
             number: 1,
             name: draggedAsset.name,
+            visible: true,
+            locked: false,
             displayName: DisplayNameEnum.Default,
             labelPosition: LabelPositionEnum.Default
         };

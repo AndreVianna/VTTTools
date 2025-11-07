@@ -22,7 +22,7 @@ import type { Scene } from '@/types/domain';
 
 interface EditorLayoutProps {
   children: React.ReactNode;
-  scene?: Scene;
+  scene?: Scene | undefined;
   onSceneNameChange?: (name: string) => void;
   onBackClick?: () => void;
   onSceneDescriptionChange?: (description: string) => void;

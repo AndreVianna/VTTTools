@@ -77,17 +77,17 @@ export interface WallTransformerProps {
     poles: Pole[];
     isClosed?: boolean;
     onPolesChange?: (poles: Pole[], isClosed?: boolean) => void;
-    gridConfig?: GridConfig;
-    snapEnabled?: boolean;
-    snapMode?: SnapMode;
+    gridConfig?: GridConfig | undefined;
+    snapEnabled?: boolean | undefined;
+    snapMode?: SnapMode | undefined;
     onClearSelections?: () => void;
-    isAltPressed?: boolean;
-    sceneId?: string;
-    wallIndex?: number;
-    wall?: SceneWall;
+    isAltPressed?: boolean | undefined;
+    sceneId?: string | undefined;
+    wallIndex?: number | undefined;
+    wall?: SceneWall | undefined;
     onWallBreak?: (breakData: WallBreakData) => void | Promise<void>;
-    enableBackgroundRect?: boolean;
-    wallTransaction?: ReturnType<typeof useWallTransaction>;
+    enableBackgroundRect?: boolean | undefined;
+    wallTransaction?: ReturnType<typeof useWallTransaction> | undefined;
 }
 
 export const WallTransformer: React.FC<WallTransformerProps> = ({
@@ -116,7 +116,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     const [marqueeEnd, setMarqueeEnd] = useState<{ x: number; y: number } | null>(null);
     const [draggingLine, setDraggingLine] = useState<number | null>(null);
     const dragStartPositionRef = useRef<{ x: number; y: number } | null>(null);
-    const lineDragStartRef = useRef<{ mouseX: number; mouseY: number; pole1: { x: number; y: number }; pole2: { x: number; y: number } } | null>(null);
+    const lineDragStartRef = useRef<{ mouseX: number; mouseY: number; pole1: { x: number; y: number; h: number }; pole2: { x: number; y: number; h: number } } | null>(null);
     const circleRefs = useRef<Map<number, any>>(new Map());
     const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
     const [insertPreviewPos, setInsertPreviewPos] = useState<{x: number; y: number} | null>(null);
@@ -636,10 +636,10 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                                 const action = createMoveLineAction(
                                     draggingLine,
                                     draggingLine + 1,
-                                    lineDragStartRef.current.pole1,
-                                    lineDragStartRef.current.pole2,
-                                    { x: newPole1X, y: newPole1Y },
-                                    { x: newPole2X, y: newPole2Y },
+                                    { x: lineDragStartRef.current.pole1.x, y: lineDragStartRef.current.pole1.y, h: lineDragStartRef.current.pole1.h },
+                                    { x: lineDragStartRef.current.pole2.x, y: lineDragStartRef.current.pole2.y, h: lineDragStartRef.current.pole2.h },
+                                    { x: newPole1X, y: newPole1Y, h: lineDragStartRef.current.pole1.h },
+                                    { x: newPole2X, y: newPole2Y, h: lineDragStartRef.current.pole2.h },
                                     (updatedPoles) => onPolesChange?.(updatedPoles, isClosed),
                                     () => {
                                         let currentPoles: Pole[] = [];
@@ -744,8 +744,8 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                                         lineDragStartRef.current = {
                                             mouseX: worldPos.x,
                                             mouseY: worldPos.y,
-                                            pole1: { x: pole.x, y: pole.y },
-                                            pole2: { x: nextPole.x, y: nextPole.y }
+                                            pole1: { x: pole.x, y: pole.y, h: pole.h },
+                                            pole2: { x: nextPole.x, y: nextPole.y, h: nextPole.h }
                                         };
 
                                         const container = stage.container();

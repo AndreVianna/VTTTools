@@ -1150,8 +1150,8 @@ const SceneEditorPageInternal: React.FC = () => {
 
                             if (segments.length === 1) {
                                 syncedScene = updateWallOptimistic(syncedScene, selectedWallIndex, {
-                                    poles: segments[0].poles,
-                                    isClosed: segments[0].isClosed
+                                    poles: segments[0]!.poles,
+                                    isClosed: segments[0]!.isClosed
                                 });
                             } else {
                                 const mainSegment = segments.find(s => s.wallIndex === selectedWallIndex || s.tempId === 0);
@@ -1185,8 +1185,8 @@ const SceneEditorPageInternal: React.FC = () => {
 
                             if (segments.length === 1) {
                                 syncedScene = updateWallOptimistic(syncedScene, selectedWallIndex, {
-                                    poles: segments[0].poles,
-                                    isClosed: segments[0].isClosed
+                                    poles: segments[0]!.poles,
+                                    isClosed: segments[0]!.isClosed
                                 });
                             } else {
                                 segments.forEach(segment => {
@@ -1197,7 +1197,7 @@ const SceneEditorPageInternal: React.FC = () => {
                                         });
                                     } else if (segment.wallIndex === null) {
                                         const existingWall = syncedScene.walls?.find(w => w.index === segment.tempId);
-                                        if (!existingWall && selectedWall) {
+                                        if (sceneId && !existingWall && selectedWall) {
                                             const tempWall: SceneWall = {
                                                 sceneId,
                                                 index: segment.tempId,
@@ -1679,7 +1679,7 @@ const SceneEditorPageInternal: React.FC = () => {
         const wallNumbers = existingWalls
             .map(w => {
                 const match = w.name.match(/^Wall (\d+)$/);
-                return match ? parseInt(match[1], 10) : null;
+                return match ? parseInt(match[1]!, 10) : null;
             })
             .filter((n): n is number => n !== null);
 

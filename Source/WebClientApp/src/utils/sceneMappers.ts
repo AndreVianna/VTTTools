@@ -54,6 +54,8 @@ export async function hydratePlacedAssets(
                 index: sceneAssetAny.index !== undefined ? sceneAssetAny.index : index,
                 number: sceneAssetAny.number !== undefined ? sceneAssetAny.number : 1,
                 name: sceneAssetAny.name || asset.name,
+                visible: sceneAssetAny.visible !== undefined ? sceneAssetAny.visible : true,
+                locked: sceneAssetAny.locked !== undefined ? sceneAssetAny.locked : false,
                 displayName: sceneAssetAny.displayName || DisplayNameEnum.Default,
                 labelPosition: sceneAssetAny.labelPosition || LabelPositionEnum.Default
             };

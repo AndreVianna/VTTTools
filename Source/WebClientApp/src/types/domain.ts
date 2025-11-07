@@ -156,6 +156,8 @@ export interface PlacedAsset {
   index: number; // Backend Index property - scene-wide unique identifier (never reused)
   number: number; // Backend Number property - per-asset-type counter (e.g., "Goblin #3")
   name: string;
+  visible: boolean;
+  locked: boolean;
   displayName: DisplayName;
   labelPosition: LabelPosition;
 }
@@ -183,7 +185,7 @@ export const applyAssetSnapshot = (
   position: { ...snapshot.position },
   size: { ...snapshot.size },
   rotation: snapshot.rotation,
-  layer: snapshot.layer
+  layer: snapshot.layer,
 });
 
 // Structure Types (from Domain.Library.Scenes.Model)

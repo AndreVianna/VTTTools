@@ -38,8 +38,6 @@ describe('TokenDragHandle Logic Tests', () => {
             isPublished: true,
             isPublic: false,
             resources: [],
-            createdAt: '2025-10-19T00:00:00Z',
-            updatedAt: '2025-10-19T00:00:00Z',
             properties: {
                 size: { width: 1, height: 1, isSquare: true },
                 category: 0,
