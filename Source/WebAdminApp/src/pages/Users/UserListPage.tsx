@@ -59,7 +59,7 @@ export function UserListPage() {
 
     useEffect(() => {
         loadUsers(true);
-    }, [search, roleFilter, statusFilter, sortBy, sortOrder]);
+    }, [search, roleFilter, statusFilter, sortBy, sortOrder, loadUsers]);
 
     const loadStats = async () => {
         try {

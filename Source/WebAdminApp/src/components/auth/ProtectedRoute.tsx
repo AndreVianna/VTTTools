@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { useAppSelector, useAppDispatch } from '@store/hooks';
@@ -21,9 +21,11 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }, [dispatch, isAuthenticated, user]);
 
+  /* eslint-disable react-hooks/refs */
   const isCheckingAuth = token && !isAuthenticated && !checkedRef.current;
 
   if (isLoading || isCheckingAuth) {
+  /* eslint-enable react-hooks/refs */
     return (
       <Box
         id="loading-admin-auth"

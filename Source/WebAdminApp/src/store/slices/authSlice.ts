@@ -16,6 +16,7 @@ const saveTokenToStorage = (token: string): void => {
     try {
         localStorage.setItem(TOKEN_STORAGE_KEY, token);
     } catch {
+        // Silently ignore localStorage errors
     }
 };
 
@@ -23,6 +24,7 @@ const removeTokenFromStorage = (): void => {
     try {
         localStorage.removeItem(TOKEN_STORAGE_KEY);
     } catch {
+        // Silently ignore localStorage errors
     }
 };
 

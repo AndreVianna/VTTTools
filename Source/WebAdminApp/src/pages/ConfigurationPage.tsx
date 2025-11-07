@@ -63,7 +63,7 @@ export function ConfigurationPage() {
                 setError(null);
                 const response = await configurationService.getConfiguration(selectedService);
                 setConfiguration(response);
-            } catch (err) {
+            } catch {
                 setError('Failed to load configuration. Please try again.');
                 setConfiguration(null);
             } finally {

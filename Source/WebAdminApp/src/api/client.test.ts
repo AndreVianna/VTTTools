@@ -99,7 +99,7 @@ describe('API Client', () => {
 
         try {
             await apiClient.get('/api/admin/test');
-        } catch (error) {
+        } catch {
             expect(window.location.href).toBe('/login');
         }
     });

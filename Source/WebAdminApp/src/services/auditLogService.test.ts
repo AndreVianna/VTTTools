@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import MockAdapter from 'axios-mock-adapter';
 import apiClient from '@api/client';
 import { auditLogService, type AuditLog, type AuditLogQueryParams } from './auditLogService';

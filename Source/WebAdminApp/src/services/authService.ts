@@ -35,6 +35,7 @@ export const authService = {
     try {
       await apiClient.post(`${API_BASE}/logout`, {});
     } catch {
+      // Silently ignore logout errors
     }
   },
 
@@ -42,7 +43,7 @@ export const authService = {
     try {
       const response = await apiClient.get<AdminUser>(`${API_BASE}/me`);
       return response.data;
-    } catch (error) {
+    } catch {
       return null;
     }
   },
@@ -51,7 +52,7 @@ export const authService = {
     try {
       const response = await apiClient.get(`${API_BASE}/session`);
       return response.status === 200;
-    } catch (error) {
+    } catch {
       return false;
     }
   },
