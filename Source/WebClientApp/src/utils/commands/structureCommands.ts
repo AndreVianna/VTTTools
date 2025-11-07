@@ -3,14 +3,14 @@ import type { SceneWall, SceneRegion, SceneSource, Point } from '@/types/domain'
 
 export interface PlaceWallCommandParams {
     sceneId: string;
-    WallId: string;
+    id: number;
     vertices: Point[];
-    placeWallFn: (sceneId: string, WallId: string, vertices: Point[]) => Promise<SceneWall>;
-    removeWallFn: (sceneId: string, sceneWallId: string) => Promise<void>;
+    placeWallFn: (sceneId: string, id: number, vertices: Point[]) => Promise<SceneWall>;
+    removeWallFn: (sceneId: string, id: number) => Promise<void>;
 }
 
 export class PlaceWallCommand implements Command {
-    private sceneWallId?: string;
+    private id?: number;
     private executePromise?: Promise<void>;
     description: string;
 
@@ -22,17 +22,17 @@ export class PlaceWallCommand implements Command {
         this.executePromise = (async () => {
             const sceneWall = await this.params.placeWallFn(
                 this.params.sceneId,
-                this.params.WallId,
+                this.params.id,
                 this.params.vertices
             );
-            this.sceneWallId = sceneWall.id;
+            this.id = sceneWall.index;
         })();
     }
 
     async undo(): Promise<void> {
         await this.executePromise;
-        if (this.sceneWallId) {
-            await this.params.removeWallFn(this.params.sceneId, this.sceneWallId);
+        if (this.id) {
+            await this.params.removeWallFn(this.params.sceneId, this.id);
         }
     }
 }
@@ -40,8 +40,8 @@ export class PlaceWallCommand implements Command {
 export interface RemoveWallCommandParams {
     sceneId: string;
     sceneWall: SceneWall;
-    placeWallFn: (sceneId: string, WallId: string, vertices: Point[]) => Promise<SceneWall>;
-    removeWallFn: (sceneId: string, sceneWallId: string) => Promise<void>;
+    placeWallFn: (sceneId: string, id: number, vertices: Point[]) => Promise<SceneWall>;
+    removeWallFn: (sceneId: string, id: number) => Promise<void>;
 }
 
 export class RemoveWallCommand implements Command {
@@ -53,30 +53,30 @@ export class RemoveWallCommand implements Command {
     }
 
     execute(): void {
-        this.executePromise = this.params.removeWallFn(this.params.sceneId, this.params.sceneWall.id);
+        this.executePromise = this.params.removeWallFn(this.params.sceneId, this.params.sceneWall.index);
     }
 
     async undo(): Promise<void> {
         await this.executePromise;
         await this.params.placeWallFn(
             this.params.sceneId,
-            this.params.sceneWall.WallId,
-            this.params.sceneWall.vertices
+            this.params.sceneWall.index,
+            this.params.sceneWall.poles
         );
     }
 }
 
 export interface PlaceRegionCommandParams {
     sceneId: string;
-    regionId: string;
+    id: number;
     vertices: Point[];
     value: number;
-    placeRegionFn: (sceneId: string, regionId: string, vertices: Point[], value: number) => Promise<SceneRegion>;
-    removeRegionFn: (sceneId: string, sceneRegionId: string) => Promise<void>;
+    placeRegionFn: (sceneId: string, id: number, vertices: Point[], value: number) => Promise<SceneRegion>;
+    removeRegionFn: (sceneId: string, id: number) => Promise<void>;
 }
 
 export class PlaceRegionCommand implements Command {
-    private sceneRegionId?: string;
+    private id?: number;
     private executePromise?: Promise<void>;
     description: string;
 
@@ -88,18 +88,18 @@ export class PlaceRegionCommand implements Command {
         this.executePromise = (async () => {
             const sceneRegion = await this.params.placeRegionFn(
                 this.params.sceneId,
-                this.params.regionId,
+                this.params.id,
                 this.params.vertices,
                 this.params.value
             );
-            this.sceneRegionId = sceneRegion.id;
+            this.id = sceneRegion.index;
         })();
     }
 
     async undo(): Promise<void> {
         await this.executePromise;
-        if (this.sceneRegionId) {
-            await this.params.removeRegionFn(this.params.sceneId, this.sceneRegionId);
+        if (this.id) {
+            await this.params.removeRegionFn(this.params.sceneId, this.id);
         }
     }
 }
@@ -107,8 +107,8 @@ export class PlaceRegionCommand implements Command {
 export interface RemoveRegionCommandParams {
     sceneId: string;
     sceneRegion: SceneRegion;
-    placeRegionFn: (sceneId: string, regionId: string, vertices: Point[], value: number) => Promise<SceneRegion>;
-    removeRegionFn: (sceneId: string, sceneRegionId: string) => Promise<void>;
+    placeRegionFn: (sceneId: string, id: number, vertices: Point[], value: number | undefined) => Promise<SceneRegion>;
+    removeRegionFn: (sceneId: string, id: number) => Promise<void>;
 }
 
 export class RemoveRegionCommand implements Command {
@@ -120,14 +120,14 @@ export class RemoveRegionCommand implements Command {
     }
 
     execute(): void {
-        this.executePromise = this.params.removeRegionFn(this.params.sceneId, this.params.sceneRegion.id);
+        this.executePromise = this.params.removeRegionFn(this.params.sceneId, this.params.sceneRegion.index);
     }
 
     async undo(): Promise<void> {
         await this.executePromise;
         await this.params.placeRegionFn(
             this.params.sceneId,
-            this.params.sceneRegion.regionId,
+            this.params.sceneRegion.index,
             this.params.sceneRegion.vertices,
             this.params.sceneRegion.value
         );
@@ -136,24 +136,24 @@ export class RemoveRegionCommand implements Command {
 
 export interface PlaceSourceCommandParams {
     sceneId: string;
-    sourceId: string;
+    id: number;
     position: Point;
     range?: number;
     intensity?: number;
-    isGradient?: boolean;
+    hasGradient?: boolean;
     placeSourceFn: (
         sceneId: string,
-        sourceId: string,
+        id: number,
         position: Point,
         range?: number,
         intensity?: number,
-        isGradient?: boolean
+        hasGradient?: boolean
     ) => Promise<SceneSource>;
-    removeSourceFn: (sceneId: string, sceneSourceId: string) => Promise<void>;
+    removeSourceFn: (sceneId: string, id: number) => Promise<void>;
 }
 
 export class PlaceSourceCommand implements Command {
-    private sceneSourceId?: string;
+    private id?: number;
     private executePromise?: Promise<void>;
     description: string;
 
@@ -165,20 +165,20 @@ export class PlaceSourceCommand implements Command {
         this.executePromise = (async () => {
             const sceneSource = await this.params.placeSourceFn(
                 this.params.sceneId,
-                this.params.sourceId,
+                this.params.id,
                 this.params.position,
                 this.params.range,
                 this.params.intensity,
-                this.params.isGradient
+                this.params.hasGradient
             );
-            this.sceneSourceId = sceneSource.id;
+            this.id = sceneSource.index;
         })();
     }
 
     async undo(): Promise<void> {
         await this.executePromise;
-        if (this.sceneSourceId) {
-            await this.params.removeSourceFn(this.params.sceneId, this.sceneSourceId);
+        if (this.id) {
+            await this.params.removeSourceFn(this.params.sceneId, this.id);
         }
     }
 }
@@ -188,13 +188,13 @@ export interface RemoveSourceCommandParams {
     sceneSource: SceneSource;
     placeSourceFn: (
         sceneId: string,
-        sourceId: string,
+        id: number,
         position: Point,
         range?: number,
         intensity?: number,
-        isGradient?: boolean
+        hasGradient?: boolean
     ) => Promise<SceneSource>;
-    removeSourceFn: (sceneId: string, sceneSourceId: string) => Promise<void>;
+    removeSourceFn: (sceneId: string, id: number) => Promise<void>;
 }
 
 export class RemoveSourceCommand implements Command {
@@ -206,18 +206,18 @@ export class RemoveSourceCommand implements Command {
     }
 
     execute(): void {
-        this.executePromise = this.params.removeSourceFn(this.params.sceneId, this.params.sceneSource.id);
+        this.executePromise = this.params.removeSourceFn(this.params.sceneId, this.params.sceneSource.index);
     }
 
     async undo(): Promise<void> {
         await this.executePromise;
         await this.params.placeSourceFn(
             this.params.sceneId,
-            this.params.sceneSource.sourceId,
+            this.params.sceneSource.index,
             this.params.sceneSource.position,
             this.params.sceneSource.range,
             this.params.sceneSource.intensity,
-            this.params.sceneSource.isGradient
+            this.params.sceneSource.hasGradient
         );
     }
 }
