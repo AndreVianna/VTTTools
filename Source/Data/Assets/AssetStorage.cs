@@ -21,6 +21,7 @@ public class AssetStorage(ApplicationDbContext context)
         var entity = await context.Assets
                     .Include(a => a.Tokens)
                         .ThenInclude(ar => ar.Token)
+                    .Include(a => a.Portrait)
                   .AsNoTrackingWithIdentityResolution()
                   .FirstOrDefaultAsync(a => a.Id == id, ct);
         return entity?.ToModel();
@@ -31,6 +32,7 @@ public class AssetStorage(ApplicationDbContext context)
         var entity = await context.Assets
                     .Include(a => a.Tokens)
                         .ThenInclude(ar => ar.Token)
+                    .Include(a => a.Portrait)
                   .AsNoTrackingWithIdentityResolution()
                   .FirstOrDefaultAsync(a => a.Name == name && a.OwnerId == ownerId, ct);
         return entity?.ToModel();

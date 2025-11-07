@@ -56,11 +56,11 @@ const getTokenImageUrl = (asset: Asset): string | null => {
     const defaultToken = asset.tokens.find(t => t.isDefault);
 
     if (defaultToken) {
-        return `${mediaBaseUrl}/${defaultToken.tokenId}`;
+        return `${mediaBaseUrl}/${defaultToken.token.id}`;
     }
 
     if (asset.tokens.length > 0) {
-        return `${mediaBaseUrl}/${asset.tokens[0].tokenId}`;
+        return `${mediaBaseUrl}/${asset.tokens[0]!.token.id}`;
     }
 
     if (asset.portrait) {

@@ -248,7 +248,7 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
                                                 height="120"
                                                 image={(() => {
                                                     const defaultToken = getDefaultToken(asset);
-                                                    const tokenId = defaultToken?.tokenId || asset.tokens?.[0]?.tokenId;
+                                                    const tokenId = defaultToken?.token.id || asset.tokens?.[0]?.token.id;
                                                     return tokenId ? getResourceUrl(tokenId) : 'https://via.placeholder.com/100/CCCCCC/FFFFFF?text=No+Image';
                                                 })()}
                                                 alt={asset.name}

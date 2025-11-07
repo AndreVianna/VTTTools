@@ -6,7 +6,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { getDefaultToken, getPortrait, getResourceUrl } from './assetHelpers';
-import { mockCreatureAsset, mockAssetWithPortrait, mockAssetWithMultipleTokens, mockAssetToken } from '@/test-utils/assetMocks';
+import { mockCreatureAsset, mockAssetWithPortrait, mockAssetWithMultipleTokens, mockAssetToken, mockMediaResource } from '@/test-utils/assetMocks';
 
 describe('assetHelpers', () => {
     describe('getDefaultToken', () => {
@@ -17,14 +17,14 @@ describe('assetHelpers', () => {
 
             expect(result).toBeDefined();
             expect(result?.isDefault).toBe(true);
-            expect(result?.tokenId).toBe('token-2');
+            expect(result?.token.id).toBe('token-2');
         });
 
         it('should return undefined when no default token exists', () => {
             const asset = mockCreatureAsset({
                 tokens: [
-                    mockAssetToken({ tokenId: 'token-1', isDefault: false }),
-                    mockAssetToken({ tokenId: 'token-2', isDefault: false })
+                    mockAssetToken({ token: mockMediaResource({ id: 'token-1' }), isDefault: false }),
+                    mockAssetToken({ token: mockMediaResource({ id: 'token-2' }), isDefault: false })
                 ]
             });
 
@@ -44,16 +44,16 @@ describe('assetHelpers', () => {
         it('should return first default token when multiple defaults exist', () => {
             const asset = mockCreatureAsset({
                 tokens: [
-                    mockAssetToken({ tokenId: 'token-1', isDefault: true }),
-                    mockAssetToken({ tokenId: 'token-2', isDefault: true }),
-                    mockAssetToken({ tokenId: 'token-3', isDefault: false })
+                    mockAssetToken({ token: mockMediaResource({ id: 'token-1' }), isDefault: true }),
+                    mockAssetToken({ token: mockMediaResource({ id: 'token-2' }), isDefault: true }),
+                    mockAssetToken({ token: mockMediaResource({ id: 'token-3' }), isDefault: false })
                 ]
             });
 
             const result = getDefaultToken(asset);
 
             expect(result).toBeDefined();
-            expect(result?.tokenId).toBe('token-1');
+            expect(result?.token.id).toBe('token-1');
         });
     });
 
@@ -79,8 +79,8 @@ describe('assetHelpers', () => {
         it('should return portrait even if tokens exist', () => {
             const asset = mockAssetWithPortrait({
                 tokens: [
-                    mockAssetToken({ tokenId: 'token-1', isDefault: true }),
-                    mockAssetToken({ tokenId: 'token-2', isDefault: false })
+                    mockAssetToken({ token: mockMediaResource({ id: 'token-1' }), isDefault: true }),
+                    mockAssetToken({ token: mockMediaResource({ id: 'token-2' }), isDefault: false })
                 ]
             });
 
@@ -116,26 +116,26 @@ describe('assetHelpers', () => {
         it('should prioritize default token over first token', () => {
             const asset = mockCreatureAsset({
                 tokens: [
-                    mockAssetToken({ tokenId: 'token-1', isDefault: false }),
-                    mockAssetToken({ tokenId: 'token-2', isDefault: true }),
-                    mockAssetToken({ tokenId: 'token-3', isDefault: false })
+                    mockAssetToken({ token: mockMediaResource({ id: 'token-1' }), isDefault: false }),
+                    mockAssetToken({ token: mockMediaResource({ id: 'token-2' }), isDefault: true }),
+                    mockAssetToken({ token: mockMediaResource({ id: 'token-3' }), isDefault: false })
                 ]
             });
 
             const defaultToken = getDefaultToken(asset);
 
-            expect(defaultToken?.tokenId).toBe('token-2');
+            expect(defaultToken?.token.id).toBe('token-2');
         });
 
         it('should handle asset with only one token (auto-default)', () => {
             const asset = mockCreatureAsset({
-                tokens: [mockAssetToken({ tokenId: 'token-1', isDefault: true })]
+                tokens: [mockAssetToken({ token: mockMediaResource({ id: 'token-1' }), isDefault: true })]
             });
 
             const defaultToken = getDefaultToken(asset);
 
             expect(defaultToken).toBeDefined();
-            expect(defaultToken?.tokenId).toBe('token-1');
+            expect(defaultToken?.token.id).toBe('token-1');
         });
 
         it('should return undefined for object with no tokens', () => {
@@ -150,21 +150,21 @@ describe('assetHelpers', () => {
     describe('Integration: token and portrait separation', () => {
         it('should allow asset with both tokens and portrait', () => {
             const asset = mockAssetWithPortrait({
-                tokens: [mockAssetToken({ tokenId: 'token-1', isDefault: true })]
+                tokens: [mockAssetToken({ token: mockMediaResource({ id: 'token-1' }), isDefault: true })]
             });
 
             const token = getDefaultToken(asset);
             const portrait = getPortrait(asset);
 
             expect(token).toBeDefined();
-            expect(token?.tokenId).toBe('token-1');
+            expect(token?.token.id).toBe('token-1');
             expect(portrait).toBeDefined();
             expect(portrait?.id).toBe('portrait-123');
         });
 
         it('should allow asset with tokens but no portrait', () => {
             const asset = mockCreatureAsset({
-                tokens: [mockAssetToken({ tokenId: 'token-1', isDefault: true })],
+                tokens: [mockAssetToken({ token: mockMediaResource({ id: 'token-1' }), isDefault: true })],
                 portrait: undefined
             });
 

@@ -125,7 +125,7 @@ export const mapPlacedToSceneAsset = (
     const cellHeight = gridConfig.cellSize.height;
 
     const defaultToken = placedAsset.asset.tokens?.find(t => t.isDefault);
-    const resourceId = defaultToken?.tokenId || placedAsset.asset.tokens?.[0]?.tokenId || '';
+    const resourceId = defaultToken?.token.id || placedAsset.asset.tokens?.[0]?.token.id || '';
 
     return {
         assetId: placedAsset.assetId,

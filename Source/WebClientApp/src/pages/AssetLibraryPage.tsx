@@ -387,7 +387,7 @@ export const AssetLibraryPage: React.FC = () => {
                                             {(() => {
                                                 const portrait = getPortrait(asset);
                                                 const defaultToken = getDefaultToken(asset);
-                                                const imageId = portrait?.id || defaultToken?.tokenId || asset.tokens?.[0]?.tokenId;
+                                                const imageId = portrait?.id || defaultToken?.token.id || asset.tokens?.[0]?.token.id;
 
                                                 return imageId ? (
                                                     <img
@@ -411,12 +411,12 @@ export const AssetLibraryPage: React.FC = () => {
                                     <CardContent sx={{ pt: 1, pb: 1, flexGrow: 1 }}>
                                         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', minHeight: '24px' }}>
                                             {/* Creature Category Badge (only for Creatures) */}
-                                            {asset.kind === AssetKind.Creature && (asset as CreatureAsset).properties && (
+                                            {asset.kind === AssetKind.Creature && (asset as CreatureAsset) && (
                                                 <Chip
-                                                    label={(asset as CreatureAsset).properties.category}
+                                                    label={(asset as CreatureAsset).category}
                                                     size="small"
                                                     sx={{
-                                                        bgcolor: getCreatureCategoryColor((asset as CreatureAsset).properties.category),
+                                                        bgcolor: getCreatureCategoryColor((asset as CreatureAsset).category),
                                                         color: 'white',
                                                         fontSize: '0.7rem'
                                                     }}
