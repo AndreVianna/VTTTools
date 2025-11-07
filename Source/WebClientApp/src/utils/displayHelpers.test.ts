@@ -13,13 +13,13 @@ describe('displayHelpers', () => {
             expect(getEffectiveDisplayName(asset)).toBe(DisplayName.Never);
         });
 
-        it('returns scene default for Creatures when asset is Default', () => {
+        it('returns Always for Creatures when asset is Default', () => {
             const asset = {
                 displayName: DisplayName.Default,
                 asset: { kind: 'Creature' },
             } as any;
 
-            expect(getEffectiveDisplayName(asset)).toBe(DisplayName.OnHover);
+            expect(getEffectiveDisplayName(asset)).toBe(DisplayName.Always);
         });
 
         it('returns OnHover for Objects when asset is Default (ignores scene default)', () => {
@@ -48,10 +48,10 @@ describe('displayHelpers', () => {
             expect(getEffectiveLabelPosition(asset)).toBe(LabelPosition.Top);
         });
 
-        it('returns scene default when asset is Default', () => {
+        it('returns Bottom when asset is Default', () => {
             const asset = { labelPosition: LabelPosition.Default } as any;
 
-            expect(getEffectiveLabelPosition(asset)).toBe(LabelPosition.Middle);
+            expect(getEffectiveLabelPosition(asset)).toBe(LabelPosition.Bottom);
         });
     });
 });
