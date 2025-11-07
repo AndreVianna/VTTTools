@@ -113,7 +113,8 @@ export const calculateAssetSize = (
     const size = namedSize || defaultSize;
 
     const { width, height } = size;
-    const { cellWidth, cellHeight } = gridConfig;
+    const cellWidth = gridConfig.cellSize.width;
+    const cellHeight = gridConfig.cellSize.height;
 
     return {
         width: width * cellWidth,

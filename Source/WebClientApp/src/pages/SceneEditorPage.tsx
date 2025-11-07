@@ -1760,8 +1760,8 @@ const SceneEditorPageInternal: React.FC = () => {
             <TopToolBar
                 drawingMode={drawingMode}
                 onDrawingModeChange={handleDrawingModeChange}
-                onUndoClick={() => execute('undo')}
-                onRedoClick={() => execute('redo')}
+                onUndoClick={undo}
+                onRedoClick={redo}
                 onZoomIn={handleZoomIn}
                 onZoomOut={handleZoomOut}
                 onZoomReset={handleZoomReset}

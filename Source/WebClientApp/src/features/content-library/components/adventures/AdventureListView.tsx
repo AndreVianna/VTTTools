@@ -51,24 +51,41 @@ export function AdventureListView() {
     const [isCreating, setIsCreating] = useState(false);
     const [cursor, setCursor] = useState<string | undefined>(undefined);
 
-    const filters = {
-        contentType: ['campaign', 'epic'].includes(contentTypeFilter) ? contentTypeFilter : undefined,
-        style: styleFilter === 'all' ? undefined : styleFilter,
-        isOneShot: contentTypeFilter === 'one-shot' ? true : undefined,
-        minSceneCount: contentTypeFilter === 'single-scene' ? 1
-            : contentTypeFilter === 'adventure' ? 2
-            : undefined,
-        maxSceneCount: contentTypeFilter === 'single-scene' ? 1 : undefined,
-        isPublished: publishedFilter === 'published' ? true
-            : publishedFilter === 'draft' ? false
-            : undefined,
-        search: searchQuery || undefined,
-        owner: ownershipFilter === 'all' ? undefined : ownershipFilter,
-        after: cursor,
+    const filters: Record<string, unknown> = {
         limit: 20
     };
 
-    const { data, isLoading, isFetching, error } = useGetContentQuery(filters);
+    if (['campaign', 'epic'].includes(contentTypeFilter)) {
+        filters.contentType = contentTypeFilter;
+    }
+    if (styleFilter !== 'all') {
+        filters.style = styleFilter;
+    }
+    if (contentTypeFilter === 'one-shot') {
+        filters.isOneShot = true;
+    }
+    if (contentTypeFilter === 'single-scene') {
+        filters.minSceneCount = 1;
+        filters.maxSceneCount = 1;
+    } else if (contentTypeFilter === 'adventure') {
+        filters.minSceneCount = 2;
+    }
+    if (publishedFilter === 'published') {
+        filters.isPublished = true;
+    } else if (publishedFilter === 'draft') {
+        filters.isPublished = false;
+    }
+    if (searchQuery) {
+        filters.search = searchQuery;
+    }
+    if (ownershipFilter !== 'all') {
+        filters.owner = ownershipFilter;
+    }
+    if (cursor) {
+        filters.after = cursor;
+    }
+
+    const { data, isLoading, isFetching, error } = useGetContentQuery(filters as any);
     const adventures: Adventure[] = data?.data || [];
     const hasMore = data?.hasMore || false;
     const nextCursor = data?.nextCursor;

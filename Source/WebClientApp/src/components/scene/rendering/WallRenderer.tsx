@@ -56,11 +56,14 @@ export const WallRenderer: React.FC<WallRendererProps> = ({
     const points: number[] = [];
     for (let i = 0; i < sceneWall.poles.length; i++) {
         const pole = sceneWall.poles[i];
+        if (!pole) continue;
         points.push(pole.x, pole.y);
     }
     if (sceneWall.isClosed && sceneWall.poles.length > 0) {
         const firstPole = sceneWall.poles[0];
-        points.push(firstPole.x, firstPole.y);
+        if (firstPole) {
+            points.push(firstPole.x, firstPole.y);
+        }
     }
 
     const poleRadius = 1.5;
@@ -72,7 +75,7 @@ export const WallRenderer: React.FC<WallRendererProps> = ({
                 points={points}
                 stroke={style.stroke}
                 strokeWidth={style.strokeWidth}
-                dash={style.dash}
+                {...(style.dash && { dash: style.dash })}
                 opacity={style.opacity}
                 listening={true}
                 onContextMenu={handleContextMenu}

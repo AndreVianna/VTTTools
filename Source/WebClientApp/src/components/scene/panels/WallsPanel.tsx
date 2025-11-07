@@ -204,10 +204,6 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(({
         }
     };
 
-    const _selectedSceneWall = selectedWallIndex !== null && selectedWallIndex !== undefined
-        ? sceneWalls.find(sw => sw.index === selectedWallIndex)
-        : null;
-
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             <Typography variant="overline" sx={compactStyles.sectionHeader}>
@@ -527,7 +523,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(({
                                             <TextField
                                                 label="Height"
                                                 type="number"
-                                                value={sceneWall.poles.length > 0 ? sceneWall.poles[0].h : 10}
+                                                value={sceneWall.poles.length > 0 ? (sceneWall.poles[0]?.h ?? 10) : 10}
                                                 onChange={(e) => {
                                                     const newHeight = parseFloat(e.target.value);
                                                     const updatedPoles = sceneWall.poles.map(pole => ({

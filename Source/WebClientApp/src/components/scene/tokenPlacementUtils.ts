@@ -54,6 +54,33 @@ export const formatCreatureLabel = (
         const baseName = match[1];
         const numberSuffix = match[2];
 
+        if (!baseName || !numberSuffix) {
+            const ellipsis = '\u2026';
+            let truncatedName = name;
+
+            for (let i = name.length - 1; i > 0; i--) {
+                const testText = name.substring(0, i) + ellipsis;
+                const testWidth = measureTextWidth(testText, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
+
+                if (testWidth <= maxWidth) {
+                    truncatedName = testText;
+                    break;
+                }
+            }
+
+            const displayWidth = measureTextWidth(truncatedName, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
+            const displayHeight = measureTextHeight(LABEL_FONT_SIZE);
+
+            return {
+                displayText: truncatedName,
+                isTruncated: truncatedName !== name,
+                fullText: name,
+                displayWidth,
+                displayHeight,
+                fullWidth,
+            };
+        }
+
         const numberWidth = measureTextWidth(numberSuffix, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);
         const ellipsis = '\u2026';
         const ellipsisWidth = measureTextWidth(ellipsis, LABEL_FONT_SIZE, LABEL_FONT_FAMILY);

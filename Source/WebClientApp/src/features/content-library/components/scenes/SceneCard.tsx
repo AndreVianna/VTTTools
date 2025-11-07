@@ -1,6 +1,7 @@
 import { Button, Box } from '@mui/material';
 import type React from 'react';
 import { ContentCard, PublishedBadge } from '../shared';
+import { ContentType } from '../../types';
 import type { Scene } from '@/types/domain';
 import { getApiEndpoints } from '@/config/development';
 
@@ -57,7 +58,7 @@ export function SceneCard({ scene, onOpen, onDuplicate, onDelete }: SceneCardPro
         <ContentCard
             item={{
                 id: scene.id,
-                type: 'scene',
+                type: ContentType.Adventure,
                 name: scene.name,
                 isPublished: scene.isPublished,
                 thumbnailUrl

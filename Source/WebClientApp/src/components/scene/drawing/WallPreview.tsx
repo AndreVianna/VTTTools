@@ -39,23 +39,28 @@ export const WallPreview: React.FC<WallPreviewProps> = ({
             })}
 
             {/* Closing line for closed walls (first to last pole) - only when NOT actively placing */}
-            {isClosed && poles.length > 1 && !previewPoint && poles[0] && poles[poles.length - 1] && (
-                <Line
-                    key="closing-line"
-                    points={[
-                        poles[0].x,
-                        poles[0].y,
-                        poles[poles.length - 1].x,
-                        poles[poles.length - 1].y
-                    ]}
-                    stroke={blueColor}
-                    strokeWidth={3}
-                    dash={[8, 4]}
-                    dashEnabled={true}
-                    perfectDrawEnabled={false}
-                    listening={false}
-                />
-            )}
+            {isClosed && poles.length > 1 && !previewPoint && (() => {
+                const firstPole = poles[0];
+                const lastPole = poles[poles.length - 1];
+                if (!firstPole || !lastPole) return null;
+                return (
+                    <Line
+                        key="closing-line"
+                        points={[
+                            firstPole.x,
+                            firstPole.y,
+                            lastPole.x,
+                            lastPole.y
+                        ]}
+                        stroke={blueColor}
+                        strokeWidth={3}
+                        dash={[8, 4]}
+                        dashEnabled={true}
+                        perfectDrawEnabled={false}
+                        listening={false}
+                    />
+                );
+            })()}
 
             {/* Poles as 5px circles (blue) */}
             {poles.map((pole, index) => (
@@ -70,37 +75,45 @@ export const WallPreview: React.FC<WallPreviewProps> = ({
             ))}
 
             {/* Preview line from last pole to cursor - solid blue (same as normal wall segments) */}
-            {previewPoint && poles.length > 0 && poles[poles.length - 1] && (
-                <Line
-                    points={[
-                        poles[poles.length - 1].x,
-                        poles[poles.length - 1].y,
-                        previewPoint.x,
-                        previewPoint.y
-                    ]}
-                    stroke={blueColor}
-                    strokeWidth={3}
-                    listening={false}
-                />
-            )}
+            {previewPoint && poles.length > 0 && (() => {
+                const lastPole = poles[poles.length - 1];
+                if (!lastPole) return null;
+                return (
+                    <Line
+                        points={[
+                            lastPole.x,
+                            lastPole.y,
+                            previewPoint.x,
+                            previewPoint.y
+                        ]}
+                        stroke={blueColor}
+                        strokeWidth={3}
+                        listening={false}
+                    />
+                );
+            })()}
 
             {/* Additional dashed line from cursor to first pole when wall is closed */}
-            {previewPoint && isClosed && poles.length > 0 && poles[0] && (
-                <Line
-                    points={[
-                        previewPoint.x,
-                        previewPoint.y,
-                        poles[0].x,
-                        poles[0].y
-                    ]}
-                    stroke={blueColor}
-                    strokeWidth={3}
-                    dash={[8, 4]}
-                    dashEnabled={true}
-                    perfectDrawEnabled={false}
-                    listening={false}
-                />
-            )}
+            {previewPoint && isClosed && poles.length > 0 && (() => {
+                const firstPole = poles[0];
+                if (!firstPole) return null;
+                return (
+                    <Line
+                        points={[
+                            previewPoint.x,
+                            previewPoint.y,
+                            firstPole.x,
+                            firstPole.y
+                        ]}
+                        stroke={blueColor}
+                        strokeWidth={3}
+                        dash={[8, 4]}
+                        dashEnabled={true}
+                        perfectDrawEnabled={false}
+                        listening={false}
+                    />
+                );
+            })()}
         </>
     );
 };
