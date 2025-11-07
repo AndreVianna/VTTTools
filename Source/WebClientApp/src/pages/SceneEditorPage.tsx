@@ -74,7 +74,7 @@ import {
     useUpdateSceneWallMutation
 } from '@/services/sceneApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
-import { hydratePlacedAssets, ensureSceneDefaults } from '@/utils/sceneMappers';
+import { hydratePlacedAssets } from '@/utils/sceneMappers';
 import { getApiEndpoints } from '@/config/development';
 import { SaveStatus } from '@/components/common';
 import { useAppDispatch } from '@/store';
@@ -207,8 +207,7 @@ const SceneEditorPageInternal: React.FC = () => {
                         }
                     );
 
-                    const sceneWithDefaults = ensureSceneDefaults(sceneData);
-                    setScene(sceneWithDefaults);
+                    setScene(sceneData);
                     setGridConfig({
                         type: typeof sceneData.grid.type === 'string'
                             ? GridType[sceneData.grid.type as keyof typeof GridType]
@@ -221,8 +220,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     setIsInitialized(true);
                 } catch (error) {
                     console.error('Failed to hydrate scene assets:', error);
-                    const sceneWithDefaults = ensureSceneDefaults(sceneData);
-                    setScene(sceneWithDefaults);
+                    setScene(sceneData);
                     setGridConfig({
                         type: typeof sceneData.grid.type === 'string'
                             ? GridType[sceneData.grid.type as keyof typeof GridType]
@@ -244,8 +242,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
     useEffect(() => {
         if (sceneData && isInitialized) {
-            const sceneWithDefaults = ensureSceneDefaults(sceneData);
-            setScene(sceneWithDefaults);
+            setScene(sceneData);
         }
     }, [sceneData, isInitialized]);
 

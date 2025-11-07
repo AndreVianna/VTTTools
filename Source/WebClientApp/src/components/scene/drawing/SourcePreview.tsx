@@ -3,7 +3,7 @@ import { Circle, Shape, Text } from 'react-konva';
 import { useTheme, type Theme } from '@mui/material/styles';
 import { calculateLineOfSight } from '@/utils/lineOfSightCalculation';
 import { VertexMarker } from './VertexMarker';
-import { Point, SceneWall, SceneSource, WallVisibility } from '@/types/domain';
+import { type Point, type SceneWall, type SceneSource, WallVisibility } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface SourcePreviewProps {
@@ -17,11 +17,11 @@ export interface SourcePreviewProps {
 const getSourceColor = (sourceType: string, theme: Theme): string => {
     switch (sourceType.toLowerCase()) {
         case 'light':
-            return theme.palette.warning.light;
+            return (theme as any).palette.warning.light;
         case 'sound':
-            return theme.palette.info.light;
+            return (theme as any).palette.info.light;
         default:
-            return theme.palette.grey[400];
+            return (theme as any).palette.grey[400];
     }
 };
 
@@ -71,15 +71,15 @@ export const SourcePreview: React.FC<SourcePreviewProps> = ({
 
             <Shape
                 sceneFunc={(context) => {
-                    if (losPolygon.length < 3) return;
+                    if (!losPolygon || losPolygon.length < 3) return;
 
                     const firstPoint = losPolygon[0];
                     if (!firstPoint) return;
 
                     context.beginPath();
-                    context.moveTo(firstPoint.x, firstPoint.y);
+                    context.moveTo(losPolygon[0]?.x ?? 0, losPolygon[0]?.y ?? 0);
                     for (let i = 1; i < losPolygon.length; i++) {
-                        const point = losPolygon[i];
+                        context.lineTo(losPolygon[i]?.x ?? 0, losPolygon[i]?.y ?? 0);
                         if (!point) continue;
                         context.lineTo(point.x, point.y);
                     }
