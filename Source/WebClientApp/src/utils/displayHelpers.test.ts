@@ -48,10 +48,10 @@ describe('displayHelpers', () => {
             expect(getEffectiveLabelPosition(asset)).toBe(LabelPosition.Top);
         });
 
-        it('returns scene default when asset is Default', () => {
+        it('returns Bottom when asset is Default', () => {
             const asset = { labelPosition: LabelPosition.Default } as any;
 
-            expect(getEffectiveLabelPosition(asset)).toBe(LabelPosition.Middle);
+            expect(getEffectiveLabelPosition(asset)).toBe(LabelPosition.Bottom);
         });
     });
 });
