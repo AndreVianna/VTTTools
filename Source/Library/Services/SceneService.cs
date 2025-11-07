@@ -136,7 +136,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         if (result.HasErrors)
             return result;
 
-        var tokenId = data.TokenId ?? (asset.Tokens.FirstOrDefault(r => r.IsDefault)?.Token.Id);
+        var tokenId = data.TokenId ?? asset.Tokens.FirstOrDefault(r => r.IsDefault)?.Token.Id;
         var portraitId = data.PortraitId ?? asset.Portrait?.Id;
 
         var number = scene.Assets.Any(sa => sa.AssetId == assetId)
@@ -339,7 +339,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             if (asset.OwnerId != userId && !(asset is { IsPublic: true, IsPublished: true }))
                 return Result.Failure("NotAllowed");
 
-            var tokenId = data.TokenId ?? (asset.Tokens.FirstOrDefault(r => r.IsDefault)?.Token.Id);
+            var tokenId = data.TokenId ?? asset.Tokens.FirstOrDefault(r => r.IsDefault)?.Token.Id;
             var portraitId = data.PortraitId ?? asset.Portrait?.Id;
 
             var number = scene.Assets.Any(sa => sa.AssetId == assetId)
