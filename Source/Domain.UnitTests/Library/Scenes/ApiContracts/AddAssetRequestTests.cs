@@ -4,17 +4,17 @@ public class AddAssetRequestTests {
     [Fact]
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
-        var original = new AddSceneAssetRequest {
+        var original = new SceneAssetAddRequest {
             Name = "Asset Name",
             Position = new(1, 1),
-            Size = new NamedSize { Width = 50, Height = 50, IsSquare = true },
+            Size = new NamedSize { Width = 50, Height = 50 },
             Frame = new(),
             Rotation = 0,
             Elevation = 0,
         };
         const string name = "Other Name";
         var position = new Position(10, 20);
-        var size = new NamedSize { Width = 100, Height = 200, IsSquare = false };
+        var size = new NamedSize { Width = 100, Height = 200 };
         var frame = new Frame {
             Shape = FrameShape.Circle,
             BorderThickness = 2,
@@ -36,7 +36,7 @@ public class AddAssetRequestTests {
         };
 
         // Assert
-        data.Name.Value.Should().Be(name);
+        data.Name.Should().Be(name);
         data.Position.Should().Be(position);
         data.Size.Should().Be(size);
         data.Frame.Should().BeEquivalentTo(frame);

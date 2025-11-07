@@ -309,7 +309,7 @@ public class AuthServiceTests {
             Email = "nodisplay@example.com",
             Password = "Password123!",
             ConfirmPassword = "Password123!",
-            Name = "No Resource User",
+            Name = "No Token User",
             DisplayName = null
         };
 

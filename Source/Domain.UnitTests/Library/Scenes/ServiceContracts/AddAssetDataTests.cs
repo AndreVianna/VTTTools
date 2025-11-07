@@ -4,17 +4,17 @@ public class AddAssetDataTests {
     [Fact]
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
-        var original = new AddSceneAssetData {
+        var original = new SceneAssetAddData {
             Name = "Asset Name",
             Position = new Position(1, 1),
-            Size = new NamedSize { Width = 50, Height = 50, IsSquare = true },
+            Size = new NamedSize { Width = 50, Height = 50 },
             Frame = new(),
             Rotation = 0,
             Elevation = 0,
         };
         const string name = "Other Name";
         var position = new Position(10, 20);
-        var size = new NamedSize { Width = 10, Height = 20, IsSquare = false };
+        var size = new NamedSize { Width = 10, Height = 20 };
         var frame = new Frame {
             Shape = FrameShape.Circle,
             BorderThickness = 2,
@@ -36,7 +36,7 @@ public class AddAssetDataTests {
         };
 
         // Assert
-        data.Name.Value.Should().Be(name);
+        data.Name.Should().Be(name);
         data.Position.Should().Be(position);
         data.Size.Should().Be(size);
         data.Frame.Should().Be(frame);
@@ -47,10 +47,10 @@ public class AddAssetDataTests {
     [Fact]
     public void Validate_WithValidData_ReturnsSuccess() {
         // Arrange
-        var data = new AddSceneAssetData {
+        var data = new SceneAssetAddData {
             Name = "Asset Name",
             Position = new Position(1, 1),
-            Size = new NamedSize { Width = 50, Height = 50, IsSquare = true },
+            Size = new NamedSize { Width = 50, Height = 50 },
             Frame = new(),
             Rotation = 0.0f,
             Elevation = 0.0f,
@@ -66,9 +66,9 @@ public class AddAssetDataTests {
     [Fact]
     public void Validate_WithInvalidData_ReturnsFailure() {
         // Arrange
-        var data = new AddSceneAssetData {
+        var data = new SceneAssetAddData {
             Name = null!,
-            Size = new NamedSize { Width = 1000, Height = 1000, IsSquare = true },
+            Size = new NamedSize { Width = 1000, Height = 1000 },
             Frame = new(),
             Rotation = -270,
             Elevation = 2000,

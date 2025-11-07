@@ -71,7 +71,7 @@ public class AssetStorageTests
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
         dbAsset.OwnerId.Should().Be(asset.OwnerId);
-        dbAsset.Resources.Should().HaveCount(asset.Resources.Count);
+        dbAsset.Tokens.Should().HaveCount(asset.Tokens.Count);
     }
 
     [Fact]
@@ -83,18 +83,17 @@ public class AssetStorageTests
         await _context.SaveChangesAsync(_ct);
 
         // Modify the asset
-        var resourceId = Guid.CreateVersion7();
+        var tokenId = Guid.CreateVersion7();
         var asset = new CreatureAsset {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
             Name = "Updated Asset",
             Description = "Updated description",
-            Resources = [
+            Tokens = [
                 new() {
-                    ResourceId = resourceId,
-                    Role = ResourceRole.Token,
-                    Resource = new() {
-                        Id = resourceId,
+                    IsDefault = true,
+                    Token = new() {
+                        Id = tokenId,
                         Type = ResourceType.Image,
                         Path = "assets/updated-asset-resource",
                         Metadata = new ResourceMetadata {
@@ -126,15 +125,15 @@ public class AssetStorageTests
         dbAsset.IsPublic.Should().Be(asset.IsPublic);
         dbAsset.IsPublished.Should().Be(asset.IsPublished);
         dbAsset.OwnerId.Should().Be(asset.OwnerId);
-        dbAsset.Resources.Should().HaveCount(asset.Resources.Count);
+        dbAsset.Tokens.Should().HaveCount(asset.Tokens.Count);
     }
 
     [Fact]
     public async Task UpdateAsync_WithChangedResourceRoles_UpdatesRolesInDatabase() {
         // Arrange
-        var resourceId = Guid.CreateVersion7();
+        var tokenId = Guid.CreateVersion7();
         var resource = new Media.Entities.Resource {
-            Id = resourceId,
+            Id = tokenId,
             Type = ResourceType.Image,
             Path = "assets/test-resource",
             ContentType = "image/png",
@@ -147,20 +146,16 @@ public class AssetStorageTests
             Id = Guid.CreateVersion7(),
             OwnerId = Guid.CreateVersion7(),
             Kind = AssetKind.Creature,
-            Name = "Asset With Resource",
+            Name = "Asset With Token",
             Description = "Test description",
             IsPublished = false,
             IsPublic = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            Properties = new Assets.Entities.CreatureProperties {
-                CellSize = 1,
-                Category = CreatureCategory.Character,
-            },
-            Resources = [
+            Size = NamedSize.FromName(SizeName.Medium),
+            Category = CreatureCategory.Character,
+            Tokens = [
                 new() {
-                    ResourceId = resourceId,
-                    Role = ResourceRole.Token
+                    TokenId = tokenId,
+                    IsDefault = true
                 }
             ]
         };
@@ -173,12 +168,11 @@ public class AssetStorageTests
             OwnerId = entity.OwnerId,
             Name = entity.Name,
             Description = entity.Description,
-            Resources = [
+            Tokens = [
                 new() {
-                    ResourceId = resourceId,
-                    Role = ResourceRole.Token | ResourceRole.Display,
-                    Resource = new() {
-                        Id = resourceId,
+                    IsDefault = false,
+                    Token = new() {
+                        Id = tokenId,
                         Type = ResourceType.Image,
                         Path = "assets/test-resource",
                         Metadata = new ResourceMetadata {
@@ -194,10 +188,8 @@ public class AssetStorageTests
             ],
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
-            Properties = new() {
-                Size = new() { Width = 1, Height = 1, IsSquare = true },
-                Category = CreatureCategory.Character,
-            },
+            Size = NamedSize.FromName(SizeName.Medium),
+            Category = CreatureCategory.Character,
         };
 
         // Act
@@ -206,13 +198,13 @@ public class AssetStorageTests
         // Assert
         result.Should().BeTrue();
         var dbAsset = await _context.Assets
-            .Include(a => a.Resources)
+            .Include(a => a.Tokens)
             .FirstAsync(a => a.Id == entity.Id, _ct);
         dbAsset.Should().NotBeNull();
-        dbAsset.Resources.Should().HaveCount(1);
-        var dbResource = dbAsset.Resources.First();
-        dbResource.ResourceId.Should().Be(resourceId);
-        dbResource.Role.Should().Be(ResourceRole.Token | ResourceRole.Display);
+        dbAsset.Tokens.Should().HaveCount(1);
+        var dbResource = dbAsset.Tokens.First();
+        dbResource.TokenId.Should().Be(tokenId);
+        dbResource.IsDefault.Should().BeFalse();
     }
 
     [Fact]

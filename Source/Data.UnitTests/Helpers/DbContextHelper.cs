@@ -29,7 +29,7 @@ internal static class DbContextHelper {
         => context.Dispose();
 
     private static void SeedAssets(ApplicationDbContext context, Guid currentUserId) {
-        // First add Resources that will be referenced by Assets
+        // First add Tokens that will be referenced by Assets
         var resources = new[] {
             CreateTestResourceEntity("Asset 1 Display"),
             CreateTestResourceEntity("Asset 2 Display"),
@@ -39,7 +39,7 @@ internal static class DbContextHelper {
         context.Resources.AddRange(resources);
         context.SaveChanges();
 
-        // Then add Assets that reference the Resources
+        // Then add Assets that reference the Tokens
         var assets = new[] {
             CreateTestAssetEntity("Asset 1", AssetKind.Creature, isPublished: true, isPublic: true, ownerId: currentUserId, displayId: resources[0].Id),
             CreateTestAssetEntity("Asset 2", ownerId: currentUserId, displayId: resources[1].Id),
@@ -52,7 +52,7 @@ internal static class DbContextHelper {
     }
 
     private static void SeedLibrary(ApplicationDbContext context, Guid currentUserId) {
-        // First add Resources for Adventures and Scenes
+        // First add Tokens for Adventures and Scenes
         var adventureResources = new[] {
             CreateTestResourceEntity("Adventure 1 Background"),
             CreateTestResourceEntity("Adventure 2 Background"),
@@ -67,7 +67,7 @@ internal static class DbContextHelper {
         context.Resources.AddRange(sceneResources);
         context.SaveChanges();
 
-        // Then add Adventures that reference the Resources
+        // Then add Adventures that reference the Tokens
         var adventures = new[] {
             CreateTestAdventureEntity("Adventure 1", isPublished: true, isPublic: true, ownerId: currentUserId, backgroundId: adventureResources[0].Id),
             CreateTestAdventureEntity("Adventure 2", ownerId: currentUserId, backgroundId: adventureResources[1].Id),
@@ -144,7 +144,7 @@ internal static class DbContextHelper {
         };
 
     public static CreatureAssetEntity CreateTestAssetEntity(Guid id, string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null) {
-        var resourceId = displayId ?? Guid.CreateVersion7();
+        var tokenId = displayId ?? Guid.CreateVersion7();
         return new() {
             Id = id,
             Name = name,
@@ -153,10 +153,10 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.CreateVersion7(),
-            Resources = [
+            Tokens = [
                 new() {
-                    ResourceId = resourceId,
-                    Role = ResourceRole.Token,
+                    TokenId = tokenId,
+                    IsDefault = true,
                 },
             ],
         };
@@ -248,7 +248,7 @@ internal static class DbContextHelper {
         };
 
     public static CreatureAsset CreateTestAsset(Guid id, string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null) {
-        var resourceId = Guid.CreateVersion7();
+        var tokenId = Guid.CreateVersion7();
         return new() {
             Id = id,
             Name = name,
@@ -257,12 +257,11 @@ internal static class DbContextHelper {
             IsPublic = isPublic,
             IsPublished = isPublished,
             OwnerId = ownerId ?? Guid.CreateVersion7(),
-            Resources = [
+            Tokens = [
                 new() {
-                    ResourceId = resourceId,
-                    Role = ResourceRole.Token,
-                    Resource = new() {
-                        Id = resourceId,
+                    IsDefault = true,
+                    Token = new() {
+                        Id = tokenId,
                         Type = ResourceType.Image,
                         Path = "test/path",
                         Metadata = new ResourceMetadata {

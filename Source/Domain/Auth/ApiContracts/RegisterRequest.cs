@@ -17,6 +17,6 @@ public record RegisterRequest : Request {
     [StringLength(128, MinimumLength = 1, ErrorMessage = "Name must be between 1 and 128 characters")]
     public string Name { get; init; } = string.Empty;
 
-    [StringLength(32, ErrorMessage = "Resource name cannot exceed 32 characters")]
+    [StringLength(32, ErrorMessage = "Token name cannot exceed 32 characters")]
     public string? DisplayName { get; init; }
 }

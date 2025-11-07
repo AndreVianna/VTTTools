@@ -8,14 +8,14 @@ public class CreateAssetRequestTests {
             Kind = AssetKind.Object,
             Name = "Table",
             Description = "A table",
-            Resources = [
-                new AssetResourceData {
-                    ResourceId = Guid.CreateVersion7(),
-                    Role = ResourceRole.Token
+            Tokens = [
+                new AssetTokenData {
+                    TokenId = Guid.CreateVersion7(),
+                    IsDefault = true
                 }
             ],
-            ObjectProps = new ObjectProperties {
-                Size = new NamedSize { Width = 1, Height = 1, IsSquare = false },
+            Size = new NamedSize { Width = 1, Height = 1 },
+            ObjectData = new ObjectData {
                 IsMovable = true,
                 IsOpaque = false
             }
@@ -25,8 +25,8 @@ public class CreateAssetRequestTests {
         // Act
         var updated = original with {
             Name = name,
-            ObjectProps = new ObjectProperties {
-                Size = new NamedSize { Width = 2, Height = 1, IsSquare = false },
+            Size = new NamedSize { Width = 2, Height = 1 },
+            ObjectData = new ObjectData {
                 IsMovable = false,
                 IsOpaque = false
             }
@@ -35,10 +35,10 @@ public class CreateAssetRequestTests {
         // Assert
         updated.Name.Should().Be(name);
         updated.Kind.Should().Be(AssetKind.Object);
-        updated.ObjectProps.Should().NotBeNull();
-        updated.ObjectProps!.Size.Width.Should().Be(2);
-        updated.ObjectProps.Size.Height.Should().Be(1);
-        updated.ObjectProps.IsMovable.Should().BeFalse();
+        updated.Size.Width.Should().Be(2);
+        updated.Size.Height.Should().Be(1);
+        updated.ObjectData.Should().NotBeNull();
+        updated.ObjectData.IsMovable.Should().BeFalse();
     }
 
     [Fact]
@@ -48,16 +48,16 @@ public class CreateAssetRequestTests {
             Kind = AssetKind.Creature,
             Name = "Goblin",
             Description = "A goblin",
-            CreatureProps = new CreatureProperties {
-                Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+            Size = new NamedSize { Width = 1, Height = 1 },
+            CreatureData = new CreatureData {
                 Category = CreatureCategory.Monster
             }
         };
 
         // Act
         var updated = original with {
-            CreatureProps = new CreatureProperties {
-                Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+            Size = new NamedSize { Width = 1, Height = 1 },
+            CreatureData = new CreatureData {
                 Category = CreatureCategory.Character,
                 TokenStyle = new TokenStyle {
                     BorderColor = "#FF0000",
@@ -68,8 +68,8 @@ public class CreateAssetRequestTests {
 
         // Assert
         updated.Kind.Should().Be(AssetKind.Creature);
-        updated.CreatureProps.Should().NotBeNull();
-        updated.CreatureProps!.Category.Should().Be(CreatureCategory.Character);
-        updated.CreatureProps.TokenStyle.Should().NotBeNull();
+        updated.CreatureData.Should().NotBeNull();
+        updated.CreatureData!.Category.Should().Be(CreatureCategory.Character);
+        updated.CreatureData.TokenStyle.Should().NotBeNull();
     }
 }

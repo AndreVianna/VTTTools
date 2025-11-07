@@ -4,33 +4,25 @@ public record UpdateAssetData
     : Data {
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
-    public Optional<AssetResource[]> Resources { get; init; }  // Replace entire Resources collection when set
+    public Optional<AssetTokenData[]> Tokens { get; init; }
+    public Optional<NamedSize> Size { get; init; }
+    public Optional<Guid?> PortraitId { get; init; }
     public Optional<bool> IsPublished { get; set; }
     public Optional<bool> IsPublic { get; set; }
 
-    // Polymorphic properties (provide the one matching the asset's Kind)
-    public Optional<ObjectProperties> ObjectProps { get; init; }
-    public Optional<CreatureProperties> CreatureProps { get; init; }
+    public Optional<ObjectData> ObjectData { get; init; }
+    public Optional<CreatureData> CreatureData { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
         if (Name.IsSet && string.IsNullOrWhiteSpace(Name.Value))
             result += new Error("When set, the asset name cannot be null or empty.", nameof(Name));
 
-        // Validate ObjectProps values if being updated
-        if (ObjectProps.IsSet && ObjectProps.Value is not null) {
-            if (ObjectProps.Value.Size.Width <= 0)
-                result += new Error("Size width must be greater than 0.", $"{nameof(ObjectProps)}.Size.Width");
-            if (ObjectProps.Value.Size.Height <= 0)
-                result += new Error("Size height must be greater than 0.", $"{nameof(ObjectProps)}.Size.Height");
-        }
-
-        // Validate CreatureProps values if being updated
-        if (CreatureProps.IsSet && CreatureProps.Value is not null) {
-            if (CreatureProps.Value.Size.Width <= 0)
-                result += new Error("Size width must be greater than 0.", $"{nameof(CreatureProps)}.Size.Width");
-            if (CreatureProps.Value.Size.Height <= 0)
-                result += new Error("Size height must be greater than 0.", $"{nameof(CreatureProps)}.Size.Height");
+        if (Size.IsSet) {
+            if (Size.Value.Width <= 0)
+                result += new Error("Size width must be greater than 0.", $"{nameof(Size)}.{nameof(Size.Value.Width)}");
+            if (Size.Value.Height <= 0)
+                result += new Error("Size height must be greater than 0.", $"{nameof(Size)}.{nameof(Size.Value.Height)}");
         }
 
         return result;

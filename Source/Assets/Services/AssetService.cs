@@ -37,7 +37,7 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         // Filter by creature category (only for CreatureAssets)
         if (creatureCategory.HasValue) {
             assets = [.. assets.Where(a =>
-                a is CreatureAsset creature && creature.Properties.Category == creatureCategory.Value
+                a is CreatureAsset creature && creature.Category == creatureCategory.Value
             )];
         }
 
@@ -87,39 +87,44 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         if (existing != null)
             return Result.Failure($"Duplicate asset name. An asset named '{data.Name}' already exists for this user.");
 
-        // Load Resource entities for each AssetResource
-        var resources = new List<AssetResource>();
-        foreach (var assetResource in data.Resources) {
-            var resource = await mediaStorage.GetByIdAsync(assetResource.ResourceId, ct);
-            resources.Add(new AssetResource {
-                ResourceId = assetResource.ResourceId,
-                Resource = resource,
-                Role = assetResource.Role
+        // Load Token entities for each AssetToken
+        var tokens = new List<AssetToken>();
+        foreach (var assetResource in data.Tokens) {
+            var resource = await mediaStorage.GetByIdAsync(assetResource.TokenId, ct);
+            tokens.Add(new AssetToken {
+                Token = resource!,
+                IsDefault = assetResource.IsDefault
             });
         }
+
+        var portrait = !data.PortraitId.HasValue ? null : await mediaStorage.GetByIdAsync(data.PortraitId.Value, ct);
 
         Asset asset = data.Kind switch {
             AssetKind.Object => new ObjectAsset {
                 OwnerId = userId,
                 Name = data.Name,
                 Description = data.Description,
-                Resources = resources,
+                Tokens = tokens,
+                Portrait = portrait,
                 IsPublished = data.IsPublished,
                 IsPublic = data.IsPublic,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                Properties = data.ObjectProps ?? new()
+                Size = data.Size,
+                IsMovable = data.ObjectData!.IsMovable,
+                IsOpaque = data.ObjectData!.IsOpaque,
+                TriggerEffectId = data.ObjectData!.TriggerEffectId,
             },
             AssetKind.Creature => new CreatureAsset {
                 OwnerId = userId,
                 Name = data.Name,
                 Description = data.Description,
-                Resources = resources,
+                Tokens = tokens,
+                Portrait = portrait,
                 IsPublished = data.IsPublished,
                 IsPublic = data.IsPublic,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                Properties = data.CreatureProps ?? new()
+                Size = data.Size,
+                StatBlockId = data.CreatureData!.StatBlockId,
+                Category = data.CreatureData!.Category,
+                TokenStyle = data.CreatureData!.TokenStyle,
             },
             _ => throw new InvalidOperationException($"Unknown asset kind: {data.Kind}")
         };
@@ -150,37 +155,48 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         if (result.HasErrors)
             return result;
 
-        var resources = asset.Resources.ToList();
-        if (data.Resources.IsSet) {
-            resources.Clear();
-            foreach (var assetResource in data.Resources.Value) {
-                var resource = await mediaStorage.GetByIdAsync(assetResource.ResourceId, ct);
-                resources.Add(new AssetResource {
-                    ResourceId = assetResource.ResourceId,
-                    Resource = resource,
-                    Role = assetResource.Role
+        var tokens = asset.Tokens.ToList();
+        if (data.Tokens.IsSet) {
+            tokens.Clear();
+            foreach (var assetResource in data.Tokens.Value) {
+                var resource = await mediaStorage.GetByIdAsync(assetResource.TokenId, ct);
+                tokens.Add(new AssetToken {
+                    Token = resource!,
+                    IsDefault = assetResource.IsDefault
                 });
             }
         }
+
+        var portrait = data.PortraitId.IsSet
+                        ? !data.PortraitId.Value.HasValue
+                            ? null
+                            : await mediaStorage.GetByIdAsync(data.PortraitId.Value.Value, ct)
+                        : asset.Portrait;
 
         asset = asset switch {
             ObjectAsset obj => obj with {
                 Name = data.Name.IsSet ? data.Name.Value : obj.Name,
                 Description = data.Description.IsSet ? data.Description.Value : obj.Description,
-                Resources = resources,
+                Tokens = tokens,
+                Portrait = portrait,
                 IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : obj.IsPublished,
                 IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : obj.IsPublic,
-                UpdatedAt = DateTime.UtcNow,
-                Properties = data.ObjectProps.IsSet ? data.ObjectProps.Value : obj.Properties
+                Size = data.Size.IsSet ? data.Size.Value : obj.Size,
+                IsMovable = data.ObjectData.IsSet ? data.ObjectData.Value.IsMovable : obj.IsMovable,
+                IsOpaque = data.ObjectData.IsSet ? data.ObjectData.Value.IsOpaque : obj.IsOpaque,
+                TriggerEffectId = data.ObjectData.IsSet ? data.ObjectData.Value.TriggerEffectId : obj.TriggerEffectId,
             },
             CreatureAsset creature => creature with {
                 Name = data.Name.IsSet ? data.Name.Value : creature.Name,
                 Description = data.Description.IsSet ? data.Description.Value : creature.Description,
-                Resources = resources,
+                Tokens = tokens,
+                Portrait = portrait,
                 IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : creature.IsPublished,
                 IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : creature.IsPublic,
-                UpdatedAt = DateTime.UtcNow,
-                Properties = data.CreatureProps.IsSet ? data.CreatureProps.Value : creature.Properties
+                Size = data.Size.IsSet ? data.Size.Value : creature.Size,
+                StatBlockId = data.CreatureData.IsSet ? data.CreatureData.Value.StatBlockId : creature.StatBlockId,
+                Category = data.CreatureData.IsSet ? data.CreatureData.Value.Category : creature.Category,
+                TokenStyle = data.CreatureData.IsSet ? data.CreatureData.Value.TokenStyle : creature.TokenStyle,
             },
             _ => throw new InvalidOperationException($"Unknown asset type: {asset.GetType()}")
         };

@@ -1,8 +1,8 @@
 using static VttTools.Utilities.ErrorCollectionExtensions;
 
-using BulkUpdateAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
+using BulkUpdateAssetsData = VttTools.Library.Scenes.ServiceContracts.SceneAssetBulkUpdateData;
 using IResult = Microsoft.AspNetCore.Http.IResult;
-using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
+using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.SceneAssetUpdateData;
 
 namespace VttTools.Library.Handlers;
 
@@ -15,22 +15,22 @@ internal static class SceneHandlers {
                ? Results.Ok(ep)
                : Results.NotFound();
 
-    internal static async Task<IResult> UpdateSceneHandler(HttpContext context, [FromRoute] Guid id, [FromBody] UpdateSceneRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> UpdateSceneHandler(HttpContext context, [FromRoute] Guid id, [FromBody] SceneUpdateRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var data = new UpdateSceneData {
+        var data = new SceneUpdateData {
             AdventureId = request.AdventureId,
             Name = request.Name,
             Description = request.Description,
             IsPublished = request.IsPublished,
             Stage = request.Stage.IsSet
-                ? new UpdateSceneData.StageUpdate {
+                ? new SceneUpdateData.StageUpdate {
                     BackgroundId = request.Stage.Value.BackgroundId,
                     ZoomLevel = request.Stage.Value.ZoomLevel,
                     Panning = request.Stage.Value.Panning,
                 }
                 : new(),
             Grid = request.Grid.IsSet
-                ? new UpdateSceneData.GridUpdate {
+                ? new SceneUpdateData.GridUpdate {
                     Type = request.Grid.Value.Type,
                     CellSize = request.Grid.Value.CellSize,
                     Offset = request.Grid.Value.Offset,
@@ -39,26 +39,25 @@ internal static class SceneHandlers {
                 : new(),
         };
         var result = await sceneService.UpdateSceneAsync(userId, id, data);
-        if (!result.IsSuccessful) {
-            return result.Errors[0].Message == "NotFound"
+        return result.IsSuccessful
+            ? Results.NoContent()
+            : result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
                 : result.Errors[0].Message == "NotAllowed"
                     ? Results.Forbid()
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
-        }
-
-        return Results.NoContent();
     }
 
     internal static async Task<IResult> GetAssetsHandler([FromRoute] Guid id, [FromServices] ISceneService sceneService)
         => Results.Ok(await sceneService.GetAssetsAsync(id));
 
-    internal static async Task<IResult> AddAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromBody] AddSceneAssetRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> AddAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid assetId, [FromBody] SceneAssetAddRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var data = new AddSceneAssetData {
+        var data = new SceneAssetAddData {
             Name = request.Name,
-            Description = request.Description,
-            ResourceId = request.ResourceId,
+            IsVisible = request.IsVisible,
+            TokenId = request.TokenId,
+            PortraitId = request.PortraitId,
             Position = request.Position,
             Size = request.Size,
             Frame = request.Frame,
@@ -87,7 +86,7 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] UpdateSceneAssetRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> UpdateAssetHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] SceneAssetUpdateRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var data = new UpdateAssetData {
             Name = request.Name,
@@ -109,10 +108,10 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> BulkUpdateAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] BulkUpdateSceneAssetsRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> BulkUpdateAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] SceneAssetBulkUpdateRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var data = new BulkUpdateAssetsData {
-            Updates = [.. request.Updates.Select(u => new SceneAssetUpdateData {
+            Updates = [.. request.Updates.Select(u => new SceneAssetBulkUpdateDataItem {
                 Index = u.Index,
                 Position = u.Position,
                 Size = u.Size,
@@ -130,9 +129,9 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> BulkCloneAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] BulkCloneSceneAssetsRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> BulkCloneAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] SceneAssetBulkCloneRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var result = await sceneService.BulkCloneAssetsAsync(userId, id, request.AssetIndices);
+        var result = await sceneService.BulkCloneAssetsAsync(userId, id, request.Indices);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -142,9 +141,9 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> BulkDeleteAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] BulkDeleteSceneAssetsRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> BulkDeleteAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] SceneAssetBulkDeleteRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var result = await sceneService.BulkDeleteAssetsAsync(userId, id, request.AssetIndices);
+        var result = await sceneService.BulkDeleteAssetsAsync(userId, id, request.Indices);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "NotFound"
@@ -154,17 +153,18 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> BulkAddAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] BulkAddSceneAssetsRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> BulkAddAssetsHandler(HttpContext context, [FromRoute] Guid id, [FromBody] SceneAssetBulkAddRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
         var assetsToAdd = request.Assets.ConvertAll(a => new AssetToAdd(
-            a.AssetId,
-            new AddSceneAssetData {
+            a.Id,
+            new SceneAssetAddData {
                 Name = a.Name,
-                Description = a.Description,
-                ResourceId = a.ResourceId,
+                IsVisible = a.IsVisible,
+                TokenId = a.TokenId,
+                PortraitId = a.PortraitId,
                 Position = a.Position,
                 Size = a.Size,
-                Frame = new Frame(),
+                Frame = a.Frame,
                 Rotation = a.Rotation,
                 Elevation = a.Elevation
             }
@@ -203,9 +203,9 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> AddWallHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddSceneWallRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> AddWallHandler(HttpContext context, [FromRoute] Guid id, [FromBody] SceneWallAddRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var data = new AddSceneWallData {
+        var data = new SceneWallAddData {
             Name = request.Name,
             Poles = request.Poles,
             Visibility = request.Visibility,
@@ -231,9 +231,9 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> UpdateWallHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] UpdateSceneWallRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> UpdateWallHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] SceneWallUpdateRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var data = new UpdateSceneWallData {
+        var data = new SceneWallUpdateData {
             Name = request.Name,
             Poles = request.Poles,
             Visibility = request.Visibility,
@@ -263,9 +263,9 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> AddRegionHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddSceneRegionRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> AddRegionHandler(HttpContext context, [FromRoute] Guid id, [FromBody] SceneRegionAddRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var data = new AddSceneRegionData {
+        var data = new SceneRegionAddData {
             Name = request.Name,
             Type = request.Type,
             Vertices = request.Vertices,
@@ -291,9 +291,9 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> UpdateRegionHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] UpdateSceneRegionRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> UpdateRegionHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] SceneRegionUpdateRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var data = new UpdateSceneRegionData {
+        var data = new SceneRegionUpdateData {
             Name = request.Name,
             Type = request.Type,
             Vertices = request.Vertices,
@@ -323,9 +323,9 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> AddSourceHandler(HttpContext context, [FromRoute] Guid id, [FromBody] AddSceneSourceRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> AddSourceHandler(HttpContext context, [FromRoute] Guid id, [FromBody] SceneSourceAddRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var data = new AddSceneSourceData {
+        var data = new SceneSourceAddData {
             Name = request.Name,
             Type = request.Type,
             Position = request.Position,
@@ -353,9 +353,9 @@ internal static class SceneHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> UpdateSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] UpdateSceneSourceRequest request, [FromServices] ISceneService sceneService) {
+    internal static async Task<IResult> UpdateSourceHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] int index, [FromBody] SceneSourceUpdateRequest request, [FromServices] ISceneService sceneService) {
         var userId = context.User.GetUserId();
-        var data = new UpdateSceneSourceData {
+        var data = new SceneSourceUpdateData {
             Name = request.Name,
             Type = request.Type,
             Position = request.Position,

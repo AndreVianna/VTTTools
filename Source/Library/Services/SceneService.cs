@@ -1,5 +1,5 @@
-using BulkUpdateSceneAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
-using UpdateSceneAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
+using SceneAssetBulkUpdateData = VttTools.Library.Scenes.ServiceContracts.SceneAssetBulkUpdateData;
+using SceneAssetUpdateData = VttTools.Library.Scenes.ServiceContracts.SceneAssetUpdateData;
 
 namespace VttTools.Library.Services;
 
@@ -14,7 +14,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         => sceneStorage.GetByIdAsync(id, ct);
 
     /// <inheritdoc />
-    public async Task<Result<Scene>> CreateSceneAsync(Guid userId, CreateSceneData data, CancellationToken ct = default) {
+    public async Task<Result<Scene>> CreateSceneAsync(Guid userId, SceneAddData data, CancellationToken ct = default) {
         var result = data.Validate();
         if (result.HasErrors)
             return result;
@@ -41,7 +41,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
     }
 
     /// <inheritdoc />
-    public async Task<Result> UpdateSceneAsync(Guid userId, Guid id, UpdateSceneData data, CancellationToken ct = default) {
+    public async Task<Result> UpdateSceneAsync(Guid userId, Guid id, SceneUpdateData data, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
@@ -55,8 +55,6 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             Name = data.Name.IsSet ? data.Name.Value : scene.Name,
             Description = data.Description.IsSet ? data.Description.Value : scene.Description,
             IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : scene.IsPublished,
-            DefaultDisplayName = data.DefaultDisplayName.IsSet ? data.DefaultDisplayName.Value : scene.DefaultDisplayName,
-            DefaultLabelPosition = data.DefaultLabelPosition.IsSet ? data.DefaultLabelPosition.Value : scene.DefaultLabelPosition,
         };
 
         if (data.Stage.IsSet)
@@ -67,7 +65,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         return Result.Success();
     }
 
-    private static Scene SetGrid(Scene scene, UpdateSceneData data)
+    private static Scene SetGrid(Scene scene, SceneUpdateData data)
         => scene with {
             Grid = scene.Grid with {
                 Type = data.Grid.Value.Type.IsSet ? data.Grid.Value.Type.Value : scene.Grid.Type,
@@ -77,7 +75,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             },
         };
 
-    private async Task<Scene> SetStage(Scene scene, UpdateSceneData data, CancellationToken ct) {
+    private async Task<Scene> SetStage(Scene scene, SceneUpdateData data, CancellationToken ct) {
         scene = scene with {
             Stage = scene.Stage with {
                 ZoomLevel = data.Stage.Value.ZoomLevel.IsSet ? data.Stage.Value.ZoomLevel.Value : scene.Stage.ZoomLevel,
@@ -89,7 +87,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         return scene;
     }
 
-    private async Task<Scene> SetBackground(Scene scene, UpdateSceneData data, CancellationToken ct) {
+    private async Task<Scene> SetBackground(Scene scene, SceneUpdateData data, CancellationToken ct) {
         var backgroundId = data.Stage.Value.BackgroundId.Value ?? Guid.Empty;
         var background = await mediaStorage.GetByIdAsync(backgroundId, ct);
         return scene with {
@@ -125,7 +123,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
     private static string GenerateAssetInstanceName(Asset asset, uint number) => asset.Kind == AssetKind.Creature ? $"{asset.Name} #{number}" : asset.Name;
 
     /// <inheritdoc />
-    public async Task<Result<SceneAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, AddSceneAssetData data, CancellationToken ct = default) {
+    public async Task<Result<SceneAsset>> AddAssetAsync(Guid userId, Guid id, Guid assetId, SceneAssetAddData data, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
@@ -138,17 +136,9 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         if (result.HasErrors)
             return result;
 
-        // ResourceId is required - select from Asset.Resources
-        Guid? resourceId = data.ResourceId.IsSet ? data.ResourceId.Value : null;
-        if (resourceId is null) {
-            // If not provided, select the first token resource from the asset
-            if (asset.Resources.Count == 0)
-                return Result.Failure("Asset has no resources available");
-            // Select first Token resource, fallback to first resource
-            var tokenResource = asset.Resources.FirstOrDefault(r => r.Role == ResourceRole.Token);
-            resourceId = tokenResource?.ResourceId ?? asset.Resources.First().ResourceId;
-        }
-        
+        var tokenId = data.TokenId ?? (asset.Tokens.FirstOrDefault(r => r.IsDefault)?.Token.Id);
+        var portraitId = data.PortraitId ?? asset.Portrait?.Id;
+
         var number = scene.Assets.Any(sa => sa.AssetId == assetId)
             ? scene.Assets.Where(sa => sa.AssetId == assetId).Max(sa => sa.Number) + 1
             : 1u;
@@ -157,15 +147,16 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             AssetId = assetId,
             Index = scene.Assets.Count != 0 ? scene.Assets.Max(sa => sa.Index) + 1 : 0,
             Number = number,
-            Name = data.Name.IsSet ? data.Name.Value : GenerateAssetInstanceName(asset, number),
-            Description = data.Description.IsSet ? data.Description.Value : null,
-            ResourceId = resourceId.Value,
+            Name = data.Name ?? GenerateAssetInstanceName(asset, number),
+            Token = tokenId is null ? null : new Resource { Id = tokenId.Value },
+            Portrait = portraitId is null ? null : new Resource { Id = portraitId.Value },
             Position = data.Position,
             Size = data.Size,
             Frame = data.Frame,
             Rotation = data.Rotation,
             Elevation = data.Elevation,
             ControlledBy = userId,
+            Notes = data.Notes,
         };
         scene.Assets.Add(sceneAsset);
         await sceneStorage.UpdateAsync(scene, ct);
@@ -197,7 +188,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
     }
 
     /// <inheritdoc />
-    public async Task<Result> UpdateAssetAsync(Guid userId, Guid id, int index, UpdateSceneAssetData data, CancellationToken ct = default) {
+    public async Task<Result> UpdateAssetAsync(Guid userId, Guid id, int index, SceneAssetUpdateData data, CancellationToken ct = default) {
         if (index < 0)
             return Result.Failure("NotFound");
         var scene = await sceneStorage.GetByIdAsync(id, ct);
@@ -211,25 +202,33 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         var result = data.Validate();
         if (result.HasErrors)
             return result;
+
+        var tokenId = data.TokenId.IsSet
+                        ? data.TokenId.Value
+                        : sceneAsset.Token?.Id;
+
+        var portraitId = data.PortraitId.IsSet
+                        ? data.PortraitId.Value
+                        : sceneAsset.Portrait?.Id;
+
         sceneAsset = sceneAsset with {
             Name = data.Name.IsSet ? data.Name.Value : sceneAsset.Name,
-            Description = data.Description.IsSet ? data.Description.Value : sceneAsset.Description,
-            ResourceId = data.ResourceId.IsSet ? data.ResourceId.Value : sceneAsset.ResourceId,
+            Token = tokenId is null ? null : new Resource { Id = tokenId.Value },
+            Portrait = portraitId is null ? null : new Resource { Id = portraitId.Value },
             Position = data.Position.IsSet ? data.Position.Value : sceneAsset.Position,
             Size = data.Size.IsSet ? data.Size.Value : sceneAsset.Size,
             Rotation = data.Rotation.IsSet ? data.Rotation.Value : sceneAsset.Rotation,
             Elevation = data.Elevation.IsSet ? data.Elevation.Value : sceneAsset.Elevation,
             IsLocked = data.IsLocked.IsSet ? data.IsLocked.Value : sceneAsset.IsLocked,
             ControlledBy = data.ControlledBy.IsSet ? data.ControlledBy.Value : sceneAsset.ControlledBy,
-            DisplayName = data.DisplayName.IsSet ? data.DisplayName.Value : sceneAsset.DisplayName,
-            LabelPosition = data.LabelPosition.IsSet ? data.LabelPosition.Value : sceneAsset.LabelPosition,
+            Notes = data.Notes.IsSet ? data.Notes.Value : null,
         };
         await sceneStorage.UpdateAsync(id, sceneAsset, ct);
         return Result.Success();
     }
 
     /// <inheritdoc />
-    public async Task<Result> BulkUpdateAssetsAsync(Guid userId, Guid id, BulkUpdateSceneAssetsData data, CancellationToken ct = default) {
+    public async Task<Result> BulkUpdateAssetsAsync(Guid userId, Guid id, SceneAssetBulkUpdateData data, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
@@ -256,8 +255,6 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
                     Size = update.Size.IsSet ? update.Size.Value : sceneAsset.Size,
                     Rotation = update.Rotation.IsSet ? update.Rotation.Value : sceneAsset.Rotation,
                     Elevation = update.Elevation.IsSet ? update.Elevation.Value : sceneAsset.Elevation,
-                    DisplayName = update.DisplayName.IsSet ? update.DisplayName.Value : sceneAsset.DisplayName,
-                    LabelPosition = update.LabelPosition.IsSet ? update.LabelPosition.Value : sceneAsset.LabelPosition,
                 };
             }
         }
@@ -342,13 +339,8 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             if (asset.OwnerId != userId && !(asset is { IsPublic: true, IsPublished: true }))
                 return Result.Failure("NotAllowed");
 
-            Guid? resourceId = data.ResourceId.IsSet ? data.ResourceId.Value : null;
-            if (resourceId is null) {
-                if (asset.Resources.Count == 0)
-                    return Result.Failure("Asset has no resources available");
-                var tokenResource = asset.Resources.FirstOrDefault(r => r.Role == ResourceRole.Token);
-                resourceId = tokenResource?.ResourceId ?? asset.Resources.First().ResourceId;
-            }
+            var tokenId = data.TokenId ?? (asset.Tokens.FirstOrDefault(r => r.IsDefault)?.Token.Id);
+            var portraitId = data.PortraitId ?? asset.Portrait?.Id;
 
             var number = scene.Assets.Any(sa => sa.AssetId == assetId)
                 ? scene.Assets.Where(sa => sa.AssetId == assetId).Max(sa => sa.Number) + 1
@@ -358,9 +350,10 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
                 AssetId = assetId,
                 Index = ++currentMaxIndex,
                 Number = number,
-                Name = data.Name.IsSet ? data.Name.Value : GenerateAssetInstanceName(asset, number),
-                Description = data.Description.IsSet ? data.Description.Value : null,
-                ResourceId = resourceId.Value,
+                Name = data.Name ?? GenerateAssetInstanceName(asset, number),
+                Notes = data.Notes,
+                Token = tokenId is null ? null : new Resource { Id = tokenId.Value },
+                Portrait = portraitId is null ? null : new Resource { Id = portraitId.Value },
                 Position = data.Position,
                 Size = data.Size,
                 Frame = data.Frame,
@@ -390,7 +383,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
     }
 
     /// <inheritdoc />
-    public async Task<Result<SceneWall>> AddWallAsync(Guid userId, Guid id, AddSceneWallData data, CancellationToken ct = default) {
+    public async Task<Result<SceneWall>> AddWallAsync(Guid userId, Guid id, SceneWallAddData data, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
@@ -413,7 +406,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
     }
 
     /// <inheritdoc />
-    public async Task<Result> UpdateWallAsync(Guid userId, Guid id, uint index, UpdateSceneWallData data, CancellationToken ct = default) {
+    public async Task<Result> UpdateWallAsync(Guid userId, Guid id, uint index, SceneWallUpdateData data, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
@@ -453,7 +446,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
     }
 
     /// <inheritdoc />
-    public async Task<Result<SceneRegion>> AddRegionAsync(Guid userId, Guid id, AddSceneRegionData data, CancellationToken ct = default) {
+    public async Task<Result<SceneRegion>> AddRegionAsync(Guid userId, Guid id, SceneRegionAddData data, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
@@ -476,7 +469,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
     }
 
     /// <inheritdoc />
-    public async Task<Result> UpdateRegionAsync(Guid userId, Guid id, uint index, UpdateSceneRegionData data, CancellationToken ct = default) {
+    public async Task<Result> UpdateRegionAsync(Guid userId, Guid id, uint index, SceneRegionUpdateData data, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
@@ -516,7 +509,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
     }
 
     /// <inheritdoc />
-    public async Task<Result<SceneSource>> AddSourceAsync(Guid userId, Guid id, AddSceneSourceData data, CancellationToken ct = default) {
+    public async Task<Result<SceneSource>> AddSourceAsync(Guid userId, Guid id, SceneSourceAddData data, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");
@@ -544,7 +537,7 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
     }
 
     /// <inheritdoc />
-    public async Task<Result> UpdateSourceAsync(Guid userId, Guid id, uint index, UpdateSceneSourceData data, CancellationToken ct = default) {
+    public async Task<Result> UpdateSourceAsync(Guid userId, Guid id, uint index, SceneSourceUpdateData data, CancellationToken ct = default) {
         var scene = await sceneStorage.GetByIdAsync(id, ct);
         if (scene is null)
             return Result.Failure("NotFound");

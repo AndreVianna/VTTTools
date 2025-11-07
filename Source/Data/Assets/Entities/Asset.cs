@@ -1,3 +1,5 @@
+using Resource = VttTools.Data.Media.Entities.Resource;
+
 namespace VttTools.Data.Assets.Entities;
 
 public abstract class Asset {
@@ -8,9 +10,10 @@ public abstract class Asset {
     public string Name { get; set; } = string.Empty;
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
-    public ICollection<AssetResource> Resources { get; set; } = [];
+    public ICollection<AssetToken> Tokens { get; set; } = [];
+    public Guid? PortraitId { get; set; }
+    public Resource? Portrait { get; set; }
+    public NamedSize Size { get; set; } = NamedSize.Default;
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
 }

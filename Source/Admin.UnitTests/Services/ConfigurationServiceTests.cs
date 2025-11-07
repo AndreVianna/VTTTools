@@ -208,7 +208,7 @@ public class ConfigurationServiceTests {
     public async Task GetLocalConfigurationAsync_DetectsSourceCorrectly() {
         var result = await _sut.GetServiceConfigurationAsync("Admin", TestContext.Current.CancellationToken);
 
-        var entry = result.Entries.First();
+        var entry = result.Entries[0];
         entry.Source.Should().NotBeNull();
         entry.Source.Type.Should().Be(ConfigSourceType.InMemory);
     }

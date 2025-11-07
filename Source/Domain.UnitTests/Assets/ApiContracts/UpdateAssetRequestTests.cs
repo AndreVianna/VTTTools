@@ -8,14 +8,14 @@ public class UpdateAssetRequestTests {
         var original = new UpdateAssetRequest {
             Name = "Table",
             Description = "A table",
-            Resources = new[] {
-                new AssetResourceData {
-                    ResourceId = originalResourceId,
-                    Role = ResourceRole.Token
+            Tokens = new[] {
+                new AssetTokenData {
+                    TokenId = originalResourceId,
+                    IsDefault = true
                 }
             },
-            ObjectProps = new ObjectProperties {
-                Size = new NamedSize { Width = 1, Height = 1, IsSquare = false },
+            Size = new NamedSize { Width = 1, Height = 1 },
+            ObjectData = new ObjectData {
                 IsMovable = true,
                 IsOpaque = false
             }
@@ -26,14 +26,14 @@ public class UpdateAssetRequestTests {
         // Act
         var updated = original with {
             Name = newName,
-            Resources = new[] {
-                new AssetResourceData {
-                    ResourceId = newResourceId,
-                    Role = ResourceRole.Token
+            Tokens = new[] {
+                new AssetTokenData {
+                    TokenId = newResourceId,
+                    IsDefault = false
                 }
             },
-            ObjectProps = new ObjectProperties {
-                Size = new NamedSize { Width = 2, Height = 2, IsSquare = false },
+            Size = new NamedSize { Width = 2, Height = 2 },
+            ObjectData = new ObjectData {
                 IsMovable = false,
                 IsOpaque = false
             }
@@ -41,12 +41,12 @@ public class UpdateAssetRequestTests {
 
         // Assert
         updated.Name.Value.Should().Be(newName);
-        updated.Resources.Value.Should().HaveCount(1);
-        updated.Resources.Value[0].ResourceId.Should().Be(newResourceId);
-        updated.Resources.Value[0].Role.Should().Be(ResourceRole.Token);
-        updated.ObjectProps.Value.Size.Width.Should().Be(2);
-        updated.ObjectProps.Value.Size.Height.Should().Be(2);
-        updated.ObjectProps.Value.IsMovable.Should().BeFalse();
+        updated.Tokens.Value.Should().HaveCount(1);
+        updated.Tokens.Value[0].TokenId.Should().Be(newResourceId);
+        updated.Tokens.Value[0].IsDefault.Should().BeFalse();
+        updated.Size.Value.Width.Should().Be(2);
+        updated.Size.Value.Height.Should().Be(2);
+        updated.ObjectData.Value.IsMovable.Should().BeFalse();
     }
 
     [Fact]
@@ -54,16 +54,16 @@ public class UpdateAssetRequestTests {
         // Arrange
         var original = new UpdateAssetRequest {
             Name = "Goblin",
-            CreatureProps = new CreatureProperties {
-                Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+            Size = new NamedSize { Width = 1, Height = 1 },
+            CreatureData = new CreatureData {
                 Category = CreatureCategory.Monster
             }
         };
 
         // Act
         var updated = original with {
-            CreatureProps = new CreatureProperties {
-                Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+            Size = new NamedSize { Width = 1, Height = 1 },
+            CreatureData = new CreatureData {
                 Category = CreatureCategory.Character,
                 TokenStyle = new TokenStyle {
                     BorderColor = "#00FF00",
@@ -73,8 +73,8 @@ public class UpdateAssetRequestTests {
         };
 
         // Assert
-        updated.CreatureProps.Value.Category.Should().Be(CreatureCategory.Character);
-        updated.CreatureProps.Value.TokenStyle.Should().NotBeNull();
-        updated.CreatureProps.Value.TokenStyle!.Shape.Should().Be(TokenShape.Square);
+        updated.CreatureData.Value.Category.Should().Be(CreatureCategory.Character);
+        updated.CreatureData.Value.TokenStyle.Should().NotBeNull();
+        updated.CreatureData.Value.TokenStyle!.Shape.Should().Be(TokenShape.Square);
     }
 }

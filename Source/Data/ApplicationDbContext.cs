@@ -30,7 +30,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Ignore<NamedSize>();
         builder.Ignore<ResourceMetadata>();
         IdentitySchemaBuilder.ConfigureModel(builder);
-        IdentitySchemaBuilder.SeedIdentity(builder);
+        IdentitySchemaSeeder.Seed(builder);
         ResourceSchemaBuilder.ConfigureModel(builder);
         AssetSchemaBuilder.ConfigureModel(builder);
         EffectSchemaBuilder.ConfigureModel(builder);
@@ -43,5 +43,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         GameSessionSchemaBuilder.ConfigureModel(builder);
         AuditLogSchemaBuilder.ConfigureModel(builder);
         MaintenanceModeSchemaBuilder.ConfigureModel(builder);
+        //ApplicationSchemaSeeder.Seed(builder);
     }
 }

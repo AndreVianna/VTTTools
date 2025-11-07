@@ -24,7 +24,7 @@ partial class SeedIdentitySchema {
 
         SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-        modelBuilder.Entity("VttTools.Model.Identity.Role", b => {
+        modelBuilder.Entity("VttTools.Model.Identity.IsDefault", b => {
             b.Property<Guid>("Id")
                 .ValueGeneratedOnAdd()
                 .HasColumnType("uniqueidentifier");
@@ -265,7 +265,7 @@ partial class SeedIdentitySchema {
         });
 
         modelBuilder.Entity("VttTools.Model.Identity.RoleClaim", b => {
-            b.HasOne("VttTools.Model.Identity.Role", null)
+            b.HasOne("VttTools.Model.Identity.IsDefault", null)
                 .WithMany()
                 .HasForeignKey("RoleId")
                 .OnDelete(DeleteBehavior.Cascade)
@@ -289,7 +289,7 @@ partial class SeedIdentitySchema {
         });
 
         modelBuilder.Entity("VttTools.Model.Identity.UserRole", b => {
-            b.HasOne("VttTools.Model.Identity.Role", null)
+            b.HasOne("VttTools.Model.Identity.IsDefault", null)
                 .WithMany()
                 .HasForeignKey("RoleId")
                 .OnDelete(DeleteBehavior.Cascade)

@@ -41,7 +41,7 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
         var pathParts = data.Path.Split('/');
         var resourceId = Guid.Parse(pathParts[^1]);  // Last element is the full GUID
 
-        // Save Resource entity to database
+        // Save Token entity to database
         var resource = new Resource {
             Id = resourceId,
             Type = resourceType,

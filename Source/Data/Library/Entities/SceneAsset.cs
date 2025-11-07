@@ -8,25 +8,27 @@ public class SceneAsset {
     public uint Index { get; set; }
     public Guid AssetId { get; set; }
     public Asset Asset { get; set; } = null!;
-    public uint Number { get; set; }
 
-    // Overridable properties (nullable = use template if null)
     [MaxLength(128)]
     public string Name { get; set; } = string.Empty;
-    [MaxLength(4096)]
-    public string? Description { get; set; }  // Override template description
-    public Guid ResourceId { get; set; }  // REQUIRED - must select from Asset.Resources
-    public Resource? Resource { get; set; }  // Navigation property for selected resource
+    public uint Number { get; set; }
 
-    // Instance-specific data
+    public bool IsLocked { get; set; }
+    public bool IsVisible { get; set; } = true;
+
     public Frame Frame { get; set; } = new Frame();
-    public NamedSize Size { get; set; } = NamedSize.Zero;
+    public Guid? PortraitId { get; set; }
+    public Resource? Portrait { get; set; }
+    public Guid? TokenId { get; set; }
+    public Resource? Token { get; set; }
+
+    public NamedSize Size { get; set; } = NamedSize.Default;
     public Position Position { get; set; } = Position.Zero;
     public float Rotation { get; set; }
     public float Elevation { get; set; }
-    public bool IsLocked { get; set; }
-    public bool IsVisible { get; set; } = true;
+
     public Guid? ControlledBy { get; set; }
-    public DisplayName DisplayName { get; set; } = DisplayName.Default;
-    public LabelPosition LabelPosition { get; set; } = LabelPosition.Default;
+
+    [MaxLength(4096)]
+    public string? Notes { get; set; }
 }

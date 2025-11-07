@@ -234,7 +234,7 @@ public class ConfigurationHandlersTests {
 
     private static ConfigurationResponse CreateTestConfigurationResponse(string serviceName) => new() {
         ServiceName = serviceName,
-        Entries = new List<ConfigEntry> {
+        Entries = [
             new() {
                 Key = "JwtSecret",
                 Value = "***REDACTED***",
@@ -252,6 +252,6 @@ public class ConfigurationHandlersTests {
                 },
                 Category = "Database"
             }
-        }
+        ]
     };
 }

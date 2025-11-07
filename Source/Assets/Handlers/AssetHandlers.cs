@@ -60,14 +60,14 @@ internal static class AssetHandlers {
             Kind = request.Kind,
             Name = request.Name,
             Description = request.Description,
-            Resources = [..request.Resources.Select(r => new AssetResource {
-                ResourceId = r.ResourceId,
-                Role = r.Role
+            Tokens = [..request.Tokens.Select(r => new AssetTokenData {
+                TokenId = r.TokenId,
+                IsDefault = r.IsDefault
             })],
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,
-            ObjectProps = request.ObjectProps,
-            CreatureProps = request.CreatureProps,
+            ObjectData = request.ObjectData,
+            CreatureData = request.CreatureData,
         };
         var result = await assetService.CreateAssetAsync(userId, data);
         return result.IsSuccessful
@@ -83,14 +83,15 @@ internal static class AssetHandlers {
         var data = new UpdateAssetData {
             Name = request.Name,
             Description = request.Description,
-            Resources = request.Resources.As<AssetResource[]>(list => [..list.Select(r => new AssetResource {
-                ResourceId = r.ResourceId,
-                Role = r.Role
+            Tokens = request.Tokens.As<AssetTokenData[]>(list => [..list.Select(r => new AssetTokenData {
+                TokenId = r.TokenId,
+                IsDefault = r.IsDefault
             })]),
+            PortraitId = request.PortraitId,
             IsPublished = request.IsPublished,
             IsPublic = request.IsPublic,
-            ObjectProps = request.ObjectProps,
-            CreatureProps = request.CreatureProps,
+            ObjectData = request.ObjectData,
+            CreatureData = request.CreatureData,
         };
 
         var result = await assetService.UpdateAssetAsync(userId, id, data);

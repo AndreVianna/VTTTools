@@ -1,5 +1,17 @@
 namespace VttTools.Assets.ServiceContracts;
 
+public record CreatureData {
+    public Guid? StatBlockId { get; init; }
+    public CreatureCategory Category { get; init; } = CreatureCategory.Character;
+    public TokenStyle? TokenStyle { get; init; }
+}
+
+public record ObjectData {
+    public bool IsMovable { get; init; } = true;
+    public bool IsOpaque { get; init; }
+    public Guid? TriggerEffectId { get; init; }
+}
+
 /// <summary>
 /// Data to create a new Asset template.
 /// </summary>
@@ -8,13 +20,14 @@ public record CreateAssetData
     public AssetKind Kind { get; init; }
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
-    public AssetResource[] Resources { get; init; } = [];
+    public AssetTokenData[] Tokens { get; init; } = [];
+    public Guid? PortraitId { get; init; }
+    public NamedSize Size { get; init; } = NamedSize.Default;
     public bool IsPublished { get; init; }
     public bool IsPublic { get; init; }
 
-    // Polymorphic properties (only one should be provided based on Kind)
-    public ObjectProperties? ObjectProps { get; init; }
-    public CreatureProperties? CreatureProps { get; init; }
+    public ObjectData? ObjectData { get; init; }
+    public CreatureData? CreatureData { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
@@ -23,26 +36,16 @@ public record CreateAssetData
         // Description is optional per domain model - removed validation
 
         // Validate that properties match the Kind
-        if (Kind == AssetKind.Object && ObjectProps is null)
-            result += new Error("ObjectProps must be provided for Object assets.", nameof(ObjectProps));
-        if (Kind == AssetKind.Creature && CreatureProps is null)
-            result += new Error("CreatureProps must be provided for Creature assets.", nameof(CreatureProps));
+        if (Kind == AssetKind.Object && ObjectData is null)
+            result += new Error("ObjectData must be provided for Object assets.", nameof(ObjectData));
+        if (Kind == AssetKind.Creature && CreatureData is null)
+            result += new Error("CreatureData must be provided for Creature assets.", nameof(CreatureData));
 
-        // Validate ObjectProps values
-        if (ObjectProps is not null) {
-            if (ObjectProps.Size.Width <= 0)
-                result += new Error("Size width must be greater than 0.", $"{nameof(ObjectProps)}.Size.Width");
-            if (ObjectProps.Size.Height <= 0)
-                result += new Error("Size height must be greater than 0.", $"{nameof(ObjectProps)}.Size.Height");
-        }
-
-        // Validate CreatureProps values
-        if (CreatureProps is not null) {
-            if (CreatureProps.Size.Width <= 0)
-                result += new Error("Size width must be greater than 0.", $"{nameof(CreatureProps)}.Size.Width");
-            if (CreatureProps.Size.Height <= 0)
-                result += new Error("Size height must be greater than 0.", $"{nameof(CreatureProps)}.Size.Height");
-        }
+        // Validate Size values
+        if (Size.Width <= 0)
+            result += new Error("Size width must be greater than 0.", $"{nameof(Size)}.{nameof(Size.Width)}");
+        if (Size.Height <= 0)
+            result += new Error("Size height must be greater than 0.", $"{nameof(Size)}.{nameof(Size.Height)}");
 
         return result;
     }

@@ -4,10 +4,10 @@ public class UpdateAssetRequestTests {
     [Fact]
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
-        var original = new UpdateSceneAssetRequest {
+        var original = new SceneAssetUpdateRequest {
             Name = "Original",
             Position = new Position(1, 1),
-            Size = new NamedSize { Width = 50, Height = 50, IsSquare = false },
+            Size = new NamedSize { Width = 50, Height = 50 },
             Frame = new Frame(),
             Rotation = 0.0f,
             Elevation = 0.0f,
@@ -16,7 +16,7 @@ public class UpdateAssetRequestTests {
         };
         const string name = "New Name";
         var position = new Position(10, 20);
-        var size = new NamedSize { Width = 100, Height = 200, IsSquare = false };
+        var size = new NamedSize { Width = 100, Height = 200 };
         var frame = new Frame {
             Shape = FrameShape.Circle,
             BorderThickness = 2,

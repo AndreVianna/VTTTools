@@ -7,32 +7,35 @@ public static class Cloner {
                 OwnerId = ownerId ?? obj.OwnerId,
                 Name = obj.Name,
                 Description = obj.Description,
-                Resources = [.. obj.Resources.Select(ar => ar.Clone())],
+                Tokens = [.. obj.Tokens.Select(ar => ar.Clone())],
+                Portrait = obj.Portrait?.Clone(),
                 IsPublic = obj.IsPublic,
                 IsPublished = obj.IsPublished,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                Properties = obj.Properties
+                Size = obj.Size,
+                IsMovable = obj.IsMovable,
+                IsOpaque = obj.IsOpaque,
+                TriggerEffectId = obj.TriggerEffectId,
             },
             CreatureAsset creature => new CreatureAsset {
                 OwnerId = ownerId ?? creature.OwnerId,
                 Name = creature.Name,
                 Description = creature.Description,
-                Resources = [.. creature.Resources.Select(ar => ar.Clone())],
+                Tokens = [.. creature.Tokens.Select(ar => ar.Clone())],
+                Portrait = creature.Portrait?.Clone(),
                 IsPublic = creature.IsPublic,
                 IsPublished = creature.IsPublished,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                Properties = creature.Properties
+                Size = creature.Size,
+                StatBlockId = creature.StatBlockId,
+                Category = creature.Category,
+                TokenStyle = creature.TokenStyle,
             },
             _ => throw new InvalidOperationException($"Unknown asset type: {original.GetType()}")
         };
 
-    internal static AssetResource Clone(this AssetResource original)
+    internal static AssetToken Clone(this AssetToken original)
         => new() {
-            ResourceId = original.ResourceId,
-            Resource = original.Resource?.Clone(),
-            Role = original.Role
+            Token = original.Token.Clone(),
+            IsDefault = original.IsDefault
         };
 
     internal static Resource Clone(this Resource original)

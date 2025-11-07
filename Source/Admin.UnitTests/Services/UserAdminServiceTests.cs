@@ -613,7 +613,7 @@ public class UserAdminServiceTests
         var act = () => _sut.AssignRoleAsync(user.Id, roleName, adminUserId, default);
 
         await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage($"Role '{roleName}' does not exist.*");
+            .WithMessage($"IsDefault '{roleName}' does not exist.*");
     }
 
     [Fact]
@@ -625,7 +625,7 @@ public class UserAdminServiceTests
         _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
         _mockRoleManager.RoleExistsAsync(roleName).Returns(true);
         _mockUserManager.AddToRoleAsync(user, roleName)
-            .Returns(IdentityResult.Failed(new IdentityError { Description = "Role assignment failed" }));
+            .Returns(IdentityResult.Failed(new IdentityError { Description = "IsDefault assignment failed" }));
 
         var result = await _sut.AssignRoleAsync(user.Id, roleName, adminUserId, TestContext.Current.CancellationToken);
 
@@ -730,7 +730,7 @@ public class UserAdminServiceTests
 
         _mockUserManager.FindByIdAsync(user.Id.ToString()).Returns(user);
         _mockUserManager.RemoveFromRoleAsync(user, roleName)
-            .Returns(IdentityResult.Failed(new IdentityError { Description = "Role removal failed" }));
+            .Returns(IdentityResult.Failed(new IdentityError { Description = "IsDefault removal failed" }));
 
         var result = await _sut.RemoveRoleAsync(user.Id, roleName, adminUserId, TestContext.Current.CancellationToken);
 

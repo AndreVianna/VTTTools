@@ -70,10 +70,10 @@ public class SceneHandlersTests {
     public async Task UpdateSceneHandler_WithValidRequest_ReturnsOkResult() {
         // Arrange
         var sceneId = Guid.CreateVersion7();
-        var request = new UpdateSceneRequest { Name = "Updated Scene" };
+        var request = new SceneUpdateRequest { Name = "Updated Scene" };
         var scene = new Scene { Id = sceneId, Name = "Updated Scene" };
 
-        _sceneService.UpdateSceneAsync(_userId, sceneId, Arg.Any<UpdateSceneData>(), Arg.Any<CancellationToken>())
+        _sceneService.UpdateSceneAsync(_userId, sceneId, Arg.Any<SceneUpdateData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         // Act
@@ -88,9 +88,9 @@ public class SceneHandlersTests {
     public async Task UpdateSceneHandler_WithNonExistingId_ReturnsNotFound() {
         // Arrange
         var sceneId = Guid.CreateVersion7();
-        var request = new UpdateSceneRequest { Name = "Updated Scene" };
+        var request = new SceneUpdateRequest { Name = "Updated Scene" };
 
-        _sceneService.UpdateSceneAsync(_userId, sceneId, Arg.Any<UpdateSceneData>(), Arg.Any<CancellationToken>())
+        _sceneService.UpdateSceneAsync(_userId, sceneId, Arg.Any<SceneUpdateData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("NotFound"));
 
         // Act
@@ -126,9 +126,9 @@ public class SceneHandlersTests {
         var sceneId = Guid.CreateVersion7();
         var assetId = Guid.CreateVersion7();
         const int number = 1;
-        var request = new UpdateSceneAssetRequest {
+        var request = new SceneAssetUpdateRequest {
             Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
+            Size = new NamedSize { Width = 10, Height = 50 },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -139,7 +139,7 @@ public class SceneHandlersTests {
             Rotation = 45,
         };
 
-        _sceneService.UpdateAssetAsync(_userId, sceneId, number, Arg.Any<UpdateSceneAssetData>(), Arg.Any<CancellationToken>())
+        _sceneService.UpdateAssetAsync(_userId, sceneId, number, Arg.Any<SceneAssetUpdateData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         // Act
@@ -154,9 +154,9 @@ public class SceneHandlersTests {
         // Arrange
         var sceneId = Guid.CreateVersion7();
         const int number = 1;
-        var request = new UpdateSceneAssetRequest {
+        var request = new SceneAssetUpdateRequest {
             Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
+            Size = new NamedSize { Width = 10, Height = 50 },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -167,7 +167,7 @@ public class SceneHandlersTests {
             Rotation = 45,
         };
 
-        _sceneService.UpdateAssetAsync(_userId, sceneId, number, Arg.Any<UpdateSceneAssetData>(), Arg.Any<CancellationToken>())
+        _sceneService.UpdateAssetAsync(_userId, sceneId, number, Arg.Any<SceneAssetUpdateData>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Some error."));
 
         // Act

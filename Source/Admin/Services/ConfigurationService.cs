@@ -12,12 +12,11 @@ public class ConfigurationService(
 
     public async Task<ConfigurationResponse> GetServiceConfigurationAsync(string serviceName, CancellationToken ct = default)
         => serviceName switch {
-            "Admin" => await GetLocalConfigurationAsync(ct),
+            "Admin" => GetLocalConfiguration(),
             "WebClientApp" => await GetFrontendConfigurationAsync("WebClientApp", ct),
             "WebAdminApp" => await GetFrontendConfigurationAsync("WebAdminApp", ct),
             _ => throw new NotSupportedException($"Service '{serviceName}' is not supported by Admin API. Use direct service calls.")
         };
-
 
     public async Task<string> RevealConfigValueAsync(
         Guid userId,
@@ -26,12 +25,12 @@ public class ConfigurationService(
         string totpCode,
         CancellationToken ct = default) {
 
-        if (serviceName != "Admin" && serviceName != "WebClientApp" && serviceName != "WebAdminApp") {
+        if (serviceName is not "Admin" and not "WebClientApp" and not "WebAdminApp") {
             throw new NotSupportedException($"Configuration reveal not supported for service: {serviceName}. Only 'Admin', 'WebClientApp', and 'WebAdminApp' are supported.");
         }
 
         var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user is null || !user.TwoFactorEnabled) {
+        if (user?.TwoFactorEnabled != true) {
             throw new UnauthorizedAccessException("2FA not enabled");
         }
 
@@ -42,10 +41,8 @@ public class ConfigurationService(
 
         var config = await GetServiceConfigurationAsync(serviceName, ct);
 
-        var entry = config.Entries.FirstOrDefault(e => e.Key == key);
-        if (entry is null) {
-            throw new KeyNotFoundException($"Configuration key '{key}' not found");
-        }
+        var entry = config.Entries.FirstOrDefault(e => e.Key == key)
+            ?? throw new KeyNotFoundException($"Configuration key '{key}' not found");
 
         if (!entry.IsRedacted) {
             return entry.Value;
@@ -55,7 +52,7 @@ public class ConfigurationService(
             return configuration[key] ?? "[Configuration value not available]";
         }
 
-        if (serviceName == "WebClientApp" || serviceName == "WebAdminApp") {
+        if (serviceName is "WebClientApp" or "WebAdminApp") {
             var envFilePath = Path.Combine(
                 Directory.GetCurrentDirectory(),
                 "..",
@@ -81,7 +78,7 @@ public class ConfigurationService(
         return "[Configuration value not available]";
     }
 
-    private Task<ConfigurationResponse> GetLocalConfigurationAsync(CancellationToken ct = default) {
+    private ConfigurationResponse GetLocalConfiguration() {
         var entries = new List<ConfigEntry>();
 
         if (configuration is not IConfigurationRoot configRoot) {
@@ -89,7 +86,7 @@ public class ConfigurationService(
         }
 
         var allConfig = configuration.AsEnumerable().ToList();
-        logger.LogInformation("GetLocalConfigurationAsync: Total config items from AsEnumerable: {Count}", allConfig.Count);
+        logger.LogInformation("GetLocalConfiguration: Total config items from AsEnumerable: {Count}", allConfig.Count);
 
         var validCount = 0;
         var skippedNullKey = 0;
@@ -121,13 +118,13 @@ public class ConfigurationService(
         }
 
         logger.LogInformation(
-            "GetLocalConfigurationAsync: Valid entries={ValidCount}, SkippedNullKey={NullKey}, SkippedNullValue={NullValue}, Final entries count={EntriesCount}",
+            "GetLocalConfiguration: Valid entries={ValidCount}, SkippedNullKey={NullKey}, SkippedNullValue={NullValue}, Final entries count={EntriesCount}",
             validCount, skippedNullKey, skippedNullValue, entries.Count);
 
-        return Task.FromResult(new ConfigurationResponse {
+        return new ConfigurationResponse {
             ServiceName = "Admin",
             Entries = entries.AsReadOnly()
-        });
+        };
     }
 
     private async Task<ConfigurationResponse> GetFrontendConfigurationAsync(string appName, CancellationToken ct = default) {
@@ -138,7 +135,6 @@ public class ConfigurationService(
             Entries = entries
         };
     }
-
 
     private static bool IsSensitiveKey(string key) {
         var lowerKey = key.ToLowerInvariant();

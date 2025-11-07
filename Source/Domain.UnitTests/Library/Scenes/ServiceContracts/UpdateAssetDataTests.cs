@@ -4,10 +4,10 @@ public class UpdateAssetDataTests {
     [Fact]
     public void WithClause_WithChangedValues_UpdatesProperties() {
         // Arrange
-        var original = new UpdateSceneAssetData {
+        var original = new SceneAssetUpdateData {
             Name = "Original",
             Position = new Position(1, 1),
-            Size = new NamedSize { Width = 50, Height = 50, IsSquare = true },
+            Size = new NamedSize { Width = 50, Height = 50 },
             Frame = new(),
             Rotation = 0.0f,
             Elevation = 0.0f,
@@ -16,7 +16,7 @@ public class UpdateAssetDataTests {
         };
         const string name = "New Name";
         var position = new Position(10, 20);
-        var size = new NamedSize { Width = 1000, Height = 2000, IsSquare = false };
+        var size = new NamedSize { Width = 1000, Height = 2000 };
         var frame = new Frame {
             Shape = FrameShape.Circle,
             BorderThickness = 2,
@@ -55,10 +55,10 @@ public class UpdateAssetDataTests {
     [Fact]
     public void Validate_WithValidData_ReturnsSuccess() {
         // Arrange
-        var data = new UpdateSceneAssetData {
+        var data = new SceneAssetUpdateData {
             Name = "Original",
             Position = new Position(1, 1),
-            Size = new NamedSize { Width = 10, Height = 20, IsSquare = false },
+            Size = new NamedSize { Width = 10, Height = 20 },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 1,
@@ -79,10 +79,10 @@ public class UpdateAssetDataTests {
     [Fact]
     public void Validate_WithInvalidData_ReturnsSuccess() {
         // Arrange
-        var data = new UpdateSceneAssetData {
+        var data = new SceneAssetUpdateData {
             Name = null!,
             Position = new Position(10, 20),
-            Size = new NamedSize { Width = 1000, Height = 2000, IsSquare = false },
+            Size = new NamedSize { Width = 1000, Height = 2000 },
             Frame = new Frame {
                 Shape = FrameShape.Circle,
                 BorderThickness = 2,
@@ -103,7 +103,7 @@ public class UpdateAssetDataTests {
     [Fact]
     public void Validate_OptionalValuesNotSet_ReturnsSuccess() {
         // Arrange
-        var data = new UpdateSceneAssetData();
+        var data = new SceneAssetUpdateData();
 
         // Act
         var result = data.Validate();

@@ -12,27 +12,20 @@ public record SceneAsset {
     // Overridable properties (if null/default, use template value)
     [MaxLength(128)]
     public string Name { get; init; } = string.Empty;  // Instance-specific name (e.g., "Goblin #3")
-    [MaxLength(4096)]
-    public string? Description { get; init; }  // Instance-specific description (e.g., "Goblin with bow")
-    public Guid ResourceId { get; init; }  // REQUIRED - must select a resource from Asset.Resources (for token display)
+    public Resource? Token { get; init; }
+    public Resource? Portrait { get; init; }
+
+    public bool IsLocked { get; init; }
+    public bool IsVisible { get; init; } = true;  // Whether visible to players (GM can hide traps, secret objects, etc.)
 
     // Instance-specific data
     public NamedSize Size { get; init; } = NamedSize.Zero;
     public Position Position { get; init; } = Position.Zero;  // Cell-based placement position
     public float Rotation { get; init; }
-    public Frame Frame { get; init; } = new Frame();
     public float Elevation { get; init; }
-    public bool IsLocked { get; init; }
-    public bool IsVisible { get; init; } = true;  // Whether visible to players (GM can hide traps, secret objects, etc.)
+
+    public Frame Frame { get; init; } = new Frame();
+    public string? Notes { get; init; }
+
     public Guid? ControlledBy { get; init; }
-
-    /// <summary>
-    /// Display mode for this asset's label. Default uses scene default setting.
-    /// </summary>
-    public DisplayName DisplayName { get; init; } = DisplayName.Default;
-
-    /// <summary>
-    /// Label position for this asset. Default uses scene default setting.
-    /// </summary>
-    public LabelPosition LabelPosition { get; init; } = LabelPosition.Default;
 }

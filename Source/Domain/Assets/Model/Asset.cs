@@ -48,15 +48,17 @@ public abstract record Asset {
     /// Collection of visual resources (images/videos) associated with this asset
     /// Each resource can have one or more roles (Token, Portrait)
     /// </summary>
-    public ICollection<AssetResource> Resources { get; init; } = [];
+    public ICollection<AssetToken> Tokens { get; init; } = [];
 
     /// <summary>
-    /// When the asset was created
+    /// Collection of visual resources (images/videos) associated with this asset
+    /// Each resource can have one or more roles (Token, Portrait)
     /// </summary>
-    public DateTime CreatedAt { get; init; }
+    public Resource? Portrait { get; init; }
 
     /// <summary>
-    /// When the asset was last updated
+    /// Gets or sets the named size value for the element.
     /// </summary>
-    public DateTime UpdatedAt { get; init; }
+    /// <remarks>Use this property to specify a predefined size from the <see cref="NamedSize"/> record.</remarks>
+    public NamedSize Size { get; set; } = NamedSize.Default;
 }

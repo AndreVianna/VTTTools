@@ -29,11 +29,6 @@ public partial class SeedIdentitySchema : Migration {
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder) {
         migrationBuilder.DeleteData(
-            table: "Roles",
-            keyColumn: "Id",
-            keyValue: new Guid("019639ea-c7de-786f-9f95-b397ca9509df"));
-
-        migrationBuilder.DeleteData(
             table: "UserRoles",
             keyColumns: ["RoleId", "UserId"],
             keyValues: [new Guid("019639ea-c7de-7e6f-b549-baf14386ad2f"), new Guid("019639ea-c7de-7a01-8548-41edfccde206")]);
@@ -41,7 +36,10 @@ public partial class SeedIdentitySchema : Migration {
         migrationBuilder.DeleteData(
             table: "Roles",
             keyColumn: "Id",
-            keyValue: new Guid("019639ea-c7de-7e6f-b549-baf14386ad2f"));
+            keyValues: [
+                new Guid("019639ea-c7de-786f-9f95-b397ca9509df"),
+                new Guid("019639ea-c7de-7e6f-b549-baf14386ad2f")
+            ]);
 
         migrationBuilder.DeleteData(
             table: "Users",

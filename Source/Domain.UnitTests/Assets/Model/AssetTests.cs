@@ -15,10 +15,10 @@ public class AssetTests {
         asset.Name.Should().BeEmpty();
         asset.Kind.Should().Be(AssetKind.Object);
         asset.Description.Should().BeEmpty();
-        asset.Resources.Should().NotBeNull().And.BeEmpty();
-        asset.Properties.Should().NotBeNull();
-        asset.Properties.Size.Width.Should().Be(1);
-        asset.Properties.IsMovable.Should().BeTrue();
+        asset.Tokens.Should().NotBeNull().And.BeEmpty();
+        asset.Size.Width.Should().Be(1);
+        asset.Size.Height.Should().Be(1);
+        asset.IsMovable.Should().BeTrue();
     }
 
     [Fact]
@@ -29,11 +29,9 @@ public class AssetTests {
         // Assert
         asset.Id.Should().NotBeEmpty();
         asset.Kind.Should().Be(AssetKind.Creature);
-        asset.Properties.Should().NotBeNull();
-        asset.Properties.Size.Width.Should().Be(1);
-        asset.Properties.Size.Height.Should().Be(1);
-        asset.Properties.Size.IsSquare.Should().BeTrue();
-        asset.Properties.Category.Should().Be(CreatureCategory.Character);
+        asset.Size.Width.Should().Be(1);
+        asset.Size.Height.Should().Be(1);
+        asset.Category.Should().Be(CreatureCategory.Character);
     }
 
     [Fact]
@@ -50,6 +48,16 @@ public class AssetTests {
             Id = tokenId,
             Type = ResourceType.Image,
             Path = "assets/table-token.png",
+            Metadata = new ResourceMetadata {
+                ContentType = "image/png",
+                ImageSize = size,
+            },
+            Tags = ["furniture", "indoor"],
+        };
+        var otherToken = new Resource {
+            Id = tokenId,
+            Type = ResourceType.Image,
+            Path = "assets/table-other-token.png",
             Metadata = new ResourceMetadata {
                 ContentType = "image/png",
                 ImageSize = size,
@@ -73,23 +81,20 @@ public class AssetTests {
             OwnerId = ownerId,
             Name = name,
             Description = description,
-            Resources = [
-                new AssetResource {
-                    ResourceId = tokenId,
-                    Resource = token,
-                    Role = ResourceRole.Token
+            Tokens = [
+                new AssetToken {
+                    Token = token,
+                    IsDefault = true
                 },
-                new AssetResource {
-                    ResourceId = portraitId,
-                    Resource = portrait,
-                    Role = ResourceRole.Display
+                new AssetToken {
+                    Token = otherToken,
+                    IsDefault = false
                 }
             ],
-            Properties = new ObjectProperties {
-                Size = new NamedSize { Width = 2, Height = 1, IsSquare = false },
-                IsMovable = true,
-                IsOpaque = false
-            }
+            Portrait = portrait,
+            Size = new NamedSize { Width = 2, Height = 1 },
+            IsMovable = true,
+            IsOpaque = false
         };
 
         // Assert
@@ -98,16 +103,14 @@ public class AssetTests {
         asset.Name.Should().Be(name);
         asset.Kind.Should().Be(AssetKind.Object);
         asset.Description.Should().Be(description);
-        asset.Resources.Should().NotBeEmpty();
-        asset.Resources.First().ResourceId.Should().Be(tokenId);
-        asset.Resources.First().Resource.Should().BeEquivalentTo(token);
-        asset.Resources.First().Role.Should().HaveFlag(ResourceRole.Token);
-        asset.Resources.Last().ResourceId.Should().Be(portraitId);
-        asset.Resources.Last().Resource.Should().BeEquivalentTo(portrait);
-        asset.Resources.Last().Role.Should().HaveFlag(ResourceRole.Display);
-        asset.Properties.Size.Width.Should().Be(2);
-        asset.Properties.Size.Height.Should().Be(1);
-        asset.Properties.Size.IsSquare.Should().BeFalse();
+        asset.Tokens.Should().NotBeEmpty();
+        asset.Tokens.First().Token.Should().BeEquivalentTo(token);
+        asset.Tokens.First().IsDefault.Should().BeTrue();
+        asset.Tokens.Last().Token.Should().BeEquivalentTo(otherToken);
+        asset.Tokens.Last().IsDefault.Should().BeFalse();
+        asset.Portrait.Should().BeEquivalentTo(portrait);
+        asset.Size.Width.Should().Be(2);
+        asset.Size.Height.Should().Be(1);
     }
 
     [Fact]
@@ -123,17 +126,15 @@ public class AssetTests {
         var asset = new CreatureAsset {
             Name = "Goblin Warrior",
             Description = "Small hostile creature",
-            Properties = new CreatureProperties {
-                Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
-                Category = CreatureCategory.Monster,
-                TokenStyle = tokenStyle
-            }
+            Size = new NamedSize { Width = 1, Height = 1 },
+            Category = CreatureCategory.Monster,
+            TokenStyle = tokenStyle
         };
 
         // Assert
         asset.Kind.Should().Be(AssetKind.Creature);
-        asset.Properties.Category.Should().Be(CreatureCategory.Monster);
-        asset.Properties.TokenStyle.Should().NotBeNull();
-        asset.Properties.TokenStyle!.Shape.Should().Be(TokenShape.Circle);
+        asset.Category.Should().Be(CreatureCategory.Monster);
+        asset.TokenStyle.Should().NotBeNull();
+        asset.TokenStyle!.Shape.Should().Be(TokenShape.Circle);
     }
 }

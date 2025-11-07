@@ -1,12 +1,12 @@
-﻿using AddAssetData = VttTools.Library.Scenes.ServiceContracts.AddSceneAssetData;
-using AddRegionData = VttTools.Library.Scenes.ServiceContracts.AddSceneRegionData;
-using AddSourceData = VttTools.Library.Scenes.ServiceContracts.AddSceneSourceData;
-using AddWallData = VttTools.Library.Scenes.ServiceContracts.AddSceneWallData;
-using BulkUpdateAssetsData = VttTools.Library.Scenes.ServiceContracts.BulkUpdateSceneAssetsData;
-using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneAssetData;
-using UpdateRegionData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneRegionData;
-using UpdateSourceData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneSourceData;
-using UpdateWallData = VttTools.Library.Scenes.ServiceContracts.UpdateSceneWallData;
+﻿using AddAssetData = VttTools.Library.Scenes.ServiceContracts.SceneAssetAddData;
+using AddRegionData = VttTools.Library.Scenes.ServiceContracts.SceneRegionAddData;
+using AddSourceData = VttTools.Library.Scenes.ServiceContracts.SceneSourceAddData;
+using AddWallData = VttTools.Library.Scenes.ServiceContracts.SceneWallAddData;
+using BulkUpdateAssetsData = VttTools.Library.Scenes.ServiceContracts.SceneAssetBulkUpdateData;
+using UpdateAssetData = VttTools.Library.Scenes.ServiceContracts.SceneAssetUpdateData;
+using UpdateRegionData = VttTools.Library.Scenes.ServiceContracts.SceneRegionUpdateData;
+using UpdateSourceData = VttTools.Library.Scenes.ServiceContracts.SceneSourceUpdateData;
+using UpdateWallData = VttTools.Library.Scenes.ServiceContracts.SceneWallUpdateData;
 
 namespace VttTools.Library.Scenes.Services;
 
@@ -15,8 +15,8 @@ public record AssetToAdd(Guid AssetId, AddAssetData Data);
 public interface ISceneService {
     Task<Scene[]> GetScenesAsync(CancellationToken ct = default);
     Task<Scene?> GetSceneByIdAsync(Guid id, CancellationToken ct = default);
-    Task<Result<Scene>> CreateSceneAsync(Guid userId, CreateSceneData data, CancellationToken ct = default);
-    Task<Result> UpdateSceneAsync(Guid userId, Guid id, UpdateSceneData data, CancellationToken ct = default);
+    Task<Result<Scene>> CreateSceneAsync(Guid userId, SceneAddData data, CancellationToken ct = default);
+    Task<Result> UpdateSceneAsync(Guid userId, Guid id, SceneUpdateData data, CancellationToken ct = default);
     Task<Result> DeleteSceneAsync(Guid userId, Guid id, CancellationToken ct = default);
 
     Task<SceneAsset[]> GetAssetsAsync(Guid id, CancellationToken ct = default);

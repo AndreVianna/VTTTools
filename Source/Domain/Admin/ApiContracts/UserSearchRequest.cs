@@ -9,7 +9,7 @@ public sealed record UserSearchRequest : Request {
     [MaxLength(100, ErrorMessage = "Search term cannot exceed 100 characters")]
     public string? Search { get; init; }
 
-    [MaxLength(50, ErrorMessage = "Role name cannot exceed 50 characters")]
+    [MaxLength(50, ErrorMessage = "IsDefault name cannot exceed 50 characters")]
     public string? Role { get; init; }
 
     [MaxLength(20, ErrorMessage = "Status cannot exceed 20 characters")]

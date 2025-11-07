@@ -19,11 +19,11 @@ public class InternalConfigurationService(
             var detectedSource = sourceDetector.DetectSource(section.Key);
 
             entries.Add(new {
-                Key = section.Key,
+                section.Key,
                 Value = value,
                 Source = new {
                     Type = detectedSource.Type.ToString(),
-                    Path = detectedSource.Path
+                    detectedSource.Path
                 },
                 Category = ConfigurationSourceDetector.DetermineCategory(section.Key),
                 IsRedacted = isSensitive

@@ -40,7 +40,7 @@ public class AssetServiceTests {
             Id = assetId,
             Name = "Test Asset",
             Description = "Test Description",
-            Resources = [],
+            Tokens = [],
         };
         _assetStorage.GetByIdAsync(assetId, Arg.Any<CancellationToken>()).Returns(asset);
 
@@ -55,21 +55,21 @@ public class AssetServiceTests {
     [Fact]
     public async Task CreateAssetAsync_CreatesNewAsset() {
         // Arrange
-        var resourceId = Guid.CreateVersion7();
+        var tokenId = Guid.CreateVersion7();
         var data = new CreateAssetData {
             Name = "New Asset",
             Description = "New Description",
             Kind = AssetKind.Creature,
-            Resources = [
-                new AssetResource {
-                    ResourceId = resourceId,
-                    Role = ResourceRole.Token
+            Tokens = [
+                new AssetTokenData {
+                    TokenId = tokenId,
+                    IsDefault = true
                 }
             ],
-            CreatureProps = new CreatureProperties {
-                Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
-                Category = CreatureCategory.Character
-            }
+            Size = NamedSize.FromName(SizeName.Medium),
+            CreatureData = new CreatureData {
+                Category = CreatureCategory.Character,
+            },
         };
 
         // Act
@@ -93,17 +93,17 @@ public class AssetServiceTests {
             Name = "Old Name",
             Description = "Old Description",
             OwnerId = _userId,
-            Resources = [],
+            Tokens = [],
         };
 
-        var resourceId = Guid.CreateVersion7();
+        var tokenId = Guid.CreateVersion7();
         var data = new UpdateAssetData {
             Name = "Updated Name",
             Description = "Updated Description",
-            Resources = Optional<AssetResource[]>.Some([
-                new AssetResource {
-                    ResourceId = resourceId,
-                    Role = ResourceRole.Display
+            Tokens = Optional<AssetTokenData[]>.Some([
+                new AssetTokenData {
+                    TokenId = tokenId,
+                    IsDefault = false
                 }
             ]),
             IsPublished = true,

@@ -8,11 +8,13 @@ public record UpdateAssetRequest
     : Request {
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
-    public Optional<AssetResourceData[]> Resources { get; init; }
+    public Optional<AssetTokenData[]> Tokens { get; init; }
+    public Optional<Guid?> PortraitId { get; init; }
+    public Optional<NamedSize> Size { get; init; }
     public Optional<bool> IsPublished { get; set; }
     public Optional<bool> IsPublic { get; set; }
 
     // Polymorphic properties (provide the one matching the asset's Kind)
-    public Optional<ObjectProperties> ObjectProps { get; init; }
-    public Optional<CreatureProperties> CreatureProps { get; init; }
+    public Optional<ObjectData> ObjectData { get; init; }
+    public Optional<CreatureData> CreatureData { get; init; }
 }

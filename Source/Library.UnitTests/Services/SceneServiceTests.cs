@@ -76,7 +76,7 @@ public class SceneServiceTests {
                 Name = "Adventure",
             },
         };
-        var data = new UpdateSceneData {
+        var data = new SceneUpdateData {
             Name = "Updated Name",
             Description = "Updated Description",
         };
@@ -107,7 +107,7 @@ public class SceneServiceTests {
                 Name = "Adventure",
             },
         };
-        var data = new UpdateSceneData {
+        var data = new SceneUpdateData {
             Name = "Updated Name",
         };
 
@@ -137,7 +137,7 @@ public class SceneServiceTests {
                 Name = "Adventure",
             },
         };
-        var data = new UpdateSceneData {
+        var data = new SceneUpdateData {
             Name = "Updated Name",
         };
 
@@ -156,7 +156,7 @@ public class SceneServiceTests {
     public async Task UpdateSceneAsync_WithNonexistentScene_ReturnsNull() {
         // Arrange
         var sceneId = Guid.CreateVersion7();
-        var data = new UpdateSceneData {
+        var data = new SceneUpdateData {
             Name = "Updated Name",
         };
 
@@ -239,14 +239,14 @@ public class SceneServiceTests {
                     Number = 1,
                     Name = "Existing Asset Instance",
                     Position = new Position(0, 0),
-                    Size = new NamedSize { Width = 1, Height = 1, IsSquare = false }
+                    Size = new NamedSize { Width = 1, Height = 1 }
                 }
             ],
         };
-        var data = new AddSceneAssetData {
+        var data = new SceneAssetAddData {
             Name = "New Asset",
             Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
+            Size = new NamedSize { Width = 10, Height = 50 },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -262,16 +262,15 @@ public class SceneServiceTests {
             Id = assetId,
             OwnerId = _userId,
             Name = "Test Asset",
-            Resources = [
-                new AssetResource {
-                    ResourceId = resourceId,
-                    Resource = new Resource {
+            Tokens = [
+                new AssetToken {
+                    Token = new Resource {
                         Id = resourceId,
                         Type = ResourceType.Image,
                         Path = "test/asset-display.png",
                         Metadata = new ResourceMetadata { ContentType = "image/png" },
                     },
-                    Role = ResourceRole.Token
+                    IsDefault = true,
                 }
             ],
         };
@@ -289,7 +288,7 @@ public class SceneServiceTests {
         result.IsSuccessful.Should().BeTrue();
         scene.Assets.Should().HaveCount(2);
         var addedAsset = scene.Assets[1]; // The new asset should be at index 1
-        addedAsset.Name.Should().Be(data.Name.Value);
+        addedAsset.Name.Should().Be(data.Name);
         addedAsset.Position.Should().Be(data.Position);
         addedAsset.Size.Should().Be(data.Size);
         addedAsset.Frame.Should().BeEquivalentTo(data.Frame);
@@ -310,10 +309,10 @@ public class SceneServiceTests {
             Name = "Scene",
             Assets = [],
         };
-        var data = new AddSceneAssetData {
+        var data = new SceneAssetAddData {
             Name = "New Asset",
             Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
+            Size = new NamedSize { Width = 10, Height = 50 },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -340,10 +339,10 @@ public class SceneServiceTests {
         // Arrange
         var sceneId = Guid.CreateVersion7();
         var assetId = Guid.CreateVersion7();
-        var data = new AddSceneAssetData {
+        var data = new SceneAssetAddData {
             Name = "New Asset",
             Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
+            Size = new NamedSize { Width = 10, Height = 50 },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -395,9 +394,9 @@ public class SceneServiceTests {
                 },
             ],
         };
-        var data = new UpdateSceneAssetData {
+        var data = new SceneAssetUpdateData {
             Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
+            Size = new NamedSize { Width = 10, Height = 50 },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -441,9 +440,9 @@ public class SceneServiceTests {
                 },
             ],
         };
-        var data = new UpdateSceneAssetData {
+        var data = new SceneAssetUpdateData {
             Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
+            Size = new NamedSize { Width = 10, Height = 50 },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -473,9 +472,9 @@ public class SceneServiceTests {
         var sceneId = Guid.CreateVersion7();
         var assetId = Guid.CreateVersion7();
         const int index = 1;
-        var data = new UpdateSceneAssetData {
+        var data = new SceneAssetUpdateData {
             Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
+            Size = new NamedSize { Width = 10, Height = 50 },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -518,9 +517,9 @@ public class SceneServiceTests {
                 },
             ],
         };
-        var data = new UpdateSceneAssetData {
+        var data = new SceneAssetUpdateData {
             Position = new Position(20, 30),
-            Size = new NamedSize { Width = 10, Height = 50, IsSquare = false },
+            Size = new NamedSize { Width = 10, Height = 50 },
             Frame = new Frame {
                 Shape = FrameShape.Square,
                 BorderThickness = 2,
@@ -568,23 +567,22 @@ public class SceneServiceTests {
             Id = assetId,
             OwnerId = _userId,
             Name = "Goblin",
-            Resources = [
-                new AssetResource {
-                    ResourceId = resourceId,
-                    Resource = new Resource {
+            Tokens = [
+                new AssetToken {
+                    Token = new Resource {
                         Id = resourceId,
                         Type = ResourceType.Image,
                         Path = "test/goblin-token.png",
                         Metadata = new ResourceMetadata { ContentType = "image/png" },
                     },
-                    Role = ResourceRole.Token
+                    IsDefault = true,
                 }
             ],
         };
-        var data = new AddSceneAssetData {
-            Name = Optional<string>.None,
+        var data = new SceneAssetAddData {
+            Name = null,
             Position = new Position(10, 20),
-            Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+            Size = new NamedSize { Width = 1, Height = 1 },
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -625,23 +623,22 @@ public class SceneServiceTests {
             Id = assetId,
             OwnerId = _userId,
             Name = "Goblin",
-            Resources = [
-                new AssetResource {
-                    ResourceId = resourceId,
-                    Resource = new Resource {
+            Tokens = [
+                new AssetToken {
+                    Token = new Resource {
                         Id = resourceId,
                         Type = ResourceType.Image,
                         Path = "test/goblin-token.png",
                         Metadata = new ResourceMetadata { ContentType = "image/png" },
                     },
-                    Role = ResourceRole.Token
+                    IsDefault = true,
                 }
             ],
         };
-        var data = new AddSceneAssetData {
-            Name = Optional<string>.None,
+        var data = new SceneAssetAddData {
+            Name = null,
             Position = new Position(10, 20),
-            Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+            Size = new NamedSize { Width = 1, Height = 1 },
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -685,23 +682,22 @@ public class SceneServiceTests {
             Id = assetId,
             OwnerId = _userId,
             Name = "Treasure Chest",
-            Resources = [
-                new AssetResource {
-                    ResourceId = resourceId,
-                    Resource = new Resource {
+            Tokens = [
+                new AssetToken {
+                    Token = new Resource {
                         Id = resourceId,
                         Type = ResourceType.Image,
                         Path = "test/chest-token.png",
                         Metadata = new ResourceMetadata { ContentType = "image/png" },
                     },
-                    Role = ResourceRole.Token
+                    IsDefault = true,
                 }
             ],
         };
-        var data = new AddSceneAssetData {
-            Name = Optional<string>.None,
+        var data = new SceneAssetAddData {
+            Name = null,
             Position = new Position(10, 20),
-            Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+            Size = new NamedSize { Width = 1, Height = 1 },
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -745,23 +741,22 @@ public class SceneServiceTests {
             Id = assetId,
             OwnerId = _userId,
             Name = "Goblin",
-            Resources = [
-                new AssetResource {
-                    ResourceId = resourceId,
-                    Resource = new Resource {
+            Tokens = [
+                new AssetToken {
+                    Token = new Resource {
                         Id = resourceId,
                         Type = ResourceType.Image,
                         Path = "test/goblin-token.png",
                         Metadata = new ResourceMetadata { ContentType = "image/png" },
                     },
-                    Role = ResourceRole.Token
+                    IsDefault = true,
                 }
             ],
         };
-        var data = new AddSceneAssetData {
+        var data = new SceneAssetAddData {
             Name = "Boss Goblin",
             Position = new Position(10, 20),
-            Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+            Size = new NamedSize { Width = 1, Height = 1 },
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -804,16 +799,15 @@ public class SceneServiceTests {
             Id = goblinAssetId,
             OwnerId = _userId,
             Name = "Goblin",
-            Resources = [
-                new AssetResource {
-                    ResourceId = resourceId1,
-                    Resource = new Resource {
+            Tokens = [
+                new AssetToken {
+                    Token = new Resource {
                         Id = resourceId1,
                         Type = ResourceType.Image,
                         Path = "test/goblin-token.png",
                         Metadata = new ResourceMetadata { ContentType = "image/png" },
                     },
-                    Role = ResourceRole.Token
+                    IsDefault = true,
                 }
             ],
         };
@@ -821,23 +815,22 @@ public class SceneServiceTests {
             Id = orcAssetId,
             OwnerId = _userId,
             Name = "Orc",
-            Resources = [
-                new AssetResource {
-                    ResourceId = resourceId2,
-                    Resource = new Resource {
+            Tokens = [
+                new AssetToken {
+                    Token = new Resource {
                         Id = resourceId2,
                         Type = ResourceType.Image,
                         Path = "test/orc-token.png",
                         Metadata = new ResourceMetadata { ContentType = "image/png" },
                     },
-                    Role = ResourceRole.Token
+                    IsDefault = true,
                 }
             ],
         };
-        var data = new AddSceneAssetData {
-            Name = Optional<string>.None,
+        var data = new SceneAssetAddData {
+            Name = null,
             Position = new Position(10, 20),
-            Size = new NamedSize { Width = 1, Height = 1, IsSquare = true },
+            Size = new NamedSize { Width = 1, Height = 1 },
         };
 
         _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
@@ -854,320 +847,5 @@ public class SceneServiceTests {
         goblinResult.Value.Name.Should().Be("Goblin #1");
         orcResult.IsSuccessful.Should().BeTrue();
         orcResult.Value.Name.Should().Be("Orc #1");
-    }
-
-    [Fact]
-    public async Task UpdateAssetAsync_WithDisplayName_UpdatesProperty() {
-        // Arrange
-        var sceneId = Guid.CreateVersion7();
-        const int assetIndex = 0;
-        var scene = new Scene {
-            Id = sceneId,
-            Name = "Test Scene",
-            Adventure = new() {
-                OwnerId = _userId,
-                Id = Guid.CreateVersion7(),
-                Name = "Test Adventure",
-                Description = "Test description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
-            },
-            Assets = [
-                new() {
-                    Index = assetIndex,
-                    Name = "Test Asset",
-                    Position = new(1, 1),
-                    DisplayName = DisplayName.Default,
-                },
-            ],
-        };
-        var updateData = new UpdateSceneAssetData {
-            DisplayName = Optional<DisplayName>.Some(DisplayName.OnHover),
-        };
-
-        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
-        _sceneStorage.UpdateAsync(sceneId, Arg.Any<SceneAsset>(), Arg.Any<CancellationToken>()).Returns(true);
-
-        // Act
-        var result = await _service.UpdateAssetAsync(_userId, sceneId, assetIndex, updateData, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue();
-        await _sceneStorage.Received(1).UpdateAsync(sceneId, Arg.Is<SceneAsset>(a => a.DisplayName == DisplayName.OnHover), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task UpdateAssetAsync_WithLabelPosition_UpdatesProperty() {
-        // Arrange
-        var sceneId = Guid.CreateVersion7();
-        const int assetIndex = 0;
-        var scene = new Scene {
-            Id = sceneId,
-            Name = "Test Scene",
-            Adventure = new() {
-                OwnerId = _userId,
-                Id = Guid.CreateVersion7(),
-                Name = "Test Adventure",
-                Description = "Test description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
-            },
-            Assets = [
-                new() {
-                    Index = assetIndex,
-                    Name = "Test Asset",
-                    Position = new(1, 1),
-                    LabelPosition = LabelPosition.Default,
-                },
-            ],
-        };
-        var updateData = new UpdateSceneAssetData {
-            LabelPosition = Optional<LabelPosition>.Some(LabelPosition.Top),
-        };
-
-        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
-        _sceneStorage.UpdateAsync(sceneId, Arg.Any<SceneAsset>(), Arg.Any<CancellationToken>()).Returns(true);
-
-        // Act
-        var result = await _service.UpdateAssetAsync(_userId, sceneId, assetIndex, updateData, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue();
-        await _sceneStorage.Received(1).UpdateAsync(sceneId, Arg.Is<SceneAsset>(a => a.LabelPosition == LabelPosition.Top), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task UpdateSceneAsync_WithDefaultDisplayName_UpdatesScene() {
-        // Arrange
-        var sceneId = Guid.CreateVersion7();
-        var scene = new Scene {
-            Id = sceneId,
-            Name = "Test Scene",
-            DefaultDisplayName = DisplayName.Always,
-            Adventure = new() {
-                OwnerId = _userId,
-                Id = Guid.CreateVersion7(),
-                Name = "Test Adventure",
-                Description = "Test description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
-            },
-        };
-        var updateData = new UpdateSceneData {
-            DefaultDisplayName = Optional<DisplayName>.Some(DisplayName.OnHover),
-        };
-
-        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
-        _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>()).Returns(true);
-
-        // Act
-        var result = await _service.UpdateSceneAsync(_userId, sceneId, updateData, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue();
-        await _sceneStorage.Received(1).UpdateAsync(Arg.Is<Scene>(s => s.DefaultDisplayName == DisplayName.OnHover), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task UpdateSceneAsync_WithDefaultLabelPosition_UpdatesScene() {
-        // Arrange
-        var sceneId = Guid.CreateVersion7();
-        var scene = new Scene {
-            Id = sceneId,
-            Name = "Test Scene",
-            DefaultLabelPosition = LabelPosition.Bottom,
-            Adventure = new() {
-                OwnerId = _userId,
-                Id = Guid.CreateVersion7(),
-                Name = "Test Adventure",
-                Description = "Test description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
-            },
-        };
-        var updateData = new UpdateSceneData {
-            DefaultLabelPosition = Optional<LabelPosition>.Some(LabelPosition.Middle),
-        };
-
-        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
-        _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>()).Returns(true);
-
-        // Act
-        var result = await _service.UpdateSceneAsync(_userId, sceneId, updateData, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue();
-        await _sceneStorage.Received(1).UpdateAsync(Arg.Is<Scene>(s => s.DefaultLabelPosition == LabelPosition.Middle), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task BulkUpdateAssetsAsync_WithDisplayProperties_UpdatesMultipleAssets() {
-        // Arrange
-        var sceneId = Guid.CreateVersion7();
-        const uint assetIndex1 = 0;
-        const uint assetIndex2 = 1;
-        var scene = new Scene {
-            Id = sceneId,
-            Name = "Test Scene",
-            Adventure = new() {
-                OwnerId = _userId,
-                Id = Guid.CreateVersion7(),
-                Name = "Test Adventure",
-                Description = "Test description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
-            },
-            Assets = [
-                new() {
-                    Index = assetIndex1,
-                    Name = "Test Asset 1",
-                    Position = new(1, 1),
-                    DisplayName = DisplayName.Default,
-                    LabelPosition = LabelPosition.Default,
-                },
-                new() {
-                    Index = assetIndex2,
-                    Name = "Test Asset 2",
-                    Position = new(2, 2),
-                    DisplayName = DisplayName.Default,
-                    LabelPosition = LabelPosition.Default,
-                },
-            ],
-        };
-        var updates = new BulkUpdateSceneAssetsData {
-            Updates = [
-                new SceneAssetUpdateData {
-                    Index = assetIndex1,
-                    DisplayName = Optional<DisplayName>.Some(DisplayName.Never),
-                    LabelPosition = Optional<LabelPosition>.Some(LabelPosition.Top),
-                },
-                new SceneAssetUpdateData {
-                    Index = assetIndex2,
-                    DisplayName = Optional<DisplayName>.Some(DisplayName.Always),
-                    LabelPosition = Optional<LabelPosition>.Some(LabelPosition.Bottom),
-                },
-            ],
-        };
-
-        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
-        _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>()).Returns(true);
-
-        // Act
-        var result = await _service.BulkUpdateAssetsAsync(_userId, sceneId, updates, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue();
-        scene.Assets[0].DisplayName.Should().Be(DisplayName.Never);
-        scene.Assets[0].LabelPosition.Should().Be(LabelPosition.Top);
-        scene.Assets[1].DisplayName.Should().Be(DisplayName.Always);
-        scene.Assets[1].LabelPosition.Should().Be(LabelPosition.Bottom);
-        await _sceneStorage.Received(1).UpdateAsync(scene, Arg.Any<CancellationToken>());
-    }
-
-    [Theory]
-    [InlineData(DisplayName.Default)]
-    [InlineData(DisplayName.Always)]
-    [InlineData(DisplayName.OnHover)]
-    [InlineData(DisplayName.Never)]
-    public async Task UpdateAssetAsync_WithAllDisplayNameValues_UpdatesCorrectly(DisplayName displayName) {
-        // Arrange
-        var sceneId = Guid.CreateVersion7();
-        const int assetIndex = 0;
-        var scene = new Scene {
-            Id = sceneId,
-            Name = "Test Scene",
-            Adventure = new() {
-                OwnerId = _userId,
-                Id = Guid.CreateVersion7(),
-                Name = "Test Adventure",
-                Description = "Test description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
-            },
-            Assets = [
-                new() {
-                    Index = assetIndex,
-                    Name = "Test Asset",
-                    Position = new(1, 1),
-                },
-            ],
-        };
-        var updateData = new UpdateSceneAssetData {
-            DisplayName = Optional<DisplayName>.Some(displayName),
-        };
-
-        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
-        _sceneStorage.UpdateAsync(sceneId, Arg.Any<SceneAsset>(), Arg.Any<CancellationToken>()).Returns(true);
-
-        // Act
-        var result = await _service.UpdateAssetAsync(_userId, sceneId, assetIndex, updateData, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue();
-        await _sceneStorage.Received(1).UpdateAsync(sceneId, Arg.Is<SceneAsset>(a => a.DisplayName == displayName), Arg.Any<CancellationToken>());
-    }
-
-    [Theory]
-    [InlineData(LabelPosition.Default)]
-    [InlineData(LabelPosition.Top)]
-    [InlineData(LabelPosition.Middle)]
-    [InlineData(LabelPosition.Bottom)]
-    public async Task UpdateAssetAsync_WithAllLabelPositionValues_UpdatesCorrectly(LabelPosition labelPosition) {
-        // Arrange
-        var sceneId = Guid.CreateVersion7();
-        const int assetIndex = 0;
-        var scene = new Scene {
-            Id = sceneId,
-            Name = "Test Scene",
-            Adventure = new() {
-                OwnerId = _userId,
-                Id = Guid.CreateVersion7(),
-                Name = "Test Adventure",
-                Description = "Test description",
-                Style = AdventureStyle.OpenWorld,
-                Background = new Resource { Id = Guid.CreateVersion7(), Type = ResourceType.Image },
-                IsOneShot = false,
-                IsPublished = false,
-                IsPublic = false,
-            },
-            Assets = [
-                new() {
-                    Index = assetIndex,
-                    Name = "Test Asset",
-                    Position = new(1, 1),
-                },
-            ],
-        };
-        var updateData = new UpdateSceneAssetData {
-            LabelPosition = Optional<LabelPosition>.Some(labelPosition),
-        };
-
-        _sceneStorage.GetByIdAsync(sceneId, Arg.Any<CancellationToken>()).Returns(scene);
-        _sceneStorage.UpdateAsync(sceneId, Arg.Any<SceneAsset>(), Arg.Any<CancellationToken>()).Returns(true);
-
-        // Act
-        var result = await _service.UpdateAssetAsync(_userId, sceneId, assetIndex, updateData, _ct);
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue();
-        await _sceneStorage.Received(1).UpdateAsync(sceneId, Arg.Is<SceneAsset>(a => a.LabelPosition == labelPosition), Arg.Any<CancellationToken>());
     }
 }

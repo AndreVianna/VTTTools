@@ -21,6 +21,4 @@ public class Scene {
     public ICollection<SceneRegion> Regions { get; set; } = [];
     public ICollection<SceneSource> Sources { get; set; } = [];
     public ICollection<SceneEffect> SceneEffects { get; set; } = [];
-    public DisplayName DefaultDisplayName { get; set; } = DisplayName.Always;
-    public LabelPosition DefaultLabelPosition { get; set; } = LabelPosition.Bottom;
 }

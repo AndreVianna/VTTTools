@@ -17,14 +17,4 @@ public record Scene {
     public List<SceneRegion> Regions { get; init; } = [];
     public List<SceneSource> Sources { get; init; } = [];
     public List<SceneEffect> Effects { get; init; } = [];
-
-    /// <summary>
-    /// Default display mode for creature labels in this scene.
-    /// </summary>
-    public DisplayName DefaultDisplayName { get; init; } = DisplayName.Always;
-
-    /// <summary>
-    /// Default label position for all assets in this scene.
-    /// </summary>
-    public LabelPosition DefaultLabelPosition { get; init; } = LabelPosition.Bottom;
 }

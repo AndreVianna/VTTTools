@@ -308,7 +308,7 @@ public sealed class UserAdminService(
 
             var roleExists = await roleManager.RoleExistsAsync(roleName);
             if (!roleExists) {
-                throw new ArgumentException($"Role '{roleName}' does not exist.", nameof(roleName));
+                throw new ArgumentException($"IsDefault '{roleName}' does not exist.", nameof(roleName));
             }
 
             var result = await userManager.AddToRoleAsync(user, roleName);
@@ -324,7 +324,7 @@ public sealed class UserAdminService(
             var updatedRoles = await userManager.GetRolesAsync(user);
 
             logger.LogInformation(
-                "Role {RoleName} assigned to user {UserId} ({Email}) by admin {AdminUserId}",
+                "IsDefault {RoleName} assigned to user {UserId} ({Email}) by admin {AdminUserId}",
                 roleName, userId, user.Email, adminUserId);
 
             return new AssignRoleResponse {
@@ -380,7 +380,7 @@ public sealed class UserAdminService(
             var updatedRoles = await userManager.GetRolesAsync(user);
 
             logger.LogInformation(
-                "Role {RoleName} removed from user {UserId} ({Email}) by admin {AdminUserId}",
+                "IsDefault {RoleName} removed from user {UserId} ({Email}) by admin {AdminUserId}",
                 roleName, userId, user.Email, adminUserId);
 
             return new RemoveRoleResponse {

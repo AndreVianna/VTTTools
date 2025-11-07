@@ -23,7 +23,7 @@ public class SceneAssetTests {
         // Arrange
         const string name = "Test Asset";
         var position = new Position(10, 20);
-        var size = new NamedSize { Width = 1000, Height = 2000, IsSquare = false };
+        var size = new NamedSize { Width = 1000, Height = 2000 };
         var frame = new Frame {
             Shape = FrameShape.Square,
             BorderThickness = 2,

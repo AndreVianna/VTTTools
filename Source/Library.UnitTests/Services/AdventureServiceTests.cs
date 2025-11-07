@@ -376,7 +376,7 @@ public class AdventureServiceTests {
                     new SceneAsset {
                         Name = "Asset 1",
                         Position = new(20, 30),
-                        Size = new NamedSize { Width = 40, Height = 50, IsSquare = true },
+                        Size = new NamedSize { Width = 40, Height = 50 },
                         Frame = new() {
                             Shape = FrameShape.Square,
                             BorderThickness = 1,
