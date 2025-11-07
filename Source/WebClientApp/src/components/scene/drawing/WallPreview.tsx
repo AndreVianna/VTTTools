@@ -26,6 +26,7 @@ export const WallPreview: React.FC<WallPreviewProps> = ({
             {/* Lines between consecutive poles (3px blue) */}
             {poles.slice(0, -1).map((pole, index) => {
                 const nextPole = poles[index + 1];
+                if (!nextPole) return null;
                 return (
                     <Line
                         key={`segment-${index}`}
@@ -38,7 +39,7 @@ export const WallPreview: React.FC<WallPreviewProps> = ({
             })}
 
             {/* Closing line for closed walls (first to last pole) - only when NOT actively placing */}
-            {isClosed && poles.length > 1 && !previewPoint && (
+            {isClosed && poles.length > 1 && !previewPoint && poles[0] && poles[poles.length - 1] && (
                 <Line
                     key="closing-line"
                     points={[
@@ -69,7 +70,7 @@ export const WallPreview: React.FC<WallPreviewProps> = ({
             ))}
 
             {/* Preview line from last pole to cursor - solid blue (same as normal wall segments) */}
-            {previewPoint && poles.length > 0 && (
+            {previewPoint && poles.length > 0 && poles[poles.length - 1] && (
                 <Line
                     points={[
                         poles[poles.length - 1].x,
@@ -84,7 +85,7 @@ export const WallPreview: React.FC<WallPreviewProps> = ({
             )}
 
             {/* Additional dashed line from cursor to first pole when wall is closed */}
-            {previewPoint && isClosed && poles.length > 0 && (
+            {previewPoint && isClosed && poles.length > 0 && poles[0] && (
                 <Line
                     points={[
                         previewPoint.x,
