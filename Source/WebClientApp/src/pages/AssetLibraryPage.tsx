@@ -387,7 +387,7 @@ export const AssetLibraryPage: React.FC = () => {
                                             {(() => {
                                                 const portrait = getPortrait(asset);
                                                 const defaultToken = getDefaultToken(asset);
-                                                const imageId = portrait?.id || defaultToken?.token.id || asset.tokens?.[0]?.token.id;
+                                                const imageId = portrait?.id || defaultToken?.tokenId || asset.tokens?.[0]?.tokenId;
 
                                                 return imageId ? (
                                                     <img
