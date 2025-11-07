@@ -204,7 +204,7 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(({
         }
     };
 
-    const selectedSceneWall = selectedWallIndex !== null && selectedWallIndex !== undefined
+    const _selectedSceneWall = selectedWallIndex !== null && selectedWallIndex !== undefined
         ? sceneWalls.find(sw => sw.index === selectedWallIndex)
         : null;
 
@@ -616,3 +616,5 @@ export const WallsPanel: React.FC<WallsPanelProps> = React.memo(({
         </Box>
     );
 });
+
+WallsPanel.displayName = 'WallsPanel';

@@ -119,6 +119,7 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({
         const isDifferentAsset = prevAssetIdRef.current !== asset.id;
 
         if (open && (isDifferentAsset || prevAssetIdRef.current === null)) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setName(asset.name);
             setDescription(asset.description);
             setTokens(asset.tokens || []);
@@ -136,7 +137,7 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({
 
             prevAssetIdRef.current = asset.id;
         }
-    }, [open, asset.id]);
+    }, [open, asset.id, asset]);
 
     const handleSave = async () => {
         try {

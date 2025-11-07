@@ -75,7 +75,6 @@ import {
 } from '@/services/sceneApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
 import { hydratePlacedAssets, ensureSceneDefaults } from '@/utils/sceneMappers';
-import { cleanWallPoles } from '@/utils/wallUtils';
 import { getApiEndpoints } from '@/config/development';
 import { SaveStatus } from '@/components/common';
 import { useAppDispatch } from '@/store';
@@ -958,7 +957,7 @@ const SceneEditorPageInternal: React.FC = () => {
             console.error('Failed to remove wall:', error);
             setErrorMessage('Failed to remove wall. Please try again.');
         }
-    }, [sceneId, scene, removeSceneWall, refetch]);
+    }, [sceneId, removeSceneWall, refetch]);
 
 
     const handleEditVertices = useCallback((wallIndex: number) => {
@@ -1233,7 +1232,7 @@ const SceneEditorPageInternal: React.FC = () => {
         return () => {
             window.removeEventListener('keydown', handleKeyDown, { capture: true });
         };
-    }, [wallTransaction, undo, redo]);
+    }, [wallTransaction, undo, redo, sceneId, selectedWallIndex]);
 
     const handleVerticesChange = useCallback(async (
         wallIndex: number,

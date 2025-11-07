@@ -10,10 +10,10 @@ export interface StructureSelectionModalProps {
 }
 
 export const StructureSelectionModal: React.FC<StructureSelectionModalProps> = ({
-    open,
-    mode,
-    onSelect,
-    onCancel
+    open: _open,
+    mode: _mode,
+    onSelect: _onSelect,
+    onCancel: _onCancel
 }) => {
     return null;
 };

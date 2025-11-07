@@ -1,6 +1,5 @@
 import React from 'react';
 import { Line, Circle, Group } from 'react-konva';
-import { useTheme } from '@mui/material';
 import { WallVisibility, type SceneWall } from '@/types/domain';
 
 export interface WallRendererProps {
@@ -12,7 +11,6 @@ export const WallRenderer: React.FC<WallRendererProps> = ({
     sceneWall,
     onContextMenu
 }) => {
-    const theme = useTheme();
 
     const getWallStyle = (visibility: WallVisibility) => {
         const wallColor = sceneWall.color || '#808080';

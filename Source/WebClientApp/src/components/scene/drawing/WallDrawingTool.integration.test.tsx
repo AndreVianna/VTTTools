@@ -118,7 +118,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
         React.useEffect(() => {
             wallTransaction.startTransaction('placement');
-        }, []);
+        }, [wallTransaction]);
 
         return <>{children({ wallTransaction })}</>;
     };

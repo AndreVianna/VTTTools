@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, IconButton, Drawer, Tooltip, useTheme, Typography, Button } from '@mui/material';
+import { Box, IconButton, Drawer, Tooltip, useTheme, Typography } from '@mui/material';
 import {
   Wallpaper as BackgroundIcon,
   Terrain as ElevationIcon,
@@ -14,8 +14,7 @@ import {
   Layers as OverlaysIcon,
   Cloud as WeatherIcon,
   LightMode as GlobalLightingIcon,
-  VisibilityOff as FogOfWarIcon,
-  AddCircleOutline as AddCircleOutlineIcon
+  VisibilityOff as FogOfWarIcon
 } from '@mui/icons-material';
 import { BackgroundPanel, GridPanel, WallsPanel, ObjectsPanel, CreaturesPanel } from './panels';
 import { AssetPicker } from '@/components/common';

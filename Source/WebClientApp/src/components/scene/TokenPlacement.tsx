@@ -240,7 +240,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | null>(null);
     const [imageCache, setImageCache] = useState<Map<string, HTMLImageElement>>(new Map());
     const [isValidPlacement, setIsValidPlacement] = useState(true);
-    const [tooltip, setTooltip] = useState<{
+    const [tooltip, _setTooltip] = useState<{
         visible: boolean;
         text: string;
         x: number;

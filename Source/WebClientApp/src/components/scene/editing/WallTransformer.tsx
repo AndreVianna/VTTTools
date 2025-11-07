@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Group, Circle, Line, Rect } from 'react-konva';
 import { useTheme } from '@mui/material';
 import type { Pole, SceneWall } from '@/types/domain';
@@ -99,9 +99,9 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     snapMode: externalSnapMode,
     onClearSelections,
     isAltPressed = false,
-    sceneId,
-    wallIndex,
-    wall,
+    sceneId: _sceneId,
+    wallIndex: _wallIndex,
+    wall: _wall,
     onWallBreak,
     enableBackgroundRect = true,
     wallTransaction
@@ -136,7 +136,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
         return { x, y, width, height };
     };
 
-    const handleBreakWall = () => {
+    const handleBreakWall = useCallback(() => {
         let breakPoleIndex: number;
 
         if (selectedPoles.size > 0) {
@@ -192,9 +192,10 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                 }
             }
         }
-    };
+    }, [selectedPoles, selectedLines, poles, isClosed, onPolesChange, onWallBreak]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPreviewPoles(poles);
     }, [poles, isClosed]);
 
@@ -315,7 +316,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
             window.removeEventListener('keydown', handleKeyDown, { capture: true });
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, [selectedPoles, selectedLines, poles, onPolesChange, onClearSelections, isAltPressed, isClosed]);
+    }, [selectedPoles, selectedLines, poles, onPolesChange, onClearSelections, isAltPressed, isClosed, handleBreakWall, wallTransaction]);
 
     const handleDragStart = (index: number) => {
         const circleNode = circleRefs.current.get(index);
