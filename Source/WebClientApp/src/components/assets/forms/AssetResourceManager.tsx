@@ -66,16 +66,16 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
             const newToken: AssetToken = {
                 token: { 
                     id: result.id,
-                    type: ResourceType.Image,
-                    path: '',
+                    type: result.type ?? ResourceType.Image,
+                    path: result.path ?? '',
                     metadata: {
-                        contentType: contentType ?? '',
-                        fileName: fileName ?? '',
-                        fileLength: fileLength ?? 0,
-                        imageSize: { width: 0, height: 0 },
-                        duration: '0:00:00.0000000',
+                        contentType: result.metadata?.contentType ?? contentType ?? '',
+                        fileName: result.metadata?.fileName ?? fileName ?? '',
+                        fileLength: result.metadata?.fileLength ?? fileLength ?? 0,
+                        imageSize: result.metadata?.imageSize ?? { width: 0, height: 0 },
+                        duration: result.metadata?.duration ?? '0:00:00.0000000',
                     },
-                    tags: [],
+                    tags: result.tags ?? [],
                 },
                 isDefault: isFirstToken
             };
