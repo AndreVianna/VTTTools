@@ -31,6 +31,7 @@ describe('SecuritySettingsPage', () => {
             preloadedState: {
                 auth: {
                     user,
+                    token: null,
                     isAuthenticated: true,
                     isLoading: false,
                     error: null,

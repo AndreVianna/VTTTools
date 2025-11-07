@@ -25,12 +25,9 @@ describe('gridCalculator', () => {
             // Arrange
             const validGrid: GridConfig = {
                 type: GridType.Square,
-                cellWidth: 50,
-                cellHeight: 50,
-                offsetX: 0,
-                offsetY: 0,
-                color: '#000000',
-                snapToGrid: true
+                cellSize: { width: 50, height: 50 },
+                offset: { left: 0, top: 0 },
+                snap: true
             };
 
             // Act
@@ -44,12 +41,9 @@ describe('gridCalculator', () => {
             // Arrange - ACCEPTANCE_CRITERION: AC-02
             const invalidGrid: GridConfig = {
                 type: GridType.Square,
-                cellWidth: 0,  // Invalid!
-                cellHeight: 50,
-                offsetX: 0,
-                offsetY: 0,
-                color: '#000000',
-                snapToGrid: true
+                cellSize: { width: 0, height: 50 },
+                offset: { left: 0, top: 0 },
+                snap: true
             };
 
             // Act
@@ -63,12 +57,9 @@ describe('gridCalculator', () => {
             // Arrange - ACCEPTANCE_CRITERION: AC-02
             const invalidGrid: GridConfig = {
                 type: GridType.Square,
-                cellWidth: 50,
-                cellHeight: -10,  // Invalid!
-                offsetX: 0,
-                offsetY: 0,
-                color: '#000000',
-                snapToGrid: true
+                cellSize: { width: 50, height: -10 },
+                offset: { left: 0, top: 0 },
+                snap: true
             };
 
             // Act
@@ -78,41 +69,33 @@ describe('gridCalculator', () => {
             expect(errors).toContain('Grid cell height must be positive');
         });
 
-        it('should reject invalid color format (ES-05)', () => {
-            // Arrange - ACCEPTANCE_CRITERION: AC-05
+        it('should reject invalid grid type', () => {
+            // Arrange
             const invalidGrid: GridConfig = {
-                type: GridType.Square,
-                cellWidth: 50,
-                cellHeight: 50,
-                offsetX: 0,
-                offsetY: 0,
-                color: 'red',  // Invalid! Must be #RRGGBB
-                snapToGrid: true
+                type: 999 as GridType,
+                cellSize: { width: 50, height: 50 },
+                offset: { left: 0, top: 0 },
+                snap: true
             };
 
             // Act
             const errors = validateGrid(invalidGrid);
 
             // Assert
-            expect(errors).toContain('Grid color must be hex format #RRGGBB');
+            expect(errors).toContain('Invalid grid type');
         });
 
-        it('should accept valid hex color formats', () => {
+        it('should accept default grid configuration', () => {
             // Arrange
-            const testColors = ['#000000', '#FFFFFF', '#FF5733', '#12AB34'];
+            const grid: GridConfig = {
+                ...getDefaultGrid()
+            };
 
-            testColors.forEach(color => {
-                const grid: GridConfig = {
-                    ...getDefaultGrid(),
-                    color
-                };
+            // Act
+            const errors = validateGrid(grid);
 
-                // Act
-                const errors = validateGrid(grid);
-
-                // Assert
-                expect(errors).toEqual([]);
-            });
+            // Assert
+            expect(errors).toEqual([]);
         });
     });
 
@@ -121,12 +104,9 @@ describe('gridCalculator', () => {
             // Arrange
             const grid: GridConfig = {
                 type: GridType.Square,
-                cellWidth: 50,
-                cellHeight: 50,
-                offsetX: 0,
-                offsetY: 0,
-                color: '#000000',
-                snapToGrid: true
+                cellSize: { width: 50, height: 50 },
+                offset: { left: 0, top: 0 },
+                snap: true
             };
             const point = { x: 37, y: 82 };
 
@@ -141,7 +121,7 @@ describe('gridCalculator', () => {
             // Arrange
             const grid: GridConfig = {
                 ...getDefaultGrid(),
-                snapToGrid: false
+                snap: false
             };
             const point = { x: 37, y: 82 };
 
@@ -171,12 +151,9 @@ describe('gridCalculator', () => {
             // Arrange
             const grid: GridConfig = {
                 type: GridType.Square,
-                cellWidth: 50,
-                cellHeight: 50,
-                offsetX: 10,
-                offsetY: 20,
-                color: '#000000',
-                snapToGrid: true
+                cellSize: { width: 50, height: 50 },
+                offset: { left: 10, top: 20 },
+                snap: true
             };
             const point = { x: 47, y: 92 }; // Adjusted: 37, 72 → snaps to 50, 50 → adds offset → 60, 70
 
@@ -233,8 +210,7 @@ describe('gridCalculator', () => {
             // Arrange
             const grid: GridConfig = {
                 ...getDefaultGrid(),
-                offsetX: 10,
-                offsetY: 20
+                offset: { left: 10, top: 20 }
             };
             const cell = { col: 0, row: 0 };
 
@@ -254,9 +230,9 @@ describe('gridCalculator', () => {
 
             // Assert
             expect(defaultGrid.type).toBe(GridType.Square);
-            expect(defaultGrid.cellWidth).toBe(50);
-            expect(defaultGrid.cellHeight).toBe(50);
-            expect(defaultGrid.snapToGrid).toBe(true);
+            expect(defaultGrid.cellSize.width).toBe(50);
+            expect(defaultGrid.cellSize.height).toBe(50);
+            expect(defaultGrid.snap).toBe(true);
             expect(validateGrid(defaultGrid)).toEqual([]); // Must be valid
         });
     });

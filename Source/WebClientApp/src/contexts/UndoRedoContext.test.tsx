@@ -37,8 +37,8 @@ describe('UndoRedoContext', () => {
         );
 
         expect(context).not.toBeNull();
-        expect(context?.canUndo).toBe(false);
-        expect(context?.canRedo).toBe(false);
+        expect(context!.canUndo).toBe(false);
+        expect(context!.canRedo).toBe(false);
     });
 
     it('executes command and adds to history', () => {
@@ -57,8 +57,8 @@ describe('UndoRedoContext', () => {
         });
 
         expect(mockExecute).toHaveBeenCalledTimes(1);
-        expect(context?.canUndo).toBe(true);
-        expect(context?.canRedo).toBe(false);
+        expect(context!.canUndo).toBe(true);
+        expect(context!.canRedo).toBe(false);
     });
 
     it.skip('undoes command and moves to future - TODO: Fix async test handling', async () => {
@@ -76,8 +76,8 @@ describe('UndoRedoContext', () => {
             context?.execute(command);
         });
 
-        expect(context?.canUndo).toBe(true);
-        expect(context?.canRedo).toBe(false);
+        expect(context!.canUndo).toBe(true);
+        expect(context!.canRedo).toBe(false);
 
         await act(async () => {
             const undoPromise = context?.undo();
@@ -85,8 +85,8 @@ describe('UndoRedoContext', () => {
             await new Promise(resolve => setTimeout(resolve, 0));
         });
 
-        expect(context?.canUndo).toBe(false);
-        expect(context?.canRedo).toBe(true);
+        expect(context!.canUndo).toBe(false);
+        expect(context!.canRedo).toBe(true);
         expect(mockUndo).toHaveBeenCalledTimes(1);
     });
 
@@ -116,8 +116,8 @@ describe('UndoRedoContext', () => {
         });
 
         expect(mockExecute).toHaveBeenCalledTimes(1);
-        expect(context?.canUndo).toBe(true);
-        expect(context?.canRedo).toBe(false);
+        expect(context!.canUndo).toBe(true);
+        expect(context!.canRedo).toBe(false);
     });
 
     it('clears future when new command executed', async () => {
@@ -144,8 +144,8 @@ describe('UndoRedoContext', () => {
             context?.execute(command2);
         });
 
-        expect(context?.canUndo).toBe(true);
-        expect(context?.canRedo).toBe(false);
+        expect(context!.canUndo).toBe(true);
+        expect(context!.canRedo).toBe(false);
     });
 
     it.skip('limits history size to maxHistorySize - TODO: Fix async test handling', async () => {
@@ -175,7 +175,7 @@ describe('UndoRedoContext', () => {
         });
 
         expect(mockUndo).toHaveBeenCalledTimes(3);
-        expect(context?.canUndo).toBe(false);
+        expect(context!.canUndo).toBe(false);
     });
 
     it('does nothing when undo called with empty past', () => {
@@ -192,7 +192,7 @@ describe('UndoRedoContext', () => {
         });
 
         expect(mockUndo).not.toHaveBeenCalled();
-        expect(context?.canUndo).toBe(false);
+        expect(context!.canUndo).toBe(false);
     });
 
     it('does nothing when redo called with empty future', () => {
@@ -209,7 +209,7 @@ describe('UndoRedoContext', () => {
         });
 
         expect(mockExecute).not.toHaveBeenCalled();
-        expect(context?.canRedo).toBe(false);
+        expect(context!.canRedo).toBe(false);
     });
 
     it('clears all history', () => {
@@ -231,8 +231,8 @@ describe('UndoRedoContext', () => {
             context?.clear();
         });
 
-        expect(context?.canUndo).toBe(false);
-        expect(context?.canRedo).toBe(false);
+        expect(context!.canUndo).toBe(false);
+        expect(context!.canRedo).toBe(false);
     });
 
     it('throws error when useUndoRedoContext used outside provider', () => {

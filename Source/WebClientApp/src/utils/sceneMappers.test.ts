@@ -11,15 +11,11 @@ const mockCreatureAssetData: Asset = mockCreatureAsset({
     description: 'A small goblin',
     isPublished: true,
     isPublic: false,
-    tokens: [mockAssetToken({ tokenId: 'resource-1', isDefault: true })],
+    tokens: [mockAssetToken({ isDefault: true })],
     size: { width: 1, height: 1, isSquare: true },
-    properties: {
-        statBlockId: undefined,
-        category: CreatureCategory.Monster,
-        tokenStyle: undefined
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
+    category: CreatureCategory.Monster,
+    statBlockId: undefined,
+    tokenStyle: undefined
 });
 
 const mockObjectAssetData: Asset = mockObjectAsset({
@@ -31,41 +27,41 @@ const mockObjectAssetData: Asset = mockObjectAsset({
     isPublic: false,
     tokens: [],
     size: { width: 1, height: 1, isSquare: true },
-    properties: {
-        isMovable: true,
-        isOpaque: false,
-        triggerEffectId: undefined
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
+    isMovable: true,
+    isOpaque: false,
+    triggerEffectId: undefined
+});
+
+const createMockSceneAsset = (overrides: Partial<SceneAsset>): SceneAsset => ({
+    id: 'scene-asset-1',
+    sceneId: 'scene-1',
+    assetId: 'asset-1',
+    index: 0,
+    number: 1,
+    name: 'Test Asset',
+    x: 100,
+    y: 100,
+    width: 50,
+    height: 50,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    layer: 0,
+    elevation: 0,
+    visible: true,
+    locked: false,
+    asset: mockCreatureAssetData,
+    ...overrides
 });
 
 describe('hydratePlacedAssets', () => {
     describe('name hydration', () => {
         it('uses sceneAsset name when provided', async () => {
-            const sceneAsset: SceneAsset = {
-                id: 'scene-asset-1',
-                sceneId: 'scene-1',
-                assetId: 'asset-1',
-                x: 100,
-                y: 100,
-                width: 50,
-                height: 50,
-                rotation: 0,
-                scaleX: 1,
-                scaleY: 1,
-                layer: 0,
-                visible: true,
-                locked: false,
-                asset: mockCreatureAssetData
-            };
-
-            const sceneAssetWithName = {
-                ...sceneAsset,
+            const sceneAssetWithName = createMockSceneAsset({
                 name: 'Goblin #2',
                 index: 1,
                 number: 2
-            } as any;
+            });
 
             const getAsset = async () => mockCreatureAssetData;
 
@@ -76,22 +72,7 @@ describe('hydratePlacedAssets', () => {
         });
 
         it('falls back to asset name when sceneAsset name is undefined', async () => {
-            const sceneAsset: SceneAsset = {
-                id: 'scene-asset-1',
-                sceneId: 'scene-1',
-                assetId: 'asset-1',
-                x: 100,
-                y: 100,
-                width: 50,
-                height: 50,
-                rotation: 0,
-                scaleX: 1,
-                scaleY: 1,
-                layer: 0,
-                visible: true,
-                locked: false,
-                asset: mockCreatureAssetData
-            };
+            const sceneAsset = createMockSceneAsset({ name: '' });
 
             const getAsset = async () => mockCreatureAssetData;
 
@@ -102,27 +83,7 @@ describe('hydratePlacedAssets', () => {
         });
 
         it('falls back to asset name when sceneAsset name is null', async () => {
-            const sceneAsset: SceneAsset = {
-                id: 'scene-asset-1',
-                sceneId: 'scene-1',
-                assetId: 'asset-1',
-                x: 100,
-                y: 100,
-                width: 50,
-                height: 50,
-                rotation: 0,
-                scaleX: 1,
-                scaleY: 1,
-                layer: 0,
-                visible: true,
-                locked: false,
-                asset: mockCreatureAssetData
-            };
-
-            const sceneAssetWithNullName = {
-                ...sceneAsset,
-                name: null
-            } as any;
+            const sceneAssetWithNullName = createMockSceneAsset({ name: null as any });
 
             const getAsset = async () => mockCreatureAssetData;
 
@@ -133,27 +94,7 @@ describe('hydratePlacedAssets', () => {
         });
 
         it('falls back to asset name when sceneAsset name is empty string', async () => {
-            const sceneAsset: SceneAsset = {
-                id: 'scene-asset-1',
-                sceneId: 'scene-1',
-                assetId: 'asset-1',
-                x: 100,
-                y: 100,
-                width: 50,
-                height: 50,
-                rotation: 0,
-                scaleX: 1,
-                scaleY: 1,
-                layer: 0,
-                visible: true,
-                locked: false,
-                asset: mockCreatureAssetData
-            };
-
-            const sceneAssetWithEmptyName = {
-                ...sceneAsset,
-                name: ''
-            } as any;
+            const sceneAssetWithEmptyName = createMockSceneAsset({ name: '' });
 
             const getAsset = async () => mockCreatureAssetData;
 

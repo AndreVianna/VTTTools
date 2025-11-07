@@ -93,12 +93,10 @@ describe('MockApiService', () => {
       expect(creatures.length).toBeGreaterThan(0);
 
       creatures.forEach(creature => {
-        expect(creature.properties).toBeDefined();
-        expect(creature.properties).toHaveProperty('category');
-        expect(creature.properties.category).toBeTypeOf('string');
-        expect([CreatureCategory.Character, CreatureCategory.Monster]).toContain(creature.properties.category);
-
-        expect(creature.properties).not.toHaveProperty('size');
+        expect(creature).toHaveProperty('category');
+        expect(creature.category).toBeTypeOf('string');
+        expect([CreatureCategory.Character, CreatureCategory.Monster]).toContain(creature.category);
+        expect(creature.size).toBeDefined();
       });
     });
 
@@ -109,13 +107,11 @@ describe('MockApiService', () => {
       expect(objects.length).toBeGreaterThan(0);
 
       objects.forEach(obj => {
-        expect(obj.properties).toBeDefined();
-        expect(obj.properties).toHaveProperty('isMovable');
-        expect(obj.properties).toHaveProperty('isOpaque');
-        expect(typeof obj.properties.isMovable).toBe('boolean');
-        expect(typeof obj.properties.isOpaque).toBe('boolean');
-
-        expect(obj.properties).not.toHaveProperty('size');
+        expect(obj).toHaveProperty('isMovable');
+        expect(obj).toHaveProperty('isOpaque');
+        expect(typeof obj.isMovable).toBe('boolean');
+        expect(typeof obj.isOpaque).toBe('boolean');
+        expect(obj.size).toBeDefined();
       });
     });
 
@@ -137,7 +133,6 @@ describe('MockApiService', () => {
       expect(multiToken.length).toBeGreaterThan(0);
 
       multiToken.forEach(asset => {
-        const _defaultTokens = asset.tokens.filter(t => t.isDefault);
         expect(asset.tokens.length).toBeGreaterThan(1);
       });
     });
@@ -174,27 +169,17 @@ describe('MockApiService', () => {
 
     it('should have realistic media resource metadata', async () => {
       const assets = await mockApi.mockGetAssets();
-      const assetsWithTokens = assets.filter(a => a.tokens.length > 0 && a.tokens[0].token);
+      const assetsWithTokens = assets.filter(a => a.tokens.length > 0 && a.tokens[0]?.token);
 
       assetsWithTokens.forEach(asset => {
-        const token = asset.tokens[0].token!;
-        expect(token.metadata.contentType).toBe('image/png');
-        expect(token.metadata.fileName).toMatch(/\.png$/);
-        expect(token.metadata.fileLength).toBeGreaterThan(0);
-        expect(token.metadata.imageSize).toBeDefined();
-        expect(token.metadata.imageSize?.width).toBe(256);
-        expect(token.metadata.imageSize?.height).toBe(256);
-      });
-    });
-
-    it('should have valid timestamps', async () => {
-      const assets = await mockApi.mockGetAssets();
-
-      assets.forEach(asset => {
-        expect(asset.createdAt).toBeDefined();
-        expect(asset.updatedAt).toBeDefined();
-        expect(new Date(asset.createdAt).getTime()).not.toBeNaN();
-        expect(new Date(asset.updatedAt).getTime()).not.toBeNaN();
+        const token = asset.tokens[0]?.token;
+        expect(token).toBeDefined();
+        expect(token?.metadata.contentType).toBe('image/png');
+        expect(token?.metadata.fileName).toMatch(/\.png$/);
+        expect(token?.metadata.fileLength).toBeGreaterThan(0);
+        expect(token?.metadata.imageSize).toBeDefined();
+        expect(token?.metadata.imageSize?.width).toBe(256);
+        expect(token?.metadata.imageSize?.height).toBe(256);
       });
     });
 

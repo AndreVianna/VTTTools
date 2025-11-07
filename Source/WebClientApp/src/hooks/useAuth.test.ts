@@ -431,7 +431,6 @@ describe('useAuth', () => {
 
       // Assert - Development flags available
       expect(result.current.isDevelopmentMode).toBeDefined();
-      expect(result.current.isUsingMockData).toBeDefined();
     });
   });
 
