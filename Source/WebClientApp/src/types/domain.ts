@@ -52,8 +52,7 @@ export interface TokenStyle {
 
 // AssetToken replaces AssetResource in new backend schema
 export interface AssetToken {
-  tokenId: string;  // Renamed from resourceId
-  token?: MediaResource;  // Renamed from resource
+  token: MediaResource;  // Renamed from resource
   isDefault: boolean;  // Simplified from role enum
 }
 
@@ -80,14 +79,14 @@ export interface NamedSize {
 export interface ObjectData {
   isMovable: boolean;
   isOpaque: boolean;
-  triggerEffectId?: string;
+  triggerEffectId?: string | undefined;
 }
 
 // CreatureData replaces CreatureProperties (size moved to Asset root level)
 export interface CreatureData {
-  statBlockId?: string;
   category: CreatureCategory;
-  tokenStyle?: TokenStyle;
+  statBlockId?: string | undefined;
+  tokenStyle?: TokenStyle | undefined;
 }
 
 export interface CreateAssetRequest {
@@ -124,23 +123,25 @@ export interface Asset {
   description: string;
   isPublished: boolean;
   isPublic: boolean;
-  tokens: AssetToken[];  // Renamed from resources
-  portrait?: MediaResource;  // New: separate portrait
-  size: NamedSize;  // New: moved from nested properties to root
-  createdAt: string;
-  updatedAt: string;
+  tokens: AssetToken[];
+  portrait: MediaResource | undefined;
+  size: NamedSize;
 }
 
 // ObjectAsset - environmental items
 export interface ObjectAsset extends Asset {
   kind: AssetKind.Object;
-  properties: ObjectData;  // Changed from ObjectProperties
+  isMovable: boolean;
+  isOpaque: boolean;
+  triggerEffectId?: string | undefined;
 }
 
 // CreatureAsset - characters and monsters
 export interface CreatureAsset extends Asset {
   kind: AssetKind.Creature;
-  properties: CreatureData;  // Changed from CreatureProperties
+  category: CreatureCategory;
+  statBlockId?: string | undefined;
+  tokenStyle?: TokenStyle | undefined;
 }
 
 // Placed Asset - Frontend-only type for local placement state
@@ -155,6 +156,8 @@ export interface PlacedAsset {
   index: number; // Backend Index property - scene-wide unique identifier (never reused)
   number: number; // Backend Number property - per-asset-type counter (e.g., "Goblin #3")
   name: string;
+  visible: boolean;
+  locked: boolean;
   displayName: DisplayName;
   labelPosition: LabelPosition;
 }
@@ -182,7 +185,7 @@ export const applyAssetSnapshot = (
   position: { ...snapshot.position },
   size: { ...snapshot.size },
   rotation: snapshot.rotation,
-  layer: snapshot.layer
+  layer: snapshot.layer,
 });
 
 // Structure Types (from Domain.Library.Scenes.Model)
@@ -347,9 +350,6 @@ export interface Scene {
   walls: SceneWall[];
   regions: SceneRegion[];
   sources: SceneSource[];
-  createdAt: string;
-  updatedAt: string;
-  // defaultDisplayName and defaultLabelPosition removed - now handled in frontend localStorage
 }
 
 export interface SceneAsset {
@@ -592,8 +592,8 @@ export interface SceneWall {
   poles: Pole[];
   visibility: WallVisibility;
   isClosed: boolean;
-  material?: string;
-  color?: string;
+  material?: string | undefined;
+  color?: string | undefined;
 }
 
 export interface SceneRegion {

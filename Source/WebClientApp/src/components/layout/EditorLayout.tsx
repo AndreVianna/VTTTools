@@ -22,7 +22,7 @@ import type { Scene } from '@/types/domain';
 
 interface EditorLayoutProps {
   children: React.ReactNode;
-  scene?: Scene;
+  scene?: Scene | undefined;
   onSceneNameChange?: (name: string) => void;
   onBackClick?: () => void;
   onSceneDescriptionChange?: (description: string) => void;
@@ -36,8 +36,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
   onSceneNameChange,
   onBackClick,
   onSceneDescriptionChange,
-  onScenePublishedChange,
-  onSceneUpdate
+  onScenePublishedChange
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -195,7 +194,6 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
           scene={scene}
           onDescriptionChange={onSceneDescriptionChange ?? (() => {})}
           onPublishedChange={onScenePublishedChange ?? (() => {})}
-          onSceneUpdate={onSceneUpdate}
         />
       )}
 

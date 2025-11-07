@@ -1,6 +1,7 @@
-export type { ContentListItem, ContentItemSummary, ContentType } from './contentListItem';
+export type { ContentListItem, ContentItemSummary } from './contentListItem';
+export { ContentType } from './contentListItem';
 export type {
-    Scene,
+    SceneListItem,
     SceneAssetData,
     StageConfig,
     Point,

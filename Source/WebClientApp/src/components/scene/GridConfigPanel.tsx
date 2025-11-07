@@ -54,10 +54,6 @@ export const GridConfigPanel: React.FC<GridConfigPanelProps> = ({
         setGrid(prev => ({ ...prev, type }));
     };
 
-    const handleColorChange = (color: string) => {
-        setGrid(prev => ({ ...prev, color }));
-    };
-
     const handleSnapToggle = (snap: boolean) => {
         setGrid(prev => ({ ...prev, snap }));
     };
@@ -182,16 +178,6 @@ export const GridConfigPanel: React.FC<GridConfigPanelProps> = ({
                     />
                 </Box>
 
-                {/* Grid Color - Validation: Must be hex format #RRGGBB */}
-                <TextField
-                    label="Grid Color"
-                    type="color"
-                    value={grid.color}
-                    onChange={(e) => handleColorChange(e.target.value)}
-                    disabled={grid.type === GridType.NoGrid}
-                    fullWidth
-                    helperText="Hex format #RRGGBB"
-                />
 
                 {/* Snap to Grid */}
                 <FormControlLabel

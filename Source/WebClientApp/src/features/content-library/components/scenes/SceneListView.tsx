@@ -21,7 +21,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
 import { SceneCard } from './SceneCard';
 import { GridType } from '@/utils/gridCalculator';
-import type { Scene } from '../../types';
+import type { Scene } from '@/types/domain';
 
 export function SceneListView() {
     const navigate = useNavigate();
@@ -179,7 +179,7 @@ export function SceneListView() {
             {!isLoading && filteredScenes.length > 0 && (
                 <Grid id="scene-list-grid" container spacing={3}>
                     {filteredScenes.map((scene) => (
-                        <Grid item xs={12} sm={6} md={4} lg={3} key={scene.id}>
+                        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={scene.id}>
                             <SceneCard
                                 scene={scene}
                                 onOpen={handleOpenScene}

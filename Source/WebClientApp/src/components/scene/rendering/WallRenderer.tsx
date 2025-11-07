@@ -1,6 +1,5 @@
 import React from 'react';
 import { Line, Circle, Group } from 'react-konva';
-import { useTheme } from '@mui/material';
 import { WallVisibility, type SceneWall } from '@/types/domain';
 
 export interface WallRendererProps {
@@ -12,7 +11,6 @@ export const WallRenderer: React.FC<WallRendererProps> = ({
     sceneWall,
     onContextMenu
 }) => {
-    const theme = useTheme();
 
     const getWallStyle = (visibility: WallVisibility) => {
         const wallColor = sceneWall.color || '#808080';
@@ -58,11 +56,14 @@ export const WallRenderer: React.FC<WallRendererProps> = ({
     const points: number[] = [];
     for (let i = 0; i < sceneWall.poles.length; i++) {
         const pole = sceneWall.poles[i];
+        if (!pole) continue;
         points.push(pole.x, pole.y);
     }
     if (sceneWall.isClosed && sceneWall.poles.length > 0) {
         const firstPole = sceneWall.poles[0];
-        points.push(firstPole.x, firstPole.y);
+        if (firstPole) {
+            points.push(firstPole.x, firstPole.y);
+        }
     }
 
     const poleRadius = 1.5;
@@ -74,7 +75,7 @@ export const WallRenderer: React.FC<WallRendererProps> = ({
                 points={points}
                 stroke={style.stroke}
                 strokeWidth={style.strokeWidth}
-                dash={style.dash}
+                {...(style.dash && { dash: style.dash })}
                 opacity={style.opacity}
                 listening={true}
                 onContextMenu={handleContextMenu}

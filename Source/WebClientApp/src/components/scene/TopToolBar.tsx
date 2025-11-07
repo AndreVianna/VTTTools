@@ -72,14 +72,14 @@ export const TopToolBar: React.FC<TopToolBarProps> = ({
             <Tooltip title="Wall (W)">
               <IconButton
                 size="small"
-                onClick={() => onDrawingModeChange?.('Wall')}
+                onClick={() => onDrawingModeChange?.('wall')}
                 sx={{
                   width: 28,
                   height: 28,
-                  backgroundColor: drawingMode === 'Wall' ? theme.palette.primary.main : theme.palette.action.hover,
-                  color: drawingMode === 'Wall' ? theme.palette.primary.contrastText : theme.palette.text.primary,
+                  backgroundColor: drawingMode === 'wall' ? theme.palette.primary.main : theme.palette.action.hover,
+                  color: drawingMode === 'wall' ? theme.palette.primary.contrastText : theme.palette.text.primary,
                   '&:hover': {
-                    backgroundColor: drawingMode === 'Wall' ? theme.palette.primary.dark : theme.palette.action.selected
+                    backgroundColor: drawingMode === 'wall' ? theme.palette.primary.dark : theme.palette.action.selected
                   }
                 }}
               >

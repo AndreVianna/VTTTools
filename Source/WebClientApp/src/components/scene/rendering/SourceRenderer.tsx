@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Shape } from 'react-konva';
-import { useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
 import { calculateLineOfSight } from '@/utils/lineOfSightCalculation';
 import type { SceneSource, SceneWall } from '@/types/domain';
 import { WallVisibility } from '@/types/domain';
@@ -12,7 +13,7 @@ export interface SourceRendererProps {
     gridConfig: GridConfig;
 }
 
-const getSourceColor = (sourceType: string, theme: ReturnType<typeof useTheme>): string => {
+const getSourceColor = (sourceType: string, theme: Theme): string => {
     switch (sourceType.toLowerCase()) {
         case 'light':
             return theme.palette.warning.light;
@@ -50,10 +51,15 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
             sceneFunc={(context) => {
                 if (losPolygon.length < 3) return;
 
+                const firstPoint = losPolygon[0];
+                if (!firstPoint) return;
+
                 context.beginPath();
-                context.moveTo(losPolygon[0].x, losPolygon[0].y);
+                context.moveTo(firstPoint.x, firstPoint.y);
                 for (let i = 1; i < losPolygon.length; i++) {
-                    context.lineTo(losPolygon[i].x, losPolygon[i].y);
+                    const point = losPolygon[i];
+                    if (!point) continue;
+                    context.lineTo(point.x, point.y);
                 }
                 context.closePath();
 

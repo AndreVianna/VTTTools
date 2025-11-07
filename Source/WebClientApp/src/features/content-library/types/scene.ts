@@ -1,6 +1,5 @@
-import type { ContentListItem } from './contentListItem';
 import type { GridConfig } from '@/utils/gridCalculator';
-import type { PlacedAsset, MediaResource } from '@/types/domain';
+import { type PlacedAsset, type MediaResource, DisplayName, LabelPosition } from '@/types/domain';
 
 export interface Point {
     x: number;
@@ -37,8 +36,12 @@ export interface SceneAssetData {
     controlledBy: string | null;
 }
 
-export interface Scene extends ContentListItem {
-    type: 'scene';
+export interface SceneListItem {
+    id: string;
+    name: string;
+    description: string;
+    isPublished: boolean;
+    ownerId: string;
     adventureId: string | null;
     grid: GridConfig;
     stage: StageConfig;
@@ -112,7 +115,11 @@ export const mapSceneAssetToPlaced = async (
         layer: 'assets',
         index: sceneAsset.index,
         number: sceneAsset.number,
-        name: sceneAsset.name || asset.name
+        name: sceneAsset.name || asset.name,
+        visible: sceneAsset.isVisible,
+        locked: sceneAsset.isLocked,
+        displayName: DisplayName.Always,
+        labelPosition: LabelPosition.Bottom,
     };
 };
 
@@ -125,7 +132,7 @@ export const mapPlacedToSceneAsset = (
     const cellHeight = gridConfig.cellSize.height;
 
     const defaultToken = placedAsset.asset.tokens?.find(t => t.isDefault);
-    const resourceId = defaultToken?.tokenId || placedAsset.asset.tokens?.[0]?.tokenId || '';
+    const resourceId = defaultToken?.token.id || placedAsset.asset.tokens?.[0]?.token.id || '';
 
     return {
         assetId: placedAsset.assetId,
@@ -145,8 +152,8 @@ export const mapPlacedToSceneAsset = (
         rotation: placedAsset.rotation,
         frame: null,
         elevation: 0,
-        isLocked: false,
-        isVisible: true,
+        isLocked: placedAsset.locked,
+        isVisible: placedAsset.visible,
         controlledBy: null
     };
 };

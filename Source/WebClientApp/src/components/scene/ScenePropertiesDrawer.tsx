@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     Box,
     Drawer,
@@ -6,22 +6,11 @@ import {
     TextField,
     FormControlLabel,
     Switch,
-    Button,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    Divider,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails
+    Button
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import {
-    ExpandMore as ExpandMoreIcon
-} from '@mui/icons-material';
-import { Scene, DisplayName, LabelPosition } from '@/types/domain';
+import { Scene } from '@/types/domain';
 
 export interface ScenePropertiesDrawerProps {
     open: boolean;
@@ -29,7 +18,6 @@ export interface ScenePropertiesDrawerProps {
     scene: Scene | null | undefined;
     onDescriptionChange: (description: string) => void;
     onPublishedChange: (published: boolean) => void;
-    onSceneUpdate?: ((updates: Partial<Scene>) => void) | undefined;
 }
 
 interface AdventureLinkProps {
@@ -67,12 +55,9 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
     onClose,
     scene,
     onDescriptionChange,
-    onPublishedChange,
-    onSceneUpdate
+    onPublishedChange
 }) => {
     const theme = useTheme();
-
-    const [displayExpanded, setDisplayExpanded] = useState(true);
 
     const compactStyles = {
         sectionHeader: {
@@ -84,24 +69,6 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
             mb: 0.5,
             lineHeight: 1.2,
             display: 'block'
-        },
-        textField: {
-            '& .MuiInputBase-root': {
-                height: '28px',
-                fontSize: '11px',
-                backgroundColor: theme.palette.background.default
-            },
-            '& .MuiInputBase-input': {
-                padding: '4px 8px',
-                fontSize: '11px'
-            },
-            '& .MuiInputLabel-root': {
-                fontSize: '9px',
-                transform: 'translate(8px, 6px) scale(1)',
-                '&.MuiInputLabel-shrink': {
-                    transform: 'translate(8px, -8px) scale(0.85)'
-                }
-            }
         },
         textFieldMultiline: {
             '& .MuiInputBase-root': {
@@ -117,39 +84,8 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
                 }
             }
         },
-        select: {
-            height: '28px',
-            fontSize: '11px',
-            '& .MuiSelect-select': {
-                padding: '4px 8px',
-                fontSize: '11px'
-            }
-        },
-        inputLabel: {
-            fontSize: '9px',
-            transform: 'translate(8px, 6px) scale(1)',
-            '&.MuiInputLabel-shrink': {
-                transform: 'translate(8px, -8px) scale(0.85)'
-            }
-        },
         toggleLabel: {
             fontSize: '10px'
-        },
-        menuItem: {
-            fontSize: '11px',
-            minHeight: '32px'
-        },
-        accordionSummary: {
-            minHeight: '36px',
-            '&.Mui-expanded': {
-                minHeight: '36px'
-            },
-            '& .MuiAccordionSummary-content': {
-                margin: '6px 0',
-                '&.Mui-expanded': {
-                    margin: '6px 0'
-                }
-            }
         }
     };
 
@@ -234,70 +170,7 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
                     sx={{ margin: 0 }}
                 />
 
-                <Divider sx={{ my: 1 }} />
-
-                {/* Display Settings Accordion */}
-                <Accordion
-                    expanded={displayExpanded}
-                    onChange={() => setDisplayExpanded(!displayExpanded)}
-                    sx={{
-                        backgroundColor: theme.palette.background.default,
-                        boxShadow: 'none',
-                        '&:before': { display: 'none' }
-                    }}
-                >
-                    <AccordionSummary
-                        expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}
-                        sx={compactStyles.accordionSummary}
-                    >
-                        <Typography sx={compactStyles.sectionHeader}>
-                            Display Settings
-                        </Typography>
-                    </AccordionSummary>
-                    <AccordionDetails sx={{ p: 1, pt: 0 }}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="label-default-display" sx={compactStyles.inputLabel}>Creature</InputLabel>
-                                <Select
-                                    id="select-default-display"
-                                    labelId="label-default-display"
-                                    value={scene?.defaultDisplayName ?? DisplayName.Always}
-                                    label="Creature"
-                                    onChange={(e) => {
-                                        if (onSceneUpdate) {
-                                            onSceneUpdate({ defaultDisplayName: e.target.value as DisplayName });
-                                        }
-                                    }}
-                                    sx={compactStyles.select}
-                                >
-                                    <MenuItem sx={compactStyles.menuItem} value={DisplayName.Always}>Always</MenuItem>
-                                    <MenuItem sx={compactStyles.menuItem} value={DisplayName.OnHover}>On Hover</MenuItem>
-                                    <MenuItem sx={compactStyles.menuItem} value={DisplayName.Never}>Never</MenuItem>
-                                </Select>
-                            </FormControl>
-
-                            <FormControl fullWidth size="small">
-                                <InputLabel id="label-default-position" sx={compactStyles.inputLabel}>Label</InputLabel>
-                                <Select
-                                    id="select-default-position"
-                                    labelId="label-default-position"
-                                    value={scene?.defaultLabelPosition ?? LabelPosition.Bottom}
-                                    label="Label"
-                                    onChange={(e) => {
-                                        if (onSceneUpdate) {
-                                            onSceneUpdate({ defaultLabelPosition: e.target.value as LabelPosition });
-                                        }
-                                    }}
-                                    sx={compactStyles.select}
-                                >
-                                    <MenuItem sx={compactStyles.menuItem} value={LabelPosition.Top}>Top</MenuItem>
-                                    <MenuItem sx={compactStyles.menuItem} value={LabelPosition.Middle}>Middle</MenuItem>
-                                    <MenuItem sx={compactStyles.menuItem} value={LabelPosition.Bottom}>Bottom</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Box>
-                    </AccordionDetails>
-                </Accordion>
+                {/* Display Settings - Removed: defaultDisplayName and defaultLabelPosition are now handled in localStorage */}
             </Box>
         </Drawer>
     );

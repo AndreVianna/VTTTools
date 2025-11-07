@@ -76,7 +76,7 @@ export const BackgroundPanel: React.FC<BackgroundPanelProps> = ({
                 )}
                 <IconButton
                     component="label"
-                    disabled={isUploadingBackground}
+                    disabled={isUploadingBackground ?? false}
                     sx={{
                         position: 'absolute',
                         bottom: 6,

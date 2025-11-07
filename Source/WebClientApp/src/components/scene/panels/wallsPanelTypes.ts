@@ -16,7 +16,7 @@ export interface WallPreset {
 export const WALL_PRESETS: WallPreset[] = [
     { name: 'Normal Wall', icon: WallIcon, visibility: WallVisibility.Normal, material: 'Stone', isClosed: false },
     { name: 'Fence', icon: FenceIcon, visibility: WallVisibility.Fence, material: 'Wood', isClosed: false },
-    { name: 'Invisible Wall', icon: VisibilityOffIcon, visibility: WallVisibility.Invisible, material: undefined, isClosed: false }
+    { name: 'Invisible Wall', icon: VisibilityOffIcon, visibility: WallVisibility.Invisible, isClosed: false }
 ];
 
 export const MATERIAL_OPTIONS = [

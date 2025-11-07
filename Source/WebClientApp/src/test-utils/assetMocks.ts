@@ -13,9 +13,9 @@
 import type {
     Asset,
     AssetToken,
-    ObjectData,
-    CreatureData,
-    MediaResource
+    MediaResource,
+    ObjectAsset,
+    CreatureAsset
 } from '@/types/domain';
 import { AssetKind, CreatureCategory, ResourceType } from '@/types/domain';
 
@@ -34,13 +34,12 @@ export const mockMediaResource = (overrides?: Partial<MediaResource>): MediaReso
 });
 
 export const mockAssetToken = (overrides?: Partial<AssetToken>): AssetToken => ({
-    tokenId: 'token-123',
     isDefault: true,
     token: mockMediaResource(),
     ...overrides
 });
 
-export const mockObjectAsset = (overrides?: Partial<Asset>): Asset => ({
+export const mockObjectAsset = (overrides?: Partial<ObjectAsset>): ObjectAsset => ({
     id: 'asset-123',
     ownerId: 'user-123',
     kind: AssetKind.Object,
@@ -51,17 +50,13 @@ export const mockObjectAsset = (overrides?: Partial<Asset>): Asset => ({
     tokens: [mockAssetToken()],
     portrait: undefined,
     size: { width: 1, height: 1, isSquare: true },
-    properties: {
-        isMovable: true,
-        isOpaque: false,
-        triggerEffectId: undefined
-    } as ObjectData,
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-01T00:00:00Z',
+    isMovable: true,
+    isOpaque: false,
+    triggerEffectId: undefined,
     ...overrides
 });
 
-export const mockCreatureAsset = (overrides?: Partial<Asset>): Asset => ({
+export const mockCreatureAsset = (overrides?: Partial<CreatureAsset>): CreatureAsset => ({
     id: 'asset-456',
     ownerId: 'user-123',
     kind: AssetKind.Creature,
@@ -69,21 +64,17 @@ export const mockCreatureAsset = (overrides?: Partial<Asset>): Asset => ({
     description: 'Test creature description',
     isPublished: false,
     isPublic: false,
-    tokens: [mockAssetToken({ tokenId: 'token-456' })],
+    tokens: [mockAssetToken({ token: mockMediaResource({ id: 'token-456' }) })],
     portrait: undefined,
     size: { width: 1, height: 1, isSquare: true },
-    properties: {
-        statBlockId: undefined,
-        category: CreatureCategory.Monster,
-        tokenStyle: undefined
-    } as CreatureData,
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-01T00:00:00Z',
+    category: CreatureCategory.Monster,
+    statBlockId: undefined,
+    tokenStyle: undefined,
     ...overrides
 });
 
 export const mockAssetWithPortrait = (overrides?: Partial<Asset>): Asset => {
-    const asset = mockCreatureAsset(overrides);
+    const asset = mockCreatureAsset(overrides as Partial<CreatureAsset>);
     return {
         ...asset,
         portrait: mockMediaResource({
@@ -100,13 +91,13 @@ export const mockAssetWithPortrait = (overrides?: Partial<Asset>): Asset => {
 };
 
 export const mockAssetWithMultipleTokens = (overrides?: Partial<Asset>): Asset => {
-    const asset = mockCreatureAsset(overrides);
+    const asset = mockCreatureAsset(overrides as Partial<CreatureAsset>);
     return {
         ...asset,
         tokens: [
-            mockAssetToken({ tokenId: 'token-1', isDefault: false }),
-            mockAssetToken({ tokenId: 'token-2', isDefault: true }),
-            mockAssetToken({ tokenId: 'token-3', isDefault: false })
+            mockAssetToken({ token: mockMediaResource({ id: 'token-1' }), isDefault: false }),
+            mockAssetToken({ token: mockMediaResource({ id: 'token-2' }), isDefault: true }),
+            mockAssetToken({ token: mockMediaResource({ id: 'token-3' }), isDefault: false })
         ]
     };
 };

@@ -1,8 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useWallTransaction } from './useWallTransaction';
 import type { LocalAction } from '@/types/wallUndoActions';
-import type { Pole } from '@/types/domain';
 import { WallVisibility } from '@/types/domain';
 
 describe('useWallTransaction - Local Undo/Redo', () => {

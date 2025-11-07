@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { Circle, Shape, Text } from 'react-konva';
-import { useTheme } from '@mui/material';
+import { useTheme, type Theme } from '@mui/material/styles';
 import { calculateLineOfSight } from '@/utils/lineOfSightCalculation';
 import { VertexMarker } from './VertexMarker';
-import type { Point, SceneWall, SceneSource } from '@/types/domain';
+import { Point, SceneWall, SceneSource, WallVisibility } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface SourcePreviewProps {
@@ -14,7 +14,7 @@ export interface SourcePreviewProps {
     gridConfig: GridConfig;
 }
 
-const getSourceColor = (sourceType: string, theme: ReturnType<typeof useTheme>): string => {
+const getSourceColor = (sourceType: string, theme: Theme): string => {
     switch (sourceType.toLowerCase()) {
         case 'light':
             return theme.palette.warning.light;
@@ -36,7 +36,7 @@ export const SourcePreview: React.FC<SourcePreviewProps> = ({
     const color = getSourceColor(source.type, theme);
 
     const opaqueWalls = useMemo(() => {
-        return walls.filter(w => w.visibility !== 'Invisible');
+        return walls.filter(w => w.visibility !== WallVisibility.Invisible);
     }, [walls]);
 
     const losPolygon = useMemo(() => {
@@ -73,10 +73,15 @@ export const SourcePreview: React.FC<SourcePreviewProps> = ({
                 sceneFunc={(context) => {
                     if (losPolygon.length < 3) return;
 
+                    const firstPoint = losPolygon[0];
+                    if (!firstPoint) return;
+
                     context.beginPath();
-                    context.moveTo(losPolygon[0].x, losPolygon[0].y);
+                    context.moveTo(firstPoint.x, firstPoint.y);
                     for (let i = 1; i < losPolygon.length; i++) {
-                        context.lineTo(losPolygon[i].x, losPolygon[i].y);
+                        const point = losPolygon[i];
+                        if (!point) continue;
+                        context.lineTo(point.x, point.y);
                     }
                     context.closePath();
 

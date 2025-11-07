@@ -19,7 +19,7 @@ const createMockStore = () => {
 };
 
 describe('StructureSelectionModal', () => {
-    it('should render Wall title when mode is Wall', () => {
+    it('should render Wall title when mode is wall', () => {
         const store = createMockStore();
         const onSelect = vi.fn();
         const onCancel = vi.fn();
@@ -28,7 +28,7 @@ describe('StructureSelectionModal', () => {
             <Provider store={store}>
                 <StructureSelectionModal
                     open={true}
-                    mode="Wall"
+                    mode="wall"
                     onSelect={onSelect}
                     onCancel={onCancel}
                 />
@@ -85,7 +85,7 @@ describe('StructureSelectionModal', () => {
             <Provider store={store}>
                 <StructureSelectionModal
                     open={true}
-                    mode="Wall"
+                    mode="wall"
                     onSelect={onSelect}
                     onCancel={onCancel}
                 />
@@ -106,7 +106,7 @@ describe('StructureSelectionModal', () => {
             <Provider store={store}>
                 <StructureSelectionModal
                     open={false}
-                    mode="Wall"
+                    mode="wall"
                     onSelect={onSelect}
                     onCancel={onCancel}
                 />

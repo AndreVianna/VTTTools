@@ -74,8 +74,7 @@ import {
     useUpdateSceneWallMutation
 } from '@/services/sceneApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
-import { hydratePlacedAssets, ensureSceneDefaults } from '@/utils/sceneMappers';
-import { cleanWallPoles } from '@/utils/wallUtils';
+import { hydratePlacedAssets } from '@/utils/sceneMappers';
 import { getApiEndpoints } from '@/config/development';
 import { SaveStatus } from '@/components/common';
 import { useAppDispatch } from '@/store';
@@ -208,8 +207,7 @@ const SceneEditorPageInternal: React.FC = () => {
                         }
                     );
 
-                    const sceneWithDefaults = ensureSceneDefaults(sceneData);
-                    setScene(sceneWithDefaults);
+                    setScene(sceneData);
                     setGridConfig({
                         type: typeof sceneData.grid.type === 'string'
                             ? GridType[sceneData.grid.type as keyof typeof GridType]
@@ -222,8 +220,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     setIsInitialized(true);
                 } catch (error) {
                     console.error('Failed to hydrate scene assets:', error);
-                    const sceneWithDefaults = ensureSceneDefaults(sceneData);
-                    setScene(sceneWithDefaults);
+                    setScene(sceneData);
                     setGridConfig({
                         type: typeof sceneData.grid.type === 'string'
                             ? GridType[sceneData.grid.type as keyof typeof GridType]
@@ -245,8 +242,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
     useEffect(() => {
         if (sceneData && isInitialized) {
-            const sceneWithDefaults = ensureSceneDefaults(sceneData);
-            setScene(sceneWithDefaults);
+            setScene(sceneData);
         }
     }, [sceneData, isInitialized]);
 
@@ -958,7 +954,7 @@ const SceneEditorPageInternal: React.FC = () => {
             console.error('Failed to remove wall:', error);
             setErrorMessage('Failed to remove wall. Please try again.');
         }
-    }, [sceneId, scene, removeSceneWall, refetch]);
+    }, [sceneId, removeSceneWall, refetch]);
 
 
     const handleEditVertices = useCallback((wallIndex: number) => {
@@ -1154,8 +1150,8 @@ const SceneEditorPageInternal: React.FC = () => {
 
                             if (segments.length === 1) {
                                 syncedScene = updateWallOptimistic(syncedScene, selectedWallIndex, {
-                                    poles: segments[0].poles,
-                                    isClosed: segments[0].isClosed
+                                    poles: segments[0]!.poles,
+                                    isClosed: segments[0]!.isClosed
                                 });
                             } else {
                                 const mainSegment = segments.find(s => s.wallIndex === selectedWallIndex || s.tempId === 0);
@@ -1189,8 +1185,8 @@ const SceneEditorPageInternal: React.FC = () => {
 
                             if (segments.length === 1) {
                                 syncedScene = updateWallOptimistic(syncedScene, selectedWallIndex, {
-                                    poles: segments[0].poles,
-                                    isClosed: segments[0].isClosed
+                                    poles: segments[0]!.poles,
+                                    isClosed: segments[0]!.isClosed
                                 });
                             } else {
                                 segments.forEach(segment => {
@@ -1201,7 +1197,7 @@ const SceneEditorPageInternal: React.FC = () => {
                                         });
                                     } else if (segment.wallIndex === null) {
                                         const existingWall = syncedScene.walls?.find(w => w.index === segment.tempId);
-                                        if (!existingWall && selectedWall) {
+                                        if (sceneId && !existingWall && selectedWall) {
                                             const tempWall: SceneWall = {
                                                 sceneId,
                                                 index: segment.tempId,
@@ -1233,7 +1229,7 @@ const SceneEditorPageInternal: React.FC = () => {
         return () => {
             window.removeEventListener('keydown', handleKeyDown, { capture: true });
         };
-    }, [wallTransaction, undo, redo]);
+    }, [wallTransaction, undo, redo, sceneId, selectedWallIndex]);
 
     const handleVerticesChange = useCallback(async (
         wallIndex: number,
@@ -1683,7 +1679,7 @@ const SceneEditorPageInternal: React.FC = () => {
         const wallNumbers = existingWalls
             .map(w => {
                 const match = w.name.match(/^Wall (\d+)$/);
-                return match ? parseInt(match[1], 10) : null;
+                return match ? parseInt(match[1]!, 10) : null;
             })
             .filter((n): n is number => n !== null);
 
@@ -1764,8 +1760,8 @@ const SceneEditorPageInternal: React.FC = () => {
             <TopToolBar
                 drawingMode={drawingMode}
                 onDrawingModeChange={handleDrawingModeChange}
-                onUndoClick={() => execute('undo')}
-                onRedoClick={() => execute('redo')}
+                onUndoClick={undo}
+                onRedoClick={redo}
                 onZoomIn={handleZoomIn}
                 onZoomOut={handleZoomOut}
                 onZoomReset={handleZoomReset}

@@ -20,7 +20,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Grid,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import {
@@ -248,17 +247,19 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
             Scan the QR code below with your authenticator app:
           </Typography>
 
-          <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Box sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: 3,
+            mb: 3
+          }}>
             {/* Left Column: QR Code */}
-            <Grid
-              xs={12}
-              md={5}
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'flex-start'
-              }}
-            >
+            <Box sx={{
+              flex: { md: '0 0 auto' },
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'flex-start'
+            }}>
               <Paper
                 elevation={0}
                 sx={{
@@ -276,10 +277,10 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
                   style={{ width: '200px', height: '200px', display: 'block' }}
                 />
               </Paper>
-            </Grid>
+            </Box>
 
             {/* Right Column: Manual Key and Verification Code */}
-            <Grid xs={12} md={7}>
+            <Box sx={{ flex: 1 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                 {/* Manual Key Box */}
                 <Box>
@@ -349,8 +350,8 @@ export const TwoFactorSetupForm: React.FC<TwoFactorSetupFormProps> = ({
                   />
                 </Box>
               </Box>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
 
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Button

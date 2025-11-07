@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mockApi } from './mockApi';
 import { AssetKind, CreatureCategory, ResourceType } from '@/types/domain';
-import type { Asset, CreatureAsset, ObjectAsset } from '@/types/domain';
+import type { CreatureAsset, ObjectAsset } from '@/types/domain';
 
 describe('MockApiService', () => {
   beforeEach(() => {
@@ -137,7 +137,7 @@ describe('MockApiService', () => {
       expect(multiToken.length).toBeGreaterThan(0);
 
       multiToken.forEach(asset => {
-        const defaultTokens = asset.tokens.filter(t => t.isDefault);
+        const _defaultTokens = asset.tokens.filter(t => t.isDefault);
         expect(asset.tokens.length).toBeGreaterThan(1);
       });
     });

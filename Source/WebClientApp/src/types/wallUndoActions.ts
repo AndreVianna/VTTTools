@@ -240,13 +240,13 @@ export function createMovePoleAction(
         undo: () => {
             const currentPoles = getCurrentPoles();
             const updatedPoles = [...currentPoles];
-            updatedPoles[poleIndex] = { ...updatedPoles[poleIndex], ...oldPosition };
+            updatedPoles[poleIndex] = { ...oldPosition, h: updatedPoles[poleIndex]!.h };
             onPolesChange(updatedPoles, getCurrentIsClosed());
         },
         redo: () => {
             const currentPoles = getCurrentPoles();
             const updatedPoles = [...currentPoles];
-            updatedPoles[poleIndex] = { ...updatedPoles[poleIndex], ...newPosition };
+            updatedPoles[poleIndex] = { ...newPosition, h: updatedPoles[poleIndex]!.h };
             onPolesChange(updatedPoles, getCurrentIsClosed());
         }
     };
@@ -322,7 +322,7 @@ export function createDeletePoleAction(
             const currentPoles = getCurrentPoles();
             const updatedPoles = [...currentPoles];
             const sortedEntries = poleIndices
-                .map((index, i) => ({ index, pole: poles[i] }))
+                .map((index, i) => ({ index, pole: poles[i] as Pole }))
                 .sort((a, b) => b.index - a.index);
 
             for (const entry of sortedEntries) {
@@ -377,7 +377,7 @@ export function createMultiMovePoleAction(
             const currentPoles = getCurrentPoles();
             const updatedPoles = [...currentPoles];
             for (const move of moves) {
-                updatedPoles[move.poleIndex] = { ...updatedPoles[move.poleIndex], ...move.oldPosition };
+                updatedPoles[move.poleIndex] = { ...move.oldPosition, h: updatedPoles[move.poleIndex]!.h };
             }
             onPolesChange(updatedPoles, getCurrentIsClosed());
         },
@@ -385,7 +385,7 @@ export function createMultiMovePoleAction(
             const currentPoles = getCurrentPoles();
             const updatedPoles = [...currentPoles];
             for (const move of moves) {
-                updatedPoles[move.poleIndex] = { ...updatedPoles[move.poleIndex], ...move.newPosition };
+                updatedPoles[move.poleIndex] = { ...move.newPosition, h: updatedPoles[move.poleIndex]!.h };
             }
             onPolesChange(updatedPoles, getCurrentIsClosed());
         }
@@ -415,10 +415,10 @@ export function createMultiMovePoleAction(
 export function createMoveLineAction(
     pole1Index: number,
     pole2Index: number,
-    oldPole1: { x: number; y: number },
-    oldPole2: { x: number; y: number },
-    newPole1: { x: number; y: number },
-    newPole2: { x: number; y: number },
+    oldPole1: { x: number; y: number; h: number },
+    oldPole2: { x: number; y: number; h: number },
+    newPole1: { x: number; y: number; h: number },
+    newPole2: { x: number; y: number; h: number },
     onPolesChange: (poles: Pole[], isClosed?: boolean) => void,
     getCurrentPoles: () => Pole[],
     getCurrentIsClosed: () => boolean
@@ -506,10 +506,10 @@ export function createBreakWallAction(
     wallName: string,
     wallVisibility: WallVisibility,
     wallMaterial: string | undefined,
-    wallColor: string,
+    wallColor: string | undefined,
     onRemoveSegment: (tempId: number) => void,
     onUpdateSegment: (tempId: number, changes: { wallIndex: number; poles: Pole[]; isClosed: boolean }) => void,
-    onAddSegment: (segment: { wallIndex: number | null; name: string; poles: Pole[]; isClosed: boolean; visibility: WallVisibility; material: string | undefined; color: string }) => number
+    onAddSegment: (segment: { wallIndex: number | null; name: string; poles: Pole[]; isClosed: boolean; visibility: WallVisibility; material: string | undefined; color: string | undefined }) => number
 ): BreakWallAction {
     const action: BreakWallAction = {
         type: 'BREAK_WALL',

@@ -14,7 +14,6 @@ export interface CreateWallCommandParams {
 
 export class CreateWallCommand implements Command {
     readonly description: string;
-    private createdIndex?: number;
 
     constructor(private params: CreateWallCommandParams) {
         this.description = `Create wall "${params.wall.name}"`;
@@ -30,7 +29,7 @@ export class CreateWallCommand implements Command {
 
     async redo(): Promise<void> {
         const { sceneId, wall, onCreate, onRefetch } = this.params;
-        const recreatedWall = await onCreate(sceneId, {
+        await onCreate(sceneId, {
             name: wall.name,
             poles: wall.poles,
             visibility: wall.visibility,
@@ -38,7 +37,6 @@ export class CreateWallCommand implements Command {
             material: wall.material,
             color: wall.color
         });
-        this.createdIndex = recreatedWall.index;
         await onRefetch();
     }
 }

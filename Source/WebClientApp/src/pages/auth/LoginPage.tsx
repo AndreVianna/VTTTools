@@ -11,6 +11,7 @@ import { RecoveryCodeForm } from '@/components/auth/RecoveryCodeForm';
 type AuthMode =
   | 'login'
   | 'register'
+  | 'reset-request'
   | 'reset-confirm'
   | 'two-factor'
   | 'recovery-code';

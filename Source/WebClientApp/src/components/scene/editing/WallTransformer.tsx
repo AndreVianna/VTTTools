@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Group, Circle, Line, Rect } from 'react-konva';
 import { useTheme } from '@mui/material';
 import type { Pole, SceneWall } from '@/types/domain';
@@ -77,17 +77,17 @@ export interface WallTransformerProps {
     poles: Pole[];
     isClosed?: boolean;
     onPolesChange?: (poles: Pole[], isClosed?: boolean) => void;
-    gridConfig?: GridConfig;
-    snapEnabled?: boolean;
-    snapMode?: SnapMode;
+    gridConfig?: GridConfig | undefined;
+    snapEnabled?: boolean | undefined;
+    snapMode?: SnapMode | undefined;
     onClearSelections?: () => void;
-    isAltPressed?: boolean;
-    sceneId?: string;
-    wallIndex?: number;
-    wall?: SceneWall;
+    isAltPressed?: boolean | undefined;
+    sceneId?: string | undefined;
+    wallIndex?: number | undefined;
+    wall?: SceneWall | undefined;
     onWallBreak?: (breakData: WallBreakData) => void | Promise<void>;
-    enableBackgroundRect?: boolean;
-    wallTransaction?: ReturnType<typeof useWallTransaction>;
+    enableBackgroundRect?: boolean | undefined;
+    wallTransaction?: ReturnType<typeof useWallTransaction> | undefined;
 }
 
 export const WallTransformer: React.FC<WallTransformerProps> = ({
@@ -99,9 +99,9 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     snapMode: externalSnapMode,
     onClearSelections,
     isAltPressed = false,
-    sceneId,
-    wallIndex,
-    wall,
+    sceneId: _sceneId,
+    wallIndex: _wallIndex,
+    wall: _wall,
     onWallBreak,
     enableBackgroundRect = true,
     wallTransaction
@@ -116,7 +116,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
     const [marqueeEnd, setMarqueeEnd] = useState<{ x: number; y: number } | null>(null);
     const [draggingLine, setDraggingLine] = useState<number | null>(null);
     const dragStartPositionRef = useRef<{ x: number; y: number } | null>(null);
-    const lineDragStartRef = useRef<{ mouseX: number; mouseY: number; pole1: { x: number; y: number }; pole2: { x: number; y: number } } | null>(null);
+    const lineDragStartRef = useRef<{ mouseX: number; mouseY: number; pole1: { x: number; y: number; h: number }; pole2: { x: number; y: number; h: number } } | null>(null);
     const circleRefs = useRef<Map<number, any>>(new Map());
     const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
     const [insertPreviewPos, setInsertPreviewPos] = useState<{x: number; y: number} | null>(null);
@@ -136,7 +136,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
         return { x, y, width, height };
     };
 
-    const handleBreakWall = () => {
+    const handleBreakWall = useCallback(() => {
         let breakPoleIndex: number;
 
         if (selectedPoles.size > 0) {
@@ -192,9 +192,10 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                 }
             }
         }
-    };
+    }, [selectedPoles, selectedLines, poles, isClosed, onPolesChange, onWallBreak]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPreviewPoles(poles);
     }, [poles, isClosed]);
 
@@ -315,15 +316,18 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
             window.removeEventListener('keydown', handleKeyDown, { capture: true });
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, [selectedPoles, selectedLines, poles, onPolesChange, onClearSelections, isAltPressed, isClosed]);
+    }, [selectedPoles, selectedLines, poles, onPolesChange, onClearSelections, isAltPressed, isClosed, handleBreakWall, wallTransaction]);
 
     const handleDragStart = (index: number) => {
+        const pole = poles[index];
+        if (!pole) return;
+
         const circleNode = circleRefs.current.get(index);
         if (circleNode) {
-            circleNode.position({ x: poles[index].x, y: poles[index].y });
+            circleNode.position({ x: pole.x, y: pole.y });
         }
         setDraggingIndex(index);
-        dragStartPositionRef.current = { x: poles[index].x, y: poles[index].y };
+        dragStartPositionRef.current = { x: pole.x, y: pole.y };
         if (!selectedPoles.has(index)) {
             setSelectedPoles(new Set([index]));
             setSelectedLines(new Set());
@@ -357,14 +361,19 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
 
         if (selectedPoles.size > 1 && selectedPoles.has(index)) {
             selectedPoles.forEach(poleIndex => {
+                const pole = poles[poleIndex];
+                if (!pole) return;
                 newPoles[poleIndex] = {
-                    ...newPoles[poleIndex],
-                    x: poles[poleIndex].x + deltaX,
-                    y: poles[poleIndex].y + deltaY
+                    x: pole.x + deltaX,
+                    y: pole.y + deltaY,
+                    h: pole.h
                 };
             });
         } else {
-            newPoles[index] = { ...newPoles[index], x: currentX, y: currentY };
+            const pole = poles[index];
+            if (pole) {
+                newPoles[index] = { x: currentX, y: currentY, h: pole.h };
+            }
         }
 
         setPreviewPoles(newPoles);
@@ -397,17 +406,23 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
         const newPoles = [...poles];
 
         if (selectedPoles.size > 1 && selectedPoles.has(index)) {
-            const moves = Array.from(selectedPoles).map(poleIndex => ({
-                poleIndex,
-                oldPosition: { x: poles[poleIndex].x, y: poles[poleIndex].y },
-                newPosition: { x: poles[poleIndex].x + deltaX, y: poles[poleIndex].y + deltaY }
-            }));
+            const moves = Array.from(selectedPoles).map(poleIndex => {
+                const pole = poles[poleIndex];
+                if (!pole) throw new Error(`Pole at index ${poleIndex} not found`);
+                return {
+                    poleIndex,
+                    oldPosition: { x: pole.x, y: pole.y },
+                    newPosition: { x: pole.x + deltaX, y: pole.y + deltaY }
+                };
+            });
 
             selectedPoles.forEach(poleIndex => {
+                const pole = poles[poleIndex];
+                if (!pole) return;
                 newPoles[poleIndex] = {
-                    ...newPoles[poleIndex],
-                    x: poles[poleIndex].x + deltaX,
-                    y: poles[poleIndex].y + deltaY
+                    x: pole.x + deltaX,
+                    y: pole.y + deltaY,
+                    h: pole.h
                 };
             });
 
@@ -428,7 +443,10 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                 wallTransaction.pushLocalAction(action);
             }
         } else {
-            newPoles[index] = { ...newPoles[index], x: finalX, y: finalY };
+            const pole = poles[index];
+            if (pole) {
+                newPoles[index] = { x: finalX, y: finalY, h: pole.h };
+            }
 
             if (wallTransaction && (deltaX !== 0 || deltaY !== 0)) {
                 const action = createMovePoleAction(
@@ -562,9 +580,13 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                     const newPole2Y = lineDragStartRef.current.pole2.y + deltaY;
 
                     const newPoles = [...poles];
-                    newPoles[draggingLine] = { ...newPoles[draggingLine], x: newPole1X, y: newPole1Y };
-                    newPoles[draggingLine + 1] = { ...newPoles[draggingLine + 1], x: newPole2X, y: newPole2Y };
-                    setPreviewPoles(newPoles);
+                    const pole1 = poles[draggingLine];
+                    const pole2 = poles[draggingLine + 1];
+                    if (pole1 && pole2) {
+                        newPoles[draggingLine] = { x: newPole1X, y: newPole1Y, h: pole1.h };
+                        newPoles[draggingLine + 1] = { x: newPole2X, y: newPole2Y, h: pole2.h };
+                        setPreviewPoles(newPoles);
+                    }
                 }
             }}
             onMouseUp={(e) => {
@@ -603,17 +625,21 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                             }
 
                             const newPoles = [...poles];
-                            newPoles[draggingLine] = { ...newPoles[draggingLine], x: newPole1X, y: newPole1Y };
-                            newPoles[draggingLine + 1] = { ...newPoles[draggingLine + 1], x: newPole2X, y: newPole2Y };
+                            const pole1 = poles[draggingLine];
+                            const pole2 = poles[draggingLine + 1];
+                            if (pole1 && pole2) {
+                                newPoles[draggingLine] = { x: newPole1X, y: newPole1Y, h: pole1.h };
+                                newPoles[draggingLine + 1] = { x: newPole2X, y: newPole2Y, h: pole2.h };
+                            }
 
                             if (wallTransaction && (deltaX !== 0 || deltaY !== 0)) {
                                 const action = createMoveLineAction(
                                     draggingLine,
                                     draggingLine + 1,
-                                    lineDragStartRef.current.pole1,
-                                    lineDragStartRef.current.pole2,
-                                    { x: newPole1X, y: newPole1Y },
-                                    { x: newPole2X, y: newPole2Y },
+                                    { x: lineDragStartRef.current.pole1.x, y: lineDragStartRef.current.pole1.y, h: lineDragStartRef.current.pole1.h },
+                                    { x: lineDragStartRef.current.pole2.x, y: lineDragStartRef.current.pole2.y, h: lineDragStartRef.current.pole2.h },
+                                    { x: newPole1X, y: newPole1Y, h: lineDragStartRef.current.pole1.h },
+                                    { x: newPole2X, y: newPole2Y, h: lineDragStartRef.current.pole2.h },
                                     (updatedPoles) => onPolesChange?.(updatedPoles, isClosed),
                                     () => {
                                         let currentPoles: Pole[] = [];
@@ -677,6 +703,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
 
             {polesToUse.slice(0, -1).map((pole, index) => {
                 const nextPole = polesToUse[index + 1];
+                if (!nextPole) return null;
                 const isLineSelected = selectedLines.has(index);
                 return (
                     <React.Fragment key={`line-segment-${index}`}>
@@ -717,8 +744,8 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                                         lineDragStartRef.current = {
                                             mouseX: worldPos.x,
                                             mouseY: worldPos.y,
-                                            pole1: { x: pole.x, y: pole.y },
-                                            pole2: { x: nextPole.x, y: nextPole.y }
+                                            pole1: { x: pole.x, y: pole.y, h: pole.h },
+                                            pole2: { x: nextPole.x, y: nextPole.y, h: nextPole.h }
                                         };
 
                                         const container = stage.container();
@@ -745,7 +772,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                                     y: (pointerPos.y - stage.y()) / scale
                                 };
 
-                                const projected = projectPointToLineSegment(worldPos, pole, nextPole);
+                                const projected = projectPointToLineSegment(worldPos, pole, nextPole!);
 
                                 let insertPos = projected;
                                 if (snapEnabled && gridConfig) {
@@ -825,7 +852,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                                 };
 
                                 // Project onto line segment
-                                const projected = projectPointToLineSegment(worldPos, pole, nextPole);
+                                const projected = projectPointToLineSegment(worldPos, pole, nextPole!);
 
                                 // Apply snap
                                 let finalPos = projected;
@@ -990,6 +1017,7 @@ export const WallTransformer: React.FC<WallTransformerProps> = ({
                 const closingIndex = polesToUse.length - 1;
                 const firstPole = polesToUse[0];
                 const lastPole = polesToUse[polesToUse.length - 1];
+                if (!firstPole || !lastPole) return null;
                 const isLineSelected = selectedLines.has(closingIndex);
 
                 return (

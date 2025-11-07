@@ -91,6 +91,7 @@ export function extractOpaqueSegments(sceneWalls: SceneWall[]): LineSegment[] {
         for (let i = 0; i < segmentCount; i++) {
             const start = sceneWall.poles[i];
             const end = sceneWall.poles[(i + 1) % sceneWall.poles.length];
+            if (!start || !end) continue;
             segments.push({
                 start: { x: start.x, y: start.y },
                 end: { x: end.x, y: end.y }

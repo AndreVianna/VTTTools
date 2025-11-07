@@ -92,19 +92,14 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({
     const [portraitId, setPortraitId] = useState<string | undefined>(asset.portrait?.id);
     const [isPublic, setIsPublic] = useState(asset.isPublic);
     const [isPublished, setIsPublished] = useState(asset.isPublished);
-
+    const [isMovable, setIsMovable] = useState((asset as ObjectAsset).isMovable);
+    const [isOpaque, setIsOpaque] = useState((asset as ObjectAsset).isOpaque);
+    const [triggerEffectId, setTriggerEffectId] = useState((asset as ObjectAsset).triggerEffectId);
+    const [statBlockId, setStatBlockId] = useState((asset as CreatureAsset).statBlockId);
+    const [category, setCategory] = useState((asset as CreatureAsset).category);
+    const [tokenStyle, setTokenStyle] = useState((asset as CreatureAsset).tokenStyle);
     // Size state (at root level in new schema)
     const [size, setSize] = useState<NamedSize>(asset.size);
-
-    // Object-specific properties
-    const [objectData, setObjectData] = useState<ObjectData | undefined>(
-        isObjectAsset(asset) ? asset.properties : undefined
-    );
-
-    // Creature-specific properties
-    const [creatureData, setCreatureData] = useState<CreatureData | undefined>(
-        isCreatureAsset(asset) ? asset.properties : undefined
-    );
 
     // RTK Query mutations
     const [updateAsset, { isLoading: isSaving }] = useUpdateAssetMutation();
@@ -113,12 +108,35 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({
     // Track previous asset ID to detect asset switches
     const prevAssetIdRef = useRef<string | null>(null);
 
+    const objectData: ObjectData = {
+        isMovable: isMovable,
+        isOpaque: isOpaque,
+        triggerEffectId: triggerEffectId ?? undefined,
+    };
+    const creatureData: CreatureData = {
+        category: category,
+        statBlockId: statBlockId ?? undefined,
+        tokenStyle: tokenStyle ?? undefined,
+    };
+
+    const setObjectData = (data: ObjectData) => {
+        setIsMovable(data.isMovable);
+        setIsOpaque(data.isOpaque);
+        setTriggerEffectId(data.triggerEffectId ?? undefined);
+    };
+    const setCreatureData = (data: CreatureData) => {
+        setCategory(data.category);
+        setStatBlockId(data.statBlockId ?? undefined);
+        setTokenStyle(data.tokenStyle ?? undefined);
+    };
+
     // Reset state only when dialog opens or when switching to a different asset
     // Do NOT reset when asset updates due to save operation (asset.updatedAt changes)
     useEffect(() => {
         const isDifferentAsset = prevAssetIdRef.current !== asset.id;
 
         if (open && (isDifferentAsset || prevAssetIdRef.current === null)) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setName(asset.name);
             setDescription(asset.description);
             setTokens(asset.tokens || []);
@@ -129,14 +147,18 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({
             setEditMode(false);
 
             if (isObjectAsset(asset)) {
-                setObjectData(asset.properties);
+                setIsMovable(asset.isMovable);
+                setIsOpaque(asset.isOpaque);
+                setTriggerEffectId(asset.triggerEffectId);
             } else if (isCreatureAsset(asset)) {
-                setCreatureData(asset.properties);
+                setCategory(asset.category);
+                setStatBlockId(asset.statBlockId);
+                setTokenStyle(asset.tokenStyle);
             }
 
             prevAssetIdRef.current = asset.id;
         }
-    }, [open, asset.id]);
+    }, [open, asset]);
 
     const handleSave = async () => {
         try {
@@ -145,7 +167,13 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({
                 isPublished,
                 description,
                 size,
-                tokens: tokens.map(t => ({ tokenId: t.tokenId, isDefault: t.isDefault })),
+                tokens: tokens.map(t => ({ token: { 
+                    id: t.token.id,
+                    type: t.token.type,
+                    path: t.token.path,
+                    metadata: t.token.metadata,
+                    tags: t.token.tags
+                }, isDefault: t.isDefault })),
                 portraitId
             };
 
@@ -153,10 +181,20 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({
                 request.name = name;
             }
 
-            if (asset.kind === AssetKind.Object && objectData) {
-                request.objectData = objectData;
-            } else if (asset.kind === AssetKind.Creature && creatureData) {
-                request.creatureData = creatureData;
+            if (asset.kind === AssetKind.Object) {
+                const object = asset as ObjectAsset;
+                request.objectData = {
+                    isMovable: object.isMovable,
+                    isOpaque: object.isOpaque,
+                    triggerEffectId: object.triggerEffectId ?? undefined,
+                };
+            } else if (asset.kind === AssetKind.Creature) {
+                const creature = asset as CreatureAsset;
+                request.creatureData = {
+                    category: creature.category,
+                    statBlockId: creature.statBlockId ?? undefined,
+                    tokenStyle: creature.tokenStyle ?? undefined,
+                };
             }
 
             await updateAsset({ id: asset.id, request }).unwrap();
@@ -183,15 +221,16 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({
         setIsPublic(asset.isPublic);
         setIsPublished(asset.isPublished);
         setSize(asset.size);
-
+        
         if (isObjectAsset(asset)) {
-            setObjectData(asset.properties);
+            setObjectData(objectData);
         } else if (isCreatureAsset(asset)) {
-            setCreatureData(asset.properties);
+            setCreatureData(creatureData);
         }
 
         setEditMode(false);
     };
+
 
     return (
         <>
@@ -368,12 +407,6 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({
                             <Box>
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                                     Metadata
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Created: {new Date(asset.createdAt).toLocaleDateString()}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Updated: {new Date(asset.updatedAt).toLocaleDateString()}
                                 </Typography>
                             </Box>
                         </Stack>

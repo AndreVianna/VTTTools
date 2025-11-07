@@ -1,7 +1,7 @@
 import { Chip, Typography, Button, Box } from '@mui/material';
 import type React from 'react';
 import { ContentCard, PublishedBadge } from '../shared';
-import { AdventureStyle } from '../../types';
+import { AdventureStyle, ContentType } from '../../types';
 import type { Adventure } from '../../types';
 import { getApiEndpoints } from '@/config/development';
 
@@ -128,7 +128,7 @@ export function AdventureCard({ adventure, onOpen, onDuplicate, onDelete }: Adve
         <ContentCard
             item={{
                 id: adventure.id,
-                type: 'adventure',
+                type: ContentType.Adventure,
                 name: adventure.name,
                 isPublished: adventure.isPublished,
                 thumbnailUrl: backgroundUrl

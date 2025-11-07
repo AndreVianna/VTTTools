@@ -133,7 +133,6 @@ export class MockApiService {
     });
 
     const createMockToken = (name: string, isDefault: boolean = true): AssetToken => ({
-      tokenId: crypto.randomUUID(),
       token: createMockMediaResource(`${name}-token`),
       isDefault
     });
@@ -150,12 +149,8 @@ export class MockApiService {
         tokens: [createMockToken('hero')],
         portrait: createMockMediaResource('hero-portrait'),
         size: { width: 1, height: 1, isSquare: true },
-        properties: {
-          category: CreatureCategory.Character,
-          tokenStyle: { shape: TokenShape.Circle }
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        category: CreatureCategory.Character,
+        tokenStyle: { shape: TokenShape.Circle }
       },
       {
         id: 'mock-asset-2',
@@ -168,12 +163,8 @@ export class MockApiService {
         tokens: [createMockToken('goblin')],
         portrait: undefined,
         size: { width: 1, height: 1, isSquare: true },
-        properties: {
-          category: CreatureCategory.Monster,
-          tokenStyle: { shape: TokenShape.Circle }
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        category: CreatureCategory.Monster,
+        tokenStyle: { shape: TokenShape.Circle }
       },
       {
         id: 'mock-asset-3',
@@ -189,12 +180,8 @@ export class MockApiService {
         ],
         portrait: createMockMediaResource('ogre-portrait'),
         size: { width: 2, height: 2, isSquare: true },
-        properties: {
-          category: CreatureCategory.Monster,
-          tokenStyle: { shape: TokenShape.Circle }
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        category: CreatureCategory.Monster,
+        tokenStyle: { shape: TokenShape.Circle }
       },
       {
         id: 'mock-asset-4',
@@ -207,12 +194,8 @@ export class MockApiService {
         tokens: [createMockToken('dragon')],
         portrait: createMockMediaResource('dragon-portrait'),
         size: { width: 4, height: 3, isSquare: false },
-        properties: {
-          category: CreatureCategory.Monster,
-          tokenStyle: { shape: TokenShape.Circle, borderColor: '#ff0000' }
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        category: CreatureCategory.Monster,
+        tokenStyle: { shape: TokenShape.Circle, borderColor: '#ff0000' }
       },
       {
         id: 'mock-asset-5',
@@ -225,12 +208,8 @@ export class MockApiService {
         tokens: [],
         portrait: createMockMediaResource('npc-portrait'),
         size: { width: 1, height: 1, isSquare: true },
-        properties: {
-          category: CreatureCategory.Character,
-          tokenStyle: { shape: TokenShape.Square }
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        category: CreatureCategory.Character,
+        tokenStyle: { shape: TokenShape.Square }
       }
     ];
 
@@ -246,12 +225,8 @@ export class MockApiService {
         tokens: [createMockToken('crate')],
         portrait: undefined,
         size: { width: 1, height: 1, isSquare: true },
-        properties: {
-          isMovable: true,
-          isOpaque: false
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        isMovable: true,
+        isOpaque: false
       },
       {
         id: 'mock-asset-7',
@@ -264,12 +239,8 @@ export class MockApiService {
         tokens: [createMockToken('chest')],
         portrait: createMockMediaResource('chest-portrait'),
         size: { width: 1, height: 1, isSquare: true },
-        properties: {
-          isMovable: true,
-          isOpaque: false
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        isMovable: true,
+        isOpaque: false
       },
       {
         id: 'mock-asset-8',
@@ -282,12 +253,8 @@ export class MockApiService {
         tokens: [createMockToken('wall')],
         portrait: undefined,
         size: { width: 1, height: 1, isSquare: true },
-        properties: {
-          isMovable: false,
-          isOpaque: true
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        isMovable: false,
+        isOpaque: true
       },
       {
         id: 'mock-asset-9',
@@ -300,12 +267,8 @@ export class MockApiService {
         tokens: [createMockToken('door')],
         portrait: undefined,
         size: { width: 1, height: 1, isSquare: true },
-        properties: {
-          isMovable: false,
-          isOpaque: true
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        isMovable: false,
+        isOpaque: true
       },
       {
         id: 'mock-asset-10',
@@ -318,12 +281,8 @@ export class MockApiService {
         tokens: [createMockToken('boulder')],
         portrait: undefined,
         size: { width: 3, height: 3, isSquare: true },
-        properties: {
-          isMovable: false,
-          isOpaque: true
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        isMovable: false,
+        isOpaque: true
       },
       {
         id: 'mock-asset-11',
@@ -336,12 +295,8 @@ export class MockApiService {
         tokens: [],
         portrait: undefined,
         size: { width: 1, height: 1, isSquare: true },
-        properties: {
-          isMovable: true,
-          isOpaque: false
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        isMovable: true,
+        isOpaque: false
       },
       {
         id: 'mock-asset-12',
@@ -357,12 +312,8 @@ export class MockApiService {
         ],
         portrait: undefined,
         size: { width: 1, height: 1, isSquare: true },
-        properties: {
-          isMovable: true,
-          isOpaque: false
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        isMovable: true,
+        isOpaque: false
       }
     ];
 

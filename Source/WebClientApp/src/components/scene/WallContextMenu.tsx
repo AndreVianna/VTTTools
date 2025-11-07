@@ -44,7 +44,7 @@ export const WallContextMenu: React.FC<WallContextMenuProps> = ({
     return (
         <Menu
             anchorReference="anchorPosition"
-            anchorPosition={anchorPosition ?? undefined}
+            {...(anchorPosition && { anchorPosition })}
             open={open}
             onClose={onClose}
             transformOrigin={{ vertical: 'top', horizontal: 'left' }}

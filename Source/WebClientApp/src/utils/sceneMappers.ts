@@ -15,7 +15,7 @@ function getAssetLayer(asset: Asset): GroupName {
     }
 
     const objectAsset = asset as ObjectAsset;
-    if (objectAsset.properties?.isOpaque) {
+    if (objectAsset.isOpaque) {
         return GroupName.Structure;
     }
 
@@ -54,6 +54,8 @@ export async function hydratePlacedAssets(
                 index: sceneAssetAny.index !== undefined ? sceneAssetAny.index : index,
                 number: sceneAssetAny.number !== undefined ? sceneAssetAny.number : 1,
                 name: sceneAssetAny.name || asset.name,
+                visible: sceneAssetAny.visible !== undefined ? sceneAssetAny.visible : true,
+                locked: sceneAssetAny.locked !== undefined ? sceneAssetAny.locked : false,
                 displayName: sceneAssetAny.displayName || DisplayNameEnum.Default,
                 labelPosition: sceneAssetAny.labelPosition || LabelPositionEnum.Default
             };
@@ -86,12 +88,4 @@ export function dehydratePlacedAssets(
         locked: false,
         asset: pa.asset
     }));
-}
-
-export function ensureSceneDefaults(scene: any): any {
-    return {
-        ...scene,
-        defaultDisplayName: scene.defaultDisplayName || DisplayNameEnum.Always,
-        defaultLabelPosition: scene.defaultLabelPosition || LabelPositionEnum.Bottom
-    };
 }

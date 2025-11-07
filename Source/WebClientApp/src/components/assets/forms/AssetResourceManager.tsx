@@ -17,7 +17,7 @@ import {
     Close as CloseIcon,
     CheckCircle as DefaultIcon
 } from '@mui/icons-material';
-import { AssetToken, NamedSize } from '@/types/domain';
+import { AssetToken, NamedSize, ResourceType } from '@/types/domain';
 import { useUploadFileMutation } from '@/services/mediaApi';
 import { getResourceUrl } from '@/utils/assetHelpers';
 import { TokenPreview } from '@/components/common/TokenPreview';
@@ -50,6 +50,9 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
 
     const handleUploadToken = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
+        const contentType = file?.type;
+        const fileName = file?.name;
+        const fileLength = file?.size;
         if (!file) return;
 
         setUploadError(null);
@@ -61,7 +64,19 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
 
             const isFirstToken = tokens.length === 0;
             const newToken: AssetToken = {
-                tokenId: result.id,
+                token: { 
+                    id: result.id,
+                    type: result.type ?? ResourceType.Image,
+                    path: result.path ?? '',
+                    metadata: {
+                        contentType: result.metadata?.contentType ?? contentType ?? '',
+                        fileName: result.metadata?.fileName ?? fileName ?? '',
+                        fileLength: result.metadata?.fileLength ?? fileLength ?? 0,
+                        imageSize: result.metadata?.imageSize ?? { width: 0, height: 0 },
+                        duration: result.metadata?.duration ?? '0:00:00.0000000',
+                    },
+                    tags: result.tags ?? [],
+                },
                 isDefault: isFirstToken
             };
 
@@ -95,16 +110,16 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
     const handleSetDefaultToken = (tokenId: string) => {
         const updated = tokens.map(t => ({
             ...t,
-            isDefault: t.tokenId === tokenId
+            isDefault: t.token.id === tokenId
         }));
         onTokensChange(updated);
     };
 
     const handleRemoveToken = (tokenId: string) => {
-        const updated = tokens.filter(t => t.tokenId !== tokenId);
+        const updated = tokens.filter(t => t.token.id !== tokenId);
 
         if (updated.length > 0) {
-            const hadDefault = tokens.find(t => t.tokenId === tokenId)?.isDefault;
+            const hadDefault = tokens.find(t => t.token.id === tokenId)?.isDefault;
             if (hadDefault && updated[0]) {
                 updated[0].isDefault = true;
             }
@@ -128,7 +143,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                         </Typography>
                         {defaultToken ? (
                             <TokenPreview
-                                imageUrl={getResourceUrl(defaultToken.tokenId)}
+                                imageUrl={getResourceUrl(defaultToken.token.id)}
                                 size={size}
                             />
                         ) : (
@@ -212,7 +227,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                 {tokens.length > 0 ? (
                     <Grid container spacing={1}>
                         {tokens.map((token) => (
-                            <Grid size={{ xs: 6, sm: 4, md: 3 }} key={token.tokenId}>
+                            <Grid size={{ xs: 6, sm: 4, md: 3 }} key={token.token.id}>
                                 <Card
                                     sx={{
                                         position: 'relative',
@@ -223,7 +238,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                                     <CardMedia
                                         component="img"
                                         height="100"
-                                        image={getResourceUrl(token.tokenId)}
+                                        image={getResourceUrl(token.token.id)}
                                         alt="Token"
                                         sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
                                     />
@@ -242,7 +257,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                                         {!token.isDefault && (
                                             <IconButton
                                                 size="small"
-                                                onClick={() => handleSetDefaultToken(token.tokenId)}
+                                                onClick={() => handleSetDefaultToken(token.token.id)}
                                                 sx={{
                                                     bgcolor: 'background.paper',
                                                     '&:hover': { bgcolor: 'primary.main', color: 'white' }
@@ -254,7 +269,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                                         )}
                                         <IconButton
                                             size="small"
-                                            onClick={() => handleRemoveToken(token.tokenId)}
+                                            onClick={() => handleRemoveToken(token.token.id)}
                                             sx={{
                                                 bgcolor: 'background.paper',
                                                 '&:hover': { bgcolor: 'error.main', color: 'white' }

@@ -38,8 +38,8 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
                 type: region.type,
                 vertices,
                 value: region.value ?? 0,
-                label: region.label,
-                color: region.color
+                ...(region.label && { label: region.label }),
+                ...(region.color && { color: region.color })
             }).unwrap();
 
             onComplete(true);

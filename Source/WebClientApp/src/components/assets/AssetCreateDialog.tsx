@@ -98,15 +98,20 @@ export const AssetCreateDialog: React.FC<AssetCreateDialogProps> = ({
                 kind: selectedKind,
                 name,
                 description,
-                tokens: tokens.map(t => ({ tokenId: t.tokenId, isDefault: t.isDefault })),
+                tokens: tokens.map(t => ({ token: { 
+                    id: t.token.id,
+                    type: t.token.type,
+                    path: t.token.path,
+                    metadata: t.token.metadata,
+                    tags: t.token.tags
+                }, 
+                isDefault: t.isDefault })),
                 portraitId,
-                size: {
-                    width: size.width,
-                    height: size.height,
-                    isSquare: size.isSquare
-                },
+                size,
                 isPublic,
-                isPublished
+                isPublished,
+                objectData,
+                creatureData
             };
 
             if (selectedKind === AssetKind.Object) {

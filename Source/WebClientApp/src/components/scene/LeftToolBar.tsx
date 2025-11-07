@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, IconButton, Drawer, Tooltip, useTheme, Typography, Button } from '@mui/material';
+import { Box, IconButton, Drawer, Tooltip, useTheme, Typography } from '@mui/material';
 import {
   Wallpaper as BackgroundIcon,
   Terrain as ElevationIcon,
@@ -14,8 +14,7 @@ import {
   Layers as OverlaysIcon,
   Cloud as WeatherIcon,
   LightMode as GlobalLightingIcon,
-  VisibilityOff as FogOfWarIcon,
-  AddCircleOutline as AddCircleOutlineIcon
+  VisibilityOff as FogOfWarIcon
 } from '@mui/icons-material';
 import { BackgroundPanel, GridPanel, WallsPanel, ObjectsPanel, CreaturesPanel } from './panels';
 import { AssetPicker } from '@/components/common';
@@ -42,14 +41,14 @@ export type PanelType =
 export interface LeftToolBarProps {
   activePanel?: string | null;
   onPanelChange?: (panel: PanelType | null) => void;
-  backgroundUrl?: string;
-  isUploadingBackground?: boolean;
+  backgroundUrl?: string | undefined;
+  isUploadingBackground?: boolean | undefined;
   onBackgroundUpload?: (file: File) => void;
-  gridConfig?: GridConfig;
+  gridConfig?: GridConfig | undefined;
   onGridChange?: (grid: GridConfig) => void;
-  sceneId?: string;
-  sceneWalls?: SceneWall[];
-  selectedWallIndex?: number | null;
+  sceneId?: string | undefined;
+  sceneWalls?: SceneWall[] | undefined;
+  selectedWallIndex?: number | null | undefined;
   onWallSelect?: (wallIndex: number | null) => void;
   onWallDelete?: (wallIndex: number) => void;
   onPlaceWall?: (properties: {
@@ -59,8 +58,8 @@ export interface LeftToolBarProps {
     defaultHeight: number;
   }) => void;
   onEditVertices?: (wallIndex: number) => void;
-  placedAssets?: PlacedAsset[];
-  selectedAssetIds?: string[];
+  placedAssets?: PlacedAsset[] | undefined;
+  selectedAssetIds?: string[] | undefined;
   onAssetSelectForPlacement?: (asset: Asset) => void;
   onPlacedAssetSelect?: (assetId: string, isCtrlPressed: boolean) => void;
   onPlacedAssetDelete?: (assetId: string) => void;
@@ -222,9 +221,9 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         <Box ref={drawerRef} sx={{ p: 2 }}>
           {activePanel === 'background' && (
             <BackgroundPanel
-              backgroundUrl={backgroundUrl}
-              isUploadingBackground={isUploadingBackground}
-              onBackgroundUpload={onBackgroundUpload}
+              backgroundUrl={backgroundUrl || ''}
+              isUploadingBackground={isUploadingBackground || false}
+              {...(onBackgroundUpload ? { onBackgroundUpload } : {})}
             />
           )}
           {activePanel === 'elevation' && (
@@ -236,18 +235,18 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           {activePanel === 'grid' && gridConfig && (
             <GridPanel
               gridConfig={gridConfig}
-              onGridChange={onGridChange}
+              {...(onGridChange ? { onGridChange } : {})}
             />
           )}
           {activePanel === 'walls' && (
             <WallsPanel
-              sceneId={sceneId}
-              sceneWalls={sceneWalls}
-              selectedWallIndex={selectedWallIndex}
-              onWallSelect={onWallSelect}
-              onWallDelete={onWallDelete}
-              onPlaceWall={onPlaceWall}
-              onEditVertices={onEditVertices}
+              sceneId={sceneId || ''}
+              sceneWalls={sceneWalls || []}
+              selectedWallIndex={selectedWallIndex !== undefined ? selectedWallIndex : null}
+              {...(onWallSelect ? { onWallSelect } : {})}
+              {...(onWallDelete ? { onWallDelete } : {})}
+              {...(onPlaceWall ? { onPlaceWall } : {})}
+              {...(onEditVertices ? { onEditVertices } : {})}
             />
           )}
           {activePanel === 'openings' && (
@@ -261,10 +260,10 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               placedAssets={placedAssets}
               selectedAssetIds={selectedAssetIds}
               onBrowseAssets={() => setAssetPickerOpen({ open: true, kind: AssetKind.Object })}
-              onAssetSelect={onPlacedAssetSelect}
-              onAssetDelete={onPlacedAssetDelete}
-              onAssetRename={onPlacedAssetRename}
-              onAssetUpdate={onPlacedAssetUpdate}
+              {...(onPlacedAssetSelect ? { onAssetSelect: onPlacedAssetSelect } : {})}
+              {...(onPlacedAssetDelete ? { onAssetDelete: onPlacedAssetDelete } : {})}
+              {...(onPlacedAssetRename ? { onAssetRename: onPlacedAssetRename } : {})}
+              {...(onPlacedAssetUpdate ? { onAssetUpdate: onPlacedAssetUpdate } : {})}
             />
           )}
           {activePanel === 'creatures' && (
@@ -272,10 +271,10 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               placedAssets={placedAssets}
               selectedAssetIds={selectedAssetIds}
               onBrowseAssets={() => setAssetPickerOpen({ open: true, kind: AssetKind.Creature })}
-              onAssetSelect={onPlacedAssetSelect}
-              onAssetDelete={onPlacedAssetDelete}
-              onAssetRename={onPlacedAssetRename}
-              onAssetUpdate={onPlacedAssetUpdate}
+              {...(onPlacedAssetSelect ? { onAssetSelect: onPlacedAssetSelect } : {})}
+              {...(onPlacedAssetDelete ? { onAssetDelete: onPlacedAssetDelete } : {})}
+              {...(onPlacedAssetRename ? { onAssetRename: onPlacedAssetRename } : {})}
+              {...(onPlacedAssetUpdate ? { onAssetUpdate: onPlacedAssetUpdate } : {})}
             />
           )}
           {activePanel === 'players' && (
@@ -323,15 +322,17 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         </Box>
       </Drawer>
 
-      <AssetPicker
-        open={assetPickerOpen.open}
-        onClose={() => setAssetPickerOpen({ open: false })}
-        onSelect={(asset) => {
-          setAssetPickerOpen({ open: false });
-          onAssetSelectForPlacement?.(asset);
-        }}
-        kind={assetPickerOpen.kind}
-      />
+      {assetPickerOpen.kind && (
+        <AssetPicker
+          open={assetPickerOpen.open}
+          onClose={() => setAssetPickerOpen({ open: false })}
+          onSelect={(asset) => {
+            setAssetPickerOpen({ open: false });
+            onAssetSelectForPlacement?.(asset);
+          }}
+          kind={assetPickerOpen.kind}
+        />
+      )}
     </>
   );
 };

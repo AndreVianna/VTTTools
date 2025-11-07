@@ -48,7 +48,7 @@ export const PlacementCursor: React.FC<PlacementCursorProps> = ({
         if (!tokenResource) return;
 
         const img = new window.Image();
-        img.src = getResourceUrl(tokenResource.resourceId);
+        img.src = getResourceUrl(tokenResource.token.id);
         img.crossOrigin = 'anonymous';
 
         img.onload = () => {
@@ -97,7 +97,7 @@ export const PlacementCursor: React.FC<PlacementCursorProps> = ({
         const stageCoords = getStageCoordinates();
         if (!stageCoords) return null;
 
-        if (gridConfig.snapToGrid) {
+        if (gridConfig.snap) {
             const cell = pointToCell(stageCoords, gridConfig);
             return cellToPoint(cell, gridConfig);
         }

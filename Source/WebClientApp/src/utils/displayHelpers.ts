@@ -1,25 +1,23 @@
-import { DisplayName, LabelPosition, PlacedAsset, Scene } from '../types/domain';
+import { DisplayName, LabelPosition, PlacedAsset } from '../types/domain';
 
 export const getEffectiveDisplayName = (
-    asset: PlacedAsset,
-    scene: Scene
+    asset: PlacedAsset
 ): DisplayName => {
     if (asset.displayName !== DisplayName.Default) {
         return asset.displayName;
     }
 
     if (asset.asset.kind === 'Creature') {
-        return scene.defaultDisplayName;
+        return DisplayName.Always;
     }
 
     return DisplayName.OnHover;
 };
 
 export const getEffectiveLabelPosition = (
-    asset: PlacedAsset,
-    scene: Scene
+    asset: PlacedAsset
 ): LabelPosition => {
     return asset.labelPosition === LabelPosition.Default
-        ? scene.defaultLabelPosition
+        ? LabelPosition.Bottom
         : asset.labelPosition;
 };

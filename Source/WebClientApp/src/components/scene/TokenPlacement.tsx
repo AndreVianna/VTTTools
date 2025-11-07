@@ -27,7 +27,7 @@ export interface TokenPlacementProps {
     /** Callback when new asset is placed */
     onAssetPlaced: (asset: PlacedAsset) => void;
     /** Callback when asset is moved */
-    onAssetMoved: (assetId: string, position: { x: number; y: number }) => void;
+    onAssetMoved: (moves: Array<{ assetId: string; oldPosition: { x: number; y: number }; newPosition: { x: number; y: number } }>) => void;
     /** Callback when asset is deleted */
     onAssetDeleted: (assetId: string) => void;
     /** Current grid configuration */
@@ -56,11 +56,11 @@ const getTokenImageUrl = (asset: Asset): string | null => {
     const defaultToken = asset.tokens.find(t => t.isDefault);
 
     if (defaultToken) {
-        return `${mediaBaseUrl}/${defaultToken.tokenId}`;
+        return `${mediaBaseUrl}/${defaultToken.token.id}`;
     }
 
-    if (asset.tokens.length > 0) {
-        return `${mediaBaseUrl}/${asset.tokens[0].tokenId}`;
+    if (asset.tokens.length > 0 && asset.tokens[0]) {
+        return `${mediaBaseUrl}/${asset.tokens[0].token.id}`;
     }
 
     if (asset.portrait) {
@@ -226,21 +226,18 @@ const snapToGridCenter = (
 export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     placedAssets,
     onAssetPlaced,
-    _onAssetMoved,
-    _onAssetDeleted,
     gridConfig,
     draggedAsset,
     onDragComplete,
     onImagesLoaded,
     snapMode,
     onContextMenu,
-    scene,
 }) => {
     const theme = useTheme();
     const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | null>(null);
     const [imageCache, setImageCache] = useState<Map<string, HTMLImageElement>>(new Map());
     const [isValidPlacement, setIsValidPlacement] = useState(true);
-    const [tooltip, setTooltip] = useState<{
+    const [tooltip, _setTooltip] = useState<{
         visible: boolean;
         text: string;
         x: number;
@@ -443,6 +440,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
             index: placedAssets.length,
             number: 1,
             name: draggedAsset.name,
+            visible: true,
+            locked: false,
             displayName: DisplayNameEnum.Default,
             labelPosition: LabelPositionEnum.Default
         };
@@ -474,8 +473,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 if (isCreature) {
                     const isHovered = hoveredAssetId === placedAsset.id;
                     const isExpanded = expandedAssetId === placedAsset.id;
-                    const effectiveDisplay = getEffectiveDisplayName(placedAsset, scene);
-                    const effectivePosition = getEffectiveLabelPosition(placedAsset, scene);
+                    const effectiveDisplay = getEffectiveDisplayName(placedAsset);
+                    const effectivePosition = getEffectiveLabelPosition(placedAsset);
 
                     const showLabel =
                         effectiveDisplay === DisplayNameEnum.Always ||
@@ -603,8 +602,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 const isHovered = hoveredAssetId === placedAsset.id;
                 const isExpanded = expandedAssetId === placedAsset.id;
 
-                const effectiveDisplay = getEffectiveDisplayName(placedAsset, scene);
-                const effectivePosition = getEffectiveLabelPosition(placedAsset, scene);
+                const effectiveDisplay = getEffectiveDisplayName(placedAsset);
+                const effectivePosition = getEffectiveLabelPosition(placedAsset);
 
                 const showLabel =
                     effectiveDisplay === DisplayNameEnum.Always ||
@@ -764,8 +763,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
         <Layer
             ref={layerRef}
             name={LayerName.GameWorld}
-            onMouseMove={draggedAsset ? handleMouseMove : undefined}
-            onClick={draggedAsset ? handleClick : undefined}
+            {...(draggedAsset && { onMouseMove: handleMouseMove })}
+            {...(draggedAsset && { onClick: handleClick })}
         >
             {/* Invisible hit area for placement cursor tracking
 

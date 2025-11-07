@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { StructureToolbar } from './StructureToolbar';
@@ -17,7 +16,7 @@ describe('StructureToolbar', () => {
     it('should highlight active drawing mode button', () => {
         const onModeChange = vi.fn();
         const { rerender } = render(
-            <StructureToolbar drawingMode="Wall" onModeChange={onModeChange} />
+            <StructureToolbar drawingMode="wall" onModeChange={onModeChange} />
         );
 
         const WallButton = screen.getByLabelText('Draw Wall');
@@ -34,7 +33,7 @@ describe('StructureToolbar', () => {
 
         fireEvent.click(screen.getByLabelText('Draw Wall'));
 
-        expect(onModeChange).toHaveBeenCalledWith('Wall');
+        expect(onModeChange).toHaveBeenCalledWith('wall');
     });
 
     it('should call onModeChange when region button clicked', () => {
@@ -57,7 +56,7 @@ describe('StructureToolbar', () => {
 
     it('should call onModeChange when cancel button clicked', () => {
         const onModeChange = vi.fn();
-        render(<StructureToolbar drawingMode="Wall" onModeChange={onModeChange} />);
+        render(<StructureToolbar drawingMode="wall" onModeChange={onModeChange} />);
 
         fireEvent.click(screen.getByLabelText('Cancel'));
 
@@ -78,7 +77,7 @@ describe('StructureToolbar', () => {
 
         fireEvent.keyDown(window, { key: 'w' });
 
-        expect(onModeChange).toHaveBeenCalledWith('Wall');
+        expect(onModeChange).toHaveBeenCalledWith('wall');
     });
 
     it('should activate region mode with R key', () => {
@@ -101,7 +100,7 @@ describe('StructureToolbar', () => {
 
     it('should cancel drawing mode with Escape key', () => {
         const onModeChange = vi.fn();
-        render(<StructureToolbar drawingMode="Wall" onModeChange={onModeChange} />);
+        render(<StructureToolbar drawingMode="wall" onModeChange={onModeChange} />);
 
         fireEvent.keyDown(window, { key: 'Escape' });
 
