@@ -76,6 +76,7 @@ internal static class Mapper {
                 Description = obj.Description,
                 Tokens = [.. obj.Tokens
                     .Select(r => new AssetTokenEntity {
+                        TokenId = r.Token.Id,
                         Token = r.Token.ToEntity(),
                         IsDefault = r.IsDefault
                     })],
