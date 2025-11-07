@@ -109,6 +109,10 @@ describe('hydratePlacedAssets', () => {
                 id: 'scene-asset-1',
                 sceneId: 'scene-1',
                 assetId: 'asset-1',
+                index: 0,
+                number: 1,
+                name: 'Goblin',
+                elevation: 0,
                 x: 100,
                 y: 100,
                 width: 50,
@@ -135,7 +139,7 @@ describe('hydratePlacedAssets', () => {
 
             expect(result).toHaveLength(1);
             expect(result[0]?.name).toBe('Goblin #5');
-            expect(result[0].number).toBe(5);
+            expect(result[0]!.number).toBe(5);
         });
 
         it('handles object asset names', async () => {
@@ -143,6 +147,10 @@ describe('hydratePlacedAssets', () => {
                 id: 'scene-asset-2',
                 sceneId: 'scene-1',
                 assetId: 'asset-2',
+                index: 0,
+                number: 1,
+                name: 'Chest',
+                elevation: 0,
                 x: 200,
                 y: 200,
                 width: 75,
@@ -246,6 +254,10 @@ describe('hydratePlacedAssets', () => {
                 id: 'scene-asset-1',
                 sceneId: 'scene-1',
                 assetId: 'asset-1',
+                index: 0,
+                number: 1,
+                name: 'Goblin',
+                elevation: 0,
                 x: 100,
                 y: 150,
                 width: 50,
@@ -264,9 +276,9 @@ describe('hydratePlacedAssets', () => {
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
             expect(result).toHaveLength(1);
-            expect(result[0].position).toEqual({ x: 100, y: 150 });
-            expect(result[0].size).toEqual({ width: 50, height: 75 });
-            expect(result[0].rotation).toBe(45);
+            expect(result[0]!.position).toEqual({ x: 100, y: 150 });
+            expect(result[0]!.size).toEqual({ width: 50, height: 75 });
+            expect(result[0]!.rotation).toBe(45);
         });
 
         it('handles nested position and size properties', async () => {
@@ -290,9 +302,9 @@ describe('hydratePlacedAssets', () => {
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
             expect(result).toHaveLength(1);
-            expect(result[0].position).toEqual({ x: 200, y: 250 });
-            expect(result[0].size).toEqual({ width: 60, height: 80 });
-            expect(result[0].rotation).toBe(90);
+            expect(result[0]!.position).toEqual({ x: 200, y: 250 });
+            expect(result[0]!.size).toEqual({ width: 60, height: 80 });
+            expect(result[0]!.rotation).toBe(90);
         });
     });
 
@@ -302,6 +314,10 @@ describe('hydratePlacedAssets', () => {
                 id: 'scene-asset-1',
                 sceneId: 'scene-1',
                 assetId: 'asset-1',
+                index: 0,
+                number: 1,
+                name: 'Goblin',
+                elevation: 0,
                 x: 100,
                 y: 100,
                 width: 50,
@@ -320,7 +336,7 @@ describe('hydratePlacedAssets', () => {
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
             expect(result).toHaveLength(1);
-            expect(result[0].layer).toBe('creatures');
+            expect(result[0]!.layer).toBe('creatures');
         });
 
         it('assigns Objects layer for non-opaque object assets', async () => {
@@ -328,6 +344,10 @@ describe('hydratePlacedAssets', () => {
                 id: 'scene-asset-2',
                 sceneId: 'scene-1',
                 assetId: 'asset-2',
+                index: 0,
+                number: 1,
+                name: 'Chest',
+                elevation: 0,
                 x: 100,
                 y: 100,
                 width: 50,
@@ -346,7 +366,7 @@ describe('hydratePlacedAssets', () => {
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
             expect(result).toHaveLength(1);
-            expect(result[0].layer).toBe('objects');
+            expect(result[0]!.layer).toBe('objects');
         });
     });
 
@@ -376,8 +396,8 @@ describe('hydratePlacedAssets', () => {
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
             expect(result).toHaveLength(1);
-            expect(result[0].index).toBe(5);
-            expect(result[0].number).toBe(3);
+            expect(result[0]!.index).toBe(5);
+            expect(result[0]!.number).toBe(3);
         });
 
         it('uses array index as fallback for index property', async () => {
@@ -385,6 +405,10 @@ describe('hydratePlacedAssets', () => {
                 id: 'scene-asset-1',
                 sceneId: 'scene-1',
                 assetId: 'asset-1',
+                index: 0,
+                number: 1,
+                name: 'Goblin',
+                elevation: 0,
                 x: 100,
                 y: 100,
                 width: 50,
@@ -403,7 +427,7 @@ describe('hydratePlacedAssets', () => {
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
             expect(result).toHaveLength(1);
-            expect(result[0].index).toBe(0);
+            expect(result[0]!.index).toBe(0);
         });
 
         it('defaults number to 1 when not provided', async () => {
@@ -411,6 +435,10 @@ describe('hydratePlacedAssets', () => {
                 id: 'scene-asset-1',
                 sceneId: 'scene-1',
                 assetId: 'asset-1',
+                index: 0,
+                number: 1,
+                name: 'Goblin',
+                elevation: 0,
                 x: 100,
                 y: 100,
                 width: 50,
@@ -429,7 +457,7 @@ describe('hydratePlacedAssets', () => {
             const result = await hydratePlacedAssets([sceneAsset], getAsset);
 
             expect(result).toHaveLength(1);
-            expect(result[0].number).toBe(1);
+            expect(result[0]!.number).toBe(1);
         });
     });
 
@@ -440,6 +468,10 @@ describe('hydratePlacedAssets', () => {
                     id: 'scene-asset-1',
                     sceneId: 'scene-1',
                     assetId: 'asset-1',
+                    index: 0,
+                    number: 1,
+                    name: 'Goblin',
+                    elevation: 0,
                     x: 100,
                     y: 100,
                     width: 50,
@@ -456,6 +488,10 @@ describe('hydratePlacedAssets', () => {
                     id: 'scene-asset-2',
                     sceneId: 'scene-1',
                     assetId: 'asset-missing',
+                    index: 1,
+                    number: 2,
+                    name: 'Goblin',
+                    elevation: 0,
                     x: 150,
                     y: 150,
                     width: 50,
@@ -480,7 +516,7 @@ describe('hydratePlacedAssets', () => {
             const result = await hydratePlacedAssets(sceneAssets, getAsset);
 
             expect(result).toHaveLength(1);
-            expect(result[0].assetId).toBe('asset-1');
+            expect(result[0]!.assetId).toBe('asset-1');
         });
     });
 });
@@ -499,7 +535,9 @@ describe('dehydratePlacedAssets', () => {
             number: 3,
             name: 'Goblin #3',
             displayName: DisplayName.Default,
-            labelPosition: LabelPosition.Default
+            labelPosition: LabelPosition.Default,
+            visible: true,
+            locked: false
         };
 
         const result = dehydratePlacedAssets([placedAsset], 'scene-1');
@@ -537,7 +575,9 @@ describe('dehydratePlacedAssets', () => {
                 number: 1,
                 name: 'Goblin #1',
                 displayName: DisplayName.Default,
-                labelPosition: LabelPosition.Default
+                labelPosition: LabelPosition.Default,
+                visible: true,
+                locked: false
             },
             {
                 id: 'scene-asset-2',
@@ -551,14 +591,16 @@ describe('dehydratePlacedAssets', () => {
                 number: 1,
                 name: 'Treasure Chest',
                 displayName: DisplayName.Default,
-                labelPosition: LabelPosition.Default
+                labelPosition: LabelPosition.Default,
+                visible: true,
+                locked: false
             }
         ];
 
         const result = dehydratePlacedAssets(placedAssets, 'scene-1');
 
         expect(result).toHaveLength(2);
-        expect(result[0].assetId).toBe('asset-1');
-        expect(result[1].assetId).toBe('asset-2');
+        expect(result[0]!.assetId).toBe('asset-1');
+        expect(result[1]!.assetId).toBe('asset-2');
     });
 });
