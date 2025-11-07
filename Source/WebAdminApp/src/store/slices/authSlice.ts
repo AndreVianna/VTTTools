@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { authService } from '@services/authService';
-import type { AdminUser, AuthState, LoginRequest } from '@types/auth';
+import type { AdminUser, AuthState, LoginRequest } from '../../types/auth';
 
 const TOKEN_STORAGE_KEY = 'vtttools_admin_token';
 
@@ -84,7 +84,7 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(login.fulfilled, (state, action: PayloadAction<{ user: AdminUser; token?: string }>) => {
+      .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;

@@ -1,5 +1,6 @@
 import apiClient from '@api/client';
-import type { AdminUser, LoginRequest, LoginResponse } from '@types/auth';
+import axios from 'axios';
+import type { AdminUser, LoginRequest, LoginResponse } from '../types/auth';
 
 const API_BASE = '/api/admin/auth';
 
@@ -11,14 +12,14 @@ export const authService = {
       if (response.data.success) {
         return {
           success: true,
-          user: response.data.user,
-          token: response.data.token,
+          ...(response.data.user && { user: response.data.user }),
+          ...(response.data.token && { token: response.data.token }),
         };
       }
 
       return response.data;
     } catch (error) {
-      if (apiClient.isAxiosError(error) && error.response) {
+      if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 401 && error.response.data?.requiresTwoFactor) {
           return { success: false, requiresTwoFactor: true };
         }

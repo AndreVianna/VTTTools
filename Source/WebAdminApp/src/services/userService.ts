@@ -8,6 +8,8 @@ export interface UserSearchRequest {
     search?: string;
     role?: string;
     status?: 'active' | 'locked' | 'unconfirmed';
+    registeredAfter?: string;
+    registeredBefore?: string;
     sortBy?: 'email' | 'displayName';
     sortOrder?: 'asc' | 'desc';
 }

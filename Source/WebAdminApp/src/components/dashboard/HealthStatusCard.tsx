@@ -1,5 +1,5 @@
 import { Paper, Typography, Chip, Stack, Alert } from '@mui/material';
-import type { HealthCheckResponse } from '@services/dashboardService';
+import type { HealthCheckResponse } from '@services/healthCheckService';
 
 interface HealthStatusCardProps {
     serviceName?: string;
