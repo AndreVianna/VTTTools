@@ -124,7 +124,7 @@ export const ProfileSettings: React.FC = () => {
       const updates: {
         name?: string;
         displayName?: string;
-        phoneNumber?: string | undefined;
+        phoneNumber?: string;
       } = {};
 
       if (formData.name !== profileData?.name) updates.name = formData.name;

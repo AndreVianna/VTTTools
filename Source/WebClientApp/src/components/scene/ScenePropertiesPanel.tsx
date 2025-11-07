@@ -164,7 +164,7 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
         }
     };
 
-    const handleGridTypeChange = (e: SelectChangeEvent) => {
+    const handleGridTypeChange = (e: SelectChangeEvent<string>) => {
         if (!scene?.grid || !onGridChange) return;
         const newType = e.target.value;
 
@@ -297,7 +297,7 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
                         )}
                         <IconButton
                             component="label"
-                            disabled={isUploadingBackground}
+                            {...(isUploadingBackground ? { disabled: true } : {})}
                             sx={{
                                 position: 'absolute',
                                 bottom: 8,
@@ -410,10 +410,10 @@ export const ScenePropertiesPanel: React.FC<ScenePropertiesPanelProps> = ({
                         {/* Grid Type Dropdown */}
                         <FormControl fullWidth size="small">
                             <InputLabel id="label-grid-type" sx={compactStyles.inputLabel}>Type</InputLabel>
-                            <Select
+                            <Select<string>
                                 id="select-grid-type"
                                 labelId="label-grid-type"
-                                value={scene?.grid?.type ?? 'NoGrid'}
+                                value={(scene?.grid?.type ?? 'NoGrid') as string}
                                 label="Type"
                                 onChange={handleGridTypeChange}
                                 sx={compactStyles.select}

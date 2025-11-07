@@ -221,9 +221,9 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         <Box ref={drawerRef} sx={{ p: 2 }}>
           {activePanel === 'background' && (
             <BackgroundPanel
-              backgroundUrl={backgroundUrl ?? ''}
-              isUploadingBackground={isUploadingBackground ?? false}
-              onBackgroundUpload={onBackgroundUpload}
+              backgroundUrl={backgroundUrl || ''}
+              isUploadingBackground={isUploadingBackground || false}
+              {...(onBackgroundUpload ? { onBackgroundUpload } : {})}
             />
           )}
           {activePanel === 'elevation' && (
@@ -235,18 +235,18 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           {activePanel === 'grid' && gridConfig && (
             <GridPanel
               gridConfig={gridConfig}
-              onGridChange={onGridChange ?? undefined}
+              {...(onGridChange ? { onGridChange } : {})}
             />
           )}
           {activePanel === 'walls' && (
             <WallsPanel
-              sceneId={sceneId ?? ''}
-              sceneWalls={sceneWalls ?? []}
-              selectedWallIndex={selectedWallIndex ?? null}
-              onWallSelect={onWallSelect}
-              onWallDelete={onWallDelete}
-              onPlaceWall={onPlaceWall}
-              onEditVertices={onEditVertices}
+              sceneId={sceneId || ''}
+              sceneWalls={sceneWalls || []}
+              selectedWallIndex={selectedWallIndex !== undefined ? selectedWallIndex : null}
+              {...(onWallSelect ? { onWallSelect } : {})}
+              {...(onWallDelete ? { onWallDelete } : {})}
+              {...(onPlaceWall ? { onPlaceWall } : {})}
+              {...(onEditVertices ? { onEditVertices } : {})}
             />
           )}
           {activePanel === 'openings' && (
@@ -260,10 +260,10 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               placedAssets={placedAssets}
               selectedAssetIds={selectedAssetIds}
               onBrowseAssets={() => setAssetPickerOpen({ open: true, kind: AssetKind.Object })}
-              onAssetSelect={onPlacedAssetSelect ?? undefined}
-              onAssetDelete={onPlacedAssetDelete ?? undefined}
-              onAssetRename={onPlacedAssetRename ?? undefined}
-              onAssetUpdate={onPlacedAssetUpdate ?? undefined}
+              {...(onPlacedAssetSelect ? { onAssetSelect: onPlacedAssetSelect } : {})}
+              {...(onPlacedAssetDelete ? { onAssetDelete: onPlacedAssetDelete } : {})}
+              {...(onPlacedAssetRename ? { onAssetRename: onPlacedAssetRename } : {})}
+              {...(onPlacedAssetUpdate ? { onAssetUpdate: onPlacedAssetUpdate } : {})}
             />
           )}
           {activePanel === 'creatures' && (
@@ -271,10 +271,10 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               placedAssets={placedAssets}
               selectedAssetIds={selectedAssetIds}
               onBrowseAssets={() => setAssetPickerOpen({ open: true, kind: AssetKind.Creature })}
-              onAssetSelect={onPlacedAssetSelect ?? undefined}
-              onAssetDelete={onPlacedAssetDelete ?? undefined}
-              onAssetRename={onPlacedAssetRename ?? undefined}
-              onAssetUpdate={onPlacedAssetUpdate ?? undefined}
+              {...(onPlacedAssetSelect ? { onAssetSelect: onPlacedAssetSelect } : {})}
+              {...(onPlacedAssetDelete ? { onAssetDelete: onPlacedAssetDelete } : {})}
+              {...(onPlacedAssetRename ? { onAssetRename: onPlacedAssetRename } : {})}
+              {...(onPlacedAssetUpdate ? { onAssetUpdate: onPlacedAssetUpdate } : {})}
             />
           )}
           {activePanel === 'players' && (

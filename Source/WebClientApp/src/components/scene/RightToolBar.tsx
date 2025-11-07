@@ -12,15 +12,13 @@ export interface RightToolBarProps {
   onZoomOut?: () => void;
   onLayersClick?: () => void;
   onSettingsClick?: () => void;
-  zoomPercentage?: number;
 }
 
 export const RightToolBar: React.FC<RightToolBarProps> = ({
   onZoomIn,
   onZoomOut,
   onLayersClick,
-  onSettingsClick,
-  _zoomPercentage = 100
+  onSettingsClick
 }) => {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);

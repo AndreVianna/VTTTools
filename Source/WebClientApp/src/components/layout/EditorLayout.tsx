@@ -36,8 +36,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
   onSceneNameChange,
   onBackClick,
   onSceneDescriptionChange,
-  onScenePublishedChange,
-  onSceneUpdate
+  onScenePublishedChange
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();

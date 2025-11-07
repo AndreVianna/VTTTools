@@ -59,8 +59,8 @@ const getTokenImageUrl = (asset: Asset): string | null => {
         return `${mediaBaseUrl}/${defaultToken.token.id}`;
     }
 
-    if (asset.tokens.length > 0) {
-        return `${mediaBaseUrl}/${asset.tokens[0]!.token.id}`;
+    if (asset.tokens.length > 0 && asset.tokens[0]) {
+        return `${mediaBaseUrl}/${asset.tokens[0].token.id}`;
     }
 
     if (asset.portrait) {
@@ -226,8 +226,6 @@ const snapToGridCenter = (
 export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     placedAssets,
     onAssetPlaced,
-    _onAssetMoved,
-    _onAssetDeleted,
     gridConfig,
     draggedAsset,
     onDragComplete,
