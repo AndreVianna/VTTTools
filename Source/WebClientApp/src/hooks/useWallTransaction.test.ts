@@ -531,7 +531,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
                 result.current.startTransaction('editing', mockWall);
             });
 
-            const initialTempId = result.current.transaction.segments[0].tempId;
+            const initialTempId = result.current.transaction.segments[0]?.tempId;
 
             let tempId1: number;
             act(() => {
@@ -772,8 +772,8 @@ describe('useWallTransaction - Local Undo/Redo', () => {
             });
 
             act(() => {
-                result.current.pushLocalAction(actions[0]);
-                result.current.pushLocalAction(actions[1]);
+                result.current.pushLocalAction(actions[0]!);
+                result.current.pushLocalAction(actions[1]!);
             });
 
             act(() => {
@@ -784,7 +784,7 @@ describe('useWallTransaction - Local Undo/Redo', () => {
             expect(result.current.transaction.localRedoStack).toHaveLength(1);
 
             act(() => {
-                result.current.pushLocalAction(actions[2]);
+                result.current.pushLocalAction(actions[2]!);
             });
 
             expect(result.current.transaction.localUndoStack).toHaveLength(2);

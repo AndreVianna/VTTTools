@@ -58,8 +58,8 @@ describe('useAuth', () => {
     });
   };
 
-  const wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(Provider, { store }, children);
+  const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+    React.createElement(Provider, { store } as any, children);
 
   beforeEach(() => {
     store = createTestStore();
@@ -431,7 +431,6 @@ describe('useAuth', () => {
 
       // Assert - Development flags available
       expect(result.current.isDevelopmentMode).toBeDefined();
-      expect(result.current.isUsingMockData).toBeDefined();
     });
   });
 

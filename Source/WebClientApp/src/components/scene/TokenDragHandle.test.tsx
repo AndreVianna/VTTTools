@@ -10,7 +10,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { PlacedAsset, CreatureAsset, ObjectAsset } from '@/types/domain';
-import { AssetKind } from '@/types/domain';
+import { AssetKind, DisplayName, LabelPosition, CreatureCategory, TokenShape } from '@/types/domain';
 import { GridType } from '@/utils/gridCalculator';
 import { getPlacementBehavior, validatePlacement } from '@/types/placement';
 import { snapToGrid } from '@/utils/gridCalculator';
@@ -18,12 +18,9 @@ import { snapToGrid } from '@/utils/gridCalculator';
 describe('TokenDragHandle Logic Tests', () => {
     const mockGridConfig = {
         type: GridType.Square,
-        cellWidth: 50,
-        cellHeight: 50,
-        offsetX: 0,
-        offsetY: 0,
-        color: '#000000',
-        snapToGrid: true,
+        cellSize: { width: 50, height: 50 },
+        offset: { left: 0, top: 0 },
+        snap: true,
     };
 
     const mockCreatureAsset: PlacedAsset = {
@@ -37,12 +34,12 @@ describe('TokenDragHandle Logic Tests', () => {
             description: 'Test creature token',
             isPublished: true,
             isPublic: false,
-            resources: [],
-            properties: {
-                size: { width: 1, height: 1, isSquare: true },
-                category: 0,
-                tokenStyle: { shape: 0, borderColor: '#000', backgroundColor: '#fff' },
-            },
+            tokens: [],
+            portrait: undefined,
+            size: { width: 1, height: 1, isSquare: true },
+            category: CreatureCategory.Monster,
+            statBlockId: undefined,
+            tokenStyle: { shape: TokenShape.Circle, borderColor: '#000', backgroundColor: '#fff' },
         } as CreatureAsset,
         position: { x: 100, y: 100 },
         size: { width: 50, height: 50 },
@@ -50,7 +47,11 @@ describe('TokenDragHandle Logic Tests', () => {
         layer: 'Agents',
         index: 0,
         number: 1,
-        name: 'Test Token'
+        name: 'Test Token',
+        visible: true,
+        locked: false,
+        displayName: DisplayName.Always,
+        labelPosition: LabelPosition.Bottom
     };
 
     describe('Placement Behavior', () => {
@@ -307,14 +308,12 @@ describe('TokenDragHandle Logic Tests', () => {
                 description: 'Test object',
                 isPublished: true,
                 isPublic: false,
-                resources: [],
-                createdAt: '2025-10-19T00:00:00Z',
-                updatedAt: '2025-10-19T00:00:00Z',
-                properties: {
-                    size: { width: 2, height: 1, isSquare: false },
-                    isMovable: false,
-                    isOpaque: true,
-                },
+                tokens: [],
+                portrait: undefined,
+                size: { width: 2, height: 1, isSquare: false },
+                isMovable: false,
+                isOpaque: true,
+                triggerEffectId: undefined,
             } as ObjectAsset,
             position: { x: 100, y: 100 },
             size: { width: 100, height: 50 },
@@ -322,7 +321,11 @@ describe('TokenDragHandle Logic Tests', () => {
             layer: 'Structure',
             index: 0,
             number: 1,
-            name: 'Immovable Wall'
+            name: 'Immovable Wall',
+            visible: true,
+            locked: false,
+            displayName: DisplayName.Always,
+            labelPosition: LabelPosition.Bottom
         };
 
         it('should not allow immovable objects to move', () => {

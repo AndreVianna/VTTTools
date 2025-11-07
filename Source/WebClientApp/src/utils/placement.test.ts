@@ -12,12 +12,9 @@ import { GridType, type GridConfig } from './gridCalculator';
 
 const defaultGrid: GridConfig = {
     type: GridType.Square,
-    cellWidth: 50,
-    cellHeight: 50,
-    offsetX: 0,
-    offsetY: 0,
-    color: '#000000',
-    snapToGrid: true,
+    cellSize: { width: 50, height: 50 },
+    offset: { left: 0, top: 0 },
+    snap: true,
 };
 
 describe('getPlacementBehavior', () => {
@@ -134,8 +131,7 @@ describe('calculateAssetSize', () => {
 
         const customGrid: GridConfig = {
             ...defaultGrid,
-            cellWidth: 100,
-            cellHeight: 80,
+            cellSize: { width: 100, height: 80 },
         };
 
         const size = calculateAssetSize(namedSize, customGrid);

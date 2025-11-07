@@ -33,6 +33,7 @@ describe('LandingPage', () => {
     const preloadedState = {
       auth: {
         user,
+        token: null,
         isAuthenticated,
         isLoading: false,
         error: null,

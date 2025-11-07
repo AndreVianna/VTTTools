@@ -50,7 +50,8 @@ describe('WallsPanel', () => {
 
         const presetButtons = screen.getAllByRole('button');
         const firstPreset = presetButtons[0];
-        fireEvent.click(firstPreset);
+        expect(firstPreset).toBeTruthy();
+        fireEvent.click(firstPreset!);
 
         expect(onPresetSelect).toHaveBeenCalledWith(expect.objectContaining({
             visibility: expect.any(String),

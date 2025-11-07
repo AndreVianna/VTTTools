@@ -10,8 +10,8 @@ import {
     createCutAssetsCommand,
     createPasteAssetsCommand,
 } from './commands';
-import type { PlacedAsset } from '@/types/domain';
-import { AssetKind } from '@/types/domain';
+import type { PlacedAsset, ObjectAsset } from '@/types/domain';
+import { AssetKind, DisplayName, LabelPosition } from '@/types/domain';
 
 const createMockPlacedAsset = (id: string): PlacedAsset => ({
     id,
@@ -24,17 +24,26 @@ const createMockPlacedAsset = (id: string): PlacedAsset => ({
         description: 'Test asset',
         isPublished: true,
         isPublic: false,
-        resources: [],
+        tokens: [],
+        portrait: undefined,
+        size: { width: 1, height: 1, isSquare: true },
+        isMovable: true,
+        isOpaque: false,
+        triggerEffectId: undefined,
         createdAt: '2025-01-01T00:00:00Z',
         updatedAt: '2025-01-01T00:00:00Z',
-    },
+    } as ObjectAsset,
     position: { x: 100, y: 100 },
     size: { width: 50, height: 50 },
     rotation: 0,
     layer: 'objects',
     index: 1,
     number: 1,
-    name: `Asset ${id}`
+    name: `Asset ${id}`,
+    visible: true,
+    locked: false,
+    displayName: DisplayName.Default,
+    labelPosition: LabelPosition.Default,
 });
 
 describe('createPlaceAssetCommand', () => {
@@ -502,9 +511,9 @@ describe('createPasteAssetsCommand', () => {
 
     it('should handle async paste operations', async () => {
         const pastedAssets = [createMockPlacedAsset('3')];
-        const onPaste = vi.fn(
+        const onPaste = vi.fn().mockImplementation(
             () =>
-                new Promise((resolve) => {
+                new Promise<PlacedAsset[]>((resolve) => {
                     setTimeout(() => resolve(pastedAssets), 10);
                 })
         );

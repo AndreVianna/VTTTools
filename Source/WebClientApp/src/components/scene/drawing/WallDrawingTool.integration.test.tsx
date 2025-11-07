@@ -7,7 +7,7 @@ import { WallDrawingTool } from './WallDrawingTool';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
 import { sceneApi } from '@/services/sceneApi';
 import type { Pole } from '@/types/domain';
-import type { GridConfig } from '@/utils/gridCalculator';
+import { GridType, type GridConfig } from '@/utils/gridCalculator';
 
 vi.mock('konva', () => ({
     default: {
@@ -67,9 +67,10 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
     let onFinishSpy: ReturnType<typeof vi.fn>;
 
     const defaultGridConfig: GridConfig = {
-        size: 50,
-        color: '#000000',
-        offset: { x: 0, y: 0 },
+        type: GridType.Square,
+        cellSize: { width: 50, height: 50 },
+        offset: { left: 0, top: 0 },
+        snap: true,
     };
 
     const mockScene = {
@@ -101,7 +102,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
                 }),
             },
             middleware: (getDefaultMiddleware) =>
-                getDefaultMiddleware().concat(sceneApi.middleware),
+                getDefaultMiddleware().concat(sceneApi.middleware as any),
         });
 
         onPolesChangeSpy = vi.fn();
@@ -222,7 +223,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
             });
 
             expect(transaction!.transaction.localUndoStack.length).toBe(1);
-            expect(transaction!.transaction.localUndoStack[0].type).toBe('PLACE_POLE');
+            expect(transaction!.transaction.localUndoStack[0]?.type).toBe('PLACE_POLE');
             expect(transaction!.canUndoLocal()).toBe(true);
         });
 

@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { ClipboardProvider } from './ClipboardContext';
 import { useClipboard } from './useClipboard';
-import type { PlacedAsset } from '../types/domain';
-import { AssetKind } from '../types/domain';
+import type { PlacedAsset, ObjectAsset } from '../types/domain';
+import { AssetKind, DisplayName, LabelPosition } from '../types/domain';
 
 const createMockPlacedAsset = (id: string, name = 'Test Asset'): PlacedAsset => ({
   id,
@@ -16,17 +16,24 @@ const createMockPlacedAsset = (id: string, name = 'Test Asset'): PlacedAsset => 
     description: 'Test asset description',
     isPublished: true,
     isPublic: false,
-    resources: [],
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-01T00:00:00Z',
-  },
+    tokens: [],
+    portrait: undefined,
+    size: { width: 1, height: 1, isSquare: true },
+    isMovable: true,
+    isOpaque: false,
+    triggerEffectId: undefined
+  } as ObjectAsset,
   position: { x: 100, y: 100 },
   size: { width: 50, height: 50 },
   rotation: 0,
   layer: 'objects',
   index: 1,
   number: 1,
-  name
+  name,
+  visible: true,
+  locked: false,
+  displayName: DisplayName.Always,
+  labelPosition: LabelPosition.Bottom
 });
 
 describe('ClipboardContext', () => {
@@ -326,8 +333,8 @@ describe('ClipboardContext', () => {
 
       const retrievedAssets = result.current.getClipboardAssets();
 
-      expect(retrievedAssets[0].asset.name).toBe('Asset 1');
-      expect(retrievedAssets[1].asset.name).toBe('Asset 2');
+      expect(retrievedAssets[0]?.asset.name).toBe('Asset 1');
+      expect(retrievedAssets[1]?.asset.name).toBe('Asset 2');
     });
   });
 
