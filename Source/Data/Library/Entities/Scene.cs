@@ -11,11 +11,16 @@ public class Scene {
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
     public bool IsPublished { get; set; }
-    public Point Panning { get; set; } = Point.Zero;
-    public float ZoomLevel { get; set; } = 1;
     public Guid? BackgroundId { get; set; }
     public Resource? Background { get; set; }
+    public float ZoomLevel { get; set; } = 1;
+    public Point Panning { get; set; } = Point.Zero;
     public Grid Grid { get; set; } = new();
+    public Light Light { get; set; }
+    public Weather Weather { get; set; }
+    public float Elevation { get; set; }
+    public Guid? SoundId { get; set; }
+    public Resource? Sound { get; set; }
     public ICollection<SceneAsset> SceneAssets { get; set; } = [];
     public ICollection<SceneWall> Walls { get; set; } = [];
     public ICollection<SceneRegion> Regions { get; set; } = [];

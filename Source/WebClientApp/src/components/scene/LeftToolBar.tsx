@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, IconButton, Drawer, Tooltip, useTheme } from '@mui/material';
 import {
-  Wallpaper as BackgroundIcon,
   GridOn as GridIcon,
   Layers as RegionsIcon,
   BorderAll as WallsIcon,
@@ -13,7 +12,7 @@ import {
   LightMode as SourcesIcon,
   VisibilityOff as FogOfWarIcon
 } from '@mui/icons-material';
-import { BackgroundPanel, GridPanel, WallsPanel, ObjectsPanel, CreaturesPanel, SourcesPanel, RegionsPanel } from './panels';
+import { GridPanel, WallsPanel, ObjectsPanel, CreaturesPanel, SourcesPanel, RegionsPanel } from './panels';
 import type { SourcePlacementProperties } from './panels';
 import { AssetPicker } from '@/components/common';
 import { GridConfig } from '@/utils/gridCalculator';
@@ -21,7 +20,6 @@ import { AssetKind } from '@/types/domain';
 import type { SceneWall, WallVisibility, Asset, PlacedAsset, SceneSource, SceneRegion } from '@/types/domain';
 
 export type PanelType =
-  | 'background'
   | 'grid'
   | 'regions'
   | 'walls'
@@ -36,9 +34,6 @@ export type PanelType =
 export interface LeftToolBarProps {
   activePanel?: string | null;
   onPanelChange?: (panel: PanelType | null) => void;
-  backgroundUrl?: string | undefined;
-  isUploadingBackground?: boolean | undefined;
-  onBackgroundUpload?: (file: File) => void;
   gridConfig?: GridConfig | undefined;
   onGridChange?: (grid: GridConfig) => void;
   sceneId?: string | undefined;
@@ -83,9 +78,6 @@ export interface LeftToolBarProps {
 export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   activePanel: externalActivePanel,
   onPanelChange,
-  backgroundUrl,
-  isUploadingBackground,
-  onBackgroundUpload,
   gridConfig,
   onGridChange,
   sceneId,
@@ -168,8 +160,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [expanded, externalActivePanel, onPanelChange, activePanel, selectedWallIndex, onWallSelect, selectedRegionIndex, onRegionSelect]);
 
-  const panelConfigs: Array<{ key: PanelType; icon: typeof BackgroundIcon; label: string }> = [
-    { key: 'background', icon: BackgroundIcon, label: 'Background' },
+  const panelConfigs: Array<{ key: PanelType; icon: typeof GridIcon; label: string }> = [
     { key: 'grid', icon: GridIcon, label: 'Grid' },
     { key: 'regions', icon: RegionsIcon, label: 'Regions' },
     { key: 'walls', icon: WallsIcon, label: 'Walls' },
@@ -244,13 +235,6 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         }}
       >
         <Box ref={drawerRef} sx={{ p: 2 }}>
-          {activePanel === 'background' && (
-            <BackgroundPanel
-              backgroundUrl={backgroundUrl || ''}
-              isUploadingBackground={isUploadingBackground || false}
-              {...(onBackgroundUpload ? { onBackgroundUpload } : {})}
-            />
-          )}
           {activePanel === 'grid' && gridConfig && (
             <GridPanel
               gridConfig={gridConfig}

@@ -1,0 +1,107 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace VttTools.Data.MigrationService.Migrations
+{
+    /// <inheritdoc />
+    public partial class UpdateSceneSchema : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Scenes_Resources_BackgroundId",
+                table: "Scenes");
+
+            migrationBuilder.AddColumn<float>(
+                name: "Elevation",
+                table: "Scenes",
+                type: "real",
+                nullable: false,
+                defaultValue: 0f);
+
+            migrationBuilder.AddColumn<string>(
+                name: "Light",
+                table: "Scenes",
+                type: "nvarchar(max)",
+                nullable: false,
+                defaultValue: "Ambient");
+
+            migrationBuilder.AddColumn<Guid>(
+                name: "SoundId",
+                table: "Scenes",
+                type: "uniqueidentifier",
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "Weather",
+                table: "Scenes",
+                type: "nvarchar(max)",
+                nullable: false,
+                defaultValue: "Clear");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Scenes_SoundId",
+                table: "Scenes",
+                column: "SoundId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Scenes_Resources_BackgroundId",
+                table: "Scenes",
+                column: "BackgroundId",
+                principalTable: "Resources",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Scenes_Resources_SoundId",
+                table: "Scenes",
+                column: "SoundId",
+                principalTable: "Resources",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Scenes_Resources_BackgroundId",
+                table: "Scenes");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Scenes_Resources_SoundId",
+                table: "Scenes");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Scenes_SoundId",
+                table: "Scenes");
+
+            migrationBuilder.DropColumn(
+                name: "Elevation",
+                table: "Scenes");
+
+            migrationBuilder.DropColumn(
+                name: "Light",
+                table: "Scenes");
+
+            migrationBuilder.DropColumn(
+                name: "SoundId",
+                table: "Scenes");
+
+            migrationBuilder.DropColumn(
+                name: "Weather",
+                table: "Scenes");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Scenes_Resources_BackgroundId",
+                table: "Scenes",
+                column: "BackgroundId",
+                principalTable: "Resources",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.SetNull);
+        }
+    }
+}

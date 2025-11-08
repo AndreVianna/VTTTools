@@ -1925,6 +1925,9 @@ const SceneEditorPageInternal: React.FC = () => {
             onSceneDescriptionChange={handleSceneDescriptionChange}
             onScenePublishedChange={handleScenePublishedChange}
             onSceneUpdate={handleSceneUpdate}
+            backgroundUrl={backgroundUrl}
+            isUploadingBackground={isUploadingBackground}
+            onBackgroundUpload={handleBackgroundUpload}
         >
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
             <EditingBlocker isBlocked={!isOnline} />
@@ -1960,9 +1963,6 @@ const SceneEditorPageInternal: React.FC = () => {
                 <LeftToolBar
                     activePanel={activePanel}
                     onPanelChange={setActivePanel}
-                    backgroundUrl={backgroundUrl}
-                    isUploadingBackground={isUploadingBackground}
-                    onBackgroundUpload={handleBackgroundUpload}
                     gridConfig={gridConfig}
                     onGridChange={handleGridChange}
                     sceneId={sceneId}
