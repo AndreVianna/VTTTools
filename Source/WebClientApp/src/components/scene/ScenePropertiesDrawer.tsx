@@ -306,7 +306,7 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
                     defaultValue={scene?.description ?? ''}
                     onBlur={handleDescriptionBlur}
                     multiline
-                    rows={2}
+                    rows={5}
                     fullWidth
                     variant="outlined"
                     placeholder="Scene description..."
