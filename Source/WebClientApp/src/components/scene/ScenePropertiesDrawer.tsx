@@ -5,11 +5,9 @@ import {
     Typography,
     TextField,
     FormControlLabel,
-    Switch,
-    Button
+    Switch
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
 import { Scene } from '@/types/domain';
 
 export interface ScenePropertiesDrawerProps {
@@ -20,36 +18,6 @@ export interface ScenePropertiesDrawerProps {
     onDescriptionChange: (description: string) => void;
     onPublishedChange: (published: boolean) => void;
 }
-
-interface AdventureLinkProps {
-    adventure: { id: string; name: string };
-}
-
-const AdventureLink: React.FC<AdventureLinkProps> = ({ adventure }) => {
-    const navigate = useNavigate();
-
-    const handleClick = () => {
-        navigate(`/adventures/${adventure.id}`);
-    };
-
-    return (
-        <Button
-            variant="text"
-            onClick={handleClick}
-            sx={{
-                textTransform: 'none',
-                justifyContent: 'flex-start',
-                p: 0,
-                minWidth: 'auto',
-                fontSize: '11px',
-                fontWeight: 400,
-                height: '20px'
-            }}
-        >
-            {adventure.name}
-        </Button>
-    );
-};
 
 export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
     open,
@@ -144,8 +112,8 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
             <Box sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 1,
-                p: 1.5,
+                gap: 1.5,
+                p: 2,
                 height: '100%',
                 overflowY: 'auto'
             }}>
@@ -161,20 +129,6 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
                     size="small"
                     sx={compactStyles.textField}
                 />
-
-                {/* Adventure Section */}
-                <Box sx={{ mb: 0 }}>
-                    <Typography variant="overline" sx={compactStyles.sectionHeader}>
-                        Adventure
-                    </Typography>
-                    {scene?.adventure ? (
-                        <AdventureLink adventure={scene.adventure} />
-                    ) : (
-                        <Typography sx={{ color: theme.palette.text.disabled, fontSize: '11px' }}>
-                            None
-                        </Typography>
-                    )}
-                </Box>
 
                 {/* Description */}
                 <TextField
