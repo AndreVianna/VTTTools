@@ -12,7 +12,6 @@ import {
     ListItemText,
     MenuItem,
     Select,
-    SelectChangeEvent,
     TextField,
     Typography,
     useTheme
@@ -161,22 +160,6 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
         onPlaceRegion?.(properties);
     };
 
-    const handleTypeChange = (e: SelectChangeEvent<string>) => {
-        const newType = e.target.value;
-        setRegionType(newType);
-
-        const preset = REGION_PRESETS.find(p => p.type === newType);
-        if (preset) {
-            setColor(preset.color);
-            if (preset.defaultValue !== undefined) {
-                setValue(preset.defaultValue);
-            }
-            if (preset.defaultLabel) {
-                setLabel(preset.defaultLabel);
-            }
-        }
-    };
-
     const handleDeleteClick = (regionIndex: number) => {
         setRegionToDelete(regionIndex);
         setDeleteConfirmOpen(true);
@@ -233,23 +216,14 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
                 sx={compactStyles.textField}
             />
 
-            <FormControl size="small" fullWidth>
-                <InputLabel id="label-region-type" sx={compactStyles.inputLabel}>Type</InputLabel>
-                <Select
-                    id="select-region-type"
-                    labelId="label-region-type"
-                    value={regionType}
-                    label="Type"
-                    onChange={handleTypeChange}
-                    sx={compactStyles.select}
-                >
-                    {REGION_PRESETS.map(preset => (
-                        <MenuItem key={preset.type} value={preset.type} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                            {preset.type}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                <Typography sx={{ fontSize: '10px', fontWeight: 600, color: theme.palette.text.secondary }}>
+                    Type:
+                </Typography>
+                <Typography sx={{ fontSize: '10px', fontWeight: 700, color: theme.palette.primary.main }}>
+                    {regionType}
+                </Typography>
+            </Box>
 
             {regionType === 'Elevation' ? (
                 <TextField
