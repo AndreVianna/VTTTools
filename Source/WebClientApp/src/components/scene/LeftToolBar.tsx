@@ -16,12 +16,12 @@ import {
   LightMode as GlobalLightingIcon,
   VisibilityOff as FogOfWarIcon
 } from '@mui/icons-material';
-import { BackgroundPanel, GridPanel, WallsPanel, ObjectsPanel, CreaturesPanel, SourcesPanel } from './panels';
-import type { SourcePlacementProperties } from './panels';
+import { BackgroundPanel, GridPanel, WallsPanel, ObjectsPanel, CreaturesPanel, SourcesPanel, RegionsPanel } from './panels';
+import type { SourcePlacementProperties, RegionPreset } from './panels';
 import { AssetPicker } from '@/components/common';
 import { GridConfig } from '@/utils/gridCalculator';
 import { AssetKind } from '@/types/domain';
-import type { SceneWall, WallVisibility, Asset, PlacedAsset, SceneSource } from '@/types/domain';
+import type { SceneWall, WallVisibility, Asset, PlacedAsset, SceneSource, SceneRegion } from '@/types/domain';
 
 export type PanelType =
   | 'background'
@@ -59,6 +59,18 @@ export interface LeftToolBarProps {
     defaultHeight: number;
   }) => void;
   onEditVertices?: (wallIndex: number) => void;
+  sceneRegions?: SceneRegion[] | undefined;
+  selectedRegionIndex?: number | null | undefined;
+  onRegionSelect?: (regionIndex: number) => void;
+  onRegionDelete?: (regionIndex: number) => void;
+  onPlaceRegion?: (properties: {
+    name: string;
+    type: string;
+    value?: number;
+    label?: string;
+    color?: string;
+  }) => void;
+  onEditRegionVertices?: (regionIndex: number) => void;
   placedAssets?: PlacedAsset[] | undefined;
   selectedAssetIds?: string[] | undefined;
   onAssetSelectForPlacement?: (asset: Asset) => void;
@@ -89,6 +101,12 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onWallDelete,
   onPlaceWall,
   onEditVertices,
+  sceneRegions,
+  selectedRegionIndex,
+  onRegionSelect,
+  onRegionDelete,
+  onPlaceRegion,
+  onEditRegionVertices,
   placedAssets = [],
   selectedAssetIds = [],
   onAssetSelectForPlacement,
@@ -146,12 +164,15 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         if (activePanel === 'walls' && selectedWallIndex !== null) {
           onWallSelect?.(null);
         }
+        if (activePanel === 'elevation' && selectedRegionIndex !== null) {
+          onRegionSelect?.(null);
+        }
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [expanded, externalActivePanel, onPanelChange, activePanel, selectedWallIndex, onWallSelect]);
+  }, [expanded, externalActivePanel, onPanelChange, activePanel, selectedWallIndex, onWallSelect, selectedRegionIndex, onRegionSelect]);
 
   const panelConfigs: Array<{ key: PanelType; icon: typeof BackgroundIcon; label: string }> = [
     { key: 'background', icon: BackgroundIcon, label: 'Background' },
@@ -240,10 +261,14 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
             />
           )}
           {activePanel === 'elevation' && (
-            <Box>
-              <Typography sx={{ mb: 2, fontWeight: 'bold', fontSize: '10px', textTransform: 'uppercase' }}>Elevation Settings</Typography>
-              <Typography sx={{ fontSize: '11px', color: 'text.secondary' }}>Elevation region controls</Typography>
-            </Box>
+            <RegionsPanel
+              sceneRegions={sceneRegions || []}
+              selectedRegionIndex={selectedRegionIndex !== undefined ? selectedRegionIndex : null}
+              {...(onPlaceRegion ? { onPlaceRegion } : {})}
+              {...(onRegionSelect ? { onRegionSelect } : {})}
+              {...(onRegionDelete ? { onRegionDelete } : {})}
+              {...(onEditRegionVertices ? { onEditVertices: onEditRegionVertices } : {})}
+            />
           )}
           {activePanel === 'grid' && gridConfig && (
             <GridPanel
