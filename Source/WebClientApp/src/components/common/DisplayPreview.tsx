@@ -39,6 +39,7 @@ export const DisplayPreview: React.FC<DisplayPreviewProps> = ({
                 component="img"
                 src={imageUrl}
                 alt={alt}
+                crossOrigin="use-credentials"
                 sx={{
                     maxWidth: '100%',
                     maxHeight: '100%',

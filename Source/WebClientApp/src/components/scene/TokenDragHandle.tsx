@@ -8,6 +8,7 @@ import { GridType } from '@/utils/gridCalculator';
 import {
     getPlacementBehavior,
 } from '@/types/placement';
+import { RotationHandle } from './RotationHandle';
 
 /**
  * Render invalid placement indicator (red X)
@@ -115,6 +116,14 @@ export interface TokenDragHandleProps {
     isShiftPressed: boolean;
     /** Whether Ctrl key is pressed */
     isCtrlPressed: boolean;
+    /** Canvas zoom scale */
+    scale: number;
+    /** Callback when assets are rotated */
+    onAssetRotated?: (updates: Array<{ assetId: string; rotation: number; position?: { x: number; y: number } }>) => void;
+    /** Callback when rotation starts */
+    onRotationStart?: () => void;
+    /** Callback when rotation ends */
+    onRotationEnd?: () => void;
 }
 
 export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
@@ -130,6 +139,10 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     snapMode,
     isShiftPressed,
     isCtrlPressed,
+    scale,
+    onAssetRotated,
+    onRotationStart,
+    onRotationEnd,
 }) => {
     const theme = useTheme();
     const transformerRef = useRef<Konva.Transformer>(null);
@@ -147,6 +160,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const [marqueeSelection, setMarqueeSelection] = useState<{ start: { x: number; y: number }; end: { x: number; y: number } } | null>(null);
     const [, forceUpdate] = useState(0);
     const marqueeActiveRef = useRef(false);
+    const [altKeyPressed, setAltKeyPressed] = useState(false);
 
     // Calculate available actions for selected assets (intersection)
     const availableActions = React.useMemo(() => {
@@ -471,6 +485,29 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     }, [selectedAssetIds, onAssetDeleted, availableActions.canDelete]);
 
     useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.altKey) setAltKeyPressed(true);
+        };
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (!e.altKey) setAltKeyPressed(false);
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleBlur = () => setAltKeyPressed(false);
+        window.addEventListener('blur', handleBlur);
+        return () => window.removeEventListener('blur', handleBlur);
+    }, []);
+
+    useEffect(() => {
         // Skip stage click handler if drag-move is disabled
         if (!enableDragMove) return;
 
@@ -680,6 +717,10 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         };
     }, [placedAssets, stageRef]);
 
+    const selectedAssets = React.useMemo(() => {
+        return placedAssets.filter(asset => selectedAssetIds.includes(asset.id));
+    }, [placedAssets, selectedAssetIds]);
+
     return (
         <Layer name="ui-overlay" listening={false}>
             {/* Selection borders - blue outline for each selected asset */}
@@ -702,6 +743,19 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                 );
             })}
             {/* eslint-enable react-hooks/refs */}
+
+            {/* Rotation Handle - Only when assets selected */}
+            {selectedAssets.length > 0 && (
+                <RotationHandle
+                    selectedAssets={selectedAssets}
+                    gridConfig={gridConfig}
+                    scale={scale}
+                    altKeyPressed={altKeyPressed}
+                    onRotationChange={onAssetRotated}
+                    onRotationStart={onRotationStart}
+                    onRotationEnd={onRotationEnd}
+                />
+            )}
 
             {/* Marquee selection rectangle */}
             {marqueeSelection && (

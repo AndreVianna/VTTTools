@@ -49,7 +49,7 @@ export const PlacementCursor: React.FC<PlacementCursorProps> = ({
 
         const img = new window.Image();
         img.src = getResourceUrl(tokenResource.token.id);
-        img.crossOrigin = 'anonymous';
+        img.crossOrigin = 'use-credentials';
 
         img.onload = () => {
             imageRef.current = img;

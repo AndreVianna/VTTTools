@@ -282,7 +282,7 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
     const loadImage = useCallback((url: string): Promise<HTMLImageElement> => {
         return new Promise((resolve, reject) => {
             const img = new window.Image();
-            img.crossOrigin = 'anonymous';
+            img.crossOrigin = 'use-credentials';
             img.onload = () => resolve(img);
             img.onerror = reject;
             img.src = url;

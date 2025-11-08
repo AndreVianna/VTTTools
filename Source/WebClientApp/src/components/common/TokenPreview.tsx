@@ -69,6 +69,7 @@ export const TokenPreview: React.FC<TokenPreviewProps> = ({
                 component="img"
                 src={imageUrl}
                 alt="Token"
+                crossOrigin="use-credentials"
                 sx={{
                     width: displayWidth,
                     height: displayHeight,

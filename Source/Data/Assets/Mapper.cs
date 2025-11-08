@@ -142,7 +142,8 @@ internal static class Mapper {
             else if (token.Token != null) {
                 entity.Tokens.Add(new AssetTokenEntity {
                     TokenId = token.Token.Id,
-                    Token = token.Token.ToEntity(),
+                    // Don't set Token navigation - the Resource already exists
+                    // Setting it would cause EF Core to track and update the Resource
                     IsDefault = token.IsDefault
                 });
             }

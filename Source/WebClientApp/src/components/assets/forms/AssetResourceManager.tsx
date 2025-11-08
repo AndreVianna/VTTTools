@@ -64,19 +64,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
 
             const isFirstToken = tokens.length === 0;
             const newToken: AssetToken = {
-                token: { 
-                    id: result.id,
-                    type: result.type ?? ResourceType.Image,
-                    path: result.path ?? '',
-                    metadata: {
-                        contentType: result.metadata?.contentType ?? contentType ?? '',
-                        fileName: result.metadata?.fileName ?? fileName ?? '',
-                        fileLength: result.metadata?.fileLength ?? fileLength ?? 0,
-                        imageSize: result.metadata?.imageSize ?? { width: 0, height: 0 },
-                        duration: result.metadata?.duration ?? '0:00:00.0000000',
-                    },
-                    tags: result.tags ?? [],
-                },
+                token: result,  // Use complete Resource from backend response
                 isDefault: isFirstToken
             };
 
@@ -240,6 +228,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                                         height="100"
                                         image={getResourceUrl(token.token.id)}
                                         alt="Token"
+                                        crossOrigin="use-credentials"
                                         sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
                                     />
 
@@ -331,6 +320,7 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
                                 height="180"
                                 image={getResourceUrl(portraitId)}
                                 alt="Portrait"
+                                crossOrigin="use-credentials"
                                 sx={{ objectFit: 'contain', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100' }}
                             />
                         </Card>

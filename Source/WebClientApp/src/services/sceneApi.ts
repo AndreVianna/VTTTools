@@ -161,6 +161,7 @@ export const sceneApi = createApi({
             assetNumber: number;
             position?: { x: number; y: number };
             size?: { width: number; height: number };
+            rotation?: number;
             name?: string;
             tokenId?: string;
             portraitId?: string;
@@ -168,12 +169,13 @@ export const sceneApi = createApi({
             visible?: boolean;
             locked?: boolean;
         }>({
-            query: ({ sceneId, assetNumber, position, size, name, tokenId, portraitId, notes, visible, locked }) => ({
+            query: ({ sceneId, assetNumber, position, size, rotation, name, tokenId, portraitId, notes, visible, locked }) => ({
                 url: `/${sceneId}/assets/${assetNumber}`,
                 method: 'PATCH',
                 body: {
                     ...(position && { position: { x: position.x, y: position.y } }),
                     ...(size && { size: { width: size.width, height: size.height, isSquare: Math.abs(size.width - size.height) < 0.001 } }),
+                    ...(rotation !== undefined && { rotation }),
                     ...(name !== undefined && { name }),
                     ...(tokenId && { tokenId }),
                     ...(portraitId && { portraitId }),
