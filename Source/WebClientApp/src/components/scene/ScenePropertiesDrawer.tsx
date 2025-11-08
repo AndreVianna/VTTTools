@@ -187,18 +187,39 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
                 height: '100%',
                 overflowY: 'auto'
             }}>
-                {/* Scene Name */}
-                <TextField
-                    id="scene-name"
-                    label="Scene Name"
-                    defaultValue={scene?.name ?? ''}
-                    onBlur={handleNameBlur}
-                    fullWidth
-                    variant="outlined"
-                    placeholder="Enter scene name..."
-                    size="small"
-                    sx={compactStyles.textField}
-                />
+                {/* Scene Name and Published - Single Row */}
+                <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center' }}>
+                    {/* Scene Name */}
+                    <TextField
+                        id="scene-name"
+                        label="Scene Name"
+                        defaultValue={scene?.name ?? ''}
+                        onBlur={handleNameBlur}
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Enter scene name..."
+                        size="small"
+                        sx={compactStyles.textField}
+                    />
+
+                    {/* Published Toggle */}
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                id="scene-published"
+                                size="small"
+                                checked={scene?.isPublished ?? false}
+                                onChange={handlePublishedChange}
+                            />
+                        }
+                        label={
+                            <Typography sx={compactStyles.toggleLabel}>
+                                Published
+                            </Typography>
+                        }
+                        sx={{ margin: 0, flexShrink: 0 }}
+                    />
+                </Box>
 
                 {/* Background Image */}
                 <Box
@@ -291,24 +312,6 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
                     placeholder="Scene description..."
                     size="small"
                     sx={compactStyles.textFieldMultiline}
-                />
-
-                {/* Published Toggle */}
-                <FormControlLabel
-                    control={
-                        <Switch
-                            id="scene-published"
-                            size="small"
-                            checked={scene?.isPublished ?? false}
-                            onChange={handlePublishedChange}
-                        />
-                    }
-                    label={
-                        <Typography sx={compactStyles.toggleLabel}>
-                            Published
-                        </Typography>
-                    }
-                    sx={{ margin: 0 }}
                 />
 
                 {/* Light, Weather, Elevation - Single Row */}
