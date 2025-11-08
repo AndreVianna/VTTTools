@@ -50,7 +50,7 @@ export interface LeftToolBarProps {
   onEditVertices?: (wallIndex: number) => void;
   sceneRegions?: SceneRegion[] | undefined;
   selectedRegionIndex?: number | null | undefined;
-  onRegionSelect?: (regionIndex: number) => void;
+  onRegionSelect?: (regionIndex: number | null) => void;
   onRegionDelete?: (regionIndex: number) => void;
   onPlaceRegion?: (properties: {
     name: string;

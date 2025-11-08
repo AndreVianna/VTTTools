@@ -1844,7 +1844,7 @@ const SceneEditorPageInternal: React.FC = () => {
         alert(`Region placement started: ${properties.name} (${properties.type})`);
     }, [sceneId, scene]);
 
-    const handleRegionSelect = useCallback((regionIndex: number) => {
+    const handleRegionSelect = useCallback((regionIndex: number | null) => {
         setSelectedRegionIndex(regionIndex);
     }, []);
 
