@@ -3,6 +3,7 @@ import { Line } from 'react-konva';
 import { useTheme } from '@mui/material/styles';
 import { RegionLabelDisplay } from './RegionLabelDisplay';
 import { calculatePolygonCentroid } from '@/utils/geometryUtils';
+import { REGION_PRESETS } from '../panels/regionsPanelTypes';
 import type { SceneRegion } from '@/types/domain';
 
 export interface RegionRendererProps {
@@ -13,23 +14,26 @@ export const RegionRenderer: React.FC<RegionRendererProps> = ({ sceneRegion }) =
     const theme = useTheme();
 
     const getRegionColor = (): string => {
-        const regionType = sceneRegion.type.toLowerCase();
-        switch (regionType) {
-            case 'illumination':
-                return theme.palette.warning.main;
-            case 'elevation':
-                return theme.palette.warning.dark;
-            case 'fogofwar':
-                return theme.palette.grey[500];
-            case 'weather':
-                return theme.palette.info.light;
-            default:
-                return theme.palette.grey[400];
+        if (sceneRegion.color) {
+            return sceneRegion.color;
         }
+
+        const preset = REGION_PRESETS.find(p => p.type === sceneRegion.type);
+        if (preset) {
+            return preset.color;
+        }
+
+        return theme.palette.grey[400];
     };
 
     const getLabelText = (): string => {
-        return sceneRegion.label || `Value: ${sceneRegion.value ?? 0}`;
+        if (sceneRegion.label) {
+            return sceneRegion.label;
+        }
+        if (sceneRegion.value !== undefined && sceneRegion.value !== null) {
+            return `${sceneRegion.value}`;
+        }
+        return sceneRegion.type;
     };
 
     const color = getRegionColor();

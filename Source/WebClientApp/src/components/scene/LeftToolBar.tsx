@@ -1,30 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, IconButton, Drawer, Tooltip, useTheme, Typography } from '@mui/material';
+import { Box, IconButton, Drawer, Tooltip, useTheme } from '@mui/material';
 import {
-  Terrain as ElevationIcon,
   GridOn as GridIcon,
+  Layers as RegionsIcon,
   BorderAll as WallsIcon,
   MeetingRoom as OpeningsIcon,
   ViewInAr as ObjectsIcon,
   Pets as CreaturesIcon,
   Person as PlayersIcon,
   AutoAwesome as EffectsIcon,
-  Lightbulb as LightSourcesIcon,
-  Layers as OverlaysIcon,
-  Cloud as WeatherIcon,
-  LightMode as GlobalLightingIcon,
+  LightMode as SourcesIcon,
   VisibilityOff as FogOfWarIcon
 } from '@mui/icons-material';
-import { GridPanel, WallsPanel, ObjectsPanel, CreaturesPanel, SourcesPanel } from './panels';
+import { GridPanel, WallsPanel, ObjectsPanel, CreaturesPanel, SourcesPanel, RegionsPanel } from './panels';
 import type { SourcePlacementProperties } from './panels';
 import { AssetPicker } from '@/components/common';
 import { GridConfig } from '@/utils/gridCalculator';
 import { AssetKind } from '@/types/domain';
-import type { SceneWall, WallVisibility, Asset, PlacedAsset, SceneSource } from '@/types/domain';
+import type { SceneWall, WallVisibility, Asset, PlacedAsset, SceneSource, SceneRegion } from '@/types/domain';
 
 export type PanelType =
-  | 'elevation'
   | 'grid'
+  | 'regions'
   | 'walls'
   | 'openings'
   | 'objects'
@@ -32,9 +29,6 @@ export type PanelType =
   | 'players'
   | 'effects'
   | 'lightSources'
-  | 'overlays'
-  | 'weather'
-  | 'globalLighting'
   | 'fogOfWar';
 
 export interface LeftToolBarProps {
@@ -54,6 +48,18 @@ export interface LeftToolBarProps {
     defaultHeight: number;
   }) => void;
   onEditVertices?: (wallIndex: number) => void;
+  sceneRegions?: SceneRegion[] | undefined;
+  selectedRegionIndex?: number | null | undefined;
+  onRegionSelect?: (regionIndex: number | null) => void;
+  onRegionDelete?: (regionIndex: number) => void;
+  onPlaceRegion?: (properties: {
+    name: string;
+    type: string;
+    value?: number;
+    label?: string;
+    color?: string;
+  }) => void;
+  onEditRegionVertices?: (regionIndex: number) => void;
   placedAssets?: PlacedAsset[] | undefined;
   selectedAssetIds?: string[] | undefined;
   onAssetSelectForPlacement?: (asset: Asset) => void;
@@ -81,6 +87,12 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onWallDelete,
   onPlaceWall,
   onEditVertices,
+  sceneRegions,
+  selectedRegionIndex,
+  onRegionSelect,
+  onRegionDelete,
+  onPlaceRegion,
+  onEditRegionVertices,
   placedAssets = [],
   selectedAssetIds = [],
   onAssetSelectForPlacement,
@@ -138,26 +150,26 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         if (activePanel === 'walls' && selectedWallIndex !== null) {
           onWallSelect?.(null);
         }
+        if (activePanel === 'regions' && selectedRegionIndex !== null) {
+          onRegionSelect?.(null);
+        }
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [expanded, externalActivePanel, onPanelChange, activePanel, selectedWallIndex, onWallSelect]);
+  }, [expanded, externalActivePanel, onPanelChange, activePanel, selectedWallIndex, onWallSelect, selectedRegionIndex, onRegionSelect]);
 
-  const panelConfigs: Array<{ key: PanelType; icon: typeof ElevationIcon; label: string }> = [
-    { key: 'elevation', icon: ElevationIcon, label: 'Elevation' },
+  const panelConfigs: Array<{ key: PanelType; icon: typeof GridIcon; label: string }> = [
     { key: 'grid', icon: GridIcon, label: 'Grid' },
+    { key: 'regions', icon: RegionsIcon, label: 'Regions' },
     { key: 'walls', icon: WallsIcon, label: 'Walls' },
     { key: 'openings', icon: OpeningsIcon, label: 'Openings' },
     { key: 'objects', icon: ObjectsIcon, label: 'Objects' },
     { key: 'creatures', icon: CreaturesIcon, label: 'Creatures' },
     { key: 'players', icon: PlayersIcon, label: 'Players' },
     { key: 'effects', icon: EffectsIcon, label: 'Effects' },
-    { key: 'lightSources', icon: LightSourcesIcon, label: 'Light Sources' },
-    { key: 'overlays', icon: OverlaysIcon, label: 'Overlays' },
-    { key: 'weather', icon: WeatherIcon, label: 'Weather' },
-    { key: 'globalLighting', icon: GlobalLightingIcon, label: 'Global Lighting' },
+    { key: 'lightSources', icon: SourcesIcon, label: 'Sources' },
     { key: 'fogOfWar', icon: FogOfWarIcon, label: 'Fog of War' }
   ];
 
@@ -223,16 +235,20 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         }}
       >
         <Box ref={drawerRef} sx={{ p: 2 }}>
-          {activePanel === 'elevation' && (
-            <Box>
-              <Typography sx={{ mb: 2, fontWeight: 'bold', fontSize: '10px', textTransform: 'uppercase' }}>Elevation Settings</Typography>
-              <Typography sx={{ fontSize: '11px', color: 'text.secondary' }}>Elevation region controls</Typography>
-            </Box>
-          )}
           {activePanel === 'grid' && gridConfig && (
             <GridPanel
               gridConfig={gridConfig}
               {...(onGridChange ? { onGridChange } : {})}
+            />
+          )}
+          {activePanel === 'regions' && (
+            <RegionsPanel
+              sceneRegions={sceneRegions || []}
+              selectedRegionIndex={selectedRegionIndex !== undefined ? selectedRegionIndex : null}
+              {...(onPlaceRegion ? { onPlaceRegion } : {})}
+              {...(onRegionSelect ? { onRegionSelect } : {})}
+              {...(onRegionDelete ? { onRegionDelete } : {})}
+              {...(onEditRegionVertices ? { onEditVertices: onEditRegionVertices } : {})}
             />
           )}
           {activePanel === 'walls' && (
@@ -296,24 +312,6 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               onPlaceSource={onPlaceSource || (() => {})}
               {...(onEditSource ? { onEditSource } : {})}
             />
-          )}
-          {activePanel === 'overlays' && (
-            <Box>
-              <Box sx={{ mb: 2, fontWeight: 'bold' }}>Overlays</Box>
-              <Box>UI overlay controls</Box>
-            </Box>
-          )}
-          {activePanel === 'weather' && (
-            <Box>
-              <Box sx={{ mb: 2, fontWeight: 'bold' }}>Weather</Box>
-              <Box>Weather region controls</Box>
-            </Box>
-          )}
-          {activePanel === 'globalLighting' && (
-            <Box>
-              <Box sx={{ mb: 2, fontWeight: 'bold' }}>Global Lighting</Box>
-              <Box>Global lighting mode controls</Box>
-            </Box>
           )}
           {activePanel === 'fogOfWar' && (
             <Box>

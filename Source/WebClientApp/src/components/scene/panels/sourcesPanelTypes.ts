@@ -18,8 +18,6 @@ export interface SourcePreset {
     isDirectional: boolean;
     defaultDirection: number;
     defaultSpread: number;
-    defaultRange: number;
-    defaultIntensity: number;
     defaultHasGradient: boolean;
     defaultColor: string;
 }
@@ -32,8 +30,6 @@ export const SOURCE_PRESETS: SourcePreset[] = [
         isDirectional: false,
         defaultDirection: 0,
         defaultSpread: 0,
-        defaultRange: 5,
-        defaultIntensity: 100,
         defaultHasGradient: true,
         defaultColor: '#FF6B35'
     },
@@ -44,8 +40,6 @@ export const SOURCE_PRESETS: SourcePreset[] = [
         isDirectional: false,
         defaultDirection: 0,
         defaultSpread: 0,
-        defaultRange: 8,
-        defaultIntensity: 100,
         defaultHasGradient: true,
         defaultColor: '#FFD93D'
     },
@@ -56,8 +50,6 @@ export const SOURCE_PRESETS: SourcePreset[] = [
         isDirectional: false,
         defaultDirection: 0,
         defaultSpread: 0,
-        defaultRange: 2,
-        defaultIntensity: 80,
         defaultHasGradient: true,
         defaultColor: '#FFF8DC'
     },
@@ -68,8 +60,6 @@ export const SOURCE_PRESETS: SourcePreset[] = [
         isDirectional: true,
         defaultDirection: 0,
         defaultSpread: 45,
-        defaultRange: 15,
-        defaultIntensity: 120,
         defaultHasGradient: true,
         defaultColor: '#FFFFFF'
     },
@@ -80,8 +70,6 @@ export const SOURCE_PRESETS: SourcePreset[] = [
         isDirectional: false,
         defaultDirection: 0,
         defaultSpread: 0,
-        defaultRange: 10,
-        defaultIntensity: 100,
         defaultHasGradient: true,
         defaultColor: '#4A90E2'
     },
@@ -92,8 +80,6 @@ export const SOURCE_PRESETS: SourcePreset[] = [
         isDirectional: true,
         defaultDirection: 0,
         defaultSpread: 60,
-        defaultRange: 12,
-        defaultIntensity: 100,
         defaultHasGradient: true,
         defaultColor: '#357ABD'
     },
@@ -104,8 +90,6 @@ export const SOURCE_PRESETS: SourcePreset[] = [
         isDirectional: false,
         defaultDirection: 0,
         defaultSpread: 0,
-        defaultRange: 3,
-        defaultIntensity: 100,
         defaultHasGradient: false,
         defaultColor: '#9B59B6'
     },
@@ -116,8 +100,6 @@ export const SOURCE_PRESETS: SourcePreset[] = [
         isDirectional: true,
         defaultDirection: 0,
         defaultSpread: 90,
-        defaultRange: 10,
-        defaultIntensity: 100,
         defaultHasGradient: false,
         defaultColor: '#E74C3C'
     }

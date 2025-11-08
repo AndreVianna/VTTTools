@@ -1,0 +1,378 @@
+import { useState, useCallback } from 'react';
+import type { SceneRegion, Point } from '@/types/domain';
+import type {
+    useAddSceneRegionMutation,
+    useUpdateSceneRegionMutation
+} from '@/services/sceneApi';
+import { cleanPolygonVertices } from '@/utils/polygonUtils';
+
+export type TransactionType = 'placement' | 'editing' | null;
+
+/**
+ * Represents a region segment being placed or edited in a transaction.
+ * Contains temporary state and vertex data for the active region operation.
+ */
+export interface RegionSegment {
+    tempId: number;
+    regionIndex: number | null;
+    name: string;
+    vertices: Point[];
+    type: string;
+    value?: number;
+    label?: string;
+    color?: string;
+}
+
+/**
+ * Transaction state for region placement and editing operations.
+ * Manages the lifecycle of a region operation with local undo/redo support.
+ */
+export interface RegionTransaction {
+    type: TransactionType;
+    originalRegion: SceneRegion | null;
+    segment: RegionSegment | null;
+    isActive: boolean;
+    localUndoStack: LocalAction[];
+    localRedoStack: LocalAction[];
+}
+
+export interface CommitResult {
+    success: boolean;
+    regionIndex?: number;
+    error?: string;
+}
+
+interface ApiHooks {
+    addSceneRegion: ReturnType<typeof useAddSceneRegionMutation>[0];
+    updateSceneRegion: ReturnType<typeof useUpdateSceneRegionMutation>[0];
+}
+
+type LocalAction = {
+    undo: () => void;
+    redo: () => void;
+};
+
+const INITIAL_TRANSACTION: RegionTransaction = {
+    type: null,
+    originalRegion: null,
+    segment: null,
+    isActive: false,
+    localUndoStack: [],
+    localRedoStack: []
+};
+
+/**
+ * Manages region placement and editing transactions for the scene editor.
+ * Regions are always closed polygons requiring minimum 3 vertices.
+ *
+ * Provides transaction lifecycle management (start, update, commit, cancel) and
+ * local undo/redo operations for vertex manipulation during active transactions.
+ *
+ * @returns Transaction state and mutation functions for region operations
+ *
+ * @example
+ * const {
+ *     transaction,
+ *     startTransaction,
+ *     addVertex,
+ *     commitTransaction,
+ *     undoLocal,
+ *     redoLocal
+ * } = useRegionTransaction();
+ *
+ * // Start new region placement
+ * startTransaction('placement', undefined, {
+ *     name: 'Danger Zone',
+ *     type: 'Elevation',
+ *     color: '#FF0000'
+ * });
+ *
+ * // Add vertices (minimum 3 required for commit)
+ * addVertex({ x: 100, y: 100 });
+ * addVertex({ x: 200, y: 100 });
+ * addVertex({ x: 150, y: 200 });
+ *
+ * // Commit to backend
+ * const result = await commitTransaction(sceneId, {
+ *     addSceneRegion,
+ *     updateSceneRegion
+ * });
+ */
+export const useRegionTransaction = () => {
+    const [transaction, setTransaction] = useState<RegionTransaction>(INITIAL_TRANSACTION);
+    const [nextTempId, setNextTempId] = useState<number>(0);
+
+    const startTransaction = useCallback((
+        type: TransactionType,
+        region?: SceneRegion,
+        placementProperties?: {
+            name?: string;
+            type?: string;
+            value?: number;
+            label?: string;
+            color?: string;
+        }
+    ) => {
+        if (region) {
+            setTransaction({
+                type,
+                originalRegion: region,
+                segment: {
+                    tempId: 0,
+                    regionIndex: region.index,
+                    name: region.name,
+                    vertices: [...region.vertices],
+                    type: region.type,
+                    value: region.value,
+                    label: region.label,
+                    color: region.color
+                },
+                isActive: true,
+                localUndoStack: [],
+                localRedoStack: []
+            });
+            setNextTempId(1);
+        } else {
+            setTransaction({
+                type,
+                originalRegion: null,
+                segment: {
+                    tempId: -1,
+                    regionIndex: null,
+                    name: placementProperties?.name || '',
+                    vertices: [],
+                    type: placementProperties?.type || 'custom',
+                    value: placementProperties?.value,
+                    label: placementProperties?.label,
+                    color: placementProperties?.color || '#808080'
+                },
+                isActive: true,
+                localUndoStack: [],
+                localRedoStack: []
+            });
+            setNextTempId(0);
+        }
+    }, []);
+
+    const addVertex = useCallback((vertex: Point) => {
+        setTransaction(prev => {
+            if (!prev.segment) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                segment: {
+                    ...prev.segment,
+                    vertices: [...prev.segment.vertices, vertex]
+                }
+            };
+        });
+    }, []);
+
+    const updateVertices = useCallback((vertices: Point[]) => {
+        setTransaction(prev => {
+            if (!prev.segment) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                segment: {
+                    ...prev.segment,
+                    vertices
+                }
+            };
+        });
+    }, []);
+
+    const updateSegmentProperties = useCallback((changes: Partial<Omit<RegionSegment, 'tempId' | 'regionIndex'>>) => {
+        setTransaction(prev => {
+            if (!prev.segment) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                segment: {
+                    ...prev.segment,
+                    ...changes
+                }
+            };
+        });
+    }, []);
+
+    const commitTransaction = useCallback(async (
+        sceneId: string,
+        apiHooks: ApiHooks
+    ): Promise<CommitResult> => {
+        const { addSceneRegion, updateSceneRegion } = apiHooks;
+
+        try {
+            if (!transaction.segment) {
+                return {
+                    success: false,
+                    error: 'No segment to commit'
+                };
+            }
+
+            const segment = transaction.segment;
+            const cleanedVertices = cleanPolygonVertices(segment.vertices, true);
+
+            if (cleanedVertices.length < 3) {
+                return {
+                    success: false,
+                    error: 'Region requires minimum 3 vertices'
+                };
+            }
+
+            if (segment.regionIndex !== null) {
+                await updateSceneRegion({
+                    sceneId,
+                    regionIndex: segment.regionIndex,
+                    name: segment.name,
+                    vertices: cleanedVertices,
+                    type: segment.type,
+                    value: segment.value,
+                    label: segment.label,
+                    color: segment.color
+                }).unwrap();
+
+                setTransaction(INITIAL_TRANSACTION);
+                setNextTempId(0);
+
+                return {
+                    success: true,
+                    regionIndex: segment.regionIndex
+                };
+            } else {
+                const result = await addSceneRegion({
+                    sceneId,
+                    name: segment.name,
+                    vertices: cleanedVertices,
+                    type: segment.type,
+                    value: segment.value,
+                    label: segment.label,
+                    color: segment.color
+                }).unwrap();
+
+                setTransaction(INITIAL_TRANSACTION);
+                setNextTempId(0);
+
+                return {
+                    success: true,
+                    regionIndex: result.index
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Transaction commit failed'
+            };
+        }
+    }, [transaction]);
+
+    const rollbackTransaction = useCallback(() => {
+        setTransaction(INITIAL_TRANSACTION);
+        setNextTempId(0);
+    }, []);
+
+    const getActiveSegment = useCallback((): RegionSegment | null => {
+        return transaction.segment;
+    }, [transaction.segment]);
+
+    const pushLocalAction = useCallback((action: LocalAction) => {
+        setTransaction(prev => ({
+            ...prev,
+            localUndoStack: [...prev.localUndoStack, action],
+            localRedoStack: []
+        }));
+    }, []);
+
+    const undoLocal = useCallback((onSyncScene?: (segment: RegionSegment | null) => void) => {
+        setTransaction(prev => {
+            if (prev.localUndoStack.length === 0) {
+                return prev;
+            }
+
+            const action = prev.localUndoStack[prev.localUndoStack.length - 1];
+            if (!action) {
+                return prev;
+            }
+
+            action.undo();
+
+            const newState = {
+                ...prev,
+                localUndoStack: prev.localUndoStack.slice(0, -1),
+                localRedoStack: [...prev.localRedoStack, action]
+            };
+
+            if (onSyncScene) {
+                onSyncScene(newState.segment);
+            }
+
+            return newState;
+        });
+    }, []);
+
+    const redoLocal = useCallback((onSyncScene?: (segment: RegionSegment | null) => void) => {
+        setTransaction(prev => {
+            if (prev.localRedoStack.length === 0) {
+                return prev;
+            }
+
+            const action = prev.localRedoStack[prev.localRedoStack.length - 1];
+            if (!action) {
+                return prev;
+            }
+
+            action.redo();
+
+            const newState = {
+                ...prev,
+                localRedoStack: prev.localRedoStack.slice(0, -1),
+                localUndoStack: [...prev.localUndoStack, action]
+            };
+
+            if (onSyncScene) {
+                onSyncScene(newState.segment);
+            }
+
+            return newState;
+        });
+    }, []);
+
+    const canUndoLocal = useCallback((): boolean => {
+        return transaction.localUndoStack.length > 0;
+    }, [transaction.localUndoStack]);
+
+    const canRedoLocal = useCallback((): boolean => {
+        return transaction.localRedoStack.length > 0;
+    }, [transaction.localRedoStack]);
+
+    const clearLocalStacks = useCallback(() => {
+        setTransaction(prev => ({
+            ...prev,
+            localUndoStack: [],
+            localRedoStack: []
+        }));
+    }, []);
+
+    return {
+        transaction,
+        startTransaction,
+        addVertex,
+        updateVertices,
+        updateSegmentProperties,
+        commitTransaction,
+        rollbackTransaction,
+        getActiveSegment,
+        pushLocalAction,
+        undoLocal,
+        redoLocal,
+        canUndoLocal,
+        canRedoLocal,
+        clearLocalStacks
+    };
+};

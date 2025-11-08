@@ -30,8 +30,6 @@ export interface SourcePlacementProperties {
     isDirectional: boolean;
     direction: number;
     spread: number;
-    range: number;
-    intensity: number;
     hasGradient: boolean;
     color: string;
 }
@@ -52,8 +50,6 @@ export const SourcesPanel: React.FC<SourcesPanelProps> = React.memo(({
     const [isDirectional, setIsDirectional] = useState<boolean>(false);
     const [direction, setDirection] = useState<number>(0);
     const [spread, setSpread] = useState<number>(45);
-    const [range, setRange] = useState<number>(5);
-    const [intensity, setIntensity] = useState<number>(100);
     const [hasGradient, setHasGradient] = useState<boolean>(true);
     const [color, setColor] = useState<string>('#FFD93D');
     const [expandedSourceIndex, setExpandedSourceIndex] = useState<number | null>(null);
@@ -64,8 +60,6 @@ export const SourcesPanel: React.FC<SourcesPanelProps> = React.memo(({
         setIsDirectional(preset.isDirectional);
         setDirection(preset.defaultDirection);
         setSpread(preset.defaultSpread);
-        setRange(preset.defaultRange);
-        setIntensity(preset.defaultIntensity);
         setHasGradient(preset.defaultHasGradient);
         setColor(preset.defaultColor);
     }, []);
@@ -76,12 +70,10 @@ export const SourcesPanel: React.FC<SourcesPanelProps> = React.memo(({
             isDirectional,
             direction,
             spread,
-            range,
-            intensity,
             hasGradient,
             color
         });
-    }, [type, isDirectional, direction, spread, range, intensity, hasGradient, color, onPlaceSource]);
+    }, [type, isDirectional, direction, spread, hasGradient, color, onPlaceSource]);
 
     const compactStyles = {
         sectionHeader: {
@@ -190,36 +182,6 @@ export const SourcesPanel: React.FC<SourcesPanelProps> = React.memo(({
                             cursor: 'pointer',
                             padding: 0
                         }}
-                    />
-                </Box>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                    <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
-                        Range: {range} ft
-                    </Typography>
-                    <Slider
-                        value={range}
-                        onChange={(_, value) => setRange(value as number)}
-                        min={1}
-                        max={30}
-                        step={0.5}
-                        size="small"
-                        sx={compactStyles.slider}
-                    />
-                </Box>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                    <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
-                        Intensity: {intensity}%
-                    </Typography>
-                    <Slider
-                        value={intensity}
-                        onChange={(_, value) => setIntensity(value as number)}
-                        min={0}
-                        max={200}
-                        step={10}
-                        size="small"
-                        sx={compactStyles.slider}
                     />
                 </Box>
 
