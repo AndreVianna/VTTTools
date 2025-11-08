@@ -80,10 +80,15 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             Stage = scene.Stage with {
                 ZoomLevel = data.Stage.Value.ZoomLevel.IsSet ? data.Stage.Value.ZoomLevel.Value : scene.Stage.ZoomLevel,
                 Panning = data.Stage.Value.Panning.IsSet ? data.Stage.Value.Panning.Value : scene.Stage.Panning,
+                Light = data.Stage.Value.Light.IsSet ? data.Stage.Value.Light.Value : scene.Stage.Light,
+                Weather = data.Stage.Value.Weather.IsSet ? data.Stage.Value.Weather.Value : scene.Stage.Weather,
+                Elevation = data.Stage.Value.Elevation.IsSet ? data.Stage.Value.Elevation.Value : scene.Stage.Elevation,
             }
         };
         if (data.Stage.Value.BackgroundId.IsSet)
             scene = await SetBackground(scene, data, ct);
+        if (data.Stage.Value.SoundId.IsSet)
+            scene = await SetSound(scene, data, ct);
         return scene;
     }
 
@@ -94,10 +99,33 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             Stage = scene.Stage with {
                 Background = new() {
                     Id = background?.Id ?? Guid.Empty,
-                    Type = background?.Type ?? ResourceType.Undefined,
+                    Type = background?.Type ?? ResourceType.Image,
                     Path = background?.Path ?? string.Empty,
                     Metadata = background?.Metadata ?? new(),
                     Tags = background?.Tags ?? [],
+                },
+            },
+        };
+    }
+
+    private async Task<Scene> SetSound(Scene scene, SceneUpdateData data, CancellationToken ct) {
+        var soundId = data.Stage.Value.SoundId.Value;
+        if (soundId is null) {
+            return scene with {
+                Stage = scene.Stage with {
+                    Sound = null,
+                },
+            };
+        }
+        var sound = await mediaStorage.GetByIdAsync(soundId.Value, ct);
+        return scene with {
+            Stage = scene.Stage with {
+                Sound = new() {
+                    Id = sound?.Id ?? Guid.Empty,
+                    Type = sound?.Type ?? ResourceType.Audio,
+                    Path = sound?.Path ?? string.Empty,
+                    Metadata = sound?.Metadata ?? new(),
+                    Tags = sound?.Tags ?? [],
                 },
             },
         };

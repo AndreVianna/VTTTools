@@ -22,9 +22,15 @@ internal static class SceneSchemaBuilder {
                 panningBuilder.Property(s => s.X).IsRequired().HasDefaultValue(0.0);
                 panningBuilder.Property(s => s.Y).IsRequired().HasDefaultValue(0.0);
             });
+            entity.Property(e => e.Light).IsRequired().HasConversion<string>().HasDefaultValue(Light.Ambient);
+            entity.Property(e => e.Weather).IsRequired().HasConversion<string>().HasDefaultValue(Weather.Clear);
+            entity.Property(e => e.Elevation).IsRequired().HasDefaultValue(0.0f);
             entity.HasOne(e => e.Background).WithMany()
                 .HasForeignKey(e => e.BackgroundId).IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Sound).WithMany()
+                .HasForeignKey(e => e.SoundId).IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
             entity.ComplexProperty(s => s.Grid, gridBuilder => {
                 gridBuilder.IsRequired();
                 gridBuilder.Property(g => g.Type).IsRequired().HasConversion<string>().HasDefaultValue(GridType.NoGrid);

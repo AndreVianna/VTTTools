@@ -40,6 +40,21 @@ public class ClonerTests {
                                 ContentType = "image/png",
                                 ImageSize = new Size(800, 600),
                             },
+                            Tags = ["dungeon", "dark" ],
+                        },
+                        ZoomLevel = 1.0f,
+                        Panning = new(0, 0),
+                        Light = Light.Candlelight,
+                        Weather = Weather.Fog,
+                        Elevation = 10.0f,
+                        Sound = new() {
+                            Type = ResourceType.Audio,
+                            Path = "path/to/scene/sound.mp3",
+                            Metadata = new ResourceMetadata {
+                                ContentType = "audio/mpeg",
+                                Duration = TimeSpan.FromMinutes(3),
+                            },
+                            Tags = ["ambient", "mysterious"],
                         },
                     },
                     Grid = new() {

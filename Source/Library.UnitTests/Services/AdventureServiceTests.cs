@@ -370,6 +370,17 @@ public class AdventureServiceTests {
                         Type = ResourceType.Image,
                         Path = "path/to/image.png",
                         Metadata = new() { ImageSize = new Size(100, 200) },
+                        Tags = ["scene", "background"],
+                    },
+                    Light = Light.Twilight,
+                    Weather = Weather.Clear,
+                    Elevation = 20.0f,
+                    Sound = new Resource {
+                        Id = Guid.CreateVersion7(),
+                        Type = ResourceType.Audio,
+                        Path = "path/to/sound.mp3",
+                        Metadata = new() { ContentType = "audio/mpeg", Duration = TimeSpan.FromMinutes(3) },
+                        Tags = ["ambient", "background"],
                     },
                 },
                 Assets = [

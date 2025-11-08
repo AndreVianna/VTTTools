@@ -18,7 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { toggleTheme, selectTheme } from '@/store/slices/uiSlice';
 import { ScenePropertiesDrawer } from '@/components/scene';
-import type { Scene } from '@/types/domain';
+import type { Scene, Light, Weather } from '@/types/domain';
 
 interface EditorLayoutProps {
   children: React.ReactNode;
@@ -28,6 +28,9 @@ interface EditorLayoutProps {
   onSceneDescriptionChange?: (description: string) => void;
   onScenePublishedChange?: (published: boolean) => void;
   onSceneUpdate?: (updates: Partial<Scene>) => void;
+  backgroundUrl?: string;
+  isUploadingBackground?: boolean;
+  onBackgroundUpload?: (file: File) => void;
 }
 
 export const EditorLayout: React.FC<EditorLayoutProps> = ({
@@ -36,7 +39,11 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
   onSceneNameChange,
   onBackClick,
   onSceneDescriptionChange,
-  onScenePublishedChange
+  onScenePublishedChange,
+  onSceneUpdate,
+  backgroundUrl,
+  isUploadingBackground,
+  onBackgroundUpload
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -192,8 +199,15 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
           open={propertiesPanelOpen}
           onClose={() => setPropertiesPanelOpen(false)}
           scene={scene}
+          onNameChange={onSceneNameChange}
           onDescriptionChange={onSceneDescriptionChange ?? (() => {})}
           onPublishedChange={onScenePublishedChange ?? (() => {})}
+          onLightChange={onSceneUpdate ? (light: Light) => onSceneUpdate({ light }) : undefined}
+          onWeatherChange={onSceneUpdate ? (weather: Weather) => onSceneUpdate({ weather }) : undefined}
+          onElevationChange={onSceneUpdate ? (elevation: number) => onSceneUpdate({ elevation }) : undefined}
+          backgroundUrl={backgroundUrl}
+          isUploadingBackground={isUploadingBackground}
+          onBackgroundUpload={onBackgroundUpload}
         />
       )}
 

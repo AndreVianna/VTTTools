@@ -127,7 +127,7 @@ internal static class DbContextHelper {
     public static AdventureEntity CreateTestAdventureEntity(string name, bool isPublished = false, bool isPublic = false, bool isOneShot = false, AdventureStyle style = AdventureStyle.OpenWorld, Guid? ownerId = null, Guid? backgroundId = null)
         => CreateTestAdventureEntity(Guid.CreateVersion7(), name, isPublished, isPublic, isOneShot, style, ownerId, backgroundId);
 
-    public static SceneEntity CreateTestSceneEntity(Guid adventureId, string name, Guid? stageId = null)
+    public static SceneEntity CreateTestSceneEntity(Guid adventureId, string name, Guid? stageId = null, Guid? soundId = null)
         => new() {
             AdventureId = adventureId,
             Name = name,
@@ -135,6 +135,10 @@ internal static class DbContextHelper {
             ZoomLevel = 1.0f,
             Panning = new(0, 0),
             BackgroundId = stageId ?? Guid.CreateVersion7(),
+            SoundId = soundId ?? Guid.CreateVersion7(),
+            Light = Light.Nighttime,
+            Weather = Weather.Fog,
+            Elevation = 20.0f,
             Grid = new() {
                 Type = GridType.Square,
                 CellSize = new(1, 1),
@@ -238,6 +242,22 @@ internal static class DbContextHelper {
                 },
                 ZoomLevel = 1,
                 Panning = new(0, 0),
+                Sound = new() {
+                    Id = Guid.CreateVersion7(),
+                    Type = ResourceType.Audio,
+                    Path = "asset/5678",
+                    Metadata = new() {
+                        FileName = "some_file.mp3",
+                        ImageSize = new(0, 0),
+                        ContentType = "audio/mpeg",
+                        Duration = TimeSpan.FromMinutes(2),
+                        FileLength = 2000,
+                    },
+                    Tags = [],
+                },
+                Light = Light.Nighttime,
+                Weather = Weather.Fog,
+                Elevation = 20.0f,
             },
             Grid = new() {
                 Type = GridType.Square,

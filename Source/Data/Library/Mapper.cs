@@ -36,6 +36,10 @@ internal static class Mapper {
                 Background = entity.Background != null ? entity.Background.ToModel() : null,
                 ZoomLevel = entity.ZoomLevel,
                 Panning = entity.Panning,
+                Light = entity.Light,
+                Weather = entity.Weather,
+                Elevation = entity.Elevation,
+                Sound = entity.Sound != null ? entity.Sound.ToModel() : null,
             },
             Grid = entity.Grid,
             Assets = entity.SceneAssets.AsQueryable().Select(AsSceneAsset!).ToList(),
@@ -149,6 +153,10 @@ internal static class Mapper {
                 Background = entity.Background?.ToModel(),
                 ZoomLevel = entity.ZoomLevel,
                 Panning = entity.Panning,
+                Light = entity.Light,
+                Weather = entity.Weather,
+                Elevation = entity.Elevation,
+                Sound = entity.Sound?.ToModel(),
             },
             Grid = entity.Grid,
             Assets = [.. entity.SceneAssets.Select(sa => sa.ToModel()!)],
@@ -168,6 +176,10 @@ internal static class Mapper {
             BackgroundId = model.Stage.Background?.Id,
             ZoomLevel = model.Stage.ZoomLevel,
             Panning = model.Stage.Panning,
+            Light = model.Stage.Light,
+            Weather = model.Stage.Weather,
+            Elevation = model.Stage.Elevation,
+            SoundId = model.Stage.Sound?.Id,
             Grid = model.Grid,
             SceneAssets = model.Assets?.ConvertAll(sa => ToEntity(sa, model.Id)) ?? [],
             Walls = model.Walls?.ConvertAll(sw => ToEntity(sw, model.Id)) ?? [],
@@ -184,6 +196,10 @@ internal static class Mapper {
         entity.BackgroundId = model.Stage.Background?.Id;
         entity.ZoomLevel = model.Stage.ZoomLevel;
         entity.Panning = model.Stage.Panning;
+        entity.Light = model.Stage.Light;
+        entity.Weather = model.Stage.Weather;
+        entity.Elevation = model.Stage.Elevation;
+        entity.SoundId = model.Stage.Sound?.Id;
         entity.Grid = model.Grid;
 
         // Update SceneAssets
