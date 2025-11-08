@@ -13,7 +13,6 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
     public async Task<Asset[]> GetAssetsAsync(Guid userId, AssetKind? kind, CreatureCategory? creatureCategory, string? search, bool? published, string? owner, CancellationToken ct = default) {
         var assets = await assetStorage.GetAllAsync(ct);
 
-        // Apply ownership filter first
         if (owner == "mine") {
             assets = [.. assets.Where(a => a.OwnerId == userId)];
         }
@@ -21,27 +20,22 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             assets = [.. assets.Where(a => a.IsPublic)];
         }
         else if (owner == "all") {
-            // Show user's assets + public published assets
             assets = [.. assets.Where(a => a.OwnerId == userId || (a.IsPublic && a.IsPublished))];
         }
         else {
-            // Default: only user's own assets (when owner not specified)
             assets = [.. assets.Where(a => a.OwnerId == userId)];
         }
 
-        // Filter by kind
         if (kind.HasValue) {
             assets = [.. assets.Where(a => a.Kind == kind.Value)];
         }
 
-        // Filter by creature category (only for CreatureAssets)
         if (creatureCategory.HasValue) {
             assets = [.. assets.Where(a =>
                 a is CreatureAsset creature && creature.Category == creatureCategory.Value
             )];
         }
 
-        // Filter by search (name or description)
         if (!string.IsNullOrWhiteSpace(search)) {
             var searchLower = search.ToLowerInvariant();
             assets = [.. assets.Where(a =>
@@ -50,7 +44,6 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
             )];
         }
 
-        // Filter by published status
         if (published.HasValue) {
             assets = [.. assets.Where(a => a.IsPublished == published.Value)];
         }
@@ -60,15 +53,9 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
 
     /// <inheritdoc />
     public async Task<(Asset[] assets, int totalCount)> GetAssetsPagedAsync(Guid userId, AssetKind? kind, CreatureCategory? creatureCategory, string? search, bool? published, string? owner, int skip, int take, CancellationToken ct = default) {
-        // Get filtered assets (reuse existing logic)
         var allFilteredAssets = await GetAssetsAsync(userId, kind, creatureCategory, search, published, owner, ct);
-
-        // Get total count before pagination
         var totalCount = allFilteredAssets.Length;
-
-        // Apply pagination
         var pagedAssets = allFilteredAssets.Skip(skip).Take(take).ToArray();
-
         return (pagedAssets, totalCount);
     }
 
@@ -82,12 +69,10 @@ public class AssetService(IAssetStorage assetStorage, IMediaStorage mediaStorage
         if (result.HasErrors)
             return result;
 
-        // Check for duplicate name for this owner
         var existing = await assetStorage.GetByNameAndOwnerAsync(data.Name, userId, ct);
         if (existing != null)
             return Result.Failure($"Duplicate asset name. An asset named '{data.Name}' already exists for this user.");
 
-        // Load Token entities for each AssetToken
         var tokens = new List<AssetToken>();
         foreach (var assetResource in data.Tokens) {
             var resource = await mediaStorage.GetByIdAsync(assetResource.TokenId, ct);

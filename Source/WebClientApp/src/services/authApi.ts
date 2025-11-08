@@ -18,13 +18,11 @@ import type {
 } from '@/types/domain';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
 
-// Authentication API using existing WebApp ASP.NET Core Identity
 export const authApi = createApi({
   reducerPath: 'authApi',
   baseQuery: createEnhancedBaseQuery('/api/auth'),
   tagTypes: ['User'],
   endpoints: (builder) => ({
-    // Login using existing Identity endpoints
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
         url: '/login',
@@ -34,7 +32,6 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
-    // Logout using existing Identity endpoints
     logout: builder.mutation<void, void>({
       query: () => ({
         url: '/logout',
@@ -43,16 +40,13 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
-    // Get current authenticated user
     getCurrentUser: builder.query<User, void>({
       query: () => '/me',
       providesTags: ['User'],
       transformResponse: (response: any) => {
-        // Backend returns AuthResponse { Success, User }, extract User
         if (response?.User || response?.user) {
           return response.User || response.user;
         }
-        // If response is already a User object (direct format)
         return response;
       },
       transformErrorResponse: (response, _meta, _arg) => {
@@ -60,7 +54,6 @@ export const authApi = createApi({
       },
     }),
 
-    // Register new user using existing Identity
     register: builder.mutation<RegisterResponse, RegisterRequest>({
       query: (registrationData) => ({
         url: '/register',
@@ -69,7 +62,6 @@ export const authApi = createApi({
       }),
     }),
 
-    // Password reset using existing Identity
     resetPassword: builder.mutation<{ success: boolean }, ForgotPasswordRequest>({
       query: (data) => ({
         url: '/password/forgot',
@@ -78,7 +70,6 @@ export const authApi = createApi({
       }),
     }),
 
-    // Confirm password reset
     confirmResetPassword: builder.mutation<{ success: boolean }, ResetPasswordRequest>({
       query: (data) => ({
         url: '/password/reset',
@@ -87,7 +78,6 @@ export const authApi = createApi({
       }),
     }),
 
-    // External login providers (Google, Microsoft, GitHub)
     externalLogin: builder.mutation<{ loginUrl: string }, { provider: string; returnUrl?: string }>({
       query: ({ provider, returnUrl }) => ({
         url: '/external-login',
@@ -96,7 +86,6 @@ export const authApi = createApi({
       }),
     }),
 
-    // Refresh authentication status
     refreshAuth: builder.mutation<User, void>({
       query: () => ({
         url: '/refresh',
@@ -105,7 +94,6 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
-    // Two-Factor Authentication Setup
     setupTwoFactor: builder.mutation<TwoFactorSetupResponse, void>({
       query: () => ({
         url: '/two-factor/setup',
@@ -114,7 +102,6 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
-    // Enable Two-Factor Authentication
     enableTwoFactor: builder.mutation<{ success: boolean; recoveryCodes: string[] }, { code: string }>({
       query: (data) => ({
         url: '/two-factor/enable',
@@ -124,7 +111,6 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
-    // Disable Two-Factor Authentication
     disableTwoFactor: builder.mutation<{ success: boolean }, { password: string }>({
       query: (data) => ({
         url: '/two-factor/disable',
@@ -134,7 +120,6 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
-    // Two-Factor Login Verification
     verifyTwoFactor: builder.mutation<LoginResponse, TwoFactorVerificationRequest>({
       query: (data) => ({
         url: '/two-factor/verify',
@@ -144,7 +129,6 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
-    // Two-Factor Recovery Code Login
     verifyRecoveryCode: builder.mutation<LoginResponse, TwoFactorRecoveryRequest>({
       query: (data) => ({
         url: '/two-factor/recovery',
@@ -154,7 +138,6 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
-    // Generate new recovery codes
     generateRecoveryCodes: builder.mutation<{ recoveryCodes: string[] }, void>({
       query: () => ({
         url: '/two-factor/recovery-codes',
@@ -162,12 +145,10 @@ export const authApi = createApi({
       }),
     }),
 
-    // Get available external login providers
     getExternalProviders: builder.query<ExternalLoginInfo[], void>({
       query: () => '/external-providers',
     }),
 
-    // Handle external login callback
     externalLoginCallback: builder.mutation<LoginResponse, ExternalLoginCallbackRequest>({
       query: (data) => ({
         url: '/external-login/callback',
@@ -177,7 +158,6 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
-    // Link external login to existing account
     linkExternalLogin: builder.mutation<{ success: boolean }, LinkExternalLoginRequest>({
       query: (data) => ({
         url: '/external-login/link',
@@ -187,7 +167,6 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
-    // Unlink external login
     unlinkExternalLogin: builder.mutation<{ success: boolean }, { provider: string }>({
       query: (data) => ({
         url: '/external-login/unlink',
@@ -197,7 +176,6 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
-    // Change password
     changePassword: builder.mutation<{ success: boolean }, ChangePasswordRequest>({
       query: (data) => ({
         url: '/change-password',
@@ -206,7 +184,6 @@ export const authApi = createApi({
       }),
     }),
 
-    // Update profile
     updateProfile: builder.mutation<User, UpdateProfileRequest>({
       query: (data) => ({
         url: '/profile',
@@ -216,7 +193,6 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
-    // Email confirmation
     confirmEmail: builder.mutation<{ success: boolean }, { userId: string; token: string }>({
       query: (data) => ({
         url: '/confirm-email',
@@ -225,7 +201,6 @@ export const authApi = createApi({
       }),
     }),
 
-    // Resend email confirmation
     resendEmailConfirmation: builder.mutation<{ success: boolean }, { email: string }>({
       query: (data) => ({
         url: '/resend-confirmation-email',

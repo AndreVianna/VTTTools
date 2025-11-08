@@ -1,13 +1,3 @@
-// GENERATED: 2025-10-07 by Claude Code Phase 5 Step 2
-// EPIC: EPIC-001 Phase 5 - Asset Library UI
-// LAYER: UI (Page Component)
-
-/**
- * Asset Library Page
- * Browse, filter, and manage asset templates (Objects and Creatures)
- * Phase 5: Asset Library UI with Material-UI Card grid
- */
-
 import React, { useState } from 'react';
 import {
     Box,
@@ -38,21 +28,11 @@ import { AssetFilterPanel, AssetFilters, AssetSearchBar, AssetEditDialog, AssetC
 import { useDebounce } from '@/hooks/useDebounce';
 import { getDefaultToken, getPortrait, getResourceUrl } from '@/utils/assetHelpers';
 
-/**
- * Asset Library Page Component
- * Displays asset templates in a responsive Material-UI Card grid
- *
- * THEME SUPPORT: Adapts to dark/light mode
- * - Dark mode: Card backgrounds dark, text light
- * - Light mode: Card backgrounds light, text dark
- */
 export const AssetLibraryPage: React.FC = () => {
     const theme = useTheme();
 
-    // Kind selection via Tabs (major filter) - defaults to Objects
     const [selectedKind, setSelectedKind] = useState<AssetKind>(AssetKind.Object);
 
-    // Comprehensive filter state
     const [filters, setFilters] = useState<AssetFilters>({
         showMine: true,
         showOthers: true,
@@ -62,33 +42,25 @@ export const AssetLibraryPage: React.FC = () => {
         showDraft: true
     });
 
-    // Search state with 300ms debounce
     const [searchQuery, setSearchQuery] = useState('');
     const debouncedSearch = useDebounce(searchQuery, 300);
 
-    // Pagination state (12 assets per page)
     const [page, setPage] = useState(1);
     const pageSize = 12;
 
-    // Preview dialog state
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     const [previewOpen, setPreviewOpen] = useState(false);
 
-    // Create dialog state
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-    // Build query params from selected kind and filters
     const queryParams: any = {};
 
-    // Kind from Tabs (always set now, no 'all' option)
     queryParams.kind = selectedKind;
 
-    // Creature category
     if (filters.creatureCategory) {
         queryParams.creatureCategory = filters.creatureCategory;
     }
 
-    // Ownership: Determine 'owner' param based on checkboxes
     if (filters.showMine && !filters.showOthers) {
         queryParams.owner = 'mine';
     } else if (filters.showOthers && !filters.showMine) {
@@ -96,38 +68,30 @@ export const AssetLibraryPage: React.FC = () => {
     } else if (filters.showMine && filters.showOthers) {
         queryParams.owner = 'all';
     }
-    // If neither checked, no results (don't send param, filter client-side)
 
-    // Search
     if (debouncedSearch) {
         queryParams.search = debouncedSearch;
     }
 
-    // Published status
     if (filters.showPublished && !filters.showDraft) {
         queryParams.published = true;
     } else if (filters.showDraft && !filters.showPublished) {
         queryParams.published = false;
     }
 
-    // Fetch assets from API with filters
     const { data: allAssets, isLoading, error, refetch } = useGetAssetsQuery(queryParams);
 
-    // Client-side filtering for visibility/status checkboxes (when showMine is checked)
     const filteredAssets = React.useMemo(() => {
         if (!allAssets) return [];
 
-        // Apply visibility/status filters when "Mine" checkbox is checked
         if (filters.showMine) {
             return allAssets.filter(asset => {
-                // Check visibility filter
                 const visibilityMatch =
                     (filters.showPublic && asset.isPublic) ||
                     (filters.showPrivate && !asset.isPublic);
 
-                // Check status filter
                 const statusMatch =
-                    (filters.showPublished && filters.showDraft) || // Both checked, show all
+                    (filters.showPublished && filters.showDraft) ||
                     (filters.showPublished && asset.isPublished) ||
                     (filters.showDraft && !asset.isPublished);
 
@@ -135,18 +99,15 @@ export const AssetLibraryPage: React.FC = () => {
             });
         }
 
-        // For "Others" only, no client-side filtering needed (backend already filtered to public published)
         return allAssets;
     }, [allAssets, filters.showMine, filters.showPublic, filters.showPrivate, filters.showPublished, filters.showDraft]);
 
-    // Client-side pagination (slice assets for current page)
     const totalAssets = filteredAssets?.length || 0;
     const totalPages = Math.ceil(totalAssets / pageSize);
     const startIndex = (page - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     const assets = filteredAssets?.slice(startIndex, endIndex);
 
-    // Sync selectedKind with filters.kind for query
     React.useEffect(() => {
         setFilters(prev => ({
             ...prev,
@@ -154,12 +115,10 @@ export const AssetLibraryPage: React.FC = () => {
         }));
     }, [selectedKind]);
 
-    // Reset to page 1 when filters change
     React.useEffect(() => {
         setPage(1);
     }, [filters, debouncedSearch, selectedKind]);
 
-    // Get creature category badge color
     const getCreatureCategoryColor = (category: CreatureCategory): string => {
         switch (category) {
             case CreatureCategory.Character:
@@ -173,7 +132,6 @@ export const AssetLibraryPage: React.FC = () => {
 
     return (
         <Container maxWidth="xl" sx={{ py: 4 }}>
-            {/* Page Header */}
             <Box sx={{ mb: 4 }}>
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="h4" component="h1" gutterBottom>
@@ -184,7 +142,6 @@ export const AssetLibraryPage: React.FC = () => {
                     </Typography>
                 </Box>
 
-                {/* Asset Kind Tabs (Major Filter) */}
                 <Tabs
                     value={selectedKind}
                     onChange={(_, newValue) => setSelectedKind(newValue)}
@@ -194,7 +151,6 @@ export const AssetLibraryPage: React.FC = () => {
                     <Tab label="Creatures" value={AssetKind.Creature} />
                 </Tabs>
 
-                {/* Search Bar */}
                 <AssetSearchBar
                     value={searchQuery}
                     onChange={setSearchQuery}
@@ -202,9 +158,7 @@ export const AssetLibraryPage: React.FC = () => {
                 />
             </Box>
 
-            {/* Main Content Grid: Filter Panel + Asset Cards */}
             <Grid container spacing={3}>
-                {/* Filter Panel Sidebar */}
                 <Grid size={{ xs: 12, md: 3 }}>
                     <AssetFilterPanel
                         filters={filters}
@@ -212,9 +166,7 @@ export const AssetLibraryPage: React.FC = () => {
                     />
                 </Grid>
 
-                {/* Asset Cards Area */}
                 <Grid size={{ xs: 12, md: 9 }}>
-                    {/* Results Count */}
                     {allAssets && !isLoading && (
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                             {totalAssets} {totalAssets === 1 ? 'asset' : 'assets'} found
@@ -222,7 +174,6 @@ export const AssetLibraryPage: React.FC = () => {
                         </Typography>
                     )}
 
-            {/* Loading State */}
             {isLoading && (
                 <Grid container spacing={3}>
                     {[...Array(12)].map((_, index) => (
@@ -242,7 +193,6 @@ export const AssetLibraryPage: React.FC = () => {
                 </Grid>
             )}
 
-            {/* Error State */}
             {error && (
                 <Alert
                     severity="error"
@@ -257,11 +207,9 @@ export const AssetLibraryPage: React.FC = () => {
                 </Alert>
             )}
 
-            {/* Asset Cards Grid (always shown with virtual "Add" card) */}
             {!isLoading && !error && assets && (
                 <>
                     <Grid container spacing={3}>
-                        {/* Virtual "Add" Card (always first) */}
                         <Grid size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
                             <Card
                                 sx={{
@@ -283,14 +231,12 @@ export const AssetLibraryPage: React.FC = () => {
                                     setCreateDialogOpen(true);
                                 }}
                             >
-                                {/* Title: "Add Object" or "Add Creature" */}
                                 <CardContent sx={{ pb: 1 }}>
                                     <Typography variant="subtitle2" component="h2" noWrap fontWeight={600} color="primary">
                                         Add {selectedKind === AssetKind.Object ? 'Object' : 'Creature'}
                                     </Typography>
                                 </CardContent>
 
-                                {/* Plus Icon in Image Area */}
                                 <CardMedia
                                     component="div"
                                     sx={{
@@ -321,12 +267,10 @@ export const AssetLibraryPage: React.FC = () => {
                                     </Box>
                                 </CardMedia>
 
-                                {/* Empty badge area for consistent height */}
                                 <CardContent sx={{ pt: 1, pb: 1, flexGrow: 1 }}>
                                     <Box sx={{ minHeight: '24px' }} />
                                 </CardContent>
 
-                                {/* Empty actions area for consistent height */}
                                 <CardActions sx={{ pt: 0, px: 2, pb: 2 }}>
                                     <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
                                         &nbsp;
@@ -335,7 +279,6 @@ export const AssetLibraryPage: React.FC = () => {
                             </Card>
                         </Grid>
 
-                        {/* Regular Asset Cards */}
                         {assets.map((asset) => (
                             <Grid key={asset.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
                                 <Card
@@ -355,14 +298,12 @@ export const AssetLibraryPage: React.FC = () => {
                                         setPreviewOpen(true);
                                     }}
                                 >
-                                    {/* Asset Name - Above Image */}
                                     <CardContent sx={{ pb: 1 }}>
                                         <Typography variant="subtitle2" component="h2" noWrap fontWeight={600}>
                                             {asset.name}
                                         </Typography>
                                     </CardContent>
 
-                                    {/* Asset Image with Description Tooltip */}
                                     <Tooltip title={asset.description} arrow placement="top">
                                         <CardMedia
                                             component="div"
@@ -408,10 +349,8 @@ export const AssetLibraryPage: React.FC = () => {
                                         </CardMedia>
                                     </Tooltip>
 
-                                    {/* Asset Info - Badges (no Kind badge - redundant with Tabs) */}
                                     <CardContent sx={{ pt: 1, pb: 1, flexGrow: 1 }}>
                                         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', minHeight: '24px' }}>
-                                            {/* Creature Category Badge (only for Creatures) */}
                                             {asset.kind === AssetKind.Creature && (asset as CreatureAsset) && (
                                                 <Chip
                                                     label={(asset as CreatureAsset).category}
@@ -424,7 +363,6 @@ export const AssetLibraryPage: React.FC = () => {
                                                 />
                                             )}
 
-                                            {/* Published Badge */}
                                             {asset.isPublished && (
                                                 <Chip
                                                     label="Published"
@@ -437,7 +375,6 @@ export const AssetLibraryPage: React.FC = () => {
                                         </Box>
                                     </CardContent>
 
-                                    {/* Card Actions */}
                                     <CardActions sx={{ pt: 0, px: 2, pb: 2 }}>
                                         <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
                                             {asset.size
@@ -454,7 +391,6 @@ export const AssetLibraryPage: React.FC = () => {
                         ))}
                     </Grid>
 
-                    {/* Pagination (show if multiple pages) */}
                     {totalPages > 1 && (
                         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
                             <Pagination

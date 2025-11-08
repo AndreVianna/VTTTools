@@ -3,10 +3,8 @@ import { addError, VTTError } from '@/store/slices/errorSlice';
 import { addNotification } from '@/store/slices/uiSlice';
 import React from 'react';
 
-// Error types for better categorization
 export type ErrorType = VTTError['type'];
 
-// Enhanced error interface with retry capabilities
 export interface EnhancedError extends Error {
   type?: ErrorType;
   code?: string;
@@ -15,7 +13,6 @@ export interface EnhancedError extends Error {
   userFriendlyMessage?: string;
 }
 
-// API Error response structure
 export interface ApiErrorResponse {
   message: string;
   code?: string;
@@ -23,9 +20,7 @@ export interface ApiErrorResponse {
   details?: any;
 }
 
-// Global error handler for unhandled errors
 export const setupGlobalErrorHandling = () => {
-  // Handle unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
     console.error('Unhandled promise rejection:', event.reason);
 
@@ -39,13 +34,10 @@ export const setupGlobalErrorHandling = () => {
       userFriendlyMessage: 'An unexpected error occurred. Please try refreshing the page.',
     });
 
-    // Prevent default browser error reporting
     event.preventDefault();
   });
 
-  // Handle unhandled errors
   window.addEventListener('error', (event) => {
-    // Ignore errors from browser extensions (React DevTools, etc.)
     if (event.filename && (
       event.filename.includes('chrome-extension://') ||
       event.filename.includes('moz-extension://') ||
@@ -54,7 +46,6 @@ export const setupGlobalErrorHandling = () => {
       return;
     }
 
-    // Ignore React DevTools semver errors
     if (event.error?.message?.includes('not valid semver')) {
       return;
     }
@@ -75,7 +66,6 @@ export const setupGlobalErrorHandling = () => {
   });
 };
 
-// Main error handler function
 export const handleError = (error: unknown, options: {
   type?: ErrorType;
   context?: any;
@@ -87,7 +77,6 @@ export const handleError = (error: unknown, options: {
 } = {}) => {
   const processedError = processError(error, options);
 
-  // Add to error store
   const errorPayload: any = {
     type: processedError.type,
     message: processedError.message,
@@ -95,7 +84,6 @@ export const handleError = (error: unknown, options: {
     userFriendlyMessage: processedError.userFriendlyMessage,
   };
 
-  // Only add optional fields if they have values
   if (processedError.details !== undefined) {
     errorPayload.details = processedError.details;
   }
@@ -105,16 +93,14 @@ export const handleError = (error: unknown, options: {
 
   store.dispatch(addError(errorPayload));
 
-  // Show user notification if requested
   if (options.showNotification !== false) {
     store.dispatch(addNotification({
       type: 'error',
       message: processedError.userFriendlyMessage || processedError.message,
-      duration: 8000, // Longer duration for errors
+      duration: 8000,
     }));
   }
 
-  // Log to console for development
   if (process.env.NODE_ENV === 'development') {
     console.group('🚨 VTT Tools Error');
     console.error('Original error:', error);
@@ -126,7 +112,6 @@ export const handleError = (error: unknown, options: {
   return processedError;
 };
 
-// Process different types of errors into a consistent format
 const processError = (error: unknown, options: {
   type?: ErrorType;
   context?: any;
@@ -142,12 +127,10 @@ const processError = (error: unknown, options: {
   retryable: boolean;
   userFriendlyMessage: string;
 } => {
-  // Handle API/fetch errors
   if (error && typeof error === 'object' && 'status' in error) {
     return processApiError(error as any, options);
   }
 
-  // Handle Error objects
   if (error instanceof Error) {
     const result: any = {
       type: options.type || 'system',
@@ -172,7 +155,6 @@ const processError = (error: unknown, options: {
     return result;
   }
 
-  // Handle string errors
   if (typeof error === 'string') {
     const result: any = {
       type: options.type || 'system',
@@ -188,7 +170,6 @@ const processError = (error: unknown, options: {
     return result;
   }
 
-  // Handle unknown errors
   const result: any = {
     type: options.type || 'system',
     message: 'An unknown error occurred',
@@ -207,7 +188,6 @@ const processError = (error: unknown, options: {
   return result;
 };
 
-// Process API errors with proper typing and error mapping
 const processApiError = (error: {
   status?: number;
   data?: ApiErrorResponse;
@@ -228,7 +208,6 @@ const processApiError = (error: {
   const status = error.status;
   const data = error.data;
 
-  // Determine error type based on HTTP status
   let type: ErrorType = options.type || 'network';
   let retryable = options.retryable ?? true;
   let userFriendlyMessage = options.userFriendlyMessage;
@@ -302,7 +281,6 @@ const processApiError = (error: {
   return result;
 };
 
-// Get default user-friendly messages for error types
 const getDefaultUserMessage = (type: ErrorType): string => {
   switch (type) {
     case 'network':
@@ -326,7 +304,6 @@ const getDefaultUserMessage = (type: ErrorType): string => {
   }
 };
 
-// Retry mechanism for retryable errors
 export const retryOperation = async <T>(
   operation: () => Promise<T>,
   options: {
@@ -352,18 +329,16 @@ export const retryOperation = async <T>(
       lastError = error;
 
       if (attempt === maxRetries) {
-        break; // Don't retry on last attempt
+        break;
       }
 
-      // Check if error is retryable
       const processedError = processError(error, {});
       if (!processedError.retryable) {
-        break; // Don't retry non-retryable errors
+        break;
       }
 
       onRetry?.(attempt + 1, error);
 
-      // Calculate delay with optional exponential backoff
       const currentDelay = exponentialBackoff
         ? delay * Math.pow(2, attempt)
         : delay;
@@ -375,13 +350,10 @@ export const retryOperation = async <T>(
   throw lastError;
 };
 
-// Error boundary helper for React components
 export const withErrorBoundary = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
   const WrappedComponent = (props: P) => {
-    // This would typically use React Error Boundary
-    // For now, just return the component
     return React.createElement(Component, props);
   };
 
@@ -390,7 +362,6 @@ export const withErrorBoundary = <P extends object>(
   return WrappedComponent;
 };
 
-// Validation error helper
 export const createValidationError = (
   field: string,
   message: string,
@@ -405,7 +376,6 @@ export const createValidationError = (
   return error;
 };
 
-// Network error helper
 export const createNetworkError = (
   message: string,
   context?: any
@@ -419,7 +389,6 @@ export const createNetworkError = (
   return error;
 };
 
-// Export commonly used error handlers
 export const handleApiError = (error: unknown, context?: any) =>
   handleError(error, { type: 'network', context, showNotification: true });
 

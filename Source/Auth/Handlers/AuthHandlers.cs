@@ -11,7 +11,6 @@ public static class AuthHandlers {
         if (response.Success)
             return Results.Ok(response);
 
-        // Return structured error for login failures
         var errors = new Dictionary<string, string[]> {
             [""] = [response.Message ?? "Login failed"]
         };
@@ -28,14 +27,11 @@ public static class AuthHandlers {
         if (response.Success)
             return Results.Ok(response);
 
-        // Return proper HTTP status based on error type
         if (response.Message?.Contains("DuplicatedUser") == true || response.Message?.Contains("already exists") == true)
             return Results.Conflict(new { error = response.Message });
 
-        // Parse Identity validation errors into ValidationProblemDetails format
         var errors = new Dictionary<string, string[]>();
 
-        // Check for specific error types from Identity
         if (response.Message?.Contains("Password") == true) {
             errors["password"] = [response.Message];
         }
@@ -46,7 +42,6 @@ public static class AuthHandlers {
             errors["name"] = [response.Message];
         }
         else {
-            // Generic error
             errors[""] = [response.Message ?? "Registration failed"];
         }
 
@@ -72,7 +67,6 @@ public static class AuthHandlers {
         if (response.Success)
             return Results.Ok(response);
 
-        // Return structured error if user not found
         var errors = new Dictionary<string, string[]> {
             ["userId"] = [response.Message ?? "User not found"]
         };

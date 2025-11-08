@@ -100,7 +100,6 @@ export const sceneApi = createApi({
                 method: 'PATCH',
                 body: request
             })
-            // No invalidatesTags - will manually refetch in component
         }),
 
         deleteScene: builder.mutation<void, string>({

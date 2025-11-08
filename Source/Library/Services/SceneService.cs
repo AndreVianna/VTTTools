@@ -245,7 +245,6 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         if (invalidIndices.Count > 0)
             return Result.Failure($"Assets with indices {string.Join(", ", invalidIndices)} not found");
 
-        // Apply all updates
         foreach (var update in data.Updates) {
             var assetIndex = scene.Assets.FindIndex(a => a.Index == update.Index);
             if (assetIndex >= 0) {
@@ -311,7 +310,6 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
         if (invalidIndices.Count > 0)
             return Result.Failure($"Assets with indices {string.Join(", ", invalidIndices)} not found");
 
-        // Remove all assets with matching indices
         scene.Assets.RemoveAll(a => assetIndices.Contains(a.Index));
 
         await sceneStorage.UpdateAsync(scene, ct);

@@ -8,13 +8,11 @@ import type {
   Scene
 } from '@/types/domain';
 
-// Adventures API consuming existing Library microservice
 export const adventuresApi = createApi({
   reducerPath: 'adventuresApi',
   baseQuery: createEnhancedBaseQuery('/api/adventures'),
   tagTypes: ['Adventure', 'AdventureScenes'],
   endpoints: (builder) => ({
-    // Adventure management endpoints
     getAdventures: builder.query<Adventure[], void>({
       query: () => '',
       providesTags: ['Adventure'],
@@ -25,17 +23,15 @@ export const adventuresApi = createApi({
       providesTags: (_result, _error, id) => [{ type: 'Adventure', id }],
     }),
 
-    // Create adventure using existing CreateAdventureRequest from Domain.Library.Adventures.ApiContracts
     createAdventure: builder.mutation<Adventure, CreateAdventureRequest>({
       query: (request) => ({
         url: '',
         method: 'POST',
-        body: request, // Matches existing C# contract exactly
+        body: request,
       }),
       invalidatesTags: ['Adventure'],
     }),
 
-    // Update adventure using existing UpdateAdventureRequest from Domain layer
     updateAdventure: builder.mutation<Adventure, { id: string; request: UpdateAdventureRequest }>({
       query: ({ id, request }) => ({
         url: `/${id}`,
@@ -53,7 +49,6 @@ export const adventuresApi = createApi({
       invalidatesTags: ['Adventure'],
     }),
 
-    // Adventure cloning
     cloneAdventure: builder.mutation<Adventure, { id: string; name?: string }>({
       query: ({ id, name }) => ({
         url: `/${id}/clone`,
@@ -63,8 +58,6 @@ export const adventuresApi = createApi({
       invalidatesTags: ['Adventure'],
     }),
 
-    // Adventure-scoped Scene endpoints (operations through Adventure aggregate)
-    // Uses 'AdventureScenes' tag to avoid conflict with sceneApi's 'Scene' tag
     getScenes: builder.query<Scene[], string>({
       query: (adventureId) => `/${adventureId}/scenes`,
       providesTags: (_result, _error, adventureId) => [
@@ -94,7 +87,6 @@ export const adventuresApi = createApi({
       ],
     }),
 
-    // Search adventures
     searchAdventures: builder.query<Adventure[], {
       query?: string;
       type?: string;
