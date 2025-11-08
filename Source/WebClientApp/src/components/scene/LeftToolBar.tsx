@@ -1,23 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, IconButton, Drawer, Tooltip, useTheme, Typography } from '@mui/material';
+import { Box, IconButton, Drawer, Tooltip, useTheme } from '@mui/material';
 import {
   Wallpaper as BackgroundIcon,
   GridOn as GridIcon,
-  Terrain as RegionsIcon,
+  Layers as RegionsIcon,
   BorderAll as WallsIcon,
   MeetingRoom as OpeningsIcon,
   ViewInAr as ObjectsIcon,
   Pets as CreaturesIcon,
   Person as PlayersIcon,
   AutoAwesome as EffectsIcon,
-  Lightbulb as LightSourcesIcon,
-  Layers as OverlaysIcon,
-  Cloud as WeatherIcon,
-  LightMode as GlobalLightingIcon,
+  LightMode as SourcesIcon,
   VisibilityOff as FogOfWarIcon
 } from '@mui/icons-material';
 import { BackgroundPanel, GridPanel, WallsPanel, ObjectsPanel, CreaturesPanel, SourcesPanel, RegionsPanel } from './panels';
-import type { SourcePlacementProperties, RegionPreset } from './panels';
+import type { SourcePlacementProperties } from './panels';
 import { AssetPicker } from '@/components/common';
 import { GridConfig } from '@/utils/gridCalculator';
 import { AssetKind } from '@/types/domain';
@@ -34,9 +31,6 @@ export type PanelType =
   | 'players'
   | 'effects'
   | 'lightSources'
-  | 'overlays'
-  | 'weather'
-  | 'globalLighting'
   | 'fogOfWar';
 
 export interface LeftToolBarProps {
@@ -184,10 +178,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
     { key: 'creatures', icon: CreaturesIcon, label: 'Creatures' },
     { key: 'players', icon: PlayersIcon, label: 'Players' },
     { key: 'effects', icon: EffectsIcon, label: 'Effects' },
-    { key: 'lightSources', icon: LightSourcesIcon, label: 'Light Sources' },
-    { key: 'overlays', icon: OverlaysIcon, label: 'Overlays' },
-    { key: 'weather', icon: WeatherIcon, label: 'Weather' },
-    { key: 'globalLighting', icon: GlobalLightingIcon, label: 'Global Lighting' },
+    { key: 'lightSources', icon: SourcesIcon, label: 'Sources' },
     { key: 'fogOfWar', icon: FogOfWarIcon, label: 'Fog of War' }
   ];
 
@@ -337,24 +328,6 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               onPlaceSource={onPlaceSource || (() => {})}
               {...(onEditSource ? { onEditSource } : {})}
             />
-          )}
-          {activePanel === 'overlays' && (
-            <Box>
-              <Box sx={{ mb: 2, fontWeight: 'bold' }}>Overlays</Box>
-              <Box>UI overlay controls</Box>
-            </Box>
-          )}
-          {activePanel === 'weather' && (
-            <Box>
-              <Box sx={{ mb: 2, fontWeight: 'bold' }}>Weather</Box>
-              <Box>Weather region controls</Box>
-            </Box>
-          )}
-          {activePanel === 'globalLighting' && (
-            <Box>
-              <Box sx={{ mb: 2, fontWeight: 'bold' }}>Global Lighting</Box>
-              <Box>Global lighting mode controls</Box>
-            </Box>
           )}
           {activePanel === 'fogOfWar' && (
             <Box>
