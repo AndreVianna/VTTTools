@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Box, IconButton, Drawer, Tooltip, useTheme, Typography } from '@mui/material';
 import {
   Wallpaper as BackgroundIcon,
-  Terrain as ElevationIcon,
   GridOn as GridIcon,
+  Terrain as RegionsIcon,
   BorderAll as WallsIcon,
   MeetingRoom as OpeningsIcon,
   ViewInAr as ObjectsIcon,
@@ -25,8 +25,8 @@ import type { SceneWall, WallVisibility, Asset, PlacedAsset, SceneSource, SceneR
 
 export type PanelType =
   | 'background'
-  | 'elevation'
   | 'grid'
+  | 'regions'
   | 'walls'
   | 'openings'
   | 'objects'
@@ -164,7 +164,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
         if (activePanel === 'walls' && selectedWallIndex !== null) {
           onWallSelect?.(null);
         }
-        if (activePanel === 'elevation' && selectedRegionIndex !== null) {
+        if (activePanel === 'regions' && selectedRegionIndex !== null) {
           onRegionSelect?.(null);
         }
       }
@@ -176,8 +176,8 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
 
   const panelConfigs: Array<{ key: PanelType; icon: typeof BackgroundIcon; label: string }> = [
     { key: 'background', icon: BackgroundIcon, label: 'Background' },
-    { key: 'elevation', icon: ElevationIcon, label: 'Elevation' },
     { key: 'grid', icon: GridIcon, label: 'Grid' },
+    { key: 'regions', icon: RegionsIcon, label: 'Regions' },
     { key: 'walls', icon: WallsIcon, label: 'Walls' },
     { key: 'openings', icon: OpeningsIcon, label: 'Openings' },
     { key: 'objects', icon: ObjectsIcon, label: 'Objects' },
@@ -260,7 +260,13 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               {...(onBackgroundUpload ? { onBackgroundUpload } : {})}
             />
           )}
-          {activePanel === 'elevation' && (
+          {activePanel === 'grid' && gridConfig && (
+            <GridPanel
+              gridConfig={gridConfig}
+              {...(onGridChange ? { onGridChange } : {})}
+            />
+          )}
+          {activePanel === 'regions' && (
             <RegionsPanel
               sceneRegions={sceneRegions || []}
               selectedRegionIndex={selectedRegionIndex !== undefined ? selectedRegionIndex : null}
@@ -268,12 +274,6 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
               {...(onRegionSelect ? { onRegionSelect } : {})}
               {...(onRegionDelete ? { onRegionDelete } : {})}
               {...(onEditRegionVertices ? { onEditVertices: onEditRegionVertices } : {})}
-            />
-          )}
-          {activePanel === 'grid' && gridConfig && (
-            <GridPanel
-              gridConfig={gridConfig}
-              {...(onGridChange ? { onGridChange } : {})}
             />
           )}
           {activePanel === 'walls' && (

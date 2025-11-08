@@ -59,6 +59,7 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
     const [color, setColor] = useState<string>('#ed6c02');
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [regionToDelete, setRegionToDelete] = useState<number | null>(null);
+    const [filterType, setFilterType] = useState<string | null>(null);
 
     const compactStyles = {
         sectionHeader: {
@@ -121,6 +122,12 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
     }, [sceneRegions]);
 
     const handlePresetClick = (preset: RegionPreset) => {
+        if (filterType === preset.type) {
+            setFilterType(null);
+        } else {
+            setFilterType(preset.type);
+        }
+
         setRegionType(preset.type);
         setColor(preset.color);
         if (preset.defaultValue !== undefined) {
@@ -175,10 +182,14 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
         setDeleteConfirmOpen(true);
     };
 
+    const filteredRegions = filterType
+        ? sceneRegions.filter(r => r.type === filterType)
+        : sceneRegions;
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             <Typography variant="overline" sx={compactStyles.sectionHeader}>
-                Region Type Presets
+                Filter by Type
             </Typography>
 
             <Box sx={{ display: 'flex', gap: 0.5 }}>
@@ -192,8 +203,8 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
                         sx={{
                             ...compactStyles.button,
                             flex: 1,
-                            borderColor: regionType === preset.type ? theme.palette.primary.main : theme.palette.divider,
-                            backgroundColor: regionType === preset.type ? theme.palette.action.selected : 'transparent',
+                            borderColor: filterType === preset.type ? theme.palette.primary.main : theme.palette.divider,
+                            backgroundColor: filterType === preset.type ? theme.palette.action.selected : 'transparent',
                             '&:hover': {
                                 backgroundColor: theme.palette.action.hover,
                                 borderColor: theme.palette.primary.main
@@ -310,7 +321,7 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
             <Divider sx={{ my: 0.5 }} />
 
             <Typography variant="overline" sx={compactStyles.sectionHeader}>
-                Placed Regions ({sceneRegions.length})
+                Placed Regions ({filteredRegions.length}{filterType ? ` of ${sceneRegions.length}` : ''})
             </Typography>
 
             <List
@@ -322,18 +333,18 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
                     borderRadius: 1
                 }}
             >
-                {sceneRegions.length === 0 ? (
+                {filteredRegions.length === 0 ? (
                     <ListItem>
                         <ListItemText
                             primary={
                                 <Typography sx={{ fontSize: '10px', color: theme.palette.text.disabled }}>
-                                    No regions placed
+                                    {filterType ? `No ${filterType} regions placed` : 'No regions placed'}
                                 </Typography>
                             }
                         />
                     </ListItem>
                 ) : (
-                    sceneRegions.map((sceneRegion) => (
+                    filteredRegions.map((sceneRegion) => (
                         <ListItem
                             key={sceneRegion.index}
                             id={`list-item-region-${sceneRegion.index}`}
