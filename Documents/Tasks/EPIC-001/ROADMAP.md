@@ -2126,6 +2126,159 @@ const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) 
 
 ---
 
+##### 8.8B.3: Asset/Scene Backend Contract Migration & Image Display Fixes ✅ COMPLETE
+
+**Objective**: Resolve breaking changes from backend Asset/Scene schema migration and restore image display functionality across all UI components
+
+**Completion Date**: 2025-11-07
+
+**Context**: Backend commit introduced major schema changes to Asset and Scene contracts:
+- `AssetResource` → `AssetToken` (token representation for battle maps)
+- `ObjectProperties` → `ObjectData` (object-specific data)
+- Schema now separates Token (battle map images) from Portrait (character sheet images)
+- Backend domain models use nested navigation properties serialized as full objects
+
+**Critical Architecture Pattern Discovered**:
+
+**Backend Structure**:
+```csharp
+public record AssetToken {
+    public Guid TokenId { get; init; }        // Direct ID access for queries
+    public Resource? Token { get; init; }      // Navigation property with full Resource object
+    public bool IsDefault { get; init; }
+}
+```
+
+**Frontend Structure** (matches backend serialization):
+```typescript
+interface AssetToken {
+    token: MediaResource;      // Full nested object (not just ID reference)
+    isDefault: boolean;
+}
+
+// Access pattern: token.token.id (NOT token.tokenId)
+```
+
+**Key Architectural Lesson**: Backend serializes complete navigation properties for rich client-side access. Frontend uses nested object structure (`token.token.id`), not flat properties (`token.tokenId`). This pattern provides flexibility for client-side operations without additional API calls.
+
+**Problems Identified & Root Causes**:
+
+**Problem 1: Token Images Showing 'undefined' URLs**
+- **Symptom**: Console showed `https://localhost:7174/api/resources/undefined`
+- **Root Cause**: Backend `AssetToken` domain model initially lacked `TokenId` property
+- **Investigation**: Added debug logging revealed backend sending `{token: {...}, isDefault: true}` with no direct `tokenId` field
+- **Initial Approach (WRONG)**: Created defensive frontend helper `getTokenId()` to handle both camelCase and PascalCase
+- **User Feedback**: "If the serialization in the backend is incorrect you can change that. The json string should use camelCase"
+- **Proper Solution**: Added `TokenId` property to backend domain model (serves as query optimization for direct ID access)
+
+**Problem 2: Backend Property Missing from Domain Model**
+- **Files**: `Domain/Assets/Model/AssetToken.cs`
+- **Issue**: Domain model only had navigation property `Token: Resource`, no direct `TokenId` property
+- **Impact**: Even with camelCase serialization, no `tokenId` field sent to frontend
+- **Solution**: Added `TokenId` property alongside navigation property for dual access pattern
+
+**Problem 3: C# Nullable Reference Warnings (6 warnings)**
+- **Locations**: `Mapper.cs` (lines 79, 102, 144), `Cloner.cs` (line 37), `SceneService.cs` (lines 139, 342)
+- **Root Cause**: Possible null assignments when mapping `Token` navigation properties
+- **Solution**: Added null filtering with `.Where(r => r.Token != null)` + null-forgiving operator `r.Token!.ToEntity()` after filter
+
+**Backend Files Modified**:
+
+1. **`Source/Domain/Assets/Model/AssetToken.cs`**: Added `TokenId` property
+   ```csharp
+   public record AssetToken {
+       public Guid TokenId { get; init; }        // ADDED for direct access
+       public Resource? Token { get; init; }      // Navigation property (made nullable)
+       public bool IsDefault { get; init; }
+   }
+   ```
+
+2. **`Source/Data/Assets/Mapper.cs`**: Updated ToModel and ToEntity methods
+   ```csharp
+   // ToModel (Entity → Domain) - lines 70-82
+   Tokens = [.. obj.Tokens.Select(r => new DomainAssetToken {
+       TokenId = r.TokenId,  // ADDED
+       Token = r.Token.ToModel(),
+       IsDefault = r.IsDefault,
+   })],
+
+   // ToEntity (Domain → Entity) - lines 94-106 with null filtering
+   Tokens = [.. obj.Tokens
+       .Where(r => r.Token != null)
+       .Select(r => new AssetTokenEntity {
+           TokenId = r.TokenId,  // CHANGED from r.Token.Id
+           Token = r.Token!.ToEntity(),
+           IsDefault = r.IsDefault
+       })],
+
+   // UpdateFrom - line 138
+   var tokenIds = model.Tokens.Select(r => r.TokenId).ToHashSet();  // CHANGED from r.Token.Id
+   ```
+
+3. **`Source/Assets/Services/Cloner.cs`**: Added `TokenId` to Clone method
+   ```csharp
+   internal static AssetToken Clone(this AssetToken original)
+       => new() {
+           TokenId = original.TokenId,  // ADDED
+           Token = original.Token?.Clone(),
+           IsDefault = original.IsDefault
+       };
+   ```
+
+4. **`Source/Library/Services/SceneService.cs`**: Restored to use `Token.Id` after user revert
+   ```csharp
+   // User reverted to nested access (lines 139, 342)
+   var tokenId = data.TokenId ?? asset.Tokens.FirstOrDefault(r => r.IsDefault)?.Token.Id;
+   ```
+
+**Frontend Files Modified**:
+
+**User's Final Pattern** (uses nested object access):
+
+1. **`Source/WebClientApp/src/components/assets/forms/AssetResourceManager.tsx`**:
+   - Token upload creates full `MediaResource` object in `token` property
+   - Access pattern: `token.token.id`
+   - Display: `getResourceUrl(defaultToken.token.id)`
+
+2. **`Source/WebClientApp/src/components/common/AssetPicker.tsx`**:
+   - Fallback logic: `defaultToken?.token.id || asset.tokens?.[0]?.token.id`
+   - Full nested access for all token operations
+
+3. **`Source/WebClientApp/src/components/scene/TokenPlacement.tsx`**:
+   - Scene asset rendering: `defaultToken.token.id` or `asset.tokens[0].token.id`
+   - Media URL construction: `${mediaBaseUrl}/${token.id}`
+
+4. **`Source/WebClientApp/src/pages/AssetLibraryPage.tsx`**:
+   - Display priority: portrait → default token → first token
+   - Uses `getDefaultToken()` helper with nested access
+
+5. **`Source/WebClientApp/src/utils/assetHelpers.ts`**:
+   - Removed defensive `getTokenId()` workaround after backend fix
+   - All code uses direct `token.token.id` access
+
+**Build & Validation Results**:
+- ✅ Backend build: 0 errors, 0 warnings (nullable reference warnings resolved)
+- ✅ Frontend build: TypeScript compilation successful
+- ✅ User verification: "Great the token image is working now"
+- ✅ Manual QA: Image display restored in Asset Library, Asset Edit Dialog, Scene Editor
+
+**Defensive Programming vs Proper Fix Lesson**:
+- ❌ **Initial Approach**: Created frontend workaround `getTokenId()` to handle backend inconsistency
+- ✅ **Proper Approach**: Fixed backend domain model to match architectural pattern
+- **Key Takeaway**: When backend serialization is incorrect, fix the root cause (backend contracts/models), not symptoms (frontend workarounds)
+
+**Architecture Pattern Benefits**:
+1. **Rich Client Access**: Full `Resource` object available without additional API calls
+2. **Query Optimization**: Direct `TokenId` property for efficient backend queries/joins
+3. **Flexibility**: Frontend can access metadata, tags, file info from full `token` object
+4. **Type Safety**: TypeScript interfaces mirror backend contracts exactly
+
+**Actual Effort**: 2 hours (1h investigation + debugging, 0.5h backend fixes, 0.5h frontend cleanup)
+
+**Status**: ✅ COMPLETE (2025-11-07)
+
+---
+
 ### Phase 9: Epic/Campaign Hierarchy ⚠️ BLOCKED
 
 **Objective**: Implement Epic→Campaign hierarchy for advanced content organization

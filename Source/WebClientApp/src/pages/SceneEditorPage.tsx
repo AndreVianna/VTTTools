@@ -36,10 +36,10 @@ import {
     DisplayName,
     LabelPosition,
     SceneWall,
-    
-    
     WallVisibility,
-    Pole
+    Pole,
+    PlacedAssetSnapshot,
+    createAssetSnapshot
 } from '@/types/domain';
 import { UndoRedoProvider, useUndoRedoContext } from '@/contexts/UndoRedoContext';
 import { ClipboardProvider } from '@/contexts/ClipboardContext';
@@ -57,7 +57,8 @@ import {
     createCutAssetsCommand,
     createPasteAssetsCommand,
     createRenameAssetCommand,
-    createUpdateAssetDisplayCommand
+    createUpdateAssetDisplayCommand,
+    createTransformAssetCommand
 } from '@/utils/commands';
 import { CreateWallCommand, EditWallCommand, BreakWallCommand } from '@/utils/commands/wallCommands';
 import {
@@ -675,6 +676,106 @@ const SceneEditorPageInternal: React.FC = () => {
             }
         }
     };
+
+    const [rotationInitialSnapshots, setRotationInitialSnapshots] = useState<Map<string, PlacedAssetSnapshot>>(new Map());
+
+    const handleRotationStart = useCallback(() => {
+        const snapshots = new Map<string, PlacedAssetSnapshot>();
+        placedAssets
+            .filter(asset => selectedAssetIds.includes(asset.id))
+            .forEach(asset => {
+                snapshots.set(asset.id, createAssetSnapshot(asset));
+            });
+        setRotationInitialSnapshots(snapshots);
+    }, [placedAssets, selectedAssetIds]);
+
+    const handleAssetRotated = useCallback((updates: Array<{
+        assetId: string;
+        rotation: number;
+        position?: { x: number; y: number };
+    }>) => {
+        setPlacedAssets(prev => prev.map(asset => {
+            const update = updates.find(u => u.assetId === asset.id);
+            if (!update) return asset;
+
+            return {
+                ...asset,
+                rotation: update.rotation,
+                ...(update.position ? { position: update.position } : {})
+            };
+        }));
+    }, []);
+
+    const handleRotationEnd = useCallback(async () => {
+        if (!sceneId || !scene) return;
+
+        const assetsToUpdate = placedAssets.filter(asset =>
+            selectedAssetIds.includes(asset.id)
+        );
+
+        if (assetsToUpdate.length === 0) return;
+
+        const afterSnapshots = new Map<string, PlacedAssetSnapshot>();
+        assetsToUpdate.forEach(asset => {
+            afterSnapshots.set(asset.id, createAssetSnapshot(asset));
+        });
+
+        const hasChanges = assetsToUpdate.some(asset => {
+            const before = rotationInitialSnapshots.get(asset.id);
+            const after = afterSnapshots.get(asset.id);
+            return before && after && (
+                before.rotation !== after.rotation ||
+                before.position.x !== after.position.x ||
+                before.position.y !== after.position.y
+            );
+        });
+
+        if (!hasChanges) return;
+
+        const command = createTransformAssetCommand({
+            assetIds: assetsToUpdate.map(a => a.id),
+            beforeSnapshots: rotationInitialSnapshots,
+            afterSnapshots,
+            onUpdate: (assetId, snapshot) => {
+                setPlacedAssets(prev => prev.map(a =>
+                    a.id === assetId
+                        ? { ...a, ...snapshot }
+                        : a
+                ));
+            }
+        });
+
+        execute(command);
+
+        if (!isOnline) return;
+
+        try {
+            if (assetsToUpdate.length === 1) {
+                const asset = assetsToUpdate[0];
+                if (!asset) return;
+
+                await updateSceneAsset({
+                    sceneId,
+                    assetNumber: asset.index,
+                    rotation: asset.rotation,
+                    position: asset.position
+                }).unwrap();
+            } else {
+                const bulkUpdates = assetsToUpdate.map(asset => ({
+                    index: asset.index,
+                    rotation: asset.rotation,
+                    position: asset.position
+                }));
+
+                await bulkUpdateSceneAssets({
+                    sceneId,
+                    updates: bulkUpdates
+                }).unwrap();
+            }
+        } catch (error) {
+            console.error('Failed to persist rotation:', error);
+        }
+    }, [sceneId, scene, isOnline, placedAssets, selectedAssetIds, rotationInitialSnapshots, updateSceneAsset, bulkUpdateSceneAssets, execute]);
 
     const handleAssetDeleted = () => {
         if (selectedAssetIds.length === 0) return;
@@ -1999,6 +2100,10 @@ const SceneEditorPageInternal: React.FC = () => {
                         snapMode={snapMode}
                         isShiftPressed={isShiftPressed}
                         isCtrlPressed={isCtrlPressed}
+                        scale={viewport.scale}
+                        onAssetRotated={handleAssetRotated}
+                        onRotationStart={handleRotationStart}
+                        onRotationEnd={handleRotationEnd}
                     />
                 </SceneCanvas>
             </Box>

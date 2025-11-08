@@ -27,7 +27,7 @@ React-based administrative interface for VTT Tools backend management.
 # Install dependencies
 npm install
 
-# Start dev server (port 5174)
+# Start dev server (port 5173)
 npm run dev
 
 # Start in standalone mode (without Aspire)

@@ -393,6 +393,7 @@ export const AssetLibraryPage: React.FC = () => {
                                                     <img
                                                         src={getResourceUrl(imageId)}
                                                         alt={asset.name}
+                                                        crossOrigin="use-credentials"
                                                         style={{
                                                             width: '100%',
                                                             height: '100%',

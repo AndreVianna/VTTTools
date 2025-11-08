@@ -8,7 +8,7 @@ namespace VttTools.Media.Services;
 public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaStorage)
     : IResourceService {
     /// <inheritdoc />
-    public async Task<Result> SaveResourceAsync(AddResourceData data, Stream stream, Guid ownerId, string entityType, Guid? entityId, bool isPublic, CancellationToken ct = default) {
+    public async Task<Result<Resource>> SaveResourceAsync(AddResourceData data, Stream stream, Guid ownerId, string entityType, Guid? entityId, bool isPublic, CancellationToken ct = default) {
         var blobClient = await GetBlobClient(data.Path, ct);
         var options = new BlobUploadOptions {
             Metadata = new Dictionary<string, string> {
@@ -29,7 +29,7 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
         };
         var response = await blobClient.UploadAsync(stream, options, ct);
         if (response.GetRawResponse().IsError)
-            return Result.Failure(response.GetRawResponse().ReasonPhrase);
+            return Result.Failure<Resource>(null!, response.GetRawResponse().ReasonPhrase);
 
         // Determine ResourceType from file metadata
         var resourceType = data.Metadata.Duration > TimeSpan.Zero ? ResourceType.Video
@@ -51,7 +51,7 @@ public class AzureResourceService(BlobServiceClient client, IMediaStorage mediaS
         };
         await mediaStorage.AddAsync(resource, ct);
 
-        return Result.Success();
+        return Result.Success(resource);
     }
 
     /// <inheritdoc />
