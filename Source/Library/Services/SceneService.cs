@@ -213,8 +213,8 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
 
         sceneAsset = sceneAsset with {
             Name = data.Name.IsSet ? data.Name.Value : sceneAsset.Name,
-            Token = tokenId is null ? null : new Resource { Id = tokenId.Value },
-            Portrait = portraitId is null ? null : new Resource { Id = portraitId.Value },
+            Token = tokenId == sceneAsset.Token?.Id ? sceneAsset.Token : (tokenId is null ? null : new Resource { Id = tokenId.Value }),
+            Portrait = portraitId == sceneAsset.Portrait?.Id ? sceneAsset.Portrait : (portraitId is null ? null : new Resource { Id = portraitId.Value }),
             Position = data.Position.IsSet ? data.Position.Value : sceneAsset.Position,
             Size = data.Size.IsSet ? data.Size.Value : sceneAsset.Size,
             Rotation = data.Rotation.IsSet ? data.Rotation.Value : sceneAsset.Rotation,
@@ -526,9 +526,12 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             Name = data.Name ?? $"Source {index}",
             Type = data.Type,
             Position = data.Position,
+            IsDirectional = data.IsDirectional,
             Direction = data.Direction,
-            Range = data.Range ?? 5.0f,
-            Intensity = data.Intensity ?? 1.0f,
+            Range = data.Range,
+            Spread = data.Spread,
+            Intensity = data.Intensity,
+            Color = data.Color,
             HasGradient = data.HasGradient,
         };
 
@@ -556,10 +559,13 @@ public class SceneService(ISceneStorage sceneStorage, IAssetStorage assetStorage
             Type = data.Type.IsSet ? data.Type.Value : sceneSource.Type,
             Name = data.Name.IsSet ? data.Name.Value : sceneSource.Name,
             Position = data.Position.IsSet ? data.Position.Value : sceneSource.Position,
-            Direction = data.Direction.IsSet ? sceneSource.Direction : sceneSource.Direction,
+            IsDirectional = data.IsDirectional.IsSet ? data.IsDirectional.Value : sceneSource.IsDirectional,
+            Direction = data.Direction.IsSet ? data.Direction.Value : sceneSource.Direction,
             Range = data.Range.IsSet ? data.Range.Value : sceneSource.Range,
-            Intensity = data.Intensity.IsSet ? data.Intensity.Value : sceneSource.Intensity,
+            Spread = data.Spread.IsSet ? data.Spread.Value : sceneSource.Spread,
             HasGradient = data.HasGradient.IsSet ? data.HasGradient.Value : sceneSource.HasGradient,
+            Intensity = data.Intensity.IsSet ? data.Intensity.Value : sceneSource.Intensity,
+            Color = data.Color.IsSet ? data.Color.Value : sceneSource.Color,
         };
 
         await sceneStorage.UpdateSourceAsync(id, sceneSource, ct);

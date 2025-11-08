@@ -8,7 +8,7 @@ import { GridType } from '@/utils/gridCalculator';
 import {
     getPlacementBehavior,
 } from '@/types/placement';
-import { RotationHandle } from './RotationHandle';
+import { calculateAngleFromCenter, snapAngle } from '@/utils/rotationUtils';
 
 /**
  * Render invalid placement indicator (red X)
@@ -158,9 +158,9 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const isShiftPressedRef = useRef(isShiftPressed);
     const placedAssetsRef = useRef(placedAssets);
     const [marqueeSelection, setMarqueeSelection] = useState<{ start: { x: number; y: number }; end: { x: number; y: number } } | null>(null);
-    const [, forceUpdate] = useState(0);
     const marqueeActiveRef = useRef(false);
-    const [altKeyPressed, setAltKeyPressed] = useState(false);
+    const [isDraggingAsset, setIsDraggingAsset] = useState(false);
+    const [isRotating, setIsRotating] = useState(false);
 
     // Calculate available actions for selected assets (intersection)
     const availableActions = React.useMemo(() => {
@@ -227,6 +227,8 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         const draggedAssetId = node.id();
         const position = node.position();
         dragStartPosRef.current = position;
+
+        setIsDraggingAsset(true);
         setIsDragValid(true);
         isDragValidRef.current = true;
         setInvalidAssetPositions([]);
@@ -248,12 +250,9 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                 const assetNode = stage.findOne(`#${id}`);
                 const asset = placedAssetsRef.current.find(a => a.id === id);
                 if (assetNode && asset) {
+                    // Node is positioned at center (with offsets), so position IS the center
                     const nodePos = assetNode.position();
-                    const centerPos = {
-                        x: nodePos.x + asset.size.width / 2,
-                        y: nodePos.y + asset.size.height / 2
-                    };
-                    positions.set(id, centerPos);
+                    positions.set(id, nodePos);
                 }
             });
 
@@ -284,21 +283,15 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
         const newPos = node.position();
 
-        const centerPos = {
-            x: newPos.x + placedAsset.size.width / 2,
-            y: newPos.y + placedAsset.size.height / 2,
-        };
+        // Node is positioned at center (with offsets), so newPos IS the center
+        const snappedCenter = snapToGridCenter(newPos, placedAsset.size, gridConfig, snapModeRef.current);
 
-        const snappedCenter = snapToGridCenter(centerPos, placedAsset.size, gridConfig, snapModeRef.current);
-
-        node.position({
-            x: snappedCenter.x - placedAsset.size.width / 2,
-            y: snappedCenter.y - placedAsset.size.height / 2,
-        });
+        // Set node position to snapped center
+        node.position(snappedCenter);
 
         const snappedDelta = {
-            x: (snappedCenter.x - placedAsset.size.width / 2) - dragStartPosRef.current.x,
-            y: (snappedCenter.y - placedAsset.size.height / 2) - dragStartPosRef.current.y
+            x: snappedCenter.x - dragStartPosRef.current.x,
+            y: snappedCenter.y - dragStartPosRef.current.y
         };
 
         const currentSelection = selectedAssetIdsRef.current;
@@ -313,10 +306,8 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                     x: originalCenterPos.x + snappedDelta.x,
                     y: originalCenterPos.y + snappedDelta.y
                 };
-                otherNode.position({
-                    x: newCenterPos.x - asset.size.width / 2,
-                    y: newCenterPos.y - asset.size.height / 2
-                });
+                // Node is positioned at center, so set directly to new center
+                otherNode.position(newCenterPos);
             }
         });
 
@@ -334,11 +325,8 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
             const assetNode = stage.findOne(`#${id}`);
             if (!assetNode) continue;
 
-            const assetPos = assetNode.position();
-            const assetCenter = {
-                x: assetPos.x + asset.size.width / 2,
-                y: assetPos.y + asset.size.height / 2
-            };
+            // Node is positioned at center (with offsets), so position IS the center
+            const assetCenter = assetNode.position();
 
             const behavior = getPlacementBehavior(
                 asset.asset.kind,
@@ -407,8 +395,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
             position: snappedCenter,
             size: placedAsset.size
         });
-
-        forceUpdate(prev => prev + 1);
     }, [gridConfig, stageRef]);
 
     const handleDragEnd = useCallback((_e: Konva.KonvaEventObject<DragEvent>) => {
@@ -436,11 +422,8 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                 const assetNode = stage.findOne(`#${id}`);
                 const oldPosition = allDragStartPositionsRef.current.get(id);
                 if (asset && assetNode && oldPosition) {
-                    const nodePos = assetNode.position();
-                    const newPosition = {
-                        x: nodePos.x + asset.size.width / 2,
-                        y: nodePos.y + asset.size.height / 2
-                    };
+                    // Node is positioned at center (with offsets), so position IS the center
+                    const newPosition = assetNode.position();
                     moves.push({ assetId: id, oldPosition, newPosition });
                 }
             });
@@ -453,16 +436,14 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                 const asset = placedAssetsRef.current.find(a => a.id === id);  // Use ref
                 const originalCenterPos = allDragStartPositionsRef.current.get(id);
                 if (assetNode && asset && originalCenterPos) {
-                    // Convert center back to top-left for node position
-                    assetNode.position({
-                        x: originalCenterPos.x - asset.size.width / 2,
-                        y: originalCenterPos.y - asset.size.height / 2
-                    });
+                    // Node is positioned at center, so set directly to original center
+                    assetNode.position(originalCenterPos);
                 }
             });
         }
 
         dragStartPosRef.current = null;
+        setIsDraggingAsset(false);
         allDragStartPositionsRef.current.clear();
         setDraggedAssetInfo(null);
         setIsDragValid(true);
@@ -483,29 +464,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [selectedAssetIds, onAssetDeleted, availableActions.canDelete]);
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.altKey) setAltKeyPressed(true);
-        };
-        const handleKeyUp = (e: KeyboardEvent) => {
-            if (!e.altKey) setAltKeyPressed(false);
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('keyup', handleKeyUp);
-        };
-    }, []);
-
-    useEffect(() => {
-        const handleBlur = () => setAltKeyPressed(false);
-        window.addEventListener('blur', handleBlur);
-        return () => window.removeEventListener('blur', handleBlur);
-    }, []);
 
     useEffect(() => {
         // Skip stage click handler if drag-move is disabled
@@ -692,23 +650,24 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
     // Helper to get actual node position (for selection borders during drag)
     const getAssetRenderPosition = useCallback((assetId: string) => {
-        const stage = stageRef.current;
         const asset = placedAssets.find(a => a.id === assetId);
-        if (!asset || !stage) return null;
+        if (!asset) return null;
 
-        // Try to get actual node position (updated during drag)
-        const node = stage.findOne(`#${assetId}`);
-        if (node) {
-            const nodePos = node.position();
-            return {
-                x: nodePos.x,
-                y: nodePos.y,
-                width: asset.size.width,
-                height: asset.size.height
-            };
+        // During drag, query node for live position updates
+        if (dragStartPosRef.current && stageRef.current) {
+            const node = stageRef.current.findOne(`#${assetId}`);
+            if (node) {
+                const nodePos = node.position();
+                return {
+                    x: nodePos.x - asset.size.width / 2,
+                    y: nodePos.y - asset.size.height / 2,
+                    width: asset.size.width,
+                    height: asset.size.height
+                };
+            }
         }
 
-        // Fallback to stored position
+        // Use stored position (renders immediately, same as rotation handle)
         return {
             x: asset.position.x - asset.size.width / 2,
             y: asset.position.y - asset.size.height / 2,
@@ -722,7 +681,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     }, [placedAssets, selectedAssetIds]);
 
     return (
-        <Layer name="ui-overlay" listening={false}>
+        <Layer name="ui-overlay" listening={true}>
             {/* Selection borders - blue outline for each selected asset */}
             {/* eslint-disable react-hooks/refs */}
             {selectedAssetIds.map(assetId => {
@@ -744,18 +703,89 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
             })}
             {/* eslint-enable react-hooks/refs */}
 
-            {/* Rotation Handle - Only when assets selected */}
-            {selectedAssets.length > 0 && (
-                <RotationHandle
-                    selectedAssets={selectedAssets}
-                    gridConfig={gridConfig}
-                    scale={scale}
-                    altKeyPressed={altKeyPressed}
-                    onRotationChange={onAssetRotated}
-                    onRotationStart={onRotationStart}
-                    onRotationEnd={onRotationEnd}
-                />
-            )}
+            {/* Rotation Handle - only for single asset selection */}
+            {(() => {
+                if (selectedAssets.length !== 1 || isDraggingAsset) {
+                    return null;
+                }
+
+                const asset = selectedAssets[0]!;
+
+                // Calculate center using same method as selection borders
+                const renderPos = getAssetRenderPosition(asset.id);
+                if (!renderPos) return null;
+
+                const centerX = renderPos.x + renderPos.width / 2;
+                const centerY = renderPos.y + renderPos.height / 2;
+
+                const longestDimension = Math.max(asset.size.width, asset.size.height);
+                const handleLength = longestDimension * 0.75;
+                const rotation = asset.rotation;
+                const angleRadians = ((rotation - 90) * Math.PI) / 180;
+                const lineEndX = Math.cos(angleRadians) * handleLength;
+                const lineEndY = Math.sin(angleRadians) * handleLength;
+                const strokeWidth = 1 / scale;
+                const arrowSize = Math.max(4, Math.min(6, 5 / scale));
+                const lineColor = theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280';
+
+                const groupKey = `rotation-handle-${centerX.toFixed(1)}-${centerY.toFixed(1)}`;
+
+                return (
+                    <Group key={groupKey} name={groupKey} x={centerX} y={centerY}>
+                        <Line
+                            points={[0, 0, lineEndX, lineEndY]}
+                            stroke={lineColor}
+                            strokeWidth={strokeWidth}
+                            dash={[5, 5]}
+                            opacity={0.8}
+                            listening={false}
+                        />
+                        <Circle
+                            x={lineEndX}
+                            y={lineEndY}
+                            radius={arrowSize}
+                            fill={lineColor}
+                            stroke={lineColor}
+                            strokeWidth={1}
+                            cursor={isRotating ? 'grabbing' : 'grab'}
+                            hitStrokeWidth={20}
+                            onMouseDown={(e) => {
+                                e.cancelBubble = true;
+                                setIsRotating(true);
+                                onRotationStart?.();
+
+                                const stage = e.target.getStage();
+                                if (!stage) return;
+
+                                const handleMouseMove = () => {
+                                    const pointerPosition = stage.getPointerPosition();
+                                    if (!pointerPosition) return;
+                                    const canvasPosition = {
+                                        x: (pointerPosition.x - stage.x()) / stage.scaleX(),
+                                        y: (pointerPosition.y - stage.y()) / stage.scaleY()
+                                    };
+
+                                    const assetCenter = { x: asset.position.x, y: asset.position.y };
+                                    const newRotation = snapAngle(calculateAngleFromCenter(assetCenter, canvasPosition));
+                                    onAssetRotated?.([{ assetId: asset.id, rotation: newRotation }]);
+                                };
+
+                                const handleMouseUp = () => {
+                                    setIsRotating(false);
+                                    onRotationEnd?.();
+                                    stage.off('mousemove', handleMouseMove);
+                                    stage.off('mouseup', handleMouseUp);
+                                    window.removeEventListener('mouseup', handleMouseUp);
+                                };
+
+                                stage.on('mousemove', handleMouseMove);
+                                stage.on('mouseup', handleMouseUp);
+                                window.addEventListener('mouseup', handleMouseUp);
+                            }}
+                        />
+                    </Group>
+                );
+            })()}
 
             {/* Marquee selection rectangle */}
             {marqueeSelection && (

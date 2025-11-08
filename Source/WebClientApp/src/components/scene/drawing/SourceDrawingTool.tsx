@@ -1,14 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Layer } from 'react-konva';
+import { Group, Rect } from 'react-konva';
 import type Konva from 'konva';
 import { useAddSceneSourceMutation } from '@/services/sceneApi';
-import { snapToNearest, SnapMode } from '@/utils/structureSnapping';
+import { snapToNearest } from '@/utils/structureSnapping';
+import { getSnapModeFromEvent } from '@/utils/snapUtils';
 import { SourcePreview } from './SourcePreview';
+import { VertexMarker } from './VertexMarker';
 import type { Point, SceneSource, SceneWall } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 const MIN_RANGE = 0.5;
 const MAX_RANGE = 50.0;
+const INTERACTION_RECT_SIZE = 20000;
+const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
 
 export interface SourceDrawingToolProps {
     sceneId: string;
@@ -27,15 +31,29 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
     onComplete,
     onCancel
 }) => {
+    const [placementPhase, setPlacementPhase] = useState<0 | 1 | 2>(0);
     const [centerPos, setCenterPos] = useState<Point | null>(null);
-    const [currentMousePos, setCurrentMousePos] = useState<Point | null>(null);
-    const [range, setRange] = useState<number>(source.range ?? 5.0);
-    const [snapMode, setSnapMode] = useState<SnapMode>(SnapMode.HalfSnap);
-    const [isPlacing, setIsPlacing] = useState<boolean>(false);
+    const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
+    const [currentRange, setCurrentRange] = useState<number>(0);
+    const [currentDirection, setCurrentDirection] = useState<number>(0);
+    const [currentSpread, setCurrentSpread] = useState<number>(45);
     const [addSource] = useAddSceneSourceMutation();
 
-    const handleFinish = useCallback(async () => {
-        if (!centerPos || range < MIN_RANGE || range > MAX_RANGE) return;
+    const isDirectional = source.isDirectional;
+
+    const handleFinish = useCallback(async (explicitRange?: number) => {
+        const rangeToUse = explicitRange ?? currentRange;
+
+        if (!centerPos) {
+            console.warn('Cannot finish: No center position');
+            return;
+        }
+
+        if (rangeToUse < MIN_RANGE || rangeToUse > MAX_RANGE) {
+            console.warn(`Invalid range: ${rangeToUse}. Must be between ${MIN_RANGE} and ${MAX_RANGE}`);
+            onComplete(false);
+            return;
+        }
 
         try {
             await addSource({
@@ -43,10 +61,13 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
                 name: source.name,
                 type: source.type,
                 position: centerPos,
-                direction: source.direction,
-                range,
+                isDirectional,
+                direction: currentDirection,
+                spread: currentSpread,
+                range: rangeToUse,
                 intensity: source.intensity ?? 1.0,
-                hasGradient: source.hasGradient
+                hasGradient: source.hasGradient,
+                ...(source.color && { color: source.color })
             }).unwrap();
 
             onComplete(true);
@@ -54,37 +75,35 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
             console.error('Failed to place source:', error);
             onComplete(false);
         }
-    }, [centerPos, range, sceneId, source, addSource, onComplete]);
+    }, [centerPos, currentRange, currentDirection, currentSpread, sceneId, source, isDirectional, addSource, onComplete]);
+
+    const handleFinishWithRange = useCallback((range: number) => {
+        handleFinish(range);
+    }, [handleFinish]);
+
+    const resetPlacement = useCallback(() => {
+        setPlacementPhase(0);
+        setCenterPos(null);
+        setPreviewPoint(null);
+        setCurrentRange(0);
+        setCurrentDirection(0);
+        setCurrentSpread(45);
+    }, []);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
+                resetPlacement();
                 onCancel();
-            }
-
-            if (e.altKey && e.ctrlKey) {
-                setSnapMode(SnapMode.QuarterSnap);
-            } else if (e.altKey) {
-                setSnapMode(SnapMode.Free);
-            } else {
-                setSnapMode(SnapMode.HalfSnap);
-            }
-        };
-
-        const handleKeyUp = (e: KeyboardEvent) => {
-            if (!e.altKey && !e.ctrlKey) {
-                setSnapMode(SnapMode.HalfSnap);
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
 
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('keyup', handleKeyUp);
         };
-    }, [onCancel]);
+    }, [onCancel, resetPlacement]);
 
     const getStagePosition = useCallback((e: Konva.KonvaEventObject<MouseEvent>): Point | null => {
         const stage = e.target.getStage();
@@ -111,52 +130,115 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
         return Math.max(MIN_RANGE, Math.min(MAX_RANGE, snappedRange));
     }, [gridConfig.cellSize.width]);
 
-    const handleMouseDown = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
-        const stagePos = getStagePosition(e);
-        if (!stagePos) return;
+    const calculateDirection = useCallback((from: Point, to: Point): number => {
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        return Math.atan2(dy, dx) * (180 / Math.PI);
+    }, []);
 
-        const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
-        setCenterPos(snappedPos);
-        setCurrentMousePos(snappedPos);
-        setIsPlacing(true);
-    }, [gridConfig, snapMode, getStagePosition]);
+    const calculateSpreadAngle = useCallback((apex: Point, direction: number, mouse: Point): number => {
+        const mouseAngle = calculateDirection(apex, mouse);
+        let angleDiff = mouseAngle - direction;
+
+        while (angleDiff > 180) angleDiff -= 360;
+        while (angleDiff < -180) angleDiff += 360;
+
+        const spreadAngle = Math.abs(angleDiff) * 2;
+        return Math.min(180, Math.max(0, Math.round(spreadAngle / 5) * 5));
+    }, [calculateDirection]);
 
     const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         const stagePos = getStagePosition(e);
         if (!stagePos) return;
 
-        setCurrentMousePos(stagePos);
+        const snapMode = getSnapModeFromEvent(e.evt);
+        const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
+        setPreviewPoint(snappedPos);
 
-        if (isPlacing && centerPos) {
-            const newRange = calculateRange(centerPos, stagePos);
-            setRange(newRange);
+        if (placementPhase === 1 && centerPos) {
+            const newRange = calculateRange(centerPos, snappedPos);
+            setCurrentRange(newRange);
+
+            if (isDirectional) {
+                const newDirection = calculateDirection(centerPos, snappedPos);
+                setCurrentDirection(newDirection);
+            }
+        } else if (placementPhase === 2 && centerPos && isDirectional && currentRange > 0) {
+            const newSpread = calculateSpreadAngle(centerPos, currentDirection, snappedPos);
+            setCurrentSpread(newSpread);
         }
-    }, [isPlacing, centerPos, calculateRange, getStagePosition]);
+    }, [placementPhase, centerPos, isDirectional, currentDirection, gridConfig, getStagePosition, calculateRange, calculateDirection, calculateSpreadAngle]);
 
-    const handleMouseUp = useCallback(() => {
-        if (isPlacing && centerPos && range >= MIN_RANGE && range <= MAX_RANGE) {
-            setIsPlacing(false);
+    const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
+        const stagePos = getStagePosition(e);
+        if (!stagePos) return;
+
+        e.cancelBubble = true;
+
+        const snapMode = getSnapModeFromEvent(e.evt);
+        const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
+
+        if (placementPhase === 0) {
+            setCenterPos(snappedPos);
+            setPlacementPhase(1);
+        } else if (placementPhase === 1) {
+            if (!centerPos) return;
+
+            const newRange = calculateRange(centerPos, snappedPos);
+            setCurrentRange(newRange);
+
+            if (isDirectional) {
+                const newDirection = calculateDirection(centerPos, snappedPos);
+                setCurrentDirection(newDirection);
+                setPlacementPhase(2);
+            } else {
+                handleFinishWithRange(newRange);
+            }
+        } else if (placementPhase === 2 && isDirectional) {
+            if (!centerPos) return;
+
+            const newSpread = calculateSpreadAngle(centerPos, currentDirection, snappedPos);
+            setCurrentSpread(newSpread);
             handleFinish();
         }
-    }, [isPlacing, centerPos, range, handleFinish]);
+    }, [placementPhase, centerPos, isDirectional, currentDirection, gridConfig, getStagePosition, calculateRange, calculateDirection, calculateSpreadAngle, handleFinish, handleFinishWithRange]);
 
     return (
-        <Layer
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            listening={true}
-        >
-            {centerPos && currentMousePos && (
-                <SourcePreview
-                    centerPos={centerPos}
-                    range={range}
-                    source={source}
-                    walls={walls}
-                    gridConfig={gridConfig}
-                />
+        <Group>
+            <Rect
+                x={INTERACTION_RECT_OFFSET}
+                y={INTERACTION_RECT_OFFSET}
+                width={INTERACTION_RECT_SIZE}
+                height={INTERACTION_RECT_SIZE}
+                fill="transparent"
+                onMouseMove={handleMouseMove}
+                onClick={handleClick}
+                listening={true}
+            />
+
+            {centerPos && placementPhase > 0 && (
+                <>
+                    <VertexMarker position={centerPos} preview />
+                    {placementPhase >= 1 && currentRange > 0 && (
+                        <SourcePreview
+                            centerPos={centerPos}
+                            range={currentRange}
+                            source={{
+                                ...source,
+                                direction: currentDirection,
+                                spread: currentSpread
+                            }}
+                            walls={walls}
+                            gridConfig={gridConfig}
+                        />
+                    )}
+                </>
             )}
-        </Layer>
+
+            {previewPoint && placementPhase === 0 && (
+                <VertexMarker position={previewPoint} preview />
+            )}
+        </Group>
     );
 };
 

@@ -487,8 +487,10 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                                 id={placedAsset.id}
                                 name="placed-asset"
                                 image={image}
-                                x={imageX}
-                                y={imageY}
+                                x={placedAsset.position.x}
+                                y={placedAsset.position.y}
+                                offsetX={placedAsset.size.width / 2}
+                                offsetY={placedAsset.size.height / 2}
                                 width={placedAsset.size.width}
                                 height={placedAsset.size.height}
                                 rotation={placedAsset.rotation}
@@ -508,13 +510,15 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                     }
 
                     const labelInfo = formatCreatureLabel(placedAsset.name, MAX_LABEL_WIDTH_COLLAPSED);
-                    const displayText = isExpanded && labelInfo.isTruncated ? labelInfo.fullText : labelInfo.displayText;
+                    // Show full text if expanded OR if label visibility is "on hover"
+                    const showFullText = (isExpanded && labelInfo.isTruncated) || effectiveDisplay === DisplayNameEnum.OnHover;
+                    const displayText = showFullText ? labelInfo.fullText : labelInfo.displayText;
 
-                    const measuredWidth = isExpanded && labelInfo.isTruncated
+                    const measuredWidth = showFullText
                         ? labelInfo.fullWidth
                         : labelInfo.displayWidth;
 
-                    const labelWidth = isExpanded && labelInfo.isTruncated
+                    const labelWidth = showFullText
                         ? measuredWidth + LABEL_HORIZONTAL_PADDING
                         : Math.max(MIN_LABEL_WIDTH, Math.min(MAX_LABEL_WIDTH_COLLAPSED, measuredWidth + LABEL_HORIZONTAL_PADDING));
 
@@ -540,11 +544,13 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                     const labelX = placedAsset.position.x - labelWidth / 2;
 
                     return (
-                        <Group key={placedAsset.id} id={placedAsset.id} name="placed-asset" x={imageX} y={imageY}>
+                        <Group key={placedAsset.id} id={placedAsset.id} name="placed-asset" x={placedAsset.position.x} y={placedAsset.position.y}>
                             <KonvaImage
                                 image={image}
                                 x={0}
                                 y={0}
+                                offsetX={placedAsset.size.width / 2}
+                                offsetY={placedAsset.size.height / 2}
                                 width={placedAsset.size.width}
                                 height={placedAsset.size.height}
                                 rotation={placedAsset.rotation}
@@ -561,8 +567,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                                 }}
                             />
                             <Rect
-                                x={labelX - imageX}
-                                y={labelY - imageY}
+                                x={labelX - placedAsset.position.x}
+                                y={labelY - placedAsset.position.y}
                                 width={labelWidth}
                                 height={labelHeight}
                                 fill={labelColors.background}
@@ -582,8 +588,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                                 }}
                             />
                             <Text
-                                x={labelX - imageX}
-                                y={labelY - imageY}
+                                x={labelX - placedAsset.position.x}
+                                y={labelY - placedAsset.position.y}
                                 width={labelWidth}
                                 height={labelHeight}
                                 text={displayText}
@@ -611,11 +617,13 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
 
                 if (effectiveDisplay === DisplayNameEnum.Never || !showLabel) {
                     return (
-                        <Group key={placedAsset.id} id={placedAsset.id} name="placed-asset" x={imageX} y={imageY}>
+                        <Group key={placedAsset.id} id={placedAsset.id} name="placed-asset" x={placedAsset.position.x} y={placedAsset.position.y}>
                             <KonvaImage
                                 image={image}
                                 x={0}
                                 y={0}
+                                offsetX={placedAsset.size.width / 2}
+                                offsetY={placedAsset.size.height / 2}
                                 width={placedAsset.size.width}
                                 height={placedAsset.size.height}
                                 rotation={placedAsset.rotation}
@@ -636,13 +644,15 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 }
 
                 const labelInfo = formatCreatureLabel(placedAsset.name, MAX_LABEL_WIDTH_COLLAPSED);
-                const displayText = isExpanded && labelInfo.isTruncated ? labelInfo.fullText : labelInfo.displayText;
+                // Show full text if expanded OR if label visibility is "on hover"
+                const showFullText = (isExpanded && labelInfo.isTruncated) || effectiveDisplay === DisplayNameEnum.OnHover;
+                const displayText = showFullText ? labelInfo.fullText : labelInfo.displayText;
 
-                const measuredWidth = isExpanded && labelInfo.isTruncated
+                const measuredWidth = showFullText
                     ? labelInfo.fullWidth
                     : labelInfo.displayWidth;
 
-                const labelWidth = isExpanded && labelInfo.isTruncated
+                const labelWidth = showFullText
                     ? measuredWidth + LABEL_HORIZONTAL_PADDING
                     : Math.max(MIN_LABEL_WIDTH, Math.min(MAX_LABEL_WIDTH_COLLAPSED, measuredWidth + LABEL_HORIZONTAL_PADDING));
 
@@ -668,11 +678,13 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 const labelX = placedAsset.position.x - labelWidth / 2;
 
                 return (
-                    <Group key={placedAsset.id} id={placedAsset.id} name="placed-asset" x={imageX} y={imageY}>
+                    <Group key={placedAsset.id} id={placedAsset.id} name="placed-asset" x={placedAsset.position.x} y={placedAsset.position.y}>
                         <KonvaImage
                             image={image}
                             x={0}
                             y={0}
+                            offsetX={placedAsset.size.width / 2}
+                            offsetY={placedAsset.size.height / 2}
                             width={placedAsset.size.width}
                             height={placedAsset.size.height}
                             rotation={placedAsset.rotation}
@@ -689,8 +701,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                             }}
                         />
                         <Rect
-                            x={labelX - imageX}
-                            y={labelY - imageY}
+                            x={labelX - placedAsset.position.x}
+                            y={labelY - placedAsset.position.y}
                             width={labelWidth}
                             height={labelHeight}
                             fill={labelColors.background}
@@ -710,8 +722,8 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                             }}
                         />
                         <Text
-                            x={labelX - imageX}
-                            y={labelY - imageY}
+                            x={labelX - placedAsset.position.x}
+                            y={labelY - placedAsset.position.y}
                             width={labelWidth}
                             height={labelHeight}
                             text={displayText}

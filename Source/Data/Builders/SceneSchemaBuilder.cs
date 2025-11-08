@@ -101,8 +101,8 @@ internal static class SceneSchemaBuilder {
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Visibility).IsRequired().HasDefaultValue(WallVisibility.Normal);
             entity.Property(e => e.IsClosed).IsRequired().HasDefaultValue(false);
-            entity.Property(e => e.Material).HasMaxLength(32);
-            entity.Property(e => e.Color).HasMaxLength(16);
+            entity.Property(e => e.Material).IsRequired(false).HasMaxLength(32);
+            entity.Property(e => e.Color).IsRequired(false).HasMaxLength(32);
 
             entity.OwnsMany(e => e.Poles, poles => {
                 poles.ToJson();
@@ -153,9 +153,12 @@ internal static class SceneSchemaBuilder {
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Type).IsRequired().HasMaxLength(32);
             entity.Property(e => e.Direction).IsRequired().HasDefaultValue(0.0);
-            entity.Property(e => e.Range);
-            entity.Property(e => e.Intensity);
+            entity.Property(e => e.IsDirectional).IsRequired();
+            entity.Property(e => e.Range).IsRequired().HasDefaultValue(0.0);
+            entity.Property(e => e.Spread).IsRequired().HasDefaultValue(0.0);
+            entity.Property(e => e.Intensity).IsRequired().HasDefaultValue(100.0);
             entity.Property(e => e.HasGradient).IsRequired();
+            entity.Property(e => e.Color).IsRequired(false).HasMaxLength(32);
 
             entity.ComplexProperty(e => e.Position, position => {
                 position.IsRequired();

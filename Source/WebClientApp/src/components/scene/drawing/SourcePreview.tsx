@@ -46,10 +46,13 @@ export const SourcePreview: React.FC<SourcePreviewProps> = ({
             name: source.name,
             type: source.type,
             position: centerPos,
+            isDirectional: source.isDirectional,
             direction: source.direction,
+            spread: source.spread,
             range,
             intensity: source.intensity ?? 1.0,
-            hasGradient: source.hasGradient
+            hasGradient: source.hasGradient,
+            ...(source.color && { color: source.color })
         };
         return calculateLineOfSight(tempSource, range, opaqueWalls, gridConfig);
     }, [centerPos, range, opaqueWalls, gridConfig, source]);

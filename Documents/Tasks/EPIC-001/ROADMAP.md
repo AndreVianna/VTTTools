@@ -4,8 +4,8 @@
 **Target Item**: EPIC-001
 **Item Specification**: Documents/Tasks/EPIC-001/TASK.md
 **Created**: 2025-10-03
-**Last Updated**: 2025-11-08 (Roadmap Consolidation)
-**Version**: 1.12.0
+**Last Updated**: 2025-11-08 (Asset Rotation System Documentation)
+**Version**: 1.13.0
 
 ---
 
@@ -16,7 +16,7 @@
 **Scope**: Final 3% of UI migration - Phase 8.8 polish, Phase 10 SignalR frontend, Phases 12-13 release prep
 
 **Total Phases**: 14 (Phases 1-8.7 ✅ Complete | Phase 8.8 🚧 90% | Phase 9 ⚠️ BLOCKED-Optional | Phases 10-11 Backend ✅/Frontend 🚧 | Phases 12-14 🔜 Ready)
-**Progress**: 97-99% complete (368h documented + 40-50h undocumented quality work = 408-418h actual / 420h estimated)
+**Progress**: 97-99% complete (368h documented + 48-58h undocumented quality work = 416-426h actual / 420h estimated)
 **Current Status**: Phase 8.8 🚧 90% complete (5-10h remaining) | Phase 10 Backend ✅/Frontend ❌ (22h) | Phase 11 Backend ✅/Frontend 🚧 70% (4-6h)
 
 **Deliverables**:
@@ -57,8 +57,128 @@
 **TypeScript/ESLint Cleanup**: 16-20h (Fixed 112+ errors, achieved strict mode compliance)
 **Asset Panel Enhancements**: 8-12h (localStorage settings, editable properties, backend API wiring)
 **Asset Selection Fixes**: 12-16h (CTRL+click multiselect, 15+ bug fixes, coordinate conversion)
-**Rotation Handle**: 4-6h (New rotation feature with visual handle)
-**Total Undocumented**: 40-50 hours
+**Asset Rotation System**: 12-16h (Complete rotation feature with visual handle, mouse-based interaction, backend persistence)
+**Total Undocumented**: 48-58 hours
+
+---
+
+#### Asset Rotation System ✅ COMPLETE
+
+**Objective**: Implement interactive rotation handle for scene assets with visual feedback and precise angle control
+
+**Completion Date**: 2025-11-08
+
+**Background**: Scene assets (tokens, objects) required the ability to rotate after placement. The implementation went through 11+ iterations to resolve visual artifacts and interaction issues, ultimately delivering a robust rotation system with mouse-based interaction.
+
+**Implementation Details**:
+
+**1. Visual Rotation Handle Components**:
+- ✅ **RotationHandle.tsx** - Standalone rotation handle component (lines 1-152)
+  - Dashed line extending from asset center
+  - Circle grab handle at line endpoint
+  - Dynamic sizing based on asset dimensions (75% of longest dimension)
+  - Theme-aware colors (dark/light mode support)
+  - Scale-independent stroke width and handle size
+
+- ✅ **TokenDragHandle.tsx Integration** - Inline rotation handle (lines 735-788)
+  - Renders rotation handle directly in drag handle layer
+  - Single-asset only (simplified from multi-asset)
+  - Hides during asset drag operations
+  - Uses same visual style as standalone component
+
+**2. Interaction System** (TokenDragHandle.tsx:750-783):
+- ✅ **Mouse Event-Based Rotation**:
+  - `onMouseDown` on circle handle to start rotation
+  - Stage `mousemove` listener for continuous angle updates
+  - Stage/Window `mouseup` listeners for rotation end
+  - Replaced initial drag-based approach (circle disappeared during drag)
+
+- ✅ **Event Bubbling Prevention**:
+  - `e.cancelBubble = true` prevents marquee selection trigger
+  - Layer `listening={true}` enables event capture
+  - Individual non-interactive elements have `listening={false}`
+
+**3. Angle Calculation & Snapping** (rotationUtils.ts):
+- ✅ **Coordinate Transformation**:
+  - Screen coordinates → Canvas/world coordinates via stage transform
+  - `calculateAngleFromCenter()` computes angle from asset center
+  - 0° points upward (north) instead of right (east) via -90° adjustment
+
+- ✅ **Angle Snapping**:
+  - `snapAngle()` snaps to 15-degree increments
+  - Smooth visual feedback during rotation
+  - Normalized angle values (0-360 range)
+
+**4. State Management**:
+- ✅ **Rotation State Tracking**:
+  - `isRotating` state prevents conflicts with other operations
+  - `onRotationStart` / `onRotationEnd` callbacks for operation lifecycle
+  - `onRotationChange` callback with asset rotation updates array
+
+**5. Backend Integration** (sceneApi.ts):
+- ✅ **Persistence**:
+  - RTK Query `updateSceneAsset` mutation
+  - Rotation property persisted to database via SceneService
+  - Optimistic updates for immediate visual feedback
+
+**6. Bug Fixes & Refinements**:
+- ✅ **Ghost Handle Fix** - Removed duplicate RotationHandle from SceneEditorPage (Layer 9)
+  - Issue: Two rotation handles rendered on different layers
+  - Debugging: Color-coded handles (RED vs BLUE) to identify duplicate
+  - Solution: Removed standalone RotationHandle component, kept inline rendering
+
+- ✅ **Multi-Asset Rotation Removal**:
+  - Simplified from group rotation to single-asset only
+  - Removed `altKeyPressed` state and Alt key tracking
+  - Removed `rotationStartPositions` and `rotationStartRotations` tracking
+  - Removed group center calculation and multi-asset rotation logic
+  - Cleaned up unused imports: `normalizeAngle`, `rotatePointAroundOrigin`
+
+- ✅ **Interaction Bug Fixes**:
+  - Fixed marquee selection triggering when clicking handle (`cancelBubble`)
+  - Fixed layer event blocking by changing `listening={false}` to `true`
+  - Fixed circle following mouse by switching from drag to mouse events
+
+- ✅ **Label Display Enhancement** (TokenPlacement.tsx:512-523, 646-657):
+  - Show full asset name (no ellipsis) when label visibility is "on hover"
+  - Conditional logic: `showFullText = (isExpanded && isTruncated) || effectiveDisplay === OnHover`
+
+- ✅ **Backend Data Integrity Fix** (Data/Library/Mapper.cs:299-300):
+  - **Critical Bug**: Resources being cleared when placing new assets
+  - **Root Cause**: `ToEntity()` set navigation properties with partial Resource objects
+  - **Fix**: Removed `Portrait = model.Portrait?.ToEntity()` and `Token = model.Token?.ToEntity()`
+  - **Solution**: Only set foreign keys (`PortraitId`, `TokenId`), not navigation properties
+  - **Impact**: Prevented EF Core from updating existing Resource records with null values
+
+**Files Modified**:
+- `Source/WebClientApp/src/components/scene/RotationHandle.tsx` - Standalone component
+- `Source/WebClientApp/src/components/scene/TokenDragHandle.tsx` - Inline rendering, mouse events
+- `Source/WebClientApp/src/components/scene/TokenPlacement.tsx` - Label display logic
+- `Source/WebClientApp/src/pages/SceneEditorPage.tsx` - Removed duplicate RotationHandle
+- `Source/WebClientApp/src/services/sceneApi.ts` - Rotation persistence
+- `Source/WebClientApp/src/utils/rotationUtils.ts` - Angle calculation utilities
+- `Source/Data/Library/Mapper.cs` - Fixed navigation property bug
+
+**Success Criteria**:
+- ✅ Single selected asset shows rotation handle
+- ✅ Mouse-based rotation with smooth visual feedback
+- ✅ Angle snaps to 15-degree increments
+- ✅ Handle follows asset during drag operations
+- ✅ No ghost artifacts or duplicate handles
+- ✅ Rotation persists to backend database
+- ✅ Event handling prevents unintended interactions
+- ✅ Resource data integrity maintained during asset operations
+
+**Iterations & Problem Solving**:
+- **11 failed attempts** to fix ghost handle (conditional rendering, Konva props, layer manipulation)
+- **User insight**: "You are trying to manipulate the wrong node" led to debugging with color-coding
+- **Breakthrough**: Discovered duplicate RotationHandle rendering on separate layers
+- **3 interaction issues** resolved: marquee trigger, event blocking, circle positioning
+- **1 critical backend bug** discovered and fixed during testing
+
+**Estimated Effort**: 12-16 hours (including debugging, iterations, and bug fixes)
+
+**Status**: ✅ COMPLETE
 
 ---
 
@@ -3423,6 +3543,8 @@ Implementation Order:
 ---
 
 ## Change Log
+
+- **2025-11-08** (v1.13.0): ASSET ROTATION SYSTEM COMPLETE - Comprehensive interactive rotation feature delivered for scene assets (tokens, objects) with visual handle, mouse-based interaction, and backend persistence. Total effort: 12-16 hours actual (including 11+ debugging iterations). Features Delivered: (1) Visual Rotation Handle - RotationHandle.tsx standalone component (152 LOC) + TokenDragHandle.tsx inline rendering (lines 735-788), dashed line extending from asset center, circle grab handle at endpoint, dynamic sizing (75% of longest dimension), theme-aware colors (dark/light mode), scale-independent stroke width and handle size, single-asset only (simplified from multi-asset). (2) Mouse Event-Based Interaction - onMouseDown on circle handle initiates rotation, stage mousemove listener for continuous angle updates, stage/window mouseup listeners for rotation end, replaced initial drag-based approach (circle disappeared during drag), event bubbling prevention (e.cancelBubble = true) prevents marquee selection, layer listening={true} enables event capture, individual non-interactive elements have listening={false}. (3) Angle Calculation & Snapping - rotationUtils.ts with coordinate transformation (screen → canvas/world via stage transform), calculateAngleFromCenter() computes angle from asset center, 0° points upward (north) instead of right (east) via -90° adjustment, snapAngle() snaps to 15-degree increments, smooth visual feedback during rotation, normalized angle values (0-360 range). (4) State Management - isRotating state prevents conflicts with other operations, onRotationStart/onRotationEnd callbacks for operation lifecycle, onRotationChange callback with asset rotation updates array, rotation persists via RTK Query updateSceneAsset mutation, optimistic updates for immediate feedback. Critical Bugs Fixed: (1) Ghost Handle Bug - Two rotation handles rendered on different layers causing persistent visual artifact at original position during drag (11 failed fix attempts: conditional rendering, Konva visible prop, key-based rendering, getAssetRenderPosition, inline rendering, layer.batchDraw(), layer.clear(), requestAnimationFrame, destroying nodes, clearRect, node.hide()), user insight "you are trying to manipulate the wrong node" led to color-coded debugging (RED vs BLUE handles), discovered duplicate RotationHandle in SceneEditorPage Layer 9, removed standalone RotationHandle component, kept inline rendering in TokenDragHandle. (2) Multi-Asset Rotation Removal - Simplified from group rotation to single-asset only (selectedAssets.length !== 1 check), removed altKeyPressed state and Alt key tracking, removed rotationStartPositions and rotationStartRotations tracking, removed group center calculation and multi-asset rotation logic, cleaned up unused imports (normalizeAngle, rotatePointAroundOrigin). (3) Interaction Bug Fixes - Fixed marquee selection triggering when clicking handle (added e.cancelBubble = true), fixed layer event blocking by changing listening={false} to listening={true}, fixed circle following mouse by switching from Konva drag events to native mouse events (onMouseDown + stage mousemove/mouseup instead of onDragStart/onDragMove/onDragEnd). (4) Label Display Enhancement - TokenPlacement.tsx (lines 512-523, 646-657) shows full asset name (no ellipsis) when label visibility is "on hover", conditional logic: showFullText = (isExpanded && isTruncated) || effectiveDisplay === OnHover. (5) Backend Data Integrity Fix - CRITICAL BUG: Resources being cleared when placing new assets, root cause: Data/Library/Mapper.cs ToEntity() method (lines 299-300) set navigation properties (Portrait, Token) with partial Resource objects (only ID set), SceneService created Resources as new Resource { Id = tokenId.Value }, EF Core change tracking detected this as update to existing records and cleared all data (FileName, Path, ContentType, etc. set to null), fix: removed Portrait = model.Portrait?.ToEntity() and Token = model.Token?.ToEntity(), only set foreign keys (PortraitId = model.Portrait?.Id, TokenId = model.Token?.Id), prevents EF Core from updating existing Resource entities during SceneAsset creation. Files Modified: Source/WebClientApp/src/components/scene/RotationHandle.tsx (standalone component), Source/WebClientApp/src/components/scene/TokenDragHandle.tsx (inline rendering, mouse events), Source/WebClientApp/src/components/scene/TokenPlacement.tsx (label display logic), Source/WebClientApp/src/pages/SceneEditorPage.tsx (removed duplicate RotationHandle), Source/WebClientApp/src/services/sceneApi.ts (rotation persistence), Source/WebClientApp/src/utils/rotationUtils.ts (angle calculation utilities), Source/Data/Library/Mapper.cs (fixed navigation property bug). Success Criteria: Single selected asset shows rotation handle (✓), mouse-based rotation with smooth visual feedback (✓), angle snaps to 15-degree increments (✓), handle follows asset during drag operations (✓), no ghost artifacts or duplicate handles (✓), rotation persists to backend database (✓), event handling prevents unintended interactions (✓), resource data integrity maintained during asset operations (✓). Iterations & Problem Solving: 11 failed attempts to fix ghost handle (conditional rendering, Konva props, layer.batchDraw(), layer.clear(), requestAnimationFrame, destroying nodes, clearRect, node.hide(), getAssetRenderPosition, inline rendering, key-based rendering), user insight "you are trying to manipulate the wrong node" critical for breakthrough, debugging with color-coding (RED vs BLUE handles) identified duplicate rendering, 3 interaction issues resolved (marquee trigger, event blocking, circle positioning), 1 critical backend bug (EF Core navigation property update) discovered during testing. Lessons Learned: (18) Debugging complex visual artifacts requires isolation techniques - color-coding different instances reveals duplicates, systematic elimination of possibilities, user observation ("wrong node") can provide critical insights. (19) Konva event system requires careful layer configuration - listening prop must be true on layer for event capture, individual elements can disable listening to prevent conflicts, e.cancelBubble prevents event bubbling to parent stage. (20) Drag events vs mouse events have different behavior - Konva drag events move the node itself (circle disappeared during drag), mouse events allow custom behavior without node movement, mouse events better for rotation interaction where visual element stays fixed. (21) EF Core navigation property bug pattern - setting navigation properties with partial entities causes unexpected updates, change tracking detects incomplete objects as updates, always set foreign keys (IDs) not navigation properties when you only have partial data, navigation properties should only be set when creating/updating the full related entity. Updated progress to 416-426h actual (48-58h undocumented quality work). Asset Rotation System complete with all interaction bugs fixed and backend data integrity preserved.
 
 - **2025-11-04** (v1.18.0): Phase 8.8 UNDO/REDO SYSTEM COMPLETION - Comprehensive dual-queue undo/redo system delivered with A grade (Excellent). Implemented complete transaction-scoped undo for wall placement/editing (local queue) and post-commit undo for completed operations (global queue) across 6 phases with 46 implementation steps and continuous code review validation. Total effort: 18 hours actual. Features Delivered: (1) Local Undo System - Transaction-scoped undo/redo for operations during active editing sessions, localUndoStack/localRedoStack in wallTransaction state, 7 action types (PlacePole, MovePole, InsertPole, DeletePole, MultiMovePole, MoveLine, BreakWall), factory pattern creates actions with closures capturing callbacks, undo/redo executed within transaction without commit, empty stack = silent no-op (stays in edit mode), Ctrl+Z removes last pole in placement, Ctrl+Z reverts last operation in edit mode (move/delete/insert), multi-pole drag tracked as single composite action (one undo reverts all poles), wall break undoable during edit (merges segments back to original). (2) Global Undo System - Post-commit undo/redo for completed wall operations, 4 command classes (CreateWallCommand, EditWallCommand, DeleteWallCommand, BreakWallCommand), full redo support on all commands (Ctrl+Y recreates walls), commands store before/after state snapshots, undo wall creation removes entire wall from scene, undo wall edit reverts to pre-edit state, undo wall break restores original wall and removes segments, integrated with existing UndoRedoContext. (3) Keyboard Routing - Capture-phase keyboard handler routes Ctrl+Z/Y to local or global based on transaction state, platform support (Mac Cmd vs Windows Ctrl), both Ctrl+Y and Ctrl+Shift+Z for redo, input field bypass (doesn't interfere with typing), smart routing: local undo if transaction active AND stack not empty else global undo, seamless transition between local and global contexts. (4) Scene State Synchronization - Callback-based sync after undo/redo operations, undoLocal/redoLocal accept onSyncScene callback with updated segments, sync executes inside setTransaction (has access to new state immediately), prevents React state batching issues, removes temp walls when segments disappear, updates main wall when segments merge, handles both single-segment (merged) and multi-segment (broken) states. Critical Bug Fixed: Wall Break Undo Ghost Wall Bug - After breaking wall and undoing with Ctrl+Z, ghost residual walls remained visible (first showed first half, then second half after intermediate fixes), root cause trio: (1) React state batching - undoLocal() and action.undo() both called setTransaction, React batched updates, getActiveSegments() called immediately after returned stale data before React flushed updates (2) Segment association lost - old implementation removed both segments and created NEW segment with wallIndex: null losing association with original wall (3) Stale closure - keyboard handler captured scene from closure without scene in dependencies, fixed with three-part solution: (1) Changed BreakWallAction to UPDATE first segment instead of remove+add (preserves wallIndex association, reuses tempId) (2) Added onSyncScene callback to undoLocal/redoLocal (callback receives updated segments from inside setTransaction before React batches) (3) Added sceneRef to track current scene (fixes stale closure in keyboard handler), undo now: removes second segment, updates first segment to merged state with originalWallIndex preserved, redo now: updates first segment to split state, adds new second segment, sync callback: removes temp walls not in segments, updates main wall with segment poles (single or multi), result: no ghost walls, correct pole counts, clean undo/redo cycles. Implementation Quality: 6 phases with 46 atomic steps, continuous code-reviewer validation every step, multiple fix cycles achieving A/A+ grades, autonomous agent workflow (frontend-developer → code-reviewer → fixes → approval), comprehensive testing with 132 tests (103 unit + 29 BDD scenarios), 95%+ code coverage (100% for action factories and commands), all tests passing with AAA pattern, TypeScript strict mode compliance throughout. Test Coverage: wallUndoActions.test.ts (38 tests for 7 action factories), useWallTransaction.test.ts (27 tests for local undo hooks), WallDrawingTool.integration.test.tsx (11 TRUE integration tests with real hooks), WallTransformer.integration.test.tsx (20 tests for edit mode), SceneEditorPage.keyboard.test.tsx (16 keyboard routing tests), wallCommands.test.ts (27 tests for 4 global commands achieving 100% coverage), WallUndo.feature (29 BDD E2E scenarios covering complete workflows). Architecture Patterns: (1) Dual-Queue Architecture - Local queue (transaction scope, cleared on commit/cancel) + Global queue (scene scope, persists across sessions), zero coupling between queues, clear lifecycle separation, type-safe with LocalAction vs Command interfaces. (2) Factory Pattern - createPlacePoleAction, createMovePoleAction, etc. use closures to capture callbacks without interface pollution, enables clean serializable action data, flexible composition. (3) Command Pattern - CreateWallCommand, EditWallCommand, etc. implement Command interface with execute/undo/redo, stores before/after snapshots for state restoration, async operations with proper error handling. (4) Callback-Based Sync - undoLocal/redoLocal callbacks receive updated segments immediately, executes inside setTransaction before React batching, prevents stale state access, clean scene synchronization. User Requirements Verification: Multi-pole drag = single undo (✓ MultiMovePoleAction composite), Wall break undoable during edit (✓ BreakWallAction with segment merge), Empty stack = silent no-op (✓ verified in 27+ tests), Global undo after commit removes wall (✓ CreateWallCommand), Global undo after edit reverts changes (✓ EditWallCommand), Full redo support (✓ all 4 commands have redo()), Separate queues for modes (✓ Local transaction + Global context), 100% of requirements met. Files Created: wallUndoActions.ts (535 LOC), wallUndoActions.test.ts (1,158 LOC), useWallTransaction.test.ts (882 LOC), WallDrawingTool.integration.test.tsx (610 LOC), WallTransformer.integration.test.tsx (1,060 LOC), wallCommands.ts (207 LOC), wallCommands.test.ts (590 LOC), SceneEditorPage.keyboard.test.tsx (454 LOC), WallUndo.feature (416 LOC). Files Modified: useWallTransaction.ts (+150 LOC local undo methods, sceneRef support), WallDrawingTool.tsx (+30 LOC action tracking), WallTransformer.tsx (+120 LOC action tracking for 5 edit types), SceneEditorPage.tsx (+180 LOC keyboard routing, BreakWallAction tracking, scene sync). Code Quality: TypeScript strict mode 100% compliance, VTTTools frontend standards 100% adherence, zero anti-patterns detected, comprehensive error handling with user feedback, AAA test pattern throughout, no hardcoded values or magic numbers, immutable state updates everywhere, proper React hooks usage, clean separation of concerns. Lessons Learned: (13) Dual-queue undo architecture cleanly separates transaction-scoped from persistent undo - local queue for atomic edits within mode, global queue for committed operations, zero coupling prevents state leakage, clear lifecycle boundaries (local cleared on commit/cancel). (14) Factory pattern with closures enables clean action serialization - callbacks captured in closures not stored in interfaces, action data remains pure and serializable, flexible composition without interface pollution. (15) React state batching requires callback-based sync for immediate access - calling getActiveSegments() after undoLocal() returns stale data, onSyncScene callback inside setTransaction has access to new state immediately, prevents race conditions and ghost state bugs. (16) Segment association must be preserved during undo - updating existing segment better than remove+add which loses wallIndex association, tempId reuse prevents orphaned state, maintains transaction integrity across undo/redo cycles. (17) Stale closures in useEffect require refs for mutable values - scene captured in keyboard handler closure becomes stale, sceneRef.current provides always-current value, critical for long-running event handlers. Updated progress to 87.4% (368/420h). Phase 8.8 COMPLETE with undo/redo system. Walls feature complete. Phase 8.9 (Regions Validation) marked as NEXT.
 

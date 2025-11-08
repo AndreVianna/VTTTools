@@ -16,11 +16,12 @@ import {
   LightMode as GlobalLightingIcon,
   VisibilityOff as FogOfWarIcon
 } from '@mui/icons-material';
-import { BackgroundPanel, GridPanel, WallsPanel, ObjectsPanel, CreaturesPanel } from './panels';
+import { BackgroundPanel, GridPanel, WallsPanel, ObjectsPanel, CreaturesPanel, SourcesPanel } from './panels';
+import type { SourcePlacementProperties } from './panels';
 import { AssetPicker } from '@/components/common';
 import { GridConfig } from '@/utils/gridCalculator';
 import { AssetKind } from '@/types/domain';
-import type { SceneWall, WallVisibility, Asset, PlacedAsset } from '@/types/domain';
+import type { SceneWall, WallVisibility, Asset, PlacedAsset, SceneSource } from '@/types/domain';
 
 export type PanelType =
   | 'background'
@@ -65,6 +66,12 @@ export interface LeftToolBarProps {
   onPlacedAssetDelete?: (assetId: string) => void;
   onPlacedAssetRename?: (assetId: string, newName: string) => void;
   onPlacedAssetUpdate?: (assetId: string, updates: Partial<PlacedAsset>) => void;
+  sceneSources?: SceneSource[] | undefined;
+  selectedSourceIndex?: number | null | undefined;
+  onSourceSelect?: (index: number) => void;
+  onSourceDelete?: (index: number) => void;
+  onPlaceSource?: (properties: SourcePlacementProperties) => void;
+  onEditSource?: (index: number, updates: any) => void;
 }
 
 export const LeftToolBar: React.FC<LeftToolBarProps> = ({
@@ -88,7 +95,13 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
   onPlacedAssetSelect,
   onPlacedAssetDelete,
   onPlacedAssetRename,
-  onPlacedAssetUpdate
+  onPlacedAssetUpdate,
+  sceneSources,
+  selectedSourceIndex,
+  onSourceSelect,
+  onSourceDelete,
+  onPlaceSource,
+  onEditSource
 }) => {
   const theme = useTheme();
   const [internalActivePanel, setInternalActivePanel] = useState<PanelType | null>(null);
@@ -290,10 +303,15 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
             </Box>
           )}
           {activePanel === 'lightSources' && (
-            <Box>
-              <Box sx={{ mb: 2, fontWeight: 'bold' }}>Light Sources</Box>
-              <Box>Light source placement controls</Box>
-            </Box>
+            <SourcesPanel
+              sceneId={sceneId || ''}
+              sceneSources={sceneSources || []}
+              selectedSourceIndex={selectedSourceIndex !== undefined ? selectedSourceIndex : null}
+              onSourceSelect={onSourceSelect || (() => {})}
+              onSourceDelete={onSourceDelete || (() => {})}
+              onPlaceSource={onPlaceSource || (() => {})}
+              {...(onEditSource ? { onEditSource } : {})}
+            />
           )}
           {activePanel === 'overlays' && (
             <Box>

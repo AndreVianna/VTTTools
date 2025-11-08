@@ -222,7 +222,7 @@ export const sceneApi = createApi({
             query: ({ sceneId, assetIndices }) => ({
                 url: `/${sceneId}/assets`,
                 method: 'DELETE',
-                body: { assetIndices }
+                body: { indices: assetIndices }
             }),
             invalidatesTags: (_result, _error, { sceneId }) => [
                 { type: 'Scene', id: sceneId }
@@ -404,9 +404,12 @@ export const sceneApi = createApi({
             name: string;
             type: string;
             position: Point;
+            isDirectional: boolean;
             direction: number;
+            spread: number;
             range?: number;
             intensity?: number;
+            color?: string;
             hasGradient: boolean;
         }>({
             query: ({ sceneId, ...body }) => ({
@@ -426,9 +429,12 @@ export const sceneApi = createApi({
             name?: string;
             type?: string;
             position?: Point;
+            isDirectional?: boolean;
             direction?: number;
+            spread?: number;
             range?: number;
             intensity?: number;
+            color?: string;
             hasGradient?: boolean;
         }>({
             query: ({ sceneId, sourceIndex, ...body }) => ({

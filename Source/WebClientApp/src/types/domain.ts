@@ -613,9 +613,12 @@ export interface SceneSource {
   name: string;
   type: string;
   position: Point;
+  isDirectional: boolean;
   direction: number;
+  spread: number;
   range?: number;
   intensity?: number;
+  color?: string;
   hasGradient: boolean;
 }
 
