@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, type Store } from '@reduxjs/toolkit';
 import authReducer, { login, logout, updateToken } from './authSlice';
 import { authService } from '@services/authService';
 import type { AuthState } from '../../types/auth';
@@ -7,7 +7,7 @@ import type { AuthState } from '../../types/auth';
 vi.mock('@services/authService');
 
 describe('authSlice', () => {
-    let store: ReturnType<typeof configureStore>;
+    let store: Store<{ auth: AuthState }>;
 
     beforeEach(() => {
         store = configureStore({
@@ -37,9 +37,9 @@ describe('authSlice', () => {
                 token: mockToken,
             });
 
-            await store.dispatch(login({ email: 'admin@test.com', password: 'password' }));
+            await store.dispatch(login({ email: 'admin@test.com', password: 'password' }) as any);
 
-            const state = store.getState().auth as AuthState;
+            const state = store.getState().auth;
             expect(state.isAuthenticated).toBe(true);
             expect(state.user).toEqual(mockUser);
             expect(state.token).toBe(mockToken);
@@ -63,9 +63,9 @@ describe('authSlice', () => {
 
             vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser);
 
-            await store.dispatch(login({ email: 'admin@test.com', password: 'password' }));
+            await store.dispatch(login({ email: 'admin@test.com', password: 'password' }) as any);
 
-            const state = store.getState().auth as AuthState;
+            const state = store.getState().auth;
             expect(state.isAuthenticated).toBe(true);
             expect(state.user).toEqual(mockUser);
             expect(state.token).toBeNull();
@@ -79,9 +79,9 @@ describe('authSlice', () => {
                 error: 'Invalid credentials',
             });
 
-            await store.dispatch(login({ email: 'admin@test.com', password: 'wrong' }));
+            await store.dispatch(login({ email: 'admin@test.com', password: 'wrong' }) as any);
 
-            const state = store.getState().auth as AuthState;
+            const state = store.getState().auth;
             expect(state.isAuthenticated).toBe(false);
             expect(state.user).toBeNull();
             expect(state.token).toBeNull();
@@ -117,9 +117,9 @@ describe('authSlice', () => {
 
             vi.mocked(authService.logout).mockResolvedValue();
 
-            await store.dispatch(logout());
+            await store.dispatch(logout() as any);
 
-            const state = store.getState().auth as AuthState;
+            const state = store.getState().auth;
             expect(state.isAuthenticated).toBe(false);
             expect(state.user).toBeNull();
             expect(state.token).toBeNull();
@@ -149,7 +149,7 @@ describe('authSlice', () => {
 
             store.dispatch(updateToken(newToken));
 
-            const state = store.getState().auth as AuthState;
+            const state = store.getState().auth;
             expect(state.token).toBe(newToken);
         });
 
@@ -181,7 +181,7 @@ describe('authSlice', () => {
 
             store.dispatch(updateToken(newToken));
 
-            const state = store.getState().auth as AuthState;
+            const state = store.getState().auth;
             expect(state.token).toBe(newToken);
         });
     });

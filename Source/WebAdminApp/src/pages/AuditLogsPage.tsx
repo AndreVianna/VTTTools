@@ -24,7 +24,6 @@ import {
     DataGrid,
     GridColDef,
     GridRenderCellParams,
-    GridRowsProp,
 } from '@mui/x-data-grid';
 import {
     FilterList as FilterListIcon,
@@ -490,7 +489,7 @@ export function AuditLogsPage() {
                 <Grid size={{ xs: 12, md: 6 }}>
                     <DateTimePicker
                         label="Start Date"
-                        value={tempFilters.startDate ? new Date(tempFilters.startDate) : null}
+                        value={tempFilters.startDate ? dayjs(tempFilters.startDate) : null}
                         onChange={(newValue) => {
                             const newFilters = { ...tempFilters };
                             if (newValue) {
@@ -508,7 +507,7 @@ export function AuditLogsPage() {
                 <Grid size={{ xs: 12, md: 6 }}>
                     <DateTimePicker
                         label="End Date"
-                        value={tempFilters.endDate ? new Date(tempFilters.endDate) : null}
+                        value={tempFilters.endDate ? dayjs(tempFilters.endDate) : null}
                         onChange={(newValue) => {
                             const newFilters = { ...tempFilters };
                             if (newValue) {

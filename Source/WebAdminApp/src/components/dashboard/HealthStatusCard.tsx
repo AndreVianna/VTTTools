@@ -1,6 +1,5 @@
-import { Box, Paper, Typography, Chip, Stack, useTheme, Alert } from '@mui/material';
-import { FiberManualRecord as FiberManualRecordIcon } from '@mui/icons-material';
-import type { HealthCheckResponse, HealthCheckResult } from '@services/dashboardService';
+import { Paper, Typography, Chip, Stack, Alert } from '@mui/material';
+import type { HealthCheckResponse } from '@services/healthCheckService';
 
 interface HealthStatusCardProps {
     serviceName?: string;
@@ -10,22 +9,6 @@ interface HealthStatusCardProps {
 }
 
 export function HealthStatusCard({ serviceName = 'System Health', healthData, error, loading }: HealthStatusCardProps) {
-    const theme = useTheme();
-
-    const getStatusColor = (status: string): string => {
-        switch (status) {
-            case 'Healthy':
-                return theme.palette.success.main;
-            case 'Degraded':
-                return theme.palette.warning.main;
-            case 'Unhealthy':
-            case 'Unavailable':
-                return theme.palette.error.main;
-            default:
-                return theme.palette.grey[500];
-        }
-    };
-
     const getStatusChipColor = (status: string): 'success' | 'warning' | 'error' | 'default' => {
         switch (status) {
             case 'Healthy':

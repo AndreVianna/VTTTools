@@ -57,19 +57,6 @@ export function UserListPage() {
         loadStats();
     }, []);
 
-    useEffect(() => {
-        loadUsers(true);
-    }, [search, roleFilter, statusFilter, sortBy, sortOrder]);
-
-    const loadStats = async () => {
-        try {
-            const data = await userService.getUserStats();
-            setStats(data);
-        } catch (err) {
-            console.error('Failed to load user stats:', err);
-        }
-    };
-
     const loadUsers = useCallback(
         async (reset: boolean = false) => {
             setLoading(true);
@@ -113,6 +100,19 @@ export function UserListPage() {
         },
         [skip, search, roleFilter, statusFilter, sortBy, sortOrder]
     );
+
+    const loadStats = async () => {
+        try {
+            const data = await userService.getUserStats();
+            setStats(data);
+        } catch (err) {
+            console.error('Failed to load user stats:', err);
+        }
+    };
+
+    useEffect(() => {
+        loadUsers(true);
+    }, [search, roleFilter, statusFilter, sortBy, sortOrder, loadUsers]);
 
     const handleLoadMore = () => {
         if (!loading && hasMore) {

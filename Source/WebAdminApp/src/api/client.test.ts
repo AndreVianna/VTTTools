@@ -1,21 +1,23 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, type Store } from '@reduxjs/toolkit';
 import MockAdapter from 'axios-mock-adapter';
 import apiClient, { configureApiClient } from './client';
 import authReducer from '@store/slices/authSlice';
-import type { AuthState } from '../types/auth';
+import uiReducer from '@store/slices/uiSlice';
+import type { RootState, AppDispatch } from '@store/store';
 
 describe('API Client', () => {
     let mockAxios: MockAdapter;
-    let store: ReturnType<typeof configureStore>;
+    let store: Store<RootState, any, any> & { dispatch: AppDispatch };
 
     beforeEach(() => {
         mockAxios = new MockAdapter(apiClient);
         store = configureStore({
             reducer: {
                 auth: authReducer,
+                ui: uiReducer,
             },
-        });
+        }) as Store<RootState, any, any> & { dispatch: AppDispatch };
         configureApiClient(store);
     });
 
@@ -25,6 +27,7 @@ describe('API Client', () => {
         store = configureStore({
             reducer: {
                 auth: authReducer,
+                ui: uiReducer,
             },
             preloadedState: {
                 auth: {
@@ -40,9 +43,9 @@ describe('API Client', () => {
                     isLoading: false,
                     error: null,
                     token: mockToken,
-                } as AuthState,
+                },
             },
-        });
+        }) as Store<RootState, any, any> & { dispatch: AppDispatch };
 
         configureApiClient(store);
 
@@ -69,6 +72,7 @@ describe('API Client', () => {
         store = configureStore({
             reducer: {
                 auth: authReducer,
+                ui: uiReducer,
             },
             preloadedState: {
                 auth: {
@@ -84,9 +88,9 @@ describe('API Client', () => {
                     isLoading: false,
                     error: null,
                     token: 'test-token',
-                } as AuthState,
+                },
             },
-        });
+        }) as Store<RootState, any, any> & { dispatch: AppDispatch };
 
         configureApiClient(store);
 
@@ -99,7 +103,7 @@ describe('API Client', () => {
 
         try {
             await apiClient.get('/api/admin/test');
-        } catch (error) {
+        } catch {
             expect(window.location.href).toBe('/login');
         }
     });
@@ -111,6 +115,7 @@ describe('API Client', () => {
         store = configureStore({
             reducer: {
                 auth: authReducer,
+                ui: uiReducer,
             },
             preloadedState: {
                 auth: {
@@ -126,9 +131,9 @@ describe('API Client', () => {
                     isLoading: false,
                     error: null,
                     token: oldToken,
-                } as AuthState,
+                },
             },
-        });
+        }) as Store<RootState, any, any> & { dispatch: AppDispatch };
 
         configureApiClient(store);
 
@@ -158,6 +163,7 @@ describe('API Client', () => {
         store = configureStore({
             reducer: {
                 auth: authReducer,
+                ui: uiReducer,
             },
             preloadedState: {
                 auth: {
@@ -173,9 +179,9 @@ describe('API Client', () => {
                     isLoading: false,
                     error: null,
                     token: sameToken,
-                } as AuthState,
+                },
             },
-        });
+        }) as Store<RootState, any, any> & { dispatch: AppDispatch };
 
         configureApiClient(store);
 

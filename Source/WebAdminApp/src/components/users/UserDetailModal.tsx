@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -56,13 +56,7 @@ export function UserDetailModal({
     const [tabValue, setTabValue] = useState(0);
     const [actionLoading, setActionLoading] = useState(false);
 
-    useEffect(() => {
-        if (open && userId) {
-            loadUserDetails();
-        }
-    }, [open, userId]);
-
-    const loadUserDetails = async () => {
+    const loadUserDetails = useCallback(async () => {
         if (!userId) return;
 
         setLoading(true);
@@ -74,7 +68,13 @@ export function UserDetailModal({
         } finally {
             setLoading(false);
         }
-    };
+    }, [userId]);
+
+    useEffect(() => {
+        if (open && userId) {
+            loadUserDetails();
+        }
+    }, [open, userId, loadUserDetails]);
 
     const handleClose = () => {
         setUser(null);
