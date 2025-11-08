@@ -34,6 +34,19 @@ public class SceneTests {
                 },
                 Tags = ["tag1", "tag2"],
             },
+            Light = Light.Twilight,
+            Weather = Weather.Clear,
+            Elevation = 20.0f,
+            Sound = new Resource {
+                Id = Guid.CreateVersion7(),
+                Type = ResourceType.Audio,
+                Path = "path/to/sound.mp3",
+                Metadata = new() {
+                    ContentType = "audio/mpeg",
+                    Duration = TimeSpan.FromMinutes(3),
+                },
+                Tags = ["ambient", "background"],
+            },
         };
         var sceneAsset = new SceneAsset();
 

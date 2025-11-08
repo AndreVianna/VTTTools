@@ -15,6 +15,10 @@ public record SceneUpdateData
         public Optional<Guid?> BackgroundId { get; init; }
         public Optional<float> ZoomLevel { get; init; }
         public Optional<Point> Panning { get; init; }
+        public Optional<Light> Light { get; init; }
+        public Optional<Weather> Weather { get; init; }
+        public Optional<float> Elevation { get; init; }
+        public Optional<Guid?> SoundId { get; init; }
     }
 
     public record GridUpdate {

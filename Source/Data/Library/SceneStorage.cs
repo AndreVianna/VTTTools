@@ -13,6 +13,7 @@ public class SceneStorage(ApplicationDbContext context)
     public Task<Scene[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Scenes
                   .Include(e => e.Background)
+                  .Include(e => e.Sound)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
                   .AsSplitQuery()
@@ -26,6 +27,7 @@ public class SceneStorage(ApplicationDbContext context)
     public Task<Scene[]> GetByParentIdAsync(Guid adventureId, CancellationToken ct = default) {
         var query = context.Scenes
                   .Include(e => e.Background)
+                  .Include(e => e.Sound)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
                   .Where(e => e.AdventureId == adventureId)
@@ -40,6 +42,7 @@ public class SceneStorage(ApplicationDbContext context)
     public async Task<Scene?> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Scenes
                   .Include(e => e.Background)
+                  .Include(e => e.Sound)
                   .Include(e => e.SceneAssets)
                     .ThenInclude(ea => ea.Asset)
                   .Include(e => e.Walls)
