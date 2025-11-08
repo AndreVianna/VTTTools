@@ -48,6 +48,7 @@ import { ClipboardProvider } from '@/contexts/ClipboardContext';
 import { useClipboard } from '@/contexts/useClipboard';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
+import { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import { addWallOptimistic, removeWallOptimistic, syncWallIndices, updateWallOptimistic } from '@/utils/sceneStateUtils';
 import { createBreakWallAction } from '@/types/wallUndoActions';
 import {
@@ -99,6 +100,7 @@ const SceneEditorPageInternal: React.FC = () => {
     const { copyAssets, cutAssets, clipboard, canPaste, getClipboardAssets, clearClipboard } = useClipboard();
     const { isOnline } = useConnectionStatus();
     const wallTransaction = useWallTransaction();
+    const regionTransaction = useRegionTransaction();
     const dispatch = useAppDispatch();
 
     const { data: sceneData, isLoading: isLoadingScene, error: sceneError, refetch } = useGetSceneQuery(
@@ -178,6 +180,9 @@ const SceneEditorPageInternal: React.FC = () => {
     const [contextMenuWall, setContextMenuWall] = useState<SceneWall | null>(null);
     const [isEditingVertices, setIsEditingVertices] = useState(false);
     const [originalWallPoles, setOriginalWallPoles] = useState<Pole[] | null>(null);
+
+    const [selectedRegionIndex, setSelectedRegionIndex] = useState<number | null>(null);
+    const [drawingRegionIndex, setDrawingRegionIndex] = useState<number | null>(null);
 
     const [selectedSourceIndex, setSelectedSourceIndex] = useState<number | null>(null);
     const [sourcePlacementProperties, setSourcePlacementProperties] = useState<SourcePlacementProperties | null>(null);
@@ -1826,6 +1831,33 @@ const SceneEditorPageInternal: React.FC = () => {
         setActivePanel(null);
     }, [sceneId, scene, wallTransaction]);
 
+    const handlePlaceRegion = useCallback((properties: {
+        name: string;
+        type: string;
+        value?: number;
+        label?: string;
+        color?: string;
+    }) => {
+        if (!sceneId || !scene) return;
+
+        console.log('handlePlaceRegion called with:', properties);
+        alert(`Region placement started: ${properties.name} (${properties.type})`);
+    }, [sceneId, scene]);
+
+    const handleRegionSelect = useCallback((regionIndex: number) => {
+        setSelectedRegionIndex(regionIndex);
+    }, []);
+
+    const handleRegionDelete = useCallback(async (regionIndex: number) => {
+        console.log('handleRegionDelete called for index:', regionIndex);
+        alert(`Region delete requested for index: ${regionIndex}`);
+    }, []);
+
+    const handleEditRegionVertices = useCallback((regionIndex: number) => {
+        console.log('handleEditRegionVertices called for index:', regionIndex);
+        alert(`Edit region vertices requested for index: ${regionIndex}`);
+    }, []);
+
     const handleSourceSelect = useCallback((index: number) => {
         setSelectedSourceIndex(index);
     }, []);
@@ -1940,6 +1972,12 @@ const SceneEditorPageInternal: React.FC = () => {
                     onWallDelete={handleWallDelete}
                     onPlaceWall={handlePlaceWall}
                     onEditVertices={handleEditVertices}
+                    sceneRegions={scene?.regions}
+                    selectedRegionIndex={selectedRegionIndex}
+                    onRegionSelect={handleRegionSelect}
+                    onRegionDelete={handleRegionDelete}
+                    onPlaceRegion={handlePlaceRegion}
+                    onEditRegionVertices={handleEditRegionVertices}
                     placedAssets={placedAssets}
                     selectedAssetIds={selectedAssetIds}
                     onAssetSelectForPlacement={setDraggedAsset}
