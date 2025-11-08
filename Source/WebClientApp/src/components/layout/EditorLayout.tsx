@@ -192,6 +192,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
           open={propertiesPanelOpen}
           onClose={() => setPropertiesPanelOpen(false)}
           scene={scene}
+          onNameChange={onSceneNameChange}
           onDescriptionChange={onSceneDescriptionChange ?? (() => {})}
           onPublishedChange={onScenePublishedChange ?? (() => {})}
         />

@@ -16,6 +16,7 @@ export interface ScenePropertiesDrawerProps {
     open: boolean;
     onClose: () => void;
     scene: Scene | null | undefined;
+    onNameChange?: (name: string) => void;
     onDescriptionChange: (description: string) => void;
     onPublishedChange: (published: boolean) => void;
 }
@@ -54,6 +55,7 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
     open,
     onClose,
     scene,
+    onNameChange,
     onDescriptionChange,
     onPublishedChange
 }) => {
@@ -86,6 +88,30 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
         },
         toggleLabel: {
             fontSize: '10px'
+        },
+        textField: {
+            '& .MuiInputBase-root': {
+                fontSize: '11px',
+                backgroundColor: theme.palette.background.default
+            },
+            '& .MuiInputBase-input': {
+                padding: '6px 8px',
+                fontSize: '11px'
+            },
+            '& .MuiInputLabel-root': {
+                fontSize: '9px',
+                transform: 'translate(8px, 6px) scale(1)',
+                '&.MuiInputLabel-shrink': {
+                    transform: 'translate(8px, -8px) scale(0.85)'
+                }
+            }
+        }
+    };
+
+    const handleNameBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        const newName = e.target.value.trim();
+        if (scene && newName && newName !== scene.name && onNameChange) {
+            onNameChange(newName);
         }
     };
 
@@ -123,6 +149,19 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
                 height: '100%',
                 overflowY: 'auto'
             }}>
+                {/* Scene Name */}
+                <TextField
+                    id="scene-name"
+                    label="Scene Name"
+                    defaultValue={scene?.name ?? ''}
+                    onBlur={handleNameBlur}
+                    fullWidth
+                    variant="outlined"
+                    placeholder="Enter scene name..."
+                    size="small"
+                    sx={compactStyles.textField}
+                />
+
                 {/* Adventure Section */}
                 <Box sx={{ mb: 0 }}>
                     <Typography variant="overline" sx={compactStyles.sectionHeader}>
