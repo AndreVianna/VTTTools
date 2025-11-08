@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     Box,
     Button,
@@ -40,6 +40,15 @@ export interface RegionsPanelProps {
     onEditVertices?: (regionIndex: number) => void;
 }
 
+const getSuggestedRegionName = (regions: SceneRegion[]): string => {
+    if (regions.length === 0) return 'Region 1';
+    const maxIndex = Math.max(...regions.map(r => {
+        const match = r.name.match(/Region (\d+)$/);
+        return match ? parseInt(match[1]!, 10) : 0;
+    }));
+    return `Region ${maxIndex + 1}`;
+};
+
 export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
     sceneRegions = [],
     selectedRegionIndex,
@@ -51,7 +60,7 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
 }) => {
     const theme = useTheme();
 
-    const [name, setName] = useState('Region 1');
+    const [name, setName] = useState(() => getSuggestedRegionName(sceneRegions));
     const [regionType, setRegionType] = useState<string>('Elevation');
     const [value, setValue] = useState<number>(0);
     const [label, setLabel] = useState<string>('Normal');
@@ -109,16 +118,6 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
         }
     };
 
-    useEffect(() => {
-        if (sceneRegions && sceneRegions.length > 0) {
-            const maxIndex = Math.max(...sceneRegions.map(r => {
-                const match = r.name.match(/Region (\d+)$/);
-                return match ? parseInt(match[1]) : 0;
-            }));
-            setName(`Region ${maxIndex + 1}`);
-        }
-    }, [sceneRegions]);
-
     const handlePresetClick = (preset: RegionPreset) => {
         setRegionType(preset.type);
         setColor(preset.color);
@@ -151,6 +150,9 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
         }
 
         onPlaceRegion?.(properties);
+        
+        // Suggest next region name after placing
+        setName(getSuggestedRegionName([...sceneRegions, { name } as SceneRegion]));
     };
 
     const handleDeleteClick = (regionIndex: number) => {
@@ -361,17 +363,6 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
                     setDeleteConfirmOpen(false);
                     setRegionToDelete(null);
                 }}
-                onClose={() => {
-                    setDeleteConfirmOpen(false);
-                    setRegionToDelete(null);
-                }}
-            />
-        </Box>
-    );
-});
-
-RegionsPanel.displayName = 'RegionsPanel';
-
                 onClose={() => {
                     setDeleteConfirmOpen(false);
                     setRegionToDelete(null);
