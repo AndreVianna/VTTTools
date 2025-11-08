@@ -5,10 +5,15 @@ import {
     Typography,
     TextField,
     FormControlLabel,
-    Switch
+    Switch,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    SelectChangeEvent
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { Scene } from '@/types/domain';
+import { Scene, Light, Weather } from '@/types/domain';
 
 export interface ScenePropertiesDrawerProps {
     open: boolean;
@@ -17,6 +22,9 @@ export interface ScenePropertiesDrawerProps {
     onNameChange?: (name: string) => void;
     onDescriptionChange: (description: string) => void;
     onPublishedChange: (published: boolean) => void;
+    onLightChange?: (light: Light) => void;
+    onWeatherChange?: (weather: Weather) => void;
+    onElevationChange?: (elevation: number) => void;
 }
 
 export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
@@ -25,7 +33,10 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
     scene,
     onNameChange,
     onDescriptionChange,
-    onPublishedChange
+    onPublishedChange,
+    onLightChange,
+    onWeatherChange,
+    onElevationChange
 }) => {
     const theme = useTheme();
 
@@ -73,6 +84,25 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
                     transform: 'translate(8px, -8px) scale(0.85)'
                 }
             }
+        },
+        select: {
+            height: '28px',
+            fontSize: '11px',
+            '& .MuiSelect-select': {
+                padding: '4px 8px',
+                fontSize: '11px'
+            }
+        },
+        inputLabel: {
+            fontSize: '9px',
+            transform: 'translate(8px, 6px) scale(1)',
+            '&.MuiInputLabel-shrink': {
+                transform: 'translate(8px, -8px) scale(0.85)'
+            }
+        },
+        menuItem: {
+            fontSize: '11px',
+            minHeight: '32px'
         }
     };
 
@@ -92,6 +122,27 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
 
     const handlePublishedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onPublishedChange(e.target.checked);
+    };
+
+    const handleLightChange = (e: SelectChangeEvent<number>) => {
+        if (onLightChange) {
+            onLightChange(Number(e.target.value) as Light);
+        }
+    };
+
+    const handleWeatherChange = (e: SelectChangeEvent<string>) => {
+        if (onWeatherChange) {
+            onWeatherChange(e.target.value as Weather);
+        }
+    };
+
+    const handleElevationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (onElevationChange) {
+            const value = parseFloat(e.target.value);
+            if (!isNaN(value)) {
+                onElevationChange(value);
+            }
+        }
     };
 
     return (
@@ -161,6 +212,80 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
                         </Typography>
                     }
                     sx={{ margin: 0 }}
+                />
+
+                {/* Light */}
+                <FormControl fullWidth size="small">
+                    <InputLabel id="label-light" sx={compactStyles.inputLabel}>Light</InputLabel>
+                    <Select
+                        id="select-light"
+                        labelId="label-light"
+                        value={scene?.light ?? Light.Ambient}
+                        label="Light"
+                        onChange={handleLightChange}
+                        sx={compactStyles.select}
+                    >
+                        <MenuItem sx={compactStyles.menuItem} value={Light.Black}>Black</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Light.Darkness}>Darkness</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Light.Nighttime}>Nighttime</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Light.Dim}>Dim</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Light.Twilight}>Twilight</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Light.Ambient}>Ambient</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Light.Candlelight}>Candlelight</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Light.Torchlight}>Torchlight</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Light.Artificial}>Artificial</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Light.Daylight}>Daylight</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Light.Bright}>Bright</MenuItem>
+                    </Select>
+                </FormControl>
+
+                {/* Weather */}
+                <FormControl fullWidth size="small">
+                    <InputLabel id="label-weather" sx={compactStyles.inputLabel}>Weather</InputLabel>
+                    <Select
+                        id="select-weather"
+                        labelId="label-weather"
+                        value={scene?.weather ?? Weather.Clear}
+                        label="Weather"
+                        onChange={handleWeatherChange}
+                        sx={compactStyles.select}
+                    >
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.Clear}>Clear</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.PartlyCloudy}>Partly Cloudy</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.Overcast}>Overcast</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.Fog}>Fog</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.LightRain}>Light Rain</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.Rain}>Rain</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.HeavyRain}>Heavy Rain</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.Rainstorm}>Rainstorm</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.Thunderstorm}>Thunderstorm</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.LightSnow}>Light Snow</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.Snow}>Snow</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.HeavySnow}>Heavy Snow</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.Snowstorm}>Snowstorm</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.Hail}>Hail</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.IceStorm}>Ice Storm</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.Breezy}>Breezy</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.Windy}>Windy</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.Hurricane}>Hurricane</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.Tornado}>Tornado</MenuItem>
+                        <MenuItem sx={compactStyles.menuItem} value={Weather.FireStorm}>Fire Storm</MenuItem>
+                    </Select>
+                </FormControl>
+
+                {/* Elevation */}
+                <TextField
+                    id="scene-elevation"
+                    label="Elevation"
+                    type="number"
+                    value={scene?.elevation ?? 0}
+                    onChange={handleElevationChange}
+                    fullWidth
+                    variant="outlined"
+                    placeholder="0"
+                    size="small"
+                    sx={compactStyles.textField}
+                    InputProps={{ inputProps: { step: 0.1 } }}
                 />
 
                 {/* Display Settings - Removed: defaultDisplayName and defaultLabelPosition are now handled in localStorage */}

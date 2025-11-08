@@ -27,6 +27,45 @@ export interface ApiResponse<T> {
   errors?: string[];
 }
 
+// Scene Environment Enums (from Domain.Library.Scenes.Model)
+
+export enum Light {
+  Black = -10,
+  Darkness = -5,
+  Nighttime = -3,
+  Dim = -2,
+  Twilight = -1,
+  Ambient = 0,
+  Candlelight = 1,
+  Torchlight = 2,
+  Artificial = 3,
+  Daylight = 5,
+  Bright = 10,
+}
+
+export enum Weather {
+  Clear = 'Clear',
+  PartlyCloudy = 'PartlyCloudy',
+  Overcast = 'Overcast',
+  Fog = 'Fog',
+  LightRain = 'LightRain',
+  Rain = 'Rain',
+  HeavyRain = 'HeavyRain',
+  Rainstorm = 'Rainstorm',
+  Thunderstorm = 'Thunderstorm',
+  LightSnow = 'LightSnow',
+  Snow = 'Snow',
+  HeavySnow = 'HeavySnow',
+  Snowstorm = 'Snowstorm',
+  Hail = 'Hail',
+  IceStorm = 'IceStorm',
+  Breezy = 'Breezy',
+  Windy = 'Windy',
+  Hurricane = 'Hurricane',
+  Tornado = 'Tornado',
+  FireStorm = 'FireStorm',
+}
+
 // Asset Types (from Domain.Assets.ApiContracts)
 
 export enum AssetKind {
@@ -335,6 +374,9 @@ export interface Scene {
   name: string;
   description: string;
   isPublished: boolean;
+  light: Light;
+  weather: Weather;
+  elevation: number;
   grid: {
     type: number;
     cellSize: { width: number; height: number };

@@ -18,7 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { toggleTheme, selectTheme } from '@/store/slices/uiSlice';
 import { ScenePropertiesDrawer } from '@/components/scene';
-import type { Scene } from '@/types/domain';
+import type { Scene, Light, Weather } from '@/types/domain';
 
 interface EditorLayoutProps {
   children: React.ReactNode;
@@ -36,7 +36,8 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
   onSceneNameChange,
   onBackClick,
   onSceneDescriptionChange,
-  onScenePublishedChange
+  onScenePublishedChange,
+  onSceneUpdate
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -195,6 +196,9 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
           onNameChange={onSceneNameChange}
           onDescriptionChange={onSceneDescriptionChange ?? (() => {})}
           onPublishedChange={onScenePublishedChange ?? (() => {})}
+          onLightChange={onSceneUpdate ? (light: Light) => onSceneUpdate({ light }) : undefined}
+          onWeatherChange={onSceneUpdate ? (weather: Weather) => onSceneUpdate({ weather }) : undefined}
+          onElevationChange={onSceneUpdate ? (elevation: number) => onSceneUpdate({ elevation }) : undefined}
         />
       )}
 
