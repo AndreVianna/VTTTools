@@ -221,7 +221,7 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({
         setIsPublic(asset.isPublic);
         setIsPublished(asset.isPublished);
         setSize(asset.size);
-        
+
         if (isObjectAsset(asset)) {
             setObjectData(objectData);
         } else if (isCreatureAsset(asset)) {

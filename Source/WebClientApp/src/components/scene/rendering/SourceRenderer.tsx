@@ -30,7 +30,8 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
     gridConfig
 }) => {
     const theme = useTheme();
-    const color = getSourceColor(sceneSource.type, theme);
+    const defaultColor = getSourceColor(sceneSource.type, theme);
+    const color = sceneSource.color ?? defaultColor;
 
     const opaqueWalls = useMemo(() => {
         return walls.filter(w => w.visibility !== WallVisibility.Invisible);

@@ -15,6 +15,7 @@ import {
     WallContextMenu,
     DrawingMode,
     WallDrawingTool,
+    SourceDrawingTool,
     WallRenderer,
     RegionRenderer,
     SourceRenderer,
@@ -27,6 +28,7 @@ import type { WallBreakData } from '@components/scene/editing/WallTransformer';
 import { EditingBlocker, ConfirmDialog } from '@components/common';
 import { EditorLayout } from '@components/layout';
 import { GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
+import { toBackendRotation } from '@utils/rotationUtils';
 import { layerManager, LayerName, GroupName } from '@services/layerManager';
 import {
     Asset,
@@ -72,8 +74,10 @@ import {
     useBulkAddSceneAssetsMutation,
     useAddSceneWallMutation,
     useRemoveSceneWallMutation,
-    useUpdateSceneWallMutation
+    useUpdateSceneWallMutation,
+    useRemoveSceneSourceMutation
 } from '@/services/sceneApi';
+import type { SourcePlacementProperties } from '@components/scene/panels';
 import { useUploadFileMutation } from '@/services/mediaApi';
 import { hydratePlacedAssets } from '@/utils/sceneMappers';
 import { getApiEndpoints } from '@/config/development';
@@ -115,6 +119,8 @@ const SceneEditorPageInternal: React.FC = () => {
     const [addSceneWall] = useAddSceneWallMutation();
     const [removeSceneWall] = useRemoveSceneWallMutation();
     const [updateSceneWall] = useUpdateSceneWallMutation();
+
+    const [removeSceneSource] = useRemoveSceneSourceMutation();
 
     // Force refetch on mount with forceRefetch option
     useEffect(() => {
@@ -172,6 +178,10 @@ const SceneEditorPageInternal: React.FC = () => {
     const [contextMenuWall, setContextMenuWall] = useState<SceneWall | null>(null);
     const [isEditingVertices, setIsEditingVertices] = useState(false);
     const [originalWallPoles, setOriginalWallPoles] = useState<Pole[] | null>(null);
+
+    const [selectedSourceIndex, setSelectedSourceIndex] = useState<number | null>(null);
+    const [sourcePlacementProperties, setSourcePlacementProperties] = useState<SourcePlacementProperties | null>(null);
+    const [activeTool, setActiveTool] = useState<string | null>(null);
 
     interface LayerVisibility {
         background: boolean;
@@ -754,16 +764,17 @@ const SceneEditorPageInternal: React.FC = () => {
                 const asset = assetsToUpdate[0];
                 if (!asset) return;
 
+                const backendRotation = toBackendRotation(asset.rotation);
                 await updateSceneAsset({
                     sceneId,
                     assetNumber: asset.index,
-                    rotation: asset.rotation,
+                    rotation: backendRotation,
                     position: asset.position
                 }).unwrap();
             } else {
                 const bulkUpdates = assetsToUpdate.map(asset => ({
                     index: asset.index,
-                    rotation: asset.rotation,
+                    rotation: toBackendRotation(asset.rotation),
                     position: asset.position
                 }));
 
@@ -1815,6 +1826,34 @@ const SceneEditorPageInternal: React.FC = () => {
         setActivePanel(null);
     }, [sceneId, scene, wallTransaction]);
 
+    const handleSourceSelect = useCallback((index: number) => {
+        setSelectedSourceIndex(index);
+    }, []);
+
+    const handleSourceDelete = useCallback(async (index: number) => {
+        if (!sceneId) return;
+        try {
+            await removeSceneSource({ sceneId, sourceIndex: index }).unwrap();
+            if (selectedSourceIndex === index) {
+                setSelectedSourceIndex(null);
+            }
+        } catch (error) {
+            console.error('Failed to delete source:', error);
+        }
+    }, [sceneId, removeSceneSource, selectedSourceIndex]);
+
+    const handlePlaceSource = useCallback((properties: SourcePlacementProperties) => {
+        setSourcePlacementProperties(properties);
+        setActiveTool('sourceDrawing');
+    }, []);
+
+    const handleSourcePlacementFinish = useCallback((success: boolean) => {
+        if (success) {
+            setSourcePlacementProperties(null);
+            setActiveTool(null);
+        }
+    }, []);
+
     if (isLoadingScene || isHydrating) {
         return (
             <EditorLayout>
@@ -1914,6 +1953,11 @@ const SceneEditorPageInternal: React.FC = () => {
                     }}
                     onPlacedAssetRename={handleAssetRename}
                     onPlacedAssetUpdate={handlePlacedAssetUpdate}
+                    sceneSources={scene?.sources}
+                    selectedSourceIndex={selectedSourceIndex}
+                    onSourceSelect={handleSourceSelect}
+                    onSourceDelete={handleSourceDelete}
+                    onPlaceSource={handlePlaceSource}
                 />
 
                 <SceneCanvas
@@ -2081,7 +2125,25 @@ const SceneEditorPageInternal: React.FC = () => {
                                 />
                             )}
                             {/* TODO: Implement RegionDrawingTool with progressive creation like WallDrawingTool */}
-                            {/* TODO: Implement SourceDrawingTool with progressive creation like WallDrawingTool */}
+                            {activeTool === 'sourceDrawing' && sourcePlacementProperties && scene && (
+                                <SourceDrawingTool
+                                    sceneId={sceneId || ''}
+                                    source={{
+                                        sceneId: sceneId || '',
+                                        index: -1,
+                                        name: `${sourcePlacementProperties.type} Source ${(scene.sources?.length || 0) + 1}`,
+                                        position: { x: 0, y: 0 },
+                                        ...sourcePlacementProperties
+                                    }}
+                                    walls={scene.walls || []}
+                                    gridConfig={gridConfig}
+                                    onComplete={handleSourcePlacementFinish}
+                                    onCancel={() => {
+                                        setSourcePlacementProperties(null);
+                                        setActiveTool(null);
+                                    }}
+                                />
+                            )}
                         </Layer>
                     )}
 

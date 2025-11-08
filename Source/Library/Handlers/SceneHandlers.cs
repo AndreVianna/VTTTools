@@ -329,10 +329,13 @@ internal static class SceneHandlers {
             Name = request.Name,
             Type = request.Type,
             Position = request.Position,
+            IsDirectional = request.IsDirectional,
             Direction = request.Direction,
             Range = request.Range,
-            Intensity = request.Intensity,
+            Spread = request.Spread,
             HasGradient = request.HasGradient,
+            Intensity = request.Intensity,
+            Color = request.Color,
         };
         var result = await sceneService.AddSourceAsync(userId, id, data);
         return result.IsSuccessful
@@ -341,10 +344,13 @@ internal static class SceneHandlers {
                 Name = result.Value.Name,
                 Type = result.Value.Type,
                 Position = result.Value.Position,
+                IsDirectional = result.Value.IsDirectional,
                 Direction = result.Value.Direction,
                 Range = result.Value.Range,
-                Intensity = result.Value.Intensity,
+                Spread = result.Value.Spread,
                 HasGradient = result.Value.HasGradient,
+                Intensity = result.Value.Intensity,
+                Color = result.Value.Color,
             })
             : result.Errors[0].Message == "NotFound"
                 ? Results.NotFound()
@@ -359,10 +365,13 @@ internal static class SceneHandlers {
             Name = request.Name,
             Type = request.Type,
             Position = request.Position,
+            IsDirectional = request.IsDirectional,
             Direction = request.Direction,
             Range = request.Range,
-            Intensity = request.Intensity,
+            Spread = request.Spread,
             HasGradient = request.HasGradient,
+            Intensity = request.Intensity,
+            Color = request.Color,
         };
         var result = await sceneService.UpdateSourceAsync(userId, id, (uint)index, data);
         return result.IsSuccessful

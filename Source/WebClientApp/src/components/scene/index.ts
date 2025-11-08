@@ -11,6 +11,7 @@ export { ScenePropertiesDrawer } from './ScenePropertiesDrawer';
 export { PlacementCursor } from './PlacementCursor';
 export { TokenPlacement } from './TokenPlacement';
 export { TokenDragHandle } from './TokenDragHandle';
+export { RotationHandle } from './RotationHandle';
 export { UndoRedoToolbar } from './UndoRedoToolbar';
 export { AssetContextMenu } from './AssetContextMenu';
 export { WallContextMenu } from './WallContextMenu';
@@ -63,6 +64,7 @@ export type { ScenePropertiesDrawerProps } from './ScenePropertiesDrawer';
 export type { PlacementCursorProps } from './PlacementCursor';
 export type { TokenPlacementProps } from './TokenPlacement';
 export type { TokenDragHandleProps } from './TokenDragHandle';
+export type { RotationHandleProps } from './RotationHandle';
 export type {
     WallDrawingToolProps,
     WallPreviewProps,

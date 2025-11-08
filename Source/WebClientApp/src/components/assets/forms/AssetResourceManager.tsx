@@ -50,9 +50,6 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
 
     const handleUploadToken = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        const contentType = file?.type;
-        const fileName = file?.name;
-        const fileLength = file?.size;
         if (!file) return;
 
         setUploadError(null);

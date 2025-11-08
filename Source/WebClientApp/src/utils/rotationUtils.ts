@@ -12,10 +12,13 @@ export const calculateAngleFromCenter = (
     const deltaX = mouse.x - center.x;
     const deltaY = mouse.y - center.y;
 
+    // Math.atan2 with canvas Y-down gives: 0° = right, 90° = down, -90°/270° = up, ±180° = left
     const radians = Math.atan2(deltaY, deltaX);
     const degrees = radians * (180 / Math.PI);
 
-    return normalizeAngle(degrees);
+    // Convert to our coordinate system: 0° = up, 90° = right, 180° = down, 270° = left
+    // Add 90° to rotate: atan2's -90° (up) becomes our 0° (up)
+    return normalizeAngle(degrees + 90);
 };
 
 export const getGroupCenter = (assets: PlacedAsset[]): Point => {
@@ -70,6 +73,28 @@ export const normalizeAngle = (angle: number): number => {
 
     if (normalized < 0) {
         normalized += 360;
+    }
+
+    return normalized;
+};
+
+/**
+ * Snap angle to nearest multiple of step (default 5 degrees)
+ */
+export const snapAngle = (angle: number, step: number = 5): number => {
+    return Math.round(angle / step) * step;
+};
+
+/**
+ * Convert angle from 0-360 range to -180 to +180 range (backend format)
+ */
+export const toBackendRotation = (angle: number): number => {
+    // First normalize to 0-360
+    const normalized = normalizeAngle(angle);
+
+    // Convert to -180 to +180
+    if (normalized > 180) {
+        return normalized - 360;
     }
 
     return normalized;

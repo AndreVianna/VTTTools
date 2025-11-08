@@ -297,9 +297,7 @@ internal static class Mapper {
             Name = model.Name,
             Notes = model.Notes,
             PortraitId = model.Portrait?.Id,
-            Portrait = model.Portrait?.ToEntity(),
             TokenId = model.Token?.Id,
-            Token = model.Token?.ToEntity(),
             Frame = model.Frame,
             Size = model.Size,
             Position = model.Position,
@@ -317,9 +315,7 @@ internal static class Mapper {
         entity.Name = model.Name;
         entity.Notes = model.Notes;
         entity.PortraitId = model.Portrait?.Id;
-        entity.Portrait = model.Portrait?.ToEntity();
         entity.TokenId = model.Token?.Id;
-        entity.Token = model.Token?.ToEntity();
         entity.Frame = model.Frame;
         entity.Size = model.Size;
         entity.Position = model.Position;
@@ -430,10 +426,13 @@ internal static class Mapper {
             Name = entity.Name,
             Type = entity.Type,
             Position = entity.Position,
+            IsDirectional = entity.IsDirectional,
             Direction = entity.Direction,
             Range = entity.Range,
+            Spread = entity.Spread,
             Intensity = entity.Intensity,
             HasGradient = entity.HasGradient,
+            Color = entity.Color,
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
@@ -443,10 +442,13 @@ internal static class Mapper {
             Name = entity.Name,
             Type = entity.Type,
             Position = entity.Position,
+            IsDirectional = entity.IsDirectional,
             Direction = entity.Direction,
             Range = entity.Range,
+            Spread = entity.Spread,
             Intensity = entity.Intensity,
             HasGradient = entity.HasGradient,
+            Color = entity.Color,
         };
 
     internal static SceneSourceEntity ToEntity(this SceneSource model, Guid sceneId)
@@ -456,10 +458,13 @@ internal static class Mapper {
             Name = model.Name,
             Type = model.Type,
             Position = model.Position,
+            IsDirectional = model.IsDirectional,
             Direction = model.Direction,
             Range = model.Range,
+            Spread = model.Spread,
             Intensity = model.Intensity,
             HasGradient = model.HasGradient,
+            Color = model.Color,
         };
 
     internal static SceneSourceEntity UpdateFrom(this SceneSourceEntity entity, Guid sceneId, SceneSource model) {
@@ -468,10 +473,13 @@ internal static class Mapper {
         entity.Name = model.Name;
         entity.Type = model.Type;
         entity.Position = model.Position;
+        entity.IsDirectional = model.IsDirectional;
         entity.Direction = model.Direction;
         entity.Range = model.Range;
+        entity.Spread = model.Spread;
         entity.Intensity = model.Intensity;
         entity.HasGradient = model.HasGradient;
+        entity.Color = model.Color;
         return entity;
     }
 

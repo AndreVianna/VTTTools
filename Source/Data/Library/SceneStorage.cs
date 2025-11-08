@@ -79,6 +79,7 @@ public class SceneStorage(ApplicationDbContext context)
     public async Task<bool> UpdateAsync(Scene scene, CancellationToken ct = default) {
         var entity = await context.Scenes
             .Include(s => s.SceneAssets)
+                .ThenInclude(s => s.Asset)
             .Include(s => s.Walls)
             .Include(s => s.Regions)
             .Include(s => s.Sources)
