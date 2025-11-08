@@ -1,85 +1,78 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Layer } from 'react-konva';
+import { Group, Rect } from 'react-konva';
 import type Konva from 'konva';
-import { useAddSceneRegionMutation } from '@/services/sceneApi';
-import { snapToNearest, SnapMode } from '@/utils/structureSnapping';
+import { snapToNearest } from '@/utils/structureSnapping';
+import { getSnapModeFromEvent } from '@/utils/snapUtils';
 import { VertexMarker } from './VertexMarker';
-import { RegionPreview } from './RegionPreview';
-import type { Point, SceneRegion } from '@/types/domain';
+import { RegionPreview } from '../RegionPreview';
+import type { Point } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
+
+const INTERACTION_RECT_SIZE = 20000;
+const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
 
 export interface RegionDrawingToolProps {
     sceneId: string;
-    region: SceneRegion;
+    regionIndex: number;
     gridConfig: GridConfig;
-    onComplete: (success: boolean) => void;
     onCancel: () => void;
+    onFinish: () => void;
+    onVerticesChange?: (vertices: Point[]) => void;
+    onLocalUndo?: () => void;
+    canLocalUndo?: boolean;
+    regionType: string;
+    regionColor?: string;
 }
 
 export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
     sceneId,
-    region,
+    regionIndex,
     gridConfig,
-    onComplete,
-    onCancel
+    onCancel,
+    onFinish,
+    onVerticesChange,
+    onLocalUndo,
+    canLocalUndo,
+    regionType,
+    regionColor
 }) => {
     const [vertices, setVertices] = useState<Point[]>([]);
-    const [previewVertex, setPreviewVertex] = useState<Point | null>(null);
-    const [snapMode, setSnapMode] = useState<SnapMode>(SnapMode.HalfSnap);
-    const [addRegion] = useAddSceneRegionMutation();
+    const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
 
     const handleFinish = useCallback(async () => {
-        if (vertices.length < 3) return;
-
-        try {
-            await addRegion({
-                sceneId,
-                name: region.name,
-                type: region.type,
-                vertices,
-                value: region.value ?? 0,
-                ...(region.label && { label: region.label }),
-                ...(region.color && { color: region.color })
-            }).unwrap();
-
-            onComplete(true);
-        } catch (error) {
-            console.error('Failed to place region:', error);
-            onComplete(false);
+        if (vertices.length < 3) {
+            console.warn('Cannot finish region with less than 3 vertices');
+            return;
         }
-    }, [vertices, sceneId, region, addRegion, onComplete]);
+
+        onFinish();
+    }, [vertices, onFinish]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
                 onCancel();
-            } else if (e.key === 'Enter' && vertices.length >= 3) {
+                return;
+            }
+
+            if (e.key === 'Enter') {
                 handleFinish();
+                return;
             }
 
-            if (e.altKey && e.ctrlKey) {
-                setSnapMode(SnapMode.QuarterSnap);
-            } else if (e.altKey) {
-                setSnapMode(SnapMode.Free);
-            } else {
-                setSnapMode(SnapMode.HalfSnap);
-            }
-        };
-
-        const handleKeyUp = (e: KeyboardEvent) => {
-            if (!e.altKey && !e.ctrlKey) {
-                setSnapMode(SnapMode.HalfSnap);
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z' && canLocalUndo) {
+                e.preventDefault();
+                onLocalUndo?.();
+                return;
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
 
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('keyup', handleKeyUp);
         };
-    }, [vertices, onCancel, handleFinish]);
+    }, [onCancel, handleFinish, onLocalUndo, canLocalUndo]);
 
     const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         const stage = e.target.getStage();
@@ -94,13 +87,16 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
             y: (pointer.y - stage.y()) / scale,
         };
 
+        const snapMode = getSnapModeFromEvent(e.evt);
         const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
-        setPreviewVertex(snappedPos);
-    }, [gridConfig, snapMode]);
+        setPreviewPoint(snappedPos);
+    }, [gridConfig]);
 
     const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         const stage = e.target.getStage();
         if (!stage) return;
+
+        e.cancelBubble = true;
 
         const pointer = stage.getPointerPosition();
         if (!pointer) return;
@@ -111,9 +107,13 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
             y: (pointer.y - stage.y()) / scale,
         };
 
+        const snapMode = getSnapModeFromEvent(e.evt);
         const snappedPos = snapToNearest(stagePos, gridConfig, snapMode);
-        setVertices([...vertices, snappedPos]);
-    }, [vertices, gridConfig, snapMode]);
+
+        const newVertices = [...vertices, snappedPos];
+        setVertices(newVertices);
+        onVerticesChange?.(newVertices);
+    }, [vertices, gridConfig, onVerticesChange]);
 
     const handleDoubleClick = useCallback(() => {
         if (vertices.length >= 3) {
@@ -122,26 +122,35 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
     }, [vertices.length, handleFinish]);
 
     return (
-        <Layer
-            onMouseMove={handleMouseMove}
-            onClick={handleClick}
-            onDblClick={handleDoubleClick}
-            listening={true}
-        >
-            {vertices.map((vertex, index) => (
-                <VertexMarker key={index} position={vertex} />
-            ))}
+        <>
+            <Group>
+                <Rect
+                    x={INTERACTION_RECT_OFFSET}
+                    y={INTERACTION_RECT_OFFSET}
+                    width={INTERACTION_RECT_SIZE}
+                    height={INTERACTION_RECT_SIZE}
+                    fill="transparent"
+                    onMouseMove={handleMouseMove}
+                    onClick={handleClick}
+                    onDblClick={handleDoubleClick}
+                    listening={true}
+                />
 
-            <RegionPreview
-                vertices={vertices}
-                previewVertex={previewVertex}
-                region={region}
-            />
+                {vertices.map((vertex, index) => (
+                    <VertexMarker key={index} position={vertex} />
+                ))}
 
-            {previewVertex && (
-                <VertexMarker position={previewVertex} preview />
-            )}
-        </Layer>
+                <RegionPreview
+                    vertices={vertices}
+                    cursorPos={previewPoint ?? undefined}
+                    color={regionColor}
+                />
+
+                {previewPoint && (
+                    <VertexMarker position={previewPoint} preview />
+                )}
+            </Group>
+        </>
     );
 };
 
