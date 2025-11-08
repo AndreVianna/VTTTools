@@ -4,20 +4,20 @@
 **Target Item**: EPIC-001
 **Item Specification**: Documents/Tasks/EPIC-001/TASK.md
 **Created**: 2025-10-03
-**Last Updated**: 2025-11-08 (Roadmap Consolidation)
-**Version**: 1.12.0
+**Last Updated**: 2025-10-28
+**Version**: 1.11.0
 
 ---
 
 ## Roadmap Overview
 
-**Objective**: Complete migration from Blazor WebAssembly to React 19.1.1 + TypeScript SPA with enhanced scene editor, asset library, and real-time collaboration features
+**Objective**: Complete migration from Blazor WebAssembly to React 19 + TypeScript SPA with enhanced scene editor, asset library, and real-time collaboration features
 
-**Scope**: Final 3% of UI migration - Phase 8.8 polish, Phase 10 SignalR frontend, Phases 12-13 release prep
+**Scope**: Remaining 15% of UI migration (Phases 8.5-12) covering final polish, Game Sessions with SignalR, and Account Management
 
-**Total Phases**: 14 (Phases 1-8.7 ✅ Complete | Phase 8.8 🚧 90% | Phase 9 ⚠️ BLOCKED-Optional | Phases 10-11 Backend ✅/Frontend 🚧 | Phases 12-14 🔜 Ready)
-**Progress**: 97-99% complete (368h documented + 40-50h undocumented quality work = 408-418h actual / 420h estimated)
-**Current Status**: Phase 8.8 🚧 90% complete (5-10h remaining) | Phase 10 Backend ✅/Frontend ❌ (22h) | Phase 11 Backend ✅/Frontend 🚧 70% (4-6h)
+**Total Phases**: 12 + 8.5 (Phases 1-8 ✅ Complete, Phase 8.5 🚧 Partial, Phases 9-12 🔜 Remaining)
+**Estimated Complexity**: Very High (282 hours total, 43 hours remaining)
+**Current Status**: Phase 8.5 partial (84.8%), Phase 9 ⚠️ BLOCKED by backend, Phases 10-11-12 🔜 READY
 
 **Deliverables**:
 
@@ -30,35 +30,10 @@
 - 🚧 Auto-naming assets during placement (completed per user)
 - ⚠️ Structure placement type-specific logic (pending clarification)
 - ⚠️ Epic/Campaign hierarchy UI (optional advanced organization) - BLOCKED by backend
-- 🚧 Real-time game sessions: Backend ✅ COMPLETE (12 endpoints) | Frontend ❌ NOT STARTED
-- 🚧 Account management: Backend ✅ COMPLETE (27 endpoints) | Frontend 🚧 70% COMPLETE
+- 🔜 Real-time game session collaboration with SignalR (chat, events, participants)
+- 🔜 Account management pages (profile, security, 2FA, password change)
 - 🚧 BDD step definitions for feature files (integrated per-phase)
 - 🔜 Legacy Blazor projects deprecated
-
----
-
-## Undocumented Complete Features
-
-### Game Sessions Backend API ✅ COMPLETE
-**Location**: `/home/user/VTTTools/Source/Game/`
-**Endpoints**: 12 total (Create, List, Get, Update, Delete, Join, Leave, Start, Stop, ActivateScene + 2 config)
-**Domain**: GameSession with Messages, Events, Participants collections
-**Tests**: 5 unit tests
-**Status**: Backend ready, frontend not started (SignalR 9.0.6 installed but no HubConnection usage)
-
-### Account Management Backend API ✅ COMPLETE
-**Location**: `/home/user/VTTTools/Source/Auth/`
-**Endpoints**: 27 total across 5 mappers (Auth: 9 | Profile: 4 | Security: 1 | 2FA: 3 | Recovery: 2 | + others)
-**Services**: AuthService, ProfileService, SecurityService, TwoFactorAuthenticationService, RecoveryCodeService
-**Tests**: 134 unit tests
-**Frontend**: 70% complete (ProfilePage, SecuritySettingsPage, 2FA components exist, 4-6h polish remaining)
-
-### Undocumented Quality Work (Nov 5-8, 2025)
-**TypeScript/ESLint Cleanup**: 16-20h (Fixed 112+ errors, achieved strict mode compliance)
-**Asset Panel Enhancements**: 8-12h (localStorage settings, editable properties, backend API wiring)
-**Asset Selection Fixes**: 12-16h (CTRL+click multiselect, 15+ bug fixes, coordinate conversion)
-**Rotation Handle**: 4-6h (New rotation feature with visual handle)
-**Total Undocumented**: 40-50 hours
 
 ---
 
@@ -143,45 +118,6 @@
 - **Hooks**: camelCase.ts (useAuth.ts, useGameSession.ts)
 - **Utilities**: camelCase.ts (validation.ts, errorHandling.ts)
 - **Tests**: {Name}.test.tsx (LoginForm.test.tsx)
-
----
-
-## 🔴 Critical Technical Debt
-
-### HIGH PRIORITY: SceneEditorPage.tsx Refactoring Required
-
-**File**: `/home/user/VTTTools/Source/WebClientApp/src/pages/SceneEditorPage.tsx`
-**Current State**: 2,175 lines | 25+ useState hooks | 15+ useEffect hooks
-**Priority**: HIGH (address in next sprint)
-**Estimated Effort**: 16-24 hours
-
-**Problem**:
-- Single component violates Single Responsibility Principle
-- Multiple concerns mixed (rendering, events, API, undo/redo, wall editing)
-- Difficult to maintain and test
-- Performance risks from excessive re-renders
-
-**Refactoring Plan**:
-
-1. **Extract Custom Hooks** (8 hours):
-   - `useSceneState` - scene data, loading, errors
-   - `useWallEditing` - wall transaction management
-   - `useAssetManagement` - asset placement, selection, operations
-   - `useKeyboardShortcuts` - Ctrl+Z/Y/C/V shortcuts
-
-2. **Split Sub-Components** (8 hours):
-   - `<SceneToolbar>` - top/left/right toolbars
-   - `<SceneCanvas>` - Konva Stage wrapper
-   - `<AssetManager>` - asset panels, placement cursor
-   - `<WallEditor>` - wall drawing tools, preview
-
-3. **Move Business Logic** (4 hours):
-   - Coordinate conversion utilities
-   - Snap calculation utilities
-   - Selection management utilities
-
-**Target**: <300 lines per component
-**Success Criteria**: All components under 300 lines, hooks under 150 lines
 
 ---
 
@@ -2388,22 +2324,11 @@ interface AssetToken {
 
 ---
 
-### Phase 10: Game Sessions - Real-Time Collaboration 🚧 PARTIAL
+### Phase 10: Game Sessions - Real-Time Collaboration 🔜 READY
 
 **Objective**: Implement real-time game session UI with SignalR for chat, events, and participant management
-**Status**: Backend ✅ COMPLETE (12 endpoints) | Frontend ❌ NOT STARTED (0%)
-**Estimated**: 22 hours (frontend only, backend already complete)
 
-**Backend COMPLETE** ✅:
-- GameSessionService with 10 handlers (Create, List, Get, Update, Delete, Join, Leave, Start, Stop, ActivateScene)
-- 12 API endpoints (10 session + 2 config)
-- Domain models: GameSession with Messages/Events/Participants
-- 5 unit tests
-- Files: `GameSessionHandlers.cs` (145 lines), `GameSessionEndpointsMapper.cs` (18 lines)
-
-**Frontend NOT STARTED** ❌:
-- SignalR 9.0.6 installed but no HubConnection usage found
-- gameSessionsApi RTK Query slice exists but no UI components
+**Backend Status**: ✅ SignalR hubs implemented (ChatHub, GameSessionHub available)
 
 **Deliverables**:
 
@@ -2485,25 +2410,9 @@ interface AssetToken {
 
 ---
 
-### Phase 11: Account Management 🚧 PARTIAL
+### Phase 11: Account Management 🔜 PARALLEL TRACK
 
 **Objective**: Implement profile settings, security settings, 2FA setup, password change pages
-**Status**: Backend ✅ COMPLETE (27 endpoints) | Frontend 🚧 70% COMPLETE
-**Estimated**: 4-6 hours remaining (frontend polish + integration tests)
-
-**Backend COMPLETE** ✅:
-- 27 API endpoints across 5 mappers (Auth: 9 | Profile: 4 | Security: 1 | 2FA: 3 | Recovery: 2 | + others)
-- AuthService, ProfileService, SecurityService, TwoFactorAuthenticationService, RecoveryCodeService
-- 134 unit tests in Auth.UnitTests
-- Files: AuthEndpointsMapper, ProfileEndpointsMapper, SecurityEndpointsMapper, TwoFactorEndpointsMapper, RecoveryCodeEndpointsMapper
-
-**Frontend 70% COMPLETE** 🚧:
-- ✅ ProfilePage with avatar upload/edit
-- ✅ SecuritySettingsPage with 2FA status
-- ✅ TwoFactorSetupForm (QR code + verification)
-- ✅ RecoveryCodesManager (display + download)
-- ✅ 4 RTK Query API slices (profileApi, securityApi, twoFactorApi, recoveryCodesApi)
-- 🔜 Password change dialog (2h) | Integration tests (2h) | Polish (2h)
 
 **Deliverables**:
 
