@@ -2,11 +2,13 @@
 
 **Epic**: Administration Application
 **Type**: Large-Scale Infrastructure
-**Status**: In Progress (Phase 1: COMPLETE ✅, Phase 2: COMPLETE ✅, Phase 3: COMPLETE ✅)
-**Total Effort**: 330 hours (9 weeks dedicated) - Reduced from 352h via cloud-native architecture
+**Status**: In Progress (Phases 1-5,7: COMPLETE ✅ | Phases 6,8: NOT STARTED ❌ | Phase 9: PARTIAL ⚠️)
+**Completion**: 69% (261h completed, 116h remaining)
+**Total Effort**: 377 hours estimated
 **Complexity**: Very High
+**⚠️ CRITICAL BLOCKER**: 2FA disabled in admin auth (PRODUCTION BLOCKER - see below)
 **Created**: 2025-10-31
-**Last Updated**: 2025-11-03 (Session 9 - Phase 3 Complete)
+**Last Updated**: 2025-11-08 (Roadmap Consolidation)
 
 ---
 
@@ -21,6 +23,37 @@ This roadmap provides a dependency-based implementation plan for EPIC-002, which
 - **Parallel Opportunities**: Phases 3-5 can partially overlap (System Config and Public Library are independent)
 - **Role Management Deferred**: Saves 32 hours; will implement when additional roles are introduced
 - **Comprehensive Specifications**: 5 detailed feature specs, 63 BDD scenarios, STRUCTURE.md updated
+
+---
+
+## ⚠️ CRITICAL BLOCKERS - MUST RESOLVE BEFORE PRODUCTION
+
+### 🔴 SECURITY-001: Two-Factor Authentication Disabled
+
+**File**: `/home/user/VTTTools/Source/Admin/Services/AdminAuthService.cs:34-67`
+**Severity**: CRITICAL
+**OWASP**: A07:2021 - Identification and Authentication Failures
+**Discovered**: 2025-11-08
+
+**Problem**: 2FA authentication completely disabled in admin login with commented-out validation code.
+
+**Impact**:
+- ❌ Admin accounts accessible with password alone
+- ❌ Configuration reveal feature BLOCKED (requires TOTP verification)
+- ❌ Non-compliant with security best practices for privileged accounts
+- ❌ **BLOCKS PRODUCTION DEPLOYMENT**
+
+**Root Cause**: Dependency on EPIC-001 Phase 11 (2FA feature not yet complete in user profile)
+
+**Resolution Steps**:
+1. Complete EPIC-001 Phase 11 2FA implementation (4-6 hours remaining)
+2. Re-enable 2FA validation in AdminAuthService.cs (1 hour)
+3. Add integration tests for 2FA enforcement (2 hours)
+4. Document 2FA setup procedure for admins (1 hour)
+
+**Total Effort**: 4 hours (assuming EPIC-001 Phase 11 complete)
+**Priority**: 🔴 CRITICAL
+**Status**: ⚠️ UNRESOLVED
 
 ---
 
@@ -305,6 +338,12 @@ All administrative actions will be logged for compliance and security review. Th
 - Health endpoint exclusions (/health, /healthz, /alive)
 - dayjs integration for datetime handling (migrated from date-fns)
 
+**Scheduler Clarification**:
+- **Request-time validation** (NOT background scheduler): Middleware checks scheduled start/end times on each request
+- **Database state**: `IsEnabled` flag not automatically updated after scheduled end time
+- **Blocking behavior**: Middleware blocks requests outside scheduled time window, even if `IsEnabled = true`
+- **Optional enhancement**: Background job to auto-update `IsEnabled` flag (6h effort, LOW priority)
+
 ---
 
 ### Phase 5: Configuration Management ✅ COMPLETE
@@ -369,9 +408,35 @@ All administrative actions will be logged for compliance and security review. Th
 
 ---
 
-### Phase 6: Feature Flags
-**Duration**: Week 10 (28 hours)
+## Undocumented Complete Features
+
+### Dashboard Service ✅ COMPLETE
+**Status**: Fully implemented in Phase 1 but not documented in features section
+**Discovered**: 2025-11-08 codebase investigation
+
+**Implementation**:
+- DashboardService.cs (110 lines) with 2 primary methods
+- DashboardHandlers.cs (35 lines) with 2 endpoint handlers
+- 15 unit tests (6 service + 9 handlers) - ALL PASSING
+
+**Endpoints** (2):
+1. GET /api/admin/dashboard/stats - Total users, active users (24h), audit logs, storage used (GB)
+2. GET /api/admin/dashboard/metrics - Avg response time, requests/min, time series data
+
+**Frontend Integration**:
+- dashboardService.ts API client
+- 4 statistics cards in DashboardPage.tsx
+- PerformanceChart component (Recharts time series)
+
+**Recommendation**: Create feature spec at `Documents/Areas/Admin/Features/AdminDashboard/FEATURE.md`
+
+---
+
+### Phase 6: Feature Flags ❌ NOT STARTED
+**Duration**: 28 hours
 **Objective**: Implement feature flag management with database storage and caching
+**Status**: ❌ NOT STARTED (0/28 hours)
+**Priority**: HIGH (required for production feature management)
 **Dependencies**: Phase 1 (Admin Infrastructure)
 **Parallelization**: Can run parallel with Phase 5
 
@@ -429,55 +494,42 @@ All administrative actions will be logged for compliance and security review. Th
 ---
 
 ### Phase 7: Extended Health Monitoring ✅ COMPLETE
-**Duration**: Week 11 (3 hours actual, completed as part of Phase 5)
-**Objective**: Extend health checks with service connectivity tests and enhanced dashboard
-**Dependencies**: Phase 1 (Dashboard infrastructure)
-**Parallelization**: Can run parallel with Phases 5-6
+**Duration**: 3 hours actual (integrated with Phase 5)
+**Objective**: Implement health monitoring for services and infrastructure
+**Status**: ✅ COMPLETE (Session 10, 2025-11-04)
 
-**Status**: ✅ **COMPLETE** (Session 10, 2025-11-04, integrated with Phase 5)
+**Backend Components** ✅:
+- **3 local health checks** via ASP.NET Core HealthCheckService:
+  1. Database (SQL Server connection pool)
+  2. Redis (cache accessibility)
+  3. BlobStorage (Azure Blob/AWS S3)
+- Aggregate health status (Healthy/Degraded/Unhealthy)
+- HealthCheckHandlers.cs (44 lines) - GET /api/admin/dashboard/health-checks
 
-**Backend Components**:
-- Extended health check APIs (8h):
-  - Service connectivity health checks (Auth, Library, Media, Assets, Game services)
-  - Database connectivity (connection pool health)
-  - Blob storage health (Azure Blob/AWS S3 ping)
-  - Redis health (if using for caching)
-  - External API health (if integrated)
-  - Aggregate health status (Healthy/Degraded/Unhealthy)
-- DashboardService extensions (2h):
-  - GetServiceHealthAsync (per-service status)
-  - GetDependencyHealthAsync (external dependencies)
+**Frontend Components** ✅:
+- **11 health monitoring panels** in DashboardPage.tsx:
+  - 6 Backend Services: Auth, Library, Media, Assets, Game, Admin (direct `/alive` calls via Vite proxy)
+  - 2 Frontend Apps: Main App, Admin App (client-side availability checks)
+  - 3 Infrastructure: Database, Redis, BlobStorage (from Admin `/health` endpoint)
+- ServiceHealthCard component with response time metrics
+- Color-coded status (green/yellow/red)
+- Auto-refresh every 30 seconds
 
-**Frontend Components**:
-- dashboardService.ts extensions (1h)
-- ServiceHealthCard component (4h):
-  - Per-service health indicators (green/yellow/red)
-  - Response time metrics
-  - Last check timestamp
-  - Error count (last 24h)
-  - "View Details" expandable (connection string redacted, endpoint URL)
-- Dashboard page updates (2h):
-  - Add ServiceHealthCard grid section
-  - Auto-refresh every 30 seconds
+**Architecture**:
+- **Frontend-driven**: Direct service calls via Vite proxy + Aspire service discovery
+- **NOT centralized**: Admin backend has 3 local checks only; frontend makes 11 independent checks
+- **Parallel**: Health checks run concurrently, no single point of failure
 
-**Testing**:
-- Unit tests: Extended health check tests (2h)
-- Integration tests: Verify service connectivity checks (1h)
-
-**Quality Gates**:
-- ✅ All 5 microservices health checks functional
-- ✅ Database health check working
-- ✅ Blob storage health check working
-- ✅ ServiceHealthCard displays per-service status
-- ✅ Dashboard auto-refreshes health data
-- ✅ Response times displayed accurately
+**Clarification**: "11 service endpoints" refers to 11 frontend monitoring panels, NOT 11 backend health check endpoints. Backend has only 3 local infrastructure checks.
 
 ---
 
-### Phase 8: Public Library Management
-**Duration**: Week 9 (40 hours)
+### Phase 8: Public Library Management ❌ NOT STARTED
+**Duration**: 40 hours
 **Objective**: Implement system-owned content management for public library
-**Dependencies**: Phase 1 (VttTools.Admin infrastructure)
+**Status**: ❌ NOT STARTED (0/40 hours)
+**Priority**: MEDIUM (system-owned content management)
+**Dependencies**: Phase 1 (VttTools.Admin infrastructure) | File storage decision required
 **Parallelization**: Can run parallel with Phases 3-4
 
 **Backend Components**:
