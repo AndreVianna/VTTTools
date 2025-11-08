@@ -214,79 +214,82 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
                     sx={{ margin: 0 }}
                 />
 
-                {/* Light */}
-                <FormControl fullWidth size="small">
-                    <InputLabel id="label-light" sx={compactStyles.inputLabel}>Light</InputLabel>
-                    <Select
-                        id="select-light"
-                        labelId="label-light"
-                        value={scene?.light ?? Light.Ambient}
-                        label="Light"
-                        onChange={handleLightChange}
-                        sx={compactStyles.select}
-                    >
-                        <MenuItem sx={compactStyles.menuItem} value={Light.Black}>Black</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Light.Darkness}>Darkness</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Light.Nighttime}>Nighttime</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Light.Dim}>Dim</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Light.Twilight}>Twilight</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Light.Ambient}>Ambient</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Light.Candlelight}>Candlelight</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Light.Torchlight}>Torchlight</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Light.Artificial}>Artificial</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Light.Daylight}>Daylight</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Light.Bright}>Bright</MenuItem>
-                    </Select>
-                </FormControl>
+                {/* Light, Weather, Elevation - Single Row */}
+                <Box sx={{ display: 'flex', gap: 0.75 }}>
+                    {/* Light */}
+                    <FormControl fullWidth size="small">
+                        <InputLabel id="label-light" sx={compactStyles.inputLabel}>Light</InputLabel>
+                        <Select
+                            id="select-light"
+                            labelId="label-light"
+                            value={scene?.light ?? Light.Ambient}
+                            label="Light"
+                            onChange={handleLightChange}
+                            sx={compactStyles.select}
+                        >
+                            <MenuItem sx={compactStyles.menuItem} value={Light.Black}>Black</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Light.Darkness}>Darkness</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Light.Nighttime}>Nighttime</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Light.Dim}>Dim</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Light.Twilight}>Twilight</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Light.Ambient}>Ambient</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Light.Candlelight}>Candlelight</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Light.Torchlight}>Torchlight</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Light.Artificial}>Artificial</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Light.Daylight}>Daylight</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Light.Bright}>Bright</MenuItem>
+                        </Select>
+                    </FormControl>
 
-                {/* Weather */}
-                <FormControl fullWidth size="small">
-                    <InputLabel id="label-weather" sx={compactStyles.inputLabel}>Weather</InputLabel>
-                    <Select
-                        id="select-weather"
-                        labelId="label-weather"
-                        value={scene?.weather ?? Weather.Clear}
-                        label="Weather"
-                        onChange={handleWeatherChange}
-                        sx={compactStyles.select}
-                    >
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.Clear}>Clear</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.PartlyCloudy}>Partly Cloudy</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.Overcast}>Overcast</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.Fog}>Fog</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.LightRain}>Light Rain</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.Rain}>Rain</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.HeavyRain}>Heavy Rain</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.Rainstorm}>Rainstorm</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.Thunderstorm}>Thunderstorm</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.LightSnow}>Light Snow</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.Snow}>Snow</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.HeavySnow}>Heavy Snow</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.Snowstorm}>Snowstorm</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.Hail}>Hail</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.IceStorm}>Ice Storm</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.Breezy}>Breezy</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.Windy}>Windy</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.Hurricane}>Hurricane</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.Tornado}>Tornado</MenuItem>
-                        <MenuItem sx={compactStyles.menuItem} value={Weather.FireStorm}>Fire Storm</MenuItem>
-                    </Select>
-                </FormControl>
+                    {/* Weather */}
+                    <FormControl fullWidth size="small">
+                        <InputLabel id="label-weather" sx={compactStyles.inputLabel}>Weather</InputLabel>
+                        <Select
+                            id="select-weather"
+                            labelId="label-weather"
+                            value={scene?.weather ?? Weather.Clear}
+                            label="Weather"
+                            onChange={handleWeatherChange}
+                            sx={compactStyles.select}
+                        >
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.Clear}>Clear</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.PartlyCloudy}>Partly Cloudy</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.Overcast}>Overcast</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.Fog}>Fog</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.LightRain}>Light Rain</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.Rain}>Rain</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.HeavyRain}>Heavy Rain</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.Rainstorm}>Rainstorm</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.Thunderstorm}>Thunderstorm</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.LightSnow}>Light Snow</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.Snow}>Snow</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.HeavySnow}>Heavy Snow</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.Snowstorm}>Snowstorm</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.Hail}>Hail</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.IceStorm}>Ice Storm</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.Breezy}>Breezy</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.Windy}>Windy</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.Hurricane}>Hurricane</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.Tornado}>Tornado</MenuItem>
+                            <MenuItem sx={compactStyles.menuItem} value={Weather.FireStorm}>Fire Storm</MenuItem>
+                        </Select>
+                    </FormControl>
 
-                {/* Elevation */}
-                <TextField
-                    id="scene-elevation"
-                    label="Elevation"
-                    type="number"
-                    value={scene?.elevation ?? 0}
-                    onChange={handleElevationChange}
-                    fullWidth
-                    variant="outlined"
-                    placeholder="0"
-                    size="small"
-                    sx={compactStyles.textField}
-                    InputProps={{ inputProps: { step: 0.1 } }}
-                />
+                    {/* Elevation */}
+                    <TextField
+                        id="scene-elevation"
+                        label="Elevation"
+                        type="number"
+                        value={scene?.elevation ?? 0}
+                        onChange={handleElevationChange}
+                        fullWidth
+                        variant="outlined"
+                        placeholder="0"
+                        size="small"
+                        sx={compactStyles.textField}
+                        InputProps={{ inputProps: { step: 0.1 } }}
+                    />
+                </Box>
 
                 {/* Display Settings - Removed: defaultDisplayName and defaultLabelPosition are now handled in localStorage */}
             </Box>
