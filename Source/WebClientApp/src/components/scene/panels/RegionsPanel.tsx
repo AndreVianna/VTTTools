@@ -205,70 +205,62 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
                 sx={compactStyles.textField}
             />
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <Typography sx={{ fontSize: '10px', fontWeight: 600, color: theme.palette.text.secondary }}>
-                    Type:
-                </Typography>
-                <Typography sx={{ fontSize: '10px', fontWeight: 700, color: theme.palette.primary.main }}>
-                    {regionType}
-                </Typography>
-            </Box>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                {regionType === 'Elevation' ? (
+                    <TextField
+                        id="input-region-value"
+                        label="Value (feet)"
+                        type="number"
+                        value={value}
+                        onChange={(e) => setValue(Number(e.target.value))}
+                        size="small"
+                        sx={{ ...compactStyles.textField, flex: 1 }}
+                        InputProps={{ inputProps: { min: -100, max: 100, step: 5 } }}
+                    />
+                ) : (
+                    <FormControl size="small" sx={{ flex: 1 }}>
+                        <InputLabel id="label-region-label" sx={compactStyles.inputLabel}>Label</InputLabel>
+                        <Select
+                            id="select-region-label"
+                            labelId="label-region-label"
+                            value={label}
+                            label="Label"
+                            onChange={(e) => setLabel(e.target.value)}
+                            sx={compactStyles.select}
+                        >
+                            {regionType === 'Terrain' && TERRAIN_VALUES.map(val => (
+                                <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
+                                    {val}
+                                </MenuItem>
+                            ))}
+                            {regionType === 'Illumination' && ILLUMINATION_VALUES.map(val => (
+                                <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
+                                    {val}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                )}
 
-            {regionType === 'Elevation' ? (
-                <TextField
-                    id="input-region-value"
-                    label="Value (feet)"
-                    type="number"
-                    value={value}
-                    onChange={(e) => setValue(Number(e.target.value))}
-                    size="small"
-                    fullWidth
-                    InputProps={{ inputProps: { min: -100, max: 100, step: 5 } }}
-                    sx={compactStyles.textField}
-                />
-            ) : (
-                <FormControl size="small" fullWidth>
-                    <InputLabel id="label-region-label" sx={compactStyles.inputLabel}>Label</InputLabel>
-                    <Select
-                        id="select-region-label"
-                        labelId="label-region-label"
-                        value={label}
-                        label="Label"
-                        onChange={(e) => setLabel(e.target.value)}
-                        sx={compactStyles.select}
-                    >
-                        {regionType === 'Terrain' && TERRAIN_VALUES.map(val => (
-                            <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                                {val}
-                            </MenuItem>
-                        ))}
-                        {regionType === 'Illumination' && ILLUMINATION_VALUES.map(val => (
-                            <MenuItem key={val} value={val} sx={{ fontSize: '11px', minHeight: '32px' }}>
-                                {val}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-            )}
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
-                    Color
-                </Typography>
-                <input
-                    id="input-region-color"
-                    type="color"
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
-                    style={{
-                        width: '32px',
-                        height: '32px',
-                        border: `1px solid ${theme.palette.divider}`,
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        padding: 0
-                    }}
-                />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                    <Typography sx={{ fontSize: '9px', color: theme.palette.text.secondary }}>
+                        Color
+                    </Typography>
+                    <input
+                        id="input-region-color"
+                        type="color"
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                        style={{
+                            width: '48px',
+                            height: '28px',
+                            border: `1px solid ${theme.palette.divider}`,
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            padding: 0
+                        }}
+                    />
+                </Box>
             </Box>
 
             <Button
