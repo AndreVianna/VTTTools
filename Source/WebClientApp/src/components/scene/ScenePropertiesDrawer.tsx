@@ -109,8 +109,8 @@ export const ScenePropertiesDrawer: React.FC<ScenePropertiesDrawerProps> = ({
                 '& .MuiDrawer-paper': {
                     width: { xs: '100vw', sm: 360 },
                     backgroundColor: theme.palette.background.paper,
-                    top: 64,
-                    bottom: 20,
+                    top: 28,
+                    bottom: 0,
                     height: 'auto'
                 }
             }}
