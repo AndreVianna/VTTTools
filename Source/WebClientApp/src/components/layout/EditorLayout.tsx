@@ -28,6 +28,9 @@ interface EditorLayoutProps {
   onSceneDescriptionChange?: (description: string) => void;
   onScenePublishedChange?: (published: boolean) => void;
   onSceneUpdate?: (updates: Partial<Scene>) => void;
+  backgroundUrl?: string;
+  isUploadingBackground?: boolean;
+  onBackgroundUpload?: (file: File) => void;
 }
 
 export const EditorLayout: React.FC<EditorLayoutProps> = ({
@@ -37,7 +40,10 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
   onBackClick,
   onSceneDescriptionChange,
   onScenePublishedChange,
-  onSceneUpdate
+  onSceneUpdate,
+  backgroundUrl,
+  isUploadingBackground,
+  onBackgroundUpload
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -199,6 +205,9 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
           onLightChange={onSceneUpdate ? (light: Light) => onSceneUpdate({ light }) : undefined}
           onWeatherChange={onSceneUpdate ? (weather: Weather) => onSceneUpdate({ weather }) : undefined}
           onElevationChange={onSceneUpdate ? (elevation: number) => onSceneUpdate({ elevation }) : undefined}
+          backgroundUrl={backgroundUrl}
+          isUploadingBackground={isUploadingBackground}
+          onBackgroundUpload={onBackgroundUpload}
         />
       )}
 
