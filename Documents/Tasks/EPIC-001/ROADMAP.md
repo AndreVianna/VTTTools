@@ -2279,6 +2279,234 @@ interface AssetToken {
 
 ---
 
+##### 8.8B.4: Resource Path Corruption Bug Fix ✅ COMPLETE
+
+**Objective**: Investigate and fix critical data corruption bug causing Resource records to have empty paths, resulting in CORS errors and image loading failures
+
+**Completion Date**: 2025-11-07
+
+**Initial Symptom**:
+- CORS errors in Scene Editor: `Access to image at 'https://localhost:7174/api/resources/019a50f8-f3e5-702b-89d3-33d694391f66' from origin 'http://localhost:5173' has been blocked by CORS policy`
+- Images that previously worked suddenly stopped loading
+- Error appeared after rotation work and lint/type-check cleanup
+
+**Investigation Process**:
+
+**Phase 1: Initial Investigation (INCORRECT PATH)**
+- Assumed CORS configuration or authentication issue
+- Added `crossOrigin="use-credentials"` to 7 frontend files
+- **Result**: ❌ Problem persisted - CORS was NOT the root cause
+- **Lesson**: Don't assume CORS when images fail to load - check backend logs first
+
+**Phase 2: Backend Log Analysis (ROOT CAUSE DISCOVERED)**
+- Checked Media service logs
+- Found actual error: `System.ArgumentException: Value cannot be an empty string. (Parameter 'blobName')`
+- Error occurred in `AzureBlobStorageClient.GetBlobClient(resource.Path)`
+- **Critical Finding**: Resource.Path was empty string, not the CORS policy
+
+**Phase 3: Database Investigation**
+- Query: `SELECT Id, Path, FileName, Type FROM Resources WHERE Path = '' OR Path IS NULL`
+- Found corrupted record:
+  ```
+  Id: 019A50F8-F3E5-702B-89D3-33D694391F66
+  Path: "" (empty string)
+  FileName: "Undefined"
+  Type: "Undefined"
+  ```
+- User manually restored the record: `Path = "images/1f66/019a50f8f3e5702b89d333d694391f66"`
+- Images immediately started working again
+
+**Phase 4: Data Flow Tracing (ULTRATHINK INVESTIGATION)**
+
+**The Bug Chain** - How a valid upload corrupted the database:
+
+**Step 1: Resource Upload** (Working Correctly)
+- User uploads image via `POST /api/resources`
+- Backend creates Resource with proper path: `images/1f66/019a50f8f3e5702b89d333d694391f66`
+- **BUG**: Upload handler returns only `{ id: "..." }` instead of complete Resource
+- File: `Source/Media/Handlers/ResourcesHandlers.cs:154`
+  ```csharp
+  // BEFORE (INCOMPLETE RESPONSE)
+  ? Results.Ok(new { id = guidId.ToString() })
+  ```
+
+**Step 2: Frontend Receives Upload Response** (Creates Incomplete Data)
+- File: `Source/WebClientApp/src/components/assets/forms/AssetResourceManager.tsx:60-83`
+- Receives: `{ id: "019A50F8-F3E5-702B-89D3-33D694391F66" }` (no path, type, or metadata)
+- **BUG**: Constructs Resource with `path: result.path ?? ''` → empty string!
+  ```typescript
+  // BEFORE (DEFENSIVE BUT DANGEROUS)
+  const newToken: AssetToken = {
+      token: {
+          id: result.id,
+          type: result.type ?? ResourceType.Image,
+          path: result.path ?? '',  // ❌ undefined → EMPTY STRING!
+          metadata: { ... fallbacks ... },
+          tags: result.tags ?? []
+      },
+      isDefault: isFirstToken
+  };
+  ```
+
+**Step 3: User Edits Asset** (Triggers Corruption)
+- User changes asset name, description, or any property
+- Frontend sends `PUT /api/assets/{id}` with complete asset data
+- Asset includes tokens array with **incomplete Resource data**: `{ id: "...", path: "", ... }`
+
+**Step 4: Backend Processes Asset Update** (EF CORE BUG TRIGGER)
+- File: `Source/Data/Assets/Mapper.cs:143-148`
+- **CRITICAL BUG**: Mapper sets `Token` navigation property
+  ```csharp
+  // BEFORE (CAUSES RESOURCE UPDATE)
+  entity.Tokens.Add(new AssetTokenEntity {
+      TokenId = token.Token.Id,
+      Token = token.Token.ToEntity(),  // ❌ Creates TRACKED ResourceEntity
+      IsDefault = token.IsDefault
+  });
+  ```
+- EF Core sees existing Resource ID and tracks it for update
+- When `SaveChanges()` is called, **ALL tracked entities are updated**
+- Resource table row gets updated with empty path from incomplete data
+
+**Step 5: Next Image Load Fails**
+- Frontend tries to load: `GET /api/resources/019a50f8-f3e5-702b-89d3-33d694391f66`
+- Backend executes: `GetBlobClient(resource.Path)` where `resource.Path = ""`
+- Azure SDK throws: `ArgumentException: Value cannot be an empty string`
+- Browser sees failed request and reports CORS error (misleading!)
+
+**Root Causes Identified**:
+
+1. **Incomplete Upload Response**: Upload endpoint returns `{ id }` instead of complete `Resource`
+2. **Defensive Frontend Fallbacks**: `??` operator converts `undefined` to empty string
+3. **EF Core Navigation Property Tracking**: Setting `Token` navigation property causes related Resource to be tracked for update
+4. **Cascading Data Loss**: Incomplete frontend data overwrites complete backend data on next update
+
+**Fixes Implemented**:
+
+**Fix 1: Return Complete Resource from Upload** (CRITICAL)
+- File: `Source/Domain/Media/Services/IResourceService.cs`
+  ```csharp
+  // Service interface return type change
+  Task<Result<Resource>> SaveResourceAsync(...)  // Was: Task<Result>
+  ```
+
+- File: `Source/Media/Services/AzureResourceService.cs`
+  ```csharp
+  // Return the complete resource object
+  return Result<Resource>.Success(resource);  // Was: Result.Success()
+  ```
+
+- File: `Source/Media/Handlers/ResourcesHandlers.cs:154`
+  ```csharp
+  // AFTER (COMPLETE RESPONSE)
+  ? Results.Ok(result.Value)  // Returns full Resource object
+  ```
+
+**Fix 2: Prevent Resource Updates During Asset Updates** (CRITICAL - EF CORE PATTERN)
+- File: `Source/Data/Assets/Mapper.cs:143-148`
+  ```csharp
+  // AFTER (ONLY SETS FOREIGN KEY)
+  entity.Tokens.Add(new AssetTokenEntity {
+      TokenId = token.Token.Id,
+      // Don't set Token navigation - the Resource already exists
+      // Setting it would cause EF Core to track and update the Resource
+      IsDefault = token.IsDefault
+  });
+  ```
+- **Key Pattern**: Only set foreign key (`TokenId`), NOT navigation property (`Token`)
+- **Why**: EF Core tracks navigation properties for updates; we only want to link, not modify
+
+**Fix 3: Simplify Frontend Token Construction**
+- File: `Source/WebClientApp/src/components/assets/forms/AssetResourceManager.tsx:60-71`
+  ```typescript
+  // AFTER (USES COMPLETE BACKEND DATA)
+  const result = await uploadFile({ file, ...(entityId ? { entityId } : {}) }).unwrap();
+
+  const newToken: AssetToken = {
+      token: result,  // Use complete Resource from backend response
+      isDefault: tokens.length === 0
+  };
+  ```
+- No more defensive fallbacks - backend provides complete data
+
+**Backend Files Modified**:
+1. `Source/Domain/Media/Services/IResourceService.cs` - Return type change
+2. `Source/Media/Services/AzureResourceService.cs` - Return Resource object
+3. `Source/Media/Handlers/ResourcesHandlers.cs` - Return `result.Value`
+4. `Source/Data/Assets/Mapper.cs` - Remove Token navigation property (CRITICAL FIX)
+
+**Frontend Files Modified**:
+1. `Source/WebClientApp/src/components/assets/forms/AssetResourceManager.tsx` - Simplified token construction
+
+**Build & Validation Results**:
+- ✅ Backend build: 0 errors, 0 warnings
+- ✅ Frontend build: TypeScript compilation successful
+- ✅ User verified: Corrupted database record restored manually
+- ✅ Root cause fixed: No more incomplete data causing corruption
+
+**Critical Patterns & Lessons Learned**:
+
+**1. EF Core Navigation Property Pattern** ⭐ CRITICAL
+- **Rule**: When linking to existing entities, set ONLY the foreign key, NOT the navigation property
+- **Why**: Setting navigation properties causes EF Core to track related entities for updates
+- **Example**:
+  ```csharp
+  // ❌ WRONG - Causes Resource to be updated
+  entity.Tokens.Add(new AssetTokenEntity {
+      TokenId = existingResourceId,
+      Token = existingResource.ToEntity(),  // Tracked for update!
+      IsDefault = true
+  });
+
+  // ✅ CORRECT - Only creates relationship
+  entity.Tokens.Add(new AssetTokenEntity {
+      TokenId = existingResourceId,  // Foreign key only
+      IsDefault = true
+  });
+  ```
+
+**2. API Response Completeness Pattern** ⭐ IMPORTANT
+- **Rule**: Upload/Create endpoints should return the complete created object, not just the ID
+- **Why**: Frontend needs complete data to avoid defensive fallbacks that create incomplete records
+- **Anti-Pattern**: Returning `{ id: "..." }` forces frontend to construct incomplete objects
+- **Best Practice**: Return `Result<Resource>` with all properties populated
+
+**3. Defensive Programming Can Be Dangerous** ⚠️ WARNING
+- **Issue**: `path: result.path ?? ''` converts `undefined` to empty string
+- **Problem**: Empty string is a VALID value that bypasses null checks
+- **Lesson**: Prefer throwing errors on missing data over silent fallbacks
+- **Better**: Validate upload response completeness, throw if incomplete
+
+**4. Misleading Error Messages** 📝 NOTE
+- **Symptom**: Browser reports "CORS policy" error
+- **Reality**: Backend threw `ArgumentException` for empty blobName
+- **Lesson**: Always check backend logs before assuming CORS/frontend issues
+- **Pattern**: Failed resource loads often manifest as CORS errors in browser console
+
+**5. Data Flow Validation** ⭐ IMPORTANT
+- **Check**: Upload → Response → Storage → Update → Persistence
+- **Validate**: Each step should maintain data completeness
+- **Test**: Update operations should not corrupt unrelated data
+- **Monitor**: Database queries for empty/null critical fields
+
+**Debugging Techniques Used**:
+1. Backend log analysis (found ArgumentException)
+2. Database queries (found corrupted record)
+3. Sequential thinking (traced complete data flow)
+4. EF Core change tracking analysis (identified navigation property issue)
+5. Network request inspection (found incomplete upload response)
+
+**Incorrect Assumptions Made**:
+1. ❌ Initial assumption: CORS configuration issue
+2. ❌ Second assumption: Authentication required (`crossOrigin="use-credentials"`)
+3. ✅ Actual issue: Data corruption from incomplete API responses + EF Core tracking
+
+**Actual Effort**: 3 hours (1h incorrect CORS investigation, 1h deep investigation with sequential thinking, 1h fixes + validation)
+
+**Status**: ✅ COMPLETE (2025-11-07)
+
+---
+
 ### Phase 9: Epic/Campaign Hierarchy ⚠️ BLOCKED
 
 **Objective**: Implement Epic→Campaign hierarchy for advanced content organization
