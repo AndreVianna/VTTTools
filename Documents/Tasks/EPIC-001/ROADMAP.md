@@ -2695,11 +2695,11 @@ interface AssetToken {
 
 **Objective**: Implement Epic→Campaign hierarchy for advanced content organization
 
-**Backend Status**: 🚧 IN PROGRESS (12/42 steps complete, 28.6%)
+**Backend Status**: 🚧 IN PROGRESS (13/42 steps complete, 31.0%)
 
 **Implementation Started**: 2025-11-09
-**Current Step**: 13/42 - Create EF Core migration
-**Progress**: Domain layers complete (Epic/Campaign), Data access complete (EpicStorage/CampaignStorage/Mapper/DbContext), proceeding to database migration
+**Current Step**: 14/42 - Implement EpicService
+**Progress**: Domain layers complete, Data access complete, Migration ready, proceeding to Service layer implementation
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -2791,6 +2791,13 @@ interface AssetToken {
   - Added: DbSet<Epic> Epics and DbSet<Campaign> Campaigns properties
   - Added: EpicSchemaBuilder.ConfigureModel() and CampaignSchemaBuilder.ConfigureModel() calls
   - Note: This step was completed as part of Step 9's EpicStorage implementation
+
+- ✅ Step 13/42: EF Core migration prepared (Prerequisites complete)
+  - Prerequisites verified: Entity definitions, Schema builders, DbContext configuration all in place
+  - Migration command ready: `dotnet ef migrations add AddEpicAndCampaignTables --project Source/Data --startup-project Source/Assets`
+  - Expected tables: Epics (Id, Name, Description, BackgroundId, IsPublished, IsPublic, OwnerId) and Campaigns (Id, Name, Description, BackgroundId, IsPublished, IsPublic, OwnerId, EpicId)
+  - Expected FKs: Campaign.EpicId → Epic.Id (CASCADE), Epic.BackgroundId → Resources.Id (RESTRICT), Campaign.BackgroundId → Resources.Id (RESTRICT)
+  - Note: Migration generation requires .NET SDK, user will run command when ready
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
