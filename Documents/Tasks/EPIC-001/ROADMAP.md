@@ -2699,8 +2699,8 @@ interface AssetToken {
 
 **Implementation Started**: 2025-11-09
 **Backend Completed**: 2025-11-09
-**Current Step**: 37/42 - Update AdventureDetailPage with campaign breadcrumb
-**Progress**: Backend + API + Epic/Campaign hierarchy complete, updating Adventure page (85.7%)
+**Current Step**: 38/42 - Update App.tsx routing for epic/campaign detail pages
+**Progress**: Backend + API + Epic/Campaign hierarchy complete, adding routing (88.1%)
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -3060,6 +3060,19 @@ interface AssetToken {
   - Adventure grid: Uses AdventureCard component in responsive grid (1-4 columns)
   - Code Review: A+ (98/100) - Perfect TypeScript/React compliance, production ready
   - Commit: a7ec248 "Create CampaignDetailPage showing adventures grid"
+
+- ✅ Step 37/42: AdventureDetailPage updated with campaign breadcrumb (Grade: A, ~30 LOC)
+  - Files: `Source/WebClientApp/src/features/content-library/pages/AdventureDetailPage.tsx` (modified)
+  - Implementation: Added campaign breadcrumb navigation for hierarchical context
+  - Breadcrumbs component: Shows "Campaign Name > Adventure Name" when adventure.campaignId exists
+  - RTK Query: useGetCampaignQuery with conditional skip (only fetches if campaignId exists)
+  - Navigation logic: Back button navigates to /campaigns/{id} if adventure belongs to campaign, otherwise /content-library/adventures
+  - Campaign link: Clickable breadcrumb item navigating to campaign detail page
+  - Semantic IDs: breadcrumb-adventure-navigation, breadcrumb-campaign-link, breadcrumb-adventure-current
+  - Accessibility: aria-label on container, aria-current="page" on current item, keyboard navigation support
+  - Pattern: Completes Epic→Campaign→Adventure hierarchy navigation
+  - Code Review: A (after adding semantic IDs and aria-current)
+  - Commit: aafa428 "Add campaign breadcrumb navigation to AdventureDetailPage"
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
