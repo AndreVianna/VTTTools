@@ -24,6 +24,8 @@ global using VttTools.Library.Adventures.ServiceContracts;
 global using VttTools.Library.Adventures.Services;
 global using VttTools.Library.Adventures.Storage;
 global using VttTools.Library.Campaigns.Model;
+global using VttTools.Library.Campaigns.ServiceContracts;
+global using VttTools.Library.Campaigns.Services;
 global using VttTools.Library.Campaigns.Storage;
 global using VttTools.Library.Content.ApiContracts;
 global using VttTools.Library.Content.Model;
