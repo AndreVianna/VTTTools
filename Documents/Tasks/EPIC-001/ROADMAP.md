@@ -2695,13 +2695,28 @@ interface AssetToken {
 
 **Objective**: Implement Epic→Campaign hierarchy for advanced content organization
 
-**Backend Status**: ⚠️ Epic/Campaign services NOT IMPLEMENTED
+**Backend Status**: 🚧 IN PROGRESS (1/42 steps complete, 2.4%)
 
-**CRITICAL BLOCKER**:
+**Implementation Started**: 2025-11-09
+**Current Step**: 2/42 - IEpicStorage interface
+**Progress**: Backend domain layer in progress
 
-- Backend Epic/Campaign services missing from VttTools.Library microservice
-- Backend development required: ~3 weeks
-- Recommendation: Defer until backend ready
+**Completed Steps**:
+- ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
+  - File: `Source/Domain/Library/Epics/Services/IEpicService.cs`
+  - Pattern: Matches IAdventureService with Epic/Campaign adaptations
+  - Methods: GetEpicsAsync (2 overloads), GetEpicByIdAsync, CreateEpicAsync, CloneEpicAsync, UpdateEpicAsync, DeleteEpicAsync, GetCampaignsAsync, AddNewCampaignAsync, AddClonedCampaignAsync, RemoveCampaignAsync
+  - Code Review: Perfect pattern adherence, VTTTools standards compliant
+  - Commit: 9d28b84 "feat(library): add IEpicService interface for Epic management"
+
+**Architecture Decisions** (User Approved):
+- ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
+- ✅ API: Semi-flat endpoints (`/api/epics/{id}/campaigns` following Adventure/Scene pattern)
+- ✅ Data: Hybrid lazy loading (consistent with Adventures)
+- ✅ Hierarchy: Update endpoint for movement (epicId field)
+- ✅ Domain: Campaign converted to record type for immutability
+
+**Estimated Total Effort**: 16 hours (revised from 18h, -3h due to tabs vs TreeView)
 
 **Deliverables**:
 
