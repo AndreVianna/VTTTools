@@ -2699,8 +2699,8 @@ interface AssetToken {
 
 **Implementation Started**: 2025-11-09
 **Backend Completed**: 2025-11-09
-**Current Step**: 29/42 - Create EpicCard component (click navigates, no View button)
-**Progress**: Backend + API slices + Tabs complete, proceeding to Epic UI components (66.7%)
+**Current Step**: 30/42 - Create EpicListView component with grid layout
+**Progress**: Backend + API slices + Tabs + EpicCard complete, proceeding to EpicListView (69.0%)
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -2962,6 +2962,20 @@ interface AssetToken {
   - First MUI Tabs usage: Establishes pattern for tabbed navigation in VTTTools frontend
   - Code Review: B+ grade (87/100) after path matching improvement - Production ready
   - Commit: 95c9b13 "Update ContentLibraryPage with Epics/Campaigns/Adventures tabs"
+
+- ✅ Step 29/42: EpicCard component created (Grade: A+, 86 LOC)
+  - Files: `Source/WebClientApp/src/features/content-library/components/epics/EpicCard.tsx` (86 LOC), `index.ts` (2 LOC)
+  - Implementation: Epic card component following AdventureCard pattern exactly
+  - Props interface: EpicCardProps (epic, onOpen, onDuplicate, onDelete handlers)
+  - Display: Epic name, published badge, campaign count metadata with singular/plural handling
+  - Actions: Clone and Delete buttons with semantic IDs (btn-clone-epic-{id}, btn-delete-epic-{id})
+  - Background: Uses epic.background.id via media API endpoint or EPIC_DEFAULT_BACKGROUND fallback
+  - Event handling: stopPropagation on action buttons to prevent card click navigation
+  - ContentCard integration: Uses shared ContentCard wrapper with ContentType.Epic
+  - Export pattern: Barrel export (component + props interface) in index.ts
+  - Pattern compliance: 100% match with AdventureCard reference pattern
+  - Code Review: A+ grade (100/100) - Zero issues, exemplary implementation, production ready
+  - Commit: a683c6b "Create EpicCard component with Clone/Delete actions"
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
