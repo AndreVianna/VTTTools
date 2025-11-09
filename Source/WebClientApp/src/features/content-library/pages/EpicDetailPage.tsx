@@ -20,6 +20,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import { CampaignCard } from '../components/campaigns';
 import type { SaveStatus } from '../hooks';
 import {
     useGetEpicQuery,
@@ -491,9 +492,18 @@ export function EpicDetailPage() {
                     )}
 
                     {!isLoadingCampaigns && campaigns.length > 0 && (
-                        <Typography variant="body2" color="text.secondary">
-                            Campaign cards will be displayed here
-                        </Typography>
+                        <Grid container spacing={3}>
+                            {campaigns.map((campaign) => (
+                                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={campaign.id}>
+                                    <CampaignCard
+                                        campaign={campaign}
+                                        onOpen={handleOpenCampaign}
+                                        onDuplicate={handleDuplicateCampaign}
+                                        onDelete={handleDeleteCampaign}
+                                    />
+                                </Grid>
+                            ))}
+                        </Grid>
                     )}
                 </Paper>
             </Box>

@@ -2699,8 +2699,8 @@ interface AssetToken {
 
 **Implementation Started**: 2025-11-09
 **Backend Completed**: 2025-11-09
-**Current Step**: 32/42 - Create EpicDetailPage showing campaigns grid
-**Progress**: Backend + API + Epic list components complete, proceeding to detail pages (73.8%)
+**Current Step**: 32/42 - Create EpicDetailPage with epic breadcrumb and Clone/Delete actions
+**Progress**: Backend + API + Epic list components complete, proceeding to detail pages (76.2%)
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -2994,6 +2994,22 @@ interface AssetToken {
   - Decision: Skip dialog component - Epic creation/editing follows AdventureListView pattern
   - Rationale: No dialog components exist in adventures/ folder; creation happens inline in ListView
   - Alternative: Epic creation navigates directly to detail page; editing happens on detail page
+
+- ✅ Step 32/42: EpicDetailPage created (Grade: A, 481 LOC)
+  - Files: `Source/WebClientApp/src/features/content-library/pages/EpicDetailPage.tsx` (481 LOC)
+  - Implementation: Epic detail page with editing, auto-save, campaign management
+  - Pattern: Adapts AdventureDetailPage for Epic/Campaign (no style, no isOneShot properties)
+  - Edit features: Name, description, published status with auto-save on blur
+  - Auto-save: beforeunload warning for unsaved changes, visibilitychange save
+  - Background upload: Epic background via media API with type: 'epic'
+  - Campaign operations: Create (navigate to /campaigns/{id}), clone, delete with confirmation
+  - RTK Query: useGetEpicQuery, useGetCampaignsQuery, useUpdateEpicMutation, campaign mutations
+  - States: Loading spinner, error alert, save status (Saving.../Saved/Save failed)
+  - Layout: Glassmorphism Paper with background overlay, responsive design
+  - Navigation: Back button to /content-library/epics (more specific than Adventure)
+  - Campaign grid: Placeholder ready for CampaignCard (Step 33)
+  - Code Review: A- (93/100) → A (96/100) after removing console.error
+  - Commit: df87baf "Create EpicDetailPage showing campaigns grid"
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
