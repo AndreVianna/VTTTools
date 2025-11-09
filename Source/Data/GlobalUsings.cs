@@ -24,6 +24,7 @@ global using VttTools.Identity.Model;
 global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Adventures.Storage;
 global using VttTools.Library.Campaigns.Model;
+global using VttTools.Library.Campaigns.Storage;
 global using VttTools.Library.Epics.Model;
 global using VttTools.Library.Epics.Storage;
 global using VttTools.Library.Scenes.Model;
