@@ -343,6 +343,59 @@ export interface Adventure {
   scenes?: Scene[];
 }
 
+// Epics (from Domain.Library.Epics.ApiContracts)
+export interface CreateEpicRequest {
+  name: string;           // [MaxLength(128)]
+  description: string;    // [MaxLength(4096)]
+  backgroundId?: string;  // Guid?
+}
+
+export interface UpdateEpicRequest {
+  name?: string;
+  description?: string;
+  backgroundId?: string;
+  isPublished?: boolean;
+  isPublic?: boolean;
+}
+
+export interface Epic {
+  id: string;
+  ownerId: string;
+  name: string;
+  description: string;
+  isPublished: boolean;
+  isPublic: boolean;
+  background?: MediaResource | null;
+  campaigns?: Campaign[];
+}
+
+// Campaigns (from Domain.Library.Campaigns.ApiContracts)
+export interface CreateCampaignRequest {
+  name: string;           // [MaxLength(128)]
+  description: string;    // [MaxLength(4096)]
+  backgroundId?: string;  // Guid?
+}
+
+export interface UpdateCampaignRequest {
+  name?: string;
+  description?: string;
+  backgroundId?: string;
+  isPublished?: boolean;
+  isPublic?: boolean;
+}
+
+export interface Campaign {
+  id: string;
+  ownerId: string;
+  name: string;
+  description: string;
+  isPublished: boolean;
+  isPublic: boolean;
+  epicId?: string;
+  background?: MediaResource | null;
+  adventures?: Adventure[];
+}
+
 // Scenes (from Domain.Library.Scenes.ApiContracts)
 export interface CreateSceneRequest {
   name: string;

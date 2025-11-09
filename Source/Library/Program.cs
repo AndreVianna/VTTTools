@@ -38,6 +38,8 @@ internal static class Program {
     internal static void AddServices(this IHostApplicationBuilder builder) {
         builder.Services.AddScoped<IAdventureService, AdventureService>();
         builder.Services.AddScoped<ISceneService, SceneService>();
+        builder.Services.AddScoped<IEpicService, EpicService>();
+        builder.Services.AddScoped<ICampaignService, CampaignService>();
         builder.Services.AddScoped<IContentQueryService, ContentQueryService>();
         builder.Services.AddScoped<IAuditLogStorage, AuditLogStorage>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
@@ -52,6 +54,8 @@ internal static class Program {
     }
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {
+        app.MapEpicEndpoints();
+        app.MapCampaignEndpoints();
         app.MapAdventureEndpoints();
         app.MapSceneEndpoints();
         app.MapContentEndpoints();

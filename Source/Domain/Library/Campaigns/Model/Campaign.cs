@@ -1,4 +1,4 @@
-﻿namespace VttTools.Library.Campaigns.Model;
+namespace VttTools.Library.Campaigns.Model;
 
 public record Campaign {
     public Guid? EpicId { get; init; }
@@ -11,5 +11,5 @@ public record Campaign {
     public Resource Background { get; init; } = null!;
     public bool IsPublished { get; init; }
     public bool IsPublic { get; init; }
-    public List<Adventure> Adventures { get; init; } = [];
+    public IReadOnlyList<Adventure> Adventures { get; init; } = [];
 }

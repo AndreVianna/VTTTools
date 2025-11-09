@@ -10,110 +10,87 @@ import {
     IconButton,
     Grid,
     TextField,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
     FormControlLabel,
     Switch,
     CircularProgress,
     Alert,
-    Paper,
-    Breadcrumbs,
-    Link
+    Paper
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import { SceneCard } from '../components/scenes';
-import { AdventureStyle } from '../types';
+import { CampaignCard } from '../components/campaigns';
 import type { SaveStatus } from '../hooks';
 import {
-    useGetAdventureQuery,
-    useGetScenesQuery,
-    useUpdateAdventureMutation,
-    useCreateSceneMutation,
-    useCloneSceneMutation,
-    adventuresApi
-} from '@/services/adventuresApi';
-import { useGetCampaignQuery } from '@/services/campaignsApi';
+    useGetEpicQuery,
+    useGetCampaignsQuery,
+    useUpdateEpicMutation,
+    useCreateCampaignMutation,
+    useCloneCampaignMutation,
+    useRemoveCampaignMutation
+} from '@/services/epicsApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
-import { useDeleteSceneMutation } from '@/services/sceneApi';
 import { ConfirmDialog } from '@/components/common';
-import { useAppDispatch } from '@/store';
 
-const ADVENTURE_DEFAULT_BACKGROUND = '/assets/backgrounds/adventure.png';
+const EPIC_DEFAULT_BACKGROUND = '/assets/backgrounds/epic.png';
 
-export function AdventureDetailPage() {
-    const { adventureId } = useParams<{ adventureId: string }>();
+export function EpicDetailPage() {
+    const { epicId } = useParams<{ epicId: string }>();
     const navigate = useNavigate();
     const theme = useTheme();
-    const dispatch = useAppDispatch();
 
-    const { data: adventure, isLoading: isLoadingAdventure, error: adventureError } = useGetAdventureQuery(adventureId!);
-    const { data: campaign } = useGetCampaignQuery(adventure?.campaignId ?? '', { skip: !adventure?.campaignId });
-    const { data: scenes = [], isLoading: isLoadingScenes } = useGetScenesQuery(adventureId!);
-    const [updateAdventure] = useUpdateAdventureMutation();
-    const [createScene] = useCreateSceneMutation();
+    const { data: epic, isLoading: isLoadingEpic, error: epicError } = useGetEpicQuery(epicId!);
+    const { data: campaigns = [], isLoading: isLoadingCampaigns } = useGetCampaignsQuery(epicId!);
+    const [updateEpic] = useUpdateEpicMutation();
+    const [createCampaign] = useCreateCampaignMutation();
     const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation();
-    const [cloneScene] = useCloneSceneMutation();
-    const [deleteScene, { isLoading: isDeleting }] = useDeleteSceneMutation();
+    const [cloneCampaign] = useCloneCampaignMutation();
+    const [removeCampaign, { isLoading: isDeleting }] = useRemoveCampaignMutation();
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [style, setStyle] = useState<AdventureStyle>(AdventureStyle.Generic);
-    const [isOneShot, setIsOneShot] = useState(false);
     const [isPublished, setIsPublished] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [sceneToDelete, setSceneToDelete] = useState<{ id: string; name: string } | null>(null);
+    const [campaignToDelete, setCampaignToDelete] = useState<{ id: string; name: string } | null>(null);
 
     useEffect(() => {
-        if (adventure && !isInitialized) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setName(adventure.name);
-            setDescription(adventure.description);
-            setStyle(adventure.style ?? AdventureStyle.Generic);
-            setIsOneShot(adventure.isOneShot ?? false);
-            setIsPublished(adventure.isPublished);
+        if (epic && !isInitialized) {
+            setName(epic.name);
+            setDescription(epic.description);
+            setIsPublished(epic.isPublished);
             setIsInitialized(true);
         }
-    }, [adventure, isInitialized]);
+    }, [epic, isInitialized]);
 
     const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
     const hasUnsavedChanges = useCallback(() => {
-        if (!adventure || !isInitialized) return false;
+        if (!epic || !isInitialized) return false;
         return (
-            name !== adventure.name ||
-            description !== adventure.description ||
-            style !== adventure.style ||
-            isOneShot !== adventure.isOneShot ||
-            isPublished !== adventure.isPublished
+            name !== epic.name ||
+            description !== epic.description ||
+            isPublished !== epic.isPublished
         );
-    }, [adventure, isInitialized, name, description, style, isOneShot, isPublished]);
+    }, [epic, isInitialized, name, description, isPublished]);
 
-    const saveChanges = useCallback(async (overrides?: Partial<{ name: string; description: string; style: AdventureStyle; isOneShot: boolean; isPublished: boolean }>) => {
-        if (!adventureId || !adventure || !isInitialized) {
+    const saveChanges = useCallback(async (overrides?: Partial<{ name: string; description: string; isPublished: boolean }>) => {
+        if (!epicId || !epic || !isInitialized) {
             return;
         }
 
         const currentData = {
             name,
             description,
-            style,
-            isOneShot,
             isPublished,
             ...overrides
         };
 
         const hasChanges =
-            currentData.name !== adventure.name ||
-            currentData.description !== adventure.description ||
-            currentData.style !== adventure.style ||
-            currentData.isOneShot !== adventure.isOneShot ||
-            currentData.isPublished !== adventure.isPublished;
+            currentData.name !== epic.name ||
+            currentData.description !== epic.description ||
+            currentData.isPublished !== epic.isPublished;
 
         if (!hasChanges) {
             return;
@@ -121,16 +98,17 @@ export function AdventureDetailPage() {
 
         setSaveStatus('saving');
         try {
-            await updateAdventure({
-                id: adventureId,
+            await updateEpic({
+                id: epicId,
                 request: currentData
             }).unwrap();
             setSaveStatus('saved');
             setTimeout(() => setSaveStatus('idle'), 2000);
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to save epic changes:', error);
             setSaveStatus('error');
         }
-    }, [adventureId, adventure, isInitialized, name, description, style, isOneShot, isPublished, updateAdventure]);
+    }, [epicId, epic, isInitialized, name, description, isPublished, updateEpic]);
 
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -156,109 +134,102 @@ export function AdventureDetailPage() {
     }, [hasUnsavedChanges, saveChanges]);
 
     const handleBack = () => {
-        if (adventure?.campaignId) {
-            navigate(`/campaigns/${adventure.campaignId}`);
-        } else {
-            navigate('/content-library/adventures');
-        }
+        navigate('/content-library/epics');
     };
 
     const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file || !adventureId) return;
+        if (!file || !epicId) return;
 
         try {
             setSaveStatus('saving');
             const result = await uploadFile({
                 file,
-                type: 'adventure',
+                type: 'epic',
                 resource: 'background',
-                entityId: adventureId
+                entityId: epicId
             }).unwrap();
 
-            await updateAdventure({
-                id: adventureId,
+            await updateEpic({
+                id: epicId,
                 request: { backgroundId: result.id }
             }).unwrap();
 
             setSaveStatus('saved');
             setTimeout(() => setSaveStatus('idle'), 2000);
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to upload epic background:', error);
             setSaveStatus('error');
         }
     };
 
-    const handleAddScene = async () => {
-        if (adventureId) {
+    const handleAddCampaign = async () => {
+        if (epicId) {
             try {
-                const scene = await createScene({
-                    adventureId,
+                const campaign = await createCampaign({
+                    epicId,
                     request: {
-                        name: 'New Scene',
-                        description: '',
-                        grid: {
-                            type: 1,
-                            cellSize: { width: 50, height: 50 },
-                            offset: { left: 0, top: 0 },
-                            snap: true
-                        }
+                        name: 'New Campaign',
+                        description: ''
                     }
                 }).unwrap();
-                navigate(`/scene-editor/${scene.id}`);
-            } catch (_error) {
+                navigate(`/campaigns/${campaign.id}`);
+            } catch (error) {
+                console.error('Failed to create campaign:', error);
                 setSaveStatus('error');
             }
         }
     };
 
-    const handleOpenScene = (sceneId: string) => {
-        navigate(`/scene-editor/${sceneId}`);
+    const handleOpenCampaign = (campaignId: string) => {
+        navigate(`/campaigns/${campaignId}`);
     };
 
-    const handleDuplicateScene = async (sceneId: string) => {
-        if (!adventureId) return;
+    const handleDuplicateCampaign = async (campaignId: string) => {
+        if (!epicId) return;
 
         try {
-            await cloneScene({
-                adventureId,
-                sceneId
+            await cloneCampaign({
+                epicId,
+                campaignId
             }).unwrap();
         } catch (error) {
-            console.error('Failed to duplicate scene:', error);
+            console.error('Failed to duplicate campaign:', error);
             setSaveStatus('error');
         }
     };
 
-    const handleDeleteScene = (sceneId: string) => {
-        const scene = scenes.find(s => s.id === sceneId);
-        if (!scene) return;
+    const handleDeleteCampaign = (campaignId: string) => {
+        const campaign = campaigns.find(c => c.id === campaignId);
+        if (!campaign) return;
 
-        setSceneToDelete({ id: sceneId, name: scene.name });
+        setCampaignToDelete({ id: campaignId, name: campaign.name });
         setDeleteDialogOpen(true);
     };
 
     const handleConfirmDelete = async () => {
-        if (!sceneToDelete || !adventureId) return;
+        if (!campaignToDelete || !epicId) return;
 
         try {
-            await deleteScene(sceneToDelete.id).unwrap();
-
-            dispatch(adventuresApi.util.invalidateTags([{ type: 'AdventureScenes', id: adventureId }]));
+            await removeCampaign({
+                epicId,
+                campaignId: campaignToDelete.id
+            }).unwrap();
 
             setDeleteDialogOpen(false);
-            setSceneToDelete(null);
+            setCampaignToDelete(null);
         } catch (error) {
-            console.error('Failed to delete scene:', error);
+            console.error('Failed to delete campaign:', error);
             setSaveStatus('error');
         }
     };
 
     const handleCancelDelete = () => {
         setDeleteDialogOpen(false);
-        setSceneToDelete(null);
+        setCampaignToDelete(null);
     };
 
-    if (isLoadingAdventure) {
+    if (isLoadingEpic) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                 <CircularProgress />
@@ -266,11 +237,11 @@ export function AdventureDetailPage() {
         );
     }
 
-    if (adventureError || !adventure) {
+    if (epicError || !epic) {
         return (
             <Box sx={{ p: 3 }}>
                 <Alert severity="error">
-                    Failed to load adventure. Please try again.
+                    Failed to load epic. Please try again.
                 </Alert>
                 <Button startIcon={<ArrowBackIcon />} onClick={handleBack} sx={{ mt: 2 }}>
                     Back to Library
@@ -307,13 +278,13 @@ export function AdventureDetailPage() {
     };
 
     const apiEndpoints = getApiEndpoints();
-    const backgroundUrl = adventure.background
-        ? `${apiEndpoints.media}/${adventure.background.id}`
-        : ADVENTURE_DEFAULT_BACKGROUND;
+    const backgroundUrl = epic.background
+        ? `${apiEndpoints.media}/${epic.background.id}`
+        : EPIC_DEFAULT_BACKGROUND;
 
     return (
         <Box
-            id="adventure-detail-container"
+            id="epic-detail-container"
             sx={{
                 minHeight: '100vh',
                 backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : 'none',
@@ -345,26 +316,6 @@ export function AdventureDetailPage() {
                         border: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
                     }}
                 >
-                    {campaign && (
-                        <Breadcrumbs id="breadcrumb-adventure-navigation" aria-label="breadcrumb" sx={{ mb: 2 }}>
-                            <Link
-                                id="breadcrumb-campaign-link"
-                                component="button"
-                                variant="body2"
-                                onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                                sx={{
-                                    cursor: 'pointer',
-                                    textDecoration: 'none',
-                                    '&:hover': { textDecoration: 'underline' }
-                                }}
-                            >
-                                {campaign.name}
-                            </Link>
-                            <Typography id="breadcrumb-adventure-current" variant="body2" color="text.primary" aria-current="page">
-                                {adventure.name}
-                            </Typography>
-                        </Breadcrumbs>
-                    )}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                         <IconButton
                             id="btn-back-to-library"
@@ -375,13 +326,13 @@ export function AdventureDetailPage() {
                         </IconButton>
                         <Box sx={{ flex: 1 }}>
                             <TextField
-                                id="input-adventure-name"
+                                id="input-epic-name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 onBlur={() => saveChanges()}
                                 variant="standard"
                                 fullWidth
-                                placeholder="Adventure Name"
+                                placeholder="Epic Name"
                                 inputProps={{
                                     style: { fontSize: '2rem', fontWeight: 500 }
                                 }}
@@ -391,7 +342,6 @@ export function AdventureDetailPage() {
                     </Box>
 
                     <Box sx={{ display: 'flex', gap: 3 }}>
-                        {/* Left Column: Image Only */}
                         <Box sx={{ flexShrink: 0 }}>
                             {backgroundUrl ? (
                                 <Box
@@ -464,46 +414,8 @@ export function AdventureDetailPage() {
                             )}
                         </Box>
 
-                        {/* Right Column: Style + Switches (Row 1), Description (Row 2) */}
                         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            {/* Row 1: Style + Switches */}
                             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                                <FormControl size="small" sx={{ minWidth: 200 }}>
-                                    <InputLabel id="label-adventure-style">Style</InputLabel>
-                                    <Select
-                                        id="select-adventure-style"
-                                        labelId="label-adventure-style"
-                                        value={style}
-                                        label="Style"
-                                        onChange={(e) => {
-                                            const newStyle = e.target.value as AdventureStyle;
-                                            setStyle(newStyle);
-                                            saveChanges({ style: newStyle });
-                                        }}
-                                    >
-                                        <MenuItem value={AdventureStyle.Generic}>Generic</MenuItem>
-                                        <MenuItem value={AdventureStyle.OpenWorld}>Open World</MenuItem>
-                                        <MenuItem value={AdventureStyle.DungeonCrawl}>Dungeon Crawl</MenuItem>
-                                        <MenuItem value={AdventureStyle.HackNSlash}>Hack-n-Slash</MenuItem>
-                                        <MenuItem value={AdventureStyle.Survival}>Survival</MenuItem>
-                                        <MenuItem value={AdventureStyle.GoalDriven}>Goal Driven</MenuItem>
-                                        <MenuItem value={AdventureStyle.RandomlyGenerated}>Randomly Generated</MenuItem>
-                                    </Select>
-                                </FormControl>
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={isOneShot}
-                                            onChange={(e) => {
-                                                const newValue = e.target.checked;
-                                                setIsOneShot(newValue);
-                                                saveChanges({ isOneShot: newValue });
-                                            }}
-                                            size="small"
-                                        />
-                                    }
-                                    label="One-Shot"
-                                />
                                 <FormControlLabel
                                     control={
                                         <Switch
@@ -520,16 +432,15 @@ export function AdventureDetailPage() {
                                 />
                             </Box>
 
-                            {/* Row 2: Description */}
                             <TextField
-                                id="input-adventure-description"
+                                id="input-epic-description"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 onBlur={() => saveChanges()}
                                 multiline
                                 rows={5}
                                 fullWidth
-                                placeholder="Adventure description..."
+                                placeholder="Epic description..."
                                 variant="outlined"
                             />
                         </Box>
@@ -548,57 +459,57 @@ export function AdventureDetailPage() {
                     }}
                 >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h5" component="h2">
-                        Scenes ({scenes.length})
-                    </Typography>
-                    <Button
-                        id="btn-add-scene"
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        onClick={handleAddScene}
-                    >
-                        Add Scene
-                    </Button>
-                </Box>
-
-                {isLoadingScenes && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                        <CircularProgress />
-                    </Box>
-                )}
-
-                {!isLoadingScenes && scenes.length === 0 && (
-                    <Box sx={{ textAlign: 'center', py: 8 }}>
-                        <Typography variant="h6" gutterBottom>
-                            No scenes yet
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" paragraph>
-                            Add your first scene to this adventure
+                        <Typography variant="h5" component="h2">
+                            Campaigns ({campaigns.length})
                         </Typography>
                         <Button
+                            id="btn-add-campaign"
                             variant="contained"
                             startIcon={<AddIcon />}
-                            onClick={handleAddScene}
+                            onClick={handleAddCampaign}
                         >
-                            Add Scene
+                            Add Campaign
                         </Button>
                     </Box>
-                )}
 
-                {!isLoadingScenes && scenes.length > 0 && (
-                    <Grid container spacing={3}>
-                        {scenes.map((scene) => (
-                            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={scene.id}>
-                                <SceneCard
-                                    scene={scene}
-                                    onOpen={handleOpenScene}
-                                    onDuplicate={handleDuplicateScene}
-                                    onDelete={handleDeleteScene}
-                                />
-                            </Grid>
-                        ))}
-                    </Grid>
-                )}
+                    {isLoadingCampaigns && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                            <CircularProgress />
+                        </Box>
+                    )}
+
+                    {!isLoadingCampaigns && campaigns.length === 0 && (
+                        <Box sx={{ textAlign: 'center', py: 8 }}>
+                            <Typography variant="h6" gutterBottom>
+                                No campaigns yet
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" paragraph>
+                                Add your first campaign to this epic
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                startIcon={<AddIcon />}
+                                onClick={handleAddCampaign}
+                            >
+                                Add Campaign
+                            </Button>
+                        </Box>
+                    )}
+
+                    {!isLoadingCampaigns && campaigns.length > 0 && (
+                        <Grid container spacing={3}>
+                            {campaigns.map((campaign) => (
+                                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={campaign.id}>
+                                    <CampaignCard
+                                        campaign={campaign}
+                                        onOpen={handleOpenCampaign}
+                                        onDuplicate={handleDuplicateCampaign}
+                                        onDelete={handleDeleteCampaign}
+                                    />
+                                </Grid>
+                            ))}
+                        </Grid>
+                    )}
                 </Paper>
             </Box>
 
@@ -606,8 +517,8 @@ export function AdventureDetailPage() {
                 open={deleteDialogOpen}
                 onClose={handleCancelDelete}
                 onConfirm={handleConfirmDelete}
-                title="Delete Scene"
-                message={`Are you sure you want to delete "${sceneToDelete?.name}"? This action cannot be undone.`}
+                title="Delete Campaign"
+                message={`Are you sure you want to delete "${campaignToDelete?.name}"? This action cannot be undone.`}
                 confirmText="Delete"
                 cancelText="Cancel"
                 severity="error"
