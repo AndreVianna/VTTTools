@@ -32,6 +32,7 @@ global using VttTools.Library.Content.Model;
 global using VttTools.Library.Content.ServiceContracts;
 global using VttTools.Library.Content.Services;
 global using VttTools.Library.EndpointMappers;
+global using VttTools.Library.Epics.ApiContracts;
 global using VttTools.Library.Epics.Model;
 global using VttTools.Library.Epics.ServiceContracts;
 global using VttTools.Library.Epics.Services;
