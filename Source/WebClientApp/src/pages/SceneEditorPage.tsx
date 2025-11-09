@@ -39,8 +39,11 @@ import {
     DisplayName,
     LabelPosition,
     SceneWall,
+    PlacedWall,
     SceneRegion,
+    PlacedRegion,
     SceneSource,
+    PlacedSource,
     WallVisibility,
     Pole,
     Point,
@@ -103,7 +106,7 @@ import {
 } from '@/services/sceneApi';
 import type { SourcePlacementProperties } from '@components/scene/panels';
 import { useUploadFileMutation } from '@/services/mediaApi';
-import { hydratePlacedAssets } from '@/utils/sceneMappers';
+import { hydratePlacedAssets, hydratePlacedWalls, hydratePlacedRegions, hydratePlacedSources } from '@/utils/sceneMappers';
 import { getApiEndpoints } from '@/config/development';
 import { SaveStatus } from '@/components/common';
 import { useAppDispatch } from '@/store';
@@ -158,6 +161,9 @@ const SceneEditorPageInternal: React.FC = () => {
     const [isInitialized, setIsInitialized] = useState(false);
     const [scene, setScene] = useState<Scene | null>(null);
     const sceneRef = useRef<Scene | null>(null);
+    const [placedWalls, setPlacedWalls] = useState<PlacedWall[]>([]);
+    const [placedRegions, setPlacedRegions] = useState<PlacedRegion[]>([]);
+    const [placedSources, setPlacedSources] = useState<PlacedSource[]>([]);
 
     useEffect(() => {
         sceneRef.current = scene;
@@ -328,6 +334,7 @@ const SceneEditorPageInternal: React.FC = () => {
         updateSceneRegion,
         removeSceneRegion,
         setScene,
+        setPlacedRegions,
         setSelectedRegionIndex,
         setEditingRegionIndex,
         setIsEditingRegionVertices,
@@ -392,6 +399,7 @@ const SceneEditorPageInternal: React.FC = () => {
                 try {
                     const hydratedAssets = await hydratePlacedAssets(
                         sceneData.assets,
+                        sceneId || '',
                         async (assetId: string) => {
                             const result = await dispatch(
                                 assetsApi.endpoints.getAsset.initiate(assetId)
@@ -399,6 +407,10 @@ const SceneEditorPageInternal: React.FC = () => {
                             return result;
                         }
                     );
+
+                    const hydratedWalls = hydratePlacedWalls(sceneData.walls || [], sceneId || '');
+                    const hydratedRegions = hydratePlacedRegions(sceneData.regions || [], sceneId || '');
+                    const hydratedSources = hydratePlacedSources(sceneData.sources || [], sceneId || '');
 
                     setScene(sceneData);
                     setGridConfig({
@@ -410,9 +422,12 @@ const SceneEditorPageInternal: React.FC = () => {
                         snap: sceneData.grid.snap
                     });
                     assetManagement.setPlacedAssets(hydratedAssets);
+                    setPlacedWalls(hydratedWalls);
+                    setPlacedRegions(hydratedRegions);
+                    setPlacedSources(hydratedSources);
                     setIsInitialized(true);
                 } catch (error) {
-                    console.error('Failed to hydrate scene assets:', error);
+                    console.error('Failed to hydrate scene:', error);
                     setScene(sceneData);
                     setGridConfig({
                         type: typeof sceneData.grid.type === 'string'
@@ -423,6 +438,9 @@ const SceneEditorPageInternal: React.FC = () => {
                         snap: sceneData.grid.snap
                     });
                     assetManagement.setPlacedAssets([]);
+                    setPlacedWalls([]);
+                    setPlacedRegions([]);
+                    setPlacedSources([]);
                     setIsInitialized(true);
                 } finally {
                     setIsHydrating(false);
@@ -431,13 +449,19 @@ const SceneEditorPageInternal: React.FC = () => {
 
             initializeScene();
         }
-    }, [sceneData, isInitialized, dispatch]);
+    }, [sceneData, isInitialized, dispatch, sceneId]);
 
     useEffect(() => {
         if (sceneData && isInitialized) {
             setScene(sceneData);
+            const hydratedWalls = hydratePlacedWalls(sceneData.walls || [], sceneId || '');
+            const hydratedRegions = hydratePlacedRegions(sceneData.regions || [], sceneId || '');
+            const hydratedSources = hydratePlacedSources(sceneData.sources || [], sceneId || '');
+            setPlacedWalls(hydratedWalls);
+            setPlacedRegions(hydratedRegions);
+            setPlacedSources(hydratedSources);
         }
-    }, [sceneData, isInitialized]);
+    }, [sceneData, isInitialized, sceneId]);
 
 
     
@@ -453,37 +477,19 @@ const SceneEditorPageInternal: React.FC = () => {
     // Initialize Stage reference when SceneCanvas is ready
     // CRITICAL: TokenDragHandle depends on this ref being set to attach event handlers
     // NOTE: Runs when imagesLoaded or handlersReady changes to retry stage initialization
+    const [stageReady, setStageReady] = useState(false);
+
     useEffect(() => {
         const stage = canvasRef.current?.getStage();
-
-        console.log('[DEBUG] Stage initialization useEffect triggered');
-        console.log('[DEBUG] - isSceneReady:', canvasReadyState.isSceneReady);
-        console.log('[DEBUG] - stage exists:', !!stage);
-        console.log('[DEBUG] - stageRef.current:', !!stageRef.current);
 
         if (stage && stage !== stageRef.current) {
             stageRef.current = stage;
             layerManager.initialize(stage);
             layerManager.enforceZOrder();
-            console.log('[DEBUG] Stage reference set and LayerManager initialized');
+            setStageReady(true);
         }
-    }, [canvasReadyState.isSceneReady]);
+    });
 
-    useEffect(() => {
-        console.log('[DEBUG] Handler availability check:');
-        console.log('[DEBUG] - handleAssetSelected:', typeof assetManagement.handleAssetSelected);
-        console.log('[DEBUG] - handleWallSelect:', typeof wallHandlers.handleWallSelect);
-        console.log('[DEBUG] - handleRegionSelect:', typeof regionHandlers.handleRegionSelect);
-        console.log('[DEBUG] - stageRef.current:', !!stageRef.current);
-
-        if (canvasReadyState.isSceneReady && !stageRef.current) {
-            console.error(
-                '[SceneEditorPage] CRITICAL: Scene is ready but Stage reference not set. ' +
-                'TokenDragHandle will not be able to attach event handlers. ' +
-                'This will break asset selection, movement, and deletion.'
-            );
-        }
-    }, [canvasReadyState.isSceneReady, assetManagement.handleAssetSelected, wallHandlers.handleWallSelect, regionHandlers.handleRegionSelect]);
 
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -902,12 +908,16 @@ const SceneEditorPageInternal: React.FC = () => {
             });
 
             const syncedScene = syncWallIndices(scene, tempToReal);
-            setScene(syncedScene);
 
-            const createdWalls: SceneWall[] = [];
+            const hydratedWalls = hydratePlacedWalls(syncedScene.walls || [], sceneId);
+
+            setScene(syncedScene);
+            setPlacedWalls(hydratedWalls);
+
+            const createdWalls: PlacedWall[] = [];
             result.segmentResults.forEach(r => {
                 if (r.wallIndex !== undefined) {
-                    const wall = syncedScene.walls?.find(w => w.index === r.wallIndex);
+                    const wall = hydratedWalls.find(w => w.index === r.wallIndex);
                     if (wall) createdWalls.push(wall);
                 }
             });
@@ -1054,16 +1064,34 @@ const SceneEditorPageInternal: React.FC = () => {
     }, []);
 
     const handleSourceDelete = useCallback(async (index: number) => {
-        if (!sceneId) return;
+        if (!sceneId || !scene) return;
+
+        const source = placedSources.find(s => s.index === index);
+        if (!source) return;
+
+        const sourceId = source.id;
+
         try {
             await removeSceneSource({ sceneId, sourceIndex: index }).unwrap();
+
+            const { removeEntityMapping } = await import('@/utils/sceneEntityMapping');
+            removeEntityMapping(sceneId, 'sources', sourceId);
+
+            const { data: updatedScene } = await refetch();
+            if (updatedScene) {
+                setScene(updatedScene);
+                const hydratedSources = hydratePlacedSources(updatedScene.sources || [], sceneId);
+                setPlacedSources(hydratedSources);
+            }
+
             if (selectedSourceIndex === index) {
                 setSelectedSourceIndex(null);
             }
         } catch (error) {
             console.error('Failed to delete source:', error);
+            setErrorMessage('Failed to delete source. Please try again.');
         }
-    }, [sceneId, removeSceneSource, selectedSourceIndex]);
+    }, [sceneId, scene, placedSources, removeSceneSource, selectedSourceIndex, refetch, setErrorMessage]);
 
     const handlePlaceSource = useCallback((properties: SourcePlacementProperties) => {
         setSourcePlacementProperties(properties);
@@ -1157,13 +1185,13 @@ const SceneEditorPageInternal: React.FC = () => {
                     gridConfig={gridConfig}
                     onGridChange={gridHandlers.handleGridChange}
                     sceneId={sceneId}
-                    sceneWalls={scene?.walls}
+                    sceneWalls={placedWalls}
                     selectedWallIndex={selectedWallIndex}
                     onWallSelect={wallHandlers.handleWallSelect}
                     onWallDelete={wallHandlers.handleWallDelete}
                     onPlaceWall={handlePlaceWall}
                     onEditVertices={wallHandlers.handleEditVertices}
-                    sceneRegions={scene?.regions}
+                    sceneRegions={placedRegions}
                     selectedRegionIndex={selectedRegionIndex}
                     onRegionSelect={regionHandlers.handleRegionSelect}
                     onRegionDelete={regionHandlers.handleRegionDelete}
@@ -1182,7 +1210,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     }}
                     onPlacedAssetRename={assetManagement.handleAssetRename}
                     onPlacedAssetUpdate={handlePlacedAssetUpdate}
-                    sceneSources={scene?.sources}
+                    sceneSources={placedSources}
                     selectedSourceIndex={selectedSourceIndex}
                     onSourceSelect={handleSourceSelect}
                     onSourceDelete={handleSourceDelete}
@@ -1226,15 +1254,15 @@ const SceneEditorPageInternal: React.FC = () => {
                         {layerVisibility.structures && (
                             <>
                                 {/* Regions - render first (bottom of GameWorld) */}
-                                {scene && scene.regions && (
+                                {placedRegions && placedRegions.length > 0 && (
                             <Group name={GroupName.Structure}>
-                                {scene.regions.map((sceneRegion) => {
+                                {placedRegions.map((sceneRegion) => {
                                     if (sceneRegion.index === -1 && drawingRegionIndex !== null) {
                                         return null;
                                     }
                                     return (
                                         <RegionRenderer
-                                            key={`${sceneRegion.sceneId}-${sceneRegion.index}`}
+                                            key={sceneRegion.id}
                                             sceneRegion={sceneRegion}
                                         />
                                     );
@@ -1243,11 +1271,11 @@ const SceneEditorPageInternal: React.FC = () => {
                         )}
 
                         {/* Sources - render second */}
-                        {scene && scene.sources && (
+                        {scene && placedSources && placedSources.length > 0 && (
                             <Group name={GroupName.Structure}>
-                                {scene.sources.map((sceneSource) => (
+                                {placedSources.map((sceneSource) => (
                                     <SourceRenderer
-                                        key={`${sceneSource.sceneId}-${sceneSource.index}`}
+                                        key={sceneSource.id}
                                         sceneSource={sceneSource}
                                         walls={scene.walls || []}
                                         gridConfig={gridConfig}
@@ -1257,15 +1285,15 @@ const SceneEditorPageInternal: React.FC = () => {
                         )}
 
                         {/* Walls - render third (top of structures) */}
-                        {scene && scene.walls && (
+                        {scene && placedWalls && (
                             <Group name={GroupName.Structure}>
-                                {scene.walls.map((sceneWall) => {
+                                {placedWalls.map((sceneWall) => {
                                     const isInTransaction = wallTransaction.transaction.isActive &&
                                         wallTransaction.getActiveSegments().some(s => s.wallIndex === sceneWall.index || s.tempId === sceneWall.index);
                                     const shouldRender = !isInTransaction && !(drawingWallIndex === sceneWall.index);
 
                                     return (
-                                        <React.Fragment key={sceneWall.index}>
+                                        <React.Fragment key={sceneWall.id}>
                                             {shouldRender && (
                                                 <WallRenderer
                                                     sceneWall={sceneWall}
@@ -1422,13 +1450,22 @@ const SceneEditorPageInternal: React.FC = () => {
 
                     {/* Layer 8: UI Overlay (transformer + selection) */}
                     <TokenDragHandle
-                        placedAssets={assetManagement.placedAssets}
+                        placedAssets={assetManagement.placedAssets.filter(asset => {
+                            if (asset.asset.kind === AssetKind.Object && !layerVisibility.objects) {
+                                return false;
+                            }
+                            if (asset.asset.kind === AssetKind.Creature && !layerVisibility.creatures) {
+                                return false;
+                            }
+                            return true;
+                        })}
                         selectedAssetIds={assetManagement.selectedAssetIds}
                         onAssetSelected={assetManagement.handleAssetSelected}
                         onAssetMoved={assetManagement.handleAssetMoved}
                         onAssetDeleted={assetManagement.handleAssetDeleted}
                         gridConfig={gridConfig}
                         stageRef={stageRef as React.RefObject<Konva.Stage>}
+                        stageReady={stageReady}
                         isPlacementMode={!!assetManagement.draggedAsset}
                         enableDragMove={true}
                         onReady={canvasReadyState.handleHandlersReady}

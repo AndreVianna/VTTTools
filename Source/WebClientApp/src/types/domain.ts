@@ -638,6 +638,10 @@ export interface SceneWall {
   color?: string | undefined;
 }
 
+export interface PlacedWall extends SceneWall {
+  id: string;
+}
+
 export interface SceneRegion {
   sceneId: string;
   index: number;
@@ -647,6 +651,10 @@ export interface SceneRegion {
   value?: number;
   label?: string;
   color?: string;
+}
+
+export interface PlacedRegion extends SceneRegion {
+  id: string;
 }
 
 export interface SceneSource {
@@ -662,5 +670,9 @@ export interface SceneSource {
   intensity?: number;
   color?: string;
   hasGradient: boolean;
+}
+
+export interface PlacedSource extends SceneSource {
+  id: string;
 }
 

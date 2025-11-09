@@ -104,6 +104,8 @@ export interface TokenDragHandleProps {
     gridConfig: GridConfig;
     /** Konva Stage reference */
     stageRef: React.RefObject<Konva.Stage>;
+    /** Signal that stage ref has been set and is ready for use */
+    stageReady?: boolean;
     /** Whether placement mode is active (disable layer listening) */
     isPlacementMode?: boolean;
     /** Whether to enable drag-based movement (default: true, set false for click-to-pick-up) */
@@ -134,6 +136,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     onAssetDeleted,
     gridConfig,
     stageRef,
+    stageReady = false,
     enableDragMove = true,
     onReady,
     snapMode,
@@ -585,18 +588,10 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const attachedHandlersRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
-        console.log('[DEBUG TokenDragHandle] Event handler attachment effect triggered');
-        console.log('[DEBUG TokenDragHandle] - enableDragMove:', enableDragMove);
-        console.log('[DEBUG TokenDragHandle] - stageRef.current:', !!stageRef.current);
-        console.log('[DEBUG TokenDragHandle] - placedAssets count:', placedAssets.length);
-
         if (!enableDragMove) return;
 
         const stage = stageRef.current;
-        if (!stage) {
-            console.error('[DEBUG TokenDragHandle] CRITICAL: Stage not available, cannot attach event handlers');
-            return;
-        }
+        if (!stage) return;
 
         // Wait for next frame to ensure Konva has rendered all nodes
         const frameId = requestAnimationFrame(() => {
@@ -654,7 +649,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         return () => {
             cancelAnimationFrame(frameId);
         };
-    }, [enableDragMove, placedAssets, stageRef, handleNodeClick, handleDragStart, handleDragMove, handleDragEnd, onReady, availableActions.canMove, selectedAssetIds, onAssetSelected]);
+    }, [enableDragMove, placedAssets, stageReady, handleNodeClick, handleDragStart, handleDragMove, handleDragEnd, onReady, availableActions.canMove, selectedAssetIds, onAssetSelected]);
 
     // Helper to get actual node position (for selection borders during drag)
     const getAssetRenderPosition = useCallback((assetId: string) => {

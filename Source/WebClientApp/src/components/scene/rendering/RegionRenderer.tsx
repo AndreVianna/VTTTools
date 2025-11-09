@@ -4,10 +4,10 @@ import { useTheme } from '@mui/material/styles';
 import { RegionLabelDisplay } from './RegionLabelDisplay';
 import { calculatePolygonCentroid } from '@/utils/geometryUtils';
 import { REGION_PRESETS } from '../panels/regionsPanelTypes';
-import type { SceneRegion } from '@/types/domain';
+import type { PlacedRegion } from '@/types/domain';
 
 export interface RegionRendererProps {
-    sceneRegion: SceneRegion;
+    sceneRegion: PlacedRegion;
 }
 
 export const RegionRenderer: React.FC<RegionRendererProps> = ({ sceneRegion }) => {

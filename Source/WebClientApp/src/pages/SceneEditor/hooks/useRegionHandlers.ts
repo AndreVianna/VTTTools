@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { Scene, SceneRegion, Point } from '@/types/domain';
+import type { Scene, SceneRegion, Point, PlacedRegion } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import type { RegionTransaction } from '@/hooks/useRegionTransaction';
 import type {
@@ -10,6 +10,8 @@ import type {
 import { updateRegionOptimistic, removeRegionOptimistic, syncRegionIndices } from '@/utils/sceneStateUtils';
 import { createBatchCommand } from '@/utils/commands';
 import { CreateRegionCommand, EditRegionCommand, DeleteRegionCommand } from '@/utils/commands/regionCommands';
+import { getDomIdByIndex, removeEntityMapping } from '@/utils/sceneEntityMapping';
+import { hydratePlacedRegions } from '@/utils/sceneMappers';
 
 interface UseRegionHandlersProps {
     sceneId: string | undefined;
@@ -27,6 +29,7 @@ interface UseRegionHandlersProps {
     removeSceneRegion: ReturnType<typeof useRemoveSceneRegionMutation>[0];
 
     setScene: (scene: Scene) => void;
+    setPlacedRegions: (regions: PlacedRegion[]) => void;
     setSelectedRegionIndex: (index: number | null) => void;
     setEditingRegionIndex: (index: number | null) => void;
     setIsEditingRegionVertices: (editing: boolean) => void;
@@ -53,6 +56,7 @@ export const useRegionHandlers = ({
     updateSceneRegion,
     removeSceneRegion,
     setScene,
+    setPlacedRegions,
     setSelectedRegionIndex,
     setEditingRegionIndex,
     setIsEditingRegionVertices,
@@ -65,16 +69,34 @@ export const useRegionHandlers = ({
 }: UseRegionHandlersProps) => {
 
     const handleRegionDelete = useCallback(async (regionIndex: number) => {
-        if (!sceneId) return;
+        if (!sceneId || !scene) return;
+
+        const region = scene.regions?.find(r => r.index === regionIndex);
+        if (!region) return;
+
+        const regionId = getDomIdByIndex(sceneId, 'regions', regionIndex);
+        if (!regionId) return;
+
         try {
             await removeSceneRegion({ sceneId, regionIndex }).unwrap();
+
+            removeEntityMapping(sceneId, 'regions', regionId);
+
+            const { data: updatedScene } = await refetch();
+            if (updatedScene) {
+                setScene(updatedScene);
+
+                const hydratedRegions = hydratePlacedRegions(updatedScene.regions, sceneId);
+                setPlacedRegions(hydratedRegions);
+            }
+
             if (selectedRegionIndex === regionIndex) {
                 setSelectedRegionIndex(null);
             }
         } catch (_error) {
             console.error('[useRegionHandlers] Failed to delete region');
         }
-    }, [sceneId, removeSceneRegion, selectedRegionIndex, setSelectedRegionIndex]);
+    }, [sceneId, scene, removeSceneRegion, refetch, setScene, setPlacedRegions, selectedRegionIndex, setSelectedRegionIndex]);
 
     const handleCancelEditingRegion = useCallback(async () => {
         if (!scene || editingRegionIndex === null) return;
@@ -244,15 +266,12 @@ export const useRegionHandlers = ({
 
         if (drawingMode !== 'region' || drawingRegionIndex === null) return;
 
-        console.log('handleStructurePlacementFinish called, drawingMode:', drawingMode, 'drawingRegionIndex:', drawingRegionIndex);
-
         // Filter out temp regions (index -1) before merge detection
         const sceneForCommit = scene ? {
             ...scene,
             regions: scene.regions?.filter(r => r.index !== -1)
         } : scene;
 
-        console.log('About to call regionTransaction.commitTransaction');
         const result = await regionTransaction.commitTransaction(
             sceneId,
             { addSceneRegion, updateSceneRegion },

@@ -10,6 +10,11 @@ import type {
 import { updateWallOptimistic, removeWallOptimistic, syncWallIndices } from '@/utils/sceneStateUtils';
 import { createBreakWallAction } from '@/types/wallUndoActions';
 import { CreateWallCommand, EditWallCommand, BreakWallCommand } from '@/utils/commands/wallCommands';
+import {
+    getIndexByDomId,
+    removeEntityMapping,
+    setEntityMapping
+} from '@/utils/sceneEntityMapping';
 
 interface UseWallHandlersProps {
     sceneId: string | undefined;
@@ -51,12 +56,19 @@ export const useWallHandlers = ({
 }: UseWallHandlersProps) => {
 
     const handleWallDelete = useCallback(async (wallIndex: number) => {
-        if (!sceneId) {
+        if (!sceneId || !scene) {
             return;
         }
 
+        const wall = scene.walls?.find(w => w.index === wallIndex);
+        if (!wall) return;
+
+        const wallId = wall.id;
+
         try {
             await removeSceneWall({ sceneId, wallIndex }).unwrap();
+
+            removeEntityMapping(sceneId, 'walls', wallId);
 
             const { data: updatedScene } = await refetch();
             if (updatedScene) {
@@ -68,7 +80,7 @@ export const useWallHandlers = ({
             console.error('Failed to remove wall:', error);
             setErrorMessage('Failed to remove wall. Please try again.');
         }
-    }, [sceneId, removeSceneWall, refetch, setScene, setSelectedWallIndex, setErrorMessage]);
+    }, [sceneId, scene, removeSceneWall, refetch, setScene, setSelectedWallIndex, setErrorMessage]);
 
     const handleEditVertices = useCallback((wallIndex: number) => {
         const wall = scene?.walls?.find(w => w.index === wallIndex);

@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import type { Scene, PlacedAsset, Asset } from '@/types/domain';
+import type { Scene, PlacedAsset, Asset, PlacedAssetSnapshot } from '@/types/domain';
 import { createAssetSnapshot } from '@/types/domain';
-import type { PlacedAssetSnapshot } from '@/types/assetSnapshot';
 import {
     createPlaceAssetCommand,
     createMoveAssetCommand,
@@ -16,6 +15,11 @@ import {
 } from '@/utils/commands';
 import { toBackendRotation } from '@utils/rotationUtils';
 import { hydratePlacedAssets } from '@/utils/sceneMappers';
+import {
+    setEntityMapping,
+    getIndexByDomId,
+    removeEntityMapping
+} from '@/utils/sceneEntityMapping';
 import type {
     useAddSceneAssetMutation,
     useUpdateSceneAssetMutation,
@@ -24,7 +28,7 @@ import type {
     useBulkDeleteSceneAssetsMutation,
     useBulkAddSceneAssetsMutation
 } from '@/services/sceneApi';
-import type { assetsApi } from '@/services/assetsApi';
+import { assetsApi } from '@/services/assetsApi';
 import type { AppDispatch } from '@/store';
 
 interface UseAssetManagementProps {
@@ -104,6 +108,7 @@ export const useAssetManagement = ({
                     }
                     return [...prev, placedAsset];
                 });
+                setSelectedAssetIds([placedAsset.id]);
 
                 if (sceneId && isOnline && scene) {
                     try {
@@ -119,8 +124,23 @@ export const useAssetManagement = ({
                         if (updatedScene) {
                             setScene(updatedScene);
 
+                            const oldIndices = new Set(scene.assets.map(a => (a as any).index));
+                            const newBackendAsset = updatedScene.assets.find(sa => {
+                                const saIndex = (sa as any).index;
+                                return !oldIndices.has(saIndex);
+                            });
+
+                            if (newBackendAsset) {
+                                const backendIndex = (newBackendAsset as any).index;
+
+                                setEntityMapping(sceneId, 'assets', placedAsset.id, backendIndex);
+                            } else {
+                                console.warn('[PlaceAssetCommand] New backend asset not found - mapping not created!');
+                            }
+
                             const hydratedAssets = await hydratePlacedAssets(
                                 updatedScene.assets,
+                                sceneId || '',
                                 async (assetId: string) => {
                                     const result = await dispatch(
                                         (assetsApi as any).endpoints.getAsset.initiate(assetId)
@@ -136,12 +156,24 @@ export const useAssetManagement = ({
                 }
             },
             onRemove: async (assetId) => {
-                const asset = placedAssets.find(a => a.id === assetId);
-                setPlacedAssets(prev => prev.filter(a => a.id !== assetId));
+                const backendIndex = getIndexByDomId(sceneId || '', 'assets', assetId);
 
-                if (sceneId && isOnline && scene && asset) {
+                if (backendIndex === undefined) {
+                    console.warn('[PlaceAssetCommand] No backend index found for asset:', assetId);
+                    setPlacedAssets(prev => prev.filter(a => a.id !== assetId));
+                    setSelectedAssetIds(prev => prev.filter(id => id !== assetId));
+                    return;
+                }
+
+                setPlacedAssets(prev => prev.filter(a => a.id !== assetId));
+                setSelectedAssetIds(prev => prev.filter(id => id !== assetId));
+
+                if (sceneId && isOnline) {
                     try {
-                        await removeSceneAsset({ sceneId, assetNumber: asset.index }).unwrap();
+                        await removeSceneAsset({ sceneId, assetNumber: backendIndex }).unwrap();
+
+                        removeEntityMapping(sceneId, 'assets', assetId);
+
                         const { data: updatedScene } = await refetch();
                         if (updatedScene) {
                             setScene(updatedScene);
@@ -173,6 +205,7 @@ export const useAssetManagement = ({
                         assetIndex = asset?.index;
                         return prev.map(a => (a.id === id ? { ...a, position } : a));
                     });
+                    setSelectedAssetIds([id]);
 
                     if (sceneId && isOnline && scene && assetIndex !== undefined) {
                         try {
@@ -344,11 +377,17 @@ export const useAssetManagement = ({
                         const indices = assetsToDelete.map(asset => asset.index);
 
                         await bulkDeleteSceneAssets({ sceneId, assetIndices: indices }).unwrap();
+
+                        assetsToDelete.forEach(asset => {
+                            removeEntityMapping(sceneId, 'assets', asset.id);
+                        });
+
                         const { data: updatedScene } = await refetch();
                         if (updatedScene) {
                             setScene(updatedScene);
                             const hydratedAssets = await hydratePlacedAssets(
                                 updatedScene.assets,
+                                sceneId || '',
                                 async (assetId: string) => {
                                     const result = await dispatch(
                                         (assetsApi as any).endpoints.getAsset.initiate(assetId)
@@ -381,6 +420,7 @@ export const useAssetManagement = ({
                             setScene(updatedScene);
                             const hydratedAssets = await hydratePlacedAssets(
                                 updatedScene.assets,
+                                sceneId || '',
                                 async (assetId: string) => {
                                     const result = await dispatch(
                                         (assetsApi as any).endpoints.getAsset.initiate(assetId)
@@ -432,11 +472,17 @@ export const useAssetManagement = ({
                     try {
                         const indices = assets.map(asset => asset.index);
                         await bulkDeleteSceneAssets({ sceneId, assetIndices: indices }).unwrap();
+
+                        assets.forEach(asset => {
+                            removeEntityMapping(sceneId, 'assets', asset.id);
+                        });
+
                         const { data: updatedScene } = await refetch();
                         if (updatedScene) {
                             setScene(updatedScene);
                             const hydratedAssets = await hydratePlacedAssets(
                                 updatedScene.assets,
+                                sceneId || '',
                                 async (assetId: string) => {
                                     const result = await dispatch(
                                         (assetsApi as any).endpoints.getAsset.initiate(assetId)
@@ -469,6 +515,7 @@ export const useAssetManagement = ({
                             setScene(updatedScene);
                             const hydratedAssets = await hydratePlacedAssets(
                                 updatedScene.assets,
+                                sceneId || '',
                                 async (assetId: string) => {
                                     const result = await dispatch(
                                         (assetsApi as any).endpoints.getAsset.initiate(assetId)
@@ -502,7 +549,7 @@ export const useAssetManagement = ({
 
                 const newPlacedAssets: PlacedAsset[] = assets.map(asset => ({
                     ...asset,
-                    id: `placed-${Date.now()}-${Math.random()}`,
+                    id: `scene-asset-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
                     position: {
                         x: asset.position.x + PASTE_OFFSET,
                         y: asset.position.y + PASTE_OFFSET
@@ -526,6 +573,7 @@ export const useAssetManagement = ({
                             setScene(updatedScene);
                             const hydratedAssets = await hydratePlacedAssets(
                                 updatedScene.assets,
+                                sceneId || '',
                                 async (assetId: string) => {
                                     const result = await dispatch(
                                         (assetsApi as any).endpoints.getAsset.initiate(assetId)
@@ -566,6 +614,7 @@ export const useAssetManagement = ({
                             setScene(updatedScene);
                             const hydratedAssets = await hydratePlacedAssets(
                                 updatedScene.assets,
+                                sceneId || '',
                                 async (assetId: string) => {
                                     const result = await dispatch(
                                         (assetsApi as any).endpoints.getAsset.initiate(assetId)

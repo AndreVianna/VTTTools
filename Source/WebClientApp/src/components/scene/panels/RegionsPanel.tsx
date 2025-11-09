@@ -23,14 +23,14 @@ import {
     ExpandMore as ExpandMoreIcon,
     ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
-import type { SceneRegion } from '@/types/domain';
+import type { PlacedRegion } from '@/types/domain';
 import { REGION_PRESETS, TERRAIN_VALUES, ILLUMINATION_VALUES, type RegionPreset } from './regionsPanelTypes';
 import { ConfirmDialog } from '@/components/common';
 import { useUpdateSceneRegionMutation } from '@/services/sceneApi';
 
 export interface RegionsPanelProps {
     sceneId?: string;
-    sceneRegions?: SceneRegion[];
+    sceneRegions?: PlacedRegion[];
     selectedRegionIndex?: number | null;
     onPresetSelect?: (preset: RegionPreset) => void;
     onPlaceRegion?: (properties: {
@@ -45,7 +45,7 @@ export interface RegionsPanelProps {
     onEditVertices?: (regionIndex: number) => void;
 }
 
-const getSuggestedRegionName = (regions: SceneRegion[]): string => {
+const getSuggestedRegionName = (regions: PlacedRegion[]): string => {
     if (regions.length === 0) return 'Region 1';
     const maxIndex = Math.max(...regions.map(r => {
         const match = r.name.match(/Region (\d+)$/);
@@ -170,9 +170,8 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
         }
 
         onPlaceRegion?.(properties);
-        
-        // Suggest next region name after placing
-        setName(getSuggestedRegionName([...sceneRegions, { name } as SceneRegion]));
+
+        setName(getSuggestedRegionName([...sceneRegions, { name } as PlacedRegion]));
     };
 
     const handleDeleteClick = (regionIndex: number) => {
@@ -384,7 +383,7 @@ export const RegionsPanel: React.FC<RegionsPanelProps> = React.memo(({
                         const isExpanded = expandedRegions.has(sceneRegion.index);
 
                         return (
-                            <React.Fragment key={sceneRegion.index}>
+                            <React.Fragment key={sceneRegion.id}>
                                 <ListItem
                                     id={`list-item-region-${sceneRegion.index}`}
                                     disablePadding
