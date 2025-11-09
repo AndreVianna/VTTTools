@@ -44,6 +44,28 @@ public static class Cloner {
             ControlledBy = original.ControlledBy,
         };
 
+    internal static Epic Clone(this Epic original, Guid userId, string cloneName) {
+        var clone = new Epic {
+            OwnerId = userId,
+            Name = cloneName,
+            Description = original.Description,
+            Background = original.Background?.Clone(),
+        };
+        clone.Campaigns.AddRange(original.Campaigns.Select(c => c.Clone(userId, c.Name)));
+        return clone;
+    }
+
+    internal static Campaign Clone(this Campaign original, Guid userId, string cloneName) {
+        var clone = new Campaign {
+            OwnerId = userId,
+            Name = cloneName,
+            Description = original.Description,
+            Background = original.Background?.Clone(),
+        };
+        clone.Adventures.AddRange(original.Adventures.Select(a => a.Clone(userId, a.Name)));
+        return clone;
+    }
+
     internal static Resource Clone(this Resource original)
         => new() {
             Id = original.Id,
