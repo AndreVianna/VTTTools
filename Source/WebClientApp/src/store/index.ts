@@ -11,6 +11,7 @@ import { authApi } from '../services/authApi';
 import { adventuresApi } from '../services/adventuresApi';
 import { assetsApi } from '../services/assetsApi';
 import { contentApi } from '../services/contentApi';
+import { epicsApi } from '../services/epicsApi';
 import { gameSessionsApi } from '../services/gameSessionsApi';
 import { mediaApi } from '../services/mediaApi';
 import { sceneApi } from '../services/sceneApi';
@@ -37,6 +38,7 @@ export const store = configureStore({
     [adventuresApi.reducerPath]: adventuresApi.reducer,
     [assetsApi.reducerPath]: assetsApi.reducer,
     [contentApi.reducerPath]: contentApi.reducer,
+    [epicsApi.reducerPath]: epicsApi.reducer,
     [gameSessionsApi.reducerPath]: gameSessionsApi.reducer,
     [mediaApi.reducerPath]: mediaApi.reducer,
     [sceneApi.reducerPath]: sceneApi.reducer,
@@ -62,6 +64,7 @@ export const store = configureStore({
     .concat(adventuresApi.middleware)
     .concat(assetsApi.middleware)
     .concat(contentApi.middleware)
+    .concat(epicsApi.middleware)
     .concat(gameSessionsApi.middleware)
     .concat(mediaApi.middleware)
     .concat(sceneApi.middleware)
