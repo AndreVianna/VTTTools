@@ -2695,11 +2695,11 @@ interface AssetToken {
 
 **Objective**: Implement Epic→Campaign hierarchy for advanced content organization
 
-**Backend Status**: 🚧 IN PROGRESS (3/42 steps complete, 7.1%)
+**Backend Status**: 🚧 IN PROGRESS (4/42 steps complete, 9.5%)
 
 **Implementation Started**: 2025-11-09
-**Current Step**: 4/42 - Epic Service contracts
-**Progress**: Backend domain layer in progress
+**Current Step**: 5/42 - ICampaignService interface
+**Progress**: Epic domain layer complete, starting Campaign domain layer
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -2723,6 +2723,14 @@ interface AssetToken {
   - Update: All properties wrapped in Optional<>, includes IsPublished/IsPublic for security control
   - Code Review: A+ after pattern fix (removed IsPublished/IsPublic from create)
   - Commit: 83f07d0 "feat(library): add Epic API contracts for HTTP endpoints"
+
+- ✅ Step 4/42: Epic Service contracts created (Grade: A, 52 LOC)
+  - Files: `Source/Domain/Library/Epics/ServiceContracts/CreateEpicData.cs` (24 LOC), `UpdatedEpicData.cs` (28 LOC)
+  - Pattern: CreateEpicData with OwnerId in constructor, UpdatedEpicData with Optional<T> wrappers
+  - Validation: Business rules (IsPublished requires IsPublic), Name/Description non-empty checks
+  - Fix Applied: Corrected partial update validation logic (only validates when both flags set in same request)
+  - Code Review: A after validation fix (prevents false negatives on partial updates)
+  - Commit: fb569ea "feat(library): add Epic Service contracts with business validation"
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
