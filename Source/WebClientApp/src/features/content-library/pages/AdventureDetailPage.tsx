@@ -18,7 +18,9 @@ import {
     Switch,
     CircularProgress,
     Alert,
-    Paper
+    Paper,
+    Breadcrumbs,
+    Link
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
@@ -35,6 +37,7 @@ import {
     useCloneSceneMutation,
     adventuresApi
 } from '@/services/adventuresApi';
+import { useGetCampaignQuery } from '@/services/campaignsApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
 import { useDeleteSceneMutation } from '@/services/sceneApi';
 import { ConfirmDialog } from '@/components/common';
@@ -49,6 +52,7 @@ export function AdventureDetailPage() {
     const dispatch = useAppDispatch();
 
     const { data: adventure, isLoading: isLoadingAdventure, error: adventureError } = useGetAdventureQuery(adventureId!);
+    const { data: campaign } = useGetCampaignQuery(adventure?.campaignId ?? '', { skip: !adventure?.campaignId });
     const { data: scenes = [], isLoading: isLoadingScenes } = useGetScenesQuery(adventureId!);
     const [updateAdventure] = useUpdateAdventureMutation();
     const [createScene] = useCreateSceneMutation();
@@ -152,7 +156,11 @@ export function AdventureDetailPage() {
     }, [hasUnsavedChanges, saveChanges]);
 
     const handleBack = () => {
-        navigate('/content-library');
+        if (adventure?.campaignId) {
+            navigate(`/campaigns/${adventure.campaignId}`);
+        } else {
+            navigate('/content-library/adventures');
+        }
     };
 
     const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -337,6 +345,26 @@ export function AdventureDetailPage() {
                         border: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
                     }}
                 >
+                    {campaign && (
+                        <Breadcrumbs id="breadcrumb-adventure-navigation" aria-label="breadcrumb" sx={{ mb: 2 }}>
+                            <Link
+                                id="breadcrumb-campaign-link"
+                                component="button"
+                                variant="body2"
+                                onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                                sx={{
+                                    cursor: 'pointer',
+                                    textDecoration: 'none',
+                                    '&:hover': { textDecoration: 'underline' }
+                                }}
+                            >
+                                {campaign.name}
+                            </Link>
+                            <Typography id="breadcrumb-adventure-current" variant="body2" color="text.primary" aria-current="page">
+                                {adventure.name}
+                            </Typography>
+                        </Breadcrumbs>
+                    )}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                         <IconButton
                             id="btn-back-to-library"
