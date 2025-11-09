@@ -54,6 +54,8 @@ internal static class Program {
     }
 
     internal static void MapApplicationEndpoints(this IEndpointRouteBuilder app) {
+        app.MapEpicEndpoints();
+        app.MapCampaignEndpoints();
         app.MapAdventureEndpoints();
         app.MapSceneEndpoints();
         app.MapContentEndpoints();
