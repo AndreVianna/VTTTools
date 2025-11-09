@@ -2695,11 +2695,11 @@ interface AssetToken {
 
 **Objective**: Implement Epic→Campaign hierarchy for advanced content organization
 
-**Backend Status**: 🚧 IN PROGRESS (15/42 steps complete, 35.7%)
+**Backend Status**: 🚧 IN PROGRESS (16/42 steps complete, 38.1%)
 
 **Implementation Started**: 2025-11-09
-**Current Step**: 16/42 - Register services in DI container
-**Progress**: Domain/Data/Migration/Services complete, proceeding to DI registration
+**Current Step**: 17/42 - Create EpicHandlers
+**Progress**: Domain/Data/Migration/Services/DI complete, proceeding to API handlers layer
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -2818,6 +2818,15 @@ interface AssetToken {
   - Fixed in both services: AddClonedCampaignAsync (EpicService) and AddClonedAdventureAsync (CampaignService)
   - Code Review: Perfect pattern match with EpicService, all security checks pass
   - Commit: 228bbc7 "Implement CampaignService with all CRUD operations + security fix"
+
+- ✅ Step 16/42: Epic/Campaign services registered in DI container (Grade: A+, 6 LOC)
+  - Files: `Source/Library/Program.cs`, `Source/Data/Extensions/HostApplicationBuilderExtensions.cs`, `Source/Library/GlobalUsings.cs`
+  - Program.cs: Added IEpicService → EpicService and ICampaignService → CampaignService registrations (AddScoped)
+  - HostApplicationBuilderExtensions.cs: Added IEpicStorage → EpicStorage and ICampaignStorage → CampaignStorage registrations (AddScoped)
+  - GlobalUsings.cs: Added Campaign.ServiceContracts and Campaign.Services namespace imports
+  - Positioning: All registrations placed after Scene services/storage following established pattern
+  - Code Review: Perfect pattern compliance, all types resolve correctly
+  - Commit: 2379dd0 "Register Epic/Campaign services and storage in DI container"
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
