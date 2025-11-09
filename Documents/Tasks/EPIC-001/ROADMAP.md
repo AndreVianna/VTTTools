@@ -2695,11 +2695,11 @@ interface AssetToken {
 
 **Objective**: Implement Epic→Campaign hierarchy for advanced content organization
 
-**Backend Status**: 🚧 IN PROGRESS (19/42 steps complete, 45.2%)
+**Backend Status**: 🚧 IN PROGRESS (20/42 steps complete, 47.6%)
 
 **Implementation Started**: 2025-11-09
-**Current Step**: 20/42 - Create CampaignEndpointsMapper
-**Progress**: Domain/Data/Migration/Services/DI/Handlers/EpicEndpointsMapper complete, proceeding to CampaignEndpointsMapper
+**Current Step**: 21/42 - Register Epic/Campaign endpoints in Program.cs
+**Progress**: Domain/Data/Migration/Services/DI/Handlers/EndpointMappers complete, proceeding to endpoint registration
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -2861,6 +2861,17 @@ interface AssetToken {
   - Verification: All 10 handlers from EpicHandlers.cs correctly mapped
   - Code Review: A+ grade (100/100) - Perfect pattern compliance, zero issues, ready for registration
   - Commit: 447ac5a "Create EpicEndpointsMapper with nested campaign routes"
+
+- ✅ Step 20/42: CampaignEndpointsMapper created with nested adventure routes (Grade: A+, 18 LOC)
+  - Files: `Source/Library/EndpointMappers/CampaignEndpointsMapper.cs`
+  - Implementation: 10 RESTful endpoints (6 CRUD + 4 nested Adventure operations)
+  - CRUD routes: GET/POST /api/campaigns, POST /api/campaigns/{id}/clone, GET/PATCH/DELETE /api/campaigns/{id}
+  - Nested routes: GET/POST /api/campaigns/{id}/adventures, POST /api/campaigns/{id}/adventures/{adventureId}/clone, DELETE /api/campaigns/{id}/adventures/{adventureId}
+  - Pattern: Perfect match to EpicEndpointsMapper (authorization group, GUID constraints, RESTful conventions)
+  - Authorization: `.RequireAuthorization()` applied to route group
+  - Verification: All 10 handlers from CampaignHandlers.cs correctly mapped
+  - Code Review: A+ grade (100/100) - Zero deviations from pattern, perfect implementation, ready for registration
+  - Commit: f116185 "Create CampaignEndpointsMapper with nested adventure routes"
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
