@@ -22,6 +22,7 @@ export { LeftToolBar } from './LeftToolBar';
 export { TopToolBar } from './TopToolBar';
 export { LayerToggleBar } from './LayerToggleBar';
 export { RightToolBar } from './RightToolBar';
+export { EditorDialogs } from './EditorDialogs';
 
 // Panel components
 export { BackgroundPanel, GridPanel, WallsPanel } from './panels';
@@ -48,7 +49,8 @@ export {
 
 // Editing components
 export {
-    WallTransformer
+    WallTransformer,
+    RegionTransformer
 } from './editing';
 
 // Types
@@ -82,7 +84,8 @@ export type {
     SourceRangeDisplayProps
 } from './rendering';
 export type {
-    WallTransformerProps
+    WallTransformerProps,
+    RegionTransformerProps
 } from './editing';
 export type { StructureToolbarProps, DrawingMode } from './StructureToolbar';
 export type { StructureSelectionModalProps } from './StructureSelectionModal';

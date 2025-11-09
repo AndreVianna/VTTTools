@@ -61,7 +61,13 @@ export const AssetResourceManager: React.FC<AssetResourceManagerProps> = ({
 
             const isFirstToken = tokens.length === 0;
             const newToken: AssetToken = {
-                token: result,  // Use complete Resource from backend response
+                token: {
+                    id: result.id,
+                    type: ResourceType.Image,
+                    path: '',
+                    metadata: { contentType: file.type, fileLength: file.size, fileName: file.name },
+                    tags: []
+                },
                 isDefault: isFirstToken
             };
 

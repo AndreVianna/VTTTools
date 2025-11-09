@@ -5,7 +5,7 @@ import { Group, Line, Circle } from 'react-konva';
 
 import type { PlacedAsset } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
-import { calculateAngleFromCenter, snapAngle, type Point } from '@/utils/rotationUtils';
+import { calculateAngleFromCenter, snapAngle } from '@/utils/rotationUtils';
 
 export interface RotationHandleProps {
     selectedAssets: PlacedAsset[];
@@ -25,10 +25,9 @@ export interface RotationHandleProps {
 
 export const RotationHandle: React.FC<RotationHandleProps> = ({
     selectedAssets,
-    gridConfig,
     scale,
     visible = true,
-    stageRef,
+    stageRef: _stageRef,
     dragUpdateTrigger,
     getAssetRenderPosition,
     onRotationChange,
@@ -44,7 +43,6 @@ export const RotationHandle: React.FC<RotationHandleProps> = ({
 
     const asset = selectedAssets[0]!;
 
-    // Calculate center position
     let centerX: number;
     let centerY: number;
 
@@ -54,22 +52,9 @@ export const RotationHandle: React.FC<RotationHandleProps> = ({
         centerX = renderPos.x + renderPos.width / 2;
         centerY = renderPos.y + renderPos.height / 2;
     } else {
-        // Fallback: get live position from stage node
-        const _trigger = dragUpdateTrigger;
-        if (stageRef?.current) {
-            const node = stageRef.current.findOne(`#${asset.id}`);
-            if (node) {
-                const pos = node.position();
-                centerX = pos.x;
-                centerY = pos.y;
-            } else {
-                centerX = asset.position.x;
-                centerY = asset.position.y;
-            }
-        } else {
-            centerX = asset.position.x;
-            centerY = asset.position.y;
-        }
+        void dragUpdateTrigger;
+        centerX = asset.position.x;
+        centerY = asset.position.y;
     }
 
     const longestDimension = Math.max(asset.size.width, asset.size.height);

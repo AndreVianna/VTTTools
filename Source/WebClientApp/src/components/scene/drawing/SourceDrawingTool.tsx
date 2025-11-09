@@ -167,7 +167,7 @@ export const SourceDrawingTool: React.FC<SourceDrawingToolProps> = ({
             const newSpread = calculateSpreadAngle(centerPos, currentDirection, snappedPos);
             setCurrentSpread(newSpread);
         }
-    }, [placementPhase, centerPos, isDirectional, currentDirection, gridConfig, getStagePosition, calculateRange, calculateDirection, calculateSpreadAngle]);
+    }, [placementPhase, centerPos, isDirectional, currentDirection, currentRange, gridConfig, getStagePosition, calculateRange, calculateDirection, calculateSpreadAngle]);
 
     const handleClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         const stagePos = getStagePosition(e);

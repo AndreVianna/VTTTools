@@ -199,15 +199,17 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
           open={propertiesPanelOpen}
           onClose={() => setPropertiesPanelOpen(false)}
           scene={scene}
-          onNameChange={onSceneNameChange}
+          {...(onSceneNameChange && { onNameChange: onSceneNameChange })}
           onDescriptionChange={onSceneDescriptionChange ?? (() => {})}
           onPublishedChange={onScenePublishedChange ?? (() => {})}
-          onLightChange={onSceneUpdate ? (light: Light) => onSceneUpdate({ light }) : undefined}
-          onWeatherChange={onSceneUpdate ? (weather: Weather) => onSceneUpdate({ weather }) : undefined}
-          onElevationChange={onSceneUpdate ? (elevation: number) => onSceneUpdate({ elevation }) : undefined}
-          backgroundUrl={backgroundUrl}
-          isUploadingBackground={isUploadingBackground}
-          onBackgroundUpload={onBackgroundUpload}
+          {...(onSceneUpdate && {
+            onLightChange: (light: Light) => onSceneUpdate({ light }),
+            onWeatherChange: (weather: Weather) => onSceneUpdate({ weather }),
+            onElevationChange: (elevation: number) => onSceneUpdate({ elevation })
+          })}
+          {...(backgroundUrl && { backgroundUrl })}
+          {...(isUploadingBackground !== undefined && { isUploadingBackground })}
+          {...(onBackgroundUpload && { onBackgroundUpload })}
         />
       )}
 

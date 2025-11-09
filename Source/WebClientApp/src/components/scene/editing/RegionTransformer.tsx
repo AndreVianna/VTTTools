@@ -93,15 +93,13 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
     const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
     const [insertPreviewPos, setInsertPreviewPos] = useState<{x: number; y: number} | null>(null);
     const [isShiftPressed, setIsShiftPressed] = useState<boolean>(false);
-    const [previewVertices, setPreviewVertices] = useState<Point[]>(segment.vertices);
+    const [previewVerticesDuringDrag, setPreviewVerticesDuringDrag] = useState<Point[] | null>(null);
 
     const dragStartPositionRef = useRef<Point | null>(null);
     const lineDragStartRef = useRef<{ mouseX: number; mouseY: number; vertex1: Point; vertex2: Point } | null>(null);
     const vertexRefs = useRef<Map<number, Konva.Group>>(new Map());
 
-    useEffect(() => {
-        setPreviewVertices(segment.vertices);
-    }, [segment.vertices]);
+    const previewVertices = previewVerticesDuringDrag ?? segment.vertices;
 
     useEffect(() => {
         const currentIndices = new Set(segment.vertices.map((_, index) => index));
@@ -246,7 +244,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
             }
         }
 
-        setPreviewVertices(newVertices);
+        setPreviewVerticesDuringDrag(newVertices);
     }, [dragStartPositionRef, segment.vertices, selectedVertices, gridConfig]);
 
     const handleVertexDragEnd = useCallback((index: number, e: Konva.KonvaEventObject<DragEvent>) => {
@@ -332,7 +330,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
         if (deltaX !== 0 || deltaY !== 0) {
             onVerticesChange(newVertices);
         }
-        setPreviewVertices(newVertices);
+        setPreviewVerticesDuringDrag(null);
     }, [segment, selectedVertices, gridConfig, onVerticesChange, onLocalAction]);
 
     const handleVertexClick = useCallback((index: number, e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -464,7 +462,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
                         const vertex2Index = (draggingLine + 1) % segment.vertices.length;
                         newVertices[vertex1Index] = { x: newVertex1X, y: newVertex1Y };
                         newVertices[vertex2Index] = { x: newVertex2X, y: newVertex2Y };
-                        setPreviewVertices(newVertices);
+                        setPreviewVerticesDuringDrag(newVertices);
                     }
                 }}
                 onMouseUp={(e) => {
@@ -525,7 +523,6 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
                                 if (deltaX !== 0 || deltaY !== 0) {
                                     onVerticesChange(newVertices);
                                 }
-                                setPreviewVertices(newVertices);
                             }
                         }
 
@@ -536,6 +533,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
 
                         setDraggingLine(null);
                         lineDragStartRef.current = null;
+                        setPreviewVerticesDuringDrag(null);
                     }
 
                     if (marqueeStart && marqueeEnd && marqueeRect) {

@@ -220,7 +220,7 @@
 
 ---
 
-## 🔴 Critical Technical Debt
+## � Critical Technical Debt
 
 ### HIGH PRIORITY: SceneEditorPage.tsx Refactoring Required
 

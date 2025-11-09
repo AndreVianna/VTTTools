@@ -13,16 +13,16 @@ import {
 } from '@mui/material';
 import { ExpandLess, ExpandMore, Delete } from '@mui/icons-material';
 import { SOURCE_PRESETS, type SourcePreset } from './sourcesPanelTypes';
-import type { SceneSource } from '@/types/domain';
+import type { PlacedSource } from '@/types/domain';
 
 export interface SourcesPanelProps {
     sceneId: string;
-    sceneSources: SceneSource[];
+    sceneSources: PlacedSource[];
     selectedSourceIndex: number | null;
     onSourceSelect: (index: number) => void;
     onSourceDelete: (index: number) => void;
     onPlaceSource: (properties: SourcePlacementProperties) => void;
-    onEditSource?: (index: number, updates: Partial<SceneSource>) => void;
+    onEditSource?: (index: number, updates: Partial<PlacedSource>) => void;
 }
 
 export interface SourcePlacementProperties {
@@ -270,7 +270,7 @@ export const SourcesPanel: React.FC<SourcesPanelProps> = React.memo(({
                 ) : (
                     sceneSources.map((source) => (
                         <Box
-                            key={source.index}
+                            key={source.id}
                             sx={{
                                 p: 0.5,
                                 cursor: 'pointer',
