@@ -24,17 +24,17 @@
 
 **Scope**: Final 3% of UI migration - Phase 8.8 polish, Phase 10 SignalR frontend, Phases 12-13 release prep
 
-**Total Phases**: 14 (Phases 1-8.7 ✅ Complete | Phase 8.8 � 90% | Phase 9 ⚠️ BLOCKED-Optional | Phases 10-11 Backend ✅/Frontend � | Phases 12-14 � Ready)
+**Total Phases**: 14 (Phases 1-8.7 ✅ Complete | Phase 8.8 🚧 90% | Phase 9 ⚠️ BLOCKED-Optional | Phases 10-11 Backend ✅/Frontend 🚧 | Phases 12-14 🔜 Ready)
 
 **Progress**: 97-99% complete (368h documented + 48-58h undocumented quality work = 416-426h actual / 420h estimated)
 
-**Current Status**: Phase 8.8 � 90% complete (5-10h remaining) | Phase 10 Backend ✅/Frontend ❌ (22h) | Phase 11 Backend ✅/Frontend � 70% (4-6h)
+**Current Status**: Phase 8.8 🚧 90% complete (5-10h remaining) | Phase 10 Backend ✅/Frontend ❌ (22h) | Phase 11 Backend ✅/Frontend 🚧 70% (4-6h)
 
 ---
 
 ## Current Active Phase
 
-### Phase 8.8: Manual Testing & UI Refinements � IN PROGRESS
+### Phase 8.8: Manual Testing & UI Refinements 🔄 IN PROGRESS
 
 **Progress**: 90% complete (5-10h remaining)
 **Current Work**: Wall marquee selection debugging
@@ -48,8 +48,8 @@
 - ✅ Wall Placement & Editing UX (12h, industry-standard patterns)
 
 **Remaining Work**:
-- � Wall marquee selection debugging
-- � Final polish and edge case handling
+- 🔄 Wall marquee selection debugging
+- 🔄 Final polish and edge case handling
 
 **Details**: See [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress)
 
@@ -67,18 +67,18 @@
 | 6 | Scene Editor | ✅ Complete | 30/25 | A+ | [PHASE_6_SCENE_EDITOR.md](./phases/PHASE_6_SCENE_EDITOR.md) |
 | 7 | Adventure Mgmt | ✅ Complete | 19/21 | A- | [PHASE_7_ADVENTURE_MGMT.md](./phases/PHASE_7_ADVENTURE_MGMT.md) |
 | 8.0 | Scene Mgmt | ✅ Complete | 23/12 | A- | [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-80-scene-management--complete) |
-| 8.5 | Incomplete Items | � Partial | 9/13 | - | [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-85-incomplete-items--partial) |
+| 8.5 | Incomplete Items | 🚧 Partial | 9/13 | - | [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-85-incomplete-items--partial) |
 | 8.6 | Structures Backend | ✅ Complete | 37/32-42 | A- | [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-86-structures-backend--complete) |
 | 8.7 | Structures Frontend | ✅ Complete | 67/56-76 | A- | [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-87-structures-frontend--complete) |
-| 8.8 | Manual Tests | � Active | 5/8-12 | A | [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress) |
+| 8.8 | Manual Tests | 🔄 Active | 5/8-12 | A | [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress) |
 | 9 | Epic/Campaign | ⚠️ Blocked | 0/18 | - | [PHASE_9_EPIC_CAMPAIGN.md](./phases/PHASE_9_EPIC_CAMPAIGN.md) |
-| 10 | Game Sessions | � Ready | 0/22 | - | [PHASE_10_GAME_SESSIONS.md](./phases/PHASE_10_GAME_SESSIONS.md) |
-| 11 | Account Mgmt | � Partial | 16/16 | - | [PHASE_11_ACCOUNT_MGMT.md](./phases/PHASE_11_ACCOUNT_MGMT.md) |
-| 12 | Audit Logging | � Ready | 0/13 | - | [PHASE_12_AUDIT_LOGGING.md](./phases/PHASE_12_AUDIT_LOGGING.md) |
-| 13 | Release Prep | � Ready | 0/5 | - | [PHASE_13_RELEASE_PREP.md](./phases/PHASE_13_RELEASE_PREP.md) |
-| 14 | Performance | � Optional | 0/16 | - | [PHASE_14_PERFORMANCE.md](./phases/PHASE_14_PERFORMANCE.md) |
+| 10 | Game Sessions | 🔜 Ready | 0/22 | - | [PHASE_10_GAME_SESSIONS.md](./phases/PHASE_10_GAME_SESSIONS.md) |
+| 11 | Account Mgmt | 🚧 Partial | 16/16 | - | [PHASE_11_ACCOUNT_MGMT.md](./phases/PHASE_11_ACCOUNT_MGMT.md) |
+| 12 | Audit Logging | 🔜 Ready | 0/13 | - | [PHASE_12_AUDIT_LOGGING.md](./phases/PHASE_12_AUDIT_LOGGING.md) |
+| 13 | Release Prep | 🔜 Ready | 0/5 | - | [PHASE_13_RELEASE_PREP.md](./phases/PHASE_13_RELEASE_PREP.md) |
+| 14 | Performance | 🔜 Optional | 0/16 | - | [PHASE_14_PERFORMANCE.md](./phases/PHASE_14_PERFORMANCE.md) |
 
-**Legend**: ✅ Complete | � Partial | � Active | � Ready | ⚠️ Blocked
+**Legend**: ✅ Complete | 🚧 Partial | 🔄 Active | 🔜 Ready | ⚠️ Blocked
 
 **Hours Format**: Actual/Estimated
 
@@ -98,16 +98,16 @@
 - ✅ Wall undo/redo system with dual-queue architecture
 - ✅ Transactional wall editing with atomic commits
 
-### In Progress �
-- � Wall marquee selection debugging (Phase 8.8)
-- � Account management frontend polish (Phase 11, 4-6h remaining)
+### In Progress 🚧
+- 🚧 Wall marquee selection debugging (Phase 8.8)
+- 🚧 Account management frontend polish (Phase 11, 4-6h remaining)
 
-### Pending �
+### Pending 🔜
 - ⚠️ Structure placement type-specific logic (pending clarification)
 - ⚠️ Epic/Campaign hierarchy UI (optional advanced organization) - BLOCKED by backend
-- � Real-time game sessions: Backend ✅ COMPLETE (12 endpoints) | Frontend ❌ NOT STARTED
-- � Audit logging user-facing features (Phase 12)
-- � Legacy Blazor projects deprecated (Phase 13)
+- 🚧 Real-time game sessions: Backend ✅ COMPLETE (12 endpoints) | Frontend ❌ NOT STARTED
+- 🔜 Audit logging user-facing features (Phase 12)
+- 🔜 Legacy Blazor projects deprecated (Phase 13)
 
 ---
 
@@ -267,7 +267,7 @@
 
 **Cross-References**:
 
-- Features: UserAuthentication ✅, AccountManagement �, LandingPage ✅, AssetManagement ✅, SceneManagement �, SessionManagement �
+- Features: UserAuthentication ✅, AccountManagement 🚧, LandingPage ✅, AssetManagement ✅, SceneManagement 🚧, SessionManagement 🚧
 - Components: WebClientApp (React SPA), VttTools.WebApp.WebAssembly (legacy), VttTools.WebApp.Common (legacy)
 - Domain Areas: None (UI-only migration)
 
@@ -279,7 +279,7 @@
 
 ### EPIC-002: Admin Application (40-60h) - PARALLEL TRACK
 
-**Status**: � REQUIRED for Phase 13 (Release Preparation)
+**Status**: 🔜 REQUIRED for Phase 13 (Release Preparation)
 **Roadmap**: See Documents/Tasks/EPIC-002/ROADMAP.md (separate document)
 
 **Objective**: Build administrative interface for system configuration, audit log viewing, and user management
@@ -309,7 +309,7 @@ Phase 1 (Foundation) ✅
     ↓
     ├─→ Phase 2 (Auth & Landing) ✅
     │       ↓
-    │       └─→ Phase 11 (Account Management) � [16h]
+    │       └─→ Phase 11 (Account Management) 🚧 [16h]
     │
     ├─→ Phase 3 (Scene: Pan/Zoom) ✅
     │       ↓
@@ -321,52 +321,52 @@ Phase 1 (Foundation) ✅
     │               │               ↓
     │               │               ├─→ Phase 7 (Adventure Management) ✅ [19h]
     │               │               │       ↓
-    │               │               │       ├─→ Phase 8 (Scene Management) � [154h total]
+    │               │               │       ├─→ Phase 8 (Scene Management) 🚧 [154h total]
     │               │               │       │       ├─→ 8.0 ✅ [23h]
-    │               │               │       │       ├─→ 8.5 � [9h]
+    │               │               │       │       ├─→ 8.5 🚧 [9h]
     │               │               │       │       ├─→ 8.6 ✅ [37h]
     │               │               │       │       ├─→ 8.7 ✅ [67h]
-    │               │               │       │       └─→ 8.8 � [5h]
+    │               │               │       │       └─→ 8.8 🔄 [5h]
     │               │               │       │               ↓
     │               │               │       │               └─→ Phase 9 (Epic/Campaign) ⚠️ BLOCKED [18h]
     │               │               │       │
-    │               │               │       └─→ Phase 10 (Game Sessions) � [22h]
+    │               │               │       └─→ Phase 10 (Game Sessions) 🔜 [22h]
     │               │               │               ↓
-    │               │               │               └─→ Phase 12 (Audit Logging) � [13h]
+    │               │               │               └─→ Phase 12 (Audit Logging) 🔜 [13h]
     │               │               │                       ↓
-    │               │               │                       └─→ Phase 13 (Release Prep) � [5h]
+    │               │               │                       └─→ Phase 13 (Release Prep) 🔜 [5h]
     │               │               │                               ↑
     │               │               │                               └─ (REQUIRES EPIC-002)
     │               │               │                               ↓
-    │               │               │                               └─→ Phase 14 (Performance) � OPTIONAL [16h]
+    │               │               │                               └─→ Phase 14 (Performance) 🔜 OPTIONAL [16h]
     │               │               │
-    │               │               └─→ Phase 11 (Account Management) � [PARALLEL]
+    │               │               └─→ Phase 11 (Account Management) 🚧 [PARALLEL]
     │               │
     │               └─→ Phase 9 (Epic/Campaign) ⚠️ BLOCKED [18h]
     │
-    └─→ EPIC-002 (Admin Application) � PARALLEL [40-60h]
+    └─→ EPIC-002 (Admin Application) 🔜 PARALLEL [40-60h]
             └─→ BLOCKS Phase 13 (Release Preparation)
 ```
 
 **Critical Path** (Sequential - 50 hours remaining):
 
-- Phase 8.8: Manual Testing & Refinements - 5-10 hours � ACTIVE
-- Phase 10: Game Sessions/SignalR (frontend) - 22 hours �
-- Phase 12: Audit & Compliance Logging - 13 hours �
-- Phase 13: Release Preparation - 5 hours � (BLOCKED by EPIC-002)
+- Phase 8.8: Manual Testing & Refinements - 5-10 hours 🔄 ACTIVE
+- Phase 10: Game Sessions/SignalR (frontend) - 22 hours 🔜
+- Phase 12: Audit & Compliance Logging - 13 hours 🔜
+- Phase 13: Release Preparation - 5 hours 🔜 (BLOCKED by EPIC-002)
 
 **Parallel Track** (Independent - 4-6 hours):
 
-- Phase 11: Account Management (70% complete, polish remaining) �
+- Phase 11: Account Management (70% complete, polish remaining) 🚧
 
 **Deferred Work**:
 
 - Phase 9: Epic/Campaign - 18 hours ⚠️ BLOCKED by backend (~3 weeks backend work needed) - OPTIONAL
-- Phase 14: Performance & Quality - 16 hours � OPTIONAL
+- Phase 14: Performance & Quality - 16 hours 🔜 OPTIONAL
 
 **Separate Epic**:
 
-- EPIC-002: Admin Application - 40-60 hours � REQUIRED for Phase 13
+- EPIC-002: Admin Application - 40-60 hours 🔜 REQUIRED for Phase 13
 
 ---
 
@@ -378,10 +378,10 @@ Affected Features (6):
 
 1. UserAuthentication → WebClientApp (auth pages) ✅
 2. LandingPage → WebClientApp (landing page) ✅
-3. SceneManagement → WebClientApp (Konva scene editor) �
+3. SceneManagement → WebClientApp (Konva scene editor) 🚧
 4. AssetManagement → WebClientApp (asset library UI) ✅
-5. SessionManagement → WebClientApp (SignalR game sessions) �
-6. AccountManagement → WebClientApp (account settings) �
+5. SessionManagement → WebClientApp (SignalR game sessions) 🚧
+6. AccountManagement → WebClientApp (account settings) 🚧
 
 Affected Components (3):
 
@@ -393,13 +393,13 @@ Implementation Order:
 
 - ✅ Phases 1-7: Foundation, Auth, Scene basics, Assets, Adventures complete
 - ✅ Phase 8.0-8.7: Scene Management & Structures complete
-- � Phase 8.8: Manual Testing & Refinements (active)
+- 🔄 Phase 8.8: Manual Testing & Refinements (active)
 - ⚠️ Phase 9: Epic/Campaign hierarchy (BLOCKED by backend - optional)
-- � Phase 10: SessionManagement feature (ready after Phase 8.8)
-- � Phase 11: AccountManagement feature (70% complete, 4-6h polish)
-- � Phase 12: Audit Logging (user-facing features)
-- � Phase 13: Legacy cleanup + release prep (BLOCKED by EPIC-002)
-- � Phase 14: Performance optimization (OPTIONAL)
+- 🔜 Phase 10: SessionManagement feature (ready after Phase 8.8)
+- 🚧 Phase 11: AccountManagement feature (70% complete, 4-6h polish)
+- 🔜 Phase 12: Audit Logging (user-facing features)
+- 🔜 Phase 13: Legacy cleanup + release prep (BLOCKED by EPIC-002)
+- 🔜 Phase 14: Performance optimization (OPTIONAL)
 
 ---
 
@@ -467,7 +467,7 @@ Implementation Order:
   - Login, registration, logout flows functional ✅
   - Password reset flows functional (request + confirm) ✅
   - 2FA verification components exist (full 2FA test deferred to Phase 11) ⚠️
-  - BDD scenarios passing (threshold: 100% UI scenarios) � (step definitions integrated per-phase)
+  - BDD scenarios passing (threshold: 100% UI scenarios) 🚧 (step definitions integrated per-phase)
   - E2E tests passing (threshold: auth critical path) ✅
 - **Validation Command**: npm run test:e2e -- --grep "@auth"
 - **Action if Failed**: Fix auth flows before proceeding
@@ -536,7 +536,7 @@ Implementation Order:
 - **Action if Failed**: Fix adventure management before proceeding
 - **Status**: ✅ Passed
 
-### Gate 8: Scene Management Complete � PARTIAL
+### Gate 8: Scene Management Complete 🚧 PARTIAL
 
 - **Trigger**: After Phase 8
 - **Criteria**:
@@ -545,11 +545,11 @@ Implementation Order:
   - Properties panel functional ✅
   - Structures backend complete ✅
   - Structures frontend complete ✅
-  - Wall editing complete �
-  - All manual tests passing �
+  - Wall editing complete 🔄
+  - All manual tests passing 🔄
 - **Validation Command**: npm run test
 - **Action if Failed**: Complete Phase 8.8 before proceeding
-- **Status**: � In Progress (Phase 8.8 at 90%)
+- **Status**: 🔄 In Progress (Phase 8.8 at 90%)
 
 ### Gate 9: Game Sessions Complete ❌ NOT STARTED
 
@@ -563,7 +563,7 @@ Implementation Order:
 - **Action if Failed**: Fix real-time features before proceeding
 - **Status**: ❌ Not Started
 
-### Gate 10: Account Management Complete � PARTIAL
+### Gate 10: Account Management Complete 🚧 PARTIAL
 
 - **Trigger**: After Phase 11
 - **Criteria**:
@@ -572,11 +572,11 @@ Implementation Order:
   - 2FA setup functional ✅
   - Recovery codes functional ✅
   - Email confirmation functional ✅
-  - Password change dialog �
-  - Integration tests passing �
+  - Password change dialog 🚧
+  - Integration tests passing 🚧
 - **Validation Command**: npm run test
 - **Action if Failed**: Complete remaining features
-- **Status**: � 70% Complete
+- **Status**: 🚧 70% Complete
 
 ### Gate 11: Audit Logging Complete ❌ NOT STARTED
 
@@ -616,16 +616,16 @@ Implementation Order:
 **Phase 6**: ✅ Complete (30/25 hours, 120%) - Enhanced with multi-select + collision + marquee
 **Phase 7**: ✅ Complete (19/21 hours, 90%)
 **Phase 8.0**: ✅ Complete (23/12 hours, 192%) - Backend integration challenges
-**Phase 8.5**: � PARTIAL (9/13 hours, 69%) - 5 of 6 complete, Item 1 → Phase 8.6 & 8.7
+**Phase 8.5**: 🚧 PARTIAL (9/13 hours, 69%) - 5 of 6 complete, Item 1 → Phase 8.6 & 8.7
 **Phase 8.6**: ✅ Complete (37/32-42 hours, 97%) - Structures Backend
 **Phase 8.7**: ✅ Complete (67/56-76 hours, 89%) - Structures Frontend
-**Phase 8.8**: � IN PROGRESS (5/8-12 hours, 50%) - Manual Tests & UI Refinements
+**Phase 8.8**: 🔄 IN PROGRESS (5/8-12 hours, 50%) - Manual Tests & UI Refinements
 **Phase 9**: ⚠️ BLOCKED (0/18 hours, 0%) - Epic/Campaign (optional - backend missing)
-**Phase 10**: � (0/22 hours, 0%) - Game Sessions - READY
+**Phase 10**: 🔜 (0/22 hours, 0%) - Game Sessions - READY
 **Phase 11**: ✅ Complete (16/16 hours, 100%) - Account Management
-**Phase 12**: � (0/13 hours, 0%) - Audit & Compliance Logging - READY
-**Phase 13**: � (0/5 hours, 0%) - Release Preparation - READY (after EPIC-002)
-**Phase 14**: � FINAL (0/16 hours, 0%) - Performance & Quality Refinements - OPTIONAL
+**Phase 12**: 🔜 (0/13 hours, 0%) - Audit & Compliance Logging - READY
+**Phase 13**: 🔜 (0/5 hours, 0%) - Release Preparation - READY (after EPIC-002)
+**Phase 14**: 🔜 FINAL (0/16 hours, 0%) - Performance & Quality Refinements - OPTIONAL
 
 **Remaining Effort**: 82 hours total
 - 50 hours available (8.8: 5-10h + 10: 22h + 12: 13h + 13: 5h)
