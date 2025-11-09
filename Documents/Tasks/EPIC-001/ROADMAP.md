@@ -2699,8 +2699,8 @@ interface AssetToken {
 
 **Implementation Started**: 2025-11-09
 **Backend Completed**: 2025-11-09
-**Current Step**: 36/42 - Create CampaignDetailPage showing adventures grid
-**Progress**: Backend + API + Epic/Campaign list components complete, proceeding to Campaign detail page (83.3%)
+**Current Step**: 37/42 - Update AdventureDetailPage with campaign breadcrumb
+**Progress**: Backend + API + Epic/Campaign hierarchy complete, updating Adventure page (85.7%)
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -3044,6 +3044,22 @@ interface AssetToken {
   - Rationale: No dialog components exist in adventures/ or epics/ folders; creation happens inline in ListView
   - Alternative: Campaign creation navigates directly to detail page; editing happens on detail page
   - Pattern consistency: Matches Step 31 (EpicDialog) decision for architectural uniformity
+
+- ✅ Step 36/42: CampaignDetailPage created (Grade: A+, 481 LOC)
+  - Files: `Source/WebClientApp/src/features/content-library/pages/CampaignDetailPage.tsx` (481 LOC), `index.ts` (+1 export)
+  - Implementation: Campaign detail page with editing, auto-save, adventure management
+  - Pattern: Adapts EpicDetailPage for Campaign/Adventure (100% pattern match)
+  - Edit features: Name, description, published status with auto-save on blur
+  - Auto-save: beforeunload warning for unsaved changes, visibilitychange save
+  - Background upload: Campaign background via media API with type: 'campaign'
+  - Adventure operations: Create (navigate to /adventures/{id}), clone, delete with confirmation
+  - RTK Query: useGetCampaignQuery, useGetAdventuresQuery, useUpdateCampaignMutation, adventure mutations
+  - States: Loading spinner, error alert, save status (Saving.../Saved/Save failed)
+  - Layout: Glassmorphism Paper with background overlay, responsive design
+  - Navigation: Back button to /content-library/campaigns
+  - Adventure grid: Uses AdventureCard component in responsive grid (1-4 columns)
+  - Code Review: A+ (98/100) - Perfect TypeScript/React compliance, production ready
+  - Commit: a7ec248 "Create CampaignDetailPage showing adventures grid"
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
