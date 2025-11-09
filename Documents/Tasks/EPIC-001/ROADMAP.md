@@ -2699,8 +2699,8 @@ interface AssetToken {
 
 **Implementation Started**: 2025-11-09
 **Backend Completed**: 2025-11-09
-**Current Step**: 30/42 - Create EpicListView component with grid layout
-**Progress**: Backend + API slices + Tabs + EpicCard complete, proceeding to EpicListView (69.0%)
+**Current Step**: 32/42 - Create EpicDetailPage showing campaigns grid
+**Progress**: Backend + API + Epic list components complete, proceeding to detail pages (73.8%)
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -2976,6 +2976,24 @@ interface AssetToken {
   - Pattern compliance: 100% match with AdventureCard reference pattern
   - Code Review: A+ grade (100/100) - Zero issues, exemplary implementation, production ready
   - Commit: a683c6b "Create EpicCard component with Clone/Delete actions"
+
+- ✅ Step 30/42: EpicListView component created (Grade: A, 266 LOC)
+  - Files: `Source/WebClientApp/src/features/content-library/components/epics/EpicListView.tsx` (266 LOC), `index.ts` (+1 export)
+  - Implementation: Epic list view with grid layout, search, filtering, and CRUD operations
+  - Pattern: Follows AdventureListView with appropriate simplifications (no pagination, no infinite scroll, fewer filters)
+  - Features: Debounced search (500ms), published status filter, responsive grid (1-4 columns)
+  - Operations: Create (navigate to detail), clone, delete with confirmation dialog
+  - RTK Query: useGetEpicsQuery, useCreateEpicMutation, useDeleteEpicMutation, useCloneEpicMutation
+  - States: Loading, empty, no results, grid display with semantic IDs (16 elements)
+  - Delete cascade warning: "This will also delete all campaigns and adventures within it"
+  - Simplifications: No content type filter, no style filter, no ownership filter, no scene count filters
+  - Code Review: A- (92/100) → A (95/100) after adding debouncing
+  - Commit: e3eefaa "Create EpicListView component with grid layout and filtering"
+
+- ⏭️ Step 31/42: EpicDialog component (SKIPPED - Not needed based on pattern)
+  - Decision: Skip dialog component - Epic creation/editing follows AdventureListView pattern
+  - Rationale: No dialog components exist in adventures/ folder; creation happens inline in ListView
+  - Alternative: Epic creation navigates directly to detail page; editing happens on detail page
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
