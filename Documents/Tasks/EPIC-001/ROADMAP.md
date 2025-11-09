@@ -2699,8 +2699,8 @@ interface AssetToken {
 
 **Implementation Started**: 2025-11-09
 **Backend Completed**: 2025-11-09
-**Current Step**: 25/42 - Add Epic/Campaign TypeScript types to domain.ts
-**Progress**: Backend complete (API + tests), proceeding to frontend implementation
+**Current Step**: 26/42 - Create epicsApi RTK Query slice with all endpoints
+**Progress**: Backend complete (API + tests), frontend TypeScript types added (59.5%)
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -2914,6 +2914,17 @@ interface AssetToken {
   - Rationale: Unit test coverage is excellent (90-95%), full integration will be tested via Cucumber/Playwright
   - Backend testing complete: 70 unit tests total (35 Epic + 35 Campaign) with ~90%+ coverage
   - Next phase: Frontend implementation (Steps 25-41)
+
+- ✅ Step 25/42: Epic/Campaign TypeScript types added to domain.ts (Grade: A+, 52 LOC)
+  - Files: `Source/WebClientApp/src/types/domain.ts` (lines 346-397)
+  - Implementation: 6 new TypeScript interfaces following Adventure pattern exactly
+  - Epic types: CreateEpicRequest, UpdateEpicRequest, Epic (with optional campaigns array)
+  - Campaign types: CreateCampaignRequest, UpdateCampaignRequest, Campaign (with optional epicId and adventures array)
+  - Security pattern: Create requests correctly exclude isPublished/isPublic (must be private/unpublished on create)
+  - Pattern compliance: MediaResource for background (not string), optional arrays (campaigns?, adventures?)
+  - Documentation: MaxLength constraints documented in comments (128 for name, 4096 for description)
+  - Code Review: A+ grade (95/100) - Minor note about ContentType discriminator (optional, not required)
+  - Commit: b639eed "Add Epic and Campaign TypeScript types to domain.ts"
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
