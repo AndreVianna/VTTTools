@@ -9,8 +9,6 @@ public class AdventureStorage(ApplicationDbContext context)
     public async Task<Adventure[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Adventures
             .Include(a => a.Scenes)
-                .ThenInclude(s => s.SceneAssets)
-                    .ThenInclude(sa => sa.Asset)
             .Include(a => a.Background)
             .Include(a => a.Campaign)
             .AsSplitQuery()
@@ -23,8 +21,6 @@ public class AdventureStorage(ApplicationDbContext context)
     public async Task<Adventure[]> GetManyAsync(string filterDefinition, CancellationToken ct = default) {
         var query = context.Adventures
             .Include(a => a.Scenes)
-                .ThenInclude(s => s.SceneAssets)
-                    .ThenInclude(sa => sa.Asset)
             .Include(a => a.Background)
             .Include(a => a.Campaign)
             .AsSplitQuery()
