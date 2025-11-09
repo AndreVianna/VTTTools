@@ -50,7 +50,29 @@ internal static class Mapper {
             IsOneShot = entity.IsOneShot,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
-            Scenes = entity.Scenes.AsQueryable().Select(AsScene!).ToList(),
+            Scenes = entity.Scenes.AsQueryable().Select(AsChildScene!).ToList(),
+        };
+
+    internal static Expression<Func<SceneEntity, Scene>> AsChildScene = entity
+        => new() {
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            Stage = new() {
+                Background = entity.Background != null ? entity.Background.ToModel() : null,
+                ZoomLevel = entity.ZoomLevel,
+                Panning = entity.Panning,
+                Light = entity.Light,
+                Weather = entity.Weather,
+                Elevation = entity.Elevation,
+                Sound = entity.Sound != null ? entity.Sound.ToModel() : null,
+            },
+            Grid = entity.Grid,
+            Assets = entity.SceneAssets.AsQueryable().Select(AsSceneAsset!).ToList(),
+            Walls = entity.Walls.AsQueryable().Select(AsSceneWall!).ToList(),
+            Regions = entity.Regions.AsQueryable().Select(AsSceneRegion!).ToList(),
+            Sources = entity.Sources.AsQueryable().Select(AsSceneSource!).ToList(),
+            Effects = entity.SceneEffects.AsQueryable().Select(AsSceneEffect!).ToList(),
         };
 
     internal static Expression<Func<SceneEntity, Scene>> AsScene = entity

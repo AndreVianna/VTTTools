@@ -1,4 +1,4 @@
-﻿namespace VttTools.Library.Campaigns.Model;
+namespace VttTools.Library.Campaigns.Model;
 
 public record Campaign {
     public Guid? EpicId { get; init; }
