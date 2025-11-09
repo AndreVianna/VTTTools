@@ -1,5 +1,7 @@
 
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
+using CampaignEntity = VttTools.Data.Library.Entities.Campaign;
+using EpicEntity = VttTools.Data.Library.Entities.Epic;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using SceneAssetEntity = VttTools.Data.Library.Entities.SceneAsset;
 using SceneEffectEntity = VttTools.Data.Library.Entities.SceneEffect;
@@ -11,6 +13,31 @@ using SceneWallEntity = VttTools.Data.Library.Entities.SceneWall;
 namespace VttTools.Data.Library;
 
 internal static class Mapper {
+    internal static Expression<Func<EpicEntity, Epic>> AsEpic = entity
+        => new() {
+            OwnerId = entity.OwnerId,
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            Background = entity.Resource != null ? entity.Resource.ToModel() : null!,
+            IsPublished = entity.IsPublished,
+            IsPublic = entity.IsPublic,
+            Campaigns = entity.Campaigns.AsQueryable().Select(AsCampaign!).ToList(),
+        };
+
+    internal static Expression<Func<CampaignEntity, Campaign>> AsCampaign = entity
+        => new() {
+            EpicId = entity.EpicId,
+            OwnerId = entity.OwnerId,
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            Background = entity.Resource != null ? entity.Resource.ToModel() : null!,
+            IsPublished = entity.IsPublished,
+            IsPublic = entity.IsPublic,
+            Adventures = entity.Adventures.AsQueryable().Select(AsAdventure!).ToList(),
+        };
+
     internal static Expression<Func<AdventureEntity, Adventure>> AsAdventure = entity
         => new() {
             OwnerId = entity.OwnerId,
@@ -81,6 +108,58 @@ internal static class Mapper {
                 Duration = entity.Duration,
             },
             Tags = entity.Tags,
+        };
+
+    [return: NotNullIfNotNull(nameof(entity))]
+    internal static Epic? ToModel(this EpicEntity? entity)
+        => entity == null ? null : new() {
+            OwnerId = entity.OwnerId,
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            Background = entity.Resource?.ToModel()!,
+            IsPublished = entity.IsPublished,
+            IsPublic = entity.IsPublic,
+            Campaigns = entity.Campaigns.Select(ToModel).ToList()!,
+        };
+
+    internal static EpicEntity ToEntity(this Epic model)
+        => new() {
+            OwnerId = model.OwnerId,
+            Id = model.Id,
+            Name = model.Name,
+            Description = model.Description,
+            ResourceId = model.Background?.Id ?? Guid.Empty,
+            IsPublished = model.IsPublished,
+            IsPublic = model.IsPublic,
+            Campaigns = model.Campaigns.ConvertAll(c => c.ToEntity()),
+        };
+
+    [return: NotNullIfNotNull(nameof(entity))]
+    internal static Campaign? ToModel(this CampaignEntity? entity)
+        => entity == null ? null : new() {
+            EpicId = entity.EpicId,
+            OwnerId = entity.OwnerId,
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            Background = entity.Resource?.ToModel()!,
+            IsPublished = entity.IsPublished,
+            IsPublic = entity.IsPublic,
+            Adventures = entity.Adventures.Select(ToModel).ToList()!,
+        };
+
+    internal static CampaignEntity ToEntity(this Campaign model)
+        => new() {
+            EpicId = model.EpicId,
+            OwnerId = model.OwnerId,
+            Id = model.Id,
+            Name = model.Name,
+            Description = model.Description,
+            ResourceId = model.Background?.Id ?? Guid.Empty,
+            IsPublished = model.IsPublished,
+            IsPublic = model.IsPublic,
+            Adventures = model.Adventures.ConvertAll(a => a.ToEntity()),
         };
 
     [return: NotNullIfNotNull(nameof(entity))]

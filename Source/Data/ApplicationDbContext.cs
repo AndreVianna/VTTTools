@@ -1,7 +1,9 @@
 using Adventure = VttTools.Data.Library.Entities.Adventure;
 using Asset = VttTools.Data.Assets.Entities.Asset;
 using AuditLog = VttTools.Data.Audit.Entities.AuditLog;
+using Campaign = VttTools.Data.Library.Entities.Campaign;
 using Effect = VttTools.Data.Assets.Entities.Effect;
+using Epic = VttTools.Data.Library.Entities.Epic;
 using GameSession = VttTools.Data.Game.Entities.GameSession;
 using MaintenanceMode = VttTools.Data.Maintenance.Entities.MaintenanceMode;
 using Resource = VttTools.Data.Media.Entities.Resource;
@@ -16,6 +18,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Resource> Resources { get; set; }
     public DbSet<Asset> Assets { get; set; }
     public DbSet<Effect> Effects { get; set; }
+    public DbSet<Epic> Epics { get; set; }
+    public DbSet<Campaign> Campaigns { get; set; }
     public DbSet<Adventure> Adventures { get; set; }
     public DbSet<Scene> Scenes { get; set; }
     public DbSet<GameSession> GameSessions { get; set; }
