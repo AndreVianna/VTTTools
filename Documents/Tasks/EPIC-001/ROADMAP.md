@@ -2699,8 +2699,8 @@ interface AssetToken {
 
 **Implementation Started**: 2025-11-09
 **Backend Completed**: 2025-11-09
-**Current Step**: 32/42 - Create EpicDetailPage with epic breadcrumb and Clone/Delete actions
-**Progress**: Backend + API + Epic list components complete, proceeding to detail pages (76.2%)
+**Current Step**: 35/42 - CampaignDialog component (expected to SKIP)
+**Progress**: Backend + API + Epic/Campaign components complete, proceeding to Campaign detail page (80.9%)
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -3010,6 +3010,34 @@ interface AssetToken {
   - Campaign grid: Placeholder ready for CampaignCard (Step 33)
   - Code Review: A- (93/100) → A (96/100) after removing console.error
   - Commit: df87baf "Create EpicDetailPage showing campaigns grid"
+
+- ✅ Step 33/42: CampaignCard component created (Grade: A+, 86 LOC)
+  - Files: `Source/WebClientApp/src/features/content-library/components/campaigns/CampaignCard.tsx` (86 LOC), `index.ts` (2 LOC)
+  - Implementation: Campaign card component following EpicCard pattern exactly
+  - Props interface: CampaignCardProps (campaign, onOpen, onDuplicate, onDelete handlers)
+  - Display: Campaign name, published badge, adventure count metadata with singular/plural handling
+  - Actions: Clone and Delete buttons with semantic IDs (btn-clone-campaign-{id}, btn-delete-campaign-{id})
+  - Background: Uses campaign.background.id via media API endpoint or CAMPAIGN_DEFAULT_BACKGROUND fallback
+  - Event handling: stopPropagation on action buttons to prevent card click navigation
+  - ContentCard integration: Uses shared ContentCard wrapper with ContentType.Campaign
+  - Export pattern: Barrel export (component + props interface) in index.ts
+  - Pattern compliance: 100% match with EpicCard reference pattern
+  - EpicDetailPage integration: Updated to display CampaignCard in campaigns grid
+  - Code Review: A+ grade (100/100) - Zero issues, exemplary implementation, production ready
+  - Commit: 2b9c7fd "Create CampaignCard component and integrate into EpicDetailPage"
+
+- ✅ Step 34/42: CampaignListView component created (Grade: A, 266 LOC)
+  - Files: `Source/WebClientApp/src/features/content-library/components/campaigns/CampaignListView.tsx` (266 LOC), `index.ts` (+1 export)
+  - Implementation: Campaign list view with grid layout, search, filtering, and CRUD operations
+  - Pattern: Follows EpicListView with 100% structural alignment
+  - Features: Debounced search (500ms), published status filter, responsive grid (1-4 columns)
+  - Operations: Create (navigate to detail), clone, delete with confirmation dialog
+  - RTK Query: useGetCampaignsQuery, useCreateCampaignMutation, useDeleteCampaignMutation, useCloneCampaignMutation
+  - States: Loading, empty, no results, grid display with semantic IDs (16 elements)
+  - Delete cascade warning: "This will also delete all adventures within it"
+  - Simplifications: Same as EpicListView (no content type filter, no style filter, no ownership filter)
+  - Code Review: A grade (95/100) - Production ready, approved for deployment
+  - Commit: aac87f8 "Create CampaignListView component with grid layout and filtering"
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
