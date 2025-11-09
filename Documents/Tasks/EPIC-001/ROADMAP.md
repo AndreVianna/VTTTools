@@ -2699,8 +2699,8 @@ interface AssetToken {
 
 **Implementation Started**: 2025-11-09
 **Backend Completed**: 2025-11-09
-**Current Step**: 38/42 - Update App.tsx routing for epic/campaign detail pages
-**Progress**: Backend + API + Epic/Campaign hierarchy complete, adding routing (88.1%)
+**Current Step**: 39/42 - Write component tests for Epic components (expected to SKIP/DEFER)
+**Progress**: Backend + API + Epic/Campaign hierarchy complete, routing complete (90.5%)
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -3073,6 +3073,19 @@ interface AssetToken {
   - Pattern: Completes Epic→Campaign→Adventure hierarchy navigation
   - Code Review: A (after adding semantic IDs and aria-current)
   - Commit: aafa428 "Add campaign breadcrumb navigation to AdventureDetailPage"
+
+- ✅ Step 38/42: App.tsx routing updated for Epic/Campaign pages (Grade: A, ~20 LOC)
+  - Files: `Source/WebClientApp/src/App.tsx` (modified)
+  - Implementation: Added routes for Epic and Campaign hierarchy
+  - Nested routes in /content-library: /epics, /campaigns, /adventures (tab navigation)
+  - Detail page routes: /epics/:epicId, /campaigns/:campaignId, /adventures/:adventureId
+  - Updated imports: Barrel export from @/features/content-library/pages, EpicListView, CampaignListView
+  - Pattern: Follows existing Adventure route pattern exactly
+  - All routes protected with ProtectedRoute authLevel="authorized"
+  - Consistent AppLayout wrapping
+  - Comment cleanup: Removed redundant comments per VTTTools Code Comments Policy
+  - Code Review: A (after comment cleanup)
+  - Commit: 68bab54 "Add Epic/Campaign routing to App.tsx"
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
