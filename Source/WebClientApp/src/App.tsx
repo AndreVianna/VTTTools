@@ -14,13 +14,13 @@ import { LoadingOverlay } from '@/components/common';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { PasswordResetRequestPage } from '@/pages/auth/PasswordResetRequestPage';
-import { ContentLibraryPage } from '@/features/content-library/pages/ContentLibraryPage';
-import { AdventureDetailPage } from '@/features/content-library/pages/AdventureDetailPage';
+import { ContentLibraryPage, EpicDetailPage, CampaignDetailPage, AdventureDetailPage } from '@/features/content-library/pages';
+import { EpicListView } from '@/features/content-library/components/epics';
+import { CampaignListView } from '@/features/content-library/components/campaigns';
 import { AdventureListView } from '@/features/content-library/components/adventures';
 import { SecuritySettingsPage } from '@/pages/settings/SecuritySettingsPage';
 import { ProfilePage } from '@/pages/settings/ProfilePage';
 
-// App Content - Wraps everything in Router
 function AppContent() {
   return (
     <Router>
@@ -29,13 +29,11 @@ function AppContent() {
   );
 }
 
-// App Routes - Rendered inside Router context
 function AppRoutes() {
   const { isInitializing } = useAuth();
 
   return (
     <>
-      {/* Show loading overlay during initial auth check */}
       <LoadingOverlay
         open={isInitializing}
         message="Loading..."
@@ -52,7 +50,7 @@ function AppRoutes() {
             </AppLayout>
           } />
 
-          {/* Authentication routes - No layout (full screen) */}
+          {/* Authentication routes */}
           <Route path="/login" element={
             <AppLayout>
               <LoginPage />
@@ -90,9 +88,27 @@ function AppRoutes() {
               </ProtectedRoute>
             </AppLayout>
           }>
+            <Route path="epics" element={<EpicListView />} />
+            <Route path="campaigns" element={<CampaignListView />} />
             <Route path="adventures" element={<AdventureListView />} />
             <Route index element={<Navigate to="adventures" replace />} />
           </Route>
+
+          <Route path="/epics/:epicId" element={
+            <AppLayout>
+              <ProtectedRoute authLevel="authorized">
+                <EpicDetailPage />
+              </ProtectedRoute>
+            </AppLayout>
+          } />
+
+          <Route path="/campaigns/:campaignId" element={
+            <AppLayout>
+              <ProtectedRoute authLevel="authorized">
+                <CampaignDetailPage />
+              </ProtectedRoute>
+            </AppLayout>
+          } />
 
           <Route path="/adventures/:adventureId" element={
             <AppLayout>
@@ -158,10 +174,8 @@ function AppRoutes() {
   );
 }
 
-// Main App Component with Redux Provider and Routing
 function App() {
   useEffect(() => {
-    // Setup global error handling on app initialization
     setupGlobalErrorHandling();
   }, []);
 
