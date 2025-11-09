@@ -2695,10 +2695,10 @@ interface AssetToken {
 
 **Objective**: Implement Epic→Campaign hierarchy for advanced content organization
 
-**Backend Status**: 🚧 IN PROGRESS (2/42 steps complete, 4.8%)
+**Backend Status**: 🚧 IN PROGRESS (3/42 steps complete, 7.1%)
 
 **Implementation Started**: 2025-11-09
-**Current Step**: 3/42 - Epic API contracts
+**Current Step**: 4/42 - Epic Service contracts
 **Progress**: Backend domain layer in progress
 
 **Completed Steps**:
@@ -2715,6 +2715,14 @@ interface AssetToken {
   - Methods: GetAllAsync, GetManyAsync, GetByIdAsync, AddAsync, UpdateAsync, DeleteAsync
   - Code Review: Perfect implementation, zero defects
   - Commit: 6d24b95 "feat(library): add IEpicStorage interface for Epic data access"
+
+- ✅ Step 3/42: Epic API contracts created (Grade: A+, 24 LOC)
+  - Files: `Source/Domain/Library/Epics/ApiContracts/CreateEpicRequest.cs` (12 LOC), `UpdateEpicRequest.cs` (12 LOC)
+  - Pattern: CreateEpicRequest matches CreateAdventureRequest (no IsPublished/IsPublic on create)
+  - Properties: Name (required, MaxLength 128), Description (required, MaxLength 4096), BackgroundId (optional Guid)
+  - Update: All properties wrapped in Optional<>, includes IsPublished/IsPublic for security control
+  - Code Review: A+ after pattern fix (removed IsPublished/IsPublic from create)
+  - Commit: 83f07d0 "feat(library): add Epic API contracts for HTTP endpoints"
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
