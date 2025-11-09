@@ -36,6 +36,7 @@
     "@vitejs/plugin-react": "^5.0.2",
     "axios": "^1.12.1",
     "konva": "^10.0.2",
+    "polygon-clipping": "^0.15.7",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.65.0",

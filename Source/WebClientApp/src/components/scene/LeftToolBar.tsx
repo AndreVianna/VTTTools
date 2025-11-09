@@ -243,6 +243,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           )}
           {activePanel === 'regions' && (
             <RegionsPanel
+              sceneId={sceneId || ''}
               sceneRegions={sceneRegions || []}
               selectedRegionIndex={selectedRegionIndex !== undefined ? selectedRegionIndex : null}
               {...(onPlaceRegion ? { onPlaceRegion } : {})}

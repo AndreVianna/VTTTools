@@ -137,10 +137,10 @@ export interface MoveLineAction extends LocalAction {
  * action.redo();
  */
 export function createPlaceVertexAction(
-    getSegment: () => RegionSegment | null,
+    _getSegment: () => RegionSegment | null,
     setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void
 ): PlaceVertexAction {
-    const segment = getSegment();
+    const segment = _getSegment();
     if (!segment) {
         throw new Error('createPlaceVertexAction: segment is null');
     }
@@ -198,7 +198,7 @@ export function createMoveVertexAction(
     vertexIndex: number,
     oldVertex: Point,
     newVertex: Point,
-    getSegment: () => RegionSegment | null,
+    _getSegment: () => RegionSegment | null,
     setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void
 ): MoveVertexAction {
     return {
@@ -254,7 +254,7 @@ export function createMoveVertexAction(
 export function createInsertVertexAction(
     insertIndex: number,
     vertex: Point,
-    getSegment: () => RegionSegment | null,
+    _getSegment: () => RegionSegment | null,
     setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void
 ): InsertVertexAction {
     return {
@@ -310,7 +310,7 @@ export function createInsertVertexAction(
 export function createDeleteVertexAction(
     deletedIndex: number,
     deletedVertex: Point,
-    getSegment: () => RegionSegment | null,
+    _getSegment: () => RegionSegment | null,
     setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void
 ): DeleteVertexAction {
     return {
@@ -375,7 +375,7 @@ export function createMultiMoveVertexAction(
     vertexIndices: number[],
     oldVertices: Point[],
     newVertices: Point[],
-    getSegment: () => RegionSegment | null,
+    _getSegment: () => RegionSegment | null,
     setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void
 ): MultiMoveVertexAction {
     if (vertexIndices.length === 0) {
@@ -459,10 +459,10 @@ export function createMoveLineAction(
     oldVertex2: Point,
     newVertex1: Point,
     newVertex2: Point,
-    getSegment: () => RegionSegment | null,
+    _getSegment: () => RegionSegment | null,
     setSegment: (updater: (prev: RegionSegment) => RegionSegment) => void
 ): MoveLineAction {
-    const segment = getSegment();
+    const segment = _getSegment();
     if (!segment) {
         throw new Error('createMoveLineAction: segment is null');
     }

@@ -7,6 +7,8 @@ import { VertexMarker } from './VertexMarker';
 import { RegionPreview } from '../RegionPreview';
 import type { Point } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
+import type { useRegionTransaction } from '@/hooks/useRegionTransaction';
+import { createPlaceVertexAction } from '@/types/regionUndoActions';
 
 const INTERACTION_RECT_SIZE = 20000;
 const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
@@ -18,51 +20,44 @@ export interface RegionDrawingToolProps {
     onCancel: () => void;
     onFinish: () => void;
     onVerticesChange?: (vertices: Point[]) => void;
-    onLocalUndo?: () => void;
-    canLocalUndo?: boolean;
     regionType: string;
     regionColor?: string;
+    regionTransaction: ReturnType<typeof useRegionTransaction>;
 }
 
 export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
-    sceneId,
-    regionIndex,
     gridConfig,
     onCancel,
     onFinish,
     onVerticesChange,
-    onLocalUndo,
-    canLocalUndo,
-    regionType,
-    regionColor
+    regionColor,
+    regionTransaction
 }) => {
     const [vertices, setVertices] = useState<Point[]>([]);
     const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
 
     const handleFinish = useCallback(async () => {
+        console.log('RegionDrawingTool: handleFinish called, vertices:', vertices.length);
         if (vertices.length < 3) {
             console.warn('Cannot finish region with less than 3 vertices');
             return;
         }
 
+        console.log('RegionDrawingTool: calling onFinish()');
         onFinish();
     }, [vertices, onFinish]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
+            console.log('RegionDrawingTool: Escape key pressed');
                 onCancel();
                 return;
             }
 
             if (e.key === 'Enter') {
+                console.log('RegionDrawingTool: Enter key pressed, vertices:', vertices.length);
                 handleFinish();
-                return;
-            }
-
-            if ((e.ctrlKey || e.metaKey) && e.key === 'z' && canLocalUndo) {
-                e.preventDefault();
-                onLocalUndo?.();
                 return;
             }
         };
@@ -72,7 +67,7 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [onCancel, handleFinish, onLocalUndo, canLocalUndo]);
+    }, [onCancel, handleFinish]);
 
     const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
         const stage = e.target.getStage();
@@ -113,7 +108,29 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
         const newVertices = [...vertices, snappedPos];
         setVertices(newVertices);
         onVerticesChange?.(newVertices);
-    }, [vertices, gridConfig, onVerticesChange]);
+
+        const action = createPlaceVertexAction(
+            () => {
+                const segment = regionTransaction.transaction.segment;
+                if (!segment) return null;
+                return {
+                    ...segment,
+                    vertices: newVertices
+                };
+            },
+            (updater) => {
+                const segment = regionTransaction.transaction.segment;
+                if (!segment) return;
+                const updated = updater({ ...segment, vertices: newVertices });
+                regionTransaction.updateVertices(updated.vertices);
+                setVertices(updated.vertices);
+                onVerticesChange?.(updated.vertices);
+            }
+        );
+
+        regionTransaction.updateVertices(newVertices);
+        regionTransaction.pushLocalAction(action);
+    }, [vertices, gridConfig, onVerticesChange, regionTransaction]);
 
     const handleDoubleClick = useCallback(() => {
         if (vertices.length >= 3) {
@@ -142,8 +159,8 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
 
                 <RegionPreview
                     vertices={vertices}
-                    cursorPos={previewPoint ?? undefined}
-                    color={regionColor}
+                    {...(previewPoint && { cursorPos: previewPoint })}
+                    {...(regionColor && { color: regionColor })}
                 />
 
                 {previewPoint && (

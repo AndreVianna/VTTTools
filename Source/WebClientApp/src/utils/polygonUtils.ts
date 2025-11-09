@@ -7,8 +7,8 @@ import type { Point } from '@/types/domain';
  * @param p2 - Second point
  * @returns true if points have identical x and y values
  */
-export function pointsEqual(p1: Point, p2: Point): boolean {
-    return p1.x === p2.x && p1.y === p2.y;
+export function pointsEqual(p1: Point, p2: Point, tolerance = 0.001): boolean {
+    return Math.abs(p1.x - p2.x) < tolerance && Math.abs(p1.y - p2.y) < tolerance;
 }
 
 /**

@@ -585,10 +585,18 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     const attachedHandlersRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
+        console.log('[DEBUG TokenDragHandle] Event handler attachment effect triggered');
+        console.log('[DEBUG TokenDragHandle] - enableDragMove:', enableDragMove);
+        console.log('[DEBUG TokenDragHandle] - stageRef.current:', !!stageRef.current);
+        console.log('[DEBUG TokenDragHandle] - placedAssets count:', placedAssets.length);
+
         if (!enableDragMove) return;
 
         const stage = stageRef.current;
-        if (!stage) return;
+        if (!stage) {
+            console.error('[DEBUG TokenDragHandle] CRITICAL: Stage not available, cannot attach event handlers');
+            return;
+        }
 
         // Wait for next frame to ensure Konva has rendered all nodes
         const frameId = requestAnimationFrame(() => {
@@ -646,7 +654,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         return () => {
             cancelAnimationFrame(frameId);
         };
-    }, [enableDragMove, placedAssets, stageRef, handleNodeClick, handleDragStart, handleDragMove, handleDragEnd, onReady, availableActions.canMove, selectedAssetIds]);
+    }, [enableDragMove, placedAssets, stageRef, handleNodeClick, handleDragStart, handleDragMove, handleDragEnd, onReady, availableActions.canMove, selectedAssetIds, onAssetSelected]);
 
     // Helper to get actual node position (for selection borders during drag)
     const getAssetRenderPosition = useCallback((assetId: string) => {
@@ -683,7 +691,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
     return (
         <Layer name="ui-overlay" listening={true}>
             {/* Selection borders - blue outline for each selected asset */}
-            {/* eslint-disable react-hooks/refs */}
+            {/* eslint-disable-next-line react-hooks/refs */}
             {selectedAssetIds.map(assetId => {
                 const renderPos = getAssetRenderPosition(assetId);
                 if (!renderPos) return null;
@@ -701,7 +709,6 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
                     />
                 );
             })}
-            {/* eslint-enable react-hooks/refs */}
 
             {/* Rotation Handle - only for single asset selection */}
             {(() => {
@@ -711,7 +718,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
 
                 const asset = selectedAssets[0]!;
 
-                // Calculate center using same method as selection borders
+                // eslint-disable-next-line react-hooks/refs
                 const renderPos = getAssetRenderPosition(asset.id);
                 if (!renderPos) return null;
 

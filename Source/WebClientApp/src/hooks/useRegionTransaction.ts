@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
-import type { SceneRegion, Point } from '@/types/domain';
+import type { SceneRegion, Point, Scene } from '@/types/domain';
 import type {
     useAddSceneRegionMutation,
     useUpdateSceneRegionMutation
 } from '@/services/sceneApi';
+import type { GridConfig } from '@/utils/gridCalculator';
 import { cleanPolygonVertices } from '@/utils/polygonUtils';
+import { findMergeableRegions, mergePolygons } from '@/utils/regionMergeUtils';
 
 export type TransactionType = 'placement' | 'editing' | null;
 
@@ -39,6 +41,11 @@ export interface RegionTransaction {
 export interface CommitResult {
     success: boolean;
     regionIndex?: number;
+    action?: 'create' | 'edit' | 'merge';
+    targetRegionIndex?: number;
+    mergedVertices?: Point[];
+    regionsToDelete?: number[];
+    originalRegions?: SceneRegion[];
     error?: string;
 }
 
@@ -100,7 +107,7 @@ const INITIAL_TRANSACTION: RegionTransaction = {
  */
 export const useRegionTransaction = () => {
     const [transaction, setTransaction] = useState<RegionTransaction>(INITIAL_TRANSACTION);
-    const [nextTempId, setNextTempId] = useState<number>(0);
+    const [_nextTempId, setNextTempId] = useState<number>(0);
 
     const startTransaction = useCallback((
         type: TransactionType,
@@ -123,9 +130,9 @@ export const useRegionTransaction = () => {
                     name: region.name,
                     vertices: [...region.vertices],
                     type: region.type,
-                    value: region.value,
-                    label: region.label,
-                    color: region.color
+                    ...(region.value !== undefined && { value: region.value }),
+                    ...(region.label !== undefined && { label: region.label }),
+                    ...(region.color !== undefined && { color: region.color })
                 },
                 isActive: true,
                 localUndoStack: [],
@@ -142,8 +149,8 @@ export const useRegionTransaction = () => {
                     name: placementProperties?.name || '',
                     vertices: [],
                     type: placementProperties?.type || 'custom',
-                    value: placementProperties?.value,
-                    label: placementProperties?.label,
+                    ...(placementProperties?.value !== undefined && { value: placementProperties.value }),
+                    ...(placementProperties?.label !== undefined && { label: placementProperties.label }),
                     color: placementProperties?.color || '#808080'
                 },
                 isActive: true,
@@ -204,10 +211,13 @@ export const useRegionTransaction = () => {
 
     const commitTransaction = useCallback(async (
         sceneId: string,
-        apiHooks: ApiHooks
+        apiHooks: ApiHooks,
+        currentScene?: Scene,
+        gridConfig?: GridConfig
     ): Promise<CommitResult> => {
         const { addSceneRegion, updateSceneRegion } = apiHooks;
 
+        console.log('commitTransaction called with:', { sceneId, hasSegment: !!transaction.segment, segmentVertices: transaction.segment?.vertices?.length });
         try {
             if (!transaction.segment) {
                 return {
@@ -217,8 +227,56 @@ export const useRegionTransaction = () => {
             }
 
             const segment = transaction.segment;
+
+            if (currentScene?.regions) {
+                console.log('Checking for mergeable regions, currentScene.regions count:', currentScene.regions.length);
+                const mergeableRegions = findMergeableRegions(
+                    currentScene.regions,
+                    segment.vertices,
+                    segment.type,
+                    segment.value,
+                    segment.label
+                );
+
+                console.log('findMergeableRegions found:', mergeableRegions.length, 'regions', mergeableRegions);
+                if (mergeableRegions.length > 0) {
+                    const sortedRegions = [...mergeableRegions].sort((a, b) => a.index - b.index);
+                    const targetRegion = sortedRegions[0];
+                    if (!targetRegion) {
+                        return {
+                            success: false,
+                            error: 'Merge target region not found'
+                        };
+                    }
+
+                    const allVertices = [
+                        segment.vertices,
+                        ...mergeableRegions.map(r => r.vertices)
+                    ];
+                    const mergedVertices = mergePolygons(allVertices, gridConfig);
+
+                    const regionsToDelete: number[] = [];
+                    sortedRegions.slice(1).forEach(r => regionsToDelete.push(r.index));
+
+                    if (segment.regionIndex !== null && segment.regionIndex !== targetRegion.index) {
+                        regionsToDelete.push(segment.regionIndex);
+                    }
+
+                    console.log('Returning merge action for targetRegion:', targetRegion.index);
+                    return {
+                        success: true,
+                        action: 'merge',
+                        targetRegionIndex: targetRegion.index,
+                        mergedVertices,
+                        regionsToDelete,
+                        originalRegions: mergeableRegions
+                    };
+                }
+            }
+
             const cleanedVertices = cleanPolygonVertices(segment.vertices, true);
 
+            console.log('No merge detected, proceeding to create/edit. Cleaned vertices:', cleanedVertices.length);
             if (cleanedVertices.length < 3) {
                 return {
                     success: false,
@@ -227,40 +285,65 @@ export const useRegionTransaction = () => {
             }
 
             if (segment.regionIndex !== null) {
-                await updateSceneRegion({
+                console.log('Segment has regionIndex (EDIT mode):', segment.regionIndex);
+                const updateData: {
+                    sceneId: string;
+                    regionIndex: number;
+                    name: string;
+                    vertices: Point[];
+                    type: string;
+                    value?: number;
+                    label?: string;
+                    color?: string;
+                } = {
                     sceneId,
                     regionIndex: segment.regionIndex,
                     name: segment.name,
                     vertices: cleanedVertices,
                     type: segment.type,
-                    value: segment.value,
-                    label: segment.label,
-                    color: segment.color
-                }).unwrap();
+                    ...(segment.value !== undefined && { value: segment.value }),
+                    ...(segment.label !== undefined && { label: segment.label }),
+                    ...(segment.color !== undefined && { color: segment.color })
+                };
+                await updateSceneRegion(updateData).unwrap();
 
                 setTransaction(INITIAL_TRANSACTION);
                 setNextTempId(0);
 
                 return {
                     success: true,
+                    action: 'edit',
                     regionIndex: segment.regionIndex
                 };
             } else {
-                const result = await addSceneRegion({
+                console.log('Segment has NO regionIndex (CREATE mode), will call addSceneRegion');
+                const addData: {
+                    sceneId: string;
+                    name: string;
+                    vertices: Point[];
+                    type: string;
+                    value?: number;
+                    label?: string;
+                    color?: string;
+                } = {
                     sceneId,
                     name: segment.name,
                     vertices: cleanedVertices,
                     type: segment.type,
-                    value: segment.value,
-                    label: segment.label,
-                    color: segment.color
-                }).unwrap();
+                    ...(segment.value !== undefined && { value: segment.value }),
+                    ...(segment.label !== undefined && { label: segment.label }),
+                    ...(segment.color !== undefined && { color: segment.color })
+                };
+                console.log('About to call addSceneRegion with:', addData);
+                const result = await addSceneRegion(addData).unwrap();
+                console.log('addSceneRegion result:', result);
 
                 setTransaction(INITIAL_TRANSACTION);
                 setNextTempId(0);
 
                 return {
                     success: true,
+                    action: 'create',
                     regionIndex: result.index
                 };
             }
