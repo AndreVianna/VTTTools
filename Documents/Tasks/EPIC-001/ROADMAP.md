@@ -2699,8 +2699,8 @@ interface AssetToken {
 
 **Implementation Started**: 2025-11-09
 **Backend Completed**: 2025-11-09
-**Current Step**: 28/42 - Update ContentLibraryPage with tabs (Epics | Campaigns | Adventures)
-**Progress**: Backend + API slices complete, proceeding to UI components (64.3%)
+**Current Step**: 29/42 - Create EpicCard component (click navigates, no View button)
+**Progress**: Backend + API slices + Tabs complete, proceeding to Epic UI components (66.7%)
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -2950,6 +2950,18 @@ interface AssetToken {
   - Pattern compliance: Perfect match with epicsApi.ts (100% structural alignment)
   - Code Review: A+ grade (100/100) - Zero issues, perfect implementation, production ready
   - Commit: 05a8797 "Create campaignsApi RTK Query slice with all endpoints"
+
+- ✅ Step 28/42: ContentLibraryPage updated with MUI Tabs (Grade: B+, 50 LOC)
+  - Files: `Source/WebClientApp/src/features/content-library/pages/ContentLibraryPage.tsx` (MODIFIED)
+  - Implementation: Added MUI Tabs component with three tabs (Epics, Campaigns, Adventures) in hierarchical order
+  - Tab routing: /content-library/epics, /content-library/campaigns, /content-library/adventures
+  - React Router integration: useLocation for current tab detection, useNavigate for tab change handling
+  - Path matching: Robust .startsWith() method (prevents false matches like '/campaigns-archive')
+  - Layout: Maintains "Library" header, adds tab bar with divider, Outlet for nested route content
+  - Accessibility: aria-label on Tabs component, semantic IDs (tab-epics, tab-campaigns, tab-adventures)
+  - First MUI Tabs usage: Establishes pattern for tabbed navigation in VTTTools frontend
+  - Code Review: B+ grade (87/100) after path matching improvement - Production ready
+  - Commit: 95c9b13 "Update ContentLibraryPage with Epics/Campaigns/Adventures tabs"
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
