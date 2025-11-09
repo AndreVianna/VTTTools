@@ -3,7 +3,7 @@ namespace VttTools.Library.Services;
 /// <summary>
 /// Service for managing Campaign templates and their nested Adventures.
 /// </summary>
-public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage adventureStorage, IMediaStorage mediaStorage)
+public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage adventureStorage, IMediaStorage mediaStorage, ILogger<CampaignService> logger)
     : ICampaignService {
     /// <inheritdoc />
     public async Task<Campaign[]> GetCampaignsAsync(CancellationToken ct = default) {
@@ -11,7 +11,7 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
             return await campaignStorage.GetAllAsync(ct);
         }
         catch (Exception ex) {
-            Console.WriteLine(ex);
+            logger.LogError(ex, "Failed to retrieve campaigns");
             return [];
         }
     }
@@ -22,7 +22,7 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
             return await campaignStorage.GetManyAsync(filterDefinition, ct);
         }
         catch (Exception ex) {
-            Console.WriteLine(ex);
+            logger.LogError(ex, "Failed to retrieve campaigns with filter: {FilterDefinition}", filterDefinition);
             return [];
         }
     }
@@ -127,8 +127,10 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
             OwnerId = userId,
             CampaignId = id,
         };
-        campaign.Adventures.Add(adventure);
-        await campaignStorage.UpdateAsync(campaign, ct);
+        var updatedCampaign = campaign with {
+            Adventures = [.. campaign.Adventures, adventure]
+        };
+        await campaignStorage.UpdateAsync(updatedCampaign, ct);
         return adventure;
     }
 
@@ -155,8 +157,10 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
         }
 
         var clone = original.Clone(userId, cloneName) with { CampaignId = id };
-        campaign.Adventures.Add(clone);
-        await campaignStorage.UpdateAsync(campaign, ct);
+        var updatedCampaign = campaign with {
+            Adventures = [.. campaign.Adventures, clone]
+        };
+        await campaignStorage.UpdateAsync(updatedCampaign, ct);
         return clone;
     }
 
@@ -172,8 +176,10 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
         if (adventure is null)
             return Result.Failure("NotFound");
 
-        campaign.Adventures.Remove(adventure);
-        await campaignStorage.UpdateAsync(campaign, ct);
+        var updatedCampaign = campaign with {
+            Adventures = [.. campaign.Adventures.Where(a => a.Id != adventureId)]
+        };
+        await campaignStorage.UpdateAsync(updatedCampaign, ct);
         return Result.Success();
     }
 }

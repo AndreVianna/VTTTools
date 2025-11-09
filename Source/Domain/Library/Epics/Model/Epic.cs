@@ -10,5 +10,5 @@ public record Epic {
     public Resource Background { get; init; } = null!;
     public bool IsPublished { get; init; }
     public bool IsPublic { get; init; }
-    public List<Campaign> Campaigns { get; init; } = [];
+    public IReadOnlyList<Campaign> Campaigns { get; init; } = [];
 }

@@ -72,8 +72,15 @@ internal static class CampaignHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> GetAdventuresHandler([FromRoute] Guid id, [FromServices] ICampaignService campaignService)
-        => Results.Ok(await campaignService.GetAdventuresAsync(id));
+    internal static async Task<IResult> GetAdventuresHandler(HttpContext context, [FromRoute] Guid id, [FromServices] ICampaignService campaignService) {
+        var userId = context.User.GetUserId();
+        var campaign = await campaignService.GetCampaignByIdAsync(id);
+        if (campaign is null)
+            return Results.NotFound();
+        if (campaign.OwnerId != userId && !(campaign is { IsPublic: true, IsPublished: true }))
+            return Results.Forbid();
+        return Results.Ok(await campaignService.GetAdventuresAsync(id));
+    }
 
     internal static async Task<IResult> AddNewAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromServices] ICampaignService campaignService) {
         var userId = context.User.GetUserId();

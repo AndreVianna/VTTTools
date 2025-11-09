@@ -3,7 +3,7 @@ namespace VttTools.Library.Services;
 /// <summary>
 /// Service for managing Epic templates and their nested Campaigns.
 /// </summary>
-public class EpicService(IEpicStorage epicStorage, ICampaignStorage campaignStorage, IMediaStorage mediaStorage)
+public class EpicService(IEpicStorage epicStorage, ICampaignStorage campaignStorage, IMediaStorage mediaStorage, ILogger<EpicService> logger)
     : IEpicService {
     /// <inheritdoc />
     public async Task<Epic[]> GetEpicsAsync(CancellationToken ct = default) {
@@ -11,7 +11,7 @@ public class EpicService(IEpicStorage epicStorage, ICampaignStorage campaignStor
             return await epicStorage.GetAllAsync(ct);
         }
         catch (Exception ex) {
-            Console.WriteLine(ex);
+            logger.LogError(ex, "Failed to retrieve epics");
             return [];
         }
     }
@@ -22,7 +22,7 @@ public class EpicService(IEpicStorage epicStorage, ICampaignStorage campaignStor
             return await epicStorage.GetManyAsync(filterDefinition, ct);
         }
         catch (Exception ex) {
-            Console.WriteLine(ex);
+            logger.LogError(ex, "Failed to retrieve epics with filter: {FilterDefinition}", filterDefinition);
             return [];
         }
     }
@@ -127,8 +127,10 @@ public class EpicService(IEpicStorage epicStorage, ICampaignStorage campaignStor
             OwnerId = userId,
             EpicId = id,
         };
-        epic.Campaigns.Add(campaign);
-        await epicStorage.UpdateAsync(epic, ct);
+        var updatedEpic = epic with {
+            Campaigns = [.. epic.Campaigns, campaign]
+        };
+        await epicStorage.UpdateAsync(updatedEpic, ct);
         return campaign;
     }
 
@@ -155,8 +157,10 @@ public class EpicService(IEpicStorage epicStorage, ICampaignStorage campaignStor
         }
 
         var clone = original.Clone(userId, cloneName) with { EpicId = id };
-        epic.Campaigns.Add(clone);
-        await epicStorage.UpdateAsync(epic, ct);
+        var updatedEpic = epic with {
+            Campaigns = [.. epic.Campaigns, clone]
+        };
+        await epicStorage.UpdateAsync(updatedEpic, ct);
         return clone;
     }
 
@@ -172,8 +176,10 @@ public class EpicService(IEpicStorage epicStorage, ICampaignStorage campaignStor
         if (campaign is null)
             return Result.Failure("NotFound");
 
-        epic.Campaigns.Remove(campaign);
-        await epicStorage.UpdateAsync(epic, ct);
+        var updatedEpic = epic with {
+            Campaigns = [.. epic.Campaigns.Where(c => c.Id != campaignId)]
+        };
+        await epicStorage.UpdateAsync(updatedEpic, ct);
         return Result.Success();
     }
 }

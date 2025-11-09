@@ -104,7 +104,8 @@ export function CampaignDetailPage() {
             }).unwrap();
             setSaveStatus('saved');
             setTimeout(() => setSaveStatus('idle'), 2000);
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to save campaign changes:', error);
             setSaveStatus('error');
         }
     }, [campaignId, campaign, isInitialized, name, description, isPublished, updateCampaign]);
@@ -156,7 +157,8 @@ export function CampaignDetailPage() {
 
             setSaveStatus('saved');
             setTimeout(() => setSaveStatus('idle'), 2000);
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to upload campaign background:', error);
             setSaveStatus('error');
         }
     };
@@ -172,7 +174,8 @@ export function CampaignDetailPage() {
                     }
                 }).unwrap();
                 navigate(`/adventures/${adventure.id}`);
-            } catch (_error) {
+            } catch (error) {
+                console.error('Failed to create adventure:', error);
                 setSaveStatus('error');
             }
         }
@@ -190,7 +193,8 @@ export function CampaignDetailPage() {
                 campaignId,
                 adventureId
             }).unwrap();
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to duplicate adventure:', error);
             setSaveStatus('error');
         }
     };
@@ -214,7 +218,8 @@ export function CampaignDetailPage() {
 
             setDeleteDialogOpen(false);
             setAdventureToDelete(null);
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to delete adventure:', error);
             setSaveStatus('error');
         }
     };

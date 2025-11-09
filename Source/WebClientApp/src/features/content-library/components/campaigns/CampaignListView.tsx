@@ -30,6 +30,9 @@ import {
 } from '@/services/campaignsApi';
 import { useDebounce } from '../../hooks';
 
+const DEFAULT_CAMPAIGN_NAME = 'Untitled Campaign';
+const DEFAULT_CAMPAIGN_DESCRIPTION = 'A new campaign';
+
 export function CampaignListView() {
     const navigate = useNavigate();
     const [searchInput, setSearchInput] = useState('');
@@ -63,12 +66,13 @@ export function CampaignListView() {
         setIsCreating(true);
         try {
             const campaign = await createCampaign({
-                name: 'Untitled Campaign',
-                description: 'A new campaign'
+                name: DEFAULT_CAMPAIGN_NAME,
+                description: DEFAULT_CAMPAIGN_DESCRIPTION
             }).unwrap();
 
             navigate(`/campaigns/${campaign.id}`);
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to create campaign:', error);
             setErrorMessage('Failed to create campaign. Please try again.');
         } finally {
             setIsCreating(false);
@@ -83,7 +87,8 @@ export function CampaignListView() {
         try {
             await cloneCampaign({ id: campaignId }).unwrap();
             setSuccessMessage('Campaign duplicated successfully');
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to duplicate campaign:', error);
             setErrorMessage('Failed to duplicate campaign. Please try again.');
         }
     };
@@ -98,7 +103,8 @@ export function CampaignListView() {
             try {
                 await deleteCampaign(campaignToDelete).unwrap();
                 setSuccessMessage('Campaign deleted successfully');
-            } catch (_error) {
+            } catch (error) {
+                console.error('Failed to delete campaign:', error);
                 setErrorMessage('Failed to delete campaign. Please try again.');
             }
         }

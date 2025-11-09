@@ -104,7 +104,8 @@ export function EpicDetailPage() {
             }).unwrap();
             setSaveStatus('saved');
             setTimeout(() => setSaveStatus('idle'), 2000);
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to save epic changes:', error);
             setSaveStatus('error');
         }
     }, [epicId, epic, isInitialized, name, description, isPublished, updateEpic]);
@@ -156,7 +157,8 @@ export function EpicDetailPage() {
 
             setSaveStatus('saved');
             setTimeout(() => setSaveStatus('idle'), 2000);
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to upload epic background:', error);
             setSaveStatus('error');
         }
     };
@@ -172,7 +174,8 @@ export function EpicDetailPage() {
                     }
                 }).unwrap();
                 navigate(`/campaigns/${campaign.id}`);
-            } catch (_error) {
+            } catch (error) {
+                console.error('Failed to create campaign:', error);
                 setSaveStatus('error');
             }
         }
@@ -190,7 +193,8 @@ export function EpicDetailPage() {
                 epicId,
                 campaignId
             }).unwrap();
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to duplicate campaign:', error);
             setSaveStatus('error');
         }
     };
@@ -214,7 +218,8 @@ export function EpicDetailPage() {
 
             setDeleteDialogOpen(false);
             setCampaignToDelete(null);
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to delete campaign:', error);
             setSaveStatus('error');
         }
     };

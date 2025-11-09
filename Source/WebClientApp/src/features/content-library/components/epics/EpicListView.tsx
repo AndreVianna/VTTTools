@@ -30,6 +30,9 @@ import {
 } from '@/services/epicsApi';
 import { useDebounce } from '../../hooks';
 
+const DEFAULT_EPIC_NAME = 'Untitled Epic';
+const DEFAULT_EPIC_DESCRIPTION = 'A new epic';
+
 export function EpicListView() {
     const navigate = useNavigate();
     const [searchInput, setSearchInput] = useState('');
@@ -63,12 +66,13 @@ export function EpicListView() {
         setIsCreating(true);
         try {
             const epic = await createEpic({
-                name: 'Untitled Epic',
-                description: 'A new epic'
+                name: DEFAULT_EPIC_NAME,
+                description: DEFAULT_EPIC_DESCRIPTION
             }).unwrap();
 
             navigate(`/epics/${epic.id}`);
-        } catch (_error) {
+        } catch (error) {
+            console.error('Failed to create epic:', error);
             setErrorMessage('Failed to create epic. Please try again.');
         } finally {
             setIsCreating(false);
@@ -99,7 +103,8 @@ export function EpicListView() {
             try {
                 await deleteEpic(epicToDelete).unwrap();
                 setSuccessMessage('Epic deleted successfully');
-            } catch (_error) {
+            } catch (error) {
+                console.error('Failed to delete epic:', error);
                 setErrorMessage('Failed to delete epic. Please try again.');
             }
         }
