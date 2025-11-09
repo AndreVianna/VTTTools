@@ -2699,8 +2699,8 @@ interface AssetToken {
 
 **Implementation Started**: 2025-11-09
 **Backend Completed**: 2025-11-09
-**Current Step**: 35/42 - CampaignDialog component (expected to SKIP)
-**Progress**: Backend + API + Epic/Campaign components complete, proceeding to Campaign detail page (80.9%)
+**Current Step**: 36/42 - Create CampaignDetailPage showing adventures grid
+**Progress**: Backend + API + Epic/Campaign list components complete, proceeding to Campaign detail page (83.3%)
 
 **Completed Steps**:
 - ✅ Step 1/42: IEpicService interface created (Grade: A+, 103 LOC)
@@ -3038,6 +3038,12 @@ interface AssetToken {
   - Simplifications: Same as EpicListView (no content type filter, no style filter, no ownership filter)
   - Code Review: A grade (95/100) - Production ready, approved for deployment
   - Commit: aac87f8 "Create CampaignListView component with grid layout and filtering"
+
+- ⏭️ Step 35/42: CampaignDialog component (SKIPPED - Not needed based on pattern)
+  - Decision: Skip dialog component - Campaign creation/editing follows CampaignListView pattern
+  - Rationale: No dialog components exist in adventures/ or epics/ folders; creation happens inline in ListView
+  - Alternative: Campaign creation navigates directly to detail page; editing happens on detail page
+  - Pattern consistency: Matches Step 31 (EpicDialog) decision for architectural uniformity
 
 **Architecture Decisions** (User Approved):
 - ✅ UI: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
