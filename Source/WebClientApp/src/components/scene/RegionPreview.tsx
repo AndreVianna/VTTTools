@@ -1,6 +1,6 @@
 import React from 'react';
 import { Group, Line, Circle } from 'react-konva';
-import { useTheme } from '@mui/material/styles';
+import { useTheme } from '@mui/material';
 import type { Point } from '@/types/domain';
 
 export interface RegionPreviewProps {
@@ -60,8 +60,7 @@ export const RegionPreview: React.FC<RegionPreviewProps> = React.memo(({
                         points={[lastVertex.x, lastVertex.y, firstVertex.x, firstVertex.y]}
                         stroke={strokeColor}
                         strokeWidth={2}
-                        dash={[8, 4]}
-                        opacity={0.6}
+                        opacity={0.8}
                         listening={false}
                     />
                 );
@@ -69,17 +68,44 @@ export const RegionPreview: React.FC<RegionPreviewProps> = React.memo(({
 
             {cursorPos && vertices.length > 0 && (() => {
                 const lastVertex = vertices[vertices.length - 1];
-                if (!lastVertex) return null;
+                const firstVertex = vertices[0];
+                if (!lastVertex || !firstVertex) return null;
+
                 return (
-                    <Line
-                        key="cursor-line"
-                        points={[lastVertex.x, lastVertex.y, cursorPos.x, cursorPos.y]}
-                        stroke={strokeColor}
-                        strokeWidth={2}
-                        dash={[8, 4]}
-                        opacity={0.6}
-                        listening={false}
-                    />
+                    <>
+                        {vertices.length >= 2 && (
+                            <Line
+                                key="cursor-preview-fill"
+                                points={flattenPoints([...vertices, cursorPos])}
+                                fill={strokeColor}
+                                opacity={0.15}
+                                closed={true}
+                                listening={false}
+                            />
+                        )}
+
+                        <Line
+                            key="cursor-line-to-cursor"
+                            points={[lastVertex.x, lastVertex.y, cursorPos.x, cursorPos.y]}
+                            stroke={strokeColor}
+                            strokeWidth={2}
+                            dash={[8, 4]}
+                            opacity={0.6}
+                            listening={false}
+                        />
+
+                        {vertices.length >= 2 && (
+                            <Line
+                                key="cursor-line-to-first"
+                                points={[cursorPos.x, cursorPos.y, firstVertex.x, firstVertex.y]}
+                                stroke={strokeColor}
+                                strokeWidth={2}
+                                dash={[8, 4]}
+                                opacity={0.6}
+                                listening={false}
+                            />
+                        )}
+                    </>
                 );
             })()}
 

@@ -17,7 +17,7 @@ import type { SourcePlacementProperties } from './panels';
 import { AssetPicker } from '@/components/common';
 import { GridConfig } from '@/utils/gridCalculator';
 import { AssetKind } from '@/types/domain';
-import type { SceneWall, WallVisibility, Asset, PlacedAsset, SceneSource, SceneRegion } from '@/types/domain';
+import type { PlacedWall, WallVisibility, Asset, PlacedAsset, PlacedSource, PlacedRegion } from '@/types/domain';
 
 export type PanelType =
   | 'grid'
@@ -37,7 +37,7 @@ export interface LeftToolBarProps {
   gridConfig?: GridConfig | undefined;
   onGridChange?: (grid: GridConfig) => void;
   sceneId?: string | undefined;
-  sceneWalls?: SceneWall[] | undefined;
+  sceneWalls?: PlacedWall[] | undefined;
   selectedWallIndex?: number | null | undefined;
   onWallSelect?: (wallIndex: number | null) => void;
   onWallDelete?: (wallIndex: number) => void;
@@ -48,7 +48,7 @@ export interface LeftToolBarProps {
     defaultHeight: number;
   }) => void;
   onEditVertices?: (wallIndex: number) => void;
-  sceneRegions?: SceneRegion[] | undefined;
+  sceneRegions?: PlacedRegion[] | undefined;
   selectedRegionIndex?: number | null | undefined;
   onRegionSelect?: (regionIndex: number | null) => void;
   onRegionDelete?: (regionIndex: number) => void;
@@ -67,7 +67,7 @@ export interface LeftToolBarProps {
   onPlacedAssetDelete?: (assetId: string) => void;
   onPlacedAssetRename?: (assetId: string, newName: string) => void;
   onPlacedAssetUpdate?: (assetId: string, updates: Partial<PlacedAsset>) => void;
-  sceneSources?: SceneSource[] | undefined;
+  sceneSources?: PlacedSource[] | undefined;
   selectedSourceIndex?: number | null | undefined;
   onSourceSelect?: (index: number) => void;
   onSourceDelete?: (index: number) => void;
@@ -243,6 +243,7 @@ export const LeftToolBar: React.FC<LeftToolBarProps> = ({
           )}
           {activePanel === 'regions' && (
             <RegionsPanel
+              sceneId={sceneId || ''}
               sceneRegions={sceneRegions || []}
               selectedRegionIndex={selectedRegionIndex !== undefined ? selectedRegionIndex : null}
               {...(onPlaceRegion ? { onPlaceRegion } : {})}

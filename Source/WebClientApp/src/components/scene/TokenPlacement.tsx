@@ -429,15 +429,16 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
             height: assetCellSize.height * gridConfig.cellSize.height
         };
 
+        const tempIndex = placedAssets.length;
         const placedAsset: PlacedAsset = {
-            id: `placed-${Date.now()}-${Math.random()}`,
+            id: `scene-asset-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
             assetId: draggedAsset.id,
             asset: draggedAsset,
             position: cursorPosition,
             size,
             rotation: 0,
             layer: getAssetGroup(draggedAsset),
-            index: placedAssets.length,
+            index: tempIndex,
             number: 1,
             name: draggedAsset.name,
             visible: true,
@@ -467,8 +468,6 @@ export const TokenPlacement: React.FC<TokenPlacementProps> = ({
                 if (!image) return null;
 
                 const isCreature = placedAsset.asset.kind === 'Creature';
-                const imageX = placedAsset.position.x - placedAsset.size.width / 2;
-                const imageY = placedAsset.position.y - placedAsset.size.height / 2;
 
                 if (isCreature) {
                     const isHovered = hoveredAssetId === placedAsset.id;

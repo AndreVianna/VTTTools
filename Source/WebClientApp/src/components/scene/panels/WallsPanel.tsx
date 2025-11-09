@@ -27,14 +27,14 @@ import {
     ExpandMore as ExpandMoreIcon,
     ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
-import { WallVisibility, type SceneWall, type Pole } from '@/types/domain';
+import { WallVisibility, type PlacedWall, type Pole } from '@/types/domain';
 import { WALL_PRESETS, MATERIAL_OPTIONS, type WallPreset } from './wallsPanelTypes';
 import { ConfirmDialog } from '@/components/common';
 import { useUpdateSceneWallMutation } from '@/services/sceneApi';
 
 export interface WallsPanelProps {
     sceneId?: string;
-    sceneWalls?: SceneWall[];
+    sceneWalls?: PlacedWall[];
     selectedWallIndex?: number | null;
     onPresetSelect?: (preset: WallPreset) => void;
     onPlaceWall?: (properties: {

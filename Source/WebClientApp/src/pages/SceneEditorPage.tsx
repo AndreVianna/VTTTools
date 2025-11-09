@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Box, useTheme, CircularProgress, Typography, Alert, Snackbar } from '@mui/material';
+import { Box, useTheme, CircularProgress, Typography, Alert } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Layer, Group } from 'react-konva';
 import Konva from 'konva';
@@ -11,21 +11,22 @@ import {
     GridRenderer,
     TokenPlacement,
     TokenDragHandle,
-    AssetContextMenu,
-    WallContextMenu,
+    EditorDialogs,
     DrawingMode,
     WallDrawingTool,
+    RegionDrawingTool,
     SourceDrawingTool,
     WallRenderer,
     RegionRenderer,
     SourceRenderer,
     WallTransformer,
+    RegionTransformer,
     LeftToolBar,
     TopToolBar,
     EditorStatusBar
 } from '@components/scene';
 import type { WallBreakData } from '@components/scene/editing/WallTransformer';
-import { EditingBlocker, ConfirmDialog } from '@components/common';
+import { EditingBlocker } from '@components/common';
 import { EditorLayout } from '@components/layout';
 import { GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
 import { toBackendRotation } from '@utils/rotationUtils';
@@ -38,8 +39,14 @@ import {
     DisplayName,
     LabelPosition,
     SceneWall,
+    PlacedWall,
+    SceneRegion,
+    PlacedRegion,
+    SceneSource,
+    PlacedSource,
     WallVisibility,
     Pole,
+    Point,
     PlacedAssetSnapshot,
     createAssetSnapshot
 } from '@/types/domain';
@@ -49,9 +56,24 @@ import { useClipboard } from '@/contexts/useClipboard';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import { useWallTransaction } from '@/hooks/useWallTransaction';
 import { useRegionTransaction } from '@/hooks/useRegionTransaction';
-import { addWallOptimistic, removeWallOptimistic, syncWallIndices, updateWallOptimistic } from '@/utils/sceneStateUtils';
+import {
+    useSceneSettings,
+    useGridHandlers,
+    useWallHandlers,
+    useRegionHandlers,
+    useKeyboardState,
+    useCanvasReadyState,
+    useViewportControls,
+    useContextMenus,
+    useAssetManagement
+} from './SceneEditor/hooks';
+import {
+    addWallOptimistic, removeWallOptimistic, syncWallIndices, updateWallOptimistic,
+    addRegionOptimistic, removeRegionOptimistic, syncRegionIndices, updateRegionOptimistic
+} from '@/utils/sceneStateUtils';
 import { createBreakWallAction } from '@/types/wallUndoActions';
 import {
+    Command,
     createPlaceAssetCommand,
     createMoveAssetCommand,
     createBatchCommand,
@@ -64,6 +86,7 @@ import {
     createTransformAssetCommand
 } from '@/utils/commands';
 import { CreateWallCommand, EditWallCommand, BreakWallCommand } from '@/utils/commands/wallCommands';
+import { CreateRegionCommand, EditRegionCommand, DeleteRegionCommand } from '@/utils/commands/regionCommands';
 import {
     useGetSceneQuery,
     usePatchSceneMutation,
@@ -76,11 +99,14 @@ import {
     useAddSceneWallMutation,
     useRemoveSceneWallMutation,
     useUpdateSceneWallMutation,
+    useAddSceneRegionMutation,
+    useUpdateSceneRegionMutation,
+    useRemoveSceneRegionMutation,
     useRemoveSceneSourceMutation
 } from '@/services/sceneApi';
 import type { SourcePlacementProperties } from '@components/scene/panels';
 import { useUploadFileMutation } from '@/services/mediaApi';
-import { hydratePlacedAssets } from '@/utils/sceneMappers';
+import { hydratePlacedAssets, hydratePlacedWalls, hydratePlacedRegions, hydratePlacedSources } from '@/utils/sceneMappers';
 import { getApiEndpoints } from '@/config/development';
 import { SaveStatus } from '@/components/common';
 import { useAppDispatch } from '@/store';
@@ -101,8 +127,6 @@ const SceneEditorPageInternal: React.FC = () => {
     const { isOnline } = useConnectionStatus();
     const wallTransaction = useWallTransaction();
     const regionTransaction = useRegionTransaction();
-    const dispatch = useAppDispatch();
-
     const { data: sceneData, isLoading: isLoadingScene, error: sceneError, refetch } = useGetSceneQuery(
         sceneId || '',
         {
@@ -122,6 +146,9 @@ const SceneEditorPageInternal: React.FC = () => {
     const [removeSceneWall] = useRemoveSceneWallMutation();
     const [updateSceneWall] = useUpdateSceneWallMutation();
 
+    const [addSceneRegion] = useAddSceneRegionMutation();
+    const [updateSceneRegion] = useUpdateSceneRegionMutation();
+    const [removeSceneRegion] = useRemoveSceneRegionMutation();
     const [removeSceneSource] = useRemoveSceneSourceMutation();
 
     // Force refetch on mount with forceRefetch option
@@ -134,6 +161,9 @@ const SceneEditorPageInternal: React.FC = () => {
     const [isInitialized, setIsInitialized] = useState(false);
     const [scene, setScene] = useState<Scene | null>(null);
     const sceneRef = useRef<Scene | null>(null);
+    const [placedWalls, setPlacedWalls] = useState<PlacedWall[]>([]);
+    const [placedRegions, setPlacedRegions] = useState<PlacedRegion[]>([]);
+    const [placedSources, setPlacedSources] = useState<PlacedSource[]>([]);
 
     useEffect(() => {
         sceneRef.current = scene;
@@ -145,44 +175,24 @@ const SceneEditorPageInternal: React.FC = () => {
         scale: 1
     };
 
-    const [viewport, setViewport] = useState<Viewport>(initialViewport);
     const [gridConfig, setGridConfig] = useState<GridConfig>(getDefaultGrid());
     const [backgroundImageUrl] = useState<string>(SCENE_DEFAULT_BACKGROUND);
-    const [draggedAsset, setDraggedAsset] = useState<Asset | null>(null);
-    const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>(() => {
-        const stored = localStorage.getItem('scene-selected-assets');
-        if (stored) {
-            try {
-                return JSON.parse(stored);
-            } catch {
-                return [];
-            }
-        }
-        return [];
-    });
-    const [isSceneReady, setIsSceneReady] = useState<boolean>(false);
-    const [imagesLoaded, setImagesLoaded] = useState<boolean>(false);
-    const [handlersReady, setHandlersReady] = useState<boolean>(false);
-    const [placedAssets, setPlacedAssets] = useState<PlacedAsset[]>([]);
     const [isHydrating, setIsHydrating] = useState(false);
     const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
-    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-    const [assetsToDelete, setAssetsToDelete] = useState<PlacedAsset[]>([]);
-    const [contextMenuPosition, setContextMenuPosition] = useState<{ left: number; top: number } | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [contextMenuAsset, setContextMenuAsset] = useState<PlacedAsset | null>(null);
 
     const [drawingMode, setDrawingMode] = useState<DrawingMode>(null);
     const [selectedWallIndex, setSelectedWallIndex] = useState<number | null>(null);
     const [drawingWallIndex, setDrawingWallIndex] = useState<number | null>(null);
     const [drawingWallDefaultHeight, setDrawingWallDefaultHeight] = useState<number>(10);
-    const [WallContextMenuPosition, setWallContextMenuPosition] = useState<{ left: number; top: number } | null>(null);
-    const [contextMenuWall, setContextMenuWall] = useState<SceneWall | null>(null);
     const [isEditingVertices, setIsEditingVertices] = useState(false);
     const [originalWallPoles, setOriginalWallPoles] = useState<Pole[] | null>(null);
 
     const [selectedRegionIndex, setSelectedRegionIndex] = useState<number | null>(null);
     const [drawingRegionIndex, setDrawingRegionIndex] = useState<number | null>(null);
+    const [editingRegionIndex, setEditingRegionIndex] = useState<number | null>(null);
+    const [isEditingRegionVertices, setIsEditingRegionVertices] = useState(false);
+    const [originalRegionVertices, setOriginalRegionVertices] = useState<Point[] | null>(null);
 
     const [selectedSourceIndex, setSelectedSourceIndex] = useState<number | null>(null);
     const [sourcePlacementProperties, setSourcePlacementProperties] = useState<SourcePlacementProperties | null>(null);
@@ -205,66 +215,7 @@ const SceneEditorPageInternal: React.FC = () => {
         creatures: true,
         overlays: true
     });
-    const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | undefined>(undefined);
     const [activePanel, setActivePanel] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (sceneData && !isInitialized) {
-            const initializeScene = async () => {
-                setIsHydrating(true);
-                try {
-                    const hydratedAssets = await hydratePlacedAssets(
-                        sceneData.assets,
-                        async (assetId: string) => {
-                            const result = await dispatch(
-                                assetsApi.endpoints.getAsset.initiate(assetId)
-                            ).unwrap();
-                            return result;
-                        }
-                    );
-
-                    setScene(sceneData);
-                    setGridConfig({
-                        type: typeof sceneData.grid.type === 'string'
-                            ? GridType[sceneData.grid.type as keyof typeof GridType]
-                            : sceneData.grid.type,
-                        cellSize: sceneData.grid.cellSize,
-                        offset: sceneData.grid.offset,
-                        snap: sceneData.grid.snap
-                    });
-                    setPlacedAssets(hydratedAssets);
-                    setIsInitialized(true);
-                } catch (error) {
-                    console.error('Failed to hydrate scene assets:', error);
-                    setScene(sceneData);
-                    setGridConfig({
-                        type: typeof sceneData.grid.type === 'string'
-                            ? GridType[sceneData.grid.type as keyof typeof GridType]
-                            : sceneData.grid.type,
-                        cellSize: sceneData.grid.cellSize,
-                        offset: sceneData.grid.offset,
-                        snap: sceneData.grid.snap
-                    });
-                    setPlacedAssets([]);
-                    setIsInitialized(true);
-                } finally {
-                    setIsHydrating(false);
-                }
-            };
-
-            initializeScene();
-        }
-    }, [sceneData, isInitialized, dispatch]);
-
-    useEffect(() => {
-        if (sceneData && isInitialized) {
-            setScene(sceneData);
-        }
-    }, [sceneData, isInitialized]);
-
-    useEffect(() => {
-        localStorage.setItem('scene-selected-assets', JSON.stringify(selectedAssetIds));
-    }, [selectedAssetIds]);
 
     const saveChanges = useCallback(async (overrides?: Partial<{
         name: string;
@@ -339,42 +290,195 @@ const SceneEditorPageInternal: React.FC = () => {
         }
     }, [sceneId, scene, isInitialized, gridConfig, patchScene, refetch]);
 
-    const handleSceneNameChange = useCallback((name: string) => {
-        if (!sceneId || !scene) return;
-        setScene(prev => prev ? { ...prev, name } : null);
-    }, [sceneId, scene]);
+    const sceneSettings = useSceneSettings({
+        sceneId,
+        scene,
+        setScene,
+        saveChanges
+    });
 
-    const handleBackClick = useCallback(() => {
-        if (scene?.adventure?.id) {
-            navigate(`/adventures/${scene.adventure.id}`);
-        } else {
-            navigate('/content-library');
+    const gridHandlers = useGridHandlers({
+        setGridConfig,
+        saveChanges
+    });
+
+    const wallHandlers = useWallHandlers({
+        sceneId,
+        scene,
+        wallTransaction,
+        selectedWallIndex,
+        addSceneWall,
+        updateSceneWall,
+        removeSceneWall,
+        setScene,
+        setSelectedWallIndex,
+        setIsEditingVertices,
+        setOriginalWallPoles,
+        setActivePanel,
+        setErrorMessage,
+        execute,
+        refetch
+    });
+
+    const regionHandlers = useRegionHandlers({
+        sceneId,
+        scene,
+        regionTransaction,
+        gridConfig,
+        selectedRegionIndex,
+        editingRegionIndex,
+        originalRegionVertices,
+        drawingMode,
+        drawingRegionIndex,
+        addSceneRegion,
+        updateSceneRegion,
+        removeSceneRegion,
+        setScene,
+        setPlacedRegions,
+        setSelectedRegionIndex,
+        setEditingRegionIndex,
+        setIsEditingRegionVertices,
+        setOriginalRegionVertices,
+        setDrawingRegionIndex,
+        setDrawingMode,
+        setErrorMessage,
+        execute,
+        refetch
+    });
+
+    const keyboardState = useKeyboardState({
+        gridConfig,
+        onEscapeKey: () => {
+            if (assetManagement.draggedAsset) {
+                assetManagement.setDraggedAsset(null);
+            }
         }
-    }, [scene, navigate]);
+    });
 
-    const handleSceneDescriptionChange = useCallback((description: string) => {
-        if (!sceneId || !scene) {
-            return;
+    const canvasReadyState = useCanvasReadyState({
+        stageRef
+    });
+
+    const viewportControls = useViewportControls({
+        initialViewport,
+        canvasRef
+    });
+
+    const contextMenus = useContextMenus({
+        scene
+    });
+
+    const dispatch = useAppDispatch();
+
+    const assetManagement = useAssetManagement({
+        sceneId,
+        scene,
+        isOnline,
+        setScene,
+        execute,
+        dispatch,
+        copyAssets,
+        cutAssets,
+        canPaste,
+        getClipboardAssets,
+        clipboard,
+        clearClipboard,
+        addSceneAsset,
+        updateSceneAsset,
+        bulkUpdateSceneAssets,
+        removeSceneAsset,
+        bulkDeleteSceneAssets,
+        bulkAddSceneAssets,
+        refetch
+    });
+
+    useEffect(() => {
+        if (sceneData && !isInitialized) {
+            const initializeScene = async () => {
+                setIsHydrating(true);
+                try {
+                    const hydratedAssets = await hydratePlacedAssets(
+                        sceneData.assets,
+                        sceneId || '',
+                        async (assetId: string) => {
+                            const result = await dispatch(
+                                assetsApi.endpoints.getAsset.initiate(assetId)
+                            ).unwrap();
+                            return result;
+                        }
+                    );
+
+                    const hydratedWalls = hydratePlacedWalls(sceneData.walls || [], sceneId || '');
+                    const hydratedRegions = hydratePlacedRegions(sceneData.regions || [], sceneId || '');
+                    const hydratedSources = hydratePlacedSources(sceneData.sources || [], sceneId || '');
+
+                    setScene(sceneData);
+                    setGridConfig({
+                        type: typeof sceneData.grid.type === 'string'
+                            ? GridType[sceneData.grid.type as keyof typeof GridType]
+                            : sceneData.grid.type,
+                        cellSize: sceneData.grid.cellSize,
+                        offset: sceneData.grid.offset,
+                        snap: sceneData.grid.snap
+                    });
+                    assetManagement.setPlacedAssets(hydratedAssets);
+                    setPlacedWalls(hydratedWalls);
+                    setPlacedRegions(hydratedRegions);
+                    setPlacedSources(hydratedSources);
+                    setIsInitialized(true);
+                } catch (error) {
+                    console.error('Failed to hydrate scene:', error);
+                    setScene(sceneData);
+                    setGridConfig({
+                        type: typeof sceneData.grid.type === 'string'
+                            ? GridType[sceneData.grid.type as keyof typeof GridType]
+                            : sceneData.grid.type,
+                        cellSize: sceneData.grid.cellSize,
+                        offset: sceneData.grid.offset,
+                        snap: sceneData.grid.snap
+                    });
+                    assetManagement.setPlacedAssets([]);
+                    setPlacedWalls([]);
+                    setPlacedRegions([]);
+                    setPlacedSources([]);
+                    setIsInitialized(true);
+                } finally {
+                    setIsHydrating(false);
+                }
+            };
+
+            initializeScene();
         }
-        setScene(prev => prev ? { ...prev, description } : null);
-        saveChanges({ description });
-    }, [sceneId, scene, saveChanges]);
+    }, [sceneData, isInitialized, dispatch, sceneId]);
 
-    const handleScenePublishedChange = useCallback((isPublished: boolean) => {
-        if (!sceneId) return;
-        setScene(prev => prev ? { ...prev, isPublished } : null);
-        saveChanges({ isPublished });
-    }, [sceneId, saveChanges]);
+    useEffect(() => {
+        if (sceneData && isInitialized) {
+            setScene(sceneData);
+            const hydratedWalls = hydratePlacedWalls(sceneData.walls || [], sceneId || '');
+            const hydratedRegions = hydratePlacedRegions(sceneData.regions || [], sceneId || '');
+            const hydratedSources = hydratePlacedSources(sceneData.sources || [], sceneId || '');
+            setPlacedWalls(hydratedWalls);
+            setPlacedRegions(hydratedRegions);
+            setPlacedSources(hydratedSources);
+        }
+    }, [sceneData, isInitialized, sceneId]);
 
-    const handleSceneUpdate = useCallback((updates: Partial<Scene>) => {
-        if (!sceneId || !scene) return;
-        setScene(prev => prev ? { ...prev, ...updates } : null);
-        saveChanges(updates as any);
-    }, [sceneId, scene, saveChanges]);
+
+    
+
+    
+
+    
+
+    
+
+    
 
     // Initialize Stage reference when SceneCanvas is ready
     // CRITICAL: TokenDragHandle depends on this ref being set to attach event handlers
     // NOTE: Runs when imagesLoaded or handlersReady changes to retry stage initialization
+    const [stageReady, setStageReady] = useState(false);
+
     useEffect(() => {
         const stage = canvasRef.current?.getStage();
 
@@ -382,20 +486,10 @@ const SceneEditorPageInternal: React.FC = () => {
             stageRef.current = stage;
             layerManager.initialize(stage);
             layerManager.enforceZOrder();
+            setStageReady(true);
         }
-    }, [isSceneReady, imagesLoaded, handlersReady]);
+    });
 
-    // Validation: Ensure Stage is set when scene is ready
-    // This catches initialization failures early in development
-    useEffect(() => {
-        if (isSceneReady && !stageRef.current) {
-            console.error(
-                '[SceneEditorPage] CRITICAL: Scene is ready but Stage reference not set. ' +
-                'TokenDragHandle will not be able to attach event handlers. ' +
-                'This will break asset selection, movement, and deletion.'
-            );
-        }
-    }, [isSceneReady]);
 
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -412,126 +506,8 @@ const SceneEditorPageInternal: React.FC = () => {
         };
     }, [saveStatus]);
 
-    useEffect(() => {
-        if (stageRef.current && imagesLoaded && handlersReady && !isSceneReady) {
-            setIsSceneReady(true);
-        }
-    }, [imagesLoaded, handlersReady, isSceneReady]);
 
-    const [isAltPressed, setIsAltPressed] = useState(false);
-    const [isCtrlPressed, setIsCtrlPressed] = useState(false);
-    const [isShiftPressed, setIsShiftPressed] = useState(false);
 
-    const snapMode: 'free' | 'grid' | 'half-step' =
-        isAltPressed && isCtrlPressed ? 'half-step' :
-        isAltPressed ? 'free' :
-        isCtrlPressed ? 'grid' :
-        gridConfig.snap ? 'grid' : 'free';
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-                return;
-            }
-
-            if (e.key === 'Alt' || e.key === 'Control' || e.key === 'Shift') {
-                e.preventDefault();
-            }
-
-            if (e.key === 'Escape' && draggedAsset) {
-                setDraggedAsset(null);
-            }
-
-            if (e.key === 'Alt') {
-                setIsAltPressed(true);
-            }
-            if (e.key === 'Control') {
-                setIsCtrlPressed(true);
-            }
-            if (e.key === 'Shift') {
-                setIsShiftPressed(true);
-            }
-        };
-
-        const handleKeyUp = (e: KeyboardEvent) => {
-            if (e.key === 'Alt' || e.key === 'Control' || e.key === 'Shift') {
-                e.preventDefault();
-            }
-
-            if (e.key === 'Alt') {
-                setIsAltPressed(false);
-            }
-            if (e.key === 'Control') {
-                setIsCtrlPressed(false);
-            }
-            if (e.key === 'Shift') {
-                setIsShiftPressed(false);
-            }
-        };
-
-        const handleBlur = () => {
-            setIsAltPressed(false);
-            setIsCtrlPressed(false);
-            setIsShiftPressed(false);
-        };
-
-        window.addEventListener('keydown', handleKeyDown, { capture: true });
-        window.addEventListener('keyup', handleKeyUp, { capture: true });
-        window.addEventListener('blur', handleBlur);
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown, { capture: true });
-            window.removeEventListener('keyup', handleKeyUp, { capture: true });
-            window.removeEventListener('blur', handleBlur);
-        };
-    }, [draggedAsset]);
-
-    const handleViewportChange = (newViewport: Viewport) => {
-        setViewport(newViewport);
-    };
-
-    const handleZoomIn = () => {
-        canvasRef.current?.zoomIn();
-    };
-
-    const handleZoomOut = () => {
-        canvasRef.current?.zoomOut();
-    };
-
-    const handleZoomReset = () => {
-        canvasRef.current?.resetView();
-    };
-
-    const handleGridChange = useCallback((newGrid: GridConfig) => {
-        if (!scene || !sceneId) return;
-
-        const normalizedGrid = {
-            ...newGrid,
-            type: typeof newGrid.type === 'string'
-                ? GridType[newGrid.type as keyof typeof GridType]
-                : newGrid.type
-        };
-
-        setGridConfig(normalizedGrid);
-        setScene(prev => prev ? {
-            ...prev,
-            grid: {
-                type: newGrid.type as any,
-                cellSize: newGrid.cellSize,
-                offset: newGrid.offset,
-                snap: newGrid.snap
-            }
-        } : null);
-
-        saveChanges({
-            grid: {
-                type: newGrid.type as any,
-                cellSize: newGrid.cellSize,
-                offset: newGrid.offset,
-                snap: newGrid.snap
-            }
-        });
-    }, [scene, sceneId, saveChanges]);
 
     const handleBackgroundUpload = useCallback(async (file: File) => {
         if (!sceneId) return;
@@ -556,694 +532,14 @@ const SceneEditorPageInternal: React.FC = () => {
         }
     }, [sceneId, uploadFile, patchScene]);
 
-    const handleAssetPlaced = (asset: PlacedAsset) => {
-        const command = createPlaceAssetCommand({
-            asset,
-            onPlace: async (placedAsset) => {
-                setPlacedAssets(prev => {
-                    if (prev.some(a => a.id === placedAsset.id)) {
-                        return prev;
-                    }
-                    return [...prev, placedAsset];
-                });
-
-                if (sceneId && isOnline && scene) {
-                    try {
-                        await addSceneAsset({
-                            sceneId,
-                            libraryAssetId: placedAsset.assetId,
-                            position: placedAsset.position,
-                            size: { width: placedAsset.size.width, height: placedAsset.size.height },
-                            rotation: placedAsset.rotation
-                        }).unwrap();
-
-                        const { data: updatedScene } = await refetch();
-                        if (updatedScene) {
-                            setScene(updatedScene);
-
-                            // Re-hydrate placed assets to get backend-computed properties
-                            const hydratedAssets = await hydratePlacedAssets(
-                                updatedScene.assets,
-                                async (assetId: string) => {
-                                    const result = await dispatch(
-                                        assetsApi.endpoints.getAsset.initiate(assetId)
-                                    ).unwrap();
-                                    return result;
-                                }
-                            );
-                            setPlacedAssets(hydratedAssets);
-                        }
-                    } catch (error) {
-                        console.error('Failed to persist placed asset:', error);
-                    }
-                }
-            },
-            onRemove: async (assetId) => {
-                const asset = placedAssets.find(a => a.id === assetId);
-                setPlacedAssets(prev => prev.filter(a => a.id !== assetId));
-
-                if (sceneId && isOnline && scene && asset) {
-                    try {
-                        await removeSceneAsset({ sceneId, assetNumber: asset.index }).unwrap();
-                        const { data: updatedScene } = await refetch();
-                        if (updatedScene) {
-                            setScene(updatedScene);
-                        }
-                    } catch (error) {
-                        console.error('Failed to remove asset:', error);
-                    }
-                }
-            }
-        });
-        execute(command);
-    };
-
-    const handleAssetMoved = (moves: Array<{ assetId: string; oldPosition: { x: number; y: number }; newPosition: { x: number; y: number } }>) => {
-        if (moves.length === 0) return;
-
-        if (moves.length === 1) {
-            const move = moves[0];
-            const { assetId, oldPosition, newPosition } = move as { assetId: string; oldPosition: { x: number; y: number }; newPosition: { x: number; y: number } };
-
-            const command = createMoveAssetCommand({
-                assetId,
-                oldPosition,
-                newPosition,
-                onMove: async (id, position) => {
-                    // Find asset INSIDE the setState callback to ensure we get current state
-                    let assetIndex: number | undefined;
-                    setPlacedAssets(prev => {
-                        const asset = prev.find(a => a.id === id);
-                        assetIndex = asset?.index;
-                        return prev.map(a => (a.id === id ? { ...a, position } : a));
-                    });
-
-                    if (sceneId && isOnline && scene && assetIndex !== undefined) {
-                        try {
-                            await updateSceneAsset({
-                                sceneId,
-                                assetNumber: assetIndex,
-                                position
-                            }).unwrap();
-                        } catch (error) {
-                            console.error('Failed to persist asset movement:', error);
-                        }
-                    }
-                }
-            });
-            execute(command);
-        } else {
-            // Collect backend asset indices and positions upfront for bulk update
-            const bulkUpdates: Array<{ index: number; position: { x: number; y: number } }> = [];
-
-            moves.forEach(({ assetId, newPosition }) => {
-                const asset = placedAssets.find(a => a.id === assetId);
-                if (asset) {
-                    bulkUpdates.push({ index: asset.index, position: newPosition });
-                }
-            });
-
-            const commands = moves.map(({ assetId, oldPosition, newPosition }) => {
-                return createMoveAssetCommand({
-                    assetId,
-                    oldPosition,
-                    newPosition,
-                    onMove: (id, position) => {
-                        setPlacedAssets(prev => prev.map(a => (a.id === id ? { ...a, position } : a)));
-                    }
-                });
-            });
-
-            execute(createBatchCommand({ commands }));
-
-            // Send bulk update with all moved assets
-            if (sceneId && isOnline && scene && bulkUpdates.length > 0) {
-                (async () => {
-                    try {
-                        await bulkUpdateSceneAssets({
-                            sceneId,
-                            updates: bulkUpdates
-                        }).unwrap();
-                    } catch (error) {
-                        console.error('Failed to persist bulk asset movement:', error);
-                    }
-                })();
-            }
-        }
-    };
-
-    const [rotationInitialSnapshots, setRotationInitialSnapshots] = useState<Map<string, PlacedAssetSnapshot>>(new Map());
-
-    const handleRotationStart = useCallback(() => {
-        const snapshots = new Map<string, PlacedAssetSnapshot>();
-        placedAssets
-            .filter(asset => selectedAssetIds.includes(asset.id))
-            .forEach(asset => {
-                snapshots.set(asset.id, createAssetSnapshot(asset));
-            });
-        setRotationInitialSnapshots(snapshots);
-    }, [placedAssets, selectedAssetIds]);
-
-    const handleAssetRotated = useCallback((updates: Array<{
-        assetId: string;
-        rotation: number;
-        position?: { x: number; y: number };
-    }>) => {
-        setPlacedAssets(prev => prev.map(asset => {
-            const update = updates.find(u => u.assetId === asset.id);
-            if (!update) return asset;
-
-            return {
-                ...asset,
-                rotation: update.rotation,
-                ...(update.position ? { position: update.position } : {})
-            };
-        }));
-    }, []);
-
-    const handleRotationEnd = useCallback(async () => {
-        if (!sceneId || !scene) return;
-
-        const assetsToUpdate = placedAssets.filter(asset =>
-            selectedAssetIds.includes(asset.id)
-        );
-
-        if (assetsToUpdate.length === 0) return;
-
-        const afterSnapshots = new Map<string, PlacedAssetSnapshot>();
-        assetsToUpdate.forEach(asset => {
-            afterSnapshots.set(asset.id, createAssetSnapshot(asset));
-        });
-
-        const hasChanges = assetsToUpdate.some(asset => {
-            const before = rotationInitialSnapshots.get(asset.id);
-            const after = afterSnapshots.get(asset.id);
-            return before && after && (
-                before.rotation !== after.rotation ||
-                before.position.x !== after.position.x ||
-                before.position.y !== after.position.y
-            );
-        });
-
-        if (!hasChanges) return;
-
-        const command = createTransformAssetCommand({
-            assetIds: assetsToUpdate.map(a => a.id),
-            beforeSnapshots: rotationInitialSnapshots,
-            afterSnapshots,
-            onUpdate: (assetId, snapshot) => {
-                setPlacedAssets(prev => prev.map(a =>
-                    a.id === assetId
-                        ? { ...a, ...snapshot }
-                        : a
-                ));
-            }
-        });
-
-        execute(command);
-
-        if (!isOnline) return;
-
-        try {
-            if (assetsToUpdate.length === 1) {
-                const asset = assetsToUpdate[0];
-                if (!asset) return;
-
-                const backendRotation = toBackendRotation(asset.rotation);
-                await updateSceneAsset({
-                    sceneId,
-                    assetNumber: asset.index,
-                    rotation: backendRotation,
-                    position: asset.position
-                }).unwrap();
-            } else {
-                const bulkUpdates = assetsToUpdate.map(asset => ({
-                    index: asset.index,
-                    rotation: toBackendRotation(asset.rotation),
-                    position: asset.position
-                }));
-
-                await bulkUpdateSceneAssets({
-                    sceneId,
-                    updates: bulkUpdates
-                }).unwrap();
-            }
-        } catch (error) {
-            console.error('Failed to persist rotation:', error);
-        }
-    }, [sceneId, scene, isOnline, placedAssets, selectedAssetIds, rotationInitialSnapshots, updateSceneAsset, bulkUpdateSceneAssets, execute]);
-
-    const handleAssetDeleted = () => {
-        if (selectedAssetIds.length === 0) return;
-
-        const assets = placedAssets.filter(a => selectedAssetIds.includes(a.id));
-        setAssetsToDelete(assets);
-        setDeleteConfirmOpen(true);
-    };
-
-    const confirmDelete = useCallback(async () => {
-        if (assetsToDelete.length === 0) return;
-
-        const command = createBulkRemoveAssetsCommand({
-            assets: assetsToDelete,
-            onBulkRemove: async (_assetIds) => {
-                if (sceneId && isOnline && scene) {
-                    try {
-                        const indices = assetsToDelete.map(asset => asset.index);
-
-                        await bulkDeleteSceneAssets({ sceneId, assetIndices: indices }).unwrap();
-                        const { data: updatedScene } = await refetch();
-                        if (updatedScene) {
-                            setScene(updatedScene);
-                            const hydratedAssets = await hydratePlacedAssets(
-                                updatedScene.assets,
-                                async (assetId: string) => {
-                                    const result = await dispatch(
-                                        assetsApi.endpoints.getAsset.initiate(assetId)
-                                    ).unwrap();
-                                    return result;
-                                }
-                            );
-                            setPlacedAssets(hydratedAssets);
-                        }
-                    } catch (error) {
-                        console.error('Failed to persist bulk asset deletion:', error);
-                    }
-                }
-            },
-            onBulkRestore: async (assets) => {
-                if (sceneId && isOnline && scene) {
-                    try {
-                        await bulkAddSceneAssets({
-                            sceneId,
-                            assets: assets.map(asset => ({
-                                assetId: asset.assetId,
-                                position: asset.position,
-                                size: { width: asset.size.width, height: asset.size.height },
-                                rotation: asset.rotation
-                            }))
-                        }).unwrap();
-
-                        const { data: updatedScene } = await refetch();
-                        if (updatedScene) {
-                            setScene(updatedScene);
-                            const hydratedAssets = await hydratePlacedAssets(
-                                updatedScene.assets,
-                                async (assetId: string) => {
-                                    const result = await dispatch(
-                                        assetsApi.endpoints.getAsset.initiate(assetId)
-                                    ).unwrap();
-                                    return result;
-                                }
-                            );
-                            setPlacedAssets(hydratedAssets);
-                        }
-                    } catch (error) {
-                        console.error('Failed to restore deleted assets:', error);
-                    }
-                }
-            }
-        });
-
-        execute(command);
-        setSelectedAssetIds([]);
-        setDeleteConfirmOpen(false);
-        setAssetsToDelete([]);
-    }, [assetsToDelete, sceneId, isOnline, scene, bulkDeleteSceneAssets, bulkAddSceneAssets, refetch, execute, dispatch]);
-
-    const handleCopyAssets = useCallback(() => {
-        if (selectedAssetIds.length === 0 || !sceneId) return;
-
-        const assets = placedAssets.filter(a => selectedAssetIds.includes(a.id));
-
-        const command = createCopyAssetsCommand({
-            assets,
-            onCopy: (copiedAssets) => {
-                copyAssets(copiedAssets, sceneId);
-            }
-        });
-
-        execute(command);
-    }, [selectedAssetIds, sceneId, copyAssets, execute, placedAssets]);
-
-    const handleCutAssets = useCallback(() => {
-        if (selectedAssetIds.length === 0 || !sceneId || !isOnline) return;
-
-        const assetsToDelete = placedAssets.filter(a => selectedAssetIds.includes(a.id));
-
-        const command = createCutAssetsCommand({
-            assets: assetsToDelete,
-            onCut: async (assets) => {
-                cutAssets(assets, sceneId);
-
-                if (sceneId && isOnline && scene) {
-                    try {
-                        const indices = assets.map(asset => asset.index);
-                        await bulkDeleteSceneAssets({ sceneId, assetIndices: indices }).unwrap();
-                        const { data: updatedScene } = await refetch();
-                        if (updatedScene) {
-                            setScene(updatedScene);
-                            const hydratedAssets = await hydratePlacedAssets(
-                                updatedScene.assets,
-                                async (assetId: string) => {
-                                    const result = await dispatch(
-                                        assetsApi.endpoints.getAsset.initiate(assetId)
-                                    ).unwrap();
-                                    return result;
-                                }
-                            );
-                            setPlacedAssets(hydratedAssets);
-                        }
-                    } catch (error) {
-                        console.error('Failed to persist cut operation:', error);
-                    }
-                }
-            },
-            onRestore: async (restoredAssets) => {
-                if (sceneId && isOnline && scene) {
-                    try {
-                        await bulkAddSceneAssets({
-                            sceneId,
-                            assets: restoredAssets.map(asset => ({
-                                assetId: asset.assetId,
-                                position: asset.position,
-                                size: { width: asset.size.width, height: asset.size.height },
-                                rotation: asset.rotation
-                            }))
-                        }).unwrap();
-
-                        const { data: updatedScene } = await refetch();
-                        if (updatedScene) {
-                            setScene(updatedScene);
-                            const hydratedAssets = await hydratePlacedAssets(
-                                updatedScene.assets,
-                                async (assetId: string) => {
-                                    const result = await dispatch(
-                                        assetsApi.endpoints.getAsset.initiate(assetId)
-                                    ).unwrap();
-                                    return result;
-                                }
-                            );
-                            setPlacedAssets(hydratedAssets);
-                        }
-                    } catch (error) {
-                        console.error('Failed to restore cut assets:', error);
-                    }
-                }
-            }
-        });
-
-        execute(command);
-        setSelectedAssetIds([]);
-    }, [selectedAssetIds, sceneId, isOnline, scene, cutAssets, bulkDeleteSceneAssets, bulkAddSceneAssets, refetch, execute, dispatch, placedAssets]);
-
-    const handlePasteAssets = useCallback(() => {
-        if (!canPaste || !sceneId || !isOnline || !scene) return;
-
-        const clipboardAssets = getClipboardAssets();
-        if (clipboardAssets.length === 0) return;
-
-        const command = createPasteAssetsCommand({
-            clipboardAssets,
-            onPaste: async (assets) => {
-                const PASTE_OFFSET = 20;
-
-                const newPlacedAssets: PlacedAsset[] = assets.map(asset => ({
-                    ...asset,
-                    id: `placed-${Date.now()}-${Math.random()}`,
-                    position: {
-                        x: asset.position.x + PASTE_OFFSET,
-                        y: asset.position.y + PASTE_OFFSET
-                    }
-                }));
-
-                if (sceneId && isOnline && scene) {
-                    try {
-                        await bulkAddSceneAssets({
-                            sceneId,
-                            assets: newPlacedAssets.map(pa => ({
-                                assetId: pa.assetId,
-                                position: pa.position,
-                                size: { width: pa.size.width, height: pa.size.height },
-                                rotation: pa.rotation
-                            }))
-                        }).unwrap();
-
-                        const { data: updatedScene } = await refetch();
-                        if (updatedScene) {
-                            setScene(updatedScene);
-                            const hydratedAssets = await hydratePlacedAssets(
-                                updatedScene.assets,
-                                async (assetId: string) => {
-                                    const result = await dispatch(
-                                        assetsApi.endpoints.getAsset.initiate(assetId)
-                                    ).unwrap();
-                                    return result;
-                                }
-                            );
-                            setPlacedAssets(hydratedAssets);
-
-                            if (clipboard.operation === 'cut') {
-                                clearClipboard();
-                            }
-
-                            return hydratedAssets;
-                        }
-                    } catch (error) {
-                        console.error('Failed to persist pasted assets:', error);
-                        return [];
-                    }
-                }
-
-                return newPlacedAssets;
-            },
-            onUndo: async (assetIds) => {
-                if (sceneId && isOnline && scene) {
-                    try {
-                        let indicesToDelete: number[] = [];
-                        setPlacedAssets(prev => {
-                            const assetsToDelete = prev.filter(a => assetIds.includes(a.id));
-                            indicesToDelete = assetsToDelete.map(a => a.index);
-                            return prev.filter(a => !assetIds.includes(a.id));
-                        });
-
-                        await bulkDeleteSceneAssets({ sceneId, assetIndices: indicesToDelete }).unwrap();
-
-                        const { data: updatedScene } = await refetch();
-                        if (updatedScene) {
-                            setScene(updatedScene);
-                            const hydratedAssets = await hydratePlacedAssets(
-                                updatedScene.assets,
-                                async (assetId: string) => {
-                                    const result = await dispatch(
-                                        assetsApi.endpoints.getAsset.initiate(assetId)
-                                    ).unwrap();
-                                    return result;
-                                }
-                            );
-                            setPlacedAssets(hydratedAssets);
-                        }
-                    } catch (error) {
-                        console.error('Failed to undo paste operation:', error);
-                    }
-                }
-            }
-        });
-
-        execute(command);
-    }, [canPaste, sceneId, isOnline, scene, getClipboardAssets, clipboard.operation, clearClipboard, bulkAddSceneAssets, bulkDeleteSceneAssets, refetch, execute, dispatch]);
-
-    const handleWallDelete = useCallback(async (wallIndex: number) => {
-        if (!sceneId) {
-            return;
-        }
-
-        try {
-            await removeSceneWall({ sceneId, wallIndex }).unwrap();
-
-            const { data: updatedScene } = await refetch();
-            if (updatedScene) {
-                setScene(updatedScene);
-            }
-
-            setSelectedWallIndex(null);
-        } catch (error) {
-            console.error('Failed to remove wall:', error);
-            setErrorMessage('Failed to remove wall. Please try again.');
-        }
-    }, [sceneId, removeSceneWall, refetch]);
-
-
-    const handleEditVertices = useCallback((wallIndex: number) => {
-        const wall = scene?.walls?.find(w => w.index === wallIndex);
-        if (!wall) return;
-
-        setOriginalWallPoles([...wall.poles]);
-
-        wallTransaction.startTransaction('editing', wall);
-
-        setSelectedWallIndex(wallIndex);
-        setIsEditingVertices(true);
-        setActivePanel(null);
-    }, [scene, wallTransaction]);
-
-    const handleCancelEditing = useCallback(async () => {
-        if (!scene || selectedWallIndex === null) return;
-
-        const segments = wallTransaction.getActiveSegments();
-        const originalWall = wallTransaction.transaction.originalWall;
-
-        wallTransaction.rollbackTransaction();
-
-        let cleanedScene = scene;
-
-        segments.forEach(segment => {
-            if (segment.wallIndex === null) {
-                cleanedScene = removeWallOptimistic(cleanedScene, segment.tempId);
-            }
-        });
-
-        if (originalWall) {
-            cleanedScene = updateWallOptimistic(cleanedScene, selectedWallIndex, {
-                poles: originalWall.poles,
-                isClosed: originalWall.isClosed,
-                name: originalWall.name
-            });
-        }
-
-        setScene(cleanedScene);
-        setSelectedWallIndex(null);
-        setIsEditingVertices(false);
-        setOriginalWallPoles(null);
-    }, [scene, selectedWallIndex, wallTransaction, setScene]);
-
-    const handleFinishEditing = useCallback(async () => {
-        if (!sceneId || !scene || selectedWallIndex === null) return;
-
-        const result = await wallTransaction.commitTransaction(sceneId, {
-            addSceneWall,
-            updateSceneWall
-        });
-
-        if (result.success) {
-            const originalWall = wallTransaction.transaction.originalWall;
-            if (!originalWall) {
-                setSelectedWallIndex(null);
-                setIsEditingVertices(false);
-                setOriginalWallPoles(null);
-                return;
-            }
-
-            const { data: updatedScene } = await refetch();
-            if (updatedScene) {
-                setScene(updatedScene);
-
-                if (result.segmentResults.length > 1) {
-                    const newWalls: SceneWall[] = [];
-                    result.segmentResults.forEach(r => {
-                        if (r.wallIndex !== undefined) {
-                            const wall = updatedScene.walls?.find(w => w.index === r.wallIndex);
-                            if (wall) newWalls.push(wall);
-                        }
-                    });
-
-                    if (newWalls.length === 0) {
-                        console.error('Wall break succeeded but no segments found');
-                        setErrorMessage('Wall break failed. Please try again.');
-                        return;
-                    }
-
-                    const command = new BreakWallCommand({
-                        sceneId,
-                        originalWallIndex: selectedWallIndex,
-                        originalWall,
-                        newWalls,
-                        onAdd: async (sceneId, wallData) => {
-                            try {
-                                const result = await addSceneWall({ sceneId, ...wallData }).unwrap();
-                                return result;
-                            } catch (error) {
-                                console.error('Failed to recreate wall:', error);
-                                setErrorMessage('Failed to recreate wall. Please try again.');
-                                throw error;
-                            }
-                        },
-                        onUpdate: async (sceneId, wallIndex, updates) => {
-                            try {
-                                await updateSceneWall({ sceneId, wallIndex, ...updates }).unwrap();
-                            } catch (error) {
-                                console.error('Failed to update wall:', error);
-                                setErrorMessage('Failed to update wall. Please try again.');
-                                throw error;
-                            }
-                        },
-                        onRemove: async (sceneId, wallIndex) => {
-                            try {
-                                await removeSceneWall({ sceneId, wallIndex }).unwrap();
-                            } catch (error) {
-                                console.error('Failed to remove wall:', error);
-                                setErrorMessage('Failed to remove wall. Please try again.');
-                                throw error;
-                            }
-                        },
-                        onRefetch: async () => {
-                            const { data } = await refetch();
-                            if (data) setScene(data);
-                        }
-                    });
-                    command.execute();
-                    execute(command);
-                } else {
-                    const updatedWall = updatedScene.walls?.find(w => w.index === selectedWallIndex);
-                    if (updatedWall) {
-                        const command = new EditWallCommand({
-                            sceneId,
-                            wallIndex: selectedWallIndex,
-                            oldWall: originalWall,
-                            newWall: updatedWall,
-                            onUpdate: async (sceneId, wallIndex, updates) => {
-                                try {
-                                    await updateSceneWall({ sceneId, wallIndex, ...updates }).unwrap();
-                                } catch (error) {
-                                    console.error('Failed to update wall:', error);
-                                    setErrorMessage('Failed to update wall. Please try again.');
-                                    throw error;
-                                }
-                            },
-                            onRefetch: async () => {
-                                const { data } = await refetch();
-                                if (data) setScene(data);
-                            }
-                        });
-                        execute(command);
-                    }
-                }
-            }
-        } else {
-            wallTransaction.rollbackTransaction();
-
-            if (originalWallPoles && selectedWallIndex !== null) {
-                const revertedScene = updateWallOptimistic(scene, selectedWallIndex, {
-                    poles: originalWallPoles
-                });
-                setScene(revertedScene);
-            }
-
-            setErrorMessage('Failed to save wall changes. Please try again.');
-        }
-
-        setSelectedWallIndex(null);
-        setIsEditingVertices(false);
-        setOriginalWallPoles(null);
-    }, [sceneId, scene, selectedWallIndex, originalWallPoles, wallTransaction, addSceneWall, updateSceneWall, removeSceneWall, setScene, refetch, execute]);
-
     useEffect(() => {
         const handleKeyDown = async (e: KeyboardEvent) => {
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
                 return;
             }
 
-            const isTransactionActive = wallTransaction.transaction.isActive;
+            const isWallTransactionActive = wallTransaction.transaction.isActive;
+            const isRegionTransactionActive = regionTransaction.transaction.isActive;
             const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
             const modifier = isMac ? e.metaKey : e.ctrlKey;
 
@@ -1251,7 +547,7 @@ const SceneEditorPageInternal: React.FC = () => {
                 e.preventDefault();
                 e.stopImmediatePropagation();
 
-                if (isTransactionActive && wallTransaction.canUndoLocal()) {
+                if (isWallTransactionActive && wallTransaction.canUndoLocal()) {
                     wallTransaction.undoLocal((segments) => {
                         const currentScene = sceneRef.current;
                         if (currentScene && selectedWallIndex !== null) {
@@ -1283,6 +579,20 @@ const SceneEditorPageInternal: React.FC = () => {
                             setScene(syncedScene);
                         }
                     });
+                } else if (isRegionTransactionActive && regionTransaction.canUndoLocal()) {
+                    regionTransaction.undoLocal((segment) => {
+                        const currentScene = sceneRef.current;
+                        if (currentScene && drawingRegionIndex !== null) {
+                            if (segment) {
+                                const syncedScene = updateRegionOptimistic(currentScene, drawingRegionIndex, {
+                                    vertices: segment.vertices
+                                });
+                                setScene(syncedScene);
+                            } else {
+                                setScene(currentScene);
+                            }
+                        }
+                    });
                 } else {
                     await undo();
                 }
@@ -1293,7 +603,7 @@ const SceneEditorPageInternal: React.FC = () => {
                 e.preventDefault();
                 e.stopImmediatePropagation();
 
-                if (isTransactionActive && wallTransaction.canRedoLocal()) {
+                if (isWallTransactionActive && wallTransaction.canRedoLocal()) {
                     wallTransaction.redoLocal((segments) => {
                         const currentScene = sceneRef.current;
                         if (currentScene && selectedWallIndex !== null) {
@@ -1334,6 +644,16 @@ const SceneEditorPageInternal: React.FC = () => {
                             setScene(syncedScene);
                         }
                     });
+                } else if (isRegionTransactionActive && regionTransaction.canRedoLocal()) {
+                    regionTransaction.redoLocal((segment) => {
+                        const currentScene = sceneRef.current;
+                        if (currentScene && drawingRegionIndex !== null && segment) {
+                            const syncedScene = updateRegionOptimistic(currentScene, drawingRegionIndex, {
+                                vertices: segment.vertices
+                            });
+                            setScene(syncedScene);
+                        }
+                    });
                 } else {
                     await redo();
                 }
@@ -1346,7 +666,7 @@ const SceneEditorPageInternal: React.FC = () => {
         return () => {
             window.removeEventListener('keydown', handleKeyDown, { capture: true });
         };
-    }, [wallTransaction, undo, redo, sceneId, selectedWallIndex]);
+    }, [wallTransaction, regionTransaction, undo, redo, sceneId, selectedWallIndex, drawingRegionIndex]);
 
     const handleVerticesChange = useCallback(async (
         wallIndex: number,
@@ -1392,302 +712,187 @@ const SceneEditorPageInternal: React.FC = () => {
         setScene(updatedScene);
     }, [scene, wallTransaction, setScene]);
 
-    const handleWallBreak = useCallback(async (breakData: WallBreakData) => {
-        if (!sceneId || selectedWallIndex === null || !scene) {
-            console.error('[SceneEditorPage] No sceneId or selectedWallIndex');
-            return;
-        }
-
-        const wall = scene.walls?.find(w => w.index === selectedWallIndex);
-        if (!wall) {
-            console.error('[SceneEditorPage] Wall not found');
-            return;
-        }
-
-        const segments = wallTransaction.getActiveSegments();
-        const currentSegment = segments.find(s => s.wallIndex === selectedWallIndex);
-        if (!currentSegment) {
-            console.error('[SceneEditorPage] Current segment not found in transaction');
-            return;
-        }
-
-        wallTransaction.updateSegment(currentSegment.tempId, {
-            poles: breakData.originalWallPoles,
-            isClosed: false
-        });
-
-        const newSegmentTempId = wallTransaction.addSegment({
-            wallIndex: null,
-            name: wall.name,
-            poles: breakData.newWallPoles,
-            isClosed: false,
-            visibility: wall.visibility,
-            material: wall.material,
-            color: wall.color
-        });
-
-        const action = createBreakWallAction(
-            currentSegment.tempId,
-            breakData.breakPoleIndex,
-            wall.poles,
-            wall.isClosed,
-            selectedWallIndex,
-            currentSegment.tempId,
-            newSegmentTempId,
-            breakData.originalWallPoles,
-            breakData.newWallPoles,
-            wall.name,
-            wall.visibility,
-            wall.material,
-            wall.color,
-            (tempId) => wallTransaction.removeSegment(tempId),
-            (tempId, changes) => wallTransaction.updateSegment(tempId, changes),
-            (segment) => wallTransaction.addSegment(segment)
-        );
-
-        wallTransaction.pushLocalAction(action);
-
-        let updatedScene = updateWallOptimistic(scene, selectedWallIndex, {
-            poles: breakData.originalWallPoles,
-            isClosed: false
-        });
-
-        const tempWall: SceneWall = {
-            sceneId,
-            index: newSegmentTempId,
-            name: wall.name,
-            poles: breakData.newWallPoles,
-            isClosed: false,
-            visibility: wall.visibility,
-            material: wall.material,
-            color: wall.color
-        };
-
-        updatedScene = addWallOptimistic(updatedScene, tempWall);
-        setScene(updatedScene);
-    }, [sceneId, selectedWallIndex, scene, wallTransaction, setScene]);
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-                return;
-            }
-
-            if (e.ctrlKey && e.key === 'c' && !e.shiftKey && !e.altKey) {
-                e.preventDefault();
-                handleCopyAssets();
-            }
-
-            if (e.ctrlKey && e.key === 'x' && !e.shiftKey && !e.altKey) {
-                e.preventDefault();
-                handleCutAssets();
-            }
-
-            if (e.ctrlKey && e.key === 'v' && !e.shiftKey && !e.altKey) {
-                e.preventDefault();
-                handlePasteAssets();
-            }
-
-            if (e.key === 'Delete' && selectedWallIndex !== null && !isEditingVertices) {
-                e.preventDefault();
-                handleWallDelete(selectedWallIndex);
-            }
-
-            if (e.key === 'Escape') {
-                e.preventDefault();
-                if (isEditingVertices) {
-                    handleCancelEditing();
-                } else {
-                    setSelectedWallIndex(null);
-                    setIsEditingVertices(false);
-                }
-            }
-
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (isEditingVertices) {
-                    handleFinishEditing();
-                }
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown, { capture: true });
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown, { capture: true });
-        };
-    }, [handleCopyAssets, handleCutAssets, handlePasteAssets, selectedWallIndex, handleWallDelete, isEditingVertices, handleCancelEditing, handleFinishEditing]);
-
-    const handleAssetSelected = (assetIds: string[]) => {
-        setSelectedAssetIds(assetIds);
-    };
-
-    const handlePlacedAssetSelect = (assetId: string, isCtrlPressed: boolean) => {
-        if (isCtrlPressed) {
-            setSelectedAssetIds(prev => {
-                if (prev.includes(assetId)) {
-                    return prev.filter(id => id !== assetId);
-                } else {
-                    return [...prev, assetId];
-                }
-            });
-        } else {
-            setSelectedAssetIds([assetId]);
-        }
-    };
-
-    const handleDragComplete = () => {
-        setDraggedAsset(null);
-    };
-
-    const handleImagesLoaded = () => {
-        setImagesLoaded(true);
-    };
-
-    const handleHandlersReady = () => {
-        setHandlersReady(true);
-    };
-
-    const handleAssetContextMenu = (assetId: string, position: { x: number; y: number }) => {
-        const asset = placedAssets.find((a) => a.id === assetId);
-        if (!asset) return;
-
-        setContextMenuPosition({ left: position.x, top: position.y });
-        setContextMenuAsset(asset);
-    };
-
-    const handleContextMenuClose = () => {
-        setContextMenuPosition(null);
-        setContextMenuAsset(null);
-    };
-
-    const handleAssetRename = async (assetId: string, newName: string) => {
-        if (!sceneId) return;
-
-        const asset = placedAssets.find((a) => a.id === assetId);
-        if (!asset) return;
-
-        const oldName = asset.name;
-
-        const command = createRenameAssetCommand({
-            assetId,
-            oldName,
-            newName,
-            onRename: async (id, name) => {
-                const assetToUpdate = placedAssets.find((a) => a.id === id);
-                if (!assetToUpdate) return;
-
-                await updateSceneAsset({
-                    sceneId,
-                    assetNumber: assetToUpdate.index,
-                    name,
-                }).unwrap();
-
-                setPlacedAssets(prev => prev.map(a => a.id === id ? { ...a, name } : a));
-            }
-        });
-
-        execute(command);
-    };
-
-    const handlePlacedAssetUpdate = async (assetId: string, updates: Partial<PlacedAsset>) => {
-        if (!sceneId) return;
-
-        const asset = placedAssets.find((a) => a.id === assetId);
-        if (!asset) return;
-
-        const updateParams: any = {
-            sceneId,
-            assetNumber: asset.index,
-        };
-
-        if (updates.visible !== undefined) updateParams.visible = updates.visible;
-        if (updates.locked !== undefined) updateParams.locked = updates.locked;
-
-        try {
-            await updateSceneAsset(updateParams).unwrap();
-
-            setPlacedAssets(prev => prev.map(a =>
-                a.id === assetId ? { ...a, ...updates } : a
-            ));
-        } catch (error) {
-            console.error('Failed to update asset:', error);
-        }
-    };
-
-    const handleAssetDisplayUpdate = async (
-        assetId: string,
-        displayName?: DisplayName,
-        labelPosition?: LabelPosition
+    const handleRegionVerticesChange = useCallback(async (
+        regionIndex: number,
+        newVertices: Point[]
     ) => {
-        if (!sceneId) return;
-
-        const asset = placedAssets.find((a) => a.id === assetId);
-        if (!asset) return;
-
-        const oldDisplay = {
-            displayName: asset.displayName,
-            labelPosition: asset.labelPosition,
-        };
-        const newDisplay = {
-            displayName: displayName ?? asset.displayName,
-            labelPosition: labelPosition ?? asset.labelPosition,
-        };
-
-        const command = createUpdateAssetDisplayCommand({
-            assetId,
-            oldDisplay,
-            newDisplay,
-            onUpdate: async (id, dn, lp) => {
-                const assetToUpdate = placedAssets.find((a) => a.id === id);
-                if (!assetToUpdate) return;
-
-                const updateParams: any = {
-                    sceneId,
-                    assetNumber: assetToUpdate.index,
-                };
-                if (dn !== undefined) updateParams.displayName = dn;
-                if (lp !== undefined) updateParams.labelPosition = lp;
-
-                await updateSceneAsset(updateParams).unwrap();
-
-                setPlacedAssets(prev => prev.map(a => {
-                    if (a.id === id) {
-                        return {
-                            ...a,
-                            ...(dn !== undefined && { displayName: dn }),
-                            ...(lp !== undefined && { labelPosition: lp })
-                        };
-                    }
-                    return a;
-                }));
-            }
-        });
-
-        execute(command);
-    };
-
-    const handleDrawingModeChange = (mode: DrawingMode) => {
-        setDrawingMode(mode);
-    };
-
-    // TODO: Implement progressive creation for regions and sources similar to walls
-    // Region and source drawing currently non-functional pending implementation
-
-    const handleStructurePlacementCancel = useCallback(async () => {
         if (!scene) return;
 
-        wallTransaction.rollbackTransaction();
+        if (!regionTransaction.transaction.isActive) {
+            console.warn('[handleRegionVerticesChange] No active transaction');
+            return;
+        }
 
-        const cleanScene = removeWallOptimistic(scene, -1);
+        if (newVertices.length < 3) {
+            console.warn('[handleRegionVerticesChange] Region must have at least 3 vertices');
+            return;
+        }
+
+        const region = scene.regions?.find(r => r.index === regionIndex);
+        if (!region) return;
+
+        const segment = regionTransaction.transaction.segment;
+        if (!segment) {
+            console.warn(`[handleRegionVerticesChange] Segment not found for regionIndex ${regionIndex}`);
+            return;
+        }
+
+        regionTransaction.updateVertices(newVertices);
+
+        const updatedScene = updateRegionOptimistic(scene, regionIndex, {
+            vertices: newVertices
+        });
+        setScene(updatedScene);
+    }, [scene, regionTransaction, setScene]);
+
+    const handleRegionPlacementCancel = useCallback(async () => {
+        if (!scene) return;
+
+        regionTransaction.rollbackTransaction();
+
+        const cleanScene = removeRegionOptimistic(scene, -1);
         setScene(cleanScene);
 
-        setDrawingWallIndex(null);
+        setDrawingRegionIndex(null);
         setDrawingMode(null);
-    }, [scene, wallTransaction]);
+    }, [scene, regionTransaction]);
 
     const handleStructurePlacementFinish = useCallback(async () => {
         if (!sceneId || !scene) return;
+        console.log('handleStructurePlacementFinish called, drawingMode:', drawingMode, 'drawingRegionIndex:', drawingRegionIndex);
+
+        if (drawingMode === 'region' && drawingRegionIndex !== null) {
+            console.log('About to call regionTransaction.commitTransaction');
+            // Filter out temp regions (index -1) before merge detection
+            const sceneForCommit = scene ? {
+                ...scene,
+                regions: scene.regions?.filter(r => r.index !== -1)
+            } : scene;
+            const result = await regionTransaction.commitTransaction(
+                sceneId,
+                { addSceneRegion, updateSceneRegion },
+                sceneForCommit,
+                gridConfig
+            );
+
+            if (result.action === 'merge') {
+                const targetRegion = scene.regions?.find(r => r.index === result.targetRegionIndex);
+                if (!targetRegion) {
+                    setErrorMessage('Merge target region not found');
+                    regionTransaction.rollbackTransaction();
+                    setDrawingRegionIndex(null);
+                    setDrawingMode(null);
+                    return;
+                }
+
+                const commands: Command[] = [];
+
+                commands.push(new EditRegionCommand({
+                    sceneId,
+                    regionIndex: result.targetRegionIndex!,
+                    oldRegion: targetRegion,
+                    newRegion: { ...targetRegion, vertices: result.mergedVertices! },
+                    onUpdate: async (sceneId, regionIndex, updates) => {
+                        try {
+                            await updateSceneRegion({ sceneId, regionIndex, ...updates }).unwrap();
+                        } catch (error) {
+                            console.error('Failed to update region:', error);
+                            throw error;
+                        }
+                    },
+                    onRefetch: async () => {
+                        const { data } = await refetch();
+                        if (data) setScene(data);
+                    }
+                }));
+
+                for (const deleteIndex of result.regionsToDelete || []) {
+                    const regionToDelete = scene.regions?.find(r => r.index === deleteIndex);
+                    if (regionToDelete) {
+                        commands.push(new DeleteRegionCommand({
+                            sceneId,
+                            regionIndex: deleteIndex,
+                            region: regionToDelete,
+                            onAdd: async (sceneId, regionData) => {
+                                const result = await addSceneRegion({ sceneId, ...regionData }).unwrap();
+                                return result;
+                            },
+                            onRemove: async (sceneId, regionIndex) => {
+                                await removeSceneRegion({ sceneId, regionIndex }).unwrap();
+                            },
+                            onRefetch: async () => {
+                                const { data } = await refetch();
+                                if (data) setScene(data);
+                            }
+                        }));
+                    }
+                }
+
+                const batchCommand = createBatchCommand({ commands });
+                execute(batchCommand);
+
+                let syncedScene = updateRegionOptimistic(scene, result.targetRegionIndex!, {
+                    vertices: result.mergedVertices!
+                });
+                for (const deleteIndex of result.regionsToDelete || []) {
+                    syncedScene = removeRegionOptimistic(syncedScene, deleteIndex);
+                }
+                setScene(syncedScene);
+
+                setDrawingRegionIndex(null);
+                setDrawingMode(null);
+                return;
+            }
+
+            if (result.success && result.regionIndex !== undefined) {
+                const tempToReal = new Map<number, number>();
+                tempToReal.set(-1, result.regionIndex);
+
+                const syncedScene = syncRegionIndices(scene, tempToReal);
+                setScene(syncedScene);
+
+                const createdRegion = syncedScene.regions?.find(r => r.index === result.regionIndex);
+                if (createdRegion) {
+                    const command = new CreateRegionCommand({
+                        sceneId,
+                        region: createdRegion,
+                        onCreate: async (sceneId, regionData) => {
+                            try {
+                                const result = await addSceneRegion({ sceneId, ...regionData }).unwrap();
+                                return result;
+                            } catch (error) {
+                                console.error('Failed to recreate region:', error);
+                                setErrorMessage('Failed to recreate region. Please try again.');
+                                throw error;
+                            }
+                        },
+                        onRemove: async (sceneId, regionIndex) => {
+                            try {
+                                await removeSceneRegion({ sceneId, regionIndex }).unwrap();
+                            } catch (error) {
+                                console.error('Failed to remove region:', error);
+                                setErrorMessage('Failed to remove region. Please try again.');
+                                throw error;
+                            }
+                        },
+                        onRefetch: async () => {
+                            const { data } = await refetch();
+                            if (data) setScene(data);
+                        }
+                    });
+                    execute(command);
+                }
+            } else {
+                regionTransaction.rollbackTransaction();
+                const cleanScene = removeRegionOptimistic(scene, -1);
+                setScene(cleanScene);
+                setErrorMessage('Failed to place region. Please try again.');
+            }
+
+            setDrawingRegionIndex(null);
+            setDrawingMode(null);
+            return;
+        }
 
         const result = await wallTransaction.commitTransaction(sceneId, {
             addSceneWall,
@@ -1703,12 +908,16 @@ const SceneEditorPageInternal: React.FC = () => {
             });
 
             const syncedScene = syncWallIndices(scene, tempToReal);
-            setScene(syncedScene);
 
-            const createdWalls: SceneWall[] = [];
+            const hydratedWalls = hydratePlacedWalls(syncedScene.walls || [], sceneId);
+
+            setScene(syncedScene);
+            setPlacedWalls(hydratedWalls);
+
+            const createdWalls: PlacedWall[] = [];
             result.segmentResults.forEach(r => {
                 if (r.wallIndex !== undefined) {
-                    const wall = syncedScene.walls?.find(w => w.index === r.wallIndex);
+                    const wall = hydratedWalls.find(w => w.index === r.wallIndex);
                     if (wall) createdWalls.push(wall);
                 }
             });
@@ -1752,35 +961,54 @@ const SceneEditorPageInternal: React.FC = () => {
 
         setDrawingWallIndex(null);
         setDrawingMode(null);
-    }, [sceneId, scene, wallTransaction, addSceneWall, updateSceneWall, removeSceneWall, refetch, execute]);
+    }, [sceneId, scene, drawingMode, drawingRegionIndex, wallTransaction, regionTransaction, addSceneWall, updateSceneWall, removeSceneWall, addSceneRegion, updateSceneRegion, removeSceneRegion, refetch, execute, gridConfig]);
 
-    const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-        const canvasX = Math.round((e.clientX - viewport.x) / viewport.scale);
-        const canvasY = Math.round((e.clientY - viewport.y) / viewport.scale);
-        setCursorPosition({ x: canvasX, y: canvasY });
-    }, [viewport]);
+    const handleDrawingModeChange = (mode: DrawingMode) => {
+        setDrawingMode(mode);
+    };
 
-    const handleWallSelect = useCallback((wallIndex: number | null) => {
-        setSelectedWallIndex(wallIndex);
-        setIsEditingVertices(false);
-    }, []);
+    const handleStructurePlacementCancel = useCallback(async () => {
+        if (!scene) return;
 
-    const handleWallContextMenu = useCallback((
-        wallIndex: number,
-        position: { x: number; y: number }
-    ) => {
-        const sceneWall = scene?.walls?.find(sw => sw.index === wallIndex);
+        wallTransaction.rollbackTransaction();
 
-        if (sceneWall) {
-            setWallContextMenuPosition({ left: position.x, top: position.y });
-            setContextMenuWall(sceneWall);
+        const cleanScene = removeWallOptimistic(scene, -1);
+        setScene(cleanScene);
+
+        setDrawingWallIndex(null);
+        setDrawingMode(null);
+    }, [scene, wallTransaction]);
+
+    const handlePlacedAssetUpdate = useCallback(async (assetId: string, updates: Partial<PlacedAsset>) => {
+        if (!sceneId || !scene) return;
+
+        const asset = assetManagement.placedAssets.find(a => a.id === assetId);
+        if (!asset) return;
+
+        const updatedAsset = { ...asset, ...updates };
+
+        try {
+            await updateSceneAsset({
+                sceneId,
+                assetId,
+                position: updatedAsset.position,
+                size: updatedAsset.size,
+                rotation: updatedAsset.rotation,
+                ...(updates.displayName && { displayName: updates.displayName }),
+                ...(updates.labelPosition && { labelPosition: updates.labelPosition })
+            }).unwrap();
+
+            assetManagement.setPlacedAssets(prev =>
+                prev.map(a => a.id === assetId ? updatedAsset : a)
+            );
+        } catch (error) {
+            console.error('Failed to update asset:', error);
+            setErrorMessage('Failed to update asset. Please try again.');
         }
-    }, [scene]);
+    }, [sceneId, scene, assetManagement, updateSceneAsset]);
 
-    const handleWallContextMenuClose = useCallback(() => {
-        setWallContextMenuPosition(null);
-        setContextMenuWall(null);
-    }, []);
+
+
 
     const handlePlaceWall = useCallback(async (properties: {
         visibility: WallVisibility;
@@ -1831,48 +1059,39 @@ const SceneEditorPageInternal: React.FC = () => {
         setActivePanel(null);
     }, [sceneId, scene, wallTransaction]);
 
-    const handlePlaceRegion = useCallback((properties: {
-        name: string;
-        type: string;
-        value?: number;
-        label?: string;
-        color?: string;
-    }) => {
-        if (!sceneId || !scene) return;
-
-        console.log('handlePlaceRegion called with:', properties);
-        alert(`Region placement started: ${properties.name} (${properties.type})`);
-    }, [sceneId, scene]);
-
-    const handleRegionSelect = useCallback((regionIndex: number | null) => {
-        setSelectedRegionIndex(regionIndex);
-    }, []);
-
-    const handleRegionDelete = useCallback(async (regionIndex: number) => {
-        console.log('handleRegionDelete called for index:', regionIndex);
-        alert(`Region delete requested for index: ${regionIndex}`);
-    }, []);
-
-    const handleEditRegionVertices = useCallback((regionIndex: number) => {
-        console.log('handleEditRegionVertices called for index:', regionIndex);
-        alert(`Edit region vertices requested for index: ${regionIndex}`);
-    }, []);
-
     const handleSourceSelect = useCallback((index: number) => {
         setSelectedSourceIndex(index);
     }, []);
 
     const handleSourceDelete = useCallback(async (index: number) => {
-        if (!sceneId) return;
+        if (!sceneId || !scene) return;
+
+        const source = placedSources.find(s => s.index === index);
+        if (!source) return;
+
+        const sourceId = source.id;
+
         try {
             await removeSceneSource({ sceneId, sourceIndex: index }).unwrap();
+
+            const { removeEntityMapping } = await import('@/utils/sceneEntityMapping');
+            removeEntityMapping(sceneId, 'sources', sourceId);
+
+            const { data: updatedScene } = await refetch();
+            if (updatedScene) {
+                setScene(updatedScene);
+                const hydratedSources = hydratePlacedSources(updatedScene.sources || [], sceneId);
+                setPlacedSources(hydratedSources);
+            }
+
             if (selectedSourceIndex === index) {
                 setSelectedSourceIndex(null);
             }
         } catch (error) {
             console.error('Failed to delete source:', error);
+            setErrorMessage('Failed to delete source. Please try again.');
         }
-    }, [sceneId, removeSceneSource, selectedSourceIndex]);
+    }, [sceneId, scene, placedSources, removeSceneSource, selectedSourceIndex, refetch, setErrorMessage]);
 
     const handlePlaceSource = useCallback((properties: SourcePlacementProperties) => {
         setSourcePlacementProperties(properties);
@@ -1920,12 +1139,12 @@ const SceneEditorPageInternal: React.FC = () => {
     return (
         <EditorLayout
             scene={scene || undefined}
-            onSceneNameChange={handleSceneNameChange}
-            onBackClick={handleBackClick}
-            onSceneDescriptionChange={handleSceneDescriptionChange}
-            onScenePublishedChange={handleScenePublishedChange}
-            onSceneUpdate={handleSceneUpdate}
-            backgroundUrl={backgroundUrl}
+            onSceneNameChange={sceneSettings.handleSceneNameChange}
+            onBackClick={sceneSettings.handleBackClick}
+            onSceneDescriptionChange={sceneSettings.handleSceneDescriptionChange}
+            onScenePublishedChange={sceneSettings.handleScenePublishedChange}
+            onSceneUpdate={sceneSettings.handleSceneUpdate}
+            {...(backgroundUrl && { backgroundUrl })}
             isUploadingBackground={isUploadingBackground}
             onBackgroundUpload={handleBackgroundUpload}
         >
@@ -1937,11 +1156,11 @@ const SceneEditorPageInternal: React.FC = () => {
                 onDrawingModeChange={handleDrawingModeChange}
                 onUndoClick={undo}
                 onRedoClick={redo}
-                onZoomIn={handleZoomIn}
-                onZoomOut={handleZoomOut}
-                onZoomReset={handleZoomReset}
+                onZoomIn={viewportControls.handleZoomIn}
+                onZoomOut={viewportControls.handleZoomOut}
+                onZoomReset={viewportControls.handleZoomReset}
                 onGridToggle={() => setGridConfig(prev => ({ ...prev, type: prev.type === GridType.NoGrid ? GridType.Square : GridType.NoGrid }))}
-                onClearSelection={() => handleAssetSelected([])}
+                onClearSelection={() => assetManagement.handleAssetSelected([])}
                 canUndo={false}
                 canRedo={false}
                 gridVisible={gridConfig.type !== GridType.NoGrid}
@@ -1949,7 +1168,7 @@ const SceneEditorPageInternal: React.FC = () => {
 
             <Box
                 id="canvas-container"
-                onMouseMove={handleCanvasMouseMove}
+                onMouseMove={viewportControls.handleCanvasMouseMove}
                 sx={{
                     flexGrow: 1,
                     overflow: 'hidden',
@@ -1957,41 +1176,41 @@ const SceneEditorPageInternal: React.FC = () => {
                     position: 'relative',
                     width: '100%',
                     height: '100%',
-                    cursor: drawingMode === 'wall' ? 'crosshair' : 'default'
+                    cursor: (drawingMode === 'wall' || drawingMode === 'region') ? 'crosshair' : 'default'
                 }}
             >
                 <LeftToolBar
                     activePanel={activePanel}
                     onPanelChange={setActivePanel}
                     gridConfig={gridConfig}
-                    onGridChange={handleGridChange}
+                    onGridChange={gridHandlers.handleGridChange}
                     sceneId={sceneId}
-                    sceneWalls={scene?.walls}
+                    sceneWalls={placedWalls}
                     selectedWallIndex={selectedWallIndex}
-                    onWallSelect={handleWallSelect}
-                    onWallDelete={handleWallDelete}
+                    onWallSelect={wallHandlers.handleWallSelect}
+                    onWallDelete={wallHandlers.handleWallDelete}
                     onPlaceWall={handlePlaceWall}
-                    onEditVertices={handleEditVertices}
-                    sceneRegions={scene?.regions}
+                    onEditVertices={wallHandlers.handleEditVertices}
+                    sceneRegions={placedRegions}
                     selectedRegionIndex={selectedRegionIndex}
-                    onRegionSelect={handleRegionSelect}
-                    onRegionDelete={handleRegionDelete}
-                    onPlaceRegion={handlePlaceRegion}
-                    onEditRegionVertices={handleEditRegionVertices}
-                    placedAssets={placedAssets}
-                    selectedAssetIds={selectedAssetIds}
-                    onAssetSelectForPlacement={setDraggedAsset}
-                    onPlacedAssetSelect={handlePlacedAssetSelect}
+                    onRegionSelect={regionHandlers.handleRegionSelect}
+                    onRegionDelete={regionHandlers.handleRegionDelete}
+                    onPlaceRegion={regionHandlers.handlePlaceRegion}
+                    onEditRegionVertices={regionHandlers.handleEditRegionVertices}
+                    placedAssets={assetManagement.placedAssets}
+                    selectedAssetIds={assetManagement.selectedAssetIds}
+                    onAssetSelectForPlacement={assetManagement.setDraggedAsset}
+                    onPlacedAssetSelect={assetManagement.handlePlacedAssetSelect}
                     onPlacedAssetDelete={(assetId) => {
-                        const asset = placedAssets.find(a => a.id === assetId);
+                        const asset = assetManagement.placedAssets.find(a => a.id === assetId);
                         if (asset) {
-                            setAssetsToDelete([asset]);
-                            setDeleteConfirmOpen(true);
+                            assetManagement.setAssetsToDelete([asset]);
+                            assetManagement.setDeleteConfirmOpen(true);
                         }
                     }}
-                    onPlacedAssetRename={handleAssetRename}
+                    onPlacedAssetRename={assetManagement.handleAssetRename}
                     onPlacedAssetUpdate={handlePlacedAssetUpdate}
-                    sceneSources={scene?.sources}
+                    sceneSources={placedSources}
                     selectedSourceIndex={selectedSourceIndex}
                     onSourceSelect={handleSourceSelect}
                     onSourceDelete={handleSourceDelete}
@@ -2004,7 +1223,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     height={window.innerHeight}
                     initialPosition={{ x: initialViewport.x, y: initialViewport.y }}
                     backgroundColor={theme.palette.background.default}
-                    onViewportChange={handleViewportChange}
+                    onViewportChange={viewportControls.handleViewportChange}
                 >
                     {/* Layer 1: Static (background + grid) */}
                     <Layer
@@ -2035,23 +1254,28 @@ const SceneEditorPageInternal: React.FC = () => {
                         {layerVisibility.structures && (
                             <>
                                 {/* Regions - render first (bottom of GameWorld) */}
-                                {scene && scene.regions && (
+                                {placedRegions && placedRegions.length > 0 && (
                             <Group name={GroupName.Structure}>
-                                {scene.regions.map((sceneRegion) => (
-                                    <RegionRenderer
-                                        key={`${sceneRegion.sceneId}-${sceneRegion.index}`}
-                                        sceneRegion={sceneRegion}
-                                    />
-                                ))}
+                                {placedRegions.map((sceneRegion) => {
+                                    if (sceneRegion.index === -1 && drawingRegionIndex !== null) {
+                                        return null;
+                                    }
+                                    return (
+                                        <RegionRenderer
+                                            key={sceneRegion.id}
+                                            sceneRegion={sceneRegion}
+                                        />
+                                    );
+                                })}
                             </Group>
                         )}
 
                         {/* Sources - render second */}
-                        {scene && scene.sources && (
+                        {scene && placedSources && placedSources.length > 0 && (
                             <Group name={GroupName.Structure}>
-                                {scene.sources.map((sceneSource) => (
+                                {placedSources.map((sceneSource) => (
                                     <SourceRenderer
-                                        key={`${sceneSource.sceneId}-${sceneSource.index}`}
+                                        key={sceneSource.id}
                                         sceneSource={sceneSource}
                                         walls={scene.walls || []}
                                         gridConfig={gridConfig}
@@ -2061,19 +1285,19 @@ const SceneEditorPageInternal: React.FC = () => {
                         )}
 
                         {/* Walls - render third (top of structures) */}
-                        {scene && scene.walls && (
+                        {scene && placedWalls && (
                             <Group name={GroupName.Structure}>
-                                {scene.walls.map((sceneWall) => {
+                                {placedWalls.map((sceneWall) => {
                                     const isInTransaction = wallTransaction.transaction.isActive &&
                                         wallTransaction.getActiveSegments().some(s => s.wallIndex === sceneWall.index || s.tempId === sceneWall.index);
                                     const shouldRender = !isInTransaction && !(drawingWallIndex === sceneWall.index);
 
                                     return (
-                                        <React.Fragment key={sceneWall.index}>
+                                        <React.Fragment key={sceneWall.id}>
                                             {shouldRender && (
                                                 <WallRenderer
                                                     sceneWall={sceneWall}
-                                                    onContextMenu={handleWallContextMenu}
+                                                    onContextMenu={contextMenus.wallContextMenu.handleOpen}
                                                 />
                                             )}
                                         </React.Fragment>
@@ -2092,18 +1316,37 @@ const SceneEditorPageInternal: React.FC = () => {
                                                 }
                                                 gridConfig={gridConfig}
                                                 snapEnabled={gridConfig.snap}
-                                                onClearSelections={handleFinishEditing}
-                                                isAltPressed={isAltPressed}
+                                                onClearSelections={wallHandlers.handleFinishEditing}
+                                                isAltPressed={keyboardState.isAltPressed}
                                                 sceneId={sceneId}
                                                 wallIndex={segment.wallIndex || segment.tempId}
                                                 wall={undefined}
-                                                onWallBreak={handleWallBreak}
+                                                onWallBreak={wallHandlers.handleWallBreak}
                                                 enableBackgroundRect={false}
                                                 wallTransaction={wallTransaction}
                                             />
                                         ))}
                                     </>
                                 )}
+                            </Group>
+                        )}
+
+                        {/* Region Transformer */}
+                        {scene && scene.regions && isEditingRegionVertices && editingRegionIndex !== null && regionTransaction.transaction.isActive && regionTransaction.transaction.segment && (
+                            <Group name={GroupName.Structure}>
+                                <RegionTransformer
+                                    sceneId={sceneId || ''}
+                                    regionIndex={editingRegionIndex}
+                                    segment={regionTransaction.transaction.segment}
+                                    gridConfig={gridConfig}
+                                    viewport={viewportControls.viewport}
+                                    onVerticesChange={(newVertices: Point[]) => handleRegionVerticesChange(editingRegionIndex, newVertices)}
+                                    onClearSelections={regionHandlers.handleFinishEditingRegion}
+                                    onLocalAction={(action: any) => regionTransaction.pushLocalAction(action)}
+                                    {...(regionTransaction.transaction.segment.color && {
+                                        color: regionTransaction.transaction.segment.color
+                                    })}
+                                />
                             </Group>
                         )}
                             </>
@@ -2113,7 +1356,7 @@ const SceneEditorPageInternal: React.FC = () => {
                     {/* Layer 5: Assets (tokens/objects/creatures) */}
                     {scene && (layerVisibility.objects || layerVisibility.creatures) && (
                         <TokenPlacement
-                            placedAssets={placedAssets.filter(asset => {
+                            placedAssets={assetManagement.placedAssets.filter(asset => {
                                 if (asset.asset.kind === AssetKind.Object && !layerVisibility.objects) {
                                     return false;
                                 }
@@ -2122,15 +1365,15 @@ const SceneEditorPageInternal: React.FC = () => {
                                 }
                                 return true;
                             })}
-                            onAssetPlaced={handleAssetPlaced}
-                            onAssetMoved={handleAssetMoved}
-                            onAssetDeleted={handleAssetDeleted}
+                            onAssetPlaced={assetManagement.handleAssetPlaced}
+                            onAssetMoved={assetManagement.handleAssetMoved}
+                            onAssetDeleted={assetManagement.handleAssetDeleted}
                             gridConfig={gridConfig}
-                            draggedAsset={draggedAsset}
-                            onDragComplete={handleDragComplete}
-                            onImagesLoaded={handleImagesLoaded}
-                            snapMode={snapMode}
-                            onContextMenu={handleAssetContextMenu}
+                            draggedAsset={assetManagement.draggedAsset}
+                            onDragComplete={assetManagement.handleDragComplete}
+                            onImagesLoaded={canvasReadyState.handleImagesLoaded}
+                            snapMode={keyboardState.snapMode}
+                            onContextMenu={contextMenus.assetContextMenu.handleOpen}
                             scene={scene}
                         />
                     )}
@@ -2162,7 +1405,27 @@ const SceneEditorPageInternal: React.FC = () => {
                                     wallTransaction={wallTransaction}
                                 />
                             )}
-                            {/* TODO: Implement RegionDrawingTool with progressive creation like WallDrawingTool */}
+                            {drawingMode === 'region' && drawingRegionIndex !== null && (
+                                <RegionDrawingTool
+                                    sceneId={sceneId}
+                                    regionIndex={drawingRegionIndex}
+                                    gridConfig={gridConfig}
+                                    regionType={regionTransaction.transaction.segment?.type || 'Elevation'}
+                                    {...(regionTransaction.transaction.segment?.color && {
+                                        regionColor: regionTransaction.transaction.segment.color
+                                    })}
+                                    onCancel={handleRegionPlacementCancel}
+                                    onFinish={handleStructurePlacementFinish}
+                                    onVerticesChange={(newVertices: Point[]) => {
+                                        regionTransaction.updateVertices(newVertices);
+                                        if (scene) {
+                                            const updatedScene = updateRegionOptimistic(scene, -1, { vertices: newVertices });
+                                            setScene(updatedScene);
+                                        }
+                                    }}
+                                    regionTransaction={regionTransaction}
+                                />
+                            )}
                             {activeTool === 'sourceDrawing' && sourcePlacementProperties && scene && (
                                 <SourceDrawingTool
                                     sceneId={sceneId || ''}
@@ -2187,79 +1450,64 @@ const SceneEditorPageInternal: React.FC = () => {
 
                     {/* Layer 8: UI Overlay (transformer + selection) */}
                     <TokenDragHandle
-                        placedAssets={placedAssets}
-                        selectedAssetIds={selectedAssetIds}
-                        onAssetSelected={handleAssetSelected}
-                        onAssetMoved={handleAssetMoved}
-                        onAssetDeleted={handleAssetDeleted}
+                        placedAssets={assetManagement.placedAssets.filter(asset => {
+                            if (asset.asset.kind === AssetKind.Object && !layerVisibility.objects) {
+                                return false;
+                            }
+                            if (asset.asset.kind === AssetKind.Creature && !layerVisibility.creatures) {
+                                return false;
+                            }
+                            return true;
+                        })}
+                        selectedAssetIds={assetManagement.selectedAssetIds}
+                        onAssetSelected={assetManagement.handleAssetSelected}
+                        onAssetMoved={assetManagement.handleAssetMoved}
+                        onAssetDeleted={assetManagement.handleAssetDeleted}
                         gridConfig={gridConfig}
                         stageRef={stageRef as React.RefObject<Konva.Stage>}
-                        isPlacementMode={!!draggedAsset}
+                        stageReady={stageReady}
+                        isPlacementMode={!!assetManagement.draggedAsset}
                         enableDragMove={true}
-                        onReady={handleHandlersReady}
-                        snapMode={snapMode}
-                        isShiftPressed={isShiftPressed}
-                        isCtrlPressed={isCtrlPressed}
-                        scale={viewport.scale}
-                        onAssetRotated={handleAssetRotated}
-                        onRotationStart={handleRotationStart}
-                        onRotationEnd={handleRotationEnd}
+                        onReady={canvasReadyState.handleHandlersReady}
+                        snapMode={keyboardState.snapMode}
+                        isShiftPressed={keyboardState.isShiftPressed}
+                        isCtrlPressed={keyboardState.isCtrlPressed}
+                        scale={viewportControls.viewport.scale}
+                        onAssetRotated={assetManagement.handleAssetRotated}
+                        onRotationStart={assetManagement.handleRotationStart}
+                        onRotationEnd={assetManagement.handleRotationEnd}
                     />
                 </SceneCanvas>
             </Box>
 
             <EditorStatusBar
-                {...(cursorPosition && { cursorPosition })}
-                totalAssets={placedAssets.length}
-                selectedCount={selectedAssetIds.length}
-                zoomPercentage={viewport.scale * 100}
+                {...(viewportControls.cursorPosition && { cursorPosition: viewportControls.cursorPosition })}
+                totalAssets={assetManagement.placedAssets.length}
+                selectedCount={assetManagement.selectedAssetIds.length}
+                zoomPercentage={viewportControls.viewport.scale * 100}
                 {...(drawingMode && { activeTool: drawingMode })}
                 gridSnapEnabled={gridConfig.snap}
             />
         </Box>
 
-        {deleteConfirmOpen && (
-            <ConfirmDialog
-                open={deleteConfirmOpen}
-                onClose={() => setDeleteConfirmOpen(false)}
-                onConfirm={confirmDelete}
-                title="Delete Assets"
-                message={`Delete ${assetsToDelete.length} asset${assetsToDelete.length === 1 ? '' : 's'}?`}
-                confirmText="Delete"
-                severity="error"
-            />
-        )}
-
-        <AssetContextMenu
-            anchorPosition={contextMenuPosition}
-            open={contextMenuPosition !== null}
-            onClose={handleContextMenuClose}
-            asset={contextMenuAsset}
-            onRename={handleAssetRename}
-            onUpdateDisplay={handleAssetDisplayUpdate}
+        <EditorDialogs
+            deleteConfirmOpen={assetManagement.deleteConfirmOpen}
+            assetsToDelete={assetManagement.assetsToDelete}
+            onDeleteConfirmClose={() => assetManagement.setDeleteConfirmOpen(false)}
+            onDeleteConfirm={assetManagement.confirmDelete}
+            assetContextMenuPosition={contextMenus.assetContextMenu.position}
+            assetContextMenuAsset={contextMenus.assetContextMenu.asset}
+            onAssetContextMenuClose={contextMenus.assetContextMenu.handleClose}
+            onAssetRename={assetManagement.handleAssetRename}
+            onAssetDisplayUpdate={assetManagement.handleAssetDisplayUpdate}
+            wallContextMenuPosition={contextMenus.wallContextMenu.position}
+            wallContextMenuWall={contextMenus.wallContextMenu.wall}
+            onWallContextMenuClose={contextMenus.wallContextMenu.handleClose}
+            onWallEditVertices={wallHandlers.handleEditVertices}
+            onWallDelete={wallHandlers.handleWallDelete}
+            errorMessage={errorMessage}
+            onErrorMessageClose={() => setErrorMessage(null)}
         />
-
-        <WallContextMenu
-            anchorPosition={WallContextMenuPosition}
-            open={WallContextMenuPosition !== null}
-            onClose={handleWallContextMenuClose}
-            sceneWall={contextMenuWall}
-            onEditVertices={handleEditVertices}
-            onDelete={handleWallDelete}
-        />
-
-        {/* TODO: StructureSelectionModal removed - implement progressive creation for regions/sources */}
-
-        <Snackbar
-            open={!!errorMessage}
-            autoHideDuration={6000}
-            onClose={() => setErrorMessage(null)}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-            <Alert onClose={() => setErrorMessage(null)} severity="error" sx={{ width: '100%' }}>
-                {errorMessage}
-            </Alert>
-        </Snackbar>
         </EditorLayout>
     );
 };

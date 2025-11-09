@@ -29,14 +29,15 @@ export class CreateRegionCommand implements Command {
 
     async redo(): Promise<void> {
         const { sceneId, region, onCreate, onRefetch } = this.params;
-        await onCreate(sceneId, {
+        const regionData: Omit<SceneRegion, 'index' | 'sceneId'> = {
             name: region.name,
             type: region.type,
             vertices: region.vertices,
-            value: region.value,
-            label: region.label,
-            color: region.color
-        });
+            ...(region.value !== undefined && { value: region.value }),
+            ...(region.label !== undefined && { label: region.label }),
+            ...(region.color !== undefined && { color: region.color })
+        };
+        await onCreate(sceneId, regionData);
         await onRefetch();
     }
 }
@@ -66,9 +67,9 @@ export class EditRegionCommand implements Command {
             name: oldRegion.name,
             type: oldRegion.type,
             vertices: oldRegion.vertices,
-            value: oldRegion.value,
-            label: oldRegion.label,
-            color: oldRegion.color
+            ...(oldRegion.value !== undefined && { value: oldRegion.value }),
+            ...(oldRegion.label !== undefined && { label: oldRegion.label }),
+            ...(oldRegion.color !== undefined && { color: oldRegion.color })
         };
         await onUpdate(sceneId, regionIndex, updates);
         await onRefetch();
@@ -80,9 +81,9 @@ export class EditRegionCommand implements Command {
             name: newRegion.name,
             type: newRegion.type,
             vertices: newRegion.vertices,
-            value: newRegion.value,
-            label: newRegion.label,
-            color: newRegion.color
+            ...(newRegion.value !== undefined && { value: newRegion.value }),
+            ...(newRegion.label !== undefined && { label: newRegion.label }),
+            ...(newRegion.color !== undefined && { color: newRegion.color })
         };
         await onUpdate(sceneId, regionIndex, updates);
         await onRefetch();
@@ -114,14 +115,15 @@ export class DeleteRegionCommand implements Command {
 
     async undo(): Promise<void> {
         const { sceneId, region, onAdd, onRefetch } = this.params;
-        const restoredRegion = await onAdd(sceneId, {
+        const regionData: Omit<SceneRegion, 'index' | 'sceneId'> = {
             name: region.name,
             type: region.type,
             vertices: region.vertices,
-            value: region.value,
-            label: region.label,
-            color: region.color
-        });
+            ...(region.value !== undefined && { value: region.value }),
+            ...(region.label !== undefined && { label: region.label }),
+            ...(region.color !== undefined && { color: region.color })
+        };
+        const restoredRegion = await onAdd(sceneId, regionData);
         this.restoredIndex = restoredRegion.index;
         await onRefetch();
     }

@@ -65,7 +65,7 @@ describe('hydratePlacedAssets', () => {
 
             const getAsset = async () => mockCreatureAssetData;
 
-            const result = await hydratePlacedAssets([sceneAssetWithName], getAsset);
+            const result = await hydratePlacedAssets([sceneAssetWithName], 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]?.name).toBe('Goblin #2');
@@ -76,7 +76,7 @@ describe('hydratePlacedAssets', () => {
 
             const getAsset = async () => mockCreatureAssetData;
 
-            const result = await hydratePlacedAssets([sceneAsset], getAsset);
+            const result = await hydratePlacedAssets([sceneAsset], 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]?.name).toBe('Goblin');
@@ -87,7 +87,7 @@ describe('hydratePlacedAssets', () => {
 
             const getAsset = async () => mockCreatureAssetData;
 
-            const result = await hydratePlacedAssets([sceneAssetWithNullName], getAsset);
+            const result = await hydratePlacedAssets([sceneAssetWithNullName], 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]?.name).toBe('Goblin');
@@ -98,7 +98,7 @@ describe('hydratePlacedAssets', () => {
 
             const getAsset = async () => mockCreatureAssetData;
 
-            const result = await hydratePlacedAssets([sceneAssetWithEmptyName], getAsset);
+            const result = await hydratePlacedAssets([sceneAssetWithEmptyName], 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]?.name).toBe('Goblin');
@@ -135,7 +135,7 @@ describe('hydratePlacedAssets', () => {
 
             const getAsset = async () => mockCreatureAssetData;
 
-            const result = await hydratePlacedAssets([sceneAssetWithNumberedName], getAsset);
+            const result = await hydratePlacedAssets([sceneAssetWithNumberedName], 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]?.name).toBe('Goblin #5');
@@ -171,7 +171,7 @@ describe('hydratePlacedAssets', () => {
 
             const getAsset = async () => mockObjectAssetData;
 
-            const result = await hydratePlacedAssets([sceneAssetWithCustomName], getAsset);
+            const result = await hydratePlacedAssets([sceneAssetWithCustomName], 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]?.name).toBe('Golden Chest');
@@ -239,7 +239,7 @@ describe('hydratePlacedAssets', () => {
                 return assetId === 'asset-1' ? mockCreatureAssetData : mockObjectAssetData;
             };
 
-            const result = await hydratePlacedAssets(sceneAssets, getAsset);
+            const result = await hydratePlacedAssets(sceneAssets, 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(3);
             expect(result[0]?.name).toBe('Goblin #1');
@@ -273,7 +273,7 @@ describe('hydratePlacedAssets', () => {
 
             const getAsset = async () => mockCreatureAssetData;
 
-            const result = await hydratePlacedAssets([sceneAsset], getAsset);
+            const result = await hydratePlacedAssets([sceneAsset], 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]!.position).toEqual({ x: 100, y: 150 });
@@ -299,7 +299,7 @@ describe('hydratePlacedAssets', () => {
 
             const getAsset = async () => mockCreatureAssetData;
 
-            const result = await hydratePlacedAssets([sceneAsset], getAsset);
+            const result = await hydratePlacedAssets([sceneAsset], 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]!.position).toEqual({ x: 200, y: 250 });
@@ -333,7 +333,7 @@ describe('hydratePlacedAssets', () => {
 
             const getAsset = async () => mockCreatureAssetData;
 
-            const result = await hydratePlacedAssets([sceneAsset], getAsset);
+            const result = await hydratePlacedAssets([sceneAsset], 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]!.layer).toBe('creatures');
@@ -363,7 +363,7 @@ describe('hydratePlacedAssets', () => {
 
             const getAsset = async () => mockObjectAssetData;
 
-            const result = await hydratePlacedAssets([sceneAsset], getAsset);
+            const result = await hydratePlacedAssets([sceneAsset], 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]!.layer).toBe('objects');
@@ -393,7 +393,7 @@ describe('hydratePlacedAssets', () => {
 
             const getAsset = async () => mockCreatureAssetData;
 
-            const result = await hydratePlacedAssets([sceneAsset], getAsset);
+            const result = await hydratePlacedAssets([sceneAsset], 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]!.index).toBe(5);
@@ -424,7 +424,7 @@ describe('hydratePlacedAssets', () => {
 
             const getAsset = async () => mockCreatureAssetData;
 
-            const result = await hydratePlacedAssets([sceneAsset], getAsset);
+            const result = await hydratePlacedAssets([sceneAsset], 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]!.index).toBe(0);
@@ -454,7 +454,7 @@ describe('hydratePlacedAssets', () => {
 
             const getAsset = async () => mockCreatureAssetData;
 
-            const result = await hydratePlacedAssets([sceneAsset], getAsset);
+            const result = await hydratePlacedAssets([sceneAsset], 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]!.number).toBe(1);
@@ -513,7 +513,7 @@ describe('hydratePlacedAssets', () => {
                 return mockCreatureAssetData;
             };
 
-            const result = await hydratePlacedAssets(sceneAssets, getAsset);
+            const result = await hydratePlacedAssets(sceneAssets, 'test-scene-1', getAsset);
 
             expect(result).toHaveLength(1);
             expect(result[0]!.assetId).toBe('asset-1');
@@ -547,6 +547,9 @@ describe('dehydratePlacedAssets', () => {
             id: 'scene-asset-1',
             sceneId: 'scene-1',
             assetId: 'asset-1',
+            index: 5,
+            number: 3,
+            name: 'Goblin #3',
             x: 100,
             y: 150,
             width: 50,
@@ -555,6 +558,7 @@ describe('dehydratePlacedAssets', () => {
             scaleX: 1,
             scaleY: 1,
             layer: 0,
+            elevation: 0,
             visible: true,
             locked: false,
             asset: mockCreatureAssetData

@@ -13,7 +13,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { TokenPlacement } from './TokenPlacement';
 import { formatCreatureLabel } from './tokenPlacementUtils';
 import type { Asset, PlacedAsset, CreatureAsset, ObjectAsset, Scene } from '@/types/domain';
-import { AssetKind, CreatureCategory, DisplayName, LabelPosition } from '@/types/domain';
+import { AssetKind, CreatureCategory, DisplayName, LabelPosition, Light, Weather } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import { GroupName } from '@/services/layerManager';
@@ -106,6 +106,9 @@ describe('TokenPlacement', () => {
             zoomLevel: 1,
             panning: { x: 0, y: 0 },
         },
+        light: Light.Bright,
+        weather: Weather.Clear,
+        elevation: 0,
         assets: [],
         walls: [],
         regions: [],
