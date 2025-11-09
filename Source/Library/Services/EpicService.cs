@@ -148,7 +148,7 @@ public class EpicService(IEpicStorage epicStorage, ICampaignStorage campaignStor
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
 
-        if (newOriginalName != original.Name) {
+        if (newOriginalName != original.Name && original.OwnerId == userId) {
             var renamedOriginal = original with { Name = newOriginalName };
             await campaignStorage.UpdateAsync(renamedOriginal, ct);
             original = renamedOriginal;
