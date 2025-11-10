@@ -19,7 +19,8 @@ export class CreateWallCommand implements Command {
         this.description = `Create wall "${params.wall.name}"`;
     }
 
-    execute(): void {
+    async execute(): Promise<void> {
+        await this.redo();
     }
 
     async undo(): Promise<void> {
@@ -57,7 +58,8 @@ export class EditWallCommand implements Command {
         this.description = `Edit wall "${params.newWall.name}"`;
     }
 
-    execute(): void {
+    async execute(): Promise<void> {
+        await this.redo();
     }
 
     async undo(): Promise<void> {
@@ -109,7 +111,10 @@ export class DeleteWallCommand implements Command {
         this.description = `Delete wall "${params.wall.name}"`;
     }
 
-    execute(): void {
+    async execute(): Promise<void> {
+        const { sceneId, wallIndex, onRemove, onRefetch } = this.params;
+        await onRemove(sceneId, wallIndex);
+        await onRefetch();
     }
 
     async undo(): Promise<void> {
@@ -157,8 +162,8 @@ export class BreakWallCommand implements Command {
         this.description = `Break wall "${params.originalWall.name}" into ${params.newWalls.length} segments`;
     }
 
-    execute(): void {
-        this.segmentIndices = this.params.newWalls.map(w => w.index);
+    async execute(): Promise<void> {
+        await this.redo();
     }
 
     async undo(): Promise<void> {

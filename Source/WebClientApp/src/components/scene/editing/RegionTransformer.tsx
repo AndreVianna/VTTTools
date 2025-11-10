@@ -70,6 +70,8 @@ export interface RegionTransformerProps {
     viewport: { x: number; y: number; scale: number };
     onVerticesChange: (vertices: Point[]) => void;
     onClearSelections: () => void;
+    onFinish?: () => void;
+    onCancel?: () => void;
     onLocalAction?: (action: LocalAction) => void;
     color?: string;
 }
@@ -79,6 +81,8 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
     gridConfig,
     onVerticesChange,
     onClearSelections,
+    onFinish,
+    onCancel,
     onLocalAction,
     color
 }) => {
@@ -144,13 +148,27 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
     }, [selectedVertices, segment, onVerticesChange, onLocalAction]);
 
     useEffect(() => {
+        console.log('[REGION TRANSFORMER] Mounted and listening for keyboard events (capture phase)');
+
         const handleKeyDown = (e: KeyboardEvent) => {
+            console.log('[REGION TRANSFORMER] Key pressed (capture):', e.key);
+
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
                 return;
             }
 
             if (e.key === 'Shift') {
                 setIsShiftPressed(true);
+            }
+
+            if (e.key === 'Enter') {
+                console.log('[REGION TRANSFORMER] Enter detected, finishing edit');
+                e.preventDefault();
+                e.stopPropagation();
+                if (onFinish) {
+                    onFinish();
+                }
+                return;
             }
 
             if (e.key === 'Delete') {
@@ -163,11 +181,11 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
             }
 
             if (e.key === 'Escape') {
-                if (selectedVertices.size > 0 || selectedLineIndex !== null) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setSelectedVertices(new Set());
-                    setSelectedLineIndex(null);
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (onCancel) {
+                    onCancel();
                 }
             }
         };
@@ -183,10 +201,11 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
         window.addEventListener('keydown', handleKeyDown, { capture: true });
         window.addEventListener('keyup', handleKeyUp);
         return () => {
+            console.log('[REGION TRANSFORMER] Unmounted, removing keyboard listener');
             window.removeEventListener('keydown', handleKeyDown, { capture: true });
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, [selectedVertices, selectedLineIndex, onClearSelections, handleDeleteVertices]);
+    }, [selectedVertices, selectedLineIndex, onClearSelections, onFinish, onCancel, handleDeleteVertices]);
 
     const handleVertexDragStart = useCallback((index: number) => {
         const vertex = segment.vertices[index];

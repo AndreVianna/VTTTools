@@ -217,7 +217,6 @@ export const useRegionTransaction = () => {
     ): Promise<CommitResult> => {
         const { addSceneRegion, updateSceneRegion } = apiHooks;
 
-        console.log('commitTransaction called with:', { sceneId, hasSegment: !!transaction.segment, segmentVertices: transaction.segment?.vertices?.length });
         try {
             if (!transaction.segment) {
                 return {
@@ -229,7 +228,6 @@ export const useRegionTransaction = () => {
             const segment = transaction.segment;
 
             if (currentScene?.regions) {
-                console.log('Checking for mergeable regions, currentScene.regions count:', currentScene.regions.length);
                 const mergeableRegions = findMergeableRegions(
                     currentScene.regions,
                     segment.vertices,
@@ -238,10 +236,10 @@ export const useRegionTransaction = () => {
                     segment.label
                 );
 
-                console.log('findMergeableRegions found:', mergeableRegions.length, 'regions', mergeableRegions);
                 if (mergeableRegions.length > 0) {
                     const sortedRegions = [...mergeableRegions].sort((a, b) => a.index - b.index);
                     const targetRegion = sortedRegions[0];
+
                     if (!targetRegion) {
                         return {
                             success: false,
@@ -262,21 +260,21 @@ export const useRegionTransaction = () => {
                         regionsToDelete.push(segment.regionIndex);
                     }
 
-                    console.log('Returning merge action for targetRegion:', targetRegion.index);
-                    return {
+                    const result = {
                         success: true,
-                        action: 'merge',
+                        action: 'merge' as const,
                         targetRegionIndex: targetRegion.index,
                         mergedVertices,
                         regionsToDelete,
                         originalRegions: mergeableRegions
                     };
+
+                    return result;
                 }
             }
 
             const cleanedVertices = cleanPolygonVertices(segment.vertices, true);
 
-            console.log('No merge detected, proceeding to create/edit. Cleaned vertices:', cleanedVertices.length);
             if (cleanedVertices.length < 3) {
                 return {
                     success: false,
@@ -285,7 +283,6 @@ export const useRegionTransaction = () => {
             }
 
             if (segment.regionIndex !== null) {
-                console.log('Segment has regionIndex (EDIT mode):', segment.regionIndex);
                 const updateData: {
                     sceneId: string;
                     regionIndex: number;
@@ -316,7 +313,6 @@ export const useRegionTransaction = () => {
                     regionIndex: segment.regionIndex
                 };
             } else {
-                console.log('Segment has NO regionIndex (CREATE mode), will call addSceneRegion');
                 const addData: {
                     sceneId: string;
                     name: string;
@@ -334,9 +330,7 @@ export const useRegionTransaction = () => {
                     ...(segment.label !== undefined && { label: segment.label }),
                     ...(segment.color !== undefined && { color: segment.color })
                 };
-                console.log('About to call addSceneRegion with:', addData);
                 const result = await addSceneRegion(addData).unwrap();
-                console.log('addSceneRegion result:', result);
 
                 setTransaction(INITIAL_TRANSACTION);
                 setNextTempId(0);
@@ -356,6 +350,11 @@ export const useRegionTransaction = () => {
     }, [transaction]);
 
     const rollbackTransaction = useCallback(() => {
+        setTransaction(INITIAL_TRANSACTION);
+        setNextTempId(0);
+    }, []);
+
+    const clearTransaction = useCallback(() => {
         setTransaction(INITIAL_TRANSACTION);
         setNextTempId(0);
     }, []);
@@ -450,6 +449,7 @@ export const useRegionTransaction = () => {
         updateSegmentProperties,
         commitTransaction,
         rollbackTransaction,
+        clearTransaction,
         getActiveSegment,
         pushLocalAction,
         undoLocal,

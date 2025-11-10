@@ -37,26 +37,32 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
     const [previewPoint, setPreviewPoint] = useState<Point | null>(null);
 
     const handleFinish = useCallback(async () => {
-        console.log('RegionDrawingTool: handleFinish called, vertices:', vertices.length);
         if (vertices.length < 3) {
             console.warn('Cannot finish region with less than 3 vertices');
             return;
         }
 
-        console.log('RegionDrawingTool: calling onFinish()');
         onFinish();
     }, [vertices, onFinish]);
 
     useEffect(() => {
+        console.log('[REGION DRAWING TOOL] Mounted and listening for keyboard events');
+
         const handleKeyDown = (e: KeyboardEvent) => {
+            console.log('[REGION DRAWING TOOL] Key pressed:', e.key);
+
             if (e.key === 'Escape') {
-            console.log('RegionDrawingTool: Escape key pressed');
+                console.log('[REGION DRAWING TOOL] Escape detected, canceling');
+                e.preventDefault();
+                e.stopPropagation();
                 onCancel();
                 return;
             }
 
             if (e.key === 'Enter') {
-                console.log('RegionDrawingTool: Enter key pressed, vertices:', vertices.length);
+                console.log('[REGION DRAWING TOOL] Enter detected, finishing placement');
+                e.preventDefault();
+                e.stopPropagation();
                 handleFinish();
                 return;
             }
@@ -65,6 +71,7 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
         window.addEventListener('keydown', handleKeyDown);
 
         return () => {
+            console.log('[REGION DRAWING TOOL] Unmounted, removing keyboard listener');
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [onCancel, handleFinish]);

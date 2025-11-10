@@ -122,7 +122,7 @@ const SceneEditorPageInternal: React.FC = () => {
     const { sceneId } = useParams<{ sceneId: string }>();
     const canvasRef = useRef<SceneCanvasHandle>(null);
     const stageRef = useRef<Konva.Stage>(null);
-    const { execute, undo, redo } = useUndoRedoContext();
+    const { execute, recordAction, undo, redo } = useUndoRedoContext();
     const { copyAssets, cutAssets, clipboard, canPaste, getClipboardAssets, clearClipboard } = useClipboard();
     const { isOnline } = useConnectionStatus();
     const wallTransaction = useWallTransaction();
@@ -343,6 +343,7 @@ const SceneEditorPageInternal: React.FC = () => {
         setDrawingMode,
         setErrorMessage,
         execute,
+        recordAction,
         refetch
     });
 
@@ -534,6 +535,8 @@ const SceneEditorPageInternal: React.FC = () => {
 
     useEffect(() => {
         const handleKeyDown = async (e: KeyboardEvent) => {
+            console.log('[UNDO DEBUG] SceneEditorPage handleKeyDown CAPTURE:', { key: e.key, ctrlKey: e.ctrlKey });
+
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
                 return;
             }
@@ -544,10 +547,15 @@ const SceneEditorPageInternal: React.FC = () => {
             const modifier = isMac ? e.metaKey : e.ctrlKey;
 
             if (modifier && e.key === 'z' && !e.shiftKey) {
+                console.log('[UNDO DEBUG] SceneEditorPage - Detected Ctrl+Z!');
+                console.log('[UNDO DEBUG] SceneEditorPage - isWallTransactionActive:', isWallTransactionActive);
+                console.log('[UNDO DEBUG] SceneEditorPage - isRegionTransactionActive:', isRegionTransactionActive);
                 e.preventDefault();
                 e.stopImmediatePropagation();
 
                 if (isWallTransactionActive && wallTransaction.canUndoLocal()) {
+                    console.log('[UNDO DEBUG] SceneEditorPage - Wall local undo');
+
                     wallTransaction.undoLocal((segments) => {
                         const currentScene = sceneRef.current;
                         if (currentScene && selectedWallIndex !== null) {
@@ -580,6 +588,7 @@ const SceneEditorPageInternal: React.FC = () => {
                         }
                     });
                 } else if (isRegionTransactionActive && regionTransaction.canUndoLocal()) {
+                    console.log('[UNDO DEBUG] SceneEditorPage - Region local undo');
                     regionTransaction.undoLocal((segment) => {
                         const currentScene = sceneRef.current;
                         if (currentScene && drawingRegionIndex !== null) {
@@ -594,7 +603,9 @@ const SceneEditorPageInternal: React.FC = () => {
                         }
                     });
                 } else {
+                    console.log('[UNDO DEBUG] SceneEditorPage - Calling GLOBAL undo()');
                     await undo();
+                    console.log('[UNDO DEBUG] SceneEditorPage - GLOBAL undo() completed');
                 }
                 return;
             }
@@ -775,7 +786,10 @@ const SceneEditorPageInternal: React.FC = () => {
                 gridConfig
             );
 
+            console.log('[DEBUG SceneEditorPage] Commit result:', result);
+
             if (result.action === 'merge') {
+                console.log('[DEBUG SceneEditorPage] Processing merge, target:', result.targetRegionIndex, 'merged vertices:', result.mergedVertices?.length);
                 const targetRegion = scene.regions?.find(r => r.index === result.targetRegionIndex);
                 if (!targetRegion) {
                     setErrorMessage('Merge target region not found');
@@ -829,14 +843,25 @@ const SceneEditorPageInternal: React.FC = () => {
                 }
 
                 const batchCommand = createBatchCommand({ commands });
-                execute(batchCommand);
+                await execute(batchCommand);
 
+                console.log('[DEBUG SceneEditorPage] Before optimistic update, scene.regions count:', scene.regions?.length);
                 let syncedScene = updateRegionOptimistic(scene, result.targetRegionIndex!, {
                     vertices: result.mergedVertices!
                 });
+                console.log('[DEBUG SceneEditorPage] After updateRegionOptimistic, regions count:', syncedScene.regions?.length);
+
                 for (const deleteIndex of result.regionsToDelete || []) {
                     syncedScene = removeRegionOptimistic(syncedScene, deleteIndex);
                 }
+
+                // BUGFIX: Remove temp region -1 from scene state after merge
+                syncedScene = {
+                    ...syncedScene,
+                    regions: syncedScene.regions?.filter(r => r.index !== -1) || []
+                };
+                console.log('[DEBUG SceneEditorPage] After temp region cleanup, regions count:', syncedScene.regions?.length);
+
                 setScene(syncedScene);
 
                 setDrawingRegionIndex(null);
@@ -880,7 +905,8 @@ const SceneEditorPageInternal: React.FC = () => {
                             if (data) setScene(data);
                         }
                     });
-                    execute(command);
+                    console.log('[DEBUG SceneEditorPage] Calling recordAction - transaction already created region');
+                    recordAction(command);
                 }
             } else {
                 regionTransaction.rollbackTransaction();
@@ -1342,6 +1368,8 @@ const SceneEditorPageInternal: React.FC = () => {
                                     viewport={viewportControls.viewport}
                                     onVerticesChange={(newVertices: Point[]) => handleRegionVerticesChange(editingRegionIndex, newVertices)}
                                     onClearSelections={regionHandlers.handleFinishEditingRegion}
+                                    onFinish={regionHandlers.handleFinishEditingRegion}
+                                    onCancel={regionHandlers.handleCancelEditingRegion}
                                     onLocalAction={(action: any) => regionTransaction.pushLocalAction(action)}
                                     {...(regionTransaction.transaction.segment.color && {
                                         color: regionTransaction.transaction.segment.color

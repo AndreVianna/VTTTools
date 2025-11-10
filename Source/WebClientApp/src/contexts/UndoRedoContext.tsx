@@ -9,9 +9,10 @@ interface UndoRedoState {
 interface UndoRedoContextValue {
     canUndo: boolean;
     canRedo: boolean;
-    execute: (command: Command) => void;
+    execute: (command: Command) => Promise<void>;
+    recordAction: (command: Command) => void;
     undo: () => Promise<void>;
-    redo: () => void;
+    redo: () => Promise<void>;
     clear: () => void;
 }
 
@@ -33,14 +34,37 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
         future: [],
     });
 
-    const execute = useCallback((command: Command) => {
-        command.execute();
+    const execute = useCallback(async (command: Command) => {
+        console.log('[UNDO DEBUG] UndoRedoContext.execute() - Adding command to history:', command.description);
+        const result = command.execute();
+        if (result instanceof Promise) {
+            await result;
+        }
 
         setState((prev) => {
             const newPast = [...prev.past, command];
             if (newPast.length > maxHistorySize) {
                 newPast.shift();
             }
+
+            console.log('[UNDO DEBUG] UndoRedoContext - History updated. Past length:', newPast.length);
+
+            return {
+                past: newPast,
+                future: [],
+            };
+        });
+    }, [maxHistorySize]);
+
+    const recordAction = useCallback((command: Command) => {
+        console.log('[UNDO DEBUG] UndoRedoContext.recordAction() - Recording without executing:', command.description);
+        setState((prev) => {
+            const newPast = [...prev.past, command];
+            if (newPast.length > maxHistorySize) {
+                newPast.shift();
+            }
+
+            console.log('[UNDO DEBUG] UndoRedoContext - History updated. Past length:', newPast.length);
 
             return {
                 past: newPast,
@@ -53,7 +77,9 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
         let commandToUndo: Command | undefined;
 
         setState((prev) => {
+            console.log('[UNDO DEBUG] UndoRedoContext.undo() - Current history length:', prev.past.length);
             if (prev.past.length === 0) {
+                console.log('[UNDO DEBUG] UndoRedoContext.undo() - No commands to undo');
                 return prev;
             }
 
@@ -64,6 +90,8 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
                 return prev;
             }
 
+            console.log('[UNDO DEBUG] UndoRedoContext.undo() - Undoing command:', commandToUndo.description);
+
             return {
                 past: newPast,
                 future: [commandToUndo, ...prev.future],
@@ -71,14 +99,16 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
         });
 
         if (commandToUndo) {
+            console.log('[UNDO DEBUG] UndoRedoContext.undo() - Calling command.undo()');
             const result = commandToUndo.undo();
             if (result instanceof Promise) {
                 await result;
             }
+            console.log('[UNDO DEBUG] UndoRedoContext.undo() - command.undo() completed');
         }
     }, []);
 
-    const redo = useCallback(() => {
+    const redo = useCallback(async () => {
         // Get the command to redo BEFORE calling setState
         let commandToRedo: Command | undefined;
 
@@ -102,7 +132,10 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
 
         // Execute the redo OUTSIDE of setState to prevent double execution
         if (commandToRedo) {
-            commandToRedo.execute();
+            const result = commandToRedo.execute();
+            if (result instanceof Promise) {
+                await result;
+            }
         }
     }, []);
 
@@ -118,18 +151,31 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
             const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
             const modifier = isMac ? e.metaKey : e.ctrlKey;
 
+            console.log('[UNDO DEBUG] UndoRedoContext keydown event:', {
+                key: e.key,
+                ctrlKey: e.ctrlKey,
+                metaKey: e.metaKey,
+                shiftKey: e.shiftKey,
+                modifier,
+                isMac
+            });
+
             if (modifier && e.key === 'z' && !e.shiftKey) {
+                console.log('[UNDO DEBUG] UndoRedoContext - Ctrl+Z detected, calling undo()');
                 e.preventDefault();
                 await undo();
             } else if (modifier && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+                console.log('[UNDO DEBUG] UndoRedoContext - Ctrl+Y/Ctrl+Shift+Z detected, calling redo()');
                 e.preventDefault();
-                redo();
+                await redo();
             }
         };
 
+        console.log('[UNDO DEBUG] UndoRedoContext - Registering keydown listener');
         window.addEventListener('keydown', handleKeyDown);
 
         return () => {
+            console.log('[UNDO DEBUG] UndoRedoContext - Removing keydown listener');
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [undo, redo]);
@@ -138,6 +184,7 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
         canUndo: state.past.length > 0,
         canRedo: state.future.length > 0,
         execute,
+        recordAction,
         undo,
         redo,
         clear,

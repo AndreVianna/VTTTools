@@ -38,7 +38,8 @@ interface UseRegionHandlersProps {
     setDrawingMode: (mode: 'region' | 'wall' | null) => void;
     setErrorMessage: (message: string | null) => void;
 
-    execute: (command: any) => void;
+    execute: (command: any) => Promise<void>;
+    recordAction: (command: any) => void;
     refetch: () => Promise<{ data?: Scene }>;
 }
 
@@ -65,6 +66,7 @@ export const useRegionHandlers = ({
     setDrawingMode,
     setErrorMessage,
     execute,
+    recordAction,
     refetch
 }: UseRegionHandlersProps) => {
 
@@ -121,10 +123,11 @@ export const useRegionHandlers = ({
     const handleFinishEditingRegion = useCallback(async () => {
         if (!sceneId || !scene || editingRegionIndex === null) return;
 
-        // Filter out temp regions (index -1) before merge detection
+        // Filter out temp regions AND the region being edited before merge detection
+        // (to prevent detecting merge with itself)
         const sceneForCommit = scene ? {
             ...scene,
-            regions: scene.regions?.filter(r => r.index !== -1)
+            regions: scene.regions?.filter(r => r.index !== -1 && r.index !== editingRegionIndex)
         } : scene;
 
         const result = await regionTransaction.commitTransaction(
@@ -154,12 +157,24 @@ export const useRegionHandlers = ({
                 return;
             }
 
+            // Find the ORIGINAL target region before merge (from result.originalRegions)
+            const originalTargetRegion = result.originalRegions?.find(r => r.index === result.targetRegionIndex);
+            if (!originalTargetRegion) {
+                setErrorMessage('Original target region not found');
+                regionTransaction.rollbackTransaction();
+                setEditingRegionIndex(null);
+                setSelectedRegionIndex(null);
+                setIsEditingRegionVertices(false);
+                setOriginalRegionVertices(null);
+                return;
+            }
+
             const commands: any[] = [];
 
             commands.push(new EditRegionCommand({
                 sceneId,
                 regionIndex: result.targetRegionIndex!,
-                oldRegion: targetRegion,
+                oldRegion: originalTargetRegion,  // Use ORIGINAL vertices before merge
                 newRegion: { ...targetRegion, vertices: result.mergedVertices! },
                 onUpdate: async (sceneId, regionIndex, updates) => {
                     try {
@@ -198,7 +213,7 @@ export const useRegionHandlers = ({
             }
 
             const batchCommand = createBatchCommand({ commands });
-            execute(batchCommand);
+            await execute(batchCommand);
 
             let syncedScene = updateRegionOptimistic(scene, result.targetRegionIndex!, {
                 vertices: result.mergedVertices!
@@ -206,7 +221,17 @@ export const useRegionHandlers = ({
             for (const deleteIndex of result.regionsToDelete || []) {
                 syncedScene = removeRegionOptimistic(syncedScene, deleteIndex);
             }
+
+            // BUGFIX: Remove temp region -1 from scene state after merge
+            syncedScene = {
+                ...syncedScene,
+                regions: syncedScene.regions?.filter(r => r.index !== -1) || []
+            };
+
             setScene(syncedScene);
+
+            // Clear the transaction state
+            regionTransaction.clearTransaction();
 
             setEditingRegionIndex(null);
             setSelectedRegionIndex(null);
@@ -216,15 +241,36 @@ export const useRegionHandlers = ({
         }
 
         if (result.success && result.regionIndex !== undefined) {
-            const updatedRegion = scene.regions?.find(r => r.index === editingRegionIndex);
-            if (updatedRegion) {
+            const originalRegion = regionTransaction.transaction.originalRegion;
+            const segment = regionTransaction.transaction.segment;
+
+            console.log('[UNDO DEBUG] handleFinishEditingRegion - Creating EditRegionCommand');
+            console.log('[UNDO DEBUG] originalRegion:', originalRegion);
+            console.log('[UNDO DEBUG] segment:', segment);
+
+            if (originalRegion && segment) {
+                const newRegion: SceneRegion = {
+                    index: editingRegionIndex,
+                    sceneId,
+                    name: segment.name,
+                    vertices: segment.vertices,
+                    type: segment.type,
+                    ...(segment.value !== undefined && { value: segment.value }),
+                    ...(segment.label !== undefined && { label: segment.label }),
+                    ...(segment.color !== undefined && { color: segment.color })
+                };
+
+                console.log('[UNDO DEBUG] oldRegion vertices:', originalRegion.vertices);
+                console.log('[UNDO DEBUG] newRegion vertices:', newRegion.vertices);
+
                 const command = new EditRegionCommand({
                     sceneId,
                     regionIndex: editingRegionIndex,
-                    oldRegion: regionTransaction.transaction.originalRegion!,
-                    newRegion: updatedRegion,
+                    oldRegion: originalRegion,
+                    newRegion: newRegion,
                     onUpdate: async (sceneId, regionIndex, updates) => {
                         try {
+                            console.log('[UNDO DEBUG] EditRegionCommand.onUpdate called with:', updates);
                             await updateSceneRegion({ sceneId, regionIndex, ...updates }).unwrap();
                         } catch (error) {
                             console.error('Failed to update region:', error);
@@ -236,8 +282,14 @@ export const useRegionHandlers = ({
                         if (data) setScene(data);
                     }
                 });
-                execute(command);
+
+                console.log('[UNDO DEBUG] Calling recordAction(command) - transaction already updated backend');
+                recordAction(command);
+                console.log('[UNDO DEBUG] recordAction(command) completed');
             }
+
+            // Clear the transaction state
+            regionTransaction.clearTransaction();
 
             setEditingRegionIndex(null);
             setSelectedRegionIndex(null);
@@ -262,27 +314,39 @@ export const useRegionHandlers = ({
     }, [sceneId, scene, editingRegionIndex, originalRegionVertices, regionTransaction, gridConfig, addSceneRegion, updateSceneRegion, removeSceneRegion, setScene, setEditingRegionIndex, setSelectedRegionIndex, setIsEditingRegionVertices, setOriginalRegionVertices, setErrorMessage, execute, refetch]);
 
     const handleStructurePlacementFinish = useCallback(async () => {
-        if (!sceneId || !scene) return;
+        try {
+            if (!sceneId || !scene) return;
 
-        if (drawingMode !== 'region' || drawingRegionIndex === null) return;
+            if (drawingMode !== 'region' || drawingRegionIndex === null) return;
 
-        // Filter out temp regions (index -1) before merge detection
-        const sceneForCommit = scene ? {
-            ...scene,
-            regions: scene.regions?.filter(r => r.index !== -1)
-        } : scene;
+            // Filter out temp regions (index -1) before merge detection
+            const sceneForCommit = scene ? {
+                ...scene,
+                regions: scene.regions?.filter(r => r.index !== -1)
+            } : scene;
 
-        const result = await regionTransaction.commitTransaction(
-            sceneId,
-            { addSceneRegion, updateSceneRegion },
-            sceneForCommit,
-            gridConfig
-        );
+            const result = await regionTransaction.commitTransaction(
+                sceneId,
+                { addSceneRegion, updateSceneRegion },
+                sceneForCommit,
+                gridConfig
+            );
 
-        if (result.action === 'merge') {
+            if (result.action === 'merge') {
             const targetRegion = scene.regions?.find(r => r.index === result.targetRegionIndex);
+
             if (!targetRegion) {
                 setErrorMessage('Merge target region not found');
+                regionTransaction.rollbackTransaction();
+                setDrawingRegionIndex(null);
+                setDrawingMode(null);
+                return;
+            }
+
+            // Find the ORIGINAL target region before merge (from result.originalRegions)
+            const originalTargetRegion = result.originalRegions?.find(r => r.index === result.targetRegionIndex);
+            if (!originalTargetRegion) {
+                setErrorMessage('Original target region not found');
                 regionTransaction.rollbackTransaction();
                 setDrawingRegionIndex(null);
                 setDrawingMode(null);
@@ -294,7 +358,7 @@ export const useRegionHandlers = ({
             commands.push(new EditRegionCommand({
                 sceneId,
                 regionIndex: result.targetRegionIndex!,
-                oldRegion: targetRegion,
+                oldRegion: originalTargetRegion,  // Use ORIGINAL vertices before merge
                 newRegion: { ...targetRegion, vertices: result.mergedVertices! },
                 onUpdate: async (sceneId, regionIndex, updates) => {
                     try {
@@ -333,15 +397,26 @@ export const useRegionHandlers = ({
             }
 
             const batchCommand = createBatchCommand({ commands });
-            execute(batchCommand);
+            await execute(batchCommand);
 
             let syncedScene = updateRegionOptimistic(scene, result.targetRegionIndex!, {
                 vertices: result.mergedVertices!
             });
+
             for (const deleteIndex of result.regionsToDelete || []) {
                 syncedScene = removeRegionOptimistic(syncedScene, deleteIndex);
             }
+
+            // BUGFIX: Remove temp region -1 from scene state after merge
+            syncedScene = {
+                ...syncedScene,
+                regions: syncedScene.regions?.filter(r => r.index !== -1) || []
+            };
+
             setScene(syncedScene);
+
+            // Clear the transaction state
+            regionTransaction.clearTransaction();
 
             setDrawingRegionIndex(null);
             setDrawingMode(null);
@@ -384,8 +459,13 @@ export const useRegionHandlers = ({
                         if (data) setScene(data);
                     }
                 });
-                execute(command);
+                console.log('[UNDO DEBUG] Calling recordAction(command) - transaction already created region in backend');
+                recordAction(command);
+                console.log('[UNDO DEBUG] recordAction(command) completed');
             }
+
+            // Clear the transaction state
+            regionTransaction.clearTransaction();
         } else {
             regionTransaction.rollbackTransaction();
             const cleanScene = removeRegionOptimistic(scene, -1);
@@ -395,6 +475,12 @@ export const useRegionHandlers = ({
 
         setDrawingRegionIndex(null);
         setDrawingMode(null);
+        } catch (error) {
+            console.error('[DEBUG handleStructurePlacementFinish] ERROR:', error);
+            setErrorMessage('Failed to process region placement. Please try again.');
+            setDrawingRegionIndex(null);
+            setDrawingMode(null);
+        }
     }, [sceneId, scene, drawingMode, drawingRegionIndex, regionTransaction, gridConfig, addSceneRegion, updateSceneRegion, removeSceneRegion, setScene, setDrawingRegionIndex, setDrawingMode, setErrorMessage, execute, refetch]);
 
     const handlePlaceRegion = useCallback((properties: {
@@ -404,6 +490,9 @@ export const useRegionHandlers = ({
         label?: string;
         color?: string;
     }) => {
+        setEditingRegionIndex(null);
+        setIsEditingRegionVertices(false);
+        setOriginalRegionVertices(null);
         setDrawingMode('region');
         setDrawingRegionIndex(-1);
         setSelectedRegionIndex(null);
@@ -427,23 +516,31 @@ export const useRegionHandlers = ({
             };
             setScene(updatedScene);
         }
-    }, [scene, setDrawingMode, setDrawingRegionIndex, setSelectedRegionIndex, regionTransaction, setScene]);
+    }, [scene, setEditingRegionIndex, setIsEditingRegionVertices, setOriginalRegionVertices, setDrawingMode, setDrawingRegionIndex, setSelectedRegionIndex, regionTransaction, setScene]);
 
     const handleRegionSelect = useCallback((regionIndex: number | null) => {
         setSelectedRegionIndex(regionIndex);
     }, [setSelectedRegionIndex]);
 
     const handleEditRegionVertices = useCallback((regionIndex: number) => {
+        console.log('[DEBUG handleEditRegionVertices] Called with regionIndex:', regionIndex);
         const region = scene?.regions?.find(r => r.index === regionIndex);
-        if (!region) return;
+        if (!region) {
+            console.log('[DEBUG handleEditRegionVertices] Region not found, returning');
+            return;
+        }
 
+        console.log('[DEBUG handleEditRegionVertices] Clearing drawing mode and starting edit transaction');
+        setDrawingMode(null);
+        setDrawingRegionIndex(null);
         setOriginalRegionVertices([...region.vertices]);
         setEditingRegionIndex(regionIndex);
         setIsEditingRegionVertices(true);
         setSelectedRegionIndex(regionIndex);
 
         regionTransaction.startTransaction('editing', region);
-    }, [scene, setOriginalRegionVertices, setEditingRegionIndex, setIsEditingRegionVertices, setSelectedRegionIndex, regionTransaction]);
+        console.log('[DEBUG handleEditRegionVertices] Edit transaction started');
+    }, [scene, setDrawingMode, setDrawingRegionIndex, setOriginalRegionVertices, setEditingRegionIndex, setIsEditingRegionVertices, setSelectedRegionIndex, regionTransaction]);
 
     return {
         handleRegionDelete,

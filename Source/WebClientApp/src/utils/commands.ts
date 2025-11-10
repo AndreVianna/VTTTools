@@ -1,7 +1,7 @@
 import type { PlacedAsset, PlacedAssetSnapshot, DisplayName, LabelPosition } from '@/types/domain';
 
 export interface Command {
-    execute: () => void;
+    execute: () => void | Promise<void>;
     undo: () => void | Promise<void>;
     description: string;
 }
@@ -118,11 +118,21 @@ export const createBatchCommand = (params: BatchCommandParams): Command => {
 
     return {
         description: `Batch (${commands.length} operations)`,
-        execute: () => {
-            commands.forEach((cmd) => cmd.execute());
+        execute: async () => {
+            for (const cmd of commands) {
+                const result = cmd.execute();
+                if (result instanceof Promise) {
+                    await result;
+                }
+            }
         },
-        undo: () => {
-            [...commands].reverse().forEach((cmd) => cmd.undo());
+        undo: async () => {
+            for (const cmd of [...commands].reverse()) {
+                const result = cmd.undo();
+                if (result instanceof Promise) {
+                    await result;
+                }
+            }
         },
     };
 };

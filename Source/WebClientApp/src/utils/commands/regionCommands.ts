@@ -19,7 +19,8 @@ export class CreateRegionCommand implements Command {
         this.description = `Create region "${params.region.name}"`;
     }
 
-    execute(): void {
+    async execute(): Promise<void> {
+        await this.redo();
     }
 
     async undo(): Promise<void> {
@@ -56,12 +57,20 @@ export class EditRegionCommand implements Command {
 
     constructor(private params: EditRegionCommandParams) {
         this.description = `Edit region "${params.newRegion.name}"`;
+        console.log('[UNDO DEBUG] EditRegionCommand created:', {
+            regionIndex: params.regionIndex,
+            oldVertices: params.oldRegion.vertices,
+            newVertices: params.newRegion.vertices
+        });
     }
 
-    execute(): void {
+    async execute(): Promise<void> {
+        console.log('[UNDO DEBUG] EditRegionCommand.execute() called');
+        await this.redo();
     }
 
     async undo(): Promise<void> {
+        console.log('[UNDO DEBUG] EditRegionCommand.undo() called');
         const { oldRegion, sceneId, regionIndex, onUpdate, onRefetch } = this.params;
         const updates: Partial<SceneRegion> = {
             name: oldRegion.name,
@@ -71,11 +80,14 @@ export class EditRegionCommand implements Command {
             ...(oldRegion.label !== undefined && { label: oldRegion.label }),
             ...(oldRegion.color !== undefined && { color: oldRegion.color })
         };
+        console.log('[UNDO DEBUG] EditRegionCommand.undo() - reverting to vertices:', oldRegion.vertices);
         await onUpdate(sceneId, regionIndex, updates);
         await onRefetch();
+        console.log('[UNDO DEBUG] EditRegionCommand.undo() completed');
     }
 
     async redo(): Promise<void> {
+        console.log('[UNDO DEBUG] EditRegionCommand.redo() called');
         const { newRegion, sceneId, regionIndex, onUpdate, onRefetch } = this.params;
         const updates: Partial<SceneRegion> = {
             name: newRegion.name,
@@ -85,8 +97,10 @@ export class EditRegionCommand implements Command {
             ...(newRegion.label !== undefined && { label: newRegion.label }),
             ...(newRegion.color !== undefined && { color: newRegion.color })
         };
+        console.log('[UNDO DEBUG] EditRegionCommand.redo() - applying vertices:', newRegion.vertices);
         await onUpdate(sceneId, regionIndex, updates);
         await onRefetch();
+        console.log('[UNDO DEBUG] EditRegionCommand.redo() completed');
     }
 }
 
@@ -110,7 +124,10 @@ export class DeleteRegionCommand implements Command {
         this.description = `Delete region "${params.region.name}"`;
     }
 
-    execute(): void {
+    async execute(): Promise<void> {
+        const { sceneId, regionIndex, onRemove, onRefetch } = this.params;
+        await onRemove(sceneId, regionIndex);
+        await onRefetch();
     }
 
     async undo(): Promise<void> {

@@ -122,21 +122,60 @@ export function findMergeableRegions(
     value?: number,
     label?: string
 ): SceneRegion[] {
+    console.log('[DEBUG findMergeableRegions] Called with:', {
+        existingCount: existingRegions.length,
+        newVerticesCount: newVertices.length,
+        type,
+        value,
+        label,
+        existingRegions: existingRegions.map(r => ({ index: r.index, type: r.type, value: r.value, label: r.label }))
+    });
+
     const mergeable: SceneRegion[] = [];
 
     for (const region of existingRegions) {
-        if (region.type !== type) continue;
-        if (region.value !== value) continue;
-        if (region.label !== label) continue;
+        const normalizedRegionValue = region.value ?? undefined;
+        const normalizedValue = value ?? undefined;
+        const normalizedRegionLabel = region.label ?? undefined;
+        const normalizedLabel = label ?? undefined;
+
+        const typeMatch = region.type === type;
+        const valueMatch = normalizedRegionValue === normalizedValue;
+        const labelMatch = normalizedRegionLabel === normalizedLabel;
+
+        console.log('[DEBUG findMergeableRegions] Checking region:', {
+            index: region.index,
+            type: region.type,
+            value: region.value,
+            label: region.label,
+            typeMatch,
+            valueMatch,
+            labelMatch,
+            normalizedRegionValue,
+            normalizedValue,
+            normalizedRegionLabel,
+            normalizedLabel
+        });
+
+        if (!typeMatch) continue;
+        if (!valueMatch) continue;
+        if (!labelMatch) continue;
 
         const hasSharedEdge = findSharedEdge(region.vertices, newVertices) !== null;
         const overlaps = polygonsOverlap(region.vertices, newVertices);
+
+        console.log('[DEBUG findMergeableRegions] Overlap check:', {
+            regionIndex: region.index,
+            hasSharedEdge,
+            overlaps
+        });
 
         if (hasSharedEdge || overlaps) {
             mergeable.push(region);
         }
     }
 
+    console.log('[DEBUG findMergeableRegions] Found mergeable regions:', mergeable.length);
     return mergeable;
 }
 
