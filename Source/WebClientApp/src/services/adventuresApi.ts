@@ -1,5 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createEnhancedBaseQuery } from './enhancedBaseQuery';
+import { contentApi } from './contentApi';
 import type {
   CreateAdventureRequest,
   UpdateAdventureRequest,
@@ -33,6 +34,10 @@ export const adventuresApi = createApi({
         body: request, // Matches existing C# contract exactly
       }),
       invalidatesTags: ['Adventure'],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        await queryFulfilled;
+        dispatch(contentApi.util.invalidateTags(['Content']));
+      },
     }),
 
     // Update adventure using existing UpdateAdventureRequest from Domain layer
@@ -51,6 +56,10 @@ export const adventuresApi = createApi({
         method: 'DELETE',
       }),
       invalidatesTags: ['Adventure'],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        await queryFulfilled;
+        dispatch(contentApi.util.invalidateTags(['Content']));
+      },
     }),
 
     // Adventure cloning
@@ -61,6 +70,10 @@ export const adventuresApi = createApi({
         body: { name },
       }),
       invalidatesTags: ['Adventure'],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        await queryFulfilled;
+        dispatch(contentApi.util.invalidateTags(['Content']));
+      },
     }),
 
     // Adventure-scoped Scene endpoints (operations through Adventure aggregate)
