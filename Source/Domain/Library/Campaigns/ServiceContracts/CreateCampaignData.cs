@@ -3,7 +3,7 @@ namespace VttTools.Library.Campaigns.ServiceContracts;
 /// <summary>
 /// Represents the data required to create a new campaign.
 /// </summary>
-public record CreateCampaignData(Guid OwnerId)
+public record CreateCampaignData
     : Data {
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
@@ -13,8 +13,6 @@ public record CreateCampaignData(Guid OwnerId)
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);
-        if (OwnerId == Guid.Empty)
-            result += new Error("The owner ID cannot be empty.", nameof(OwnerId));
         if (string.IsNullOrWhiteSpace(Name))
             result += new Error("The campaign name cannot be null or empty.", nameof(Name));
         if (string.IsNullOrWhiteSpace(Description))

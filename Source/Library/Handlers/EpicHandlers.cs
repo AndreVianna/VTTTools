@@ -18,7 +18,7 @@ internal static class EpicHandlers {
 
     internal static async Task<IResult> CreateEpicHandler(HttpContext context, [FromBody] CreateEpicRequest request, [FromServices] IEpicService epicService) {
         var userId = context.User.GetUserId();
-        var data = new CreateEpicData(userId) {
+        var data = new CreateEpicData {
             Name = request.Name,
             Description = request.Description,
             BackgroundId = request.BackgroundId,
@@ -75,11 +75,11 @@ internal static class EpicHandlers {
     internal static async Task<IResult> GetCampaignsHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IEpicService epicService) {
         var userId = context.User.GetUserId();
         var epic = await epicService.GetEpicByIdAsync(id);
-        if (epic is null)
-            return Results.NotFound();
-        if (epic.OwnerId != userId && !(epic is { IsPublic: true, IsPublished: true }))
-            return Results.Forbid();
-        return Results.Ok(await epicService.GetCampaignsAsync(id));
+        return epic is null
+            ? Results.NotFound()
+            : epic.OwnerId != userId && !(epic is { IsPublic: true, IsPublished: true })
+                ? Results.Forbid()
+                : Results.Ok(await epicService.GetCampaignsAsync(id));
     }
 
     internal static async Task<IResult> AddNewCampaignHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IEpicService epicService) {

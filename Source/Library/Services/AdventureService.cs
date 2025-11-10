@@ -3,7 +3,7 @@ namespace VttTools.Library.Services;
 /// <summary>
 /// Implements IAdventureService using EF Core storage.
 /// </summary>
-public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage sceneStorage, IMediaStorage mediaStorage)
+public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage sceneStorage, IMediaStorage mediaStorage, ILogger<AdventureService> logger)
     : IAdventureService {
     /// <inheritdoc />
     public async Task<Adventure[]> GetAdventuresAsync(CancellationToken ct = default) {
@@ -11,7 +11,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
             return await adventureStorage.GetAllAsync(ct);
         }
         catch (Exception ex) {
-            Console.WriteLine(ex);
+            logger.LogError(ex, "Failed to retrieve Adventures");
             return [];
         }
     }
@@ -22,7 +22,7 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
             return await adventureStorage.GetManyAsync(filterDefinition, ct);
         }
         catch (Exception ex) {
-            Console.WriteLine(ex);
+            logger.LogError(ex, "Failed to retrieve Adventures with filter: {FilterDefinition}", filterDefinition);
             return [];
         }
     }

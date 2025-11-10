@@ -11,6 +11,7 @@ global using Microsoft.AspNetCore.Http.HttpResults;
 global using Microsoft.AspNetCore.Routing;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging.Abstractions;
 
 global using NSubstitute;
 

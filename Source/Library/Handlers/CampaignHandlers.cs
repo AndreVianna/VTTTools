@@ -18,7 +18,7 @@ internal static class CampaignHandlers {
 
     internal static async Task<IResult> CreateCampaignHandler(HttpContext context, [FromBody] CreateCampaignRequest request, [FromServices] ICampaignService campaignService) {
         var userId = context.User.GetUserId();
-        var data = new CreateCampaignData(userId) {
+        var data = new CreateCampaignData {
             Name = request.Name,
             Description = request.Description,
             BackgroundId = request.BackgroundId,
@@ -75,11 +75,11 @@ internal static class CampaignHandlers {
     internal static async Task<IResult> GetAdventuresHandler(HttpContext context, [FromRoute] Guid id, [FromServices] ICampaignService campaignService) {
         var userId = context.User.GetUserId();
         var campaign = await campaignService.GetCampaignByIdAsync(id);
-        if (campaign is null)
-            return Results.NotFound();
-        if (campaign.OwnerId != userId && !(campaign is { IsPublic: true, IsPublished: true }))
-            return Results.Forbid();
-        return Results.Ok(await campaignService.GetAdventuresAsync(id));
+        return campaign is null
+            ? Results.NotFound()
+            : campaign.OwnerId != userId && !(campaign is { IsPublic: true, IsPublished: true })
+                ? Results.Forbid()
+                : Results.Ok(await campaignService.GetAdventuresAsync(id));
     }
 
     internal static async Task<IResult> AddNewAdventureHandler(HttpContext context, [FromRoute] Guid id, [FromServices] ICampaignService campaignService) {

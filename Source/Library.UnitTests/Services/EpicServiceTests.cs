@@ -12,7 +12,7 @@ public class EpicServiceTests {
         _epicStorage = Substitute.For<IEpicStorage>();
         _campaignStorage = Substitute.For<ICampaignStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
-        _service = new(_epicStorage, _campaignStorage, _mediaStorage);
+        _service = new(_epicStorage, _campaignStorage, _mediaStorage, NullLogger<EpicService>.Instance);
         _ct = TestContext.Current.CancellationToken;
     }
 
@@ -36,7 +36,7 @@ public class EpicServiceTests {
     [Fact]
     public async Task GetEpicsAsync_WithFilter_CallsStorage() {
         // Arrange
-        var filterDefinition = "AvailableTo:user-123";
+        const string filterDefinition = "AvailableTo:user-123";
         var epics = new Epic[] {
             new() { Id = Guid.CreateVersion7(), Name = "Test Epic 1" },
         };

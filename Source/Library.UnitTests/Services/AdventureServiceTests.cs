@@ -13,7 +13,7 @@ public class AdventureServiceTests {
         _adventureStorage = Substitute.For<IAdventureStorage>();
         _sceneStorage = Substitute.For<ISceneStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
-        _service = new(_adventureStorage, _sceneStorage, _mediaStorage);
+        _service = new(_adventureStorage, _sceneStorage, _mediaStorage, NullLogger<AdventureService>.Instance);
         _ct = TestContext.Current.CancellationToken;
     }
 

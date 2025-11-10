@@ -12,7 +12,7 @@ public class CampaignServiceTests {
         _campaignStorage = Substitute.For<ICampaignStorage>();
         _adventureStorage = Substitute.For<IAdventureStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
-        _service = new(_campaignStorage, _adventureStorage, _mediaStorage);
+        _service = new(_campaignStorage, _adventureStorage, _mediaStorage, NullLogger<CampaignService>.Instance);
         _ct = TestContext.Current.CancellationToken;
     }
 
@@ -36,7 +36,7 @@ public class CampaignServiceTests {
     [Fact]
     public async Task GetCampaignsAsync_WithFilter_CallsStorage() {
         // Arrange
-        var filterDefinition = "AvailableTo:user-123";
+        const string filterDefinition = "AvailableTo:user-123";
         var campaigns = new Campaign[] {
             new() { Id = Guid.CreateVersion7(), Name = "Test Campaign 1" },
         };
