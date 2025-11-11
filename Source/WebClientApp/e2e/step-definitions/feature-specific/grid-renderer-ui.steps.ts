@@ -39,7 +39,7 @@ Given('I have opened the encounter editor', async function (this: CustomWorld) {
     // Navigate to encounter editor page
     const encounterId = (this as any).currentEncounterId;
     if (!encounterId) {
-        throw new Error('No encounter exists. Create a encounter first.');
+        throw new Error('No encounter exists. Create an encounter first.');
     }
 
     await this.page.goto(`/library/encounters/${encounterId}/editor`);
