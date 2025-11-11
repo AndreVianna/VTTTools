@@ -7,9 +7,9 @@ public record CreateGameSessionData
     /// </summary>
     public string Title { get; init; } = string.Empty;
     /// <summary>
-    /// The initial Scene to activate when the game session starts.
+    /// The initial Encounter to activate when the game session starts.
     /// </summary>
-    public Guid SceneId { get; init; }
+    public Guid EncounterId { get; init; }
 
     public override Result Validate(IMap? context = null) {
         var result = base.Validate(context);

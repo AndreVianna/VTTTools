@@ -1,4 +1,4 @@
-// DEPRECATED: This file has been removed. Region operations are now in sceneApi.ts
-// Use useGetSceneRegionsQuery, useAddSceneRegionMutation, useUpdateSceneRegionMutation, useRemoveSceneRegionMutation from '@/services/sceneApi'
+// DEPRECATED: This file has been removed. Region operations are now in encounterApi.ts
+// Use useGetEncounterRegionsQuery, useAddEncounterRegionMutation, useUpdateEncounterRegionMutation, useRemoveEncounterRegionMutation from '@/services/encounterApi'
 
 export {};

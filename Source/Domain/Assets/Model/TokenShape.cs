@@ -1,7 +1,7 @@
 namespace VttTools.Assets.Model;
 
 /// <summary>
-/// Defines the visual shape of entity tokens on the scene
+/// Defines the visual shape of entity tokens on the encounter
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum TokenShape {

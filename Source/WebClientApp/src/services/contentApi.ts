@@ -8,8 +8,8 @@ export interface ContentFilters {
     contentType?: 'adventure' | 'campaign' | 'epic';
     style?: number;
     isOneShot?: boolean;
-    minSceneCount?: number;
-    maxSceneCount?: number;
+    minEncounterCount?: number;
+    maxEncounterCount?: number;
     isPublished?: boolean;
     search?: string;
     owner?: 'mine' | 'public';
@@ -35,8 +35,8 @@ export const contentApi = createApi({
                     contentType: filters.contentType,
                     style: filters.style,
                     isOneShot: filters.isOneShot,
-                    minSceneCount: filters.minSceneCount,
-                    maxSceneCount: filters.maxSceneCount,
+                    minEncounterCount: filters.minEncounterCount,
+                    maxEncounterCount: filters.maxEncounterCount,
                     isPublished: filters.isPublished,
                     search: filters.search,
                     owner: filters.owner

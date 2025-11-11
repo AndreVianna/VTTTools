@@ -29,8 +29,8 @@ export {
 } from './AssetLoadingError';
 export type { AssetErrorProps } from './AssetLoadingError';
 
-// UC035 - Scene Saving/Loading Error Recovery
-export { SceneRecoveryManager } from './SceneRecovery';
+// UC035 - Encounter Saving/Loading Error Recovery
+export { EncounterRecoveryManager } from './EncounterRecovery';
 
 // Global Error Resource System
 export { GlobalErrorDisplay } from './GlobalErrorDisplay';
@@ -43,7 +43,7 @@ export {
   handleValidationError,
   handleSystemError,
   handleAssetLoadingError,
-  handleSceneError,
+  handleEncounterError,
   retryOperation,
   createValidationError,
   createNetworkError,

@@ -1,16 +1,16 @@
 export type { ContentListItem, ContentItemSummary } from './contentListItem';
 export { ContentType } from './contentListItem';
 export type {
-    SceneListItem,
-    SceneAssetData,
+    EncounterListItem,
+    EncounterAssetData,
     StageConfig,
     Point,
     Frame,
-    CreateSceneRequest,
-    UpdateSceneRequest,
-    SceneMetadata
-} from './scene';
-export { getDefaultGrid, getDefaultStage, mapSceneAssetToPlaced, mapPlacedToSceneAsset } from './scene';
+    CreateEncounterRequest,
+    UpdateEncounterRequest,
+    EncounterMetadata
+} from './encounter';
+export { getDefaultGrid, getDefaultStage, mapEncounterAssetToPlaced, mapPlacedToEncounterAsset } from './encounter';
 export type {
     Adventure,
     CreateAdventureRequest,

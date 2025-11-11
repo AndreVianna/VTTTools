@@ -1,4 +1,4 @@
-import type { Point, SceneWall } from '@/types/domain';
+import type { Point, EncounterWall } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 import {
@@ -22,7 +22,7 @@ export interface SplitResult {
 
 export function detectSplitPoints(params: {
     newWallPoles: Point[];
-    existingWalls: SceneWall[];
+    existingWalls: EncounterWall[];
     tolerance?: number;
 }): SplitResult {
     const { newWallPoles, existingWalls, tolerance = 5 } = params;
@@ -107,10 +107,10 @@ export function detectSplitPoints(params: {
 }
 
 export function splitWallAtPoints(params: {
-    wall: SceneWall;
+    wall: EncounterWall;
     splitPoints: SplitPoint[];
     wallIndex: number;
-}): SceneWall[] {
+}): EncounterWall[] {
     const { wall, splitPoints, wallIndex } = params;
 
     if (wall.poles.length < 2) {
@@ -129,7 +129,7 @@ export function splitWallAtPoints(params: {
 
     const sortedSplits = sortSplitPoints(wallSplits, wall);
 
-    const segments: SceneWall[] = [];
+    const segments: EncounterWall[] = [];
     let currentSegmentPoles: typeof wall.poles = [];
     let poleIndex = 0;
     let splitIndex = 0;
@@ -191,10 +191,10 @@ export function splitWallAtPoints(params: {
 }
 
 function createSegment(
-    originalWall: SceneWall,
+    originalWall: EncounterWall,
     poles: typeof originalWall.poles,
     segmentNumber: number
-): SceneWall {
+): EncounterWall {
     const baseName = originalWall.name.replace(/\s*\(\d+\)$/, '');
     return {
         ...originalWall,
@@ -225,7 +225,7 @@ export function calculateDistanceAlongEdge(
 
 export function sortSplitPoints(
     splitPoints: SplitPoint[],
-    wall: SceneWall
+    wall: EncounterWall
 ): SplitPoint[] {
     return [...splitPoints].sort((a, b) => {
         if (a.edgeIndex !== b.edgeIndex) {

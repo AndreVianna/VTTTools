@@ -2,7 +2,7 @@ using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using AdventureStyle = VttTools.Library.Adventures.Model.AdventureStyle;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using ResourceType = VttTools.Media.Model.ResourceType;
-using SceneEntity = VttTools.Data.Library.Entities.Scene;
+using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
 
 namespace VttTools.Library.Services;
 
@@ -86,37 +86,37 @@ public class ContentQueryServiceTests : IDisposable {
     }
 
     [Fact]
-    public async Task GetContentAsync_WithMinSceneCount_FiltersCorrectly() {
+    public async Task GetContentAsync_WithMinEncounterCount_FiltersCorrectly() {
         // Arrange
-        await SeedAdventureWithScenes("Adventure 1", 1);
-        await SeedAdventureWithScenes("Adventure 2", 2);
-        await SeedAdventureWithScenes("Adventure 3", 3);
+        await SeedAdventureWithEncounters("Adventure 1", 1);
+        await SeedAdventureWithEncounters("Adventure 2", 2);
+        await SeedAdventureWithEncounters("Adventure 3", 3);
 
-        var filters = new ContentFilters { MinSceneCount = 2 };
+        var filters = new ContentFilters { MinEncounterCount = 2 };
 
         // Act
         var result = await _service.GetContentAsync(_userId, filters, _ct);
 
         // Assert
         result.Data.Should().HaveCount(2);
-        result.Data.Should().OnlyContain(x => x.SceneCount >= 2);
+        result.Data.Should().OnlyContain(x => x.EncounterCount >= 2);
     }
 
     [Fact]
-    public async Task GetContentAsync_WithMaxSceneCount_FiltersCorrectly() {
+    public async Task GetContentAsync_WithMaxEncounterCount_FiltersCorrectly() {
         // Arrange
-        await SeedAdventureWithScenes("Adventure 1", 1);
-        await SeedAdventureWithScenes("Adventure 2", 2);
-        await SeedAdventureWithScenes("Adventure 3", 3);
+        await SeedAdventureWithEncounters("Adventure 1", 1);
+        await SeedAdventureWithEncounters("Adventure 2", 2);
+        await SeedAdventureWithEncounters("Adventure 3", 3);
 
-        var filters = new ContentFilters { MaxSceneCount = 1 };
+        var filters = new ContentFilters { MaxEncounterCount = 1 };
 
         // Act
         var result = await _service.GetContentAsync(_userId, filters, _ct);
 
         // Assert
         result.Data.Should().HaveCount(1);
-        result.Data.Should().OnlyContain(x => x.SceneCount <= 1);
+        result.Data.Should().OnlyContain(x => x.EncounterCount <= 1);
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public class ContentQueryServiceTests : IDisposable {
         await _context.SaveChangesAsync(_ct);
     }
 
-    private async Task SeedAdventureWithScenes(string name, int sceneCount) {
+    private async Task SeedAdventureWithEncounters(string name, int encounterCount) {
         var background = new ResourceEntity {
             Id = Guid.CreateVersion7(),
             Type = ResourceType.Image,
@@ -311,11 +311,11 @@ public class ContentQueryServiceTests : IDisposable {
             Background = background
         };
 
-        for (var i = 0; i < sceneCount; i++) {
-            adventure.Scenes.Add(new SceneEntity {
+        for (var i = 0; i < encounterCount; i++) {
+            adventure.Encounters.Add(new EncounterEntity {
                 Id = Guid.CreateVersion7(),
-                Name = $"Scene {i + 1}",
-                Description = "Scene description",
+                Name = $"Encounter {i + 1}",
+                Description = "Encounter description",
                 Grid = new Grid(),
                 Panning = Point.Zero,
                 ZoomLevel = 1

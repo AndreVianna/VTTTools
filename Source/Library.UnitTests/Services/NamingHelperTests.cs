@@ -2,7 +2,7 @@ namespace VttTools.Library.UnitTests.Services;
 
 public class NamingHelperTests {
     [Fact]
-    public void GenerateCloneNames_FirstCloneOfUnnumberedScene_RenamesOriginalAndCreatesNumberedClone() {
+    public void GenerateCloneNames_FirstCloneOfUnnumberedEncounter_RenamesOriginalAndCreatesNumberedClone() {
         const string originalName = "Forest Ambush";
         var existingNames = new[] { "Forest Ambush", "Dungeon Entrance" };
 
@@ -13,7 +13,7 @@ public class NamingHelperTests {
     }
 
     [Fact]
-    public void GenerateCloneNames_CloneOfNumberedScene_CreatesIncrementedClone() {
+    public void GenerateCloneNames_CloneOfNumberedEncounter_CreatesIncrementedClone() {
         const string originalName = "Forest Ambush (2)";
         var existingNames = new[] { "Forest Ambush (1)", "Forest Ambush (2)", "Dungeon Entrance" };
 
@@ -36,13 +36,13 @@ public class NamingHelperTests {
 
     [Fact]
     public void GenerateCloneNames_WithGapsInNumbering_UsesHighestNumber() {
-        const string originalName = "Scene (5)";
-        var existingNames = new[] { "Scene (1)", "Scene (5)", "Scene (10)" };
+        const string originalName = "Encounter (5)";
+        var existingNames = new[] { "Encounter (1)", "Encounter (5)", "Encounter (10)" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
-        newOriginalName.Should().Be("Scene (5)");
-        cloneName.Should().Be("Scene (11)");
+        newOriginalName.Should().Be("Encounter (5)");
+        cloneName.Should().Be("Encounter (11)");
     }
 
     [Fact]
@@ -58,30 +58,30 @@ public class NamingHelperTests {
 
     [Fact]
     public void GenerateCloneNames_EmptyExistingNames_CreatesFirstAndSecond() {
-        const string originalName = "New Scene";
+        const string originalName = "New Encounter";
         var existingNames = Array.Empty<string>();
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
-        newOriginalName.Should().Be("New Scene (1)");
-        cloneName.Should().Be("New Scene (2)");
+        newOriginalName.Should().Be("New Encounter (1)");
+        cloneName.Should().Be("New Encounter (2)");
     }
 
     [Fact]
     public void GenerateCloneNames_NameWithParenthesesButNotNumber_TreatsAsUnnumbered() {
-        const string originalName = "Scene (final version)";
-        var existingNames = new[] { "Scene (final version)" };
+        const string originalName = "Encounter (final version)";
+        var existingNames = new[] { "Encounter (final version)" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
-        newOriginalName.Should().Be("Scene (final version) (1)");
-        cloneName.Should().Be("Scene (final version) (2)");
+        newOriginalName.Should().Be("Encounter (final version) (1)");
+        cloneName.Should().Be("Encounter (final version) (2)");
     }
 
     [Fact]
     public void GenerateCloneNames_NameEndingWithNumber_RecognizesPattern() {
         const string originalName = "Level 3";
-        var existingNames = new[] { "Level 3", "Other Scene" };
+        var existingNames = new[] { "Level 3", "Other Encounter" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
@@ -91,23 +91,23 @@ public class NamingHelperTests {
 
     [Fact]
     public void GenerateCloneNames_MultipleSpacesBeforeNumber_HandlesCorrectly() {
-        const string originalName = "Scene   (5)";
-        var existingNames = new[] { "Scene (1)", "Scene   (5)" };
+        const string originalName = "Encounter   (5)";
+        var existingNames = new[] { "Encounter (1)", "Encounter   (5)" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
-        newOriginalName.Should().Be("Scene   (5)");
-        cloneName.Should().Be("Scene (6)");
+        newOriginalName.Should().Be("Encounter   (5)");
+        cloneName.Should().Be("Encounter (6)");
     }
 
     [Fact]
-    public void GenerateCloneNames_OnlyNumberedScenesExist_DoesNotRenameOriginal() {
-        const string originalName = "Scene (1)";
-        var existingNames = new[] { "Scene (1)", "Scene (2)" };
+    public void GenerateCloneNames_OnlyNumberedEncountersExist_DoesNotRenameOriginal() {
+        const string originalName = "Encounter (1)";
+        var existingNames = new[] { "Encounter (1)", "Encounter (2)" };
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(originalName, existingNames);
 
-        newOriginalName.Should().Be("Scene (1)");
-        cloneName.Should().Be("Scene (3)");
+        newOriginalName.Should().Be("Encounter (1)");
+        cloneName.Should().Be("Encounter (3)");
     }
 }

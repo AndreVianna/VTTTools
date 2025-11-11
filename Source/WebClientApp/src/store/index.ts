@@ -15,7 +15,7 @@ import { contentApi } from '../services/contentApi';
 import { epicsApi } from '../services/epicsApi';
 import { gameSessionsApi } from '../services/gameSessionsApi';
 import { mediaApi } from '../services/mediaApi';
-import { sceneApi } from '../services/sceneApi';
+import { encounterApi } from '../services/encounterApi';
 import { profileApi } from '../api/profileApi';
 import { securityApi } from '../api/securityApi';
 import { twoFactorApi } from '../api/twoFactorApi';
@@ -24,7 +24,7 @@ import { recoveryCodesApi } from '../api/recoveryCodesApi';
 // import { persistMiddleware, hydrateFromStorage } from '../services/offlineSync';
 
 // const preloadedState = {
-//   [sceneApi.reducerPath]: hydrateFromStorage()
+//   [encounterApi.reducerPath]: hydrateFromStorage()
 // };
 
 export const store = configureStore({
@@ -43,7 +43,7 @@ export const store = configureStore({
     [epicsApi.reducerPath]: epicsApi.reducer,
     [gameSessionsApi.reducerPath]: gameSessionsApi.reducer,
     [mediaApi.reducerPath]: mediaApi.reducer,
-    [sceneApi.reducerPath]: sceneApi.reducer,
+    [encounterApi.reducerPath]: encounterApi.reducer,
     [profileApi.reducerPath]: profileApi.reducer,
     [securityApi.reducerPath]: securityApi.reducer,
     [twoFactorApi.reducerPath]: twoFactorApi.reducer,
@@ -70,7 +70,7 @@ export const store = configureStore({
     .concat(epicsApi.middleware)
     .concat(gameSessionsApi.middleware)
     .concat(mediaApi.middleware)
-    .concat(sceneApi.middleware)
+    .concat(encounterApi.middleware)
     .concat(profileApi.middleware)
     .concat(securityApi.middleware)
     .concat(twoFactorApi.middleware)

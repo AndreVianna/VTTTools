@@ -37,21 +37,21 @@ export const DEFAULT_STAGE_CONFIG: StageConfigData = {
 };
 
 /**
- * Configure scene stage via API (black-box testing)
+ * Configure encounter stage via API (black-box testing)
  *
  * @param world - Cucumber World with page and context
- * @param sceneId - Scene ID to configure
+ * @param encounterId - Encounter ID to configure
  * @param config - Stage configuration data
  * @returns API response for verification
  */
 export async function configureStage(
     world: CustomWorld,
-    sceneId: string,
+    encounterId: string,
     config: Partial<StageConfigData>
 ): Promise<APIResponse> {
     const fullConfig = { ...DEFAULT_STAGE_CONFIG, ...config };
 
-    const response = await world.page.request.patch(`/api/library/scenes/${sceneId}/stage`, {
+    const response = await world.page.request.patch(`/api/library/encounters/${encounterId}/stage`, {
         data: fullConfig
     });
 
@@ -62,21 +62,21 @@ export async function configureStage(
  * Verify stage configuration in database (persistence check)
  *
  * @param world - Cucumber World with database helper
- * @param sceneId - Scene ID to verify
+ * @param encounterId - Encounter ID to verify
  * @param expectedConfig - Expected stage configuration
  */
 export async function verifyStageInDatabase(
     world: CustomWorld,
-    sceneId: string,
+    encounterId: string,
     expectedConfig: Partial<StageConfigData>
 ): Promise<void> {
     // Query database
-    const dbScene = await world.db.queryTable('Library.Scenes', { Id: sceneId });
-    expect(dbScene).toBeDefined();
-    expect(dbScene[0].Stage).toBeDefined();
+    const dbEncounter = await world.db.queryTable('Library.Encounters', { Id: encounterId });
+    expect(dbEncounter).toBeDefined();
+    expect(dbEncounter[0].Stage).toBeDefined();
 
     // Parse JSON stage configuration
-    const stageConfig: StageConfigData = JSON.parse(dbScene[0].Stage);
+    const stageConfig: StageConfigData = JSON.parse(dbEncounter[0].Stage);
 
     // Verify expected properties
     if (expectedConfig.width !== undefined) {
@@ -106,11 +106,11 @@ export async function verifyStageInDatabase(
  * Render StageConfigPanel in UI test (Phase 3+ UI testing)
  *
  * @param page - Playwright Page
- * @param sceneId - Scene ID to configure
+ * @param encounterId - Encounter ID to configure
  */
-export async function openStageConfigPanel(page: Page, sceneId: string): Promise<void> {
-    // Navigate to scene editor
-    await page.goto(`/library/scenes/${sceneId}`);
+export async function openStageConfigPanel(page: Page, encounterId: string): Promise<void> {
+    // Navigate to encounter editor
+    await page.goto(`/library/encounters/${encounterId}`);
 
     // Click "Configure Stage" button (assumes UI exists)
     await page.click('button:has-text("Configure Stage")');
@@ -177,38 +177,38 @@ export async function verifyStageValidationErrors(page: Page, expectedErrors: st
 }
 
 /**
- * Create test scene with stage configuration for testing
+ * Create test encounter with stage configuration for testing
  *
  * @param world - Cucumber World
  * @param stageConfig - Initial stage configuration
- * @returns Created scene object
+ * @returns Created encounter object
  */
-export async function createTestSceneWithStage(
+export async function createTestEncounterWithStage(
     world: CustomWorld,
     stageConfig?: Partial<StageConfigData>
 ): Promise<any> {
-    // Create scene
-    const createResponse = await world.page.request.post('/api/library/scenes', {
+    // Create encounter
+    const createResponse = await world.page.request.post('/api/library/encounters', {
         data: {
-            name: 'Test Scene with Stage',
-            description: 'Test scene for stage configuration',
+            name: 'Test Encounter with Stage',
+            description: 'Test encounter for stage configuration',
             isPublished: false
         }
     });
 
     expect(createResponse.ok()).toBeTruthy();
-    const scene = await createResponse.json();
+    const encounter = await createResponse.json();
 
     // Configure stage if provided
     if (stageConfig) {
-        const configResponse = await configureStage(world, scene.id, stageConfig);
+        const configResponse = await configureStage(world, encounter.id, stageConfig);
         expect(configResponse.status()).toBe(204);
     }
 
     // Track for cleanup
-    world.createdAssets.push(scene);
+    world.createdAssets.push(encounter);
 
-    return scene;
+    return encounter;
 }
 
 /**

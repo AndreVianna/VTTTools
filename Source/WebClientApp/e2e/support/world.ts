@@ -46,7 +46,7 @@ export class CustomWorld extends World {
     currentUser!: { id: string; email: string; name: string };
     currentAsset: any = null;
     currentSession: any = null;  // Added: Dedicated field for GameSession
-    currentSceneId?: string;      // Added: For Scene Management tests
+    currentEncounterId?: string;      // Added: For Encounter Management tests
     currentAssetInstanceId?: string;  // Added: For asset placement tests
     createdAssets: any[] = [];
     createdSessions: any[] = [];  // Added: Track sessions for cleanup

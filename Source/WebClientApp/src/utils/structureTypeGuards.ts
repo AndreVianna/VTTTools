@@ -1,6 +1,6 @@
-import type { SceneWall, SceneRegion, SceneSource } from '@/types/domain';
+import type { EncounterWall, EncounterRegion, EncounterSource } from '@/types/domain';
 
-export const isSceneWall = (structure: SceneWall | SceneRegion | SceneSource): structure is SceneWall => {
+export const isEncounterWall = (structure: EncounterWall | EncounterRegion | EncounterSource): structure is EncounterWall => {
     return (
         'visibility' in structure &&
         'poles' in structure &&
@@ -10,7 +10,7 @@ export const isSceneWall = (structure: SceneWall | SceneRegion | SceneSource): s
     );
 };
 
-export const isSceneRegion = (structure: SceneWall | SceneRegion | SceneSource): structure is SceneRegion => {
+export const isEncounterRegion = (structure: EncounterWall | EncounterRegion | EncounterSource): structure is EncounterRegion => {
     return (
         'vertices' in structure &&
         'type' in structure &&
@@ -19,7 +19,7 @@ export const isSceneRegion = (structure: SceneWall | SceneRegion | SceneSource):
     );
 };
 
-export const isSceneSource = (structure: SceneWall | SceneRegion | SceneSource): structure is SceneSource => {
+export const isEncounterSource = (structure: EncounterWall | EncounterRegion | EncounterSource): structure is EncounterSource => {
     return (
         'position' in structure &&
         'direction' in structure &&
@@ -29,6 +29,6 @@ export const isSceneSource = (structure: SceneWall | SceneRegion | SceneSource):
     );
 };
 
-isSceneWall.displayName = 'isSceneWall';
-isSceneRegion.displayName = 'isSceneRegion';
-isSceneSource.displayName = 'isSceneSource';
+isEncounterWall.displayName = 'isEncounterWall';
+isEncounterRegion.displayName = 'isEncounterRegion';
+isEncounterSource.displayName = 'isEncounterSource';

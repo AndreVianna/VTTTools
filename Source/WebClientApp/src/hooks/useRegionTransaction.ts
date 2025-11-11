@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
-import type { SceneRegion, Point, Scene } from '@/types/domain';
+import type { EncounterRegion, Point, Encounter } from '@/types/domain';
 import type {
-    useAddSceneRegionMutation,
-    useUpdateSceneRegionMutation
-} from '@/services/sceneApi';
+    useAddEncounterRegionMutation,
+    useUpdateEncounterRegionMutation
+} from '@/services/encounterApi';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { cleanPolygonVertices } from '@/utils/polygonUtils';
 import { findMergeableRegions, mergePolygons } from '@/utils/regionMergeUtils';
@@ -31,7 +31,7 @@ export interface RegionSegment {
  */
 export interface RegionTransaction {
     type: TransactionType;
-    originalRegion: SceneRegion | null;
+    originalRegion: EncounterRegion | null;
     segment: RegionSegment | null;
     isActive: boolean;
     localUndoStack: LocalAction[];
@@ -45,13 +45,13 @@ export interface CommitResult {
     targetRegionIndex?: number;
     mergedVertices?: Point[];
     regionsToDelete?: number[];
-    originalRegions?: SceneRegion[];
+    originalRegions?: EncounterRegion[];
     error?: string;
 }
 
 interface ApiHooks {
-    addSceneRegion: ReturnType<typeof useAddSceneRegionMutation>[0];
-    updateSceneRegion: ReturnType<typeof useUpdateSceneRegionMutation>[0];
+    addEncounterRegion: ReturnType<typeof useAddEncounterRegionMutation>[0];
+    updateEncounterRegion: ReturnType<typeof useUpdateEncounterRegionMutation>[0];
 }
 
 type LocalAction = {
@@ -69,7 +69,7 @@ const INITIAL_TRANSACTION: RegionTransaction = {
 };
 
 /**
- * Manages region placement and editing transactions for the scene editor.
+ * Manages region placement and editing transactions for the encounter editor.
  * Regions are always closed polygons requiring minimum 3 vertices.
  *
  * Provides transaction lifecycle management (start, update, commit, cancel) and
@@ -100,9 +100,9 @@ const INITIAL_TRANSACTION: RegionTransaction = {
  * addVertex({ x: 150, y: 200 });
  *
  * // Commit to backend
- * const result = await commitTransaction(sceneId, {
- *     addSceneRegion,
- *     updateSceneRegion
+ * const result = await commitTransaction(encounterId, {
+ *     addEncounterRegion,
+ *     updateEncounterRegion
  * });
  */
 export const useRegionTransaction = () => {
@@ -111,7 +111,7 @@ export const useRegionTransaction = () => {
 
     const startTransaction = useCallback((
         type: TransactionType,
-        region?: SceneRegion,
+        region?: EncounterRegion,
         placementProperties?: {
             name?: string;
             type?: string;
@@ -210,12 +210,12 @@ export const useRegionTransaction = () => {
     }, []);
 
     const detectRegionMerge = useCallback((
-        scene: Scene,
+        encounter: Encounter,
         segment: RegionSegment,
         gridConfig?: GridConfig
     ): CommitResult | null => {
         const mergeableRegions = findMergeableRegions(
-            scene.regions,
+            encounter.regions,
             segment.vertices,
             segment.type,
             segment.value,
@@ -278,16 +278,16 @@ export const useRegionTransaction = () => {
     }, []);
 
     const persistRegionToBackend = useCallback(async (
-        sceneId: string,
+        encounterId: string,
         segment: RegionSegment,
         cleanedVertices: Point[],
         apiHooks: ApiHooks
     ): Promise<CommitResult> => {
-        const { addSceneRegion, updateSceneRegion } = apiHooks;
+        const { addEncounterRegion, updateEncounterRegion } = apiHooks;
 
         if (segment.regionIndex !== null) {
             const updateData = {
-                sceneId,
+                encounterId,
                 regionIndex: segment.regionIndex,
                 name: segment.name,
                 vertices: cleanedVertices,
@@ -296,7 +296,7 @@ export const useRegionTransaction = () => {
                 ...(segment.label !== undefined && { label: segment.label }),
                 ...(segment.color !== undefined && { color: segment.color })
             };
-            await updateSceneRegion(updateData).unwrap();
+            await updateEncounterRegion(updateData).unwrap();
 
             return {
                 success: true,
@@ -306,7 +306,7 @@ export const useRegionTransaction = () => {
         }
 
         const addData = {
-            sceneId,
+            encounterId,
             name: segment.name,
             vertices: cleanedVertices,
             type: segment.type,
@@ -314,7 +314,7 @@ export const useRegionTransaction = () => {
             ...(segment.label !== undefined && { label: segment.label }),
             ...(segment.color !== undefined && { color: segment.color })
         };
-        const result = await addSceneRegion(addData).unwrap();
+        const result = await addEncounterRegion(addData).unwrap();
 
         return {
             success: true,
@@ -329,9 +329,9 @@ export const useRegionTransaction = () => {
     }, []);
 
     const commitTransaction = useCallback(async (
-        sceneId: string,
+        encounterId: string,
         apiHooks: ApiHooks,
-        currentScene?: Scene,
+        currentEncounter?: Encounter,
         gridConfig?: GridConfig
     ): Promise<CommitResult> => {
         try {
@@ -344,8 +344,8 @@ export const useRegionTransaction = () => {
 
             const segment = transaction.segment;
 
-            if (currentScene?.regions) {
-                const mergeResult = detectRegionMerge(currentScene, segment, gridConfig);
+            if (currentEncounter?.regions) {
+                const mergeResult = detectRegionMerge(currentEncounter, segment, gridConfig);
                 if (mergeResult) {
                     return mergeResult;
                 }
@@ -360,7 +360,7 @@ export const useRegionTransaction = () => {
             }
 
             const result = await persistRegionToBackend(
-                sceneId,
+                encounterId,
                 segment,
                 validation.cleanedVertices!,
                 apiHooks
@@ -398,7 +398,7 @@ export const useRegionTransaction = () => {
         }));
     }, []);
 
-    const undoLocal = useCallback((onSyncScene?: (segment: RegionSegment | null) => void) => {
+    const undoLocal = useCallback((onSyncEncounter?: (segment: RegionSegment | null) => void) => {
         setTransaction(prev => {
             if (prev.localUndoStack.length === 0) {
                 return prev;
@@ -417,15 +417,15 @@ export const useRegionTransaction = () => {
                 localRedoStack: [...prev.localRedoStack, action]
             };
 
-            if (onSyncScene) {
-                onSyncScene(newState.segment);
+            if (onSyncEncounter) {
+                onSyncEncounter(newState.segment);
             }
 
             return newState;
         });
     }, []);
 
-    const redoLocal = useCallback((onSyncScene?: (segment: RegionSegment | null) => void) => {
+    const redoLocal = useCallback((onSyncEncounter?: (segment: RegionSegment | null) => void) => {
         setTransaction(prev => {
             if (prev.localRedoStack.length === 0) {
                 return prev;
@@ -444,8 +444,8 @@ export const useRegionTransaction = () => {
                 localUndoStack: [...prev.localUndoStack, action]
             };
 
-            if (onSyncScene) {
-                onSyncScene(newState.segment);
+            if (onSyncEncounter) {
+                onSyncEncounter(newState.segment);
             }
 
             return newState;

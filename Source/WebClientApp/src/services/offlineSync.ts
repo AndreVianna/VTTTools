@@ -17,10 +17,10 @@ export const persistMiddleware: Middleware = (api: MiddlewareAPI) => (next) => (
     if (action?.type?.includes?.('/fulfilled') || action?.type?.includes?.('/rejected')) {
         const state = api.getState() as any;
 
-        if (state?.sceneApi) {
+        if (state?.encounterApi) {
             storage.setItem(RTK_QUERY_CACHE_KEY, {
-                queries: state.sceneApi.queries,
-                mutations: state.sceneApi.mutations,
+                queries: state.encounterApi.queries,
+                mutations: state.encounterApi.mutations,
                 timestamp: Date.now()
             });
         }
@@ -68,7 +68,7 @@ export const hydrateFromStorage = () => {
                 online: true,
                 focused: true,
                 middlewareRegistered: false,
-                reducerPath: 'sceneApi',
+                reducerPath: 'encounterApi',
                 refetchOnFocus: false,
                 refetchOnReconnect: true
             }

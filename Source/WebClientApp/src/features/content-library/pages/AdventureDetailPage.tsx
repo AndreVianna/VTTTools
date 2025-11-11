@@ -26,20 +26,20 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import { SceneCard } from '../components/scenes';
+import { EncounterCard } from '../components/encounters';
 import { AdventureStyle } from '../types';
 import type { SaveStatus } from '../hooks';
 import {
     useGetAdventureQuery,
-    useGetScenesQuery,
+    useGetEncountersQuery,
     useUpdateAdventureMutation,
-    useCreateSceneMutation,
-    useCloneSceneMutation,
+    useCreateEncounterMutation,
+    useCloneEncounterMutation,
     adventuresApi
 } from '@/services/adventuresApi';
 import { useGetCampaignQuery } from '@/services/campaignsApi';
 import { useUploadFileMutation } from '@/services/mediaApi';
-import { useDeleteSceneMutation } from '@/services/sceneApi';
+import { useDeleteEncounterMutation } from '@/services/encounterApi';
 import { ConfirmDialog } from '@/components/common';
 import { useAppDispatch } from '@/store';
 
@@ -53,12 +53,12 @@ export function AdventureDetailPage() {
 
     const { data: adventure, isLoading: isLoadingAdventure, error: adventureError } = useGetAdventureQuery(adventureId!);
     const { data: campaign } = useGetCampaignQuery(adventure?.campaignId ?? '', { skip: !adventure?.campaignId });
-    const { data: scenes = [], isLoading: isLoadingScenes } = useGetScenesQuery(adventureId!);
+    const { data: encounters = [], isLoading: isLoadingEncounters } = useGetEncountersQuery(adventureId!);
     const [updateAdventure] = useUpdateAdventureMutation();
-    const [createScene] = useCreateSceneMutation();
+    const [createEncounter] = useCreateEncounterMutation();
     const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation();
-    const [cloneScene] = useCloneSceneMutation();
-    const [deleteScene, { isLoading: isDeleting }] = useDeleteSceneMutation();
+    const [cloneEncounter] = useCloneEncounterMutation();
+    const [deleteEncounter, { isLoading: isDeleting }] = useDeleteEncounterMutation();
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -67,7 +67,7 @@ export function AdventureDetailPage() {
     const [isPublished, setIsPublished] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [sceneToDelete, setSceneToDelete] = useState<{ id: string; name: string } | null>(null);
+    const [encounterToDelete, setEncounterToDelete] = useState<{ id: string; name: string } | null>(null);
 
     useEffect(() => {
         if (adventure && !isInitialized) {
@@ -188,13 +188,13 @@ export function AdventureDetailPage() {
         }
     };
 
-    const handleAddScene = async () => {
+    const handleAddEncounter = async () => {
         if (adventureId) {
             try {
-                const scene = await createScene({
+                const encounter = await createEncounter({
                     adventureId,
                     request: {
-                        name: 'New Scene',
+                        name: 'New Encounter',
                         description: '',
                         grid: {
                             type: 1,
@@ -204,58 +204,58 @@ export function AdventureDetailPage() {
                         }
                     }
                 }).unwrap();
-                navigate(`/scene-editor/${scene.id}`);
+                navigate(`/encounter-editor/${encounter.id}`);
             } catch (_error) {
                 setSaveStatus('error');
             }
         }
     };
 
-    const handleOpenScene = (sceneId: string) => {
-        navigate(`/scene-editor/${sceneId}`);
+    const handleOpenEncounter = (encounterId: string) => {
+        navigate(`/encounter-editor/${encounterId}`);
     };
 
-    const handleDuplicateScene = async (sceneId: string) => {
+    const handleDuplicateEncounter = async (encounterId: string) => {
         if (!adventureId) return;
 
         try {
-            await cloneScene({
+            await cloneEncounter({
                 adventureId,
-                sceneId
+                encounterId
             }).unwrap();
         } catch (error) {
-            console.error('Failed to duplicate scene:', error);
+            console.error('Failed to duplicate encounter:', error);
             setSaveStatus('error');
         }
     };
 
-    const handleDeleteScene = (sceneId: string) => {
-        const scene = scenes.find(s => s.id === sceneId);
-        if (!scene) return;
+    const handleDeleteEncounter = (encounterId: string) => {
+        const encounter = encounters.find(s => s.id === encounterId);
+        if (!encounter) return;
 
-        setSceneToDelete({ id: sceneId, name: scene.name });
+        setEncounterToDelete({ id: encounterId, name: encounter.name });
         setDeleteDialogOpen(true);
     };
 
     const handleConfirmDelete = async () => {
-        if (!sceneToDelete || !adventureId) return;
+        if (!encounterToDelete || !adventureId) return;
 
         try {
-            await deleteScene(sceneToDelete.id).unwrap();
+            await deleteEncounter(encounterToDelete.id).unwrap();
 
-            dispatch(adventuresApi.util.invalidateTags([{ type: 'AdventureScenes', id: adventureId }]));
+            dispatch(adventuresApi.util.invalidateTags([{ type: 'AdventureEncounters', id: adventureId }]));
 
             setDeleteDialogOpen(false);
-            setSceneToDelete(null);
+            setEncounterToDelete(null);
         } catch (error) {
-            console.error('Failed to delete scene:', error);
+            console.error('Failed to delete encounter:', error);
             setSaveStatus('error');
         }
     };
 
     const handleCancelDelete = () => {
         setDeleteDialogOpen(false);
-        setSceneToDelete(null);
+        setEncounterToDelete(null);
     };
 
     if (isLoadingAdventure) {
@@ -549,51 +549,51 @@ export function AdventureDetailPage() {
                 >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h5" component="h2">
-                        Scenes ({scenes.length})
+                        Encounters ({encounters.length})
                     </Typography>
                     <Button
-                        id="btn-add-scene"
+                        id="btn-add-encounter"
                         variant="contained"
                         startIcon={<AddIcon />}
-                        onClick={handleAddScene}
+                        onClick={handleAddEncounter}
                     >
-                        Add Scene
+                        Add Encounter
                     </Button>
                 </Box>
 
-                {isLoadingScenes && (
+                {isLoadingEncounters && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
                         <CircularProgress />
                     </Box>
                 )}
 
-                {!isLoadingScenes && scenes.length === 0 && (
+                {!isLoadingEncounters && encounters.length === 0 && (
                     <Box sx={{ textAlign: 'center', py: 8 }}>
                         <Typography variant="h6" gutterBottom>
-                            No scenes yet
+                            No encounters yet
                         </Typography>
                         <Typography variant="body2" color="text.secondary" paragraph>
-                            Add your first scene to this adventure
+                            Add your first encounter to this adventure
                         </Typography>
                         <Button
                             variant="contained"
                             startIcon={<AddIcon />}
-                            onClick={handleAddScene}
+                            onClick={handleAddEncounter}
                         >
-                            Add Scene
+                            Add Encounter
                         </Button>
                     </Box>
                 )}
 
-                {!isLoadingScenes && scenes.length > 0 && (
+                {!isLoadingEncounters && encounters.length > 0 && (
                     <Grid container spacing={3}>
-                        {scenes.map((scene) => (
-                            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={scene.id}>
-                                <SceneCard
-                                    scene={scene}
-                                    onOpen={handleOpenScene}
-                                    onDuplicate={handleDuplicateScene}
-                                    onDelete={handleDeleteScene}
+                        {encounters.map((encounter) => (
+                            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={encounter.id}>
+                                <EncounterCard
+                                    encounter={encounter}
+                                    onOpen={handleOpenEncounter}
+                                    onDuplicate={handleDuplicateEncounter}
+                                    onDelete={handleDeleteEncounter}
                                 />
                             </Grid>
                         ))}
@@ -606,8 +606,8 @@ export function AdventureDetailPage() {
                 open={deleteDialogOpen}
                 onClose={handleCancelDelete}
                 onConfirm={handleConfirmDelete}
-                title="Delete Scene"
-                message={`Are you sure you want to delete "${sceneToDelete?.name}"? This action cannot be undone.`}
+                title="Delete Encounter"
+                message={`Are you sure you want to delete "${encounterToDelete?.name}"? This action cannot be undone.`}
                 confirmText="Delete"
                 cancelText="Cancel"
                 severity="error"

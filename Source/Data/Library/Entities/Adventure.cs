@@ -18,5 +18,5 @@ public class Adventure {
     public bool IsOneShot { get; set; }
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }
-    public ICollection<Scene> Scenes { get; set; } = [];
+    public ICollection<Encounter> Encounters { get; set; } = [];
 }

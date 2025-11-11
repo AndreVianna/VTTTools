@@ -9,19 +9,19 @@ import {
 // GIVEN STEPS - Setup preconditions
 // ═══════════════════════════════════════════════════════════════
 
-Given('I own a scene in my library', async function (this: CustomWorld) {
-    // Create test scene via database
-    const sceneId = await this.db.queryTable('Scenes', { OwnerId: this.currentUser.id })
-        .then(scenes => scenes.length > 0 ? scenes[0].Id : null);
+Given('I own a encounter in my library', async function (this: CustomWorld) {
+    // Create test encounter via database
+    const encounterId = await this.db.queryTable('Encounters', { OwnerId: this.currentUser.id })
+        .then(encounters => encounters.length > 0 ? encounters[0].Id : null);
 
-    if (!sceneId) {
-        // Insert test scene
+    if (!encounterId) {
+        // Insert test encounter
         const pool = await (this.db as any).pool;
-        const newSceneId = (this.db as any).generateGuidV7();
+        const newEncounterId = (this.db as any).generateGuidV7();
 
         await pool.request()
-            .input('id', newSceneId)
-            .input('name', 'Test Scene for Grid Config')
+            .input('id', newEncounterId)
+            .input('name', 'Test Encounter for Grid Config')
             .input('ownerId', this.currentUser.id)
             .input('stageWidth', 1920)
             .input('stageHeight', 1080)
@@ -33,7 +33,7 @@ Given('I own a scene in my library', async function (this: CustomWorld) {
             .input('gridColor', '#000000')
             .input('gridSnapToGrid', false)
             .query(`
-                INSERT INTO Library.Scenes
+                INSERT INTO Library.Encounters
                 (Id, Name, OwnerId, StageWidth, StageHeight, GridType, GridCellWidth, GridCellHeight,
                  GridOffsetX, GridOffsetY, GridColor, GridSnapToGrid, CreatedAt, UpdatedAt)
                 VALUES (@id, @name, @ownerId, @stageWidth, @stageHeight, @gridType, @gridCellWidth,
@@ -41,60 +41,60 @@ Given('I own a scene in my library', async function (this: CustomWorld) {
                         GETUTCDATE(), GETUTCDATE())
             `);
 
-        (this as any).currentSceneId = newSceneId;
+        (this as any).currentEncounterId = newEncounterId;
     } else {
-        (this as any).currentSceneId = sceneId;
+        (this as any).currentEncounterId = encounterId;
     }
 });
 
-Given('my scene exists', async function (this: CustomWorld) {
-    // Verify scene exists from previous step
-    const sceneId = (this as any).currentSceneId;
-    if (!sceneId) {
-        throw new Error('No scene has been created. Use "I own a scene in my library" first.');
+Given('my encounter exists', async function (this: CustomWorld) {
+    // Verify encounter exists from previous step
+    const encounterId = (this as any).currentEncounterId;
+    if (!encounterId) {
+        throw new Error('No encounter has been created. Use "I own a encounter in my library" first.');
     }
 
-    const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
-    expect(scenes.length).toBe(1);
+    const encounters = await this.db.queryTable('Encounters', { Id: encounterId });
+    expect(encounters.length).toBe(1);
 });
 
-Given('my scene has square grid with size {int}', async function (this: CustomWorld, size: number) {
-    const sceneId = (this as any).currentSceneId;
+Given('my encounter has square grid with size {int}', async function (this: CustomWorld, size: number) {
+    const encounterId = (this as any).currentEncounterId;
 
-    await this.db.updateRecord('Scenes', sceneId, {
+    await this.db.updateRecord('Encounters', encounterId, {
         GridType: 1, // Square
         GridCellWidth: size,
         GridCellHeight: size
     });
 });
 
-Given('my scene has square grid', async function (this: CustomWorld) {
-    const sceneId = (this as any).currentSceneId;
+Given('my encounter has square grid', async function (this: CustomWorld) {
+    const encounterId = (this as any).currentEncounterId;
 
-    await this.db.updateRecord('Scenes', sceneId, {
+    await this.db.updateRecord('Encounters', encounterId, {
         GridType: 1, // Square
         GridCellWidth: 50,
         GridCellHeight: 50
     });
 });
 
-Given('my scene has configured grid', async function (this: CustomWorld) {
-    const sceneId = (this as any).currentSceneId;
+Given('my encounter has configured grid', async function (this: CustomWorld) {
+    const encounterId = (this as any).currentEncounterId;
 
-    await this.db.updateRecord('Scenes', sceneId, {
+    await this.db.updateRecord('Encounters', encounterId, {
         GridType: 1, // Square by default
         GridCellWidth: 50,
         GridCellHeight: 50
     });
 });
 
-Given('my scene has configured stage and {int} placed assets', async function (this: CustomWorld, assetCount: number) {
-    const sceneId = (this as any).currentSceneId;
+Given('my encounter has configured stage and {int} placed assets', async function (this: CustomWorld, assetCount: number) {
+    const encounterId = (this as any).currentEncounterId;
 
-    // Verify scene has stage configured
-    const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
-    expect(scenes[0].StageWidth).toBeGreaterThan(0);
-    expect(scenes[0].StageHeight).toBeGreaterThan(0);
+    // Verify encounter has stage configured
+    const encounters = await this.db.queryTable('Encounters', { Id: encounterId });
+    expect(encounters[0].StageWidth).toBeGreaterThan(0);
+    expect(encounters[0].StageHeight).toBeGreaterThan(0);
 
     // Create placed assets (AssetPlacements table)
     for (let i = 0; i < assetCount; i++) {
@@ -102,32 +102,32 @@ Given('my scene has configured stage and {int} placed assets', async function (t
         const pool = await (this.db as any).pool;
 
         await pool.request()
-            .input('sceneId', sceneId)
+            .input('encounterId', encounterId)
             .input('assetId', assetId)
             .input('x', 100 + i * 50)
             .input('y', 100 + i * 50)
             .query(`
-                INSERT INTO Library.AssetPlacements (SceneId, AssetId, X, Y)
-                VALUES (@sceneId, @assetId, @x, @y)
+                INSERT INTO Library.AssetPlacements (EncounterId, AssetId, X, Y)
+                VALUES (@encounterId, @assetId, @x, @y)
             `);
     }
 });
 
-Given('no scene exists with ID {string}', async function (this: CustomWorld, sceneId: string) {
-    // Ensure scene does NOT exist
-    const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
-    expect(scenes.length).toBe(0);
+Given('no encounter exists with ID {string}', async function (this: CustomWorld, encounterId: string) {
+    // Ensure encounter does NOT exist
+    const encounters = await this.db.queryTable('Encounters', { Id: encounterId });
+    expect(encounters.length).toBe(0);
 });
 
-Given('a scene exists owned by another user', async function (this: CustomWorld) {
-    // Create scene owned by different user
+Given('a encounter exists owned by another user', async function (this: CustomWorld) {
+    // Create encounter owned by different user
     const otherUserId = (this.db as any).generateGuidV7();
-    const sceneId = (this.db as any).generateGuidV7();
+    const encounterId = (this.db as any).generateGuidV7();
     const pool = await (this.db as any).pool;
 
     await pool.request()
-        .input('id', sceneId)
-        .input('name', 'Other User Scene')
+        .input('id', encounterId)
+        .input('name', 'Other User Encounter')
         .input('ownerId', otherUserId)
         .input('stageWidth', 1920)
         .input('stageHeight', 1080)
@@ -139,7 +139,7 @@ Given('a scene exists owned by another user', async function (this: CustomWorld)
         .input('gridColor', '#000000')
         .input('gridSnapToGrid', false)
         .query(`
-            INSERT INTO Library.Scenes
+            INSERT INTO Library.Encounters
             (Id, Name, OwnerId, StageWidth, StageHeight, GridType, GridCellWidth, GridCellHeight,
              GridOffsetX, GridOffsetY, GridColor, GridSnapToGrid, CreatedAt, UpdatedAt)
             VALUES (@id, @name, @ownerId, @stageWidth, @stageHeight, @gridType, @gridCellWidth,
@@ -147,7 +147,7 @@ Given('a scene exists owned by another user', async function (this: CustomWorld)
                     GETUTCDATE(), GETUTCDATE())
         `);
 
-    (this as any).otherUserSceneId = sceneId;
+    (this as any).otherUserEncounterId = encounterId;
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -159,10 +159,10 @@ When('I configure grid with type {string} and size {int}', async function (
     gridType: string,
     size: number
 ) {
-    const sceneId = (this as any).currentSceneId;
+    const encounterId = (this as any).currentEncounterId;
 
     // Make PATCH request to update grid configuration
-    const apiResponse = await this.page.request.patch(`/api/library/scenes/${sceneId}`, {
+    const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
         headers: {
             'Content-Type': 'application/json',
             'x-user': this.encodeUserId(this.currentUser.id)
@@ -186,9 +186,9 @@ When('I configure grid with type {string} and hexagonal parameters', async funct
     this: CustomWorld,
     gridType: string
 ) {
-    const sceneId = (this as any).currentSceneId;
+    const encounterId = (this as any).currentEncounterId;
 
-    const apiResponse = await this.page.request.patch(`/api/library/scenes/${sceneId}`, {
+    const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
         headers: {
             'Content-Type': 'application/json',
             'x-user': this.encodeUserId(this.currentUser.id)
@@ -212,10 +212,10 @@ When('I attempt to configure grid with type {string} and incompatible parameters
     this: CustomWorld,
     gridType: string
 ) {
-    const sceneId = (this as any).currentSceneId;
+    const encounterId = (this as any).currentEncounterId;
 
     // Send invalid configuration (e.g., negative cell dimensions)
-    const apiResponse = await this.page.request.patch(`/api/library/scenes/${sceneId}`, {
+    const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
         headers: {
             'Content-Type': 'application/json',
             'x-user': this.encodeUserId(this.currentUser.id)
@@ -236,7 +236,7 @@ When('I attempt to configure grid with type {string} and incompatible parameters
 });
 
 When('I configure grid with:', async function (this: CustomWorld, dataTable: DataTable) {
-    const sceneId = (this as any).currentSceneId;
+    const encounterId = (this as any).currentEncounterId;
     const rows = dataTable.hashes();
 
     const gridConfig: any = {
@@ -273,7 +273,7 @@ When('I configure grid with:', async function (this: CustomWorld, dataTable: Dat
         }
     });
 
-    const apiResponse = await this.page.request.patch(`/api/library/scenes/${sceneId}`, {
+    const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
         headers: {
             'Content-Type': 'application/json',
             'x-user': this.encodeUserId(this.currentUser.id)
@@ -285,13 +285,13 @@ When('I configure grid with:', async function (this: CustomWorld, dataTable: Dat
 });
 
 When('I update grid size to {int}', async function (this: CustomWorld, newSize: number) {
-    const sceneId = (this as any).currentSceneId;
+    const encounterId = (this as any).currentEncounterId;
 
     // Get current grid config
-    const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
-    const currentGrid = scenes[0];
+    const encounters = await this.db.queryTable('Encounters', { Id: encounterId });
+    const currentGrid = encounters[0];
 
-    const apiResponse = await this.page.request.patch(`/api/library/scenes/${sceneId}`, {
+    const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
         headers: {
             'Content-Type': 'application/json',
             'x-user': this.encodeUserId(this.currentUser.id)
@@ -312,12 +312,12 @@ When('I update grid size to {int}', async function (this: CustomWorld, newSize: 
 });
 
 When('I change grid type to {string}', async function (this: CustomWorld, gridType: string) {
-    const sceneId = (this as any).currentSceneId;
+    const encounterId = (this as any).currentEncounterId;
 
-    const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
-    const currentGrid = scenes[0];
+    const encounters = await this.db.queryTable('Encounters', { Id: encounterId });
+    const currentGrid = encounters[0];
 
-    const apiResponse = await this.page.request.patch(`/api/library/scenes/${sceneId}`, {
+    const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
         headers: {
             'Content-Type': 'application/json',
             'x-user': this.encodeUserId(this.currentUser.id)
@@ -343,12 +343,12 @@ When('I provide appropriate hexagonal parameters', async function (this: CustomW
 });
 
 When('I set grid type to {string}', async function (this: CustomWorld, gridType: string) {
-    const sceneId = (this as any).currentSceneId;
+    const encounterId = (this as any).currentEncounterId;
 
-    const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
-    const currentGrid = scenes[0];
+    const encounters = await this.db.queryTable('Encounters', { Id: encounterId });
+    const currentGrid = encounters[0];
 
-    const apiResponse = await this.page.request.patch(`/api/library/scenes/${sceneId}`, {
+    const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
         headers: {
             'Content-Type': 'application/json',
             'x-user': this.encodeUserId(this.currentUser.id)
@@ -373,9 +373,9 @@ When('I configure grid with offsetX {int} and offsetY {int}', async function (
     offsetX: number,
     offsetY: number
 ) {
-    const sceneId = (this as any).currentSceneId;
+    const encounterId = (this as any).currentEncounterId;
 
-    const apiResponse = await this.page.request.patch(`/api/library/scenes/${sceneId}`, {
+    const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
         headers: {
             'Content-Type': 'application/json',
             'x-user': this.encodeUserId(this.currentUser.id)
@@ -396,9 +396,9 @@ When('I configure grid with offsetX {int} and offsetY {int}', async function (
 });
 
 When('I update the grid configuration', async function (this: CustomWorld) {
-    const sceneId = (this as any).currentSceneId;
+    const encounterId = (this as any).currentEncounterId;
 
-    const apiResponse = await this.page.request.patch(`/api/library/scenes/${sceneId}`, {
+    const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
         headers: {
             'Content-Type': 'application/json',
             'x-user': this.encodeUserId(this.currentUser.id)
@@ -418,8 +418,8 @@ When('I update the grid configuration', async function (this: CustomWorld) {
     this.lastApiResponse = apiResponse as any;
 });
 
-When('I attempt to configure grid for scene {string}', async function (this: CustomWorld, sceneId: string) {
-    const apiResponse = await this.page.request.patch(`/api/library/scenes/${sceneId}`, {
+When('I attempt to configure grid for encounter {string}', async function (this: CustomWorld, encounterId: string) {
+    const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
         headers: {
             'Content-Type': 'application/json',
             'x-user': this.encodeUserId(this.currentUser.id)
@@ -439,10 +439,10 @@ When('I attempt to configure grid for scene {string}', async function (this: Cus
     this.lastApiResponse = apiResponse as any;
 });
 
-When('I attempt to configure grid for that scene', async function (this: CustomWorld) {
-    const sceneId = (this as any).otherUserSceneId;
+When('I attempt to configure grid for that encounter', async function (this: CustomWorld) {
+    const encounterId = (this as any).otherUserEncounterId;
 
-    const apiResponse = await this.page.request.patch(`/api/library/scenes/${sceneId}`, {
+    const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
         headers: {
             'Content-Type': 'application/json',
             'x-user': this.encodeUserId(this.currentUser.id)
@@ -463,9 +463,9 @@ When('I attempt to configure grid for that scene', async function (this: CustomW
 });
 
 When('I configure grid with type {string}', async function (this: CustomWorld, gridType: string) {
-    const sceneId = (this as any).currentSceneId;
+    const encounterId = (this as any).currentEncounterId;
 
-    const apiResponse = await this.page.request.patch(`/api/library/scenes/${sceneId}`, {
+    const apiResponse = await this.page.request.patch(`/api/library/encounters/${encounterId}`, {
         headers: {
             'Content-Type': 'application/json',
             'x-user': this.encodeUserId(this.currentUser.id)
@@ -498,18 +498,18 @@ Then('the grid is updated successfully', async function (this: CustomWorld) {
 });
 
 Then('the grid type should be {string}', async function (this: CustomWorld, gridType: string) {
-    const sceneId = (this as any).currentSceneId;
-    const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
+    const encounterId = (this as any).currentEncounterId;
+    const encounters = await this.db.queryTable('Encounters', { Id: encounterId });
 
-    expect(scenes[0].GridType).toBe(mapGridType(gridType));
+    expect(encounters[0].GridType).toBe(mapGridType(gridType));
 });
 
 Then('the grid size should be {int}', async function (this: CustomWorld, size: number) {
-    const sceneId = (this as any).currentSceneId;
-    const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
+    const encounterId = (this as any).currentEncounterId;
+    const encounters = await this.db.queryTable('Encounters', { Id: encounterId });
 
-    expect(scenes[0].GridCellWidth).toBe(size);
-    expect(scenes[0].GridCellHeight).toBe(size);
+    expect(encounters[0].GridCellWidth).toBe(size);
+    expect(encounters[0].GridCellHeight).toBe(size);
 });
 
 Then('I should see error with validation error', async function (this: CustomWorld) {
@@ -517,9 +517,9 @@ Then('I should see error with validation error', async function (this: CustomWor
 });
 
 Then('all grid properties should be set correctly', async function (this: CustomWorld) {
-    const sceneId = (this as any).currentSceneId;
-    const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
-    const grid = scenes[0];
+    const encounterId = (this as any).currentEncounterId;
+    const encounters = await this.db.queryTable('Encounters', { Id: encounterId });
+    const grid = encounters[0];
 
     expect(grid.GridType).toBe(1); // Square
     expect(grid.GridCellWidth).toBe(64);
@@ -529,11 +529,11 @@ Then('all grid properties should be set correctly', async function (this: Custom
     expect(grid.GridColor).toBe('Black');
 });
 
-Then('the scene should have no grid overlay', async function (this: CustomWorld) {
-    const sceneId = (this as any).currentSceneId;
-    const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
+Then('the encounter should have no grid overlay', async function (this: CustomWorld) {
+    const encounterId = (this as any).currentEncounterId;
+    const encounters = await this.db.queryTable('Encounters', { Id: encounterId });
 
-    expect(scenes[0].GridType).toBe(0); // NoGrid
+    expect(encounters[0].GridType).toBe(0); // NoGrid
 });
 
 Then('I should see error with not found error', async function (this: CustomWorld) {
@@ -545,19 +545,19 @@ Then('I should see error with forbidden error', async function (this: CustomWorl
 });
 
 Then('the offsets should be zero', async function (this: CustomWorld) {
-    const sceneId = (this as any).currentSceneId;
-    const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
+    const encounterId = (this as any).currentEncounterId;
+    const encounters = await this.db.queryTable('Encounters', { Id: encounterId });
 
-    expect(scenes[0].GridOffsetX).toBe(0);
-    expect(scenes[0].GridOffsetY).toBe(0);
+    expect(encounters[0].GridOffsetX).toBe(0);
+    expect(encounters[0].GridOffsetY).toBe(0);
 });
 
 Then('the negative offsets should be preserved', async function (this: CustomWorld) {
-    const sceneId = (this as any).currentSceneId;
-    const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
+    const encounterId = (this as any).currentEncounterId;
+    const encounters = await this.db.queryTable('Encounters', { Id: encounterId });
 
-    expect(scenes[0].GridOffsetX).toBe(-50);
-    expect(scenes[0].GridOffsetY).toBe(-50);
+    expect(encounters[0].GridOffsetX).toBe(-50);
+    expect(encounters[0].GridOffsetY).toBe(-50);
 });
 
 Then('the grid is updated', async function (this: CustomWorld) {
@@ -565,22 +565,22 @@ Then('the grid is updated', async function (this: CustomWorld) {
 });
 
 Then('the stage configuration should remain unchanged', async function (this: CustomWorld) {
-    const sceneId = (this as any).currentSceneId;
-    const scenes = await this.db.queryTable('Scenes', { Id: sceneId });
+    const encounterId = (this as any).currentEncounterId;
+    const encounters = await this.db.queryTable('Encounters', { Id: encounterId });
 
     // Stage dimensions should remain the same
-    expect(scenes[0].StageWidth).toBeGreaterThan(0);
-    expect(scenes[0].StageHeight).toBeGreaterThan(0);
+    expect(encounters[0].StageWidth).toBeGreaterThan(0);
+    expect(encounters[0].StageHeight).toBeGreaterThan(0);
 });
 
 Then('all asset placements should remain intact', async function (this: CustomWorld) {
-    const sceneId = (this as any).currentSceneId;
+    const encounterId = (this as any).currentEncounterId;
 
     // Query asset placements
     const pool = await (this.db as any).pool;
     const result = await pool.request()
-        .input('sceneId', sceneId)
-        .query('SELECT COUNT(*) as Count FROM Library.AssetPlacements WHERE SceneId = @sceneId');
+        .input('encounterId', encounterId)
+        .query('SELECT COUNT(*) as Count FROM Library.AssetPlacements WHERE EncounterId = @encounterId');
 
     expect(result.recordset[0].Count).toBeGreaterThanOrEqual(8);
 });

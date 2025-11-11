@@ -6,7 +6,7 @@ namespace VttTools.Common.Model;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum LabelPosition {
     /// <summary>
-    /// Use scene default setting (for assets) or Bottom (for scene defaults).
+    /// Use encounter default setting (for assets) or Bottom (for encounter defaults).
     /// </summary>
     Default = 0,
 

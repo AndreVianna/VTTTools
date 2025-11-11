@@ -5,15 +5,15 @@ import type {
   CreateAdventureRequest,
   UpdateAdventureRequest,
   Adventure,
-  CreateSceneRequest,
-  Scene
+  CreateEncounterRequest,
+  Encounter
 } from '@/types/domain';
 
 // Adventures API consuming existing Library microservice
 export const adventuresApi = createApi({
   reducerPath: 'adventuresApi',
   baseQuery: createEnhancedBaseQuery('/api/adventures'),
-  tagTypes: ['Adventure', 'AdventureScenes'],
+  tagTypes: ['Adventure', 'AdventureEncounters'],
   endpoints: (builder) => ({
     // Adventure management endpoints
     getAdventures: builder.query<Adventure[], void>({
@@ -76,34 +76,34 @@ export const adventuresApi = createApi({
       },
     }),
 
-    // Adventure-scoped Scene endpoints (operations through Adventure aggregate)
-    // Uses 'AdventureScenes' tag to avoid conflict with sceneApi's 'Scene' tag
-    getScenes: builder.query<Scene[], string>({
-      query: (adventureId) => `/${adventureId}/scenes`,
+    // Adventure-scoped Encounter endpoints (operations through Adventure aggregate)
+    // Uses 'AdventureEncounters' tag to avoid conflict with encounterApi's 'Encounter' tag
+    getEncounters: builder.query<Encounter[], string>({
+      query: (adventureId) => `/${adventureId}/encounters`,
       providesTags: (_result, _error, adventureId) => [
-        { type: 'AdventureScenes', id: adventureId }
+        { type: 'AdventureEncounters', id: adventureId }
       ],
     }),
 
-    createScene: builder.mutation<Scene, { adventureId: string; request: CreateSceneRequest }>({
+    createEncounter: builder.mutation<Encounter, { adventureId: string; request: CreateEncounterRequest }>({
       query: ({ adventureId, request }) => ({
-        url: `/${adventureId}/scenes`,
+        url: `/${adventureId}/encounters`,
         method: 'POST',
         body: request,
       }),
       invalidatesTags: (_result, _error, { adventureId }) => [
-        { type: 'AdventureScenes', id: adventureId }
+        { type: 'AdventureEncounters', id: adventureId }
       ],
     }),
 
-    cloneScene: builder.mutation<Scene, { adventureId: string; sceneId: string; name?: string }>({
-      query: ({ adventureId, sceneId, name }) => ({
-        url: `/${adventureId}/scenes/${sceneId}/clone`,
+    cloneEncounter: builder.mutation<Encounter, { adventureId: string; encounterId: string; name?: string }>({
+      query: ({ adventureId, encounterId, name }) => ({
+        url: `/${adventureId}/encounters/${encounterId}/clone`,
         method: 'POST',
         body: name ? { name } : undefined,
       }),
       invalidatesTags: (_result, _error, { adventureId }) => [
-        { type: 'AdventureScenes', id: adventureId }
+        { type: 'AdventureEncounters', id: adventureId }
       ],
     }),
 
@@ -130,8 +130,8 @@ export const {
   useUpdateAdventureMutation,
   useDeleteAdventureMutation,
   useCloneAdventureMutation,
-  useGetScenesQuery,
-  useCreateSceneMutation,
-  useCloneSceneMutation,
+  useGetEncountersQuery,
+  useCreateEncounterMutation,
+  useCloneEncounterMutation,
   useSearchAdventuresQuery,
 } = adventuresApi;

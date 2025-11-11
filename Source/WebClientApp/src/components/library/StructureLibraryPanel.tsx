@@ -1,2 +1,2 @@
-// DEPRECATED: Structure library management removed - walls/regions/sources are now scene value objects only
+// DEPRECATED: Structure library management removed - walls/regions/sources are now encounter value objects only
 export {};

@@ -1,10 +1,10 @@
 // GENERATED: 2025-10-03 by Claude Code Phase 2
-// SPEC: Documents/Areas/Library/Features/SceneManagement/UseCases/ConfigureGrid/USE_CASE.md
+// SPEC: Documents/Areas/Library/Features/EncounterManagement/UseCases/ConfigureGrid/USE_CASE.md
 // USE_CASE: ConfigureGrid
 // LAYER: UI (Utility)
 
 /**
- * Grid calculation utilities for scene editor
+ * Grid calculation utilities for encounter editor
  * Handles coordinate translation and snap-to-grid logic for all 5 grid types
  */
 

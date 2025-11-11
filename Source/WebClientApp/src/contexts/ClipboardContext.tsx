@@ -5,25 +5,25 @@ import { ClipboardContext, INITIAL_CLIPBOARD_STATE, type ClipboardContextValue }
 interface ClipboardState {
   assets: PlacedAsset[];
   operation: 'copy' | 'cut' | null;
-  sourceSceneId: string | null;
+  sourceEncounterId: string | null;
 }
 
 export const ClipboardProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [clipboard, setClipboard] = useState<ClipboardState>(INITIAL_CLIPBOARD_STATE);
 
-  const copyAssets = useCallback((assets: PlacedAsset[], sceneId: string) => {
+  const copyAssets = useCallback((assets: PlacedAsset[], encounterId: string) => {
     setClipboard({
       assets: [...assets],
       operation: 'copy',
-      sourceSceneId: sceneId
+      sourceEncounterId: encounterId
     });
   }, []);
 
-  const cutAssets = useCallback((assets: PlacedAsset[], sceneId: string) => {
+  const cutAssets = useCallback((assets: PlacedAsset[], encounterId: string) => {
     setClipboard({
       assets: [...assets],
       operation: 'cut',
-      sourceSceneId: sceneId
+      sourceEncounterId: encounterId
     });
   }, []);
 

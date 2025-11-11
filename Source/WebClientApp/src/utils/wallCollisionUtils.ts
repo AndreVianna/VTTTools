@@ -1,4 +1,4 @@
-import type { Point, SceneWall } from '@/types/domain';
+import type { Point, EncounterWall } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
 export interface CollisionConfig {
@@ -130,7 +130,7 @@ interface SpatialHash {
     cells: Map<string, SpatialHashCell[]>;
 }
 
-function createSpatialHash(walls: SceneWall[], cellSize: number): SpatialHash {
+function createSpatialHash(walls: EncounterWall[], cellSize: number): SpatialHash {
     const hash: SpatialHash = {
         cellSize,
         cells: new Map()
@@ -178,7 +178,7 @@ function querySpatialHash(
 
 export function detectPoleOnPoleCollision(
     newWallPoles: Point[],
-    existingWalls: SceneWall[],
+    existingWalls: EncounterWall[],
     _gridConfig: GridConfig,
     tolerance: number = 5
 ): PoleCollisionResult {
@@ -234,7 +234,7 @@ export function detectPoleOnPoleCollision(
 
 export function detectEdgeOnEdgeIntersection(
     newWallPoles: Point[],
-    existingWalls: SceneWall[],
+    existingWalls: EncounterWall[],
     _gridConfig: GridConfig
 ): EdgeCollisionResult {
     const intersections: EdgeCollisionResult['intersections'] = [];
@@ -297,7 +297,7 @@ export function detectEdgeOnEdgeIntersection(
 
 export function detectPoleOnEdgeCollision(
     poles: Point[],
-    existingWalls: SceneWall[],
+    existingWalls: EncounterWall[],
     _gridConfig: GridConfig,
     tolerance: number = 5
 ): PoleOnEdgeCollisionResult {

@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react';
-import type { SceneWall, Pole } from '@/types/domain';
+import type { EncounterWall, Pole } from '@/types/domain';
 import { WallVisibility } from '@/types/domain';
 import { cleanWallPoles } from '@/utils/wallUtils';
 import type { LocalAction } from '@/types/wallUndoActions';
 import type {
-    useAddSceneWallMutation,
-    useUpdateSceneWallMutation
-} from '@/services/sceneApi';
+    useAddEncounterWallMutation,
+    useUpdateEncounterWallMutation
+} from '@/services/encounterApi';
 
 export type TransactionType = 'placement' | 'editing' | null;
 
@@ -23,7 +23,7 @@ export interface WallSegment {
 
 export interface WallTransaction {
     type: TransactionType;
-    originalWall: SceneWall | null;
+    originalWall: EncounterWall | null;
     segments: WallSegment[];
     isActive: boolean;
     localUndoStack: LocalAction[];
@@ -40,8 +40,8 @@ export interface CommitResult {
 }
 
 interface ApiHooks {
-    addSceneWall: ReturnType<typeof useAddSceneWallMutation>[0];
-    updateSceneWall: ReturnType<typeof useUpdateSceneWallMutation>[0];
+    addEncounterWall: ReturnType<typeof useAddEncounterWallMutation>[0];
+    updateEncounterWall: ReturnType<typeof useUpdateEncounterWallMutation>[0];
 }
 
 const INITIAL_TRANSACTION: WallTransaction = {
@@ -81,7 +81,7 @@ export const useWallTransaction = () => {
 
     const startTransaction = useCallback((
         type: TransactionType,
-        wall?: SceneWall,
+        wall?: EncounterWall,
         placementProperties?: {
             name?: string;
             visibility?: WallVisibility;
@@ -168,10 +168,10 @@ export const useWallTransaction = () => {
     }, []);
 
     const commitTransaction = useCallback(async (
-        sceneId: string,
+        encounterId: string,
         apiHooks: ApiHooks
     ): Promise<CommitResult> => {
-        const { addSceneWall, updateSceneWall } = apiHooks;
+        const { addEncounterWall, updateEncounterWall } = apiHooks;
         const results: CommitResult['segmentResults'] = [];
 
         try {
@@ -201,8 +201,8 @@ export const useWallTransaction = () => {
 
                 try {
                     if (segment?.wallIndex !== null) {
-                        await updateSceneWall({
-                            sceneId,
+                        await updateEncounterWall({
+                            encounterId,
                             wallIndex: segment?.wallIndex || 1,
                             name: assignedName,
                             poles: segment?.poles,
@@ -217,8 +217,8 @@ export const useWallTransaction = () => {
                             wallIndex: segment?.wallIndex || 0
                         });
                     } else {
-                        const result = await addSceneWall({
-                            sceneId,
+                        const result = await addEncounterWall({
+                            encounterId,
                             name: assignedName || '',
                             poles: segment?.poles || [],
                             visibility: segment?.visibility || WallVisibility.Normal,
@@ -279,7 +279,7 @@ export const useWallTransaction = () => {
         }));
     }, []);
 
-    const undoLocal = useCallback((onSyncScene?: (segments: WallSegment[]) => void) => {
+    const undoLocal = useCallback((onSyncEncounter?: (segments: WallSegment[]) => void) => {
         setTransaction(prev => {
             if (prev.localUndoStack.length === 0) {
                 return prev;
@@ -298,15 +298,15 @@ export const useWallTransaction = () => {
                 localRedoStack: [...prev.localRedoStack, action]
             };
 
-            if (onSyncScene) {
-                onSyncScene(newState.segments);
+            if (onSyncEncounter) {
+                onSyncEncounter(newState.segments);
             }
 
             return newState;
         });
     }, []);
 
-    const redoLocal = useCallback((onSyncScene?: (segments: WallSegment[]) => void) => {
+    const redoLocal = useCallback((onSyncEncounter?: (segments: WallSegment[]) => void) => {
         setTransaction(prev => {
             if (prev.localRedoStack.length === 0) {
                 return prev;
@@ -325,8 +325,8 @@ export const useWallTransaction = () => {
                 localUndoStack: [...prev.localUndoStack, action]
             };
 
-            if (onSyncScene) {
-                onSyncScene(newState.segments);
+            if (onSyncEncounter) {
+                onSyncEncounter(newState.segments);
             }
 
             return newState;

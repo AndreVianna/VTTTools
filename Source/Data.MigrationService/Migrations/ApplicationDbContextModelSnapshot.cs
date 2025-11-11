@@ -251,10 +251,10 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("OwnerId")
+                    b.Property<Guid?>("EncounterId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("SceneId")
+                    b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Status")
@@ -432,42 +432,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("Campaigns", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.Epic", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("BackgroundId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(4096)
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsPublic")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BackgroundId");
-
-                    b.ToTable("Epics", (string)null);
-                });
-
-            modelBuilder.Entity("VttTools.Data.Library.Entities.Scene", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.Encounter", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -517,7 +482,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("real")
                         .HasDefaultValue(1f);
 
-                    b.ComplexProperty<Dictionary<string, object>>("Grid", "VttTools.Data.Library.Entities.Scene.Grid#Grid", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Grid", "VttTools.Data.Library.Entities.Encounter.Grid#Grid", b1 =>
                         {
                             b1.IsRequired();
 
@@ -532,7 +497,7 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasColumnType("nvarchar(max)")
                                 .HasDefaultValue("NoGrid");
 
-                            b1.ComplexProperty<Dictionary<string, object>>("CellSize", "VttTools.Data.Library.Entities.Scene.Grid#Grid.CellSize#CellSize", b2 =>
+                            b1.ComplexProperty<Dictionary<string, object>>("CellSize", "VttTools.Data.Library.Entities.Encounter.Grid#Grid.CellSize#CellSize", b2 =>
                                 {
                                     b2.IsRequired();
 
@@ -547,7 +512,7 @@ namespace VttTools.Data.MigrationService.Migrations
                                         .HasDefaultValue(64.0);
                                 });
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Offset", "VttTools.Data.Library.Entities.Scene.Grid#Grid.Offset#Offset", b2 =>
+                            b1.ComplexProperty<Dictionary<string, object>>("Offset", "VttTools.Data.Library.Entities.Encounter.Grid#Grid.Offset#Offset", b2 =>
                                 {
                                     b2.IsRequired();
 
@@ -563,7 +528,7 @@ namespace VttTools.Data.MigrationService.Migrations
                                 });
                         });
 
-                    b.ComplexProperty<Dictionary<string, object>>("Panning", "VttTools.Data.Library.Entities.Scene.Panning#Point", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Panning", "VttTools.Data.Library.Entities.Encounter.Panning#Point", b1 =>
                         {
                             b1.IsRequired();
 
@@ -586,12 +551,12 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasIndex("SoundId");
 
-                    b.ToTable("Scenes", (string)null);
+                    b.ToTable("Encounters", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneAsset", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterAsset", b =>
                 {
-                    b.Property<Guid>("SceneId")
+                    b.Property<Guid>("EncounterId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<long>("Index")
@@ -641,7 +606,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid?>("TokenId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Frame", "VttTools.Data.Library.Entities.SceneAsset.Frame#Frame", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Frame", "VttTools.Data.Library.Entities.EncounterAsset.Frame#Frame", b1 =>
                         {
                             b1.IsRequired();
 
@@ -669,7 +634,7 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasDefaultValue("Square");
                         });
 
-                    b.ComplexProperty<Dictionary<string, object>>("Position", "VttTools.Data.Library.Entities.SceneAsset.Position#Position", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Position", "VttTools.Data.Library.Entities.EncounterAsset.Position#Position", b1 =>
                         {
                             b1.IsRequired();
 
@@ -684,7 +649,7 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasDefaultValue(0.0);
                         });
 
-                    b.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.SceneAsset.Size#NamedSize", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Size", "VttTools.Data.Library.Entities.EncounterAsset.Size#NamedSize", b1 =>
                         {
                             b1.IsRequired();
 
@@ -699,7 +664,7 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasDefaultValue(1.0);
                         });
 
-                    b.HasKey("SceneId", "Index");
+                    b.HasKey("EncounterId", "Index");
 
                     b.HasIndex("AssetId");
 
@@ -707,12 +672,12 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasIndex("TokenId");
 
-                    b.ToTable("SceneAssets", (string)null);
+                    b.ToTable("EncounterAssets", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneEffect", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterEffect", b =>
                 {
-                    b.Property<Guid>("SceneId")
+                    b.Property<Guid>("EncounterId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<long>("Index")
@@ -724,18 +689,18 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid>("EffectId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("EncounterId1")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
-                    b.Property<Guid?>("SceneId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<float?>("Size")
                         .HasColumnType("real");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Origin", "VttTools.Data.Library.Entities.SceneEffect.Origin#Point", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Origin", "VttTools.Data.Library.Entities.EncounterEffect.Origin#Point", b1 =>
                         {
                             b1.IsRequired();
 
@@ -746,18 +711,18 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasColumnType("float");
                         });
 
-                    b.HasKey("SceneId", "Index");
+                    b.HasKey("EncounterId", "Index");
 
                     b.HasIndex("EffectId");
 
-                    b.HasIndex("SceneId1");
+                    b.HasIndex("EncounterId1");
 
-                    b.ToTable("SceneEffects", (string)null);
+                    b.ToTable("EncounterEffects", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneRegion", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterRegion", b =>
                 {
-                    b.Property<Guid>("SceneId")
+                    b.Property<Guid>("EncounterId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<long>("Index")
@@ -784,16 +749,16 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<int?>("Value")
                         .HasColumnType("int");
 
-                    b.HasKey("SceneId", "Index");
+                    b.HasKey("EncounterId", "Index");
 
-                    b.HasIndex("SceneId");
+                    b.HasIndex("EncounterId");
 
-                    b.ToTable("SceneRegions", (string)null);
+                    b.ToTable("EncounterRegions", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneSource", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterSource", b =>
                 {
-                    b.Property<Guid>("SceneId")
+                    b.Property<Guid>("EncounterId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<long>("Index")
@@ -839,7 +804,7 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Position", "VttTools.Data.Library.Entities.SceneSource.Position#Point", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Position", "VttTools.Data.Library.Entities.EncounterSource.Position#Point", b1 =>
                         {
                             b1.IsRequired();
 
@@ -854,16 +819,16 @@ namespace VttTools.Data.MigrationService.Migrations
                                 .HasDefaultValue(0.0);
                         });
 
-                    b.HasKey("SceneId", "Index");
+                    b.HasKey("EncounterId", "Index");
 
-                    b.HasIndex("SceneId");
+                    b.HasIndex("EncounterId");
 
-                    b.ToTable("SceneSources", (string)null);
+                    b.ToTable("EncounterSources", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneWall", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterWall", b =>
                 {
-                    b.Property<Guid>("SceneId")
+                    b.Property<Guid>("EncounterId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<long>("Index")
@@ -892,11 +857,46 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
-                    b.HasKey("SceneId", "Index");
+                    b.HasKey("EncounterId", "Index");
 
-                    b.HasIndex("SceneId");
+                    b.HasIndex("EncounterId");
 
-                    b.ToTable("SceneWalls", (string)null);
+                    b.ToTable("EncounterWalls", (string)null);
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.Epic", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BackgroundId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BackgroundId");
+
+                    b.ToTable("Epics", (string)null);
                 });
 
             modelBuilder.Entity("VttTools.Data.Maintenance.Entities.MaintenanceMode", b =>
@@ -1482,20 +1482,10 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Epic");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.Epic", b =>
-                {
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
-                        .WithMany()
-                        .HasForeignKey("BackgroundId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Background");
-                });
-
-            modelBuilder.Entity("VttTools.Data.Library.Entities.Scene", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.Encounter", b =>
                 {
                     b.HasOne("VttTools.Data.Library.Entities.Adventure", "Adventure")
-                        .WithMany("Scenes")
+                        .WithMany("Encounters")
                         .HasForeignKey("AdventureId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1517,7 +1507,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Sound");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneAsset", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterAsset", b =>
                 {
                     b.HasOne("VttTools.Data.Assets.Entities.Asset", "Asset")
                         .WithMany()
@@ -1525,16 +1515,16 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("VttTools.Data.Library.Entities.Encounter", null)
+                        .WithMany("EncounterAssets")
+                        .HasForeignKey("EncounterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Portrait")
                         .WithMany()
                         .HasForeignKey("PortraitId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("VttTools.Data.Library.Entities.Scene", null)
-                        .WithMany("SceneAssets")
-                        .HasForeignKey("SceneId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Token")
                         .WithMany()
@@ -1548,7 +1538,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Token");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneEffect", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterEffect", b =>
                 {
                     b.HasOne("VttTools.Data.Assets.Entities.Effect", "Effect")
                         .WithMany()
@@ -1556,35 +1546,35 @@ namespace VttTools.Data.MigrationService.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Library.Entities.Scene", "Scene")
+                    b.HasOne("VttTools.Data.Library.Entities.Encounter", "Encounter")
                         .WithMany()
-                        .HasForeignKey("SceneId")
+                        .HasForeignKey("EncounterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VttTools.Data.Library.Entities.Scene", null)
-                        .WithMany("SceneEffects")
-                        .HasForeignKey("SceneId1");
+                    b.HasOne("VttTools.Data.Library.Entities.Encounter", null)
+                        .WithMany("EncounterEffects")
+                        .HasForeignKey("EncounterId1");
 
                     b.Navigation("Effect");
 
-                    b.Navigation("Scene");
+                    b.Navigation("Encounter");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneRegion", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterRegion", b =>
                 {
-                    b.HasOne("VttTools.Data.Library.Entities.Scene", "Scene")
+                    b.HasOne("VttTools.Data.Library.Entities.Encounter", "Encounter")
                         .WithMany("Regions")
-                        .HasForeignKey("SceneId")
+                        .HasForeignKey("EncounterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.OwnsMany("VttTools.Common.Model.Point", "Vertices", b1 =>
                         {
-                            b1.Property<Guid>("SceneRegionSceneId")
+                            b1.Property<Guid>("EncounterRegionEncounterId")
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<long>("SceneRegionIndex")
+                            b1.Property<long>("EncounterRegionIndex")
                                 .HasColumnType("bigint");
 
                             b1.Property<int>("__synthesizedOrdinal")
@@ -1597,46 +1587,46 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.Property<double>("Y")
                                 .HasColumnType("float");
 
-                            b1.HasKey("SceneRegionSceneId", "SceneRegionIndex", "__synthesizedOrdinal");
+                            b1.HasKey("EncounterRegionEncounterId", "EncounterRegionIndex", "__synthesizedOrdinal");
 
-                            b1.ToTable("SceneRegions");
+                            b1.ToTable("EncounterRegions");
 
                             b1.ToJson("Vertices");
 
                             b1.WithOwner()
-                                .HasForeignKey("SceneRegionSceneId", "SceneRegionIndex");
+                                .HasForeignKey("EncounterRegionEncounterId", "EncounterRegionIndex");
                         });
 
-                    b.Navigation("Scene");
+                    b.Navigation("Encounter");
 
                     b.Navigation("Vertices");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneSource", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterSource", b =>
                 {
-                    b.HasOne("VttTools.Data.Library.Entities.Scene", "Scene")
+                    b.HasOne("VttTools.Data.Library.Entities.Encounter", "Encounter")
                         .WithMany("Sources")
-                        .HasForeignKey("SceneId")
+                        .HasForeignKey("EncounterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Scene");
+                    b.Navigation("Encounter");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.SceneWall", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.EncounterWall", b =>
                 {
-                    b.HasOne("VttTools.Data.Library.Entities.Scene", "Scene")
+                    b.HasOne("VttTools.Data.Library.Entities.Encounter", "Encounter")
                         .WithMany("Walls")
-                        .HasForeignKey("SceneId")
+                        .HasForeignKey("EncounterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.OwnsMany("VttTools.Common.Model.Pole", "Poles", b1 =>
                         {
-                            b1.Property<Guid>("SceneWallSceneId")
+                            b1.Property<Guid>("EncounterWallEncounterId")
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<long>("SceneWallIndex")
+                            b1.Property<long>("EncounterWallIndex")
                                 .HasColumnType("bigint");
 
                             b1.Property<int>("__synthesizedOrdinal")
@@ -1652,19 +1642,29 @@ namespace VttTools.Data.MigrationService.Migrations
                             b1.Property<double>("Y")
                                 .HasColumnType("float");
 
-                            b1.HasKey("SceneWallSceneId", "SceneWallIndex", "__synthesizedOrdinal");
+                            b1.HasKey("EncounterWallEncounterId", "EncounterWallIndex", "__synthesizedOrdinal");
 
-                            b1.ToTable("SceneWalls");
+                            b1.ToTable("EncounterWalls");
 
                             b1.ToJson("Poles");
 
                             b1.WithOwner()
-                                .HasForeignKey("SceneWallSceneId", "SceneWallIndex");
+                                .HasForeignKey("EncounterWallEncounterId", "EncounterWallIndex");
                         });
 
-                    b.Navigation("Poles");
+                    b.Navigation("Encounter");
 
-                    b.Navigation("Scene");
+                    b.Navigation("Poles");
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.Epic", b =>
+                {
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
+                        .WithMany()
+                        .HasForeignKey("BackgroundId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Background");
                 });
 
             modelBuilder.Entity("VttTools.Identity.Model.RoleClaim", b =>
@@ -1761,7 +1761,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Adventure", b =>
                 {
-                    b.Navigation("Scenes");
+                    b.Navigation("Encounters");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Campaign", b =>
@@ -1769,22 +1769,22 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Adventures");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.Epic", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.Encounter", b =>
                 {
-                    b.Navigation("Campaigns");
-                });
+                    b.Navigation("EncounterAssets");
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.Scene", b =>
-                {
+                    b.Navigation("EncounterEffects");
+
                     b.Navigation("Regions");
-
-                    b.Navigation("SceneAssets");
-
-                    b.Navigation("SceneEffects");
 
                     b.Navigation("Sources");
 
                     b.Navigation("Walls");
+                });
+
+            modelBuilder.Entity("VttTools.Data.Library.Entities.Epic", b =>
+                {
+                    b.Navigation("Campaigns");
                 });
 #pragma warning restore 612, 618
         }

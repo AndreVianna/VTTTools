@@ -1,14 +1,14 @@
 import type { Command } from '@/utils/commands';
-import type { SceneRegion } from '@/types/domain';
+import type { EncounterRegion } from '@/types/domain';
 
 export interface CreateRegionCommandParams {
-    sceneId: string;
-    region: SceneRegion;
+    encounterId: string;
+    region: EncounterRegion;
     onCreate: (
-        sceneId: string,
-        region: Omit<SceneRegion, 'index' | 'sceneId'>
-    ) => Promise<SceneRegion>;
-    onRemove: (sceneId: string, regionIndex: number) => Promise<void>;
+        encounterId: string,
+        region: Omit<EncounterRegion, 'index' | 'encounterId'>
+    ) => Promise<EncounterRegion>;
+    onRemove: (encounterId: string, regionIndex: number) => Promise<void>;
     onRefetch: () => Promise<void>;
 }
 
@@ -24,13 +24,13 @@ export class CreateRegionCommand implements Command {
     }
 
     async undo(): Promise<void> {
-        await this.params.onRemove(this.params.sceneId, this.params.region.index);
+        await this.params.onRemove(this.params.encounterId, this.params.region.index);
         await this.params.onRefetch();
     }
 
     async redo(): Promise<void> {
-        const { sceneId, region, onCreate, onRefetch } = this.params;
-        const regionData: Omit<SceneRegion, 'index' | 'sceneId'> = {
+        const { encounterId, region, onCreate, onRefetch } = this.params;
+        const regionData: Omit<EncounterRegion, 'index' | 'encounterId'> = {
             name: region.name,
             type: region.type,
             vertices: region.vertices,
@@ -38,17 +38,17 @@ export class CreateRegionCommand implements Command {
             ...(region.label !== undefined && { label: region.label }),
             ...(region.color !== undefined && { color: region.color })
         };
-        await onCreate(sceneId, regionData);
+        await onCreate(encounterId, regionData);
         await onRefetch();
     }
 }
 
 export interface EditRegionCommandParams {
-    sceneId: string;
+    encounterId: string;
     regionIndex: number;
-    oldRegion: SceneRegion;
-    newRegion: SceneRegion;
-    onUpdate: (sceneId: string, regionIndex: number, updates: Partial<SceneRegion>) => Promise<void>;
+    oldRegion: EncounterRegion;
+    newRegion: EncounterRegion;
+    onUpdate: (encounterId: string, regionIndex: number, updates: Partial<EncounterRegion>) => Promise<void>;
     onRefetch: () => Promise<void>;
 }
 
@@ -64,8 +64,8 @@ export class EditRegionCommand implements Command {
     }
 
     async undo(): Promise<void> {
-        const { oldRegion, sceneId, regionIndex, onUpdate, onRefetch } = this.params;
-        const updates: Partial<SceneRegion> = {
+        const { oldRegion, encounterId, regionIndex, onUpdate, onRefetch } = this.params;
+        const updates: Partial<EncounterRegion> = {
             name: oldRegion.name,
             type: oldRegion.type,
             vertices: oldRegion.vertices,
@@ -73,13 +73,13 @@ export class EditRegionCommand implements Command {
             ...(oldRegion.label !== undefined && { label: oldRegion.label }),
             ...(oldRegion.color !== undefined && { color: oldRegion.color })
         };
-        await onUpdate(sceneId, regionIndex, updates);
+        await onUpdate(encounterId, regionIndex, updates);
         await onRefetch();
     }
 
     async redo(): Promise<void> {
-        const { newRegion, sceneId, regionIndex, onUpdate, onRefetch } = this.params;
-        const updates: Partial<SceneRegion> = {
+        const { newRegion, encounterId, regionIndex, onUpdate, onRefetch } = this.params;
+        const updates: Partial<EncounterRegion> = {
             name: newRegion.name,
             type: newRegion.type,
             vertices: newRegion.vertices,
@@ -87,20 +87,20 @@ export class EditRegionCommand implements Command {
             ...(newRegion.label !== undefined && { label: newRegion.label }),
             ...(newRegion.color !== undefined && { color: newRegion.color })
         };
-        await onUpdate(sceneId, regionIndex, updates);
+        await onUpdate(encounterId, regionIndex, updates);
         await onRefetch();
     }
 }
 
 export interface DeleteRegionCommandParams {
-    sceneId: string;
+    encounterId: string;
     regionIndex: number;
-    region: SceneRegion;
+    region: EncounterRegion;
     onAdd: (
-        sceneId: string,
-        region: Omit<SceneRegion, 'index' | 'sceneId'>
-    ) => Promise<SceneRegion>;
-    onRemove: (sceneId: string, regionIndex: number) => Promise<void>;
+        encounterId: string,
+        region: Omit<EncounterRegion, 'index' | 'encounterId'>
+    ) => Promise<EncounterRegion>;
+    onRemove: (encounterId: string, regionIndex: number) => Promise<void>;
     onRefetch: () => Promise<void>;
 }
 
@@ -113,14 +113,14 @@ export class DeleteRegionCommand implements Command {
     }
 
     async execute(): Promise<void> {
-        const { sceneId, regionIndex, onRemove, onRefetch } = this.params;
-        await onRemove(sceneId, regionIndex);
+        const { encounterId, regionIndex, onRemove, onRefetch } = this.params;
+        await onRemove(encounterId, regionIndex);
         await onRefetch();
     }
 
     async undo(): Promise<void> {
-        const { sceneId, region, onAdd, onRefetch } = this.params;
-        const regionData: Omit<SceneRegion, 'index' | 'sceneId'> = {
+        const { encounterId, region, onAdd, onRefetch } = this.params;
+        const regionData: Omit<EncounterRegion, 'index' | 'encounterId'> = {
             name: region.name,
             type: region.type,
             vertices: region.vertices,
@@ -128,15 +128,15 @@ export class DeleteRegionCommand implements Command {
             ...(region.label !== undefined && { label: region.label }),
             ...(region.color !== undefined && { color: region.color })
         };
-        const restoredRegion = await onAdd(sceneId, regionData);
+        const restoredRegion = await onAdd(encounterId, regionData);
         this.restoredIndex = restoredRegion.index;
         await onRefetch();
     }
 
     async redo(): Promise<void> {
-        const { sceneId, onRemove, onRefetch } = this.params;
+        const { encounterId, onRemove, onRefetch } = this.params;
         if (this.restoredIndex !== undefined) {
-            await onRemove(sceneId, this.restoredIndex);
+            await onRemove(encounterId, this.restoredIndex);
             await onRefetch();
         }
     }

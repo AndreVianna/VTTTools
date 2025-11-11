@@ -2,7 +2,7 @@ namespace VttTools.Assets.Model;
 
 /// <summary>
 /// Reusable effect template (light sources, fog, weather, sounds, elevation changes)
-/// Can be instantiated on multiple scenes via SceneEffect placements
+/// Can be instantiated on multiple encounters via EncounterEffect placements
 /// </summary>
 public record Effect {
     /// <summary>

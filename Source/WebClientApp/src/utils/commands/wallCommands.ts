@@ -1,14 +1,14 @@
 import type { Command } from '@/utils/commands';
-import type { SceneWall } from '@/types/domain';
+import type { EncounterWall } from '@/types/domain';
 
 export interface CreateWallCommandParams {
-    sceneId: string;
-    wall: SceneWall;
+    encounterId: string;
+    wall: EncounterWall;
     onCreate: (
-        sceneId: string,
-        wall: Omit<SceneWall, 'index' | 'sceneId'>
-    ) => Promise<SceneWall>;
-    onRemove: (sceneId: string, wallIndex: number) => Promise<void>;
+        encounterId: string,
+        wall: Omit<EncounterWall, 'index' | 'encounterId'>
+    ) => Promise<EncounterWall>;
+    onRemove: (encounterId: string, wallIndex: number) => Promise<void>;
     onRefetch: () => Promise<void>;
 }
 
@@ -24,13 +24,13 @@ export class CreateWallCommand implements Command {
     }
 
     async undo(): Promise<void> {
-        await this.params.onRemove(this.params.sceneId, this.params.wall.index);
+        await this.params.onRemove(this.params.encounterId, this.params.wall.index);
         await this.params.onRefetch();
     }
 
     async redo(): Promise<void> {
-        const { sceneId, wall, onCreate, onRefetch } = this.params;
-        await onCreate(sceneId, {
+        const { encounterId, wall, onCreate, onRefetch } = this.params;
+        await onCreate(encounterId, {
             name: wall.name,
             poles: wall.poles,
             visibility: wall.visibility,
@@ -43,11 +43,11 @@ export class CreateWallCommand implements Command {
 }
 
 export interface EditWallCommandParams {
-    sceneId: string;
+    encounterId: string;
     wallIndex: number;
-    oldWall: SceneWall;
-    newWall: SceneWall;
-    onUpdate: (sceneId: string, wallIndex: number, updates: Partial<SceneWall>) => Promise<void>;
+    oldWall: EncounterWall;
+    newWall: EncounterWall;
+    onUpdate: (encounterId: string, wallIndex: number, updates: Partial<EncounterWall>) => Promise<void>;
     onRefetch: () => Promise<void>;
 }
 
@@ -63,8 +63,8 @@ export class EditWallCommand implements Command {
     }
 
     async undo(): Promise<void> {
-        const { oldWall, sceneId, wallIndex, onUpdate, onRefetch } = this.params;
-        const updates: Partial<SceneWall> = {
+        const { oldWall, encounterId, wallIndex, onUpdate, onRefetch } = this.params;
+        const updates: Partial<EncounterWall> = {
             name: oldWall.name,
             poles: oldWall.poles,
             visibility: oldWall.visibility,
@@ -72,13 +72,13 @@ export class EditWallCommand implements Command {
             material: oldWall.material,
             color: oldWall.color
         };
-        await onUpdate(sceneId, wallIndex, updates);
+        await onUpdate(encounterId, wallIndex, updates);
         await onRefetch();
     }
 
     async redo(): Promise<void> {
-        const { newWall, sceneId, wallIndex, onUpdate, onRefetch } = this.params;
-        const updates: Partial<SceneWall> = {
+        const { newWall, encounterId, wallIndex, onUpdate, onRefetch } = this.params;
+        const updates: Partial<EncounterWall> = {
             name: newWall.name,
             poles: newWall.poles,
             visibility: newWall.visibility,
@@ -86,20 +86,20 @@ export class EditWallCommand implements Command {
             material: newWall.material,
             color: newWall.color
         };
-        await onUpdate(sceneId, wallIndex, updates);
+        await onUpdate(encounterId, wallIndex, updates);
         await onRefetch();
     }
 }
 
 export interface DeleteWallCommandParams {
-    sceneId: string;
+    encounterId: string;
     wallIndex: number;
-    wall: SceneWall;
+    wall: EncounterWall;
     onAdd: (
-        sceneId: string,
-        wall: Omit<SceneWall, 'index' | 'sceneId'>
-    ) => Promise<SceneWall>;
-    onRemove: (sceneId: string, wallIndex: number) => Promise<void>;
+        encounterId: string,
+        wall: Omit<EncounterWall, 'index' | 'encounterId'>
+    ) => Promise<EncounterWall>;
+    onRemove: (encounterId: string, wallIndex: number) => Promise<void>;
     onRefetch: () => Promise<void>;
 }
 
@@ -112,14 +112,14 @@ export class DeleteWallCommand implements Command {
     }
 
     async execute(): Promise<void> {
-        const { sceneId, wallIndex, onRemove, onRefetch } = this.params;
-        await onRemove(sceneId, wallIndex);
+        const { encounterId, wallIndex, onRemove, onRefetch } = this.params;
+        await onRemove(encounterId, wallIndex);
         await onRefetch();
     }
 
     async undo(): Promise<void> {
-        const { sceneId, wall, onAdd, onRefetch } = this.params;
-        const restoredWall = await onAdd(sceneId, {
+        const { encounterId, wall, onAdd, onRefetch } = this.params;
+        const restoredWall = await onAdd(encounterId, {
             name: wall.name,
             poles: wall.poles,
             visibility: wall.visibility,
@@ -132,25 +132,25 @@ export class DeleteWallCommand implements Command {
     }
 
     async redo(): Promise<void> {
-        const { sceneId, onRemove, onRefetch } = this.params;
+        const { encounterId, onRemove, onRefetch } = this.params;
         if (this.restoredIndex !== undefined) {
-            await onRemove(sceneId, this.restoredIndex);
+            await onRemove(encounterId, this.restoredIndex);
             await onRefetch();
         }
     }
 }
 
 export interface BreakWallCommandParams {
-    sceneId: string;
+    encounterId: string;
     originalWallIndex: number;
-    originalWall: SceneWall;
-    newWalls: SceneWall[];
+    originalWall: EncounterWall;
+    newWalls: EncounterWall[];
     onAdd: (
-        sceneId: string,
-        wall: Omit<SceneWall, 'index' | 'sceneId'>
-    ) => Promise<SceneWall>;
-    onUpdate: (sceneId: string, wallIndex: number, updates: Partial<SceneWall>) => Promise<void>;
-    onRemove: (sceneId: string, wallIndex: number) => Promise<void>;
+        encounterId: string,
+        wall: Omit<EncounterWall, 'index' | 'encounterId'>
+    ) => Promise<EncounterWall>;
+    onUpdate: (encounterId: string, wallIndex: number, updates: Partial<EncounterWall>) => Promise<void>;
+    onRemove: (encounterId: string, wallIndex: number) => Promise<void>;
     onRefetch: () => Promise<void>;
 }
 
@@ -167,13 +167,13 @@ export class BreakWallCommand implements Command {
     }
 
     async undo(): Promise<void> {
-        const { sceneId, originalWallIndex, originalWall, newWalls, onRemove, onUpdate, onRefetch } = this.params;
+        const { encounterId, originalWallIndex, originalWall, newWalls, onRemove, onUpdate, onRefetch } = this.params;
 
         for (const wall of newWalls) {
-            await onRemove(sceneId, wall.index);
+            await onRemove(encounterId, wall.index);
         }
 
-        const updates: Partial<SceneWall> = {
+        const updates: Partial<EncounterWall> = {
             name: originalWall.name,
             poles: originalWall.poles,
             visibility: originalWall.visibility,
@@ -181,19 +181,19 @@ export class BreakWallCommand implements Command {
             material: originalWall.material,
             color: originalWall.color
         };
-        await onUpdate(sceneId, originalWallIndex, updates);
+        await onUpdate(encounterId, originalWallIndex, updates);
 
         await onRefetch();
     }
 
     async redo(): Promise<void> {
-        const { sceneId, originalWallIndex, newWalls, onAdd, onRemove, onRefetch } = this.params;
+        const { encounterId, originalWallIndex, newWalls, onAdd, onRemove, onRefetch } = this.params;
 
-        await onRemove(sceneId, originalWallIndex);
+        await onRemove(encounterId, originalWallIndex);
 
         this.segmentIndices = [];
         for (const wall of newWalls) {
-            const addedWall = await onAdd(sceneId, {
+            const addedWall = await onAdd(encounterId, {
                 name: wall.name,
                 poles: wall.poles,
                 visibility: wall.visibility,
@@ -209,17 +209,17 @@ export class BreakWallCommand implements Command {
 }
 
 export interface MergeWallsCommandParams {
-    sceneId: string;
+    encounterId: string;
     targetWallIndex: number;
-    mergedWall: SceneWall;
-    originalWalls: SceneWall[];
+    mergedWall: EncounterWall;
+    originalWalls: EncounterWall[];
     wallsToDelete: number[];
-    onUpdate: (sceneId: string, wallIndex: number, updates: Partial<SceneWall>) => Promise<void>;
+    onUpdate: (encounterId: string, wallIndex: number, updates: Partial<EncounterWall>) => Promise<void>;
     onAdd: (
-        sceneId: string,
-        wall: Omit<SceneWall, 'index' | 'sceneId'>
-    ) => Promise<SceneWall>;
-    onRemove: (sceneId: string, wallIndex: number) => Promise<void>;
+        encounterId: string,
+        wall: Omit<EncounterWall, 'index' | 'encounterId'>
+    ) => Promise<EncounterWall>;
+    onRemove: (encounterId: string, wallIndex: number) => Promise<void>;
     onRefetch: () => Promise<void>;
 }
 
@@ -237,13 +237,13 @@ export class MergeWallsCommand implements Command {
     }
 
     async undo(): Promise<void> {
-        const { sceneId, targetWallIndex, originalWalls, onUpdate, onAdd, onRefetch } = this.params;
+        const { encounterId, targetWallIndex, originalWalls, onUpdate, onAdd, onRefetch } = this.params;
 
         this.restoredIndices.clear();
 
         for (const originalWall of originalWalls) {
             if (originalWall.index === targetWallIndex) {
-                const updates: Partial<SceneWall> = {
+                const updates: Partial<EncounterWall> = {
                     name: originalWall.name,
                     poles: originalWall.poles,
                     visibility: originalWall.visibility,
@@ -251,9 +251,9 @@ export class MergeWallsCommand implements Command {
                     material: originalWall.material,
                     color: originalWall.color
                 };
-                await onUpdate(sceneId, targetWallIndex, updates);
+                await onUpdate(encounterId, targetWallIndex, updates);
             } else {
-                const restoredWall = await onAdd(sceneId, {
+                const restoredWall = await onAdd(encounterId, {
                     name: originalWall.name,
                     poles: originalWall.poles,
                     visibility: originalWall.visibility,
@@ -269,9 +269,9 @@ export class MergeWallsCommand implements Command {
     }
 
     async redo(): Promise<void> {
-        const { sceneId, targetWallIndex, mergedWall, wallsToDelete, onUpdate, onRemove, onRefetch } = this.params;
+        const { encounterId, targetWallIndex, mergedWall, wallsToDelete, onUpdate, onRemove, onRefetch } = this.params;
 
-        const updates: Partial<SceneWall> = {
+        const updates: Partial<EncounterWall> = {
             name: mergedWall.name,
             poles: mergedWall.poles,
             visibility: mergedWall.visibility,
@@ -279,11 +279,11 @@ export class MergeWallsCommand implements Command {
             material: mergedWall.material,
             color: mergedWall.color
         };
-        await onUpdate(sceneId, targetWallIndex, updates);
+        await onUpdate(encounterId, targetWallIndex, updates);
 
         for (const wallIndex of wallsToDelete) {
             const actualIndex = this.restoredIndices.get(wallIndex) ?? wallIndex;
-            await onRemove(sceneId, actualIndex);
+            await onRemove(encounterId, actualIndex);
         }
 
         await onRefetch();
@@ -291,19 +291,19 @@ export class MergeWallsCommand implements Command {
 }
 
 export interface SplitWallsCommandParams {
-    sceneId: string;
-    newWall: SceneWall;
+    encounterId: string;
+    newWall: EncounterWall;
     affectedWalls: Array<{
         wallIndex: number;
-        originalWall: SceneWall;
-        segments: SceneWall[];
+        originalWall: EncounterWall;
+        segments: EncounterWall[];
     }>;
-    onUpdate: (sceneId: string, wallIndex: number, updates: Partial<SceneWall>) => Promise<void>;
+    onUpdate: (encounterId: string, wallIndex: number, updates: Partial<EncounterWall>) => Promise<void>;
     onAdd: (
-        sceneId: string,
-        wall: Omit<SceneWall, 'index' | 'sceneId'>
-    ) => Promise<SceneWall>;
-    onRemove: (sceneId: string, wallIndex: number) => Promise<void>;
+        encounterId: string,
+        wall: Omit<EncounterWall, 'index' | 'encounterId'>
+    ) => Promise<EncounterWall>;
+    onRemove: (encounterId: string, wallIndex: number) => Promise<void>;
     onRefetch: () => Promise<void>;
 }
 
@@ -322,11 +322,11 @@ export class SplitWallsCommand implements Command {
     }
 
     async undo(): Promise<void> {
-        const { sceneId, newWall, affectedWalls, onUpdate, onRemove, onRefetch } = this.params;
+        const { encounterId, newWall, affectedWalls, onUpdate, onRemove, onRefetch } = this.params;
 
         try {
             const newWallIndex = this.restoredNewWallIndex ?? newWall.index;
-            await onRemove(sceneId, newWallIndex);
+            await onRemove(encounterId, newWallIndex);
 
             for (const { wallIndex, originalWall, segments } of affectedWalls) {
                 for (let i = 1; i < segments.length; i++) {
@@ -334,11 +334,11 @@ export class SplitWallsCommand implements Command {
                     if (segment) {
                         const restoredIndices = this.restoredSegmentIndices.get(wallIndex);
                         const actualIndex = restoredIndices?.[i] ?? segment.index;
-                        await onRemove(sceneId, actualIndex);
+                        await onRemove(encounterId, actualIndex);
                     }
                 }
 
-                await onUpdate(sceneId, wallIndex, {
+                await onUpdate(encounterId, wallIndex, {
                     name: originalWall.name,
                     poles: originalWall.poles,
                     isClosed: originalWall.isClosed,
@@ -357,12 +357,12 @@ export class SplitWallsCommand implements Command {
     }
 
     async redo(): Promise<void> {
-        const { sceneId, newWall, affectedWalls, onUpdate, onAdd, onRefetch } = this.params;
+        const { encounterId, newWall, affectedWalls, onUpdate, onAdd, onRefetch } = this.params;
 
         try {
             this.restoredSegmentIndices.clear();
 
-            const restoredNewWall = await onAdd(sceneId, {
+            const restoredNewWall = await onAdd(encounterId, {
                 name: newWall.name,
                 poles: newWall.poles,
                 isClosed: newWall.isClosed,
@@ -377,7 +377,7 @@ export class SplitWallsCommand implements Command {
 
                 const firstSegment = segments[0];
                 if (firstSegment) {
-                    await onUpdate(sceneId, wallIndex, {
+                    await onUpdate(encounterId, wallIndex, {
                         name: firstSegment.name,
                         poles: firstSegment.poles,
                         isClosed: firstSegment.isClosed,
@@ -391,7 +391,7 @@ export class SplitWallsCommand implements Command {
                 for (let i = 1; i < segments.length; i++) {
                     const segment = segments[i];
                     if (segment) {
-                        const addedWall = await onAdd(sceneId, {
+                        const addedWall = await onAdd(encounterId, {
                             name: segment.name,
                             poles: segment.poles,
                             isClosed: segment.isClosed,

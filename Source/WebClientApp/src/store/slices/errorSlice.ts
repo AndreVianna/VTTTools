@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface VTTError {
   id: string;
-  type: 'network' | 'validation' | 'asset_loading' | 'scene_save' | 'scene_load' | 'system' | 'authentication' | 'authorization';
+  type: 'network' | 'validation' | 'asset_loading' | 'encounter_save' | 'encounter_load' | 'system' | 'authentication' | 'authorization';
   message: string;
   details?: string;
   timestamp: number;
@@ -72,8 +72,8 @@ const errorSlice = createSlice({
           break;
         case 'system':
         case 'asset_loading':
-        case 'scene_save':
-        case 'scene_load':
+        case 'encounter_save':
+        case 'encounter_load':
           state.systemErrors.push(error);
           break;
       }
@@ -139,8 +139,8 @@ const errorSlice = createSlice({
           break;
         case 'system':
         case 'asset_loading':
-        case 'scene_save':
-        case 'scene_load':
+        case 'encounter_save':
+        case 'encounter_load':
           state.systemErrors = state.systemErrors.filter(e => e.type !== type);
           break;
       }

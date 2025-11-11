@@ -17,17 +17,17 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { toggleTheme, selectTheme } from '@/store/slices/uiSlice';
-import { ScenePropertiesDrawer } from '@/components/scene';
-import type { Scene, Light, Weather } from '@/types/domain';
+import { EncounterPropertiesDrawer } from '@/components/encounter';
+import type { Encounter, Light, Weather } from '@/types/domain';
 
 interface EditorLayoutProps {
   children: React.ReactNode;
-  scene?: Scene | undefined;
-  onSceneNameChange?: (name: string) => void;
+  encounter?: Encounter | undefined;
+  onEncounterNameChange?: (name: string) => void;
   onBackClick?: () => void;
-  onSceneDescriptionChange?: (description: string) => void;
-  onScenePublishedChange?: (published: boolean) => void;
-  onSceneUpdate?: (updates: Partial<Scene>) => void;
+  onEncounterDescriptionChange?: (description: string) => void;
+  onEncounterPublishedChange?: (published: boolean) => void;
+  onEncounterUpdate?: (updates: Partial<Encounter>) => void;
   backgroundUrl?: string;
   isUploadingBackground?: boolean;
   onBackgroundUpload?: (file: File) => void;
@@ -35,12 +35,12 @@ interface EditorLayoutProps {
 
 export const EditorLayout: React.FC<EditorLayoutProps> = ({
   children,
-  scene,
-  onSceneNameChange,
+  encounter,
+  onEncounterNameChange,
   onBackClick,
-  onSceneDescriptionChange,
-  onScenePublishedChange,
-  onSceneUpdate,
+  onEncounterDescriptionChange,
+  onEncounterPublishedChange,
+  onEncounterUpdate,
   backgroundUrl,
   isUploadingBackground,
   onBackgroundUpload
@@ -102,7 +102,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
             <HomeIcon sx={{ fontSize: 14 }} />
           </IconButton>
 
-          {scene && onBackClick && (
+          {encounter && onBackClick && (
             <IconButton
               color="inherit"
               onClick={onBackClick}
@@ -122,7 +122,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
             </IconButton>
           )}
 
-          {scene && onSceneNameChange ? (
+          {encounter && onEncounterNameChange ? (
             <Typography
               variant="h6"
               component="div"
@@ -135,7 +135,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
                 maxWidth: '300px'
               }}
             >
-              {scene.name}
+              {encounter.name}
             </Typography>
           ) : (
             <Typography
@@ -170,7 +170,7 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
             {currentTheme === 'light' ? <DarkMode sx={{ fontSize: 14 }} /> : <LightMode sx={{ fontSize: 14 }} />}
           </IconButton>
 
-          {scene && (
+          {encounter && (
             <IconButton
               color="inherit"
               onClick={() => setPropertiesPanelOpen(!propertiesPanelOpen)}
@@ -194,18 +194,18 @@ export const EditorLayout: React.FC<EditorLayoutProps> = ({
         </Toolbar>
       </AppBar>
 
-      {scene && (
-        <ScenePropertiesDrawer
+      {encounter && (
+        <EncounterPropertiesDrawer
           open={propertiesPanelOpen}
           onClose={() => setPropertiesPanelOpen(false)}
-          scene={scene}
-          {...(onSceneNameChange && { onNameChange: onSceneNameChange })}
-          onDescriptionChange={onSceneDescriptionChange ?? (() => {})}
-          onPublishedChange={onScenePublishedChange ?? (() => {})}
-          {...(onSceneUpdate && {
-            onLightChange: (light: Light) => onSceneUpdate({ light }),
-            onWeatherChange: (weather: Weather) => onSceneUpdate({ weather }),
-            onElevationChange: (elevation: number) => onSceneUpdate({ elevation })
+          encounter={encounter}
+          {...(onEncounterNameChange && { onNameChange: onEncounterNameChange })}
+          onDescriptionChange={onEncounterDescriptionChange ?? (() => {})}
+          onPublishedChange={onEncounterPublishedChange ?? (() => {})}
+          {...(onEncounterUpdate && {
+            onLightChange: (light: Light) => onEncounterUpdate({ light }),
+            onWeatherChange: (weather: Weather) => onEncounterUpdate({ weather }),
+            onElevationChange: (elevation: number) => onEncounterUpdate({ elevation })
           })}
           {...(backgroundUrl && { backgroundUrl })}
           {...(isUploadingBackground !== undefined && { isUploadingBackground })}

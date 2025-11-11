@@ -2,7 +2,7 @@ namespace VttTools.Common.Model;
 
 /// <summary>
 /// Represents floating-point grid cell dimensions
-/// Used to define the size of grid cells in the scene editor
+/// Used to define the size of grid cells in the encounter editor
 /// </summary>
 public record CellSize {
     /// <summary>

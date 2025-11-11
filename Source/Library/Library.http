@@ -104,16 +104,16 @@ Content-Type: application/json
 {}
 
 ###############################################
-### SCENE CRUD
+### ENCOUNTER CRUD
 ###############################################
 
-### 6. Get Adventure Scenes
-GET {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes
+### 6. Get Adventure Encounters
+GET {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/encounters
 x-user: {{encodedUserId}}
 
-### 7. Create Scene in Adventure
-# @name scene
-POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes
+### 7. Create Encounter in Adventure
+# @name encounter
+POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/encounters
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
@@ -122,12 +122,12 @@ Content-Type: application/json
   "description": "Dimly lit entrance with grand staircase"
 }
 
-### 8. Get Scene by ID
-GET {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+### 8. Get Encounter by ID
+GET {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}
 x-user: {{encodedUserId}}
 
-### 9. Update Scene Name
-PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+### 9. Update Encounter Name
+PATCH {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
@@ -135,8 +135,8 @@ Content-Type: application/json
   "name": "Death House - Main Hall"
 }
 
-### 10. Update Scene Grid (Domain Primitives: CellSize, Offset)
-PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+### 10. Update Encounter Grid (Domain Primitives: CellSize, Offset)
+PATCH {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
@@ -155,8 +155,8 @@ Content-Type: application/json
   }
 }
 
-### 11. Update Scene Panning (Point primitive: X, Y floats)
-PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+### 11. Update Encounter Panning (Point primitive: X, Y floats)
+PATCH {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
@@ -170,23 +170,23 @@ Content-Type: application/json
   }
 }
 
-### 12. Clone Scene
-POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/clone
+### 12. Clone Encounter
+POST {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}/clone
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {}
 
 ###############################################
-### SCENE ASSET PLACEMENT (Template/Instance)
+### ENCOUNTER ASSET PLACEMENT (Template/Instance)
 ###############################################
 
-### 13. Get Scene Assets
-GET {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets
+### 13. Get Encounter Assets
+GET {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}/assets
 x-user: {{encodedUserId}}
 
-### 14. Add Asset to Scene (Basic - Uses Template Defaults)
-POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/{{assetId}}
+### 14. Add Asset to Encounter (Basic - Uses Template Defaults)
+POST {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}/assets/{{assetId}}
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
@@ -205,7 +205,7 @@ Content-Type: application/json
 }
 
 ### 15. Add Asset with Description Override
-POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/{{assetId}}
+POST {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}/assets/{{assetId}}
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
@@ -225,7 +225,7 @@ Content-Type: application/json
 }
 
 ### 16. Add Asset with ResourceId Override (Custom Token)
-POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/{{assetId}}
+POST {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}/assets/{{assetId}}
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
@@ -245,8 +245,8 @@ Content-Type: application/json
   "elevation": 0.0
 }
 
-### 17. Update Scene Asset Position (Position primitive: int X, Y)
-PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0
+### 17. Update Encounter Asset Position (Position primitive: int X, Y)
+PATCH {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}/assets/0
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
@@ -257,8 +257,8 @@ Content-Type: application/json
   }
 }
 
-### 18. Update Scene Asset Description Override
-PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0
+### 18. Update Encounter Asset Description Override
+PATCH {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}/assets/0
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
@@ -266,8 +266,8 @@ Content-Type: application/json
   "description": "Wounded goblin, half HP"
 }
 
-### 19. Update Scene Asset ResourceId Override
-PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0
+### 19. Update Encounter Asset ResourceId Override
+PATCH {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}/assets/0
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
@@ -275,27 +275,27 @@ Content-Type: application/json
   "resourceId": "00000000-0000-0000-0000-111111111111"
 }
 
-### 20. Clone Scene Asset
-POST {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0/clone
+### 20. Clone Encounter Asset
+POST {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}/assets/0/clone
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
 {}
 
-### 21. Delete Scene Asset
-DELETE {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}/assets/0
+### 21. Delete Encounter Asset
+DELETE {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}/assets/0
 x-user: {{encodedUserId}}
 
 ###############################################
 ### DELETE OPERATIONS
 ###############################################
 
-### 22. Remove Scene from Adventure
-DELETE {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes/{{scene.response.body.$.id}}
+### 22. Remove Encounter from Adventure
+DELETE {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/encounters/{{encounter.response.body.$.id}}
 x-user: {{encodedUserId}}
 
-### 23. Delete Scene
-DELETE {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+### 23. Delete Encounter
+DELETE {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}
 x-user: {{encodedUserId}}
 
 ### 24. Delete Adventure
@@ -306,8 +306,8 @@ x-user: {{encodedUserId}}
 ### EDGE CASES & VALIDATION
 ###############################################
 
-### 25. Invalid - Missing Scene Name
-POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/scenes
+### 25. Invalid - Missing Encounter Name
+POST {{baseUrl}}/api/adventures/{{adventure.response.body.$.id}}/encounters
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
@@ -316,7 +316,7 @@ Content-Type: application/json
 }
 
 ### 26. Invalid - Wrong Grid Type
-PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+PATCH {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
@@ -327,7 +327,7 @@ Content-Type: application/json
 }
 
 ### 27. Invalid - Negative CellSize
-PATCH {{baseUrl}}/api/scenes/{{scene.response.body.$.id}}
+PATCH {{baseUrl}}/api/encounters/{{encounter.response.body.$.id}}
 x-user: {{encodedUserId}}
 Content-Type: application/json
 
@@ -344,6 +344,6 @@ Content-Type: application/json
 GET {{baseUrl}}/api/adventures/00000000-0000-0000-0000-000000000000
 x-user: {{encodedUserId}}
 
-### 29. Not Found - Get Non-Existent Scene
-GET {{baseUrl}}/api/scenes/00000000-0000-0000-0000-000000000000
+### 29. Not Found - Get Non-Existent Encounter
+GET {{baseUrl}}/api/encounters/00000000-0000-0000-0000-000000000000
 x-user: {{encodedUserId}}

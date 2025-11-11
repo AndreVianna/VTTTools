@@ -1,5 +1,5 @@
 /**
- * Z-Index hierarchy for VTTTools Scene Editor
+ * Z-Index hierarchy for VTTTools Encounter Editor
  *
  * Ensures consistent layering across all UI elements
  */

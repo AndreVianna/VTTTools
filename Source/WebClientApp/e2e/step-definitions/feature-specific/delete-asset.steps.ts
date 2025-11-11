@@ -124,8 +124,8 @@ Given('the Assets API returns {int} Service Unavailable', async function (this: 
     });
 });
 
-Given('the asset is placed on {int} active scenes', async function (this: CustomWorld, _sceneCount: number) {
-    throw new Error('NOT IMPLEMENTED: This step needs to create scene placements in database');
+Given('the asset is placed on {int} active encounters', async function (this: CustomWorld, _encounterCount: number) {
+    throw new Error('NOT IMPLEMENTED: This step needs to create encounter placements in database');
 });
 
 Given('I own exactly {int} asset', async function (this: CustomWorld, count: number) {

@@ -13,7 +13,7 @@ public class GameSessionTests {
         session.Status.Should().Be(GameSessionStatus.Draft);
         session.Players.Should().NotBeNull();
         session.Players.Should().BeEmpty();
-        session.SceneId.Should().BeNull();
+        session.EncounterId.Should().BeNull();
         session.Messages.Should().NotBeNull();
         session.Messages.Should().BeEmpty();
         session.Events.Should().NotBeNull();
@@ -27,7 +27,7 @@ public class GameSessionTests {
         var ownerId = Guid.CreateVersion7();
         const string title = "Some Title";
         const GameSessionStatus status = GameSessionStatus.Scheduled;
-        var sceneId = Guid.CreateVersion7();
+        var encounterId = Guid.CreateVersion7();
         var player = new Participant {
             UserId = Guid.CreateVersion7(),
             Type = PlayerType.Player,
@@ -46,7 +46,7 @@ public class GameSessionTests {
             OwnerId = ownerId,
             Title = title,
             Status = status,
-            SceneId = sceneId,
+            EncounterId = encounterId,
             Players = [player],
             Messages = [message],
             Events = [@event],
@@ -57,7 +57,7 @@ public class GameSessionTests {
         session.OwnerId.Should().Be(ownerId);
         session.Title.Should().Be(title);
         session.Status.Should().Be(status);
-        session.SceneId.Should().Be(sceneId);
+        session.EncounterId.Should().Be(encounterId);
         session.Players.Should().ContainSingle(p => p.Equals(player));
         session.Messages.Should().Contain(p => p.Equals(message));
         session.Events.Should().Contain(e => e.Equals(@event));

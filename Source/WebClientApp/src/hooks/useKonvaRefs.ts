@@ -1,11 +1,11 @@
 // GENERATED: 2025-10-19 by Claude Code Phase 6
-// EPIC: EPIC-001 Phase 6 - Scene Editor Tokens, Undo/Redo, Offline
+// EPIC: EPIC-001 Phase 6 - Encounter Editor Tokens, Undo/Redo, Offline
 // LAYER: UI (Hook)
 
 /**
  * useKonvaRefs Hook
  * Manages references to Konva Image nodes and Transformer for token interaction
- * Provides clean API for managing multiple token refs in scene editor
+ * Provides clean API for managing multiple token refs in encounter editor
  */
 
 import { useRef, useCallback } from 'react';

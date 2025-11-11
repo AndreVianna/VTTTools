@@ -7,7 +7,7 @@ import {
     type SplitPoint,
     type SplitResult
 } from './wallSplitUtils';
-import type { Point, SceneWall, Pole } from '@/types/domain';
+import type { Point, EncounterWall, Pole } from '@/types/domain';
 import { WallVisibility } from '@/types/domain';
 
 function createPoint(x: number, y: number): Point {
@@ -23,12 +23,12 @@ function createWall(
     index: number,
     isClosed: boolean = false,
     name: string = `Wall ${index}`
-): SceneWall {
+): EncounterWall {
     return {
         index,
         poles,
         isClosed,
-        sceneId: 'test-scene',
+        encounterId: 'test-encounter',
         name,
         visibility: WallVisibility.Normal
     };
@@ -231,7 +231,7 @@ describe('detectSplitPoints', () => {
                 createPoint(50, 0),
                 createPoint(50, 100)
             ];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([createPole(0, 50), createPole(100, 50)], 0)
             ];
 
@@ -252,7 +252,7 @@ describe('detectSplitPoints', () => {
                 createPoint(50, 0),
                 createPoint(50, 100)
             ];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([createPole(0, 25), createPole(100, 25)], 0),
                 createWall([createPole(0, 75), createPole(100, 75)], 1)
             ];
@@ -270,7 +270,7 @@ describe('detectSplitPoints', () => {
                 createPoint(0, 0),
                 createPoint(100, 0)
             ];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([createPole(0, 50), createPole(100, 50)], 0)
             ];
 
@@ -285,7 +285,7 @@ describe('detectSplitPoints', () => {
                 createPoint(0, 0),
                 createPoint(10, 0)
             ];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([createPole(50, 0), createPole(60, 0)], 0)
             ];
 
@@ -301,7 +301,7 @@ describe('detectSplitPoints', () => {
                 createPoint(50, 3),
                 createPoint(100, 0)
             ];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([createPole(0, 0), createPole(100, 0)], 0)
             ];
 
@@ -319,7 +319,7 @@ describe('detectSplitPoints', () => {
                 createPoint(50, 3),
                 createPoint(75, 3)
             ];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([createPole(0, 0), createPole(100, 0)], 0)
             ];
 
@@ -334,7 +334,7 @@ describe('detectSplitPoints', () => {
                 createPoint(50, 3),
                 createPoint(103, 50)
             ];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([
                     createPole(0, 0),
                     createPole(100, 0),
@@ -355,7 +355,7 @@ describe('detectSplitPoints', () => {
             const newWallPoles: Point[] = [
                 createPoint(50, 53)
             ];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([
                     createPole(0, 50),
                     createPole(100, 50),
@@ -376,7 +376,7 @@ describe('detectSplitPoints', () => {
                 createPoint(25, 3),
                 createPoint(50, 50)
             ];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([createPole(0, 0), createPole(100, 0)], 0),
                 createWall([createPole(0, 50), createPole(100, 50)], 1)
             ];
@@ -395,7 +395,7 @@ describe('detectSplitPoints', () => {
                 createPoint(0, 50),
                 createPoint(100, 50)
             ];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([createPole(50, 0), createPole(50, 100)], 0)
             ];
 
@@ -411,7 +411,7 @@ describe('detectSplitPoints', () => {
 
     describe('edge cases', () => {
         it('should return needsSplit false for empty newWallPoles array', () => {
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([createPole(0, 0), createPole(100, 0)], 0)
             ];
 
@@ -434,7 +434,7 @@ describe('detectSplitPoints', () => {
 
         it('should return needsSplit false for newWallPoles with less than 2 poles', () => {
             const newWallPoles: Point[] = [createPoint(50, 50)];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([createPole(0, 0), createPole(100, 0)], 0)
             ];
 
@@ -448,7 +448,7 @@ describe('detectSplitPoints', () => {
                 createPoint(0, 0),
                 createPoint(100, 0)
             ];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([createPole(50, 2), createPole(50, 100)], 0)
             ];
 
@@ -464,7 +464,7 @@ describe('detectSplitPoints', () => {
             const newWallPoles: Point[] = [
                 createPoint(50, 8)
             ];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([createPole(0, 0), createPole(100, 0)], 0)
             ];
 
@@ -480,7 +480,7 @@ describe('detectSplitPoints', () => {
                 createPoint(50, 0),
                 createPoint(50, 100)
             ];
-            const existingWalls: SceneWall[] = [
+            const existingWalls: EncounterWall[] = [
                 createWall([createPole(0, 25), createPole(100, 25)], 5),
                 createWall([createPole(0, 50), createPole(100, 50)], 2),
                 createWall([createPole(0, 75), createPole(100, 75)], 0)
@@ -848,20 +848,20 @@ describe('splitWallAtPoints', () => {
             expect(result[0]?.poles[2]).toEqual(createPole(100, 100));
         });
 
-        it('should preserve sceneId and index for all segments', () => {
+        it('should preserve encounterId and index for all segments', () => {
             const wall = createWall([
                 createPole(0, 0),
                 createPole(100, 0)
             ], 0);
-            wall.sceneId = 'custom-scene-id';
+            wall.encounterId = 'custom-encounter-id';
             const splits: SplitPoint[] = [
                 { wallIndex: 0, edgeIndex: 0, splitPosition: { x: 50, y: 0 }, splitType: 'intersection' }
             ];
 
             const result = splitWallAtPoints({ wall, wallIndex: 0, splitPoints: splits });
 
-            expect(result[0]?.sceneId).toBe('custom-scene-id');
-            expect(result[1]?.sceneId).toBe('custom-scene-id');
+            expect(result[0]?.encounterId).toBe('custom-encounter-id');
+            expect(result[1]?.encounterId).toBe('custom-encounter-id');
             expect(result[0]?.index).toBe(0);
             expect(result[1]?.index).toBe(0);
         });
@@ -874,7 +874,7 @@ describe('complex integration', () => {
             createPoint(50, 0),
             createPoint(50, 100)
         ];
-        const existingWalls: SceneWall[] = [
+        const existingWalls: EncounterWall[] = [
             createWall([createPole(0, 50), createPole(100, 50)], 0)
         ];
 
@@ -900,7 +900,7 @@ describe('complex integration', () => {
             createPoint(50, 3),
             createPoint(100, 50)
         ];
-        const existingWalls: SceneWall[] = [
+        const existingWalls: EncounterWall[] = [
             createWall([createPole(0, 0), createPole(100, 0)], 0)
         ];
 
@@ -986,7 +986,7 @@ describe('complex integration', () => {
             createPoint(50, 50),
             createPoint(75, 3)
         ];
-        const existingWalls: SceneWall[] = [
+        const existingWalls: EncounterWall[] = [
             createWall([createPole(0, 0), createPole(100, 0)], 0),
             createWall([createPole(0, 50), createPole(100, 50)], 1)
         ];

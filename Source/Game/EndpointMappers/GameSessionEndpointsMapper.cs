@@ -11,7 +11,7 @@ internal static class GameSessionEndpointsMapper {
         sessions.MapDelete("/{id:guid}", GameSessionHandlers.DeleteGameSessionHandler);
         sessions.MapPost("/{id:guid}/join", GameSessionHandlers.JoinGameSessionHandler);
         sessions.MapPost("/{id:guid}/leave", GameSessionHandlers.LeaveGameSessionHandler);
-        sessions.MapPost("/{id:guid}/scenes/{scene:guid}/activate", GameSessionHandlers.ActivateSceneHandler);
+        sessions.MapPost("/{id:guid}/encounters/{encounter:guid}/activate", GameSessionHandlers.ActivateEncounterHandler);
         sessions.MapPost("/{id:guid}/start", GameSessionHandlers.StartGameSessionHandler);
         sessions.MapPost("/{id:guid}/stop", GameSessionHandlers.StopGameSessionHandler);
     }

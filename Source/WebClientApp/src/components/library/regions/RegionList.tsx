@@ -1,2 +1,2 @@
-// DEPRECATED: Region library management removed - regions are now scene value objects only
+// DEPRECATED: Region library management removed - regions are now encounter value objects only
 export {};

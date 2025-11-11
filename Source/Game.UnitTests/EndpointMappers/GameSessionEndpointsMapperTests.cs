@@ -26,7 +26,7 @@ public class GameSessionEndpointsMapperTests {
         groupDataSource.Endpoints[4].DisplayName.Should().Be("HTTP: DELETE /api/sessions/{id:guid} => DeleteGameSessionHandler");
         groupDataSource.Endpoints[5].DisplayName.Should().Be("HTTP: POST /api/sessions/{id:guid}/join => JoinGameSessionHandler");
         groupDataSource.Endpoints[6].DisplayName.Should().Be("HTTP: POST /api/sessions/{id:guid}/leave => LeaveGameSessionHandler");
-        groupDataSource.Endpoints[7].DisplayName.Should().Be("HTTP: POST /api/sessions/{id:guid}/scenes/{scene:guid}/activate => ActivateSceneHandler");
+        groupDataSource.Endpoints[7].DisplayName.Should().Be("HTTP: POST /api/sessions/{id:guid}/encounters/{encounter:guid}/activate => ActivateEncounterHandler");
         groupDataSource.Endpoints[8].DisplayName.Should().Be("HTTP: POST /api/sessions/{id:guid}/start => StartGameSessionHandler");
         groupDataSource.Endpoints[9].DisplayName.Should().Be("HTTP: POST /api/sessions/{id:guid}/stop => StopGameSessionHandler");
     }

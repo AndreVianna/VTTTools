@@ -2,11 +2,11 @@
 // import { describe, it, expect } from 'vitest';
 // import type {
 //     Wall,
-//     SceneWall,
+//     EncounterWall,
 //     CreateWallRequest,
 //     UpdateWallRequest,
-//     PlaceSceneWallRequest,
-//     UpdateSceneWallRequest,
+//     PlaceEncounterWallRequest,
+//     UpdateEncounterWallRequest,
 //     Pole
 // } from '../domain';
 // import { WallVisibility } from '../domain';
@@ -45,35 +45,35 @@
 //         expect(Wall.visibility).toBe(WallVisibility.Fence);
 //     });
 
-//     it('should allow valid SceneWall object', () => {
+//     it('should allow valid EncounterWall object', () => {
 //         const poles: Pole[] = [
 //             { x: 0, y: 0, h: 10 },
 //             { x: 10, y: 10, h: 10 },
 //         ];
 
-//         const sceneWall: SceneWall = {
+//         const encounterWall: EncounterWall = {
 //             id: '789e4567-e89b-12d3-a456-426614174000',
-//             sceneId: 'abc-def-ghi',
+//             encounterId: 'abc-def-ghi',
 //             WallId: '123e4567-e89b-12d3-a456-426614174000',
 //             poles,
 //         };
-//         expect(sceneWall.poles).toHaveLength(2);
-//         expect(sceneWall.poles[0]?.x).toBe(0);
-//         expect(sceneWall.poles[0]?.h).toBe(10);
+//         expect(encounterWall.poles).toHaveLength(2);
+//         expect(encounterWall.poles[0]?.x).toBe(0);
+//         expect(encounterWall.poles[0]?.h).toBe(10);
 //     });
 
-//     it('should allow SceneWall with different pole heights', () => {
-//         const sceneWall: SceneWall = {
+//     it('should allow EncounterWall with different pole heights', () => {
+//         const encounterWall: EncounterWall = {
 //             id: '789e4567-e89b-12d3-a456-426614174000',
-//             sceneId: 'abc-def-ghi',
+//             encounterId: 'abc-def-ghi',
 //             WallId: '123e4567-e89b-12d3-a456-426614174000',
 //             poles: [
 //                 { x: 0, y: 0, h: 5 },
 //                 { x: 5, y: 5, h: 15 },
 //             ],
 //         };
-//         expect(sceneWall.poles[0]?.h).toBe(5);
-//         expect(sceneWall.poles[1]?.h).toBe(15);
+//         expect(encounterWall.poles[0]?.h).toBe(5);
+//         expect(encounterWall.poles[1]?.h).toBe(15);
 //     });
 
 //     it('should allow valid CreateWallRequest', () => {
@@ -101,8 +101,8 @@
 //         expect(request.visibility).toBe(WallVisibility.Invisible);
 //     });
 
-//     it('should allow valid PlaceSceneWallRequest', () => {
-//         const request: PlaceSceneWallRequest = {
+//     it('should allow valid PlaceEncounterWallRequest', () => {
+//         const request: PlaceEncounterWallRequest = {
 //             WallId: '123e4567-e89b-12d3-a456-426614174000',
 //             poles: [
 //                 { x: 0, y: 0, h: 10 },
@@ -113,8 +113,8 @@
 //         expect(request.poles).toHaveLength(2);
 //     });
 
-//     it('should allow UpdateSceneWallRequest with partial updates', () => {
-//         const request: UpdateSceneWallRequest = {
+//     it('should allow UpdateEncounterWallRequest with partial updates', () => {
+//         const request: UpdateEncounterWallRequest = {
 //             poles: [
 //                 { x: 0, y: 0, h: 20 },
 //             ],

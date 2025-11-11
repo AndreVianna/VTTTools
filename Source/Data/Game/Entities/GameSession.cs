@@ -7,7 +7,7 @@ public class GameSession {
     public string Title { get; set; } = string.Empty;
     public GameSessionStatus Status { get; set; } = GameSessionStatus.Draft;
     public ICollection<Participant> Players { get; set; } = [];
-    public Guid? SceneId { get; set; }
+    public Guid? EncounterId { get; set; }
     public ICollection<GameSessionMessage> Messages { get; set; } = [];
     public ICollection<GameSessionEvent> Events { get; set; } = [];
 }

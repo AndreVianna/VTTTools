@@ -9,7 +9,7 @@ import {
     type MergeWallsParams,
     type MergePoint
 } from './wallMergeUtils';
-import type { Point, SceneWall, Pole, WallVisibility } from '@/types/domain';
+import type { Point, EncounterWall, Pole, WallVisibility } from '@/types/domain';
 import * as wallCollisionUtils from './wallCollisionUtils';
 
 function createPoint(x: number, y: number): Point {
@@ -25,12 +25,12 @@ function createWall(
     index: number,
     isClosed: boolean = false,
     name: string = `Wall ${index}`
-): SceneWall {
+): EncounterWall {
     return {
         index,
         poles,
         isClosed,
-        sceneId: 'test-scene',
+        encounterId: 'test-encounter',
         name,
         visibility: 0 as WallVisibility
     };

@@ -315,10 +315,10 @@ const getDefaultUserMessage = (type: ErrorType): string => {
       return 'You don\'t have permission to perform this action.';
     case 'asset_loading':
       return 'Failed to load asset. Please try again.';
-    case 'scene_save':
-      return 'Failed to save scene. Please try again.';
-    case 'scene_load':
-      return 'Failed to load scene. Please try again.';
+    case 'encounter_save':
+      return 'Failed to save encounter. Please try again.';
+    case 'encounter_load':
+      return 'Failed to load encounter. Please try again.';
     case 'system':
       return 'A system error occurred. Please try again or contact support if the problem persists.';
     default:
@@ -437,10 +437,10 @@ export const handleAssetLoadingError = (error: unknown, context?: any) =>
     userFriendlyMessage: 'Failed to load asset. Please try again.'
   });
 
-export const handleSceneError = (error: unknown, operation: 'save' | 'load', context?: any) =>
+export const handleEncounterError = (error: unknown, operation: 'save' | 'load', context?: any) =>
   handleError(error, {
-    type: operation === 'save' ? 'scene_save' : 'scene_load',
+    type: operation === 'save' ? 'encounter_save' : 'encounter_load',
     context: { ...context, operation },
     showNotification: true,
-    userFriendlyMessage: `Failed to ${operation} scene. Please try again.`
+    userFriendlyMessage: `Failed to ${operation} encounter. Please try again.`
   });

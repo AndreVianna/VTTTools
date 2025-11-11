@@ -16,7 +16,7 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
     private async Task<ContentListItem[]> QueryAdventuresAsync(Guid authenticatedUserId, ContentFilters filters, CancellationToken ct) {
         var baseQuery = context.Adventures
             .Include(a => a.Background)
-            .Include(a => a.Scenes)
+            .Include(a => a.Encounters)
             .AsNoTracking();
 
         var query = baseQuery;
@@ -35,12 +35,12 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
             query = query.Where(a => a.IsOneShot == filters.IsOneShot.Value);
         }
 
-        if (filters.MinSceneCount.HasValue) {
-            query = query.Where(a => a.Scenes.Count >= filters.MinSceneCount.Value);
+        if (filters.MinEncounterCount.HasValue) {
+            query = query.Where(a => a.Encounters.Count >= filters.MinEncounterCount.Value);
         }
 
-        if (filters.MaxSceneCount.HasValue) {
-            query = query.Where(a => a.Scenes.Count <= filters.MaxSceneCount.Value);
+        if (filters.MaxEncounterCount.HasValue) {
+            query = query.Where(a => a.Encounters.Count <= filters.MaxEncounterCount.Value);
         }
 
         if (filters.IsPublished.HasValue) {
@@ -70,7 +70,7 @@ public class ContentQueryService(ApplicationDbContext context) : IContentQuerySe
             OwnerId = a.OwnerId,
             Style = a.Style,
             IsOneShot = a.IsOneShot,
-            SceneCount = a.Scenes.Count,
+            EncounterCount = a.Encounters.Count,
             Background = a.Background != null ? new Resource {
                 Id = a.Background.Id,
                 Type = a.Background.Type,

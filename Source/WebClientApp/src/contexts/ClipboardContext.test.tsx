@@ -44,16 +44,16 @@ describe('ClipboardContext', () => {
       });
 
       const mockAsset = createMockPlacedAsset('1');
-      const sceneId = 'scene-123';
+      const encounterId = 'encounter-123';
 
       act(() => {
-        result.current.copyAssets([mockAsset], sceneId);
+        result.current.copyAssets([mockAsset], encounterId);
       });
 
       expect(result.current.clipboard.assets).toHaveLength(1);
       expect(result.current.clipboard.assets[0]).toEqual(mockAsset);
       expect(result.current.clipboard.operation).toBe('copy');
-      expect(result.current.clipboard.sourceSceneId).toBe(sceneId);
+      expect(result.current.clipboard.sourceEncounterId).toBe(encounterId);
     });
 
     it('should store multiple assets', () => {
@@ -66,7 +66,7 @@ describe('ClipboardContext', () => {
       const asset3 = createMockPlacedAsset('3', 'Asset 3');
 
       act(() => {
-        result.current.copyAssets([asset1, asset2, asset3], 'scene-123');
+        result.current.copyAssets([asset1, asset2, asset3], 'encounter-123');
       });
 
       expect(result.current.clipboard.assets).toHaveLength(3);
@@ -82,7 +82,7 @@ describe('ClipboardContext', () => {
       const originalArray = [mockAsset];
 
       act(() => {
-        result.current.copyAssets(originalArray, 'scene-123');
+        result.current.copyAssets(originalArray, 'encounter-123');
       });
 
       expect(result.current.clipboard.assets).not.toBe(originalArray);
@@ -98,16 +98,16 @@ describe('ClipboardContext', () => {
       const asset2 = createMockPlacedAsset('2');
 
       act(() => {
-        result.current.copyAssets([asset1], 'scene-123');
+        result.current.copyAssets([asset1], 'encounter-123');
       });
 
       act(() => {
-        result.current.copyAssets([asset2], 'scene-456');
+        result.current.copyAssets([asset2], 'encounter-456');
       });
 
       expect(result.current.clipboard.assets).toHaveLength(1);
       expect(result.current.clipboard.assets[0]).toEqual(asset2);
-      expect(result.current.clipboard.sourceSceneId).toBe('scene-456');
+      expect(result.current.clipboard.sourceEncounterId).toBe('encounter-456');
     });
   });
 
@@ -118,16 +118,16 @@ describe('ClipboardContext', () => {
       });
 
       const mockAsset = createMockPlacedAsset('1');
-      const sceneId = 'scene-123';
+      const encounterId = 'encounter-123';
 
       act(() => {
-        result.current.cutAssets([mockAsset], sceneId);
+        result.current.cutAssets([mockAsset], encounterId);
       });
 
       expect(result.current.clipboard.assets).toHaveLength(1);
       expect(result.current.clipboard.assets[0]).toEqual(mockAsset);
       expect(result.current.clipboard.operation).toBe('cut');
-      expect(result.current.clipboard.sourceSceneId).toBe(sceneId);
+      expect(result.current.clipboard.sourceEncounterId).toBe(encounterId);
     });
 
     it('should store multiple assets with cut operation', () => {
@@ -139,7 +139,7 @@ describe('ClipboardContext', () => {
       const asset2 = createMockPlacedAsset('2');
 
       act(() => {
-        result.current.cutAssets([asset1, asset2], 'scene-123');
+        result.current.cutAssets([asset1, asset2], 'encounter-123');
       });
 
       expect(result.current.clipboard.assets).toHaveLength(2);
@@ -155,7 +155,7 @@ describe('ClipboardContext', () => {
       const originalArray = [mockAsset];
 
       act(() => {
-        result.current.cutAssets(originalArray, 'scene-123');
+        result.current.cutAssets(originalArray, 'encounter-123');
       });
 
       expect(result.current.clipboard.assets).not.toBe(originalArray);
@@ -172,7 +172,7 @@ describe('ClipboardContext', () => {
       const mockAsset = createMockPlacedAsset('1');
 
       act(() => {
-        result.current.copyAssets([mockAsset], 'scene-123');
+        result.current.copyAssets([mockAsset], 'encounter-123');
       });
 
       expect(result.current.clipboard.assets).toHaveLength(1);
@@ -183,7 +183,7 @@ describe('ClipboardContext', () => {
 
       expect(result.current.clipboard.assets).toHaveLength(0);
       expect(result.current.clipboard.operation).toBeNull();
-      expect(result.current.clipboard.sourceSceneId).toBeNull();
+      expect(result.current.clipboard.sourceEncounterId).toBeNull();
     });
 
     it('should clear after cut operation', () => {
@@ -194,7 +194,7 @@ describe('ClipboardContext', () => {
       const mockAsset = createMockPlacedAsset('1');
 
       act(() => {
-        result.current.cutAssets([mockAsset], 'scene-123');
+        result.current.cutAssets([mockAsset], 'encounter-123');
       });
 
       expect(result.current.clipboard.operation).toBe('cut');
@@ -216,7 +216,7 @@ describe('ClipboardContext', () => {
       const mockAsset = createMockPlacedAsset('1');
 
       act(() => {
-        result.current.copyAssets([mockAsset], 'scene-123');
+        result.current.copyAssets([mockAsset], 'encounter-123');
       });
 
       expect(result.current.canPaste).toBe(true);
@@ -238,7 +238,7 @@ describe('ClipboardContext', () => {
       const mockAsset = createMockPlacedAsset('1');
 
       act(() => {
-        result.current.copyAssets([mockAsset], 'scene-123');
+        result.current.copyAssets([mockAsset], 'encounter-123');
       });
 
       expect(result.current.canPaste).toBe(true);
@@ -262,7 +262,7 @@ describe('ClipboardContext', () => {
       ];
 
       act(() => {
-        result.current.copyAssets(assets, 'scene-123');
+        result.current.copyAssets(assets, 'encounter-123');
       });
 
       expect(result.current.canPaste).toBe(true);
@@ -278,7 +278,7 @@ describe('ClipboardContext', () => {
       const mockAsset = createMockPlacedAsset('1');
 
       act(() => {
-        result.current.copyAssets([mockAsset], 'scene-123');
+        result.current.copyAssets([mockAsset], 'encounter-123');
       });
 
       const retrievedAssets = result.current.getClipboardAssets();
@@ -307,7 +307,7 @@ describe('ClipboardContext', () => {
       const asset2 = createMockPlacedAsset('2');
 
       act(() => {
-        result.current.copyAssets([asset1, asset2], 'scene-123');
+        result.current.copyAssets([asset1, asset2], 'encounter-123');
       });
 
       const retrievedAssets = result.current.getClipboardAssets();
@@ -328,7 +328,7 @@ describe('ClipboardContext', () => {
       ];
 
       act(() => {
-        result.current.copyAssets(assets, 'scene-123');
+        result.current.copyAssets(assets, 'encounter-123');
       });
 
       const retrievedAssets = result.current.getClipboardAssets();
@@ -370,13 +370,13 @@ describe('ClipboardContext', () => {
       const asset2 = createMockPlacedAsset('2');
 
       act(() => {
-        result.current.copyAssets([asset1], 'scene-123');
+        result.current.copyAssets([asset1], 'encounter-123');
       });
 
       expect(result.current.clipboard.operation).toBe('copy');
 
       act(() => {
-        result.current.cutAssets([asset2], 'scene-456');
+        result.current.cutAssets([asset2], 'encounter-456');
       });
 
       expect(result.current.clipboard.operation).toBe('cut');
@@ -392,7 +392,7 @@ describe('ClipboardContext', () => {
       const asset2 = createMockPlacedAsset('2');
 
       act(() => {
-        result.current.copyAssets([asset1], 'scene-123');
+        result.current.copyAssets([asset1], 'encounter-123');
       });
 
       expect(result.current.canPaste).toBe(true);
@@ -408,7 +408,7 @@ describe('ClipboardContext', () => {
       expect(result.current.canPaste).toBe(false);
 
       act(() => {
-        result.current.cutAssets([asset2], 'scene-456');
+        result.current.cutAssets([asset2], 'encounter-456');
       });
 
       expect(result.current.canPaste).toBe(true);

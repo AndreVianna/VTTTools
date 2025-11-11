@@ -309,8 +309,8 @@ const ErrorNotificationItem: React.FC<ErrorNotificationItemProps> = ({
         return 'error';
       case 'network':
       case 'asset_loading':
-      case 'scene_save':
-      case 'scene_load':
+      case 'encounter_save':
+      case 'encounter_load':
         return 'warning';
       case 'validation':
         return 'info';
@@ -326,8 +326,8 @@ const ErrorNotificationItem: React.FC<ErrorNotificationItemProps> = ({
       case 'authentication': return 'Authentication';
       case 'authorization': return 'Authorization';
       case 'asset_loading': return 'Asset Loading';
-      case 'scene_save': return 'Scene Save';
-      case 'scene_load': return 'Scene Load';
+      case 'encounter_save': return 'Encounter Save';
+      case 'encounter_load': return 'Encounter Load';
       case 'system': return 'System';
       default: return 'Error';
     }

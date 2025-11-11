@@ -7,8 +7,8 @@ public record CreateGameSessionRequest
     /// </summary>
     public string Title { get; init; } = string.Empty;
     /// <summary>
-    /// The initial Scene to activate when the game session starts.
+    /// The initial Encounter to activate when the game session starts.
     /// </summary>
     [Required]
-    public Guid SceneId { get; init; }
+    public Guid EncounterId { get; init; }
 }

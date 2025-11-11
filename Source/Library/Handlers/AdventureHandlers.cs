@@ -78,12 +78,12 @@ internal static class AdventureHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> GetScenesHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService)
-        => Results.Ok(await adventureService.GetScenesAsync(id));
+    internal static async Task<IResult> GetEncountersHandler([FromRoute] Guid id, [FromServices] IAdventureService adventureService)
+        => Results.Ok(await adventureService.GetEncountersAsync(id));
 
-    internal static async Task<IResult> AddNewSceneHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IAdventureService adventureService) {
+    internal static async Task<IResult> AddNewEncounterHandler(HttpContext context, [FromRoute] Guid id, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var result = await adventureService.AddNewSceneAsync(userId, id);
+        var result = await adventureService.AddNewEncounterAsync(userId, id);
         return result.IsSuccessful
             ? Results.Ok(result.Value)
             : result.Errors[0].Message == "NotFound"
@@ -93,9 +93,9 @@ internal static class AdventureHandlers {
                     : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> AddClonedSceneHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid sceneId, [FromServices] IAdventureService adventureService) {
+    internal static async Task<IResult> AddClonedEncounterHandler(HttpContext context, [FromRoute] Guid id, [FromRoute] Guid encounterId, [FromServices] IAdventureService adventureService) {
         var userId = context.User.GetUserId();
-        var result = await adventureService.AddClonedSceneAsync(userId, id, sceneId);
+        var result = await adventureService.AddClonedEncounterAsync(userId, id, encounterId);
         return result.IsSuccessful
             ? Results.Ok(result.Value)
             : result.Errors[0].Message == "NotFound"

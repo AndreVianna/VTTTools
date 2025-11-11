@@ -3,7 +3,7 @@ namespace VttTools.Library.Services;
 /// <summary>
 /// Implements IAdventureService using EF Core storage.
 /// </summary>
-public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage sceneStorage, IMediaStorage mediaStorage, ILogger<AdventureService> logger)
+public class AdventureService(IAdventureStorage adventureStorage, IEncounterStorage encounterStorage, IMediaStorage mediaStorage, ILogger<AdventureService> logger)
     : IAdventureService {
     /// <inheritdoc />
     public async Task<Adventure[]> GetAdventuresAsync(CancellationToken ct = default) {
@@ -115,56 +115,56 @@ public class AdventureService(IAdventureStorage adventureStorage, ISceneStorage 
     }
 
     /// <inheritdoc />
-    public Task<Scene[]> GetScenesAsync(Guid id, CancellationToken ct = default)
-        => sceneStorage.GetByParentIdAsync(id, ct);
+    public Task<Encounter[]> GetEncountersAsync(Guid id, CancellationToken ct = default)
+        => encounterStorage.GetByParentIdAsync(id, ct);
 
     /// <inheritdoc />
-    public async Task<Result<Scene>> AddNewSceneAsync(Guid userId, Guid id, CancellationToken ct = default) {
+    public async Task<Result<Encounter>> AddNewEncounterAsync(Guid userId, Guid id, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
         if (adventure is null)
             return Result.Failure("NotFound");
         if (adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
-        var scene = new Scene();
-        await sceneStorage.AddAsync(scene, id, ct);
-        return scene;
+        var encounter = new Encounter();
+        await encounterStorage.AddAsync(encounter, id, ct);
+        return encounter;
     }
 
     /// <inheritdoc />
-    public async Task<Result<Scene>> AddClonedSceneAsync(Guid userId, Guid id, Guid templateId, CancellationToken ct = default) {
+    public async Task<Result<Encounter>> AddClonedEncounterAsync(Guid userId, Guid id, Guid templateId, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
         if (adventure is null)
             return Result.Failure("NotFound");
         if (adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
-        var original = await sceneStorage.GetByIdAsync(templateId, ct);
+        var original = await encounterStorage.GetByIdAsync(templateId, ct);
         if (original is null)
             return Result.Failure("NotFound");
 
-        var allScenes = await GetScenesAsync(id, ct);
-        var existingNames = allScenes.Select(s => s.Name);
+        var allEncounters = await GetEncountersAsync(id, ct);
+        var existingNames = allEncounters.Select(s => s.Name);
 
         var (newOriginalName, cloneName) = NamingHelper.GenerateCloneNames(original.Name, existingNames);
 
         if (newOriginalName != original.Name) {
             var renamedOriginal = original with { Name = newOriginalName };
-            await sceneStorage.UpdateAsync(renamedOriginal, ct);
+            await encounterStorage.UpdateAsync(renamedOriginal, ct);
             original = renamedOriginal;
         }
 
         var clone = original.Clone(cloneName);
-        await sceneStorage.AddAsync(clone, id, ct);
+        await encounterStorage.AddAsync(clone, id, ct);
         return clone;
     }
 
     /// <inheritdoc />
-    public async Task<Result> RemoveSceneAsync(Guid userId, Guid id, Guid sceneId, CancellationToken ct = default) {
+    public async Task<Result> RemoveEncounterAsync(Guid userId, Guid id, Guid encounterId, CancellationToken ct = default) {
         var adventure = await adventureStorage.GetByIdAsync(id, ct);
         if (adventure is null)
             return Result.Failure("NotFound");
         if (adventure.OwnerId != userId)
             return Result.Failure("NotAllowed");
-        await sceneStorage.DeleteAsync(sceneId, ct);
+        await encounterStorage.DeleteAsync(encounterId, ct);
         return Result.Success();
     }
 }

@@ -7,7 +7,7 @@ public class GameSessionHandlersTests {
     private readonly ClaimsPrincipal _user = Substitute.For<ClaimsPrincipal>();
     private static readonly Guid _userId = Guid.CreateVersion7();
     private static readonly Guid _sessionId = Guid.CreateVersion7();
-    private static readonly Guid _sceneId = Guid.CreateVersion7();
+    private static readonly Guid _encounterId = Guid.CreateVersion7();
 
     public GameSessionHandlersTests() {
         // Setup user claims
@@ -23,13 +23,13 @@ public class GameSessionHandlersTests {
         // Arrange
         var request = new CreateGameSessionRequest {
             Title = "Test GameSession",
-            SceneId = _sceneId,
+            EncounterId = _encounterId,
         };
 
         var expectedGameSession = new GameSession {
             Id = _sessionId,
             Title = "Test GameSession",
-            SceneId = _sceneId,
+            EncounterId = _encounterId,
             OwnerId = _userId,
         };
 
@@ -50,7 +50,7 @@ public class GameSessionHandlersTests {
         // Arrange
         var request = new CreateGameSessionRequest {
             Title = "",
-            SceneId = _sceneId,
+            EncounterId = _encounterId,
         };
 
         _sessionService.CreateGameSessionAsync(_userId, Arg.Any<CreateGameSessionData>(), Arg.Any<CancellationToken>())
@@ -198,13 +198,13 @@ public class GameSessionHandlersTests {
     }
 
     [Fact]
-    public async Task ActivateSceneHandler_ReturnsCorrectStatusCode() {
+    public async Task ActivateEncounterHandler_ReturnsCorrectStatusCode() {
         // Arrange
-        _sessionService.SetActiveSceneAsync(_userId, _sessionId, _sceneId, Arg.Any<CancellationToken>())
+        _sessionService.SetActiveEncounterAsync(_userId, _sessionId, _encounterId, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         // Act
-        var result = await GameSessionHandlers.ActivateSceneHandler(_httpContext, _sessionId, _sceneId, _sessionService);
+        var result = await GameSessionHandlers.ActivateEncounterHandler(_httpContext, _sessionId, _encounterId, _sessionService);
 
         // Assert
         result.Should().BeOfType<NoContent>();
