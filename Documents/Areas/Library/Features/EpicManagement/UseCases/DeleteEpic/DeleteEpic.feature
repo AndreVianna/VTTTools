@@ -34,12 +34,12 @@ Feature: Delete Epic
         | Level      | Count |
         | Campaigns  | 2     |
         | Adventures | 4     |
-        | Scenes     | 8     |
+        | Encounters     | 8     |
       When I delete the epic
       Then the epic is removed
       And all campaigns is removed
       And all adventures is removed
-      And all scenes is removed
+      And all encounters is removed
 
   @happy-path
   Scenario: Successfully delete epic with no campaigns

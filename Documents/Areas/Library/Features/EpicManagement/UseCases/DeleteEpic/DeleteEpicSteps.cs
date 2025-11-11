@@ -14,7 +14,7 @@ using VttTools.Library.Campaigns.Model;
 using VttTools.Library.Epics.Model;
 using VttTools.Library.Epics.Services;
 using VttTools.Library.Epics.Storage;
-using VttTools.Library.Scenes.Model;
+using VttTools.Library.Encounters.Model;
 using Xunit;
 
 namespace VttTools.Library.Tests.BDD.EpicManagement.DeleteEpic;
@@ -38,7 +38,7 @@ public class DeleteEpicSteps {
     private Guid _epicId = Guid.Empty;
     private int _campaignCount = 0;
     private int _adventureCount = 0;
-    private int _sceneCount = 0;
+    private int _encounterCount = 0;
     private Exception? _exception;
 
     public DeleteEpicSteps(ScenarioContext context) {
@@ -157,8 +157,8 @@ public class DeleteEpicSteps {
             else if (level == "Adventures") {
                 _adventureCount = count;
             }
-            else if (level == "Scenes") {
-                _sceneCount = count;
+            else if (level == "Encounters") {
+                _encounterCount = count;
             }
         }
     }
@@ -168,9 +168,9 @@ public class DeleteEpicSteps {
         _adventureCount = _campaignCount * 3;
     }
 
-    [Given(@"each adventure has multiple scenes")]
-    public void GivenEachAdventureHasMultipleScenes() {
-        _sceneCount = _adventureCount * 2;
+    [Given(@"each adventure has multiple encounters")]
+    public void GivenEachAdventureHasMultipleEncounters() {
+        _encounterCount = _adventureCount * 2;
     }
 
     #endregion
@@ -386,8 +386,8 @@ public class DeleteEpicSteps {
         _deleteResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"all scenes is removed")]
-    public void ThenAllScenesAreRemoved() {
+    [Then(@"all encounters is removed")]
+    public void ThenAllEncountersAreRemoved() {
         _deleteResult!.IsSuccessful.Should().BeTrue();
     }
 

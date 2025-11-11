@@ -11,8 +11,8 @@ using VttTools.Common.Model;
 using VttTools.Library.Adventures.Model;
 using VttTools.Library.Adventures.Services;
 using VttTools.Library.Adventures.Storage;
-using VttTools.Library.Scenes.Model;
-using VttTools.Library.Scenes.Storage;
+using VttTools.Library.Encounters.Model;
+using VttTools.Library.Encounters.Storage;
 using VttTools.Media.Storage;
 using Xunit;
 
@@ -22,7 +22,7 @@ namespace VttTools.Library.Tests.BDD.AdventureManagement.CloneAdventure;
 public class CloneAdventureSteps {
     private readonly ScenarioContext _context;
     private readonly IAdventureStorage _adventureStorage;
-    private readonly ISceneStorage _sceneStorage;
+    private readonly IEncounterStorage _encounterStorage;
     private readonly IMediaStorage _mediaStorage;
     private readonly IAdventureService _service;
 
@@ -31,15 +31,15 @@ public class CloneAdventureSteps {
     private Result<Adventure>? _cloneResult;
     private Guid _userId = Guid.Empty;
     private Guid _originalAdventureId = Guid.Empty;
-    private List<Scene> _originalScenes = [];
+    private List<Encounter> _originalEncounters = [];
     private Exception? _exception;
 
     public CloneAdventureSteps(ScenarioContext context) {
         _context = context;
         _adventureStorage = Substitute.For<IAdventureStorage>();
-        _sceneStorage = Substitute.For<ISceneStorage>();
+        _encounterStorage = Substitute.For<IEncounterStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
-        _service = new AdventureService(_adventureStorage, _sceneStorage, _mediaStorage);
+        _service = new AdventureService(_adventureStorage, _encounterStorage, _mediaStorage);
     }
 
     #region Background Steps
@@ -101,85 +101,85 @@ public class CloneAdventureSteps {
 
     #endregion
 
-    #region Given Steps - Scenes
+    #region Given Steps - Encounters
 
-    [Given(@"my adventure has (.*) scenes")]
-    public void GivenMyAdventureHasScenes(int count) {
-        _originalScenes.Clear();
+    [Given(@"my adventure has (.*) encounters")]
+    public void GivenMyAdventureHasEncounters(int count) {
+        _originalEncounters.Clear();
         for (int i = 0; i < count; i++) {
-            var scene = new Scene {
+            var encounter = new Encounter {
                 Id = Guid.CreateVersion7(),
                 AdventureId = _originalAdventureId,
-                Name = $"Scene {i + 1}",
-                Description = $"Scene {i + 1} description",
+                Name = $"Encounter {i + 1}",
+                Description = $"Encounter {i + 1} description",
                 Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) }
             };
-            _originalScenes.Add(scene);
+            _originalEncounters.Add(encounter);
         }
 
-        _originalAdventure = _originalAdventure! with { Scenes = _originalScenes };
+        _originalAdventure = _originalAdventure! with { Encounters = _originalEncounters };
         _adventureStorage.GetByIdAsync(_originalAdventureId, Arg.Any<CancellationToken>())
             .Returns(_originalAdventure);
 
-        _context["SceneCount"] = count;
+        _context["EncounterCount"] = count;
     }
 
-    [Given(@"each scene has unique ID")]
-    public void GivenEachSceneHasUniqueId() {
-        _originalScenes.Should().OnlyHaveUniqueItems(s => s.Id);
+    [Given(@"each encounter has unique ID")]
+    public void GivenEachEncounterHasUniqueId() {
+        _originalEncounters.Should().OnlyHaveUniqueItems(s => s.Id);
     }
 
-    [Given(@"the first scene has (.*) placed assets")]
-    public void GivenFirstSceneHasPlacedAssets(int count) {
-        var sceneAssets = new List<SceneAsset>();
+    [Given(@"the first encounter has (.*) placed assets")]
+    public void GivenFirstEncounterHasPlacedAssets(int count) {
+        var encounterAssets = new List<EncounterAsset>();
         for (int i = 0; i < count; i++) {
-            sceneAssets.Add(new SceneAsset {
+            encounterAssets.Add(new EncounterAsset {
                 Id = Guid.CreateVersion7(),
                 Name = $"Asset {i + 1}",
                 Position = new Position(i * 50, i * 50),
                 Size = new Size(50, 50)
             });
         }
-        _context["FirstSceneAssetCount"] = count;
+        _context["FirstEncounterAssetCount"] = count;
     }
 
-    [Given(@"the second scene has (.*) placed assets")]
-    public void GivenSecondSceneHasPlacedAssets(int count) {
-        _context["SecondSceneAssetCount"] = count;
+    [Given(@"the second encounter has (.*) placed assets")]
+    public void GivenSecondEncounterHasPlacedAssets(int count) {
+        _context["SecondEncounterAssetCount"] = count;
     }
 
-    [Given(@"the third scene has (.*) placed assets")]
-    public void GivenThirdSceneHasPlacedAssets(int count) {
-        _context["ThirdSceneAssetCount"] = count;
+    [Given(@"the third encounter has (.*) placed assets")]
+    public void GivenThirdEncounterHasPlacedAssets(int count) {
+        _context["ThirdEncounterAssetCount"] = count;
     }
 
-    [Given(@"my adventure has scenes with:")]
-    public void GivenMyAdventureHasScenesWith(Table table) {
-        // Mock scenes with various configurations
-        _originalScenes.Clear();
-        _originalScenes.Add(new Scene {
+    [Given(@"my adventure has encounters with:")]
+    public void GivenMyAdventureHasEncountersWith(Table table) {
+        // Mock encounters with various configurations
+        _originalEncounters.Clear();
+        _originalEncounters.Add(new Encounter {
             Id = Guid.CreateVersion7(),
             AdventureId = _originalAdventureId,
-            Name = "Test Scene",
+            Name = "Test Encounter",
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) }
         });
 
-        _originalAdventure = _originalAdventure! with { Scenes = _originalScenes };
+        _originalAdventure = _originalAdventure! with { Encounters = _originalEncounters };
         _adventureStorage.GetByIdAsync(_originalAdventureId, Arg.Any<CancellationToken>())
             .Returns(_originalAdventure);
     }
 
-    [Given(@"my adventure has no scenes")]
-    public void GivenMyAdventureHasNoScenes() {
-        _originalScenes.Clear();
-        _originalAdventure = _originalAdventure! with { Scenes = _originalScenes };
+    [Given(@"my adventure has no encounters")]
+    public void GivenMyAdventureHasNoEncounters() {
+        _originalEncounters.Clear();
+        _originalAdventure = _originalAdventure! with { Encounters = _originalEncounters };
         _adventureStorage.GetByIdAsync(_originalAdventureId, Arg.Any<CancellationToken>())
             .Returns(_originalAdventure);
     }
 
-    [Given(@"my adventure exists with scenes")]
-    public void GivenMyAdventureExistsWithScenes() {
-        GivenMyAdventureHasScenes(3);
+    [Given(@"my adventure exists with encounters")]
+    public void GivenMyAdventureExistsWithEncounters() {
+        GivenMyAdventureHasEncounters(3);
     }
 
     #endregion
@@ -316,23 +316,23 @@ public class CloneAdventureSteps {
         _originalAdventure!.Id.Should().Be(_originalAdventureId);
     }
 
-    [Then(@"the cloned adventure should have (.*) scenes")]
-    public void ThenClonedAdventureShouldHaveScenes(int expectedCount) {
-        _cloneResult!.Value!.Scenes.Should().HaveCount(expectedCount);
+    [Then(@"the cloned adventure should have (.*) encounters")]
+    public void ThenClonedAdventureShouldHaveEncounters(int expectedCount) {
+        _cloneResult!.Value!.Encounters.Should().HaveCount(expectedCount);
     }
 
-    [Then(@"each cloned scene should have a new unique ID")]
-    public void ThenEachClonedSceneShouldHaveNewUniqueId() {
-        var clonedSceneIds = _cloneResult!.Value!.Scenes.Select(s => s.Id).ToList();
-        var originalSceneIds = _originalScenes.Select(s => s.Id).ToList();
+    [Then(@"each cloned encounter should have a new unique ID")]
+    public void ThenEachClonedEncounterShouldHaveNewUniqueId() {
+        var clonedEncounterIds = _cloneResult!.Value!.Encounters.Select(s => s.Id).ToList();
+        var originalEncounterIds = _originalEncounters.Select(s => s.Id).ToList();
 
-        clonedSceneIds.Should().OnlyHaveUniqueItems();
-        clonedSceneIds.Should().NotIntersectWith(originalSceneIds);
+        clonedEncounterIds.Should().OnlyHaveUniqueItems();
+        clonedEncounterIds.Should().NotIntersectWith(originalEncounterIds);
     }
 
-    [Then(@"the original scenes should remain unchanged")]
-    public void ThenOriginalScenesShouldRemainUnchanged() {
-        _originalScenes.Should().NotBeEmpty();
+    [Then(@"the original encounters should remain unchanged")]
+    public void ThenOriginalEncountersShouldRemainUnchanged() {
+        _originalEncounters.Should().NotBeEmpty();
     }
 
     [Then(@"the cloned adventure should have:")]
@@ -350,26 +350,26 @@ public class CloneAdventureSteps {
     [Then(@"all asset placements should be duplicated")]
     public void ThenAllAssetPlacementsShouldBeDuplicated() {
         // Verify asset counts match
-        _cloneResult!.Value!.Scenes.Should().HaveCountGreaterThan(0);
+        _cloneResult!.Value!.Encounters.Should().HaveCountGreaterThan(0);
     }
 
-    [Then(@"all scene stage configurations should be duplicated")]
-    public void ThenAllSceneStageConfigurationsShouldBeDuplicated() {
-        _cloneResult!.Value!.Scenes.Should().AllSatisfy(scene => {
-            scene.Grid.Should().NotBeNull();
+    [Then(@"all encounter stage configurations should be duplicated")]
+    public void ThenAllEncounterStageConfigurationsShouldBeDuplicated() {
+        _cloneResult!.Value!.Encounters.Should().AllSatisfy(encounter => {
+            encounter.Grid.Should().NotBeNull();
         });
     }
 
-    [Then(@"all scene grid configurations should be duplicated")]
-    public void ThenAllSceneGridConfigurationsShouldBeDuplicated() {
-        _cloneResult!.Value!.Scenes.Should().AllSatisfy(scene => {
-            scene.Grid.Should().NotBeNull();
+    [Then(@"all encounter grid configurations should be duplicated")]
+    public void ThenAllEncounterGridConfigurationsShouldBeDuplicated() {
+        _cloneResult!.Value!.Encounters.Should().AllSatisfy(encounter => {
+            encounter.Grid.Should().NotBeNull();
         });
     }
 
     [Then(@"all configurations should have correct values")]
     public void ThenAllConfigurationsShouldHaveCorrectValues() {
-        _cloneResult!.Value!.Scenes.Should().NotBeEmpty();
+        _cloneResult!.Value!.Encounters.Should().NotBeEmpty();
     }
 
     [Then(@"the cloned adventure should also be standalone")]
@@ -399,15 +399,15 @@ public class CloneAdventureSteps {
         _cloneResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"the cloned adventure should have no scenes")]
-    public void ThenClonedAdventureShouldHaveNoScenes() {
-        _cloneResult!.Value!.Scenes.Should().BeEmpty();
+    [Then(@"the cloned adventure should have no encounters")]
+    public void ThenClonedAdventureShouldHaveNoEncounters() {
+        _cloneResult!.Value!.Encounters.Should().BeEmpty();
     }
 
-    [Then(@"all scenes should be properly duplicated")]
-    public void ThenAllScenesShouldBeProperlyDuplicated() {
-        var expectedCount = _context.Get<int>("SceneCount");
-        _cloneResult!.Value!.Scenes.Should().HaveCount(expectedCount);
+    [Then(@"all encounters should be properly duplicated")]
+    public void ThenAllEncountersShouldBeProperlyDuplicated() {
+        var expectedCount = _context.Get<int>("EncounterCount");
+        _cloneResult!.Value!.Encounters.Should().HaveCount(expectedCount);
     }
 
     [Then(@"the operation should complete within acceptable time")]
@@ -432,22 +432,22 @@ public class CloneAdventureSteps {
         _originalAdventure!.Name.Should().NotBe(_context.Get<string>("ClonedAdventureName"));
     }
 
-    [Then(@"the first cloned scene should have (.*) placed assets")]
-    public void ThenFirstClonedSceneShouldHavePlacedAssets(int expectedCount) {
-        var firstSceneAssetCount = _context.Get<int>("FirstSceneAssetCount");
-        firstSceneAssetCount.Should().Be(expectedCount);
+    [Then(@"the first cloned encounter should have (.*) placed assets")]
+    public void ThenFirstClonedEncounterShouldHavePlacedAssets(int expectedCount) {
+        var firstEncounterAssetCount = _context.Get<int>("FirstEncounterAssetCount");
+        firstEncounterAssetCount.Should().Be(expectedCount);
     }
 
-    [Then(@"the second cloned scene should have (.*) placed assets")]
-    public void ThenSecondClonedSceneShouldHavePlacedAssets(int expectedCount) {
-        var secondSceneAssetCount = _context.Get<int>("SecondSceneAssetCount");
-        secondSceneAssetCount.Should().Be(expectedCount);
+    [Then(@"the second cloned encounter should have (.*) placed assets")]
+    public void ThenSecondClonedEncounterShouldHavePlacedAssets(int expectedCount) {
+        var secondEncounterAssetCount = _context.Get<int>("SecondEncounterAssetCount");
+        secondEncounterAssetCount.Should().Be(expectedCount);
     }
 
-    [Then(@"the third cloned scene should have (.*) placed assets")]
-    public void ThenThirdClonedSceneShouldHavePlacedAssets(int expectedCount) {
-        var thirdSceneAssetCount = _context.Get<int>("ThirdSceneAssetCount");
-        thirdSceneAssetCount.Should().Be(expectedCount);
+    [Then(@"the third cloned encounter should have (.*) placed assets")]
+    public void ThenThirdClonedEncounterShouldHavePlacedAssets(int expectedCount) {
+        var thirdEncounterAssetCount = _context.Get<int>("ThirdEncounterAssetCount");
+        thirdEncounterAssetCount.Should().Be(expectedCount);
     }
 
     #endregion

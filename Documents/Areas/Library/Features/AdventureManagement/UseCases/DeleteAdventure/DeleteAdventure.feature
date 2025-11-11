@@ -4,40 +4,40 @@
 Feature: Delete Adventure
   As a Game Master
   I want to delete an adventure
-  So that I can remove unused game modules and all associated scenes
+  So that I can remove unused game modules and all associated encounters
 
   Background:
     Given I am authenticated as a Game Master
     And I own an adventure in my library
     
 
-  Rule: Deleting adventure cascades to all owned scenes
+  Rule: Deleting adventure cascades to all owned encounters
 
-    Scenario: Delete adventure successfully cascades to scenes
-      Given my adventure has 5 associated scenes
+    Scenario: Delete adventure successfully cascades to encounters
+      Given my adventure has 5 associated encounters
       When I delete the adventure
       Then the adventure is removed
-      And all 5 scenes is removed
+      And all 5 encounters is removed
       And I should receive deletion confirmation
 
-    Scenario: Delete adventure cascades to scenes with assets
-      Given my adventure has 4 scenes
-      And the first scene has 8 placed assets
-      And the second scene has 5 placed assets
-      And the third scene has 3 placed assets
-      And the fourth scene has 6 placed assets
+    Scenario: Delete adventure cascades to encounters with assets
+      Given my adventure has 4 encounters
+      And the first encounter has 8 placed assets
+      And the second encounter has 5 placed assets
+      And the third encounter has 3 placed assets
+      And the fourth encounter has 6 placed assets
       When I delete the adventure
       Then the adventure is removed
-      And all 4 scenes is removed
-      And all scene asset placements is removed
+      And all 4 encounters is removed
+      And all encounter asset placements is removed
 
   @happy-path
   Scenario: Successfully delete standalone adventure
     Given my adventure is standalone with null CampaignId
-    And the adventure has 3 scenes
+    And the adventure has 3 encounters
     When I delete the adventure
     Then the adventure is removed
-    And all 3 scenes is removed
+    And all 3 encounters is removed
     And the adventure should not appear in standalone adventures list
 
   @happy-path
@@ -49,8 +49,8 @@ Feature: Delete Adventure
     And the campaign should remain intact
 
   @happy-path
-  Scenario: Successfully delete adventure with no scenes
-    Given my adventure has no associated scenes
+  Scenario: Successfully delete adventure with no encounters
+    Given my adventure has no associated encounters
     When I delete the adventure
     Then the adventure is removed
     And I should receive deletion confirmation
@@ -64,7 +64,7 @@ Feature: Delete Adventure
 
   @error-handling
   Scenario: Handle database failure during deletion
-    Given my adventure exists with scenes
+    Given my adventure exists with encounters
     And the database is unavailable
     When I attempt to delete the adventure
     Then I should see error with server error
@@ -90,31 +90,31 @@ Feature: Delete Adventure
   @edge-case
   Scenario: Delete published adventure
     Given my adventure is published and public
-    And the adventure has 4 scenes
+    And the adventure has 4 encounters
     When I delete the adventure
     Then the adventure is removed successfully
     And public users should no longer see the adventure
-    And all scenes is removed
+    And all encounters is removed
 
   @integration
   Scenario: Delete adventure preserves unrelated data integrity
     Given I own 2 adventures
-    And the first adventure has 4 scenes
-    And the second adventure has 5 scenes
+    And the first adventure has 4 encounters
+    And the second adventure has 5 encounters
     When I delete the first adventure
-    Then the first adventure and its 4 scenes is removed
-    And the second adventure and its 5 scenes should remain intact
+    Then the first adventure and its 4 encounters is removed
+    And the second adventure and its 5 encounters should remain intact
 
   @data-driven
   Scenario Outline: Delete adventures of different types
     Given I own an adventure with type "<type>"
-    And the adventure has <scenes> scenes
+    And the adventure has <encounters> encounters
     When I delete the adventure
     Then the adventure is removed successfully
-    And all <scenes> scenes is removed
+    And all <encounters> encounters is removed
 
     Examples:
-      | type          | scenes |
+      | type          | encounters |
       | Generic       | 3      |
       | DungeonCrawl  | 8      |
       | OpenWorld     | 12     |

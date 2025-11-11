@@ -2,9 +2,9 @@
 
 **Generated**: 2025-10-02
 **Domain Model Version**: 1.0.0
-**Total Use Cases**: 23 (5 Epic + 5 Campaign + 5 Adventure + 8 Scene)
+**Total Use Cases**: 23 (5 Epic + 5 Campaign + 5 Adventure + 8 Encounter)
 
-This document contains complete specifications for all Library area use cases across 4 features: Epic Management, Campaign Management, Adventure Management, and Scene Management.
+This document contains complete specifications for all Library area use cases across 4 features: Epic Management, Campaign Management, Adventure Management, and Encounter Management.
 
 ---
 
@@ -31,15 +31,15 @@ This document contains complete specifications for all Library area use cases ac
 14. [Move Adventure To Campaign](#14-move-adventure-to-campaign)
 15. [Make Adventure Standalone](#15-make-adventure-standalone)
 
-### Scene Management (8 use cases)
-16. [Create Scene](#16-create-scene)
-17. [Update Scene](#17-update-scene)
+### Encounter Management (8 use cases)
+16. [Create Encounter](#16-create-encounter)
+17. [Update Encounter](#17-update-encounter)
 18. [Configure Stage](#18-configure-stage)
 19. [Configure Grid](#19-configure-grid)
 20. [Place Asset](#20-place-asset)
 21. [Move Asset](#21-move-asset)
 22. [Remove Asset](#22-remove-asset)
-23. [Clone Scene](#23-clone-scene)
+23. [Clone Encounter](#23-clone-encounter)
 
 ---
 
@@ -196,7 +196,7 @@ This document contains complete specifications for all Library area use cases ac
 
 **UI Type**: API_ENDPOINT - DELETE /api/library/epics/:id
 
-**Purpose**: Remove epic and cascade to campaigns/adventures/scenes
+**Purpose**: Remove epic and cascade to campaigns/adventures/encounters
 
 **Business Value**: Enables Game Masters to remove unwanted content hierarchies
 
@@ -205,9 +205,9 @@ This document contains complete specifications for all Library area use cases ac
 - OwnerId: Guid (from authenticated user)
 
 **Business Rules**:
-- AGG-01: Cascade delete to all owned Campaigns → Adventures → Scenes
+- AGG-01: Cascade delete to all owned Campaigns → Adventures → Encounters
 - AGG-02: Only owner can delete
-- BR-13: Cannot delete if any Scene is in use by active GameSession
+- BR-13: Cannot delete if any Encounter is in use by active GameSession
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
@@ -224,13 +224,13 @@ This document contains complete specifications for all Library area use cases ac
 **Error Scenarios**:
 - Epic not found → 404 "Epic not found"
 - Not owner → 403 "Only owner can delete epic"
-- Active game session references → 409 "Epic contains scenes in use by active game sessions"
+- Active game session references → 409 "Epic contains encounters in use by active game sessions"
 - Database error → 500 "Failed to delete epic"
 
 **Acceptance Criteria**:
-- AC-01: Delete succeeds and cascades to all Campaigns/Adventures/Scenes
+- AC-01: Delete succeeds and cascades to all Campaigns/Adventures/Encounters
 - AC-02: Delete fails when not owner (AGG-02)
-- AC-03: Delete fails when Scene in use by active GameSession (BR-13)
+- AC-03: Delete fails when Encounter in use by active GameSession (BR-13)
 - AC-04: EpicDeleted event published on success
 
 ---
@@ -509,13 +509,13 @@ This document contains complete specifications for all Library area use cases ac
 - IsPublic: bool (default false)
 - OwnerId: Guid (from authenticated user)
 - CampaignId: Guid? (optional, for campaign association)
-- Scenes: List<Scene> (optional)
+- Encounters: List<Encounter> (optional)
 
 **Business Rules**:
 - Same as Campaign (INV-01 through INV-05)
 - INV-07: Type must be valid AdventureType enum
 - INV-08: If CampaignId provided, Campaign must exist
-- AGG-05: Adventure owns Scenes (cascade)
+- AGG-05: Adventure owns Encounters (cascade)
 - AGG-06: Adventure can be standalone or within Campaign
 
 **Processing Steps**:
@@ -529,12 +529,12 @@ This document contains complete specifications for all Library area use cases ac
 8. If CampaignId provided, validate Campaign exists (INV-08)
 9. Generate Adventure.Id
 10. Create Adventure entity (with nullable CampaignId, Type)
-11. Validate and associate Scenes (set AdventureId)
+11. Validate and associate Encounters (set AdventureId)
 12. Persist via CreateAdventureAsync
 13. Publish AdventureCreated event
-14. Return Adventure with Id and Scenes
+14. Return Adventure with Id and Encounters
 
-**Output**: Adventure entity (JSON) with generated Id, Type, Scenes
+**Output**: Adventure entity (JSON) with generated Id, Type, Encounters
 
 **Error Scenarios**:
 - Same validation errors as Create Campaign
@@ -546,7 +546,7 @@ This document contains complete specifications for all Library area use cases ac
 - AC-02: Adventure creation succeeds with valid CampaignId
 - AC-03: Adventure creation succeeds with valid Type enum
 - AC-04: Adventure creation fails with invalid Type (INV-07)
-- AC-05: Adventure creation succeeds with Scenes, all persisted with AdventureId
+- AC-05: Adventure creation succeeds with Encounters, all persisted with AdventureId
 
 ---
 
@@ -602,9 +602,9 @@ This document contains complete specifications for all Library area use cases ac
 
 **UI Type**: API_ENDPOINT - POST /api/library/adventures/:id/clone
 
-**Purpose**: Duplicate adventure with all owned scenes (deep copy operation)
+**Purpose**: Duplicate adventure with all owned encounters (deep copy operation)
 
-**Business Value**: Enables Game Masters to reuse adventure templates with all scene configurations
+**Business Value**: Enables Game Masters to reuse adventure templates with all encounter configurations
 
 **Input Requirements**:
 - AdventureId: Guid (required, from route parameter)
@@ -614,13 +614,13 @@ This document contains complete specifications for all Library area use cases ac
 **Business Rules**:
 - Original Adventure must exist
 - Cloned adventure owned by authenticated user (OwnerId)
-- All Scenes cloned with Stage, Grid, and SceneAssets
+- All Encounters cloned with Stage, Grid, and EncounterAssets
 - Cloned adventure is always standalone (CampaignId=null)
 - Cloned adventure is never published (IsPublished=false, IsPublic=false)
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
-2. Retrieve source Adventure via GetAdventureByIdAsync (include Scenes)
+2. Retrieve source Adventure via GetAdventureByIdAsync (include Encounters)
 3. Generate new Adventure.Id for clone
 4. Create cloned Adventure entity:
    - Name = NewName ?? "{OriginalName} (Copy)"
@@ -628,15 +628,15 @@ This document contains complete specifications for all Library area use cases ac
    - CampaignId = null (standalone)
    - IsPublished = false, IsPublic = false
    - Copy Description, Type, Background
-5. For each Scene in source Adventure:
-   - Generate new Scene.Id
-   - Clone Scene entity (Stage, Grid, Assets)
-   - Set Scene.AdventureId = cloned Adventure.Id
-6. Persist cloned Adventure with cloned Scenes via CloneAdventureAsync
+5. For each Encounter in source Adventure:
+   - Generate new Encounter.Id
+   - Clone Encounter entity (Stage, Grid, Assets)
+   - Set Encounter.AdventureId = cloned Adventure.Id
+6. Persist cloned Adventure with cloned Encounters via CloneAdventureAsync
 7. Publish AdventureCloned event
 8. Return cloned Adventure
 
-**Output**: Cloned Adventure entity (JSON) with new Id, cloned Scenes
+**Output**: Cloned Adventure entity (JSON) with new Id, cloned Encounters
 
 **Error Scenarios**:
 - Source Adventure not found → 404 "Adventure not found"
@@ -644,7 +644,7 @@ This document contains complete specifications for all Library area use cases ac
 
 **Acceptance Criteria**:
 - AC-01: Clone succeeds, creates new Adventure with new Id
-- AC-02: All Scenes cloned with new Ids, Stage, Grid, SceneAssets preserved
+- AC-02: All Encounters cloned with new Ids, Stage, Grid, EncounterAssets preserved
 - AC-03: Cloned adventure is standalone (CampaignId=null)
 - AC-04: Cloned adventure not published (IsPublished=false)
 - AC-05: AdventureCloned event published
@@ -735,20 +735,20 @@ This document contains complete specifications for all Library area use cases ac
 
 ---
 
-## Scene Management Use Cases
+## Encounter Management Use Cases
 
-### 16. Create Scene
+### 16. Create Encounter
 
-**UI Type**: API_ENDPOINT - POST /api/library/scenes
+**UI Type**: API_ENDPOINT - POST /api/library/encounters
 
 **Purpose**: Create new tactical map with optional adventure association, Stage, Grid, and initial asset placements
 
-**Business Value**: Enables Game Masters to design interactive tactical maps with comprehensive scene composition
+**Business Value**: Enables Game Masters to design interactive tactical maps with comprehensive encounter composition
 
 **Input Requirements**:
 - Name: string (required, 1-128 characters)
 - Description: string (optional, max 4096)
-- IsPublished: bool (default false, note: no IsPublic requirement for scenes)
+- IsPublished: bool (default false, note: no IsPublic requirement for encounters)
 - OwnerId: Guid (from authenticated user)
 - AdventureId: Guid? (optional, for adventure association)
 - Stage: Stage value object (required):
@@ -763,7 +763,7 @@ This document contains complete specifications for all Library area use cases ac
   - OffsetX: int (default 0)
   - OffsetY: int (default 0)
   - Color: string (hex color, default "#000000")
-- Assets: List<SceneAsset> (optional, value objects):
+- Assets: List<EncounterAsset> (optional, value objects):
   - AssetId: Guid (required, must reference existing Asset)
   - X: int (required)
   - Y: int (required)
@@ -776,9 +776,9 @@ This document contains complete specifications for all Library area use cases ac
 - INV-01, INV-02, INV-03, INV-05 (same as Epic)
 - INV-09: Stage Width > 0, Height > 0
 - INV-10: Grid configuration consistent with GridType (Size required if Type != NoGrid)
-- INV-11: SceneAsset positions should be within Stage bounds (optional enforcement)
-- AGG-07: Scene can be standalone or within Adventure
-- AGG-08: SceneAssets are value objects (no independent existence)
+- INV-11: EncounterAsset positions should be within Stage bounds (optional enforcement)
+- AGG-07: Encounter can be standalone or within Adventure
+- AGG-08: EncounterAssets are value objects (no independent existence)
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
@@ -793,17 +793,17 @@ This document contains complete specifications for all Library area use cases ac
    - Size > 0 if Type != NoGrid (INV-10)
    - Color is valid hex format
 7. If AdventureId provided, validate Adventure exists
-8. Validate each SceneAsset:
+8. Validate each EncounterAsset:
    - AssetId references existing Asset via IAssetStorage
    - Width, Height > 0 if provided
    - Optionally check X, Y within Stage bounds (INV-11)
-9. Generate Scene.Id
-10. Create Scene entity (with nullable AdventureId, Stage, Grid, Assets)
-11. Persist via CreateSceneAsync
-12. Publish SceneCreated event
-13. Return Scene
+9. Generate Encounter.Id
+10. Create Encounter entity (with nullable AdventureId, Stage, Grid, Assets)
+11. Persist via CreateEncounterAsync
+12. Publish EncounterCreated event
+13. Return Encounter
 
-**Output**: Scene entity (JSON) with generated Id, Stage, Grid, Assets
+**Output**: Encounter entity (JSON) with generated Id, Stage, Grid, Assets
 
 **Error Scenarios**:
 - Same name validation errors as Epic
@@ -815,49 +815,49 @@ This document contains complete specifications for all Library area use cases ac
 - Asset position out of bounds → 400 "Asset position outside stage bounds" (INV-11)
 
 **Acceptance Criteria**:
-- AC-01: Scene creation succeeds with valid Stage, Grid (Type=NoGrid), no assets
-- AC-02: Scene creation succeeds with Stage, Grid (Type=Square, Size=50), initial assets
-- AC-03: Scene creation fails with Stage Width=0 (INV-09)
-- AC-04: Scene creation fails with Grid Type=Square but Size not provided (INV-10)
-- AC-05: Scene creation succeeds with AdventureId
-- AC-06: SceneCreated event published
+- AC-01: Encounter creation succeeds with valid Stage, Grid (Type=NoGrid), no assets
+- AC-02: Encounter creation succeeds with Stage, Grid (Type=Square, Size=50), initial assets
+- AC-03: Encounter creation fails with Stage Width=0 (INV-09)
+- AC-04: Encounter creation fails with Grid Type=Square but Size not provided (INV-10)
+- AC-05: Encounter creation succeeds with AdventureId
+- AC-06: EncounterCreated event published
 
 ---
 
-### 17. Update Scene
+### 17. Update Encounter
 
-**UI Type**: API_ENDPOINT - PUT /api/library/scenes/:id
+**UI Type**: API_ENDPOINT - PUT /api/library/encounters/:id
 
-**Purpose**: Modify scene properties (name, description, publication status)
+**Purpose**: Modify encounter properties (name, description, publication status)
 
-**Business Value**: Enables Game Masters to refine scene details (Note: Stage/Grid/Assets updated via separate operations)
+**Business Value**: Enables Game Masters to refine encounter details (Note: Stage/Grid/Assets updated via separate operations)
 
 **Input Requirements**:
-- SceneId: Guid (required, from route)
+- EncounterId: Guid (required, from route)
 - Name: string (required, 1-128)
 - Description: string (optional, max 4096)
 - IsPublished: bool
 - OwnerId: Guid (from authenticated user)
 
 **Business Rules**:
-- Same name/description validation as Create Scene
+- Same name/description validation as Create Encounter
 - Stage, Grid, Assets NOT updated via this operation (see Configure Stage, Configure Grid, asset operations)
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
-2. Retrieve existing Scene
+2. Retrieve existing Encounter
 3. Verify ownership
 4. Validate Name (INV-01, INV-02)
 5. Validate Description (INV-03)
-6. Update Scene properties (Name, Description, IsPublished only)
-7. Persist via UpdateSceneAsync
-8. Publish SceneUpdated event
-9. Return updated Scene
+6. Update Encounter properties (Name, Description, IsPublished only)
+7. Persist via UpdateEncounterAsync
+8. Publish EncounterUpdated event
+9. Return updated Encounter
 
-**Output**: Updated Scene entity (JSON)
+**Output**: Updated Encounter entity (JSON)
 
 **Error Scenarios**:
-- Scene not found → 404
+- Encounter not found → 404
 - Not owner → 403
 - Same name/description validation errors
 
@@ -870,14 +870,14 @@ This document contains complete specifications for all Library area use cases ac
 
 ### 18. Configure Stage
 
-**UI Type**: API_ENDPOINT - PATCH /api/library/scenes/:id/stage
+**UI Type**: API_ENDPOINT - PATCH /api/library/encounters/:id/stage
 
 **Purpose**: Update Stage value object (background, viewport, dimensions)
 
-**Business Value**: Enables Game Masters to adjust scene rendering configuration
+**Business Value**: Enables Game Masters to adjust encounter rendering configuration
 
 **Input Requirements**:
-- SceneId: Guid (required, from route)
+- EncounterId: Guid (required, from route)
 - Stage: Stage value object (required):
   - Background: Resource? (optional)
   - ViewportX: int
@@ -892,19 +892,19 @@ This document contains complete specifications for all Library area use cases ac
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
-2. Retrieve existing Scene
+2. Retrieve existing Encounter
 3. Verify ownership
 4. Validate Stage dimensions (Width > 0, Height > 0) (INV-09)
 5. Validate Background via IMediaStorage if provided
-6. Update Scene.Stage with new value object
-7. Persist via UpdateSceneAsync (or dedicated ConfigureStageAsync)
+6. Update Encounter.Stage with new value object
+7. Persist via UpdateEncounterAsync (or dedicated ConfigureStageAsync)
 8. Publish StageConfigured event
-9. Return updated Scene
+9. Return updated Encounter
 
-**Output**: Updated Scene entity with new Stage configuration
+**Output**: Updated Encounter entity with new Stage configuration
 
 **Error Scenarios**:
-- Scene not found → 404
+- Encounter not found → 404
 - Not owner → 403
 - Invalid dimensions → 400 "Stage dimensions must be positive" (INV-09)
 - Invalid Background → 404 "Background resource not found"
@@ -919,14 +919,14 @@ This document contains complete specifications for all Library area use cases ac
 
 ### 19. Configure Grid
 
-**UI Type**: API_ENDPOINT - PATCH /api/library/scenes/:id/grid
+**UI Type**: API_ENDPOINT - PATCH /api/library/encounters/:id/grid
 
 **Purpose**: Update Grid value object (type, size, offset, color)
 
 **Business Value**: Enables Game Masters to adjust tactical map grid overlay configuration
 
 **Input Requirements**:
-- SceneId: Guid (required, from route)
+- EncounterId: Guid (required, from route)
 - Grid: Grid value object (required):
   - Type: GridType enum (NoGrid, Square, HexV, HexH, Isometric)
   - Size: int (required if Type != NoGrid)
@@ -941,21 +941,21 @@ This document contains complete specifications for all Library area use cases ac
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
-2. Retrieve existing Scene
+2. Retrieve existing Encounter
 3. Verify ownership
 4. Validate Grid:
    - Type is valid GridType enum
    - Size > 0 if Type != NoGrid (INV-10)
    - Color is valid hex format
-5. Update Scene.Grid with new value object
-6. Persist via UpdateSceneAsync (or dedicated ConfigureGridAsync)
+5. Update Encounter.Grid with new value object
+6. Persist via UpdateEncounterAsync (or dedicated ConfigureGridAsync)
 7. Publish GridConfigured event
-8. Return updated Scene
+8. Return updated Encounter
 
-**Output**: Updated Scene entity with new Grid configuration
+**Output**: Updated Encounter entity with new Grid configuration
 
 **Error Scenarios**:
-- Scene not found → 404
+- Encounter not found → 404
 - Not owner → 403
 - Invalid Grid configuration → 400 "Grid size required for non-NoGrid types" (INV-10)
 - Invalid Color format → 400 "Invalid hex color format"
@@ -970,15 +970,15 @@ This document contains complete specifications for all Library area use cases ac
 
 ### 20. Place Asset
 
-**UI Type**: API_ENDPOINT - POST /api/library/scenes/:id/assets
+**UI Type**: API_ENDPOINT - POST /api/library/encounters/:id/assets
 
-**Purpose**: Add SceneAsset to Assets collection, validate AssetId, optionally enforce position bounds
+**Purpose**: Add EncounterAsset to Assets collection, validate AssetId, optionally enforce position bounds
 
 **Business Value**: Enables Game Masters to place asset instances on tactical maps with position and transformation
 
 **Input Requirements**:
-- SceneId: Guid (required, from route)
-- SceneAsset: SceneAsset value object (required):
+- EncounterId: Guid (required, from route)
+- EncounterAsset: EncounterAsset value object (required):
   - AssetId: Guid (required, must reference existing Asset)
   - X: int (required)
   - Y: int (required)
@@ -991,25 +991,25 @@ This document contains complete specifications for all Library area use cases ac
 **Business Rules**:
 - AssetId must reference existing Asset (via IAssetStorage)
 - Width, Height > 0 if provided
-- INV-11: SceneAsset positions should be within Stage bounds (optional enforcement)
-- BR-12: SceneAsset.AssetId must reference existing Asset
+- INV-11: EncounterAsset positions should be within Stage bounds (optional enforcement)
+- BR-12: EncounterAsset.AssetId must reference existing Asset
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
-2. Retrieve existing Scene
+2. Retrieve existing Encounter
 3. Verify ownership
 4. Validate AssetId references existing Asset via IAssetStorage (BR-12)
 5. Validate Width, Height > 0 if provided
-6. Optionally validate X, Y within Scene.Stage bounds (INV-11)
-7. Add SceneAsset to Scene.Assets collection
-8. Persist via UpdateSceneAsync (or dedicated PlaceAssetAsync)
+6. Optionally validate X, Y within Encounter.Stage bounds (INV-11)
+7. Add EncounterAsset to Encounter.Assets collection
+8. Persist via UpdateEncounterAsync (or dedicated PlaceAssetAsync)
 9. Publish AssetPlaced event
-10. Return updated Scene
+10. Return updated Encounter
 
-**Output**: Updated Scene entity with new SceneAsset in Assets collection
+**Output**: Updated Encounter entity with new EncounterAsset in Assets collection
 
 **Error Scenarios**:
-- Scene not found → 404
+- Encounter not found → 404
 - Not owner → 403
 - Invalid AssetId → 404 "Asset not found" (BR-12)
 - Invalid Width/Height → 400 "Asset dimensions must be positive"
@@ -1025,15 +1025,15 @@ This document contains complete specifications for all Library area use cases ac
 
 ### 21. Move Asset
 
-**UI Type**: API_ENDPOINT - PATCH /api/library/scenes/:id/assets/:assetId/move
+**UI Type**: API_ENDPOINT - PATCH /api/library/encounters/:id/assets/:assetId/move
 
-**Purpose**: Update SceneAsset position (X, Y) and optionally dimensions, ZIndex, rotation
+**Purpose**: Update EncounterAsset position (X, Y) and optionally dimensions, ZIndex, rotation
 
 **Business Value**: Enables Game Masters to reposition and transform placed assets on tactical maps
 
 **Input Requirements**:
-- SceneId: Guid (required, from route)
-- AssetId: Guid (required, from route, identifies SceneAsset in collection)
+- EncounterId: Guid (required, from route)
+- AssetId: Guid (required, from route, identifies EncounterAsset in collection)
 - X: int (optional, updates position)
 - Y: int (optional, updates position)
 - Width: int? (optional)
@@ -1043,106 +1043,106 @@ This document contains complete specifications for all Library area use cases ac
 - OwnerId: Guid (from authenticated user)
 
 **Business Rules**:
-- SceneAsset with AssetId must exist in Scene.Assets collection
+- EncounterAsset with AssetId must exist in Encounter.Assets collection
 - Width, Height > 0 if provided
 - INV-11: Optionally validate new X, Y within Stage bounds
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
-2. Retrieve existing Scene
+2. Retrieve existing Encounter
 3. Verify ownership
-4. Find SceneAsset in Scene.Assets collection by AssetId
+4. Find EncounterAsset in Encounter.Assets collection by AssetId
 5. Validate Width, Height > 0 if provided
-6. Optionally validate X, Y within Scene.Stage bounds (INV-11)
-7. Update SceneAsset properties (X, Y, Width, Height, ZIndex, Rotation)
-8. Replace SceneAsset in Scene.Assets collection (immutable value object)
-9. Persist via UpdateSceneAsync
+6. Optionally validate X, Y within Encounter.Stage bounds (INV-11)
+7. Update EncounterAsset properties (X, Y, Width, Height, ZIndex, Rotation)
+8. Replace EncounterAsset in Encounter.Assets collection (immutable value object)
+9. Persist via UpdateEncounterAsync
 10. Publish AssetMoved event
-11. Return updated Scene
+11. Return updated Encounter
 
-**Output**: Updated Scene entity with modified SceneAsset
+**Output**: Updated Encounter entity with modified EncounterAsset
 
 **Error Scenarios**:
-- Scene not found → 404
+- Encounter not found → 404
 - Not owner → 403
-- AssetId not found in Scene.Assets → 404 "Asset not found in scene"
+- AssetId not found in Encounter.Assets → 404 "Asset not found in encounter"
 - Invalid Width/Height → 400 "Asset dimensions must be positive"
 - Position out of bounds → 400 "Asset position outside stage bounds" (INV-11)
 
 **Acceptance Criteria**:
 - AC-01: Move Asset succeeds updating X, Y
 - AC-02: Move Asset succeeds updating Width, Height, ZIndex, Rotation
-- AC-03: Move Asset fails when AssetId not in Scene.Assets
+- AC-03: Move Asset fails when AssetId not in Encounter.Assets
 - AC-04: AssetMoved event published
 
 ---
 
 ### 22. Remove Asset
 
-**UI Type**: API_ENDPOINT - DELETE /api/library/scenes/:id/assets/:assetId
+**UI Type**: API_ENDPOINT - DELETE /api/library/encounters/:id/assets/:assetId
 
-**Purpose**: Remove SceneAsset from Assets collection
+**Purpose**: Remove EncounterAsset from Assets collection
 
 **Business Value**: Enables Game Masters to remove unwanted asset placements from tactical maps
 
 **Input Requirements**:
-- SceneId: Guid (required, from route)
-- AssetId: Guid (required, from route, identifies SceneAsset in collection)
+- EncounterId: Guid (required, from route)
+- AssetId: Guid (required, from route, identifies EncounterAsset in collection)
 - OwnerId: Guid (from authenticated user)
 
 **Business Rules**:
-- SceneAsset with AssetId must exist in Scene.Assets collection
-- AGG-08: SceneAssets are value objects (no independent existence)
+- EncounterAsset with AssetId must exist in Encounter.Assets collection
+- AGG-08: EncounterAssets are value objects (no independent existence)
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
-2. Retrieve existing Scene
+2. Retrieve existing Encounter
 3. Verify ownership
-4. Find SceneAsset in Scene.Assets collection by AssetId
-5. Remove SceneAsset from Scene.Assets collection
-6. Persist via UpdateSceneAsync
+4. Find EncounterAsset in Encounter.Assets collection by AssetId
+5. Remove EncounterAsset from Encounter.Assets collection
+6. Persist via UpdateEncounterAsync
 7. Publish AssetRemoved event
 8. Return 204 No Content
 
 **Output**: 204 No Content on success
 
 **Error Scenarios**:
-- Scene not found → 404
+- Encounter not found → 404
 - Not owner → 403
-- AssetId not found in Scene.Assets → 404 "Asset not found in scene"
+- AssetId not found in Encounter.Assets → 404 "Asset not found in encounter"
 
 **Acceptance Criteria**:
-- AC-01: Remove Asset succeeds, SceneAsset removed from collection
-- AC-02: Remove Asset fails when AssetId not in Scene.Assets
+- AC-01: Remove Asset succeeds, EncounterAsset removed from collection
+- AC-02: Remove Asset fails when AssetId not in Encounter.Assets
 - AC-03: AssetRemoved event published
 
 ---
 
-### 23. Clone Scene
+### 23. Clone Encounter
 
-**UI Type**: API_ENDPOINT - POST /api/library/scenes/:id/clone
+**UI Type**: API_ENDPOINT - POST /api/library/encounters/:id/clone
 
-**Purpose**: Duplicate scene with all Stage, Grid, and SceneAsset configurations (deep copy operation)
+**Purpose**: Duplicate encounter with all Stage, Grid, and EncounterAsset configurations (deep copy operation)
 
-**Business Value**: Enables Game Masters to reuse scene templates with all composition elements
+**Business Value**: Enables Game Masters to reuse encounter templates with all composition elements
 
 **Input Requirements**:
-- SceneId: Guid (required, from route parameter)
-- OwnerId: Guid (from authenticated user, becomes owner of cloned scene)
+- EncounterId: Guid (required, from route parameter)
+- OwnerId: Guid (from authenticated user, becomes owner of cloned encounter)
 - NewName: string (optional, default "{OriginalName} (Copy)")
 
 **Business Rules**:
-- Original Scene must exist
-- Cloned scene owned by authenticated user (OwnerId)
-- Stage, Grid, SceneAssets cloned (value objects)
-- Cloned scene is always standalone (AdventureId=null)
-- Cloned scene is never published (IsPublished=false)
+- Original Encounter must exist
+- Cloned encounter owned by authenticated user (OwnerId)
+- Stage, Grid, EncounterAssets cloned (value objects)
+- Cloned encounter is always standalone (AdventureId=null)
+- Cloned encounter is never published (IsPublished=false)
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
-2. Retrieve source Scene via GetSceneByIdAsync
-3. Generate new Scene.Id for clone
-4. Create cloned Scene entity:
+2. Retrieve source Encounter via GetEncounterByIdAsync
+3. Generate new Encounter.Id for clone
+4. Create cloned Encounter entity:
    - Name = NewName ?? "{OriginalName} (Copy)"
    - OwnerId = authenticated user
    - AdventureId = null (standalone)
@@ -1150,23 +1150,23 @@ This document contains complete specifications for all Library area use cases ac
    - Copy Description
    - Clone Stage value object (Background reference preserved)
    - Clone Grid value object
-   - Clone SceneAssets collection (AssetId references preserved)
-5. Persist cloned Scene via CloneSceneAsync
-6. Publish SceneCloned event
-7. Return cloned Scene
+   - Clone EncounterAssets collection (AssetId references preserved)
+5. Persist cloned Encounter via CloneEncounterAsync
+6. Publish EncounterCloned event
+7. Return cloned Encounter
 
-**Output**: Cloned Scene entity (JSON) with new Id, cloned Stage, Grid, SceneAssets
+**Output**: Cloned Encounter entity (JSON) with new Id, cloned Stage, Grid, EncounterAssets
 
 **Error Scenarios**:
-- Source Scene not found → 404 "Scene not found"
-- Database persistence failure → 500 "Failed to clone scene"
+- Source Encounter not found → 404 "Encounter not found"
+- Database persistence failure → 500 "Failed to clone encounter"
 
 **Acceptance Criteria**:
-- AC-01: Clone succeeds, creates new Scene with new Id
-- AC-02: Stage, Grid, SceneAssets cloned (Background and AssetId references preserved)
-- AC-03: Cloned scene is standalone (AdventureId=null)
-- AC-04: Cloned scene not published (IsPublished=false)
-- AC-05: SceneCloned event published
+- AC-01: Clone succeeds, creates new Encounter with new Id
+- AC-02: Stage, Grid, EncounterAssets cloned (Background and AssetId references preserved)
+- AC-03: Cloned encounter is standalone (AdventureId=null)
+- AC-04: Cloned encounter not published (IsPublished=false)
+- AC-05: EncounterCloned event published
 
 ---
 
@@ -1176,7 +1176,7 @@ This document contains complete specifications for all Library area use cases ac
 - **Epic Management**: 5 use cases (Create, Get, Update, Delete, Get By Owner)
 - **Campaign Management**: 5 use cases (Create, Update, Get By Epic, Move To Epic, Make Standalone)
 - **Adventure Management**: 5 use cases (Create, Update, Clone, Move To Campaign, Make Standalone)
-- **Scene Management**: 8 use cases (Create, Update, Configure Stage, Configure Grid, Place Asset, Move Asset, Remove Asset, Clone)
+- **Encounter Management**: 8 use cases (Create, Update, Configure Stage, Configure Grid, Place Asset, Move Asset, Remove Asset, Clone)
 
 **Common Patterns**:
 - **Authentication**: All operations require authenticated user (OwnerId)
@@ -1185,16 +1185,16 @@ This document contains complete specifications for all Library area use cases ac
 - **Domain Events**: All state-changing operations publish domain events
 - **Hierarchy Management**: Optional parent references (nullable FKs) enable flexible standalone/nested usage
 - **Cascade Operations**: Delete operations cascade to owned children (AGG-01, AGG-03, AGG-05)
-- **Value Objects**: Stage, Grid, SceneAsset are immutable and validated
-- **Cloning**: Adventure and Scene support deep copy operations for reuse
+- **Value Objects**: Stage, Grid, EncounterAsset are immutable and validated
+- **Cloning**: Adventure and Encounter support deep copy operations for reuse
 
 **Architecture Compliance**:
 - **Clean Architecture**: Application services orchestrate, domain entities are contracts, infrastructure provides persistence
 - **Hexagonal Architecture**: Primary ports (ILibraryStorage) define operations, secondary ports (IUserStorage, IMediaStorage, IAssetStorage, IGameSessionStorage) provide external dependencies
-- **DDD**: Bounded context (Library), aggregates (Epic, Campaign, Adventure, Scene with context-dependent roots), domain events, ubiquitous language
+- **DDD**: Bounded context (Library), aggregates (Epic, Campaign, Adventure, Encounter with context-dependent roots), domain events, ubiquitous language
 
 **API Endpoints**:
-All use cases exposed as RESTful API endpoints (API_ENDPOINT UI type), frontend Scene Editor UI in progress.
+All use cases exposed as RESTful API endpoints (API_ENDPOINT UI type), frontend Encounter Editor UI in progress.
 
 ---
 
@@ -1205,7 +1205,7 @@ LIBRARY USE CASES QUALITY CHECKLIST
 
 ## Completeness (25 points)
 ✅ 5pts: All 23 use cases documented
-✅ 5pts: All features covered (Epic, Campaign, Adventure, Scene)
+✅ 5pts: All features covered (Epic, Campaign, Adventure, Encounter)
 ✅ 5pts: All CRUD operations included
 ✅ 5pts: All hierarchy management operations included
 ✅ 5pts: All specialized operations included (Clone, Configure)

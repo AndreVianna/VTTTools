@@ -64,7 +64,7 @@ Build a production-ready administration application that enables authorized admi
 2. Monitor system health, performance, and user activity
 3. Configure application settings without code deployment
 4. Investigate security incidents through comprehensive audit logs
-5. Manage public library content (assets, adventures, scenes)
+5. Manage public library content (assets, adventures, encounters)
 
 All administrative actions will be logged for compliance and security review. The admin app will be deployed independently from the main application with enhanced security controls.
 

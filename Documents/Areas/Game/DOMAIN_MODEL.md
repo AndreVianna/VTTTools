@@ -6,7 +6,7 @@
 
 **Boundaries**:
 - **Inside**: GameSession entity (active meetings), Schedule entity (meeting scheduling), participant management, chat messages, game events, recurrence patterns
-- **Outside**: User management (Identity context), Scene usage (Library context), Asset templates (Assets context)
+- **Outside**: User management (Identity context), Encounter usage (Library context), Asset templates (Assets context)
 
 **Architecture Pattern**: DDD Contracts + Service Implementation
 - Domain entities are **data contracts** (anemic - no behavior)
@@ -34,7 +34,7 @@
 - **Recurrence**: Pattern defining repeating meetings (Once, Daily, Weekly, Monthly, Yearly)
 - **Chat Message**: Text communication during meeting
 - **Game Event**: Recorded game action (dice roll, asset moved, status changed)
-- **Scene**: Active tactical map being used in meeting (references Library context)
+- **Encounter**: Active tactical map being used in meeting (references Library context)
 
 ---
 
@@ -81,11 +81,11 @@
   - **Nullable**: No (empty list not allowed, must have GM)
   - **Purpose**: Meeting participants with roles
 
-- **SceneId**: Guid?
-  - **Constraints**: Must reference existing Scene if provided, nullable
+- **EncounterId**: Guid?
+  - **Constraints**: Must reference existing Encounter if provided, nullable
   - **Default Value**: null
   - **Nullable**: Yes
-  - **Purpose**: Active scene being used in session (optional)
+  - **Purpose**: Active encounter being used in session (optional)
 
 - **Messages**: List<GameSessionMessage> (value objects)
   - **Constraints**: Ordered by timestamp
@@ -120,8 +120,8 @@
   - **Rationale**: Prevent invalid state changes (e.g., Draft → Finished without InProgress)
   - **Enforced By**: Service enforces state machine
 
-- **INV-06**: SceneId must reference existing Scene if provided
-  - **Rationale**: Active scene must be valid
+- **INV-06**: EncounterId must reference existing Encounter if provided
+  - **Rationale**: Active encounter must be valid
   - **Enforced By**: Database foreign key (nullable), service validation
 
 #### Operations (Implemented in Application Services)
@@ -198,11 +198,11 @@
   - **Post-conditions**: Event added to Events with timestamp
   - **Returns**: Task<GameSession>
 
-- **Set Active Scene**: Change scene being used
-  - **Implemented By**: IGameSessionStorage.UpdateAsync() with new SceneId
-  - **Pre-conditions**: Scene exists, user is GM
+- **Set Active Encounter**: Change encounter being used
+  - **Implemented By**: IGameSessionStorage.UpdateAsync() with new EncounterId
+  - **Pre-conditions**: Encounter exists, user is GM
   - **Invariants Enforced**: INV-06
-  - **Post-conditions**: SceneId updated
+  - **Post-conditions**: EncounterId updated
   - **Returns**: Task<GameSession>
 
 **Entity Behavior**: Immutable record with init-only properties, modified via service orchestration
@@ -224,9 +224,9 @@ Potential real-time events:
   - **Cardinality**: Many-to-One
   - **Navigation**: OwnerId foreign key
 
-- **References** → Scene: GameSession may reference active scene
+- **References** → Encounter: GameSession may reference active encounter
   - **Cardinality**: Many-to-One optional
-  - **Navigation**: SceneId foreign key (nullable)
+  - **Navigation**: EncounterId foreign key (nullable)
 
 - **References** → User: Participants reference Users
   - **Cardinality**: Many-to-Many (via Participant value object)
@@ -331,7 +331,7 @@ Potential real-time events:
 **Purpose**: Recorded game action or state change
 
 #### Properties
-- **Type**: string (event type: "DiceRoll", "AssetMoved", "StatusChanged", "SceneChanged")
+- **Type**: string (event type: "DiceRoll", "AssetMoved", "StatusChanged", "EncounterChanged")
 - **Timestamp**: DateTimeOffset
 - **Data**: string (JSON payload with event details)
 
@@ -371,14 +371,14 @@ Potential real-time events:
 
 **Value Objects in Aggregate**: Participant (collection), GameSessionMessage (collection), GameSessionEvent (collection)
 
-**Boundary**: GameSession entity with all its participants, messages, and events. Scene is referenced by ID, not part of aggregate.
+**Boundary**: GameSession entity with all its participants, messages, and events. Encounter is referenced by ID, not part of aggregate.
 
 **Aggregate Invariants**:
 - **AGG-01**: GameSession can only be modified by Game Master (owner)
 - **AGG-02**: Status transitions must follow valid state machine (Draft → Scheduled → InProgress ↔ Paused → Finished/Cancelled)
 - **AGG-03**: Messages and Events are append-only (no deletion)
 - **AGG-04**: Participants can only be added/removed when session not Finished
-- **AGG-05**: Only GM (Master) can change status, add/remove participants, set active scene
+- **AGG-05**: Only GM (Master) can change status, add/remove participants, set active encounter
 
 #### Lifecycle Management
 - **Creation**: Via IGameSessionStorage.CreateAsync() - creates with Status=Draft, owner as Master
@@ -417,7 +417,7 @@ Potential real-time events:
 #### Operations
 - **CreateAsync(GameSession session)**: Create new session
 - **GetByIdAsync(Guid sessionId)**: Retrieve session
-- **UpdateAsync(GameSession session)**: Update session (status, scene, participants)
+- **UpdateAsync(GameSession session)**: Update session (status, encounter, participants)
 - **DeleteAsync(Guid sessionId)**: Remove session
 - **GetByOwnerAsync(Guid ownerId)**: Get sessions owned by GM
 - **GetActiveSessionsAsync()**: Get sessions with Status=InProgress
@@ -427,7 +427,7 @@ Potential real-time events:
 - **AddEventAsync(Guid sessionId, GameSessionEvent event)**: Record game event
 
 #### Dependencies
-- **Required**: DbContext (EF Core), ISceneStorage (for SceneId validation)
+- **Required**: DbContext (EF Core), IEncounterStorage (for EncounterId validation)
 
 ---
 
@@ -456,8 +456,8 @@ Potential real-time events:
 - **BR-03** - Business Logic: Session must have at least one participant (GM as Master)
 - **BR-04** - Business Logic: Only one participant can be Master (Game Master)
 - **BR-05** - State Machine: Valid status transitions (Draft → Scheduled → InProgress ↔ Paused → Finished/Cancelled)
-- **BR-06** - Authorization: Only GM can change status, manage participants, set scene
-- **BR-07** - Referential Integrity: SceneId must reference existing Scene if provided
+- **BR-06** - Authorization: Only GM can change status, manage participants, set encounter
+- **BR-07** - Referential Integrity: EncounterId must reference existing Encounter if provided
 - **BR-08** - Referential Integrity: Participant.UserId must reference existing User
 - **BR-09** - Business Logic: Messages and Events are append-only, ordered by timestamp
 - **BR-10** - Business Logic: Participants cannot be added/removed when Status=Finished

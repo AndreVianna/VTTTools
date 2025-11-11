@@ -1,4 +1,4 @@
-# Phase 8: Scene Management & Structures
+# Phase 8: Encounter Management & Structures
 
 **Status**: 🚧 Active (90% complete)
 **Estimated**: 164h total | **Actual**: 154h (94%)
@@ -10,11 +10,11 @@
 
 ## Overview
 
-Phase 8 has evolved through multiple iterations to deliver complete scene management and structures functionality. Originally estimated at 12h, the phase expanded significantly to include a comprehensive structures system (barriers, regions, sources).
+Phase 8 has evolved through multiple iterations to deliver complete encounter management and structures functionality. Originally estimated at 12h, the phase expanded significantly to include a comprehensive structures system (barriers, regions, sources).
 
 ### Phase Evolution
 
-- **Phase 8.0**: Initial scene management and backend integration (23h)
+- **Phase 8.0**: Initial encounter management and backend integration (23h)
 - **Phase 8.5**: Incomplete items from Phases 6-8 (9h)
 - **Phase 8.6**: Structures backend API & domain model (37h)
 - **Phase 8.7**: Structures frontend drawing tools (67h)
@@ -26,11 +26,11 @@ Phase 8 has evolved through multiple iterations to deliver complete scene manage
 
 ---
 
-### Phase 8: Scene Management ✅ COMPLETE (with known regressions)
+### Phase 8: Encounter Management ✅ COMPLETE (with known regressions)
 
-**Objective**: Implement Scene CRUD UI within Adventure context and Scene Editor backend integration
+**Objective**: Implement Encounter CRUD UI within Adventure context and Encounter Editor backend integration
 
-**Backend Status**: ✅ Scene API fully implemented (`/api/scenes`, `/api/adventures/{id}/scenes`)
+**Backend Status**: ✅ Encounter API fully implemented (`/api/encounters`, `/api/adventures/{id}/encounters`)
 
 **Completion Date**: 2025-10-26
 
@@ -38,20 +38,20 @@ Phase 8 has evolved through multiple iterations to deliver complete scene manage
 
 **Delivered Features**:
 
-**Scene Operations** (Within Adventure Context):
-- ✅ Scene duplicate/delete from Adventure Detail page
+**Encounter Operations** (Within Adventure Context):
+- ✅ Encounter duplicate/delete from Adventure Detail page
 - ✅ ConfirmDialog component (reusable for destructive actions)
-- ✅ Scene list auto-refreshes after operations
+- ✅ Encounter list auto-refreshes after operations
 
-**Scene Editor Backend Integration**:
-- ✅ Load scene from GET /api/scenes/{id}
-- ✅ Save changes via PATCH /api/scenes/{id}
+**Encounter Editor Backend Integration**:
+- ✅ Load encounter from GET /api/encounters/{id}
+- ✅ Save changes via PATCH /api/encounters/{id}
 - ✅ All fields persist: Name, Description, IsPublished, Grid configuration
 - ✅ Background image upload and persistence
-- ✅ Asset hydration (SceneAsset[] ↔ PlacedAsset[])
-- ✅ Cache strategy: keepUnusedDataFor: 0 for getScene (always fresh data)
+- ✅ Asset hydration (EncounterAsset[] ↔ PlacedAsset[])
+- ✅ Cache strategy: keepUnusedDataFor: 0 for getEncounter (always fresh data)
 
-**Scene Properties Panel** (Collapsible):
+**Encounter Properties Panel** (Collapsible):
 - ✅ Properties button (⚙️ Tune icon) in header
 - ✅ Responsive 3-column layout (wide) → 2-column (medium) → 1-column (mobile)
 - ✅ Background image with default tavern fallback + "Default" badge
@@ -62,16 +62,16 @@ Phase 8 has evolved through multiple iterations to deliver complete scene manage
 - ✅ All form fields have proper IDs and labels (WCAG AA accessible)
 
 **Navigation & UX**:
-- ✅ Editable scene name in header (saves on blur, consistent 1.25rem font)
-- ✅ Back button → Adventure Detail (if scene has adventure) or Library
+- ✅ Editable encounter name in header (saves on blur, consistent 1.25rem font)
+- ✅ Back button → Adventure Detail (if encounter has adventure) or Library
 - ✅ Save status indicators (Saving/Saved/Error)
 - ✅ Panning display with centered origin: (0, 0) when centered
 - ✅ Reset View button (RestartAlt icon) - resets zoom and panning
 - ✅ Zoom percentage display (non-clickable)
 
 **Menu Simplification**:
-- ✅ Header navigation: Library, Assets only (Scene Editor removed)
-- ✅ Removed Scene menu (moved to Properties panel)
+- ✅ Header navigation: Library, Assets only (Encounter Editor removed)
+- ✅ Removed Encounter menu (moved to Properties panel)
 - ✅ Removed Stage menu (moved to Properties panel)
 - ✅ Menu bar: Structures, Objects, Creatures, Undo/Redo, Zoom controls, Panning, Reset
 
@@ -79,7 +79,7 @@ Phase 8 has evolved through multiple iterations to deliver complete scene manage
 - ✅ RTK Query cache conflicts (disabled offlineSync middleware)
 - ✅ Grid rendering on load (string → numeric enum conversion)
 - ✅ IsPublished persistence (added to backend contracts, mapper, and service)
-- ✅ Scene name persistence (fixed stale closure with value-passing onBlur)
+- ✅ Encounter name persistence (fixed stale closure with value-passing onBlur)
 - ✅ Stale cache data (keepUnusedDataFor: 0 + refetch on mount)
 - ✅ Infinite loading on refresh (removed problematic Backdrop)
 - ✅ Double header (removed duplicate EditorLayout wrapper from App.tsx)
@@ -92,18 +92,18 @@ Phase 8 has evolved through multiple iterations to deliver complete scene manage
 - ✅ Stage consuming mouse events (conditional onMouseMove when isPanning)
 
 **Backend Changes**:
-- ✅ Added IsPublished to UpdateSceneRequest contract
-- ✅ Added IsPublished to UpdateSceneData service contract
-- ✅ Added IsPublished to SceneService.UpdateSceneAsync logic
-- ✅ Added IsPublished to Mapper.ToModel (SceneEntity → Scene)
-- ✅ Fixed Scene.ToModel() Adventure mapping (avoided circular reference)
-- ✅ Changed UpdateSceneHandler to return Ok(updatedScene) instead of NoContent()
+- ✅ Added IsPublished to UpdateEncounterRequest contract
+- ✅ Added IsPublished to UpdateEncounterData service contract
+- ✅ Added IsPublished to EncounterService.UpdateEncounterAsync logic
+- ✅ Added IsPublished to Mapper.ToModel (EncounterEntity → Encounter)
+- ✅ Fixed Encounter.ToModel() Adventure mapping (avoided circular reference)
+- ✅ Changed UpdateEncounterHandler to return Ok(updatedEncounter) instead of NoContent()
 
 **Regressions Fixed** (2025-10-26):
 
 ✅ **Asset Selection Fixed**
 - **Root Cause**: `stageRef.current` never set due to empty dependency array `[]`
-- **Fix**: Changed dependencies to `[canvasRef.current, isSceneReady]`
+- **Fix**: Changed dependencies to `[canvasRef.current, isEncounterReady]`
 - **Impact**: TokenDragHandle now successfully attaches event handlers
 
 ✅ **Marquee Selection Fixed**
@@ -133,80 +133,80 @@ Phase 8 has evolved through multiple iterations to deliver complete scene manage
 - **Symptom**: Clicking assets adds to selection (as if Ctrl held) even without pressing Ctrl
 - **Scenario**: User holds Ctrl → switches window → releases Ctrl outside → returns → keyup never fires
 - **Fix**: Added window blur handler to reset all modifier key states
-- **File**: `SceneEditorPage.tsx:337-341`
+- **File**: `EncounterEditorPage.tsx:337-341`
 - **Impact**: Modifier keys reset when window loses focus, preventing stuck state
 
 ✅ **Asset Persistence Fixed**
-- **Root Cause**: Frontend sceneApi.ts didn't match actual backend API structure
+- **Root Cause**: Frontend encounterApi.ts didn't match actual backend API structure
 - **Initial Issue**: HTTP 405 Method Not Allowed when trying to persist assets
 - **Symptom**: All placed assets lost on page refresh, no persistence to database
 - **API Mismatch Discovery**: Frontend assumed RESTful endpoints but backend uses index-based operations
 - **Actual Backend API**:
-  - Add: `POST /api/scenes/{sceneId}/assets/{assetId}` (assetId = library asset)
-  - Update: `PATCH /api/scenes/{sceneId}/assets/{number}` (number = 0-based index)
-  - Remove: `DELETE /api/scenes/{sceneId}/assets/{number}` (number = 0-based index)
+  - Add: `POST /api/encounters/{encounterId}/assets/{assetId}` (assetId = library asset)
+  - Update: `PATCH /api/encounters/{encounterId}/assets/{number}` (number = 0-based index)
+  - Remove: `DELETE /api/encounters/{encounterId}/assets/{number}` (number = 0-based index)
 - **Files Changed**:
-  - `sceneApi.ts:109-148` - Rewrote mutations to match actual backend
-  - `SceneEditorPage.tsx:29-37` - Added correct mutation hooks
-  - `SceneEditorPage.tsx:449-643` - Updated all handlers (place/move/delete) with persistence
+  - `encounterApi.ts:109-148` - Rewrote mutations to match actual backend
+  - `EncounterEditorPage.tsx:29-37` - Added correct mutation hooks
+  - `EncounterEditorPage.tsx:449-643` - Updated all handlers (place/move/delete) with persistence
 - **Implementation Details**:
-  - Place: Calls `addSceneAsset` with libraryAssetId, position, size, rotation + refetch
-  - Move: Finds asset index, calls `updateSceneAsset` with position update
-  - Delete: Finds asset index, calls `removeSceneAsset` + refetch
-  - Undo: Properly reverses operations (refetches scene after add/remove)
+  - Place: Calls `addEncounterAsset` with libraryAssetId, position, size, rotation + refetch
+  - Move: Finds asset index, calls `updateEncounterAsset` with position update
+  - Delete: Finds asset index, calls `removeEncounterAsset` + refetch
+  - Undo: Properly reverses operations (refetches encounter after add/remove)
 - **Second Issue (HTTP 500 - Frame null)**: EF Core required `Frame` but frontend sent null
   - **Backend Fix**: Changed backend to initialize Frame with default "None" values instead of nullable
-- **Third Issue (HTTP 500 - Concurrency)**: DbUpdateConcurrencyException in SceneStorage.UpdateAsync
+- **Third Issue (HTTP 500 - Concurrency)**: DbUpdateConcurrencyException in EncounterStorage.UpdateAsync
   - **Root Cause**: `ToEntity()` creates detached entity, `Update()` without original values fails concurrency check
-  - **Backend Fix**: User modified `SceneStorage.UpdateAsync` to load entity first (temporary fix)
+  - **Backend Fix**: User modified `EncounterStorage.UpdateAsync` to load entity first (temporary fix)
   - **Architectural Note**: Intended design is update without requery (performance optimization)
   - **Proper Solution**: EF Core approach needed:
     - Option 1: Use `Attach()` + set `EntityEntry.State = Modified` + manually set original values
     - Option 2: Use `ExecuteUpdate()` for bulk updates without loading (EF Core 7+)
     - Option 3: Accept the requery overhead but optimize with proper includes/projections
   - **Current Status**: Working with requery approach, performance optimization deferred as tech debt
-- **Fourth Issue - Scene Header Missing**: Scene header (name, back button, properties panel) not showing
-  - **Root Cause #1**: `refetch()` updates RTK Query cache but doesn't update local `scene` state
-  - **Root Cause #2**: Asset hydration failure prevented scene initialization, leaving `scene` as `null`
-  - **Symptom**: Header shows generic "VTT Tools" logo instead of scene-specific header with name/buttons
-  - **Fix #1**: Changed all `await refetch()` calls to capture returned data and update scene state:
+- **Fourth Issue - Encounter Header Missing**: Encounter header (name, back button, properties panel) not showing
+  - **Root Cause #1**: `refetch()` updates RTK Query cache but doesn't update local `encounter` state
+  - **Root Cause #2**: Asset hydration failure prevented encounter initialization, leaving `encounter` as `null`
+  - **Symptom**: Header shows generic "VTT Tools" logo instead of encounter-specific header with name/buttons
+  - **Fix #1**: Changed all `await refetch()` calls to capture returned data and update encounter state:
     ```typescript
-    const { data: updatedScene } = await refetch();
-    if (updatedScene) {
-        setScene(updatedScene);
+    const { data: updatedEncounter } = await refetch();
+    if (updatedEncounter) {
+        setEncounter(updatedEncounter);
     }
     ```
-  - **Fix #2**: Added fallback initialization in catch block - scene initializes even if asset loading fails:
+  - **Fix #2**: Added fallback initialization in catch block - encounter initializes even if asset loading fails:
     ```typescript
     } catch (error) {
-        console.error('Failed to hydrate scene assets:', error);
-        // Still initialize the scene even if assets fail to load
-        setScene(sceneData);
+        console.error('Failed to hydrate encounter assets:', error);
+        // Still initialize the encounter even if assets fail to load
+        setEncounter(encounterData);
         setGridConfig({...});
         setPlacedAssets([]); // Empty assets if hydration fails
         setIsInitialized(true);
     }
     ```
-  - **Files Changed**: `SceneEditorPage.tsx` - 6 locations (refetch updates + error handling)
-- **Fifth Issue - Assets Not Loading (401 Unauthorized)**: Placed assets fail to hydrate on scene load
+  - **Files Changed**: `EncounterEditorPage.tsx` - 6 locations (refetch updates + error handling)
+- **Fifth Issue - Assets Not Loading (401 Unauthorized)**: Placed assets fail to hydrate on encounter load
   - **Root Cause**: Asset hydration using plain `fetch()` without authentication credentials
-  - **Symptom**: `Failed to fetch asset {id}` with 401 Unauthorized, assets don't appear on scene after refresh
+  - **Symptom**: `Failed to fetch asset {id}` with 401 Unauthorized, assets don't appear on encounter after refresh
   - **Fix**: Changed asset fetching to use RTK Query with authentication:
     ```typescript
     const result = await dispatch(
         assetsApi.endpoints.getAsset.initiate(assetId)
     ).unwrap();
     ```
-  - **Files Changed**: `SceneEditorPage.tsx:40-41, 59, 122-130` (imports + dispatch + authenticated fetch)
+  - **Files Changed**: `EncounterEditorPage.tsx:40-41, 59, 122-130` (imports + dispatch + authenticated fetch)
 - **Sixth Issue - Assets Not Rendering After Load**: Assets fetch successfully with authentication but don't render on canvas
-  - **Root Cause #1**: Backend `SceneAsset` has no `id` property (uses `index` instead), causing `id: undefined` in PlacedAsset
+  - **Root Cause #1**: Backend `EncounterAsset` has no `id` property (uses `index` instead), causing `id: undefined` in PlacedAsset
   - **Root Cause #2**: Backend uses nested objects (`position: { x, y }`, `size: { width, height }`), hydration assumed flat properties
-  - **Root Cause #3**: Layer computed from asset kind/properties, not stored in SceneAsset
+  - **Root Cause #3**: Layer computed from asset kind/properties, not stored in EncounterAsset
   - **Symptom**: Assets load from DB but canvas shows empty, PlacedAsset has `id: undefined`
   - **Fix Applied**:
     ```typescript
     // Generate ID from index since backend doesn't provide it
-    id: sceneAssetAny.id || `scene-asset-${sceneAssetAny.index || index}`
+    id: encounterAssetAny.id || `encounter-asset-${encounterAssetAny.index || index}`
 
     // Handle nested position/size objects
     const position = 'position' in sa
@@ -217,11 +217,11 @@ Phase 8 has evolved through multiple iterations to deliver complete scene manage
     layer: getAssetLayer(asset)
     ```
   - **Files Changed**:
-    - `sceneMappers.ts:1-2, 14-25, 57-67` (imports, getAssetLayer helper, fixed hydration)
+    - `encounterMappers.ts:1-2, 14-25, 57-67` (imports, getAssetLayer helper, fixed hydration)
   - **Impact**: Assets now render correctly on canvas after page refresh
 - **Seventh Issue - Asset Movement Not Persisting**: Movement API calls succeed but position not saved in database
-  - **Root Cause**: Backend `SceneEntity.UpdateFrom()` joined on `AssetId` instead of `Index` when updating existing assets
-  - **Problem**: Multiple SceneAssets can share the same `AssetId` (same asset placed multiple times), causing wrong asset to be updated
+  - **Root Cause**: Backend `EncounterEntity.UpdateFrom()` joined on `AssetId` instead of `Index` when updating existing assets
+  - **Problem**: Multiple EncounterAssets can share the same `AssetId` (same asset placed multiple times), causing wrong asset to be updated
   - **Symptom**: API returns success, but database shows old position after refetch
   - **Investigation**:
     - Frontend sends: `position: {x: 1625, y: 875}`
@@ -230,16 +230,16 @@ Phase 8 has evolved through multiple iterations to deliver complete scene manage
   - **Fix Applied** (Mapper.cs:172-174):
     ```csharp
     // OLD (WRONG)
-    var existingAssets = entity.SceneAssets.Join(model.Assets,
+    var existingAssets = entity.EncounterAssets.Join(model.Assets,
         esa => esa.AssetId, msa => msa.AssetId, ...);
     var newAssets = model.Assets.Where(sa =>
-        entity.SceneAssets.All(ea => ea.AssetId != sa.AssetId))...;
+        entity.EncounterAssets.All(ea => ea.AssetId != sa.AssetId))...;
 
     // NEW (CORRECT)
-    var existingAssets = entity.SceneAssets.Join(model.Assets,
+    var existingAssets = entity.EncounterAssets.Join(model.Assets,
         esa => esa.Index, msa => msa.Index, ...);
     var newAssets = model.Assets.Where(sa =>
-        entity.SceneAssets.All(ea => ea.Index != sa.Index))...;
+        entity.EncounterAssets.All(ea => ea.Index != sa.Index))...;
     ```
   - **Files Changed**:
     - `Mapper.cs:172-174` (changed join key from AssetId to Index)
@@ -247,13 +247,13 @@ Phase 8 has evolved through multiple iterations to deliver complete scene manage
 - **False Start - Coordinate Conversion**: Initially misunderstood backend `Position` model docs ("cell-based") and added pixel↔grid conversion, but backend actually uses pixel coordinates. Reverted all conversion code.
 - **Index Tracking**: Uses `placedAssets.findIndex()` INSIDE setState callback to find current 0-based position for update/delete
 - **Data Sync**: Calls `refetch()` after add/remove to sync RTK Query cache AND local state with backend
-- **Impact**: Assets persist across page refreshes, scene header displays correctly, assets load with authentication, movement updates saved
+- **Impact**: Assets persist across page refreshes, encounter header displays correctly, assets load with authentication, movement updates saved
 
 **Conservative Hardening Applied** (2025-10-26):
 
 ✅ **Stage Reference Validation**
 - Added null check: `if (stage && stage !== stageRef.current)`
-- Added error logging when scene ready but Stage not set
+- Added error logging when encounter ready but Stage not set
 - Added detailed comments explaining TokenDragHandle dependency
 
 ✅ **Documentation Improvements**
@@ -264,27 +264,27 @@ Phase 8 has evolved through multiple iterations to deliver complete scene manage
 **Implementation Sequence** (As Executed):
 
 **Phase 8B: Backend Integration** (4h) ✅ COMPLETE
-- Created scenesApi RTK Query slice with PATCH endpoint
+- Created encountersApi RTK Query slice with PATCH endpoint
 - Implemented asset hydration/dehydration mappers
-- Integrated backend loading/saving in SceneEditorPage
+- Integrated backend loading/saving in EncounterEditorPage
 - Replaced localStorage with backend persistence
 
-**Phase 8C: Scene Menu → Properties Panel** (3h) ✅ COMPLETE
-- Created ScenePropertiesPanel component with collapsible Collapse
-- Moved Scene menu to header as collapsible panel
+**Phase 8C: Encounter Menu → Properties Panel** (3h) ✅ COMPLETE
+- Created EncounterPropertiesPanel component with collapsible Collapse
+- Moved Encounter menu to header as collapsible panel
 - Added adventure link, description, published toggle
 - Implemented responsive 3-column layout
 
 **Phase 8D: Header & Navigation** (2h) ✅ COMPLETE
-- Created EditableSceneName and SaveStatusIndicator components
-- Enhanced EditorLayout header with scene-specific elements
+- Created EditableEncounterName and SaveStatusIndicator components
+- Enhanced EditorLayout header with encounter-specific elements
 - Implemented back button navigation logic
 - Added panning display and reset view button
 
-**Phase 8A: Scene Operations** (3h) ✅ COMPLETE
+**Phase 8A: Encounter Operations** (3h) ✅ COMPLETE
 - Created ConfirmDialog reusable component
-- Implemented scene duplicate handler (no confirmation)
-- Implemented scene delete handler (with confirmation)
+- Implemented encounter duplicate handler (no confirmation)
+- Implemented encounter delete handler (with confirmation)
 
 **Bug Fixes & Enhancements**: (~8h additional effort)
 - RTK Query caching strategy overhaul
@@ -297,26 +297,26 @@ Phase 8 has evolved through multiple iterations to deliver complete scene manage
 
 **Success Criteria**:
 
-- ✅ Scene operations (duplicate/delete) functional in Adventure Detail
-- ✅ Scene Editor loads scene from backend
-- ✅ Scene metadata editable in Properties panel
-- ✅ Scene name editable in header
+- ✅ Encounter operations (duplicate/delete) functional in Adventure Detail
+- ✅ Encounter Editor loads encounter from backend
+- ✅ Encounter metadata editable in Properties panel
+- ✅ Encounter name editable in header
 - ✅ Grid configuration saved to backend
 - ⚠️ Asset placements persist (placement works, selection broken)
 - ✅ Save on blur/change (no timer-based auto-save)
-- ✅ Navigation: Adventure Detail ↔ Scene Editor
-- ✅ All scene properties persist after refresh
+- ✅ Navigation: Adventure Detail ↔ Encounter Editor
+- ✅ All encounter properties persist after refresh
 - ⚠️ Phase 6 features partially working (see Known Regressions)
 
 **Dependencies**:
 
 - **Prerequisites**: Phase 7 (Adventure management) ✅
-- **Blocks**: Phase 10 (game sessions need scene persistence)
+- **Blocks**: Phase 10 (game sessions need encounter persistence)
 
 **Validation**:
 
-- ✅ Scene CRUD within adventure context functional
-- ✅ Scene Editor backend persistence verified
+- ✅ Encounter CRUD within adventure context functional
+- ✅ Encounter Editor backend persistence verified
 - ✅ Save working without data loss (explicit save on blur/change)
 - ⚠️ Test coverage ≥70% (deferred - frontend tests not added)
 - ✅ Grid configuration persists correctly
@@ -329,13 +329,13 @@ Phase 8 has evolved through multiple iterations to deliver complete scene manage
 - Phase 8B (Backend Integration): 4h ✅
 - Phase 8C (Properties Panel): 3h ✅
 - Phase 8D (Header & Navigation): 2h ✅
-- Phase 8A (Scene Operations): 3h ✅
+- Phase 8A (Encounter Operations): 3h ✅
 - Bug Fixes & Enhancements: ~8h
 - Known Regressions: 3h remaining (asset selection, marquee)
 
 **Status**: ✅ FEATURE COMPLETE (2025-10-26), all regressions fixed
 
-**Technical Debt - Scene Editor Architecture** 📋
+**Technical Debt - Encounter Editor Architecture** 📋
 
 The following improvements were identified but deferred to maintain stability and avoid regression risk during Phase 8 completion. These are **nice-to-have architectural improvements**, not critical issues. Current implementation works correctly.
 
@@ -343,8 +343,8 @@ The following improvements were identified but deferred to maintain stability an
 
 **TD-1: Stage Availability Callback Pattern** 🔧
 - **Current Issue**: Stage reference timing relies on useEffect dependency array
-- **Current Fix**: Conservative validation with `[canvasRef.current, isSceneReady]` dependencies
-- **Improvement**: Add explicit `onStageReady` callback to SceneCanvas for explicit notification
+- **Current Fix**: Conservative validation with `[canvasRef.current, isEncounterReady]` dependencies
+- **Improvement**: Add explicit `onStageReady` callback to EncounterCanvas for explicit notification
 - **Benefits**: Eliminates dependency guessing, makes Stage lifecycle explicit
 - **Risk**: Medium - changes from ref to state-based approach
 - **Effort**: 30 minutes
@@ -357,7 +357,7 @@ The following improvements were identified but deferred to maintain stability an
 - **Benefits**: Clearer separation of concerns, more maintainable
 - **Risk**: Medium - requires moving logic between components
 - **Effort**: 1-2 hours
-- **Priority**: Consider during next major Scene Editor refactor
+- **Priority**: Consider during next major Encounter Editor refactor
 
 **TD-3: Declarative Handler Attachment** 🔧
 - **Current Issue**: TokenDragHandle imperatively attaches handlers via `node.on()`
@@ -366,7 +366,7 @@ The following improvements were identified but deferred to maintain stability an
 - **Benefits**: Leverages React lifecycle, no manual cleanup, more robust
 - **Risk**: High - major change to interaction pattern
 - **Effort**: 2-3 hours
-- **Priority**: Defer until comprehensive BDD tests exist for Scene Editor
+- **Priority**: Defer until comprehensive BDD tests exist for Encounter Editor
 
 **TD-4: Centralized Stage Events** 🔧
 - **Current Issue**: Event handlers distributed across components
@@ -377,7 +377,7 @@ The following improvements were identified but deferred to maintain stability an
 - **Effort**: 1 hour
 - **Priority**: Low - optional enhancement
 
-**Recommendation**: Address TD-1 when adding BDD tests for Scene Editor. Address TD-2 and TD-3 together during next major refactor when comprehensive test coverage exists. TD-4 is optional.
+**Recommendation**: Address TD-1 when adding BDD tests for Encounter Editor. Address TD-2 and TD-3 together during next major refactor when comprehensive test coverage exists. TD-4 is optional.
 
 **Decision Rationale** (2025-10-26):
 - Current code works correctly after stageRef fix
@@ -406,19 +406,19 @@ The following improvements were identified but deferred to maintain stability an
   - **Sources**: Point-based effects (light, sound) - single vertex with range and line-of-sight
 - **Note**: Structures clarified as distinct from assets. See Phase 8.6 and 8.7 for detailed breakdown.
 
-**Item 2: Scene Duplication** ✅ COMPLETE
+**Item 2: Encounter Duplication** ✅ COMPLETE
 - **Status**: Complete (3 hours)
 - **Deliverables**:
-  - Smart naming pattern with auto-increment (e.g., "Scene (1)", "Scene (2)")
-  - Clone/Delete buttons in scene cards (replaced 3-dot menu)
-  - Default tavern.png background for scenes
+  - Smart naming pattern with auto-increment (e.g., "Encounter (1)", "Encounter (2)")
+  - Clone/Delete buttons in encounter cards (replaced 3-dot menu)
+  - Default tavern.png background for encounters
   - Backend NamingHelper.cs utility
-  - REST-compliant route: `POST /api/adventures/{id}/scenes/{sceneId}/clone`
+  - REST-compliant route: `POST /api/adventures/{id}/encounters/{encounterId}/clone`
 
 **Item 3: Adventure Duplication** ✅ COMPLETE
 - **Status**: Complete (2 hours)
 - **Deliverables**:
-  - Same smart naming pattern as scenes
+  - Same smart naming pattern as encounters
   - Clone/Delete buttons in adventure cards
   - Default adventure.png background
   - REST-compliant route: `POST /api/adventures/{id}/clone`
@@ -431,7 +431,7 @@ The following improvements were identified but deferred to maintain stability an
   - Creatures: `{AssetName} #{number}` (auto-increment)
   - Structures: `{AssetName}` (no numbering, pending structure placement clarification)
   - Display name on hover/selection
-  - Persistence to SceneAsset.Name field
+  - Persistence to EncounterAsset.Name field
 
 **Item 5: Selection in Undo/Redo Queue** ✅ VERIFIED CORRECT
 - **Status**: Complete (0 hours - already working correctly)
@@ -440,18 +440,18 @@ The following improvements were identified but deferred to maintain stability an
 **Bulk Asset Operations** ✅ COMPLETE (Bonus Work)
 - **Status**: Complete (4 hours)
 - **Deliverables**:
-  - `POST /api/scenes/{id}/assets/clone` - Bulk clone assets
-  - `DELETE /api/scenes/{id}/assets` - Bulk delete assets
+  - `POST /api/encounters/{id}/assets/clone` - Bulk clone assets
+  - `DELETE /api/encounters/{id}/assets` - Bulk delete assets
   - Uses `AssetIndices` (List<uint>) for index-based operations
 - **Completed**:
-  - ✅ BulkCloneSceneAssetsRequest.cs created
-  - ✅ BulkDeleteSceneAssetsRequest.cs created
-  - ✅ Endpoints added to SceneEndpointsMapper.cs
+  - ✅ BulkCloneEncounterAssetsRequest.cs created
+  - ✅ BulkDeleteEncounterAssetsRequest.cs created
+  - ✅ Endpoints added to EncounterEndpointsMapper.cs
   - ✅ Handlers and service methods implemented
 
 **Success Criteria**:
 
-- ✅ Scene duplication with smart naming
+- ✅ Encounter duplication with smart naming
 - ✅ Adventure duplication with smart naming
 - ✅ Auto-naming assets during placement
 - ✅ Selection correctly excluded from undo/redo
@@ -460,12 +460,12 @@ The following improvements were identified but deferred to maintain stability an
 
 **Dependencies**:
 
-- **Prerequisites**: Phase 8 (Scene Management) ✅
+- **Prerequisites**: Phase 8 (Encounter Management) ✅
 - **Blocks**: None (enhancements, not blocking features)
 
 **Validation**:
 
-- ✅ Scene/Adventure duplication tested
+- ✅ Encounter/Adventure duplication tested
 - ✅ Smart naming verified with multiple clones
 - ✅ Auto-naming tested with objects and creatures
 - ✅ Selection undo/redo behavior verified
@@ -475,7 +475,7 @@ The following improvements were identified but deferred to maintain stability an
 
 **Breakdown**:
 - Item 1 (Structure Placement): ⚠️ Pending clarification (4-6h estimated)
-- Item 2 (Scene Duplication): ✅ Complete (3h actual)
+- Item 2 (Encounter Duplication): ✅ Complete (3h actual)
 - Item 3 (Adventure Duplication): ✅ Complete (2h actual)
 - Item 4 (Auto-Naming Assets): ✅ Complete (0h - per user)
 - Item 5 (Selection Undo/Redo): ✅ Complete (0h - verified correct)
@@ -516,17 +516,17 @@ Structures are NOT assets. Three fundamentally different categories:
 
 **Deliverables**:
 - Domain models (6 records):
-  - `Barrier.cs`, `SceneBarrier.cs`
-  - `Region.cs`, `SceneRegion.cs`
-  - `Source.cs`, `SceneSource.cs`
+  - `Barrier.cs`, `EncounterBarrier.cs`
+  - `Region.cs`, `EncounterRegion.cs`
+  - `Source.cs`, `EncounterSource.cs`
 - EF Core entities (6 classes) matching domain models
 - Schema builders (3 files):
   - `BarrierSchemaBuilder.cs`
   - `RegionSchemaBuilder.cs`
   - `SourceSchemaBuilder.cs`
 - Database migration:
-  - Create 6 tables (Barriers, SceneBarriers, Regions, SceneRegions, Sources, SceneSources)
-  - Drop 2 old tables (Structures, SceneStructures)
+  - Create 6 tables (Barriers, EncounterBarriers, Regions, EncounterRegions, Sources, EncounterSources)
+  - Drop 2 old tables (Structures, EncounterStructures)
   - JSON columns for Vertices (Point arrays) and LabelMap (Dictionary)
 
 **Success Criteria**:
@@ -544,12 +544,12 @@ Structures are NOT assets. Three fundamentally different categories:
 **Deliverables**:
 - API contracts (6 files):
   - `CreateBarrierRequest.cs`, `UpdateBarrierRequest.cs`, `BarrierResponse.cs`
-  - `PlaceSceneBarrierRequest.cs`, `UpdateSceneBarrierRequest.cs`, `SceneBarrierResponse.cs`
+  - `PlaceEncounterBarrierRequest.cs`, `UpdateEncounterBarrierRequest.cs`, `EncounterBarrierResponse.cs`
 - `BarrierService.cs` (CRUD for templates)
-- `SceneService.cs` extensions:
-  - `PlaceBarrierAsync(sceneId, barrierId, vertices)`
-  - `UpdateSceneBarrierAsync(sceneBarrierId, vertices, isOpen, isLocked)`
-  - `RemoveSceneBarrierAsync(sceneBarrierId)`
+- `EncounterService.cs` extensions:
+  - `PlaceBarrierAsync(encounterId, barrierId, vertices)`
+  - `UpdateEncounterBarrierAsync(encounterBarrierId, vertices, isOpen, isLocked)`
+  - `RemoveEncounterBarrierAsync(encounterBarrierId)`
 - `BarrierStorage.cs` (complete CRUD with EF Core)
 - `Mapper.cs` extensions (Barrier ↔ API contracts)
 - `BarrierEndpointsMapper.cs` (6 endpoints):
@@ -558,7 +558,7 @@ Structures are NOT assets. Three fundamentally different categories:
   - `GET /api/library/barriers/{id}`
   - `PUT /api/library/barriers/{id}`
   - `DELETE /api/library/barriers/{id}`
-  - Scene endpoints: `POST/PATCH/DELETE /api/scenes/{sceneId}/barriers`
+  - Encounter endpoints: `POST/PATCH/DELETE /api/encounters/{encounterId}/barriers`
 - Unit tests (BarrierServiceTests, BarrierStorageTests)
 
 **Success Criteria**:
@@ -573,9 +573,9 @@ Structures are NOT assets. Three fundamentally different categories:
 #### Phase 8.6C: Regions API (7-9h)
 
 **Deliverables**:
-- API contracts (6 files for Region + SceneRegion)
+- API contracts (6 files for Region + EncounterRegion)
 - `RegionService.cs`
-- `SceneService.cs` extensions (PlaceRegionAsync, UpdateSceneRegionAsync, RemoveSceneRegionAsync)
+- `EncounterService.cs` extensions (PlaceRegionAsync, UpdateEncounterRegionAsync, RemoveEncounterRegionAsync)
 - `RegionStorage.cs`
 - Mapper extensions
 - `RegionEndpointsMapper.cs` (6 endpoints)
@@ -594,9 +594,9 @@ Structures are NOT assets. Three fundamentally different categories:
 #### Phase 8.6D: Sources API (8-11h)
 
 **Deliverables**:
-- API contracts (6 files for Source + SceneSource)
+- API contracts (6 files for Source + EncounterSource)
 - `SourceService.cs`
-- `SceneService.cs` extensions (PlaceSourceAsync, UpdateSceneSourceAsync, RemoveSceneSourceAsync)
+- `EncounterService.cs` extensions (PlaceSourceAsync, UpdateEncounterSourceAsync, RemoveEncounterSourceAsync)
 - `SourceStorage.cs`
 - Mapper extensions
 - `SourceEndpointsMapper.cs` (6 endpoints)
@@ -635,17 +635,17 @@ Structures are NOT assets. Three fundamentally different categories:
 **Success Criteria**:
 
 - ✅ 3 domain models (Barrier, Region, Source)
-- ✅ 3 scene placement models (SceneBarrier, SceneRegion, SceneSource)
+- ✅ 3 encounter placement models (EncounterBarrier, EncounterRegion, EncounterSource)
 - ✅ 6 database tables created, 2 dropped
 - ✅ 18 API endpoints functional (6 per category)
-- ✅ 3 service classes + SceneService extensions
+- ✅ 3 service classes + EncounterService extensions
 - ✅ 3 storage classes (complete CRUD)
 - ✅ Unit tests ≥80% coverage
 - ✅ Grade B+ or higher (aggregate)
 
 **Dependencies**:
 
-- **Prerequisites**: Phase 8 (Scene Management) ✅
+- **Prerequisites**: Phase 8 (Encounter Management) ✅
 - **Blocks**: Phase 8.7 (Frontend requires backend API)
 
 **Validation**:
@@ -669,10 +669,10 @@ Structures are NOT assets. Three fundamentally different categories:
 **Status**: ✅ COMPLETE (2025-10-28)
 
 **Deliverables Achieved**:
-- ✅ 6 domain models (Barrier, Region, Source + Scene variants)
+- ✅ 6 domain models (Barrier, Region, Source + Encounter variants)
 - ✅ 6 database tables created (migration 20251028194937)
 - ✅ 18 API endpoints functional (6 per category)
-- ✅ 3 service classes + SceneService extensions
+- ✅ 3 service classes + EncounterService extensions
 - ✅ 3 storage classes with complete CRUD
 - ✅ 45 unit tests passing (≥85% coverage)
 - ✅ Pattern consistency: 50/50 (perfect alignment across categories)
@@ -683,7 +683,7 @@ Structures are NOT assets. Three fundamentally different categories:
 
 ### Phase 8.7: Structures Frontend Drawing Tools 🔜 READY
 
-**Objective**: Implement frontend drawing tools, Konva rendering, and Scene Editor integration for Structures
+**Objective**: Implement frontend drawing tools, Konva rendering, and Encounter Editor integration for Structures
 
 **Approach**: Incremental implementation with review checkpoints after each tool
 
@@ -695,9 +695,9 @@ Structures are NOT assets. Three fundamentally different categories:
 
 **Deliverables**:
 - `src/types/domain.ts` (add 6 interfaces):
-  - `Barrier`, `SceneBarrier`
-  - `Region`, `SceneRegion`
-  - `Source`, `SceneSource`
+  - `Barrier`, `EncounterBarrier`
+  - `Region`, `EncounterRegion`
+  - `Source`, `EncounterSource`
 - RTK Query API slices (3 files):
   - `src/services/barrierApi.ts` (6 endpoints)
   - `src/services/regionApi.ts` (6 endpoints)
@@ -743,9 +743,9 @@ Structures are NOT assets. Three fundamentally different categories:
 
 **Deliverables**:
 - Drawing tool:
-  - `src/components/scene/structures/BarrierDrawingTool.tsx` (click-to-place vertices)
+  - `src/components/encounter/structures/BarrierDrawingTool.tsx` (click-to-place vertices)
 - Rendering:
-  - `src/components/scene/rendering/BarrierRenderer.tsx` (Konva Lines)
+  - `src/components/encounter/rendering/BarrierRenderer.tsx` (Konva Lines)
 - Utilities:
   - `src/utils/structureSnapping.ts` (half-snap, quarter-snap, free)
   - `src/utils/barrierValidation.ts` (min 2 vertices, no self-overlap)
@@ -783,9 +783,9 @@ Structures are NOT assets. Three fundamentally different categories:
 
 **Deliverables**:
 - Drawing tool:
-  - `src/components/scene/structures/RegionDrawingTool.tsx` (click-to-place polygon)
+  - `src/components/encounter/structures/RegionDrawingTool.tsx` (click-to-place polygon)
 - Rendering:
-  - `src/components/scene/rendering/RegionRenderer.tsx` (Konva Polygons)
+  - `src/components/encounter/rendering/RegionRenderer.tsx` (Konva Polygons)
 - Utilities:
   - `src/utils/regionValidation.ts` (min 3 vertices, closed polygon, no self-intersection)
 - Undo/redo commands:
@@ -824,9 +824,9 @@ Structures are NOT assets. Three fundamentally different categories:
 
 **Deliverables**:
 - Placement tool:
-  - `src/components/scene/structures/SourcePlacementTool.tsx` (click-drag range)
+  - `src/components/encounter/structures/SourcePlacementTool.tsx` (click-drag range)
 - Rendering:
-  - `src/components/scene/rendering/SourceRenderer.tsx` (Konva with LOS blocking)
+  - `src/components/encounter/rendering/SourceRenderer.tsx` (Konva with LOS blocking)
 - Utilities:
   - `src/utils/lineOfSight.ts` (ray-casting, barrier intersection)
   - `src/utils/rangeCalculator.ts` (fractional grid cells)
@@ -881,10 +881,10 @@ Structures are NOT assets. Three fundamentally different categories:
 
 ---
 
-#### Phase 8.7F: Scene Editor Integration + Testing (7-10h)
+#### Phase 8.7F: Encounter Editor Integration + Testing (7-10h)
 
 **Deliverables**:
-- `src/pages/SceneEditorPage.tsx` (integrate 3 drawing tools)
+- `src/pages/EncounterEditorPage.tsx` (integrate 3 drawing tools)
 - Menu bar updates:
   - "Structures" menu
   - Shortcuts: W=wall, D=door, R=region, L=light, Esc=cancel
@@ -902,7 +902,7 @@ Structures are NOT assets. Three fundamentally different categories:
 - Correct layer z-ordering
 - Tool switching works (deactivate previous)
 - Structures persist to backend on placement
-- Structures load from backend on scene load
+- Structures load from backend on encounter load
 - Integration tests passing
 - BDD scenarios passing
 
@@ -931,7 +931,7 @@ Structures are NOT assets. Three fundamentally different categories:
 8. Code review checkpoint
 9. Source tool + LOS (8.7E)
 10. Code review checkpoint
-11. Scene Editor integration (8.7F)
+11. Encounter Editor integration (8.7F)
 12. Code review checkpoint
 13. Final end-to-end review
 
@@ -972,12 +972,12 @@ Structures are NOT assets. Three fundamentally different categories:
 - Phase 8.7C (Barrier Drawing): A (93/100)
 - Phase 8.7D (Region Drawing): A (94/100)
 - Phase 8.7E (Source LOS): A+ (96/100)
-- Phase 8.7F (Scene Integration): A- (90/100)
+- Phase 8.7F (Encounter Integration): A- (90/100)
 
 **Status**: ✅ COMPLETE (2025-10-29)
 
 **Deliverables Achieved**:
-- ✅ 6 TypeScript interfaces (Barrier, Region, Source + Scene variants)
+- ✅ 6 TypeScript interfaces (Barrier, Region, Source + Encounter variants)
 - ✅ 3 RTK Query API slices with 18 endpoints fully integrated
 - ✅ Library UI with 3 tabs (Barriers, Regions, Sources) - searchable with editor dialogs
 - ✅ 3 drawing tools (click-to-place vertices, polygons, click-drag range)
@@ -1057,18 +1057,18 @@ Structures are NOT assets. Three fundamentally different categories:
 
 ---
 
-#### Phase 8.8A: Scene Editor UI Overhaul ✅ COMPLETE
+#### Phase 8.8A: Encounter Editor UI Overhaul ✅ COMPLETE
 
-**Objective**: Modernize Scene Editor interface with ultra-compact toolbar system and layer visibility controls
+**Objective**: Modernize Encounter Editor interface with ultra-compact toolbar system and layer visibility controls
 
 **Completion Date**: 2025-10-29
 
-**Background**: During manual testing, the Scene Editor interface was identified as needing modernization. The old menu bar system (50px height) was consuming excessive vertical space and lacked layer visibility controls, which are essential for working with the new Structures feature.
+**Background**: During manual testing, the Encounter Editor interface was identified as needing modernization. The old menu bar system (50px height) was consuming excessive vertical space and lacked layer visibility controls, which are essential for working with the new Structures feature.
 
 **Implementation Details**:
 
-**1. Removed Legacy Components** (SceneEditorPage.tsx:1159-1188):
-- ❌ Removed `SceneEditorMenuBar` component (50px height)
+**1. Removed Legacy Components** (EncounterEditorPage.tsx:1159-1188):
+- ❌ Removed `EncounterEditorMenuBar` component (50px height)
 - ❌ Removed `MENU_BAR_HEIGHT` constant
 - ✅ Updated `TOTAL_TOP_HEIGHT = EDITOR_HEADER_HEIGHT` (64px only)
 - ✅ Fixed viewport height calculation: `window.innerHeight - TOTAL_TOP_HEIGHT`
@@ -1099,7 +1099,7 @@ Structures are NOT assets. Three fundamentally different categories:
   - Grid snap status (ON/OFF)
   - Monospace font for coordinates and zoom
 
-**3. Layer Visibility System** (SceneEditorPage.tsx:170-177, 1096-1112):
+**3. Layer Visibility System** (EncounterEditorPage.tsx:170-177, 1096-1112):
 - ✅ **LayerToggleBar** (32px height, extends right from left toolbar):
   - Background toggle (Wallpaper icon)
   - Grid toggle (GridOn icon)
@@ -1128,7 +1128,7 @@ Structures are NOT assets. Three fundamentally different categories:
   - Assets layer: Filtered by AssetKind (Object/Creature) based on visibility
   - Overlays layer: `{layerVisibility.overlays && <Layer name="UIOverlay">...</Layer>}`
 
-**4. Asset Filtering by Layer** (SceneEditorPage.tsx:1306-1328):
+**4. Asset Filtering by Layer** (EncounterEditorPage.tsx:1306-1328):
 ```typescript
 placedAssets={placedAssets.filter(asset => {
     if (asset.asset.kind === AssetKind.Object && !layerVisibility.objects) {
@@ -1147,7 +1147,7 @@ placedAssets={placedAssets.filter(asset => {
 - ✅ Object tooltips (Rect + Text): `opacity={0.667}`
 - ✅ Object tokens: 100% opaque (unchanged)
 
-**6. Cursor Position Tracking** (SceneEditorPage.tsx:178, 1114-1118, 1171):
+**6. Cursor Position Tracking** (EncounterEditorPage.tsx:178, 1114-1118, 1171):
 ```typescript
 const [cursorPosition, setCursorPosition] = useState<{ x: y: number } | undefined>(undefined);
 
@@ -1159,13 +1159,13 @@ const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) 
 ```
 
 **Modified Files**:
-1. `Source/WebClientApp/src/pages/SceneEditorPage.tsx` - Major integration work
-2. `Source/WebClientApp/src/components/scene/TokenPlacement.tsx` - Opacity changes
-3. `Source/WebClientApp/src/components/scene/index.ts` - Export updates
-4. `Source/WebClientApp/src/components/scene/LayerToggleBar.tsx` - Already existed
-5. `Source/WebClientApp/src/components/scene/LeftToolBar.tsx` - Already existed
-6. `Source/WebClientApp/src/components/scene/TopToolBar.tsx` - Already existed
-7. `Source/WebClientApp/src/components/scene/EditorStatusBar.tsx` - Already existed
+1. `Source/WebClientApp/src/pages/EncounterEditorPage.tsx` - Major integration work
+2. `Source/WebClientApp/src/components/encounter/TokenPlacement.tsx` - Opacity changes
+3. `Source/WebClientApp/src/components/encounter/index.ts` - Export updates
+4. `Source/WebClientApp/src/components/encounter/LayerToggleBar.tsx` - Already existed
+5. `Source/WebClientApp/src/components/encounter/LeftToolBar.tsx` - Already existed
+6. `Source/WebClientApp/src/components/encounter/TopToolBar.tsx` - Already existed
+7. `Source/WebClientApp/src/components/encounter/EditorStatusBar.tsx` - Already existed
 
 **Design Standards**:
 - Ultra-compact: 32px/36px toolbars, 18px icons, 20px status bar
@@ -1183,7 +1183,7 @@ const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) 
 1. **Git Revert Mistake**: Accidentally reverted all UI overhaul work when trying to revert drag-related changes
    - **Resolution**: Re-implemented from scratch, saved to memory for recovery
 2. **Old MenuBar Persisting**: Old component still rendered after adding new toolbars
-   - **Resolution**: Removed SceneEditorMenuBar and surrounding Box container
+   - **Resolution**: Removed EncounterEditorMenuBar and surrounding Box container
 3. **Runtime Error**: `cursorPosition` referenced but not defined
    - **Resolution**: Added state variable and mouse move handler
 
@@ -1299,9 +1299,9 @@ const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) 
 - Pole insertion on line (add new pole in middle of line segment) - Removed during debugging
 
 **Files Modified**:
-- `Source/WebClientApp/src/components/scene/panels/WallsPanel.tsx` - Wall list UI
-- `Source/WebClientApp/src/components/scene/drawing/WallDrawingTool.tsx` - Placement mode
-- `Source/WebClientApp/src/components/scene/editing/WallTransformer.tsx` - Edit mode (IN PROGRESS)
+- `Source/WebClientApp/src/components/encounter/panels/WallsPanel.tsx` - Wall list UI
+- `Source/WebClientApp/src/components/encounter/drawing/WallDrawingTool.tsx` - Placement mode
+- `Source/WebClientApp/src/components/encounter/editing/WallTransformer.tsx` - Edit mode (IN PROGRESS)
 - `Source/WebClientApp/src/utils/gridCalculator.ts` - Grid snapping utilities
 - `Source/WebClientApp/src/utils/structureSnapping.ts` - Wall-specific snapping
 
@@ -1329,13 +1329,13 @@ const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) 
 
 ---
 
-##### 8.8B.3: Asset/Scene Backend Contract Migration & Image Display Fixes ✅ COMPLETE
+##### 8.8B.3: Asset/Encounter Backend Contract Migration & Image Display Fixes ✅ COMPLETE
 
-**Objective**: Resolve breaking changes from backend Asset/Scene schema migration and restore image display functionality across all UI components
+**Objective**: Resolve breaking changes from backend Asset/Encounter schema migration and restore image display functionality across all UI components
 
 **Completion Date**: 2025-11-07
 
-**Context**: Backend commit introduced major schema changes to Asset and Scene contracts:
+**Context**: Backend commit introduced major schema changes to Asset and Encounter contracts:
 - `AssetResource` → `AssetToken` (token representation for battle maps)
 - `ObjectProperties` → `ObjectData` (object-specific data)
 - Schema now separates Token (battle map images) from Portrait (character sheet images)
@@ -1381,7 +1381,7 @@ interface AssetToken {
 - **Solution**: Added `TokenId` property alongside navigation property for dual access pattern
 
 **Problem 3: C# Nullable Reference Warnings (6 warnings)**
-- **Locations**: `Mapper.cs` (lines 79, 102, 144), `Cloner.cs` (line 37), `SceneService.cs` (lines 139, 342)
+- **Locations**: `Mapper.cs` (lines 79, 102, 144), `Cloner.cs` (line 37), `EncounterService.cs` (lines 139, 342)
 - **Root Cause**: Possible null assignments when mapping `Token` navigation properties
 - **Solution**: Added null filtering with `.Where(r => r.Token != null)` + null-forgiving operator `r.Token!.ToEntity()` after filter
 
@@ -1428,7 +1428,7 @@ interface AssetToken {
        };
    ```
 
-4. **`Source/Library/Services/SceneService.cs`**: Restored to use `Token.Id` after user revert
+4. **`Source/Library/Services/EncounterService.cs`**: Restored to use `Token.Id` after user revert
    ```csharp
    // User reverted to nested access (lines 139, 342)
    var tokenId = data.TokenId ?? asset.Tokens.FirstOrDefault(r => r.IsDefault)?.Token.Id;
@@ -1447,8 +1447,8 @@ interface AssetToken {
    - Fallback logic: `defaultToken?.token.id || asset.tokens?.[0]?.token.id`
    - Full nested access for all token operations
 
-3. **`Source/WebClientApp/src/components/scene/TokenPlacement.tsx`**:
-   - Scene asset rendering: `defaultToken.token.id` or `asset.tokens[0].token.id`
+3. **`Source/WebClientApp/src/components/encounter/TokenPlacement.tsx`**:
+   - Encounter asset rendering: `defaultToken.token.id` or `asset.tokens[0].token.id`
    - Media URL construction: `${mediaBaseUrl}/${token.id}`
 
 4. **`Source/WebClientApp/src/pages/AssetLibraryPage.tsx`**:
@@ -1463,7 +1463,7 @@ interface AssetToken {
 - ✅ Backend build: 0 errors, 0 warnings (nullable reference warnings resolved)
 - ✅ Frontend build: TypeScript compilation successful
 - ✅ User verification: "Great the token image is working now"
-- ✅ Manual QA: Image display restored in Asset Library, Asset Edit Dialog, Scene Editor
+- ✅ Manual QA: Image display restored in Asset Library, Asset Edit Dialog, Encounter Editor
 
 **Defensive Programming vs Proper Fix Lesson**:
 - ❌ **Initial Approach**: Created frontend workaround `getTokenId()` to handle backend inconsistency
@@ -1489,7 +1489,7 @@ interface AssetToken {
 **Completion Date**: 2025-11-07
 
 **Initial Symptom**:
-- CORS errors in Scene Editor: `Access to image at 'https://localhost:7174/api/resources/019a50f8-f3e5-702b-89d3-33d694391f66' from origin 'http://localhost:5173' has been blocked by CORS policy`
+- CORS errors in Encounter Editor: `Access to image at 'https://localhost:7174/api/resources/019a50f8-f3e5-702b-89d3-33d694391f66' from origin 'http://localhost:5173' has been blocked by CORS policy`
 - Images that previously worked suddenly stopped loading
 - Error appeared after rotation work and lint/type-check cleanup
 
@@ -1717,11 +1717,11 @@ interface AssetToken {
 
 ### Asset Rotation System ✅ COMPLETE
 
-**Objective**: Implement interactive rotation handle for scene assets with visual feedback and precise angle control
+**Objective**: Implement interactive rotation handle for encounter assets with visual feedback and precise angle control
 
 **Completion Date**: 2025-11-08
 
-**Background**: Scene assets (tokens, objects) required the ability to rotate after placement. The implementation went through 11+ iterations to resolve visual artifacts and interaction issues, ultimately delivering a robust rotation system with mouse-based interaction.
+**Background**: Encounter assets (tokens, objects) required the ability to rotate after placement. The implementation went through 11+ iterations to resolve visual artifacts and interaction issues, ultimately delivering a robust rotation system with mouse-based interaction.
 
 **Implementation Details**:
 
@@ -1768,14 +1768,14 @@ interface AssetToken {
   - `onRotationStart` / `onRotationEnd` callbacks for operation lifecycle
   - `onRotationChange` callback with asset rotation updates array
 
-**5. Backend Integration** (sceneApi.ts):
+**5. Backend Integration** (encounterApi.ts):
 - ✅ **Persistence**:
-  - RTK Query `updateSceneAsset` mutation
-  - Rotation property persisted to database via SceneService
+  - RTK Query `updateEncounterAsset` mutation
+  - Rotation property persisted to database via EncounterService
   - Optimistic updates for immediate visual feedback
 
 **6. Bug Fixes & Refinements**:
-- ✅ **Ghost Handle Fix** - Removed duplicate RotationHandle from SceneEditorPage (Layer 9)
+- ✅ **Ghost Handle Fix** - Removed duplicate RotationHandle from EncounterEditorPage (Layer 9)
   - Issue: Two rotation handles rendered on different layers
   - Debugging: Color-coded handles (RED vs BLUE) to identify duplicate
   - Solution: Removed standalone RotationHandle component, kept inline rendering
@@ -1804,11 +1804,11 @@ interface AssetToken {
   - **Impact**: Prevented EF Core from updating existing Resource records with null values
 
 **Files Modified**:
-- `Source/WebClientApp/src/components/scene/RotationHandle.tsx` - Standalone component
-- `Source/WebClientApp/src/components/scene/TokenDragHandle.tsx` - Inline rendering, mouse events
-- `Source/WebClientApp/src/components/scene/TokenPlacement.tsx` - Label display logic
-- `Source/WebClientApp/src/pages/SceneEditorPage.tsx` - Removed duplicate RotationHandle
-- `Source/WebClientApp/src/services/sceneApi.ts` - Rotation persistence
+- `Source/WebClientApp/src/components/encounter/RotationHandle.tsx` - Standalone component
+- `Source/WebClientApp/src/components/encounter/TokenDragHandle.tsx` - Inline rendering, mouse events
+- `Source/WebClientApp/src/components/encounter/TokenPlacement.tsx` - Label display logic
+- `Source/WebClientApp/src/pages/EncounterEditorPage.tsx` - Removed duplicate RotationHandle
+- `Source/WebClientApp/src/services/encounterApi.ts` - Rotation persistence
 - `Source/WebClientApp/src/utils/rotationUtils.ts` - Angle calculation utilities
 - `Source/Data/Library/Mapper.cs` - Fixed navigation property bug
 
@@ -1848,7 +1848,7 @@ interface AssetToken {
 - Phase 8.8: 5h+ ongoing (50-100% of 8-12h estimate)
 
 **Scope Evolution**:
-- Original: Simple scene CRUD operations
+- Original: Simple encounter CRUD operations
 - Expanded: Complete structures system (barriers, regions, sources)
 - Added: Manual testing and refinement phase
 

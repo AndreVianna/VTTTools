@@ -2,7 +2,7 @@
 
 **Original Request**: Manage reusable game asset templates for VTT Tools platform
 
-**Asset Management** is a content management feature that enables creation, modification, retrieval, and deletion of reusable game asset templates (creatures, characters, NPCs, objects, tokens, walls, doors, effects). This feature affects the Assets area and enables Game Masters to organize and maintain their library of game assets for use in adventures and scenes.
+**Asset Management** is a content management feature that enables creation, modification, retrieval, and deletion of reusable game asset templates (creatures, characters, NPCs, objects, tokens, walls, doors, effects). This feature affects the Assets area and enables Game Masters to organize and maintain their library of game assets for use in adventures and encounters.
 
 ---
 
@@ -20,7 +20,7 @@
   - Asset creation completion rate >95%
   - Average asset retrieval time <200ms
   - Zero data loss incidents
-  - Asset reuse rate >70% (assets used in multiple scenes)
+  - Asset reuse rate >70% (assets used in multiple encounters)
 
 ### Area Assignment
 - **Primary Area**: Assets
@@ -28,7 +28,7 @@
 - **Cross-Area Impact**:
   - Identity: Asset ownership linked to User entities
   - Media: Asset display properties reference Resource entities
-  - Library: Scenes reference Asset templates for placement
+  - Library: Encounters reference Asset templates for placement
 
 ---
 
@@ -63,7 +63,7 @@
 - **Assets**: Core CRUD operations for Asset entities, type categorization, ownership enforcement
 - **Identity**: Ownership validation - assets linked to User.Id via OwnerId foreign key
 - **Media**: Display resource references - assets reference Resource.Id via Display value object
-- **Library**: Scene placement - SceneAsset references Asset.Id when placing assets on scenes
+- **Library**: Encounter placement - EncounterAsset references Asset.Id when placing assets on encounters
 
 ### Use Case Breakdown
 - **Create Asset** (Assets): Create new asset template with validation
@@ -82,7 +82,7 @@
 - **External Dependencies**:
   - User entity from Identity context (via OwnerId)
   - Resource entity from Media context (via Display.ResourceId)
-  - SceneAsset query for usage checks (Library context)
+  - EncounterAsset query for usage checks (Library context)
 - **Implementation Priority**: Phase 1 (CRUD operations) → Phase 2 (Query operations) → Phase 3 (Frontend UI)
 
 ---
@@ -92,11 +92,11 @@
 ### Area Interactions
 - **Assets** → **Identity**: Validate OwnerId references existing User during creation
 - **Assets** → **Media**: Validate Display.ResourceId references existing Image Resource
-- **Assets** ← **Library**: Check SceneAsset usage before allowing deletion
+- **Assets** ← **Library**: Check EncounterAsset usage before allowing deletion
 - **Identity** → **Assets**: User deletion should handle orphaned assets (cascade or reassign)
 
 ### Integration Requirements
-- **Data Sharing**: Asset.Id shared with Library for scene placement references
+- **Data Sharing**: Asset.Id shared with Library for encounter placement references
 - **Interface Contracts**:
   - IAssetStorage interface defines 8 operations (domain layer contract)
   - Application services implement IAssetStorage (infrastructure layer)

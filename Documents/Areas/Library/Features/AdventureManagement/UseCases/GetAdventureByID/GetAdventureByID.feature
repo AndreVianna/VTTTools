@@ -4,7 +4,7 @@
 Feature: Get Adventure By ID
   As a Game Master
   I want to retrieve an adventure by its ID
-  So that I can view adventure details and associated scenes
+  So that I can view adventure details and associated encounters
 
   Background:
     Given I am authenticated as a Game Master
@@ -19,12 +19,12 @@ Feature: Get Adventure By ID
     And the adventure name should be "The Crystal Caverns"
 
   @happy-path
-  Scenario: Successfully retrieve adventure with associated scenes
-    Given an adventure exists with 8 associated scenes
+  Scenario: Successfully retrieve adventure with associated encounters
+    Given an adventure exists with 8 associated encounters
     When I request the adventure by its ID
     Then I should receive the adventure details
-    And I should see all 8 scenes in the collection
-    And each scene should reference the correct adventure ID
+    And I should see all 8 encounters in the collection
+    And each encounter should reference the correct adventure ID
 
   @happy-path
   Scenario: Successfully retrieve adventure with campaign association
@@ -56,11 +56,11 @@ Feature: Get Adventure By ID
     And I should see error "Invalid adventure ID format"
 
   @edge-case
-  Scenario: Retrieve adventure with no scenes
-    Given an adventure exists with no associated scenes
+  Scenario: Retrieve adventure with no encounters
+    Given an adventure exists with no associated encounters
     When I request the adventure by its ID
     Then I should receive the adventure details
-    And the scenes collection should be empty
+    And the encounters collection should be empty
 
   @data-driven
   Scenario Outline: Retrieve adventures with different types

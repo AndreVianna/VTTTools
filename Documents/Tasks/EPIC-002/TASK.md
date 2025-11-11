@@ -82,7 +82,7 @@ Build a secure, independently deployable React administration application that e
 - Manually verify user emails
 - Assign/remove roles from users
 - Reset user passwords (send reset email)
-- View user activity summary (sessions created, assets uploaded, last active scene)
+- View user activity summary (sessions created, assets uploaded, last active encounter)
 
 **Verification**: Manual testing + E2E test suite covering all user management operations
 
@@ -159,7 +159,7 @@ Build a secure, independently deployable React administration application that e
 - Data-heavy UI (tables, filters, exports) vs. creative canvas tools
 - Admin-specific MUI theme (professional, information-dense layout)
 - Enhanced error reporting and detailed logging
-- No Konva canvas (no scene editor)
+- No Konva canvas (no encounter editor)
 - Export/import functionality
 
 ### Backend Architecture
@@ -427,8 +427,8 @@ Role assignment handled in User Management feature via:
 2. **Advanced Filters** (filter panel or drawer):
    - Date range picker (start date, end date) with presets (last hour, today, last 7 days, last 30 days)
    - User filter (search by email or select from dropdown)
-   - Action filter (multi-select: Login, Logout, CreateAsset, DeleteScene, LockUser, etc.)
-   - Entity type filter (User, Asset, Scene, Session, etc.)
+   - Action filter (multi-select: Login, Logout, CreateAsset, DeleteEncounter, LockUser, etc.)
+   - Entity type filter (User, Asset, Encounter, Session, etc.)
    - Result filter (Success, Failure, Error)
    - IP address search
    - Keyword search (searches request/response JSON)
@@ -499,7 +499,7 @@ Role assignment handled in User Management feature via:
      - Session timeout
    - **Feature Flags**:
      - Enable/disable features without deployment
-     - Examples: Scene collaboration, public asset gallery, 2FA enforcement, new UI components
+     - Examples: Encounter collaboration, public asset gallery, 2FA enforcement, new UI components
      - Toggle switches with immediate effect
    - **Storage Configuration**:
      - Database connection configuration (connection string, pool size, timeouts)
@@ -537,7 +537,7 @@ Role assignment handled in User Management feature via:
 
 4. **Feature Flags** (dedicated view):
    - Toggle switches for each feature
-   - Features: Scene collaboration, public asset gallery, 2FA enforcement, etc.
+   - Features: Encounter collaboration, public asset gallery, 2FA enforcement, etc.
    - Immediate effect (cached in backend with short TTL)
 
 5. **Maintenance Mode**:
@@ -598,9 +598,9 @@ Role assignment handled in User Management feature via:
 
 **Features**:
 1. **Content Library View**:
-   - List all system-owned content (Adventures, Assets, Scenes)
+   - List all system-owned content (Adventures, Assets, Encounters)
    - MUI DataGrid with server-side pagination
-   - Filters: Content type (Adventure/Asset/Scene), status (Draft/Public/Premium), category, tags
+   - Filters: Content type (Adventure/Asset/Encounter), status (Draft/Public/Premium), category, tags
    - Search by name, description
    - Columns: Thumbnail, Name, Type, Status, Price (display only), Downloads, Created Date, Published Date
    - Bulk actions: Publish selected, Unpublish selected, Delete selected
@@ -609,7 +609,7 @@ Role assignment handled in User Management feature via:
 2. **Content Upload/Create**:
    - Upload new system-owned adventures
    - Upload new system-owned assets (maps, tokens, props, 3D models)
-   - Create new system-owned scenes
+   - Create new system-owned encounters
    - Drag-and-drop file upload with progress bar
    - Set metadata: Name, Description, Tags, Category, Preview images
    - Content validation (file size, format, required fields)
@@ -652,8 +652,8 @@ Role assignment handled in User Management feature via:
 
 **Domain Models** (new or extended):
 - `PublicLibraryContent` (Source/Domain/Admin/Model/PublicLibraryContent.cs)
-  - Extends or references existing Asset/Adventure/Scene models
-  - Properties: Id, Type (Adventure/Asset/Scene), Name, Description, Status (Draft/Public/Premium), Price, Currency, OwnerId (null = system-owned), DownloadCount, CreatedDate, PublishedDate, Tags, Category, LicenseTerms, PreviewImageUrls, Version
+  - Extends or references existing Asset/Adventure/Encounter models
+  - Properties: Id, Type (Adventure/Asset/Encounter), Name, Description, Status (Draft/Public/Premium), Price, Currency, OwnerId (null = system-owned), DownloadCount, CreatedDate, PublishedDate, Tags, Category, LicenseTerms, PreviewImageUrls, Version
 
 **Service Contracts** (new):
 - `IPublicLibraryService` (Source/Domain/Admin/Contracts/IPublicLibraryService.cs)
@@ -662,7 +662,7 @@ Role assignment handled in User Management feature via:
 **Storage** (new):
 - `IPublicLibraryStorage` (Source/Domain/Admin/Storage/IPublicLibraryStorage.cs)
 - Implementation: `PublicLibraryStorage` (Source/Data/Admin/PublicLibraryStorage.cs)
-- Reuses existing asset/adventure/scene storage with OwnerId = null for system-owned content
+- Reuses existing asset/adventure/encounter storage with OwnerId = null for system-owned content
 
 **Integration with Main App**:
 - Main app already has library/asset browsing (Phase 7)

@@ -2,7 +2,7 @@
 
 **Quick Start Guide for New Sessions**
 
-**Current Phase**: Phase 8 (Scene Management)
+**Current Phase**: Phase 8 (Encounter Management)
 **Status**: Ready to start
 **Last Updated**: 2025-10-25
 
@@ -22,15 +22,15 @@
 
 **Completed**: Phases 1-7 (75.8% of epic)
 - ✅ Phase 1-2: Foundation, Auth, Landing
-- ✅ Phase 3-4: Scene Editor (Pan/Zoom, Grid/Layers)
+- ✅ Phase 3-4: Encounter Editor (Pan/Zoom, Grid/Layers)
 - ✅ Phase 5: Asset Library
-- ✅ Phase 6: Scene Editor enhancements (Tokens, Undo/Redo, Multi-select, Collision)
+- ✅ Phase 6: Encounter Editor enhancements (Tokens, Undo/Redo, Multi-select, Collision)
 - ✅ Phase 7: Adventure Management (Library page, Adventure CRUD, contentApi integration)
 
-**Current**: Phase 8 (Scene Management)
+**Current**: Phase 8 (Encounter Management)
 - 🔧 Implementation: READY TO START
 - ⏱️ Estimated: 12 hours
-- 📋 Deliverables: Scene operations, Scene Editor backend integration
+- 📋 Deliverables: Encounter operations, Encounter Editor backend integration
 
 **Next**: Phase 9 (Campaigns - blocked), Phase 10 (Game Sessions), Phase 11 (Account Settings)
 
@@ -42,7 +42,7 @@
 
 **Architectural Discovery**: Backend uses DDD aggregate pattern
 - Adventures are aggregate roots (containers)
-- Scenes are child entities (content)
+- Encounters are child entities (content)
 - Swapped Phase 7/8 to align with backend architecture
 
 **Key Deliverables** (COMPLETED 2025-10-25):
@@ -57,9 +57,9 @@
    - Auto-save on blur/change
    - IsOneShot and IsPublished toggles
    - Background image upload
-   - Scene list display
-   - Add scene functionality
-4. Infrastructure for Phase 8 (Scenes) - 70% reusable
+   - Encounter list display
+   - Add encounter functionality
+4. Infrastructure for Phase 8 (Encounters) - 70% reusable
 
 **Grade**: B+ (88/100) → A- (92/100) after critical fixes
 
@@ -67,33 +67,33 @@
 
 ## What is Phase 8?
 
-**Objective**: Implement Scene Management within Adventure context
+**Objective**: Implement Encounter Management within Adventure context
 
-**Approach**: Scenes as child entities of Adventures
-- Scenes created/edited within adventure
-- No standalone scene CRUD
-- Scene Editor integrated with backend persistence
-- Auto-save for scene changes
+**Approach**: Encounters as child entities of Adventures
+- Encounters created/edited within adventure
+- No standalone encounter CRUD
+- Encounter Editor integrated with backend persistence
+- Auto-save for encounter changes
 
 **Key Deliverables** (12 hours estimated):
-1. Scene operations from Adventure Detail:
-   - Duplicate scene
-   - Delete scene with confirmation
-2. Scene Editor backend integration:
-   - Load scene by ID from `/api/scenes/{id}`
-   - Auto-save changes via PATCH `/api/scenes/{id}`
-   - Scene Menu showing parent adventure
-   - Editable scene name in header
+1. Encounter operations from Adventure Detail:
+   - Duplicate encounter
+   - Delete encounter with confirmation
+2. Encounter Editor backend integration:
+   - Load encounter by ID from `/api/encounters/{id}`
+   - Auto-save changes via PATCH `/api/encounters/{id}`
+   - Encounter Menu showing parent adventure
+   - Editable encounter name in header
    - Grid configuration persistence
 3. Navigation improvements:
-   - Back button: Scene Editor → Adventure Detail
+   - Back button: Encounter Editor → Adventure Detail
    - Save status indicators
    - Unsaved changes warning
 
 **Implementation Phases**:
-- Phase 8A: Scene operations in Adventure Detail (3h)
-- Phase 8B: Scene Editor backend integration (4h)
-- Phase 8C: Scene Menu component (3h)
+- Phase 8A: Encounter operations in Adventure Detail (3h)
+- Phase 8B: Encounter Editor backend integration (4h)
+- Phase 8C: Encounter Menu component (3h)
 - Phase 8D: Header and navigation (2h)
 
 ---
@@ -164,19 +164,19 @@
 - Shared components: EditableTitle, ContentCard, ContentListLayout
 - Auto-save framework
 
-**Scene-Specific**:
-- Scene list with cards
-- Scene menu in editor (adventure, description, published)
-- Editable scene name in header
+**Encounter-Specific**:
+- Encounter list with cards
+- Encounter menu in editor (adventure, description, published)
+- Editable encounter name in header
 - Grid config moved to Stage menu
-- Scenes API (RTK Query)
+- Encounters API (RTK Query)
 
 ### Implementation Steps
 
 **Phase 7A**: Foundation (4h) - Types, routing, shared components
-**Phase 7B**: Scene List (3h) - List view, cards, search
-**Phase 7C**: Scenes API (3h) - RTK Query, mappers
-**Phase 7D**: Scene Menu (3h) - Metadata in menu bar
+**Phase 7B**: Encounter List (3h) - List view, cards, search
+**Phase 7C**: Encounters API (3h) - RTK Query, mappers
+**Phase 7D**: Encounter Menu (3h) - Metadata in menu bar
 **Phase 7E**: Header (2h) - Editable title, back button
 **Phase 7F**: Stage Menu (2h) - Grid config migration
 
@@ -184,24 +184,24 @@
 
 ### Key Architecture Decisions
 
-1. **No SceneCRUDDialog** - Editor is the form
+1. **No EncounterCRUDDialog** - Editor is the form
 2. **Menu Organization**:
-   - Scene menu = metadata (adventure, description, published)
+   - Encounter menu = metadata (adventure, description, published)
    - Stage menu = canvas config (background, grid, stage size)
 3. **Auto-save**: 3s debounce, optimistic updates
-4. **Routing**: `/content-library/scenes` list, `/scene-editor/:sceneId` editor
+4. **Routing**: `/content-library/encounters` list, `/encounter-editor/:encounterId` editor
 5. **Reusability**: Build shared components that work for all hierarchy levels
 
 ---
 
 ## Backend API Status
 
-**Scenes API**: ✅ Fully implemented
-- `GET /api/library/scenes` - List scenes
-- `GET /api/library/scenes/:id` - Get scene
-- `POST /api/library/scenes` - Create scene
-- `PUT /api/library/scenes/:id` - Update scene
-- `DELETE /api/library/scenes/:id` - Delete scene
+**Encounters API**: ✅ Fully implemented
+- `GET /api/library/encounters` - List encounters
+- `GET /api/library/encounters/:id` - Get encounter
+- `POST /api/library/encounters` - Create encounter
+- `PUT /api/library/encounters/:id` - Update encounter
+- `DELETE /api/library/encounters/:id` - Delete encounter
 
 **Ready to integrate** - no backend blockers
 

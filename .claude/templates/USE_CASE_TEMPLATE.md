@@ -124,7 +124,7 @@
   </foreach>
 <examples>
 - **Component Type**: Reusable widget
-- **Used In**: Dashboard, Adventure Details, Scene View
+- **Used In**: Dashboard, Adventure Details, Encounter View
 - **Props Required**: userId, displaySize
 - **Key UI Elements**:
   - Image: User avatar with fallback initials

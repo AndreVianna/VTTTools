@@ -16,20 +16,20 @@ After migrating from `Size` (int-based) to `NamedSize` (double-based), 28 unit t
 
 #### Domain Unit Tests
 **Fixed Files**:
-- `Source/Domain.UnitTests/Library/Scenes/ApiContracts/AddAssetRequestTests.cs`
-- `Source/Domain.UnitTests/Library/Scenes/ApiContracts/UpdateAssetRequestTests.cs`
-- `Source/Domain.UnitTests/Library/Scenes/ServiceContracts/AddAssetDataTests.cs`
-- `Source/Domain.UnitTests/Library/Scenes/ServiceContracts/UpdateAssetDataTests.cs`
-- `Source/Domain.UnitTests/Library/Scenes/Model/SceneAssetTests.cs`
+- `Source/Domain.UnitTests/Library/Encounters/ApiContracts/AddAssetRequestTests.cs`
+- `Source/Domain.UnitTests/Library/Encounters/ApiContracts/UpdateAssetRequestTests.cs`
+- `Source/Domain.UnitTests/Library/Encounters/ServiceContracts/AddAssetDataTests.cs`
+- `Source/Domain.UnitTests/Library/Encounters/ServiceContracts/UpdateAssetDataTests.cs`
+- `Source/Domain.UnitTests/Library/Encounters/Model/EncounterAssetTests.cs`
 
-**Key Fix**: Updated `SceneAssetTests.cs` line 16 - Frame default is now `new Frame()` not `null`
+**Key Fix**: Updated `EncounterAssetTests.cs` line 16 - Frame default is now `new Frame()` not `null`
 
 #### Library Unit Tests
 **Fixed Files**:
 - `Source/Library.UnitTests/Services/ClonerTests.cs`
 - `Source/Library.UnitTests/Services/AdventureServiceTests.cs`
-- `Source/Library.UnitTests/Services/SceneServiceTests.cs`
-- `Source/Library.UnitTests/Handlers/SceneHandlersTests.cs`
+- `Source/Library.UnitTests/Services/EncounterServiceTests.cs`
+- `Source/Library.UnitTests/Handlers/EncounterHandlersTests.cs`
 
 **Key Fixes**:
 1. Added `using Size = VttTools.Common.Model.Size;` alias to resolve ambiguity with `System.Drawing.Size`
@@ -46,7 +46,7 @@ After migrating from `Size` (int-based) to `NamedSize` (double-based), 28 unit t
 ## 2. Shift-Click Continuous Placement Feature
 
 ### Implementation
-**File**: `Source/WebClientApp/src/components/scene/TokenPlacement.tsx`
+**File**: `Source/WebClientApp/src/components/encounter/TokenPlacement.tsx`
 
 **Changes**:
 - Line 297: Detect `e.evt.shiftKey` in `handleMouseMove`
@@ -76,7 +76,7 @@ After migrating from `Size` (int-based) to `NamedSize` (double-based), 28 unit t
 
 **Problem**: Small crate (0.5 x 0.5 grid cells = 25 x 25 pixels) failed to save with error:
 ```
-Failed to read parameter "AddSceneAssetRequest request" from the request body as JSON.
+Failed to read parameter "AddEncounterAssetRequest request" from the request body as JSON.
 ```
 
 **Frontend Request Payload**:
@@ -125,7 +125,7 @@ public record Position {
 }
 ```
 
-**2. Database Schema** (`Source/Data/Builders/SceneSchemaBuilder.cs`)
+**2. Database Schema** (`Source/Data/Builders/EncounterSchemaBuilder.cs`)
 ```csharp
 // Line 70-74
 entity.ComplexProperty(ea => ea.Position, positionBuilder => {
@@ -136,7 +136,7 @@ entity.ComplexProperty(ea => ea.Position, positionBuilder => {
 ```
 
 **3. Database Migration**
-- **File**: `Source/Data.MigrationService/Migrations/20251027045327_ChangeSceneAssetPositionToDouble.cs`
+- **File**: `Source/Data.MigrationService/Migrations/20251027045327_ChangeEncounterAssetPositionToDouble.cs`
 - **Changes**:
   - `Position_X`: `int` → `float` (SQL Server double)
   - `Position_Y`: `int` → `float` (SQL Server double)
@@ -147,9 +147,9 @@ entity.ComplexProperty(ea => ea.Position, positionBuilder => {
 ## 4. Frontend API Changes
 
 ### Added isSquare Property
-**File**: `Source/WebClientApp/src/services/sceneApi.ts`
+**File**: `Source/WebClientApp/src/services/encounterApi.ts`
 
-**Lines 121-123** (`addSceneAsset`):
+**Lines 121-123** (`addEncounterAsset`):
 ```typescript
 size: {
     width: size.width,
@@ -158,7 +158,7 @@ size: {
 }
 ```
 
-**Lines 139** (`bulkUpdateSceneAssets`):
+**Lines 139** (`bulkUpdateEncounterAssets`):
 ```typescript
 ...(update.size && {
     size: {
@@ -185,14 +185,14 @@ public bool IsSquare { get; init; } = false;
 
 ## 5. Database Migrations Created
 
-### Migration 1: ChangeSceneAssetSizeToDouble
-**File**: `Source/Data.MigrationService/Migrations/20251027020200_ChangeSceneAssetSizeToDouble.cs`
+### Migration 1: ChangeEncounterAssetSizeToDouble
+**File**: `Source/Data.MigrationService/Migrations/20251027020200_ChangeEncounterAssetSizeToDouble.cs`
 - Changed `Size_Width` and `Size_Height` from `int` to `float`
 - Added `Size_IsSquare` column (bit/boolean)
 - **Status**: ✅ Applied (verified as already up-to-date)
 
-### Migration 2: ChangeSceneAssetPositionToDouble
-**File**: `Source/Data.MigrationService/Migrations/20251027045327_ChangeSceneAssetPositionToDouble.cs`
+### Migration 2: ChangeEncounterAssetPositionToDouble
+**File**: `Source/Data.MigrationService/Migrations/20251027045327_ChangeEncounterAssetPositionToDouble.cs`
 - Changed `Position_X` and `Position_Y` from `int` to `float`
 - **Status**: ✅ Applied successfully
 
@@ -251,20 +251,20 @@ public bool IsSquare { get; init; } = false;
 ### Backend (C#)
 1. `Source/Domain/Common/Model/Position.cs` - int → double
 2. `Source/Domain/Common/Model/NamedSize.cs` - added default values
-3. `Source/Data/Builders/SceneSchemaBuilder.cs` - Position defaults 0 → 0.0
-4. `Source/Library/Handlers/SceneHandlers.cs` - (logging added/removed during debug)
+3. `Source/Data/Builders/EncounterSchemaBuilder.cs` - Position defaults 0 → 0.0
+4. `Source/Library/Handlers/EncounterHandlers.cs` - (logging added/removed during debug)
 5. **8 Domain test files** - fixed NamedSize constructor syntax
 6. **6 Library test files** - fixed Size/NamedSize/CellSize type confusion
 
 ### Frontend (TypeScript/React)
-1. `Source/WebClientApp/src/components/scene/TokenPlacement.tsx` - Shift-click placement
+1. `Source/WebClientApp/src/components/encounter/TokenPlacement.tsx` - Shift-click placement
 2. `Source/WebClientApp/src/types/placement.ts` - skipCollisionCheck parameter
-3. `Source/WebClientApp/src/services/sceneApi.ts` - added isSquare property
-4. `Source/WebClientApp/src/pages/SceneEditorPage.tsx` - (logging added during debug)
+3. `Source/WebClientApp/src/services/encounterApi.ts` - added isSquare property
+4. `Source/WebClientApp/src/pages/EncounterEditorPage.tsx` - (logging added during debug)
 
 ### Migrations
-1. `20251027020200_ChangeSceneAssetSizeToDouble.cs` - Size int → double + IsSquare
-2. `20251027045327_ChangeSceneAssetPositionToDouble.cs` - Position int → double
+1. `20251027020200_ChangeEncounterAssetSizeToDouble.cs` - Size int → double + IsSquare
+2. `20251027045327_ChangeEncounterAssetPositionToDouble.cs` - Position int → double
 
 ---
 
@@ -281,9 +281,9 @@ public bool IsSquare { get; init; } = false;
 
 ### ⚠️ Known Issues (Pre-existing, Unrelated)
 - Library unit tests: 14 service layer failures (not related to NamedSize changes)
-  - SceneService.UpdateSceneAsync - NullReferenceException
-  - SceneService.UpdateAssetAsync - NullReferenceException
-  - SceneEndpointsMapperTests - Expected 8 endpoints, found 9 (bulk update endpoint)
+  - EncounterService.UpdateEncounterAsync - NullReferenceException
+  - EncounterService.UpdateAssetAsync - NullReferenceException
+  - EncounterEndpointsMapperTests - Expected 8 endpoints, found 9 (bulk update endpoint)
   - AdventureHandlersTests - Expected BadRequest, got ProblemHttpResult
 
 ---
@@ -339,7 +339,7 @@ public bool IsSquare { get; init; } = false;
 
 ## Appendix A: Database Schema Changes
 
-### SceneAssets Table - Before
+### EncounterAssets Table - Before
 ```sql
 Position_X int NOT NULL DEFAULT 0
 Position_Y int NOT NULL DEFAULT 0
@@ -347,7 +347,7 @@ Size_Width int NOT NULL DEFAULT 0
 Size_Height int NOT NULL DEFAULT 0
 ```
 
-### SceneAssets Table - After
+### EncounterAssets Table - After
 ```sql
 Position_X float NOT NULL DEFAULT 0.0
 Position_Y float NOT NULL DEFAULT 0.0

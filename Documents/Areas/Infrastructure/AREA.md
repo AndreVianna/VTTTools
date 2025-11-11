@@ -69,7 +69,7 @@ This area is a **Supporting Subdomain** focused on technical infrastructure rath
 - Handle React Errors
 - Display Network Status
 - Handle Asset Loading Errors
-- Recover From Scene Errors
+- Recover From Encounter Errors
 - Display Global Errors
 - Validate Forms
 - Display Service Unavailable
@@ -126,7 +126,7 @@ This area is a **Supporting Subdomain** focused on technical infrastructure rath
 
 ### Dependencies
 - **Depends On**: None (foundational area)
-- **Depended On By**: All other areas (Security, Adventures, Scenes, etc.)
+- **Depended On By**: All other areas (Security, Adventures, Encounters, etc.)
 
 ---
 
@@ -135,7 +135,7 @@ This area is a **Supporting Subdomain** focused on technical infrastructure rath
 ### Error Handling Strategy
 The Platform Infrastructure area provides a unified error handling framework used across all features:
 
-1. **Error Types**: `network`, `validation`, `authentication`, `authorization`, `asset_loading`, `scene_save`, `scene_load`, `system`
+1. **Error Types**: `network`, `validation`, `authentication`, `authorization`, `asset_loading`, `encounter_save`, `encounter_load`, `system`
 2. **Error Processing**: Centralized error classification, user-friendly message generation, retry capability detection
 3. **Error Display**: Global error notifications, error boundaries with fallback UI, network status indicators
 4. **Error Recovery**: Automatic retry with exponential backoff, manual retry buttons, navigation to safe states

@@ -86,12 +86,12 @@ Feature: Epic Management
   Scenario: Cascade delete epic with nested content
     Given I have an epic with two campaigns
     And each campaign has three adventures
-    And each adventure has multiple scenes
+    And each adventure has multiple encounters
     When I delete the epic
     Then the epic is removed successfully
     And all campaigns are deleted
     And all adventures are deleted
-    And all scenes are deleted
+    And all encounters are deleted
 
   @integration @cross-area
   Scenario: Cannot delete epic referenced by active game session

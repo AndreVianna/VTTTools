@@ -235,7 +235,7 @@ src/components/
 ├── auth/              # Authentication forms
 ├── error/             # Error handling UI
 ├── layout/            # Layout containers
-├── scene/             # Scene editor components
+├── encounter/             # Encounter editor components
 └── theme/             # Theme configuration
     ├── themeColors.ts     # Centralized color palette
     └── VTTThemeProvider.tsx  # Theme implementation

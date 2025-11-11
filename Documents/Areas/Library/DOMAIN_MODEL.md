@@ -2,10 +2,10 @@
 
 **Bounded Context**: Library
 
-**Purpose**: Manage hierarchical game content templates (Epic → Campaign → Adventure → Scene) that Game Masters create for organizing and running tabletop RPG games.
+**Purpose**: Manage hierarchical game content templates (Epic → Campaign → Adventure → Encounter) that Game Masters create for organizing and running tabletop RPG games.
 
 **Boundaries**:
-- **Inside**: Epic, Campaign, Adventure, Scene entities; content hierarchy management; scene composition (stage, grid, asset placement)
+- **Inside**: Epic, Campaign, Adventure, Encounter entities; content hierarchy management; encounter composition (stage, grid, asset placement)
 - **Outside**: User management (Identity context), Media resources for backgrounds (Media context), Asset templates (Assets context), Active game sessions (Game context)
 
 **Architecture Pattern**: DDD Contracts + Service Implementation
@@ -25,16 +25,16 @@
 
 - **Epic**: Multi-campaign story arc spanning multiple campaigns (highest level of hierarchy)
 - **Campaign**: Multi-adventure storyline connecting related adventures within an epic
-- **Adventure**: Individual game module or scenario with multiple scenes (can be standalone or part of campaign)
-- **Scene**: Interactive tactical map with grid, background, and asset placements
-- **Stage**: Scene rendering area configuration (background, viewport, dimensions)
+- **Adventure**: Individual game module or scenario with multiple encounters (can be standalone or part of campaign)
+- **Encounter**: Interactive tactical map with grid, background, and asset placements
+- **Stage**: Encounter rendering area configuration (background, viewport, dimensions)
 - **Grid**: Tactical map overlay (square, hexagonal, isometric) for movement and measurement
-- **SceneAsset**: Placed instance of an Asset template on a scene (position, dimensions, z-index)
-- **Background**: Visual image (Resource) used as scene/adventure/epic backdrop
+- **EncounterAsset**: Placed instance of an Asset template on a encounter (position, dimensions, z-index)
+- **Background**: Visual image (Resource) used as encounter/adventure/epic backdrop
 - **Published**: Content approved and available for use
 - **Public**: Content visible to all users (vs private/owner-only)
 - **Ownership**: User (Game Master) who created and controls the content
-- **Hierarchy**: Nested relationship structure (Epic > Campaign > Adventure > Scene)
+- **Hierarchy**: Nested relationship structure (Epic > Campaign > Adventure > Encounter)
 
 ---
 
@@ -135,7 +135,7 @@
   - **Post-conditions**: Epic updated
   - **Returns**: Task<Epic>
 
-- **Delete Epic**: Removes epic and all owned campaigns/adventures/scenes
+- **Delete Epic**: Removes epic and all owned campaigns/adventures/encounters
   - **Implemented By**: ILibraryStorage.DeleteEpicAsync()
   - **Pre-conditions**: Epic exists, user is owner, not in use in active game sessions
   - **Invariants Enforced**: None (deletion)
@@ -311,11 +311,11 @@
   - **Nullable**: No
   - **Purpose**: Controls visibility to users other than owner
 
-- **Scenes**: List<Scene>
+- **Encounters**: List<Encounter>
   - **Constraints**: Owned collection, cascade delete
   - **Default Value**: Empty list
-  - **Nullable**: No (empty list if no scenes)
-  - **Purpose**: Scenes belonging to this adventure
+  - **Nullable**: No (empty list if no encounters)
+  - **Purpose**: Encounters belonging to this adventure
 
 #### Invariants
 - Same as Epic (INV-01 through INV-05)
@@ -331,24 +331,24 @@
 - Similar to Epic: Create, Update, Delete
 - **Add to Campaign**: Associate standalone adventure with campaign
 - **Remove from Campaign**: Make adventure standalone
-- **Clone Adventure**: Duplicate adventure with all scenes
+- **Clone Adventure**: Duplicate adventure with all encounters
 
 #### Relationships
 - **Owned By** ← Campaign: Adventure optionally owned by Campaign
   - **Cardinality**: Many-to-One optional
   - **Navigation**: CampaignId foreign key (nullable)
 
-- **Owns** → Scene: Adventure owns multiple scenes
+- **Owns** → Encounter: Adventure owns multiple encounters
   - **Cardinality**: One-to-Many (owned, cascade delete)
-  - **Navigation**: Scenes collection
+  - **Navigation**: Encounters collection
 
 ---
 
-### Scene
+### Encounter
 
 **Entity Classification**: Aggregate Root (or Child Entity if part of Adventure)
 
-**Aggregate Root**: Scene can be standalone or nested, is the most granular content unit
+**Aggregate Root**: Encounter can be standalone or nested, is the most granular content unit
 
 #### Identity
 - **Primary Key**: Id (Guid)
@@ -359,43 +359,43 @@
   - **Constraints**: Primary key, required, system-generated
   - **Default Value**: New Guid on creation
   - **Nullable**: No
-  - **Purpose**: Unique identifier for scene
+  - **Purpose**: Unique identifier for encounter
 
 - **AdventureId**: Guid?
-  - **Constraints**: Foreign key to Adventure.Id (nullable - scenes can be standalone)
-  - **Default Value**: null (standalone scene)
+  - **Constraints**: Foreign key to Adventure.Id (nullable - encounters can be standalone)
+  - **Default Value**: null (standalone encounter)
   - **Nullable**: Yes
-  - **Purpose**: Optional parent adventure reference for scene grouping
+  - **Purpose**: Optional parent adventure reference for encounter grouping
 
 - **OwnerId**: Guid
   - **Constraints**: Foreign key to User.Id, required
   - **Default Value**: Current user ID at creation
   - **Nullable**: No
-  - **Purpose**: Links scene to owning Game Master
+  - **Purpose**: Links encounter to owning Game Master
 
 - **Name**: string
   - **Constraints**: Required, max length 128 characters
   - **Default Value**: None (must be provided)
   - **Nullable**: No
-  - **Purpose**: Human-readable scene name
+  - **Purpose**: Human-readable encounter name
 
 - **Description**: string
   - **Constraints**: Max length 4096 characters
   - **Default Value**: Empty string
   - **Nullable**: No
-  - **Purpose**: Detailed description of scene setting and objectives
+  - **Purpose**: Detailed description of encounter setting and objectives
 
 - **IsPublished**: bool
-  - **Constraints**: None (scenes don't require IsPublic=true like other entities)
+  - **Constraints**: None (encounters don't require IsPublic=true like other entities)
   - **Default Value**: false
   - **Nullable**: No
-  - **Purpose**: Indicates scene is approved for use in game sessions
+  - **Purpose**: Indicates encounter is approved for use in game sessions
 
 - **Stage**: Stage
   - **Constraints**: Value object with valid dimensions (Width > 0, Height > 0)
   - **Default Value**: Stage with 1920x1080 dimensions
   - **Nullable**: No
-  - **Purpose**: Scene rendering area configuration (background, viewport, dimensions)
+  - **Purpose**: Encounter rendering area configuration (background, viewport, dimensions)
 
 - **Grid**: Grid
   - **Constraints**: Value object with GridType and configuration
@@ -403,11 +403,11 @@
   - **Nullable**: No
   - **Purpose**: Tactical map overlay configuration (square, hex, isometric)
 
-- **Assets**: List<SceneAsset>
+- **Assets**: List<EncounterAsset>
   - **Constraints**: Collection of value objects, each references valid Asset.Id
   - **Default Value**: Empty list
   - **Nullable**: No (empty list if no assets placed)
-  - **Purpose**: Placed asset instances on this scene with position and dimensions
+  - **Purpose**: Placed asset instances on this encounter with position and dimensions
 
 #### Invariants
 - Same as Epic (INV-01, INV-02, INV-03, INV-05)
@@ -419,35 +419,35 @@
   - **Rationale**: Square grids need Size, hex grids need specific offsets
   - **Enforced By**: Service validation, Grid value object
 
-- **INV-11**: SceneAsset positions must be within Stage bounds
-  - **Rationale**: Assets must be visible on scene
+- **INV-11**: EncounterAsset positions must be within Stage bounds
+  - **Rationale**: Assets must be visible on encounter
   - **Enforced By**: Service validation when placing assets
 
 #### Operations (Implemented in Application Services)
-- Create Scene, Update Scene, Delete Scene
+- Create Encounter, Update Encounter, Delete Encounter
 - **Configure Stage**: Update Stage value object (background, viewport)
 - **Configure Grid**: Update Grid value object (type, size, offset, color)
-- **Place Asset**: Add SceneAsset to Assets collection
-- **Move Asset**: Update SceneAsset position
-- **Remove Asset**: Remove SceneAsset from collection
-- **Clone Scene**: Duplicate scene with all assets
+- **Place Asset**: Add EncounterAsset to Assets collection
+- **Move Asset**: Update EncounterAsset position
+- **Remove Asset**: Remove EncounterAsset from collection
+- **Clone Encounter**: Duplicate encounter with all assets
 
 #### Relationships
-- **Owned By** ← Adventure: Scene optionally owned by Adventure
+- **Owned By** ← Adventure: Encounter optionally owned by Adventure
   - **Cardinality**: Many-to-One optional
   - **Navigation**: AdventureId foreign key (nullable)
 
-- **References** → Resource: Scene.Stage.Background may reference background image
+- **References** → Resource: Encounter.Stage.Background may reference background image
   - **Cardinality**: Many-to-One optional
   - **Navigation**: Stage.Background property
 
-- **References** → Asset: Scene.Assets collection references Asset templates
-  - **Cardinality**: Many-to-Many (via SceneAsset value object)
-  - **Navigation**: SceneAsset.AssetId references Asset.Id
+- **References** → Asset: Encounter.Assets collection references Asset templates
+  - **Cardinality**: Many-to-Many (via EncounterAsset value object)
+  - **Navigation**: EncounterAsset.AssetId references Asset.Id
 
-- **Referenced By** ← GameSession: Scene may be used in active game session
+- **Referenced By** ← GameSession: Encounter may be used in active game session
   - **Cardinality**: One-to-Many
-  - **Navigation**: Not navigable from Scene
+  - **Navigation**: Not navigable from Encounter
 
 ---
 
@@ -455,7 +455,7 @@
 
 ### Stage
 
-**Purpose**: Defines scene rendering area configuration (background, viewport, dimensions)
+**Purpose**: Defines encounter rendering area configuration (background, viewport, dimensions)
 
 #### Properties
 - **Background**: Resource? (nullable reference to background image)
@@ -499,9 +499,9 @@
 
 ---
 
-### SceneAsset
+### EncounterAsset
 
-**Purpose**: Represents placed instance of Asset template on a scene (position, size, layer)
+**Purpose**: Represents placed instance of Asset template on a encounter (position, size, layer)
 
 #### Properties
 - **AssetId**: Guid (references Asset.Id)
@@ -513,7 +513,7 @@
 - **Rotation**: double? (rotation angle in degrees, nullable)
 
 #### Creation & Validation
-- **Factory Method**: `new SceneAsset { AssetId = assetId, X = 100, Y = 100, ZIndex = 0 }`
+- **Factory Method**: `new EncounterAsset { AssetId = assetId, X = 100, Y = 100, ZIndex = 0 }`
 - **Validation Rules**:
   - AssetId must reference existing Asset
   - Width and Height must be positive if provided
@@ -535,7 +535,7 @@
 **Boundary**: Epic owns Campaigns. Campaigns within an Epic are loaded/saved together. Adventures are in Campaign aggregate, not Epic.
 
 **Aggregate Invariants**:
-- **AGG-01**: Deleting Epic cascades to all owned Campaigns (and their Adventures/Scenes)
+- **AGG-01**: Deleting Epic cascades to all owned Campaigns (and their Adventures/Encounters)
 - **AGG-02**: Epic can only be modified by owner
 
 ---
@@ -549,7 +549,7 @@
 **Boundary**: Campaign owns Adventures. Adventures can also be standalone.
 
 **Aggregate Invariants**:
-- **AGG-03**: Deleting Campaign cascades to all owned Adventures (and their Scenes)
+- **AGG-03**: Deleting Campaign cascades to all owned Adventures (and their Encounters)
 - **AGG-04**: Campaign can move between Epic (set EpicId) or standalone (EpicId = null)
 
 ---
@@ -558,28 +558,28 @@
 
 **Aggregate Root**: Adventure (when standalone) or Campaign (when Adventure.CampaignId is set)
 
-**Entities in Aggregate**: Adventure (root), Scene (owned)
+**Entities in Aggregate**: Adventure (root), Encounter (owned)
 
-**Boundary**: Adventure owns Scenes. Scenes can also be standalone.
+**Boundary**: Adventure owns Encounters. Encounters can also be standalone.
 
 **Aggregate Invariants**:
-- **AGG-05**: Deleting Adventure cascades to all owned Scenes
+- **AGG-05**: Deleting Adventure cascades to all owned Encounters
 - **AGG-06**: Adventure can move between Campaign or standalone
 
 ---
 
-### Scene Aggregate
+### Encounter Aggregate
 
-**Aggregate Root**: Scene (when standalone) or Adventure (when Scene.AdventureId is set)
+**Aggregate Root**: Encounter (when standalone) or Adventure (when Encounter.AdventureId is set)
 
-**Value Objects in Aggregate**: Stage, Grid, SceneAsset (collection)
+**Value Objects in Aggregate**: Stage, Grid, EncounterAsset (collection)
 
-**Boundary**: Scene is atomic unit. Stage, Grid, and SceneAssets are part of Scene aggregate.
+**Boundary**: Encounter is atomic unit. Stage, Grid, and EncounterAssets are part of Encounter aggregate.
 
 **Aggregate Invariants**:
-- **AGG-07**: Scene can move between Adventure or standalone
-- **AGG-08**: SceneAssets are value objects (no independent existence), deleted with Scene
-- **AGG-09**: Scene cannot be deleted if referenced by active GameSession
+- **AGG-07**: Encounter can move between Adventure or standalone
+- **AGG-08**: EncounterAssets are value objects (no independent existence), deleted with Encounter
+- **AGG-09**: Encounter cannot be deleted if referenced by active GameSession
 
 ---
 
@@ -587,11 +587,11 @@
 
 ### ILibraryStorage
 
-**Purpose**: Persistence and retrieval for Epic, Campaign, Adventure, Scene hierarchies
+**Purpose**: Persistence and retrieval for Epic, Campaign, Adventure, Encounter hierarchies
 
 **Responsibilities**:
 - CRUD operations for all Library entities
-- Manage hierarchical relationships (Epic > Campaign > Adventure > Scene)
+- Manage hierarchical relationships (Epic > Campaign > Adventure > Encounter)
 - Enforce cascade delete rules
 - Provide query operations with filtering
 
@@ -613,10 +613,10 @@
   - **Outputs**: Task<Epic> (updated entity)
   - **Side Effects**: Database update
 
-- **DeleteEpicAsync(Guid epicId)**: Remove epic and cascade to campaigns/adventures/scenes
+- **DeleteEpicAsync(Guid epicId)**: Remove epic and cascade to campaigns/adventures/encounters
   - **Inputs**: Epic ID
   - **Outputs**: Task
-  - **Side Effects**: Database cascade delete (Epic → Campaigns → Adventures → Scenes)
+  - **Side Effects**: Database cascade delete (Epic → Campaigns → Adventures → Encounters)
 
 - **GetEpicsByOwnerAsync(Guid ownerId)**: Retrieve epics owned by user
   - **Inputs**: Owner user ID
@@ -645,53 +645,53 @@
   - **Outputs**: Task<Adventure>
   - **Side Effects**: Database insert
 
-- **CloneAdventureAsync(Guid adventureId)**: Duplicate adventure with all scenes
+- **CloneAdventureAsync(Guid adventureId)**: Duplicate adventure with all encounters
   - **Inputs**: Adventure ID to clone
-  - **Outputs**: Task<Adventure> (new adventure with cloned scenes)
-  - **Side Effects**: Database inserts (adventure + all scenes)
+  - **Outputs**: Task<Adventure> (new adventure with cloned encounters)
+  - **Side Effects**: Database inserts (adventure + all encounters)
 
-**Scene Operations**:
-- **CreateSceneAsync(Scene scene)**: Persist new scene
-  - **Inputs**: Scene entity (validated, AdventureId nullable, Stage and Grid required)
-  - **Outputs**: Task<Scene>
+**Encounter Operations**:
+- **CreateEncounterAsync(Encounter encounter)**: Persist new encounter
+  - **Inputs**: Encounter entity (validated, AdventureId nullable, Stage and Grid required)
+  - **Outputs**: Task<Encounter>
   - **Side Effects**: Database insert
 
-- **UpdateSceneAsync(Scene scene)**: Update scene (Stage, Grid, Assets)
-  - **Inputs**: Scene entity with changes
-  - **Outputs**: Task<Scene>
+- **UpdateEncounterAsync(Encounter encounter)**: Update encounter (Stage, Grid, Assets)
+  - **Inputs**: Encounter entity with changes
+  - **Outputs**: Task<Encounter>
   - **Side Effects**: Database update
 
-- **CloneSceneAsync(Guid sceneId)**: Duplicate scene with all placed assets
-  - **Inputs**: Scene ID to clone
-  - **Outputs**: Task<Scene> (new scene with cloned SceneAssets)
+- **CloneEncounterAsync(Guid encounterId)**: Duplicate encounter with all placed assets
+  - **Inputs**: Encounter ID to clone
+  - **Outputs**: Task<Encounter> (new encounter with cloned EncounterAssets)
   - **Side Effects**: Database insert
 
 **Asset Placement Operations**:
-- **AddAssetToSceneAsync(Guid sceneId, SceneAsset sceneAsset)**: Place asset on scene
-  - **Inputs**: Scene ID, SceneAsset value object (AssetId, position, dimensions)
-  - **Outputs**: Task<Scene> (updated scene with new asset)
-  - **Side Effects**: Database update (Scene.Assets collection modified)
+- **AddAssetToEncounterAsync(Guid encounterId, EncounterAsset encounterAsset)**: Place asset on encounter
+  - **Inputs**: Encounter ID, EncounterAsset value object (AssetId, position, dimensions)
+  - **Outputs**: Task<Encounter> (updated encounter with new asset)
+  - **Side Effects**: Database update (Encounter.Assets collection modified)
 
 #### Dependencies
-- **Required**: DbContext (EF Core), IMediaStorage (for background Resource validation), IAssetStorage (for SceneAsset.AssetId validation)
+- **Required**: DbContext (EF Core), IMediaStorage (for background Resource validation), IAssetStorage (for EncounterAsset.AssetId validation)
 
 ---
 
 ## Domain Rules Summary
 
-- **BR-01** - Validation: Names must not be empty (applies to Epic, Campaign, Adventure, Scene)
+- **BR-01** - Validation: Names must not be empty (applies to Epic, Campaign, Adventure, Encounter)
 - **BR-02** - Validation: Name max length 128 characters
 - **BR-03** - Validation: Description max length 4096 characters
 - **BR-04** - Business Logic: Published content must be public
 - **BR-05** - Authorization: Only owner can modify content
 - **BR-06** - Referential Integrity: OwnerId must reference existing User
-- **BR-07** - Data Consistency: Deleting parent cascades to children (Epic → Campaign → Adventure → Scene)
+- **BR-07** - Data Consistency: Deleting parent cascades to children (Epic → Campaign → Adventure → Encounter)
 - **BR-08** - Business Logic: Content can be moved between hierarchies or standalone
 - **BR-09** - Validation: Stage dimensions must be positive
 - **BR-10** - Validation: Grid configuration must match GridType
-- **BR-11** - Validation: SceneAsset positions should be within Stage bounds
-- **BR-12** - Referential Integrity: SceneAsset.AssetId must reference existing Asset
-- **BR-13** - Business Logic: Scene cannot be deleted if in use by active GameSession
+- **BR-11** - Validation: EncounterAsset positions should be within Stage bounds
+- **BR-12** - Referential Integrity: EncounterAsset.AssetId must reference existing Asset
+- **BR-13** - Business Logic: Encounter cannot be deleted if in use by active GameSession
 
 ---
 
@@ -704,11 +704,11 @@
 ✅ Testable in isolation
 
 ### Used By (Application Layer)
-- **Create Content Hierarchy**: Uses Epic/Campaign/Adventure/Scene entities
-- **Design Scene**: Uses Scene, Stage, Grid, SceneAsset
-- **Clone Content**: Duplicates Adventure or Scene with all children
+- **Create Content Hierarchy**: Uses Epic/Campaign/Adventure/Encounter entities
+- **Design Encounter**: Uses Encounter, Stage, Grid, EncounterAsset
+- **Clone Content**: Duplicates Adventure or Encounter with all children
 - **Publish Content**: Sets IsPublished and enforces IsPublic=true
-- **Game Session Creation**: Game context references Scene.Id for active gameplay
+- **Game Session Creation**: Game context references Encounter.Id for active gameplay
 
 ---
 
@@ -718,13 +718,13 @@ DOMAIN MODEL QUALITY CHECKLIST
 ═══════════════════════════════════════════════════════════════
 
 ## Entities (30 points)
-✅ 10pts: All entities have complete attribute lists (Epic, Campaign, Adventure, Scene)
+✅ 10pts: All entities have complete attribute lists (Epic, Campaign, Adventure, Encounter)
 ✅ 10pts: All invariants defined (INV-01 through INV-11)
 ✅ 5pts: Operations documented (CRUD + hierarchy management)
-✅ 5pts: Aggregate roots identified (Epic, Campaign, Adventure, Scene - context-dependent)
+✅ 5pts: Aggregate roots identified (Epic, Campaign, Adventure, Encounter - context-dependent)
 
 ## Value Objects (20 points)
-✅ 10pts: Value objects defined (Stage, Grid, SceneAsset)
+✅ 10pts: Value objects defined (Stage, Grid, EncounterAsset)
 ✅ 5pts: Immutability documented
 ✅ 5pts: Factory methods defined
 
@@ -744,9 +744,9 @@ DOMAIN MODEL QUALITY CHECKLIST
 ## Target Score: 100/100 ✅
 
 ### Extraction Notes:
-✅ Complex hierarchical structure (Epic > Campaign > Adventure > Scene) documented
+✅ Complex hierarchical structure (Epic > Campaign > Adventure > Encounter) documented
 ✅ Optional parent relationships (nullable FKs) enable standalone or nested usage
 ✅ Cascade delete rules defined
-✅ Value objects (Stage, Grid, SceneAsset) for scene composition
+✅ Value objects (Stage, Grid, EncounterAsset) for encounter composition
 ✅ Service orchestration for hierarchy management
 -->

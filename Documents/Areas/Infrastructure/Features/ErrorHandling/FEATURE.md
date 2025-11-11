@@ -37,7 +37,7 @@
 - **Handle React Errors**: WIDGET - Error boundary wrapper with fallback UI
 - **Display Network Status**: WIDGET - Network status indicator with retry button
 - **Handle Asset Loading Errors**: NO_UI - Backend error processing with notification display
-- **Recover From Scene Errors**: NO_UI - Backend error processing with notification display
+- **Recover From Encounter Errors**: NO_UI - Backend error processing with notification display
 - **Display Global Errors**: WIDGET - Error notification stack and critical error banner
 - **Validate Forms**: NO_UI - Backend validation with error message display
 - **Display Service Unavailable**: FULL_PAGE - Service error page with retry option
@@ -58,7 +58,7 @@
 - **Handle React Errors** (Platform Infrastructure): Catch and display React component errors with recovery options
 - **Display Network Status** (Platform Infrastructure): Monitor network connectivity and display status/retry options
 - **Handle Asset Loading Errors** (Platform Infrastructure): Process and display asset loading failures
-- **Recover From Scene Errors** (Platform Infrastructure): Handle scene save/load errors with recovery
+- **Recover From Encounter Errors** (Platform Infrastructure): Handle encounter save/load errors with recovery
 - **Display Global Errors** (Platform Infrastructure): Centralized error notification display and management
 - **Validate Forms** (Platform Infrastructure): Client-side form validation with error display
 - **Display Service Unavailable** (Platform Infrastructure): Full-page error display for service failures
@@ -104,7 +104,7 @@
 
 #### Phase 3: Domain-Specific Errors
 - **Handle Asset Loading Errors**: Asset-specific error handling
-- **Recover From Scene Errors**: Scene-specific error recovery
+- **Recover From Encounter Errors**: Encounter-specific error recovery
 
 ### Dependencies & Prerequisites
 - **Technical Dependencies**: React, Redux Toolkit, Material-UI, error handling utilities

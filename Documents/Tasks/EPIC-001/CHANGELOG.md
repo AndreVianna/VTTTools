@@ -8,7 +8,7 @@ Concise version history with links to detailed phase documentation.
 
 ### 2025-11-08 (v1.13.0) - Asset Rotation System Complete
 
-**Delivered**: Interactive rotation handles for scene assets with mouse-based interaction
+**Delivered**: Interactive rotation handles for encounter assets with mouse-based interaction
 **Effort**: 12-16h (11+ debugging iterations)
 **Status**: ✅ Complete
 **Grade**: A
@@ -26,7 +26,7 @@ Concise version history with links to detailed phase documentation.
 **Files**: RotationHandle.tsx, TokenDragHandle.tsx, TokenPlacement.tsx, Mapper.cs, rotationUtils.ts
 **Tests**: Manual testing + integration validation
 **Lessons**: [18-21](./LESSONS_LEARNED.md#lesson-18-21)
-**Details**: [PHASE_8_SCENE_MGMT.md#asset-rotation-system](./phases/PHASE_8_SCENE_MGMT.md#asset-rotation-system)
+**Details**: [PHASE_8_ENCOUNTER_MGMT.md#asset-rotation-system](./phases/PHASE_8_ENCOUNTER_MGMT.md#asset-rotation-system)
 
 ---
 
@@ -41,14 +41,14 @@ Concise version history with links to detailed phase documentation.
 - Local undo system (transaction-scoped, 7 action types)
 - Global undo system (4 command classes with redo support)
 - Keyboard routing (Ctrl+Z/Y with smart local/global routing)
-- Scene state synchronization via callbacks (prevents React batching issues)
+- Encounter state synchronization via callbacks (prevents React batching issues)
 
-**Critical Fix**: Wall break undo ghost bug - 3-part fix (preserve segment association, callback sync, sceneRef for stale closure)
+**Critical Fix**: Wall break undo ghost bug - 3-part fix (preserve segment association, callback sync, encounterRef for stale closure)
 
 **Files Created**: wallUndoActions.ts (535 LOC), wallCommands.ts (207 LOC), + 5 test files (4,760 LOC tests)
 **Tests**: 132 tests (103 unit + 29 BDD scenarios), 95%+ coverage
 **Lessons**: [13-17](./LESSONS_LEARNED.md#lesson-13-17)
-**Details**: [PHASE_8_SCENE_MGMT.md#phase-8-8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8)
+**Details**: [PHASE_8_ENCOUNTER_MGMT.md#phase-8-8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8)
 
 ---
 
@@ -75,7 +75,7 @@ Concise version history with links to detailed phase documentation.
 **Features**: Pole insertion preview with Shift+hover (dashed orange circle at snap point)
 
 **Lessons**: [1-12](./LESSONS_LEARNED.md#lesson-1-12)
-**Details**: [PHASE_8_SCENE_MGMT.md#phase-8-8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8)
+**Details**: [PHASE_8_ENCOUNTER_MGMT.md#phase-8-8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8)
 
 ---
 
@@ -93,7 +93,7 @@ Concise version history with links to detailed phase documentation.
 
 **Critical Fixes**: Whole wall deletion during vertex editing (added `!isEditingVertices` guard)
 
-**Details**: [PHASE_8_SCENE_MGMT.md#phase-8-8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8)
+**Details**: [PHASE_8_ENCOUNTER_MGMT.md#phase-8-8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8)
 
 ---
 
@@ -112,7 +112,7 @@ Concise version history with links to detailed phase documentation.
 
 **Pattern**: Custom cursor utility using base64-encoded SVG generation
 
-**Details**: [PHASE_8_SCENE_MGMT.md#phase-8-8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8)
+**Details**: [PHASE_8_ENCOUNTER_MGMT.md#phase-8-8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8)
 
 ---
 
@@ -132,7 +132,7 @@ Concise version history with links to detailed phase documentation.
 **Current Work**: Debugging marquee selection
 **Deferred**: Pole insertion on line segment
 
-**Details**: [PHASE_8_SCENE_MGMT.md#phase-8-8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8)
+**Details**: [PHASE_8_ENCOUNTER_MGMT.md#phase-8-8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8)
 
 ---
 
@@ -163,13 +163,13 @@ Concise version history with links to detailed phase documentation.
 
 ### 2025-10-29 (v1.12.0) - Phase 8.7 Complete (Structures Frontend)
 
-**Delivered**: Complete drawing tools, Konva rendering, Scene Editor integration
+**Delivered**: Complete drawing tools, Konva rendering, Encounter Editor integration
 **Effort**: 67h (89% of 75h est)
 **Status**: ✅ Complete
 **Grade**: A- (92/100)
 
 **Key Deliverables**:
-- 6 TypeScript interfaces (Barrier, Region, Source + Scene variants)
+- 6 TypeScript interfaces (Barrier, Region, Source + Encounter variants)
 - 3 RTK Query API slices (18 backend endpoints)
 - Library UI with 3 searchable tabs and editor dialogs
 - 3 drawing tools (barriers click-to-place, regions polygon, sources click-drag range)
@@ -182,7 +182,7 @@ Concise version history with links to detailed phase documentation.
 **Tests**: 246+ tests passing, ≥75% coverage
 **Production Readiness**: 90%
 
-**Details**: [PHASE_8_SCENE_MGMT.md#phase-8-7](./phases/PHASE_8_SCENE_MGMT.md#phase-8-7)
+**Details**: [PHASE_8_ENCOUNTER_MGMT.md#phase-8-7](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-7)
 
 ---
 
@@ -194,10 +194,10 @@ Concise version history with links to detailed phase documentation.
 **Grade**: A- (93/100)
 
 **Key Deliverables**:
-- 6 domain models (Barrier, Region, Source + Scene variants)
+- 6 domain models (Barrier, Region, Source + Encounter variants)
 - Database migration (6 tables)
 - 18 API endpoints
-- 3 service classes with SceneService extensions
+- 3 service classes with EncounterService extensions
 - 3 storage classes (complete CRUD)
 - 45 unit tests (≥85% coverage)
 
@@ -207,7 +207,7 @@ Concise version history with links to detailed phase documentation.
 - Single Point position for Sources
 - JSON columns for complex types
 
-**Details**: [PHASE_8_SCENE_MGMT.md#phase-8-6](./phases/PHASE_8_SCENE_MGMT.md#phase-8-6)
+**Details**: [PHASE_8_ENCOUNTER_MGMT.md#phase-8-6](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-6)
 
 ---
 
@@ -228,7 +228,7 @@ Concise version history with links to detailed phase documentation.
 **Status**: 🚧 Partial
 
 **Completed**:
-- Scene duplication with smart naming (3h)
+- Encounter duplication with smart naming (3h)
 - Adventure duplication with smart naming (2h)
 - Auto-naming assets (0h - verified complete)
 - Selection undo/redo (0h - verified correct)
@@ -236,21 +236,21 @@ Concise version history with links to detailed phase documentation.
 
 **Pending**: Structure placement (4-6h - needs clarification)
 
-**Details**: [PHASE_8_SCENE_MGMT.md#phase-8-5](./phases/PHASE_8_SCENE_MGMT.md#phase-8-5)
+**Details**: [PHASE_8_ENCOUNTER_MGMT.md#phase-8-5](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-5)
 
 ---
 
-### 2025-10-26 (v1.8.1) - Phase 8 Complete (Scene Management)
+### 2025-10-26 (v1.8.1) - Phase 8 Complete (Encounter Management)
 
-**Delivered**: Scene Editor backend persistence and properties panel
+**Delivered**: Encounter Editor backend persistence and properties panel
 **Effort**: 23h (vs 12h est, 192%)
 **Status**: ✅ Complete
 **Grade**: A- (88/100)
 
 **Key Changes**:
-- Scene Editor backend persistence (all fields)
+- Encounter Editor backend persistence (all fields)
 - Properties panel (collapsible, responsive 3-column layout)
-- Scene operations (duplicate/delete)
+- Encounter operations (duplicate/delete)
 - Navigation (back button, editable name)
 - Save status indicators
 - Grid configuration persistence
@@ -258,7 +258,7 @@ Concise version history with links to detailed phase documentation.
 **Critical Fixes**: 7 regressions fixed (asset selection, marquee, grid, multi-asset drag, modifier keys, persistence)
 **Backend**: IsPublished field added, circular reference fix
 
-**Details**: [PHASE_8_SCENE_MGMT.md#phase-8-0](./phases/PHASE_8_SCENE_MGMT.md#phase-8-0)
+**Details**: [PHASE_8_ENCOUNTER_MGMT.md#phase-8-0](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-0)
 
 ---
 
@@ -272,7 +272,7 @@ Concise version history with links to detailed phase documentation.
 **Key Changes**:
 - Library page (unified content view)
 - Adventure List (infinite scroll, 4 filters, debounced search)
-- Adventure Detail page (inline editing, auto-save, background upload, scene management)
+- Adventure Detail page (inline editing, auto-save, background upload, encounter management)
 - Type system consolidated (domain.ts source of truth)
 - GridConfig structure updated (nested cellSize/offset)
 
@@ -282,9 +282,9 @@ Concise version history with links to detailed phase documentation.
 
 ---
 
-### 2025-10-23 (v1.7.0) - Phase 6 Complete (Scene Editor - Tokens, Undo, Offline)
+### 2025-10-23 (v1.7.0) - Phase 6 Complete (Encounter Editor - Tokens, Undo, Offline)
 
-**Delivered**: Complete scene editor with major enhancements beyond spec
+**Delivered**: Complete encounter editor with major enhancements beyond spec
 **Effort**: 30h+ (vs 25h est, 120%)
 **Status**: ✅ Complete
 **Grade**: A+ (5/5 stars - GO FOR PRODUCTION)
@@ -300,11 +300,11 @@ Concise version history with links to detailed phase documentation.
 **Tests**: 255+ tests passing (85% coverage)
 **Quality**: 89.4% fix rate (42/47 issues resolved)
 
-**Details**: [PHASE_6_SCENE_EDITOR.md](./phases/PHASE_6_SCENE_EDITOR.md)
+**Details**: [PHASE_6_ENCOUNTER_EDITOR.md](./phases/PHASE_6_ENCOUNTER_EDITOR.md)
 
 ---
 
-## 2025-09/10 (Phases 1-5 - Foundation & Scene Basics)
+## 2025-09/10 (Phases 1-5 - Foundation & Encounter Basics)
 
 ### 2025-10-11 (v1.4.0) - Phase 5 Complete (Asset Library)
 
@@ -335,7 +335,7 @@ Concise version history with links to detailed phase documentation.
 
 ---
 
-### 2025-10-04 (v1.2.0) - Phase 3 Complete (Scene Pan/Zoom)
+### 2025-10-04 (v1.2.0) - Phase 3 Complete (Encounter Pan/Zoom)
 
 **Delivered**: Konva Stage with pan/zoom + authentication improvements
 **Effort**: 28h (vs 16h est, 175%)
@@ -344,7 +344,7 @@ Concise version history with links to detailed phase documentation.
 
 **Scope Expansion**: Auth state management (8h), authorization documentation (4h)
 
-**Details**: [PHASE_3_SCENE_PAN_ZOOM.md](./phases/PHASE_3_SCENE_PAN_ZOOM.md)
+**Details**: [PHASE_3_ENCOUNTER_PAN_ZOOM.md](./phases/PHASE_3_ENCOUNTER_PAN_ZOOM.md)
 
 ---
 

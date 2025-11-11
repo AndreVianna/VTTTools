@@ -1,27 +1,27 @@
 # Place Asset Use Case
 
-**Original Request**: Allow Game Masters to place, move, and remove assets on a Scene
+**Original Request**: Allow Game Masters to place, move, and remove assets on a Encounter
 
-**Place Asset** is a Scene Asset Placement Operation that allows Game Masters to place, move, and remove assets on a Scene. This use case operates within the Library area and enables Game Masters (scene owners) to place, move, and remove assets on tactical maps.
+**Place Asset** is a Encounter Asset Placement Operation that allows Game Masters to place, move, and remove assets on a Encounter. This use case operates within the Library area and enables Game Masters (encounter owners) to place, move, and remove assets on tactical maps.
 
 ---
 
 ## Change Log
-- *2025-10-03* — **1.0.0** — Use case specification created from Scene Management feature
+- *2025-10-03* — **1.0.0** — Use case specification created from Encounter Management feature
 
 ---
 
 ## Use Case Overview
 
 ### Business Context
-- **Parent Feature**: Scene Management
+- **Parent Feature**: Encounter Management
 - **Owning Area**: Library
 - **Business Value**: Enables Game Masters to populate tactical maps with player characters and creatures for gameplay
-- **User Benefit**: Can place player character assets and creature/NPC assets on scenes to create playable tactical encounters
+- **User Benefit**: Can place player character assets and creature/NPC assets on encounters to create playable tactical encounters
 
 ### Scope Definition
 - **Primary Actor**: Game Master
-- **Scope**: Scene aggregate SceneAsset collection management with cross-context Asset template references
+- **Scope**: Encounter aggregate EncounterAsset collection management with cross-context Asset template references
 - **Level**: User Goal
 
 ---
@@ -32,13 +32,13 @@
 - **UI Type**: API_ENDPOINT
 - **Access Method**: HTTP POST/PATCH/DELETE requests
 
-**Place Asset Endpoint**: POST /api/library/scenes/{id:guid}/assets
-**Move Asset Endpoint**: PATCH /api/library/scenes/{id:guid}/assets/{assetId:guid}/move
-**Remove Asset Endpoint**: DELETE /api/library/scenes/{id:guid}/assets/{assetId:guid}
+**Place Asset Endpoint**: POST /api/library/encounters/{id:guid}/assets
+**Move Asset Endpoint**: PATCH /api/library/encounters/{id:guid}/assets/{assetId:guid}/move
+**Remove Asset Endpoint**: DELETE /api/library/encounters/{id:guid}/assets/{assetId:guid}
 
 - **UI Components**: None (API only)
 - **Access**: Programmatic via HTTP
-- **Response Format**: JSON with updated Scene object including placed assets
+- **Response Format**: JSON with updated Encounter object including placed assets
 
 ---
 
@@ -49,15 +49,15 @@
 #### Place Asset (POST)
 
 **Parameters**:
-1. **sceneId** (Guid, path parameter)
-   - Scene identifier
-   - Must reference existing Scene entity
-   - User must own the scene
+1. **encounterId** (Guid, path parameter)
+   - Encounter identifier
+   - Must reference existing Encounter entity
+   - User must own the encounter
 
-2. **sceneAsset** (SceneAsset value object, request body)
+2. **encounterAsset** (EncounterAsset value object, request body)
    - **AssetId** (Guid): Reference to Assets.Asset template entity
-   - **X** (int): Horizontal position on scene
-   - **Y** (int): Vertical position on scene
+   - **X** (int): Horizontal position on encounter
+   - **Y** (int): Vertical position on encounter
    - **Width** (int): Display width in pixels (must be > 0)
    - **Height** (int): Display height in pixels (must be > 0)
    - **ZIndex** (int): Layer order (higher values render on top)
@@ -65,18 +65,18 @@
    - **IsLocked** (bool): Prevent editing/moving
 
 **Validation Rules**:
-- sceneId must reference existing Scene
+- encounterId must reference existing Encounter
 - AssetId must reference existing Asset entity
 - Width > 0, Height > 0
 - Rotation 0-360 degrees
 - Optional: X, Y within Stage bounds (INV-11)
-- User must own the scene
+- User must own the encounter
 
 #### Move Asset (PATCH)
 
 **Parameters**:
-1. **sceneId** (Guid, path parameter)
-2. **assetId** (Guid, path parameter) - Identifies SceneAsset in collection
+1. **encounterId** (Guid, path parameter)
+2. **assetId** (Guid, path parameter) - Identifies EncounterAsset in collection
 3. **position** (request body)
    - **X** (int): New horizontal position
    - **Y** (int): New vertical position
@@ -86,68 +86,68 @@
    - **ZIndex** (int, optional): New layer order
 
 **Validation Rules**:
-- SceneAsset must exist in Scene.Assets collection
+- EncounterAsset must exist in Encounter.Assets collection
 - If provided: Width > 0, Height > 0
 - If provided: Rotation 0-360
-- SceneAsset.IsLocked = false (locked assets cannot be moved)
+- EncounterAsset.IsLocked = false (locked assets cannot be moved)
 
 #### Remove Asset (DELETE)
 
 **Parameters**:
-1. **sceneId** (Guid, path parameter)
+1. **encounterId** (Guid, path parameter)
 2. **assetId** (Guid, path parameter)
 
 **Validation Rules**:
-- SceneAsset must exist in Scene.Assets collection
-- SceneAsset.IsLocked = false (locked assets cannot be removed)
+- EncounterAsset must exist in Encounter.Assets collection
+- EncounterAsset.IsLocked = false (locked assets cannot be removed)
 
 ### Processing Workflow
 
 #### Place Asset Workflow:
-1. Load Scene entity by sceneId
-2. Validate Scene exists (return 404 if not found)
-3. Validate user owns Scene (return 403 if unauthorized)
-4. Call IAssetStorage.GetAssetByIdAsync(sceneAsset.AssetId)
+1. Load Encounter entity by encounterId
+2. Validate Encounter exists (return 404 if not found)
+3. Validate user owns Encounter (return 403 if unauthorized)
+4. Call IAssetStorage.GetAssetByIdAsync(encounterAsset.AssetId)
 5. Validate Asset exists (return 404 if not found)
 6. Validate Width > 0 and Height > 0 (return 400 if invalid)
 7. Validate Rotation 0-360 (return 400 if invalid)
 8. Optionally validate position within Stage bounds (INV-11)
-9. Add SceneAsset to Scene.Assets collection
-10. Save Scene to database via EF Core
-11. Publish AssetPlacedOnScene domain event
-12. Return updated Scene entity with 200 OK
+9. Add EncounterAsset to Encounter.Assets collection
+10. Save Encounter to database via EF Core
+11. Publish AssetPlacedOnEncounter domain event
+12. Return updated Encounter entity with 200 OK
 
 #### Move Asset Workflow:
-1. Load Scene entity by sceneId
-2. Validate Scene exists (return 404 if not found)
-3. Validate user owns Scene (return 403 if unauthorized)
-4. Find SceneAsset in Scene.Assets collection by assetId
-5. Validate SceneAsset exists (return 404 if not found)
-6. Validate SceneAsset.IsLocked = false (return 400 if locked)
-7. Update SceneAsset properties (X, Y, Width, Height, Rotation, ZIndex)
-8. Replace SceneAsset in collection with updated value object
-9. Save Scene to database
-10. Publish AssetMovedOnScene domain event
-11. Return updated Scene with 200 OK
+1. Load Encounter entity by encounterId
+2. Validate Encounter exists (return 404 if not found)
+3. Validate user owns Encounter (return 403 if unauthorized)
+4. Find EncounterAsset in Encounter.Assets collection by assetId
+5. Validate EncounterAsset exists (return 404 if not found)
+6. Validate EncounterAsset.IsLocked = false (return 400 if locked)
+7. Update EncounterAsset properties (X, Y, Width, Height, Rotation, ZIndex)
+8. Replace EncounterAsset in collection with updated value object
+9. Save Encounter to database
+10. Publish AssetMovedOnEncounter domain event
+11. Return updated Encounter with 200 OK
 
 #### Remove Asset Workflow:
-1. Load Scene entity by sceneId
-2. Validate Scene exists (return 404 if not found)
-3. Validate user owns Scene (return 403 if unauthorized)
-4. Find SceneAsset in Scene.Assets collection by assetId
-5. Validate SceneAsset exists (return 404 if not found)
-6. Validate SceneAsset.IsLocked = false (return 400 if locked)
-7. Remove SceneAsset from Scene.Assets collection
-8. Save Scene to database
-9. Publish AssetRemovedFromScene domain event
-10. Return updated Scene with 200 OK
+1. Load Encounter entity by encounterId
+2. Validate Encounter exists (return 404 if not found)
+3. Validate user owns Encounter (return 403 if unauthorized)
+4. Find EncounterAsset in Encounter.Assets collection by assetId
+5. Validate EncounterAsset exists (return 404 if not found)
+6. Validate EncounterAsset.IsLocked = false (return 400 if locked)
+7. Remove EncounterAsset from Encounter.Assets collection
+8. Save Encounter to database
+9. Publish AssetRemovedFromEncounter domain event
+10. Return updated Encounter with 200 OK
 
 ### Output Specification
 
 **Success Response** (200 OK):
 ```json
 {
-  "id": "scene-guid",
+  "id": "encounter-guid",
   "ownerId": "user-guid",
   "name": "Goblin Ambush",
   "stage": { ... },
@@ -178,35 +178,35 @@
 ```
 
 **Postconditions**:
-- Scene.Assets collection updated (asset added/moved/removed)
+- Encounter.Assets collection updated (asset added/moved/removed)
 - Asset existence validated (for place operation)
 - Position and dimensions validated
-- Domain event published (AssetPlacedOnScene, AssetMovedOnScene, or AssetRemovedFromScene)
+- Domain event published (AssetPlacedOnEncounter, AssetMovedOnEncounter, or AssetRemovedFromEncounter)
 - Changes persisted to database
 
 ---
 
 ## Error Scenarios
 
-### ES-01: Scene Not Found
-- **Condition**: sceneId doesn't reference existing Scene
+### ES-01: Encounter Not Found
+- **Condition**: encounterId doesn't reference existing Encounter
 - **Handling**: Return 404 Not Found
-- **Response**: `{"error": "Scene not found", "sceneId": "{id}"}`
+- **Response**: `{"error": "Encounter not found", "encounterId": "{id}"}`
 
 ### ES-02: Unauthorized Access
-- **Condition**: User doesn't own the Scene
+- **Condition**: User doesn't own the Encounter
 - **Handling**: Return 403 Forbidden
-- **Response**: `{"error": "Forbidden: You do not own this scene"}`
+- **Response**: `{"error": "Forbidden: You do not own this encounter"}`
 
 ### ES-03: Asset Template Not Found (Place)
 - **Condition**: AssetId doesn't reference existing Asset entity
 - **Handling**: Return 404 Not Found
 - **Response**: `{"error": "Asset template not found", "assetId": "{id}"}`
 
-### ES-04: SceneAsset Not Found (Move/Remove)
-- **Condition**: AssetId doesn't exist in Scene.Assets collection
+### ES-04: EncounterAsset Not Found (Move/Remove)
+- **Condition**: AssetId doesn't exist in Encounter.Assets collection
 - **Handling**: Return 404 Not Found
-- **Response**: `{"error": "Asset not placed on scene", "assetId": "{id}"}`
+- **Response**: `{"error": "Asset not placed on encounter", "assetId": "{id}"}`
 
 ### ES-05: Invalid Dimensions (Place)
 - **Condition**: Width ≤ 0 or Height ≤ 0
@@ -219,7 +219,7 @@
 - **Response**: `{"error": "Rotation must be 0-360 degrees", "rotation": X}`
 
 ### ES-07: Asset Locked (Move/Remove)
-- **Condition**: SceneAsset.IsLocked = true
+- **Condition**: EncounterAsset.IsLocked = true
 - **Handling**: Return 400 Bad Request
 - **Response**: `{"error": "Asset is locked and cannot be modified"}`
 
@@ -233,47 +233,47 @@
 ## Acceptance Criteria
 
 ### AC-01: Asset Placed Successfully
-- **Given**: User is authenticated and owns Scene
-- **And**: Valid AssetId and SceneAsset data provided
-- **When**: POST /api/library/scenes/{id}/assets called
-- **Then**: SceneAsset added to Scene.Assets collection
-- **And**: AssetPlacedOnScene event published
-- **And**: 200 OK returned with updated Scene
+- **Given**: User is authenticated and owns Encounter
+- **And**: Valid AssetId and EncounterAsset data provided
+- **When**: POST /api/library/encounters/{id}/assets called
+- **Then**: EncounterAsset added to Encounter.Assets collection
+- **And**: AssetPlacedOnEncounter event published
+- **And**: 200 OK returned with updated Encounter
 
 ### AC-02: Asset Moved Successfully
-- **Given**: User owns Scene and Asset is placed on scene
-- **And**: SceneAsset.IsLocked = false
-- **When**: PATCH /api/library/scenes/{id}/assets/{assetId}/move called with new position
-- **Then**: SceneAsset position updated in collection
-- **And**: AssetMovedOnScene event published
+- **Given**: User owns Encounter and Asset is placed on encounter
+- **And**: EncounterAsset.IsLocked = false
+- **When**: PATCH /api/library/encounters/{id}/assets/{assetId}/move called with new position
+- **Then**: EncounterAsset position updated in collection
+- **And**: AssetMovedOnEncounter event published
 - **And**: 200 OK returned
 
 ### AC-03: Asset Removed Successfully
-- **Given**: User owns Scene and Asset is placed on scene
-- **And**: SceneAsset.IsLocked = false
-- **When**: DELETE /api/library/scenes/{id}/assets/{assetId} called
-- **Then**: SceneAsset removed from Scene.Assets collection
-- **And**: AssetRemovedFromScene event published
+- **Given**: User owns Encounter and Asset is placed on encounter
+- **And**: EncounterAsset.IsLocked = false
+- **When**: DELETE /api/library/encounters/{id}/assets/{assetId} called
+- **Then**: EncounterAsset removed from Encounter.Assets collection
+- **And**: AssetRemovedFromEncounter event published
 - **And**: 200 OK returned
 
 ### AC-04: Asset Template Validation Enforced
-- **Given**: User owns Scene
+- **Given**: User owns Encounter
 - **And**: AssetId references non-existent Asset
 - **When**: PlaceAssetAsync called
 - **Then**: 404 Not Found returned
-- **And**: Scene.Assets collection not modified
+- **And**: Encounter.Assets collection not modified
 
 ### AC-05: Locked Asset Cannot Be Modified
-- **Given**: SceneAsset exists with IsLocked = true
+- **Given**: EncounterAsset exists with IsLocked = true
 - **When**: MoveAssetAsync or RemoveAssetAsync called
 - **Then**: 400 Bad Request returned
-- **And**: SceneAsset not modified
+- **And**: EncounterAsset not modified
 
 ### AC-06: Ownership Authorization Enforced
-- **Given**: User is authenticated but doesn't own Scene
+- **Given**: User is authenticated but doesn't own Encounter
 - **When**: PlaceAssetAsync, MoveAssetAsync, or RemoveAssetAsync called
 - **Then**: 403 Forbidden returned
-- **And**: Scene not modified
+- **And**: Encounter not modified
 
 ### AC-07: Dimension Validation Enforced
 - **Given**: Width = 0 or Height = -50
@@ -283,7 +283,7 @@
 
 ### AC-08: ZIndex Ordering Respected
 - **Given**: Multiple assets placed with different ZIndex values
-- **When**: Scene retrieved
+- **When**: Encounter retrieved
 - **Then**: Assets rendered in ZIndex order (higher values on top)
 
 ---
@@ -295,16 +295,16 @@
 **Application Layer**:
 - Service: ILibraryStorage (PlaceAssetAsync, MoveAssetAsync, RemoveAssetAsync methods)
 - Responsibility: Orchestrate asset placement with validation and persistence
-- Location: Source/Library/Services/LibraryStorage.cs (or SceneService.cs)
+- Location: Source/Library/Services/LibraryStorage.cs (or EncounterService.cs)
 
 **Domain Layer**:
-- Aggregate Root: Scene entity
-- Value Object: SceneAsset (AssetId, X, Y, Width, Height, ZIndex, Rotation, IsLocked)
-- Invariants: INV-11 (optional position bounds), AGG-08 (SceneAssets are value objects)
-- Domain Events: AssetPlacedOnScene, AssetMovedOnScene, AssetRemovedFromScene
+- Aggregate Root: Encounter entity
+- Value Object: EncounterAsset (AssetId, X, Y, Width, Height, ZIndex, Rotation, IsLocked)
+- Invariants: INV-11 (optional position bounds), AGG-08 (EncounterAssets are value objects)
+- Domain Events: AssetPlacedOnEncounter, AssetMovedOnEncounter, AssetRemovedFromEncounter
 
 **Infrastructure Layer**:
-- Persistence: EF Core owned entity collection for SceneAssets
+- Persistence: EF Core owned entity collection for EncounterAssets
 - HTTP Adapter: POST/PATCH/DELETE endpoint handlers
 - Asset Integration: IAssetStorage port for template validation
 
@@ -312,42 +312,42 @@
 
 **Primary Ports** (Inbound):
 ```csharp
-Task<Result<Scene>> PlaceAssetAsync(
-    Guid sceneId,
-    SceneAsset sceneAsset,
+Task<Result<Encounter>> PlaceAssetAsync(
+    Guid encounterId,
+    EncounterAsset encounterAsset,
     CancellationToken ct = default);
 
-Task<Result<Scene>> MoveAssetAsync(
-    Guid sceneId,
+Task<Result<Encounter>> MoveAssetAsync(
+    Guid encounterId,
     Guid assetId,
     int x,
     int y,
     CancellationToken ct = default);
 
-Task<Result<Scene>> RemoveAssetAsync(
-    Guid sceneId,
+Task<Result<Encounter>> RemoveAssetAsync(
+    Guid encounterId,
     Guid assetId,
     CancellationToken ct = default);
 ```
 
 **Secondary Ports** (Outbound):
 - IAssetStorage.GetAssetByIdAsync(Guid assetId) - Validate asset template exists
-- ISceneRepository.GetByIdAsync(Guid sceneId) - Load scene
-- ISceneRepository.UpdateAsync(Scene scene) - Persist changes
+- IEncounterRepository.GetByIdAsync(Guid encounterId) - Load encounter
+- IEncounterRepository.UpdateAsync(Encounter encounter) - Persist changes
 
 **Adapters**:
 - HTTP Endpoint Adapters: Map POST/PATCH/DELETE requests to service calls
-- EF Core Adapter: Persists SceneAssets as owned entity collection
+- EF Core Adapter: Persists EncounterAssets as owned entity collection
 - Asset Validation Adapter: Calls IAssetStorage to validate templates
 
 ### DDD Integration
 
 **Bounded Context**: Library
-**Aggregate**: Scene (Aggregate Root contains SceneAsset collection)
-**Value Object**: SceneAsset (immutable, 8 properties)
+**Aggregate**: Encounter (Aggregate Root contains EncounterAsset collection)
+**Value Object**: EncounterAsset (immutable, 8 properties)
 **Invariants**: INV-11 (optional position validation), AGG-08 (value objects, no independent existence)
-**Domain Events**: AssetPlacedOnScene, AssetMovedOnScene, AssetRemovedFromScene
-**Ubiquitous Language**: Scene, SceneAsset, Asset Template, Position, ZIndex, Locked
+**Domain Events**: AssetPlacedOnEncounter, AssetMovedOnEncounter, AssetRemovedFromEncounter
+**Ubiquitous Language**: Encounter, EncounterAsset, Asset Template, Position, ZIndex, Locked
 
 ---
 
@@ -356,28 +356,28 @@ Task<Result<Scene>> RemoveAssetAsync(
 ### Interface Definition
 
 ```csharp
-// Source/Domain/Library/Scenes/Storage/ILibraryStorage.cs
+// Source/Domain/Library/Encounters/Storage/ILibraryStorage.cs
 public interface ILibraryStorage {
-    Task<Result<Scene>> PlaceAssetAsync(
-        Guid sceneId,
-        SceneAsset sceneAsset,
+    Task<Result<Encounter>> PlaceAssetAsync(
+        Guid encounterId,
+        EncounterAsset encounterAsset,
         CancellationToken ct = default);
 
-    Task<Result<Scene>> MoveAssetAsync(
-        Guid sceneId,
+    Task<Result<Encounter>> MoveAssetAsync(
+        Guid encounterId,
         Guid assetId,
         int x,
         int y,
         CancellationToken ct = default);
 
-    Task<Result<Scene>> RemoveAssetAsync(
-        Guid sceneId,
+    Task<Result<Encounter>> RemoveAssetAsync(
+        Guid encounterId,
         Guid assetId,
         CancellationToken ct = default);
 }
 
-// Source/Domain/Library/Scenes/SceneAsset.cs
-public record SceneAsset(
+// Source/Domain/Library/Encounters/EncounterAsset.cs
+public record EncounterAsset(
     Guid AssetId,
     int X,
     int Y,
@@ -392,112 +392,112 @@ public record SceneAsset(
 
 ```csharp
 // PlaceAssetAsync
-public async Task<Result<Scene>> PlaceAssetAsync(
-    Guid sceneId,
-    SceneAsset sceneAsset,
+public async Task<Result<Encounter>> PlaceAssetAsync(
+    Guid encounterId,
+    EncounterAsset encounterAsset,
     CancellationToken ct) {
 
-    var scene = await _repository.GetByIdAsync(sceneId, ct);
-    if (scene == null)
-        return Result.Failure("Scene not found");
+    var encounter = await _repository.GetByIdAsync(encounterId, ct);
+    if (encounter == null)
+        return Result.Failure("Encounter not found");
 
-    if (scene.OwnerId != _currentUserId)
+    if (encounter.OwnerId != _currentUserId)
         return Result.Failure("Forbidden");
 
     // Validate Asset template exists
-    var asset = await _assetStorage.GetAssetByIdAsync(sceneAsset.AssetId, ct);
+    var asset = await _assetStorage.GetAssetByIdAsync(encounterAsset.AssetId, ct);
     if (asset == null)
         return Result.Failure("Asset template not found");
 
     // Validate dimensions
-    if (sceneAsset.Width <= 0 || sceneAsset.Height <= 0)
+    if (encounterAsset.Width <= 0 || encounterAsset.Height <= 0)
         return Result.Failure("Asset dimensions must be positive");
 
     // Validate rotation
-    if (sceneAsset.Rotation < 0 || sceneAsset.Rotation > 360)
+    if (encounterAsset.Rotation < 0 || encounterAsset.Rotation > 360)
         return Result.Failure("Rotation must be 0-360 degrees");
 
     // Optional: Validate position within bounds (INV-11)
-    if (sceneAsset.X < 0 || sceneAsset.Y < 0 ||
-        sceneAsset.X > scene.Stage.Width || sceneAsset.Y > scene.Stage.Height)
+    if (encounterAsset.X < 0 || encounterAsset.Y < 0 ||
+        encounterAsset.X > encounter.Stage.Width || encounterAsset.Y > encounter.Stage.Height)
         return Result.Failure("Position must be within stage bounds");
 
     // Add to collection
-    var updatedAssets = scene.Assets.Append(sceneAsset).ToList();
-    var updatedScene = scene with { Assets = updatedAssets };
+    var updatedAssets = encounter.Assets.Append(encounterAsset).ToList();
+    var updatedEncounter = encounter with { Assets = updatedAssets };
 
-    await _repository.UpdateAsync(updatedScene, ct);
+    await _repository.UpdateAsync(updatedEncounter, ct);
     await _eventBus.PublishAsync(
-        new AssetPlacedOnScene(sceneId, sceneAsset.AssetId), ct);
+        new AssetPlacedOnEncounter(encounterId, encounterAsset.AssetId), ct);
 
-    return Result.Success(updatedScene);
+    return Result.Success(updatedEncounter);
 }
 
 // MoveAssetAsync
-public async Task<Result<Scene>> MoveAssetAsync(
-    Guid sceneId,
+public async Task<Result<Encounter>> MoveAssetAsync(
+    Guid encounterId,
     Guid assetId,
     int x,
     int y,
     CancellationToken ct) {
 
-    var scene = await _repository.GetByIdAsync(sceneId, ct);
-    if (scene == null)
-        return Result.Failure("Scene not found");
+    var encounter = await _repository.GetByIdAsync(encounterId, ct);
+    if (encounter == null)
+        return Result.Failure("Encounter not found");
 
-    if (scene.OwnerId != _currentUserId)
+    if (encounter.OwnerId != _currentUserId)
         return Result.Failure("Forbidden");
 
-    var sceneAsset = scene.Assets.FirstOrDefault(a => a.AssetId == assetId);
-    if (sceneAsset == null)
-        return Result.Failure("Asset not placed on scene");
+    var encounterAsset = encounter.Assets.FirstOrDefault(a => a.AssetId == assetId);
+    if (encounterAsset == null)
+        return Result.Failure("Asset not placed on encounter");
 
-    if (sceneAsset.IsLocked)
+    if (encounterAsset.IsLocked)
         return Result.Failure("Asset is locked");
 
     // Update position
-    var updatedAsset = sceneAsset with { X = x, Y = y };
-    var updatedAssets = scene.Assets
+    var updatedAsset = encounterAsset with { X = x, Y = y };
+    var updatedAssets = encounter.Assets
         .Where(a => a.AssetId != assetId)
         .Append(updatedAsset)
         .ToList();
-    var updatedScene = scene with { Assets = updatedAssets };
+    var updatedEncounter = encounter with { Assets = updatedAssets };
 
-    await _repository.UpdateAsync(updatedScene, ct);
+    await _repository.UpdateAsync(updatedEncounter, ct);
     await _eventBus.PublishAsync(
-        new AssetMovedOnScene(sceneId, assetId, x, y), ct);
+        new AssetMovedOnEncounter(encounterId, assetId, x, y), ct);
 
-    return Result.Success(updatedScene);
+    return Result.Success(updatedEncounter);
 }
 
 // RemoveAssetAsync
-public async Task<Result<Scene>> RemoveAssetAsync(
-    Guid sceneId,
+public async Task<Result<Encounter>> RemoveAssetAsync(
+    Guid encounterId,
     Guid assetId,
     CancellationToken ct) {
 
-    var scene = await _repository.GetByIdAsync(sceneId, ct);
-    if (scene == null)
-        return Result.Failure("Scene not found");
+    var encounter = await _repository.GetByIdAsync(encounterId, ct);
+    if (encounter == null)
+        return Result.Failure("Encounter not found");
 
-    if (scene.OwnerId != _currentUserId)
+    if (encounter.OwnerId != _currentUserId)
         return Result.Failure("Forbidden");
 
-    var sceneAsset = scene.Assets.FirstOrDefault(a => a.AssetId == assetId);
-    if (sceneAsset == null)
-        return Result.Failure("Asset not placed on scene");
+    var encounterAsset = encounter.Assets.FirstOrDefault(a => a.AssetId == assetId);
+    if (encounterAsset == null)
+        return Result.Failure("Asset not placed on encounter");
 
-    if (sceneAsset.IsLocked)
+    if (encounterAsset.IsLocked)
         return Result.Failure("Asset is locked");
 
-    var updatedAssets = scene.Assets.Where(a => a.AssetId != assetId).ToList();
-    var updatedScene = scene with { Assets = updatedAssets };
+    var updatedAssets = encounter.Assets.Where(a => a.AssetId != assetId).ToList();
+    var updatedEncounter = encounter with { Assets = updatedAssets };
 
-    await _repository.UpdateAsync(updatedScene, ct);
+    await _repository.UpdateAsync(updatedEncounter, ct);
     await _eventBus.PublishAsync(
-        new AssetRemovedFromScene(sceneId, assetId), ct);
+        new AssetRemovedFromEncounter(encounterId, assetId), ct);
 
-    return Result.Success(updatedScene);
+    return Result.Success(updatedEncounter);
 }
 ```
 
@@ -509,17 +509,17 @@ public async Task<Result<Scene>> RemoveAssetAsync(
 - Test rotation validation - reject < 0 or > 360
 - Test ownership authorization - reject non-owners
 - Test locked asset protection - reject move/remove of locked assets
-- Test SceneAsset collection management - add, update, remove
+- Test EncounterAsset collection management - add, update, remove
 - Test ZIndex ordering
 
 **Integration Tests**:
-- Test EF Core owned entity collection persistence for SceneAssets
+- Test EF Core owned entity collection persistence for EncounterAssets
 - Test IAssetStorage integration for template validation
 - Test domain event publishing (all 3 events)
 - Test position bounds validation (INV-11)
 
 **BDD/Acceptance Tests**:
-- Reference Place Asset, Move Asset, Remove Asset scenarios in Scene Management.feature
+- Reference Place Asset, Move Asset, Remove Asset scenarios in Encounter Management.feature
 - Test complete workflows for all 3 operations
 - Test error scenarios
 
@@ -530,20 +530,20 @@ public async Task<Result<Scene>> RemoveAssetAsync(
 ## Technical Dependencies
 
 **Domain Dependencies**:
-- Scene entity (Aggregate Root)
-- SceneAsset value object definition
+- Encounter entity (Aggregate Root)
+- EncounterAsset value object definition
 - Asset entity reference (Assets context)
 - INV-11 invariant (optional position bounds)
-- AGG-08 aggregate rule (SceneAssets are value objects)
+- AGG-08 aggregate rule (EncounterAssets are value objects)
 
 **Infrastructure Dependencies**:
 - IAssetStorage interface (Assets context port)
-- ISceneRepository (or ILibraryStorage persistence)
+- IEncounterRepository (or ILibraryStorage persistence)
 - EF Core owned entity collection configuration
 - Event bus for domain events
 
 **External Dependencies**:
-- Database with Scene table and SceneAssets owned entity collection
+- Database with Encounter table and EncounterAssets owned entity collection
 - Assets context Asset table (for template validation)
 
 ---
@@ -551,12 +551,12 @@ public async Task<Result<Scene>> RemoveAssetAsync(
 ## Cross-Area Coordination
 
 **Library → Assets**:
-- SceneAsset.AssetId references Assets.Asset template
+- EncounterAsset.AssetId references Assets.Asset template
 - Validation via IAssetStorage.GetAssetByIdAsync port
 - Asset template must exist before placement
 
 **Library → Identity**:
-- Scene.OwnerId references Identity.User
+- Encounter.OwnerId references Identity.User
 - Ownership validation for authorization
 
 ---
@@ -584,7 +584,7 @@ USE CASE SPECIFICATION QUALITY CHECKLIST
 ✅ 10pts: Area assignment correct (Library)
 ✅ 5pts: Clean Architecture mapping (Application/Domain/Infrastructure)
 ✅ 5pts: Hexagonal Architecture ports defined (3 primary ports)
-✅ 5pts: DDD alignment (Scene aggregate, SceneAsset value object, INV-11, AGG-08)
+✅ 5pts: DDD alignment (Encounter aggregate, EncounterAsset value object, INV-11, AGG-08)
 ✅ 5pts: Cross-area coordination documented (Assets, Identity)
 
 ## Implementation Readiness (20 points)

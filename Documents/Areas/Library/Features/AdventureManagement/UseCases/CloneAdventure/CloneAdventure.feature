@@ -3,7 +3,7 @@
 
 Feature: Clone Adventure
   As a Game Master
-  I want to clone an existing adventure with all its scenes
+  I want to clone an existing adventure with all its encounters
   So that I can reuse adventure content for different game sessions
 
   Background:
@@ -20,13 +20,13 @@ Feature: Clone Adventure
       And the new adventure should have a different ID
       And the original adventure should remain unchanged
 
-    Scenario: Clone adventure duplicates all scenes with new IDs
-      Given my adventure has 5 scenes
-      And each scene has unique ID
+    Scenario: Clone adventure duplicates all encounters with new IDs
+      Given my adventure has 5 encounters
+      And each encounter has unique ID
       When I clone the adventure
-      Then the cloned adventure should have 5 scenes
-      And each cloned scene should have a new unique ID
-      And the original scenes should remain unchanged
+      Then the cloned adventure should have 5 encounters
+      And each cloned encounter should have a new unique ID
+      And the original encounters should remain unchanged
 
   @happy-path
   Scenario: Successfully clone adventure with all properties
@@ -47,29 +47,29 @@ Feature: Clone Adventure
       | IsPublic     | false                      |
 
   @happy-path
-  Scenario: Successfully clone adventure with scenes containing assets
-    Given my adventure has 3 scenes
-    And the first scene has 5 placed assets
-    And the second scene has 3 placed assets
-    And the third scene has 2 placed assets
+  Scenario: Successfully clone adventure with encounters containing assets
+    Given my adventure has 3 encounters
+    And the first encounter has 5 placed assets
+    And the second encounter has 3 placed assets
+    And the third encounter has 2 placed assets
     When I clone the adventure
-    Then the cloned adventure should have 3 scenes
-    And the first cloned scene should have 5 placed assets
-    And the second cloned scene should have 3 placed assets
-    And the third cloned scene should have 2 placed assets
+    Then the cloned adventure should have 3 encounters
+    And the first cloned encounter should have 5 placed assets
+    And the second cloned encounter should have 3 placed assets
+    And the third cloned encounter should have 2 placed assets
     And all asset placements should be duplicated
 
   @happy-path
   Scenario: Successfully clone adventure with stage and grid configurations
-    Given my adventure has scenes with:
-      | Scene Properties        |
+    Given my adventure has encounters with:
+      | Encounter Properties        |
       | Stage background        |
       | Stage dimensions        |
       | Grid configuration      |
       | Grid size and offset    |
     When I clone the adventure
-    Then all scene stage configurations should be duplicated
-    And all scene grid configurations should be duplicated
+    Then all encounter stage configurations should be duplicated
+    And all encounter grid configurations should be duplicated
     And all configurations should have correct values
 
   @happy-path
@@ -95,7 +95,7 @@ Feature: Clone Adventure
 
   @error-handling
   Scenario: Handle database failure during clone
-    Given my adventure exists with scenes
+    Given my adventure exists with encounters
     And the database is unavailable
     When I attempt to clone the adventure
     Then I should see error with server error
@@ -109,23 +109,23 @@ Feature: Clone Adventure
     And I should see error "You are not authorized to clone this adventure"
 
   @edge-case
-  Scenario: Clone adventure with no scenes
-    Given my adventure has no scenes
+  Scenario: Clone adventure with no encounters
+    Given my adventure has no encounters
     When I clone the adventure
     Then the cloned adventure is created
-    And the cloned adventure should have no scenes
+    And the cloned adventure should have no encounters
 
   @edge-case
-  Scenario: Clone adventure with maximum scenes
-    Given my adventure has 50 scenes
+  Scenario: Clone adventure with maximum encounters
+    Given my adventure has 50 encounters
     When I clone the adventure
-    Then the cloned adventure should have 50 scenes
-    And all scenes should be properly duplicated
+    Then the cloned adventure should have 50 encounters
+    And all encounters should be properly duplicated
     And the operation should complete within acceptable time
 
   @integration
   Scenario: Clone adventure and verify independence from original
-    Given my adventure has 3 scenes
+    Given my adventure has 3 encounters
     When I clone the adventure
     And I update the original adventure name to "Original Modified"
     And I update the cloned adventure name to "Clone Modified"

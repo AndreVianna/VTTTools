@@ -6,7 +6,7 @@
 
 **Boundaries**:
 - **Inside**: Resource entity definitions, media metadata management, file path management, blob storage operations
-- **Outside**: User management (Identity context), Asset display usage (Assets context), Scene backgrounds (Library context)
+- **Outside**: User management (Identity context), Asset display usage (Assets context), Encounter backgrounds (Library context)
 
 **Architecture Pattern**: DDD Contracts + Service Implementation
 - Domain entities are **data contracts** (anemic - no behavior)
@@ -132,7 +132,7 @@
 
 - **Delete Resource**: Remove resource and file from blob storage
   - **Implemented By**: IMediaStorage.DeleteAsync() (Application layer)
-  - **Pre-conditions**: Resource exists, not referenced by any Asset or Scene
+  - **Pre-conditions**: Resource exists, not referenced by any Asset or Encounter
   - **Invariants Enforced**: None (deletion operation)
   - **Post-conditions**: Resource entity deleted, blob storage file removed
   - **Returns**: Task
@@ -167,9 +167,9 @@ Potential future events:
 #### Relationships
 - **Referenced By** ← Asset: Resources may be used via AssetResource collection
   - **Cardinality**: One-to-Many (one resource can be referenced by many AssetResource associations)
-  - **Roles**: Each reference has a role (Token for scenes, Display for UI)
+  - **Roles**: Each reference has a role (Token for encounters, Display for UI)
 
-- **Referenced By** ← Scene/Adventure/Epic: Resource may be used as Background
+- **Referenced By** ← Encounter/Adventure/Epic: Resource may be used as Background
   - **Cardinality**: One-to-Many (one resource used by many backgrounds)
   - **Navigation**: Not navigable from Resource (no collection property)
 
@@ -240,7 +240,7 @@ Potential future events:
 
 ### Metadata Properties (Stored on Azure Blob)
 - **OwnerId**: User GUID who uploaded the resource
-- **EntityType**: Type of entity using resource ("asset", "scene", "adventure")
+- **EntityType**: Type of entity using resource ("asset", "encounter", "adventure")
 - **EntityId**: ID of owning entity (empty for orphans, populated when entity saved)
 - **IsPublic**: Whether resource is publicly accessible
 
@@ -311,16 +311,16 @@ Cleanup process can safely delete these blobs and Resource entities.
 **What's Outside** (Referenced, not contained):
 - User (uploader, if tracking is added)
 - Asset (references Resource via Display.ResourceId)
-- Scene/Adventure/Epic (reference Resource for Background)
+- Encounter/Adventure/Epic (reference Resource for Background)
 
-**Boundary Rule**: All data needed to store, retrieve, and serve a media file is within this aggregate. External usage (Asset display, Scene backgrounds) is tracked in those aggregates, not here. Resource is a shared kernel referenced by ID.
+**Boundary Rule**: All data needed to store, retrieve, and serve a media file is within this aggregate. External usage (Asset display, Encounter backgrounds) is tracked in those aggregates, not here. Resource is a shared kernel referenced by ID.
 
 #### Aggregate Invariants
 - **AGG-01**: Resource Path must remain unique
   - **Enforcement**: Database unique index, service checks before upload
 - **AGG-02**: Resource file must exist in blob storage if Resource entity exists
   - **Enforcement**: Transactional upload (file first, then entity)
-- **AGG-03**: Resource cannot be deleted if referenced by any Asset or Scene
+- **AGG-03**: Resource cannot be deleted if referenced by any Asset or Encounter
   - **Enforcement**: Service checks usage before deletion
 
 #### Lifecycle Management
@@ -412,7 +412,7 @@ Cleanup process can safely delete these blobs and Resource entities.
 
 - **BR-04** - Referential Integrity: Resource cannot be deleted if in use
   - **Scope**: Resource deletion
-  - **Enforcement**: Service queries Asset.Display and Scene.Background references
+  - **Enforcement**: Service queries Asset.Display and Encounter.Background references
   - **Validation**: Check for references before delete
 
 - **BR-05** - Data Consistency: Resource entity and blob storage file must be synchronized
@@ -449,7 +449,7 @@ This domain model is **dependency-free** in the Domain project:
 - **Tag Resources Use Case**: Uses Resource entity, updates Tags property
 - **Delete Media Use Case**: Uses Resource entity ID, checks usage before deletion
 - **Asset Display**: Asset context references Resource.Id via Display.ResourceId value object
-- **Scene Backgrounds**: Library context (Scene, Adventure, Epic) references Resource.Id for Background property
+- **Encounter Backgrounds**: Library context (Encounter, Adventure, Epic) references Resource.Id for Background property
 
 ---
 

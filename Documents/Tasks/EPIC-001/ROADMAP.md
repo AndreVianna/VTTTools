@@ -14,13 +14,13 @@
 - **Phase Details**: [phases/](./phases/) - Detailed documentation for all 14 phases
 - **Change Log**: [CHANGELOG.md](./CHANGELOG.md) - Concise version history with links
 - **Lessons Learned**: [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) - 23 technical insights organized by category
-- **Current Work**: [Phase 8.8 - Manual Testing](./phases/PHASE_8_SCENE_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress)
+- **Current Work**: [Phase 8.8 - Manual Testing](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress)
 
 ---
 
 ## Roadmap Overview
 
-**Objective**: Complete migration from Blazor WebAssembly to React 19.1.1 + TypeScript SPA with enhanced scene editor, asset library, and real-time collaboration features
+**Objective**: Complete migration from Blazor WebAssembly to React 19.1.1 + TypeScript SPA with enhanced encounter editor, asset library, and real-time collaboration features
 
 **Scope**: Final 3% of UI migration - Phase 8.8 polish, Phase 10 SignalR frontend, Phases 12-13 release prep
 
@@ -51,7 +51,7 @@
 - 🔄 Wall marquee selection debugging
 - 🔄 Final polish and edge case handling
 
-**Details**: See [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress)
+**Details**: See [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress)
 
 ---
 
@@ -61,16 +61,16 @@
 |---|-------|--------|-------|-------|---------|
 | 1 | Foundation | ✅ Complete | 8/8 | A | [PHASE_1_FOUNDATION.md](./phases/PHASE_1_FOUNDATION.md) |
 | 2 | Auth & Landing | ✅ Complete | 16/16 | A | [PHASE_2_AUTH_LANDING.md](./phases/PHASE_2_AUTH_LANDING.md) |
-| 3 | Scene Pan/Zoom | ✅ Complete | 28/16 | A | [PHASE_3_SCENE_PAN_ZOOM.md](./phases/PHASE_3_SCENE_PAN_ZOOM.md) |
+| 3 | Encounter Pan/Zoom | ✅ Complete | 28/16 | A | [PHASE_3_ENCOUNTER_PAN_ZOOM.md](./phases/PHASE_3_ENCOUNTER_PAN_ZOOM.md) |
 | 4 | Grid & Layers | ✅ Complete | 12/12 | A | [PHASE_4_GRID_LAYERS.md](./phases/PHASE_4_GRID_LAYERS.md) |
 | 5 | Asset Library | ✅ Complete | 70/16 | A | [PHASE_5_ASSET_LIBRARY.md](./phases/PHASE_5_ASSET_LIBRARY.md) |
-| 6 | Scene Editor | ✅ Complete | 30/25 | A+ | [PHASE_6_SCENE_EDITOR.md](./phases/PHASE_6_SCENE_EDITOR.md) |
+| 6 | Encounter Editor | ✅ Complete | 30/25 | A+ | [PHASE_6_ENCOUNTER_EDITOR.md](./phases/PHASE_6_ENCOUNTER_EDITOR.md) |
 | 7 | Adventure Mgmt | ✅ Complete | 19/21 | A- | [PHASE_7_ADVENTURE_MGMT.md](./phases/PHASE_7_ADVENTURE_MGMT.md) |
-| 8.0 | Scene Mgmt | ✅ Complete | 23/12 | A- | [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-80-scene-management--complete) |
-| 8.5 | Incomplete Items | 🚧 Partial | 9/13 | - | [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-85-incomplete-items--partial) |
-| 8.6 | Structures Backend | ✅ Complete | 37/32-42 | A- | [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-86-structures-backend--complete) |
-| 8.7 | Structures Frontend | ✅ Complete | 67/56-76 | A- | [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-87-structures-frontend--complete) |
-| 8.8 | Manual Tests | 🔄 Active | 5/8-12 | A | [PHASE_8_SCENE_MGMT.md](./phases/PHASE_8_SCENE_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress) |
+| 8.0 | Encounter Mgmt | ✅ Complete | 23/12 | A- | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-80-encounter-management--complete) |
+| 8.5 | Incomplete Items | 🚧 Partial | 9/13 | - | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-85-incomplete-items--partial) |
+| 8.6 | Structures Backend | ✅ Complete | 37/32-42 | A- | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-86-structures-backend--complete) |
+| 8.7 | Structures Frontend | ✅ Complete | 67/56-76 | A- | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-87-structures-frontend--complete) |
+| 8.8 | Manual Tests | 🔄 Active | 5/8-12 | A | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress) |
 | 9 | Epic/Campaign | ✅ Complete | 16/18 | A+ | [PHASE_9_EPIC_CAMPAIGN.md](./phases/PHASE_9_EPIC_CAMPAIGN.md) |
 | 10 | Game Sessions | 🔜 Ready | 0/22 | - | [PHASE_10_GAME_SESSIONS.md](./phases/PHASE_10_GAME_SESSIONS.md) |
 | 11 | Account Mgmt | 🚧 Partial | 16/16 | - | [PHASE_11_ACCOUNT_MGMT.md](./phases/PHASE_11_ACCOUNT_MGMT.md) |
@@ -87,11 +87,11 @@
 ## Key Deliverables
 
 ### Completed ✅
-- ✅ Complete Konva-based scene editor with grid, tokens, layers, undo/redo, offline mode
+- ✅ Complete Konva-based encounter editor with grid, tokens, layers, undo/redo, offline mode
 - ✅ Asset library UI with browsing, filtering, creation, Material-UI components
-- ✅ Scene CRUD UI with backend persistence and properties panel
+- ✅ Encounter CRUD UI with backend persistence and properties panel
 - ✅ Adventure management UI with smart duplication and inline editing
-- ✅ Scene/Adventure duplication with smart naming pattern
+- ✅ Encounter/Adventure duplication with smart naming pattern
 - ✅ Bulk asset operations (clone/delete) with collection-level endpoints
 - ✅ Auto-naming assets during placement
 - ✅ Asset rotation system with interactive handles and backend persistence
@@ -115,7 +115,7 @@
 
 ### Game Sessions Backend API ✅ COMPLETE
 **Location**: `/home/user/VTTTools/Source/Game/`
-**Endpoints**: 12 total (Create, List, Get, Update, Delete, Join, Leave, Start, Stop, ActivateScene + 2 config)
+**Endpoints**: 12 total (Create, List, Get, Update, Delete, Join, Leave, Start, Stop, ActivateEncounter + 2 config)
 **Domain**: GameSession with Messages, Events, Participants collections
 **Tests**: 5 unit tests
 **Status**: Backend ready, frontend not started (SignalR 9.0.6 installed but no HubConnection usage)
@@ -173,7 +173,7 @@
 
 ### E2E Testing
 - **Framework**: Playwright 1.55
-- **Scope**: Critical paths (auth, scene editor, game sessions)
+- **Scope**: Critical paths (auth, encounter editor, game sessions)
 - **Execution**: npm run test:e2e
 - **Coverage**: All Phase 11 success criteria paths
 
@@ -222,9 +222,9 @@
 
 ## � Critical Technical Debt
 
-### HIGH PRIORITY: SceneEditorPage.tsx Refactoring Required
+### HIGH PRIORITY: EncounterEditorPage.tsx Refactoring Required
 
-**File**: `/home/user/VTTTools/Source/WebClientApp/src/pages/SceneEditorPage.tsx`
+**File**: `/home/user/VTTTools/Source/WebClientApp/src/pages/EncounterEditorPage.tsx`
 **Current State**: 2,175 lines | 25+ useState hooks | 15+ useEffect hooks
 **Priority**: HIGH (address in next sprint)
 **Estimated Effort**: 16-24 hours
@@ -238,14 +238,14 @@
 **Refactoring Plan**:
 
 1. **Extract Custom Hooks** (8 hours):
-   - `useSceneState` - scene data, loading, errors
+   - `useEncounterState` - encounter data, loading, errors
    - `useWallEditing` - wall transaction management
    - `useAssetManagement` - asset placement, selection, operations
    - `useKeyboardShortcuts` - Ctrl+Z/Y/C/V shortcuts
 
 2. **Split Sub-Components** (8 hours):
-   - `<SceneToolbar>` - top/left/right toolbars
-   - `<SceneCanvas>` - Konva Stage wrapper
+   - `<EncounterToolbar>` - top/left/right toolbars
+   - `<EncounterCanvas>` - Konva Stage wrapper
    - `<AssetManager>` - asset panels, placement cursor
    - `<WallEditor>` - wall drawing tools, preview
 
@@ -267,11 +267,11 @@
 
 **Cross-References**:
 
-- Features: UserAuthentication ✅, AccountManagement 🚧, LandingPage ✅, AssetManagement ✅, SceneManagement 🚧, SessionManagement 🚧
+- Features: UserAuthentication ✅, AccountManagement 🚧, LandingPage ✅, AssetManagement ✅, EncounterManagement 🚧, SessionManagement 🚧
 - Components: WebClientApp (React SPA), VttTools.WebApp.WebAssembly (legacy), VttTools.WebApp.Common (legacy)
 - Domain Areas: None (UI-only migration)
 
-**Scope**: Migrate all Blazor UI to React with feature parity + UX enhancements (Konva scene editor, Material-UI design system, Redux state management)
+**Scope**: Migrate all Blazor UI to React with feature parity + UX enhancements (Konva encounter editor, Material-UI design system, Redux state management)
 
 ---
 
@@ -311,17 +311,17 @@ Phase 1 (Foundation) ✅
     │       ↓
     │       └─→ Phase 11 (Account Management) 🚧 [16h]
     │
-    ├─→ Phase 3 (Scene: Pan/Zoom) ✅
+    ├─→ Phase 3 (Encounter: Pan/Zoom) ✅
     │       ↓
-    │       └─→ Phase 4 (Scene: Grid/Layers) ✅
+    │       └─→ Phase 4 (Encounter: Grid/Layers) ✅
     │               ↓
     │               ├─→ Phase 5 (Asset Library) ✅ [70h]
     │               │       ↓
-    │               │       └─→ Phase 6 (Scene: Tokens/Undo/Offline) ✅ [30h]
+    │               │       └─→ Phase 6 (Encounter: Tokens/Undo/Offline) ✅ [30h]
     │               │               ↓
     │               │               ├─→ Phase 7 (Adventure Management) ✅ [19h]
     │               │               │       ↓
-    │               │               │       ├─→ Phase 8 (Scene Management) 🚧 [154h total]
+    │               │               │       ├─→ Phase 8 (Encounter Management) 🚧 [154h total]
     │               │               │       │       ├─→ 8.0 ✅ [23h]
     │               │               │       │       ├─→ 8.5 🚧 [9h]
     │               │               │       │       ├─→ 8.6 ✅ [37h]
@@ -381,7 +381,7 @@ Affected Features (6):
 
 1. UserAuthentication → WebClientApp (auth pages) ✅
 2. LandingPage → WebClientApp (landing page) ✅
-3. SceneManagement → WebClientApp (Konva scene editor) 🚧
+3. EncounterManagement → WebClientApp (Konva encounter editor) 🚧
 4. AssetManagement → WebClientApp (asset library UI) ✅
 5. SessionManagement → WebClientApp (SignalR game sessions) 🚧
 6. AccountManagement → WebClientApp (account settings) 🚧
@@ -394,8 +394,8 @@ Affected Components (3):
 
 Implementation Order:
 
-- ✅ Phases 1-7: Foundation, Auth, Scene basics, Assets, Adventures complete
-- ✅ Phase 8.0-8.7: Scene Management & Structures complete
+- ✅ Phases 1-7: Foundation, Auth, Encounter basics, Assets, Adventures complete
+- ✅ Phase 8.0-8.7: Encounter Management & Structures complete
 - 🔄 Phase 8.8: Manual Testing & Refinements (active)
 - ✅ Phase 9: Epic/Campaign hierarchy complete (16h, Grade A+, production ready)
 - 🔜 Phase 10: SessionManagement feature (ready after Phase 8.8)
@@ -420,9 +420,9 @@ Implementation Order:
 
 - **Phase**: 6
 - **Probability**: Medium
-- **Impact**: High (core requirement for scene editor)
+- **Impact**: High (core requirement for encounter editor)
 - **Mitigation**: Konva caching, canvas virtualization, progressive rendering, early performance testing
-- **Contingency**: Reduce target to 50 tokens if optimization insufficient, implement pagination for large scenes
+- **Contingency**: Reduce target to 50 tokens if optimization insufficient, implement pagination for large encounters
 
 ### Risk: SignalR Real-Time Edge Cases
 
@@ -436,7 +436,7 @@ Implementation Order:
 
 - **Phase**: 6
 - **Probability**: Low
-- **Impact**: Medium (scene editor UX degradation)
+- **Impact**: Medium (encounter editor UX degradation)
 - **Mitigation**: Command pattern with well-defined interfaces, extensive testing with 100-level history
 - **Contingency**: Reduce default history to 50 levels if memory issues arise
 
@@ -446,7 +446,7 @@ Implementation Order:
 - **Probability**: Medium
 - **Impact**: Medium (data consistency issues)
 - **Mitigation**: Last-write-wins strategy, conflict detection UI, localStorage versioning
-- **Contingency**: Disable offline editing for multi-user scenes, show read-only mode when offline
+- **Contingency**: Disable offline editing for multi-user encounters, show read-only mode when offline
 
 ---
 
@@ -476,14 +476,14 @@ Implementation Order:
 - **Action if Failed**: Fix auth flows before proceeding
 - **Status**: ✅ Passed
 
-### Gate 3: Scene Pan/Zoom Complete ✅ PASSED
+### Gate 3: Encounter Pan/Zoom Complete ✅ PASSED
 
 - **Trigger**: After Phase 3
 - **Criteria**:
   - Konva Stage rendering without errors ✅
   - Mouse pan working (threshold: smooth 60fps) ✅
   - Zoom working (threshold: 0.1x-10x range) ✅
-  - Protected scene routes working ✅
+  - Protected encounter routes working ✅
 - **Validation Command**: npm run dev (manual test)
 - **Action if Failed**: Fix rendering/interaction before proceeding
 - **Status**: ✅ Passed
@@ -513,7 +513,7 @@ Implementation Order:
 - **Action if Failed**: Fix asset library before proceeding
 - **Status**: ✅ Passed
 
-### Gate 6: Scene Editor Complete ✅ PASSED
+### Gate 6: Encounter Editor Complete ✅ PASSED
 
 - **Trigger**: After Phase 6
 - **Criteria**:
@@ -524,7 +524,7 @@ Implementation Order:
   - Performance target met (threshold: 100 tokens @ 60fps) ⚠️ (deferred to Phase 14)
   - Collision detection working ✅
 - **Validation Command**: npm run test (unit tests ≥85% coverage)
-- **Action if Failed**: Fix scene editor before proceeding
+- **Action if Failed**: Fix encounter editor before proceeding
 - **Status**: ✅ Passed (performance optimization deferred)
 
 ### Gate 7: Adventure Management Complete ✅ PASSED
@@ -539,11 +539,11 @@ Implementation Order:
 - **Action if Failed**: Fix adventure management before proceeding
 - **Status**: ✅ Passed
 
-### Gate 8: Scene Management Complete 🚧 PARTIAL
+### Gate 8: Encounter Management Complete 🚧 PARTIAL
 
 - **Trigger**: After Phase 8
 - **Criteria**:
-  - Scene CRUD operations functional ✅
+  - Encounter CRUD operations functional ✅
   - Backend persistence working ✅
   - Properties panel functional ✅
   - Structures backend complete ✅
@@ -646,7 +646,7 @@ Implementation Order:
 - Blocked by EPIC-002: Phase 13 (Release Preparation - requires Admin App complete)
 - Parallel Track: EPIC-002 Admin Application (40-60h, separate roadmap)
 - Progress: 87.5% EPIC-001 core hours (351/401, excluding optional Phase 14)
-- Note: Phase 10 can proceed after Phase 8.8 (sessions reference scenes from Phase 8)
+- Note: Phase 10 can proceed after Phase 8.8 (sessions reference encounters from Phase 8)
 
 **Phase Expansion Notes**:
 - Phase 3 expanded from 16h to 28h for auth improvements and authorization docs

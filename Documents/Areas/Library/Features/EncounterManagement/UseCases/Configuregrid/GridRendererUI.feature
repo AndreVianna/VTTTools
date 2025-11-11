@@ -3,16 +3,16 @@
 # UI Component: GridRenderer.tsx, GridConfigPanel.tsx
 # Phase: EPIC-001 Phase 4 - Grid & Layers
 
-@use-case @library @scene-editor @grid @ui
+@use-case @library @encounter-editor @grid @ui
 Feature: Grid Renderer UI
   As a Game Master
-  I want to configure and visualize different grid types on my scene
+  I want to configure and visualize different grid types on my encounter
   So that I can provide tactical positioning guidance for players
 
   Background:
     Given I am authenticated as a Game Master
-    And I have opened the scene editor
-    And the scene has a configured stage
+    And I have opened the encounter editor
+    And the encounter has a configured stage
 
   # ═══════════════════════════════════════════════════════════════
   # GRID TYPE RENDERING (5 TYPES)
@@ -58,10 +58,10 @@ Feature: Grid Renderer UI
 
     @happy-path
     Scenario: Disable grid overlay (NoGrid)
-      Given the scene has a Square grid configured
+      Given the encounter has a Square grid configured
       When I set grid type to "NoGrid"
       Then no grid lines should be visible on the canvas
-      And the scene should show only background and placed assets
+      And the encounter should show only background and placed assets
       And the grid layer should be hidden
 
   # ═══════════════════════════════════════════════════════════════
@@ -116,9 +116,9 @@ Feature: Grid Renderer UI
     Scenario: Grid config changes persist to database
       Given I configure a Hexagonal grid
       When I save the grid configuration
-      Then a PATCH /api/scenes/{id} request should be sent
-      And the scene record should be updated with new grid config
-      When I reload the scene editor
+      Then a PATCH /api/encounters/{id} request should be sent
+      And the encounter record should be updated with new grid config
+      When I reload the encounter editor
       Then the Hexagonal grid should be restored
 
   # ═══════════════════════════════════════════════════════════════

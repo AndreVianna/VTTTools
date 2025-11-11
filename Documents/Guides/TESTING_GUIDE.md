@@ -137,7 +137,7 @@ public async Task CreateGameSessionAsync_WithValidData_ReturnsCreatedSession() {
     var userId = Guid.CreateVersion7();
     var data = new CreateGameSessionData {
         Title = "Epic Adventure",
-        SceneId = Guid.CreateVersion7()
+        EncounterId = Guid.CreateVersion7()
     };
     var storage = Substitute.For<IGameSessionStorage>();
     var service = new GameSessionService(storage);
@@ -607,10 +607,10 @@ describe('LoginForm theme support', () => {
 **Automated Testing Coverage**:
 ```typescript
 // Example: Testing theme-aware custom component
-describe('SceneCanvas theme support', () => {
+describe('EncounterCanvas theme support', () => {
     it('should use theme background color in light mode', () => {
         const { container } = renderWithTheme('light');
-        const canvas = container.querySelector('[class*="SceneCanvas"]');
+        const canvas = container.querySelector('[class*="EncounterCanvas"]');
 
         // Verify light mode background is applied
         expect(canvas).toHaveStyle({ backgroundColor: expect.stringMatching(/#F9FAFB|rgb\(249, 250, 251\)/) });
@@ -618,7 +618,7 @@ describe('SceneCanvas theme support', () => {
 
     it('should use theme background color in dark mode', () => {
         const { container } = renderWithTheme('dark');
-        const canvas = container.querySelector('[class*="SceneCanvas"]');
+        const canvas = container.querySelector('[class*="EncounterCanvas"]');
 
         // Verify dark mode background is applied
         expect(canvas).toHaveStyle({ backgroundColor: expect.stringMatching(/#1F2937|rgb\(31, 41, 55\)/) });
@@ -1509,7 +1509,7 @@ npm run test:bdd                                   # All tests
 **Symptom**: "Invalid object name 'Assets.Assets'"
 **Cause**: Schema prefix doesn't exist in DB
 **Fix**: Check migrations, use actual table names (no prefixes)
-**Tables**: `Assets`, `Users`, `Scenes`, `GameSessions` (NOT `Assets.Assets`)
+**Tables**: `Assets`, `Users`, `Encounters`, `GameSessions` (NOT `Assets.Assets`)
 
 #### 6. Use Semantic IDs, Not Text Selectors (CRITICAL)
 **Problem**: Text-based selectors are FRAGILE - break with text changes, I18n, refactoring
@@ -1539,7 +1539,7 @@ await this.page.locator('#btn-browse-assets').click();
 
 **ID Naming Convention:**
 - Buttons: `#btn-{action}` (e.g., `#btn-open-editor`, `#btn-browse-assets`)
-- Cards: `#card-{name}` (e.g., `#card-scene-editor`)
+- Cards: `#card-{name}` (e.g., `#card-encounter-editor`)
 - Sections: `#section-{name}` (e.g., `#hero-section`, `#dashboard-section`)
 - Labels: `#label-{context}` (e.g., `#label-content-library-disabled`)
 - Headings: `#heading-{context}` or `#{type}-{context}` (e.g., `#hero-title`, `#dashboard-greeting`)
@@ -1670,7 +1670,7 @@ if (isAnonymous) {
 async deleteUser(userId: string): Promise<void> {
     const query = `
         DELETE FROM Assets WHERE OwnerId = ?;
-        DELETE FROM Scenes WHERE OwnerId = ?;
+        DELETE FROM Encounters WHERE OwnerId = ?;
         ...
         DELETE FROM Users WHERE Id = ?;  // ← USER DELETED!
     `;
@@ -1681,7 +1681,7 @@ async deleteUser(userId: string): Promise<void> {
 async deleteUserDataOnly(userId: string): Promise<void> {
     const query = `
         DELETE FROM Assets WHERE OwnerId = ?;
-        DELETE FROM Scenes WHERE OwnerId = ?;
+        DELETE FROM Encounters WHERE OwnerId = ?;
         ...
         // NO: DELETE FROM Users WHERE Id = ?;
     `;
@@ -1829,9 +1829,9 @@ Before considering a BDD test suite "done":
 ```typescript
 // Delete in foreign key order:
 DELETE FROM AssetResources WHERE AssetId IN (SELECT Id FROM Assets WHERE OwnerId = ?);
-DELETE FROM SceneAssets WHERE SceneId IN (SELECT Id FROM Scenes WHERE OwnerId = ?);
+DELETE FROM EncounterAssets WHERE EncounterId IN (SELECT Id FROM Encounters WHERE OwnerId = ?);
 DELETE FROM Assets WHERE OwnerId = ?;
-DELETE FROM Scenes WHERE OwnerId = ?;
+DELETE FROM Encounters WHERE OwnerId = ?;
 // ... more tables
 DELETE FROM Users WHERE Id = ?;
 
@@ -1842,7 +1842,7 @@ const params = Array(14).fill(userId);
 ### Step Definition Best Practices for Agents
 
 **DO:**
-- ✅ **Use semantic IDs as primary selectors** (`#btn-save`, `#card-scene-editor`)
+- ✅ **Use semantic IDs as primary selectors** (`#btn-save`, `#card-encounter-editor`)
 - ✅ Use text selectors only for dynamic content (user names, error messages)
 - ✅ Wait for conditions: `expect(locator).toBeVisible({ timeout: 10000 })`
 - ✅ Query real database for verification
@@ -2078,7 +2078,7 @@ async deleteUserDataOnly(userId: string): Promise<void> {
     const query = `
         DELETE FROM AssetResources WHERE AssetId IN (SELECT Id FROM Assets WHERE OwnerId = ?);
         DELETE FROM Assets WHERE OwnerId = ?;
-        DELETE FROM Scenes WHERE OwnerId = ?;
+        DELETE FROM Encounters WHERE OwnerId = ?;
         DELETE FROM GameSessions WHERE OwnerId = ?;
         -- NO: DELETE FROM Users WHERE Id = ?;
     `;

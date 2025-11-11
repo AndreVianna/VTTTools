@@ -12,7 +12,7 @@ using VttTools.Library.Adventures.Model;
 using VttTools.Library.Campaigns.Model;
 using VttTools.Library.Campaigns.Services;
 using VttTools.Library.Campaigns.Storage;
-using VttTools.Library.Scenes.Model;
+using VttTools.Library.Encounters.Model;
 using Xunit;
 
 namespace VttTools.Library.Tests.BDD.CampaignManagement.DeleteCampaign;
@@ -29,7 +29,7 @@ public class DeleteCampaignSteps {
     private Guid _userId = Guid.Empty;
     private Guid _campaignId = Guid.Empty;
     private int _adventureCount = 0;
-    private int _sceneCount = 0;
+    private int _encounterCount = 0;
 
     public DeleteCampaignSteps(ScenarioContext context) {
         _context = context;
@@ -90,46 +90,46 @@ public class DeleteCampaignSteps {
         GivenMyCampaignHasAssociatedAdventures(count);
     }
 
-    [Given(@"the first adventure has (.*) scenes")]
-    public void GivenTheFirstAdventureHasScenes(int count) {
-        _sceneCount += count;
+    [Given(@"the first adventure has (.*) encounters")]
+    public void GivenTheFirstAdventureHasEncounters(int count) {
+        _encounterCount += count;
         if (_existingCampaign?.Adventures.Count > 0) {
             var adventure = _existingCampaign.Adventures[0];
             for (int i = 0; i < count; i++) {
-                adventure.Scenes.Add(new Scene {
+                adventure.Encounters.Add(new Encounter {
                     Id = Guid.CreateVersion7(),
                     AdventureId = adventure.Id,
-                    Name = $"Scene {i + 1}"
+                    Name = $"Encounter {i + 1}"
                 });
             }
         }
     }
 
-    [Given(@"the second adventure has (.*) scenes")]
-    public void GivenTheSecondAdventureHasScenes(int count) {
-        _sceneCount += count;
+    [Given(@"the second adventure has (.*) encounters")]
+    public void GivenTheSecondAdventureHasEncounters(int count) {
+        _encounterCount += count;
         if (_existingCampaign?.Adventures.Count > 1) {
             var adventure = _existingCampaign.Adventures[1];
             for (int i = 0; i < count; i++) {
-                adventure.Scenes.Add(new Scene {
+                adventure.Encounters.Add(new Encounter {
                     Id = Guid.CreateVersion7(),
                     AdventureId = adventure.Id,
-                    Name = $"Scene {i + 1}"
+                    Name = $"Encounter {i + 1}"
                 });
             }
         }
     }
 
-    [Given(@"the third adventure has (.*) scenes")]
-    public void GivenTheThirdAdventureHasScenes(int count) {
-        _sceneCount += count;
+    [Given(@"the third adventure has (.*) encounters")]
+    public void GivenTheThirdAdventureHasEncounters(int count) {
+        _encounterCount += count;
         if (_existingCampaign?.Adventures.Count > 2) {
             var adventure = _existingCampaign.Adventures[2];
             for (int i = 0; i < count; i++) {
-                adventure.Scenes.Add(new Scene {
+                adventure.Encounters.Add(new Encounter {
                     Id = Guid.CreateVersion7(),
                     AdventureId = adventure.Id,
-                    Name = $"Scene {i + 1}"
+                    Name = $"Encounter {i + 1}"
                 });
             }
         }
@@ -337,9 +337,9 @@ public class DeleteCampaignSteps {
         _deleteResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"all (.*) scenes is removed")]
-    public void ThenAllScenesAreRemoved(int count) {
-        count.Should().Be(_sceneCount);
+    [Then(@"all (.*) encounters is removed")]
+    public void ThenAllEncountersAreRemoved(int count) {
+        count.Should().Be(_encounterCount);
     }
 
     [Then(@"both adventures is removed")]

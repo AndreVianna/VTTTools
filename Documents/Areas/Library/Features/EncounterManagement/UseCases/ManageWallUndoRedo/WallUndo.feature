@@ -3,7 +3,7 @@
 # UI Component: WallDrawingTool.tsx, useWallTransaction.ts
 # Phase: EPIC-001 Phase 6 - Wall Drawing with Undo/Redo Support
 
-@use-case @library @scene-editor @walls @undo-redo
+@use-case @library @encounter-editor @walls @undo-redo
 Feature: Wall Undo/Redo Management
   As a Game Master
   I want to undo and redo wall operations during placement and editing
@@ -11,8 +11,8 @@ Feature: Wall Undo/Redo Management
 
   Background:
     Given I am authenticated as a Game Master
-    And I have opened the scene editor for a test scene
-    And the scene canvas is fully loaded
+    And I have opened the encounter editor for a test encounter
+    And the encounter canvas is fully loaded
     And the default wall height is set to 10 feet
 
   # ═══════════════════════════════════════════════════════════════
@@ -140,7 +140,7 @@ Feature: Wall Undo/Redo Management
   # GLOBAL UNDO AFTER WALL COMMIT (PHASE 6.10)
   # ═══════════════════════════════════════════════════════════════
 
-  Rule: Global undo after committing wall creation removes the wall from the scene
+  Rule: Global undo after committing wall creation removes the wall from the encounter
 
     @smoke @happy-path @critical @global-undo
     Scenario: Undo wall creation after commit
@@ -152,29 +152,29 @@ Feature: Wall Undo/Redo Management
         | 300 | 100 |
       And I press Enter to finish placement
       And I wait for the wall to be created on the server
-      Then I should see wall "Wall 1" in the scene
+      Then I should see wall "Wall 1" in the encounter
       And I should be in normal mode
       When I press Ctrl+Z
-      Then wall "Wall 1" should be removed from the scene
-      And the scene should not contain any walls
+      Then wall "Wall 1" should be removed from the encounter
+      And the encounter should not contain any walls
 
     @happy-path @global-undo
     Scenario: Redo wall creation after undo
       Given I created a wall "Wall 1" with 3 poles
       And I pressed Ctrl+Z to undo the creation
-      Then the wall should be removed from the scene
+      Then the wall should be removed from the encounter
       When I press Ctrl+Y to redo
       Then wall "Wall 1" should be recreated
       And the wall should have 3 poles at their original positions
 
     @integration @global-undo
     Scenario: Undo wall creation does not affect other walls
-      Given I have an existing wall "Wall 1" in the scene
+      Given I have an existing wall "Wall 1" in the encounter
       When I create a new wall "Wall 2" with 3 poles
       And I wait for the wall to be created on the server
       And I press Ctrl+Z
-      Then wall "Wall 2" should be removed from the scene
-      But wall "Wall 1" should remain in the scene
+      Then wall "Wall 2" should be removed from the encounter
+      But wall "Wall 1" should remain in the encounter
       And wall "Wall 1" should be unchanged
 
   # ═══════════════════════════════════════════════════════════════
@@ -322,7 +322,7 @@ Feature: Wall Undo/Redo Management
     And the server is temporarily unavailable
     When I press Ctrl+Z
     Then I should see an error message about server unavailability
-    And the wall should remain in the scene
+    And the wall should remain in the encounter
     And I should be able to retry the undo operation
 
   @edge-case
@@ -357,7 +357,7 @@ Feature: Wall Undo/Redo Management
     And the wall should be valid
 
   @integration
-  Scenario: Undo stack survives scene editor interactions
+  Scenario: Undo stack survives encounter editor interactions
     Given I created a wall "Wall 1"
     When I pan the canvas
     And I zoom in on the canvas
@@ -376,7 +376,7 @@ Feature: Wall Undo/Redo Management
     When I press Enter to finish
     And I wait for wall creation
     And I press Ctrl+Z
-    Then the wall should be removed from scene (global undo)
+    Then the wall should be removed from encounter (global undo)
     And I should be in normal mode
 
   # ═══════════════════════════════════════════════════════════════

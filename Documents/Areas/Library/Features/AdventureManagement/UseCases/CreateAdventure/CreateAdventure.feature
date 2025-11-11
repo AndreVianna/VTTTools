@@ -4,7 +4,7 @@
 Feature: Create Adventure
   As a Game Master
   I want to create a new adventure
-  So that I can build individual game modules with scenes
+  So that I can build individual game modules with encounters
 
   Background:
     Given I am authenticated as a Game Master
@@ -75,13 +75,13 @@ Feature: Create Adventure
     And I should receive the adventure with generated ID
 
   @happy-path
-  Scenario: Successfully create adventure with scenes collection
+  Scenario: Successfully create adventure with encounters collection
     Given I provide valid adventure data
-    And I provide 6 valid scenes in the collection
+    And I provide 6 valid encounters in the collection
     When I create the adventure
     Then the adventure is created
-    And all 6 scenes is saved
-    And each scene should reference the adventure ID
+    And all 6 encounters is saved
+    And each encounter should reference the adventure ID
 
   @happy-path
   Scenario: Successfully create standalone adventure

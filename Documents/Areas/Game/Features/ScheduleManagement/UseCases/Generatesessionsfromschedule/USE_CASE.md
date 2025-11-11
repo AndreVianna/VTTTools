@@ -94,7 +94,7 @@
         - OwnerId from Schedule.OwnerId
         - Status = Scheduled (or Draft)
         - Players copied from Schedule.Participants
-        - SceneId = null
+        - EncounterId = null
         - Messages/Events = empty
         - Link to Schedule via EventId or custom tracking
      c. Persist via IGameSessionStorage.CreateAsync()

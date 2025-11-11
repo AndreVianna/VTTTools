@@ -1,7 +1,7 @@
 // Generated: 2025-10-12
-// BDD Step Definitions for Create Scene Use Case
+// BDD Step Definitions for Create Encounter Use Case
 // Framework: SpecFlow/Cucumber.NET with xUnit
-// Testing: Backend API (SceneService)
+// Testing: Backend API (EncounterService)
 
 using FluentAssertions;
 using NSubstitute;
@@ -9,37 +9,37 @@ using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 using VttTools.Assets.Model;
 using VttTools.Common.Model;
-using VttTools.Library.Scenes.Model;
-using VttTools.Library.Scenes.ServiceContracts;
-using VttTools.Library.Scenes.Services;
-using VttTools.Library.Scenes.Storage;
+using VttTools.Library.Encounters.Model;
+using VttTools.Library.Encounters.ServiceContracts;
+using VttTools.Library.Encounters.Services;
+using VttTools.Library.Encounters.Storage;
 using VttTools.Media.Storage;
 using Xunit;
 
-namespace VttTools.Library.Tests.BDD.SceneManagement.CreateScene;
+namespace VttTools.Library.Tests.BDD.EncounterManagement.CreateEncounter;
 
 [Binding]
-public class CreateSceneSteps {
+public class CreateEncounterSteps {
     private readonly ScenarioContext _context;
-    private readonly ISceneStorage _sceneStorage;
+    private readonly IEncounterStorage _encounterStorage;
     private readonly IAssetStorage _assetStorage;
     private readonly IMediaStorage _mediaStorage;
-    private readonly ISceneService _service;
+    private readonly IEncounterService _service;
 
     // Test state
-    private CreateSceneData? _createData;
-    private Result<Scene>? _createResult;
+    private CreateEncounterData? _createData;
+    private Result<Encounter>? _createResult;
     private Guid _userId = Guid.Empty;
     private Guid _adventureId = Guid.Empty;
-    private List<AddSceneAssetData> _assetPlacements = [];
+    private List<AddEncounterAssetData> _assetPlacements = [];
     private Exception? _exception;
 
-    public CreateSceneSteps(ScenarioContext context) {
+    public CreateEncounterSteps(ScenarioContext context) {
         _context = context;
-        _sceneStorage = Substitute.For<ISceneStorage>();
+        _encounterStorage = Substitute.For<IEncounterStorage>();
         _assetStorage = Substitute.For<IAssetStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
-        _service = new SceneService(_sceneStorage, _assetStorage, _mediaStorage);
+        _service = new EncounterService(_encounterStorage, _assetStorage, _mediaStorage);
     }
 
     #region Background Steps
@@ -59,19 +59,19 @@ public class CreateSceneSteps {
 
     #endregion
 
-    #region Given Steps - Scene Name
+    #region Given Steps - Encounter Name
 
-    [Given(@"I provide scene name ""(.*)""")]
-    public void GivenIProvideSceneName(string name) {
-        _createData = new CreateSceneData {
+    [Given(@"I provide encounter name ""(.*)""")]
+    public void GivenIProvideEncounterName(string name) {
+        _createData = new CreateEncounterData {
             Name = name,
             Description = string.Empty
         };
     }
 
-    [Given(@"I provide empty scene name")]
-    public void GivenIProvideEmptySceneName() {
-        _createData = new CreateSceneData {
+    [Given(@"I provide empty encounter name")]
+    public void GivenIProvideEmptyEncounterName() {
+        _createData = new CreateEncounterData {
             Name = string.Empty,
             Description = string.Empty
         };
@@ -81,17 +81,17 @@ public class CreateSceneSteps {
 
     #region Given Steps - Stage Dimensions
 
-    [Given(@"I provide scene with stage:")]
-    public void GivenIProvideSceneWithStage(Table table) {
+    [Given(@"I provide encounter with stage:")]
+    public void GivenIProvideEncounterWithStage(Table table) {
         var row = table.Rows[0];
         var width = int.Parse(row["Width"]);
         var height = int.Parse(row["Height"]);
 
-        _createData = new CreateSceneData {
-            Name = "Test Scene",
+        _createData = new CreateEncounterData {
+            Name = "Test Encounter",
             Description = string.Empty,
             Stage = new UpdateStageData {
-                // Stage dimensions are not directly in CreateSceneData
+                // Stage dimensions are not directly in CreateEncounterData
                 // They would be part of the initial configuration
             }
         };
@@ -101,10 +101,10 @@ public class CreateSceneSteps {
         _context["StageHeight"] = height;
     }
 
-    [Given(@"I provide scene with stage width (.*) and height (.*)")]
-    public void GivenIProvideSceneWithStageDimensions(int width, int height) {
-        _createData = new CreateSceneData {
-            Name = "Test Scene",
+    [Given(@"I provide encounter with stage width (.*) and height (.*)")]
+    public void GivenIProvideEncounterWithStageDimensions(int width, int height) {
+        _createData = new CreateEncounterData {
+            Name = "Test Encounter",
             Description = string.Empty
         };
 
@@ -116,11 +116,11 @@ public class CreateSceneSteps {
 
     #region Given Steps - Grid Configuration
 
-    [Given(@"I provide scene with grid type ""(.*)""")]
-    public void GivenIProvideSceneWithGridType(string gridType) {
+    [Given(@"I provide encounter with grid type ""(.*)""")]
+    public void GivenIProvideEncounterWithGridType(string gridType) {
         var type = Enum.Parse<GridType>(gridType);
-        _createData = new CreateSceneData {
-            Name = "Test Scene",
+        _createData = new CreateEncounterData {
+            Name = "Test Encounter",
             Description = string.Empty,
             Grid = new Grid { Type = type }
         };
@@ -149,12 +149,12 @@ public class CreateSceneSteps {
 
     #endregion
 
-    #region Given Steps - Complete Scene Data
+    #region Given Steps - Complete Encounter Data
 
-    [Given(@"I provide valid scene data:")]
-    public void GivenIProvideValidSceneData(Table table) {
-        var data = table.CreateInstance<SceneDataTable>();
-        _createData = new CreateSceneData {
+    [Given(@"I provide valid encounter data:")]
+    public void GivenIProvideValidEncounterData(Table table) {
+        var data = table.CreateInstance<EncounterDataTable>();
+        _createData = new CreateEncounterData {
             Name = data.Name,
             Description = data.Description,
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(64, 64) }
@@ -164,10 +164,10 @@ public class CreateSceneSteps {
         _context["IsPublic"] = data.IsPublic;
     }
 
-    [Given(@"I provide valid scene data")]
-    public void GivenIProvideValidSceneData() {
-        _createData = new CreateSceneData {
-            Name = "Test Scene",
+    [Given(@"I provide valid encounter data")]
+    public void GivenIProvideValidEncounterData() {
+        _createData = new CreateEncounterData {
+            Name = "Test Encounter",
             Description = "Test Description",
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) }
         };
@@ -214,7 +214,7 @@ public class CreateSceneSteps {
     public void GivenIProvideInitialAssetPlacements(int count) {
         _assetPlacements.Clear();
         for (int i = 0; i < count; i++) {
-            _assetPlacements.Add(new AddSceneAssetData {
+            _assetPlacements.Add(new AddEncounterAssetData {
                 Name = $"Asset {i + 1}",
                 Position = new Position(i * 100, i * 100),
                 Size = new Size(50, 50),
@@ -241,11 +241,11 @@ public class CreateSceneSteps {
         _context["AdventureId"] = _adventureId;
     }
 
-    [Given(@"I provide valid scene data with that adventure ID")]
-    public void GivenIProvideValidSceneDataWithAdventureId() {
-        _createData = new CreateSceneData {
-            Name = "Adventure Scene",
-            Description = "Scene within adventure",
+    [Given(@"I provide valid encounter data with that adventure ID")]
+    public void GivenIProvideValidEncounterDataWithAdventureId() {
+        _createData = new CreateEncounterData {
+            Name = "Adventure Encounter",
+            Description = "Encounter within adventure",
             AdventureId = _adventureId,
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) }
         };
@@ -262,20 +262,20 @@ public class CreateSceneSteps {
 
     #region Given Steps - Error Scenarios
 
-    [Given(@"I provide scene with adventure ID that doesn't exist")]
-    public void GivenIProvideSceneWithNonExistentAdventureId() {
-        _createData = new CreateSceneData {
-            Name = "Test Scene",
+    [Given(@"I provide encounter with adventure ID that doesn't exist")]
+    public void GivenIProvideEncounterWithNonExistentAdventureId() {
+        _createData = new CreateEncounterData {
+            Name = "Test Encounter",
             Description = string.Empty,
             AdventureId = Guid.CreateVersion7() // Non-existent ID
         };
     }
 
-    [Given(@"I provide scene with stage background that doesn't exist")]
-    public void GivenIProvideSceneWithNonExistentStageBackground() {
+    [Given(@"I provide encounter with stage background that doesn't exist")]
+    public void GivenIProvideEncounterWithNonExistentStageBackground() {
         var nonExistentResourceId = Guid.CreateVersion7();
-        _createData = new CreateSceneData {
-            Name = "Test Scene",
+        _createData = new CreateEncounterData {
+            Name = "Test Encounter",
             Description = string.Empty,
             StageId = nonExistentResourceId
         };
@@ -306,14 +306,14 @@ public class CreateSceneSteps {
 
     #region When Steps - Create Actions
 
-    [When(@"I create the scene")]
-    public async Task WhenICreateTheScene() {
+    [When(@"I create the encounter")]
+    public async Task WhenICreateTheEncounter() {
         try {
             // Mock storage to succeed
-            _sceneStorage.UpdateAsync(Arg.Any<Scene>(), Arg.Any<CancellationToken>())
+            _encounterStorage.UpdateAsync(Arg.Any<Encounter>(), Arg.Any<CancellationToken>())
                 .Returns(true);
 
-            _createResult = await _service.CreateSceneAsync(_userId, _createData!, CancellationToken.None);
+            _createResult = await _service.CreateEncounterAsync(_userId, _createData!, CancellationToken.None);
             _context["CreateResult"] = _createResult;
         }
         catch (Exception ex) {
@@ -322,30 +322,30 @@ public class CreateSceneSteps {
         }
     }
 
-    [When(@"I attempt to create the scene")]
-    public async Task WhenIAttemptToCreateTheScene() {
-        await WhenICreateTheScene();
+    [When(@"I attempt to create the encounter")]
+    public async Task WhenIAttemptToCreateTheEncounter() {
+        await WhenICreateTheEncounter();
     }
 
     #endregion
 
     #region Then Steps - Success Assertions
 
-    [Then(@"the scene should be created with generated ID")]
-    public void ThenTheSceneShouldBeCreatedWithGeneratedId() {
+    [Then(@"the encounter should be created with generated ID")]
+    public void ThenTheEncounterShouldBeCreatedWithGeneratedId() {
         _createResult.Should().NotBeNull();
         _createResult!.IsSuccessful.Should().BeTrue();
         _createResult.Value.Should().NotBeNull();
         _createResult.Value!.Id.Should().NotBeEmpty();
     }
 
-    [Then(@"the scene name should be ""(.*)""")]
-    public void ThenTheSceneNameShouldBe(string expectedName) {
+    [Then(@"the encounter name should be ""(.*)""")]
+    public void ThenTheEncounterNameShouldBe(string expectedName) {
         _createResult!.Value!.Name.Should().Be(expectedName);
     }
 
-    [Then(@"the scene is created")]
-    public void ThenTheSceneIsCreated() {
+    [Then(@"the encounter is created")]
+    public void ThenTheEncounterIsCreated() {
         _createResult.Should().NotBeNull();
         _createResult!.IsSuccessful.Should().BeTrue();
         _createResult.Value.Should().NotBeNull();
@@ -382,28 +382,28 @@ public class CreateSceneSteps {
         _createResult!.Value!.Grid.CellSize.Should().NotBe(new Size(0, 0));
     }
 
-    [Then(@"the scene should have no grid overlay")]
-    public void ThenTheSceneShouldHaveNoGridOverlay() {
+    [Then(@"the encounter should have no grid overlay")]
+    public void ThenTheEncounterShouldHaveNoGridOverlay() {
         _createResult!.Value!.Grid.Type.Should().Be(GridType.None);
     }
 
-    [Then(@"the scene is saved in the database")]
-    public async Task ThenTheSceneIsSavedInTheDatabase() {
-        await _sceneStorage.Received(1).UpdateAsync(
-            Arg.Is<Scene>(s => s.Id == _createResult!.Value!.Id),
+    [Then(@"the encounter is saved in the database")]
+    public async Task ThenTheEncounterIsSavedInTheDatabase() {
+        await _encounterStorage.Received(1).UpdateAsync(
+            Arg.Is<Encounter>(s => s.Id == _createResult!.Value!.Id),
             Arg.Any<CancellationToken>()
         );
     }
 
-    [Then(@"a SceneCreated domain action is logged")]
-    public void ThenSceneCreatedDomainActionIsLogged() {
+    [Then(@"a EncounterCreated domain action is logged")]
+    public void ThenEncounterCreatedDomainActionIsLogged() {
         // In real implementation, would verify domain event was published
-        // For now, we verify the scene was created successfully
+        // For now, we verify the encounter was created successfully
         _createResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"I should receive the scene with generated ID")]
-    public void ThenIShouldReceiveTheSceneWithGeneratedId() {
+    [Then(@"I should receive the encounter with generated ID")]
+    public void ThenIShouldReceiveTheEncounterWithGeneratedId() {
         _createResult!.Value.Should().NotBeNull();
         _createResult!.Value!.Id.Should().NotBeEmpty();
     }
@@ -412,9 +412,9 @@ public class CreateSceneSteps {
 
     #region Then Steps - Asset Placement Assertions
 
-    [Then(@"all (.*) assets should be placed on the scene")]
-    public void ThenAllAssetsShouldBePlacedOnScene(int expectedCount) {
-        // Assets would be added after scene creation
+    [Then(@"all (.*) assets should be placed on the encounter")]
+    public void ThenAllAssetsShouldBePlacedOnEncounter(int expectedCount) {
+        // Assets would be added after encounter creation
         // This step verifies the count matches
         _assetPlacements.Should().HaveCount(expectedCount);
     }
@@ -481,7 +481,7 @@ public class CreateSceneSteps {
 
     #region Helper Classes
 
-    private class SceneDataTable {
+    private class EncounterDataTable {
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public bool IsPublished { get; set; }

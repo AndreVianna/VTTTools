@@ -152,7 +152,7 @@ Feature: Campaign Management
   @edge-case @hierarchy
   Scenario: Move campaign with nested adventures
     Given I have created standalone campaign "The Deep Archive"
-    And I have added 5 adventures with complex scenes to campaign "The Deep Archive"
+    And I have added 5 adventures with complex encounters to campaign "The Deep Archive"
     And I have created an epic "Master Archive"
     When I move campaign "The Deep Archive" to epic "Master Archive"
     Then the campaign and all nested adventures are moved successfully

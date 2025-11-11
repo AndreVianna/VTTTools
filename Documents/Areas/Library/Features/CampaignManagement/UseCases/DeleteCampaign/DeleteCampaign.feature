@@ -20,15 +20,15 @@ Feature: Delete Campaign
       And all 4 adventures is removed
       And I should receive deletion confirmation
 
-    Scenario: Delete campaign cascades to adventures and scenes
+    Scenario: Delete campaign cascades to adventures and encounters
       Given my campaign has 3 adventures
-      And the first adventure has 4 scenes
-      And the second adventure has 2 scenes
-      And the third adventure has 3 scenes
+      And the first adventure has 4 encounters
+      And the second adventure has 2 encounters
+      And the third adventure has 3 encounters
       When I delete the campaign
       Then the campaign is removed
       And all 3 adventures is removed
-      And all 9 scenes is removed
+      And all 9 encounters is removed
 
   @happy-path
   Scenario: Successfully delete standalone campaign

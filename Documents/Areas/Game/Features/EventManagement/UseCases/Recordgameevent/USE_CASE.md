@@ -54,7 +54,7 @@
 
 ### DDD Alignment
 - **Bounded Context**: Game
-- **Ubiquitous Language**: GameSession, GameSessionEvent, Event Type (DiceRoll, AssetMoved, StatusChanged, SceneChanged)
+- **Ubiquitous Language**: GameSession, GameSessionEvent, Event Type (DiceRoll, AssetMoved, StatusChanged, EncounterChanged)
 - **Business Invariants**: AGG-03 (events append-only), BR-09 (events ordered by timestamp)
 - **Domain Events**: GameEventOccurred (broadcast via SignalR)
 
@@ -65,7 +65,7 @@
 ### Input Requirements
 - **Input Data**:
   - SessionId (Guid from route)
-  - EventType (string: "DiceRoll", "AssetMoved", "StatusChanged", "SceneChanged", custom types)
+  - EventType (string: "DiceRoll", "AssetMoved", "StatusChanged", "EncounterChanged", custom types)
   - Data (string - JSON payload with event-specific data)
 - **Input Validation**:
   - SessionId must exist

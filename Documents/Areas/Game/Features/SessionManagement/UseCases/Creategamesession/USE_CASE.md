@@ -91,7 +91,7 @@
 
 ### Output Specification
 - **Output Data**: GameSession entity with all properties
-- **Output Format**: JSON object with Id, OwnerId, Title, Status (Draft), Players (GM as Master), SceneId (null), Messages (empty), Events (empty)
+- **Output Format**: JSON object with Id, OwnerId, Title, Status (Draft), Players (GM as Master), EncounterId (null), Messages (empty), Events (empty)
 - **Postconditions**: GameSession persisted with Status=Draft, Owner added to Players as Master, entity retrievable by Id
 
 ### Error Scenarios

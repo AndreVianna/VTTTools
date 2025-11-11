@@ -9,7 +9,7 @@
 
 ## Purpose
 
-Modern React-based single page application providing the primary user interface for VTTTools. Implements all user-facing features with Material-UI components, Redux Toolkit state management, and Konva canvas for interactive scene editing.
+Modern React-based single page application providing the primary user interface for VTTTools. Implements all user-facing features with Material-UI components, Redux Toolkit state management, and Konva canvas for interactive encounter editing.
 
 ---
 
@@ -17,9 +17,9 @@ Modern React-based single page application providing the primary user interface 
 
 - **Authentication & User Management**: Login, register, 2FA, password reset pages with React Hook Form
 - **Media Resource Management**: Media upload UI, asset display integration (in development)
-- **Game Content Hierarchy**: Content management UI for epics, campaigns, adventures, scenes (in development)
+- **Game Content Hierarchy**: Content management UI for epics, campaigns, adventures, encounters (in development)
 - **Asset Management**: Asset library browsing and creation UI (in development)
-- **Interactive Scene Editor**: Konva-based canvas with panning, zoom, grid overlay, token placement (in progress)
+- **Interactive Encounter Editor**: Konva-based canvas with panning, zoom, grid overlay, token placement (in progress)
 - **Game Session Management**: Real-time collaboration via SignalR for chat, dice rolls, state sync (planned)
 
 ---
@@ -144,10 +144,10 @@ Modern React-based single page application providing the primary user interface 
 - JWT token storage
 
 **Phase 2 (Content Management)**: 🚧 In Progress
-- Content management UI for epics, campaigns, adventures, scenes (planned)
+- Content management UI for epics, campaigns, adventures, encounters (planned)
 - Asset library browsing and creation UI (planned)
 
-**Phase 3 (Scene Editor)**: 🚧 In Progress
+**Phase 3 (Encounter Editor)**: 🚧 In Progress
 - Konva canvas rendering: ✅ Complete
 - Panning and zoom: ✅ Complete
 - Grid overlay: 🚧 In Progress

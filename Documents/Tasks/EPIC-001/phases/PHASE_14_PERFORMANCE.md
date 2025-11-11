@@ -18,8 +18,8 @@ Optimize performance, improve accessibility, strengthen test coverage - polish f
 
 ## Deliverables
 
-- **Optimization**: Scene Editor Performance
-  - Description: Scene editor optimization for 100-token @ 60fps target (Quality Gate 6)
+- **Optimization**: Encounter Editor Performance
+  - Description: Encounter editor optimization for 100-token @ 60fps target (Quality Gate 6)
   - Complexity: High
   - Dependencies: Phase 6 complete
   - **Critical**: Konva caching, virtualization, progressive rendering
@@ -51,7 +51,7 @@ Optimize performance, improve accessibility, strengthen test coverage - polish f
 
 ## Implementation Sequence
 
-1. **Scene Editor Performance** (UI) - 5h **CRITICAL**
+1. **Encounter Editor Performance** (UI) - 5h **CRITICAL**
    - Profiling, Konva caching, virtualization for 100-token @ 60fps target
    - Dependencies: Phase 6 complete
 
@@ -75,7 +75,7 @@ Optimize performance, improve accessibility, strengthen test coverage - polish f
 
 ## Success Criteria
 
-- ⬜ Scene editor achieves 100 tokens @ 60fps ⚡ (Quality Gate 6)
+- ⬜ Encounter editor achieves 100 tokens @ 60fps ⚡ (Quality Gate 6)
 - ⬜ Bundle size < 500KB (gzipped)
 - ⬜ WCAG 2.1 AA compliant
 - ⬜ Backend test coverage ≥85%

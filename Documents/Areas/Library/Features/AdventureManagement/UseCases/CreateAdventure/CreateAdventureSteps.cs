@@ -14,8 +14,8 @@ using VttTools.Library.Adventures.Services;
 using VttTools.Library.Adventures.Storage;
 using VttTools.Library.Campaigns.Model;
 using VttTools.Library.Campaigns.Storage;
-using VttTools.Library.Scenes.Model;
-using VttTools.Library.Scenes.Storage;
+using VttTools.Library.Encounters.Model;
+using VttTools.Library.Encounters.Storage;
 using VttTools.Media.Model;
 using VttTools.Media.Storage;
 using Xunit;
@@ -26,7 +26,7 @@ namespace VttTools.Library.Tests.BDD.AdventureManagement.CreateAdventure;
 public class CreateAdventureSteps {
     private readonly ScenarioContext _context;
     private readonly IAdventureStorage _adventureStorage;
-    private readonly ISceneStorage _sceneStorage;
+    private readonly IEncounterStorage _encounterStorage;
     private readonly IMediaStorage _mediaStorage;
     private readonly ICampaignStorage _campaignStorage;
     private readonly IAdventureService _service;
@@ -36,16 +36,16 @@ public class CreateAdventureSteps {
     private Result<Adventure>? _createResult;
     private Guid _userId = Guid.Empty;
     private Guid _campaignId = Guid.Empty;
-    private List<Scene> _scenes = [];
+    private List<Encounter> _encounters = [];
     private Exception? _exception;
 
     public CreateAdventureSteps(ScenarioContext context) {
         _context = context;
         _adventureStorage = Substitute.For<IAdventureStorage>();
-        _sceneStorage = Substitute.For<ISceneStorage>();
+        _encounterStorage = Substitute.For<IEncounterStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
         _campaignStorage = Substitute.For<ICampaignStorage>();
-        _service = new AdventureService(_adventureStorage, _sceneStorage, _mediaStorage);
+        _service = new AdventureService(_adventureStorage, _encounterStorage, _mediaStorage);
     }
 
     #region Background Steps
@@ -182,20 +182,20 @@ public class CreateAdventureSteps {
 
     #endregion
 
-    #region Given Steps - Scenes
+    #region Given Steps - Encounters
 
-    [Given(@"I provide (.*) valid scenes in the collection")]
-    public void GivenIProvideValidScenesInCollection(int count) {
-        _scenes.Clear();
+    [Given(@"I provide (.*) valid encounters in the collection")]
+    public void GivenIProvideValidEncountersInCollection(int count) {
+        _encounters.Clear();
         for (int i = 0; i < count; i++) {
-            _scenes.Add(new Scene {
+            _encounters.Add(new Encounter {
                 Id = Guid.CreateVersion7(),
-                Name = $"Scene {i + 1}",
-                Description = $"Scene {i + 1} description",
+                Name = $"Encounter {i + 1}",
+                Description = $"Encounter {i + 1} description",
                 Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) }
             });
         }
-        _context["SceneCount"] = count;
+        _context["EncounterCount"] = count;
     }
 
     #endregion
@@ -418,20 +418,20 @@ public class CreateAdventureSteps {
 
     #endregion
 
-    #region Then Steps - Scenes
+    #region Then Steps - Encounters
 
-    [Then(@"all (.*) scenes is saved")]
-    public void ThenAllScenesAreSaved(int expectedCount) {
-        // In real implementation, would verify scenes were saved
-        var sceneCount = _context.Get<int>("SceneCount");
-        sceneCount.Should().Be(expectedCount);
+    [Then(@"all (.*) encounters is saved")]
+    public void ThenAllEncountersAreSaved(int expectedCount) {
+        // In real implementation, would verify encounters were saved
+        var encounterCount = _context.Get<int>("EncounterCount");
+        encounterCount.Should().Be(expectedCount);
     }
 
-    [Then(@"each scene should reference the adventure ID")]
-    public void ThenEachSceneShouldReferenceAdventureId() {
-        // In real implementation, would verify scene references
-        _scenes.Should().AllSatisfy(scene => {
-            scene.AdventureId.Should().NotBeNull();
+    [Then(@"each encounter should reference the adventure ID")]
+    public void ThenEachEncounterShouldReferenceAdventureId() {
+        // In real implementation, would verify encounter references
+        _encounters.Should().AllSatisfy(encounter => {
+            encounter.AdventureId.Should().NotBeNull();
         });
     }
 

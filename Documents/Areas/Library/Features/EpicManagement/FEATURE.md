@@ -15,7 +15,7 @@
 
 ### Business Value
 - **User Benefit**: Game Masters can organize multiple campaigns into cohesive story arcs, making it easier to manage long-running game narratives across multiple campaign storylines
-- **Business Objective**: Provide the top-level organizational structure for hierarchical game content management (Epic → Campaign → Adventure → Scene)
+- **Business Objective**: Provide the top-level organizational structure for hierarchical game content management (Epic → Campaign → Adventure → Encounter)
 - **Success Criteria**: Game Masters can create epics with associated campaigns, update epic properties, control visibility (public/published), and delete epics with proper cascade handling
 
 ### Area Assignment
@@ -24,7 +24,7 @@
 - **Cross-Area Impact**:
   - Identity context: OwnerId references User entities
   - Media context: Background property references Resource entities for visual backdrops
-  - Game context: Active game sessions may reference scenes within epic hierarchy (prevents deletion)
+  - Game context: Active game sessions may reference encounters within epic hierarchy (prevents deletion)
 
 ---
 
@@ -56,7 +56,7 @@
 - **Create Epic** (Library): Create new epic with optional campaigns, enforce invariants INV-01 through INV-05
 - **Get Epic By ID** (Library): Retrieve epic with owned campaigns collection
 - **Update Epic** (Library): Modify epic properties, enforce publication rules (INV-04)
-- **Delete Epic** (Library): Remove epic and cascade to campaigns/adventures/scenes (AGG-01)
+- **Delete Epic** (Library): Remove epic and cascade to campaigns/adventures/encounters (AGG-01)
 - **Get Epics By Owner** (Library): Query epics owned by specific Game Master
 
 ### Architectural Integration

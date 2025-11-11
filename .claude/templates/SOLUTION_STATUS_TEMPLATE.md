@@ -58,7 +58,7 @@
 | Asset Management | 6 | XX | XX | XX | A-F |
 | Adventure Library | 12 | XX | XX | XX | A-F |
 | Game Session Management | 12 | XX | XX | XX | A-F |
-| Scene Composition | 6 | XX | XX | XX | A-F |
+| Encounter Composition | 6 | XX | XX | XX | A-F |
 | Media Resource | 4 | XX | XX | XX | A-F |
 | Platform Infrastructure | 3 | XX | XX | XX | A-F |
 

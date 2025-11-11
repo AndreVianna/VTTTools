@@ -1,4 +1,4 @@
-# Phase 6: Scene Editor - Tokens, Undo/Redo, Offline
+# Phase 6: Encounter Editor - Tokens, Undo/Redo, Offline
 
 **Status**: ✅ Complete
 **Estimated**: 25h | **Actual**: 30h (120%)
@@ -9,7 +9,7 @@
 
 ## Objective
 
-Complete scene editor with token placement, undo/redo system (100 levels), and offline mode with localStorage persistence
+Complete encounter editor with token placement, undo/redo system (100 levels), and offline mode with localStorage persistence
 
 ---
 
@@ -28,13 +28,13 @@ Complete scene editor with token placement, undo/redo system (100 levels), and o
 - **Service**: UndoRedoManager
   - Description: Command pattern with 100-level history stack (configurable)
   - Complexity: High
-  - Dependencies: All scene operations
+  - Dependencies: All encounter operations
 
 - **Service**: OfflineSyncManager
   - Description: localStorage persistence + connection monitoring + auto-submit on reconnect
   - Complexity: Very High
-  - Dependencies: All scene operations
-  - API Integration: PUT /api/scenes/{sceneId}
+  - Dependencies: All encounter operations
+  - API Integration: PUT /api/encounters/{encounterId}
 
 - **Component**: ConnectionStatusBanner
   - Description: "Connection Lost" UI overlay with reconnection status
@@ -59,11 +59,11 @@ Complete scene editor with token placement, undo/redo system (100 levels), and o
 
 4. **UndoRedoManager Service** (UI) - 5h
    - Command pattern with configurable history (default: 100)
-   - Dependencies: All scene operations
+   - Dependencies: All encounter operations
 
 5. **OfflineSyncManager Service** (UI) - 6h
    - localStorage save on connection loss, auto-submit on reconnect
-   - Dependencies: All scene operations
+   - Dependencies: All encounter operations
 
 6. **ConnectionStatusBanner Component** (UI) - 2h
    - UI overlay for connection status and pending changes
@@ -75,7 +75,7 @@ Complete scene editor with token placement, undo/redo system (100 levels), and o
 
 - ✅ Token placement from asset library functional
 - ✅ Drag-and-drop with snap-to-grid working
-- ✅ Undo/redo works for all scene operations (100-level default)
+- ✅ Undo/redo works for all encounter operations (100-level default)
 - ✅ Offline mode saves changes to localStorage
 - ✅ Connection lost UI blocks editing
 - ✅ Pending changes auto-submit on reconnect
@@ -123,7 +123,7 @@ Complete scene editor with token placement, undo/redo system (100 levels), and o
 - Created EditorLayout (compact, no footer, 100vh)
 - Separated from AppLayout (standard pages)
 - NetworkStatus query-conditional (?checkNetwork parameter)
-- Scene Editor menu bar reorganized (undo/redo/zoom on right)
+- Encounter Editor menu bar reorganized (undo/redo/zoom on right)
 
 ---
 
@@ -139,7 +139,7 @@ Complete scene editor with token placement, undo/redo system (100 levels), and o
 - ConnectionStatusBanner with 2-second debounce
 - EditingBlocker positioned below AppBar
 - UndoRedoToolbar with keyboard shortcuts (Ctrl+Z, Ctrl+Shift+Z)
-- SceneEditorPage integration (removed manual token rendering, integrated all Phase 6 components)
+- EncounterEditorPage integration (removed manual token rendering, integrated all Phase 6 components)
 
 ---
 
@@ -172,7 +172,7 @@ Complete scene editor with token placement, undo/redo system (100 levels), and o
 ## Dependencies
 
 - **Prerequisites**: Phase 4 (grid), Phase 5 (asset library)
-- **Blocks**: Phase 7 (scenes need editor), Phase 10 (sessions use scenes)
+- **Blocks**: Phase 7 (encounters need editor), Phase 10 (sessions use encounters)
 
 ---
 

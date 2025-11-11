@@ -133,19 +133,19 @@ Feature: Manage Client Auth State
     @protected-routes @authorization
     Scenario: ProtectedRoute redirects unauthenticated user to login
       Given I am not authenticated
-      When I navigate to "/scene-editor" (requires authorization)
+      When I navigate to "/encounter-editor" (requires authorization)
       Then I should be redirected to "/login"
-      And the redirect should include returnUrl="/scene-editor"
+      And the redirect should include returnUrl="/encounter-editor"
       When I successfully log in
-      Then I should be redirected to "/scene-editor"
+      Then I should be redirected to "/encounter-editor"
 
     @protected-routes @authorization
     Scenario: ProtectedRoute allows access for authenticated user
       Given I am authenticated
-      When I navigate to "/scene-editor"
+      When I navigate to "/encounter-editor"
       Then the page should load successfully
       And I should not be redirected
-      And I should see the scene editor content
+      And I should see the encounter editor content
 
   # NOTE: Anonymous routes currently allow both authenticated and unauthenticated users
   # ProtectedRoute with authLevel='anonymous' does not redirect authenticated users
@@ -190,7 +190,7 @@ Feature: Manage Client Auth State
   @integration @post-login
   Scenario: Auth state persists across page navigation
     Given I am authenticated
-    When I navigate between pages (/assets → /scene-editor → /)
+    When I navigate between pages (/assets → /encounter-editor → /)
     Then my authentication state should persist
     And I should not see LoadingOverlay on navigation
     And I should not be prompted to log in again

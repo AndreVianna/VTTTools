@@ -271,7 +271,7 @@
 **What's Outside**:
 - User (referenced via OwnerId)
 - Resource (referenced via ResourceId)
-- Scene (references Asset, not part of aggregate)
+- Encounter (references Asset, not part of aggregate)
 
 **Boundary Rule**: All data needed to create, update, or delete an asset template is within this aggregate. External references (User, Resource) are by ID only.
 </examples>
@@ -324,18 +324,18 @@
   - Outputs: bool (true if owner or asset is public)
   - Side Effects: None (pure validation)
 
-- **CalculateAssetUsageCount(Guid assetId)**: Counts how many scenes use this asset
+- **CalculateAssetUsageCount(Guid assetId)**: Counts how many encounters use this asset
   - Inputs: Asset ID
   - Outputs: int (usage count)
-  - Side Effects: Queries scene repository (read-only)
+  - Side Effects: Queries encounter repository (read-only)
 </examples>
 
 #### Dependencies
 - **Required**: {service.dependencies}
 - **Why Needed**: {service.dependency_rationale}
 <examples>
-- **Required**: ISceneRepository (to query asset usage)
-- **Why Needed**: Asset usage spans Scene aggregate, needs repository access
+- **Required**: IEncounterRepository (to query asset usage)
+- **Why Needed**: Asset usage spans Encounter aggregate, needs repository access
 </examples>
 
 </foreach>

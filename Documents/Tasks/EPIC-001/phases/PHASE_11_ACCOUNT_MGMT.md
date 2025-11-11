@@ -118,7 +118,7 @@ Implement profile settings, security settings, 2FA setup, password change pages
 - **Prerequisites**: Phase 2 (auth working)
 - **Blocks**: None (independent from other phases)
 
-**NOTE**: Can run in PARALLEL with Phases 4-9 (scene editor/asset/content track) BUT COMPLETES Phase 2 auth features (2FA setup enables full 2FA testing). Not fully independent - it's auth feature completion.
+**NOTE**: Can run in PARALLEL with Phases 4-9 (encounter editor/asset/content track) BUT COMPLETES Phase 2 auth features (2FA setup enables full 2FA testing). Not fully independent - it's auth feature completion.
 
 ---
 

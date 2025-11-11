@@ -4,18 +4,18 @@
 **Status**: Planned
 **Priority**: High
 **Effort Estimate**: 40 hours (22h backend + 12h frontend + 6h testing)
-**Dependencies**: EPIC-001 Phase 5 (Content Management - Assets), EPIC-001 Phase 7 (Adventures), EPIC-001 Phase 8 (Scenes)
+**Dependencies**: EPIC-001 Phase 5 (Content Management - Assets), EPIC-001 Phase 7 (Adventures), EPIC-001 Phase 8 (Encounters)
 
 ## Overview
 
-Content management system for system-owned public library assets in the VTT Tools Admin Application. Enables administrators to upload, publish, and manage adventures, assets, and scenes that are available to all users through the public library. Prepares data model for future e-commerce features (EPIC-003) by including pricing fields, but does NOT implement payment processing.
+Content management system for system-owned public library assets in the VTT Tools Admin Application. Enables administrators to upload, publish, and manage adventures, assets, and encounters that are available to all users through the public library. Prepares data model for future e-commerce features (EPIC-003) by including pricing fields, but does NOT implement payment processing.
 
 ## Business Context
 
 ### Problem Statement
 
 System administrators need:
-- Centralized interface to upload and manage public content (adventures, assets, scenes)
+- Centralized interface to upload and manage public content (adventures, assets, encounters)
 - Ability to control content visibility (Draft, Public, Premium)
 - Preparation for future commercialization (pricing fields) without implementing payments yet
 - Bulk operations for efficient content management
@@ -46,7 +46,7 @@ Display searchable, filterable, paginated list of all system-owned content.
 - MUI DataGrid displays content with columns:
   - Thumbnail (64x64px preview image)
   - Name
-  - Type (Adventure, Asset, Scene)
+  - Type (Adventure, Asset, Encounter)
   - Status (Draft, Public, Premium)
   - Category (Fantasy, Sci-Fi, Modern, etc.)
   - Price (display only, USD)
@@ -57,7 +57,7 @@ Display searchable, filterable, paginated list of all system-owned content.
 - Server-side pagination (50 items per page)
 - Search bar (debounced 300ms): Search by name, description
 - Filters (sidebar):
-  - Content Type: Multi-select (Adventure, Asset, Scene)
+  - Content Type: Multi-select (Adventure, Asset, Encounter)
   - Status: Multi-select (Draft, Public, Premium)
   - Category: Multi-select (dynamic list based on content type)
   - Price Range: Min/Max input (for Premium content)
@@ -77,7 +77,7 @@ Upload new system-owned content to the public library.
 **Acceptance Criteria**:
 - "Upload Content" button in toolbar
 - Upload dialog:
-  - **Content Type**: Radio buttons (Adventure, Asset, Scene)
+  - **Content Type**: Radio buttons (Adventure, Asset, Encounter)
   - **File Upload**:
     - Drag-and-drop zone with progress bar
     - Multiple file support (for assets with multiple images)
@@ -85,7 +85,7 @@ Upload new system-owned content to the public library.
     - Allowed file types based on content type:
       - Adventures: .json, .zip (campaign export format)
       - Assets: .png, .jpg, .svg, .mp3, .mp4, .pdf
-      - Scenes: .json (scene export format)
+      - Encounters: .json (encounter export format)
   - **Metadata**:
     - Name: Text input (required, 3-100 chars)
     - Description: Multiline text (optional, max 1000 chars, markdown support)
@@ -135,7 +135,7 @@ Edit content metadata, availability status, and pricing.
     - Upload additional images (max 5 total)
     - Delete image button
     - Set as thumbnail button (drag to reorder)
-  - **Files Tab** (for adventures/scenes):
+  - **Files Tab** (for adventures/encounters):
     - List of associated files (JSON, images, etc.)
     - Download file button
     - Replace file button (re-upload)
@@ -161,9 +161,9 @@ Preview content before publishing to verify quality.
 **Acceptance Criteria**:
 - "Preview" button in content detail dialog
 - Preview mode depends on content type:
-  - **Adventures**: Display campaign structure (acts, scenes, NPCs) in read-only view
+  - **Adventures**: Display campaign structure (acts, encounters, NPCs) in read-only view
   - **Assets**: Display image/audio/video player
-  - **Scenes**: Render scene on canvas with grid, walls, tokens (read-only)
+  - **Encounters**: Render encounter on canvas with grid, walls, tokens (read-only)
 - Preview opens in full-screen modal or new browser tab
 - "Close Preview" button returns to content editor
 - Preview does NOT affect content status (stays Draft)
@@ -252,7 +252,7 @@ WebAdminApp/src/features/publicLibrary/
 ├── CategoryTagSettingsDialog.tsx  # Manage categories/tags
 └── components/
     ├── ContentStatusBadge.tsx     # Draft/Public/Premium indicator
-    ├── ContentTypeIcon.tsx        # Adventure/Asset/Scene icon
+    ├── ContentTypeIcon.tsx        # Adventure/Asset/Encounter icon
     ├── FileUploadZone.tsx         # Drag-and-drop upload
     ├── PreviewImageGallery.tsx    # Image gallery editor
     └── DownloadsChart.tsx         # Downloads trend chart
@@ -338,7 +338,7 @@ WebAdminApp/src/features/publicLibrary/
 ```csharp
 public record PublicContentDto {
     public Guid Id { get; init; }
-    public string Type { get; init; } // "Adventure", "Asset", "Scene"
+    public string Type { get; init; } // "Adventure", "Asset", "Encounter"
     public string Name { get; init; }
     public string Description { get; init; }
     public string Category { get; init; }
@@ -394,7 +394,7 @@ public record TopDownloaderDto {
 ```sql
 CREATE TABLE PublicContent (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
-    Type NVARCHAR(50) NOT NULL, -- "Adventure", "Asset", "Scene"
+    Type NVARCHAR(50) NOT NULL, -- "Adventure", "Asset", "Encounter"
     Name NVARCHAR(100) NOT NULL,
     Description NVARCHAR(1000) NULL,
     Category NVARCHAR(50) NOT NULL,
@@ -562,7 +562,7 @@ CREATE INDEX IX_PublicContentDownloads_DownloadDate ON PublicContentDownloads(Do
 ### EPIC-001 Dependencies
 - **Phase 5 (Content Management - Assets)**: Asset model, blob storage integration
 - **Phase 7 (Adventures)**: Adventure model, campaign structure
-- **Phase 8 (Scenes)**: Scene model, rendering engine
+- **Phase 8 (Encounters)**: Encounter model, rendering engine
 
 ### EPIC-002 Dependencies
 - **Phase 1 (Admin Infrastructure)**: Admin app routing, layout, authentication

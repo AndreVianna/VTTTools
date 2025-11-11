@@ -2,7 +2,7 @@
 
 **Original Request**: Stream media file from blob storage for serving to clients
 
-**Get Resource File** is a streaming operation that retrieves the actual media file content from blob storage. This use case operates within the Media area and enables applications to serve media files to clients for display in Assets, Scene backgrounds, and other UI contexts.
+**Get Resource File** is a streaming operation that retrieves the actual media file content from blob storage. This use case operates within the Media area and enables applications to serve media files to clients for display in Assets, Encounter backgrounds, and other UI contexts.
 
 ---
 
@@ -163,7 +163,7 @@
 ## Acceptance Criteria
 
 - **AC-01**: Successful file stream retrieval for existing resource
-  - **Given**: Resource exists with ID "12345678-1234-1234-1234-123456789abc" and path "Image/guid/scene.png"
+  - **Given**: Resource exists with ID "12345678-1234-1234-1234-123456789abc" and path "Image/guid/encounter.png"
   - **When**: GetFileAsync called with resource ID
   - **Then**: File stream returned, API response has Content-Type "image/png", stream contains file bytes
 

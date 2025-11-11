@@ -4,7 +4,7 @@
 Feature: Session Management
   As a Game Master
   I want to create and manage game sessions with full lifecycle control
-  So that I can orchestrate live gameplay sessions with participants, scenes, and events
+  So that I can orchestrate live gameplay sessions with participants, encounters, and events
 
   Background:
     Given I am authenticated as a Game Master
@@ -108,12 +108,12 @@ Feature: Session Management
       And my session remains in "Scheduled" status
 
   @integration
-  Scenario: Successfully assign active scene during session
+  Scenario: Successfully assign active encounter during session
     Given I have a game session in "InProgress" status
-    And I have a scene named "Throne Room" in my library
-    When I set "Throne Room" as the active scene for my session
-    Then my session active scene is set to "Throne Room"
-    And participants can view the active scene
+    And I have a encounter named "Throne Room" in my library
+    When I set "Throne Room" as the active encounter for my session
+    Then my session active encounter is set to "Throne Room"
+    And participants can view the active encounter
 
   @integration
   Scenario: Game Master is automatically added as Master participant

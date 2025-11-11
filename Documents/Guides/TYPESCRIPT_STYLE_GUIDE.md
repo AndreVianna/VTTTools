@@ -584,7 +584,7 @@ export const LoginForm: React.FC = () => (
 // ✅ Correct: Theme-aware component using useTheme hook
 import { useTheme } from '@mui/material';
 
-export const SceneCanvas: React.FC<SceneCanvasProps> = ({ children }) => {
+export const EncounterCanvas: React.FC<EncounterCanvasProps> = ({ children }) => {
     const theme = useTheme();
 
     return (
@@ -949,14 +949,14 @@ export const PlayerCard = React.memo<PlayerCardProps>(({ player, onClick }) => {
 
 // Navigation: #nav-{destination}
 <Button id="nav-assets" onClick={() => navigate('/assets')}>Assets</Button>
-<Button id="nav-scene-editor">Scene Editor</Button>
+<Button id="nav-encounter-editor">Encounter Editor</Button>
 
 // Sections: #{name}-section
 <Box id="hero-section">...</Box>
 <Box id="dashboard-section">...</Box>
 
 // Cards/Tiles: #card-{name}
-<Card id="card-scene-editor">...</Card>
+<Card id="card-encounter-editor">...</Card>
 <Card id="card-asset-library">...</Card>
 
 // Headings: #{type}-{context}
@@ -1066,8 +1066,8 @@ export const LandingPage: React.FC = () => {
       <Typography id="dashboard-greeting" variant="h2">
         Welcome back!
       </Typography>
-      <Card id="card-scene-editor">
-        <Typography id="title-scene-editor" variant="h6">Scene Editor</Typography>
+      <Card id="card-encounter-editor">
+        <Typography id="title-encounter-editor" variant="h6">Encounter Editor</Typography>
         <Button id="btn-open-editor">Open Editor</Button>
       </Card>
     </Box>

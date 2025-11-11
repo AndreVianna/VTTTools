@@ -192,7 +192,7 @@
 ## Acceptance Criteria
 
 - **AC-01**: Successful image upload with metadata extraction
-  - **Given**: Valid PNG image file (1920x1080, 2MB) with fileName "scene_background.png" and type Image
+  - **Given**: Valid PNG image file (1920x1080, 2MB) with fileName "encounter_background.png" and type Image
   - **When**: UploadAsync called with file stream
   - **Then**: File uploaded to blob storage at generated path, Resource entity created with extracted metadata (Width=1920, Height=1080, FileSize=2MB, ContentType="image/png"), ResourceUploaded event published
 

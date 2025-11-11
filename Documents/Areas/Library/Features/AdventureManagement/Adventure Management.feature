@@ -3,7 +3,7 @@
 
 Feature: Adventure Management
   As a Game Master
-  I want to manage individual game modules with multiple scenes
+  I want to manage individual game modules with multiple encounters
   So that I can create complete adventures within or outside campaigns
 
   Background:
@@ -61,11 +61,11 @@ Feature: Adventure Management
     And the adventure should reference the campaign ID
 
   @happy-path
-  Scenario: Successfully clone adventure with all scenes
-    Given I have an adventure with 5 scenes
+  Scenario: Successfully clone adventure with all encounters
+    Given I have an adventure with 5 encounters
     When I clone the adventure
     Then a new adventure should be created
-    And all 5 scenes should be duplicated
+    And all 5 encounters should be duplicated
     And the clone should have unique IDs
 
   @happy-path

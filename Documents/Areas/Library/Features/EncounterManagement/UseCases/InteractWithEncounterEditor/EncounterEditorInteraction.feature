@@ -1,18 +1,18 @@
 # Generated: 2025-10-12 (Phase 3 BDD Creation)
-# Use Case: Interact with Scene Editor
-# UI Component: SceneCanvas.tsx
-# Phase: EPIC-001 Phase 3 - Scene Editor Panning & Zoom
+# Use Case: Interact with Encounter Editor
+# UI Component: EncounterCanvas.tsx
+# Phase: EPIC-001 Phase 3 - Encounter Editor Panning & Zoom
 
-@use-case @library @scene-editor @ui
-Feature: Scene Editor Interaction
+@use-case @library @encounter-editor @ui
+Feature: Encounter Editor Interaction
   As a Game Master
-  I want to pan and zoom the scene canvas intuitively
+  I want to pan and zoom the encounter canvas intuitively
   So that I can navigate and edit large tactical maps efficiently
 
   Background:
     Given I am authenticated as a Game Master
-    And I have opened the scene editor
-    And the scene canvas is fully loaded
+    And I have opened the encounter editor
+    And the encounter canvas is fully loaded
 
   # ═══════════════════════════════════════════════════════════════
   # RIGHT-CLICK PANNING (PHASE 3: AC-01)
@@ -32,7 +32,7 @@ Feature: Scene Editor Interaction
 
     @ui-interaction
     Scenario: Right-click prevents browser context menu
-      Given the scene canvas is visible
+      Given the encounter canvas is visible
       When I right-click on the canvas
       Then the browser context menu should NOT appear
       And I should be able to drag immediately
@@ -149,10 +149,10 @@ Feature: Scene Editor Interaction
 
     @happy-path @imperative-api
     Scenario: Zoom in programmatically via toolbar button
-      Given the scene editor toolbar is visible
+      Given the encounter editor toolbar is visible
       And the canvas is at scale 1.0
       When I click the "Zoom In" toolbar button
-      Then the SceneCanvas.zoomIn() method should be called
+      Then the EncounterCanvas.zoomIn() method should be called
       And the canvas should zoom to 1.2
       And the viewport callback should be triggered
 
@@ -160,7 +160,7 @@ Feature: Scene Editor Interaction
     Scenario: Zoom out programmatically via toolbar button
       Given the canvas is at scale 2.0
       When I click the "Zoom Out" toolbar button
-      Then the SceneCanvas.zoomOut() method should be called
+      Then the EncounterCanvas.zoomOut() method should be called
       And the canvas should zoom to approximately 1.67
 
     @imperative-api
@@ -168,7 +168,7 @@ Feature: Scene Editor Interaction
       Given the canvas has been panned to (500, 300)
       And the canvas has been zoomed to 3x
       When I click the "Reset View" toolbar button
-      Then the SceneCanvas.resetView() method should be called
+      Then the EncounterCanvas.resetView() method should be called
       And the canvas should return to position (0, 0)
       And the zoom should return to 1.0
 
@@ -195,7 +195,7 @@ Feature: Scene Editor Interaction
 
     @performance @critical @phase3-sc03
     Scenario: Maintain 60 FPS during continuous panning
-      Given the scene has a 2048x2048 background image
+      Given the encounter has a 2048x2048 background image
       And performance monitoring is active
       When I pan the canvas continuously for 3 seconds
       Then the frame rate should remain at or above 60 FPS
@@ -204,15 +204,15 @@ Feature: Scene Editor Interaction
 
     @performance @critical
     Scenario: Maintain 60 FPS during continuous zooming
-      Given the scene has background and grid configured
+      Given the encounter has background and grid configured
       When I zoom in and out continuously for 3 seconds
       Then the frame rate should remain at or above 60 FPS
       And zoom should feel smooth without stuttering
 
     @performance
-    Scenario: Performance remains stable with complex scenes
-      Given the scene has a 4096x4096 background
-      And the scene has hexagonal grid configured
+    Scenario: Performance remains stable with complex encounters
+      Given the encounter has a 4096x4096 background
+      And the encounter has hexagonal grid configured
       When I perform 20 pan and zoom operations
       Then all operations should complete smoothly
       And frame rate should not degrade below 55 FPS
@@ -222,10 +222,10 @@ Feature: Scene Editor Interaction
   # ═══════════════════════════════════════════════════════════════
 
   @integration @state
-  Scenario: Viewport state persists during scene editor session
+  Scenario: Viewport state persists during encounter editor session
     Given I pan to position (300, 200)
     And I zoom to 2.5x
-    When I place an asset on the scene
+    When I place an asset on the encounter
     Then the viewport position should remain at (300, 200)
     And the zoom should remain at 2.5x
     And the view should not reset unexpectedly
@@ -271,7 +271,7 @@ Feature: Scene Editor Interaction
   @theme
   Scenario: Canvas background adapts to theme
     Given I have <theme> mode enabled
-    When the scene canvas loads
+    When the encounter canvas loads
     Then the canvas background color should use <theme> styling
     And the canvas should be visible and usable
 

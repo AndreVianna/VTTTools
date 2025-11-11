@@ -99,7 +99,7 @@ public class GenerateSessionsFromScheduleSteps {
             _existingSessions.Add(new GameSession {
                 Id = Guid.CreateVersion7(),
                 ScheduleId = _scheduleId,
-                SceneId = Guid.CreateVersion7(),
+                EncounterId = Guid.CreateVersion7(),
                 OwnerId = _userId,
                 Status = GameSessionStatus.Scheduled,
                 StartedAt = DateTimeOffset.UtcNow.AddDays(i + 1)
@@ -116,7 +116,7 @@ public class GenerateSessionsFromScheduleSteps {
             new GameSession {
                 Id = Guid.CreateVersion7(),
                 ScheduleId = _scheduleId,
-                SceneId = Guid.CreateVersion7(),
+                EncounterId = Guid.CreateVersion7(),
                 OwnerId = _userId,
                 Status = GameSessionStatus.Scheduled,
                 StartedAt = DateTimeOffset.UtcNow.AddDays(1)
@@ -124,7 +124,7 @@ public class GenerateSessionsFromScheduleSteps {
             new GameSession {
                 Id = Guid.CreateVersion7(),
                 ScheduleId = _scheduleId,
-                SceneId = Guid.CreateVersion7(),
+                EncounterId = Guid.CreateVersion7(),
                 OwnerId = _userId,
                 Status = GameSessionStatus.InProgress,
                 StartedAt = DateTimeOffset.UtcNow
@@ -132,7 +132,7 @@ public class GenerateSessionsFromScheduleSteps {
             new GameSession {
                 Id = Guid.CreateVersion7(),
                 ScheduleId = _scheduleId,
-                SceneId = Guid.CreateVersion7(),
+                EncounterId = Guid.CreateVersion7(),
                 OwnerId = _userId,
                 Status = GameSessionStatus.Finished,
                 StartedAt = DateTimeOffset.UtcNow.AddDays(-1),
@@ -155,7 +155,7 @@ public class GenerateSessionsFromScheduleSteps {
         _existingSessions.Add(new GameSession {
             Id = Guid.CreateVersion7(),
             ScheduleId = _scheduleId,
-            SceneId = Guid.CreateVersion7(),
+            EncounterId = Guid.CreateVersion7(),
             OwnerId = _userId,
             Status = GameSessionStatus.Scheduled,
             StartedAt = occurrenceDate
@@ -405,7 +405,7 @@ public class GenerateSessionsFromScheduleSteps {
         return new GameSession {
             Id = Guid.CreateVersion7(),
             ScheduleId = schedule.Id,
-            SceneId = Guid.CreateVersion7(),
+            EncounterId = Guid.CreateVersion7(),
             OwnerId = schedule.OwnerId,
             Status = GameSessionStatus.Scheduled,
             StartedAt = startedAt,

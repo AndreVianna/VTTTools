@@ -75,7 +75,7 @@ Implement comprehensive audit logging system for security, compliance, and user 
 - Permission changes, role assignments (admin actions)
 
 ### Future
-- Game Actions: Scene creation/deletion, asset uploads, game session events
+- Game Actions: Encounter creation/deletion, asset uploads, game session events
 
 ---
 

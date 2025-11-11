@@ -1,8 +1,8 @@
-# Recover From Scene Errors Use Case
+# Recover From Encounter Errors Use Case
 
 **Original Request**: Extract Platform Infrastructure use cases from error handling implementations
 
-**Recover From Scene Errors** is an error processing operation that handles failures during scene save/load operations with appropriate recovery options. This use case operates within the Platform Infrastructure area and enables users to recover from scene data errors without losing work.
+**Recover From Encounter Errors** is an error processing operation that handles failures during encounter save/load operations with appropriate recovery options. This use case operates within the Platform Infrastructure area and enables users to recover from encounter data errors without losing work.
 
 ---
 
@@ -16,12 +16,12 @@
 ### Business Context
 - **Parent Feature**: Error Handling
 - **Owning Area**: Platform Infrastructure
-- **Business Value**: Prevents data loss from scene operation failures
-- **User Benefit**: Users receive clear feedback on scene errors with actionable recovery steps
+- **Business Value**: Prevents data loss from encounter operation failures
+- **User Benefit**: Users receive clear feedback on encounter errors with actionable recovery steps
 
 ### Scope Definition
-- **Primary Actor**: Users performing scene operations (save/load)
-- **Scope**: Scene operation error processing
+- **Primary Actor**: Users performing encounter operations (save/load)
+- **Scope**: Encounter operation error processing
 - **Level**: Infrastructure error handling
 
 ---
@@ -30,10 +30,10 @@
 
 ### Presentation Type
 - **UI Type**: NO_UI
-- **Access Method**: Backend error processing function (`handleSceneError`)
+- **Access Method**: Backend error processing function (`handleEncounterError`)
 
 - **UI Components**: None (backend processing)
-- **Access**: Called by scene save/load code
+- **Access**: Called by encounter save/load code
 - **Visibility**: Error results in notification display via Redux
 
 ---
@@ -47,14 +47,14 @@
 - **Infrastructure Dependencies**: Redux store (error/notification slices)
 
 ### Hexagonal Architecture
-- **Primary Port Operation**: `handleSceneError(error, operation: 'save'|'load', context)` function
+- **Primary Port Operation**: `handleEncounterError(error, operation: 'save'|'load', context)` function
 - **Secondary Port Dependencies**: Redux store (addError, addNotification actions)
 - **Adapter Requirements**: Redux dispatch, error classification by operation type
 
 ### DDD Alignment
 - **Bounded Context**: Platform Infrastructure
-- **Ubiquitous Language**: Scene Error, Scene Save, Scene Load, Error Recovery, Operation Context
-- **Business Invariants**: Scene errors include operation type (save/load), provide user-friendly recovery guidance
+- **Ubiquitous Language**: Encounter Error, Encounter Save, Encounter Load, Error Recovery, Operation Context
+- **Business Invariants**: Encounter errors include operation type (save/load), provide user-friendly recovery guidance
 - **Domain Events**: None (error handling, not domain event)
 
 ---
@@ -62,21 +62,21 @@
 ## Functional Specification
 
 ### Input Requirements
-- **Input Data**: Error object (unknown type), operation ('save' | 'load'), context object (sceneId, sceneName, userId, etc.)
+- **Input Data**: Error object (unknown type), operation ('save' | 'load'), context object (encounterId, encounterName, userId, etc.)
 - **Input Validation**: Operation must be 'save' or 'load'
 - **Preconditions**: Redux store initialized, error handling service configured
 
 ### Business Logic
 - **Business Rules**:
-  - Classify error as 'scene_save' or 'scene_load' based on operation parameter
-  - Save errors: Mark as retryable, message "Failed to save scene. Please try again."
-  - Load errors: Mark as retryable, message "Failed to load scene. Please try again."
-  - Include operation context (sceneId, operation type) for debugging
+  - Classify error as 'encounter_save' or 'encounter_load' based on operation parameter
+  - Save errors: Mark as retryable, message "Failed to save encounter. Please try again."
+  - Load errors: Mark as retryable, message "Failed to load encounter. Please try again."
+  - Include operation context (encounterId, operation type) for debugging
   - Dispatch Redux error action
   - Show notification (duration: 8s)
 - **Processing Steps**:
   1. Receive error, operation, and context from calling code
-  2. Determine error type based on operation (scene_save or scene_load)
+  2. Determine error type based on operation (encounter_save or encounter_load)
   3. Process error through `handleError()` utility with type and context
   4. Create VTTError with operation-specific type
   5. Dispatch addError to Redux
@@ -92,17 +92,17 @@
 - **Postconditions**: Error stored in Redux with correct type, notification displayed, error logged with operation context
 
 ### Error Scenarios
-- **Save Network Failure**: Scene data failed to persist to server, mark retryable
-- **Load Network Failure**: Scene data failed to fetch from server, mark retryable
-- **Save Data Too Large**: Scene exceeds size limits, mark non-retryable, suggest optimization
-- **Load Data Corrupted**: Scene data corrupted or incompatible version, mark non-retryable, suggest restore from backup
+- **Save Network Failure**: Encounter data failed to persist to server, mark retryable
+- **Load Network Failure**: Encounter data failed to fetch from server, mark retryable
+- **Save Data Too Large**: Encounter exceeds size limits, mark non-retryable, suggest optimization
+- **Load Data Corrupted**: Encounter data corrupted or incompatible version, mark non-retryable, suggest restore from backup
 
 ---
 
 ## Implementation Guidance
 
 ### Technical Requirements
-- **Interface Contract**: `handleSceneError(error: unknown, operation: 'save'|'load', context?: any): ProcessedError`, Redux actions (addError, addNotification)
+- **Interface Contract**: `handleEncounterError(error: unknown, operation: 'save'|'load', context?: any): ProcessedError`, Redux actions (addError, addNotification)
 - **Data Access Patterns**: Write-only to Redux (dispatch actions)
 - **External Integration**: Redux store, error classification utility
 - **Performance Requirements**: Immediate error processing (<10ms)
@@ -122,23 +122,23 @@
 
 ## Acceptance Criteria
 
-- **AC-01**: Scene save errors classified correctly
-  - **Given**: Scene save operation fails
-  - **When**: `handleSceneError(error, 'save', context)` called
-  - **Then**: Error type set to 'scene_save', retryable=true, message "Failed to save scene. Please try again."
+- **AC-01**: Encounter save errors classified correctly
+  - **Given**: Encounter save operation fails
+  - **When**: `handleEncounterError(error, 'save', context)` called
+  - **Then**: Error type set to 'encounter_save', retryable=true, message "Failed to save encounter. Please try again."
 
-- **AC-02**: Scene load errors classified correctly
-  - **Given**: Scene load operation fails
-  - **When**: `handleSceneError(error, 'load', context)` called
-  - **Then**: Error type set to 'scene_load', retryable=true, message "Failed to load scene. Please try again."
+- **AC-02**: Encounter load errors classified correctly
+  - **Given**: Encounter load operation fails
+  - **When**: `handleEncounterError(error, 'load', context)` called
+  - **Then**: Error type set to 'encounter_load', retryable=true, message "Failed to load encounter. Please try again."
 
 - **AC-03**: Operation context preserved for debugging
-  - **Given**: Scene error with context (sceneId, operation, userId)
+  - **Given**: Encounter error with context (encounterId, operation, userId)
   - **When**: Error processed
   - **Then**: Context included in VTTError object, operation type preserved, available in Redux state
 
 - **AC-04**: User notification displays operation-specific message
-  - **Given**: Scene save or load error processed
+  - **Given**: Encounter save or load error processed
   - **When**: Redux actions dispatched
   - **Then**: Error notification displays with operation-specific message (save or load)
 
@@ -148,7 +148,7 @@
 
 ### Development Approach
 - **Implementation Pattern**: Utility function with operation-based error classification and Redux integration
-- **Code Organization**: `src/utils/errorHandling.ts` (handleSceneError function)
+- **Code Organization**: `src/utils/errorHandling.ts` (handleEncounterError function)
 - **Testing Approach**: Jest unit tests with both save and load scenarios, Redux mock store
 
 ### Dependencies
@@ -163,7 +163,7 @@
 
 ---
 
-This Recover From Scene Errors use case provides comprehensive implementation guidance for scene error processing within the Platform Infrastructure area while maintaining architectural integrity.
+This Recover From Encounter Errors use case provides comprehensive implementation guidance for encounter error processing within the Platform Infrastructure area while maintaining architectural integrity.
 
 <!--
 ═══════════════════════════════════════════════════════════════

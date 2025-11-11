@@ -8,7 +8,7 @@
 
 ## Overview
 
-The Content Library is VTTTools' organizational system for managing tabletop content through a four-level hierarchy: Epic → Campaign → Adventure → Scene. This document defines the architecture, design patterns, and implementation strategy.
+The Content Library is VTTTools' organizational system for managing tabletop content through a four-level hierarchy: Epic → Campaign → Adventure → Encounter. This document defines the architecture, design patterns, and implementation strategy.
 
 ## Hierarchy Model
 
@@ -18,19 +18,19 @@ The Content Library is VTTTools' organizational system for managing tabletop con
 Epic (optional)
   └─→ Campaign (optional)
         └─→ Adventure (optional)
-              └─→ Scene (required for gameplay)
+              └─→ Encounter (required for gameplay)
 ```
 
 ### Characteristics
 
 **Optional at Every Level:**
-- Scene.adventureId: `Guid?` (nullable) - Scenes can be standalone
+- Encounter.adventureId: `Guid?` (nullable) - Encounters can be standalone
 - Adventure.campaignId: `Guid?` (nullable) - Adventures independent
 - Campaign.epicId: `Guid?` (nullable) - Campaigns independent
 
 **Progressive Enhancement:**
-- Phase 7: Scenes only
-- Phase 8: Scenes + Adventures
+- Phase 7: Encounters only
+- Phase 8: Encounters + Adventures
 - Phase 9: Full hierarchy (when backend ready)
 
 ### Common Properties (All Levels)
@@ -49,13 +49,13 @@ interface ContentListItem {
 
 ### Level-Specific Properties
 
-**Scene** (Leaf - Visual Content):
+**Encounter** (Leaf - Visual Content):
 ```typescript
-interface Scene extends ContentListItem {
+interface Encounter extends ContentListItem {
   adventureId: string | null;
   grid: GridConfig;
   stage: StageConfig;
-  assets: SceneAsset[];
+  assets: EncounterAsset[];
 }
 ```
 
@@ -63,7 +63,7 @@ interface Scene extends ContentListItem {
 ```typescript
 interface Adventure extends ContentListItem {
   campaignId: string | null;
-  sceneIds: string[];
+  encounterIds: string[];
   thumbnailId: string | null;
 }
 ```
@@ -132,7 +132,7 @@ Content List → [Click Item] → Full Editor (properties in menus) → Auto-sav
 **Content Library:**
 ```text
 /content-library → ContentLibraryPage (tabs)
-  ├─ /scenes → SceneListView
+  ├─ /encounters → EncounterListView
   ├─ /adventures → AdventureListView (Phase 8)
   ├─ /campaigns → DisabledView (Phase 9)
   └─ /epics → DisabledView (Phase 9)
@@ -140,14 +140,14 @@ Content List → [Click Item] → Full Editor (properties in menus) → Auto-sav
 
 **Editors:**
 ```text
-/scene-editor/:sceneId → SceneEditorPage (EditorLayout)
-/scene-editor/new → SceneEditorPage (creates new)
+/encounter-editor/:encounterId → EncounterEditorPage (EditorLayout)
+/encounter-editor/new → EncounterEditorPage (creates new)
 /adventure-editor/:adventureId → AdventureEditorPage (Phase 8)
 ```
 
 **Navigation Flow:**
-- Dashboard → Content Library → Scenes tab → Scene card → Scene Editor
-- Scene Editor back button → Content Library (Scenes tab)
+- Dashboard → Content Library → Encounters tab → Encounter card → Encounter Editor
+- Encounter Editor back button → Content Library (Encounters tab)
 
 ### 2. Component Architecture
 
@@ -165,10 +165,10 @@ content-library/components/shared/
 **Type-Specific Components:**
 
 ```text
-content-library/components/scenes/
-  ├─ SceneCard.tsx            Extends ContentCard
-  ├─ SceneMetadataMenu.tsx    Scene menu contents
-  └─ SceneListView.tsx        Scene list page
+content-library/components/encounters/
+  ├─ EncounterCard.tsx            Extends ContentCard
+  ├─ EncounterMetadataMenu.tsx    Encounter menu contents
+  └─ EncounterListView.tsx        Encounter list page
 ```
 
 **Reusability**: ~60-70% of Phase 7 code reused in Phase 8
@@ -178,11 +178,11 @@ content-library/components/scenes/
 **RTK Query Slices:**
 ```text
 api/adventuresApi.ts  → /api/library/adventures (Phase 7)
-api/scenesApi.ts      → /api/library/scenes
+api/encountersApi.ts      → /api/library/encounters
 ```
 
 **Cache Strategy:**
-- List queries: Tag 'Scenes', 'Adventures'
+- List queries: Tag 'Encounters', 'Adventures'
 - Detail queries: Tag by ID
 - Mutations invalidate appropriate tags
 - Optimistic updates for responsive UX
@@ -190,12 +190,12 @@ api/scenesApi.ts      → /api/library/scenes
 **Auto-Save Pattern:**
 ```typescript
 // Debounced auto-save hook
-const useAutoSave = (sceneId, data, delay = 3000) => {
-  const [updateScene] = useUpdateSceneMutation();
+const useAutoSave = (encounterId, data, delay = 3000) => {
+  const [updateEncounter] = useUpdateEncounterMutation();
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      updateScene({ id: sceneId, ...data });
+      updateEncounter({ id: encounterId, ...data });
     }, delay);
 
     return () => clearTimeout(timer);
@@ -207,7 +207,7 @@ const useAutoSave = (sceneId, data, delay = 3000) => {
 
 **Challenge**: Frontend needs full Asset objects, backend stores references.
 
-**SceneAsset (Backend)**:
+**EncounterAsset (Backend)**:
 ```typescript
 {
   id: string;
@@ -234,25 +234,25 @@ const useAutoSave = (sceneId, data, delay = 3000) => {
 
 **Mapping Functions**:
 ```typescript
-// Load: SceneAsset → PlacedAsset
+// Load: EncounterAsset → PlacedAsset
 const hydratePlacedAssets = async (
-  sceneAssets: SceneAsset[],
+  encounterAssets: EncounterAsset[],
   getAsset: (id: string) => Promise<Asset>
 ): Promise<PlacedAsset[]> => {
   const assets = await Promise.all(
-    sceneAssets.map(sa => getAsset(sa.assetId))
+    encounterAssets.map(sa => getAsset(sa.assetId))
   );
 
-  return sceneAssets.map((sa, i) => ({
+  return encounterAssets.map((sa, i) => ({
     ...sa,
     asset: assets[i]
   }));
 };
 
-// Save: PlacedAsset → SceneAsset
+// Save: PlacedAsset → EncounterAsset
 const dehydratePlacedAssets = (
   placedAssets: PlacedAsset[]
-): SceneAsset[] => {
+): EncounterAsset[] => {
   return placedAssets.map(pa => ({
     id: pa.id,
     assetId: pa.assetId,
@@ -266,7 +266,7 @@ const dehydratePlacedAssets = (
 
 ---
 
-## Scene Editor Integration
+## Encounter Editor Integration
 
 ### Enhanced Menu Bar
 
@@ -277,24 +277,24 @@ const dehydratePlacedAssets = (
 
 **New Structure (Phase 7)**:
 ```text
-[Scene ▼] [Stage ▼] [Structures ▼] [Objects ▼] [Creatures ▼] ... [↶ ↷ | ⊖ 100% ⊕]
+[Encounter ▼] [Stage ▼] [Structures ▼] [Objects ▼] [Creatures ▼] ... [↶ ↷ | ⊖ 100% ⊕]
 ```
 
-### Scene Menu (NEW)
+### Encounter Menu (NEW)
 
-**Purpose**: Scene metadata and publishing
+**Purpose**: Encounter metadata and publishing
 
 **Contents**:
 - Adventure selector (dropdown, optional)
 - Description (click to edit, multi-line)
 - Published toggle (checkbox/switch)
-- Duplicate Scene action
-- Delete Scene action
+- Duplicate Encounter action
+- Delete Encounter action
 
 **Organization**:
 ```text
 ┌──────────────────────────┐
-│ Scene Properties         │
+│ Encounter Properties         │
 ├──────────────────────────┤
 │ Adventure               │
 │ [None ▼]                │
@@ -306,8 +306,8 @@ const dehydratePlacedAssets = (
 │                          │
 │ ☐ Published             │
 ├──────────────────────────┤
-│ Duplicate Scene         │
-│ Delete Scene            │
+│ Duplicate Encounter         │
+│ Delete Encounter            │
 └──────────────────────────┘
 ```
 
@@ -322,7 +322,7 @@ const dehydratePlacedAssets = (
   - Width/Height inputs
 - **View Controls**
   - Reset zoom & pan
-- **Grid Configuration** (MOVED from Scene)
+- **Grid Configuration** (MOVED from Encounter)
   - Grid Type selector
   - Cell Size (W/H with +/- controls)
   - Offset (X/Y with +/- controls)
@@ -339,11 +339,11 @@ const dehydratePlacedAssets = (
 
 **Enhanced Header**:
 ```text
-[← Back to Scenes] [Scene Name (click to edit)] [💾 Saved] ... [☀][👤]
+[← Back to Encounters] [Encounter Name (click to edit)] [💾 Saved] ... [☀][👤]
 ```
 
 **Editable Title Pattern:**
-- Click scene name → Becomes input field
+- Click encounter name → Becomes input field
 - Edit name → Auto-focus
 - Press Enter or blur → Save
 - Show save indicator during/after save
@@ -354,9 +354,9 @@ const dehydratePlacedAssets = (
 
 ### Progressive Enhancement
 
-**Phase 7** (Scenes Only):
-- Content Library tabs: [Scenes (active)] [Adventures (disabled)] ...
-- Only Scenes clickable
+**Phase 7** (Encounters Only):
+- Content Library tabs: [Encounters (active)] [Adventures (disabled)] ...
+- Only Encounters clickable
 - Infrastructure ready for expansion
 
 **Phase 8** (+ Adventures):
@@ -379,7 +379,7 @@ const dehydratePlacedAssets = (
 - useContentList hook (80% reusable)
 
 **Type-Specific Per Level:**
-- Menu contents (Scene vs Adventure vs Campaign properties)
+- Menu contents (Encounter vs Adventure vs Campaign properties)
 - Card metadata display
 - Editor content area (canvas vs list vs organizer)
 
@@ -395,7 +395,7 @@ const dehydratePlacedAssets = (
 
 **Base Interface:**
 ```typescript
-type ContentType = 'scene' | 'adventure' | 'campaign' | 'epic';
+type ContentType = 'encounter' | 'adventure' | 'campaign' | 'epic';
 
 interface ContentListItem {
   id: string;
@@ -411,7 +411,7 @@ interface ContentListItem {
 **Type Discrimination:**
 ```typescript
 type ContentItemByType<T extends ContentType> =
-  T extends 'scene' ? Scene :
+  T extends 'encounter' ? Encounter :
   T extends 'adventure' ? Adventure :
   T extends 'campaign' ? Campaign :
   T extends 'epic' ? Epic :
@@ -466,7 +466,7 @@ All components use theme tokens:
 
 - EditableTitle: TextField with theme-aware styling
 - ContentCard: Card with proper elevation, theme-aware background
-- Menus: Consistent with SceneEditorMenuBar pattern
+- Menus: Consistent with EncounterEditorMenuBar pattern
 - Buttons: Primary/secondary following theme
 
 ---
@@ -485,10 +485,10 @@ All components use theme tokens:
 
 ### Phase 8: Adventure Editor
 
-Different canvas type (not visual like scenes):
-- Scene thumbnail grid (organize scenes)
+Different canvas type (not visual like encounters):
+- Encounter thumbnail grid (organize encounters)
 - Drag to reorder
-- Add/remove scenes
+- Add/remove encounters
 - Different menu structure
 
 ### Phase 9: Campaign/Epic Editors
@@ -497,7 +497,7 @@ Further specialized editors for organizational content.
 
 ### Real-Time Collaboration (Phase 10+)
 
-- Multiple users editing same scene
+- Multiple users editing same encounter
 - Conflict resolution
 - Presence indicators
 - Shared cursors

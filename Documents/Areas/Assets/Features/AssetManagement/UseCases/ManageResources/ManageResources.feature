@@ -6,7 +6,7 @@
 Feature: Manage Asset Resources
   As a Game Master
   I want to upload multiple images to an asset and assign them Token or Display roles
-  So that I can have different visualizations for asset library vs scene placement
+  So that I can have different visualizations for asset library vs encounter placement
 
   Background:
     Given I am authenticated as a Game Master

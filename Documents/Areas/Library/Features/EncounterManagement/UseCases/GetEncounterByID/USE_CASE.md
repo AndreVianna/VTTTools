@@ -1,4 +1,4 @@
-# GetSceneByID Use Case
+# GetEncounterByID Use Case
 
 **Status**: Specification pending - BDD file exists
 

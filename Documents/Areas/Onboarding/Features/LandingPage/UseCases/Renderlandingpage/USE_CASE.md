@@ -54,7 +54,7 @@
   2. Component reads authentication state from useAuth hook
   3. Component conditionally renders Hero Section OR Dashboard Preview
   4. **If not authenticated**: User interacts with Hero CTAs (Start Creating → /register, Explore Features → /login)
-  5. **If authenticated**: User interacts with quick action cards (Scene Editor clickable, others show phase status)
+  5. **If authenticated**: User interacts with quick action cards (Encounter Editor clickable, others show phase status)
 - **Validation Feedback**: N/A (no form validation in orchestration)
 - **Loading States**: Authentication context loading handled by Identity area
 - **Success Handling**: Successful auth state read triggers appropriate content rendering

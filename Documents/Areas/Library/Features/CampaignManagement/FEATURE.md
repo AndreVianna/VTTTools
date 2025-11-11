@@ -15,7 +15,7 @@
 
 ### Business Value
 - **User Benefit**: Game Masters can organize multiple adventures into connected storylines, with flexibility to nest campaigns within epics or maintain them as standalone content
-- **Business Objective**: Provide mid-level organizational structure for hierarchical game content management with optional epic association (Epic → Campaign → Adventure → Scene)
+- **Business Objective**: Provide mid-level organizational structure for hierarchical game content management with optional epic association (Epic → Campaign → Adventure → Encounter)
 - **Success Criteria**: Game Masters can create campaigns (standalone or within epics), update campaign properties, move campaigns between epic/standalone, control visibility, and delete campaigns with proper cascade handling
 
 ### Area Assignment

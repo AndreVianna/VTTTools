@@ -3,15 +3,15 @@
 # Service: layerManager.ts
 # Phase: EPIC-001 Phase 4 - Grid & Layers
 
-@use-case @library @scene-editor @layers
+@use-case @library @encounter-editor @layers
 Feature: Layer Management
   As a Game Master
   I want layers to render in the correct z-order
-  So that scene elements appear in the right visual stacking (background behind tokens, UI on top)
+  So that encounter elements appear in the right visual stacking (background behind tokens, UI on top)
 
   Background:
     Given I am authenticated as a Game Master
-    And I have opened the scene editor
+    And I have opened the encounter editor
     And the Konva Stage is initialized
 
   # ═══════════════════════════════════════════════════════════════
@@ -64,7 +64,7 @@ Feature: Layer Management
 
     @integration
     Scenario: UI layer renders above all content
-      Given the scene has background, grid, and tokens
+      Given the encounter has background, grid, and tokens
       And the ui layer has controls/overlays
       When all layers render
       Then the ui layer elements should be on top
@@ -171,7 +171,7 @@ Feature: Layer Management
 
   @performance @phase4-gate4
   Scenario: Layer operations complete in <100ms
-    Given the scene has all 7 layers with content
+    Given the encounter has all 7 layers with content
     When I toggle layer visibility
     Then the operation should complete in less than 100ms
     And the Stage should batch draw efficiently

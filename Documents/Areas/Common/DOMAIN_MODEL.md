@@ -6,7 +6,7 @@
 
 **Boundaries**:
 - **Inside**: Shared value objects (Participant, Frame, Colors), shared enums (RoleName, PlayerType, FrameShape), common validation logic
-- **Outside**: Context-specific entities (Asset, Resource, Scene, GameSession belong to their respective contexts)
+- **Outside**: Context-specific entities (Asset, Resource, Encounter, GameSession belong to their respective contexts)
 
 **Architecture Pattern**: DDD Contracts + Shared Kernel
 - Common domain elements are **shared primitives** (value objects, enums)
@@ -108,9 +108,9 @@ var invitee = new Participant
 
 ### Frame
 
-**Purpose**: Defines visual border styling (shape and colors) for asset display in scenes
+**Purpose**: Defines visual border styling (shape and colors) for asset display in encounters
 
-**Context Usage**: Used by Assets context (Asset.Display.Frame) and potentially Library context for scene element styling
+**Context Usage**: Used by Assets context (Asset.Display.Frame) and potentially Library context for encounter element styling
 
 #### Properties
 - **Shape**: FrameShape (enum)
@@ -230,7 +230,7 @@ var customSize = new NamedSize { Width = 2, Height = 3, IsSquare = false };
 
 **Purpose**: Represents cell-based coordinates for asset placement on grid
 
-**Context Usage**: Used by Assets context (Asset.Position), Game context (scene element placement)
+**Context Usage**: Used by Assets context (Asset.Position), Game context (encounter element placement)
 
 #### Properties
 - **X**: int
@@ -301,7 +301,7 @@ var offGrid = new Position { X = -1, Y = -1 };
   - Can modify all game state
   - Can add/remove participants
   - Can control all assets
-  - Can change scenes
+  - Can change encounters
   - Can start/pause/finish session
 
 **Usage Context**: Game context (GameSession.Players, Schedule.Participants)
@@ -329,7 +329,7 @@ var offGrid = new Position { X = -1, Y = -1 };
 **Usage Context**: Assets context (Frame.Shape), Common context (Frame value object)
 
 **Business Rules**:
-- Shape affects collision detection in scene editor
+- Shape affects collision detection in encounter editor
 - Circular frames typically used for AssetType.Token, Character, Creature
 - Square frames typically used for AssetType.Object, Wall, Door
 
@@ -551,14 +551,14 @@ This Common domain follows the **Shared Kernel pattern** in DDD:
 
 **Library Context**:
 - Could use Participant for collaborative editing (future)
-- Could use Frame for scene element styling (future)
-- Could use Position for scene element placement (future)
+- Could use Frame for encounter element styling (future)
+- Could use Position for encounter element placement (future)
 
 **Game Context**:
 - Uses Participant in GameSession.Players and Schedule.Participants
 - Uses PlayerType enum in Participant.PlayerType
 - Uses RoleName for authorization checks
-- Uses Position for asset placement in active scenes
+- Uses Position for asset placement in active encounters
 
 **Identity Context**:
 - Uses RoleName enum in User.Role (not navigable, but related)

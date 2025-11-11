@@ -42,11 +42,11 @@ Feature: Record Game Event
       Then the event should be appended to the event log
       And the event should be broadcast via SignalR
 
-    @happy-path @scene-change
-    Scenario: Record scene changed event
-      When I record a "SceneChanged" event with data:
+    @happy-path @encounter-change
+    Scenario: Record encounter changed event
+      When I record a "EncounterChanged" event with data:
         """
-        {"previousSceneId":"scene-01","newSceneId":"scene-02"}
+        {"previousEncounterId":"encounter-01","newEncounterId":"encounter-02"}
         """
       Then the event should be persisted with current timestamp
       And the event should be broadcast to all participants

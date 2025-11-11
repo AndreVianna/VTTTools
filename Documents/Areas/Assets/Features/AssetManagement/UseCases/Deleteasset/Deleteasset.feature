@@ -35,7 +35,7 @@ Feature: Delete Asset
     When I click "Delete"
     Then the confirmation dialog should open
     And I should see a warning alert
-    And the warning should say "This asset is published and may be in use in scenes"
+    And the warning should say "This asset is published and may be in use in encounters"
     And the warning should have severity "warning" (orange/yellow)
 
   @ui
@@ -161,12 +161,12 @@ Feature: Delete Asset
     And I should be able to retry
 
   @error-handling
-  Scenario: Handle asset in use on scenes (future constraint)
+  Scenario: Handle asset in use on encounters (future constraint)
     Given I own asset "In Use Asset"
-    And the asset is placed on 3 active scenes
+    And the asset is placed on 3 active encounters
     When I attempt to delete the asset
     Then the backend may return validation error
-    And error should indicate "Asset is in use on scenes"
+    And error should indicate "Asset is in use on encounters"
     And the asset should not be deleted
 
   # ═══════════════════════════════════════════════════════════════

@@ -2,7 +2,7 @@
 
 **Original Request**: Retrieve single asset by ID
 
-**Get Asset** is a retrieval operation that fetches a specific asset template by its unique identifier. This use case operates within the Assets area and enables users to view asset details for editing, viewing, or placement on scenes.
+**Get Asset** is a retrieval operation that fetches a specific asset template by its unique identifier. This use case operates within the Assets area and enables users to view asset details for editing, viewing, or placement on encounters.
 
 ---
 

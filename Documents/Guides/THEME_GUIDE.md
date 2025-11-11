@@ -238,13 +238,13 @@ const HeroTitle = styled(Typography)({
 ```tsx
 const theme = useTheme();
 
-<SceneCanvas
+<EncounterCanvas
   backgroundColor={theme.palette.background.default}  // Theme-aware
 >
   <BackgroundLayer
     backgroundColor={theme.palette.background.default}  // Fallback color
   />
-</SceneCanvas>
+</EncounterCanvas>
 ```
 
 ### 4. Styled Components
@@ -360,7 +360,7 @@ const Card = styled(Box)(({ theme }) => ({
 - ✅ Authentication forms use theme colors
 - ✅ All containers use `background.default`
 
-### Phase 3: Scene Editor
+### Phase 3: Encounter Editor
 
 - ✅ Canvas background uses `theme.palette.background.default`
 - ✅ Dark mode: `#1F2937` (dark gray for tactical maps)

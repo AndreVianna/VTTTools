@@ -45,13 +45,13 @@
 - **Application Service**: MediaStorageService.DeleteAsync(Guid resourceId)
 - **Domain Entities**: Resource (aggregate root)
 - **Domain Services**: IReferenceCheckService (check usage in Assets and Library)
-- **Infrastructure Dependencies**: DbContext, IBlobStorageClient, IAssetRepository, ISceneRepository
+- **Infrastructure Dependencies**: DbContext, IBlobStorageClient, IAssetRepository, IEncounterRepository
 
 ### Hexagonal Architecture
 - **Primary Port Operation**: IMediaStorage.DeleteAsync(Guid resourceId)
 - **Secondary Port Dependencies**:
   - IResourceRepository.FindByIdAsync(resourceId) → Retrieve Resource entity
-  - IReferenceCheckService.IsResourceInUseAsync(resourceId) → Check Asset/Scene references
+  - IReferenceCheckService.IsResourceInUseAsync(resourceId) → Check Asset/Encounter references
   - IResourceRepository.DeleteAsync(resource) → Remove entity from database
   - IBlobStorageClient.DeleteAsync(path) → Remove file from blob storage
 - **Adapter Requirements**: Database adapter (EF Core), blob storage adapter, cross-context reference checking
@@ -60,7 +60,7 @@
 - **Bounded Context**: Media
 - **Ubiquitous Language**: Delete resource, reference check, referential integrity, safe deletion
 - **Business Invariants**:
-  - Resource cannot be deleted if referenced by any Asset or Scene (AGG-03)
+  - Resource cannot be deleted if referenced by any Asset or Encounter (AGG-03)
   - Resource entity and blob storage file must be synchronized (BR-05)
 - **Domain Events**: ResourceDeleted(resourceId, path, timestamp) [future implementation]
 
@@ -76,19 +76,19 @@
 - **Preconditions**:
   - User has delete permissions (authorization handled by API layer)
   - Resource entity exists in database
-  - Resource is not referenced by any Asset or Scene
+  - Resource is not referenced by any Asset or Encounter
 
 ### Business Logic
 - **Business Rules**:
-  - BR-04: Resource cannot be deleted if in use (check Asset.Display.ResourceId and Scene/Adventure/Epic.Background references)
+  - BR-04: Resource cannot be deleted if in use (check Asset.Display.ResourceId and Encounter/Adventure/Epic.Background references)
   - BR-05: Resource entity and blob storage file must be synchronized (delete entity first, then file; rollback entity if blob delete fails)
-  - AGG-03: Resource cannot be deleted if referenced by any Asset or Scene (aggregate invariant)
+  - AGG-03: Resource cannot be deleted if referenced by any Asset or Encounter (aggregate invariant)
 - **Processing Steps**:
   1. Validate resourceId is not empty Guid
   2. Query database for Resource entity by Id
   3. If Resource not found, return 404 error
   4. Check if resource is referenced by any Asset (Asset.Display.ResourceId = resourceId)
-  5. Check if resource is referenced by any Scene/Adventure/Epic (Background property = resourceId)
+  5. Check if resource is referenced by any Encounter/Adventure/Epic (Background property = resourceId)
   6. If any references found, return 409 Conflict error with reference details
   7. Delete Resource entity from database
   8. Delete blob storage file at Resource.Path
@@ -116,8 +116,8 @@
 - **Empty Resource ID**: Return 400 Bad Request, "Resource ID cannot be empty"
 - **Resource Not Found**: Return 404 Not Found, "Resource with ID {resourceId} not found"
 - **Resource In Use By Assets**: Return 409 Conflict, "Resource cannot be deleted. Referenced by {count} asset(s): {assetIds}"
-- **Resource In Use By Scenes**: Return 409 Conflict, "Resource cannot be deleted. Used as background in {count} scene(s): {sceneIds}"
-- **Resource In Use By Multiple Contexts**: Return 409 Conflict, "Resource cannot be deleted. Referenced by {assetCount} asset(s) and {sceneCount} scene(s)"
+- **Resource In Use By Encounters**: Return 409 Conflict, "Resource cannot be deleted. Used as background in {count} encounter(s): {encounterIds}"
+- **Resource In Use By Multiple Contexts**: Return 409 Conflict, "Resource cannot be deleted. Referenced by {assetCount} asset(s) and {encounterCount} encounter(s)"
 - **Database Unavailable**: Return 503 Service Unavailable, "Database is temporarily unavailable"
 - **Blob Storage Delete Failed**: Log error, return 200 OK with warning, "Resource metadata deleted but file removal failed. Orphaned blob logged for cleanup."
 - **Database Delete Failed**: Return 500 Internal Server Error, "Failed to delete resource metadata"
@@ -143,8 +143,8 @@
   public class ResourceReferences
   {
       public List<Guid> AssetIds { get; init; }
-      public List<Guid> SceneIds { get; init; }
-      public int TotalReferences => AssetIds.Count + SceneIds.Count;
+      public List<Guid> EncounterIds { get; init; }
+      public int TotalReferences => AssetIds.Count + EncounterIds.Count;
   }
   ```
 - **Data Access Patterns**: Repository pattern for deletion, cross-context queries for reference checking
@@ -172,21 +172,21 @@
 - **Integration Testing**:
   - Test full deletion with test database and blob storage
   - Test deletion blocked when resource referenced by Asset
-  - Test deletion blocked when resource referenced by Scene
+  - Test deletion blocked when resource referenced by Encounter
   - Test orphaned blob handling when blob delete fails
   - Test concurrent deletion attempts
 - **Acceptance Criteria**: See section below
 - **BDD Scenarios**:
   - Given unreferenced resource, When DeleteAsync called, Then entity and blob deleted
   - Given resource referenced by Asset, When DeleteAsync called, Then 409 error returned
-  - Given resource referenced by Scene, When DeleteAsync called, Then 409 error returned
+  - Given resource referenced by Encounter, When DeleteAsync called, Then 409 error returned
 
 ---
 
 ## Acceptance Criteria
 
 - **AC-01**: Successful deletion of unreferenced resource
-  - **Given**: Resource exists with ID "12345678-1234-1234-1234-123456789abc", not referenced by any Asset or Scene
+  - **Given**: Resource exists with ID "12345678-1234-1234-1234-123456789abc", not referenced by any Asset or Encounter
   - **When**: DeleteAsync called with resource ID
   - **Then**: Resource entity deleted from database, blob storage file removed, 204 No Content returned
 
@@ -195,15 +195,15 @@
   - **When**: DeleteAsync called
   - **Then**: 409 Conflict returned "Resource cannot be deleted. Referenced by 1 asset(s): {assetId}"
 
-- **AC-03**: Deletion blocked when resource referenced by Scene
-  - **Given**: Resource referenced by Scene with Background property matching resource ID
+- **AC-03**: Deletion blocked when resource referenced by Encounter
+  - **Given**: Resource referenced by Encounter with Background property matching resource ID
   - **When**: DeleteAsync called
-  - **Then**: 409 Conflict returned "Resource cannot be deleted. Used as background in 1 scene(s): {sceneId}"
+  - **Then**: 409 Conflict returned "Resource cannot be deleted. Used as background in 1 encounter(s): {encounterId}"
 
 - **AC-04**: Deletion blocked with multiple references
-  - **Given**: Resource referenced by 3 Assets and 2 Scenes
+  - **Given**: Resource referenced by 3 Assets and 2 Encounters
   - **When**: DeleteAsync called
-  - **Then**: 409 Conflict returned with count and IDs "Referenced by 3 asset(s) and 2 scene(s)"
+  - **Then**: 409 Conflict returned with count and IDs "Referenced by 3 asset(s) and 2 encounter(s)"
 
 - **AC-05**: Not found handling for non-existent resource
   - **Given**: No resource exists with ID "00000000-0000-0000-0000-000000000000"
@@ -229,18 +229,18 @@
 - **Code Organization**:
   - Service: Source/Media/Services/MediaStorageService.cs
   - Reference Checker: Source/Media/Services/ReferenceCheckService.cs
-  - Repositories: Source/Infrastructure/Repositories/ResourceRepository.cs, AssetRepository.cs, SceneRepository.cs
+  - Repositories: Source/Infrastructure/Repositories/ResourceRepository.cs, AssetRepository.cs, EncounterRepository.cs
 - **Testing Approach**: XUnit for unit tests, integration tests with test database and Azurite
 
 ### Dependencies
 - **Technical Dependencies**:
-  - EF Core DbContext for Resource, Asset, Scene entities
+  - EF Core DbContext for Resource, Asset, Encounter entities
   - Azure.Storage.Blobs for blob deletion
-  - Cross-context repository access (AssetRepository, SceneRepository)
+  - Cross-context repository access (AssetRepository, EncounterRepository)
 - **Area Dependencies**: Query-only access to Assets and Library contexts for reference checking
 - **External Dependencies**:
   - Azure Blob Storage account
-  - Database with Asset and Scene tables for reference checks
+  - Database with Asset and Encounter tables for reference checks
 
 ### Architectural Considerations
 - **Area Boundary Respect**: Media area coordinates deletion, reads from Assets/Library for reference checks (no modifications)
@@ -254,7 +254,7 @@
   - Do not expose internal reference details in errors (use counts, not sensitive data)
   - Rate limit delete operations to prevent abuse
 - **Performance Considerations**:
-  - Index foreign keys (Asset.Display.ResourceId, Scene.Background) for fast reference checks
+  - Index foreign keys (Asset.Display.ResourceId, Encounter.Background) for fast reference checks
   - Consider batch deletion API for multiple resources
   - Implement background job for orphaned blob cleanup
 

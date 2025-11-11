@@ -1182,7 +1182,7 @@ const userId = await world.db.insertUser(userToInsert);
 async deleteUser(userId: string): Promise<void> {
     const query = `
         DELETE FROM Assets WHERE OwnerId = ?;
-        DELETE FROM Scenes WHERE OwnerId = ?;
+        DELETE FROM Encounters WHERE OwnerId = ?;
         ...
         DELETE FROM Users WHERE Id = ?;  // ← USER DELETED!
     `;
@@ -1201,7 +1201,7 @@ After(async function (this: CustomWorld, testCase) {
 async deleteUserDataOnly(userId: string): Promise<void> {
     const query = `
         DELETE FROM Assets WHERE OwnerId = ?;
-        DELETE FROM Scenes WHERE OwnerId = ?;
+        DELETE FROM Encounters WHERE OwnerId = ?;
         DELETE FROM GameSessions WHERE OwnerId = ?;
         ...
         -- NO: DELETE FROM Users WHERE Id = ?;

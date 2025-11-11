@@ -2,13 +2,13 @@
 
 **Bounded Context**: Assets
 
-**Purpose**: Manage reusable game asset templates (objects and entities/creatures) that can be placed on scenes during gameplay.
+**Purpose**: Manage reusable game asset templates (objects and entities/creatures) that can be placed on encounters during gameplay.
 
-**Note**: Structures (walls, doors) and Effects (light, fog) are now separate domain models in the Library.Scenes bounded context.
+**Note**: Structures (walls, doors) and Effects (light, fog) are now separate domain models in the Library.Encounters bounded context.
 
 **Boundaries**:
 - **Inside**: Asset entity definitions, asset type categorization, asset ownership and publishing
-- **Outside**: User management (Identity context), Media resources (Media context), Scene usage (Library context)
+- **Outside**: User management (Identity context), Media resources (Media context), Encounter usage (Library context)
 
 **Architecture Pattern**: DDD Contracts + Service Implementation
 - Domain entities are **data contracts** (anemic - no behavior)
@@ -19,15 +19,15 @@
 ---
 
 ## Change Log
-- *2025-10-11* — **3.0.0** — Multi-resource system (Token/Display roles), NamedSize with fractional support, IsVisible moved to SceneAsset, AssetProperties base class
-- *2025-10-06* — **2.0.0** — Major refactoring: Asset hierarchy (ObjectAsset, CreatureAsset), removed Structures/Effects (moved to Library.Scenes), framework-independent primitives
+- *2025-10-11* — **3.0.0** — Multi-resource system (Token/Display roles), NamedSize with fractional support, IsVisible moved to EncounterAsset, AssetProperties base class
+- *2025-10-06* — **2.0.0** — Major refactoring: Asset hierarchy (ObjectAsset, CreatureAsset), removed Structures/Effects (moved to Library.Encounters), framework-independent primitives
 - *2025-10-02* — **1.0.0** — Initial domain model extracted from existing codebase
 
 ---
 
 ## Ubiquitous Language
 
-- **Asset**: Reusable game element template (objects or creatures) that can be placed on scenes
+- **Asset**: Reusable game element template (objects or creatures) that can be placed on encounters
 - **Asset Kind**: Fundamental categorization (Object or Creature)
 - **Object Asset**: Environmental items (furniture, traps, containers) placed in grid cells
 - **Creature Asset**: Controllable game creatures (characters, NPCs, monsters) with stat blocks
@@ -40,9 +40,9 @@
 - **Token Style**: Visual customization for creature tokens (border, background, shape)
 - **Stat Block**: Reference to character/creature statistics (stub for future implementation)
 - **Trigger Effect**: Effect activated when object is interacted with (for traps)
-- **Resource Role**: Purpose of a resource image (Token for scene placement, Display for UI, or both)
+- **Resource Role**: Purpose of a resource image (Token for encounter placement, Display for UI, or both)
 - **Asset Resource**: Association between an Asset and a Resource with a specific role
-- **Token Role**: Resource used for map/scene placement (typically smaller, grid-sized)
+- **Token Role**: Resource used for map/encounter placement (typically smaller, grid-sized)
 - **Display Role**: Resource used in UI dialogs, character sheets (typically larger, detailed)
 - **Named Size**: Asset size with optional category name (Tiny, Medium, Large, etc.) supporting fractional dimensions
 - **Asset Properties**: Base properties shared by all asset types (currently: Size)
@@ -201,12 +201,12 @@
   - **Implemented By**: IAssetStorage.UpdateAsync() with IsPublished=true (Application layer)
   - **Pre-conditions**: User is owner, IsPublic must be true
   - **Invariants Enforced**: INV-04 (published implies public)
-  - **Post-conditions**: IsPublished=true, available for use in scenes
+  - **Post-conditions**: IsPublished=true, available for use in encounters
   - **Returns**: Task<Asset>
 
 - **Delete Asset**: Removes asset
   - **Implemented By**: IAssetStorage.DeleteAsync() (Application layer)
-  - **Pre-conditions**: Asset exists, user is owner or admin, asset not in use in any scenes
+  - **Pre-conditions**: Asset exists, user is owner or admin, asset not in use in any encounters
   - **Invariants Enforced**: None (deletion operation)
   - **Post-conditions**: Asset removed from database
   - **Returns**: Task
@@ -246,10 +246,10 @@ Potential future events:
 - **References** → Resources: Asset references multiple resources with different roles
   - **Cardinality**: One-to-Many (one asset has many resources via AssetResource collection)
   - **Navigation**: Resources property (ICollection<AssetResource>)
-  - **Roles**: Each resource can be Token (scene placement), Display (UI), or both (flag enum)
+  - **Roles**: Each resource can be Token (encounter placement), Display (UI), or both (flag enum)
 
-- **Referenced By** ← SceneAsset: Asset may be placed on multiple scenes
-  - **Cardinality**: One-to-Many (one asset template used in many scene placements)
+- **Referenced By** ← EncounterAsset: Asset may be placed on multiple encounters
+  - **Cardinality**: One-to-Many (one asset template used in many encounter placements)
   - **Navigation**: Not navigable from Asset (no collection property)
 
 ---
@@ -284,7 +284,7 @@ Yes (record type with init-only properties)
 - **IsOpaque**: bool (default: false) - Blocks line of sight and light
 - **TriggerEffectId**: Guid? (optional) - Reference to Effect triggered on interaction
 
-**Note:** IsVisible was removed - now managed at instance level (SceneAsset.IsVisible)
+**Note:** IsVisible was removed - now managed at instance level (EncounterAsset.IsVisible)
 
 #### Immutability
 Yes (record type with init-only properties)
@@ -377,17 +377,17 @@ Yes (record type with init-only properties)
 - Resources (referenced via AssetResource.ResourceId collection - multiple resources per asset)
 - StatBlock (referenced via CreatureProperties.StatBlockId)
 - Effect (referenced via ObjectProperties.TriggerEffectId)
-- Scene (references Asset via SceneAsset.AssetId, not part of this aggregate)
+- Encounter (references Asset via EncounterAsset.AssetId, not part of this aggregate)
 
-**Boundary Rule**: All data needed to create, update, or delete an asset template is within this aggregate. External references (User, Resources) are by ID only. Resource entities themselves are managed in the Media bounded context. Scene usage of assets is tracked in the Library aggregate (Scene > SceneAsset), not here.
+**Boundary Rule**: All data needed to create, update, or delete an asset template is within this aggregate. External references (User, Resources) are by ID only. Resource entities themselves are managed in the Media bounded context. Encounter usage of assets is tracked in the Library aggregate (Encounter > EncounterAsset), not here.
 
 #### Aggregate Invariants
 - **AGG-01**: Asset can only be modified by owner (or admin)
   - **Enforcement**: Service layer authorization check
 - **AGG-02**: Published asset (IsPublished=true) must be public (IsPublic=true)
   - **Enforcement**: Service validation before updates
-- **AGG-03**: Asset cannot be deleted if in use in any scene
-  - **Enforcement**: Service check before deletion (query SceneAsset usage)
+- **AGG-03**: Asset cannot be deleted if in use in any encounter
+  - **Enforcement**: Service check before deletion (query EncounterAsset usage)
 
 #### Lifecycle Management
 - **Creation**: Via IAssetStorage.CreateAsync() - validates inputs, generates ID, sets defaults (IsPublished=false, IsPublic=false)
@@ -486,8 +486,8 @@ Yes (record type with init-only properties)
 
 - **BR-06** - Business Logic: Asset cannot be deleted if in use
   - **Scope**: Asset deletion
-  - **Enforcement**: Service check queries SceneAsset usage
-  - **Validation**: Query database for SceneAsset references before delete
+  - **Enforcement**: Service check queries EncounterAsset usage
+  - **Validation**: Query database for EncounterAsset references before delete
 
 - **BR-07** - Validation: Asset type must be valid enum value
   - **Scope**: Asset creation and updates
@@ -523,7 +523,7 @@ This domain model is **dependency-free** in the Domain project:
 - **Publish Asset Use Case**: Uses Asset entity, sets IsPublished and ensures IsPublic
 - **Delete Asset Use Case**: Uses Asset entity ID, checks usage before deletion
 - **Browse Assets Use Case**: Uses Asset entity for display, filters by owner or public
-- **Place Asset on Scene Use Case**: References Asset.Id from Library context (SceneAsset value object)
+- **Place Asset on Encounter Use Case**: References Asset.Id from Library context (EncounterAsset value object)
 
 ---
 

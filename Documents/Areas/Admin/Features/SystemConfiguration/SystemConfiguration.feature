@@ -36,7 +36,7 @@ Feature: Admin System Configuration
   @critical
   Scenario: Toggle feature flag
     Given I am on the Feature Flags tab
-    When I toggle the "Scene Collaboration" feature flag to "Enabled"
+    When I toggle the "Encounter Collaboration" feature flag to "Enabled"
     Then the feature should be enabled immediately
     And new requests should see the feature as enabled within 30 seconds
     And an audit log entry should be created

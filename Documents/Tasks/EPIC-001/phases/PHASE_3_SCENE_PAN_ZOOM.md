@@ -1,4 +1,4 @@
-# Phase 3: Scene Editor - Panning & Zoom
+# Phase 3: Encounter Editor - Panning & Zoom
 
 **Status**: ✅ Complete
 **Estimated**: 16h | **Actual**: 28h (175%)
@@ -15,7 +15,7 @@ Implement Konva Stage with smooth panning and zoom controls + authentication imp
 
 ## Deliverables
 
-- **Component**: SceneCanvas
+- **Component**: EncounterCanvas
   - Description: Konva Stage and Layer setup with React-Konva
   - Complexity: High
   - Status: ✅ Complete
@@ -50,7 +50,7 @@ Implement Konva Stage with smooth panning and zoom controls + authentication imp
 ## Implementation Sequence
 
 1. **Konva Stage Setup** (UI) - 6h
-   - Create SceneCanvas component with Stage/Layer
+   - Create EncounterCanvas component with Stage/Layer
    - ✅ Complete
 
 2. **Panning Implementation** (UI) - 4h
@@ -93,7 +93,7 @@ Implement Konva Stage with smooth panning and zoom controls + authentication imp
 
 ### Route Protection
 - Created ProtectedRoute component with anonymous/authorized levels
-- Applied protection to all current routes (scene-editor = authorized, landing/login = anonymous)
+- Applied protection to all current routes (encounter-editor = authorized, landing/login = anonymous)
 - Documented authorization requirements for Phases 4-11
 
 ### Authorization Analysis
@@ -107,7 +107,7 @@ Implement Konva Stage with smooth panning and zoom controls + authentication imp
 ## Dependencies
 
 - **Prerequisites**: Phase 1 (React foundation)
-- **Blocks**: Phases 4-6 (scene editor components)
+- **Blocks**: Phases 4-6 (encounter editor components)
 
 ---
 

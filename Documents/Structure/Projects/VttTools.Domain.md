@@ -17,9 +17,9 @@ Core domain layer containing all business entities, value objects, enums, and bu
 
 - **Authentication & User Management**: User/Role entities, authentication domain rules
 - **Media Resource Management**: Resource entity with ResourceMetadata and ResourceFile value objects
-- **Game Content Hierarchy**: Epic, Campaign, Adventure, Scene entities with hierarchy business logic
+- **Game Content Hierarchy**: Epic, Campaign, Adventure, Encounter entities with hierarchy business logic
 - **Asset Management**: Asset entity with Display and Frame value objects
-- **Interactive Scene Editor**: Scene entity with Stage, Grid, SceneAsset value objects
+- **Interactive Encounter Editor**: Encounter entity with Stage, Grid, EncounterAsset value objects
 - **Game Session Management**: GameSession and Schedule entities with Participant, Message, Event value objects
 
 ---
@@ -35,16 +35,16 @@ Core domain layer containing all business entities, value objects, enums, and bu
 - **Epic**: Multi-campaign story arc aggregate root
 - **Campaign**: Multi-adventure storyline (owned entity within Epic)
 - **Adventure**: Reusable game module aggregate root
-- **Scene**: Interactive tactical map aggregate root
+- **Encounter**: Interactive tactical map aggregate root
 - **GameSession**: Active game meeting entity
 - **Schedule**: Meeting schedule entity with recurrence patterns
 
 ### Value Objects (11 total)
 - **Display**: Asset display configuration (references Resource)
 - **Frame**: Asset border styling (Square/Circle shapes with colors)
-- **Stage**: Scene canvas configuration (background, viewport, dimensions)
-- **Grid**: Scene tactical overlay (type, offset, size, color)
-- **SceneAsset**: Token placement on scene (position, dimensions, z-index)
+- **Stage**: Encounter canvas configuration (background, viewport, dimensions)
+- **Grid**: Encounter tactical overlay (type, offset, size, color)
+- **EncounterAsset**: Token placement on encounter (position, dimensions, z-index)
 - **Participant**: Game session participant (userId, playerType role)
 - **GameSessionMessage**: Chat message (type, sender, content)
 - **GameSessionEvent**: Game event (type, timestamp, data)
@@ -67,7 +67,7 @@ Core domain layer containing all business entities, value objects, enums, and bu
 ### Storage Interfaces
 - **IAssetStorage**: Asset persistence operations
 - **IMediaStorage**: Media resource storage operations
-- **ISceneStorage**: Scene persistence operations
+- **IEncounterStorage**: Encounter persistence operations
 - **IAdventureStorage**: Adventure and campaign persistence operations
 - **IGameSessionStorage**: Game session persistence operations
 
@@ -114,7 +114,7 @@ Core domain layer containing all business entities, value objects, enums, and bu
 - Tag-based organization for discovery
 
 ### Library Domain
-- Hierarchical relationships: Epic > Campaign > Adventure > Scene
+- Hierarchical relationships: Epic > Campaign > Adventure > Encounter
 - Ownership and visibility rules
 - Adventure type categorization (7 types)
 - Grid configuration validation
@@ -129,7 +129,7 @@ Core domain layer containing all business entities, value objects, enums, and bu
 ## Architecture Notes
 
 - **Pure Domain Layer**: No dependencies on infrastructure concerns (EF Core, Azure Storage, etc.)
-- **DDD Aggregate Roots**: Epic, Adventure, Scene, GameSession, Schedule
+- **DDD Aggregate Roots**: Epic, Adventure, Encounter, GameSession, Schedule
 - **Owned Entities**: Campaign (within Epic)
 - **Value Object Pattern**: Immutable objects for domain concepts (Display, Frame, Stage, Grid, etc.)
 - **Storage Interface Contracts**: Define persistence operations without implementation details

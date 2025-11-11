@@ -178,7 +178,7 @@ public class GetGameSessionSteps {
             OwnerId = _userId,
             Title = "Complete Session",
             Status = GameSessionStatus.InProgress,
-            SceneId = Guid.CreateVersion7(),
+            EncounterId = Guid.CreateVersion7(),
             Players = [
                 new Participant { UserId = _userId, Type = PlayerType.Master },
                 new Participant { UserId = Guid.CreateVersion7(), Type = PlayerType.Player }
@@ -203,12 +203,12 @@ public class GetGameSessionSteps {
             .Returns(_session);
 
         _context["SessionId"] = _sessionId;
-        _context["HasActiveScene"] = true;
+        _context["HasActiveEncounter"] = true;
     }
 
-    [Given(@"the session has an active scene assigned")]
-    public void GivenTheSessionHasAnActiveSceneAssigned() {
-        _session = _session! with { SceneId = Guid.CreateVersion7() };
+    [Given(@"the session has an active encounter assigned")]
+    public void GivenTheSessionHasAnActiveEncounterAssigned() {
+        _session = _session! with { EncounterId = Guid.CreateVersion7() };
         _storage.GetByIdAsync(_sessionId, Arg.Any<CancellationToken>())
             .Returns(_session);
     }
@@ -292,10 +292,10 @@ public class GetGameSessionSteps {
         _retrievedSession!.Status.Should().BeDefined();
     }
 
-    [Then(@"the response should include the active scene ID")]
-    public void ThenTheResponseShouldIncludeTheActiveSceneId() {
-        _retrievedSession!.SceneId.Should().NotBeNull();
-        _retrievedSession!.SceneId.Should().NotBe(Guid.Empty);
+    [Then(@"the response should include the active encounter ID")]
+    public void ThenTheResponseShouldIncludeTheActiveEncounterId() {
+        _retrievedSession!.EncounterId.Should().NotBeNull();
+        _retrievedSession!.EncounterId.Should().NotBe(Guid.Empty);
     }
 
     [Then(@"the response should include all participants with their roles")]

@@ -26,7 +26,7 @@
 - **Primary Area**: Assets
 - **Secondary Areas**: None (self-contained publishing logic)
 - **Cross-Area Impact**:
-  - Library: Published assets may have additional visibility or placement rules in scenes
+  - Library: Published assets may have additional visibility or placement rules in encounters
   - Future: Notifications when assets published (if notification system implemented)
 
 ---
@@ -54,7 +54,7 @@
 
 ### Area Impact Assessment
 - **Assets**: Core publishing logic, IsPublished state management, publication workflow enforcement
-- **Library**: May reference published status for scene placement rules (optional, future)
+- **Library**: May reference published status for encounter placement rules (optional, future)
 
 ### Use Case Breakdown
 - **Publish Asset** (Assets): Transition asset from unpublished to published state with validation
@@ -73,7 +73,7 @@
 
 ### Area Interactions
 - **Assets** → **Assets**: Publishing is internal state management within Assets aggregate
-- **Assets** ← **Library** (future): Scenes may query published status for placement rules
+- **Assets** ← **Library** (future): Encounters may query published status for placement rules
 
 ### Integration Requirements
 - **Data Sharing**: IsPublished boolean flag on Asset entity

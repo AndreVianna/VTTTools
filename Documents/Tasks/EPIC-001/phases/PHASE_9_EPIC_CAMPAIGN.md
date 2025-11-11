@@ -16,7 +16,7 @@ Implement Epic→Campaign hierarchy for advanced content organization
 
 ## Summary
 
-Phase 9 implements the Epic→Campaign hierarchy, completing the four-tier content organization system (Epic→Campaign→Adventure→Scene). This phase includes full backend (domain, services, storage, handlers, tests) and frontend (TypeScript types, RTK Query, components, pages, routing) implementation following established VTTTools patterns.
+Phase 9 implements the Epic→Campaign hierarchy, completing the four-tier content organization system (Epic→Campaign→Adventure→Encounter). This phase includes full backend (domain, services, storage, handlers, tests) and frontend (TypeScript types, RTK Query, components, pages, routing) implementation following established VTTTools patterns.
 
 **Completion**: 42/42 steps (100%)
 **Actual Effort**: ~16 hours (2h less than estimated due to tabs vs TreeView)
@@ -73,7 +73,7 @@ Following independent code review, all identified gaps were fixed:
 ## Architecture Decisions (User Approved)
 
 - ✅ **UI**: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
-- ✅ **API**: Semi-flat endpoints (`/api/epics/{id}/campaigns` following Adventure/Scene pattern)
+- ✅ **API**: Semi-flat endpoints (`/api/epics/{id}/campaigns` following Adventure/Encounter pattern)
 - ✅ **Data**: Hybrid lazy loading (consistent with Adventures)
 - ✅ **Hierarchy**: Update endpoint for movement (epicId field)
 - ✅ **Domain**: Campaign converted to record type for immutability
@@ -138,7 +138,7 @@ Following independent code review, all identified gaps were fixed:
 - ✅ Campaigns can link to epics
 - ✅ OWASP Top 10 compliant
 - ✅ 90%+ backend test coverage
-- ✅ Pattern consistency with Adventure/Scene
+- ✅ Pattern consistency with Adventure/Encounter
 
 ---
 
@@ -194,7 +194,7 @@ Following independent code review, all identified gaps were fixed:
 
 **Prerequisites**: ✅ Complete
 - Phase 7 (Adventure Management) - Backend patterns established
-- Phase 8 (Scene Management) - Full hierarchy model
+- Phase 8 (Encounter Management) - Full hierarchy model
 
 **Blocks**: None (optional feature)
 
@@ -238,7 +238,7 @@ Following independent code review, all identified gaps were fixed:
 
 ## Lessons Learned
 
-1. **Pattern Replication**: Following established patterns (Adventure/Scene) accelerated development and ensured consistency
+1. **Pattern Replication**: Following established patterns (Adventure/Encounter) accelerated development and ensured consistency
 2. **Security Review**: Independent code review caught 3 critical issues (Console.WriteLine, missing authorization, list mutations)
 3. **Immutability**: IReadOnlyList<T> prevents external mutation while allowing internal updates with `with` expressions
 4. **MUI Tabs**: First usage establishes pattern for future tabbed navigation

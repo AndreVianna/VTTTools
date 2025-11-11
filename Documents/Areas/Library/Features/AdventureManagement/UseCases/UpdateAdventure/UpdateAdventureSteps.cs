@@ -12,7 +12,7 @@ using VttTools.Library.Adventures.Model;
 using VttTools.Library.Adventures.ServiceContracts;
 using VttTools.Library.Adventures.Services;
 using VttTools.Library.Adventures.Storage;
-using VttTools.Library.Scenes.Storage;
+using VttTools.Library.Encounters.Storage;
 using VttTools.Media.Model;
 using VttTools.Media.Storage;
 using Xunit;
@@ -23,7 +23,7 @@ namespace VttTools.Library.Tests.BDD.AdventureManagement.UpdateAdventure;
 public class UpdateAdventureSteps {
     private readonly ScenarioContext _context;
     private readonly IAdventureStorage _adventureStorage;
-    private readonly ISceneStorage _sceneStorage;
+    private readonly IEncounterStorage _encounterStorage;
     private readonly IMediaStorage _mediaStorage;
     private readonly IAdventureService _service;
 
@@ -38,9 +38,9 @@ public class UpdateAdventureSteps {
     public UpdateAdventureSteps(ScenarioContext context) {
         _context = context;
         _adventureStorage = Substitute.For<IAdventureStorage>();
-        _sceneStorage = Substitute.For<ISceneStorage>();
+        _encounterStorage = Substitute.For<IEncounterStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
-        _service = new AdventureService(_adventureStorage, _sceneStorage, _mediaStorage);
+        _service = new AdventureService(_adventureStorage, _encounterStorage, _mediaStorage);
     }
 
     #region Background Steps

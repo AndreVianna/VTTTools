@@ -10,8 +10,8 @@ using VttTools.Common.Model;
 using VttTools.Library.Adventures.Model;
 using VttTools.Library.Adventures.Services;
 using VttTools.Library.Adventures.Storage;
-using VttTools.Library.Scenes.Model;
-using VttTools.Library.Scenes.Storage;
+using VttTools.Library.Encounters.Model;
+using VttTools.Library.Encounters.Storage;
 using VttTools.Media.Storage;
 using Xunit;
 
@@ -21,7 +21,7 @@ namespace VttTools.Library.Tests.BDD.AdventureManagement.DeleteAdventure;
 public class DeleteAdventureSteps {
     private readonly ScenarioContext _context;
     private readonly IAdventureStorage _adventureStorage;
-    private readonly ISceneStorage _sceneStorage;
+    private readonly IEncounterStorage _encounterStorage;
     private readonly IMediaStorage _mediaStorage;
     private readonly IAdventureService _service;
 
@@ -30,16 +30,16 @@ public class DeleteAdventureSteps {
     private Result? _deleteResult;
     private Guid _userId = Guid.Empty;
     private Guid _adventureId = Guid.Empty;
-    private List<Scene> _scenes = [];
+    private List<Encounter> _encounters = [];
     private int _totalAssetPlacements = 0;
     private Exception? _exception;
 
     public DeleteAdventureSteps(ScenarioContext context) {
         _context = context;
         _adventureStorage = Substitute.For<IAdventureStorage>();
-        _sceneStorage = Substitute.For<ISceneStorage>();
+        _encounterStorage = Substitute.For<IEncounterStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
-        _service = new AdventureService(_adventureStorage, _sceneStorage, _mediaStorage);
+        _service = new AdventureService(_adventureStorage, _encounterStorage, _mediaStorage);
     }
 
     #region Background Steps
@@ -70,67 +70,67 @@ public class DeleteAdventureSteps {
 
     #endregion
 
-    #region Given Steps - Scenes
+    #region Given Steps - Encounters
 
-    [Given(@"my adventure has (.*) associated scenes")]
-    public void GivenMyAdventureHasAssociatedScenes(int count) {
-        _scenes.Clear();
+    [Given(@"my adventure has (.*) associated encounters")]
+    public void GivenMyAdventureHasAssociatedEncounters(int count) {
+        _encounters.Clear();
         for (int i = 0; i < count; i++) {
-            _scenes.Add(new Scene {
+            _encounters.Add(new Encounter {
                 Id = Guid.CreateVersion7(),
                 AdventureId = _adventureId,
-                Name = $"Scene {i + 1}",
-                Description = $"Scene {i + 1} description"
+                Name = $"Encounter {i + 1}",
+                Description = $"Encounter {i + 1} description"
             });
         }
 
-        _existingAdventure = _existingAdventure! with { Scenes = _scenes };
-        _sceneStorage.GetByParentIdAsync(_adventureId, Arg.Any<CancellationToken>())
-            .Returns(_scenes.ToArray());
+        _existingAdventure = _existingAdventure! with { Encounters = _encounters };
+        _encounterStorage.GetByParentIdAsync(_adventureId, Arg.Any<CancellationToken>())
+            .Returns(_encounters.ToArray());
 
-        _context["SceneCount"] = count;
+        _context["EncounterCount"] = count;
     }
 
-    [Given(@"my adventure has (.*) scenes")]
-    public void GivenMyAdventureHasScenes(int count) {
-        GivenMyAdventureHasAssociatedScenes(count);
+    [Given(@"my adventure has (.*) encounters")]
+    public void GivenMyAdventureHasEncounters(int count) {
+        GivenMyAdventureHasAssociatedEncounters(count);
     }
 
-    [Given(@"the first scene has (.*) placed assets")]
-    public void GivenFirstSceneHasPlacedAssets(int count) {
+    [Given(@"the first encounter has (.*) placed assets")]
+    public void GivenFirstEncounterHasPlacedAssets(int count) {
         _totalAssetPlacements += count;
-        _context["FirstSceneAssetCount"] = count;
+        _context["FirstEncounterAssetCount"] = count;
     }
 
-    [Given(@"the second scene has (.*) placed assets")]
-    public void GivenSecondSceneHasPlacedAssets(int count) {
+    [Given(@"the second encounter has (.*) placed assets")]
+    public void GivenSecondEncounterHasPlacedAssets(int count) {
         _totalAssetPlacements += count;
-        _context["SecondSceneAssetCount"] = count;
+        _context["SecondEncounterAssetCount"] = count;
     }
 
-    [Given(@"the third scene has (.*) placed assets")]
-    public void GivenThirdSceneHasPlacedAssets(int count) {
+    [Given(@"the third encounter has (.*) placed assets")]
+    public void GivenThirdEncounterHasPlacedAssets(int count) {
         _totalAssetPlacements += count;
-        _context["ThirdSceneAssetCount"] = count;
+        _context["ThirdEncounterAssetCount"] = count;
     }
 
-    [Given(@"the fourth scene has (.*) placed assets")]
-    public void GivenFourthSceneHasPlacedAssets(int count) {
+    [Given(@"the fourth encounter has (.*) placed assets")]
+    public void GivenFourthEncounterHasPlacedAssets(int count) {
         _totalAssetPlacements += count;
-        _context["FourthSceneAssetCount"] = count;
+        _context["FourthEncounterAssetCount"] = count;
     }
 
-    [Given(@"my adventure has no associated scenes")]
-    public void GivenMyAdventureHasNoAssociatedScenes() {
-        _scenes.Clear();
-        _existingAdventure = _existingAdventure! with { Scenes = _scenes };
-        _sceneStorage.GetByParentIdAsync(_adventureId, Arg.Any<CancellationToken>())
-            .Returns(_scenes.ToArray());
+    [Given(@"my adventure has no associated encounters")]
+    public void GivenMyAdventureHasNoAssociatedEncounters() {
+        _encounters.Clear();
+        _existingAdventure = _existingAdventure! with { Encounters = _encounters };
+        _encounterStorage.GetByParentIdAsync(_adventureId, Arg.Any<CancellationToken>())
+            .Returns(_encounters.ToArray());
     }
 
-    [Given(@"my adventure exists with scenes")]
-    public void GivenMyAdventureExistsWithScenes() {
-        GivenMyAdventureHasAssociatedScenes(3);
+    [Given(@"my adventure exists with encounters")]
+    public void GivenMyAdventureExistsWithEncounters() {
+        GivenMyAdventureHasAssociatedEncounters(3);
     }
 
     #endregion
@@ -180,17 +180,17 @@ public class DeleteAdventureSteps {
         _context["AdventureList"] = adventures;
     }
 
-    [Given(@"the first adventure has (.*) scenes")]
-    public void GivenFirstAdventureHasScenes(int count) {
+    [Given(@"the first adventure has (.*) encounters")]
+    public void GivenFirstAdventureHasEncounters(int count) {
         var adventures = _context.Get<List<Adventure>>("AdventureList");
         _adventureId = adventures[0].Id;
         _existingAdventure = adventures[0];
-        GivenMyAdventureHasScenes(count);
+        GivenMyAdventureHasEncounters(count);
     }
 
-    [Given(@"the second adventure has (.*) scenes")]
-    public void GivenSecondAdventureHasScenes(int count) {
-        _context["SecondAdventureSceneCount"] = count;
+    [Given(@"the second adventure has (.*) encounters")]
+    public void GivenSecondAdventureHasEncounters(int count) {
+        _context["SecondAdventureEncounterCount"] = count;
     }
 
     #endregion
@@ -259,9 +259,9 @@ public class DeleteAdventureSteps {
         _context["AdventureId"] = _adventureId;
     }
 
-    [Given(@"the adventure has (.*) scenes")]
-    public void GivenTheAdventureHasScenes(int count) {
-        GivenMyAdventureHasScenes(count);
+    [Given(@"the adventure has (.*) encounters")]
+    public void GivenTheAdventureHasEncounters(int count) {
+        GivenMyAdventureHasEncounters(count);
     }
 
     #endregion
@@ -330,10 +330,10 @@ public class DeleteAdventureSteps {
         _deleteResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"all (.*) scenes is removed")]
-    public void ThenAllScenesAreRemoved(int expectedCount) {
-        var sceneCount = _context.Get<int>("SceneCount");
-        sceneCount.Should().Be(expectedCount);
+    [Then(@"all (.*) encounters is removed")]
+    public void ThenAllEncountersAreRemoved(int expectedCount) {
+        var encounterCount = _context.Get<int>("EncounterCount");
+        encounterCount.Should().Be(expectedCount);
         _deleteResult!.IsSuccessful.Should().BeTrue();
     }
 
@@ -342,8 +342,8 @@ public class DeleteAdventureSteps {
         _deleteResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"all scene asset placements is removed")]
-    public void ThenAllSceneAssetPlacementsAreRemoved() {
+    [Then(@"all encounter asset placements is removed")]
+    public void ThenAllEncounterAssetPlacementsAreRemoved() {
         _totalAssetPlacements.Should().BeGreaterThan(0);
         _deleteResult!.IsSuccessful.Should().BeTrue();
     }
@@ -374,17 +374,17 @@ public class DeleteAdventureSteps {
         _deleteResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"the first adventure and its (.*) scenes is removed")]
-    public void ThenFirstAdventureAndScenesAreRemoved(int sceneCount) {
-        var expectedCount = _context.Get<int>("SceneCount");
-        expectedCount.Should().Be(sceneCount);
+    [Then(@"the first adventure and its (.*) encounters is removed")]
+    public void ThenFirstAdventureAndEncountersAreRemoved(int encounterCount) {
+        var expectedCount = _context.Get<int>("EncounterCount");
+        expectedCount.Should().Be(encounterCount);
         _deleteResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"the second adventure and its (.*) scenes should remain intact")]
-    public void ThenSecondAdventureAndScenesRemainIntact(int expectedCount) {
-        var secondAdventureSceneCount = _context.Get<int>("SecondAdventureSceneCount");
-        secondAdventureSceneCount.Should().Be(expectedCount);
+    [Then(@"the second adventure and its (.*) encounters should remain intact")]
+    public void ThenSecondAdventureAndEncountersRemainIntact(int expectedCount) {
+        var secondAdventureEncounterCount = _context.Get<int>("SecondAdventureEncounterCount");
+        secondAdventureEncounterCount.Should().Be(expectedCount);
     }
 
     #endregion

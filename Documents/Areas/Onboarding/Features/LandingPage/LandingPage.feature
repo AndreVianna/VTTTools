@@ -70,10 +70,10 @@ Feature: Landing Page
   # ═══════════════════════════════════════════════════════════════
 
   @dashboard @navigation @critical
-  Scenario: Navigate to Scene Editor from dashboard preview
+  Scenario: Navigate to Encounter Editor from dashboard preview
     Given I am authenticated as "GameMaster"
-    When I click the "Open Editor" button on "Scene Editor" action card
-    Then I should be navigated to "/scene-editor"
+    When I click the "Open Editor" button on "Encounter Editor" action card
+    Then I should be navigated to "/encounter-editor"
 
   @dashboard @navigation @critical
   Scenario: Navigate to Asset Library from dashboard preview
@@ -87,7 +87,7 @@ Feature: Landing Page
     When the page loads
     Then I should see 4 action cards:
       | Card Title       | Status   | Label         | Route         |
-      | Scene Editor     | Active   | Open Editor   | /scene-editor |
+      | Encounter Editor     | Active   | Open Editor   | /encounter-editor |
       | Content Library  | Disabled | Coming Soon   | N/A           |
       | Asset Library    | Active   | Browse Assets | /assets       |
       | Account Settings | Disabled | Coming Soon   | N/A           |

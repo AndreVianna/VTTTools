@@ -14,8 +14,8 @@ using VttTools.Library.Adventures.Services;
 using VttTools.Library.Adventures.Storage;
 using VttTools.Library.Campaigns.Model;
 using VttTools.Library.Campaigns.Storage;
-using VttTools.Library.Scenes.Model;
-using VttTools.Library.Scenes.Storage;
+using VttTools.Library.Encounters.Model;
+using VttTools.Library.Encounters.Storage;
 using VttTools.Media.Storage;
 using Xunit;
 
@@ -25,7 +25,7 @@ namespace VttTools.Library.Tests.BDD.AdventureManagement.MakeAdventureStandalone
 public class MakeAdventureStandaloneSteps {
     private readonly ScenarioContext _context;
     private readonly IAdventureStorage _adventureStorage;
-    private readonly ISceneStorage _sceneStorage;
+    private readonly IEncounterStorage _encounterStorage;
     private readonly IMediaStorage _mediaStorage;
     private readonly ICampaignStorage _campaignStorage;
     private readonly IAdventureService _service;
@@ -37,16 +37,16 @@ public class MakeAdventureStandaloneSteps {
     private Guid _userId = Guid.Empty;
     private Guid _adventureId = Guid.Empty;
     private Guid _campaignId = Guid.Empty;
-    private List<Scene> _scenes = [];
+    private List<Encounter> _encounters = [];
     private Exception? _exception;
 
     public MakeAdventureStandaloneSteps(ScenarioContext context) {
         _context = context;
         _adventureStorage = Substitute.For<IAdventureStorage>();
-        _sceneStorage = Substitute.For<ISceneStorage>();
+        _encounterStorage = Substitute.For<IEncounterStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
         _campaignStorage = Substitute.For<ICampaignStorage>();
-        _service = new AdventureService(_adventureStorage, _sceneStorage, _mediaStorage);
+        _service = new AdventureService(_adventureStorage, _encounterStorage, _mediaStorage);
     }
 
     #region Background Steps
@@ -114,22 +114,22 @@ public class MakeAdventureStandaloneSteps {
             .Returns(_existingAdventure);
     }
 
-    [Given(@"the adventure has (.*) scenes")]
-    public void GivenTheAdventureHasScenes(int count) {
-        _scenes.Clear();
+    [Given(@"the adventure has (.*) encounters")]
+    public void GivenTheAdventureHasEncounters(int count) {
+        _encounters.Clear();
         for (int i = 0; i < count; i++) {
-            _scenes.Add(new Scene {
+            _encounters.Add(new Encounter {
                 Id = Guid.CreateVersion7(),
                 AdventureId = _adventureId,
-                Name = $"Scene {i + 1}"
+                Name = $"Encounter {i + 1}"
             });
         }
 
-        _existingAdventure = _existingAdventure! with { Scenes = _scenes };
-        _sceneStorage.GetByParentIdAsync(_adventureId, Arg.Any<CancellationToken>())
-            .Returns(_scenes.ToArray());
+        _existingAdventure = _existingAdventure! with { Encounters = _encounters };
+        _encounterStorage.GetByParentIdAsync(_adventureId, Arg.Any<CancellationToken>())
+            .Returns(_encounters.ToArray());
 
-        _context["SceneCount"] = count;
+        _context["EncounterCount"] = count;
     }
 
     [Given(@"my adventure in a campaign has:")]
@@ -326,10 +326,10 @@ public class MakeAdventureStandaloneSteps {
         _updateResult!.Value!.CampaignId.Should().BeNull();
     }
 
-    [Then(@"all (.*) scenes should remain with the adventure")]
-    public void ThenAllScenesShouldRemainWithAdventure(int expectedCount) {
-        var sceneCount = _context.Get<int>("SceneCount");
-        sceneCount.Should().Be(expectedCount);
+    [Then(@"all (.*) encounters should remain with the adventure")]
+    public void ThenAllEncountersShouldRemainWithAdventure(int expectedCount) {
+        var encounterCount = _context.Get<int>("EncounterCount");
+        encounterCount.Should().Be(expectedCount);
     }
 
     [Then(@"the CampaignId should be null")]

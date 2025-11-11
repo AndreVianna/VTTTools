@@ -47,7 +47,7 @@ Feature: Create-Game-Session
     And the session has a unique identifier
     And I am the session owner
     And the session status is "Draft"
-    And the session has no active scene
+    And the session has no active encounter
     And the session was created with the current timestamp
 
   Scenario: Game Master is automatically assigned as Master participant

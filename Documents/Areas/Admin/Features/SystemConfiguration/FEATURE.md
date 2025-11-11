@@ -75,10 +75,10 @@ Enable/disable platform features without code deployment.
 - Configuration UI section: "Feature Flags"
 - Table/list of feature flags with columns: Feature Name, Description, Enabled Status, Last Modified
 - **Feature flags to manage**:
-  - **Scene Collaboration**: Enable/disable real-time collaboration features
+  - **Encounter Collaboration**: Enable/disable real-time collaboration features
   - **Public Asset Gallery**: Show/hide public library in main app
   - **2FA Enforcement**: Override 2FA requirement (linked to Security Settings)
-  - **New UI Components**: Beta UI features toggle (e.g., new scene editor tools)
+  - **New UI Components**: Beta UI features toggle (e.g., new encounter editor tools)
   - **Asset Upload**: Enable/disable asset upload functionality
   - **Campaign Sharing**: Enable/disable campaign sharing between users
 - Toggle switches for each feature (instant on/off)
@@ -476,7 +476,7 @@ public class FeatureFlagService : IFeatureFlagService {
 **Critical Scenarios**:
 1. Admin updates max login attempts in security settings
 2. Admin enables 2FA enforcement for all users (with confirmation)
-3. Admin toggles feature flag (scene collaboration on/off)
+3. Admin toggles feature flag (encounter collaboration on/off)
 4. Admin creates new custom feature flag
 5. Admin updates database connection pool size
 6. Admin tests SMTP connection (success)

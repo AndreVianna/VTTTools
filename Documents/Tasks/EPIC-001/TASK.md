@@ -11,7 +11,7 @@
 
 ## Description
 
-Migrate VTTTools frontend from Blazor WebAssembly to React 19 + TypeScript + Material-UI + React-Konva for improved performance, better creative tool UX, and modern component architecture. This epic replaces the legacy Blazor WASM client with a modern React SPA while maintaining feature parity and enhancing the user experience for scene editing and real-time collaboration.
+Migrate VTTTools frontend from Blazor WebAssembly to React 19 + TypeScript + Material-UI + React-Konva for improved performance, better creative tool UX, and modern component architecture. This epic replaces the legacy Blazor WASM client with a modern React SPA while maintaining feature parity and enhancing the user experience for encounter editing and real-time collaboration.
 
 ---
 
@@ -39,9 +39,9 @@ Migrate VTTTools frontend from Blazor WebAssembly to React 19 + TypeScript + Mat
   - Use Cases Affected: CreateAsset, ListAssets, ListAssetsByType, ListPublicAssets, GetAsset, UpdateAsset, DeleteAsset
   - Status: 🚧 In Progress
 
-- **Scene Management** (Area: Library)
-  - Impact: Implement Konva-based scene editor with canvas, grid, panning, zoom, token placement
-  - Use Cases Affected: CreateScene, ConfigureStage, ConfigureGrid, PlaceAsset, MoveAsset, RemoveAsset, GetSceneByID, UpdateScene
+- **Encounter Management** (Area: Library)
+  - Impact: Implement Konva-based encounter editor with canvas, grid, panning, zoom, token placement
+  - Use Cases Affected: CreateEncounter, ConfigureStage, ConfigureGrid, PlaceAsset, MoveAsset, RemoveAsset, GetEncounterByID, UpdateEncounter
   - Status: ✅ Editor Complete (Phase 6), 🔜 CRUD UI Planned (Phase 7)
 
 - **Game Session Management** (Area: Game)
@@ -91,19 +91,19 @@ Migrate VTTTools frontend from Blazor WebAssembly to React 19 + TypeScript + Mat
 
 ### Primary Objective
 
-Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to deliver superior performance, enhanced scene editor UX with Konva canvas, and better developer experience with React ecosystem tools while maintaining full feature parity.
+Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to deliver superior performance, enhanced encounter editor UX with Konva canvas, and better developer experience with React ecosystem tools while maintaining full feature parity.
 
 ### Success Criteria
 
 - **SC-01: Feature Parity Achieved**
   - Measurement: All Blazor features replicated in React
-  - Target: 100% feature coverage (Authentication ✅, Landing ✅, Scene Editor 🚧, Asset Library, Content Management, Game Sessions)
+  - Target: 100% feature coverage (Authentication ✅, Landing ✅, Encounter Editor 🚧, Asset Library, Content Management, Game Sessions)
 
 - **SC-02: Performance Improvement**
   - Measurement: Page load time, interaction responsiveness
   - Target: 50% faster initial load, <100ms interaction latency
 
-- **SC-03: Scene Editor UX Enhanced**
+- **SC-03: Encounter Editor UX Enhanced**
   - Measurement: Canvas rendering FPS, gesture smoothness, zoom/pan responsiveness
   - Target: 60 FPS canvas rendering, smooth panning/zoom with Konva
 
@@ -124,7 +124,7 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 **Incremental Feature-by-Feature Migration**:
 1. ✅ Phase 1: Foundation (routing, auth context, API integration with RTK Query)
 2. ✅ Phase 2: Authentication & Onboarding (login, register, landing page)
-3. 🚧 Phase 3: Scene Editor Core (Konva canvas, panning, zoom, grid - IN PROGRESS)
+3. 🚧 Phase 3: Encounter Editor Core (Konva canvas, panning, zoom, grid - IN PROGRESS)
 4. 🔜 Phase 4: Asset Library & Content Management
 5. 🔜 Phase 5: Game Session & Real-Time Collaboration (SignalR integration)
 6. 🔜 Phase 6: Account Management & Settings
@@ -150,9 +150,9 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
    - Estimated Time: 16 hours
    - Status: ✅ Done (LoginPage.tsx, SimpleLoginForm.tsx, SimpleRegistrationForm.tsx)
 
-4. **Build Scene Editor with Konva** ✅ COMPLETE
-   - Action: Implement canvas-based scene editor with Stage, Layer, panning, zoom, grid overlay
-   - Component: WebClientApp/src/components/scene/
+4. **Build Encounter Editor with Konva** ✅ COMPLETE
+   - Action: Implement canvas-based encounter editor with Stage, Layer, panning, zoom, grid overlay
+   - Component: WebClientApp/src/components/encounter/
    - Estimated Time: 40 hours
    - Status: ✅ Complete (with major enhancements)
 
@@ -163,7 +163,7 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
    - Status: ✅ Complete (Phase 5)
 
 6. **Build Content Management UI** 🔜 PLANNED
-   - Action: Epic/Campaign/Adventure/Scene hierarchy management with tree views and forms
+   - Action: Epic/Campaign/Adventure/Encounter hierarchy management with tree views and forms
    - Component: WebClientApp/src/pages/library/
    - Estimated Time: 32 hours
    - Status: Not started
@@ -188,11 +188,11 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 
 ### Technical Considerations
 
-- **State Management**: Redux Toolkit with slices for auth, assets, scenes, sessions; RTK Query for API caching
+- **State Management**: Redux Toolkit with slices for auth, assets, encounters, sessions; RTK Query for API caching
 - **Routing**: React Router 7.9 with protected routes and auth guards
 - **API Integration**: Axios + RTK Query with automatic retry, caching, and optimistic updates
 - **Real-Time**: SignalR Client 9.0.6 for chat, events, and collaborative editing
-- **Canvas Rendering**: Konva 10.0 + React-Konva 19.0 for high-performance scene editor
+- **Canvas Rendering**: Konva 10.0 + React-Konva 19.0 for high-performance encounter editor
 - **Styling**: Material-UI 7.3 with custom theme matching VTT brand
 - **Testing**: Vitest for unit tests, React Testing Library for components, Playwright for E2E
 - **Build**: Vite 7.1.5 with code splitting and lazy loading
@@ -230,9 +230,9 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 **Verification Method**: Manual testing + E2E tests with Playwright
 **Status**: ✅ Complete
 
-### AC-02: Scene Editor Enhanced with Konva
-**Given**: Blazor scene editor has basic functionality
-**When**: Konva-based scene editor is implemented
+### AC-02: Encounter Editor Enhanced with Konva
+**Given**: Blazor encounter editor has basic functionality
+**When**: Konva-based encounter editor is implemented
 **Then**: Panning, zoom, grid overlay, token placement all work smoothly at 60 FPS
 
 **Verification Method**: Performance profiling + user testing
@@ -269,7 +269,7 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 ### Unit Tests
 - **Coverage Target**: 80% for React components and hooks
 - **Key Scenarios**: Component rendering, user interactions, Redux state updates, hook behaviors
-- **Components to Test**: All new React components, custom hooks (useAuth, useGameSession, useScene)
+- **Components to Test**: All new React components, custom hooks (useAuth, useGameSession, useEncounter)
 
 ### Integration Tests
 - **Scenarios**: API integration with RTK Query, SignalR connection management, Redux state persistence
@@ -277,13 +277,13 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 
 ### E2E Tests
 - **Framework**: Playwright 1.55
-- **Scenarios**: Complete user journeys (login → create adventure → edit scene → start session)
-- **Coverage Target**: Critical paths (authentication, scene editor, asset library)
+- **Scenarios**: Complete user journeys (login → create adventure → edit encounter → start session)
+- **Coverage Target**: Critical paths (authentication, encounter editor, asset library)
 
 ### BDD Tests
 - **Feature Files to Implement Step Definitions**: 101 feature files (all UI-related use cases)
 - **New Scenarios Needed**: React-specific UI interaction scenarios
-- **Priority**: Authentication (15 files), Scene Editor (10 files), Asset Management (11 files)
+- **Priority**: Authentication (15 files), Encounter Editor (10 files), Asset Management (11 files)
 
 ---
 
@@ -329,7 +329,7 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
   - Rationale: Comprehensive component library, accessibility built-in, theming system, active community
   - Alternatives Considered: Ant Design (rejected - Material-UI more aligned with modern design), Custom components (rejected - development time)
 
-- **Konva for Scene Editor**
+- **Konva for Encounter Editor**
   - Decision: Use Konva + React-Konva for canvas rendering
   - Rationale: High-performance canvas library, React integration, event handling, layer management, excellent for tactical maps
   - Alternatives Considered: Fabric.js (rejected - less React support), Pixi.js (rejected - overkill for 2D tactical maps), Raw Canvas API (rejected - too low-level)
@@ -381,10 +381,10 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 - **Analysis**: 8 hours (✅ Complete)
 - **Foundation Setup**: 12 hours (✅ Complete - Phase 1)
 - **Authentication & Onboarding**: 16 hours (✅ Complete - Phase 2)
-- **Scene Editor Core**: 40 hours (✅ Complete - Phases 3-4)
+- **Encounter Editor Core**: 40 hours (✅ Complete - Phases 3-4)
 - **Asset Library**: 70 hours (✅ Complete - Phase 5, expanded scope)
-- **Scene Editor Advanced**: 30 hours (✅ Complete - Phase 6, with enhancements)
-- **Scene Management UI**: 14 hours (⏳ Starting - Phase 7)
+- **Encounter Editor Advanced**: 30 hours (✅ Complete - Phase 6, with enhancements)
+- **Encounter Management UI**: 14 hours (⏳ Starting - Phase 7)
 - **Adventure Management**: 12 hours (🔜 Planned - Phase 8)
 - **Game Sessions & Real-Time**: 22 hours (🔜 Planned - Phase 10)
 - **Account Management**: 16 hours (🔜 Planned - Phase 11)
@@ -399,11 +399,11 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 ### Completion Status
 - **Phase 1 (Foundation)**: ✅ Complete (100%)
 - **Phase 2 (Authentication)**: ✅ Complete (100%)
-- **Phase 3 (Scene Pan/Zoom)**: ✅ Complete (100%)
-- **Phase 4 (Scene Grid)**: ✅ Complete (100%)
+- **Phase 3 (Encounter Pan/Zoom)**: ✅ Complete (100%)
+- **Phase 4 (Encounter Grid)**: ✅ Complete (100%)
 - **Phase 5 (Asset Library)**: ✅ Complete (100%)
-- **Phase 6 (Scene Tokens)**: ✅ Complete (100%)
-- **Phase 7 (Scene Management)**: ⏳ Starting (0%)
+- **Phase 6 (Encounter Tokens)**: ✅ Complete (100%)
+- **Phase 7 (Encounter Management)**: ⏳ Starting (0%)
 - **Phase 8 (Adventures)**: 🔜 Planned (0%)
 - **Phase 9 (Epic/Campaign)**: ⚠️ Blocked (0%)
 - **Phase 10 (Game Sessions)**: 🔜 Planned (0%)
@@ -416,7 +416,7 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 - **2025-10-19**: Phase 6 reimplemented - Undo/redo, offline sync, token placement
 - **2025-10-11**: Phase 5 COMPLETE - Asset library with 70-hour expansion
 - **2025-10-05**: Phase 4 COMPLETE - Grid system with 5 types
-- **2025-10-04**: Phase 3 COMPLETE - Scene editor panning/zoom
+- **2025-10-04**: Phase 3 COMPLETE - Encounter editor panning/zoom
 - **2025-10-03**: Phase 2 COMPLETE - Authentication and landing page
 - **2025-10-03**: Phase 1 COMPLETE - React foundation setup
 - **2025-10-03**: Epic created with comprehensive specification and cross-references
@@ -430,7 +430,7 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
   - Documents/Areas/Identity/Features/AccountManagement/FEATURE.md
   - Documents/Areas/Onboarding/Features/LandingPage/FEATURE.md
   - Documents/Areas/Assets/Features/AssetManagement/FEATURE.md
-  - Documents/Areas/Library/Features/SceneManagement/FEATURE.md
+  - Documents/Areas/Library/Features/EncounterManagement/FEATURE.md
   - Documents/Areas/Game/Features/SessionManagement/FEATURE.md
 
 - **Use Case Specifications**: 62 total use cases (all have UI components that may need React migration)

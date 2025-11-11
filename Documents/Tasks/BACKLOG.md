@@ -48,13 +48,13 @@
 - [🔨] **EPIC-001**: UI Migration - Blazor to React (epic, Critical)
   - Effort: 273 hours total (188 complete, 85 remaining)
   - Progress: 68.9%
-  - Affects: UserAuthentication ✅, AccountManagement, LandingPage ✅, AssetManagement ✅, SceneManagement 🚧, SessionManagement
+  - Affects: UserAuthentication ✅, AccountManagement, LandingPage ✅, AssetManagement ✅, EncounterManagement 🚧, SessionManagement
   - Components: WebClientApp (React SPA), VttTools.WebApp.WebAssembly (legacy), VttTools.WebApp.Common (legacy)
   - Phases:
     - ✅ Foundation & Authentication (100%)
-    - ✅ Scene Editor with Konva (100%)
+    - ✅ Encounter Editor with Konva (100%)
     - ✅ Asset Library (100%)
-    - 🚧 Scene Management UI (0%)
+    - 🚧 Encounter Management UI (0%)
     - 🔜 Adventure Management, Game Sessions, Account Management
 
 ---
@@ -98,7 +98,7 @@ Currently empty - all work captured in EPIC-001 and EPIC-002
 - In Progress: 0
 - Planned: 0
 
-### Feature: Scene Management (Library)
+### Feature: Encounter Management (Library)
 **Area**: Library
 **Status**: 🚧 Migration In Progress (40%)
 
@@ -120,11 +120,11 @@ Currently empty - all work captured in EPIC-001 and EPIC-002
 **Phase Completion**:
 1. ✅ Foundation Setup (100%)
 2. ✅ Authentication & Onboarding (100%)
-3. ✅ Scene Editor - Pan/Zoom (100%)
-4. ✅ Scene Editor - Grid System (100%)
+3. ✅ Encounter Editor - Pan/Zoom (100%)
+4. ✅ Encounter Editor - Grid System (100%)
 5. ✅ Asset Library (100%)
-6. ✅ Scene Editor - Tokens (100%)
-7. 🚧 Scene Management UI (0%)
+6. ✅ Encounter Editor - Tokens (100%)
+7. 🚧 Encounter Management UI (0%)
 8. 🔜 Adventure Management (0%)
 9. 🔜 Epic/Campaign (0%)
 10. 🔜 Game Sessions & Real-Time (0%)

@@ -8,7 +8,7 @@ Technical insights and architectural patterns discovered during UI migration imp
 
 ### Lesson 13: Dual-Queue Undo Architecture Separates Concerns Cleanly
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Wall Undo/Redo System
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Wall Undo/Redo System
 
 **Problem**: Needed both transaction-scoped undo (for active editing) and persistent undo (for committed operations)
 
@@ -16,7 +16,7 @@ Technical insights and architectural patterns discovered during UI migration imp
 
 **Implementation**:
 - Local queue: Transaction scope, 7 action types (PlacePole, MovePole, InsertPole, DeletePole, Multi Move, MoveLine, BreakWall)
-- Global queue: Scene scope, 4 command classes (Create, Edit, Delete, Break)
+- Global queue: Encounter scope, 4 command classes (Create, Edit, Delete, Break)
 - Zero coupling prevents state leakage
 - Clear lifecycle boundaries
 
@@ -26,7 +26,7 @@ Technical insights and architectural patterns discovered during UI migration imp
 
 ### Lesson 14: Factory Pattern with Closures Enables Clean Action Serialization
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Wall Undo Actions
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Wall Undo Actions
 
 **Problem**: Actions needed to capture callbacks without polluting interfaces
 
@@ -52,11 +52,11 @@ function createMovePoleAction(index, oldPos, newPos, onUpdate) {
 
 ### Lesson 15: React State Batching Requires Callback-Based Sync for Immediate Access
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Wall Break Undo Ghost Bug
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Wall Break Undo Ghost Bug
 
 **Problem**: Calling `getActiveSegments()` after `undoLocal()` returns stale data due to React batching updates
 
-**Solution**: `onSyncScene` callback inside `setTransaction` has immediate access to new state
+**Solution**: `onSyncEncounter` callback inside `setTransaction` has immediate access to new state
 
 **Implementation**:
 ```typescript
@@ -72,7 +72,7 @@ undoLocal((updatedSegments) => {
 
 ### Lesson 16: Segment Association Must Be Preserved During Undo
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Wall Break Undo
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Wall Break Undo
 
 **Problem**: Wall break undo lost segment association, creating orphaned state
 
@@ -88,20 +88,20 @@ undoLocal((updatedSegments) => {
 
 ### Lesson 17: Stale Closures in useEffect Require Refs for Mutable Values
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Keyboard Handler
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Keyboard Handler
 
-**Problem**: Scene captured in keyboard handler closure becomes stale
+**Problem**: Encounter captured in keyboard handler closure becomes stale
 
 **Solution**: Use ref for always-current value
 
 **Implementation**:
 ```typescript
-const sceneRef = useRef(scene);
-sceneRef.current = scene;  // Update on every render
+const encounterRef = useRef(encounter);
+encounterRef.current = encounter;  // Update on every render
 
 useEffect(() => {
   const handler = (e) => {
-    const currentScene = sceneRef.current;  // Always fresh
+    const currentEncounter = encounterRef.current;  // Always fresh
     // ...
   };
   window.addEventListener('keydown', handler);
@@ -116,7 +116,7 @@ useEffect(() => {
 
 ### Lesson 1: Hit Area Sizing Must Account for Snap Distance
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Wall Editing
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Wall Editing
 
 **Problem**: Mouse exited line hit area during snap jumps (grid snap caused sudden 25px movement)
 
@@ -133,7 +133,7 @@ useEffect(() => {
 
 ### Lesson 2: Modifier Keys Must Be Checked in Mouse Events (NOT Keyboard)
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Wall Snapping
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Wall Snapping
 
 **Problem**: Using keydown/keyup for modifier tracking caused toggle behavior
 
@@ -158,7 +158,7 @@ onMouseMove={(e) => {
 
 ### Lesson 10: Konva Z-Order Determines Event Capture
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Multi-Segment Wall Editing
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Multi-Segment Wall Editing
 
 **Problem**: First segment poles were visible but not clickable after wall break
 
@@ -175,7 +175,7 @@ onMouseMove={(e) => {
 
 ### Lesson 11: Conditional Component Listening Enables Mode-Specific Interactivity
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Pole Insertion Preview
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Pole Insertion Preview
 
 **Problem**: Pole hit areas blocked line hover detection during Shift+hover preview
 
@@ -196,7 +196,7 @@ const [isShiftPressed, setIsShiftPressed] = useState(false);
 
 ### Lesson 18: Debugging Complex Visual Artifacts Requires Isolation Techniques
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#asset-rotation-system) - Ghost Handle Bug
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#asset-rotation-system) - Ghost Handle Bug
 
 **Problem**: Rotation handle ghost artifact persisted after 11 failed fix attempts
 
@@ -205,7 +205,7 @@ const [isShiftPressed, setIsShiftPressed] = useState(false);
 **Implementation**:
 - Added `stroke="red"` to one handle, `stroke="blue"` to suspected duplicate
 - Both appeared simultaneously - confirmed duplicate rendering
-- Found duplicate RotationHandle in SceneEditorPage Layer 9
+- Found duplicate RotationHandle in EncounterEditorPage Layer 9
 
 **Takeaway**: Systematic isolation (color-coding, conditional rendering, layer inspection) reveals duplicates when multiple approaches fail
 
@@ -213,7 +213,7 @@ const [isShiftPressed, setIsShiftPressed] = useState(false);
 
 ### Lesson 19: Konva Event System Requires Careful Layer Configuration
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#asset-rotation-system) - Rotation Handle Events
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#asset-rotation-system) - Rotation Handle Events
 
 **Problem**: Marquee selection triggered when clicking rotation handle
 
@@ -240,7 +240,7 @@ const [isShiftPressed, setIsShiftPressed] = useState(false);
 
 ### Lesson 20: Drag Events vs Mouse Events Have Different Behavior
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#asset-rotation-system) - Rotation Interaction
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#asset-rotation-system) - Rotation Interaction
 
 **Problem**: Circle handle disappeared during Konva drag events
 
@@ -258,7 +258,7 @@ const [isShiftPressed, setIsShiftPressed] = useState(false);
 
 ### Lesson 6: EF Core Navigation Properties Cause Unexpected Updates
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#asset-rotation-system) - Backend Data Integrity Fix
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#asset-rotation-system) - Backend Data Integrity Fix
 
 **Problem**: Resources being cleared when placing new assets
 
@@ -284,7 +284,7 @@ TokenId = model.Token?.Id
 
 ### Lesson 7: Backend Domain Pattern - Dual Access for IDs
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Asset/Scene Contract Migration
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Asset/Encounter Contract Migration
 
 **Problem**: Backend serialized navigation properties but no direct ID access
 
@@ -314,7 +314,7 @@ const url = token.token.path;  // Full nested object
 
 ### Lesson 3: Coordinate System Transformation for World Coordinates
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Wall Editing
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Wall Editing
 
 **Problem**: Screen coordinates need transformation to canvas coordinates
 
@@ -335,7 +335,7 @@ const worldPos = {
 
 ### Lesson 4: Pole Dragging Pattern - dragBoundFunc + handleDragMove
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Wall Pole Dragging
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Wall Pole Dragging
 
 **Problem**: How to implement snapping during drag
 
@@ -357,7 +357,7 @@ onDragMove={(e) => {
 
 ### Lesson 5: Line Dragging - Snap Initial Mouse Position
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Wall Line Dragging
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Wall Line Dragging
 
 **Problem**: Delta mismatch during line drag
 
@@ -391,7 +391,7 @@ onMouseMove={(e) => {
 
 ### Lesson 12: Snap Priority Over Projection for Grid Alignment
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Pole Insertion on Line
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Pole Insertion on Line
 
 **Problem**: Should pole insertion snap to grid or exact line position?
 
@@ -416,7 +416,7 @@ const snappedPos = snapToNearest(projectedPos, snapMode);
 
 ### Lesson 8: Complete Rollback Requires Restoring ALL Properties
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Wall Break ESC Rollback
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Wall Break ESC Rollback
 
 **Problem**: ESC after wall break kept `.1` suffix in wall name
 
@@ -439,29 +439,29 @@ onCancel: () => updateWall(originalWall);  // All properties
 
 ### Lesson 9: Segment Data is Source of Truth During Transactions
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Multi-Segment Wall Editing
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Multi-Segment Wall Editing
 
-**Problem**: Looking up wall from `scene.walls` during multi-segment editing returned wrong data
+**Problem**: Looking up wall from `encounter.walls` during multi-segment editing returned wrong data
 
-**Solution**: Use transaction segment data directly, not scene lookups
+**Solution**: Use transaction segment data directly, not encounter lookups
 
 **Implementation**:
 ```typescript
-// WRONG - Lookup from scene
-const wall = scene.walls.find(w => w.index === segment.wallIndex);
+// WRONG - Lookup from encounter
+const wall = encounter.walls.find(w => w.index === segment.wallIndex);
 <WallTransformer poles={wall.poles} />  // Wrong poles!
 
 // CORRECT - Use segment data directly
 <WallTransformer poles={segment.poles} />  // Correct!
 ```
 
-**Takeaway**: During transactions, segment data is authoritative - scene data may be stale
+**Takeaway**: During transactions, segment data is authoritative - encounter data may be stale
 
 ---
 
 ### Lesson 21: Deferred Validation Superior to Eager Validation
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Transactional Wall Editing
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Transactional Wall Editing
 
 **Problem**: Eager validation (removing duplicate poles immediately) blocked creative workflows
 
@@ -480,7 +480,7 @@ const wall = scene.walls.find(w => w.index === segment.wallIndex);
 
 ### Lesson 22: Multi-Instance Rendering Requires Unique React Keys
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - Wall Break Multi-Segment
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - Wall Break Multi-Segment
 
 **Problem**: React reconciliation bugs when rendering multiple WallTransformer instances
 
@@ -502,7 +502,7 @@ const wall = scene.walls.find(w => w.index === segment.wallIndex);
 
 ### Lesson 23: Defense-in-Depth for Keyboard Event Handling
 
-**Source**: [Phase 8.8](./phases/PHASE_8_SCENE_MGMT.md#phase-8-8) - DELETE Key Handling
+**Source**: [Phase 8.8](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-8-8) - DELETE Key Handling
 
 **Problem**: Parent and child both handling DELETE key caused conflicts
 
@@ -510,7 +510,7 @@ const wall = scene.walls.find(w => w.index === segment.wallIndex);
 
 **Implementation**:
 ```typescript
-// Parent (SceneEditorPage)
+// Parent (EncounterEditorPage)
 if (!isEditingVertices) {
   // Handle wall deletion
 }

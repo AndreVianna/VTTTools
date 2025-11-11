@@ -18,7 +18,7 @@ Implement real-time game session UI with SignalR for chat, events, and participa
 **Location**: `/home/user/VTTTools/Source/Game/`
 
 **Delivered**:
-- GameSessionService with 10 handlers (Create, List, Get, Update, Delete, Join, Leave, Start, Stop, ActivateScene)
+- GameSessionService with 10 handlers (Create, List, Get, Update, Delete, Join, Leave, Start, Stop, ActivateEncounter)
 - 12 API endpoints (10 session + 2 config)
 - Domain models: GameSession with Messages/Events/Participants collections
 - 5 unit tests
@@ -110,12 +110,12 @@ Implement real-time game session UI with SignalR for chat, events, and participa
 
 ## Dependencies
 
-- **Prerequisites**: Phase 7 (scenes - sessions reference scenes)
+- **Prerequisites**: Phase 7 (encounters - sessions reference encounters)
 - **Optional**: Phase 8 (adventures - sessions MAY reference adventures)
 - **Backend Dependency**: SignalR hubs (ChatHub, GameSessionHub) - assumed implemented
 - **Blocks**: None
 
-**Note**: Phase 10 can proceed after Phase 7, even if Phase 9 is blocked. Sessions reference scenes directly.
+**Note**: Phase 10 can proceed after Phase 7, even if Phase 9 is blocked. Sessions reference encounters directly.
 
 ---
 

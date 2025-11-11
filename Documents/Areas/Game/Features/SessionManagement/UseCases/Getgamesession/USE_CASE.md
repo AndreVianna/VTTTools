@@ -35,7 +35,7 @@
 - **Endpoint**: GET /api/game-sessions/{id}
 - **UI Components**: None (API only)
 - **Access**: Programmatic via HTTP/REST
-- **Response Format**: JSON with complete GameSession object including Id, Title, Status, OwnerId, Players, SceneId, Messages, Events
+- **Response Format**: JSON with complete GameSession object including Id, Title, Status, OwnerId, Players, EncounterId, Messages, Events
 
 ---
 
@@ -82,7 +82,7 @@
 ### Output Specification
 - **Output Data**: Complete GameSession entity with all collections populated
 - **Output Format**: JSON object with:
-  - Id, OwnerId, Title, Status, SceneId
+  - Id, OwnerId, Title, Status, EncounterId
   - Players (array of Participant objects)
   - Messages (array of GameSessionMessage objects ordered by timestamp)
   - Events (array of GameSessionEvent objects ordered by timestamp)

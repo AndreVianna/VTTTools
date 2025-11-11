@@ -35,7 +35,7 @@ This document defines authorization requirements for all pages, features, and us
 
 | Page | Route | Component | Description | Authorization Level |
 |------|-------|-----------|-------------|-------------------|
-| Scene Editor | `/scene-editor` | `SceneEditorPage.tsx` | Canvas-based scene creation tool | **Authorized** |
+| Encounter Editor | `/encounter-editor` | `EncounterEditorPage.tsx` | Canvas-based encounter creation tool | **Authorized** |
 | Dashboard | `/dashboard` | Redirects to `/` | User dashboard (currently landing page) | **Authorized** |
 
 **Reasoning**: These pages contain user-specific content and require authentication to access and modify user data.
@@ -44,10 +44,10 @@ This document defines authorization requirements for all pages, features, and us
 
 ## Future Pages (From Roadmap Analysis)
 
-### Phase 4: Scene Editor Foundation (12 hours)
-**Status**: All components within Scene Editor page (already authorized)
+### Phase 4: Encounter Editor Foundation (12 hours)
+**Status**: All components within Encounter Editor page (already authorized)
 
-No new pages. All components render within existing `/scene-editor` protected route:
+No new pages. All components render within existing `/encounter-editor` protected route:
 - GridConfigPanel (component)
 - LayerManager (component)
 - Grid rendering (canvas layer)
@@ -74,10 +74,10 @@ No new pages. All components render within existing `/scene-editor` protected ro
 
 ---
 
-### Phase 6: Scene Editor Advanced (20 hours)
-**Status**: All components within Scene Editor page (already authorized)
+### Phase 6: Encounter Editor Advanced (20 hours)
+**Status**: All components within Encounter Editor page (already authorized)
 
-No new pages. Advanced features (token placement, undo/redo, offline mode) enhance existing `/scene-editor`:
+No new pages. Advanced features (token placement, undo/redo, offline mode) enhance existing `/encounter-editor`:
 - TokenPlacement (component)
 - UndoRedoManager (service)
 - ConnectionStatusBanner (component)
@@ -96,7 +96,7 @@ No new pages. Advanced features (token placement, undo/redo, offline mode) enhan
 | Campaign List | `/library/epics/:epicId/campaigns` | **Authorized** | List campaigns within epic |
 | Campaign Detail | `/library/campaigns/:campaignId` | **Authorized** | View/edit campaign details and adventure list |
 | Adventure List | `/library/campaigns/:campaignId/adventures` | **Authorized** | List adventures within campaign |
-| Adventure Detail | `/library/adventures/:adventureId` | **Authorized** | View/edit adventure details and scene list |
+| Adventure Detail | `/library/adventures/:adventureId` | **Authorized** | View/edit adventure details and encounter list |
 
 **Reasoning**: Content management is user-specific and requires authentication for CRUD operations and ownership validation.
 
@@ -106,17 +106,17 @@ No new pages. Advanced features (token placement, undo/redo, offline mode) enhan
 
 ---
 
-### Phase 8: Content Management Part 2 - Scene Management (14 hours)
+### Phase 8: Content Management Part 2 - Encounter Management (14 hours)
 **New Pages Required**:
 
 | Page | Route | Authorization Level | Description |
 |------|-------|-------------------|-------------|
-| Scene List | `/library/adventures/:adventureId/scenes` | **Authorized** | List scenes within adventure |
-| Scene Detail | `/scenes/:sceneId` | **Authorized** | Navigate to Scene Editor for specific scene |
+| Encounter List | `/library/adventures/:adventureId/encounters` | **Authorized** | List encounters within adventure |
+| Encounter Detail | `/encounters/:encounterId` | **Authorized** | Navigate to Encounter Editor for specific encounter |
 
-**Reasoning**: Scenes are user-created content requiring authentication. Scene Editor already protected.
+**Reasoning**: Encounters are user-created content requiring authentication. Encounter Editor already protected.
 
-**Future Enhancement**: Shared scene preview at `/shared/scenes/:sceneId` (authorized, different user's content).
+**Future Enhancement**: Shared encounter preview at `/shared/encounters/:encounterId` (authorized, different user's content).
 
 ---
 
@@ -126,7 +126,7 @@ No new pages. Advanced features (token placement, undo/redo, offline mode) enhan
 | Page | Route | Authorization Level | Description |
 |------|-------|-------------------|-------------|
 | Session List | `/sessions` | **Authorized** | List game sessions (owned, participating, invitations) |
-| Session Detail/Active | `/sessions/:sessionId` | **Authorized** | Active game session with chat, participants, scene viewer |
+| Session Detail/Active | `/sessions/:sessionId` | **Authorized** | Active game session with chat, participants, encounter viewer |
 | Session Create | `/sessions/new` | **Authorized** | Create new game session wizard |
 
 **Reasoning**: Game sessions require authentication for:
@@ -234,14 +234,14 @@ No new pages. Advanced features (token placement, undo/redo, offline mode) enhan
 - List Adventures (within owned/shared campaigns)
 - Get Adventure Details (owner + users with shared access)
 
-#### Scene Management Feature
+#### Encounter Management Feature
 **All Use Cases**: **Authorized**
-- Create Scene (owner of parent adventure)
-- Update Scene (owner only)
-- Delete Scene (owner only)
-- List Scenes (within owned/shared adventures)
-- Get Scene Details (owner + session participants)
-- Clone Scene (any authenticated user)
+- Create Encounter (owner of parent adventure)
+- Update Encounter (owner only)
+- Delete Encounter (owner only)
+- List Encounters (within owned/shared adventures)
+- Get Encounter Details (owner + session participants)
+- Clone Encounter (any authenticated user)
 
 ---
 
@@ -258,9 +258,9 @@ No new pages. Advanced features (token placement, undo/redo, offline mode) enhan
 
 **Role-Based Authorization** (Future Enhancement):
 - Game Master: Full control (create, update, delete, session controls)
-- Assistant: Scene management, participant chat
-- Player: View scene, chat, dice rolls, own character tokens
-- Guest: View scene, limited chat
+- Assistant: Encounter management, participant chat
+- Player: View encounter, chat, dice rolls, own character tokens
+- Guest: View encounter, limited chat
 
 #### Participant Management Feature
 **All Use Cases**: **Authorized**
@@ -286,9 +286,9 @@ No new pages. Advanced features (token placement, undo/redo, offline mode) enhan
 ### Current Implementation
 
 ```typescript
-<Route path="/scene-editor" element={
+<Route path="/encounter-editor" element={
   <ProtectedRoute authLevel="authorized">
-    <SceneEditorPage />
+    <EncounterEditorPage />
   </ProtectedRoute>
 } />
 
@@ -325,7 +325,7 @@ No new pages. Advanced features (token placement, undo/redo, offline mode) enhan
 | Epic | Any user | Owner + Shared | Owner | Owner | N/A |
 | Campaign | Any user | Owner + Shared | Owner | Owner | N/A |
 | Adventure | Any user | Owner + Shared | Owner | Owner | Owner |
-| Scene | Owner (adventure) | Owner + Session participants | Owner | Owner | N/A |
+| Encounter | Owner (adventure) | Owner + Session participants | Owner | Owner | N/A |
 | Session | Any user | Owner + Participants | Game Master | Game Master | N/A |
 | Participant | Game Master | All participants | Game Master | Game Master | N/A |
 | Chat Message | Participants | All participants | N/A | N/A | N/A |

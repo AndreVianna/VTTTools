@@ -10,8 +10,8 @@ using VttTools.Common.Model;
 using VttTools.Library.Adventures.Model;
 using VttTools.Library.Adventures.Services;
 using VttTools.Library.Adventures.Storage;
-using VttTools.Library.Scenes.Model;
-using VttTools.Library.Scenes.Storage;
+using VttTools.Library.Encounters.Model;
+using VttTools.Library.Encounters.Storage;
 using VttTools.Media.Storage;
 using Xunit;
 
@@ -21,7 +21,7 @@ namespace VttTools.Library.Tests.BDD.AdventureManagement.GetAdventureByID;
 public class GetAdventureByIDSteps {
     private readonly ScenarioContext _context;
     private readonly IAdventureStorage _adventureStorage;
-    private readonly ISceneStorage _sceneStorage;
+    private readonly IEncounterStorage _encounterStorage;
     private readonly IMediaStorage _mediaStorage;
     private readonly IAdventureService _service;
 
@@ -29,16 +29,16 @@ public class GetAdventureByIDSteps {
     private Adventure? _adventure;
     private Guid _userId = Guid.Empty;
     private Guid _adventureId = Guid.Empty;
-    private List<Scene> _scenes = [];
+    private List<Encounter> _encounters = [];
     private Exception? _exception;
     private string? _errorMessage;
 
     public GetAdventureByIDSteps(ScenarioContext context) {
         _context = context;
         _adventureStorage = Substitute.For<IAdventureStorage>();
-        _sceneStorage = Substitute.For<ISceneStorage>();
+        _encounterStorage = Substitute.For<IEncounterStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
-        _service = new AdventureService(_adventureStorage, _sceneStorage, _mediaStorage);
+        _service = new AdventureService(_adventureStorage, _encounterStorage, _mediaStorage);
     }
 
     #region Background Steps
@@ -77,8 +77,8 @@ public class GetAdventureByIDSteps {
             .Returns(_adventure);
     }
 
-    [Given(@"an adventure exists with (.*) associated scenes")]
-    public void GivenAnAdventureExistsWithAssociatedScenes(int count) {
+    [Given(@"an adventure exists with (.*) associated encounters")]
+    public void GivenAnAdventureExistsWithAssociatedEncounters(int count) {
         _adventureId = Guid.CreateVersion7();
         _adventure = new Adventure {
             Id = _adventureId,
@@ -87,22 +87,22 @@ public class GetAdventureByIDSteps {
             Type = AdventureType.Generic
         };
 
-        _scenes.Clear();
+        _encounters.Clear();
         for (int i = 0; i < count; i++) {
-            _scenes.Add(new Scene {
+            _encounters.Add(new Encounter {
                 Id = Guid.CreateVersion7(),
                 AdventureId = _adventureId,
-                Name = $"Scene {i + 1}",
-                Description = $"Scene {i + 1} description"
+                Name = $"Encounter {i + 1}",
+                Description = $"Encounter {i + 1} description"
             });
         }
 
-        _adventure = _adventure with { Scenes = _scenes };
+        _adventure = _adventure with { Encounters = _encounters };
         _adventureStorage.GetByIdAsync(_adventureId, Arg.Any<CancellationToken>())
             .Returns(_adventure);
 
         _context["AdventureId"] = _adventureId;
-        _context["SceneCount"] = count;
+        _context["EncounterCount"] = count;
     }
 
     [Given(@"an adventure exists within a campaign")]
@@ -142,15 +142,15 @@ public class GetAdventureByIDSteps {
         _context["AdventureId"] = _adventureId;
     }
 
-    [Given(@"an adventure exists with no associated scenes")]
-    public void GivenAnAdventureExistsWithNoAssociatedScenes() {
+    [Given(@"an adventure exists with no associated encounters")]
+    public void GivenAnAdventureExistsWithNoAssociatedEncounters() {
         _adventureId = Guid.CreateVersion7();
         _adventure = new Adventure {
             Id = _adventureId,
             OwnerId = _userId,
             Name = "Empty Adventure",
             Type = AdventureType.Generic,
-            Scenes = []
+            Encounters = []
         };
 
         _adventureStorage.GetByIdAsync(_adventureId, Arg.Any<CancellationToken>())
@@ -256,15 +256,15 @@ public class GetAdventureByIDSteps {
         _adventure!.Name.Should().Be(expectedName);
     }
 
-    [Then(@"I should see all (.*) scenes in the collection")]
-    public void ThenIShouldSeeAllScenesInCollection(int expectedCount) {
-        _adventure!.Scenes.Should().HaveCount(expectedCount);
+    [Then(@"I should see all (.*) encounters in the collection")]
+    public void ThenIShouldSeeAllEncountersInCollection(int expectedCount) {
+        _adventure!.Encounters.Should().HaveCount(expectedCount);
     }
 
-    [Then(@"each scene should reference the correct adventure ID")]
-    public void ThenEachSceneShouldReferenceCorrectAdventureId() {
-        _adventure!.Scenes.Should().AllSatisfy(scene => {
-            scene.AdventureId.Should().Be(_adventureId);
+    [Then(@"each encounter should reference the correct adventure ID")]
+    public void ThenEachEncounterShouldReferenceCorrectAdventureId() {
+        _adventure!.Encounters.Should().AllSatisfy(encounter => {
+            encounter.AdventureId.Should().Be(_adventureId);
         });
     }
 
@@ -283,9 +283,9 @@ public class GetAdventureByIDSteps {
         _adventure!.CampaignId.Should().BeNull();
     }
 
-    [Then(@"the scenes collection should be empty")]
-    public void ThenTheScenesCollectionShouldBeEmpty() {
-        _adventure!.Scenes.Should().BeEmpty();
+    [Then(@"the encounters collection should be empty")]
+    public void ThenTheEncountersCollectionShouldBeEmpty() {
+        _adventure!.Encounters.Should().BeEmpty();
     }
 
     [Then(@"the adventure type should be ""(.*)""")]

@@ -101,7 +101,7 @@ Display key system statistics at a glance.
 
   3. **Total Public Library Items**:
      - Large number: Count of published content (Public + Premium)
-     - Breakdown: "12 Adventures, 45 Assets, 8 Scenes"
+     - Breakdown: "12 Adventures, 45 Assets, 8 Encounters"
      - Icon: Library icon
 
   4. **System Uptime**:
@@ -124,7 +124,7 @@ Display recent audit log entries for situational awareness.
   - Entry format:
     - Icon based on action type (login, create, update, delete)
     - User email (linked to user management)
-    - Action description: "Created scene 'Forest Clearing'"
+    - Action description: "Created encounter 'Forest Clearing'"
     - Timestamp: Relative time ("2 minutes ago")
     - Result indicator: Green checkmark (success) / Red X (failed)
   - Real-time updates: Auto-refresh every 30 seconds OR WebSocket push
@@ -162,7 +162,7 @@ Display critical alerts and warnings requiring immediate attention.
 
   - **Info** (blue banner, informational):
     - Scheduled Maintenance: "Scheduled maintenance: Oct 31 2025 10:00 PM - 11:00 PM UTC"
-    - Feature Flag Changed: "Scene collaboration feature disabled by admin@example.com"
+    - Feature Flag Changed: "Encounter collaboration feature disabled by admin@example.com"
     - Action button: "View Configuration" / "Dismiss"
 
 - Alerts sorted by severity: Critical → Warnings → Info

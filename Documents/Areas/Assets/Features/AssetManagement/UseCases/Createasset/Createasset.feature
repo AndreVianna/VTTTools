@@ -6,7 +6,7 @@
 Feature: Create Asset
   As a Game Master
   I want to create new asset templates with images and properties
-  So that I can build a reusable content library for my game scenes
+  So that I can build a reusable content library for my game encounters
 
   Background:
     Given I am authenticated as a Game Master

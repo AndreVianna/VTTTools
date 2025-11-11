@@ -1,4 +1,4 @@
-# Phase 4: Scene Editor - Grid & Layers
+# Phase 4: Encounter Editor - Grid & Layers
 
 **Status**: ✅ Complete
 **Estimated**: 12h | **Actual**: 12h (100%)
@@ -18,7 +18,7 @@ Complete grid rendering system with 5 grid types and layer management
 - **Component**: GridRenderer
   - Description: Render 5 grid types (square, hex-v, hex-h, isometric, none) with configurable size/color
   - Complexity: High
-  - Dependencies: SceneCanvas from Phase 3
+  - Dependencies: EncounterCanvas from Phase 3
 
 - **Component**: GridConfigPanel
   - Description: Material-UI form for grid configuration (type, size, offset, color)
@@ -68,7 +68,7 @@ Complete grid rendering system with 5 grid types and layer management
 
 ## Dependencies
 
-- **Prerequisites**: Phase 3 (SceneCanvas ready)
+- **Prerequisites**: Phase 3 (EncounterCanvas ready)
 - **Blocks**: Phase 6 (token placement needs grid snap)
 
 ---

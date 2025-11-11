@@ -495,7 +495,7 @@ public partial class StatusMessage {
 
 **InteractiveWebAssembly** (Client-side Blazor):
 ```razor
-@page "/library/scene-builder"
+@page "/library/encounter-builder"
 @rendermode InteractiveWebAssembly
 
 <!-- Runs in browser via WebAssembly -->

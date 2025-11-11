@@ -50,11 +50,11 @@ Feature: Get Game Session
   Scenario: Retrieved session includes all collections populated
     Given a game session exists with complete data
     And I am a participant in the session
-    And the session has an active scene assigned
+    And the session has an active encounter assigned
     When I retrieve the game session by ID
     Then the request should succeed
     And the response should include the session status
-    And the response should include the active scene ID
+    And the response should include the active encounter ID
     And the response should include all participants with their roles
     And the response should include all messages with timestamps
     And the response should include all events with timestamps

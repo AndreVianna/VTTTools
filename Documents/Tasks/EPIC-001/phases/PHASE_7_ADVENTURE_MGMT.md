@@ -15,7 +15,7 @@ Implement Library (Content Library) with Adventure management as foundation for 
 
 ## Approach
 
-Adventures as DDD aggregate roots with scenes as child entities
+Adventures as DDD aggregate roots with encounters as child entities
 
 ---
 
@@ -27,9 +27,9 @@ Adventures as DDD aggregate roots with scenes as child entities
 
 ## Key Architectural Change
 
-- **Discovered**: Backend implements DDD aggregate pattern (Adventures→Scenes)
+- **Discovered**: Backend implements DDD aggregate pattern (Adventures→Encounters)
 - **Decision**: Swapped Phase 7 and 8 to respect backend architecture
-- **Impact**: Adventures implemented first, Scenes deferred to Phase 8
+- **Impact**: Adventures implemented first, Encounters deferred to Phase 8
 
 ---
 
@@ -52,13 +52,13 @@ Adventures as DDD aggregate roots with scenes as child entities
 
 ### Adventure Management (Phase 7 Core)
 - AdventureListView with search and 4 filters (Type, Style, Status, Ownership)
-- AdventureCard showing style badges, scene count, published status
+- AdventureCard showing style badges, encounter count, published status
 - AdventureDetailPage with inline editing and auto-save
 - adventuresApi RTK Query slice (full CRUD)
 - Background image upload
-- Scene list display within adventure
-- Add scene to adventure functionality
-- Navigate to Scene Editor integration
+- Encounter list display within adventure
+- Add encounter to adventure functionality
+- Navigate to Encounter Editor integration
 - Delete/Duplicate adventure operations
 - Infinite scroll pagination with cursor
 
@@ -82,7 +82,7 @@ Adventures as DDD aggregate roots with scenes as child entities
 
 ### Phase 7B: Adventure List (4h) ✅
 - AdventureListView with unified contentApi integration
-- AdventureCard with style/scene count/published badges
+- AdventureCard with style/encounter count/published badges
 - 4 comprehensive filters (Type, Style, Status, Ownership)
 - Debounced search (useDebounce hook - 500ms)
 - Infinite scroll (useInfiniteScroll hook with IntersectionObserver)
@@ -99,9 +99,9 @@ Adventures as DDD aggregate roots with scenes as child entities
 - AdventureDetailPage with full metadata editing
 - Auto-save on blur (name, description) and change (toggles)
 - Background image upload integration
-- Scene list display within adventure context
-- Add scene button (POST /api/adventures/{id}/scenes)
-- Navigation to Scene Editor
+- Encounter list display within adventure context
+- Add encounter button (POST /api/adventures/{id}/encounters)
+- Navigation to Encounter Editor
 - Save status indicators and unsaved changes warning
 
 ### Phase 7E: Type System Alignment (2h) ✅
@@ -122,19 +122,19 @@ Adventures as DDD aggregate roots with scenes as child entities
 - ✅ Edit adventure metadata (name, description, style, isOneShot, isPublished)
 - ✅ Auto-save on changes (blur for text, immediate for toggles)
 - ✅ Upload background images
-- ✅ View scenes within adventure
-- ✅ Add scene to adventure → Navigate to Scene Editor
+- ✅ View encounters within adventure
+- ✅ Add encounter to adventure → Navigate to Encounter Editor
 - ✅ Delete/Duplicate adventures with confirmation
 - ✅ All changes persist to backend
-- ✅ Proper DDD pattern (Adventure = aggregate root, Scene = child entity)
+- ✅ Proper DDD pattern (Adventure = aggregate root, Encounter = child entity)
 - ✅ Infrastructure ready for Phase 8 (70% reusable)
 
 ---
 
 ## Dependencies
 
-- **Prerequisites**: Phase 6 (Scene Editor complete) ✅
-- **Blocks**: Phase 8 (Scene management within adventures)
+- **Prerequisites**: Phase 6 (Encounter Editor complete) ✅
+- **Blocks**: Phase 8 (Encounter management within adventures)
 
 ---
 

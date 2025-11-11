@@ -26,12 +26,12 @@ Feature: Make Adventure Standalone
       And I should see error "Adventure is already standalone"
 
   @happy-path
-  Scenario: Successfully make adventure with scenes standalone
+  Scenario: Successfully make adventure with encounters standalone
     Given my adventure is in a campaign
-    And the adventure has 6 scenes
+    And the adventure has 6 encounters
     When I make the adventure standalone
     Then the adventure should become standalone
-    And all 6 scenes should remain with the adventure
+    And all 6 encounters should remain with the adventure
     And the CampaignId should be null
     And the adventure type should remain unchanged
 

@@ -1,7 +1,7 @@
 Feature: Admin Public Library Management
   As a system administrator
   I want to manage public library content
-  So that I can provide quality assets, adventures, and scenes to all users
+  So that I can provide quality assets, adventures, and encounters to all users
 
   Background:
     Given I am logged in as an administrator in the admin app

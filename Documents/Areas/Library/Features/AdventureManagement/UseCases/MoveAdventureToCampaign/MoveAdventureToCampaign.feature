@@ -29,12 +29,12 @@ Feature: Move Adventure To Campaign
       And I should see error "Adventure must be standalone before moving to campaign"
 
   @happy-path
-  Scenario: Successfully move adventure with scenes to campaign
-    Given my standalone adventure has 4 scenes
+  Scenario: Successfully move adventure with encounters to campaign
+    Given my standalone adventure has 4 encounters
     And I own a campaign
     When I move the adventure to the campaign
     Then the adventure should be associated with the campaign
-    And all 4 scenes should remain with the adventure
+    And all 4 encounters should remain with the adventure
     And the adventure type should remain unchanged
 
   @error-handling

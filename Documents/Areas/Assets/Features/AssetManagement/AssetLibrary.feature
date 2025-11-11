@@ -20,7 +20,7 @@ Feature: Asset Library Page
   Scenario: Asset Library page loads successfully
     When the "Asset Library" page loads
     Then I should see the page title "Asset Library"
-    And I should see the subtitle "Manage your objects and creatures for scenes"
+    And I should see the subtitle "Manage your objects and creatures for encounters"
     And I should see the "Objects" tab selected by default
     And I should see the virtual "Add Object" card as the first card
     And I should see the search bar

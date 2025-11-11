@@ -3,7 +3,7 @@
 @feature @library @adventure-management
 Feature: Adventure Management
   As a Game Master
-  I want to manage individual game modules with scenes
+  I want to manage individual game modules with encounters
   So that I can organize complete adventures within campaigns or standalone
 
   Background:
@@ -54,19 +54,19 @@ Feature: Adventure Management
   # ═══════════════════════════════════════════════════════════════════════
 
   @clone @deep-copy
-  Scenario: Clone adventure with all scenes
-    Given I have created an adventure "Dragon's Lair" with 3 scenes
+  Scenario: Clone adventure with all encounters
+    Given I have created an adventure "Dragon's Lair" with 3 encounters
     When I clone the adventure as "Dragon's Lair - Copy"
     Then a new adventure is created with the cloned name
-    And the new adventure contains 3 independent scene copies
-    And modifications to cloned scenes do not affect originals
+    And the new adventure contains 3 independent encounter copies
+    And modifications to cloned encounters do not affect originals
 
   @clone @edge-case
   Scenario: Clone empty adventure
-    Given I have created an adventure "Empty Module" with no scenes
+    Given I have created an adventure "Empty Module" with no encounters
     When I clone the adventure as "Empty Module - Copy"
     Then a new adventure is created with the cloned name
-    And the new adventure contains no scenes
+    And the new adventure contains no encounters
 
   # ═══════════════════════════════════════════════════════════════════════
   # BUSINESS RULES
@@ -110,26 +110,26 @@ Feature: Adventure Management
     Given I have an adventure "Side Quest" within a campaign
     When I make the adventure standalone
     Then the adventure has no campaign association
-    And the adventure retains all its scenes
+    And the adventure retains all its encounters
 
   @hierarchy @edge-case
-  Scenario: Move adventure with many nested scenes
-    Given I have a standalone adventure "Mega Dungeon" with 15 scenes
+  Scenario: Move adventure with many nested encounters
+    Given I have a standalone adventure "Mega Dungeon" with 15 encounters
     And I have an existing campaign "Epic Saga"
     When I move the adventure to the campaign
-    Then the adventure and all 15 scenes are moved successfully
-    And all scenes remain accessible
+    Then the adventure and all 15 encounters are moved successfully
+    And all encounters remain accessible
 
   # ═══════════════════════════════════════════════════════════════════════
   # INTEGRATION SCENARIOS
   # ═══════════════════════════════════════════════════════════════════════
 
   @integration @cross-area @cascade-delete
-  Scenario: Delete adventure cascades to all scenes
-    Given I have created an adventure "Doomed Quest" with 5 scenes
+  Scenario: Delete adventure cascades to all encounters
+    Given I have created an adventure "Doomed Quest" with 5 encounters
     When I delete the adventure
     Then the adventure is deleted successfully
-    And all 5 scenes are also deleted
+    And all 5 encounters are also deleted
 
   @integration @cross-area @campaign-reference
   Scenario: Reject adventure with non-existent campaign reference

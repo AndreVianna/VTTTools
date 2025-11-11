@@ -1,6 +1,6 @@
 # Adventure Management Feature
 
-**Original Request**: Manage individual game modules (Adventure entities) with multiple scenes within campaign hierarchy or standalone
+**Original Request**: Manage individual game modules (Adventure entities) with multiple encounters within campaign hierarchy or standalone
 
 **Adventure Management** is a content organization feature that enables Game Masters to create, manage, and organize individual game modules or scenarios with categorization support. This feature affects the Library area and enables Game Masters to structure their game content into adventure-level modules that can optionally belong to a campaign or exist standalone.
 
@@ -14,9 +14,9 @@
 ## Feature Overview
 
 ### Business Value
-- **User Benefit**: Game Masters can organize multiple scenes into complete game modules with type categorization (Generic, OpenWorld, DungeonCrawl, etc.), with flexibility to nest adventures within campaigns or maintain them as standalone content
-- **Business Objective**: Provide adventure-level organizational structure for hierarchical game content management with optional campaign association and type categorization (Epic → Campaign → Adventure → Scene)
-- **Success Criteria**: Game Masters can create adventures (standalone or within campaigns), categorize adventures by type, update adventure properties, move adventures between campaign/standalone, clone adventures with all scenes, control visibility, and delete adventures with proper cascade handling
+- **User Benefit**: Game Masters can organize multiple encounters into complete game modules with type categorization (Generic, OpenWorld, DungeonCrawl, etc.), with flexibility to nest adventures within campaigns or maintain them as standalone content
+- **Business Objective**: Provide adventure-level organizational structure for hierarchical game content management with optional campaign association and type categorization (Epic → Campaign → Adventure → Encounter)
+- **Success Criteria**: Game Masters can create adventures (standalone or within campaigns), categorize adventures by type, update adventure properties, move adventures between campaign/standalone, clone adventures with all encounters, control visibility, and delete adventures with proper cascade handling
 
 ### Area Assignment
 - **Primary Area**: Library
@@ -49,18 +49,18 @@
 ## Architecture Analysis
 
 ### Area Impact Assessment
-- **Library**: Core adventure management logic, persistence operations, hierarchy management, cascade delete enforcement, optional campaign association, adventure cloning with scene duplication
+- **Library**: Core adventure management logic, persistence operations, hierarchy management, cascade delete enforcement, optional campaign association, adventure cloning with encounter duplication
 - **Identity (External)**: Adventure ownership validation (OwnerId must reference existing User)
 - **Media (External)**: Background resource validation (must be valid Image resource if provided)
 
 ### Use Case Breakdown
-- **Create Adventure** (Library): Create new adventure with optional campaign association and scenes, enforce invariants INV-01 through INV-08
+- **Create Adventure** (Library): Create new adventure with optional campaign association and encounters, enforce invariants INV-01 through INV-08
 - **Update Adventure** (Library): Modify adventure properties (including Type), enforce publication rules (INV-04)
-- **Get Adventure By ID** (Library): Retrieve single adventure by identifier with optional eager loading of scenes
-- **Clone Adventure** (Library): Duplicate adventure with all owned scenes (deep copy operation)
+- **Get Adventure By ID** (Library): Retrieve single adventure by identifier with optional eager loading of encounters
+- **Clone Adventure** (Library): Duplicate adventure with all owned encounters (deep copy operation)
 - **Move Adventure To Campaign** (Library): Associate standalone adventure with campaign (set CampaignId)
 - **Make Adventure Standalone** (Library): Remove adventure from campaign (set CampaignId=null)
-- **Delete Adventure** (Library): Remove adventure and cascade delete all owned scenes (AGG-05 aggregate rule)
+- **Delete Adventure** (Library): Remove adventure and cascade delete all owned encounters (AGG-05 aggregate rule)
 
 ### Architectural Integration
 - **New Interfaces Needed**: ILibraryStorage.CreateAdventureAsync, UpdateAdventureAsync, GetAdventureByIdAsync, CloneAdventureAsync, MoveAdventureToCampaignAsync, MakeAdventureStandaloneAsync, DeleteAdventureAsync
@@ -74,7 +74,7 @@
 ### Area Interactions
 - **Library** → **Identity**: Adventure creation validates OwnerId references existing User
 - **Library** → **Media**: Adventure creation/update validates Background references valid Image resource
-- **Library (internal)** → **Library**: Adventure optionally references parent Campaign (nullable FK, INV-08), owns Scene entities (cascade)
+- **Library (internal)** → **Library**: Adventure optionally references parent Campaign (nullable FK, INV-08), owns Encounter entities (cascade)
 
 ### Integration Requirements
 - **Data Sharing**: Adventure.OwnerId shared with Identity context, Adventure.Background shared with Media context, Adventure.CampaignId references Campaign within Library
@@ -89,11 +89,11 @@
   - Validate OwnerId via IUserStorage port
   - Validate Background via IMediaStorage port
   - Support hierarchy movement operations (add to campaign, make standalone)
-  - Implement deep clone operation for adventure and all owned scenes
+  - Implement deep clone operation for adventure and all owned encounters
 - **Testing Strategy**:
   - Unit tests for invariant enforcement (name validation, type validation, publication rules, optional campaign reference)
   - Integration tests for cascade delete behavior, hierarchy movement, and adventure cloning
-  - Acceptance tests for ownership validation, campaign association, standalone mode, and scene duplication
+  - Acceptance tests for ownership validation, campaign association, standalone mode, and encounter duplication
 - **Architecture Compliance**:
   - Domain entities are anemic data contracts
   - Business logic resides in ILibraryStorage application service
@@ -108,14 +108,14 @@
 ### Implementation Phases
 
 #### Phase 1: Core Adventure Operations
-- **Create Adventure**: Foundation capability for adventure creation with optional campaign association and scene ownership
+- **Create Adventure**: Foundation capability for adventure creation with optional campaign association and encounter ownership
 - **Get Adventure By ID**: Essential retrieval operation for single adventure access
 - **Update Adventure**: Enable property modifications (including type changes) and publication
 
 #### Phase 2: Adventure Management
 - **Move Adventure To Campaign**: Add hierarchy management for campaign association
 - **Make Adventure Standalone**: Add hierarchy management for standalone mode
-- **Clone Adventure**: Add deep copy capability for adventure reuse with all scenes
+- **Clone Adventure**: Add deep copy capability for adventure reuse with all encounters
 - **Delete Adventure**: Add removal capability with cascade delete enforcement (AGG-05)
 
 ### Dependencies & Prerequisites

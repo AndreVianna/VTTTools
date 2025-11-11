@@ -19,7 +19,7 @@
 - **Implementation**: Material-UI Grid with Card components, responsive layout (4 cols desktop, 2 cols tablet, 1 col mobile)
 
 **Quick Action Cards**:
-1. **Scene Editor**: Active, navigates to /scene-editor (Phases 3-4 complete)
+1. **Encounter Editor**: Active, navigates to /encounter-editor (Phases 3-4 complete)
 2. **Content Library**: Disabled with "Coming Soon" label (blocked by backend Epic/Campaign services)
 3. **Asset Library**: Disabled with "Coming Soon" label (planned for implementation)
 4. **Account Settings**: Disabled with "Coming Soon" label (planned for implementation)
@@ -59,7 +59,7 @@
   - Welcome Heading: Large "Welcome back, {userName}!" personalized greeting
   - Workspace Title: "Your Creative Workspace" subtitle
   - Quick Action Grid: Material-UI Grid with 4 quick action cards (2x2 responsive layout)
-  - Scene Editor Card: Icon, title, description, "Open Editor" button → navigates to /scene-editor (Phase 3-4 complete)
+  - Encounter Editor Card: Icon, title, description, "Open Editor" button → navigates to /encounter-editor (Phase 3-4 complete)
   - Content Library Card: Icon, title, description, disabled button showing "Coming Soon" (backend blocked)
   - Asset Library Card: Icon, title, description, disabled button showing "Coming Soon" (planned)
   - Account Settings Card: Icon, title, description, disabled button showing "Coming Soon" (planned)
@@ -76,12 +76,12 @@
 - **User Interactions**:
   1. Dashboard preview renders with personalized greeting and "Your Creative Workspace" subtitle
   2. User sees 4 quick action cards in responsive grid layout
-  3. User can click "Open Editor" on Scene Editor card → navigates to /scene-editor
+  3. User can click "Open Editor" on Encounter Editor card → navigates to /encounter-editor
   4. User sees disabled cards for upcoming features (Content Library, Asset Library, Account Settings) with phase labels
   5. User can access logout via header user menu dropdown (Profile, Settings, Sign Out)
 - **Validation Feedback**: N/A (no forms)
 - **Loading States**: None (user data already loaded via auth context)
-- **Success Handling**: Scene Editor navigation works, disabled cards show implementation status
+- **Success Handling**: Encounter Editor navigation works, disabled cards show implementation status
 - **Error Handling**:
   - Missing userName → Fallback to "Game Master"
   - Navigation error → React Router error handling

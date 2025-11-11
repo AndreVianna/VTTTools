@@ -45,8 +45,8 @@ Display searchable, filterable, paginated table of historical audit log entries.
 - MUI DataGrid displays audit logs with columns:
   - Timestamp (sortable, default descending)
   - User (email, clickable to filter by user)
-  - Action (e.g., Login, CreateScene, UpdateUser, DeleteAsset)
-  - Entity Type (e.g., User, Scene, Asset, Campaign)
+  - Action (e.g., Login, CreateEncounter, UpdateUser, DeleteAsset)
+  - Entity Type (e.g., User, Encounter, Asset, Campaign)
   - Entity ID (GUID)
   - IP Address
   - Result (Success, Failed, PartialSuccess)
@@ -71,7 +71,7 @@ Multi-dimensional filtering to narrow audit log results.
 - Filter panel (collapsible sidebar):
   - **User Filter**: Autocomplete dropdown (search users by email)
   - **Action Filter**: Multi-select dropdown (Login, Logout, Create*, Update*, Delete*, etc.)
-  - **Entity Type Filter**: Multi-select dropdown (User, Scene, Asset, Campaign, etc.)
+  - **Entity Type Filter**: Multi-select dropdown (User, Encounter, Asset, Campaign, etc.)
   - **Result Filter**: Checkboxes (Success, Failed, PartialSuccess)
   - **IP Address Filter**: Text input with regex support
   - **Duration Range**: Min/Max duration (ms) for performance investigation
@@ -445,7 +445,7 @@ await _hubContext.Clients.Group($"user:{log.UserId}").SendAsync("NewAuditLog", l
 - Anomaly detection alerts (ML-based suspicious pattern detection)
 - Audit log retention policy configuration (UI for setting retention days)
 - Multi-tenant audit log isolation (for SaaS future)
-- Audit log correlation (link related actions, e.g., Login → CreateScene → UpdateScene)
+- Audit log correlation (link related actions, e.g., Login → CreateEncounter → UpdateEncounter)
 - Audit log replay (re-execute past actions for debugging)
 - Advanced analytics dashboard (charts, trends, top users/actions)
 

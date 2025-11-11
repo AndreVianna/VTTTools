@@ -44,13 +44,13 @@
 ### Clean Architecture Mapping
 - **Application Service**: AssetService.DeleteAsync(Guid assetId)
 - **Domain Entities**: Asset (for validation)
-- **Domain Services**: IAssetStorage.DeleteAsync(), ISceneAssetQuery (usage check)
-- **Infrastructure Dependencies**: DbContext, ISceneAssetRepository (Library area query)
+- **Domain Services**: IAssetStorage.DeleteAsync(), IEncounterAssetQuery (usage check)
+- **Infrastructure Dependencies**: DbContext, IEncounterAssetRepository (Library area query)
 
 ### Hexagonal Architecture
 - **Primary Port Operation**: IAssetStorage.DeleteAsync(Guid assetId)
 - **Secondary Port Dependencies**:
-  - ISceneAssetRepository.AnyByAssetIdAsync(assetId) - check usage
+  - IEncounterAssetRepository.AnyByAssetIdAsync(assetId) - check usage
   - DbContext.Assets.Remove()
 - **Adapter Requirements**: HTTP adapter, database adapter, cross-area query adapter
 
@@ -71,7 +71,7 @@
   - User is authenticated
   - Asset exists
   - User is owner or admin
-  - Asset is not in use in any scene (SceneAsset references)
+  - Asset is not in use in any encounter (EncounterAsset references)
 
 ### Business Logic
 - **Business Rules**:
@@ -80,7 +80,7 @@
 - **Processing Steps**:
   1. Validate assetId format and asset exists
   2. Authorize: current user is owner OR admin
-  3. Query Library area: check if SceneAsset references exist for assetId
+  3. Query Library area: check if EncounterAsset references exist for assetId
   4. If in use, return error (BR-06)
   5. Delete Asset via IAssetStorage.DeleteAsync()
   6. Return 204 No Content
@@ -93,12 +93,12 @@
 - **Output Format**: HTTP 204 response
 - **Postconditions**:
   - Asset removed from database
-  - No orphaned SceneAsset references (validated before deletion)
+  - No orphaned EncounterAsset references (validated before deletion)
 
 ### Error Scenarios
 - **Asset Not Found**: Return 404 Not Found with "Asset not found"
 - **Unauthorized**: Return 403 Forbidden with "Access denied - must be asset owner" (BR-05)
-- **Asset In Use**: Return 409 Conflict with "Cannot delete asset - in use in N scenes" (BR-06)
+- **Asset In Use**: Return 409 Conflict with "Cannot delete asset - in use in N encounters" (BR-06)
 - **Database Error**: Return 500 Internal Server Error with "Failed to delete asset"
 - **Unauthenticated**: Return 401 Unauthorized if user not authenticated
 
@@ -114,14 +114,14 @@
       Task DeleteAsync(Guid assetId);
   }
 
-  public interface ISceneAssetQuery
+  public interface IEncounterAssetQuery
   {
       Task<bool> AnyByAssetIdAsync(Guid assetId);
       Task<int> CountByAssetIdAsync(Guid assetId);
   }
   ```
 - **Data Access Patterns**: Soft delete (recommended) or hard delete with cascades prevented
-- **External Integration**: Query Library area for SceneAsset usage
+- **External Integration**: Query Library area for EncounterAsset usage
 - **Performance Requirements**: <200ms delete operation, usage check <100ms
 
 ### Architecture Compliance
@@ -130,7 +130,7 @@
   - Domain: Entity definition
   - Infrastructure: Persistence, cross-area query
 - **Dependency Direction**: Application → Domain ← Infrastructure, Assets query Library
-- **Interface Abstractions**: IAssetStorage, ISceneAssetQuery
+- **Interface Abstractions**: IAssetStorage, IEncounterAssetQuery
 - **KISS Validation**: Simple existence and usage checks
 
 ### Testing Strategy
@@ -145,7 +145,7 @@
 - **Acceptance Criteria**: See section below
 - **BDD Scenarios**:
   - Given unused asset owned by user, When deleting, Then asset removed
-  - Given asset in use on scene, When attempting delete, Then conflict error
+  - Given asset in use on encounter, When attempting delete, Then conflict error
   - Given non-owner attempts delete, When command submitted, Then forbidden
 
 ---
@@ -153,7 +153,7 @@
 ## Acceptance Criteria
 
 - **AC-01**: Owner deletes unused asset
-  - **Given**: User owns asset "abc-123" not used in any scenes
+  - **Given**: User owns asset "abc-123" not used in any encounters
   - **When**: DeleteAssetCommand submitted
   - **Then**: Asset deleted, 204 No Content returned
 
@@ -168,9 +168,9 @@
   - **Then**: 403 Forbidden with "Access denied - must be asset owner" (BR-05)
 
 - **AC-04**: Cannot delete asset in use
-  - **Given**: Asset "ghi-789" is used in 3 scenes
+  - **Given**: Asset "ghi-789" is used in 3 encounters
   - **When**: Owner attempts DeleteAssetCommand
-  - **Then**: 409 Conflict with "Cannot delete asset - in use in 3 scenes" (BR-06)
+  - **Then**: 409 Conflict with "Cannot delete asset - in use in 3 encounters" (BR-06)
 
 - **AC-05**: Non-existent asset returns 404
   - **Given**: No asset exists with ID "nonexistent-id"
@@ -193,7 +193,7 @@
 
 ### Dependencies
 - **Technical Dependencies**: EF Core for database access
-- **Area Dependencies**: Library (ISceneAssetQuery for usage check)
+- **Area Dependencies**: Library (IEncounterAssetQuery for usage check)
 - **External Dependencies**: Database
 
 ### Architectural Considerations

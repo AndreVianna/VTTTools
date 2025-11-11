@@ -1,4 +1,4 @@
-# CreateScene Use Case
+# CreateEncounter Use Case
 
 **Status**: Specification pending - BDD file exists
 

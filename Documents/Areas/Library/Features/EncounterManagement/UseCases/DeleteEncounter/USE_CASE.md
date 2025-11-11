@@ -1,4 +1,4 @@
-# DeleteScene Use Case
+# DeleteEncounter Use Case
 
 **Status**: Specification pending - BDD file exists
 

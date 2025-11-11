@@ -1,5 +1,5 @@
 // Generated: 2025-10-12
-// BDD Step Definitions for Set Active Scene Use Case
+// BDD Step Definitions for Set Active Encounter Use Case
 // Framework: SpecFlow/Cucumber.NET with xUnit
 // Testing: Backend API (GameSessionService)
 
@@ -10,33 +10,33 @@ using VttTools.Common.Model;
 using VttTools.Game.Sessions.Model;
 using VttTools.Game.Sessions.Services;
 using VttTools.Game.Sessions.Storage;
-using VttTools.Library.Scenes.Model;
-using VttTools.Library.Scenes.Storage;
+using VttTools.Library.Encounters.Model;
+using VttTools.Library.Encounters.Storage;
 using Xunit;
 
-namespace VttTools.Game.Tests.BDD.SessionManagement.SetActiveScene;
+namespace VttTools.Game.Tests.BDD.SessionManagement.SetActiveEncounter;
 
 [Binding]
-public class SetActiveSceneSteps {
+public class SetActiveEncounterSteps {
     private readonly ScenarioContext _context;
     private readonly IGameSessionStorage _sessionStorage;
-    private readonly ISceneStorage _sceneStorage;
+    private readonly IEncounterStorage _encounterStorage;
     private readonly IGameSessionService _service;
 
     // Test state
     private Guid _currentUserId = Guid.Empty;
     private Guid _sessionId = Guid.Empty;
-    private Guid _sceneId = Guid.Empty;
-    private Guid _newSceneId = Guid.Empty;
+    private Guid _encounterId = Guid.Empty;
+    private Guid _newEncounterId = Guid.Empty;
     private GameSession? _existingSession;
-    private Scene? _existingScene;
-    private Result? _setSceneResult;
+    private Encounter? _existingEncounter;
+    private Result? _setEncounterResult;
     private Exception? _exception;
 
-    public SetActiveSceneSteps(ScenarioContext context) {
+    public SetActiveEncounterSteps(ScenarioContext context) {
         _context = context;
         _sessionStorage = Substitute.For<IGameSessionStorage>();
-        _sceneStorage = Substitute.For<ISceneStorage>();
+        _encounterStorage = Substitute.For<IEncounterStorage>();
         _service = new GameSessionService(_sessionStorage);
     }
 
@@ -56,7 +56,7 @@ public class SetActiveSceneSteps {
             Title = "Test Session",
             OwnerId = _currentUserId,
             Status = GameSessionStatus.Draft,
-            SceneId = null,
+            EncounterId = null,
             Players = [
                 new Participant { UserId = _currentUserId, Type = PlayerType.Master }
             ]
@@ -69,32 +69,32 @@ public class SetActiveSceneSteps {
         _context["Session"] = _existingSession;
     }
 
-    [Given(@"multiple scenes exist in the Library")]
-    public void GivenMultipleScenesExist() {
-        // Mock scene storage with multiple scenes
-        _context["ScenesExist"] = true;
+    [Given(@"multiple encounters exist in the Library")]
+    public void GivenMultipleEncountersExist() {
+        // Mock encounter storage with multiple encounters
+        _context["EncountersExist"] = true;
     }
 
     #endregion
 
     #region Given Steps - Session State
 
-    [Given(@"the session has no active scene")]
-    public void GivenSessionHasNoActiveScene() {
-        _existingSession = _existingSession! with { SceneId = null };
+    [Given(@"the session has no active encounter")]
+    public void GivenSessionHasNoActiveEncounter() {
+        _existingSession = _existingSession! with { EncounterId = null };
         _sessionStorage.GetByIdAsync(_sessionId, Arg.Any<CancellationToken>())
             .Returns(_existingSession);
     }
 
-    [Given(@"the session has an active scene assigned")]
-    public void GivenSessionHasActiveSceneAssigned() {
-        _sceneId = Guid.CreateVersion7();
-        _existingSession = _existingSession! with { SceneId = _sceneId };
+    [Given(@"the session has an active encounter assigned")]
+    public void GivenSessionHasActiveEncounterAssigned() {
+        _encounterId = Guid.CreateVersion7();
+        _existingSession = _existingSession! with { EncounterId = _encounterId };
 
         _sessionStorage.GetByIdAsync(_sessionId, Arg.Any<CancellationToken>())
             .Returns(_existingSession);
 
-        _context["CurrentSceneId"] = _sceneId;
+        _context["CurrentEncounterId"] = _encounterId;
     }
 
     [Given(@"the session is owned by another Game Master")]
@@ -120,164 +120,164 @@ public class SetActiveSceneSteps {
 
     #endregion
 
-    #region Given Steps - Scene State
+    #region Given Steps - Encounter State
 
-    [Given(@"a scene exists in the Library")]
-    public void GivenSceneExistsInLibrary() {
-        _sceneId = Guid.CreateVersion7();
-        _existingScene = new Scene {
-            Id = _sceneId,
-            Name = "Test Scene",
+    [Given(@"a encounter exists in the Library")]
+    public void GivenEncounterExistsInLibrary() {
+        _encounterId = Guid.CreateVersion7();
+        _existingEncounter = new Encounter {
+            Id = _encounterId,
+            Name = "Test Encounter",
             Description = "Test description",
             OwnerId = _currentUserId,
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) }
         };
 
-        _sceneStorage.GetByIdAsync(_sceneId, Arg.Any<CancellationToken>())
-            .Returns(_existingScene);
+        _encounterStorage.GetByIdAsync(_encounterId, Arg.Any<CancellationToken>())
+            .Returns(_existingEncounter);
 
-        _context["SceneId"] = _sceneId;
-        _context["Scene"] = _existingScene;
+        _context["EncounterId"] = _encounterId;
+        _context["Encounter"] = _existingEncounter;
     }
 
-    [Given(@"a different scene exists in the Library")]
-    public void GivenDifferentSceneExistsInLibrary() {
-        _newSceneId = Guid.CreateVersion7();
-        var newScene = new Scene {
-            Id = _newSceneId,
-            Name = "Different Scene",
+    [Given(@"a different encounter exists in the Library")]
+    public void GivenDifferentEncounterExistsInLibrary() {
+        _newEncounterId = Guid.CreateVersion7();
+        var newEncounter = new Encounter {
+            Id = _newEncounterId,
+            Name = "Different Encounter",
             Description = "Different description",
             OwnerId = _currentUserId,
             Grid = new Grid { Type = GridType.Hexagonal, CellSize = new Size(64, 64) }
         };
 
-        _sceneStorage.GetByIdAsync(_newSceneId, Arg.Any<CancellationToken>())
-            .Returns(newScene);
+        _encounterStorage.GetByIdAsync(_newEncounterId, Arg.Any<CancellationToken>())
+            .Returns(newEncounter);
 
-        _context["NewSceneId"] = _newSceneId;
-        _context["NewScene"] = newScene;
+        _context["NewEncounterId"] = _newEncounterId;
+        _context["NewEncounter"] = newEncounter;
     }
 
-    [Given(@"a scene ID that does not exist in the Library")]
-    public void GivenSceneIdDoesNotExist() {
-        _sceneId = Guid.CreateVersion7();
-        _sceneStorage.GetByIdAsync(_sceneId, Arg.Any<CancellationToken>())
-            .Returns((Scene?)null);
+    [Given(@"a encounter ID that does not exist in the Library")]
+    public void GivenEncounterIdDoesNotExist() {
+        _encounterId = Guid.CreateVersion7();
+        _encounterStorage.GetByIdAsync(_encounterId, Arg.Any<CancellationToken>())
+            .Returns((Encounter?)null);
 
-        _context["SceneId"] = _sceneId;
+        _context["EncounterId"] = _encounterId;
     }
 
-    [Given(@"a scene exists owned by another Game Master")]
-    public void GivenSceneOwnedByAnotherGameMaster() {
-        _sceneId = Guid.CreateVersion7();
+    [Given(@"a encounter exists owned by another Game Master")]
+    public void GivenEncounterOwnedByAnotherGameMaster() {
+        _encounterId = Guid.CreateVersion7();
         var differentOwnerId = Guid.CreateVersion7();
 
-        _existingScene = new Scene {
-            Id = _sceneId,
-            Name = "Another GM's Scene",
-            Description = "Cross-owner scene",
+        _existingEncounter = new Encounter {
+            Id = _encounterId,
+            Name = "Another GM's Encounter",
+            Description = "Cross-owner encounter",
             OwnerId = differentOwnerId,
             Grid = new Grid { Type = GridType.Square, CellSize = new Size(50, 50) }
         };
 
-        _sceneStorage.GetByIdAsync(_sceneId, Arg.Any<CancellationToken>())
-            .Returns(_existingScene);
+        _encounterStorage.GetByIdAsync(_encounterId, Arg.Any<CancellationToken>())
+            .Returns(_existingEncounter);
 
-        _context["SceneId"] = _sceneId;
-        _context["Scene"] = _existingScene;
-        _context["SceneOwnedByOther"] = true;
+        _context["EncounterId"] = _encounterId;
+        _context["Encounter"] = _existingEncounter;
+        _context["EncounterOwnedByOther"] = true;
     }
 
-    [Given(@"the scene is available in the Library")]
-    public void GivenSceneAvailableInLibrary() {
-        // Scene is already mocked as available
-        _existingScene.Should().NotBeNull();
+    [Given(@"the encounter is available in the Library")]
+    public void GivenEncounterAvailableInLibrary() {
+        // Encounter is already mocked as available
+        _existingEncounter.Should().NotBeNull();
     }
 
     #endregion
 
-    #region When Steps - Set Scene Actions
+    #region When Steps - Set Encounter Actions
 
-    [When(@"I set the active scene for the session")]
-    public async Task WhenISetActiveScene() {
-        await SetActiveScene(_sceneId);
+    [When(@"I set the active encounter for the session")]
+    public async Task WhenISetActiveEncounter() {
+        await SetActiveEncounter(_encounterId);
     }
 
-    [When(@"I change the active scene to the new scene")]
-    public async Task WhenIChangeActiveScene() {
-        await SetActiveScene(_newSceneId);
+    [When(@"I change the active encounter to the new encounter")]
+    public async Task WhenIChangeActiveEncounter() {
+        await SetActiveEncounter(_newEncounterId);
     }
 
-    [When(@"I clear the active scene")]
-    public async Task WhenIClearActiveScene() {
-        await SetActiveScene(Guid.Empty);
+    [When(@"I clear the active encounter")]
+    public async Task WhenIClearActiveEncounter() {
+        await SetActiveEncounter(Guid.Empty);
     }
 
-    [When(@"I attempt to set that scene as active")]
-    public async Task WhenIAttemptToSetSceneAsActive() {
-        await SetActiveScene(_sceneId);
+    [When(@"I attempt to set that encounter as active")]
+    public async Task WhenIAttemptToSetEncounterAsActive() {
+        await SetActiveEncounter(_encounterId);
     }
 
-    [When(@"I attempt to set the active scene")]
-    public async Task WhenIAttemptToSetActiveScene() {
-        _sceneId = Guid.CreateVersion7();
-        await SetActiveScene(_sceneId);
+    [When(@"I attempt to set the active encounter")]
+    public async Task WhenIAttemptToSetActiveEncounter() {
+        _encounterId = Guid.CreateVersion7();
+        await SetActiveEncounter(_encounterId);
     }
 
-    [When(@"I attempt to set an active scene")]
-    public async Task WhenIAttemptToSetAnyActiveScene() {
-        _sceneId = Guid.CreateVersion7();
-        await SetActiveScene(_sceneId);
+    [When(@"I attempt to set an active encounter")]
+    public async Task WhenIAttemptToSetAnyActiveEncounter() {
+        _encounterId = Guid.CreateVersion7();
+        await SetActiveEncounter(_encounterId);
     }
 
-    [When(@"I set that scene as active for my session")]
-    public async Task WhenISetThatSceneAsActiveForMySession() {
-        await SetActiveScene(_sceneId);
+    [When(@"I set that encounter as active for my session")]
+    public async Task WhenISetThatEncounterAsActiveForMySession() {
+        await SetActiveEncounter(_encounterId);
     }
 
-    private async Task SetActiveScene(Guid sceneId) {
+    private async Task SetActiveEncounter(Guid encounterId) {
         try {
             // Check if session exists
             if (_existingSession is null) {
-                _setSceneResult = Result.Failure("Game session not found");
-                _context["SetSceneResult"] = _setSceneResult;
+                _setEncounterResult = Result.Failure("Game session not found");
+                _context["SetEncounterResult"] = _setEncounterResult;
                 return;
             }
 
-            // Check authorization: Only Game Master can set scene
+            // Check authorization: Only Game Master can set encounter
             var isGameMaster = _existingSession.Players.Any(p =>
                 p.UserId == _currentUserId && p.Type == PlayerType.Master
             );
 
             if (!isGameMaster) {
-                _setSceneResult = Result.Failure("Only the Game Master can modify the session");
-                _context["SetSceneResult"] = _setSceneResult;
+                _setEncounterResult = Result.Failure("Only the Game Master can modify the session");
+                _context["SetEncounterResult"] = _setEncounterResult;
                 return;
             }
 
-            // Check if scene exists (if not clearing)
-            if (sceneId != Guid.Empty) {
-                var scene = await _sceneStorage.GetByIdAsync(sceneId, CancellationToken.None);
-                if (scene is null) {
-                    _setSceneResult = Result.Failure($"Scene with ID {sceneId} does not exist");
-                    _context["SetSceneResult"] = _setSceneResult;
+            // Check if encounter exists (if not clearing)
+            if (encounterId != Guid.Empty) {
+                var encounter = await _encounterStorage.GetByIdAsync(encounterId, CancellationToken.None);
+                if (encounter is null) {
+                    _setEncounterResult = Result.Failure($"Encounter with ID {encounterId} does not exist");
+                    _context["SetEncounterResult"] = _setEncounterResult;
                     return;
                 }
             }
 
             // Use service method
-            _setSceneResult = await _service.SetActiveSceneAsync(
+            _setEncounterResult = await _service.SetActiveEncounterAsync(
                 _currentUserId,
                 _sessionId,
-                sceneId,
+                encounterId,
                 CancellationToken.None
             );
 
-            if (_setSceneResult.IsSuccessful) {
-                _context["AssignedSceneId"] = sceneId;
+            if (_setEncounterResult.IsSuccessful) {
+                _context["AssignedEncounterId"] = encounterId;
             }
 
-            _context["SetSceneResult"] = _setSceneResult;
+            _context["SetEncounterResult"] = _setEncounterResult;
         }
         catch (Exception ex) {
             _exception = ex;
@@ -291,17 +291,17 @@ public class SetActiveSceneSteps {
 
     [Then(@"the request should succeed")]
     public void ThenRequestShouldSucceed() {
-        _setSceneResult.Should().NotBeNull();
-        _setSceneResult!.IsSuccessful.Should().BeTrue();
-        _setSceneResult.Errors.Should().BeEmpty();
+        _setEncounterResult.Should().NotBeNull();
+        _setEncounterResult!.IsSuccessful.Should().BeTrue();
+        _setEncounterResult.Errors.Should().BeEmpty();
     }
 
-    [Then(@"the session should have the assigned scene")]
-    public async Task ThenSessionShouldHaveAssignedScene() {
+    [Then(@"the session should have the assigned encounter")]
+    public async Task ThenSessionShouldHaveAssignedEncounter() {
         await _sessionStorage.Received(1).UpdateAsync(
             Arg.Is<GameSession>(s =>
                 s.Id == _sessionId &&
-                s.SceneId == _sceneId
+                s.EncounterId == _encounterId
             ),
             Arg.Any<CancellationToken>()
         );
@@ -309,44 +309,44 @@ public class SetActiveSceneSteps {
 
     [Then(@"I should receive confirmation")]
     public void ThenIShouldReceiveConfirmation() {
-        _setSceneResult.Should().NotBeNull();
-        _setSceneResult!.IsSuccessful.Should().BeTrue();
+        _setEncounterResult.Should().NotBeNull();
+        _setEncounterResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"the session should have the new scene assigned")]
-    public async Task ThenSessionShouldHaveNewSceneAssigned() {
+    [Then(@"the session should have the new encounter assigned")]
+    public async Task ThenSessionShouldHaveNewEncounterAssigned() {
         await _sessionStorage.Received(1).UpdateAsync(
             Arg.Is<GameSession>(s =>
                 s.Id == _sessionId &&
-                s.SceneId == _newSceneId
+                s.EncounterId == _newEncounterId
             ),
             Arg.Any<CancellationToken>()
         );
     }
 
-    [Then(@"the session should have no active scene")]
-    public async Task ThenSessionShouldHaveNoActiveScene() {
+    [Then(@"the session should have no active encounter")]
+    public async Task ThenSessionShouldHaveNoActiveEncounter() {
         await _sessionStorage.Received(1).UpdateAsync(
             Arg.Is<GameSession>(s =>
                 s.Id == _sessionId &&
-                s.SceneId == Guid.Empty
+                s.EncounterId == Guid.Empty
             ),
             Arg.Any<CancellationToken>()
         );
     }
 
-    [Then(@"the session should reference the cross-owner scene")]
-    public async Task ThenSessionShouldReferenceCrossOwnerScene() {
+    [Then(@"the session should reference the cross-owner encounter")]
+    public async Task ThenSessionShouldReferenceCrossOwnerEncounter() {
         await _sessionStorage.Received(1).UpdateAsync(
             Arg.Is<GameSession>(s =>
                 s.Id == _sessionId &&
-                s.SceneId == _sceneId
+                s.EncounterId == _encounterId
             ),
             Arg.Any<CancellationToken>()
         );
 
-        // Verify scene is owned by different user
-        _context.ContainsKey("SceneOwnedByOther").Should().BeTrue();
+        // Verify encounter is owned by different user
+        _context.ContainsKey("EncounterOwnedByOther").Should().BeTrue();
     }
 
     #endregion
@@ -355,19 +355,19 @@ public class SetActiveSceneSteps {
 
     [Then(@"the request should fail with validation error")]
     public void ThenRequestShouldFailWithValidationError() {
-        _setSceneResult.Should().NotBeNull();
-        _setSceneResult!.IsSuccessful.Should().BeFalse();
-        _setSceneResult.Errors.Should().NotBeEmpty();
+        _setEncounterResult.Should().NotBeNull();
+        _setEncounterResult!.IsSuccessful.Should().BeFalse();
+        _setEncounterResult.Errors.Should().NotBeEmpty();
     }
 
     [Then(@"I should see error ""(.*)""")]
     public void ThenIShouldSeeError(string expectedError) {
-        _setSceneResult.Should().NotBeNull();
-        _setSceneResult!.Errors.Should().Contain(e => e.Contains(expectedError, StringComparison.OrdinalIgnoreCase));
+        _setEncounterResult.Should().NotBeNull();
+        _setEncounterResult!.Errors.Should().Contain(e => e.Contains(expectedError, StringComparison.OrdinalIgnoreCase));
     }
 
-    [Then(@"the session scene should remain unchanged")]
-    public void ThenSessionSceneShouldRemainUnchanged() {
+    [Then(@"the session encounter should remain unchanged")]
+    public void ThenSessionEncounterShouldRemainUnchanged() {
         // Verify storage was not called to update
         _sessionStorage.DidNotReceive().UpdateAsync(
             Arg.Any<GameSession>(),
@@ -377,9 +377,9 @@ public class SetActiveSceneSteps {
 
     [Then(@"the request should fail with authorization error")]
     public void ThenRequestShouldFailWithAuthorizationError() {
-        _setSceneResult.Should().NotBeNull();
-        _setSceneResult!.IsSuccessful.Should().BeFalse();
-        _setSceneResult.Errors.Should().Contain(e =>
+        _setEncounterResult.Should().NotBeNull();
+        _setEncounterResult!.IsSuccessful.Should().BeFalse();
+        _setEncounterResult.Errors.Should().Contain(e =>
             e.Contains("authorized", StringComparison.OrdinalIgnoreCase) ||
             e.Contains("Game Master", StringComparison.OrdinalIgnoreCase)
         );
@@ -387,9 +387,9 @@ public class SetActiveSceneSteps {
 
     [Then(@"the request should fail with not found error")]
     public void ThenRequestShouldFailWithNotFoundError() {
-        _setSceneResult.Should().NotBeNull();
-        _setSceneResult!.IsSuccessful.Should().BeFalse();
-        _setSceneResult.Errors.Should().Contain(e => e.Contains("not found", StringComparison.OrdinalIgnoreCase));
+        _setEncounterResult.Should().NotBeNull();
+        _setEncounterResult!.IsSuccessful.Should().BeFalse();
+        _setEncounterResult.Errors.Should().Contain(e => e.Contains("not found", StringComparison.OrdinalIgnoreCase));
     }
 
     #endregion

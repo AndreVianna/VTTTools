@@ -1,4 +1,4 @@
-# UpdateScene Use Case
+# UpdateEncounter Use Case
 
 **Status**: Specification pending - BDD file exists
 

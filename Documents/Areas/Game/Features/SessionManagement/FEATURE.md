@@ -2,7 +2,7 @@
 
 **Original Request**: Generate complete specifications for Game area Session Management feature
 
-**Session Management** is a core backend feature that enables Game Masters to create, run, and control active game sessions (tabletop RPG meetings) with full lifecycle management. This feature affects the Game area and enables Game Masters to orchestrate live gameplay sessions with participants, scenes, chat, and events.
+**Session Management** is a core backend feature that enables Game Masters to create, run, and control active game sessions (tabletop RPG meetings) with full lifecycle management. This feature affects the Game area and enables Game Masters to orchestrate live gameplay sessions with participants, encounters, chat, and events.
 
 ---
 
@@ -15,13 +15,13 @@
 
 ### Business Value
 - **User Benefit**: Game Masters can create and manage active game sessions with complete control over session lifecycle, enabling organized tabletop RPG meetings
-- **Business Objective**: Provide comprehensive session lifecycle management from creation through completion with status tracking and scene integration
-- **Success Criteria**: GMs can create sessions, transition through all status states (Draft → Scheduled → InProgress ↔ Paused → Finished/Cancelled), manage active scenes, and maintain session history
+- **Business Objective**: Provide comprehensive session lifecycle management from creation through completion with status tracking and encounter integration
+- **Success Criteria**: GMs can create sessions, transition through all status states (Draft → Scheduled → InProgress ↔ Paused → Finished/Cancelled), manage active encounters, and maintain session history
 
 ### Area Assignment
 - **Primary Area**: Game
 - **Secondary Areas**: None (self-contained within Game bounded context)
-- **Cross-Area Impact**: References Library context for Scene entities, Identity context for User/Owner relationships
+- **Cross-Area Impact**: References Library context for Encounter entities, Identity context for User/Owner relationships
 
 ---
 
@@ -37,7 +37,7 @@
 ## Architecture Analysis
 
 ### Area Impact Assessment
-- **Game**: Core session lifecycle operations, status state machine, scene assignment, persistence via IGameSessionStorage
+- **Game**: Core session lifecycle operations, status state machine, encounter assignment, persistence via IGameSessionStorage
 
 ### Use Case Breakdown
 - **Create Game Session** (Game): Initialize new game session with GM as owner and Master participant
@@ -50,11 +50,11 @@
 - **Delete Game Session** (Game): Remove session from system (hard delete for Draft, soft delete otherwise)
 - **List Game Sessions By Owner** (Game): Query all sessions owned by specific Game Master
 - **List Active Game Sessions** (Game): Query all sessions currently in InProgress status
-- **Set Active Scene** (Game): Assign or change active scene being used in session
+- **Set Active Encounter** (Game): Assign or change active encounter being used in session
 
 ### Architectural Integration
 - **New Interfaces Needed**: IGameSessionStorage (domain service for persistence and state management)
-- **External Dependencies**: ISceneStorage (for scene reference validation), User service (for owner/participant validation)
+- **External Dependencies**: IEncounterStorage (for encounter reference validation), User service (for owner/participant validation)
 - **Implementation Priority**: High priority - foundational feature for live gameplay
 
 ---
@@ -62,13 +62,13 @@
 ## Technical Considerations
 
 ### Area Interactions
-- **Game** → **Library**: Scene reference validation when setting active scene (SceneId must exist)
+- **Game** → **Library**: Encounter reference validation when setting active encounter (EncounterId must exist)
 - **Game** → **Identity**: Owner and participant validation (UserId must exist in system)
 
 ### Integration Requirements
 - **Data Sharing**: GameSession entity with status, participants, messages, events shared with frontend via API
 - **Interface Contracts**: IGameSessionStorage provides all CRUD and state management operations
-- **Dependency Management**: Foreign key constraints for OwnerId (User) and SceneId (Scene, nullable)
+- **Dependency Management**: Foreign key constraints for OwnerId (User) and EncounterId (Encounter, nullable)
 
 ### Implementation Guidance
 - **Development Approach**: DDD Contracts + Service Implementation pattern - anemic entities with logic in application services
@@ -93,14 +93,14 @@
 - **Finish Game Session**: Complete session lifecycle
 - **Cancel Game Session**: Handle session abortion
 
-#### Phase 3: Session Queries and Scene Management
+#### Phase 3: Session Queries and Encounter Management
 - **List Game Sessions By Owner**: Enable GM to view all their sessions
 - **List Active Game Sessions**: Support discovery of ongoing sessions
-- **Set Active Scene**: Enable tactical map assignment during gameplay
+- **Set Active Encounter**: Enable tactical map assignment during gameplay
 
 ### Dependencies & Prerequisites
-- **Technical Dependencies**: EF Core for persistence, ISceneStorage for scene validation, User service for authentication/authorization
-- **Area Dependencies**: Library context (Scene entity), Identity context (User entity)
+- **Technical Dependencies**: EF Core for persistence, IEncounterStorage for encounter validation, User service for authentication/authorization
+- **Area Dependencies**: Library context (Encounter entity), Identity context (User entity)
 - **External Dependencies**: None (self-contained backend service)
 
 ---
@@ -138,7 +138,7 @@ FEATURE SPECIFICATION QUALITY CHECKLIST
 
 ## Implementation Guidance (20 points)
 ✅ 5pts: New interfaces identified (IGameSessionStorage)
-✅ 5pts: External dependencies documented (Scene, User)
+✅ 5pts: External dependencies documented (Encounter, User)
 ✅ 5pts: Implementation priority stated (High)
 ✅ 5pts: Technical considerations address integration
 

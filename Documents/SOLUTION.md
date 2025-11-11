@@ -2,19 +2,19 @@
 
 **Original Request**: Extract comprehensive technical specification from existing VTTTools codebase
 
-**VTTTools** is a Virtual Tabletop Tools Platform for facilitating online tabletop role-playing games with meeting management, game content hierarchies, interactive scenes, and real-time collaboration. The system enables Game Masters and Players in tabletop RPG communities to create and manage game content through Single Page Application interface.
+**VTTTools** is a Virtual Tabletop Tools Platform for facilitating online tabletop role-playing games with meeting management, game content hierarchies, interactive encounters, and real-time collaboration. The system enables Game Masters and Players in tabletop RPG communities to create and manage game content through Single Page Application interface.
 
 ---
 
 ## Change Log
-- *2025-10-04* — **1.1.0** — Phase 3 completed: Scene editor panning/zoom, authentication improvements, route protection, authorization documentation
+- *2025-10-04* — **1.1.0** — Phase 3 completed: Encounter editor panning/zoom, authentication improvements, route protection, authorization documentation
 - *2025-10-02* — **1.0.0** — Initial specification extracted from existing codebase (Phase 3 development)
 
 ---
 
 ### User Experience
 - **Target Users**: Game Masters and Players in tabletop RPG communities
-- **Primary Workflow**: Game Masters create adventures/campaigns/epics with scenes, place assets/tokens on interactive maps, schedule and run game meetings with real-time chat and dice rolling, while Players join meetings and interact with shared game state
+- **Primary Workflow**: Game Masters create adventures/campaigns/epics with encounters, place assets/tokens on interactive maps, schedule and run game meetings with real-time chat and dice rolling, while Players join meetings and interact with shared game state
 - **Interface Type**: Single Page Application (SPA)
 - **Interaction Method**: Web browser
 
@@ -41,22 +41,22 @@ Current implementation includes:
 ### Game Content Hierarchy
 - **Area**: Library
 - **Type**: Core Feature
-- **Description**: Three-tier content hierarchy (Epic → Campaign → Adventure → Scene) for organizing game content
-- **Use Cases**: Create Epic, Manage Campaigns, Create Adventures, Design Scenes
+- **Description**: Three-tier content hierarchy (Epic → Campaign → Adventure → Encounter) for organizing game content
+- **Use Cases**: Create Epic, Manage Campaigns, Create Adventures, Design Encounters
 - **Status**: 🚧 Phase 2 In Progress
 
 ### Asset Management
 - **Area**: Assets
 - **Type**: Core Feature
 - **Description**: Reusable game assets including creatures, characters, NPCs, objects, tokens, walls, doors, and effects
-- **Use Cases**: Create Asset, Browse Asset Library, Place Asset on Scene
+- **Use Cases**: Create Asset, Browse Asset Library, Place Asset on Encounter
 - **Status**: 🚧 Phase 2 In Progress
 
-### Interactive Scene Editor
+### Interactive Encounter Editor
 - **Area**: Game
 - **Type**: Core Feature
 - **Description**: Konva-based canvas for interactive tactical maps with grid overlay, panning, zoom, and token placement
-- **Use Cases**: Design Scene, Place Tokens, Configure Grid, Set Background
+- **Use Cases**: Design Encounter, Place Tokens, Configure Grid, Set Background
 - **Status**: 🚧 Phase 3 Complete (panning/zoom ✅), Phase 4 Next (grid/layers)
 
 ### Game Session Management
@@ -74,7 +74,7 @@ Current implementation includes:
 - **Identity**: User authentication and authorization with ASP.NET Core Identity
 - **Assets**: Reusable game assets (creatures, characters, NPCs, objects, tokens, walls, doors, effects)
 - **Media**: Media resource management (images, animations, videos) with blob storage integration
-- **Library**: Game content hierarchy management (Epic → Campaign → Adventure → Scene)
+- **Library**: Game content hierarchy management (Epic → Campaign → Adventure → Encounter)
 - **Game**: Active game session management and scheduling with real-time state
 - **Common**: Shared domain primitives and value objects (Shared Kernel pattern)
 
@@ -88,11 +88,11 @@ Current implementation includes:
 ---
 
 ### Domain Interactions
-- **Library → Media**: Adventures and Scenes reference Resource entities for background images
+- **Library → Media**: Adventures and Encounters reference Resource entities for background images
 - **Assets → Media**: Assets reference Resource entities for visual display
-- **Game → Library**: GameSessions reference Scenes for active gameplay
+- **Game → Library**: GameSessions reference Encounters for active gameplay
 - **Game → Identity**: GameSessions and Schedules reference Users as owners and participants
-- **Library → Identity**: All content entities (Epic, Campaign, Adventure, Scene) reference Users as owners
+- **Library → Identity**: All content entities (Epic, Campaign, Adventure, Encounter) reference Users as owners
 - **WebApp → Core**: API controllers delegate to application services
 - **Core → Data**: Application services use storage interfaces (repositories)
 
@@ -102,13 +102,13 @@ Current implementation includes:
 - **Game Master (GM)**: User role that creates and runs games
 - **Player**: User role that participates in games
 - **Adventure**: Reusable game module template
-- **Scene**: Interactive tactical map with grid and assets
+- **Encounter**: Interactive tactical map with grid and assets
 - **Asset**: Reusable game piece (token, object, effect)
-- **Token**: Visual representation of character/creature on the scene
+- **Token**: Visual representation of character/creature on the encounter
 - **Meeting**: Active game session (terminology change from "Session")
 - **Epic**: Multi-campaign story arc spanning multiple campaigns
 - **Campaign**: Multi-adventure storyline connecting related adventures
-- **Stage**: Scene rendering area with background and viewport configuration
+- **Stage**: Encounter rendering area with background and viewport configuration
 - **Grid**: Tactical map overlay (square, hexagonal vertical, hexagonal horizontal, isometric)
 - **Frame**: Asset border styling (square or circle)
 - **Resource**: Media file (image, animation, video) stored in blob storage
@@ -142,18 +142,18 @@ Current implementation includes:
 - **Domain Events**: ResourceUploaded, ResourceDeleted, ResourceMetadataExtracted, ResourceTagsUpdated
 
 #### Library Domain
-- **Entities**: Epic, Campaign, Adventure, Scene
-- **Value Objects**: Stage (background, viewport, dimensions), Grid (type, offset, size, color), SceneAsset (position, dimensions, z-index)
-- **Domain Services**: ContentHierarchyService (validates Epic→Campaign→Adventure→Scene relationships and hierarchy integrity)
-- **Business Rules**: Hierarchical relationships (Epic > Campaign > Adventure > Scene), ownership and visibility rules, adventure type categorization (7 types), grid configuration validation
-- **Domain Events**: EpicCreated, EpicPublished, EpicDeleted, CampaignCreated, CampaignAddedToEpic, CampaignMadeStandalone, AdventureCreated, AdventureCloned, AdventurePublished, SceneCreated, SceneCloned, SceneStageConfigured, SceneGridConfigured, AssetPlacedOnScene, AssetMovedOnScene, AssetRemovedFromScene
+- **Entities**: Epic, Campaign, Adventure, Encounter
+- **Value Objects**: Stage (background, viewport, dimensions), Grid (type, offset, size, color), EncounterAsset (position, dimensions, z-index)
+- **Domain Services**: ContentHierarchyService (validates Epic→Campaign→Adventure→Encounter relationships and hierarchy integrity)
+- **Business Rules**: Hierarchical relationships (Epic > Campaign > Adventure > Encounter), ownership and visibility rules, adventure type categorization (7 types), grid configuration validation
+- **Domain Events**: EpicCreated, EpicPublished, EpicDeleted, CampaignCreated, CampaignAddedToEpic, CampaignMadeStandalone, AdventureCreated, AdventureCloned, AdventurePublished, EncounterCreated, EncounterCloned, EncounterStageConfigured, EncounterGridConfigured, AssetPlacedOnEncounter, AssetMovedOnEncounter, AssetRemovedFromEncounter
 
 #### Game Domain
 - **Entities**: GameSession, Schedule
 - **Value Objects**: Participant (userId, playerType), GameSessionMessage (type, sender, content), GameSessionEvent (type, timestamp, data), Recurrence (frequency, until date)
 - **Domain Services**: SessionLifecycleService (enforces status transition rules and participant management constraints)
 - **Business Rules**: Session status lifecycle (Draft → Scheduled → InProgress → Paused → Finished or Cancelled), player type roles (Guest, Player, Assistant, Master), recurrence patterns (Once, Daily, Weekly, Monthly, Yearly)
-- **Domain Events**: GameSessionCreated, GameSessionStarted, GameSessionPaused, GameSessionResumed, GameSessionFinished, GameSessionCancelled, ParticipantJoined, ParticipantLeft, ParticipantRoleChanged, MessageSent, DiceRolled, GameEventRecorded, ActiveSceneChanged, ScheduleCreated, ScheduleUpdated, SessionsGeneratedFromSchedule
+- **Domain Events**: GameSessionCreated, GameSessionStarted, GameSessionPaused, GameSessionResumed, GameSessionFinished, GameSessionCancelled, ParticipantJoined, ParticipantLeft, ParticipantRoleChanged, MessageSent, DiceRolled, GameEventRecorded, ActiveEncounterChanged, ScheduleCreated, ScheduleUpdated, SessionsGeneratedFromSchedule
 
 ---
 
@@ -162,8 +162,8 @@ Current implementation includes:
 - **Profile Management**: Update profile, manage security settings, recovery codes
 - **Epic Management**: Create, update, delete epics with campaigns
 - **Campaign Management**: Create, update, delete campaigns within epics
-- **Adventure Management**: Create, update, delete adventures with scenes
-- **Scene Management**: Create, update, delete scenes with grid and assets
+- **Adventure Management**: Create, update, delete adventures with encounters
+- **Encounter Management**: Create, update, delete encounters with grid and assets
 - **Asset Management**: Create, update, delete reusable game assets
 - **Resource Management**: Upload, store, retrieve media files
 - **Game Session Management**: Create, schedule, manage active game sessions
@@ -187,14 +187,14 @@ Current implementation includes:
 - **Profile Management**: Profile settings, security settings, recovery code manager
 - **Error Handling**: Global error display, network status, service unavailable page
 - **Layout Components**: AppLayout with error boundary and theme provider
-- **Scene Editor**: Konva canvas with panning and zoom (in progress)
+- **Encounter Editor**: Konva canvas with panning and zoom (in progress)
 
 ---
 
 ## Hexagonal Architecture (Ports & Adapters)
 
 ### Primary Ports (Inbound Interfaces)
-- **REST API Controllers**: AdventuresController, ScenesController, AssetsController, ResourcesController, GameSessionsController
+- **REST API Controllers**: AdventuresController, EncountersController, AssetsController, ResourcesController, GameSessionsController
 - **SignalR Hubs**: ChatHub (text messaging), GameSessionHub (game state synchronization)
 - **Authentication Endpoints**: /api/auth/login, /api/auth/register, /api/auth/logout, /api/auth/2fa, /api/auth/reset-password
 
@@ -203,7 +203,7 @@ Current implementation includes:
 ### Secondary Ports (Outbound Interfaces)
 - **IAssetStorage**: Asset persistence operations
 - **IMediaStorage**: Media resource storage operations
-- **ISceneStorage**: Scene persistence operations
+- **IEncounterStorage**: Encounter persistence operations
 - **IAdventureStorage**: Adventure and campaign persistence operations
 - **IGameSessionStorage**: Game session persistence operations
 
@@ -217,7 +217,7 @@ Current implementation includes:
 ---
 
 ### Secondary Adapters (Outbound)
-- **EF Core Storage Adapters**: AssetStorage, MediaStorage, SceneStorage, AdventureStorage, GameSessionStorage (SQL Server)
+- **EF Core Storage Adapters**: AssetStorage, MediaStorage, EncounterStorage, AdventureStorage, GameSessionStorage (SQL Server)
 - **Azure Blob Storage Adapter**: Production media file storage
 - **Local FileSystem Adapter**: Development media file storage
 - **Azurite Adapter**: Local Azure Storage emulation for development
@@ -257,7 +257,7 @@ Current implementation includes:
 - **React Router 7.9.1**: Client-side routing
 - **React Hook Form 7.62.0**: Form handling and validation
 - **SignalR 9.0.6**: Real-time communication library
-- **Konva 10.0.2 + React-Konva 19.0.10**: Canvas rendering for scene editor
+- **Konva 10.0.2 + React-Konva 19.0.10**: Canvas rendering for encounter editor
 - **Vite 7.1.5**: Frontend build tool
 - **Axios 1.12.1**: HTTP client for API requests
 - **Redis 7.x**: Caching layer via Aspire StackExchange.Redis
@@ -328,9 +328,9 @@ Current implementation includes:
 #### Storage Component (Infrastructure Layer)
 - **Technology**: SQL Server with Entity Framework Core 9.0
 - **Purpose**: Persistent data storage implementing repository pattern
-- **Data Entities**: Resource (media files), Asset (game pieces), Adventure (game modules), Scene (tactical maps), GameSession (active meetings), Schedule (meeting schedules), Epic (story arcs), Campaign (story collections), User (identity), Role (permissions)
+- **Data Entities**: Resource (media files), Asset (game pieces), Adventure (game modules), Encounter (tactical maps), GameSession (active meetings), Schedule (meeting schedules), Epic (story arcs), Campaign (story collections), User (identity), Role (permissions)
 - **Storage Requirements**: SQL Server database for relational data, Azure Blob Storage for media files (production), local filesystem for media (development)
-- **Architecture Role**: Secondary Adapter implementing outbound storage ports (IAssetStorage, IMediaStorage, ISceneStorage, IAdventureStorage, IGameSessionStorage)
+- **Architecture Role**: Secondary Adapter implementing outbound storage ports (IAssetStorage, IMediaStorage, IEncounterStorage, IAdventureStorage, IGameSessionStorage)
 
 ---
 
@@ -372,7 +372,7 @@ Current implementation includes:
 1. **Domain Layer Implementation**: Already established with 15 entities + 11 value objects across 10 bounded contexts
 2. **Application Layer Implementation**: Core services implemented for Asset, Media, Library, Game, Auth use cases
 3. **Infrastructure Layer Implementation**: EF Core storage adapters complete, Azure Blob adapter implemented, Redis caching integrated
-4. **UI Layer Implementation**: Phase 1 (Authentication) complete, Phase 2 (Content Management) in progress, Phase 3 (Scene Editor) started
+4. **UI Layer Implementation**: Phase 1 (Authentication) complete, Phase 2 (Content Management) in progress, Phase 3 (Encounter Editor) started
 5. **Integration Testing**: E2E tests planned with Playwright, unit tests established with xUnit and Vitest
 
 ---
@@ -392,11 +392,11 @@ Current implementation includes:
   - Support 4 ResourceType variations (Image, Animation, Video, Undefined)
   - Implement tag-based organization for resource discovery
   - Enforce blob storage path conventions
-- **Library Domain**: Implement Epic > Campaign > Adventure > Scene hierarchy
+- **Library Domain**: Implement Epic > Campaign > Adventure > Encounter hierarchy
   - Epic as record aggregate root with owned Campaigns collection
   - Campaign as owned entity class with Adventures collection
-  - Adventure as record aggregate with Scenes collection
-  - Scene as record aggregate with Stage, Grid, and SceneAssets value objects
+  - Adventure as record aggregate with Encounters collection
+  - Encounter as record aggregate with Stage, Grid, and EncounterAssets value objects
   - Support 7 AdventureType categories and 5 GridType variations
 - **Game Domain**: Implement GameSession and Schedule aggregates
   - GameSession with Participant, GameSessionMessage, GameSessionEvent value objects
@@ -419,14 +419,14 @@ Current implementation includes:
   - Input validation: EpicId existence, ownership verification
   - Domain coordination: Campaign creation within Epic, Adventure collection management
   - Output: Campaign DTO with adventure count, hierarchy path
-- **Adventure Management**: Create adventures with scene collections
+- **Adventure Management**: Create adventures with encounter collections
   - Input validation: CampaignId optional (standalone adventures allowed), AdventureType enum
-  - Domain coordination: Adventure creation, Scene collection, background Resource
-  - Output: Adventure DTO with scene count, adventure type, publication status
-- **Scene Management**: Design scenes with grid, stage, and asset placement
-  - Input validation: Stage dimensions, Grid configuration (type, size, offset), SceneAsset positions
-  - Domain coordination: Scene creation, SceneAsset value object collection
-  - Output: Scene DTO with stage config, grid config, asset placements
+  - Domain coordination: Adventure creation, Encounter collection, background Resource
+  - Output: Adventure DTO with encounter count, adventure type, publication status
+- **Encounter Management**: Design encounters with grid, stage, and asset placement
+  - Input validation: Stage dimensions, Grid configuration (type, size, offset), EncounterAsset positions
+  - Domain coordination: Encounter creation, EncounterAsset value object collection
+  - Output: Encounter DTO with stage config, grid config, asset placements
 - **Asset Management**: Create reusable game assets with display resources
   - Input validation: AssetType enum (15 types), Display Resource reference
   - Domain coordination: Asset creation, Frame configuration, Resource linkage
@@ -436,14 +436,14 @@ Current implementation includes:
   - Domain coordination: Resource entity creation, blob storage upload, metadata extraction
   - Output: Resource DTO with storage path, metadata, tags
 - **Game Session Management**: Create and manage active game meetings
-  - Input validation: participant list, scene reference (optional), status lifecycle
+  - Input validation: participant list, encounter reference (optional), status lifecycle
   - Domain coordination: GameSession creation, Participant value objects, message/event collections
-  - Output: GameSession DTO with participants, messages, events, scene reference
+  - Output: GameSession DTO with participants, messages, events, encounter reference
 
 ---
 
 #### Infrastructure Layer Implementation
-- **EF Core Storage Adapters**: Implement IAssetStorage, IMediaStorage, ISceneStorage, IAdventureStorage, IGameSessionStorage using ApplicationDbContext
+- **EF Core Storage Adapters**: Implement IAssetStorage, IMediaStorage, IEncounterStorage, IAdventureStorage, IGameSessionStorage using ApplicationDbContext
   - Handle query operations with LINQ and EF Core tracking
   - Manage entity relationships with eager/explicit loading
   - Provide transaction support via DbContext
@@ -493,10 +493,10 @@ Current implementation includes:
 
 ### Phase 1: Domain Foundation ✅ COMPLETE
 1. **Domain Modeling**: 10 bounded contexts with proper domain boundaries (Identity, Assets, Media, Library, Game, Common, Data, Auth, WebApp, Core)
-2. **Entity Creation**: 15 entities with business invariants (Resource, Asset, Adventure, Scene, GameSession, Schedule, Epic, Campaign, User, Role, UserRole, UserClaim, RoleClaim, UserLogin, UserToken)
-3. **Value Objects**: 11 immutable value objects (ResourceMetadata, ResourceFile, SceneAsset, Stage, Grid, Participant, GameSessionMessage, GameSessionEvent, Recurrence, Frame, Display)
-4. **Domain Services**: Storage interfaces defined (IAssetStorage, IMediaStorage, ISceneStorage, IAdventureStorage, IGameSessionStorage)
-5. **Ubiquitous Language**: Consistent terminology (Game Master, Player, Adventure, Scene, Asset, Token, Meeting, Epic, Campaign, Stage, Grid, Frame, Resource, Participant)
+2. **Entity Creation**: 15 entities with business invariants (Resource, Asset, Adventure, Encounter, GameSession, Schedule, Epic, Campaign, User, Role, UserRole, UserClaim, RoleClaim, UserLogin, UserToken)
+3. **Value Objects**: 11 immutable value objects (ResourceMetadata, ResourceFile, EncounterAsset, Stage, Grid, Participant, GameSessionMessage, GameSessionEvent, Recurrence, Frame, Display)
+4. **Domain Services**: Storage interfaces defined (IAssetStorage, IMediaStorage, IEncounterStorage, IAdventureStorage, IGameSessionStorage)
+5. **Ubiquitous Language**: Consistent terminology (Game Master, Player, Adventure, Encounter, Asset, Token, Meeting, Epic, Campaign, Stage, Grid, Frame, Resource, Participant)
 
 ---
 
@@ -533,7 +533,7 @@ Current implementation includes:
 
 ---
 
-This VTTTools specification provides AI development agents with comprehensive architectural guidance for building a Virtual Tabletop Tools Platform that serves Game Masters and Players in tabletop RPG communities through Single Page Application interface. The specification enforces DDD principles, Clean Architecture patterns, and Hexagonal Architecture to ensure maintainable, testable, and scalable code structure focusing on facilitating online tabletop role-playing games with meeting management, game content hierarchies, interactive scenes, and real-time collaboration with proper architectural foundations.
+This VTTTools specification provides AI development agents with comprehensive architectural guidance for building a Virtual Tabletop Tools Platform that serves Game Masters and Players in tabletop RPG communities through Single Page Application interface. The specification enforces DDD principles, Clean Architecture patterns, and Hexagonal Architecture to ensure maintainable, testable, and scalable code structure focusing on facilitating online tabletop role-playing games with meeting management, game content hierarchies, interactive encounters, and real-time collaboration with proper architectural foundations.
 
 ---
 
@@ -566,7 +566,7 @@ This VTTTools specification provides AI development agents with comprehensive ar
 
 **Overall Confidence**: High (100% entity and enum coverage, complete technology stack verification)
 **Extraction Date**: 2025-10-02
-**Development Phase**: Phase 3 (Interactive Scenes and Tokens) - panning/zoom complete, grid and token placement in progress
+**Development Phase**: Phase 3 (Interactive Encounters and Tokens) - panning/zoom complete, grid and token placement in progress
 
 ---
 
@@ -590,7 +590,7 @@ PROJECT SPECIFICATION QUALITY CHECKLIST
 ## Domain Architecture (DDD) (30 points)
 ✅ 10pts: Bounded contexts identified with clear responsibilities (10 contexts: Identity, Assets, Media, Library, Game, Common, Data, Auth, WebApp, Core)
 ✅ 5pts: Domain interactions documented with direction (Library→Media, Assets→Media, Game→Library, etc.)
-✅ 5pts: Ubiquitous language defined (13 core domain terms: GM, Player, Adventure, Scene, Asset, Token, Meeting, Epic, Campaign, Stage, Grid, Frame, Resource, Participant)
+✅ 5pts: Ubiquitous language defined (13 core domain terms: GM, Player, Adventure, Encounter, Asset, Token, Meeting, Epic, Campaign, Stage, Grid, Frame, Resource, Participant)
 ✅ 5pts: Domain entities, value objects, services specified per context (15 entities, 11 value objects, 5 storage services)
 ⚠️ 5pts: Domain events identified for state changes (NOT IMPLEMENTED - documented as N/A)
 
@@ -602,7 +602,7 @@ PROJECT SPECIFICATION QUALITY CHECKLIST
 
 ## Hexagonal Architecture (Ports & Adapters) (15 points)
 ✅ 5pts: Primary ports defined (REST API controllers, SignalR hubs)
-✅ 5pts: Secondary ports defined (5 storage interfaces: IAssetStorage, IMediaStorage, ISceneStorage, IAdventureStorage, IGameSessionStorage)
+✅ 5pts: Secondary ports defined (5 storage interfaces: IAssetStorage, IMediaStorage, IEncounterStorage, IAdventureStorage, IGameSessionStorage)
 ✅ 3pts: Primary adapters specified (ASP.NET Core WebApp, SignalR Hubs, React SPA)
 ✅ 2pts: Secondary adapters specified (EF Core Storage, Azure Blob, Local FileSystem, Azurite)
 

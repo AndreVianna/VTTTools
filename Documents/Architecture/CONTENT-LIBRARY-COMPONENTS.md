@@ -8,7 +8,7 @@
 
 ## Overview
 
-This document specifies all components for the Content Library feature, including shared components (reusable across hierarchy levels) and type-specific components (scenes, adventures, etc.).
+This document specifies all components for the Content Library feature, including shared components (reusable across hierarchy levels) and type-specific components (encounters, adventures, etc.).
 
 ## Shared Components (Reusable)
 
@@ -257,19 +257,19 @@ interface SaveIndicatorProps {
 
 ---
 
-## Scene-Specific Components
+## Encounter-Specific Components
 
-### SceneCard
+### EncounterCard
 
-**Location**: `src/features/content-library/components/scenes/SceneCard.tsx`
+**Location**: `src/features/content-library/components/encounters/EncounterCard.tsx`
 **Extends**: ContentCard
 
-**Purpose**: Display scene preview in list
+**Purpose**: Display encounter preview in list
 
 **Additional Props**:
 ```typescript
-interface SceneCardProps {
-  scene: Scene;
+interface EncounterCardProps {
+  encounter: Encounter;
   onClick: (id: string) => void;
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
@@ -278,7 +278,7 @@ interface SceneCardProps {
 
 **Display Elements**:
 - **Thumbnail**: Placeholder (future: canvas screenshot)
-- **Title**: Scene name
+- **Title**: Encounter name
 - **Subtitle**: Grid type (e.g., "Square Grid")
 - **Badges**:
   - Published badge (if isPublished)
@@ -299,17 +299,17 @@ interface SceneCardProps {
 
 ---
 
-### SceneMetadataMenu
+### EncounterMetadataMenu
 
-**Location**: `src/features/content-library/components/scenes/SceneMetadataMenu.tsx`
+**Location**: `src/features/content-library/components/encounters/EncounterMetadataMenu.tsx`
 
-**Purpose**: Contents of Scene dropdown menu
+**Purpose**: Contents of Encounter dropdown menu
 
 **Props**:
 ```typescript
-interface SceneMetadataMenuProps {
-  scene: Scene;
-  onUpdate: (updates: Partial<Scene>) => void;
+interface EncounterMetadataMenuProps {
+  encounter: Encounter;
+  onUpdate: (updates: Partial<Encounter>) => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }
@@ -322,7 +322,7 @@ interface SceneMetadataMenuProps {
 <FormControl fullWidth size="small">
   <InputLabel>Adventure</InputLabel>
   <Select
-    value={scene.adventureId || 'none'}
+    value={encounter.adventureId || 'none'}
     onChange={(e) => onUpdate({ adventureId: e.target.value === 'none' ? null : e.target.value })}
   >
     <MenuItem value="none">None (Standalone)</MenuItem>
@@ -339,9 +339,9 @@ interface SceneMetadataMenuProps {
   label="Description"
   multiline
   rows={4}
-  value={scene.description}
+  value={encounter.description}
   onChange={(e) => onUpdate({ description: e.target.value })}
-  placeholder="Describe your scene..."
+  placeholder="Describe your encounter..."
   fullWidth
 />
 ```
@@ -349,7 +349,7 @@ interface SceneMetadataMenuProps {
 **3. Published Toggle**:
 ```tsx
 <PublishToggle
-  isPublished={scene.isPublished}
+  isPublished={encounter.isPublished}
   onChange={(published) => onUpdate({ isPublished: published })}
 />
 ```
@@ -359,35 +359,35 @@ interface SceneMetadataMenuProps {
 <Divider />
 <MenuItem onClick={onDuplicate}>
   <ListItemIcon><ContentCopyIcon /></ListItemIcon>
-  Duplicate Scene
+  Duplicate Encounter
 </MenuItem>
 <MenuItem onClick={onDelete}>
   <ListItemIcon><DeleteIcon /></ListItemIcon>
-  Delete Scene
+  Delete Encounter
 </MenuItem>
 ```
 
 ---
 
-### SceneListView
+### EncounterListView
 
-**Location**: `src/features/content-library/components/scenes/SceneListView.tsx`
+**Location**: `src/features/content-library/components/encounters/EncounterListView.tsx`
 
-**Purpose**: Scenes tab content in Content Library
+**Purpose**: Encounters tab content in Content Library
 
 **Props**: None (uses hooks)
 
 **Hooks**:
 ```typescript
-const { data: scenes, isLoading } = useGetScenesQuery();
-const [createScene] = useCreateSceneMutation();
-const [deleteScene] = useDeleteSceneMutation();
+const { data: encounters, isLoading } = useGetEncountersQuery();
+const [createEncounter] = useCreateEncounterMutation();
+const [deleteEncounter] = useDeleteEncounterMutation();
 const navigate = useNavigate();
 ```
 
 **Features**:
 - Uses ContentListLayout wrapper
-- Renders SceneCard for each scene
+- Renders EncounterCard for each encounter
 - Handles create/duplicate/delete
 - Search filters by name
 - Filter by grid type, published status
@@ -396,13 +396,13 @@ const navigate = useNavigate();
 **Create New Flow**:
 ```typescript
 const handleCreateNew = async () => {
-  const newScene = await createScene({
-    name: 'Untitled Scene',
+  const newEncounter = await createEncounter({
+    name: 'Untitled Encounter',
     description: '',
     grid: getDefaultGrid()
   }).unwrap();
 
-  navigate(`/scene-editor/${newScene.id}`);
+  navigate(`/encounter-editor/${newEncounter.id}`);
 };
 ```
 
@@ -482,14 +482,14 @@ sx={{
   <nav aria-label="Content types">
     <Tabs>...</Tabs>
   </nav>
-  <section aria-label="Scene list">
+  <section aria-label="Encounter list">
     <Grid>...</Grid>
   </section>
 </main>
 ```
 
 **ARIA Labels**:
-- Buttons: `aria-label="Create new scene"`
+- Buttons: `aria-label="Create new encounter"`
 - Icons: `aria-hidden="true"` (if decorative)
 - Forms: `aria-describedby` for help text
 - Live regions: `aria-live="polite"` for save status
@@ -536,9 +536,9 @@ describe('ContentCard', () => {
 });
 ```
 
-**SceneCard**:
+**EncounterCard**:
 ```typescript
-describe('SceneCard', () => {
+describe('EncounterCard', () => {
   it('extends ContentCard correctly');
   it('displays grid type icon');
   it('shows asset count');
@@ -549,14 +549,14 @@ describe('SceneCard', () => {
 
 ### Integration Test Coverage
 
-**Scene List + API**:
+**Encounter List + API**:
 ```typescript
-describe('SceneListView', () => {
-  it('fetches and displays scenes');
+describe('EncounterListView', () => {
+  it('fetches and displays encounters');
   it('filters by search term');
-  it('creates new scene and navigates');
-  it('duplicates scene');
-  it('deletes scene with confirmation');
+  it('creates new encounter and navigates');
+  it('duplicates encounter');
+  it('deletes encounter with confirmation');
   it('handles empty state');
   it('handles loading state');
   it('handles API errors');
@@ -583,17 +583,17 @@ describe('SceneListView', () => {
 
 | Component | Reusable? | Notes |
 |-----------|-----------|-------|
-| SceneCard | No | Scene-specific rendering |
-| SceneMetadataMenu | No | Scene properties only |
-| SceneListView | Partial | Pattern reusable, content not |
+| EncounterCard | No | Encounter-specific rendering |
+| EncounterMetadataMenu | No | Encounter properties only |
+| EncounterListView | Partial | Pattern reusable, content not |
 
 ### Type-Specific (Phase 8 - Future)
 
 | Component | Build in Phase 8 | Based On |
 |-----------|------------------|----------|
 | AdventureCard | Yes | ContentCard pattern |
-| AdventureMetadataMenu | Yes | SceneMetadataMenu pattern |
-| AdventureListView | Yes | SceneListView pattern |
+| AdventureMetadataMenu | Yes | EncounterMetadataMenu pattern |
+| AdventureListView | Yes | EncounterListView pattern |
 
 **Estimated Code Reuse**: 60-70% in Phase 8
 
@@ -617,17 +617,17 @@ describe('SceneListView', () => {
 
 **Expensive Components**:
 ```typescript
-export const SceneCard = React.memo(SceneCardComponent);
+export const EncounterCard = React.memo(EncounterCardComponent);
 export const ContentCard = React.memo(ContentCardComponent);
 ```
 
 **useMemo for Filtering**:
 ```typescript
-const filteredScenes = useMemo(() => {
-  return scenes.filter(s =>
+const filteredEncounters = useMemo(() => {
+  return encounters.filter(s =>
     s.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-}, [scenes, searchTerm]);
+}, [encounters, searchTerm]);
 ```
 
 ---
@@ -639,7 +639,7 @@ const filteredScenes = useMemo(() => {
 **ErrorBoundary Wrapping**:
 ```tsx
 <ErrorBoundary fallback={<ContentListError />}>
-  <SceneListView />
+  <EncounterListView />
 </ErrorBoundary>
 ```
 
@@ -652,15 +652,15 @@ const filteredScenes = useMemo(() => {
 
 **Error States**:
 - Network error: "Cannot connect. Check your internet."
-- Not found: "Scene not found. It may have been deleted."
-- Validation: "Scene name is required."
-- Permission: "You don't have permission to edit this scene."
+- Not found: "Encounter not found. It may have been deleted."
+- Validation: "Encounter name is required."
+- Permission: "You don't have permission to edit this encounter."
 
 **Success States**:
-- Create: "Scene created successfully"
+- Create: "Encounter created successfully"
 - Update: "Changes saved" (via SaveIndicator)
-- Delete: "Scene deleted"
-- Duplicate: "Scene duplicated"
+- Delete: "Encounter deleted"
+- Duplicate: "Encounter duplicated"
 
 ---
 
@@ -671,7 +671,7 @@ const filteredScenes = useMemo(() => {
 **Pattern**: PascalCase
 - EditableTitle.tsx
 - ContentCard.tsx
-- SceneListView.tsx
+- EncounterListView.tsx
 
 **Test Files**: {Component}.test.tsx
 - EditableTitle.test.tsx
@@ -729,7 +729,7 @@ interface ContentCardProps { ... }
 - Displayed in cards
 
 ### Bulk Operations
-- Multi-select scenes
+- Multi-select encounters
 - Bulk delete
 - Bulk publish/unpublish
 - Bulk move to adventure
@@ -741,8 +741,8 @@ interface ContentCardProps { ... }
 - Tag system
 
 ### Drag-and-Drop
-- Reorder scenes
-- Drag scene to adventure (Phase 8)
+- Reorder encounters
+- Drag encounter to adventure (Phase 8)
 
 ---
 

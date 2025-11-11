@@ -11,12 +11,12 @@ Feature: Delete Resource
     And the Media storage service is operational
     
 
-  Rule: Resource cannot be deleted if referenced by Assets or Scenes
+  Rule: Resource cannot be deleted if referenced by Assets or Encounters
 
     Scenario: Accept deletion of unreferenced resource
       Given resource "resource-123" exists
       And no assets reference resource "resource-123"
-      And no scenes reference resource "resource-123"
+      And no encounters reference resource "resource-123"
       When I delete the resource
       Then the resource should be deleted successfully
       And I should receive 204 No Content
@@ -28,20 +28,20 @@ Feature: Delete Resource
       Then I should see error with conflict error
       And I should see error "Resource cannot be deleted. Referenced by 1 asset(s): {assetId}"
 
-    Scenario: Reject deletion when referenced by Scene
+    Scenario: Reject deletion when referenced by Encounter
       Given resource "resource-789" exists
-      And scene "scene-123" uses resource as background
+      And encounter "encounter-123" uses resource as background
       When I attempt to delete the resource
       Then I should see error with conflict error
-      And I should see error "Resource cannot be deleted. Used as background in 1 scene(s): {sceneId}"
+      And I should see error "Resource cannot be deleted. Used as background in 1 encounter(s): {encounterId}"
 
     Scenario: Reject deletion with multiple references
       Given resource "resource-multi" exists
       And 3 assets reference the resource
-      And 2 scenes reference the resource
+      And 2 encounters reference the resource
       When I attempt to delete the resource
       Then I should see error with conflict error
-      And I should see error "Referenced by 3 asset(s) and 2 scene(s)"
+      And I should see error "Referenced by 3 asset(s) and 2 encounter(s)"
 
   Rule: Resource entity and blob storage file must be synchronized during deletion
 
@@ -148,12 +148,12 @@ Feature: Delete Resource
 
   @data-driven
   Scenario Outline: Delete resources with different reference scenarios
-    Given resource exists with <assetRefs> asset references and <sceneRefs> scene references
+    Given resource exists with <assetRefs> asset references and <encounterRefs> encounter references
     When I attempt to delete the resource
     Then the result should be "<result>"
 
     Examples:
-      | assetRefs | sceneRefs | result    |
+      | assetRefs | encounterRefs | result    |
       | 0         | 0         | success   |
       | 1         | 0         | conflict  |
       | 0         | 1         | conflict  |
