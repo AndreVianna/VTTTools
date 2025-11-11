@@ -8,5 +8,5 @@ global using VttTools.Assets.ServiceContracts;
 global using VttTools.Common.Model;
 global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Campaigns.Model;
-global using VttTools.Library.Scenes.Model;
+global using VttTools.Library.Encounters.Model;
 global using VttTools.Media.Model;

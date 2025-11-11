@@ -107,23 +107,23 @@ export function migrateOldAssetToNew(oldAsset: any): any {
 }
 
 /**
- * Migrate old scene with SceneAsset resourceId to new schema with token object
+ * Migrate old encounter with EncounterAsset resourceId to new schema with token object
  */
-export function migrateOldSceneAssetToNew(oldSceneAsset: any): any {
-    const token = oldSceneAsset.resourceId ? {
-        id: oldSceneAsset.resourceId,
+export function migrateOldEncounterAssetToNew(oldEncounterAsset: any): any {
+    const token = oldEncounterAsset.resourceId ? {
+        id: oldEncounterAsset.resourceId,
         type: 'Image',
-        path: `/media/${oldSceneAsset.resourceId}.png`,
+        path: `/media/${oldEncounterAsset.resourceId}.png`,
         metadata: {
             contentType: 'image/png',
-            fileName: `${oldSceneAsset.resourceId}.png`,
+            fileName: `${oldEncounterAsset.resourceId}.png`,
             fileLength: 0
         },
         tags: []
     } : undefined;
 
     return {
-        ...oldSceneAsset,
+        ...oldEncounterAsset,
         token,
         resourceId: undefined
     };

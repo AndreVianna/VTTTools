@@ -13,8 +13,8 @@ internal static class ContentHandlers {
         [FromQuery] string? search,
         [FromQuery] string? owner,
         [FromQuery] bool? isOneShot,
-        [FromQuery] int? minSceneCount,
-        [FromQuery] int? maxSceneCount,
+        [FromQuery] int? minEncounterCount,
+        [FromQuery] int? maxEncounterCount,
         [FromServices] IContentQueryService contentService,
         CancellationToken ct = default) {
 
@@ -53,8 +53,8 @@ internal static class ContentHandlers {
             Search = search,
             Owner = owner,
             IsOneShot = isOneShot,
-            MinSceneCount = minSceneCount,
-            MaxSceneCount = maxSceneCount
+            MinEncounterCount = minEncounterCount,
+            MaxEncounterCount = maxEncounterCount
         };
 
         var result = await contentService.GetContentAsync(userId, filters, ct);

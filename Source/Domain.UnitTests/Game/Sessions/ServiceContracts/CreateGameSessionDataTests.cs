@@ -6,21 +6,21 @@ public class CreateGameSessionDataTests {
         // Arrange
         var original = new CreateGameSessionData {
             Title = "Title",
-            SceneId = Guid.CreateVersion7(),
+            EncounterId = Guid.CreateVersion7(),
         };
         const string name = "Other Title";
-        var sceneId = Guid.CreateVersion7();
+        var encounterId = Guid.CreateVersion7();
 
         // Act
         // ReSharper disable once WithExpressionModifiesAllMembers
         var data = original with {
             Title = name,
-            SceneId = sceneId,
+            EncounterId = encounterId,
         };
 
         // Assert
         data.Title.Should().Be(name);
-        data.SceneId.Should().Be(sceneId);
+        data.EncounterId.Should().Be(encounterId);
     }
 
     [Fact]

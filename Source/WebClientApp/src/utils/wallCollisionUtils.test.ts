@@ -10,7 +10,7 @@ import {
     detectPoleOnEdgeCollision,
     type BoundingBox,
 } from './wallCollisionUtils';
-import type { Point, SceneWall, Pole } from '@/types/domain';
+import type { Point, EncounterWall, Pole } from '@/types/domain';
 import { GridType, type GridConfig } from '@/utils/gridCalculator';
 import { WallVisibility } from '@/types/domain';
 
@@ -21,8 +21,8 @@ const createDefaultGridConfig = (): GridConfig => ({
     snap: true,
 });
 
-const createWall = (poles: Pole[], index: number = 0, isClosed: boolean = false): SceneWall => ({
-    sceneId: 'scene1',
+const createWall = (poles: Pole[], index: number = 0, isClosed: boolean = false): EncounterWall => ({
+    encounterId: 'encounter1',
     index,
     name: `Wall ${index}`,
     poles,
@@ -303,7 +303,7 @@ describe('detectPoleOnPoleCollision', () => {
 
     it('should use spatial hash for large datasets', () => {
         const newPoles = [createPoint(50, 50)];
-        const existingWalls: SceneWall[] = [];
+        const existingWalls: EncounterWall[] = [];
 
         for (let i = 0; i < 100; i++) {
             existingWalls.push(createWall([createPole(i * 20, i * 20)], i));
@@ -605,7 +605,7 @@ describe('Performance benchmarks', () => {
             newPoles.push(createPoint(i * 10, i * 10));
         }
 
-        const existingWalls: SceneWall[] = [];
+        const existingWalls: EncounterWall[] = [];
         for (let i = 0; i < 200; i++) {
             const poles = [createPole(i * 5, i * 5), createPole(i * 5 + 10, i * 5)];
             existingWalls.push(createWall(poles, i));
@@ -625,7 +625,7 @@ describe('Performance benchmarks', () => {
             newPoles.push(createPoint(i * 10, 0));
         }
 
-        const existingWalls: SceneWall[] = [];
+        const existingWalls: EncounterWall[] = [];
         for (let i = 0; i < 20; i++) {
             const poles = [createPole(0, i * 10), createPole(200, i * 10)];
             existingWalls.push(createWall(poles, i));
@@ -642,12 +642,12 @@ describe('Performance benchmarks', () => {
     it('should compare brute force vs spatial hash performance', () => {
         const newPoles = [createPoint(5000, 5000)];
 
-        const smallDataset: SceneWall[] = [];
+        const smallDataset: EncounterWall[] = [];
         for (let i = 0; i < 30; i++) {
             smallDataset.push(createWall([createPole(i * 10, i * 10)], i));
         }
 
-        const largeDataset: SceneWall[] = [];
+        const largeDataset: EncounterWall[] = [];
         for (let i = 0; i < 100; i++) {
             largeDataset.push(createWall([createPole(i * 10, i * 10)], i));
         }

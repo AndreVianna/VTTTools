@@ -11,7 +11,7 @@ export interface UIState {
     auth: boolean;
     assets: boolean;
     adventures: boolean;
-    scenes: boolean;
+    encounters: boolean;
     sessions: boolean;
   };
 
@@ -72,7 +72,7 @@ const initialState: UIState = {
     auth: false,
     assets: false,
     adventures: false,
-    scenes: false,
+    encounters: false,
     sessions: false,
   },
   modals: {},

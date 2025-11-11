@@ -180,7 +180,7 @@ export const AssetLibraryPage: React.FC = () => {
                         Asset Library
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Manage your objects and creatures for scenes
+                        Manage your objects and creatures for encounters
                     </Typography>
                 </Box>
 

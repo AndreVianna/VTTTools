@@ -202,57 +202,57 @@ public class AdventureHandlersTests {
     }
 
     [Fact]
-    public async Task GetScenesHandler_ReturnsOkResult() {
+    public async Task GetEncountersHandler_ReturnsOkResult() {
         // Arrange
         var adventureId = Guid.CreateVersion7();
-        var scenes = new[] {
-            new Scene { Id = Guid.CreateVersion7(), Name = "Scene 1" },
-            new Scene { Id = Guid.CreateVersion7(), Name = "Scene 2" },
+        var encounters = new[] {
+            new Encounter { Id = Guid.CreateVersion7(), Name = "Encounter 1" },
+            new Encounter { Id = Guid.CreateVersion7(), Name = "Encounter 2" },
         };
 
-        _adventureService.GetScenesAsync(adventureId, Arg.Any<CancellationToken>())
-            .Returns(scenes);
+        _adventureService.GetEncountersAsync(adventureId, Arg.Any<CancellationToken>())
+            .Returns(encounters);
 
         // Act
-        var result = await AdventureHandlers.GetScenesHandler(adventureId, _adventureService);
+        var result = await AdventureHandlers.GetEncountersHandler(adventureId, _adventureService);
 
         // Assert
-        var response = result.Should().BeOfType<Ok<Scene[]>>().Subject;
-        response.Value.Should().BeEquivalentTo(scenes);
+        var response = result.Should().BeOfType<Ok<Encounter[]>>().Subject;
+        response.Value.Should().BeEquivalentTo(encounters);
     }
 
     [Fact]
-    public async Task AddSceneHandler_WithValidRequest_ReturnsCreatedResult() {
+    public async Task AddEncounterHandler_WithValidRequest_ReturnsCreatedResult() {
         // Arrange
         var adventureId = Guid.CreateVersion7();
-        var clonedScene = new Scene {
+        var clonedEncounter = new Encounter {
             Id = Guid.CreateVersion7(),
             Name = "Cloned Adventure",
         };
 
-        _adventureService.AddClonedSceneAsync(_userId, adventureId, clonedScene.Id, Arg.Any<CancellationToken>())
-            .Returns(clonedScene);
+        _adventureService.AddClonedEncounterAsync(_userId, adventureId, clonedEncounter.Id, Arg.Any<CancellationToken>())
+            .Returns(clonedEncounter);
 
         // Act
-        var result = await AdventureHandlers.AddClonedSceneHandler(_httpContext, adventureId, clonedScene.Id, _adventureService);
+        var result = await AdventureHandlers.AddClonedEncounterHandler(_httpContext, adventureId, clonedEncounter.Id, _adventureService);
 
         // Assert
-        // NOTE: AddClonedSceneHandler returns Ok<Scene> on success, not NoContent
-        var response = result.Should().BeOfType<Ok<Scene>>().Subject;
-        response.Value.Should().BeEquivalentTo(clonedScene);
+        // NOTE: AddClonedEncounterHandler returns Ok<Encounter> on success, not NoContent
+        var response = result.Should().BeOfType<Ok<Encounter>>().Subject;
+        response.Value.Should().BeEquivalentTo(clonedEncounter);
     }
 
     [Fact]
-    public async Task AddSceneHandler_WithInvalidScene_ReturnsBadRequest() {
+    public async Task AddEncounterHandler_WithInvalidEncounter_ReturnsBadRequest() {
         // Arrange
         var adventureId = Guid.CreateVersion7();
-        var sceneId = Guid.CreateVersion7();
+        var encounterId = Guid.CreateVersion7();
 
-        _adventureService.AddClonedSceneAsync(_userId, adventureId, sceneId, Arg.Any<CancellationToken>())
+        _adventureService.AddClonedEncounterAsync(_userId, adventureId, encounterId, Arg.Any<CancellationToken>())
             .Returns(Result.Failure("Some error."));
 
         // Act
-        var result = await AdventureHandlers.AddClonedSceneHandler(_httpContext, adventureId, sceneId, _adventureService);
+        var result = await AdventureHandlers.AddClonedEncounterHandler(_httpContext, adventureId, encounterId, _adventureService);
 
         // Assert
         // NOTE: Handler returns BadRequest with error collection

@@ -10,11 +10,11 @@
 //     type DeleteWallCommandParams,
 //     type BreakWallCommandParams,
 // } from './wallCommands';
-// import type { SceneWall, Pole } from '@/types/domain';
+// import type { EncounterWall, Pole } from '@/types/domain';
 // import { WallVisibility } from '@/types/domain';
 
-// const createMockWall = (index: number, name: string = `Wall ${index}`): SceneWall => ({
-//     sceneId: 'scene-1',
+// const createMockWall = (index: number, name: string = `Wall ${index}`): EncounterWall => ({
+//     encounterId: 'encounter-1',
 //     index,
 //     name,
 //     poles: [
@@ -27,8 +27,8 @@
 //     color: '#808080'
 // });
 
-// const createMockSegmentWall = (index: number, poles: Pole[]): SceneWall => ({
-//     sceneId: 'scene-1',
+// const createMockSegmentWall = (index: number, poles: Pole[]): EncounterWall => ({
+//     encounterId: 'encounter-1',
 //     index,
 //     name: `Segment ${index}`,
 //     poles,
@@ -42,7 +42,7 @@
 //     it('should set description property correctly', () => {
 //         const mockWall = createMockWall(0);
 //         const params: CreateWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wall: mockWall,
 //             onCreate: vi.fn(),
 //             onRemove: vi.fn(),
@@ -59,7 +59,7 @@
 //         const onCreate = vi.fn();
 //         const onRemove = vi.fn();
 //         const params: CreateWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wall: mockWall,
 //             onCreate,
 //             onRemove,
@@ -77,7 +77,7 @@
 //         const mockWall = createMockWall(0);
 //         const onRemove = vi.fn().mockResolvedValue(undefined);
 //         const params: CreateWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wall: mockWall,
 //             onCreate: vi.fn(),
 //             onRemove,
@@ -87,7 +87,7 @@
 //         const command = new CreateWallCommand(params);
 //         await command.undo();
 
-//         expect(onRemove).toHaveBeenCalledWith('scene-1', 0);
+//         expect(onRemove).toHaveBeenCalledWith('encounter-1', 0);
 //         expect(onRemove).toHaveBeenCalledTimes(1);
 //     });
 
@@ -96,7 +96,7 @@
 //         const onRemove = vi.fn().mockResolvedValue(undefined);
 //         const onRefetch = vi.fn().mockResolvedValue(undefined);
 //         const params: CreateWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wall: mockWall,
 //             onCreate: vi.fn(),
 //             onRemove,
@@ -113,7 +113,7 @@
 //         const mockWall = createMockWall(0);
 //         const onCreate = vi.fn().mockResolvedValue({ ...mockWall, index: 5 });
 //         const params: CreateWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wall: mockWall,
 //             onCreate,
 //             onRemove: vi.fn(),
@@ -123,7 +123,7 @@
 //         const command = new CreateWallCommand(params);
 //         await command.redo();
 
-//         expect(onCreate).toHaveBeenCalledWith('scene-1', {
+//         expect(onCreate).toHaveBeenCalledWith('encounter-1', {
 //             name: mockWall.name,
 //             poles: mockWall.poles,
 //             visibility: mockWall.visibility,
@@ -140,7 +140,7 @@
 //         const onCreate = vi.fn().mockResolvedValue({ ...mockWall, index: newIndex });
 //         const onRemove = vi.fn().mockResolvedValue(undefined);
 //         const params: CreateWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wall: mockWall,
 //             onCreate,
 //             onRemove,
@@ -152,7 +152,7 @@
 
 //         await command.undo();
 
-//         expect(onRemove).toHaveBeenCalledWith('scene-1', 0);
+//         expect(onRemove).toHaveBeenCalledWith('encounter-1', 0);
 //     });
 // });
 
@@ -161,7 +161,7 @@
 //         const oldWall = createMockWall(0, 'Old Wall');
 //         const newWall = createMockWall(0, 'New Wall');
 //         const params: EditWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wallIndex: 0,
 //             oldWall,
 //             newWall,
@@ -179,7 +179,7 @@
 //         const newWall = createMockWall(0, 'Edited Wall');
 //         const onUpdate = vi.fn();
 //         const params: EditWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wallIndex: 0,
 //             oldWall,
 //             newWall,
@@ -198,7 +198,7 @@
 //         const newWall = createMockWall(0, 'New Wall');
 //         const onUpdate = vi.fn().mockResolvedValue(undefined);
 //         const params: EditWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wallIndex: 0,
 //             oldWall,
 //             newWall,
@@ -209,7 +209,7 @@
 //         const command = new EditWallCommand(params);
 //         await command.undo();
 
-//         expect(onUpdate).toHaveBeenCalledWith('scene-1', 0, {
+//         expect(onUpdate).toHaveBeenCalledWith('encounter-1', 0, {
 //             name: oldWall.name,
 //             poles: oldWall.poles,
 //             visibility: oldWall.visibility,
@@ -226,7 +226,7 @@
 //         const onUpdate = vi.fn().mockResolvedValue(undefined);
 //         const onRefetch = vi.fn().mockResolvedValue(undefined);
 //         const params: EditWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wallIndex: 0,
 //             oldWall,
 //             newWall,
@@ -242,7 +242,7 @@
 
 //     it('should call onUpdate with newWall properties on redo', async () => {
 //         const oldWall = createMockWall(0, 'Old Wall');
-//         const newWall: SceneWall = {
+//         const newWall: EncounterWall = {
 //             ...createMockWall(0, 'New Wall'),
 //             poles: [{ x: 50, y: 50, h: 15 }],
 //             visibility: WallVisibility.Invisible,
@@ -252,7 +252,7 @@
 //         };
 //         const onUpdate = vi.fn().mockResolvedValue(undefined);
 //         const params: EditWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wallIndex: 0,
 //             oldWall,
 //             newWall,
@@ -263,7 +263,7 @@
 //         const command = new EditWallCommand(params);
 //         await command.redo();
 
-//         expect(onUpdate).toHaveBeenCalledWith('scene-1', 0, {
+//         expect(onUpdate).toHaveBeenCalledWith('encounter-1', 0, {
 //             name: newWall.name,
 //             poles: newWall.poles,
 //             visibility: newWall.visibility,
@@ -280,7 +280,7 @@
 //         const onUpdate = vi.fn().mockResolvedValue(undefined);
 //         const onRefetch = vi.fn().mockResolvedValue(undefined);
 //         const params: EditWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wallIndex: 0,
 //             oldWall,
 //             newWall,
@@ -299,7 +299,7 @@
 //     it('should set description property correctly', () => {
 //         const mockWall = createMockWall(0, 'Wall to Delete');
 //         const params: DeleteWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wallIndex: 0,
 //             wall: mockWall,
 //             onAdd: vi.fn(),
@@ -317,7 +317,7 @@
 //         const onAdd = vi.fn();
 //         const onRemove = vi.fn();
 //         const params: DeleteWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wallIndex: 0,
 //             wall: mockWall,
 //             onAdd,
@@ -336,7 +336,7 @@
 //         const mockWall = createMockWall(0);
 //         const onAdd = vi.fn().mockResolvedValue({ ...mockWall, index: 10 });
 //         const params: DeleteWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wallIndex: 0,
 //             wall: mockWall,
 //             onAdd,
@@ -347,7 +347,7 @@
 //         const command = new DeleteWallCommand(params);
 //         await command.undo();
 
-//         expect(onAdd).toHaveBeenCalledWith('scene-1', {
+//         expect(onAdd).toHaveBeenCalledWith('encounter-1', {
 //             name: mockWall.name,
 //             poles: mockWall.poles,
 //             visibility: mockWall.visibility,
@@ -363,7 +363,7 @@
 //         const restoredIndex = 15;
 //         const onAdd = vi.fn().mockResolvedValue({ ...mockWall, index: restoredIndex });
 //         const params: DeleteWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wallIndex: 0,
 //             wall: mockWall,
 //             onAdd,
@@ -382,7 +382,7 @@
 //         const onAdd = vi.fn().mockResolvedValue({ ...mockWall, index: 10 });
 //         const onRefetch = vi.fn().mockResolvedValue(undefined);
 //         const params: DeleteWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wallIndex: 0,
 //             wall: mockWall,
 //             onAdd,
@@ -402,7 +402,7 @@
 //         const onAdd = vi.fn().mockResolvedValue({ ...mockWall, index: restoredIndex });
 //         const onRemove = vi.fn().mockResolvedValue(undefined);
 //         const params: DeleteWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wallIndex: 0,
 //             wall: mockWall,
 //             onAdd,
@@ -414,7 +414,7 @@
 //         await command.undo();
 //         await command.redo();
 
-//         expect(onRemove).toHaveBeenCalledWith('scene-1', restoredIndex);
+//         expect(onRemove).toHaveBeenCalledWith('encounter-1', restoredIndex);
 //         expect(onRemove).toHaveBeenCalledTimes(1);
 //     });
 
@@ -424,7 +424,7 @@
 //         const onRemove = vi.fn().mockResolvedValue(undefined);
 //         const onRefetch = vi.fn().mockResolvedValue(undefined);
 //         const params: DeleteWallCommandParams = {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             wallIndex: 0,
 //             wall: mockWall,
 //             onAdd,
@@ -455,7 +455,7 @@
 //         ];
 
 //         return {
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             originalWallIndex: 0,
 //             originalWall,
 //             newWalls,
@@ -492,8 +492,8 @@
 //         await command.undo();
 
 //         expect(onRemove).toHaveBeenCalledTimes(2);
-//         expect(onRemove).toHaveBeenCalledWith('scene-1', 1);
-//         expect(onRemove).toHaveBeenCalledWith('scene-1', 2);
+//         expect(onRemove).toHaveBeenCalledWith('encounter-1', 1);
+//         expect(onRemove).toHaveBeenCalledWith('encounter-1', 2);
 //     });
 
 //     it('should call onUpdate to restore original wall on undo', async () => {
@@ -505,7 +505,7 @@
 //         command.execute();
 //         await command.undo();
 
-//         expect(onUpdate).toHaveBeenCalledWith('scene-1', 0, {
+//         expect(onUpdate).toHaveBeenCalledWith('encounter-1', 0, {
 //             name: params.originalWall.name,
 //             poles: params.originalWall.poles,
 //             visibility: params.originalWall.visibility,
@@ -540,7 +540,7 @@
 //         const command = new BreakWallCommand(params);
 //         await command.redo();
 
-//         expect(onRemove).toHaveBeenCalledWith('scene-1', 0);
+//         expect(onRemove).toHaveBeenCalledWith('encounter-1', 0);
 //         expect(onRemove).toHaveBeenCalledTimes(1);
 //     });
 
@@ -555,7 +555,7 @@
 //         await command.redo();
 
 //         expect(onAdd).toHaveBeenCalledTimes(2);
-//         expect(onAdd).toHaveBeenNthCalledWith(1, 'scene-1', {
+//         expect(onAdd).toHaveBeenNthCalledWith(1, 'encounter-1', {
 //             name: params.newWalls[0].name,
 //             poles: params.newWalls[0].poles,
 //             visibility: params.newWalls[0].visibility,
@@ -563,7 +563,7 @@
 //             material: params.newWalls[0].material,
 //             color: params.newWalls[0].color
 //         });
-//         expect(onAdd).toHaveBeenNthCalledWith(2, 'scene-1', {
+//         expect(onAdd).toHaveBeenNthCalledWith(2, 'encounter-1', {
 //             name: params.newWalls[1].name,
 //             poles: params.newWalls[1].poles,
 //             visibility: params.newWalls[1].visibility,

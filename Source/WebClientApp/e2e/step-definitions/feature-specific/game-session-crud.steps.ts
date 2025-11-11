@@ -30,7 +30,7 @@ interface GameSession {
     title: string;
     status: 'Draft' | 'Scheduled' | 'InProgress' | 'Paused' | 'Finished' | 'Cancelled';
     players: Participant[];
-    sceneId: string | null;
+    encounterId: string | null;
     createdAt: string;
 }
 
@@ -49,12 +49,12 @@ interface Participant {
 async function createGameSession(
     world: CustomWorld,
     title: string,
-    sceneId?: string
+    encounterId?: string
 ): Promise<GameSession> {
     const response = await world.page.request.post('/api/game-sessions', {
         data: {
             title,
-            sceneId: sceneId || null
+            encounterId: encounterId || null
         },
         headers: {
             'x-user': world.encodeUserId(world.currentUser.id),
@@ -232,9 +232,9 @@ Then('the session has a unique identifier', async function (this: CustomWorld) {
     expect(session.id).toMatch(/^[0-9a-f-]{36}$/i);
 });
 
-Then('the session has no active scene', async function (this: CustomWorld) {
+Then('the session has no active encounter', async function (this: CustomWorld) {
     const session = getCurrentSession(this);
-    expect(session.sceneId).toBeNull();
+    expect(session.encounterId).toBeNull();
 });
 
 Then('the session was created with the current timestamp', async function (this: CustomWorld) {
@@ -432,7 +432,7 @@ Given('the session does not exist', async function (this: CustomWorld) {
         title: 'Non-existent',
         status: 'Draft',
         players: [],
-        sceneId: null,
+        encounterId: null,
         createdAt: new Date().toISOString()
     };
 });
@@ -721,22 +721,22 @@ Then('I receive an error indicating only Draft sessions can be deleted', async f
 });
 
 // ============================================================================
-// SCENE ASSIGNMENT STEPS
+// ENCOUNTER ASSIGNMENT STEPS
 // ============================================================================
 
-Given('I have a scene named {string} in my library', async function (this: CustomWorld, _sceneName: string) {
-    // Create scene via API (requires implementation)
-    // For now, use a mock scene ID
-    // TODO: Store sceneName for validation if needed
-    this.currentSceneId = '01234567-89ab-7cde-8123-456789abcdef';
+Given('I have a encounter named {string} in my library', async function (this: CustomWorld, _encounterName: string) {
+    // Create encounter via API (requires implementation)
+    // For now, use a mock encounter ID
+    // TODO: Store encounterName for validation if needed
+    this.currentEncounterId = '01234567-89ab-7cde-8123-456789abcdef';
 });
 
-When('I set {string} as the active scene for my session', async function (this: CustomWorld, _sceneName: string) {
+When('I set {string} as the active encounter for my session', async function (this: CustomWorld, _encounterName: string) {
     const session = getCurrentSession(this);
 
     const response = await this.page.request.patch(`/api/game-sessions/${session.id}`, {
         data: {
-            sceneId: this.currentSceneId
+            encounterId: this.currentEncounterId
         },
         headers: {
             'x-user': this.encodeUserId(this.currentUser.id),
@@ -749,19 +749,19 @@ When('I set {string} as the active scene for my session', async function (this: 
     this.lastApiResponse = response;
 });
 
-Then('my session active scene is set to {string}', async function (this: CustomWorld, _sceneName: string) {
+Then('my session active encounter is set to {string}', async function (this: CustomWorld, _encounterName: string) {
     expect(this.lastApiResponse!.ok()).toBe(true);
 
-    // TODO: Validate sceneName if scene lookup is implemented
+    // TODO: Validate encounterName if encounter lookup is implemented
     const session = getCurrentSession(this);
     const updatedSession = await getGameSession(this, session.id);
-    expect(updatedSession?.sceneId).toBe(this.currentSceneId!);
+    expect(updatedSession?.encounterId).toBe(this.currentEncounterId!);
 });
 
-Then('participants can view the active scene', async function (this: CustomWorld) {
-    // Verify scene is accessible (requires scene API implementation)
+Then('participants can view the active encounter', async function (this: CustomWorld) {
+    // Verify encounter is accessible (requires encounter API implementation)
     const session = getCurrentSession(this);
-    expect(session.sceneId).toBeTruthy();
+    expect(session.encounterId).toBeTruthy();
 });
 
 // ============================================================================

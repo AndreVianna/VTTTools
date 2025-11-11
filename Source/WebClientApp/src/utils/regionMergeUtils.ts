@@ -1,4 +1,4 @@
-import type { Point, SceneRegion } from '@/types/domain';
+import type { Point, EncounterRegion } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import polygonClipping from 'polygon-clipping';
 import { snapToNearest, SnapMode } from '@/utils/structureSnapping';
@@ -24,7 +24,7 @@ interface SharedEdge {
     endIdx2: number;
 }
 
-export function regionsMatch(r1: SceneRegion, r2: SceneRegion): boolean {
+export function regionsMatch(r1: EncounterRegion, r2: EncounterRegion): boolean {
     if (r1.type !== r2.type) return false;
     if (r1.value !== r2.value) return false;
     if (r1.label !== r2.label) return false;
@@ -116,13 +116,13 @@ export function polygonsOverlap(v1: Point[], v2: Point[]): boolean {
 }
 
 export function findMergeableRegions(
-    existingRegions: SceneRegion[],
+    existingRegions: EncounterRegion[],
     newVertices: Point[],
     type: string,
     value?: number,
     label?: string
-): SceneRegion[] {
-    const mergeable: SceneRegion[] = [];
+): EncounterRegion[] {
+    const mergeable: EncounterRegion[] = [];
 
     for (const region of existingRegions) {
         const normalizedRegionValue = region.value ?? undefined;

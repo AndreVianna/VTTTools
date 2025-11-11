@@ -9,7 +9,7 @@
 //     type Ray,
 //     type LineSegment
 // } from './lineOfSightCalculation';
-// import { WallVisibility, type Point, type SceneWall, type SceneSource } from '@/types/domain';
+// import { WallVisibility, type Point, type EncounterWall, type EncounterSource } from '@/types/domain';
 // import type { GridConfig } from '@/utils/gridCalculator';
 
 // describe('distanceBetweenPoints', () => {
@@ -222,9 +222,9 @@
 
 // describe('extractOpaqueSegments', () => {
 //     it('should extract segments from single Wall', () => {
-//         const sceneWalls: SceneWall[] = [
+//         const encounterWalls: EncounterWall[] = [
 //             {
-//                 sceneId: 'scene-1',
+//                 encounterId: 'encounter-1',
 //                 index: 0,
 //                 name: 'Test Wall',
 //                 poles: [
@@ -238,7 +238,7 @@
 //             }
 //         ];
 
-//         const segments = extractOpaqueSegments(sceneWalls);
+//         const segments = extractOpaqueSegments(encounterWalls);
 //         expect(segments).toHaveLength(2);
 //         expect(segments[0]).toEqual({
 //             start: { x: 0, y: 0 },
@@ -256,9 +256,9 @@
 //     });
 
 //     it('should filter out non-Normal visibility Walls', () => {
-//         const sceneWalls: SceneWall[] = [
+//         const encounterWalls: EncounterWall[] = [
 //             {
-//                 sceneId: 'scene-1',
+//                 encounterId: 'encounter-1',
 //                 index: 0,
 //                 name: 'Fence',
 //                 poles: [
@@ -270,15 +270,15 @@
 //             }
 //         ];
 
-//         const segments = extractOpaqueSegments(sceneWalls);
+//         const segments = extractOpaqueSegments(encounterWalls);
 //         expect(segments).toHaveLength(0);
 //     });
 
 //     it('should extract segments from multiple Walls', () => {
-//         const sceneWalls: SceneWall[] = [
+//         const encounterWalls: EncounterWall[] = [
 //             {
 //                 id: '1',
-//                 sceneId: 'scene-1',
+//                 encounterId: 'encounter-1',
 //                 WallId: 'Wall-1',
 //                 poles: [
 //                     { x: 0, y: 0, h: 2 },
@@ -287,7 +287,7 @@
 //             },
 //             {
 //                 id: '2',
-//                 sceneId: 'scene-1',
+//                 encounterId: 'encounter-1',
 //                 WallId: 'Wall-2',
 //                 poles: [
 //                     { x: 20, y: 0, h: 2 },
@@ -325,15 +325,15 @@
 //             }
 //         ];
 
-//         const segments = extractOpaqueSegments(sceneWalls, Walls);
+//         const segments = extractOpaqueSegments(encounterWalls, Walls);
 //         expect(segments).toHaveLength(3);
 //     });
 
 //     it('should handle closed Walls', () => {
-//         const sceneWalls: SceneWall[] = [
+//         const encounterWalls: EncounterWall[] = [
 //             {
 //                 id: '1',
-//                 sceneId: 'scene-1',
+//                 encounterId: 'encounter-1',
 //                 WallId: 'Wall-1',
 //                 poles: [
 //                     { x: 0, y: 0, h: 2 },
@@ -359,15 +359,15 @@
 //             }
 //         ];
 
-//         const segments = extractOpaqueSegments(sceneWalls, Walls);
+//         const segments = extractOpaqueSegments(encounterWalls, Walls);
 //         expect(segments).toHaveLength(3);
 //     });
 
 //     it('should handle Wall with two poles', () => {
-//         const sceneWalls: SceneWall[] = [
+//         const encounterWalls: EncounterWall[] = [
 //             {
 //                 id: '1',
-//                 sceneId: 'scene-1',
+//                 encounterId: 'encounter-1',
 //                 WallId: 'Wall-1',
 //                 poles: [
 //                     { x: 0, y: 0, h: 2 },
@@ -391,7 +391,7 @@
 //             }
 //         ];
 
-//         const segments = extractOpaqueSegments(sceneWalls, Walls);
+//         const segments = extractOpaqueSegments(encounterWalls, Walls);
 //         expect(segments).toHaveLength(1);
 //         expect(segments[0]).toEqual({
 //             start: { x: 0, y: 0 },
@@ -409,9 +409,9 @@
 //     };
 
 //     it('should generate 72 rays', () => {
-//         const source: SceneSource = {
+//         const source: EncounterSource = {
 //             id: '1',
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             sourceId: 'source-1',
 //             position: { x: 100, y: 100 },
 //             range: 5,
@@ -424,9 +424,9 @@
 //     });
 
 //     it('should create full circle when no Walls', () => {
-//         const source: SceneSource = {
+//         const source: EncounterSource = {
 //             id: '1',
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             sourceId: 'source-1',
 //             position: { x: 100, y: 100 },
 //             range: 5,
@@ -445,9 +445,9 @@
 //     });
 
 //     it('should truncate rays at opaque Wall', () => {
-//         const source: SceneSource = {
+//         const source: EncounterSource = {
 //             id: '1',
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             sourceId: 'source-1',
 //             position: { x: 100, y: 100 },
 //             range: 10,
@@ -455,10 +455,10 @@
 //             isGradient: true
 //         };
 
-//         const sceneWalls: SceneWall[] = [
+//         const encounterWalls: EncounterWall[] = [
 //             {
 //                 id: '1',
-//                 sceneId: 'scene-1',
+//                 encounterId: 'encounter-1',
 //                 WallId: 'Wall-1',
 //                 poles: [
 //                     { x: 200, y: 50, h: 2 },
@@ -482,7 +482,7 @@
 //             }
 //         ];
 
-//         const result = calculateLineOfSight(source, source.range, sceneWalls, Walls, gridConfig);
+//         const result = calculateLineOfSight(source, source.range, encounterWalls, Walls, gridConfig);
 
 //         const eastRays = result.filter(p => p.x > source.position.x && Math.abs(p.y - source.position.y) < 50);
 //         const blockedRays = eastRays.filter(p => Math.abs(p.x - 200) < 5);
@@ -491,9 +491,9 @@
 //     });
 
 //     it('should use range parameter from source', () => {
-//         const source: SceneSource = {
+//         const source: EncounterSource = {
 //             id: '1',
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             sourceId: 'source-1',
 //             position: { x: 100, y: 100 },
 //             range: 3,
@@ -512,9 +512,9 @@
 //     });
 
 //     it('should handle multiple Walls', () => {
-//         const source: SceneSource = {
+//         const source: EncounterSource = {
 //             id: '1',
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             sourceId: 'source-1',
 //             position: { x: 100, y: 100 },
 //             range: 10,
@@ -522,10 +522,10 @@
 //             isGradient: true
 //         };
 
-//         const sceneWalls: SceneWall[] = [
+//         const encounterWalls: EncounterWall[] = [
 //             {
 //                 id: '1',
-//                 sceneId: 'scene-1',
+//                 encounterId: 'encounter-1',
 //                 WallId: 'Wall-1',
 //                 poles: [
 //                     { x: 200, y: 50, h: 2 },
@@ -534,7 +534,7 @@
 //             },
 //             {
 //                 id: '2',
-//                 sceneId: 'scene-1',
+//                 encounterId: 'encounter-1',
 //                 WallId: 'Wall-2',
 //                 poles: [
 //                     { x: 50, y: 0, h: 2 },
@@ -570,7 +570,7 @@
 //             }
 //         ];
 
-//         const result = calculateLineOfSight(source, source.range, sceneWalls, Walls, gridConfig);
+//         const result = calculateLineOfSight(source, source.range, encounterWalls, Walls, gridConfig);
 //         expect(result).toHaveLength(72);
 
 //         const allAtMaxRange = result.every(p => {
@@ -583,9 +583,9 @@
 //     });
 
 //     it('should handle source at grid origin', () => {
-//         const source: SceneSource = {
+//         const source: EncounterSource = {
 //             id: '1',
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             sourceId: 'source-1',
 //             position: { x: 0, y: 0 },
 //             range: 5,
@@ -604,9 +604,9 @@
 //     });
 
 //     it('should handle zero range', () => {
-//         const source: SceneSource = {
+//         const source: EncounterSource = {
 //             id: '1',
-//             sceneId: 'scene-1',
+//             encounterId: 'encounter-1',
 //             sourceId: 'source-1',
 //             position: { x: 100, y: 100 },
 //             range: 0,

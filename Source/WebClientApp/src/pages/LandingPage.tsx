@@ -151,15 +151,15 @@ export const LandingPage: React.FC = () => {
           </Typography>
 
           <Grid container spacing={3} sx={{ mb: 4 }}>
-            {/* Scene Editor - Phase 3-4 Complete */}
+            {/* Encounter Editor - Phase 3-4 Complete */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card id="card-scene-editor" elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Card id="card-encounter-editor" elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                  <MapIcon id="icon-scene-editor" color="primary" sx={{ fontSize: 48, mb: 2 }} />
-                  <Typography id="title-scene-editor" variant="h6" gutterBottom>
-                    Scene Editor
+                  <MapIcon id="icon-encounter-editor" color="primary" sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography id="title-encounter-editor" variant="h6" gutterBottom>
+                    Encounter Editor
                   </Typography>
-                  <Typography id="desc-scene-editor" variant="body2" color="text.secondary">
+                  <Typography id="desc-encounter-editor" variant="body2" color="text.secondary">
                     Create tactical maps with grids and tokens
                   </Typography>
                 </CardContent>
@@ -168,7 +168,7 @@ export const LandingPage: React.FC = () => {
                     id="btn-open-editor"
                     size="small"
                     variant="contained"
-                    onClick={() => navigate('/scene-editor')}
+                    onClick={() => navigate('/encounter-editor')}
                   >
                     Open Editor
                   </Button>
@@ -185,7 +185,7 @@ export const LandingPage: React.FC = () => {
                     Library
                   </Typography>
                   <Typography id="desc-library" variant="body2" color="text.secondary">
-                    Manage scenes, adventures, campaigns
+                    Manage encounters, adventures, campaigns
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'center', pb: 2 }}>

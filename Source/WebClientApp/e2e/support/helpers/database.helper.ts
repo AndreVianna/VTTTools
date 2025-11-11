@@ -26,10 +26,10 @@ const ALLOWED_TABLES = [
     'Adventures',
     'Campaigns',
     'Epics',
-    'Scenes',
-    'SceneAssets',
-    'SceneEffects',
-    'SceneStructures',
+    'Encounters',
+    'EncounterAssets',
+    'EncounterEffects',
+    'EncounterStructures',
     // Game tables
     'GameSessions',
     'Schedule',
@@ -434,38 +434,38 @@ export class DatabaseHelper {
     }
 
     /**
-     * Clean up test scenes and related data
+     * Clean up test encounters and related data
      */
-    async cleanupScenes(sceneIds: string[]): Promise<void> {
-        if (sceneIds.length === 0) return;
+    async cleanupEncounters(encounterIds: string[]): Promise<void> {
+        if (encounterIds.length === 0) return;
 
-        const placeholders = sceneIds.map(() => '?').join(',');
+        const placeholders = encounterIds.map(() => '?').join(',');
         const query = `
-            DELETE FROM SceneAssets WHERE SceneId IN (${placeholders});
-            DELETE FROM SceneEffects WHERE SceneId IN (${placeholders});
-            DELETE FROM SceneStructures WHERE SceneId IN (${placeholders});
-            DELETE FROM Scenes WHERE Id IN (${placeholders});
+            DELETE FROM EncounterAssets WHERE EncounterId IN (${placeholders});
+            DELETE FROM EncounterEffects WHERE EncounterId IN (${placeholders});
+            DELETE FROM EncounterStructures WHERE EncounterId IN (${placeholders});
+            DELETE FROM Encounters WHERE Id IN (${placeholders});
         `;
 
-        // sceneIds repeated 4 times (once for each DELETE)
-        await this.executeQuery(query, [...sceneIds, ...sceneIds, ...sceneIds, ...sceneIds]);
+        // encounterIds repeated 4 times (once for each DELETE)
+        await this.executeQuery(query, [...encounterIds, ...encounterIds, ...encounterIds, ...encounterIds]);
     }
 
     /**
-     * Verify scene stage configuration in database
+     * Verify encounter stage configuration in database
      */
-    async verifySceneStage(sceneId: string, expectedStage: Partial<any>): Promise<void> {
-        const [scene] = await this.queryTable('Scenes', { Id: sceneId });
+    async verifyEncounterStage(encounterId: string, expectedStage: Partial<any>): Promise<void> {
+        const [encounter] = await this.queryTable('Encounters', { Id: encounterId });
 
-        if (!scene) {
-            throw new Error(`Scene with ID ${sceneId} not found in database`);
+        if (!encounter) {
+            throw new Error(`Encounter with ID ${encounterId} not found in database`);
         }
 
-        if (!scene.Stage) {
-            throw new Error(`Scene ${sceneId} has no stage configuration`);
+        if (!encounter.Stage) {
+            throw new Error(`Encounter ${encounterId} has no stage configuration`);
         }
 
-        const stageConfig = JSON.parse(scene.Stage);
+        const stageConfig = JSON.parse(encounter.Stage);
 
         for (const [key, expectedValue] of Object.entries(expectedStage)) {
             if (stageConfig[key] !== expectedValue) {
@@ -477,20 +477,20 @@ export class DatabaseHelper {
     }
 
     /**
-     * Verify scene grid configuration in database
+     * Verify encounter grid configuration in database
      */
-    async verifySceneGrid(sceneId: string, expectedGrid: Partial<any>): Promise<void> {
-        const [scene] = await this.queryTable('Scenes', { Id: sceneId });
+    async verifyEncounterGrid(encounterId: string, expectedGrid: Partial<any>): Promise<void> {
+        const [encounter] = await this.queryTable('Encounters', { Id: encounterId });
 
-        if (!scene) {
-            throw new Error(`Scene with ID ${sceneId} not found in database`);
+        if (!encounter) {
+            throw new Error(`Encounter with ID ${encounterId} not found in database`);
         }
 
-        if (!scene.Grid) {
-            throw new Error(`Scene ${sceneId} has no grid configuration`);
+        if (!encounter.Grid) {
+            throw new Error(`Encounter ${encounterId} has no grid configuration`);
         }
 
-        const gridConfig = JSON.parse(scene.Grid);
+        const gridConfig = JSON.parse(encounter.Grid);
 
         for (const [key, expectedValue] of Object.entries(expectedGrid)) {
             if (gridConfig[key] !== expectedValue) {
@@ -502,22 +502,22 @@ export class DatabaseHelper {
     }
 
     /**
-     * Verify asset placement count on scene
+     * Verify asset placement count on encounter
      */
-    async verifySceneAssetPlacementCount(sceneId: string, expectedCount: number): Promise<void> {
-        const placements = await this.queryTable('SceneAssets', { SceneId: sceneId });
+    async verifyEncounterAssetPlacementCount(encounterId: string, expectedCount: number): Promise<void> {
+        const placements = await this.queryTable('EncounterAssets', { EncounterId: encounterId });
 
         if (placements.length !== expectedCount) {
             throw new Error(
-                `Scene asset placement count mismatch: expected ${expectedCount}, got ${placements.length}`
+                `Encounter asset placement count mismatch: expected ${expectedCount}, got ${placements.length}`
             );
         }
     }
 
     /**
-     * Insert scene into database
+     * Insert encounter into database
      */
-    async insertScene(scene: {
+    async insertEncounter(encounter: {
         name: string;
         ownerId: string;
         adventureId: string;
@@ -526,28 +526,28 @@ export class DatabaseHelper {
         width: number;
         height: number;
     }): Promise<string> {
-        const sceneId = this.generateGuidV7();
+        const encounterId = this.generateGuidV7();
         const query = `
-            INSERT INTO Scenes
+            INSERT INTO Encounters
             (Id, Name, OwnerId, AdventureId, GridType, GridSize, Width, Height, CreatedAt, UpdatedAt)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const params = [
-            sceneId,
-            scene.name,
-            scene.ownerId,
-            scene.adventureId,
-            scene.gridType,
-            scene.gridSize,
-            scene.width,
-            scene.height,
+            encounterId,
+            encounter.name,
+            encounter.ownerId,
+            encounter.adventureId,
+            encounter.gridType,
+            encounter.gridSize,
+            encounter.width,
+            encounter.height,
             new Date(),
             new Date()
         ];
 
         await this.executeQuery(query, params);
-        return sceneId;
+        return encounterId;
     }
 
     /**
@@ -580,10 +580,10 @@ export class DatabaseHelper {
     }
 
     /**
-     * Insert scene asset (placed asset) into database
+     * Insert encounter asset (placed asset) into database
      */
-    async insertSceneAsset(sceneAsset: {
-        sceneId: string;
+    async insertEncounterAsset(encounterAsset: {
+        encounterId: string;
         assetId: string;
         x: number;
         y: number;
@@ -592,27 +592,27 @@ export class DatabaseHelper {
         rotation: number;
         layer: number;
     }): Promise<string> {
-        const sceneAssetId = this.generateGuidV7();
+        const encounterAssetId = this.generateGuidV7();
         const query = `
-            INSERT INTO SceneAssets
-            (Id, SceneId, AssetId, X, Y, Width, Height, Rotation, Layer, Visible, Locked, ScaleX, ScaleY)
+            INSERT INTO EncounterAssets
+            (Id, EncounterId, AssetId, X, Y, Width, Height, Rotation, Layer, Visible, Locked, ScaleX, ScaleY)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, 1.0, 1.0)
         `;
 
         const params = [
-            sceneAssetId,
-            sceneAsset.sceneId,
-            sceneAsset.assetId,
-            sceneAsset.x,
-            sceneAsset.y,
-            sceneAsset.width,
-            sceneAsset.height,
-            sceneAsset.rotation,
-            sceneAsset.layer
+            encounterAssetId,
+            encounterAsset.encounterId,
+            encounterAsset.assetId,
+            encounterAsset.x,
+            encounterAsset.y,
+            encounterAsset.width,
+            encounterAsset.height,
+            encounterAsset.rotation,
+            encounterAsset.layer
         ];
 
         await this.executeQuery(query, params);
-        return sceneAssetId;
+        return encounterAssetId;
     }
 
     /**
@@ -622,7 +622,7 @@ export class DatabaseHelper {
         title: string;
         ownerId: string;
         status?: string;
-        sceneId?: string | null;
+        encounterId?: string | null;
     }): Promise<string> {
         const sessionId = this.generateGuidV7();
         const players = JSON.stringify([
@@ -631,7 +631,7 @@ export class DatabaseHelper {
 
         const query = `
             INSERT INTO GameSessions
-            (Id, OwnerId, Title, Status, SceneId, Players, Messages, Events, CreatedAt)
+            (Id, OwnerId, Title, Status, EncounterId, Players, Messages, Events, CreatedAt)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
@@ -640,7 +640,7 @@ export class DatabaseHelper {
             session.ownerId,
             session.title,
             session.status || 'Draft',
-            session.sceneId || null,
+            session.encounterId || null,
             players,
             '[]',
             '[]',
@@ -736,11 +736,11 @@ export class DatabaseHelper {
      */
     async deleteUserDataOnly(userId: string): Promise<void> {
         const query = `
-            DELETE FROM SceneAssets WHERE SceneId IN (SELECT Id FROM Scenes WHERE OwnerId = ?);
-            DELETE FROM SceneEffects WHERE SceneId IN (SELECT Id FROM Scenes WHERE OwnerId = ?);
-            DELETE FROM SceneStructures WHERE SceneId IN (SELECT Id FROM Scenes WHERE OwnerId = ?);
+            DELETE FROM EncounterAssets WHERE EncounterId IN (SELECT Id FROM Encounters WHERE OwnerId = ?);
+            DELETE FROM EncounterEffects WHERE EncounterId IN (SELECT Id FROM Encounters WHERE OwnerId = ?);
+            DELETE FROM EncounterStructures WHERE EncounterId IN (SELECT Id FROM Encounters WHERE OwnerId = ?);
             DELETE FROM Assets WHERE OwnerId = ?;
-            DELETE FROM Scenes WHERE OwnerId = ?;
+            DELETE FROM Encounters WHERE OwnerId = ?;
             DELETE FROM Adventures WHERE OwnerId = ?;
             DELETE FROM Campaigns WHERE OwnerId = ?;
             DELETE FROM Epics WHERE OwnerId = ?;

@@ -6,7 +6,7 @@ import {
     findMergeableRegions,
     mergePolygons,
 } from './regionMergeUtils';
-import type { Point, SceneRegion } from '@/types/domain';
+import type { Point, EncounterRegion } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 import { GridType } from '@/utils/gridCalculator';
 
@@ -45,8 +45,8 @@ vi.mock('@/utils/polygonUtils', () => ({
 import polygonClipping from 'polygon-clipping';
 
 describe('regionsMatch', () => {
-    const baseRegion: SceneRegion = {
-        sceneId: 'scene1',
+    const baseRegion: EncounterRegion = {
+        encounterId: 'encounter1',
         index: 0,
         name: 'Region 1',
         type: 'difficult-terrain',
@@ -327,8 +327,8 @@ describe('findMergeableRegions', () => {
         vertices: Point[],
         value?: number,
         label?: string
-    ): SceneRegion => ({
-        sceneId: 'scene1',
+    ): EncounterRegion => ({
+        encounterId: 'encounter1',
         index: 0,
         name: 'Region',
         type,
@@ -349,7 +349,7 @@ describe('findMergeableRegions', () => {
             { x: 10, y: 10 },
         ];
 
-        const existingRegions: SceneRegion[] = [
+        const existingRegions: EncounterRegion[] = [
             createRegion('difficult-terrain', [
                 { x: 0, y: 0 },
                 { x: 10, y: 0 },
@@ -371,7 +371,7 @@ describe('findMergeableRegions', () => {
             { x: 5, y: 15 },
         ];
 
-        const existingRegions: SceneRegion[] = [
+        const existingRegions: EncounterRegion[] = [
             createRegion('difficult-terrain', [
                 { x: 0, y: 0 },
                 { x: 10, y: 0 },
@@ -396,7 +396,7 @@ describe('findMergeableRegions', () => {
             { x: 10, y: 10 },
         ];
 
-        const existingRegions: SceneRegion[] = [
+        const existingRegions: EncounterRegion[] = [
             createRegion('hazard', [
                 { x: 0, y: 0 },
                 { x: 10, y: 0 },
@@ -417,7 +417,7 @@ describe('findMergeableRegions', () => {
             { x: 10, y: 10 },
         ];
 
-        const existingRegions: SceneRegion[] = [
+        const existingRegions: EncounterRegion[] = [
             createRegion('difficult-terrain', [
                 { x: 0, y: 0 },
                 { x: 10, y: 0 },
@@ -438,7 +438,7 @@ describe('findMergeableRegions', () => {
             { x: 10, y: 10 },
         ];
 
-        const existingRegions: SceneRegion[] = [
+        const existingRegions: EncounterRegion[] = [
             createRegion('difficult-terrain', [
                 { x: 0, y: 0 },
                 { x: 10, y: 0 },
@@ -459,7 +459,7 @@ describe('findMergeableRegions', () => {
             { x: 10, y: 10 },
         ];
 
-        const existingRegions: SceneRegion[] = [
+        const existingRegions: EncounterRegion[] = [
             createRegion('difficult-terrain', [
                 { x: 0, y: 0 },
                 { x: 10, y: 0 },
@@ -480,7 +480,7 @@ describe('findMergeableRegions', () => {
             { x: 20, y: 30 },
         ];
 
-        const existingRegions: SceneRegion[] = [
+        const existingRegions: EncounterRegion[] = [
             createRegion('difficult-terrain', [
                 { x: 0, y: 0 },
                 { x: 10, y: 0 },
@@ -501,7 +501,7 @@ describe('findMergeableRegions', () => {
             { x: 10, y: 10 },
         ];
 
-        const existingRegions: SceneRegion[] = [
+        const existingRegions: EncounterRegion[] = [
             createRegion('difficult-terrain', [
                 { x: 0, y: 0 },
                 { x: 10, y: 0 },

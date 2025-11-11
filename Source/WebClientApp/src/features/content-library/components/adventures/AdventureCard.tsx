@@ -89,11 +89,11 @@ export function AdventureCard({ adventure, onOpen, onDuplicate, onDelete }: Adve
         </>
     );
 
-    const sceneCount = adventure.sceneCount ?? adventure.scenes?.length ?? 0;
+    const encounterCount = adventure.encounterCount ?? adventure.encounters?.length ?? 0;
 
     const metadata = (
         <Typography variant="body2" color="text.secondary">
-            {sceneCount} {sceneCount === 1 ? 'scene' : 'scenes'}
+            {encounterCount} {encounterCount === 1 ? 'encounter' : 'encounters'}
         </Typography>
     );
 

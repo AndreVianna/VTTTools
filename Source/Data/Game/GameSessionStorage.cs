@@ -23,7 +23,7 @@ public class GameSessionStorage(ApplicationDbContext context)
                 OwnerId = s.OwnerId,
                 Title = s.Title,
                 Status = s.Status,
-                SceneId = s.SceneId,
+                EncounterId = s.EncounterId,
                 Messages = s.Messages.Select(m => new GameSessionMessage {
                     SentAt = m.SentAt,
                     SentBy = m.SentBy,
@@ -54,7 +54,7 @@ public class GameSessionStorage(ApplicationDbContext context)
                 OwnerId = s.OwnerId,
                 Title = s.Title,
                 Status = s.Status,
-                SceneId = s.SceneId,
+                EncounterId = s.EncounterId,
                 Messages = s.Messages.Select(m => new GameSessionMessage {
                     SentAt = m.SentAt,
                     SentBy = m.SentBy,
@@ -86,7 +86,7 @@ public class GameSessionStorage(ApplicationDbContext context)
                 OwnerId = s.OwnerId,
                 Title = s.Title,
                 Status = s.Status,
-                SceneId = s.SceneId,
+                EncounterId = s.EncounterId,
                 Messages = s.Messages.Select(m => new GameSessionMessage {
                     SentAt = m.SentAt,
                     SentBy = m.SentBy,
@@ -112,7 +112,7 @@ public class GameSessionStorage(ApplicationDbContext context)
             OwnerId = session.OwnerId,
             Title = session.Title,
             Status = session.Status,
-            SceneId = session.SceneId,
+            EncounterId = session.EncounterId,
             Messages = [.. session.Messages.Select(m => new GameSessionMessageEntity {
                 SentAt = m.SentAt,
                 SentBy = m.SentBy,
@@ -142,7 +142,7 @@ public class GameSessionStorage(ApplicationDbContext context)
         entity.OwnerId = session.OwnerId;
         entity.Title = session.Title;
         entity.Status = session.Status;
-        entity.SceneId = session.SceneId;
+        entity.EncounterId = session.EncounterId;
         entity.Messages = [.. session.Messages.Select(m => new GameSessionMessageEntity {
             SentAt = m.SentAt,
             SentBy = m.SentBy,

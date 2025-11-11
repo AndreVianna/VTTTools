@@ -10,12 +10,12 @@ public static class Cloner {
             Style = original.Style,
             Background = original.Background?.Clone(),
         };
-        clone.Scenes.AddRange(original.Scenes.Select(ep => ep.Clone(ep.Name)));
+        clone.Encounters.AddRange(original.Encounters.Select(ep => ep.Clone(ep.Name)));
         return clone;
     }
 
-    internal static Scene Clone(this Scene original, string cloneName) {
-        var clone = new Scene {
+    internal static Encounter Clone(this Encounter original, string cloneName) {
+        var clone = new Encounter {
             Name = cloneName,
             Description = original.Description,
             Stage = original.Stage,
@@ -25,7 +25,7 @@ public static class Cloner {
         return clone;
     }
 
-    internal static SceneAsset Clone(this SceneAsset original)
+    internal static EncounterAsset Clone(this EncounterAsset original)
         => new() {
             AssetId = original.AssetId,
             Index = original.Index,

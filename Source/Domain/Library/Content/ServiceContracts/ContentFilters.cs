@@ -8,8 +8,8 @@ public record ContentFilters {
     public ContentType? ContentType { get; init; }
 
     public bool? IsOneShot { get; init; }
-    public int? MinSceneCount { get; init; }
-    public int? MaxSceneCount { get; init; }
+    public int? MinEncounterCount { get; init; }
+    public int? MaxEncounterCount { get; init; }
 
     public AdventureStyle? Style { get; init; }
 

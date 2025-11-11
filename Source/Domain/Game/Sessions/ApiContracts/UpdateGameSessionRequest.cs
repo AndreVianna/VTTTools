@@ -7,7 +7,7 @@ public record UpdateGameSessionRequest
     /// </summary>
     public Optional<string> Title { get; init; }
     /// <summary>
-    /// New scene for the game session. If not set, scene is unchanged.
+    /// New encounter for the game session. If not set, encounter is unchanged.
     /// </summary>
-    public Optional<Guid> SceneId { get; init; }
+    public Optional<Guid> EncounterId { get; init; }
 }

@@ -473,7 +473,7 @@ export const AssetEditDialog: React.FC<AssetEditDialogProps> = ({
                     </Typography>
                     {asset.isPublished && (
                         <Alert severity="warning" sx={{ mt: 2 }}>
-                            This asset is published and may be in use in scenes.
+                            This asset is published and may be in use in encounters.
                         </Alert>
                     )}
                 </DialogContent>

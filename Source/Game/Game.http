@@ -127,8 +127,8 @@ Content-Type: application/json
 
 {}
 
-### 9. Set Active Scene
-POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/scenes/00000000-0000-0000-0000-000000000000/activate
+### 9. Set Active Encounter
+POST {{baseUrl}}/api/sessions/{{session.response.body.$.id}}/encounters/00000000-0000-0000-0000-000000000000/activate
 x-user: {{encodedUserId}}
 Content-Type: application/json
 

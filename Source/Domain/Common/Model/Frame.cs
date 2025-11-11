@@ -1,4 +1,4 @@
-﻿namespace VttTools.Library.Scenes.Model;
+﻿namespace VttTools.Library.Encounters.Model;
 
 public record Frame {
     public FrameShape Shape { get; init; } = FrameShape.None;

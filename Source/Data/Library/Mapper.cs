@@ -3,12 +3,12 @@ using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using CampaignEntity = VttTools.Data.Library.Entities.Campaign;
 using EpicEntity = VttTools.Data.Library.Entities.Epic;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
-using SceneAssetEntity = VttTools.Data.Library.Entities.SceneAsset;
-using SceneEffectEntity = VttTools.Data.Library.Entities.SceneEffect;
-using SceneEntity = VttTools.Data.Library.Entities.Scene;
-using SceneRegionEntity = VttTools.Data.Library.Entities.SceneRegion;
-using SceneSourceEntity = VttTools.Data.Library.Entities.SceneSource;
-using SceneWallEntity = VttTools.Data.Library.Entities.SceneWall;
+using EncounterAssetEntity = VttTools.Data.Library.Entities.EncounterAsset;
+using EncounterEffectEntity = VttTools.Data.Library.Entities.EncounterEffect;
+using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
+using EncounterRegionEntity = VttTools.Data.Library.Entities.EncounterRegion;
+using EncounterSourceEntity = VttTools.Data.Library.Entities.EncounterSource;
+using EncounterWallEntity = VttTools.Data.Library.Entities.EncounterWall;
 
 namespace VttTools.Data.Library;
 
@@ -50,10 +50,10 @@ internal static class Mapper {
             IsOneShot = entity.IsOneShot,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
-            Scenes = entity.Scenes.AsQueryable().Select(AsChildScene!).ToList(),
+            Encounters = entity.Encounters.AsQueryable().Select(AsChildEncounter!).ToList(),
         };
 
-    internal static Expression<Func<SceneEntity, Scene>> AsChildScene = entity
+    internal static Expression<Func<EncounterEntity, Encounter>> AsChildEncounter = entity
         => new() {
             Id = entity.Id,
             Name = entity.Name,
@@ -68,14 +68,14 @@ internal static class Mapper {
                 Sound = entity.Sound != null ? entity.Sound.ToModel() : null,
             },
             Grid = entity.Grid,
-            Assets = entity.SceneAssets.AsQueryable().Select(AsSceneAsset!).ToList(),
-            Walls = entity.Walls.AsQueryable().Select(AsSceneWall!).ToList(),
-            Regions = entity.Regions.AsQueryable().Select(AsSceneRegion!).ToList(),
-            Sources = entity.Sources.AsQueryable().Select(AsSceneSource!).ToList(),
-            Effects = entity.SceneEffects.AsQueryable().Select(AsSceneEffect!).ToList(),
+            Assets = entity.EncounterAssets.AsQueryable().Select(AsEncounterAsset!).ToList(),
+            Walls = entity.Walls.AsQueryable().Select(AsEncounterWall!).ToList(),
+            Regions = entity.Regions.AsQueryable().Select(AsEncounterRegion!).ToList(),
+            Sources = entity.Sources.AsQueryable().Select(AsEncounterSource!).ToList(),
+            Effects = entity.EncounterEffects.AsQueryable().Select(AsEncounterEffect!).ToList(),
         };
 
-    internal static Expression<Func<SceneEntity, Scene>> AsScene = entity
+    internal static Expression<Func<EncounterEntity, Encounter>> AsEncounter = entity
         => new() {
             Id = entity.Id,
             Name = entity.Name,
@@ -91,14 +91,14 @@ internal static class Mapper {
                 Sound = entity.Sound != null ? entity.Sound.ToModel() : null,
             },
             Grid = entity.Grid,
-            Assets = entity.SceneAssets.AsQueryable().Select(AsSceneAsset!).ToList(),
-            Walls = entity.Walls.AsQueryable().Select(AsSceneWall!).ToList(),
-            Regions = entity.Regions.AsQueryable().Select(AsSceneRegion!).ToList(),
-            Sources = entity.Sources.AsQueryable().Select(AsSceneSource!).ToList(),
-            Effects = entity.SceneEffects.AsQueryable().Select(AsSceneEffect!).ToList(),
+            Assets = entity.EncounterAssets.AsQueryable().Select(AsEncounterAsset!).ToList(),
+            Walls = entity.Walls.AsQueryable().Select(AsEncounterWall!).ToList(),
+            Regions = entity.Regions.AsQueryable().Select(AsEncounterRegion!).ToList(),
+            Sources = entity.Sources.AsQueryable().Select(AsEncounterSource!).ToList(),
+            Effects = entity.EncounterEffects.AsQueryable().Select(AsEncounterEffect!).ToList(),
         };
 
-    internal static Expression<Func<SceneAssetEntity, SceneAsset>> AsSceneAsset = entity
+    internal static Expression<Func<EncounterAssetEntity, EncounterAsset>> AsEncounterAsset = entity
         => new() {
             AssetId = entity.AssetId,
             Index = entity.Index,
@@ -197,7 +197,7 @@ internal static class Mapper {
             IsOneShot = entity.IsOneShot,
             IsPublic = entity.IsPublic,
             IsPublished = entity.IsPublished,
-            Scenes = entity.Scenes.Select(ToModel).ToList()!,
+            Encounters = entity.Encounters.Select(ToModel).ToList()!,
         };
 
     internal static AdventureEntity ToEntity(this Adventure model)
@@ -212,7 +212,7 @@ internal static class Mapper {
             IsOneShot = model.IsOneShot,
             IsPublic = model.IsPublic,
             IsPublished = model.IsPublished,
-            Scenes = model.Scenes.ConvertAll(s => s.ToEntity(model.Id)),
+            Encounters = model.Encounters.ConvertAll(s => s.ToEntity(model.Id)),
         };
 
     internal static void UpdateFrom(this AdventureEntity entity, Adventure model) {
@@ -226,13 +226,13 @@ internal static class Mapper {
         entity.IsPublic = model.IsPublic;
         entity.IsPublished = model.IsPublished;
         entity.IsOneShot = model.IsOneShot;
-        var existingScenes = entity.Scenes.Join(model.Scenes, se => se.Id, sm => sm.Id, UpdateFrom);
-        var newScenes = model.Scenes.Where(sm => entity.Scenes.All(se => se.Id != sm.Id)).Select(s => s.ToEntity(model.Id));
-        entity.Scenes = [.. existingScenes.Union(newScenes)];
+        var existingEncounters = entity.Encounters.Join(model.Encounters, se => se.Id, sm => sm.Id, UpdateFrom);
+        var newEncounters = model.Encounters.Where(sm => entity.Encounters.All(se => se.Id != sm.Id)).Select(s => s.ToEntity(model.Id));
+        entity.Encounters = [.. existingEncounters.Union(newEncounters)];
     }
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static Scene? ToModel(this SceneEntity? entity)
+    internal static Encounter? ToModel(this EncounterEntity? entity)
         => entity is null ? null : new() {
             Id = entity.Id,
             Name = entity.Name,
@@ -248,7 +248,7 @@ internal static class Mapper {
                 IsOneShot = entity.Adventure.IsOneShot,
                 IsPublic = entity.Adventure.IsPublic,
                 IsPublished = entity.Adventure.IsPublished,
-                Scenes = [],
+                Encounters = [],
             } : null!,
             Stage = new() {
                 Background = entity.Background?.ToModel(),
@@ -260,14 +260,14 @@ internal static class Mapper {
                 Sound = entity.Sound?.ToModel(),
             },
             Grid = entity.Grid,
-            Assets = [.. entity.SceneAssets.Select(sa => sa.ToModel()!)],
+            Assets = [.. entity.EncounterAssets.Select(sa => sa.ToModel()!)],
             Walls = [.. entity.Walls.Select(sb => sb.ToModel()!)],
             Regions = [.. entity.Regions.Select(sr => sr.ToModel()!)],
             Sources = [.. entity.Sources.Select(ss => ss.ToModel()!)],
-            Effects = [.. entity.SceneEffects.Select(se => se.ToModel()!)],
+            Effects = [.. entity.EncounterEffects.Select(se => se.ToModel()!)],
         };
 
-    internal static SceneEntity ToEntity(this Scene model, Guid adventureId)
+    internal static EncounterEntity ToEntity(this Encounter model, Guid adventureId)
         => new() {
             Id = model.Id,
             AdventureId = adventureId,
@@ -282,14 +282,14 @@ internal static class Mapper {
             Elevation = model.Stage.Elevation,
             SoundId = model.Stage.Sound?.Id,
             Grid = model.Grid,
-            SceneAssets = model.Assets?.ConvertAll(sa => ToEntity(sa, model.Id)) ?? [],
+            EncounterAssets = model.Assets?.ConvertAll(sa => ToEntity(sa, model.Id)) ?? [],
             Walls = model.Walls?.ConvertAll(sw => ToEntity(sw, model.Id)) ?? [],
             Regions = model.Regions?.ConvertAll(sr => ToEntity(sr, model.Id)) ?? [],
             Sources = model.Sources?.ConvertAll(ss => ToEntity(ss, model.Id)) ?? [],
-            SceneEffects = model.Effects?.ConvertAll(se => ToEntity(se, model.Id)) ?? [],
+            EncounterEffects = model.Effects?.ConvertAll(se => ToEntity(se, model.Id)) ?? [],
         };
 
-    internal static SceneEntity UpdateFrom(this SceneEntity entity, Scene model) {
+    internal static EncounterEntity UpdateFrom(this EncounterEntity entity, Encounter model) {
         entity.Id = model.Id;
         entity.Name = model.Name;
         entity.Description = model.Description;
@@ -303,19 +303,19 @@ internal static class Mapper {
         entity.SoundId = model.Stage.Sound?.Id;
         entity.Grid = model.Grid;
 
-        // Update SceneAssets
+        // Update EncounterAssets
         var assetIndices = model.Assets.Select(sa => sa.Index).ToHashSet();
-        var assetsToRemove = entity.SceneAssets.Where(ea => !assetIndices.Contains(ea.Index)).ToList();
+        var assetsToRemove = entity.EncounterAssets.Where(ea => !assetIndices.Contains(ea.Index)).ToList();
         foreach (var assetToRemove in assetsToRemove) {
-            entity.SceneAssets.Remove(assetToRemove);
+            entity.EncounterAssets.Remove(assetToRemove);
         }
         foreach (var modelAsset in model.Assets) {
-            var existingAsset = entity.SceneAssets.FirstOrDefault(ea => ea.Index == modelAsset.Index);
+            var existingAsset = entity.EncounterAssets.FirstOrDefault(ea => ea.Index == modelAsset.Index);
             if (existingAsset != null) {
                 UpdateFrom(existingAsset, entity.Id, modelAsset);
             }
             else {
-                entity.SceneAssets.Add(ToEntity(modelAsset, entity.Id));
+                entity.EncounterAssets.Add(ToEntity(modelAsset, entity.Id));
             }
         }
 
@@ -369,17 +369,17 @@ internal static class Mapper {
 
         // Update Effects
         var effectIndices = model.Effects.Select(se => se.Index).ToHashSet();
-        var effectsToRemove = entity.SceneEffects.Where(ee => !effectIndices.Contains(ee.Index)).ToList();
+        var effectsToRemove = entity.EncounterEffects.Where(ee => !effectIndices.Contains(ee.Index)).ToList();
         foreach (var effectToRemove in effectsToRemove) {
-            entity.SceneEffects.Remove(effectToRemove);
+            entity.EncounterEffects.Remove(effectToRemove);
         }
         foreach (var modelEffect in model.Effects) {
-            var existingEffect = entity.SceneEffects.FirstOrDefault(ee => ee.Index == modelEffect.Index);
+            var existingEffect = entity.EncounterEffects.FirstOrDefault(ee => ee.Index == modelEffect.Index);
             if (existingEffect != null) {
                 UpdateFrom(existingEffect, entity.Id, modelEffect);
             }
             else {
-                entity.SceneEffects.Add(ToEntity(modelEffect, entity.Id));
+                entity.EncounterEffects.Add(ToEntity(modelEffect, entity.Id));
             }
         }
 
@@ -387,7 +387,7 @@ internal static class Mapper {
     }
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static SceneAsset? ToModel(this SceneAssetEntity? entity)
+    internal static EncounterAsset? ToModel(this EncounterAssetEntity? entity)
         => entity == null ? null : new() {
             AssetId = entity.AssetId,
             Index = entity.Index,
@@ -405,9 +405,9 @@ internal static class Mapper {
             ControlledBy = entity.ControlledBy,
         };
 
-    internal static SceneAssetEntity ToEntity(this SceneAsset model, Guid sceneId)
+    internal static EncounterAssetEntity ToEntity(this EncounterAsset model, Guid encounterId)
         => new() {
-            SceneId = sceneId,
+            EncounterId = encounterId,
             AssetId = model.AssetId,
             Index = model.Index,
             Number = model.Number,
@@ -424,8 +424,8 @@ internal static class Mapper {
             ControlledBy = model.ControlledBy,
         };
 
-    internal static SceneAssetEntity UpdateFrom(this SceneAssetEntity entity, Guid sceneId, SceneAsset model) {
-        entity.SceneId = sceneId;
+    internal static EncounterAssetEntity UpdateFrom(this EncounterAssetEntity entity, Guid encounterId, EncounterAsset model) {
+        entity.EncounterId = encounterId;
         entity.AssetId = model.AssetId;
         entity.Index = model.Index;
         entity.Number = model.Number;
@@ -443,7 +443,7 @@ internal static class Mapper {
         return entity;
     }
 
-    internal static Expression<Func<SceneWallEntity, SceneWall>> AsSceneWall = entity
+    internal static Expression<Func<EncounterWallEntity, EncounterWall>> AsEncounterWall = entity
         => new() {
             Index = entity.Index,
             Name = entity.Name,
@@ -455,7 +455,7 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static SceneWall? ToModel(this SceneWallEntity? entity)
+    internal static EncounterWall? ToModel(this EncounterWallEntity? entity)
         => entity == null ? null : new() {
             Index = entity.Index,
             Name = entity.Name,
@@ -466,9 +466,9 @@ internal static class Mapper {
             Color = entity.Color,
         };
 
-    internal static SceneWallEntity ToEntity(this SceneWall model, Guid sceneId)
+    internal static EncounterWallEntity ToEntity(this EncounterWall model, Guid encounterId)
         => new() {
-            SceneId = sceneId,
+            EncounterId = encounterId,
             Index = model.Index,
             Name = model.Name,
             Poles = [.. model.Poles],
@@ -478,8 +478,8 @@ internal static class Mapper {
             Color = model.Color,
         };
 
-    internal static SceneWallEntity UpdateFrom(this SceneWallEntity entity, Guid sceneId, SceneWall model) {
-        entity.SceneId = sceneId;
+    internal static EncounterWallEntity UpdateFrom(this EncounterWallEntity entity, Guid encounterId, EncounterWall model) {
+        entity.EncounterId = encounterId;
         entity.Index = model.Index;
         entity.Name = model.Name;
         entity.Poles = [.. model.Poles];
@@ -490,7 +490,7 @@ internal static class Mapper {
         return entity;
     }
 
-    internal static Expression<Func<SceneRegionEntity, SceneRegion>> AsSceneRegion = entity
+    internal static Expression<Func<EncounterRegionEntity, EncounterRegion>> AsEncounterRegion = entity
         => new() {
             Index = entity.Index,
             Name = entity.Name,
@@ -502,7 +502,7 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static SceneRegion? ToModel(this SceneRegionEntity? entity)
+    internal static EncounterRegion? ToModel(this EncounterRegionEntity? entity)
         => entity == null ? null : new() {
             Index = entity.Index,
             Name = entity.Name,
@@ -513,9 +513,9 @@ internal static class Mapper {
             Color = entity.Color,
         };
 
-    internal static SceneRegionEntity ToEntity(this SceneRegion model, Guid sceneId)
+    internal static EncounterRegionEntity ToEntity(this EncounterRegion model, Guid encounterId)
         => new() {
-            SceneId = sceneId,
+            EncounterId = encounterId,
             Index = model.Index,
             Name = model.Name,
             Type = model.Type,
@@ -525,8 +525,8 @@ internal static class Mapper {
             Color = model.Color,
         };
 
-    internal static SceneRegionEntity UpdateFrom(this SceneRegionEntity entity, Guid sceneId, SceneRegion model) {
-        entity.SceneId = sceneId;
+    internal static EncounterRegionEntity UpdateFrom(this EncounterRegionEntity entity, Guid encounterId, EncounterRegion model) {
+        entity.EncounterId = encounterId;
         entity.Index = model.Index;
         entity.Name = model.Name;
         entity.Type = model.Type;
@@ -537,7 +537,7 @@ internal static class Mapper {
         return entity;
     }
 
-    internal static Expression<Func<SceneSourceEntity, SceneSource>> AsSceneSource = entity
+    internal static Expression<Func<EncounterSourceEntity, EncounterSource>> AsEncounterSource = entity
         => new() {
             Index = entity.Index,
             Name = entity.Name,
@@ -553,7 +553,7 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static SceneSource? ToModel(this SceneSourceEntity? entity)
+    internal static EncounterSource? ToModel(this EncounterSourceEntity? entity)
         => entity == null ? null : new() {
             Index = entity.Index,
             Name = entity.Name,
@@ -568,9 +568,9 @@ internal static class Mapper {
             Color = entity.Color,
         };
 
-    internal static SceneSourceEntity ToEntity(this SceneSource model, Guid sceneId)
+    internal static EncounterSourceEntity ToEntity(this EncounterSource model, Guid encounterId)
         => new() {
-            SceneId = sceneId,
+            EncounterId = encounterId,
             Index = model.Index,
             Name = model.Name,
             Type = model.Type,
@@ -584,8 +584,8 @@ internal static class Mapper {
             Color = model.Color,
         };
 
-    internal static SceneSourceEntity UpdateFrom(this SceneSourceEntity entity, Guid sceneId, SceneSource model) {
-        entity.SceneId = sceneId;
+    internal static EncounterSourceEntity UpdateFrom(this EncounterSourceEntity entity, Guid encounterId, EncounterSource model) {
+        entity.EncounterId = encounterId;
         entity.Index = model.Index;
         entity.Name = model.Name;
         entity.Type = model.Type;
@@ -600,7 +600,7 @@ internal static class Mapper {
         return entity;
     }
 
-    internal static Expression<Func<SceneEffectEntity, SceneEffect>> AsSceneEffect = entity
+    internal static Expression<Func<EncounterEffectEntity, EncounterEffect>> AsEncounterEffect = entity
         => new() {
             EffectId = entity.EffectId,
             Index = entity.Index,
@@ -611,7 +611,7 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static SceneEffect? ToModel(this SceneEffectEntity? entity)
+    internal static EncounterEffect? ToModel(this EncounterEffectEntity? entity)
         => entity == null ? null : new() {
             EffectId = entity.EffectId,
             Index = entity.Index,
@@ -621,9 +621,9 @@ internal static class Mapper {
             Direction = entity.Direction,
         };
 
-    internal static SceneEffectEntity ToEntity(this SceneEffect model, Guid sceneId)
+    internal static EncounterEffectEntity ToEntity(this EncounterEffect model, Guid encounterId)
         => new() {
-            SceneId = sceneId,
+            EncounterId = encounterId,
             EffectId = model.EffectId,
             Index = model.Index,
             Name = model.Name,
@@ -632,8 +632,8 @@ internal static class Mapper {
             Direction = model.Direction,
         };
 
-    internal static SceneEffectEntity UpdateFrom(this SceneEffectEntity entity, Guid sceneId, SceneEffect model) {
-        entity.SceneId = sceneId;
+    internal static EncounterEffectEntity UpdateFrom(this EncounterEffectEntity entity, Guid encounterId, EncounterEffect model) {
+        entity.EncounterId = encounterId;
         entity.EffectId = model.EffectId;
         entity.Index = model.Index;
         entity.Name = model.Name;

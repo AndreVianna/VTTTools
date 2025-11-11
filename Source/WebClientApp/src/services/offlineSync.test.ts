@@ -27,14 +27,14 @@ describe('offlineSync', () => {
         it('should persist cache on fulfilled actions', () => {
             const api = {
                 getState: vi.fn().mockReturnValue({
-                    sceneApi: {
+                    encounterApi: {
                         queries: { test: 'data' },
                         mutations: {}
                     }
                 })
             };
             const next = vi.fn(action => action);
-            const action = { type: 'sceneApi/getScene/fulfilled' };
+            const action = { type: 'encounterApi/getEncounter/fulfilled' };
 
             const middleware = persistMiddleware(api as any);
             middleware(next)(action);
@@ -52,14 +52,14 @@ describe('offlineSync', () => {
         it('should persist cache on rejected actions', () => {
             const api = {
                 getState: vi.fn().mockReturnValue({
-                    sceneApi: {
+                    encounterApi: {
                         queries: {},
                         mutations: { test: 'mutation' }
                     }
                 })
             };
             const next = vi.fn(action => action);
-            const action = { type: 'sceneApi/updateScene/rejected' };
+            const action = { type: 'encounterApi/updateEncounter/rejected' };
 
             const middleware = persistMiddleware(api as any);
             middleware(next)(action);
@@ -81,16 +81,16 @@ describe('offlineSync', () => {
         it('should queue offline mutations on network errors', () => {
             const api = {
                 getState: vi.fn().mockReturnValue({
-                    sceneApi: { queries: {}, mutations: {} }
+                    encounterApi: { queries: {}, mutations: {} }
                 })
             };
             const next = vi.fn(action => action);
             const action = {
-                type: 'sceneApi/updateScene/rejected',
+                type: 'encounterApi/updateEncounter/rejected',
                 meta: {
                     arg: {
                         type: 'mutation',
-                        endpointName: 'updateScene',
+                        endpointName: 'updateEncounter',
                         originalArgs: { id: '123', version: 1 }
                     },
                     rejectedWithValue: true
@@ -111,7 +111,7 @@ describe('offlineSync', () => {
             expect(offlineMutationCall?.[1]).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
-                        endpoint: 'updateScene',
+                        endpoint: 'updateEncounter',
                         args: { id: '123', version: 1 }
                     })
                 ])
@@ -125,16 +125,16 @@ describe('offlineSync', () => {
 
             const api = {
                 getState: vi.fn().mockReturnValue({
-                    sceneApi: { queries: {}, mutations: {} }
+                    encounterApi: { queries: {}, mutations: {} }
                 })
             };
             const next = vi.fn(action => action);
             const action = {
-                type: 'sceneApi/updateScene/rejected',
+                type: 'encounterApi/updateEncounter/rejected',
                 meta: {
                     arg: {
                         type: 'mutation',
-                        endpointName: 'updateScene',
+                        endpointName: 'updateEncounter',
                         originalArgs: { id: '456' }
                     },
                     rejectedWithValue: true
@@ -155,7 +155,7 @@ describe('offlineSync', () => {
             expect(offlineMutationCall?.[1]).toEqual(
                 expect.arrayContaining([
                     existingMutations[0],
-                    expect.objectContaining({ endpoint: 'updateScene' })
+                    expect.objectContaining({ endpoint: 'updateEncounter' })
                 ])
             );
         });
@@ -177,7 +177,7 @@ describe('offlineSync', () => {
                 queries: { test: 'data' },
                 mutations: {},
                 config: expect.objectContaining({
-                    reducerPath: 'sceneApi'
+                    reducerPath: 'encounterApi'
                 })
             });
         });
@@ -233,7 +233,7 @@ describe('offlineSync', () => {
                 online: true,
                 focused: true,
                 middlewareRegistered: false,
-                reducerPath: 'sceneApi',
+                reducerPath: 'encounterApi',
                 keepUnusedDataFor: 60,
                 refetchOnMountOrArgChange: false,
                 refetchOnFocus: false,
@@ -289,35 +289,35 @@ describe('offlineSync', () => {
     describe('syncOfflineMutations', () => {
         it('should sync all offline mutations', async () => {
             const mutations: OfflineMutation[] = [
-                { id: '1', endpoint: 'updateScene', args: { id: '123' }, timestamp: Date.now() },
-                { id: '2', endpoint: 'addSceneAsset', args: { sceneId: '456' }, timestamp: Date.now() }
+                { id: '1', endpoint: 'updateEncounter', args: { id: '123' }, timestamp: Date.now() },
+                { id: '2', endpoint: 'addEncounterAsset', args: { encounterId: '456' }, timestamp: Date.now() }
             ];
 
             vi.mocked(storage.getItem).mockReturnValue(mutations);
 
             const mockApi = {
                 endpoints: {
-                    updateScene: { initiate: vi.fn().mockResolvedValue({}) },
-                    addSceneAsset: { initiate: vi.fn().mockResolvedValue({}) }
+                    updateEncounter: { initiate: vi.fn().mockResolvedValue({}) },
+                    addEncounterAsset: { initiate: vi.fn().mockResolvedValue({}) }
                 }
             };
 
             await syncOfflineMutations(mockApi);
 
-            expect(mockApi.endpoints.updateScene.initiate).toHaveBeenCalledWith({ id: '123' });
-            expect(mockApi.endpoints.addSceneAsset.initiate).toHaveBeenCalledWith({ sceneId: '456' });
+            expect(mockApi.endpoints.updateEncounter.initiate).toHaveBeenCalledWith({ id: '123' });
+            expect(mockApi.endpoints.addEncounterAsset.initiate).toHaveBeenCalledWith({ encounterId: '456' });
         });
 
         it('should remove synced mutations from queue', async () => {
             const mutations: OfflineMutation[] = [
-                { id: '1', endpoint: 'updateScene', args: {}, timestamp: Date.now() }
+                { id: '1', endpoint: 'updateEncounter', args: {}, timestamp: Date.now() }
             ];
 
             vi.mocked(storage.getItem).mockReturnValue(mutations);
 
             const mockApi = {
                 endpoints: {
-                    updateScene: { initiate: vi.fn().mockResolvedValue({}) }
+                    updateEncounter: { initiate: vi.fn().mockResolvedValue({}) }
                 }
             };
 
@@ -329,14 +329,14 @@ describe('offlineSync', () => {
         it('should handle sync errors gracefully', async () => {
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
             const mutations: OfflineMutation[] = [
-                { id: '1', endpoint: 'updateScene', args: {}, timestamp: Date.now() }
+                { id: '1', endpoint: 'updateEncounter', args: {}, timestamp: Date.now() }
             ];
 
             vi.mocked(storage.getItem).mockReturnValue(mutations);
 
             const mockApi = {
                 endpoints: {
-                    updateScene: { initiate: vi.fn().mockRejectedValue(new Error('Sync failed')) }
+                    updateEncounter: { initiate: vi.fn().mockRejectedValue(new Error('Sync failed')) }
                 }
             };
 

@@ -1,5 +1,5 @@
 // GENERATED: 2025-10-11 by Claude Code Phase 6
-// EPIC: EPIC-001 Phase 6 - Scene Editor Tokens, Undo/Redo, Offline
+// EPIC: EPIC-001 Phase 6 - Encounter Editor Tokens, Undo/Redo, Offline
 // LAYER: UI (Service)
 
 /**
@@ -19,10 +19,10 @@
 import type { PlacedAsset } from '@/types/domain';
 
 /**
- * Scene state for offline persistence
+ * Encounter state for offline persistence
  */
-export interface OfflineSceneState {
-    sceneId: string;
+export interface OfflineEncounterState {
+    encounterId: string;
     placedAssets: PlacedAsset[];
     lastModified: string; // ISO timestamp
     version: number; // Optimistic concurrency version
@@ -42,9 +42,9 @@ export enum SyncStatus {
  * OfflineSyncManager Configuration
  */
 export interface OfflineSyncConfig {
-    /** Scene ID for persistence */
-    sceneId: string;
-    /** API endpoint for scene updates (default: /api/scenes/{sceneId}) */
+    /** Encounter ID for persistence */
+    encounterId: string;
+    /** API endpoint for encounter updates (default: /api/encounters/{encounterId}) */
     apiEndpoint?: string;
     /** Auto-save interval in milliseconds (default: 5000ms) */
     autoSaveInterval?: number;
@@ -61,14 +61,14 @@ export interface OfflineSyncConfig {
 /**
  * LocalStorage key prefix
  */
-const STORAGE_KEY_PREFIX = 'vtttools_scene_';
+const STORAGE_KEY_PREFIX = 'vtttools_encounter_';
 
 /**
  * OfflineSyncManager Class
- * Manages offline persistence and sync for scene editor
+ * Manages offline persistence and sync for encounter editor
  */
 export class OfflineSyncManager {
-    private sceneId: string;
+    private encounterId: string;
     private apiEndpoint: string;
     private autoSaveInterval: number;
     private enableConnectionMonitoring: boolean;
@@ -76,7 +76,7 @@ export class OfflineSyncManager {
     private onConnectionChange: ((online: boolean) => void) | undefined;
     private onSyncError: ((error: Error) => void) | undefined;
 
-    private currentState: OfflineSceneState | null = null;
+    private currentState: OfflineEncounterState | null = null;
     private syncStatus: SyncStatus = SyncStatus.Online;
     private isOnline: boolean = navigator.onLine;
     private autoSaveTimer: number | null = null;
@@ -84,8 +84,8 @@ export class OfflineSyncManager {
     private pendingChanges: boolean = false;
 
     constructor(config: OfflineSyncConfig) {
-        this.sceneId = config.sceneId;
-        this.apiEndpoint = config.apiEndpoint || `/api/scenes/${config.sceneId}`;
+        this.encounterId = config.encounterId;
+        this.apiEndpoint = config.apiEndpoint || `/api/encounters/${config.encounterId}`;
         this.autoSaveInterval = config.autoSaveInterval ?? 5000;
         this.enableConnectionMonitoring = config.enableConnectionMonitoring ?? true;
         this.onSyncStatusChange = config.onSyncStatusChange;
@@ -155,11 +155,11 @@ export class OfflineSyncManager {
     };
 
     /**
-     * Update scene state (called by parent component)
+     * Update encounter state (called by parent component)
      */
     public updateState(placedAssets: PlacedAsset[]): void {
-        const newState: OfflineSceneState = {
-            sceneId: this.sceneId,
+        const newState: OfflineEncounterState = {
+            encounterId: this.encounterId,
             placedAssets,
             lastModified: new Date().toISOString(),
             version: (this.currentState?.version || 0) + 1,
@@ -177,9 +177,9 @@ export class OfflineSyncManager {
     /**
      * Save state to localStorage
      */
-    private saveToLocalStorage(state: OfflineSceneState): void {
+    private saveToLocalStorage(state: OfflineEncounterState): void {
         try {
-            const key = `${STORAGE_KEY_PREFIX}${this.sceneId}`;
+            const key = `${STORAGE_KEY_PREFIX}${this.encounterId}`;
             localStorage.setItem(key, JSON.stringify(state));
         } catch (error) {
             console.error('Failed to save to localStorage:', error);
@@ -189,13 +189,13 @@ export class OfflineSyncManager {
     /**
      * Load state from localStorage
      */
-    private loadFromLocalStorage(): OfflineSceneState | null {
+    private loadFromLocalStorage(): OfflineEncounterState | null {
         try {
-            const key = `${STORAGE_KEY_PREFIX}${this.sceneId}`;
+            const key = `${STORAGE_KEY_PREFIX}${this.encounterId}`;
             const data = localStorage.getItem(key);
 
             if (data) {
-                const state = JSON.parse(data) as OfflineSceneState;
+                const state = JSON.parse(data) as OfflineEncounterState;
                 this.currentState = state;
                 this.pendingChanges = true;
                 return state;
@@ -208,11 +208,11 @@ export class OfflineSyncManager {
     }
 
     /**
-     * Clear localStorage for this scene
+     * Clear localStorage for this encounter
      */
     private clearLocalStorage(): void {
         try {
-            const key = `${STORAGE_KEY_PREFIX}${this.sceneId}`;
+            const key = `${STORAGE_KEY_PREFIX}${this.encounterId}`;
             localStorage.removeItem(key);
         } catch (error) {
             console.error('Failed to clear localStorage:', error);
@@ -236,7 +236,7 @@ export class OfflineSyncManager {
         this.setSyncStatus(SyncStatus.Syncing);
 
         try {
-            // Call API to update scene
+            // Call API to update encounter
             const response = await fetch(this.apiEndpoint, {
                 method: 'PUT',
                 headers: {
@@ -329,7 +329,7 @@ export class OfflineSyncManager {
     /**
      * Get persisted state (for initial load)
      */
-    public getPersistedState(): OfflineSceneState | null {
+    public getPersistedState(): OfflineEncounterState | null {
         return this.currentState;
     }
 

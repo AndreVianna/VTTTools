@@ -1,4 +1,4 @@
-// DEPRECATED: This file has been removed. Wall operations are now in sceneApi.ts
-// Use useGetSceneWallsQuery, useAddSceneWallMutation, useUpdateSceneWallMutation, useRemoveSceneWallMutation from '@/services/sceneApi'
+// DEPRECATED: This file has been removed. Wall operations are now in encounterApi.ts
+// Use useGetEncounterWallsQuery, useAddEncounterWallMutation, useUpdateEncounterWallMutation, useRemoveEncounterWallMutation from '@/services/encounterApi'
 
 export {};

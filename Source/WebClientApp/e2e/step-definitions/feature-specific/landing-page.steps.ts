@@ -145,7 +145,7 @@ Then('the {string} card should be disabled', async function (this: CustomWorld, 
 
 Then('the {string} card should be enabled', async function (this: CustomWorld, cardTitle: string) {
     let cardId: string;
-    if (cardTitle.includes('Scene Editor')) cardId = '#card-scene-editor';
+    if (cardTitle.includes('Encounter Editor')) cardId = '#card-encounter-editor';
     else if (cardTitle.includes('Asset Library')) cardId = '#card-asset-library';
     else cardId = `#card-${cardTitle.toLowerCase().replace(' ', '-')}`;
 
@@ -156,7 +156,7 @@ Then('the {string} card should be enabled', async function (this: CustomWorld, c
 });
 
 When('I click the {string} button on {string} action card', async function (this: CustomWorld, _buttonText: string, cardTitle: string) {
-    if (cardTitle.includes('Scene Editor')) {
+    if (cardTitle.includes('Encounter Editor')) {
         await this.page.locator('#btn-open-editor').click();
     } else if (cardTitle.includes('Asset Library')) {
         await this.page.locator('#btn-browse-assets').click();
@@ -234,7 +234,7 @@ Then('I should be able to Tab through all interactive elements', async function 
         expect(total).toBe(9); // Exactly 9 interactive elements for guest view
     } else {
         // Authenticated view: header (4) + enabled dashboard buttons (2) + footer (4) = 10 enabled elements
-        const headerBtns = await this.page.locator('#nav-assets, #nav-scene-editor, #btn-theme-toggle, #btn-user-menu').count();
+        const headerBtns = await this.page.locator('#nav-assets, #nav-encounter-editor, #btn-theme-toggle, #btn-user-menu').count();
         const dashboardBtns = await this.page.locator('#btn-open-editor, #btn-browse-assets').count();
         const footerLinks = await this.page.locator('#footer-link-about, #footer-link-contact, #footer-link-terms, #footer-link-privacy').count();
         const total = headerBtns + dashboardBtns + footerLinks;
@@ -246,8 +246,8 @@ Then('available cards should display correctly', async function (this: CustomWor
     // Wait for dashboard to be visible
     await this.page.waitForSelector('#dashboard-greeting', { timeout: 5000 });
 
-    // Authenticated view: should have 4 action cards (Scene Editor, Content Library, Asset Library, Account Settings)
-    const cardTitles = await this.page.locator('#title-scene-editor, #title-content-library, #title-asset-library, #title-account-settings').count();
+    // Authenticated view: should have 4 action cards (Encounter Editor, Content Library, Asset Library, Account Settings)
+    const cardTitles = await this.page.locator('#title-encounter-editor, #title-content-library, #title-asset-library, #title-account-settings').count();
     expect(cardTitles).toBeGreaterThanOrEqual(1); // At least 1 card should be visible (handles edge case of missing data)
 });
 
@@ -330,7 +330,7 @@ Then('I should see {int} action cards:', async function (this: CustomWorld, expe
 
         // Map title to semantic ID
         let cardId;
-        if (title.includes('Scene Editor')) cardId = '#card-scene-editor';
+        if (title.includes('Encounter Editor')) cardId = '#card-encounter-editor';
         else if (title.includes('Content Library')) cardId = '#card-content-library';
         else if (title.includes('Asset Library')) cardId = '#card-asset-library';
         else if (title.includes('Account Settings')) cardId = '#card-account-settings';
@@ -347,7 +347,7 @@ Then('I should see {int} action cards:', async function (this: CustomWorld, expe
 
         // Get button ID based on card and status
         let buttonId;
-        if (title.includes('Scene Editor')) buttonId = '#btn-open-editor';
+        if (title.includes('Encounter Editor')) buttonId = '#btn-open-editor';
         else if (title.includes('Asset Library')) buttonId = '#btn-browse-assets';
         else if (title.includes('Content Library')) buttonId = '#btn-content-library-disabled';
         else if (title.includes('Account Settings')) buttonId = '#btn-account-settings-disabled';
@@ -490,7 +490,7 @@ Then('the hero gradient should use {word} color scheme', async function (this: C
 Then('action cards should use {word} styling', async function (this: CustomWorld, _theme: string) {
     // Card styling varies by theme - verify cards are visible (for guest, no cards shown)
     // For authenticated: verify at least one card
-    const cards = await this.page.locator('#card-scene-editor, #card-asset-library, #card-content-library, #card-account-settings').count();
+    const cards = await this.page.locator('#card-encounter-editor, #card-asset-library, #card-content-library, #card-account-settings').count();
     expect(cards).toBeGreaterThanOrEqual(0); // May be 0 for guest, 4 for authenticated
 });
 

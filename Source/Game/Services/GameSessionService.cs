@@ -18,7 +18,7 @@ public class GameSessionService(IGameSessionStorage storage)
             Title = data.Title,
             OwnerId = userId,
             Players = [new Participant { UserId = userId, Type = PlayerType.Master }],
-            SceneId = data.SceneId,
+            EncounterId = data.EncounterId,
         };
 
         await storage.AddAsync(session, ct);
@@ -39,7 +39,7 @@ public class GameSessionService(IGameSessionStorage storage)
 
         session = session with {
             Title = data.Title.IsSet ? data.Title.Value : session.Title,
-            SceneId = data.SceneId.IsSet ? data.SceneId.Value : session.SceneId,
+            EncounterId = data.EncounterId.IsSet ? data.EncounterId.Value : session.EncounterId,
         };
 
         await storage.UpdateAsync(session, ct);
@@ -81,7 +81,7 @@ public class GameSessionService(IGameSessionStorage storage)
         return Result.Success();
     }
 
-    public async Task<Result> SetActiveSceneAsync(Guid userId, Guid sessionId, Guid sceneId, CancellationToken ct = default) {
+    public async Task<Result> SetActiveEncounterAsync(Guid userId, Guid sessionId, Guid encounterId, CancellationToken ct = default) {
         var session = await storage.GetByIdAsync(sessionId, ct);
         if (session is null)
             return Result.Failure("Session not found");
@@ -90,7 +90,7 @@ public class GameSessionService(IGameSessionStorage storage)
         if (!isGameMaster)
             return Result.Failure("Not authorized");
 
-        session = session with { SceneId = sceneId };
+        session = session with { EncounterId = encounterId };
         await storage.UpdateAsync(session, ct);
         return Result.Success();
     }

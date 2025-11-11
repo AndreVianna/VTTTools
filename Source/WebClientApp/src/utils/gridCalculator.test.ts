@@ -1,5 +1,5 @@
 // GENERATED: 2025-10-03 by Claude Code Phase 2
-// SPEC: Documents/Areas/Library/Features/SceneManagement/UseCases/ConfigureGrid/USE_CASE.md
+// SPEC: Documents/Areas/Library/Features/EncounterManagement/UseCases/ConfigureGrid/USE_CASE.md
 // LAYER: UI (Unit Tests)
 
 /**

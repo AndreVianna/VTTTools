@@ -101,7 +101,7 @@ public class AdventureStorageTests
             } : null,
             IsPublished = true,
             IsPublic = false,
-            Scenes = [],
+            Encounters = [],
         };
 
         // NOTE: Testing database state directly due to EF tracking conflicts
@@ -143,20 +143,20 @@ public class AdventureStorageTests
     }
 
     [Fact]
-    public async Task GetByIdAsync_IncludesScenes_WhenAdventureHasScenes() {
+    public async Task GetByIdAsync_IncludesEncounters_WhenAdventureHasEncounters() {
         // Arrange
         var adventureEntity = await _context.Adventures.FirstAsync(p => p.Name == "Adventure 1", _ct);
 
         // NOTE: Testing database state directly due to EF In-Memory limitations with complex projections
-        // Assert that seeding worked correctly for adventure with scenes
-        var sceneCount = await _context.Scenes.CountAsync(s => s.AdventureId == adventureEntity.Id, _ct);
-        var sceneNames = await _context.Scenes
+        // Assert that seeding worked correctly for adventure with encounters
+        var encounterCount = await _context.Encounters.CountAsync(s => s.AdventureId == adventureEntity.Id, _ct);
+        var encounterNames = await _context.Encounters
             .Where(s => s.AdventureId == adventureEntity.Id)
             .Select(s => s.Name)
             .ToArrayAsync(_ct);
 
-        sceneCount.Should().Be(2);
-        sceneNames.Should().Contain("Scene 1.1");
-        sceneNames.Should().Contain("Scene 1.2");
+        encounterCount.Should().Be(2);
+        encounterNames.Should().Contain("Encounter 1.1");
+        encounterNames.Should().Contain("Encounter 1.2");
     }
 }

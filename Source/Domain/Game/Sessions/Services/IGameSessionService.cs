@@ -81,11 +81,11 @@ public interface IGameSessionService {
     Task<Result> StopGameSessionAsync(Guid userId, Guid sessionId, CancellationToken ct = default);
 
     /// <summary>
-    /// Sets the active scene for a game session
+    /// Sets the active encounter for a game session
     /// </summary>
     /// <param name="userId">ID of the user making the request</param>
     /// <param name="sessionId">ID of the game session to update</param>
-    /// <param name="sceneId">ID of the scene to set as active</param>
+    /// <param name="encounterId">ID of the encounter to set as active</param>
     /// <param name="ct">Cancellation token</param>
-    Task<Result> SetActiveSceneAsync(Guid userId, Guid sessionId, Guid sceneId, CancellationToken ct = default);
+    Task<Result> SetActiveEncounterAsync(Guid userId, Guid sessionId, Guid encounterId, CancellationToken ct = default);
 }

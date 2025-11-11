@@ -1,7 +1,7 @@
 /**
  * Layer Management Step Definitions
  * GENERATED: 2025-10-12 (Phase 4 BDD Implementation)
- * FEATURE: Documents/Areas/Library/Features/SceneManagement/UseCases/ManageLayers/LayerManagement.feature
+ * FEATURE: Documents/Areas/Library/Features/EncounterManagement/UseCases/ManageLayers/LayerManagement.feature
  * SERVICE: layerManager.ts
  * PHASE: EPIC-001 Phase 4 - Grid & Layers
  *
@@ -20,12 +20,12 @@ import { expect } from '@playwright/test';
 // GIVEN STEPS - Layer State Setup
 // ═══════════════════════════════════════════════════════════════
 
-Given('I have opened the scene editor', async function (this: CustomWorld) {
-    // Navigate to scene editor page
-    await this.page.goto('/library/scenes/editor');
+Given('I have opened the encounter editor', async function (this: CustomWorld) {
+    // Navigate to encounter editor page
+    await this.page.goto('/library/encounters/editor');
 
-    // Wait for scene editor to initialize
-    await expect(this.page.locator('[data-testid="scene-editor"]')).toBeVisible({ timeout: 10000 });
+    // Wait for encounter editor to initialize
+    await expect(this.page.locator('[data-testid="encounter-editor"]')).toBeVisible({ timeout: 10000 });
 });
 
 Given('the Konva Stage is initialized', async function (this: CustomWorld) {
@@ -90,7 +90,7 @@ Given('the agents layer has token images', async function (this: CustomWorld) {
     });
 });
 
-Given('the scene has background, grid, and tokens', async function (this: CustomWorld) {
+Given('the encounter has background, grid, and tokens', async function (this: CustomWorld) {
     // Composite setup - use helpers from previous steps
     await this.page.evaluate(() => {
         const stage = (window as any).__konvaStage;
@@ -248,7 +248,7 @@ Given('a grid is rendered and visible', async function (this: CustomWorld) {
     }, { timeout: 5000 });
 });
 
-Given('the scene has all 7 layers with content', async function (this: CustomWorld) {
+Given('the encounter has all 7 layers with content', async function (this: CustomWorld) {
     // Add content to all 7 layers
     await this.page.evaluate(() => {
         const stage = (window as any).__konvaStage;
@@ -299,7 +299,7 @@ Given('each layer has {int}+ elements \\({int} total\\)', async function (
 // ═══════════════════════════════════════════════════════════════
 
 When('the layer manager initializes', async function (this: CustomWorld) {
-    // LayerManager initializes automatically when scene editor mounts
+    // LayerManager initializes automatically when encounter editor mounts
     // Wait for initialization to complete
     await this.page.waitForFunction(() => {
         return (window as any).__layerManager && (window as any).__layerManager.initialized;

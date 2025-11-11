@@ -29,7 +29,7 @@ import {
     useCreateAdventureMutation,
     useDeleteAdventureMutation,
     useCloneAdventureMutation,
-    useCreateSceneMutation
+    useCreateEncounterMutation
 } from '@/services/adventuresApi';
 import { useGetContentQuery } from '@/services/contentApi';
 import { useDebounce, useInfiniteScroll } from '../../hooks';
@@ -37,7 +37,7 @@ import { useDebounce, useInfiniteScroll } from '../../hooks';
 const DEFAULT_ADVENTURE_NAME = 'Untitled Adventure';
 const DEFAULT_ADVENTURE_DESCRIPTION = 'A new adventure.';
 
-type ContentTypeFilter = 'all' | 'single-scene' | 'one-shot' | 'adventure' | 'campaign' | 'epic';
+type ContentTypeFilter = 'all' | 'single-encounter' | 'one-shot' | 'adventure' | 'campaign' | 'epic';
 
 export function AdventureListView() {
     const navigate = useNavigate();
@@ -67,11 +67,11 @@ export function AdventureListView() {
     if (contentTypeFilter === 'one-shot') {
         filters.isOneShot = true;
     }
-    if (contentTypeFilter === 'single-scene') {
-        filters.minSceneCount = 1;
-        filters.maxSceneCount = 1;
+    if (contentTypeFilter === 'single-encounter') {
+        filters.minEncounterCount = 1;
+        filters.maxEncounterCount = 1;
     } else if (contentTypeFilter === 'adventure') {
-        filters.minSceneCount = 2;
+        filters.minEncounterCount = 2;
     }
     if (publishedFilter === 'published') {
         filters.isPublished = true;
@@ -94,7 +94,7 @@ export function AdventureListView() {
     const nextCursor = data?.nextCursor;
 
     const [createAdventure] = useCreateAdventureMutation();
-    const [_createScene] = useCreateSceneMutation();
+    const [_createEncounter] = useCreateEncounterMutation();
     const [deleteAdventure] = useDeleteAdventureMutation();
     const [cloneAdventure] = useCloneAdventureMutation();
 
@@ -211,7 +211,7 @@ export function AdventureListView() {
                         onChange={(e) => setContentTypeFilter(e.target.value as ContentTypeFilter)}
                     >
                         <MenuItem value="all">All</MenuItem>
-                        <MenuItem value="single-scene">Single Scene</MenuItem>
+                        <MenuItem value="single-encounter">Single Encounter</MenuItem>
                         <MenuItem value="one-shot">One Shot</MenuItem>
                         <MenuItem value="adventure">Adventure</MenuItem>
                         <MenuItem value="campaign">Campaign</MenuItem>
@@ -344,7 +344,7 @@ export function AdventureListView() {
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Are you sure you want to delete this adventure? This will also delete all scenes within it. This action cannot be undone.
+                        Are you sure you want to delete this adventure? This will also delete all encounters within it. This action cannot be undone.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>

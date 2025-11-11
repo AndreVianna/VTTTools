@@ -1,12 +1,12 @@
 namespace VttTools.Common.Model;
 
 /// <summary>
-/// Defines when to display a label for a scene asset.
+/// Defines when to display a label for a encounter asset.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum LabelVisibility {
     /// <summary>
-    /// Use scene default setting (for assets) or Always (for scene defaults).
+    /// Use encounter default setting (for assets) or Always (for encounter defaults).
     /// </summary>
     Default = 0,
 

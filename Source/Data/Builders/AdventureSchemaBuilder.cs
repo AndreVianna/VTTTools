@@ -21,7 +21,7 @@ internal static class AdventureSchemaBuilder {
             entity.Property(e => e.IsOneShot).IsRequired();
             entity.Property(e => e.IsPublished).IsRequired();
             entity.Property(e => e.IsPublic).IsRequired();
-            entity.HasMany(e => e.Scenes).WithOne(e => e.Adventure)
+            entity.HasMany(e => e.Encounters).WithOne(e => e.Adventure)
                   .HasForeignKey(ep => ep.AdventureId).IsRequired().OnDelete(DeleteBehavior.Cascade);
         });
 }

@@ -113,7 +113,7 @@ export const assetsApi = createApi({
 
     /**
      * Delete asset
-     * Note: May fail if asset is in use on any scenes
+     * Note: May fail if asset is in use on any encounters
      */
     deleteAsset: builder.mutation<void, string>({
       query: (id) => ({

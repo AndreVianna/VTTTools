@@ -106,7 +106,7 @@ describe('LandingPage', () => {
       // Assert - BDD: Dashboard preview NOT visible
       expect(screen.queryByText(/welcome back/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/your creative workspace/i)).not.toBeInTheDocument();
-      expect(screen.queryByText(/scene editor/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/encounter editor/i)).not.toBeInTheDocument();
     });
 
     it('should display primary heading and subtitle', () => {
@@ -174,7 +174,7 @@ describe('LandingPage', () => {
       renderWithProviders(<LandingPage />);
 
       // Assert - BDD: Exactly 4 action cards
-      expect(screen.getByText('Scene Editor')).toBeInTheDocument();
+      expect(screen.getByText('Encounter Editor')).toBeInTheDocument();
       expect(screen.getByText('Content Library')).toBeInTheDocument();
       expect(screen.getByText('Asset Library')).toBeInTheDocument();
       expect(screen.getByText('Account Settings')).toBeInTheDocument();
@@ -216,7 +216,7 @@ describe('LandingPage', () => {
       store = createTestStore(true, mockUser);
     });
 
-    it('should navigate to Scene Editor when Open Editor is clicked', () => {
+    it('should navigate to Encounter Editor when Open Editor is clicked', () => {
       // Arrange
       renderWithProviders(<LandingPage />);
       const openEditorButton = screen.getByRole('button', { name: /open editor/i });
@@ -224,8 +224,8 @@ describe('LandingPage', () => {
       // Act
       fireEvent.click(openEditorButton);
 
-      // Assert - BDD: Navigate to /scene-editor
-      expect(mockNavigate).toHaveBeenCalledWith('/scene-editor');
+      // Assert - BDD: Navigate to /encounter-editor
+      expect(mockNavigate).toHaveBeenCalledWith('/encounter-editor');
     });
 
     it('should navigate to Asset Library when Browse Assets is clicked', () => {
@@ -240,13 +240,13 @@ describe('LandingPage', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/assets');
     });
 
-    it('should show active Scene Editor card', () => {
+    it('should show active Encounter Editor card', () => {
       // Arrange & Act
       renderWithProviders(<LandingPage />);
 
-      // Assert - BDD: Scene Editor active (Phase 3-4)
-      const sceneCard = screen.getByText('Scene Editor').closest('div[class*="MuiCard"]');
-      expect(sceneCard).toBeInTheDocument();
+      // Assert - BDD: Encounter Editor active (Phase 3-4)
+      const encounterCard = screen.getByText('Encounter Editor').closest('div[class*="MuiCard"]');
+      expect(encounterCard).toBeInTheDocument();
 
       const openButton = screen.getByRole('button', { name: /open editor/i });
       expect(openButton).toBeEnabled();

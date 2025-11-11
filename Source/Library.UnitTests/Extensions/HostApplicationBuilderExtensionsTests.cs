@@ -11,8 +11,8 @@ public class HostApplicationBuilderExtensionsTests {
             sd.ServiceType == typeof(IAdventureStorage) &&
             sd.ImplementationType == typeof(AdventureStorage));
         services.Should().Contain(sd =>
-            sd.ServiceType == typeof(ISceneStorage) &&
-            sd.ImplementationType == typeof(SceneStorage));
+            sd.ServiceType == typeof(IEncounterStorage) &&
+            sd.ImplementationType == typeof(EncounterStorage));
     }
 
     [Fact]
@@ -25,7 +25,7 @@ public class HostApplicationBuilderExtensionsTests {
             sd.ServiceType == typeof(IAdventureService) &&
             sd.ImplementationType == typeof(AdventureService));
         services.Should().Contain(sd =>
-            sd.ServiceType == typeof(ISceneService) &&
-            sd.ImplementationType == typeof(SceneService));
+            sd.ServiceType == typeof(IEncounterService) &&
+            sd.ImplementationType == typeof(EncounterService));
     }
 }

@@ -16,7 +16,7 @@ export interface ContentListItem {
     ownerId: string;
     style?: AdventureStyle | null;
     isOneShot?: boolean | null;
-    sceneCount?: number | null;
+    encounterCount?: number | null;
     background?: MediaResource | null;
 }
 

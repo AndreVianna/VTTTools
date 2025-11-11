@@ -16,7 +16,7 @@ export const API_CONFIG = {
     assets: '/api/assets',
     library: '/api/library',
     adventures: '/api/adventures',
-    scenes: '/api/scenes',
+    encounters: '/api/encounters',
     sessions: '/api/sessions',
     media: '/api/resources',
     health: '/health'
@@ -28,7 +28,7 @@ export const API_CONFIG = {
     assets: 'https://localhost:7171/api/assets',
     library: 'https://localhost:7172/api/library',
     adventures: 'https://localhost:7172/api/adventures',
-    scenes: 'https://localhost:7172/api/scenes',
+    encounters: 'https://localhost:7172/api/encounters',
     sessions: 'https://localhost:7173/api/sessions',
     media: 'https://localhost:7174/api/resources',
     health: 'https://localhost:7050/health'

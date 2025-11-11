@@ -8,7 +8,7 @@ public class AdventureStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<Adventure[]> GetAllAsync(CancellationToken ct = default) {
         var query = context.Adventures
-            .Include(a => a.Scenes)
+            .Include(a => a.Encounters)
             .Include(a => a.Background)
             .Include(a => a.Campaign)
             .AsSplitQuery()
@@ -20,7 +20,7 @@ public class AdventureStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<Adventure[]> GetManyAsync(string filterDefinition, CancellationToken ct = default) {
         var query = context.Adventures
-            .Include(a => a.Scenes)
+            .Include(a => a.Encounters)
             .Include(a => a.Background)
             .Include(a => a.Campaign)
             .AsSplitQuery()
@@ -45,8 +45,8 @@ public class AdventureStorage(ApplicationDbContext context)
     /// <inheritdoc />
     public async Task<Adventure?> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var query = context.Adventures
-            .Include(a => a.Scenes)
-                .ThenInclude(s => s.SceneAssets)
+            .Include(a => a.Encounters)
+                .ThenInclude(s => s.EncounterAssets)
                     .ThenInclude(sa => sa.Asset)
             .Include(a => a.Background)
             .Include(a => a.Campaign)

@@ -2,11 +2,11 @@
 // import { describe, it, expect } from 'vitest';
 // import type {
 //     Source,
-//     SceneSource,
+//     EncounterSource,
 //     CreateSourceRequest,
 //     UpdateSourceRequest,
-//     PlaceSceneSourceRequest,
-//     UpdateSceneSourceRequest,
+//     PlaceEncounterSourceRequest,
+//     UpdateEncounterSourceRequest,
 //     Point
 // } from '../domain';
 
@@ -57,35 +57,35 @@
 //         expect(source.defaultRange).toBe(2.5);
 //     });
 
-//     it('should allow valid SceneSource object', () => {
+//     it('should allow valid EncounterSource object', () => {
 //         const position: Point = { x: 50, y: 75 };
 
-//         const sceneSource: SceneSource = {
+//         const encounterSource: EncounterSource = {
 //             id: '789e4567-e89b-12d3-a456-426614174000',
-//             sceneId: 'abc-def-ghi',
+//             encounterId: 'abc-def-ghi',
 //             sourceId: '123e4567-e89b-12d3-a456-426614174000',
 //             position,
 //             range: 12.0,
 //             intensity: 0.9,
 //             isGradient: true,
 //         };
-//         expect(sceneSource.position.x).toBe(50);
-//         expect(sceneSource.position.y).toBe(75);
-//         expect(sceneSource.range).toBe(12.0);
+//         expect(encounterSource.position.x).toBe(50);
+//         expect(encounterSource.position.y).toBe(75);
+//         expect(encounterSource.range).toBe(12.0);
 //     });
 
-//     it('should allow SceneSource with overridden properties', () => {
-//         const sceneSource: SceneSource = {
+//     it('should allow EncounterSource with overridden properties', () => {
+//         const encounterSource: EncounterSource = {
 //             id: '789e4567-e89b-12d3-a456-426614174000',
-//             sceneId: 'abc-def-ghi',
+//             encounterId: 'abc-def-ghi',
 //             sourceId: '123e4567-e89b-12d3-a456-426614174000',
 //             position: { x: 100, y: 200 },
 //             range: 5.0,
 //             intensity: 0.5,
 //             isGradient: false,
 //         };
-//         expect(sceneSource.isGradient).toBe(false);
-//         expect(sceneSource.intensity).toBe(0.5);
+//         expect(encounterSource.isGradient).toBe(false);
+//         expect(encounterSource.intensity).toBe(0.5);
 //     });
 
 //     it('should allow valid CreateSourceRequest', () => {
@@ -110,8 +110,8 @@
 //         expect(request.defaultRange).toBeUndefined();
 //     });
 
-//     it('should allow valid PlaceSceneSourceRequest', () => {
-//         const request: PlaceSceneSourceRequest = {
+//     it('should allow valid PlaceEncounterSourceRequest', () => {
+//         const request: PlaceEncounterSourceRequest = {
 //             sourceId: '123e4567-e89b-12d3-a456-426614174000',
 //             position: { x: 25, y: 50 },
 //             range: 10.0,
@@ -122,8 +122,8 @@
 //         expect(request.position.x).toBe(25);
 //     });
 
-//     it('should allow PlaceSceneSourceRequest with optional range/intensity/isGradient', () => {
-//         const request: PlaceSceneSourceRequest = {
+//     it('should allow PlaceEncounterSourceRequest with optional range/intensity/isGradient', () => {
+//         const request: PlaceEncounterSourceRequest = {
 //             sourceId: '123e4567-e89b-12d3-a456-426614174000',
 //             position: { x: 25, y: 50 },
 //         };
@@ -134,8 +134,8 @@
 //         expect(request.isGradient).toBeUndefined();
 //     });
 
-//     it('should allow UpdateSceneSourceRequest with partial updates', () => {
-//         const request: UpdateSceneSourceRequest = {
+//     it('should allow UpdateEncounterSourceRequest with partial updates', () => {
+//         const request: UpdateEncounterSourceRequest = {
 //             intensity: 1.0,
 //             isGradient: false,
 //         };

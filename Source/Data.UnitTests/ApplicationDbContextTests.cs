@@ -11,7 +11,7 @@ public class ApplicationDbContextTests {
 
         // Check for essential DbSets
         properties.Should().Contain(p => p.Name == "Adventures");
-        properties.Should().Contain(p => p.Name == "Scenes");
+        properties.Should().Contain(p => p.Name == "Encounters");
         properties.Should().Contain(p => p.Name == "Assets");
         properties.Should().Contain(p => p.Name == "GameSessions");
 

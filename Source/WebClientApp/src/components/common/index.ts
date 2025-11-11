@@ -2,7 +2,7 @@ export { LoadingOverlay } from './LoadingOverlay';
 export { AssetPicker } from './AssetPicker';
 export { ConnectionStatusBanner } from './ConnectionStatusBanner';
 export { EditingBlocker } from './EditingBlocker';
-export { EditableSceneName } from './EditableSceneName';
+export { EditableEncounterName } from './EditableEncounterName';
 export { SaveStatusIndicator } from './SaveStatusIndicator';
 export { ConfirmDialog } from './ConfirmDialog';
 export type { AssetPickerProps } from './AssetPicker';

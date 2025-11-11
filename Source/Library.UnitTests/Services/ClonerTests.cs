@@ -9,7 +9,7 @@ public class ClonerTests {
     public void CloneAdventure_ClonesAll() {
         // Arrange
         var originalId = Guid.CreateVersion7();
-        var sceneId = Guid.CreateVersion7();
+        var encounterId = Guid.CreateVersion7();
         var original = new Adventure {
             Id = originalId,
             OwnerId = Guid.CreateVersion7(),
@@ -28,14 +28,14 @@ public class ClonerTests {
             IsOneShot = false,
             IsPublished = true,
             IsPublic = true,
-            Scenes = [
+            Encounters = [
                 new() {
-                    Id = sceneId,
-                    Name = "Original Scene",
+                    Id = encounterId,
+                    Name = "Original Encounter",
                     Stage = new() {
                         Background = new() {
                             Type = ResourceType.Image,
-                            Path = "path/to/scene/background.png",
+                            Path = "path/to/encounter/background.png",
                             Metadata = new ResourceMetadata {
                                 ContentType = "image/png",
                                 ImageSize = new Size(800, 600),
@@ -49,7 +49,7 @@ public class ClonerTests {
                         Elevation = 10.0f,
                         Sound = new() {
                             Type = ResourceType.Audio,
-                            Path = "path/to/scene/sound.mp3",
+                            Path = "path/to/encounter/sound.mp3",
                             Metadata = new ResourceMetadata {
                                 ContentType = "audio/mpeg",
                                 Duration = TimeSpan.FromMinutes(3),
@@ -82,15 +82,15 @@ public class ClonerTests {
         clone.IsPublished.Should().BeFalse();
         clone.IsOneShot.Should().BeFalse();
         clone.IsPublic.Should().BeFalse();
-        // NOTE: Cloned scenes get new IDs, so exclude Id from comparison
-        clone.Scenes.Should().BeEquivalentTo(original.Scenes, options => options.Excluding(s => s.Id));
+        // NOTE: Cloned encounters get new IDs, so exclude Id from comparison
+        clone.Encounters.Should().BeEquivalentTo(original.Encounters, options => options.Excluding(s => s.Id));
     }
 
     [Fact]
-    public void CloneAdventure_WithIncludeScenesFalse_CopiesOnlyBasicProperties() {
+    public void CloneAdventure_WithIncludeEncountersFalse_CopiesOnlyBasicProperties() {
         // Arrange
         var originalId = Guid.CreateVersion7();
-        var sceneId = Guid.CreateVersion7();
+        var encounterId = Guid.CreateVersion7();
         var original = new Adventure {
             Id = originalId,
             OwnerId = Guid.CreateVersion7(),
@@ -109,10 +109,10 @@ public class ClonerTests {
             IsOneShot = false,
             IsPublished = true,
             IsPublic = true,
-            Scenes = [
+            Encounters = [
                 new() {
-                    Id = sceneId,
-                    Name = "Original Scene",
+                    Id = encounterId,
+                    Name = "Original Encounter",
                     Stage = new(),
                     Grid = new() {
                         Type = GridType.Square,
@@ -139,19 +139,19 @@ public class ClonerTests {
         clone.IsPublished.Should().BeFalse();
         clone.IsOneShot.Should().BeFalse();
         clone.IsPublic.Should().BeFalse();
-        // NOTE: The cloner actually includes scenes - the test name is misleading
-        clone.Scenes.Should().NotBeEmpty();
-        clone.Scenes.Should().BeEquivalentTo(original.Scenes, options => options.Excluding(s => s.Id));
+        // NOTE: The cloner actually includes encounters - the test name is misleading
+        clone.Encounters.Should().NotBeEmpty();
+        clone.Encounters.Should().BeEquivalentTo(original.Encounters, options => options.Excluding(s => s.Id));
     }
 
     [Fact]
-    public void CloneScene_CopiesBasicProperties() {
+    public void CloneEncounter_CopiesBasicProperties() {
         // Arrange
         var originalId = Guid.CreateVersion7();
-        var original = new Scene {
+        var original = new Encounter {
             Id = originalId,
-            Name = "Original Scene",
-            Description = "Original scene description",
+            Name = "Original Encounter",
+            Description = "Original encounter description",
             Stage = new(),
             Grid = new() {
                 Type = GridType.Square,
@@ -240,12 +240,12 @@ public class ClonerTests {
     }
 
     [Fact]
-    public void CloneScene_ClonesSceneAssets() {
+    public void CloneEncounter_ClonesEncounterAssets() {
         // Arrange
         var originalId = Guid.CreateVersion7();
-        var original = new Scene {
+        var original = new Encounter {
             Id = originalId,
-            Name = "Original Scene",
+            Name = "Original Encounter",
             Assets = [
                 new() {
                     AssetId = Guid.CreateVersion7(),
@@ -294,11 +294,11 @@ public class ClonerTests {
     }
 
     [Fact]
-    public void CloneSceneAsset_CreatesNewAssetWithCorrectProperties() {
+    public void CloneEncounterAsset_CreatesNewAssetWithCorrectProperties() {
         // Arrange
         var userId = Guid.CreateVersion7();
         var controlledById = Guid.CreateVersion7();
-        var original = new SceneAsset {
+        var original = new EncounterAsset {
             AssetId = Guid.CreateVersion7(),
             Index = 1,
             Name = "Original Asset",

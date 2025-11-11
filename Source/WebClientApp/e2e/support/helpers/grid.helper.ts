@@ -2,7 +2,7 @@
  * Grid Helper
  *
  * Provides grid-related actions and validations for BDD scenarios
- * Used for Scene Editor grid configuration and rendering tests
+ * Used for Encounter Editor grid configuration and rendering tests
  *
  * BLACK-BOX TESTING: Interacts through UI, not component internals
  */
@@ -121,7 +121,7 @@ export async function saveGridConfiguration(page: Page): Promise<void> {
 
     // Wait for save operation to complete (network request)
     await page.waitForResponse(response =>
-        response.url().includes('/api/library/scenes') &&
+        response.url().includes('/api/library/encounters') &&
         response.request().method() === 'PATCH',
         { timeout: 5000 }
     );
@@ -177,22 +177,22 @@ export async function verifyGridCellSpacing(page: Page, expectedWidth: number, e
  */
 export async function verifyGridPersistedInDatabase(
     page: Page,
-    sceneId: string,
+    encounterId: string,
     expectedType: GridType
 ): Promise<void> {
-    // Make API call to retrieve scene and verify grid configuration
-    const response = await page.request.get(`/api/library/scenes/${sceneId}`);
+    // Make API call to retrieve encounter and verify grid configuration
+    const response = await page.request.get(`/api/library/encounters/${encounterId}`);
     expect(response.ok()).toBeTruthy();
 
-    const scene = await response.json();
-    expect(scene.grid.type).toBe(expectedType);
+    const encounter = await response.json();
+    expect(encounter.grid.type).toBe(expectedType);
 }
 
 /**
  * Open GridConfigPanel
  */
 export async function openGridConfigPanel(page: Page): Promise<void> {
-    // Click the grid configuration button in scene editor toolbar
+    // Click the grid configuration button in encounter editor toolbar
     const gridButton = page.locator('button[aria-label="Configure Grid"]').or(
         page.locator('button:has-text("Grid")')
     );
@@ -272,7 +272,7 @@ export async function verifyGridPerformance(page: Page): Promise<void> {
  */
 export async function zoomViewport(page: Page, scaleFactor: number): Promise<void> {
     // Simulate Ctrl+Scroll to zoom (or use zoom buttons if available)
-    // This depends on the scene editor implementation
+    // This depends on the encounter editor implementation
 
     // Option 1: Use keyboard shortcuts
     if (scaleFactor > 1) {

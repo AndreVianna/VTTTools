@@ -13,5 +13,5 @@ public record Adventure {
     public bool IsOneShot { get; init; }
     public bool IsPublished { get; init; }
     public bool IsPublic { get; init; }
-    public List<Scene> Scenes { get; init; } = [];
+    public List<Encounter> Encounters { get; init; } = [];
 }

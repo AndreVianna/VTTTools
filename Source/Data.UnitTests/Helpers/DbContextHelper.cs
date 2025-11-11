@@ -1,7 +1,7 @@
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using GameSessionEntity = VttTools.Data.Game.Entities.GameSession;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
-using SceneEntity = VttTools.Data.Library.Entities.Scene;
+using EncounterEntity = VttTools.Data.Library.Entities.Encounter;
 
 namespace VttTools.Data.Helpers;
 
@@ -52,19 +52,19 @@ internal static class DbContextHelper {
     }
 
     private static void SeedLibrary(ApplicationDbContext context, Guid currentUserId) {
-        // First add Tokens for Adventures and Scenes
+        // First add Tokens for Adventures and Encounters
         var adventureResources = new[] {
             CreateTestResourceEntity("Adventure 1 Background"),
             CreateTestResourceEntity("Adventure 2 Background"),
             CreateTestResourceEntity("Adventure 3 Background"),
         };
-        var sceneResources = new[] {
-            CreateTestResourceEntity("Scene 1.1 Stage"),
-            CreateTestResourceEntity("Scene 1.2 Stage"),
-            CreateTestResourceEntity("Scene 3.1 Stage"),
+        var encounterResources = new[] {
+            CreateTestResourceEntity("Encounter 1.1 Stage"),
+            CreateTestResourceEntity("Encounter 1.2 Stage"),
+            CreateTestResourceEntity("Encounter 3.1 Stage"),
         };
         context.Resources.AddRange(adventureResources);
-        context.Resources.AddRange(sceneResources);
+        context.Resources.AddRange(encounterResources);
         context.SaveChanges();
 
         // Then add Adventures that reference the Tokens
@@ -73,15 +73,15 @@ internal static class DbContextHelper {
             CreateTestAdventureEntity("Adventure 2", ownerId: currentUserId, backgroundId: adventureResources[1].Id),
             CreateTestAdventureEntity("Adventure 3", isPublished: true, isPublic: false, ownerId: Guid.CreateVersion7(), backgroundId: adventureResources[2].Id),
         };
-        var scenes = new[] {
-            CreateTestSceneEntity(adventures[0].Id, "Scene 1.1", stageId: sceneResources[0].Id),
-            CreateTestSceneEntity(adventures[0].Id, "Scene 1.2", stageId: sceneResources[1].Id),
-            CreateTestSceneEntity(adventures[2].Id, "Scene 3.1", stageId: sceneResources[2].Id),
+        var encounters = new[] {
+            CreateTestEncounterEntity(adventures[0].Id, "Encounter 1.1", stageId: encounterResources[0].Id),
+            CreateTestEncounterEntity(adventures[0].Id, "Encounter 1.2", stageId: encounterResources[1].Id),
+            CreateTestEncounterEntity(adventures[2].Id, "Encounter 3.1", stageId: encounterResources[2].Id),
         };
-        // Note: SceneAssets are added separately to avoid EF tracking conflicts during seeding
+        // Note: EncounterAssets are added separately to avoid EF tracking conflicts during seeding
 
         context.Adventures.AddRange(adventures);
-        context.Scenes.AddRange(scenes);
+        context.Encounters.AddRange(encounters);
         context.SaveChanges();
     }
 
@@ -89,13 +89,13 @@ internal static class DbContextHelper {
         var masterId = Guid.CreateVersion7();
         var playerId = Guid.CreateVersion7();
 
-        // Get scene IDs without complex Include operations to avoid EF In-Memory issues
-        var sceneIds = context.Scenes.Select(s => s.Id).ToArray();
+        // Get encounter IDs without complex Include operations to avoid EF In-Memory issues
+        var encounterIds = context.Encounters.Select(s => s.Id).ToArray();
         var firstAdventureOwnerId = context.Adventures.First().OwnerId;
 
         var sessions = new[] {
-            CreateTestGameSessionEntity("Session 1", sceneIds.Length > 0 ? sceneIds[0] : null, GameSessionStatus.InProgress),
-            CreateTestGameSessionEntity("Session 2", sceneIds.Length > 1 ? sceneIds[1] : null, GameSessionStatus.Scheduled, ownerId: currentUserId),
+            CreateTestGameSessionEntity("Session 1", encounterIds.Length > 0 ? encounterIds[0] : null, GameSessionStatus.InProgress),
+            CreateTestGameSessionEntity("Session 2", encounterIds.Length > 1 ? encounterIds[1] : null, GameSessionStatus.Scheduled, ownerId: currentUserId),
             CreateTestGameSessionEntity("Session 3", ownerId: firstAdventureOwnerId),
         };
 
@@ -127,7 +127,7 @@ internal static class DbContextHelper {
     public static AdventureEntity CreateTestAdventureEntity(string name, bool isPublished = false, bool isPublic = false, bool isOneShot = false, AdventureStyle style = AdventureStyle.OpenWorld, Guid? ownerId = null, Guid? backgroundId = null)
         => CreateTestAdventureEntity(Guid.CreateVersion7(), name, isPublished, isPublic, isOneShot, style, ownerId, backgroundId);
 
-    public static SceneEntity CreateTestSceneEntity(Guid adventureId, string name, Guid? stageId = null, Guid? soundId = null)
+    public static EncounterEntity CreateTestEncounterEntity(Guid adventureId, string name, Guid? stageId = null, Guid? soundId = null)
         => new() {
             AdventureId = adventureId,
             Name = name,
@@ -169,17 +169,17 @@ internal static class DbContextHelper {
     public static CreatureAssetEntity CreateTestAssetEntity(string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null, Guid? displayId = null)
         => CreateTestAssetEntity(Guid.CreateVersion7(), name, kind, isPublished, isPublic, ownerId, displayId);
 
-    public static GameSessionEntity CreateTestGameSessionEntity(Guid id, string title, Guid? sceneId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
+    public static GameSessionEntity CreateTestGameSessionEntity(Guid id, string title, Guid? encounterId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
         => new() {
             Id = id,
             Title = title,
-            SceneId = sceneId,
+            EncounterId = encounterId,
             Status = status,
             OwnerId = ownerId ?? Guid.CreateVersion7(),
         };
 
-    public static GameSessionEntity CreateTestGameSessionEntity(string title, Guid? sceneId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
-        => CreateTestGameSessionEntity(Guid.CreateVersion7(), title, sceneId, status, ownerId);
+    public static GameSessionEntity CreateTestGameSessionEntity(string title, Guid? encounterId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
+        => CreateTestGameSessionEntity(Guid.CreateVersion7(), title, encounterId, status, ownerId);
 
     public static ResourceEntity CreateTestResourceEntity(string fileName)
         => new() {
@@ -215,13 +215,13 @@ internal static class DbContextHelper {
             },
             Tags = [],
         },
-        Scenes = [],
+        Encounters = [],
     };
 
     public static Adventure CreateTestAdventure(string name, bool isPublished = false, bool isPublic = false, AdventureStyle type = AdventureStyle.OpenWorld, Guid? ownerId = null)
         => CreateTestAdventure(Guid.CreateVersion7(), name, isPublished, isPublic, type, ownerId);
 
-    public static Scene CreateTestScene(Guid id, string name)
+    public static Encounter CreateTestEncounter(Guid id, string name)
         => new() {
             Id = id,
             Name = name,
@@ -301,15 +301,15 @@ internal static class DbContextHelper {
     public static CreatureAsset CreateTestAsset(string name, AssetKind kind = AssetKind.Creature, bool isPublished = false, bool isPublic = false, Guid? ownerId = null)
         => CreateTestAsset(Guid.CreateVersion7(), name, kind, isPublished, isPublic, ownerId);
 
-    public static GameSession CreateTestGameSession(Guid id, string title, Guid? sceneId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
+    public static GameSession CreateTestGameSession(Guid id, string title, Guid? encounterId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
         => new() {
             Id = id,
             Title = title,
-            SceneId = sceneId,
+            EncounterId = encounterId,
             Status = status,
             OwnerId = ownerId ?? Guid.CreateVersion7(),
         };
 
-    public static GameSession CreateTestGameSession(string title, Guid? sceneId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
-        => CreateTestGameSession(Guid.CreateVersion7(), title, sceneId, status, ownerId);
+    public static GameSession CreateTestGameSession(string title, Guid? encounterId = null, GameSessionStatus status = GameSessionStatus.Draft, Guid? ownerId = null)
+        => CreateTestGameSession(Guid.CreateVersion7(), title, encounterId, status, ownerId);
 }

@@ -1,9 +1,9 @@
 // GENERATED: 2025-10-11 by Claude Code Phase 6
-// EPIC: EPIC-001 Phase 6 - Scene Editor Tokens, Undo/Redo, Offline
+// EPIC: EPIC-001 Phase 6 - Encounter Editor Tokens, Undo/Redo, Offline
 // LAYER: UI (Types)
 
 /**
- * Placement behavior types for token and asset management in scene editor
+ * Placement behavior types for token and asset management in encounter editor
  * Defines how different asset types can be manipulated on the canvas
  */
 
@@ -206,7 +206,7 @@ export const checkAssetOverlap = (
  * @param position Desired position
  * @param size Asset size
  * @param behavior Placement behavior
- * @param existingAssets Existing assets on scene
+ * @param existingAssets Existing assets on encounter
  * @param gridConfig Grid configuration
  * @param skipCollisionCheck If true, bypass overlap validation (Shift-click override)
  * @returns Validation result with errors

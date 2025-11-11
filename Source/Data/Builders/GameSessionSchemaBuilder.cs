@@ -9,7 +9,7 @@ internal static class GameSessionSchemaBuilder {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Title).IsRequired().HasMaxLength(100);
             entity.Property(s => s.OwnerId).IsRequired();
-            entity.Property(s => s.SceneId);
+            entity.Property(s => s.EncounterId);
             entity.OwnsMany(e => e.Players, pb => {
                 pb.ToTable("Players");
                 pb.WithOwner().HasForeignKey("GameSessionId");

@@ -2,11 +2,11 @@
 // import { describe, it, expect } from 'vitest';
 // import type {
 //     Region,
-//     SceneRegion,
+//     EncounterRegion,
 //     CreateRegionRequest,
 //     UpdateRegionRequest,
-//     PlaceSceneRegionRequest,
-//     UpdateSceneRegionRequest,
+//     PlaceEncounterRegionRequest,
+//     UpdateEncounterRegionRequest,
 //     Point
 // } from '../domain';
 
@@ -46,22 +46,22 @@
 //         expect(region.regionType).toBe('Weather');
 //     });
 
-//     it('should allow valid SceneRegion object', () => {
+//     it('should allow valid EncounterRegion object', () => {
 //         const vertices: Point[] = [
 //             { x: 0, y: 0 },
 //             { x: 10, y: 0 },
 //             { x: 10, y: 10 },
 //         ];
 
-//         const sceneRegion: SceneRegion = {
+//         const encounterRegion: EncounterRegion = {
 //             id: '789e4567-e89b-12d3-a456-426614174000',
-//             sceneId: 'abc-def-ghi',
+//             encounterId: 'abc-def-ghi',
 //             regionId: '123e4567-e89b-12d3-a456-426614174000',
 //             vertices,
 //             value: 1,
 //         };
-//         expect(sceneRegion.vertices).toHaveLength(3);
-//         expect(sceneRegion.value).toBe(1);
+//         expect(encounterRegion.vertices).toHaveLength(3);
+//         expect(encounterRegion.value).toBe(1);
 //     });
 
 //     it('should allow valid CreateRegionRequest', () => {
@@ -91,8 +91,8 @@
 //         expect(request.description).toBeUndefined();
 //     });
 
-//     it('should allow valid PlaceSceneRegionRequest', () => {
-//         const request: PlaceSceneRegionRequest = {
+//     it('should allow valid PlaceEncounterRegionRequest', () => {
+//         const request: PlaceEncounterRegionRequest = {
 //             regionId: '123e4567-e89b-12d3-a456-426614174000',
 //             vertices: [
 //                 { x: 0, y: 0 },
@@ -106,8 +106,8 @@
 //         expect(request.value).toBe(2);
 //     });
 
-//     it('should allow UpdateSceneRegionRequest with partial updates', () => {
-//         const request: UpdateSceneRegionRequest = {
+//     it('should allow UpdateEncounterRegionRequest with partial updates', () => {
+//         const request: UpdateEncounterRegionRequest = {
 //             value: 1,
 //         };
 //         expect(request.value).toBe(1);

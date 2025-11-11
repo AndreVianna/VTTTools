@@ -5,7 +5,7 @@ import { store } from '@/store';
 import { setupGlobalErrorHandling } from '@/utils/errorHandling';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { LandingPage } from '@/pages/LandingPage';
-import { SceneEditorPage } from '@/pages/SceneEditorPage';
+import { EncounterEditorPage } from '@/pages/EncounterEditorPage';
 import { AssetLibraryPage } from '@/pages/AssetLibraryPage';
 import { ErrorBoundary, NetworkStatus, ServiceUnavailablePage } from '@/components/error';
 import { AppLayout } from '@/components/layout';
@@ -118,9 +118,9 @@ function AppRoutes() {
             </AppLayout>
           } />
 
-          <Route path="/scene-editor/:sceneId?" element={
+          <Route path="/encounter-editor/:encounterId?" element={
             <ProtectedRoute authLevel="authorized">
-              <SceneEditorPage />
+              <EncounterEditorPage />
             </ProtectedRoute>
           } />
 

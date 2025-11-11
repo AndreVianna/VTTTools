@@ -1,2 +1,2 @@
-// DEPRECATED: Source library management removed - sources are now scene value objects only
+// DEPRECATED: Source library management removed - sources are now encounter value objects only
 export {};

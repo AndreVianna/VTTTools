@@ -7,7 +7,7 @@ using Epic = VttTools.Data.Library.Entities.Epic;
 using GameSession = VttTools.Data.Game.Entities.GameSession;
 using MaintenanceMode = VttTools.Data.Maintenance.Entities.MaintenanceMode;
 using Resource = VttTools.Data.Media.Entities.Resource;
-using Scene = VttTools.Data.Library.Entities.Scene;
+using Encounter = VttTools.Data.Library.Entities.Encounter;
 using Schedule = VttTools.Data.Game.Entities.Schedule;
 using StatBlock = VttTools.Data.Game.Entities.StatBlock;
 
@@ -21,7 +21,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Epic> Epics { get; set; }
     public DbSet<Campaign> Campaigns { get; set; }
     public DbSet<Adventure> Adventures { get; set; }
-    public DbSet<Scene> Scenes { get; set; }
+    public DbSet<Encounter> Encounters { get; set; }
     public DbSet<GameSession> GameSessions { get; set; }
     public DbSet<Schedule> Schedule { get; set; }
     public DbSet<StatBlock> StatBlocks { get; set; }
@@ -42,7 +42,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         EpicSchemaBuilder.ConfigureModel(builder);
         CampaignSchemaBuilder.ConfigureModel(builder);
         AdventureSchemaBuilder.ConfigureModel(builder);
-        SceneSchemaBuilder.ConfigureModel(builder);
+        EncounterSchemaBuilder.ConfigureModel(builder);
         ScheduleSchemaBuilder.ConfigureModel(builder);
         GameSessionSchemaBuilder.ConfigureModel(builder);
         AuditLogSchemaBuilder.ConfigureModel(builder);

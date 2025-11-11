@@ -27,7 +27,7 @@ export interface ApiResponse<T> {
   errors?: string[];
 }
 
-// Scene Environment Enums (from Domain.Library.Scenes.Model)
+// Encounter Environment Enums (from Domain.Library.Encounters.Model)
 
 export enum Light {
   Black = -10,
@@ -192,7 +192,7 @@ export interface PlacedAsset {
   size: { width: number; height: number };
   rotation: number;
   layer: string;
-  index: number; // Backend Index property - scene-wide unique identifier (never reused)
+  index: number; // Backend Index property - encounter-wide unique identifier (never reused)
   number: number; // Backend Number property - per-asset-type counter (e.g., "Goblin #3")
   name: string;
   visible: boolean;
@@ -227,7 +227,7 @@ export const applyAssetSnapshot = (
   layer: snapshot.layer,
 });
 
-// Structure Types (from Domain.Library.Scenes.Model)
+// Structure Types (from Domain.Library.Encounters.Model)
 
 export interface Structure {
   id: string;
@@ -243,9 +243,9 @@ export interface Structure {
   createdAt: string;
 }
 
-export interface SceneStructure {
+export interface EncounterStructure {
   id: string;
-  sceneId: string;
+  encounterId: string;
   structureId: string;
   vertices: Array<{ x: number; y: number }>;
   isOpen?: boolean;
@@ -253,7 +253,7 @@ export interface SceneStructure {
   isSecret?: boolean;
 }
 
-// Effect Types (from Domain.Library.Scenes.Model)
+// Effect Types (from Domain.Library.Encounters.Model)
 
 export enum EffectShape {
   Circle = 'Circle',
@@ -276,9 +276,9 @@ export interface Effect {
   createdAt: string;
 }
 
-export interface SceneEffect {
+export interface EncounterEffect {
   id: string;
-  sceneId: string;
+  encounterId: string;
   effectId: string;
   origin: { x: number; y: number };
   size?: number;
@@ -337,10 +337,10 @@ export interface Adventure {
   ownerId: string;
   style?: AdventureStyle | null;
   isOneShot?: boolean | null;
-  sceneCount?: number | null;
+  encounterCount?: number | null;
   background?: MediaResource | null;
   campaignId?: string;
-  scenes?: Scene[];
+  encounters?: Encounter[];
 }
 
 // Epics (from Domain.Library.Epics.ApiContracts)
@@ -396,8 +396,8 @@ export interface Campaign {
   adventures?: Adventure[];
 }
 
-// Scenes (from Domain.Library.Scenes.ApiContracts)
-export interface CreateSceneRequest {
+// Encounters (from Domain.Library.Encounters.ApiContracts)
+export interface CreateEncounterRequest {
   name: string;
   description: string;
   backgroundId?: string;
@@ -409,7 +409,7 @@ export interface CreateSceneRequest {
   };
 }
 
-export interface UpdateSceneRequest {
+export interface UpdateEncounterRequest {
   name?: string;
   description?: string;
   backgroundId?: string;
@@ -421,7 +421,7 @@ export interface UpdateSceneRequest {
   };
 }
 
-export interface Scene {
+export interface Encounter {
   id: string;
   adventure: Adventure | null;
   name: string;
@@ -441,15 +441,15 @@ export interface Scene {
     zoomLevel: number;
     panning: { x: number; y: number };
   };
-  assets: SceneAsset[];
-  walls: SceneWall[];
-  regions: SceneRegion[];
-  sources: SceneSource[];
+  assets: EncounterAsset[];
+  walls: EncounterWall[];
+  regions: EncounterRegion[];
+  sources: EncounterSource[];
 }
 
-export interface SceneAsset {
+export interface EncounterAsset {
   id: string;
-  sceneId: string;
+  encounterId: string;
   assetId: string;
   index: number;
   number: number;
@@ -661,7 +661,7 @@ export enum LabelPosition {
 }
 
 // Structure Types - Phase 8.8 Value Object Implementation
-// SceneWall, SceneRegion, and SceneSource as value objects embedded in Scene
+// EncounterWall, EncounterRegion, and EncounterSource as value objects embedded in Encounter
 
 export interface Point {
   x: number;
@@ -680,8 +680,8 @@ export enum WallVisibility {
   Invisible = 2
 }
 
-export interface SceneWall {
-  sceneId: string;
+export interface EncounterWall {
+  encounterId: string;
   index: number;
   name: string;
   poles: Pole[];
@@ -691,12 +691,12 @@ export interface SceneWall {
   color?: string | undefined;
 }
 
-export interface PlacedWall extends SceneWall {
+export interface PlacedWall extends EncounterWall {
   id: string;
 }
 
-export interface SceneRegion {
-  sceneId: string;
+export interface EncounterRegion {
+  encounterId: string;
   index: number;
   name: string;
   type: string;
@@ -706,12 +706,12 @@ export interface SceneRegion {
   color?: string;
 }
 
-export interface PlacedRegion extends SceneRegion {
+export interface PlacedRegion extends EncounterRegion {
   id: string;
 }
 
-export interface SceneSource {
-  sceneId: string;
+export interface EncounterSource {
+  encounterId: string;
   index: number;
   name: string;
   type: string;
@@ -725,7 +725,7 @@ export interface SceneSource {
   hasGradient: boolean;
 }
 
-export interface PlacedSource extends SceneSource {
+export interface PlacedSource extends EncounterSource {
   id: string;
 }
 

@@ -1,11 +1,11 @@
 // GENERATED: 2025-10-03 by Claude Code Phase 2
-// SPEC: Documents/Areas/Library/Features/SceneManagement/UseCases/ConfigureGrid/USE_CASE.md
+// SPEC: Documents/Areas/Library/Features/EncounterManagement/UseCases/ConfigureGrid/USE_CASE.md
 // USE_CASE: ConfigureGrid (supporting ConfigureStage)
 // LAYER: UI (Service)
 
 /**
  * Layer Manager Service
- * Manages Konva layer z-ordering and visibility for scene editor
+ * Manages Konva layer z-ordering and visibility for encounter editor
  * Ensures proper rendering order: background → grid → tokens → foreground
  * QUALITY_GATE: Layers maintain proper z-order (Phase 4 Gate 4)
  */

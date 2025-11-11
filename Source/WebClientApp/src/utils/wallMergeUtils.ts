@@ -1,4 +1,4 @@
-import type { Point, SceneWall } from '@/types/domain';
+import type { Point, EncounterWall } from '@/types/domain';
 import { calculateDistance, detectPoleOnPoleCollision } from './wallCollisionUtils';
 import type { GridConfig } from '@/utils/gridCalculator';
 
@@ -19,18 +19,18 @@ export interface MergeResult {
 
 export interface CanMergeWallsParams {
     newWallPoles: Point[];
-    existingWalls: SceneWall[];
+    existingWalls: EncounterWall[];
     tolerance?: number;
 }
 
 export interface MergeWallsParams {
     newWallPoles: Point[];
-    existingWalls: SceneWall[];
+    existingWalls: EncounterWall[];
     mergePoints: MergePoint[];
     tolerance?: number;
 }
 
-export function isEndpoint(poleIndex: number, wall: SceneWall): boolean {
+export function isEndpoint(poleIndex: number, wall: EncounterWall): boolean {
     return poleIndex === 0 || poleIndex === wall.poles.length - 1;
 }
 

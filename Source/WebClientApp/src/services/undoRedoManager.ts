@@ -1,23 +1,23 @@
 // GENERATED: 2025-10-11 by Claude Code Phase 6
-// EPIC: EPIC-001 Phase 6 - Scene Editor Tokens, Undo/Redo, Offline
+// EPIC: EPIC-001 Phase 6 - Encounter Editor Tokens, Undo/Redo, Offline
 // LAYER: UI (Service)
 
 /**
  * UndoRedoManager Service
- * Implements Command pattern for undo/redo functionality in scene editor
+ * Implements Command pattern for undo/redo functionality in encounter editor
  * Features:
  * - 100-level history stack (configurable)
- * - Support for all scene operations (place, move, delete assets)
+ * - Support for all encounter operations (place, move, delete assets)
  * - Memory-efficient command storage
  * - Keyboard shortcuts (Ctrl+Z, Ctrl+Y)
- * ACCEPTANCE_CRITERION: AC-03 - Undo/redo works for all scene operations (100-level default)
+ * ACCEPTANCE_CRITERION: AC-03 - Undo/redo works for all encounter operations (100-level default)
  */
 
 import type { PlacedAsset } from '@/types/domain';
 
 /**
  * Command interface for undo/redo operations
- * All scene operations must implement this interface
+ * All encounter operations must implement this interface
  */
 export interface Command {
     /** Command type for debugging and logging */
@@ -32,7 +32,7 @@ export interface Command {
 
 /**
  * Place Asset Command
- * Records placing a new asset on the scene
+ * Records placing a new asset on the encounter
  */
 export class PlaceAssetCommand implements Command {
     type = 'PlaceAsset';
@@ -47,13 +47,13 @@ export class PlaceAssetCommand implements Command {
     }
 
     execute(): void {
-        // Add asset to scene
+        // Add asset to encounter
         this.placedAssets.push(this.asset);
         this.onUpdate([...this.placedAssets]);
     }
 
     undo(): void {
-        // Remove asset from scene
+        // Remove asset from encounter
         const index = this.placedAssets.findIndex((a) => a.id === this.asset.id);
         if (index !== -1) {
             this.placedAssets.splice(index, 1);
@@ -102,7 +102,7 @@ export class MoveAssetCommand implements Command {
 
 /**
  * Delete Asset Command
- * Records deleting an asset from the scene
+ * Records deleting an asset from the encounter
  */
 export class DeleteAssetCommand implements Command {
     type = 'DeleteAsset';
@@ -378,8 +378,8 @@ export class UndoRedoManager {
 }
 
 /**
- * Create singleton instance for global scene editor undo/redo
- * Can be replaced with React Context in future for multi-scene support
+ * Create singleton instance for global encounter editor undo/redo
+ * Can be replaced with React Context in future for multi-encounter support
  */
 export const undoRedoManager = new UndoRedoManager({
     maxHistorySize: 100,

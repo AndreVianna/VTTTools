@@ -4,7 +4,7 @@ using AssetToken = VttTools.Data.Assets.Entities.AssetToken;
 using ObjectAsset = VttTools.Data.Assets.Entities.ObjectAsset;
 using CreatureAsset = VttTools.Data.Assets.Entities.CreatureAsset;
 using Adventure = VttTools.Data.Library.Entities.Adventure;
-using Scene = VttTools.Data.Library.Entities.Scene;
+using Encounter = VttTools.Data.Library.Entities.Encounter;
 using Effect = VttTools.Data.Assets.Entities.Effect;
 
 namespace VttTools.Data.Builders;
@@ -160,8 +160,8 @@ internal static class ApplicationSchemaSeeder {
             }
         ]);
 
-        builder.Entity<Scene>().HasData([
-            new Scene() {
+        builder.Entity<Encounter>().HasData([
+            new Encounter() {
                 AdventureId = new Guid("019A1480-D108-7627-8394-1F2A607AB656"),
                 Id = new Guid("019A1481-3F2C-7B4C-8D1E-3C4E2F5B6A7B"),
                 Name = "The Tavern",

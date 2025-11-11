@@ -100,7 +100,7 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
-        '/api/scenes': {
+        '/api/encounters': {
           target: 'https://localhost:7172',
           changeOrigin: true,
           secure: false,

@@ -10,7 +10,7 @@ internal static class GameSessionHandlers {
         var userId = context.User.GetUserId();
         var data = new CreateGameSessionData {
             Title = request.Title,
-            SceneId = request.SceneId,
+            EncounterId = request.EncounterId,
         };
         var result = await service.CreateGameSessionAsync(userId, data);
         return result.IsSuccessful
@@ -97,13 +97,13 @@ internal static class GameSessionHandlers {
                 : Results.ValidationProblem(result.Errors.GroupedBySource());
     }
 
-    internal static async Task<IResult> ActivateSceneHandler(
+    internal static async Task<IResult> ActivateEncounterHandler(
         HttpContext context,
         [FromRoute] Guid id,
-        [FromRoute] Guid scene,
+        [FromRoute] Guid encounter,
         [FromServices] IGameSessionService service) {
         var userId = context.User.GetUserId();
-        var result = await service.SetActiveSceneAsync(userId, id, scene);
+        var result = await service.SetActiveEncounterAsync(userId, id, encounter);
         return result.IsSuccessful
             ? Results.NoContent()
             : result.Errors[0].Message == "Session not found"

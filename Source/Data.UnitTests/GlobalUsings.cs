@@ -18,9 +18,9 @@ global using VttTools.Game.Sessions.Model;
 global using VttTools.Game.Sessions.Storage;
 global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Adventures.Storage;
-global using VttTools.Library.Scenes.Model;
-global using VttTools.Library.Scenes.Storage;
+global using VttTools.Library.Encounters.Model;
+global using VttTools.Library.Encounters.Storage;
 global using VttTools.Media.Model;
 
 global using CreatureAssetEntity = VttTools.Data.Assets.Entities.CreatureAsset;
-global using Scene = VttTools.Library.Scenes.Model.Scene;
+global using Encounter = VttTools.Library.Encounters.Model.Encounter;

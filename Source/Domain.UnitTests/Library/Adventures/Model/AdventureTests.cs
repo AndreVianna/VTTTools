@@ -11,8 +11,8 @@ public class AdventureTests {
         adventure.Id.Should().NotBeEmpty();
         adventure.OwnerId.Should().BeEmpty();
         adventure.CampaignId.Should().BeNull();
-        adventure.Scenes.Should().NotBeNull();
-        adventure.Scenes.Should().BeEmpty();
+        adventure.Encounters.Should().NotBeNull();
+        adventure.Encounters.Should().BeEmpty();
         adventure.Name.Should().BeEmpty();
         adventure.Description.Should().BeEmpty();
         adventure.Style.Should().Be(AdventureStyle.Generic);
@@ -44,7 +44,7 @@ public class AdventureTests {
         const bool isOneShot = true;
         var ownerId = Guid.CreateVersion7();
         var campaignId = Guid.CreateVersion7();
-        var scene = new Scene {
+        var encounter = new Encounter {
             Id = Guid.CreateVersion7(),
         };
 
@@ -60,7 +60,7 @@ public class AdventureTests {
             IsPublic = isPublic,
             OwnerId = ownerId,
             CampaignId = campaignId,
-            Scenes = [scene],
+            Encounters = [encounter],
         };
 
         // Assert
@@ -74,6 +74,6 @@ public class AdventureTests {
         adventure.IsPublic.Should().Be(isPublic);
         adventure.OwnerId.Should().Be(ownerId);
         adventure.CampaignId.Should().Be(campaignId);
-        adventure.Scenes.Should().ContainSingle(e => e.Equals(scene));
+        adventure.Encounters.Should().ContainSingle(e => e.Equals(encounter));
     }
 }
