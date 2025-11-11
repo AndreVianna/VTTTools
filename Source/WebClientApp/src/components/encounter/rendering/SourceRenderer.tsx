@@ -49,7 +49,7 @@ export const SourceRenderer: React.FC<SourceRendererProps> = ({
 
     return (
         <Shape
-            encounterFunc={(context) => {
+            encounterFunc={(context: CanvasRenderingContext2D) => {
                 if (losPolygon.length < 3) return;
 
                 const firstPoint = losPolygon[0];

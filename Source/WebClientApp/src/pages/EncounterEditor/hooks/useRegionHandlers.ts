@@ -139,7 +139,7 @@ export const useRegionHandlers = ({
         const result = await regionTransaction.commitTransaction(
             encounterId,
             { addEncounterRegion, updateEncounterRegion },
-            encounterForCommit,
+            encounterForCommit || undefined,
             gridConfig
         );
 
@@ -191,8 +191,8 @@ export const useRegionHandlers = ({
 
             if (originalRegion && segment) {
                 const newRegion: EncounterRegion = {
+                    encounterId: encounter!.id,
                     index: editingRegionIndex,
-                    encounterId,
                     name: segment.name,
                     vertices: segment.vertices,
                     type: segment.type,
@@ -246,7 +246,7 @@ export const useRegionHandlers = ({
             setIsEditingRegionVertices(false);
             setOriginalRegionVertices(null);
         }
-    }, [encounterId, encounter, editingRegionIndex, originalRegionVertices, regionTransaction, gridConfig, addEncounterRegion, updateEncounterRegion, removeEncounterRegion, setEncounter, setEditingRegionIndex, setSelectedRegionIndex, setIsEditingRegionVertices, setOriginalRegionVertices, setErrorMessage, executeMerge, recordAction, refetch]);
+    }, [encounterId, encounter, editingRegionIndex, originalRegionVertices, regionTransaction, gridConfig, addEncounterRegion, updateEncounterRegion, setEncounter, setEditingRegionIndex, setSelectedRegionIndex, setIsEditingRegionVertices, setOriginalRegionVertices, setErrorMessage, executeMerge, recordAction, refetch]);
 
     const handleStructurePlacementFinish = useCallback(async () => {
         try {
@@ -259,7 +259,7 @@ export const useRegionHandlers = ({
             const result = await regionTransaction.commitTransaction(
                 encounterId,
                 { addEncounterRegion, updateEncounterRegion },
-                encounterForCommit,
+                encounterForCommit || undefined,
                 gridConfig
             );
 
@@ -370,6 +370,7 @@ export const useRegionHandlers = ({
 
         if (encounter) {
             const tempRegion: EncounterRegion = {
+                encounterId: encounter.id,
                 index: -1,
                 name: properties.name,
                 vertices: [],

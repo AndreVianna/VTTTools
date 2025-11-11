@@ -2,19 +2,19 @@ import React from 'react';
 import { Alert, Snackbar } from '@mui/material';
 import { AssetContextMenu, WallContextMenu } from '@components/encounter';
 import { ConfirmDialog } from '@components/common';
-import type { PlacedAsset, EncounterWall, DisplayName, LabelPosition } from '@/types/domain';
+import type { PlacedAsset, EncounterWall } from '@/types/domain';
 
 interface EditorDialogsProps {
     deleteConfirmOpen: boolean;
     assetsToDelete: PlacedAsset[];
     onDeleteConfirmClose: () => void;
     onDeleteConfirm: () => void;
-    assetContextMenuPosition: { left: number; top: number } | null;
+    assetContextMenuPosition: { x: number; y: number } | null;
     assetContextMenuAsset: PlacedAsset | null;
     onAssetContextMenuClose: () => void;
-    onAssetRename: (assetId: string, newName: string) => Promise<void>;
-    onAssetDisplayUpdate: (assetId: string, displayName?: DisplayName, labelPosition?: LabelPosition) => Promise<void>;
-    wallContextMenuPosition: { left: number; top: number } | null;
+    onAssetRename: (assetId: string, newName: string) => void;
+    onAssetDisplayUpdate: (assetId: string, displayName: string, labelPosition: string) => void;
+    wallContextMenuPosition: { x: number; y: number } | null;
     wallContextMenuWall: EncounterWall | null;
     onWallContextMenuClose: () => void;
     onWallEditVertices: (wallIndex: number) => void;

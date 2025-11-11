@@ -1,7 +1,7 @@
-import type { Encounter, EncounterWall, EncounterRegion, PlacedAsset, Point, Pole } from '@/types/domain';
+import type { Encounter, PlacedAsset, Point, Pole } from '@/types/domain';
 import type { GridConfig } from '@/utils/gridCalculator';
 
-export type DrawingMode = 'wall' | 'region' | null;
+export type DrawingMode = 'wall' | 'region' | 'source' | null;
 
 export interface EncounterEditorState {
     encounter: Encounter | null;

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme, alpha } from '@mui/material';
+import { AdventureStyle } from '@/types/domain';
 import { getApiEndpoints } from '@/config/development';
 import {
     Box,
@@ -57,10 +58,12 @@ export function CampaignDetailPage() {
 
     useEffect(() => {
         if (campaign && !isInitialized) {
-            setName(campaign.name);
-            setDescription(campaign.description);
-            setIsPublished(campaign.isPublished);
-            setIsInitialized(true);
+            queueMicrotask(() => {
+                setName(campaign.name);
+                setDescription(campaign.description);
+                setIsPublished(campaign.isPublished);
+                setIsInitialized(true);
+            });
         }
     }, [campaign, isInitialized]);
 
@@ -170,7 +173,8 @@ export function CampaignDetailPage() {
                     campaignId,
                     request: {
                         name: 'New Adventure',
-                        description: ''
+                        description: '',
+                        style: AdventureStyle.Generic
                     }
                 }).unwrap();
                 navigate(`/adventures/${adventure.id}`);

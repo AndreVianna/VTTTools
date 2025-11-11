@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Circle, Shape, Text } from 'react-konva';
 import { useTheme, type Theme } from '@mui/material/styles';
+import type { Context } from 'konva/lib/Context';
 import { calculateLineOfSight } from '@/utils/lineOfSightCalculation';
 import { VertexMarker } from './VertexMarker';
 import { Point, EncounterWall, EncounterSource, WallVisibility } from '@/types/domain';
@@ -73,7 +74,7 @@ export const SourcePreview: React.FC<SourcePreviewProps> = ({
             />
 
             <Shape
-                encounterFunc={(context) => {
+                sceneFunc={(context: Context) => {
                     if (losPolygon.length < 3) return;
 
                     const firstPoint = losPolygon[0];

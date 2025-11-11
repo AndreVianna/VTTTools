@@ -1,3 +1,4 @@
+import type { SyntheticEvent } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Typography, Tabs, Tab } from '@mui/material';
 
@@ -20,7 +21,7 @@ export function ContentLibraryPage() {
 
     const currentTab = getCurrentTab();
 
-    const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
+    const handleTabChange = (_event: SyntheticEvent, newValue: string) => {
         navigate(`/content-library/${newValue}`);
     };
 

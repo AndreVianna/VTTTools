@@ -1,9 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, type RefObject, type MouseEvent } from 'react';
 import type { Viewport, EncounterCanvasHandle } from '@components/encounter';
 
 interface UseViewportControlsProps {
     initialViewport: Viewport;
-    canvasRef: React.RefObject<EncounterCanvasHandle>;
+    canvasRef: RefObject<EncounterCanvasHandle>;
 }
 
 export const useViewportControls = ({ initialViewport, canvasRef }: UseViewportControlsProps) => {
@@ -26,7 +26,7 @@ export const useViewportControls = ({ initialViewport, canvasRef }: UseViewportC
         canvasRef.current?.resetView();
     };
 
-    const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const handleCanvasMouseMove = useCallback((e: MouseEvent<HTMLDivElement>) => {
         const canvasX = Math.round((e.clientX - viewport.x) / viewport.scale);
         const canvasY = Math.round((e.clientY - viewport.y) / viewport.scale);
         setCursorPosition({ x: canvasX, y: canvasY });

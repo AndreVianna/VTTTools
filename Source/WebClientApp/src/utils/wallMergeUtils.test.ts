@@ -326,7 +326,7 @@ describe('canMergeWalls', () => {
 
             expect(result.canMerge).toBe(true);
             expect(result.isClosed).toBe(false);
-            expect(result.mergePoints[0].isFirst).toBe(false);
+            expect(result.mergePoints[0]!.isFirst).toBe(false);
         });
 
         it('should merge when both ends merge with different walls', () => {

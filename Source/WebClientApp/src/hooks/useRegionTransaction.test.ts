@@ -58,6 +58,7 @@ describe('useRegionTransaction', () => {
             it('should start editing transaction with existing region', () => {
                 const { result } = renderHook(() => useRegionTransaction());
                 const existingRegion: EncounterRegion = {
+                    encounterId: 'encounter-1',
                     index: 5,
                     name: 'Forest Area',
                     vertices: [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }],
@@ -221,6 +222,7 @@ describe('useRegionTransaction', () => {
             it('should not modify tempId or regionIndex', () => {
                 const { result } = renderHook(() => useRegionTransaction());
                 const existingRegion: EncounterRegion = {
+                    encounterId: 'encounter-1',
                     index: 10,
                     name: 'Region',
                     vertices: [],
@@ -317,9 +319,19 @@ describe('useRegionTransaction', () => {
 
                 const encounter: Encounter = {
                     id: 'encounter-1',
+                    adventure: null,
                     name: 'Test Encounter',
                     description: '',
-                    regions: []
+                    isPublished: false,
+                    light: 'Bright' as any,
+                    weather: 'Clear' as any,
+                    elevation: 0,
+                    grid: { type: 0, cellSize: { width: 50, height: 50 }, offset: { left: 0, top: 0 }, snap: true },
+                    stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
+                    assets: [],
+                    walls: [],
+                    regions: [],
+                    sources: []
                 };
 
                 act(() => {
@@ -355,6 +367,7 @@ describe('useRegionTransaction', () => {
                 const { result } = renderHook(() => useRegionTransaction());
 
                 const existingRegion: EncounterRegion = {
+                    encounterId: 'encounter-1',
                     index: 1,
                     name: 'Region 1',
                     vertices: [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 50, y: 100 }],
@@ -374,9 +387,19 @@ describe('useRegionTransaction', () => {
 
                 const encounter: Encounter = {
                     id: 'encounter-1',
+                    adventure: null,
                     name: 'Test Encounter',
                     description: '',
-                    regions: [existingRegion]
+                    isPublished: false,
+                    light: 'Bright' as any,
+                    weather: 'Clear' as any,
+                    elevation: 0,
+                    grid: { type: 0, cellSize: { width: 50, height: 50 }, offset: { left: 0, top: 0 }, snap: true },
+                    stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
+                    assets: [],
+                    walls: [],
+                    regions: [existingRegion],
+                    sources: []
                 };
 
                 act(() => {
@@ -416,6 +439,7 @@ describe('useRegionTransaction', () => {
                 const { result } = renderHook(() => useRegionTransaction());
 
                 const region1: EncounterRegion = {
+                    encounterId: 'encounter-1',
                     index: 5,
                     name: 'Region 1',
                     vertices: [{ x: 0, y: 0 }, { x: 50, y: 0 }, { x: 25, y: 50 }],
@@ -423,6 +447,7 @@ describe('useRegionTransaction', () => {
                 };
 
                 const region2: EncounterRegion = {
+                    encounterId: 'encounter-1',
                     index: 3,
                     name: 'Region 2',
                     vertices: [{ x: 50, y: 0 }, { x: 100, y: 0 }, { x: 75, y: 50 }],
@@ -438,9 +463,19 @@ describe('useRegionTransaction', () => {
 
                 const encounter: Encounter = {
                     id: 'encounter-1',
+                    adventure: null,
                     name: 'Test Encounter',
                     description: '',
-                    regions: [region2, region1]
+                    isPublished: false,
+                    light: 'Bright' as any,
+                    weather: 'Clear' as any,
+                    elevation: 0,
+                    grid: { type: 0, cellSize: { width: 50, height: 50 }, offset: { left: 0, top: 0 }, snap: true },
+                    stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
+                    assets: [],
+                    walls: [],
+                    regions: [region2, region1],
+                    sources: []
                 };
 
                 act(() => {
@@ -478,6 +513,7 @@ describe('useRegionTransaction', () => {
                 const { result } = renderHook(() => useRegionTransaction());
 
                 const existingRegion: EncounterRegion = {
+                    encounterId: 'encounter-1',
                     index: 1,
                     name: 'Region 1',
                     vertices: [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 50, y: 100 }],
@@ -489,15 +525,26 @@ describe('useRegionTransaction', () => {
 
                 const encounter: Encounter = {
                     id: 'encounter-1',
+                    adventure: null,
                     name: 'Test Encounter',
                     description: '',
-                    regions: [existingRegion]
+                    isPublished: false,
+                    light: 'Bright' as any,
+                    weather: 'Clear' as any,
+                    elevation: 0,
+                    grid: { type: 0, cellSize: { width: 50, height: 50 }, offset: { left: 0, top: 0 }, snap: true },
+                    stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
+                    assets: [],
+                    walls: [],
+                    regions: [existingRegion],
+                    sources: []
                 };
 
                 const gridConfig: GridConfig = {
-                    cellSize: 50,
-                    offsetX: 0,
-                    offsetY: 0
+                    type: 0,
+                    cellSize: { width: 50, height: 50 },
+                    offset: { left: 0, top: 0 },
+                    snap: true
                 };
 
                 act(() => {
@@ -704,6 +751,7 @@ describe('useRegionTransaction', () => {
             it('should update existing region for editing transaction', async () => {
                 const { result } = renderHook(() => useRegionTransaction());
                 const existingRegion: EncounterRegion = {
+                    encounterId: 'encounter-1',
                     index: 3,
                     name: 'Old Name',
                     vertices: [{ x: 0, y: 0 }, { x: 50, y: 0 }, { x: 25, y: 50 }],

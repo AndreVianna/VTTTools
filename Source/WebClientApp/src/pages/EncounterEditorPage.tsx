@@ -280,7 +280,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         encounter,
         wallTransaction,
         selectedWallIndex,
-        drawingMode,
+        drawingMode: drawingMode === 'source' ? null : drawingMode,
         drawingWallIndex,
         addEncounterWall,
         updateEncounterWall,
@@ -295,7 +295,10 @@ const EncounterEditorPageInternal: React.FC = () => {
         setActivePanel,
         setErrorMessage,
         execute,
-        refetch
+        refetch: async () => {
+            const result = await refetch();
+            return result.data ? { data: result.data } : {};
+        }
     });
 
     const regionHandlers = useRegionHandlers({
@@ -306,7 +309,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         selectedRegionIndex,
         editingRegionIndex,
         originalRegionVertices,
-        drawingMode,
+        drawingMode: drawingMode === 'source' ? null : drawingMode,
         drawingRegionIndex,
         addEncounterRegion,
         updateEncounterRegion,
@@ -320,25 +323,29 @@ const EncounterEditorPageInternal: React.FC = () => {
         setDrawingRegionIndex,
         setDrawingMode,
         setErrorMessage,
-        execute,
         recordAction,
-        refetch
+        refetch: async () => {
+            const result = await refetch();
+            return result.data ? { data: result.data } : {};
+        }
     });
 
     const keyboardState = useKeyboardState({
         gridConfig,
-        onEscapeKey: () => {
-            if (isEditingVertices && wallTransaction.transaction.isActive) {
-                wallHandlers.handleCancelEditing();
-            } else if (assetManagement?.draggedAsset) {
-                assetManagement.setDraggedAsset(null);
+        ...(drawingMode !== 'wall' && drawingMode !== 'region' && {
+            onEscapeKey: () => {
+                if (isEditingVertices && wallTransaction.transaction.isActive) {
+                    wallHandlers.handleCancelEditing();
+                } else if (assetManagement?.draggedAsset) {
+                    assetManagement.setDraggedAsset(null);
+                }
+            },
+            onEnterKey: () => {
+                if (isEditingVertices && wallTransaction.transaction.isActive) {
+                    wallHandlers.handleFinishEditing();
+                }
             }
-        },
-        onEnterKey: () => {
-            if (isEditingVertices && wallTransaction.transaction.isActive) {
-                wallHandlers.handleFinishEditing();
-            }
-        }
+        })
     });
 
     const canvasReadyState = useCanvasReadyState({
@@ -347,7 +354,7 @@ const EncounterEditorPageInternal: React.FC = () => {
 
     const viewportControls = useViewportControls({
         initialViewport,
-        canvasRef
+        canvasRef: canvasRef as React.RefObject<EncounterCanvasHandle>
     });
 
     const contextMenus = useContextMenus({
@@ -367,7 +374,7 @@ const EncounterEditorPageInternal: React.FC = () => {
         cutAssets,
         canPaste,
         getClipboardAssets,
-        clipboard,
+        clipboard: clipboard.operation ? { operation: clipboard.operation } : {},
         clearClipboard,
         addEncounterAsset,
         updateEncounterAsset,
@@ -375,7 +382,10 @@ const EncounterEditorPageInternal: React.FC = () => {
         removeEncounterAsset,
         bulkDeleteEncounterAssets,
         bulkAddEncounterAssets,
-        refetch
+        refetch: async () => {
+            const result = await refetch();
+            return result.data ? { data: result.data } : {};
+        }
     });
 
     useEffect(() => {
@@ -435,7 +445,7 @@ const EncounterEditorPageInternal: React.FC = () => {
 
             initializeEncounter();
         }
-    }, [encounterData, isInitialized, dispatch, encounterId]);
+    }, [encounterData, isInitialized, dispatch, encounterId, assetManagement]);
 
     useEffect(() => {
         if (encounterData && isInitialized) {
@@ -474,7 +484,7 @@ const EncounterEditorPageInternal: React.FC = () => {
             layerManager.enforceZOrder();
             setStageReady(true);
         }
-    });
+    }, []);
 
 
     useEffect(() => {
@@ -783,12 +793,10 @@ const EncounterEditorPageInternal: React.FC = () => {
         try {
             await updateEncounterAsset({
                 encounterId,
-                assetId,
+                assetNumber: asset.index,
                 position: updatedAsset.position,
                 size: updatedAsset.size,
-                rotation: updatedAsset.rotation,
-                ...(updates.displayName && { displayName: updates.displayName }),
-                ...(updates.labelPosition && { labelPosition: updates.labelPosition })
+                rotation: updatedAsset.rotation
             }).unwrap();
 
             assetManagement.setPlacedAssets(prev =>
@@ -1168,7 +1176,12 @@ const EncounterEditorPageInternal: React.FC = () => {
                             onDragComplete={assetManagement.handleDragComplete}
                             onImagesLoaded={canvasReadyState.handleImagesLoaded}
                             snapMode={keyboardState.snapMode}
-                            onContextMenu={contextMenus.assetContextMenu.handleOpen}
+                            onContextMenu={(assetId: string, position: { x: number; y: number }) => {
+                                const asset = assetManagement.placedAssets.find(a => a.id === assetId);
+                                if (asset) {
+                                    contextMenus.assetContextMenu.handleOpen(asset, position);
+                                }
+                            }}
                             encounter={encounter}
                         />
                     )}

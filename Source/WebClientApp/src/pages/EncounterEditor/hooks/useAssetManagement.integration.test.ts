@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useAssetManagement } from './useAssetManagement';
 import type { Encounter, PlacedAsset, Asset } from '@/types/domain';
+import { AssetKind, Weather, DisplayName, LabelPosition, ResourceType } from '@/types/domain';
 import { setEntityMapping, getIndexByDomId, removeEntityMapping, clearEncounterMappings } from '@/utils/encounterEntityMapping';
 
 vi.mock('@/utils/encounterMappers', () => ({
@@ -44,46 +45,85 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
 
         mockAsset = {
             id: 'asset-lib-001',
+            ownerId: 'owner-123',
+            kind: AssetKind.Object,
             name: 'Test Asset',
-            imageUrl: '/test-image.png',
-            width: 100,
-            height: 100,
-            tags: []
+            description: 'Test asset description',
+            isPublished: true,
+            isPublic: true,
+            tokens: [{
+                token: {
+                    id: 'token-123',
+                    type: ResourceType.Image,
+                    path: '/test-image.png',
+                    metadata: {
+                        contentType: 'image/png',
+                        fileName: 'test-image.png',
+                        fileLength: 1024,
+                        imageSize: { width: 100, height: 100 }
+                    },
+                    tags: []
+                },
+                isDefault: true
+            }],
+            portrait: undefined,
+            size: {
+                width: 100,
+                height: 100,
+                isSquare: true
+            }
         };
 
         mockPlacedAsset = {
             id: `asset-temp-${Date.now()}-abc123`,
             index: -1,
+            number: 0,
             assetId: mockAsset.id,
             name: mockAsset.name,
             position: { x: 100, y: 100 },
             size: { width: 100, height: 100 },
             rotation: 0,
+            layer: 'objects',
+            visible: true,
+            locked: false,
+            displayName: DisplayName.Default,
+            labelPosition: LabelPosition.Default,
             asset: mockAsset
         };
 
         mockEncounter = {
             id: testEncounterId,
+            adventure: null,
             name: 'Test Encounter',
             description: '',
+            isPublished: false,
+            light: 0,
+            weather: Weather.Clear,
+            elevation: 0,
+            grid: {
+                type: 1,
+                cellSize: { width: 50, height: 50 },
+                offset: { left: 0, top: 0 },
+                snap: true
+            },
+            stage: {
+                background: null,
+                zoomLevel: 1,
+                panning: { x: 0, y: 0 }
+            },
             assets: [],
             walls: [],
             regions: [],
-            sources: [],
-            effects: [],
-            gridSize: 50,
-            gridVisible: true
+            sources: []
         };
 
         mockAddEncounterAsset = vi.fn().mockImplementation(() => ({
             unwrap: vi.fn().mockResolvedValue({})
         }));
 
-        mockRemoveEncounterAsset = vi.fn().mockImplementation(({ encounterId, assetNumber }) => {
-            return {
-                unwrap: vi.fn().mockResolvedValue({})
-            };
-        });
+        mockRemoveEncounterAsset = vi.fn().mockImplementation(() => ({
+            unwrap: vi.fn().mockResolvedValue({})
+        }));
 
         mockUpdateEncounterAsset = vi.fn().mockImplementation(() => ({
             unwrap: vi.fn().mockResolvedValue({})
@@ -181,7 +221,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
 
             setEntityMapping(testEncounterId, 'assets', tempDomId, backendIndex);
 
-            const { result } = renderHook(() =>
+            renderHook(() =>
                 useAssetManagement({
                     encounterId: testEncounterId,
                     encounter: mockEncounter,
@@ -266,7 +306,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
             setEntityMapping(testEncounterId, 'assets', asset1Id, 0);
             setEntityMapping(testEncounterId, 'assets', asset2Id, 1);
 
-            const { result } = renderHook(() =>
+            renderHook(() =>
                 useAssetManagement({
                     encounterId: testEncounterId,
                     encounter: mockEncounter,
@@ -359,7 +399,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
 
             setEntityMapping(testEncounterId, 'assets', tempDomId, backendIndex);
 
-            const { result, unmount } = renderHook(() =>
+            const { unmount } = renderHook(() =>
                 useAssetManagement({
                     encounterId: testEncounterId,
                     encounter: mockEncounter,
@@ -385,7 +425,7 @@ describe('useAssetManagement - Integration Tests for Undo/Redo with localStorage
 
             unmount();
 
-            const { result: result2 } = renderHook(() =>
+            renderHook(() =>
                 useAssetManagement({
                     encounterId: testEncounterId,
                     encounter: mockEncounter,

@@ -72,7 +72,7 @@ describe('encounterStateUtils', () => {
       const result = addWallOptimistic(encounter, wall);
 
       expect(result.walls).toHaveLength(1);
-      expect(result.walls[0]).toEqual(wall);
+      expect(result.walls[0]!).toEqual(wall);
     });
 
     it('should add wall to existing walls', () => {
@@ -83,7 +83,7 @@ describe('encounterStateUtils', () => {
       const result = addWallOptimistic(encounter, newWall);
 
       expect(result.walls).toHaveLength(2);
-      expect(result.walls[1]).toEqual(newWall);
+      expect(result.walls[1]!).toEqual(newWall);
     });
 
     it('should filter out temporary walls (index === -1) before adding', () => {
@@ -119,7 +119,7 @@ describe('encounterStateUtils', () => {
 
       const result = updateWallOptimistic(encounter, 1, { name: 'Updated' });
 
-      expect(result.walls[0].name).toBe('Updated');
+      expect(result.walls[0]!.name).toBe('Updated');
     });
 
     it('should return unchanged encounter when wall not found', () => {
@@ -138,8 +138,8 @@ describe('encounterStateUtils', () => {
 
       const result = updateWallOptimistic(encounter, 2, { name: 'Updated Wall 2' });
 
-      expect(result.walls[0].name).toBe('Wall 1');
-      expect(result.walls[1].name).toBe('Updated Wall 2');
+      expect(result.walls[0]!.name).toBe('Wall 1');
+      expect(result.walls[1]!.name).toBe('Updated Wall 2');
     });
 
     it('should partially update wall properties', () => {
@@ -148,8 +148,8 @@ describe('encounterStateUtils', () => {
 
       const result = updateWallOptimistic(encounter, 1, { isClosed: true });
 
-      expect(result.walls[0].name).toBe('Original');
-      expect(result.walls[0].isClosed).toBe(true);
+      expect(result.walls[0]!.name).toBe('Original');
+      expect(result.walls[0]!.isClosed).toBe(true);
     });
   });
 
@@ -184,7 +184,7 @@ describe('encounterStateUtils', () => {
       const result = removeWallOptimistic(encounter, 99);
 
       expect(result.walls).toHaveLength(1);
-      expect(result.walls[0]).toEqual(wall);
+      expect(result.walls[0]!).toEqual(wall);
     });
   });
 
@@ -196,7 +196,7 @@ describe('encounterStateUtils', () => {
 
       const result = syncWallIndices(encounter, tempToRealMap);
 
-      expect(result.walls[0].index).toBe(5);
+      expect(result.walls[0]!.index).toBe(5);
     });
 
     it('should not update walls with positive indices', () => {
@@ -206,7 +206,7 @@ describe('encounterStateUtils', () => {
 
       const result = syncWallIndices(encounter, tempToRealMap);
 
-      expect(result.walls[0].index).toBe(1);
+      expect(result.walls[0]!.index).toBe(1);
     });
 
     it('should handle multiple temp walls', () => {
@@ -221,9 +221,9 @@ describe('encounterStateUtils', () => {
 
       const result = syncWallIndices(encounter, tempToRealMap);
 
-      expect(result.walls[0].index).toBe(10);
-      expect(result.walls[1].index).toBe(1);
-      expect(result.walls[2].index).toBe(11);
+      expect(result.walls[0]!.index).toBe(10);
+      expect(result.walls[1]!.index).toBe(1);
+      expect(result.walls[2]!.index).toBe(11);
     });
 
     it('should preserve walls with temp indices not in map', () => {
@@ -233,7 +233,7 @@ describe('encounterStateUtils', () => {
 
       const result = syncWallIndices(encounter, tempToRealMap);
 
-      expect(result.walls[0].index).toBe(-1);
+      expect(result.walls[0]!.index).toBe(-1);
     });
 
     it('should handle empty map', () => {
@@ -243,7 +243,7 @@ describe('encounterStateUtils', () => {
 
       const result = syncWallIndices(encounter, tempToRealMap);
 
-      expect(result.walls[0].index).toBe(-1);
+      expect(result.walls[0]!.index).toBe(-1);
     });
   });
 
@@ -256,7 +256,7 @@ describe('encounterStateUtils', () => {
       const result = removeTempRegions(encounter);
 
       expect(result.regions).toHaveLength(1);
-      expect(result.regions[0].name).toBe('Permanent');
+      expect(result.regions[0]!.name).toBe('Permanent');
     });
 
     it('should preserve regions with valid indices', () => {
@@ -277,7 +277,7 @@ describe('encounterStateUtils', () => {
       const result = removeTempRegions(encounter);
 
       expect(result.regions).toHaveLength(1);
-      expect(result.regions[0]).toEqual(region);
+      expect(result.regions[0]!).toEqual(region);
     });
 
     it('should handle encounter with all temp regions', () => {
@@ -324,8 +324,8 @@ describe('encounterStateUtils', () => {
       const result = removeTempRegions(encounter);
 
       expect(result.regions).toHaveLength(2);
-      expect(result.regions[0].name).toBe('Permanent 1');
-      expect(result.regions[1].name).toBe('Permanent 2');
+      expect(result.regions[0]!.name).toBe('Permanent 1');
+      expect(result.regions[1]!.name).toBe('Permanent 2');
     });
   });
 
@@ -337,7 +337,7 @@ describe('encounterStateUtils', () => {
       const result = addRegionOptimistic(encounter, region);
 
       expect(result.regions).toHaveLength(1);
-      expect(result.regions[0]).toEqual(region);
+      expect(result.regions[0]!).toEqual(region);
     });
 
     it('should add region and filter temp regions', () => {
@@ -372,7 +372,7 @@ describe('encounterStateUtils', () => {
 
       const result = updateRegionOptimistic(encounter, 1, { name: 'Updated' });
 
-      expect(result.regions[0].name).toBe('Updated');
+      expect(result.regions[0]!.name).toBe('Updated');
     });
 
     it('should return unchanged encounter when region not found', () => {
@@ -391,8 +391,8 @@ describe('encounterStateUtils', () => {
 
       const result = updateRegionOptimistic(encounter, 2, { name: 'Updated Region 2' });
 
-      expect(result.regions[0].name).toBe('Region 1');
-      expect(result.regions[1].name).toBe('Updated Region 2');
+      expect(result.regions[0]!.name).toBe('Region 1');
+      expect(result.regions[1]!.name).toBe('Updated Region 2');
     });
 
     it('should partially update region properties', () => {
@@ -401,9 +401,9 @@ describe('encounterStateUtils', () => {
 
       const result = updateRegionOptimistic(encounter, 1, { label: 'New Label' });
 
-      expect(result.regions[0].name).toBe('Original');
-      expect(result.regions[0].type).toBe('difficult-terrain');
-      expect(result.regions[0].label).toBe('New Label');
+      expect(result.regions[0]!.name).toBe('Original');
+      expect(result.regions[0]!.type).toBe('difficult-terrain');
+      expect(result.regions[0]!.label).toBe('New Label');
     });
   });
 
@@ -438,7 +438,7 @@ describe('encounterStateUtils', () => {
       const result = removeRegionOptimistic(encounter, 99);
 
       expect(result.regions).toHaveLength(1);
-      expect(result.regions[0]).toEqual(region);
+      expect(result.regions[0]!).toEqual(region);
     });
   });
 
@@ -450,7 +450,7 @@ describe('encounterStateUtils', () => {
 
       const result = syncRegionIndices(encounter, tempToRealMap);
 
-      expect(result.regions[0].index).toBe(5);
+      expect(result.regions[0]!.index).toBe(5);
     });
 
     it('should not update regions with positive indices', () => {
@@ -460,7 +460,7 @@ describe('encounterStateUtils', () => {
 
       const result = syncRegionIndices(encounter, tempToRealMap);
 
-      expect(result.regions[0].index).toBe(1);
+      expect(result.regions[0]!.index).toBe(1);
     });
 
     it('should handle multiple temp regions', () => {
@@ -475,9 +475,9 @@ describe('encounterStateUtils', () => {
 
       const result = syncRegionIndices(encounter, tempToRealMap);
 
-      expect(result.regions[0].index).toBe(10);
-      expect(result.regions[1].index).toBe(1);
-      expect(result.regions[2].index).toBe(11);
+      expect(result.regions[0]!.index).toBe(10);
+      expect(result.regions[1]!.index).toBe(1);
+      expect(result.regions[2]!.index).toBe(11);
     });
 
     it('should preserve regions with temp indices not in map', () => {
@@ -487,7 +487,7 @@ describe('encounterStateUtils', () => {
 
       const result = syncRegionIndices(encounter, tempToRealMap);
 
-      expect(result.regions[0].index).toBe(-1);
+      expect(result.regions[0]!.index).toBe(-1);
     });
 
     it('should handle empty map', () => {
@@ -497,7 +497,7 @@ describe('encounterStateUtils', () => {
 
       const result = syncRegionIndices(encounter, tempToRealMap);
 
-      expect(result.regions[0].index).toBe(-1);
+      expect(result.regions[0]!.index).toBe(-1);
     });
   });
 
@@ -517,7 +517,7 @@ describe('encounterStateUtils', () => {
 
       expect(result).not.toBeNull();
       expect(result!.regions).toHaveLength(1);
-      expect(result!.regions[0].name).toBe('Permanent');
+      expect(result!.regions[0]!.name).toBe('Permanent');
     });
 
     it('should exclude specific region by index', () => {
@@ -545,7 +545,7 @@ describe('encounterStateUtils', () => {
 
       expect(result).not.toBeNull();
       expect(result!.regions).toHaveLength(1);
-      expect(result!.regions[0].name).toBe('Region 2');
+      expect(result!.regions[0]!.name).toBe('Region 2');
     });
 
     it('should handle no options (just filters temp regions)', () => {
@@ -579,11 +579,11 @@ describe('encounterStateUtils', () => {
       const result = filterEncounterForMergeDetection(encounter);
 
       expect(result).not.toBeNull();
-      expect(result!.regions[0]).toEqual(region);
-      expect(result!.regions[0].vertices).toEqual(region.vertices);
-      expect(result!.regions[0].value).toBe(5);
-      expect(result!.regions[0].label).toBe('Test Label');
-      expect(result!.regions[0].color).toBe('#FF0000');
+      expect(result!.regions[0]!).toEqual(region);
+      expect(result!.regions[0]!.vertices).toEqual(region.vertices);
+      expect(result!.regions[0]!.value).toBe(5);
+      expect(result!.regions[0]!.label).toBe('Test Label');
+      expect(result!.regions[0]!.color).toBe('#FF0000');
     });
 
     it('should handle empty regions array', () => {
@@ -633,7 +633,7 @@ describe('encounterStateUtils', () => {
       const region2 = createMockRegion({ index: 2, name: 'Region 2' });
       const encounter = createMockEncounter({ regions: [region1, region2] });
 
-      const result = filterEncounterForMergeDetection(encounter, { excludeRegionIndex: undefined });
+      const result = filterEncounterForMergeDetection(encounter);
 
       expect(result).not.toBeNull();
       expect(result!.regions).toHaveLength(2);
@@ -647,7 +647,7 @@ describe('encounterStateUtils', () => {
 
       expect(result).not.toBeNull();
       expect(result!.regions).toHaveLength(1);
-      expect(result!.regions[0].name).toBe('Region 1');
+      expect(result!.regions[0]!.name).toBe('Region 1');
     });
 
     it('should handle mixed temp, excluded, and valid regions', () => {
@@ -662,8 +662,8 @@ describe('encounterStateUtils', () => {
 
       expect(result).not.toBeNull();
       expect(result!.regions).toHaveLength(2);
-      expect(result!.regions[0].name).toBe('Permanent 1');
-      expect(result!.regions[1].name).toBe('Permanent 2');
+      expect(result!.regions[0]!.name).toBe('Permanent 1');
+      expect(result!.regions[1]!.name).toBe('Permanent 2');
     });
   });
 });

@@ -252,10 +252,10 @@ describe('detectPoleOnPoleCollision', () => {
         const result = detectPoleOnPoleCollision(newPoles, existingWalls, gridConfig);
         expect(result.hasCollision).toBe(true);
         expect(result.collisions).toHaveLength(1);
-        expect(result.collisions[0].newPoleIndex).toBe(0);
-        expect(result.collisions[0].existingWallIndex).toBe(0);
-        expect(result.collisions[0].existingPoleIndex).toBe(0);
-        expect(result.collisions[0].distance).toBeCloseTo(Math.sqrt(8), 5);
+        expect(result.collisions[0]!.newPoleIndex).toBe(0);
+        expect(result.collisions[0]!.existingWallIndex).toBe(0);
+        expect(result.collisions[0]!.existingPoleIndex).toBe(0);
+        expect(result.collisions[0]!.distance).toBeCloseTo(Math.sqrt(8), 5);
     });
 
     it('should detect multiple pole collisions', () => {
@@ -277,7 +277,7 @@ describe('detectPoleOnPoleCollision', () => {
         const result = detectPoleOnPoleCollision(newPoles, existingWalls, gridConfig, tolerance);
         expect(result.hasCollision).toBe(true);
         expect(result.collisions).toHaveLength(1);
-        expect(result.collisions[0].distance).toBe(5);
+        expect(result.collisions[0]!.distance).toBe(5);
     });
 
     it('should not detect collision beyond tolerance distance', () => {
@@ -337,7 +337,7 @@ describe('detectPoleOnPoleCollision', () => {
 
         const result = detectPoleOnPoleCollision(newPoles, existingWalls, gridConfig, tolerance);
         expect(result.hasCollision).toBe(true);
-        expect(result.collisions[0].distance).toBe(10);
+        expect(result.collisions[0]!.distance).toBe(10);
     });
 });
 
@@ -359,11 +359,11 @@ describe('detectEdgeOnEdgeIntersection', () => {
         const result = detectEdgeOnEdgeIntersection(newPoles, existingWalls, gridConfig);
         expect(result.hasCollision).toBe(true);
         expect(result.intersections).toHaveLength(1);
-        expect(result.intersections[0].newEdgeIndex).toBe(0);
-        expect(result.intersections[0].existingWallIndex).toBe(0);
-        expect(result.intersections[0].existingEdgeIndex).toBe(0);
-        expect(result.intersections[0].intersectionPoint.x).toBeCloseTo(5, 5);
-        expect(result.intersections[0].intersectionPoint.y).toBeCloseTo(5, 5);
+        expect(result.intersections[0]!.newEdgeIndex).toBe(0);
+        expect(result.intersections[0]!.existingWallIndex).toBe(0);
+        expect(result.intersections[0]!.existingEdgeIndex).toBe(0);
+        expect(result.intersections[0]!.intersectionPoint.x).toBeCloseTo(5, 5);
+        expect(result.intersections[0]!.intersectionPoint.y).toBeCloseTo(5, 5);
     });
 
     it('should detect multiple intersections', () => {
@@ -472,12 +472,12 @@ describe('detectPoleOnEdgeCollision', () => {
         const result = detectPoleOnEdgeCollision(poles, existingWalls, gridConfig);
         expect(result.hasCollision).toBe(true);
         expect(result.collisions).toHaveLength(1);
-        expect(result.collisions[0].poleIndex).toBe(0);
-        expect(result.collisions[0].existingWallIndex).toBe(0);
-        expect(result.collisions[0].existingEdgeIndex).toBe(0);
-        expect(result.collisions[0].distance).toBe(3);
-        expect(result.collisions[0].projectionPoint.x).toBeCloseTo(5, 5);
-        expect(result.collisions[0].projectionPoint.y).toBeCloseTo(0, 5);
+        expect(result.collisions[0]!.poleIndex).toBe(0);
+        expect(result.collisions[0]!.existingWallIndex).toBe(0);
+        expect(result.collisions[0]!.existingEdgeIndex).toBe(0);
+        expect(result.collisions[0]!.distance).toBe(3);
+        expect(result.collisions[0]!.projectionPoint.x).toBeCloseTo(5, 5);
+        expect(result.collisions[0]!.projectionPoint.y).toBeCloseTo(0, 5);
     });
 
     it('should not detect pole at edge endpoint (should use pole-on-pole)', () => {
@@ -512,7 +512,7 @@ describe('detectPoleOnEdgeCollision', () => {
 
         const result = detectPoleOnEdgeCollision(poles, existingWalls, gridConfig, tolerance);
         expect(result.hasCollision).toBe(true);
-        expect(result.collisions[0].distance).toBe(8);
+        expect(result.collisions[0]!.distance).toBe(8);
     });
 
     it('should not detect collision beyond tolerance', () => {
@@ -574,9 +574,9 @@ describe('detectPoleOnEdgeCollision', () => {
 
         const result = detectPoleOnEdgeCollision(poles, existingWalls, gridConfig);
         expect(result.hasCollision).toBe(true);
-        expect(result.collisions[0].distance).toBe(3);
-        expect(result.collisions[0].projectionPoint.x).toBeCloseTo(0, 5);
-        expect(result.collisions[0].projectionPoint.y).toBeCloseTo(5, 5);
+        expect(result.collisions[0]!.distance).toBe(3);
+        expect(result.collisions[0]!.projectionPoint.x).toBeCloseTo(0, 5);
+        expect(result.collisions[0]!.projectionPoint.y).toBeCloseTo(5, 5);
     });
 
     it('should handle diagonal edges', () => {

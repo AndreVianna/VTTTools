@@ -14,10 +14,8 @@ import type { MergeResult } from '@/utils/wallMergeUtils';
 import type { SplitResult } from '@/utils/wallSplitUtils';
 import { detectSplitPoints, splitWallAtPoints } from '@/utils/wallSplitUtils';
 import {
-    getIndexByDomId,
     getDomIdByIndex,
-    removeEntityMapping,
-    setEntityMapping
+    removeEntityMapping
 } from '@/utils/encounterEntityMapping';
 import { hydratePlacedWalls } from '@/utils/encounterMappers';
 
@@ -142,6 +140,19 @@ export const useWallHandlers = ({
     const handleFinishEditing = useCallback(async () => {
         if (!encounterId || !encounter || selectedWallIndex === null) return;
 
+        const activeSegments = wallTransaction.getActiveSegments();
+        const editedSegment = activeSegments[0];
+
+        if (editedSegment && editedSegment.wallIndex === selectedWallIndex) {
+            const updatedEncounter = updateWallOptimistic(encounter, selectedWallIndex, {
+                poles: editedSegment.poles,
+                isClosed: editedSegment.isClosed
+            });
+            setEncounter(updatedEncounter);
+            const hydratedWalls = hydratePlacedWalls(updatedEncounter.walls || [], encounterId);
+            setPlacedWalls(hydratedWalls);
+        }
+
         const result = await wallTransaction.commitTransaction(encounterId, {
             addEncounterWall,
             updateEncounterWall
@@ -178,12 +189,6 @@ export const useWallHandlers = ({
 
                             try {
                                 if (splitResult.needsSplit) {
-                                    console.log('[useWallHandlers] Edit caused split:', {
-                                        scenario: 'Editing (9.2/9.3)',
-                                        splitCount: splitResult.splits.length,
-                                        affectedWalls: splitResult.affectedWallIndices
-                                    });
-
                                     const affectedWalls: Array<{
                                         wallIndex: number;
                                         originalWall: EncounterWall;
@@ -231,7 +236,6 @@ export const useWallHandlers = ({
                                         });
 
                                         await execute(command);
-                                        console.log('[useWallHandlers] Edit split completed with undo/redo support');
 
                                         setTimeout(() => {
                                             setSelectedWallIndex(null);
@@ -273,27 +277,18 @@ export const useWallHandlers = ({
 
                     const command = new BreakWallCommand({
                         encounterId,
+                        originalWallIndex: selectedWallIndex,
                         originalWall,
                         newWalls,
-                        onMerge: async (encounterId, wallData) => {
-                            try {
-                                const result = await addEncounterWall({ encounterId, ...wallData }).unwrap();
-                                return result;
-                            } catch (error) {
-                                console.error('Failed to merge walls:', error);
-                                throw error;
-                            }
+                        onAdd: async (encounterId: string, wallData: Omit<EncounterWall, 'index' | 'encounterId'>) => {
+                            const result = await addEncounterWall({ encounterId, ...wallData }).unwrap();
+                            return result;
                         },
-                        onBreak: async (encounterId, wallIndex, segment1Data, segment2Data) => {
-                            try {
-                                await removeEncounterWall({ encounterId, wallIndex }).unwrap();
-                                const seg1 = await addEncounterWall({ encounterId, ...segment1Data }).unwrap();
-                                const seg2 = await addEncounterWall({ encounterId, ...segment2Data }).unwrap();
-                                return { segment1: seg1, segment2: seg2 };
-                            } catch (error) {
-                                console.error('Failed to break wall:', error);
-                                throw error;
-                            }
+                        onUpdate: async (encounterId: string, wallIndex: number, updates: Partial<EncounterWall>) => {
+                            await updateEncounterWall({ encounterId, wallIndex, ...updates }).unwrap();
+                        },
+                        onRemove: async (encounterId: string, wallIndex: number) => {
+                            await removeEncounterWall({ encounterId, wallIndex }).unwrap();
                         },
                         onRefetch: async () => {
                             const { data } = await refetch();
@@ -306,11 +301,13 @@ export const useWallHandlers = ({
                     });
                     await execute(command);
                 } else if (result.segmentResults[0]?.wallIndex !== undefined) {
-                    const updatedWall = updatedEncounter.walls?.find(w => w.index === result.segmentResults[0].wallIndex);
+                    const segmentResult = result.segmentResults[0]!;
+                    const wallIndex = segmentResult.wallIndex!;
+                    const updatedWall = updatedEncounter.walls?.find(w => w.index === wallIndex);
                     if (updatedWall) {
                         const command = new EditWallCommand({
                             encounterId,
-                            wallIndex: result.segmentResults[0].wallIndex,
+                            wallIndex,
                             oldWall: originalWall,
                             newWall: updatedWall,
                             onUpdate: async (encounterId, wallIndex, updates) => {
@@ -343,16 +340,37 @@ export const useWallHandlers = ({
         } else {
             setErrorMessage('Failed to save wall changes. Please try again.');
         }
-    }, [encounterId, encounter, selectedWallIndex, wallTransaction, addEncounterWall, updateEncounterWall, removeEncounterWall, refetch, setEncounter, setSelectedWallIndex, setIsEditingVertices, setOriginalWallPoles, setErrorMessage, execute]);
+    }, [encounterId, encounter, selectedWallIndex, wallTransaction, addEncounterWall, updateEncounterWall, removeEncounterWall, refetch, setEncounter, setPlacedWalls, setSelectedWallIndex, setIsEditingVertices, setOriginalWallPoles, setErrorMessage, execute]);
 
     const handleWallBreak = useCallback(async (breakData: WallBreakData) => {
         if (!encounter) return;
 
+        const activeSegments = wallTransaction.getActiveSegments();
+        const breakingSegment = activeSegments.find(s => s.poles.length > 0);
+        if (!breakingSegment) return;
+
+        const { breakPoleIndex, newWallPoles, originalWallPoles } = breakData;
+
+        const segment1Poles = newWallPoles.slice(0, breakPoleIndex + 1);
+        const segment2Poles = newWallPoles.slice(breakPoleIndex);
+
         const breakAction = createBreakWallAction(
-            breakData,
-            (segments) => {
-                wallTransaction.updateSegments(segments);
-            }
+            breakingSegment.tempId,
+            breakPoleIndex,
+            originalWallPoles,
+            breakingSegment.isClosed,
+            breakingSegment.wallIndex ?? -1,
+            breakingSegment.tempId,
+            -1,
+            segment1Poles,
+            segment2Poles,
+            breakingSegment.name,
+            breakingSegment.visibility,
+            breakingSegment.material,
+            breakingSegment.color,
+            (tempId: number) => wallTransaction.removeSegment(tempId),
+            (tempId: number, changes: any) => wallTransaction.updateSegment(tempId, changes),
+            (segment: any) => wallTransaction.addSegment(segment)
         );
 
         wallTransaction.pushLocalAction(breakAction);
@@ -400,12 +418,6 @@ export const useWallHandlers = ({
         if (!encounterId || !encounter) return;
         if (drawingMode !== 'wall' || drawingWallIndex === null) return;
 
-        console.log('[useWallHandlers] Processing merge:', {
-            scenario: mergeResult.isClosed ? 'Scenario 5 (closed)' : 'Scenario 3 (merge)',
-            targetWallIndex: mergeResult.targetWallIndex,
-            wallsToDelete: mergeResult.wallsToDelete
-        });
-
         try {
             if (mergeResult.targetWallIndex === undefined) {
                 setErrorMessage('Merge failed: No target wall');
@@ -418,9 +430,15 @@ export const useWallHandlers = ({
                 return;
             }
 
+            const mergedPoles: Pole[] = mergeResult.mergedPoles.map((point, index) => ({
+                x: point.x,
+                y: point.y,
+                h: targetWall.poles[index]?.h ?? 0
+            }));
+
             const mergedWall: EncounterWall = {
                 ...targetWall,
-                poles: mergeResult.mergedPoles,
+                poles: mergedPoles,
                 isClosed: mergeResult.isClosed
             };
 
@@ -463,8 +481,6 @@ export const useWallHandlers = ({
 
             await execute(command);
 
-            console.log('[useWallHandlers] Merge completed successfully with undo/redo support');
-
         } catch (error) {
             console.error('[useWallHandlers] Merge failed:', error);
             setErrorMessage('Failed to merge walls. Please try again.');
@@ -480,16 +496,11 @@ export const useWallHandlers = ({
 
         setDrawingWallIndex(null);
         setDrawingMode(null);
-    }, [encounterId, encounter, drawingMode, drawingWallIndex, wallTransaction, updateEncounterWall, removeEncounterWall, refetch, setEncounter, setPlacedWalls, setDrawingWallIndex, setDrawingMode, setErrorMessage]);
+    }, [encounterId, encounter, drawingMode, drawingWallIndex, wallTransaction, addEncounterWall, updateEncounterWall, removeEncounterWall, refetch, setEncounter, setPlacedWalls, setDrawingWallIndex, setDrawingMode, setErrorMessage, execute]);
 
     const handleWallPlacementFinishWithSplit = useCallback(async (splitResult: SplitResult) => {
         if (!encounterId || !encounter) return;
         if (drawingMode !== 'wall' || drawingWallIndex === null) return;
-
-        console.log('[useWallHandlers] Processing split:', {
-            splitCount: splitResult.splits.length,
-            affectedWalls: splitResult.affectedWallIndices
-        });
 
         try {
             const newWallResult = await wallTransaction.commitTransaction(encounterId, {
@@ -577,8 +588,6 @@ export const useWallHandlers = ({
             });
 
             await execute(command);
-
-            console.log('[useWallHandlers] Split completed successfully with undo/redo support');
 
         } catch (error) {
             console.error('[useWallHandlers] Split failed:', error);

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useRegionHandlers } from '../useRegionHandlers';
 import { useRegionTransaction } from '@/hooks/useRegionTransaction';
 import { useMergeRegions } from '../useMergeRegions';
@@ -56,9 +56,10 @@ describe('Region Workflows - Integration Tests', () => {
         };
 
         gridConfig = {
-            cellSize: 50,
-            offsetX: 0,
-            offsetY: 0
+            type: 1,
+            cellSize: { width: 50, height: 50 },
+            offset: { left: 0, top: 0 },
+            snap: true
         };
 
         mockSetEncounter = vi.fn();
@@ -344,14 +345,6 @@ describe('Region Workflows - Integration Tests', () => {
         });
 
         it('should preserve original vertices in EditRegionCommand when merge occurs during edit', async () => {
-            const existingRegion1: EncounterRegion = {
-                index: 0,
-                encounterId,
-                name: 'Region 1',
-                vertices: [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, { x: 0, y: 100 }],
-                type: 'difficult-terrain',
-                value: 2,
-            };
             const originalRegion2Vertices = [{ x: 200, y: 0 }, { x: 300, y: 0 }, { x: 300, y: 100 }, { x: 200, y: 100 }];
             const existingRegion2: EncounterRegion = {
                 index: 1,
@@ -365,7 +358,7 @@ describe('Region Workflows - Integration Tests', () => {
             const { result: transactionResult } = renderHook(() => useRegionTransaction());
 
             act(() => {
-                transactionResult.current.startTransaction('edit', existingRegion2);
+                transactionResult.current.startTransaction('editing', existingRegion2);
             });
 
             const modifiedVertices = [{ x: 50, y: 0 }, { x: 150, y: 0 }, { x: 150, y: 100 }, { x: 50, y: 100 }];

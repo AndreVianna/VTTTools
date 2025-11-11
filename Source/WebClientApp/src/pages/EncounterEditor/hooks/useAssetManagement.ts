@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import type { Encounter, PlacedAsset, Asset, PlacedAssetSnapshot } from '@/types/domain';
+import type { Encounter, PlacedAsset, Asset, PlacedAssetSnapshot, DisplayName, LabelPosition } from '@/types/domain';
 import { createAssetSnapshot } from '@/types/domain';
 import {
     createPlaceAssetCommand,
@@ -185,7 +185,7 @@ export const useAssetManagement = ({
             }
         });
         execute(command);
-    }, [encounterId, isOnline, encounter, placedAssets, addEncounterAsset, removeEncounterAsset, refetch, setEncounter, dispatch, execute]);
+    }, [encounterId, isOnline, encounter, addEncounterAsset, removeEncounterAsset, refetch, setEncounter, dispatch, execute]);
 
     const handleAssetMoved = useCallback((moves: Array<{ assetId: string; oldPosition: { x: number; y: number }; newPosition: { x: number; y: number } }>) => {
         if (moves.length === 0) return;
@@ -650,12 +650,12 @@ export const useAssetManagement = ({
             assetId,
             oldName: asset.name,
             newName,
-            onRename: (id, name) => {
+            onRename: async (id, name) => {
                 setPlacedAssets(prev => prev.map(a => a.id === id ? { ...a, name } : a));
             }
         });
 
-        execute(command);
+        await execute(command);
 
         try {
             await updateEncounterAsset({
@@ -672,44 +672,33 @@ export const useAssetManagement = ({
         setSelectedAssetIds([assetId]);
     }, []);
 
-    const handleAssetDisplayUpdate = useCallback(async (assetId: string, updates: { width?: number; height?: number; rotation?: number }) => {
+    const handleAssetDisplayUpdate = useCallback(async (assetId: string, displayName?: DisplayName, labelPosition?: LabelPosition) => {
         const asset = placedAssets.find(a => a.id === assetId);
-        if (!asset || !encounterId || !isOnline) return;
+        if (!asset) return;
+
+        const newDisplay: { displayName?: DisplayName; labelPosition?: LabelPosition } = {};
+        if (displayName !== undefined) newDisplay.displayName = displayName;
+        if (labelPosition !== undefined) newDisplay.labelPosition = labelPosition;
 
         const command = createUpdateAssetDisplayCommand({
             assetId,
-            oldDisplay: { width: asset.size.width, height: asset.size.height, rotation: asset.rotation },
-            newDisplay: {
-                width: updates.width ?? asset.size.width,
-                height: updates.height ?? asset.size.height,
-                rotation: updates.rotation ?? asset.rotation
-            },
-            onUpdate: (id, display) => {
+            oldDisplay: { displayName: asset.displayName, labelPosition: asset.labelPosition },
+            newDisplay,
+            onUpdate: async (id, newDisplayName, newLabelPosition) => {
                 setPlacedAssets(prev => prev.map(a =>
                     a.id === id
                         ? {
                             ...a,
-                            size: { width: display.width, height: display.height },
-                            rotation: display.rotation
+                            displayName: newDisplayName ?? a.displayName,
+                            labelPosition: newLabelPosition ?? a.labelPosition
                         }
                         : a
                 ));
             }
         });
 
-        execute(command);
-
-        try {
-            await updateEncounterAsset({
-                encounterId,
-                assetNumber: asset.index,
-                size: { width: updates.width ?? asset.size.width, height: updates.height ?? asset.size.height },
-                rotation: updates.rotation !== undefined ? toBackendRotation(updates.rotation) : undefined
-            }).unwrap();
-        } catch (error) {
-            console.error('Failed to update asset display:', error);
-        }
-    }, [placedAssets, encounterId, isOnline, updateEncounterAsset, execute]);
+        await execute(command);
+    }, [placedAssets, execute]);
 
     return {
         placedAssets,

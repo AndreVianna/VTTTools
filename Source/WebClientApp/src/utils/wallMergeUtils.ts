@@ -1,6 +1,6 @@
 import type { Point, EncounterWall } from '@/types/domain';
 import { calculateDistance, detectPoleOnPoleCollision } from './wallCollisionUtils';
-import type { GridConfig } from '@/utils/gridCalculator';
+import { GridType, type GridConfig } from '@/utils/gridCalculator';
 
 export interface MergePoint {
     wallIndex: number;
@@ -70,10 +70,9 @@ export function canMergeWalls(params: CanMergeWallsParams): MergeResult {
     }
 
     const gridConfig: GridConfig = {
-        cellWidth: 50,
-        cellHeight: 50,
-        offsetX: 0,
-        offsetY: 0,
+        type: GridType.Square,
+        cellSize: { width: 50, height: 50 },
+        offset: { left: 0, top: 0 },
         snap: false
     };
 
@@ -110,31 +109,37 @@ export function canMergeWalls(params: CanMergeWallsParams): MergeResult {
     const involvedWallIndices = new Set<number>();
 
     for (const collision of firstPoleCollisions) {
+        const wall = existingWalls[collision.existingWallIndex];
+        if (!wall) continue;
+
         mergePoints.push({
-            wallIndex: collision.existingWallIndex,
+            wallIndex: wall.index,
             poleIndex: collision.existingPoleIndex,
             isFirst: true
         });
-        involvedWallIndices.add(collision.existingWallIndex);
+        involvedWallIndices.add(wall.index);
     }
 
     for (const collision of lastPoleCollisions) {
+        const wall = existingWalls[collision.existingWallIndex];
+        if (!wall) continue;
+
         mergePoints.push({
-            wallIndex: collision.existingWallIndex,
+            wallIndex: wall.index,
             poleIndex: collision.existingPoleIndex,
             isFirst: false
         });
-        involvedWallIndices.add(collision.existingWallIndex);
+        involvedWallIndices.add(wall.index);
     }
 
     let isClosed = false;
     if (firstPoleCollisions.length === 1 && lastPoleCollisions.length === 1) {
-        const firstWallIndex = firstPoleCollisions[0].existingWallIndex;
-        const lastWallIndex = lastPoleCollisions[0].existingWallIndex;
+        const firstWall = existingWalls[firstPoleCollisions[0]!.existingWallIndex];
+        const lastWall = existingWalls[lastPoleCollisions[0]!.existingWallIndex];
 
-        if (firstWallIndex === lastWallIndex) {
-            const firstPoleIndex = firstPoleCollisions[0].existingPoleIndex;
-            const lastPoleIndex = lastPoleCollisions[0].existingPoleIndex;
+        if (firstWall && lastWall && firstWall.index === lastWall.index) {
+            const firstPoleIndex = firstPoleCollisions[0]!.existingPoleIndex;
+            const lastPoleIndex = lastPoleCollisions[0]!.existingPoleIndex;
 
             if (firstPoleIndex !== lastPoleIndex) {
                 isClosed = true;
@@ -211,7 +216,7 @@ export function mergeWalls(params: MergeWallsParams): Point[] {
     }
 
     const targetWallIndex = Math.min(...mergePoints.map(p => p.wallIndex));
-    const targetWall = existingWalls[targetWallIndex];
+    const targetWall = existingWalls.find(w => w.index === targetWallIndex);
 
     if (!targetWall) {
         return newWallPoles;
@@ -227,7 +232,7 @@ export function mergeWalls(params: MergeWallsParams): Point[] {
     } else {
         const targetMerge = targetMergePoints[0];
 
-        if (targetMerge.poleIndex === 0) {
+        if (targetMerge!.poleIndex === 0) {
             const newWallReversed = [...newWallPoles].reverse();
             result.push(...newWallReversed.slice(1));
             result.push(...targetWallPoles);
@@ -242,7 +247,7 @@ export function mergeWalls(params: MergeWallsParams): Point[] {
             continue;
         }
 
-        const wall = existingWalls[wallIndex];
+        const wall = existingWalls.find(w => w.index === wallIndex);
         if (!wall) {
             continue;
         }
@@ -250,7 +255,7 @@ export function mergeWalls(params: MergeWallsParams): Point[] {
         const wallPoles = wall.poles.map(pole => ({ x: pole.x, y: pole.y }));
         const mergePoint = points[0];
 
-        if (mergePoint.poleIndex === 0) {
+        if (mergePoint!.poleIndex === 0) {
             result.push(...wallPoles.slice(1));
         } else {
             result.push(...wallPoles.slice(0, wallPoles.length - 1).reverse());

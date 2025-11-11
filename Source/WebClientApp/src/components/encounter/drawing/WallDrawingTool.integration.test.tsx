@@ -327,7 +327,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
             const mockTransaction = {
                 startTransaction: vi.fn(),
-                updateSegment: vi.fn((index, updates) => {
+                updateSegment: vi.fn((_index, updates) => {
                     if (updates.isClosed) {
                         isClosedCalled = true;
                     }

@@ -1,19 +1,23 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Group, Rect } from 'react-konva';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type Konva from 'konva';
+import { Group, Rect } from 'react-konva';
+
 import { useGetEncounterQuery } from '@/services/encounterApi';
-import { snapToNearest } from '@/utils/structureSnapping';
+import { createPlacePoleAction } from '@/types/wallUndoActions';
+import type { Point, Pole } from '@/types/domain';
 import { getSnapModeFromEvent } from '@/utils/snapUtils';
+import { snapToNearest } from '@/utils/structureSnapping';
+import type { GridConfig } from '@/utils/gridCalculator';
+import type { MergeResult } from '@/utils/wallMergeUtils';
+import { canMergeWalls } from '@/utils/wallMergeUtils';
+import type { SplitResult } from '@/utils/wallSplitUtils';
+import { detectSplitPoints } from '@/utils/wallSplitUtils';
+
+import type { useWallTransaction } from '@/hooks/useWallTransaction';
+
 import { VertexMarker } from './VertexMarker';
 import { WallPreview } from './WallPreview';
-import type { Point, Pole } from '@/types/domain';
-import type { GridConfig } from '@/utils/gridCalculator';
-import type { useWallTransaction } from '@/hooks/useWallTransaction';
-import { createPlacePoleAction } from '@/types/wallUndoActions';
-import { canMergeWalls } from '@/utils/wallMergeUtils';
-import type { MergeResult } from '@/utils/wallMergeUtils';
-import { detectSplitPoints } from '@/utils/wallSplitUtils';
-import type { SplitResult } from '@/utils/wallSplitUtils';
 
 const INTERACTION_RECT_SIZE = 20000;
 const INTERACTION_RECT_OFFSET = -INTERACTION_RECT_SIZE / 2;
@@ -50,18 +54,11 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
     const wall = encounter?.walls?.find(w => w.index === wallIndex);
 
     const handleFinish = useCallback(async () => {
-        if (poles.length < 2) {
-            console.warn('[WallDrawingTool] Cannot finish wall with < 2 poles');
-            return;
-        }
-
-        if (!encounter) {
-            console.warn('[WallDrawingTool] Encounter not loaded');
-            return;
-        }
+        if (poles.length < 2) return;
+        if (!encounter) return;
 
         const newWallPoles = poles.map(p => ({ x: p.x, y: p.y }));
-        const existingWalls = encounter.walls || [];
+        const existingWalls = (encounter.walls || []).filter(w => w.index !== wallIndex);
 
         const mergeResult = canMergeWalls({
             newWallPoles,
@@ -70,17 +67,9 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
         });
 
         if (mergeResult.canMerge) {
-            console.log('[WallDrawingTool] Merge detected:', {
-                scenario: mergeResult.isClosed ? 'Scenario 5 (closed)' : 'Scenario 3 (merge)',
-                targetWallIndex: mergeResult.targetWallIndex,
-                wallsToDelete: mergeResult.wallsToDelete,
-                mergedPoleCount: mergeResult.mergedPoles.length
-            });
-
             if (onFinishWithMerge) {
                 onFinishWithMerge(mergeResult);
             } else {
-                console.warn('[WallDrawingTool] onFinishWithMerge callback not provided');
                 onFinish();
             }
             return;
@@ -93,24 +82,16 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
         });
 
         if (splitResult.needsSplit) {
-            console.log('[WallDrawingTool] Split detected:', {
-                scenario: splitResult.splits.length > 1 ? 'Scenario 8 (multiple)' : 'Scenario 6/7',
-                splitCount: splitResult.splits.length,
-                affectedWalls: splitResult.affectedWallIndices
-            });
-
             if (onFinishWithSplit) {
                 onFinishWithSplit(splitResult);
             } else {
-                console.warn('[WallDrawingTool] onFinishWithSplit callback not provided');
                 onFinish();
             }
             return;
         }
 
-        console.log('[WallDrawingTool] No merge or split detected, normal placement (Scenario 1)');
         onFinish();
-    }, [poles, encounter, onFinish, onFinishWithMerge, onFinishWithSplit]);
+    }, [poles, encounter, wallIndex, onFinish, onFinishWithMerge, onFinishWithSplit]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -119,7 +100,7 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
                 return;
             }
 
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !e.defaultPrevented) {
                 handleFinish();
                 return;
             }
@@ -183,18 +164,11 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
 
             if (firstPole && lastPole) {
                 const distance = Math.sqrt(
-                    Math.pow(lastPole.x - firstPole.x, 2) +
-                    Math.pow(lastPole.y - firstPole.y, 2)
+                    (lastPole.x - firstPole.x) ** 2 +
+                    (lastPole.y - firstPole.y) ** 2
                 );
 
                 if (distance <= AUTO_CLOSE_TOLERANCE) {
-                    console.log('[WallDrawingTool] Auto-close triggered (Scenario 4)', {
-                        distance: distance.toFixed(2),
-                        tolerance: AUTO_CLOSE_TOLERANCE.toFixed(2),
-                        scale: scale.toFixed(2),
-                        poleCount: newPoles.length - 1
-                    });
-
                     const closedPoles = newPoles.slice(0, -1);
                     setPoles(closedPoles);
                     onPolesChange?.(closedPoles);
@@ -237,8 +211,7 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
     }, [poles.length, handleFinish]);
 
     return (
-        <>
-            <Group>
+        <Group>
                 <Rect
                     x={INTERACTION_RECT_OFFSET}
                     y={INTERACTION_RECT_OFFSET}
@@ -265,7 +238,6 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
                     <VertexMarker position={previewPoint} preview />
                 )}
             </Group>
-        </>
     );
 };
 

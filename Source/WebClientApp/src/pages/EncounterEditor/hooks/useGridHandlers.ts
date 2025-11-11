@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { Encounter } from '@/types/domain';
+
 import type { GridConfig } from '@/utils/gridCalculator';
 
 interface UseGridHandlersProps {

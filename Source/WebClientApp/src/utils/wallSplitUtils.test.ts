@@ -4,8 +4,7 @@ import {
     splitWallAtPoints,
     calculateDistanceAlongEdge,
     sortSplitPoints,
-    type SplitPoint,
-    type SplitResult
+    type SplitPoint
 } from './wallSplitUtils';
 import type { Point, EncounterWall, Pole } from '@/types/domain';
 import { WallVisibility } from '@/types/domain';

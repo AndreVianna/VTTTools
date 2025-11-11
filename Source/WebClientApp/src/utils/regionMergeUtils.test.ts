@@ -81,20 +81,22 @@ describe('regionsMatch', () => {
     });
 
     it('should return true when both values are undefined', () => {
-        const r1 = { ...baseRegion, value: undefined };
-        const r2 = { ...baseRegion, value: undefined };
+        const { value: _, ...regionWithoutValue } = baseRegion;
+        const r1 = regionWithoutValue;
+        const r2 = regionWithoutValue;
         expect(regionsMatch(r1, r2)).toBe(true);
     });
 
     it('should return true when both labels are undefined', () => {
-        const r1 = { ...baseRegion, label: undefined };
-        const r2 = { ...baseRegion, label: undefined };
+        const { label: _, ...regionWithoutLabel } = baseRegion;
+        const r1 = regionWithoutLabel;
+        const r2 = regionWithoutLabel;
         expect(regionsMatch(r1, r2)).toBe(true);
     });
 
     it('should return false when one value is undefined and other is not', () => {
         const r1 = { ...baseRegion, value: 2 };
-        const r2 = { ...baseRegion, value: undefined };
+        const { value: _, ...r2 } = baseRegion;
         expect(regionsMatch(r1, r2)).toBe(false);
     });
 });
@@ -333,8 +335,8 @@ describe('findMergeableRegions', () => {
         name: 'Region',
         type,
         vertices,
-        value,
-        label,
+        ...(value !== undefined && { value }),
+        ...(label !== undefined && { label }),
     });
 
     beforeEach(() => {

@@ -649,7 +649,7 @@ export const TokenDragHandle: React.FC<TokenDragHandleProps> = ({
         return () => {
             cancelAnimationFrame(frameId);
         };
-    }, [enableDragMove, placedAssets, stageReady, handleNodeClick, handleDragStart, handleDragMove, handleDragEnd, onReady, availableActions.canMove, selectedAssetIds, onAssetSelected]);
+    }, [stageRef, enableDragMove, placedAssets, stageReady, handleNodeClick, handleDragStart, handleDragMove, handleDragEnd, onReady, availableActions.canMove, selectedAssetIds, onAssetSelected]);
 
     // Helper to get actual node position (for selection borders during drag)
     const getAssetRenderPosition = useCallback((assetId: string) => {

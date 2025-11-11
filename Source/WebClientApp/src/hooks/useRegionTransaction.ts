@@ -8,7 +8,7 @@ import type { GridConfig } from '@/utils/gridCalculator';
 import { cleanPolygonVertices } from '@/utils/polygonUtils';
 import { findMergeableRegions, mergePolygons } from '@/utils/regionMergeUtils';
 
-export type TransactionType = 'placement' | 'editing' | null;
+export type TransactionType = 'placement' | 'editing' | 'modification' | null;
 
 /**
  * Represents a region segment being placed or edited in a transaction.
@@ -353,10 +353,7 @@ export const useRegionTransaction = () => {
 
             const validation = validateSegmentVertices(segment.vertices);
             if (!validation.valid) {
-                return {
-                    success: false,
-                    error: validation.error
-                };
+                return { success: false, error: validation.error || "Invalid vertices" };
             }
 
             const result = await persistRegionToBackend(

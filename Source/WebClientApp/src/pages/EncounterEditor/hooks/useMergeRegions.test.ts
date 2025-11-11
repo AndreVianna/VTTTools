@@ -41,6 +41,7 @@ describe('useMergeRegions', () => {
         mockRefetch = vi.fn().mockResolvedValue({ data: {} as Encounter });
 
         targetRegion = {
+            encounterId: 'encounter-1',
             index: 1,
             name: 'Target Region',
             vertices: [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 50, y: 100 }],
@@ -50,6 +51,7 @@ describe('useMergeRegions', () => {
         };
 
         regionToDelete = {
+            encounterId: 'encounter-1',
             index: 2,
             name: 'Region to Delete',
             vertices: [{ x: 50, y: 0 }, { x: 150, y: 0 }, { x: 100, y: 100 }],
@@ -60,11 +62,19 @@ describe('useMergeRegions', () => {
 
         testEncounter = {
             id: 'encounter-1',
+            adventure: null,
             name: 'Test Encounter',
             description: '',
+            isPublished: false,
+            light: 'Bright' as any,
+            weather: 'Clear' as any,
+            elevation: 0,
+            grid: { type: 0, cellSize: { width: 50, height: 50 }, offset: { left: 0, top: 0 }, snap: true },
+            stage: { background: null, zoomLevel: 1, panning: { x: 0, y: 0 } },
+            assets: [],
             regions: [targetRegion, regionToDelete],
             walls: [],
-            structures: []
+            sources: []
         };
 
         mockUpdateRegionOptimistic.mockImplementation((encounter, regionIndex, changes) => ({
@@ -166,6 +176,7 @@ describe('useMergeRegions', () => {
 
         it('should merge with multiple regions to delete', async () => {
             const region3: EncounterRegion = {
+                encounterId: 'encounter-1',
                 index: 3,
                 name: 'Region 3',
                 vertices: [{ x: 100, y: 0 }, { x: 150, y: 0 }, { x: 125, y: 50 }],
@@ -618,6 +629,7 @@ describe('useMergeRegions', () => {
 
         it('should create DeleteRegionCommand for each region to delete', async () => {
             const region3: EncounterRegion = {
+                encounterId: 'encounter-1',
                 index: 3,
                 name: 'Region 3',
                 vertices: [{ x: 100, y: 0 }, { x: 150, y: 0 }, { x: 125, y: 50 }],
@@ -810,6 +822,7 @@ describe('useMergeRegions', () => {
 
         it('should remove deleted regions from encounter state', async () => {
             const region3: EncounterRegion = {
+                encounterId: 'encounter-1',
                 index: 3,
                 name: 'Region 3',
                 vertices: [{ x: 100, y: 0 }, { x: 150, y: 0 }, { x: 125, y: 50 }],
@@ -1165,6 +1178,7 @@ describe('useMergeRegions', () => {
 
         it('should execute all DeleteRegionCommands in order', async () => {
             const region3: EncounterRegion = {
+                encounterId: 'encounter-1',
                 index: 3,
                 name: 'Region 3',
                 vertices: [{ x: 100, y: 0 }],

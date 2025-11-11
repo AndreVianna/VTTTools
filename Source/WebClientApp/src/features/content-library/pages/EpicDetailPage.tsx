@@ -57,10 +57,12 @@ export function EpicDetailPage() {
 
     useEffect(() => {
         if (epic && !isInitialized) {
-            setName(epic.name);
-            setDescription(epic.description);
-            setIsPublished(epic.isPublished);
-            setIsInitialized(true);
+            queueMicrotask(() => {
+                setName(epic.name);
+                setDescription(epic.description);
+                setIsPublished(epic.isPublished);
+                setIsInitialized(true);
+            });
         }
     }, [epic, isInitialized]);
 
