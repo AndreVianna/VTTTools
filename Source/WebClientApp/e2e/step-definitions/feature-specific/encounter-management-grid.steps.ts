@@ -444,7 +444,7 @@ Then('all {int} assets should be duplicated with new IDs', async function (this:
     expect(intersection.length).toBe(0);
 });
 
-Then('all encounters is created', async function (this: CustomWorld) {
+Then('all encounters are created', async function (this: CustomWorld) {
     const encounterIds = (this as any).createdEncounterIds || [];
 
     for (const encounterId of encounterIds) {
