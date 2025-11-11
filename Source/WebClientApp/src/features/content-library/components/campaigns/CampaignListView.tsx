@@ -31,7 +31,7 @@ import {
 import { useDebounce } from '../../hooks';
 
 const DEFAULT_CAMPAIGN_NAME = 'Untitled Campaign';
-const DEFAULT_CAMPAIGN_DESCRIPTION = 'A new campaign';
+const DEFAULT_CAMPAIGN_DESCRIPTION = 'A new campaign.';
 
 export function CampaignListView() {
     const navigate = useNavigate();

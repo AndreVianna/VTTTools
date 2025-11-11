@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Box, useTheme, CircularProgress, Typography, Alert } from '@mui/material';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Layer, Group } from 'react-konva';
 import Konva from 'konva';
 import {
     SceneCanvas,
     SceneCanvasHandle,
-    Viewport,
     BackgroundLayer,
     GridRenderer,
     TokenPlacement,
@@ -25,30 +24,21 @@ import {
     TopToolBar,
     EditorStatusBar
 } from '@components/scene';
-import type { WallBreakData } from '@components/scene/editing/WallTransformer';
 import { EditingBlocker } from '@components/common';
 import { EditorLayout } from '@components/layout';
 import { GridConfig, GridType, getDefaultGrid } from '@utils/gridCalculator';
-import { toBackendRotation } from '@utils/rotationUtils';
 import { layerManager, LayerName, GroupName } from '@services/layerManager';
 import {
-    Asset,
     AssetKind,
     PlacedAsset,
     Scene,
-    DisplayName,
-    LabelPosition,
     SceneWall,
     PlacedWall,
-    SceneRegion,
     PlacedRegion,
-    SceneSource,
     PlacedSource,
     WallVisibility,
     Pole,
-    Point,
-    PlacedAssetSnapshot,
-    createAssetSnapshot
+    Point
 } from '@/types/domain';
 import { UndoRedoProvider, useUndoRedoContext } from '@/contexts/UndoRedoContext';
 import { ClipboardProvider } from '@/contexts/ClipboardContext';
@@ -68,25 +58,9 @@ import {
     useAssetManagement
 } from './SceneEditor/hooks';
 import {
-    addWallOptimistic, removeWallOptimistic, syncWallIndices, updateWallOptimistic,
-    addRegionOptimistic, removeRegionOptimistic, syncRegionIndices, updateRegionOptimistic
+    addWallOptimistic, removeWallOptimistic, updateWallOptimistic,
+    removeRegionOptimistic, updateRegionOptimistic
 } from '@/utils/sceneStateUtils';
-import { createBreakWallAction } from '@/types/wallUndoActions';
-import {
-    Command,
-    createPlaceAssetCommand,
-    createMoveAssetCommand,
-    createBatchCommand,
-    createBulkRemoveAssetsCommand,
-    createCopyAssetsCommand,
-    createCutAssetsCommand,
-    createPasteAssetsCommand,
-    createRenameAssetCommand,
-    createUpdateAssetDisplayCommand,
-    createTransformAssetCommand
-} from '@/utils/commands';
-import { CreateWallCommand, EditWallCommand, BreakWallCommand } from '@/utils/commands/wallCommands';
-import { CreateRegionCommand, EditRegionCommand, DeleteRegionCommand } from '@/utils/commands/regionCommands';
 import {
     useGetSceneQuery,
     usePatchSceneMutation,
@@ -118,7 +92,6 @@ const SCENE_DEFAULT_BACKGROUND = '/assets/backgrounds/tavern.png';
 
 const SceneEditorPageInternal: React.FC = () => {
     const theme = useTheme();
-    const navigate = useNavigate();
     const { sceneId } = useParams<{ sceneId: string }>();
     const canvasRef = useRef<SceneCanvasHandle>(null);
     const stageRef = useRef<Konva.Stage>(null);
@@ -186,7 +159,7 @@ const SceneEditorPageInternal: React.FC = () => {
     const [drawingWallIndex, setDrawingWallIndex] = useState<number | null>(null);
     const [drawingWallDefaultHeight, setDrawingWallDefaultHeight] = useState<number>(10);
     const [isEditingVertices, setIsEditingVertices] = useState(false);
-    const [originalWallPoles, setOriginalWallPoles] = useState<Pole[] | null>(null);
+    const [_originalWallPoles, setOriginalWallPoles] = useState<Pole[] | null>(null);
 
     const [selectedRegionIndex, setSelectedRegionIndex] = useState<number | null>(null);
     const [drawingRegionIndex, setDrawingRegionIndex] = useState<number | null>(null);
@@ -307,11 +280,16 @@ const SceneEditorPageInternal: React.FC = () => {
         scene,
         wallTransaction,
         selectedWallIndex,
+        drawingMode,
+        drawingWallIndex,
         addSceneWall,
         updateSceneWall,
         removeSceneWall,
         setScene,
+        setPlacedWalls,
         setSelectedWallIndex,
+        setDrawingWallIndex,
+        setDrawingMode,
         setIsEditingVertices,
         setOriginalWallPoles,
         setActivePanel,
@@ -350,8 +328,15 @@ const SceneEditorPageInternal: React.FC = () => {
     const keyboardState = useKeyboardState({
         gridConfig,
         onEscapeKey: () => {
-            if (assetManagement.draggedAsset) {
+            if (isEditingVertices && wallTransaction.transaction.isActive) {
+                wallHandlers.handleCancelEditing();
+            } else if (assetManagement?.draggedAsset) {
                 assetManagement.setDraggedAsset(null);
+            }
+        },
+        onEnterKey: () => {
+            if (isEditingVertices && wallTransaction.transaction.isActive) {
+                wallHandlers.handleFinishEditing();
             }
         }
     });
@@ -535,8 +520,6 @@ const SceneEditorPageInternal: React.FC = () => {
 
     useEffect(() => {
         const handleKeyDown = async (e: KeyboardEvent) => {
-            console.log('[UNDO DEBUG] SceneEditorPage handleKeyDown CAPTURE:', { key: e.key, ctrlKey: e.ctrlKey });
-
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
                 return;
             }
@@ -547,15 +530,10 @@ const SceneEditorPageInternal: React.FC = () => {
             const modifier = isMac ? e.metaKey : e.ctrlKey;
 
             if (modifier && e.key === 'z' && !e.shiftKey) {
-                console.log('[UNDO DEBUG] SceneEditorPage - Detected Ctrl+Z!');
-                console.log('[UNDO DEBUG] SceneEditorPage - isWallTransactionActive:', isWallTransactionActive);
-                console.log('[UNDO DEBUG] SceneEditorPage - isRegionTransactionActive:', isRegionTransactionActive);
                 e.preventDefault();
                 e.stopImmediatePropagation();
 
                 if (isWallTransactionActive && wallTransaction.canUndoLocal()) {
-                    console.log('[UNDO DEBUG] SceneEditorPage - Wall local undo');
-
                     wallTransaction.undoLocal((segments) => {
                         const currentScene = sceneRef.current;
                         if (currentScene && selectedWallIndex !== null) {
@@ -588,7 +566,6 @@ const SceneEditorPageInternal: React.FC = () => {
                         }
                     });
                 } else if (isRegionTransactionActive && regionTransaction.canUndoLocal()) {
-                    console.log('[UNDO DEBUG] SceneEditorPage - Region local undo');
                     regionTransaction.undoLocal((segment) => {
                         const currentScene = sceneRef.current;
                         if (currentScene && drawingRegionIndex !== null) {
@@ -603,9 +580,7 @@ const SceneEditorPageInternal: React.FC = () => {
                         }
                     });
                 } else {
-                    console.log('[UNDO DEBUG] SceneEditorPage - Calling GLOBAL undo()');
                     await undo();
-                    console.log('[UNDO DEBUG] SceneEditorPage - GLOBAL undo() completed');
                 }
                 return;
             }
@@ -769,225 +744,17 @@ const SceneEditorPageInternal: React.FC = () => {
     }, [scene, regionTransaction]);
 
     const handleStructurePlacementFinish = useCallback(async () => {
-        if (!sceneId || !scene) return;
-        console.log('handleStructurePlacementFinish called, drawingMode:', drawingMode, 'drawingRegionIndex:', drawingRegionIndex);
-
-        if (drawingMode === 'region' && drawingRegionIndex !== null) {
-            console.log('About to call regionTransaction.commitTransaction');
-            // Filter out temp regions (index -1) before merge detection
-            const sceneForCommit = scene ? {
-                ...scene,
-                regions: scene.regions?.filter(r => r.index !== -1)
-            } : scene;
-            const result = await regionTransaction.commitTransaction(
-                sceneId,
-                { addSceneRegion, updateSceneRegion },
-                sceneForCommit,
-                gridConfig
-            );
-
-            console.log('[DEBUG SceneEditorPage] Commit result:', result);
-
-            if (result.action === 'merge') {
-                console.log('[DEBUG SceneEditorPage] Processing merge, target:', result.targetRegionIndex, 'merged vertices:', result.mergedVertices?.length);
-                const targetRegion = scene.regions?.find(r => r.index === result.targetRegionIndex);
-                if (!targetRegion) {
-                    setErrorMessage('Merge target region not found');
-                    regionTransaction.rollbackTransaction();
-                    setDrawingRegionIndex(null);
-                    setDrawingMode(null);
-                    return;
-                }
-
-                const commands: Command[] = [];
-
-                commands.push(new EditRegionCommand({
-                    sceneId,
-                    regionIndex: result.targetRegionIndex!,
-                    oldRegion: targetRegion,
-                    newRegion: { ...targetRegion, vertices: result.mergedVertices! },
-                    onUpdate: async (sceneId, regionIndex, updates) => {
-                        try {
-                            await updateSceneRegion({ sceneId, regionIndex, ...updates }).unwrap();
-                        } catch (error) {
-                            console.error('Failed to update region:', error);
-                            throw error;
-                        }
-                    },
-                    onRefetch: async () => {
-                        const { data } = await refetch();
-                        if (data) setScene(data);
-                    }
-                }));
-
-                for (const deleteIndex of result.regionsToDelete || []) {
-                    const regionToDelete = scene.regions?.find(r => r.index === deleteIndex);
-                    if (regionToDelete) {
-                        commands.push(new DeleteRegionCommand({
-                            sceneId,
-                            regionIndex: deleteIndex,
-                            region: regionToDelete,
-                            onAdd: async (sceneId, regionData) => {
-                                const result = await addSceneRegion({ sceneId, ...regionData }).unwrap();
-                                return result;
-                            },
-                            onRemove: async (sceneId, regionIndex) => {
-                                await removeSceneRegion({ sceneId, regionIndex }).unwrap();
-                            },
-                            onRefetch: async () => {
-                                const { data } = await refetch();
-                                if (data) setScene(data);
-                            }
-                        }));
-                    }
-                }
-
-                const batchCommand = createBatchCommand({ commands });
-                await execute(batchCommand);
-
-                console.log('[DEBUG SceneEditorPage] Before optimistic update, scene.regions count:', scene.regions?.length);
-                let syncedScene = updateRegionOptimistic(scene, result.targetRegionIndex!, {
-                    vertices: result.mergedVertices!
-                });
-                console.log('[DEBUG SceneEditorPage] After updateRegionOptimistic, regions count:', syncedScene.regions?.length);
-
-                for (const deleteIndex of result.regionsToDelete || []) {
-                    syncedScene = removeRegionOptimistic(syncedScene, deleteIndex);
-                }
-
-                // BUGFIX: Remove temp region -1 from scene state after merge
-                syncedScene = {
-                    ...syncedScene,
-                    regions: syncedScene.regions?.filter(r => r.index !== -1) || []
-                };
-                console.log('[DEBUG SceneEditorPage] After temp region cleanup, regions count:', syncedScene.regions?.length);
-
-                setScene(syncedScene);
-
-                setDrawingRegionIndex(null);
-                setDrawingMode(null);
-                return;
+        try {
+            if (drawingMode === 'region') {
+                await regionHandlers.handleStructurePlacementFinish();
+            } else if (drawingMode === 'wall') {
+                await wallHandlers.handleWallPlacementFinish();
             }
-
-            if (result.success && result.regionIndex !== undefined) {
-                const tempToReal = new Map<number, number>();
-                tempToReal.set(-1, result.regionIndex);
-
-                const syncedScene = syncRegionIndices(scene, tempToReal);
-                setScene(syncedScene);
-
-                const createdRegion = syncedScene.regions?.find(r => r.index === result.regionIndex);
-                if (createdRegion) {
-                    const command = new CreateRegionCommand({
-                        sceneId,
-                        region: createdRegion,
-                        onCreate: async (sceneId, regionData) => {
-                            try {
-                                const result = await addSceneRegion({ sceneId, ...regionData }).unwrap();
-                                return result;
-                            } catch (error) {
-                                console.error('Failed to recreate region:', error);
-                                setErrorMessage('Failed to recreate region. Please try again.');
-                                throw error;
-                            }
-                        },
-                        onRemove: async (sceneId, regionIndex) => {
-                            try {
-                                await removeSceneRegion({ sceneId, regionIndex }).unwrap();
-                            } catch (error) {
-                                console.error('Failed to remove region:', error);
-                                setErrorMessage('Failed to remove region. Please try again.');
-                                throw error;
-                            }
-                        },
-                        onRefetch: async () => {
-                            const { data } = await refetch();
-                            if (data) setScene(data);
-                        }
-                    });
-                    console.log('[DEBUG SceneEditorPage] Calling recordAction - transaction already created region');
-                    recordAction(command);
-                }
-            } else {
-                regionTransaction.rollbackTransaction();
-                const cleanScene = removeRegionOptimistic(scene, -1);
-                setScene(cleanScene);
-                setErrorMessage('Failed to place region. Please try again.');
-            }
-
-            setDrawingRegionIndex(null);
-            setDrawingMode(null);
-            return;
+        } catch (error) {
+            console.error('Failed to finish structure placement:', error);
+            setErrorMessage('Failed to complete structure placement. Please try again.');
         }
-
-        const result = await wallTransaction.commitTransaction(sceneId, {
-            addSceneWall,
-            updateSceneWall
-        });
-
-        if (result.success && result.segmentResults.length > 0) {
-            const tempToReal = new Map<number, number>();
-            result.segmentResults.forEach(r => {
-                if (r.wallIndex !== undefined) {
-                    tempToReal.set(r.tempId, r.wallIndex);
-                }
-            });
-
-            const syncedScene = syncWallIndices(scene, tempToReal);
-
-            const hydratedWalls = hydratePlacedWalls(syncedScene.walls || [], sceneId);
-
-            setScene(syncedScene);
-            setPlacedWalls(hydratedWalls);
-
-            const createdWalls: PlacedWall[] = [];
-            result.segmentResults.forEach(r => {
-                if (r.wallIndex !== undefined) {
-                    const wall = hydratedWalls.find(w => w.index === r.wallIndex);
-                    if (wall) createdWalls.push(wall);
-                }
-            });
-
-            createdWalls.forEach(wall => {
-                const command = new CreateWallCommand({
-                    sceneId,
-                    wall,
-                    onCreate: async (sceneId, wallData) => {
-                        try {
-                            const result = await addSceneWall({ sceneId, ...wallData }).unwrap();
-                            return result;
-                        } catch (error) {
-                            console.error('Failed to recreate wall:', error);
-                            setErrorMessage('Failed to recreate wall. Please try again.');
-                            throw error;
-                        }
-                    },
-                    onRemove: async (sceneId, wallIndex) => {
-                        try {
-                            await removeSceneWall({ sceneId, wallIndex }).unwrap();
-                        } catch (error) {
-                            console.error('Failed to remove wall:', error);
-                            setErrorMessage('Failed to remove wall. Please try again.');
-                            throw error;
-                        }
-                    },
-                    onRefetch: async () => {
-                        const { data } = await refetch();
-                        if (data) setScene(data);
-                    }
-                });
-                execute(command);
-            });
-        } else {
-            wallTransaction.rollbackTransaction();
-            const cleanScene = removeWallOptimistic(scene, -1);
-            setScene(cleanScene);
-            setErrorMessage('Failed to place wall. Please try again.');
-        }
-
-        setDrawingWallIndex(null);
-        setDrawingMode(null);
-    }, [sceneId, scene, drawingMode, drawingRegionIndex, wallTransaction, regionTransaction, addSceneWall, updateSceneWall, removeSceneWall, addSceneRegion, updateSceneRegion, removeSceneRegion, refetch, execute, gridConfig]);
+    }, [drawingMode, regionHandlers, wallHandlers, setErrorMessage]);
 
     const handleDrawingModeChange = (mode: DrawingMode) => {
         setDrawingMode(mode);
@@ -1422,6 +1189,8 @@ const SceneEditorPageInternal: React.FC = () => {
                                     defaultHeight={drawingWallDefaultHeight}
                                     onCancel={handleStructurePlacementCancel}
                                     onFinish={handleStructurePlacementFinish}
+                                    onFinishWithMerge={wallHandlers.handleWallPlacementFinishWithMerge}
+                                    onFinishWithSplit={wallHandlers.handleWallPlacementFinishWithSplit}
                                     onPolesChange={(newPoles) => {
                                         wallTransaction.updateSegment(-1, { poles: newPoles });
 

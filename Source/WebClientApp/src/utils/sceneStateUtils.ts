@@ -56,11 +56,19 @@ export function syncWallIndices(
     };
 }
 
-export function addRegionOptimistic(scene: Scene, region: SceneRegion): Scene {
+export function removeTempRegions(scene: Scene): Scene {
     return {
         ...scene,
+        regions: scene.regions.filter(r => r.index !== -1)
+    };
+}
+
+export function addRegionOptimistic(scene: Scene, region: SceneRegion): Scene {
+    const cleanedScene = removeTempRegions(scene);
+    return {
+        ...cleanedScene,
         regions: [
-            ...scene.regions.filter(r => r.index !== -1),
+            ...cleanedScene.regions,
             region
         ]
     };
@@ -109,5 +117,27 @@ export function syncRegionIndices(
             }
             return region;
         })
+    };
+}
+
+export function filterSceneForMergeDetection(
+    scene: Scene | null,
+    options?: {
+        excludeRegionIndex?: number;
+    }
+): Scene | null {
+    if (!scene) return null;
+
+    const filtered = scene.regions.filter(r => {
+        if (r.index === -1) return false;
+        if (options?.excludeRegionIndex !== undefined && r.index === options.excludeRegionIndex) {
+            return false;
+        }
+        return true;
+    });
+
+    return {
+        ...scene,
+        regions: filtered
     };
 }

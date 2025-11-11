@@ -148,11 +148,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
     }, [selectedVertices, segment, onVerticesChange, onLocalAction]);
 
     useEffect(() => {
-        console.log('[REGION TRANSFORMER] Mounted and listening for keyboard events (capture phase)');
-
         const handleKeyDown = (e: KeyboardEvent) => {
-            console.log('[REGION TRANSFORMER] Key pressed (capture):', e.key);
-
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
                 return;
             }
@@ -162,7 +158,6 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
             }
 
             if (e.key === 'Enter') {
-                console.log('[REGION TRANSFORMER] Enter detected, finishing edit');
                 e.preventDefault();
                 e.stopPropagation();
                 if (onFinish) {
@@ -201,7 +196,6 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
         window.addEventListener('keydown', handleKeyDown, { capture: true });
         window.addEventListener('keyup', handleKeyUp);
         return () => {
-            console.log('[REGION TRANSFORMER] Unmounted, removing keyboard listener');
             window.removeEventListener('keydown', handleKeyDown, { capture: true });
             window.removeEventListener('keyup', handleKeyUp);
         };

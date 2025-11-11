@@ -46,13 +46,8 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
     }, [vertices, onFinish]);
 
     useEffect(() => {
-        console.log('[REGION DRAWING TOOL] Mounted and listening for keyboard events');
-
         const handleKeyDown = (e: KeyboardEvent) => {
-            console.log('[REGION DRAWING TOOL] Key pressed:', e.key);
-
             if (e.key === 'Escape') {
-                console.log('[REGION DRAWING TOOL] Escape detected, canceling');
                 e.preventDefault();
                 e.stopPropagation();
                 onCancel();
@@ -60,7 +55,6 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
             }
 
             if (e.key === 'Enter') {
-                console.log('[REGION DRAWING TOOL] Enter detected, finishing placement');
                 e.preventDefault();
                 e.stopPropagation();
                 handleFinish();
@@ -71,7 +65,6 @@ export const RegionDrawingTool: React.FC<RegionDrawingToolProps> = ({
         window.addEventListener('keydown', handleKeyDown);
 
         return () => {
-            console.log('[REGION DRAWING TOOL] Unmounted, removing keyboard listener');
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [onCancel, handleFinish]);

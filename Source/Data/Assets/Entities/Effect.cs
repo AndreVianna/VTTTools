@@ -16,8 +16,8 @@ public class Effect {
     public double Size { get; set; }
     public double? Direction { get; set; }
     public bool BoundedByStructures { get; set; }
-    public Guid? ResourceId { get; set; }
-    public Resource? Resource { get; set; }
+    public Guid? ImageId { get; set; }
+    public Resource? Image { get; set; }
     [MaxLength(32)]
     public string? Category { get; set; }
     public DateTime CreatedAt { get; set; }

@@ -11,8 +11,8 @@ public class Campaign {
     public string Name { get; set; } = string.Empty;
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
-    public Guid? ResourceId { get; set; }
-    public Resource? Resource { get; set; }
+    public Guid? BackgroundId { get; set; }
+    public Resource? Background { get; set; }
     public bool IsPublished { get; set; }
     public bool IsPublic { get; set; }
     public ICollection<Adventure> Adventures { get; set; } = [];

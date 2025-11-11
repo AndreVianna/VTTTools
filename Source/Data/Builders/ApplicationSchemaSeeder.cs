@@ -152,7 +152,7 @@ internal static class ApplicationSchemaSeeder {
                 OwnerId = new Guid("019639EA-C7DE-7A01-8548-41EDFCCDE206"),
                 Name = "Untitled Adventure",
                 Style = AdventureStyle.Generic,
-                Description = "A new adventure",
+                Description = "A new adventure.",
                 Background = null,
                 IsOneShot = false,
                 IsPublished = false,

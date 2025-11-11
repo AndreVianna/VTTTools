@@ -48,7 +48,7 @@ public record Effect {
     /// <summary>
     /// Optional visual resource (overlay image) for rendering the effect
     /// </summary>
-    public Resource? Resource { get; init; }
+    public Resource? Image { get; init; }
 
     /// <summary>
     /// Optional category for UI filtering (e.g., "Light", "Weather", "Sound", "Magic")

@@ -151,7 +151,7 @@ internal static class ResourcesHandlers {
 
                 var result = await storage.SaveResourceAsync(data.Value, streamToUse, userId, type, parsedEntityId, isPublic: false);
                 return result.IsSuccessful
-                    ? Results.Ok(result.Value)  // Return the complete Resource object
+                    ? Results.Ok(result.Value)  // Return the complete Background object
                     : Results.Problem(detail: $"""
                                               There was a problem while uploading the resource file for the {request.Type} '{request.Id}' {request.Resource}.
                                               File name: "{fileName}"

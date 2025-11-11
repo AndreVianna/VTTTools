@@ -13,13 +13,13 @@ internal static class EpicSchemaBuilder {
             entity.Property(e => e.OwnerId).IsRequired();
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
-            entity.HasOne(s => s.Resource)
-                  .WithMany()
-                  .HasForeignKey(s => s.ResourceId)
+            entity.HasOne(s => s.Background).WithMany()
+                  .HasForeignKey(s => s.BackgroundId).IsRequired(false)
                   .OnDelete(DeleteBehavior.Restrict);
             entity.Property(e => e.IsPublished).IsRequired();
             entity.Property(e => e.IsPublic).IsRequired();
             entity.HasMany(e => e.Campaigns).WithOne(e => e.Epic)
-                  .HasForeignKey(c => c.EpicId).OnDelete(DeleteBehavior.Cascade);
+                  .HasForeignKey(c => c.EpicId).IsRequired(false)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 }

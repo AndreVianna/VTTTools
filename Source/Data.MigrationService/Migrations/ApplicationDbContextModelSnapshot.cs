@@ -128,15 +128,15 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<double?>("Direction")
                         .HasColumnType("float");
 
+                    b.Property<Guid?>("ImageId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
                     b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("ResourceId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Shape")
@@ -148,7 +148,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ResourceId");
+                    b.HasIndex("ImageId");
 
                     b.ToTable("Effects", (string)null);
                 });
@@ -398,6 +398,9 @@ namespace VttTools.Data.MigrationService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("BackgroundId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(4096)
@@ -420,14 +423,11 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ResourceId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("EpicId");
+                    b.HasIndex("BackgroundId");
 
-                    b.HasIndex("ResourceId");
+                    b.HasIndex("EpicId");
 
                     b.ToTable("Campaigns", (string)null);
                 });
@@ -436,6 +436,9 @@ namespace VttTools.Data.MigrationService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BackgroundId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
@@ -457,12 +460,9 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ResourceId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ResourceId");
+                    b.HasIndex("BackgroundId");
 
                     b.ToTable("Epics", (string)null);
                 });
@@ -1329,12 +1329,12 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Assets.Entities.Effect", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Image")
                         .WithMany()
-                        .HasForeignKey("ResourceId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Resource");
+                    b.Navigation("Image");
                 });
 
             modelBuilder.Entity("VttTools.Data.Game.Entities.GameSession", b =>
@@ -1467,31 +1467,29 @@ namespace VttTools.Data.MigrationService.Migrations
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Campaign", b =>
                 {
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
+                        .WithMany()
+                        .HasForeignKey("BackgroundId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("VttTools.Data.Library.Entities.Epic", "Epic")
                         .WithMany("Campaigns")
                         .HasForeignKey("EpicId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")
-                        .WithMany()
-                        .HasForeignKey("ResourceId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Navigation("Background");
 
                     b.Navigation("Epic");
-
-                    b.Navigation("Resource");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Epic", b =>
                 {
-                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Resource")
+                    b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
                         .WithMany()
-                        .HasForeignKey("ResourceId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("BackgroundId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Resource");
+                    b.Navigation("Background");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Scene", b =>

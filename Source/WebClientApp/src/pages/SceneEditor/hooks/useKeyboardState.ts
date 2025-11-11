@@ -4,9 +4,10 @@ import type { GridConfig } from '@/types/domain';
 interface UseKeyboardStateProps {
     gridConfig: GridConfig;
     onEscapeKey?: () => void;
+    onEnterKey?: () => void;
 }
 
-export const useKeyboardState = ({ gridConfig, onEscapeKey }: UseKeyboardStateProps) => {
+export const useKeyboardState = ({ gridConfig, onEscapeKey, onEnterKey }: UseKeyboardStateProps) => {
     const [isAltPressed, setIsAltPressed] = useState(false);
     const [isCtrlPressed, setIsCtrlPressed] = useState(false);
     const [isShiftPressed, setIsShiftPressed] = useState(false);
@@ -28,7 +29,15 @@ export const useKeyboardState = ({ gridConfig, onEscapeKey }: UseKeyboardStatePr
             }
 
             if (e.key === 'Escape' && onEscapeKey) {
+                e.preventDefault();
+                e.stopPropagation();
                 onEscapeKey();
+            }
+
+            if (e.key === 'Enter' && onEnterKey) {
+                e.preventDefault();
+                e.stopPropagation();
+                onEnterKey();
             }
 
             if (e.key === 'Alt') {
@@ -73,7 +82,7 @@ export const useKeyboardState = ({ gridConfig, onEscapeKey }: UseKeyboardStatePr
             window.removeEventListener('keyup', handleKeyUp, { capture: true });
             window.removeEventListener('blur', handleBlur);
         };
-    }, [onEscapeKey]);
+    }, [onEscapeKey, onEnterKey]);
 
     return {
         isAltPressed,

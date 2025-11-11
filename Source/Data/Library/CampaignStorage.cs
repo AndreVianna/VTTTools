@@ -10,7 +10,7 @@ public class CampaignStorage(ApplicationDbContext context)
         var query = context.Campaigns
             .Include(c => c.Adventures)
                 .ThenInclude(a => a.Scenes)
-            .Include(c => c.Resource)
+            .Include(c => c.Background)
             .AsSplitQuery()
             .AsNoTracking();
         var result = await query.Select(Mapper.AsCampaign).ToArrayAsync(ct);
@@ -22,7 +22,7 @@ public class CampaignStorage(ApplicationDbContext context)
         var query = context.Campaigns
             .Include(c => c.Adventures)
                 .ThenInclude(a => a.Scenes)
-            .Include(c => c.Resource)
+            .Include(c => c.Background)
             .AsSplitQuery()
             .AsNoTracking();
 
@@ -47,7 +47,7 @@ public class CampaignStorage(ApplicationDbContext context)
         var query = context.Campaigns
             .Include(c => c.Adventures)
                 .ThenInclude(a => a.Scenes)
-            .Include(c => c.Resource)
+            .Include(c => c.Background)
             .AsSplitQuery()
             .AsNoTracking();
         var result = await query.FirstOrDefaultAsync(c => c.Id == id, ct);
