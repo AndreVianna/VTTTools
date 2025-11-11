@@ -9,9 +9,10 @@ interface UndoRedoState {
 interface UndoRedoContextValue {
     canUndo: boolean;
     canRedo: boolean;
-    execute: (command: Command) => void;
+    execute: (command: Command) => Promise<void>;
+    recordAction: (command: Command) => void;
     undo: () => Promise<void>;
-    redo: () => void;
+    redo: () => Promise<void>;
     clear: () => void;
 }
 
@@ -33,9 +34,26 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
         future: [],
     });
 
-    const execute = useCallback((command: Command) => {
-        command.execute();
+    const execute = useCallback(async (command: Command) => {
+        const result = command.execute();
+        if (result instanceof Promise) {
+            await result;
+        }
 
+        setState((prev) => {
+            const newPast = [...prev.past, command];
+            if (newPast.length > maxHistorySize) {
+                newPast.shift();
+            }
+
+            return {
+                past: newPast,
+                future: [],
+            };
+        });
+    }, [maxHistorySize]);
+
+    const recordAction = useCallback((command: Command) => {
         setState((prev) => {
             const newPast = [...prev.past, command];
             if (newPast.length > maxHistorySize) {
@@ -78,7 +96,7 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
         }
     }, []);
 
-    const redo = useCallback(() => {
+    const redo = useCallback(async () => {
         // Get the command to redo BEFORE calling setState
         let commandToRedo: Command | undefined;
 
@@ -102,7 +120,10 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
 
         // Execute the redo OUTSIDE of setState to prevent double execution
         if (commandToRedo) {
-            commandToRedo.execute();
+            const result = commandToRedo.execute();
+            if (result instanceof Promise) {
+                await result;
+            }
         }
     }, []);
 
@@ -123,7 +144,7 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
                 await undo();
             } else if (modifier && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
                 e.preventDefault();
-                redo();
+                await redo();
             }
         };
 
@@ -138,6 +159,7 @@ export const UndoRedoProvider: React.FC<UndoRedoProviderProps> = ({
         canUndo: state.past.length > 0,
         canRedo: state.future.length > 0,
         execute,
+        recordAction,
         undo,
         redo,
         clear,

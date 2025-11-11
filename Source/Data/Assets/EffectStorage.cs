@@ -9,7 +9,7 @@ public class EffectStorage(ApplicationDbContext context) {
     /// </summary>
     public async Task<Effect[]> GetByOwnerAsync(Guid ownerId, CancellationToken ct = default) {
         var entities = await context.Effects
-            .Include(e => e.Resource)
+            .Include(e => e.Image)
             .AsNoTrackingWithIdentityResolution()
             .Where(e => e.OwnerId == ownerId)
             .ToArrayAsync(ct);
@@ -22,7 +22,7 @@ public class EffectStorage(ApplicationDbContext context) {
     /// </summary>
     public async Task<Effect?> GetByIdAsync(Guid id, CancellationToken ct = default) {
         var entity = await context.Effects
-            .Include(e => e.Resource)
+            .Include(e => e.Image)
             .AsNoTrackingWithIdentityResolution()
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 
@@ -42,7 +42,7 @@ public class EffectStorage(ApplicationDbContext context) {
             Size = effect.Size,
             Direction = effect.Direction,
             BoundedByStructures = effect.BoundedByStructures,
-            ResourceId = effect.Resource?.Id,
+            ImageId = effect.Image?.Id,
             Category = effect.Category,
             CreatedAt = effect.CreatedAt
         };
@@ -60,18 +60,18 @@ public class EffectStorage(ApplicationDbContext context) {
             Size = entity.Size,
             Direction = entity.Direction,
             BoundedByStructures = entity.BoundedByStructures,
-            Resource = entity.Resource != null ? new Resource {
-                Id = entity.Resource.Id,
-                Type = entity.Resource.Type,
-                Path = entity.Resource.Path,
+            Image = entity.Image != null ? new Resource {
+                Id = entity.Image.Id,
+                Type = entity.Image.Type,
+                Path = entity.Image.Path,
                 Metadata = new() {
-                    ContentType = entity.Resource.ContentType,
-                    FileName = entity.Resource.FileName,
-                    FileLength = entity.Resource.FileLength,
-                    ImageSize = entity.Resource.ImageSize,
-                    Duration = entity.Resource.Duration
+                    ContentType = entity.Image.ContentType,
+                    FileName = entity.Image.FileName,
+                    FileLength = entity.Image.FileLength,
+                    ImageSize = entity.Image.ImageSize,
+                    Duration = entity.Image.Duration
                 },
-                Tags = entity.Resource.Tags
+                Tags = entity.Image.Tags
             } : null,
             Category = entity.Category,
             CreatedAt = entity.CreatedAt

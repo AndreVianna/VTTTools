@@ -125,9 +125,18 @@ export function findMergeableRegions(
     const mergeable: SceneRegion[] = [];
 
     for (const region of existingRegions) {
-        if (region.type !== type) continue;
-        if (region.value !== value) continue;
-        if (region.label !== label) continue;
+        const normalizedRegionValue = region.value ?? undefined;
+        const normalizedValue = value ?? undefined;
+        const normalizedRegionLabel = region.label ?? undefined;
+        const normalizedLabel = label ?? undefined;
+
+        const typeMatch = region.type === type;
+        const valueMatch = normalizedRegionValue === normalizedValue;
+        const labelMatch = normalizedRegionLabel === normalizedLabel;
+
+        if (!typeMatch) continue;
+        if (!valueMatch) continue;
+        if (!labelMatch) continue;
 
         const hasSharedEdge = findSharedEdge(region.vertices, newVertices) !== null;
         const overlaps = polygonsOverlap(region.vertices, newVertices);

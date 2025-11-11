@@ -209,15 +209,131 @@ export const useRegionTransaction = () => {
         });
     }, []);
 
+    const detectRegionMerge = useCallback((
+        scene: Scene,
+        segment: RegionSegment,
+        gridConfig?: GridConfig
+    ): CommitResult | null => {
+        const mergeableRegions = findMergeableRegions(
+            scene.regions,
+            segment.vertices,
+            segment.type,
+            segment.value,
+            segment.label
+        );
+
+        if (mergeableRegions.length === 0) {
+            return null;
+        }
+
+        const sortedRegions = [...mergeableRegions].sort((a, b) => a.index - b.index);
+        const targetRegion = sortedRegions[0];
+
+        if (!targetRegion) {
+            return {
+                success: false,
+                error: 'Merge target region not found'
+            };
+        }
+
+        const allVertices = [
+            segment.vertices,
+            ...mergeableRegions.map(r => r.vertices)
+        ];
+        const mergedVertices = mergePolygons(allVertices, gridConfig);
+
+        const regionsToDelete: number[] = [];
+        sortedRegions.slice(1).forEach(r => regionsToDelete.push(r.index));
+
+        if (segment.regionIndex !== null && segment.regionIndex !== targetRegion.index) {
+            regionsToDelete.push(segment.regionIndex);
+        }
+
+        return {
+            success: true,
+            action: 'merge',
+            targetRegionIndex: targetRegion.index,
+            mergedVertices,
+            regionsToDelete,
+            originalRegions: mergeableRegions
+        };
+    }, []);
+
+    const validateSegmentVertices = useCallback((
+        vertices: Point[]
+    ): { valid: boolean; cleanedVertices?: Point[]; error?: string } => {
+        const cleanedVertices = cleanPolygonVertices(vertices, true);
+
+        if (cleanedVertices.length < 3) {
+            return {
+                valid: false,
+                error: 'Region requires minimum 3 vertices'
+            };
+        }
+
+        return {
+            valid: true,
+            cleanedVertices
+        };
+    }, []);
+
+    const persistRegionToBackend = useCallback(async (
+        sceneId: string,
+        segment: RegionSegment,
+        cleanedVertices: Point[],
+        apiHooks: ApiHooks
+    ): Promise<CommitResult> => {
+        const { addSceneRegion, updateSceneRegion } = apiHooks;
+
+        if (segment.regionIndex !== null) {
+            const updateData = {
+                sceneId,
+                regionIndex: segment.regionIndex,
+                name: segment.name,
+                vertices: cleanedVertices,
+                type: segment.type,
+                ...(segment.value !== undefined && { value: segment.value }),
+                ...(segment.label !== undefined && { label: segment.label }),
+                ...(segment.color !== undefined && { color: segment.color })
+            };
+            await updateSceneRegion(updateData).unwrap();
+
+            return {
+                success: true,
+                action: 'edit',
+                regionIndex: segment.regionIndex
+            };
+        }
+
+        const addData = {
+            sceneId,
+            name: segment.name,
+            vertices: cleanedVertices,
+            type: segment.type,
+            ...(segment.value !== undefined && { value: segment.value }),
+            ...(segment.label !== undefined && { label: segment.label }),
+            ...(segment.color !== undefined && { color: segment.color })
+        };
+        const result = await addSceneRegion(addData).unwrap();
+
+        return {
+            success: true,
+            action: 'create',
+            regionIndex: result.index
+        };
+    }, []);
+
+    const clearTransactionState = useCallback(() => {
+        setTransaction(INITIAL_TRANSACTION);
+        setNextTempId(0);
+    }, []);
+
     const commitTransaction = useCallback(async (
         sceneId: string,
         apiHooks: ApiHooks,
         currentScene?: Scene,
         gridConfig?: GridConfig
     ): Promise<CommitResult> => {
-        const { addSceneRegion, updateSceneRegion } = apiHooks;
-
-        console.log('commitTransaction called with:', { sceneId, hasSegment: !!transaction.segment, segmentVertices: transaction.segment?.vertices?.length });
         try {
             if (!transaction.segment) {
                 return {
@@ -229,133 +345,43 @@ export const useRegionTransaction = () => {
             const segment = transaction.segment;
 
             if (currentScene?.regions) {
-                console.log('Checking for mergeable regions, currentScene.regions count:', currentScene.regions.length);
-                const mergeableRegions = findMergeableRegions(
-                    currentScene.regions,
-                    segment.vertices,
-                    segment.type,
-                    segment.value,
-                    segment.label
-                );
-
-                console.log('findMergeableRegions found:', mergeableRegions.length, 'regions', mergeableRegions);
-                if (mergeableRegions.length > 0) {
-                    const sortedRegions = [...mergeableRegions].sort((a, b) => a.index - b.index);
-                    const targetRegion = sortedRegions[0];
-                    if (!targetRegion) {
-                        return {
-                            success: false,
-                            error: 'Merge target region not found'
-                        };
-                    }
-
-                    const allVertices = [
-                        segment.vertices,
-                        ...mergeableRegions.map(r => r.vertices)
-                    ];
-                    const mergedVertices = mergePolygons(allVertices, gridConfig);
-
-                    const regionsToDelete: number[] = [];
-                    sortedRegions.slice(1).forEach(r => regionsToDelete.push(r.index));
-
-                    if (segment.regionIndex !== null && segment.regionIndex !== targetRegion.index) {
-                        regionsToDelete.push(segment.regionIndex);
-                    }
-
-                    console.log('Returning merge action for targetRegion:', targetRegion.index);
-                    return {
-                        success: true,
-                        action: 'merge',
-                        targetRegionIndex: targetRegion.index,
-                        mergedVertices,
-                        regionsToDelete,
-                        originalRegions: mergeableRegions
-                    };
+                const mergeResult = detectRegionMerge(currentScene, segment, gridConfig);
+                if (mergeResult) {
+                    return mergeResult;
                 }
             }
 
-            const cleanedVertices = cleanPolygonVertices(segment.vertices, true);
-
-            console.log('No merge detected, proceeding to create/edit. Cleaned vertices:', cleanedVertices.length);
-            if (cleanedVertices.length < 3) {
+            const validation = validateSegmentVertices(segment.vertices);
+            if (!validation.valid) {
                 return {
                     success: false,
-                    error: 'Region requires minimum 3 vertices'
+                    error: validation.error
                 };
             }
 
-            if (segment.regionIndex !== null) {
-                console.log('Segment has regionIndex (EDIT mode):', segment.regionIndex);
-                const updateData: {
-                    sceneId: string;
-                    regionIndex: number;
-                    name: string;
-                    vertices: Point[];
-                    type: string;
-                    value?: number;
-                    label?: string;
-                    color?: string;
-                } = {
-                    sceneId,
-                    regionIndex: segment.regionIndex,
-                    name: segment.name,
-                    vertices: cleanedVertices,
-                    type: segment.type,
-                    ...(segment.value !== undefined && { value: segment.value }),
-                    ...(segment.label !== undefined && { label: segment.label }),
-                    ...(segment.color !== undefined && { color: segment.color })
-                };
-                await updateSceneRegion(updateData).unwrap();
+            const result = await persistRegionToBackend(
+                sceneId,
+                segment,
+                validation.cleanedVertices!,
+                apiHooks
+            );
 
-                setTransaction(INITIAL_TRANSACTION);
-                setNextTempId(0);
-
-                return {
-                    success: true,
-                    action: 'edit',
-                    regionIndex: segment.regionIndex
-                };
-            } else {
-                console.log('Segment has NO regionIndex (CREATE mode), will call addSceneRegion');
-                const addData: {
-                    sceneId: string;
-                    name: string;
-                    vertices: Point[];
-                    type: string;
-                    value?: number;
-                    label?: string;
-                    color?: string;
-                } = {
-                    sceneId,
-                    name: segment.name,
-                    vertices: cleanedVertices,
-                    type: segment.type,
-                    ...(segment.value !== undefined && { value: segment.value }),
-                    ...(segment.label !== undefined && { label: segment.label }),
-                    ...(segment.color !== undefined && { color: segment.color })
-                };
-                console.log('About to call addSceneRegion with:', addData);
-                const result = await addSceneRegion(addData).unwrap();
-                console.log('addSceneRegion result:', result);
-
-                setTransaction(INITIAL_TRANSACTION);
-                setNextTempId(0);
-
-                return {
-                    success: true,
-                    action: 'create',
-                    regionIndex: result.index
-                };
-            }
+            clearTransactionState();
+            return result;
         } catch (error) {
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Transaction commit failed'
             };
         }
-    }, [transaction]);
+    }, [transaction, detectRegionMerge, validateSegmentVertices, persistRegionToBackend, clearTransactionState]);
 
     const rollbackTransaction = useCallback(() => {
+        setTransaction(INITIAL_TRANSACTION);
+        setNextTempId(0);
+    }, []);
+
+    const clearTransaction = useCallback(() => {
         setTransaction(INITIAL_TRANSACTION);
         setNextTempId(0);
     }, []);
@@ -450,6 +476,7 @@ export const useRegionTransaction = () => {
         updateSegmentProperties,
         commitTransaction,
         rollbackTransaction,
+        clearTransaction,
         getActiveSegment,
         pushLocalAction,
         undoLocal,

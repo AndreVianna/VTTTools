@@ -16,9 +16,8 @@ internal static class EffectSchemaBuilder {
             entity.Property(e => e.BoundedByStructures).IsRequired().HasDefaultValue(true);
             entity.Property(e => e.Category).HasMaxLength(50);
             entity.Property(e => e.CreatedAt).IsRequired();
-            entity.HasOne(e => e.Resource)
-                .WithMany()
-                .HasForeignKey(e => e.ResourceId).IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.Image).WithMany()
+                .HasForeignKey(e => e.ImageId).IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 }

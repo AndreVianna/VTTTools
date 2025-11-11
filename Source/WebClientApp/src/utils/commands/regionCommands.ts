@@ -19,7 +19,8 @@ export class CreateRegionCommand implements Command {
         this.description = `Create region "${params.region.name}"`;
     }
 
-    execute(): void {
+    async execute(): Promise<void> {
+        await this.redo();
     }
 
     async undo(): Promise<void> {
@@ -58,7 +59,8 @@ export class EditRegionCommand implements Command {
         this.description = `Edit region "${params.newRegion.name}"`;
     }
 
-    execute(): void {
+    async execute(): Promise<void> {
+        await this.redo();
     }
 
     async undo(): Promise<void> {
@@ -110,7 +112,10 @@ export class DeleteRegionCommand implements Command {
         this.description = `Delete region "${params.region.name}"`;
     }
 
-    execute(): void {
+    async execute(): Promise<void> {
+        const { sceneId, regionIndex, onRemove, onRefetch } = this.params;
+        await onRemove(sceneId, regionIndex);
+        await onRefetch();
     }
 
     async undo(): Promise<void> {

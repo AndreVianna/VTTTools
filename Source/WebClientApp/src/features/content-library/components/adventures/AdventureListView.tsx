@@ -34,6 +34,9 @@ import {
 import { useGetContentQuery } from '@/services/contentApi';
 import { useDebounce, useInfiniteScroll } from '../../hooks';
 
+const DEFAULT_ADVENTURE_NAME = 'Untitled Adventure';
+const DEFAULT_ADVENTURE_DESCRIPTION = 'A new adventure.';
+
 type ContentTypeFilter = 'all' | 'single-scene' | 'one-shot' | 'adventure' | 'campaign' | 'epic';
 
 export function AdventureListView() {
@@ -113,8 +116,8 @@ export function AdventureListView() {
         setIsCreating(true);
         try {
             const adventure = await createAdventure({
-                name: 'Untitled Adventure',
-                description: 'A new adventure',
+                name: DEFAULT_ADVENTURE_NAME,
+                description: DEFAULT_ADVENTURE_DESCRIPTION,
                 style: AdventureStyle.Generic,
                 isOneShot: false
             }).unwrap();

@@ -31,7 +31,7 @@ import {
 import { useDebounce } from '../../hooks';
 
 const DEFAULT_EPIC_NAME = 'Untitled Epic';
-const DEFAULT_EPIC_DESCRIPTION = 'A new epic';
+const DEFAULT_EPIC_DESCRIPTION = 'A new epic.';
 
 export function EpicListView() {
     const navigate = useNavigate();

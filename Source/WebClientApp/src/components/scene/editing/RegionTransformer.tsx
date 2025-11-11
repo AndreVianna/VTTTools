@@ -70,6 +70,8 @@ export interface RegionTransformerProps {
     viewport: { x: number; y: number; scale: number };
     onVerticesChange: (vertices: Point[]) => void;
     onClearSelections: () => void;
+    onFinish?: () => void;
+    onCancel?: () => void;
     onLocalAction?: (action: LocalAction) => void;
     color?: string;
 }
@@ -79,6 +81,8 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
     gridConfig,
     onVerticesChange,
     onClearSelections,
+    onFinish,
+    onCancel,
     onLocalAction,
     color
 }) => {
@@ -153,6 +157,15 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
                 setIsShiftPressed(true);
             }
 
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                if (onFinish) {
+                    onFinish();
+                }
+                return;
+            }
+
             if (e.key === 'Delete') {
                 e.preventDefault();
                 e.stopPropagation();
@@ -163,11 +176,11 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
             }
 
             if (e.key === 'Escape') {
-                if (selectedVertices.size > 0 || selectedLineIndex !== null) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setSelectedVertices(new Set());
-                    setSelectedLineIndex(null);
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (onCancel) {
+                    onCancel();
                 }
             }
         };
@@ -186,7 +199,7 @@ export const RegionTransformer: React.FC<RegionTransformerProps> = memo(({
             window.removeEventListener('keydown', handleKeyDown, { capture: true });
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, [selectedVertices, selectedLineIndex, onClearSelections, handleDeleteVertices]);
+    }, [selectedVertices, selectedLineIndex, onClearSelections, onFinish, onCancel, handleDeleteVertices]);
 
     const handleVertexDragStart = useCallback((index: number) => {
         const vertex = segment.vertices[index];

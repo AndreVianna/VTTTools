@@ -61,10 +61,11 @@ vi.mock('@/utils/snapUtils', () => ({
 }));
 
 describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
-    let mockStore: ReturnType<typeof configureStore>;
     let onPolesChangeSpy: ReturnType<typeof vi.fn>;
     let onCancelSpy: ReturnType<typeof vi.fn>;
     let onFinishSpy: ReturnType<typeof vi.fn>;
+    let onFinishWithMergeSpy: ReturnType<typeof vi.fn>;
+    let onFinishWithSplitSpy: ReturnType<typeof vi.fn>;
 
     const defaultGridConfig: GridConfig = {
         type: GridType.Square,
@@ -73,30 +74,41 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         snap: true,
     };
 
-    const mockScene = {
+    const createMockScene = (walls: any[] = []) => ({
         id: 'scene-1',
         name: 'Test Scene',
-        walls: [
-            {
-                index: 0,
-                name: 'Wall 1',
-                poles: [],
-                isClosed: false,
-                visibility: 0,
-                material: 'stone',
-                color: '#808080',
-            },
-        ],
-    };
+        walls,
+        regions: [],
+        sources: [],
+    });
+
+    const mockSceneEmpty = createMockScene([
+        {
+            index: 0,
+            name: 'Wall 0',
+            poles: [],
+            isClosed: false,
+            visibility: 0,
+            sceneId: 'scene-1',
+        },
+    ]);
 
     beforeEach(() => {
-        mockStore = configureStore({
+        onPolesChangeSpy = vi.fn();
+        onCancelSpy = vi.fn();
+        onFinishSpy = vi.fn();
+        onFinishWithMergeSpy = vi.fn();
+        onFinishWithSplitSpy = vi.fn();
+    });
+
+    const createStoreWithScene = (scene: any) => {
+        return configureStore({
             reducer: {
                 [sceneApi.reducerPath]: () => ({
                     queries: {
                         'getScene("scene-1")': {
                             status: 'fulfilled',
-                            data: mockScene,
+                            data: scene,
                         },
                     },
                 }),
@@ -104,11 +116,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
             middleware: (getDefaultMiddleware) =>
                 getDefaultMiddleware().concat(sceneApi.middleware as any),
         });
-
-        onPolesChangeSpy = vi.fn();
-        onCancelSpy = vi.fn();
-        onFinishSpy = vi.fn();
-    });
+    };
 
     interface TestWrapperProps {
         children: (params: { wallTransaction: ReturnType<typeof useWallTransaction> }) => React.ReactNode;
@@ -124,12 +132,134 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         return <>{children({ wallTransaction })}</>;
     };
 
+    describe('Scenario 1: Normal Placement', () => {
+        it('should place open wall with 2 poles', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
+            let capturedPoles: Pole[] = [];
+
+            const { container } = render(
+                <Provider store={store}>
+                    <TestWrapper>
+                        {({ wallTransaction }) => (
+                            <WallDrawingTool
+                                sceneId="scene-1"
+                                wallIndex={0}
+                                gridConfig={defaultGridConfig}
+                                defaultHeight={10}
+                                onCancel={onCancelSpy}
+                                onFinish={onFinishSpy}
+                                onPolesChange={(poles) => { capturedPoles = poles; }}
+                                wallTransaction={wallTransaction}
+                            />
+                        )}
+                    </TestWrapper>
+                </Provider>
+            );
+
+            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+
+            act(() => {
+                rect.click();
+            });
+
+            expect(capturedPoles.length).toBe(1);
+            expect(capturedPoles[0]).toEqual({ x: 100, y: 100, h: 10 });
+
+            act(() => {
+                rect.click();
+            });
+
+            expect(capturedPoles.length).toBe(2);
+            expect(capturedPoles[1]).toEqual({ x: 100, y: 100, h: 10 });
+
+            act(() => {
+                rect.dispatchEvent(new Event('dblclick'));
+            });
+
+            expect(onFinishSpy).toHaveBeenCalled();
+        });
+
+        it('should place open wall with 5 poles', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
+            let capturedPoles: Pole[] = [];
+
+            const { container } = render(
+                <Provider store={store}>
+                    <TestWrapper>
+                        {({ wallTransaction }) => (
+                            <WallDrawingTool
+                                sceneId="scene-1"
+                                wallIndex={0}
+                                gridConfig={defaultGridConfig}
+                                defaultHeight={15}
+                                onCancel={onCancelSpy}
+                                onFinish={onFinishSpy}
+                                onPolesChange={(poles) => { capturedPoles = poles; }}
+                                wallTransaction={wallTransaction}
+                            />
+                        )}
+                    </TestWrapper>
+                </Provider>
+            );
+
+            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+
+            for (let i = 0; i < 5; i++) {
+                act(() => {
+                    rect.click();
+                });
+            }
+
+            expect(capturedPoles.length).toBe(5);
+            capturedPoles.forEach(pole => {
+                expect(pole.h).toBe(15);
+            });
+        });
+
+        it('should NOT auto-close with only 2 poles when clicking near first pole', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
+            let capturedPoles: Pole[] = [];
+
+            const { container } = render(
+                <Provider store={store}>
+                    <TestWrapper>
+                        {({ wallTransaction }) => (
+                            <WallDrawingTool
+                                sceneId="scene-1"
+                                wallIndex={0}
+                                gridConfig={defaultGridConfig}
+                                defaultHeight={10}
+                                onCancel={onCancelSpy}
+                                onFinish={onFinishSpy}
+                                onPolesChange={(poles) => { capturedPoles = poles; }}
+                                wallTransaction={wallTransaction}
+                            />
+                        )}
+                    </TestWrapper>
+                </Provider>
+            );
+
+            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+
+            act(() => {
+                rect.click();
+            });
+            act(() => {
+                rect.click();
+            });
+
+            expect(capturedPoles.length).toBe(2);
+            expect(onFinishSpy).not.toHaveBeenCalled();
+        });
+    });
+
     describe('Component Rendering with Real Hook', () => {
         it('should render component with real wallTransaction hook', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
             let transaction: ReturnType<typeof useWallTransaction> | null = null;
 
             const { container } = render(
-                <Provider store={mockStore}>
+                <Provider store={store}>
                     <TestWrapper>
                         {({ wallTransaction }) => {
                             transaction = wallTransaction;
@@ -157,10 +287,11 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         });
 
         it('should initialize real hook with empty undo/redo stacks', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
             let transaction: ReturnType<typeof useWallTransaction> | null = null;
 
             render(
-                <Provider store={mockStore}>
+                <Provider store={store}>
                     <TestWrapper>
                         {({ wallTransaction }) => {
                             transaction = wallTransaction;
@@ -188,12 +319,256 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         });
     });
 
+    describe('Scenario 4: Auto-Close', () => {
+        it('should auto-close when clicking near first pole with 3+ poles', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
+            let capturedPoles: Pole[] = [];
+            let isClosedCalled = false;
+
+            const mockTransaction = {
+                startTransaction: vi.fn(),
+                updateSegment: vi.fn((index, updates) => {
+                    if (updates.isClosed) {
+                        isClosedCalled = true;
+                    }
+                }),
+                pushLocalAction: vi.fn(),
+                transaction: {
+                    isActive: true,
+                    type: 'placement',
+                    originalWall: null,
+                    localUndoStack: [],
+                    localRedoStack: [],
+                    segments: []
+                },
+                canUndoLocal: () => false,
+                canRedoLocal: () => false,
+                undoLocal: vi.fn(),
+                redoLocal: vi.fn(),
+                rollbackTransaction: vi.fn(),
+                commitTransaction: vi.fn(),
+                getActiveSegments: vi.fn(() => []),
+            };
+
+            const { container } = render(
+                <Provider store={store}>
+                    <WallDrawingTool
+                        sceneId="scene-1"
+                        wallIndex={0}
+                        gridConfig={defaultGridConfig}
+                        defaultHeight={10}
+                        onCancel={onCancelSpy}
+                        onFinish={onFinishSpy}
+                        onPolesChange={(poles) => { capturedPoles = poles; }}
+                        wallTransaction={mockTransaction as any}
+                    />
+                </Provider>
+            );
+
+            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+
+            act(() => {
+                rect.click();
+            });
+            act(() => {
+                rect.click();
+            });
+            act(() => {
+                rect.click();
+            });
+
+            expect(capturedPoles.length).toBe(2);
+            expect(isClosedCalled).toBe(true);
+        });
+
+        it('should NOT auto-close when clicking 11px from first pole (outside tolerance)', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
+            const customKonvaEvent = {
+                target: {
+                    getStage: () => ({
+                        getPointerPosition: () => ({ x: 111, y: 100 }),
+                        x: () => 0,
+                        y: () => 0,
+                        scaleX: () => 1,
+                    }),
+                },
+                evt: {},
+                cancelBubble: false,
+            };
+
+            vi.mock('react-konva', () => ({
+                Group: ({ children }: { children: React.ReactNode }) => <div data-testid="konva-group">{children}</div>,
+                Rect: ({ onClick }: { onClick?: (e: any) => void }) => (
+                    <div
+                        data-testid="konva-rect"
+                        onClick={() => onClick?.(customKonvaEvent)}
+                    />
+                ),
+            }));
+
+            let capturedPoles: Pole[] = [];
+
+            const { container } = render(
+                <Provider store={store}>
+                    <TestWrapper>
+                        {({ wallTransaction }) => (
+                            <WallDrawingTool
+                                sceneId="scene-1"
+                                wallIndex={0}
+                                gridConfig={defaultGridConfig}
+                                defaultHeight={10}
+                                onCancel={onCancelSpy}
+                                onFinish={onFinishSpy}
+                                onPolesChange={(poles) => { capturedPoles = poles; }}
+                                wallTransaction={wallTransaction}
+                            />
+                        )}
+                    </TestWrapper>
+                </Provider>
+            );
+
+            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+
+            for (let i = 0; i < 3; i++) {
+                act(() => {
+                    rect.click();
+                });
+            }
+
+            expect(capturedPoles.length).toBe(3);
+            expect(onFinishSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Scenario 3: Merge Walls', () => {
+        it('should detect merge when connecting to one existing wall endpoint', () => {
+            const mockSceneWithWall = createMockScene([
+                {
+                    index: 0,
+                    name: 'Wall 0',
+                    poles: [],
+                    isClosed: false,
+                    visibility: 0,
+                    sceneId: 'scene-1',
+                },
+                {
+                    index: 1,
+                    name: 'Existing Wall',
+                    poles: [
+                        { x: 0, y: 0, h: 10 },
+                        { x: 100, y: 0, h: 10 }
+                    ],
+                    isClosed: false,
+                    visibility: 0,
+                    sceneId: 'scene-1',
+                }
+            ]);
+
+            const store = createStoreWithScene(mockSceneWithWall);
+
+            const { container } = render(
+                <Provider store={store}>
+                    <TestWrapper>
+                        {({ wallTransaction }) => (
+                            <WallDrawingTool
+                                sceneId="scene-1"
+                                wallIndex={0}
+                                gridConfig={defaultGridConfig}
+                                defaultHeight={10}
+                                onCancel={onCancelSpy}
+                                onFinish={onFinishSpy}
+                                onFinishWithMerge={onFinishWithMergeSpy}
+                                wallTransaction={wallTransaction}
+                            />
+                        )}
+                    </TestWrapper>
+                </Provider>
+            );
+
+            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+
+            act(() => {
+                rect.click();
+            });
+            act(() => {
+                rect.click();
+            });
+            act(() => {
+                rect.dispatchEvent(new Event('dblclick'));
+            });
+
+            expect(onFinishWithMergeSpy).toHaveBeenCalled();
+        });
+    });
+
+    describe('Scenario 6: Edge-on-Edge Split', () => {
+        it('should detect split when wall crosses existing wall', () => {
+            const mockSceneWithWall = createMockScene([
+                {
+                    index: 0,
+                    name: 'Wall 0',
+                    poles: [],
+                    isClosed: false,
+                    visibility: 0,
+                    sceneId: 'scene-1',
+                },
+                {
+                    index: 1,
+                    name: 'Existing Wall',
+                    poles: [
+                        { x: 50, y: 0, h: 10 },
+                        { x: 50, y: 100, h: 10 }
+                    ],
+                    isClosed: false,
+                    visibility: 0,
+                    sceneId: 'scene-1',
+                }
+            ]);
+
+            const store = createStoreWithScene(mockSceneWithWall);
+
+            const { container } = render(
+                <Provider store={store}>
+                    <TestWrapper>
+                        {({ wallTransaction }) => (
+                            <WallDrawingTool
+                                sceneId="scene-1"
+                                wallIndex={0}
+                                gridConfig={defaultGridConfig}
+                                defaultHeight={10}
+                                onCancel={onCancelSpy}
+                                onFinish={onFinishSpy}
+                                onFinishWithSplit={onFinishWithSplitSpy}
+                                wallTransaction={wallTransaction}
+                            />
+                        )}
+                    </TestWrapper>
+                </Provider>
+            );
+
+            const rect = container.querySelector('[data-testid="konva-rect"]') as HTMLElement;
+
+            act(() => {
+                rect.click();
+            });
+            act(() => {
+                rect.click();
+            });
+            act(() => {
+                rect.dispatchEvent(new Event('dblclick'));
+            });
+
+            expect(onFinishWithSplitSpy).toHaveBeenCalled();
+        });
+    });
+
     describe('Pole Placement with Real Hook', () => {
         it('should place pole and populate real undo stack', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
             let transaction: ReturnType<typeof useWallTransaction> | null = null;
 
             const { container } = render(
-                <Provider store={mockStore}>
+                <Provider store={store}>
                     <TestWrapper>
                         {({ wallTransaction }) => {
                             transaction = wallTransaction;
@@ -228,8 +603,10 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         });
 
         it('should call onPolesChange when pole is placed', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
+
             const { container } = render(
-                <Provider store={mockStore}>
+                <Provider store={store}>
                     <TestWrapper>
                         {({ wallTransaction }) => (
                             <WallDrawingTool
@@ -267,6 +644,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
     describe('Real Undo/Redo Integration', () => {
         it('should undo pole placement using real hook', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
             let transaction: ReturnType<typeof useWallTransaction> | null = null;
             let capturedPoles: Pole[] = [];
 
@@ -275,7 +653,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
             };
 
             const { container } = render(
-                <Provider store={mockStore}>
+                <Provider store={store}>
                     <TestWrapper>
                         {({ wallTransaction }) => {
                             transaction = wallTransaction;
@@ -315,6 +693,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         });
 
         it('should redo pole placement using real hook', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
             let transaction: ReturnType<typeof useWallTransaction> | null = null;
             let capturedPoles: Pole[] = [];
 
@@ -323,7 +702,7 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
             };
 
             const { container } = render(
-                <Provider store={mockStore}>
+                <Provider store={store}>
                     <TestWrapper>
                         {({ wallTransaction }) => {
                             transaction = wallTransaction;
@@ -369,10 +748,11 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         });
 
         it('should handle multiple undo operations with real hook', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
             let transaction: ReturnType<typeof useWallTransaction> | null = null;
 
             const { container } = render(
-                <Provider store={mockStore}>
+                <Provider store={store}>
                     <TestWrapper>
                         {({ wallTransaction }) => {
                             transaction = wallTransaction;
@@ -437,10 +817,11 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
     describe('Real Hook State Management', () => {
         it('should clear redo stack when new pole is placed after undo', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
             let transaction: ReturnType<typeof useWallTransaction> | null = null;
 
             const { container } = render(
-                <Provider store={mockStore}>
+                <Provider store={store}>
                     <TestWrapper>
                         {({ wallTransaction }) => {
                             transaction = wallTransaction;
@@ -482,10 +863,11 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         });
 
         it('should maintain correct canUndo/canRedo state throughout lifecycle', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
             let transaction: ReturnType<typeof useWallTransaction> | null = null;
 
             const { container } = render(
-                <Provider store={mockStore}>
+                <Provider store={store}>
                     <TestWrapper>
                         {({ wallTransaction }) => {
                             transaction = wallTransaction;
@@ -536,10 +918,11 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
 
     describe('Transaction Lifecycle', () => {
         it('should verify transaction is active after startTransaction', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
             let transaction: ReturnType<typeof useWallTransaction> | null = null;
 
             render(
-                <Provider store={mockStore}>
+                <Provider store={store}>
                     <TestWrapper>
                         {({ wallTransaction }) => {
                             transaction = wallTransaction;
@@ -566,10 +949,11 @@ describe('WallDrawingTool Integration Tests - Component + Real Hook', () => {
         });
 
         it('should rollback transaction and clear stacks', () => {
+            const store = createStoreWithScene(mockSceneEmpty);
             let transaction: ReturnType<typeof useWallTransaction> | null = null;
 
             const { container } = render(
-                <Provider store={mockStore}>
+                <Provider store={store}>
                     <TestWrapper>
                         {({ wallTransaction }) => {
                             transaction = wallTransaction;

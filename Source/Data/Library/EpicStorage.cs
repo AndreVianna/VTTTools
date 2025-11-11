@@ -10,7 +10,7 @@ public class EpicStorage(ApplicationDbContext context)
         var query = context.Epics
             .Include(e => e.Campaigns)
                 .ThenInclude(c => c.Adventures)
-            .Include(e => e.Resource)
+            .Include(e => e.Background)
             .AsSplitQuery()
             .AsNoTracking();
         var result = await query.Select(Mapper.AsEpic).ToArrayAsync(ct);
@@ -22,7 +22,7 @@ public class EpicStorage(ApplicationDbContext context)
         var query = context.Epics
             .Include(e => e.Campaigns)
                 .ThenInclude(c => c.Adventures)
-            .Include(e => e.Resource)
+            .Include(e => e.Background)
             .AsSplitQuery()
             .AsNoTracking();
 
@@ -47,7 +47,7 @@ public class EpicStorage(ApplicationDbContext context)
         var query = context.Epics
             .Include(e => e.Campaigns)
                 .ThenInclude(c => c.Adventures)
-            .Include(e => e.Resource)
+            .Include(e => e.Background)
             .AsSplitQuery()
             .AsNoTracking();
         var result = await query.FirstOrDefaultAsync(e => e.Id == id, ct);
