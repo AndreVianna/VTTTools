@@ -39,7 +39,7 @@ This document describes the technical implementation structure of VTTTools, incl
 
 - **VttTools.Domain** (ClassLibrary)
   - **Path**: Source/Domain/VttTools.Domain.csproj
-  - **Purpose**: Core domain entities (User, Role, Resource, Asset, Epic, Campaign, Adventure, Encounter, GameSession, Schedule), value objects, enums, and business logic
+  - **Purpose**: Core domain entities (User, Role, Resource, Asset, World, Campaign, Adventure, Encounter, GameSession, Schedule), value objects, enums, and business logic
   - **Layer**: Domain
   - **Implements Features**: All features (domain foundation)
   - **Dependencies**: VttTools.Core
@@ -67,7 +67,7 @@ This document describes the technical implementation structure of VTTTools, incl
 
 - **VttTools.Library** (WebApplication)
   - **Path**: Source/Library/VttTools.Library.csproj
-  - **Purpose**: Content hierarchy microservice managing Epic→Campaign→Adventure→Encounter relationships
+  - **Purpose**: Content hierarchy microservice managing World→Campaign→Adventure→Encounter relationships
   - **Layer**: Application (Microservice)
   - **Implements Features**: Game Content Hierarchy
   - **Dependencies**: VttTools.Common, VttTools.Data, VttTools.Domain
@@ -160,7 +160,7 @@ This document describes the technical implementation structure of VTTTools, incl
 ### Domain Layer
 
 - **VttTools.Domain**: Core business entities, value objects, and business logic
-  - Contains: 15 entities (User, Role, Resource, Asset, Epic, Campaign, Adventure, Encounter, GameSession, Schedule, UserRole, UserClaim, RoleClaim, UserLogin, UserToken), 11 value objects (Display, Frame, Stage, Grid, EncounterAsset, Participant, GameSessionMessage, GameSessionEvent, Recurrence, ResourceMetadata, ResourceFile), 10 enums (AssetType, PlayerType, GridType, GameSessionStatus, Frequency, RoleName, ResourceType, AdventureType, FrameShape, GridShape), storage interface contracts (IAssetStorage, IMediaStorage, IEncounterStorage, IAdventureStorage, IGameSessionStorage)
+  - Contains: 15 entities (User, Role, Resource, Asset, World, Campaign, Adventure, Encounter, GameSession, Schedule, UserRole, UserClaim, RoleClaim, UserLogin, UserToken), 11 value objects (Display, Frame, Stage, Grid, EncounterAsset, Participant, GameSessionMessage, GameSessionEvent, Recurrence, ResourceMetadata, ResourceFile), 10 enums (AssetType, PlayerType, GridType, GameSessionStatus, Frequency, RoleName, ResourceType, AdventureType, FrameShape, GridShape), storage interface contracts (IAssetStorage, IMediaStorage, IEncounterStorage, IAdventureStorage, IGameSessionStorage)
 
 ### Application Layer
 
@@ -177,7 +177,7 @@ This document describes the technical implementation structure of VTTTools, incl
   - Contains: Asset service implementation, asset CRUD handlers, 15 AssetType variations, Display and Frame configuration logic
 
 - **VttTools.Library**: Content hierarchy microservice
-  - Contains: Epic/Campaign/Adventure/Encounter hierarchy service, content relationships, ownership and visibility rules, adventure type categorization
+  - Contains: World/Campaign/Adventure/Encounter hierarchy service, content relationships, ownership and visibility rules, adventure type categorization
 
 - **VttTools.Game**: Game session microservice
   - Contains: GameSession and Schedule service, participant management, SignalR hub orchestration, chat/dice roll handlers, session lifecycle management
@@ -211,7 +211,7 @@ This document describes the technical implementation structure of VTTTools, incl
   - Contains: Blazor WebAssembly components, client-side rendering logic (being replaced by React WebClientApp)
 
 - **WebClientApp**: React 19.1 SPA (Primary UI)
-  - Contains: Authentication pages (login, register, 2FA, password reset), content management UI (epics, campaigns, adventures, encounters), asset library browsing, Konva-based encounter editor (panning, zoom, grid, token placement), real-time game session collaboration, Redux Toolkit state management, RTK Query API integration, Material-UI components, React Router routing
+  - Contains: Authentication pages (login, register, 2FA, password reset), content management UI (worlds, campaigns, adventures, encounters), asset library browsing, Konva-based encounter editor (panning, zoom, grid, token placement), real-time game session collaboration, Redux Toolkit state management, RTK Query API integration, Material-UI components, React Router routing
 
 - **WebAdminApp**: React 19.1 SPA (Admin UI)
   - Contains: Admin dashboard (system health, alerts, activity feed, performance charts), User management UI (list, detail, role assignment, account locking, create user), Audit log viewer (infinite scroll, live monitoring with tail tracking, export), System configuration UI (security settings, feature flags, storage/email/API config, maintenance mode), Public library management (content upload, publish/unpublish, pricing, analytics), Redux Toolkit state management, RTK Query API integration, Material-UI DataGrid, Chart.js charts, SignalR for live monitoring
@@ -240,12 +240,12 @@ This section provides bidirectional traceability between business features and t
   - WebClientApp (UI): Media upload UI, asset display integration (future)
 
 **Game Content Hierarchy** → Implemented in:
-  - VttTools.Library (Application/Microservice): Content hierarchy service managing Epic→Campaign→Adventure→Encounter relationships, hierarchical business rules, ownership and visibility controls
-  - VttTools.Domain (Domain): Epic, Campaign, Adventure, Encounter entities with Stage, Grid, EncounterAsset value objects, AdventureType enum, hierarchy business logic
+  - VttTools.Library (Application/Microservice): Content hierarchy service managing World→Campaign→Adventure→Encounter relationships, hierarchical business rules, ownership and visibility controls
+  - VttTools.Domain (Domain): World, Campaign, Adventure, Encounter entities with Stage, Grid, EncounterAsset value objects, AdventureType enum, hierarchy business logic
   - VttTools.Common (Application): Shared application services for content management
   - VttTools.Data (Infrastructure): Hierarchy persistence via EF Core with owned entity relationships, IAdventureStorage and IEncounterStorage implementations
   - VttTools.WebApp (UI/Infrastructure): REST API (AdventuresController, EncountersController), HTTP clients for service communication
-  - WebClientApp (UI): Content management UI for epics, campaigns, adventures, encounters (in development)
+  - WebClientApp (UI): Content management UI for worlds, campaigns, adventures, encounters (in development)
 
 **Asset Management** → Implemented in:
   - VttTools.Assets (Application/Microservice): Asset management service (IAssetService), asset CRUD handlers, 15 AssetType variations, Display and Frame configuration
@@ -292,7 +292,7 @@ This section provides bidirectional traceability between business features and t
   - Asset Management: Asset service for 15 AssetType variations, Display and Frame configuration, asset CRUD operations
 
 **VttTools.Library** → Implements:
-  - Game Content Hierarchy: Epic→Campaign→Adventure→Encounter hierarchy service, content relationships, ownership/visibility rules
+  - Game Content Hierarchy: World→Campaign→Adventure→Encounter hierarchy service, content relationships, ownership/visibility rules
 
 **VttTools.Game** → Implements:
   - Game Session Management: GameSession and Schedule service, participant management, SignalR orchestration, chat/dice roll/event handlers

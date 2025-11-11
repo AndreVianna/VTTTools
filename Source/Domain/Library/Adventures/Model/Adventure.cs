@@ -1,7 +1,8 @@
 namespace VttTools.Library.Adventures.Model;
 
 public record Adventure {
-    public Guid? CampaignId { get; init; }
+    public World? World { get; init; }
+    public Campaign? Campaign { get; init; }
     public Guid OwnerId { get; init; }
     public Guid Id { get; init; } = Guid.CreateVersion7();
     [MaxLength(128)]

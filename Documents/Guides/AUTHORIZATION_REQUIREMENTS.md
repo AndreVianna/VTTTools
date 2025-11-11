@@ -86,14 +86,14 @@ No new pages. Advanced features (token placement, undo/redo, offline mode) enhan
 
 ---
 
-### Phase 7: Content Management Part 1 - Epic/Campaign/Adventure (18 hours)
+### Phase 7: Content Management Part 1 - World/Campaign/Adventure (18 hours)
 **New Pages Required**:
 
 | Page | Route | Authorization Level | Description |
 |------|-------|-------------------|-------------|
-| Epic List | `/library/epics` | **Authorized** | List all epics owned by or shared with user |
-| Epic Detail | `/library/epics/:epicId` | **Authorized** | View/edit epic details and campaign list |
-| Campaign List | `/library/epics/:epicId/campaigns` | **Authorized** | List campaigns within epic |
+| World List | `/library/worlds` | **Authorized** | List all worlds owned by or shared with user |
+| World Detail | `/library/worlds/:worldId` | **Authorized** | View/edit world details and campaign list |
+| Campaign List | `/library/worlds/:worldId/campaigns` | **Authorized** | List campaigns within world |
 | Campaign Detail | `/library/campaigns/:campaignId` | **Authorized** | View/edit campaign details and adventure list |
 | Adventure List | `/library/campaigns/:campaignId/adventures` | **Authorized** | List adventures within campaign |
 | Adventure Detail | `/library/adventures/:adventureId` | **Authorized** | View/edit adventure details and encounter list |
@@ -102,7 +102,7 @@ No new pages. Advanced features (token placement, undo/redo, offline mode) enhan
 
 **Future Enhancement**:
 - Public adventure sharing at `/public/adventures/:adventureId` (anonymous)
-- Published epic browsing at `/public/epics` (anonymous)
+- Published world browsing at `/public/worlds` (anonymous)
 
 ---
 
@@ -209,20 +209,20 @@ No new pages. Advanced features (token placement, undo/redo, offline mode) enhan
 
 ### Library Area
 
-#### Epic Management Feature
+#### World Management Feature
 **All Use Cases**: **Authorized**
-- Create Epic (any authenticated user)
-- Update Epic (owner only)
-- Delete Epic (owner only)
-- List Epics (user's own + shared epics)
-- Get Epic Details (owner + users with access)
+- Create World (any authenticated user)
+- Update World (owner only)
+- Delete World (owner only)
+- List Worlds (user's own + shared worlds)
+- Get World Details (owner + users with access)
 
 #### Campaign Management Feature
 **All Use Cases**: **Authorized**
 - Create Campaign (any authenticated user)
 - Update Campaign (owner only)
 - Delete Campaign (owner only)
-- List Campaigns (within owned/shared epics)
+- List Campaigns (within owned/shared worlds)
 - Get Campaign Details (owner + users with access)
 
 #### Adventure Management Feature
@@ -322,7 +322,7 @@ No new pages. Advanced features (token placement, undo/redo, offline mode) enhan
 | Content Type | Create | Read | Update | Delete | Publish |
 |--------------|--------|------|--------|--------|---------|
 | Asset | Owner | Owner + Published viewers | Owner | Owner | Owner |
-| Epic | Any user | Owner + Shared | Owner | Owner | N/A |
+| World | Any user | Owner + Shared | Owner | Owner | N/A |
 | Campaign | Any user | Owner + Shared | Owner | Owner | N/A |
 | Adventure | Any user | Owner + Shared | Owner | Owner | Owner |
 | Encounter | Owner (adventure) | Owner + Session participants | Owner | Owner | N/A |
@@ -354,7 +354,7 @@ No new pages. Advanced features (token placement, undo/redo, offline mode) enhan
 ### Phase 2: Sharing and Permissions
 **Timeline**: After RBAC implementation
 **Features**:
-- Share epics/campaigns/adventures with specific users
+- Share worlds/campaigns/adventures with specific users
 - Grant read/write permissions
 - Public/private content visibility toggles
 - Shared asset libraries (team libraries)

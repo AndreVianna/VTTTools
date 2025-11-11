@@ -1,7 +1,7 @@
 // Generated: 2025-10-12
-// BDD Step Definitions for Create Epic Use Case
+// BDD Step Definitions for Create World Use Case
 // Framework: SpecFlow/Cucumber.NET with xUnit
-// Testing: Backend API (EpicService - Phase 7 BLOCKED)
+// Testing: Backend API (WorldService - Phase 7 BLOCKED)
 // CRITICAL: Service not implemented - steps use placeholder contracts
 
 using FluentAssertions;
@@ -10,41 +10,41 @@ using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 using VttTools.Common.Model;
 using VttTools.Library.Campaigns.Model;
-using VttTools.Library.Epics.Model;
-using VttTools.Library.Epics.ServiceContracts;
-using VttTools.Library.Epics.Services;
-using VttTools.Library.Epics.Storage;
+using VttTools.Library.Worlds.Model;
+using VttTools.Library.Worlds.ServiceContracts;
+using VttTools.Library.Worlds.Services;
+using VttTools.Library.Worlds.Storage;
 using VttTools.Media.Storage;
 using Xunit;
 
-namespace VttTools.Library.Tests.BDD.EpicManagement.CreateEpic;
+namespace VttTools.Library.Tests.BDD.WorldManagement.CreateWorld;
 
 /// <summary>
-/// BDD Step Definitions for Create Epic scenarios.
-/// BLOCKED: EpicService implementation pending (Phase 7).
+/// BDD Step Definitions for Create World scenarios.
+/// BLOCKED: WorldService implementation pending (Phase 7).
 /// These steps define expected behavior using placeholder service contracts.
 /// </summary>
 [Binding]
 [Tag("@blocked", "@phase7-pending")]
-public class CreateEpicSteps {
+public class CreateWorldSteps {
     private readonly ScenarioContext _context;
-    private readonly IEpicStorage _epicStorage;
+    private readonly IWorldStorage _worldStorage;
     private readonly IMediaStorage _mediaStorage;
-    private readonly IEpicService _service;
+    private readonly IWorldService _service;
 
     // Test state
-    private CreateEpicData? _createData;
-    private Result<Epic>? _createResult;
+    private CreateWorldData? _createData;
+    private Result<World>? _createResult;
     private Guid _userId = Guid.Empty;
     private List<Campaign> _campaigns = [];
     private Exception? _exception;
 
-    public CreateEpicSteps(ScenarioContext context) {
+    public CreateWorldSteps(ScenarioContext context) {
         _context = context;
-        _epicStorage = Substitute.For<IEpicStorage>();
+        _worldStorage = Substitute.For<IWorldStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
-        // NOTE: IEpicService does not exist yet - placeholder for Phase 7
-        _service = Substitute.For<IEpicService>();
+        // NOTE: IWorldService does not exist yet - placeholder for Phase 7
+        _service = Substitute.For<IWorldService>();
     }
 
     #region Background Steps
@@ -63,11 +63,11 @@ public class CreateEpicSteps {
 
     #endregion
 
-    #region Given Steps - Epic Name
+    #region Given Steps - World Name
 
-    [Given(@"I provide epic name ""(.*)""")]
-    public void GivenIProvideEpicName(string name) {
-        _createData = new CreateEpicData {
+    [Given(@"I provide world name ""(.*)""")]
+    public void GivenIProvideWorldName(string name) {
+        _createData = new CreateWorldData {
             Name = name,
             Description = string.Empty,
             IsPublished = false,
@@ -75,18 +75,18 @@ public class CreateEpicSteps {
         };
     }
 
-    [Given(@"I provide empty epic name")]
-    public void GivenIProvideEmptyEpicName() {
-        _createData = new CreateEpicData {
+    [Given(@"I provide empty world name")]
+    public void GivenIProvideEmptyWorldName() {
+        _createData = new CreateWorldData {
             Name = string.Empty,
             Description = string.Empty
         };
     }
 
-    [Given(@"I provide epic name with (.*) characters")]
-    public void GivenIProvideEpicNameWithLength(int length) {
+    [Given(@"I provide world name with (.*) characters")]
+    public void GivenIProvideWorldNameWithLength(int length) {
         var name = new string('A', length);
-        _createData = new CreateEpicData {
+        _createData = new CreateWorldData {
             Name = name,
             Description = string.Empty
         };
@@ -94,22 +94,22 @@ public class CreateEpicSteps {
 
     #endregion
 
-    #region Given Steps - Epic Description
+    #region Given Steps - World Description
 
-    [Given(@"I provide epic with description of exactly (.*) characters")]
-    public void GivenIProvideEpicWithDescriptionOfExactlyCharacters(int length) {
+    [Given(@"I provide world with description of exactly (.*) characters")]
+    public void GivenIProvideWorldWithDescriptionOfExactlyCharacters(int length) {
         var description = new string('B', length);
-        _createData = new CreateEpicData {
-            Name = "Test Epic",
+        _createData = new CreateWorldData {
+            Name = "Test World",
             Description = description,
             IsPublished = false,
             IsPublic = false
         };
     }
 
-    [Given(@"I provide epic with description of (.*) characters")]
-    public void GivenIProvideEpicWithDescriptionOfCharacters(int length) {
-        GivenIProvideEpicWithDescriptionOfExactlyCharacters(length);
+    [Given(@"I provide world with description of (.*) characters")]
+    public void GivenIProvideWorldWithDescriptionOfCharacters(int length) {
+        GivenIProvideWorldWithDescriptionOfExactlyCharacters(length);
     }
 
     [Given(@"I do not provide description")]
@@ -123,10 +123,10 @@ public class CreateEpicSteps {
 
     #region Given Steps - Publication Status
 
-    [Given(@"I provide epic with IsPublished=(.*) and IsPublic=(.*)")]
-    public void GivenIProvideEpicWithPublicationStatus(bool isPublished, bool isPublic) {
-        _createData = new CreateEpicData {
-            Name = "Test Epic",
+    [Given(@"I provide world with IsPublished=(.*) and IsPublic=(.*)")]
+    public void GivenIProvideWorldWithPublicationStatus(bool isPublished, bool isPublic) {
+        _createData = new CreateWorldData {
+            Name = "Test World",
             Description = "Test Description",
             IsPublished = isPublished,
             IsPublic = isPublic
@@ -135,12 +135,12 @@ public class CreateEpicSteps {
 
     #endregion
 
-    #region Given Steps - Complete Epic Data
+    #region Given Steps - Complete World Data
 
-    [Given(@"I provide valid epic data:")]
-    public void GivenIProvideValidEpicData(Table table) {
-        var data = table.CreateInstance<EpicDataTable>();
-        _createData = new CreateEpicData {
+    [Given(@"I provide valid world data:")]
+    public void GivenIProvideValidWorldData(Table table) {
+        var data = table.CreateInstance<WorldDataTable>();
+        _createData = new CreateWorldData {
             Name = data.Name,
             Description = data.Description,
             IsPublished = data.IsPublished,
@@ -148,19 +148,19 @@ public class CreateEpicSteps {
         };
     }
 
-    [Given(@"I provide valid epic data")]
-    public void GivenIProvideValidEpicData() {
-        _createData = new CreateEpicData {
-            Name = "Test Epic",
+    [Given(@"I provide valid world data")]
+    public void GivenIProvideValidWorldData() {
+        _createData = new CreateWorldData {
+            Name = "Test World",
             Description = "Test Description",
             IsPublished = false,
             IsPublic = false
         };
     }
 
-    [Given(@"I have a valid epic name ""(.*)""")]
-    public void GivenIHaveAValidEpicName(string name) {
-        _createData = new CreateEpicData {
+    [Given(@"I have a valid world name ""(.*)""")]
+    public void GivenIHaveAValidWorldName(string name) {
+        _createData = new CreateWorldData {
             Name = name,
             Description = string.Empty,
             IsPublished = false,
@@ -168,29 +168,29 @@ public class CreateEpicSteps {
         };
     }
 
-    [Given(@"I have an empty epic name")]
-    public void GivenIHaveAnEmptyEpicName() {
-        GivenIProvideEmptyEpicName();
+    [Given(@"I have an empty world name")]
+    public void GivenIHaveAnEmptyWorldName() {
+        GivenIProvideEmptyWorldName();
     }
 
-    [Given(@"I have an epic name with (.*) characters")]
-    public void GivenIHaveAnEpicNameWithCharacters(int length) {
-        GivenIProvideEpicNameWithLength(length);
+    [Given(@"I have an world name with (.*) characters")]
+    public void GivenIHaveAnWorldNameWithCharacters(int length) {
+        GivenIProvideWorldNameWithLength(length);
     }
 
-    [Given(@"I have a valid epic titled ""(.*)""")]
-    public void GivenIHaveAValidEpicTitled(string name) {
-        _createData = new CreateEpicData {
+    [Given(@"I have a valid world titled ""(.*)""")]
+    public void GivenIHaveAValidWorldTitled(string name) {
+        _createData = new CreateWorldData {
             Name = name,
-            Description = "Epic description",
+            Description = "World description",
             IsPublished = false,
             IsPublic = false
         };
     }
 
-    [Given(@"I have a valid epic structure")]
-    public void GivenIHaveAValidEpicStructure() {
-        GivenIProvideValidEpicData();
+    [Given(@"I have a valid world structure")]
+    public void GivenIHaveAValidWorldStructure() {
+        GivenIProvideValidWorldData();
     }
 
     #endregion
@@ -205,7 +205,7 @@ public class CreateEpicSteps {
                 Id = Guid.CreateVersion7(),
                 Name = $"Campaign {i + 1}",
                 OwnerId = _userId,
-                EpicId = null // Will be set after epic creation
+                WorldId = null // Will be set after world creation
             });
         }
         _context["CampaignsCount"] = count;
@@ -265,11 +265,11 @@ public class CreateEpicSteps {
 
     #region Given Steps - Error Scenarios
 
-    [Given(@"I provide epic with owner ID that doesn't exist")]
-    public void GivenIProvideEpicWithOwnerIdThatDoesntExist() {
+    [Given(@"I provide world with owner ID that doesn't exist")]
+    public void GivenIProvideWorldWithOwnerIdThatDoesntExist() {
         _userId = Guid.CreateVersion7(); // Non-existent user ID
-        _createData = new CreateEpicData {
-            Name = "Test Epic",
+        _createData = new CreateWorldData {
+            Name = "Test World",
             Description = string.Empty
         };
         // Service should validate owner existence
@@ -277,14 +277,14 @@ public class CreateEpicSteps {
 
     [Given(@"I specify a non-existent owner identifier")]
     public void GivenISpecifyANonExistentOwnerIdentifier() {
-        GivenIProvideEpicWithOwnerIdThatDoesntExist();
+        GivenIProvideWorldWithOwnerIdThatDoesntExist();
     }
 
-    [Given(@"I provide epic with background resource ID that doesn't exist")]
-    public void GivenIProvideEpicWithBackgroundResourceIdThatDoesntExist() {
+    [Given(@"I provide world with background resource ID that doesn't exist")]
+    public void GivenIProvideWorldWithBackgroundResourceIdThatDoesntExist() {
         var nonExistentResourceId = Guid.CreateVersion7();
-        _createData = new CreateEpicData {
-            Name = "Test Epic",
+        _createData = new CreateWorldData {
+            Name = "Test World",
             Description = string.Empty,
             BackgroundResourceId = nonExistentResourceId
         };
@@ -296,14 +296,14 @@ public class CreateEpicSteps {
 
     [Given(@"I specify a non-existent background resource identifier")]
     public void GivenISpecifyANonExistentBackgroundResourceIdentifier() {
-        GivenIProvideEpicWithBackgroundResourceIdThatDoesntExist();
+        GivenIProvideWorldWithBackgroundResourceIdThatDoesntExist();
     }
 
-    [Given(@"I provide epic with background resource that is not an image")]
-    public void GivenIProvideEpicWithBackgroundResourceThatIsNotAnImage() {
+    [Given(@"I provide world with background resource that is not an image")]
+    public void GivenIProvideWorldWithBackgroundResourceThatIsNotAnImage() {
         var resourceId = Guid.CreateVersion7();
-        _createData = new CreateEpicData {
-            Name = "Test Epic",
+        _createData = new CreateWorldData {
+            Name = "Test World",
             Description = string.Empty,
             BackgroundResourceId = resourceId
         };
@@ -322,7 +322,7 @@ public class CreateEpicSteps {
     [Given(@"the database is unavailable")]
     public void GivenTheDatabaseIsUnavailable() {
         // Mock storage to throw exception
-        _epicStorage.UpdateAsync(Arg.Any<Epic>(), Arg.Any<CancellationToken>())
+        _worldStorage.UpdateAsync(Arg.Any<World>(), Arg.Any<CancellationToken>())
             .Returns<bool>(x => throw new InvalidOperationException("Database connection failed"));
     }
 
@@ -336,16 +336,16 @@ public class CreateEpicSteps {
 
     #region When Steps - Create Actions
 
-    [When(@"I create the epic")]
-    public async Task WhenICreateTheEpic() {
+    [When(@"I create the world")]
+    public async Task WhenICreateTheWorld() {
         try {
             // Mock storage to succeed
-            _epicStorage.UpdateAsync(Arg.Any<Epic>(), Arg.Any<CancellationToken>())
+            _worldStorage.UpdateAsync(Arg.Any<World>(), Arg.Any<CancellationToken>())
                 .Returns(true);
 
-            // NOTE: This will fail because IEpicService.CreateEpicAsync does not exist
+            // NOTE: This will fail because IWorldService.CreateWorldAsync does not exist
             // Placeholder call for when service is implemented
-            _createResult = await _service.CreateEpicAsync(_userId, _createData!, CancellationToken.None);
+            _createResult = await _service.CreateWorldAsync(_userId, _createData!, CancellationToken.None);
             _context["CreateResult"] = _createResult;
         }
         catch (Exception ex) {
@@ -354,69 +354,69 @@ public class CreateEpicSteps {
         }
     }
 
-    [When(@"I attempt to create the epic")]
-    public async Task WhenIAttemptToCreateTheEpic() {
-        await WhenICreateTheEpic();
+    [When(@"I attempt to create the world")]
+    public async Task WhenIAttemptToCreateTheWorld() {
+        await WhenICreateTheWorld();
     }
 
-    [When(@"I attempt to create an epic")]
-    public async Task WhenIAttemptToCreateAnEpic() {
-        await WhenICreateTheEpic();
+    [When(@"I attempt to create an world")]
+    public async Task WhenIAttemptToCreateAnWorld() {
+        await WhenICreateTheWorld();
     }
 
-    [When(@"I create an epic with this name")]
-    public async Task WhenICreateAnEpicWithThisName() {
-        await WhenICreateTheEpic();
+    [When(@"I create an world with this name")]
+    public async Task WhenICreateAnWorldWithThisName() {
+        await WhenICreateTheWorld();
     }
 
     #endregion
 
     #region Then Steps - Success Assertions
 
-    [Then(@"the epic should be created with generated ID")]
-    public void ThenTheEpicShouldBeCreatedWithGeneratedId() {
+    [Then(@"the world should be created with generated ID")]
+    public void ThenTheWorldShouldBeCreatedWithGeneratedId() {
         _createResult.Should().NotBeNull();
         _createResult!.IsSuccessful.Should().BeTrue();
         _createResult.Value.Should().NotBeNull();
         _createResult.Value!.Id.Should().NotBeEmpty();
     }
 
-    [Then(@"the epic name should be ""(.*)""")]
-    public void ThenTheEpicNameShouldBe(string expectedName) {
+    [Then(@"the world name should be ""(.*)""")]
+    public void ThenTheWorldNameShouldBe(string expectedName) {
         _createResult!.Value!.Name.Should().Be(expectedName);
     }
 
-    [Then(@"the epic is created")]
-    public void ThenTheEpicIsCreated() {
+    [Then(@"the world is created")]
+    public void ThenTheWorldIsCreated() {
         _createResult.Should().NotBeNull();
         _createResult!.IsSuccessful.Should().BeTrue();
         _createResult.Value.Should().NotBeNull();
     }
 
-    [Then(@"my epic is created successfully")]
-    public void ThenMyEpicIsCreatedSuccessfully() {
-        ThenTheEpicIsCreated();
+    [Then(@"my world is created successfully")]
+    public void ThenMyWorldIsCreatedSuccessfully() {
+        ThenTheWorldIsCreated();
     }
 
-    [Then(@"I receive the epic details with my name")]
-    public void ThenIReceiveTheEpicDetailsWithMyName() {
+    [Then(@"I receive the world details with my name")]
+    public void ThenIReceiveTheWorldDetailsWithMyName() {
         _createResult!.Value.Should().NotBeNull();
         _createResult!.Value!.Name.Should().NotBeEmpty();
     }
 
-    [Then(@"the epic should be marked as published")]
-    public void ThenTheEpicShouldBeMarkedAsPublished() {
+    [Then(@"the world should be marked as published")]
+    public void ThenTheWorldShouldBeMarkedAsPublished() {
         _createResult!.Value!.IsPublished.Should().BeTrue();
     }
 
-    [Then(@"the epic should be marked as public")]
-    public void ThenTheEpicShouldBeMarkedAsPublic() {
+    [Then(@"the world should be marked as public")]
+    public void ThenTheWorldShouldBeMarkedAsPublic() {
         _createResult!.Value!.IsPublic.Should().BeTrue();
     }
 
-    [Then(@"the epic should be publicly visible")]
-    public void ThenTheEpicShouldBePubliclyVisible() {
-        ThenTheEpicShouldBeMarkedAsPublic();
+    [Then(@"the world should be publicly visible")]
+    public void ThenTheWorldShouldBePubliclyVisible() {
+        ThenTheWorldShouldBeMarkedAsPublic();
     }
 
     [Then(@"the full description should be preserved")]
@@ -430,44 +430,44 @@ public class CreateEpicSteps {
         _createResult!.Value!.Description.Should().BeEmpty();
     }
 
-    [Then(@"the epic is saved in the database")]
-    public async Task ThenTheEpicIsSavedInTheDatabase() {
-        await _epicStorage.Received(1).UpdateAsync(
-            Arg.Is<Epic>(e => e.Id == _createResult!.Value!.Id),
+    [Then(@"the world is saved in the database")]
+    public async Task ThenTheWorldIsSavedInTheDatabase() {
+        await _worldStorage.Received(1).UpdateAsync(
+            Arg.Is<World>(e => e.Id == _createResult!.Value!.Id),
             Arg.Any<CancellationToken>()
         );
     }
 
-    [Then(@"an EpicCreated domain action is logged")]
-    public void ThenAnEpicCreatedDomainActionIsLogged() {
+    [Then(@"an WorldCreated domain action is logged")]
+    public void ThenAnWorldCreatedDomainActionIsLogged() {
         // In real implementation, would verify domain event was published
         _createResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"I should receive the epic with generated ID")]
-    public void ThenIShouldReceiveTheEpicWithGeneratedId() {
+    [Then(@"I should receive the world with generated ID")]
+    public void ThenIShouldReceiveTheWorldWithGeneratedId() {
         _createResult!.Value.Should().NotBeNull();
         _createResult!.Value!.Id.Should().NotBeEmpty();
     }
 
-    [Then(@"the epic should be retrievable by ID")]
-    public async Task ThenTheEpicShouldBeRetrievableById() {
-        // Verify epic was stored and can be retrieved
-        await _epicStorage.Received(1).UpdateAsync(
-            Arg.Is<Epic>(e => e.Id == _createResult!.Value!.Id),
+    [Then(@"the world should be retrievable by ID")]
+    public async Task ThenTheWorldShouldBeRetrievableById() {
+        // Verify world was stored and can be retrieved
+        await _worldStorage.Received(1).UpdateAsync(
+            Arg.Is<World>(e => e.Id == _createResult!.Value!.Id),
             Arg.Any<CancellationToken>()
         );
     }
 
-    [Then(@"I should see the epic in my library")]
-    public void ThenIShouldSeeTheEpicInMyLibrary() {
+    [Then(@"I should see the world in my library")]
+    public void ThenIShouldSeeTheWorldInMyLibrary() {
         _createResult!.IsSuccessful.Should().BeTrue();
         _createResult!.Value!.OwnerId.Should().Be(_userId);
     }
 
-    [Then(@"the epic should be saved")]
-    public void ThenTheEpicShouldBeSaved() {
-        ThenTheEpicIsCreated();
+    [Then(@"the world should be saved")]
+    public void ThenTheWorldShouldBeSaved() {
+        ThenTheWorldIsCreated();
     }
 
     [Then(@"I should see confirmation")]
@@ -485,25 +485,25 @@ public class CreateEpicSteps {
         campaignsCount.Should().Be(expectedCount);
     }
 
-    [Then(@"all (.*) campaigns should be associated with the epic")]
-    public void ThenAllCampaignsShouldBeAssociatedWithEpic(int expectedCount) {
+    [Then(@"all (.*) campaigns should be associated with the world")]
+    public void ThenAllCampaignsShouldBeAssociatedWithWorld(int expectedCount) {
         ThenAllCampaignsAreSaved(expectedCount);
     }
 
-    [Then(@"each campaign should reference the epic ID")]
-    public void ThenEachCampaignShouldReferenceTheEpicId() {
+    [Then(@"each campaign should reference the world ID")]
+    public void ThenEachCampaignShouldReferenceTheWorldId() {
         var campaignsCount = _context.Get<int>("CampaignsCount");
         campaignsCount.Should().BeGreaterThan(0);
     }
 
-    [Then(@"the epic contains my two campaigns")]
-    public void ThenTheEpicContainsMyTwoCampaigns() {
+    [Then(@"the world contains my two campaigns")]
+    public void ThenTheWorldContainsMyTwoCampaigns() {
         var campaignsCount = _context.Get<int>("CampaignsCount");
         campaignsCount.Should().Be(2);
     }
 
-    [Then(@"the epic contains an empty campaign collection")]
-    public void ThenTheEpicContainsAnEmptyCampaignCollection() {
+    [Then(@"the world contains an empty campaign collection")]
+    public void ThenTheWorldContainsAnEmptyCampaignCollection() {
         var campaignsCount = _context.Get<int>("CampaignsCount");
         campaignsCount.Should().Be(0);
     }
@@ -522,8 +522,8 @@ public class CreateEpicSteps {
         ThenTheBackgroundResourceShouldBeAssociated();
     }
 
-    [Then(@"the epic has no background resource linked")]
-    public void ThenTheEpicHasNoBackgroundResourceLinked() {
+    [Then(@"the world has no background resource linked")]
+    public void ThenTheWorldHasNoBackgroundResourceLinked() {
         _createResult!.Value!.Background.Should().BeNull();
     }
 
@@ -551,18 +551,18 @@ public class CreateEpicSteps {
 
     [Then(@"I receive a validation error indicating name is required")]
     public void ThenIReceiveAValidationErrorIndicatingNameIsRequired() {
-        ThenIShouldSeeError("Epic name is required");
+        ThenIShouldSeeError("World name is required");
     }
 
     [Then(@"I receive a validation error indicating name is too long")]
     public void ThenIReceiveAValidationErrorIndicatingNameIsTooLong() {
-        ThenIShouldSeeError("Epic name must not exceed 128 characters");
+        ThenIShouldSeeError("World name must not exceed 128 characters");
     }
 
-    [Then(@"the epic should not be persisted")]
-    public void ThenTheEpicShouldNotBePersisted() {
-        await _epicStorage.DidNotReceive().UpdateAsync(
-            Arg.Any<Epic>(),
+    [Then(@"the world should not be persisted")]
+    public void ThenTheWorldShouldNotBePersisted() {
+        await _worldStorage.DidNotReceive().UpdateAsync(
+            Arg.Any<World>(),
             Arg.Any<CancellationToken>()
         );
     }
@@ -641,7 +641,7 @@ public class CreateEpicSteps {
 
     #region Helper Classes
 
-    private class EpicDataTable {
+    private class WorldDataTable {
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public bool IsPublished { get; set; }
@@ -652,9 +652,9 @@ public class CreateEpicSteps {
 }
 
 // Placeholder service contracts (Phase 7 - to be implemented)
-namespace VttTools.Library.Epics.ServiceContracts;
+namespace VttTools.Library.Worlds.ServiceContracts;
 
-public record CreateEpicData {
+public record CreateWorldData {
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public Guid? BackgroundResourceId { get; init; }
@@ -663,21 +663,21 @@ public record CreateEpicData {
     public List<Guid> CampaignIds { get; init; } = [];
 }
 
-namespace VttTools.Library.Epics.Services;
+namespace VttTools.Library.Worlds.Services;
 
-public interface IEpicService {
-    Task<Result<Epic>> CreateEpicAsync(Guid userId, CreateEpicData data, CancellationToken ct);
-    Task<Result<Epic>> GetByIdAsync(Guid epicId, CancellationToken ct);
-    Task<Result<IEnumerable<Epic>>> GetByOwnerAsync(Guid ownerId, CancellationToken ct);
-    Task<Result> UpdateEpicAsync(Guid userId, Guid epicId, UpdateEpicData data, CancellationToken ct);
-    Task<Result> DeleteEpicAsync(Guid userId, Guid epicId, CancellationToken ct);
+public interface IWorldService {
+    Task<Result<World>> CreateWorldAsync(Guid userId, CreateWorldData data, CancellationToken ct);
+    Task<Result<World>> GetByIdAsync(Guid worldId, CancellationToken ct);
+    Task<Result<IEnumerable<World>>> GetByOwnerAsync(Guid ownerId, CancellationToken ct);
+    Task<Result> UpdateWorldAsync(Guid userId, Guid worldId, UpdateWorldData data, CancellationToken ct);
+    Task<Result> DeleteWorldAsync(Guid userId, Guid worldId, CancellationToken ct);
 }
 
-namespace VttTools.Library.Epics.Storage;
+namespace VttTools.Library.Worlds.Storage;
 
-public interface IEpicStorage {
-    Task<Epic?> GetByIdAsync(Guid id, CancellationToken ct);
-    Task<IEnumerable<Epic>> GetByOwnerAsync(Guid ownerId, CancellationToken ct);
-    Task<bool> UpdateAsync(Epic epic, CancellationToken ct);
+public interface IWorldStorage {
+    Task<World?> GetByIdAsync(Guid id, CancellationToken ct);
+    Task<IEnumerable<World>> GetByOwnerAsync(Guid ownerId, CancellationToken ct);
+    Task<bool> UpdateAsync(World world, CancellationToken ct);
     Task DeleteAsync(Guid id, CancellationToken ct);
 }

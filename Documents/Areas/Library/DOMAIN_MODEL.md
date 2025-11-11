@@ -2,10 +2,10 @@
 
 **Bounded Context**: Library
 
-**Purpose**: Manage hierarchical game content templates (Epic → Campaign → Adventure → Encounter) that Game Masters create for organizing and running tabletop RPG games.
+**Purpose**: Manage hierarchical game content templates (World → Campaign → Adventure → Encounter) that Game Masters create for organizing and running tabletop RPG games.
 
 **Boundaries**:
-- **Inside**: Epic, Campaign, Adventure, Encounter entities; content hierarchy management; encounter composition (stage, grid, asset placement)
+- **Inside**: World, Campaign, Adventure, Encounter entities; content hierarchy management; encounter composition (stage, grid, asset placement)
 - **Outside**: User management (Identity context), Media resources for backgrounds (Media context), Asset templates (Assets context), Active game sessions (Game context)
 
 **Architecture Pattern**: DDD Contracts + Service Implementation
@@ -23,28 +23,28 @@
 
 ## Ubiquitous Language
 
-- **Epic**: Multi-campaign story arc spanning multiple campaigns (highest level of hierarchy)
-- **Campaign**: Multi-adventure storyline connecting related adventures within an epic
+- **World**: Multi-campaign story arc spanning multiple campaigns (highest level of hierarchy)
+- **Campaign**: Multi-adventure storyline connecting related adventures within an world
 - **Adventure**: Individual game module or scenario with multiple encounters (can be standalone or part of campaign)
 - **Encounter**: Interactive tactical map with grid, background, and asset placements
 - **Stage**: Encounter rendering area configuration (background, viewport, dimensions)
 - **Grid**: Tactical map overlay (square, hexagonal, isometric) for movement and measurement
 - **EncounterAsset**: Placed instance of an Asset template on a encounter (position, dimensions, z-index)
-- **Background**: Visual image (Resource) used as encounter/adventure/epic backdrop
+- **Background**: Visual image (Resource) used as encounter/adventure/world backdrop
 - **Published**: Content approved and available for use
 - **Public**: Content visible to all users (vs private/owner-only)
 - **Ownership**: User (Game Master) who created and controls the content
-- **Hierarchy**: Nested relationship structure (Epic > Campaign > Adventure > Encounter)
+- **Hierarchy**: Nested relationship structure (World > Campaign > Adventure > Encounter)
 
 ---
 
 ## Entities
 
-### Epic
+### World
 
 **Entity Classification**: Aggregate Root
 
-**Aggregate Root**: This entity is the entry point for the Epic aggregate (Epic + owned Campaigns)
+**Aggregate Root**: This entity is the entry point for the World aggregate (World + owned Campaigns)
 
 #### Identity
 - **Primary Key**: Id (Guid)
@@ -55,37 +55,37 @@
   - **Constraints**: Primary key, required, system-generated
   - **Default Value**: New Guid on creation
   - **Nullable**: No
-  - **Purpose**: Unique identifier for epic
+  - **Purpose**: Unique identifier for world
 
 - **OwnerId**: Guid
   - **Constraints**: Foreign key to User.Id, required
   - **Default Value**: Current user ID at creation
   - **Nullable**: No
-  - **Purpose**: Links epic to owning Game Master
+  - **Purpose**: Links world to owning Game Master
 
 - **Name**: string
   - **Constraints**: Required, max length 128 characters
   - **Default Value**: None (must be provided)
   - **Nullable**: No
-  - **Purpose**: Human-readable epic name
+  - **Purpose**: Human-readable world name
 
 - **Description**: string
   - **Constraints**: Max length 4096 characters
   - **Default Value**: Empty string
   - **Nullable**: No
-  - **Purpose**: Detailed description of epic story arc
+  - **Purpose**: Detailed description of world story arc
 
 - **Background**: Resource (references Media context)
   - **Constraints**: Must reference valid Resource with Type=Image if provided
   - **Default Value**: null
   - **Nullable**: Yes
-  - **Purpose**: Visual backdrop for epic
+  - **Purpose**: Visual backdrop for world
 
 - **IsPublished**: bool
   - **Constraints**: If true, IsPublic must also be true
   - **Default Value**: false
   - **Nullable**: No
-  - **Purpose**: Indicates epic is approved for use
+  - **Purpose**: Indicates world is approved for use
 
 - **IsPublic**: bool
   - **Constraints**: Must be true if IsPublished is true
@@ -97,11 +97,11 @@
   - **Constraints**: Owned collection, cascade delete
   - **Default Value**: Empty list
   - **Nullable**: No (empty list if no campaigns)
-  - **Purpose**: Campaigns belonging to this epic
+  - **Purpose**: Campaigns belonging to this world
 
 #### Invariants
 - **INV-01**: Name must not be empty or whitespace
-  - **Rationale**: Epic must be identifiable
+  - **Rationale**: World must be identifiable
   - **Enforced By**: Service validation
 
 - **INV-02**: Name length must not exceed 128 characters
@@ -112,48 +112,48 @@
   - **Rationale**: Reasonable description limit
   - **Enforced By**: EF Core MaxLength
 
-- **INV-04**: Published epics must be public (IsPublished=true implies IsPublic=true)
+- **INV-04**: Published worlds must be public (IsPublished=true implies IsPublic=true)
   - **Rationale**: Cannot publish private-only content
   - **Enforced By**: Service validation
 
 - **INV-05**: OwnerId must reference existing User
-  - **Rationale**: Orphaned epics not allowed
+  - **Rationale**: Orphaned worlds not allowed
   - **Enforced By**: Database foreign key constraint
 
 #### Operations (Implemented in Application Services)
-- **Create Epic**: Creates new epic with optional campaigns
-  - **Implemented By**: ILibraryStorage.CreateEpicAsync()
+- **Create World**: Creates new world with optional campaigns
+  - **Implemented By**: ILibraryStorage.CreateWorldAsync()
   - **Pre-conditions**: Name valid, OwnerId exists
   - **Invariants Enforced**: INV-01, INV-02, INV-03, INV-05
-  - **Post-conditions**: Epic persisted with owned Campaigns
-  - **Returns**: Task<Epic>
+  - **Post-conditions**: World persisted with owned Campaigns
+  - **Returns**: Task<World>
 
-- **Update Epic**: Modifies epic properties
-  - **Implemented By**: ILibraryStorage.UpdateEpicAsync()
-  - **Pre-conditions**: Epic exists, user is owner
+- **Update World**: Modifies world properties
+  - **Implemented By**: ILibraryStorage.UpdateWorldAsync()
+  - **Pre-conditions**: World exists, user is owner
   - **Invariants Enforced**: INV-01, INV-02, INV-03, INV-04
-  - **Post-conditions**: Epic updated
-  - **Returns**: Task<Epic>
+  - **Post-conditions**: World updated
+  - **Returns**: Task<World>
 
-- **Delete Epic**: Removes epic and all owned campaigns/adventures/encounters
-  - **Implemented By**: ILibraryStorage.DeleteEpicAsync()
-  - **Pre-conditions**: Epic exists, user is owner, not in use in active game sessions
+- **Delete World**: Removes world and all owned campaigns/adventures/encounters
+  - **Implemented By**: ILibraryStorage.DeleteWorldAsync()
+  - **Pre-conditions**: World exists, user is owner, not in use in active game sessions
   - **Invariants Enforced**: None (deletion)
-  - **Post-conditions**: Epic and all children cascade deleted
+  - **Post-conditions**: World and all children cascade deleted
   - **Returns**: Task
 
 **Entity Behavior**: Immutable record with init-only properties, modified via service orchestration
 
 #### Relationships
-- **Owns** → Campaign: Epic owns multiple campaigns
+- **Owns** → Campaign: World owns multiple campaigns
   - **Cardinality**: One-to-Many (owned entity, cascade delete)
   - **Navigation**: Campaigns collection property
 
-- **Belongs To** → User: Epic owned by one Game Master
+- **Belongs To** → User: World owned by one Game Master
   - **Cardinality**: Many-to-One
   - **Navigation**: OwnerId foreign key
 
-- **References** → Resource: Epic may reference background
+- **References** → Resource: World may reference background
   - **Cardinality**: Many-to-One optional
   - **Navigation**: Background property (nullable)
 
@@ -161,9 +161,9 @@
 
 ### Campaign
 
-**Entity Classification**: Child Entity (owned by Epic)
+**Entity Classification**: Child Entity (owned by World)
 
-**Note**: Campaign can also exist as standalone (EpicId nullable)
+**Note**: Campaign can also exist as standalone (WorldId nullable)
 
 #### Identity
 - **Primary Key**: Id (Guid)
@@ -176,11 +176,11 @@
   - **Nullable**: No
   - **Purpose**: Unique identifier for campaign
 
-- **EpicId**: Guid?
-  - **Constraints**: Foreign key to Epic.Id (nullable - campaigns can be standalone)
+- **WorldId**: Guid?
+  - **Constraints**: Foreign key to World.Id (nullable - campaigns can be standalone)
   - **Default Value**: null (standalone campaign)
   - **Nullable**: Yes
-  - **Purpose**: Optional parent epic reference for campaign grouping
+  - **Purpose**: Optional parent world reference for campaign grouping
 
 - **OwnerId**: Guid
   - **Constraints**: Foreign key to User.Id, required
@@ -225,20 +225,20 @@
   - **Purpose**: Adventures belonging to this campaign
 
 #### Invariants
-- Same as Epic (INV-01 through INV-05 apply)
-- **INV-06**: If EpicId is provided, Epic must exist
+- Same as World (INV-01 through INV-05 apply)
+- **INV-06**: If WorldId is provided, World must exist
   - **Rationale**: Valid parent reference
   - **Enforced By**: Database foreign key (nullable FK)
 
 #### Operations (Implemented in Application Services)
-- Similar to Epic: Create, Update, Delete
-- **Add to Epic**: Associate standalone campaign with epic
-- **Remove from Epic**: Make campaign standalone (set EpicId = null)
+- Similar to World: Create, Update, Delete
+- **Add to World**: Associate standalone campaign with world
+- **Remove from World**: Make campaign standalone (set WorldId = null)
 
 #### Relationships
-- **Owned By** ← Epic: Campaign optionally owned by Epic
+- **Owned By** ← World: Campaign optionally owned by World
   - **Cardinality**: Many-to-One optional
-  - **Navigation**: EpicId foreign key (nullable)
+  - **Navigation**: WorldId foreign key (nullable)
 
 - **Owns** → Adventure: Campaign owns multiple adventures
   - **Cardinality**: One-to-Many (owned, cascade delete)
@@ -318,7 +318,7 @@
   - **Purpose**: Encounters belonging to this adventure
 
 #### Invariants
-- Same as Epic (INV-01 through INV-05)
+- Same as World (INV-01 through INV-05)
 - **INV-07**: Type must be valid AdventureType enum value
   - **Rationale**: Category classification integrity
   - **Enforced By**: C# enum type system
@@ -328,7 +328,7 @@
   - **Enforced By**: Database foreign key (nullable)
 
 #### Operations (Implemented in Application Services)
-- Similar to Epic: Create, Update, Delete
+- Similar to World: Create, Update, Delete
 - **Add to Campaign**: Associate standalone adventure with campaign
 - **Remove from Campaign**: Make adventure standalone
 - **Clone Adventure**: Duplicate adventure with all encounters
@@ -410,7 +410,7 @@
   - **Purpose**: Placed asset instances on this encounter with position and dimensions
 
 #### Invariants
-- Same as Epic (INV-01, INV-02, INV-03, INV-05)
+- Same as World (INV-01, INV-02, INV-03, INV-05)
 - **INV-09**: Stage must have valid dimensions (Width > 0, Height > 0)
   - **Rationale**: Rendering requires valid viewport
   - **Enforced By**: Service validation, Stage value object construction
@@ -524,25 +524,25 @@
 
 ## Aggregates
 
-### Epic Aggregate
+### World Aggregate
 
-**Aggregate Root**: Epic
+**Aggregate Root**: World
 
-**Entities in Aggregate**: Epic (root), Campaign (owned)
+**Entities in Aggregate**: World (root), Campaign (owned)
 
 **Value Objects**: Background (Resource reference)
 
-**Boundary**: Epic owns Campaigns. Campaigns within an Epic are loaded/saved together. Adventures are in Campaign aggregate, not Epic.
+**Boundary**: World owns Campaigns. Campaigns within an World are loaded/saved together. Adventures are in Campaign aggregate, not World.
 
 **Aggregate Invariants**:
-- **AGG-01**: Deleting Epic cascades to all owned Campaigns (and their Adventures/Encounters)
-- **AGG-02**: Epic can only be modified by owner
+- **AGG-01**: Deleting World cascades to all owned Campaigns (and their Adventures/Encounters)
+- **AGG-02**: World can only be modified by owner
 
 ---
 
 ### Campaign Aggregate
 
-**Aggregate Root**: Campaign (when standalone) or Epic (when Campaign.EpicId is set)
+**Aggregate Root**: Campaign (when standalone) or World (when Campaign.WorldId is set)
 
 **Entities in Aggregate**: Campaign (root), Adventure (owned)
 
@@ -550,7 +550,7 @@
 
 **Aggregate Invariants**:
 - **AGG-03**: Deleting Campaign cascades to all owned Adventures (and their Encounters)
-- **AGG-04**: Campaign can move between Epic (set EpicId) or standalone (EpicId = null)
+- **AGG-04**: Campaign can move between World (set WorldId) or standalone (WorldId = null)
 
 ---
 
@@ -587,55 +587,55 @@
 
 ### ILibraryStorage
 
-**Purpose**: Persistence and retrieval for Epic, Campaign, Adventure, Encounter hierarchies
+**Purpose**: Persistence and retrieval for World, Campaign, Adventure, Encounter hierarchies
 
 **Responsibilities**:
 - CRUD operations for all Library entities
-- Manage hierarchical relationships (Epic > Campaign > Adventure > Encounter)
+- Manage hierarchical relationships (World > Campaign > Adventure > Encounter)
 - Enforce cascade delete rules
 - Provide query operations with filtering
 
 #### Operations
 
-**Epic Operations**:
-- **CreateEpicAsync(Epic epic)**: Persist new epic with owned campaigns
-  - **Inputs**: Epic entity (validated)
-  - **Outputs**: Task<Epic> (persisted entity with ID)
+**World Operations**:
+- **CreateWorldAsync(World world)**: Persist new world with owned campaigns
+  - **Inputs**: World entity (validated)
+  - **Outputs**: Task<World> (persisted entity with ID)
   - **Side Effects**: Database insert, cascade creates Campaigns if provided
 
-- **GetEpicByIdAsync(Guid epicId)**: Retrieve epic with owned campaigns
-  - **Inputs**: Epic ID
-  - **Outputs**: Task<Epic?> (null if not found, includes Campaigns collection)
+- **GetWorldByIdAsync(Guid worldId)**: Retrieve world with owned campaigns
+  - **Inputs**: World ID
+  - **Outputs**: Task<World?> (null if not found, includes Campaigns collection)
   - **Side Effects**: None (read-only)
 
-- **UpdateEpicAsync(Epic epic)**: Update existing epic
-  - **Inputs**: Epic entity with changes
-  - **Outputs**: Task<Epic> (updated entity)
+- **UpdateWorldAsync(World world)**: Update existing world
+  - **Inputs**: World entity with changes
+  - **Outputs**: Task<World> (updated entity)
   - **Side Effects**: Database update
 
-- **DeleteEpicAsync(Guid epicId)**: Remove epic and cascade to campaigns/adventures/encounters
-  - **Inputs**: Epic ID
+- **DeleteWorldAsync(Guid worldId)**: Remove world and cascade to campaigns/adventures/encounters
+  - **Inputs**: World ID
   - **Outputs**: Task
-  - **Side Effects**: Database cascade delete (Epic → Campaigns → Adventures → Encounters)
+  - **Side Effects**: Database cascade delete (World → Campaigns → Adventures → Encounters)
 
-- **GetEpicsByOwnerAsync(Guid ownerId)**: Retrieve epics owned by user
+- **GetWorldsByOwnerAsync(Guid ownerId)**: Retrieve worlds owned by user
   - **Inputs**: Owner user ID
-  - **Outputs**: Task<List<Epic>>
+  - **Outputs**: Task<List<World>>
   - **Side Effects**: None (read-only)
 
 **Campaign Operations**:
 - **CreateCampaignAsync(Campaign campaign)**: Persist new campaign
-  - **Inputs**: Campaign entity (validated, EpicId nullable)
+  - **Inputs**: Campaign entity (validated, WorldId nullable)
   - **Outputs**: Task<Campaign>
   - **Side Effects**: Database insert
 
-- **UpdateCampaignAsync(Campaign campaign)**: Update campaign (can change EpicId for hierarchy movement)
+- **UpdateCampaignAsync(Campaign campaign)**: Update campaign (can change WorldId for hierarchy movement)
   - **Inputs**: Campaign entity with changes
   - **Outputs**: Task<Campaign>
-  - **Side Effects**: Database update, may change parent Epic
+  - **Side Effects**: Database update, may change parent World
 
-- **GetCampaignsByEpicAsync(Guid epicId)**: Retrieve campaigns within epic
-  - **Inputs**: Epic ID
+- **GetCampaignsByWorldAsync(Guid worldId)**: Retrieve campaigns within world
+  - **Inputs**: World ID
   - **Outputs**: Task<List<Campaign>>
   - **Side Effects**: None (read-only)
 
@@ -679,13 +679,13 @@
 
 ## Domain Rules Summary
 
-- **BR-01** - Validation: Names must not be empty (applies to Epic, Campaign, Adventure, Encounter)
+- **BR-01** - Validation: Names must not be empty (applies to World, Campaign, Adventure, Encounter)
 - **BR-02** - Validation: Name max length 128 characters
 - **BR-03** - Validation: Description max length 4096 characters
 - **BR-04** - Business Logic: Published content must be public
 - **BR-05** - Authorization: Only owner can modify content
 - **BR-06** - Referential Integrity: OwnerId must reference existing User
-- **BR-07** - Data Consistency: Deleting parent cascades to children (Epic → Campaign → Adventure → Encounter)
+- **BR-07** - Data Consistency: Deleting parent cascades to children (World → Campaign → Adventure → Encounter)
 - **BR-08** - Business Logic: Content can be moved between hierarchies or standalone
 - **BR-09** - Validation: Stage dimensions must be positive
 - **BR-10** - Validation: Grid configuration must match GridType
@@ -704,7 +704,7 @@
 ✅ Testable in isolation
 
 ### Used By (Application Layer)
-- **Create Content Hierarchy**: Uses Epic/Campaign/Adventure/Encounter entities
+- **Create Content Hierarchy**: Uses World/Campaign/Adventure/Encounter entities
 - **Design Encounter**: Uses Encounter, Stage, Grid, EncounterAsset
 - **Clone Content**: Duplicates Adventure or Encounter with all children
 - **Publish Content**: Sets IsPublished and enforces IsPublic=true
@@ -718,10 +718,10 @@ DOMAIN MODEL QUALITY CHECKLIST
 ═══════════════════════════════════════════════════════════════
 
 ## Entities (30 points)
-✅ 10pts: All entities have complete attribute lists (Epic, Campaign, Adventure, Encounter)
+✅ 10pts: All entities have complete attribute lists (World, Campaign, Adventure, Encounter)
 ✅ 10pts: All invariants defined (INV-01 through INV-11)
 ✅ 5pts: Operations documented (CRUD + hierarchy management)
-✅ 5pts: Aggregate roots identified (Epic, Campaign, Adventure, Encounter - context-dependent)
+✅ 5pts: Aggregate roots identified (World, Campaign, Adventure, Encounter - context-dependent)
 
 ## Value Objects (20 points)
 ✅ 10pts: Value objects defined (Stage, Grid, EncounterAsset)
@@ -744,7 +744,7 @@ DOMAIN MODEL QUALITY CHECKLIST
 ## Target Score: 100/100 ✅
 
 ### Extraction Notes:
-✅ Complex hierarchical structure (Epic > Campaign > Adventure > Encounter) documented
+✅ Complex hierarchical structure (World > Campaign > Adventure > Encounter) documented
 ✅ Optional parent relationships (nullable FKs) enable standalone or nested usage
 ✅ Cascade delete rules defined
 ✅ Value objects (Stage, Grid, EncounterAsset) for encounter composition

@@ -4,6 +4,8 @@ using Resource = VttTools.Data.Media.Entities.Resource;
 namespace VttTools.Data.Library.Entities;
 
 public class Adventure {
+    public Guid? WorldId { get; set; }
+    public World? World { get; set; }
     public Guid? CampaignId { get; set; }
     public Campaign? Campaign { get; set; }
     public Guid OwnerId { get; set; }

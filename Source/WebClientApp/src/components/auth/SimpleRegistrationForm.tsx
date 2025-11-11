@@ -290,7 +290,7 @@ export const SimpleRegistrationForm: React.FC<SimpleRegistrationFormProps> = ({
               marginBottom: '32px',
             }}
           >
-            Join thousands of Game Masters creating epic adventures
+            Join thousands of Game Masters creating world adventures
           </Typography>
         </div>
 

@@ -12,7 +12,7 @@ import { adventuresApi } from '../services/adventuresApi';
 import { assetsApi } from '../services/assetsApi';
 import { campaignsApi } from '../services/campaignsApi';
 import { contentApi } from '../services/contentApi';
-import { epicsApi } from '../services/epicsApi';
+import { worldsApi } from '../services/worldsApi';
 import { gameSessionsApi } from '../services/gameSessionsApi';
 import { mediaApi } from '../services/mediaApi';
 import { encounterApi } from '../services/encounterApi';
@@ -40,7 +40,7 @@ export const store = configureStore({
     [assetsApi.reducerPath]: assetsApi.reducer,
     [campaignsApi.reducerPath]: campaignsApi.reducer,
     [contentApi.reducerPath]: contentApi.reducer,
-    [epicsApi.reducerPath]: epicsApi.reducer,
+    [worldsApi.reducerPath]: worldsApi.reducer,
     [gameSessionsApi.reducerPath]: gameSessionsApi.reducer,
     [mediaApi.reducerPath]: mediaApi.reducer,
     [encounterApi.reducerPath]: encounterApi.reducer,
@@ -67,7 +67,7 @@ export const store = configureStore({
     .concat(assetsApi.middleware)
     .concat(campaignsApi.middleware)
     .concat(contentApi.middleware)
-    .concat(epicsApi.middleware)
+    .concat(worldsApi.middleware)
     .concat(gameSessionsApi.middleware)
     .concat(mediaApi.middleware)
     .concat(encounterApi.middleware)

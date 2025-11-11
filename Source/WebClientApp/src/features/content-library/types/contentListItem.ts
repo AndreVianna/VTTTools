@@ -4,7 +4,7 @@ import type { MediaResource } from '@/types/domain';
 export enum ContentType {
     Adventure = 0,
     Campaign = 1,
-    Epic = 2
+    World = 2
 }
 
 export interface ContentListItem {

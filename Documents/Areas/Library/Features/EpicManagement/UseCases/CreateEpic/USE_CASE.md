@@ -1,4 +1,4 @@
-# CreateEpic Use Case
+# CreateWorld Use Case
 
 **Status**: Specification pending - BDD file exists
 

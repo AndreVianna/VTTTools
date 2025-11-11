@@ -1,7 +1,7 @@
 namespace VttTools.Library.Campaigns.Model;
 
 public record Campaign {
-    public Guid? EpicId { get; init; }
+    public World? World { get; init; }
     public Guid OwnerId { get; init; }
     public Guid Id { get; init; } = Guid.CreateVersion7();
     [MaxLength(128)]

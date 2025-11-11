@@ -1,4 +1,4 @@
-# Phase 9: Epic/Campaign Hierarchy
+# Phase 9: World/Campaign Hierarchy
 
 **Status**: ✅ COMPLETE
 **Implementation Started**: 2025-11-09
@@ -10,13 +10,13 @@
 
 ## Objective
 
-Implement Epic→Campaign hierarchy for advanced content organization
+Implement World→Campaign hierarchy for advanced content organization
 
 ---
 
 ## Summary
 
-Phase 9 implements the Epic→Campaign hierarchy, completing the four-tier content organization system (Epic→Campaign→Adventure→Encounter). This phase includes full backend (domain, services, storage, handlers, tests) and frontend (TypeScript types, RTK Query, components, pages, routing) implementation following established VTTTools patterns.
+Phase 9 implements the World→Campaign hierarchy, completing the four-tier content organization system (World→Campaign→Adventure→Encounter). This phase includes full backend (domain, services, storage, handlers, tests) and frontend (TypeScript types, RTK Query, components, pages, routing) implementation following established VTTTools patterns.
 
 **Completion**: 42/42 steps (100%)
 **Actual Effort**: ~16 hours (2h less than estimated due to tabs vs TreeView)
@@ -28,25 +28,25 @@ Phase 9 implements the Epic→Campaign hierarchy, completing the four-tier conte
 
 ### Backend (Steps 1-24)
 
-- ✅ **Domain Layer**: IEpicService, IEpicStorage, ICampaignService, ICampaignStorage interfaces
-- ✅ **API Contracts**: CreateEpicRequest, UpdateEpicRequest, CreateCampaignRequest, UpdateCampaignRequest
-- ✅ **Service Contracts**: CreateEpicData, UpdatedEpicData, CreateCampaignData, UpdatedCampaignData with validation
-- ✅ **EF Core Storage**: EpicStorage, CampaignStorage with filtering (OwnedBy, AvailableTo, Public)
-- ✅ **Service Implementation**: EpicService, CampaignService with all CRUD + nested operations (11 methods each)
-- ✅ **HTTP Handlers**: EpicHandlers, CampaignHandlers (10 endpoints each: 6 CRUD + 4 nested)
-- ✅ **Endpoint Mappers**: EpicEndpointsMapper, CampaignEndpointsMapper with authorization
-- ✅ **Unit Tests**: 70 comprehensive tests (35 Epic + 35 Campaign) with 90-95% coverage
+- ✅ **Domain Layer**: IWorldService, IWorldStorage, ICampaignService, ICampaignStorage interfaces
+- ✅ **API Contracts**: CreateWorldRequest, UpdateWorldRequest, CreateCampaignRequest, UpdateCampaignRequest
+- ✅ **Service Contracts**: CreateWorldData, UpdatedWorldData, CreateCampaignData, UpdatedCampaignData with validation
+- ✅ **EF Core Storage**: WorldStorage, CampaignStorage with filtering (OwnedBy, AvailableTo, Public)
+- ✅ **Service Implementation**: WorldService, CampaignService with all CRUD + nested operations (11 methods each)
+- ✅ **HTTP Handlers**: WorldHandlers, CampaignHandlers (10 endpoints each: 6 CRUD + 4 nested)
+- ✅ **Endpoint Mappers**: WorldEndpointsMapper, CampaignEndpointsMapper with authorization
+- ✅ **Unit Tests**: 70 comprehensive tests (35 World + 35 Campaign) with 90-95% coverage
 
 ### Frontend (Steps 25-38)
 
-- ✅ **TypeScript Types**: 6 interfaces (CreateEpicRequest, Epic, CreateCampaignRequest, Campaign, etc.)
-- ✅ **RTK Query Slices**: epicsApi, campaignsApi (10 endpoints each) with proper tag strategy
-- ✅ **Tab Navigation**: ContentLibraryPage with MUI Tabs (Epics | Campaigns | Adventures)
-- ✅ **Card Components**: EpicCard, CampaignCard with clone/delete actions
-- ✅ **List Views**: EpicListView, CampaignListView with search, filtering, grid layout
-- ✅ **Detail Pages**: EpicDetailPage, CampaignDetailPage with auto-save, nested resource management
+- ✅ **TypeScript Types**: 6 interfaces (CreateWorldRequest, World, CreateCampaignRequest, Campaign, etc.)
+- ✅ **RTK Query Slices**: worldsApi, campaignsApi (10 endpoints each) with proper tag strategy
+- ✅ **Tab Navigation**: ContentLibraryPage with MUI Tabs (Worlds | Campaigns | Adventures)
+- ✅ **Card Components**: WorldCard, CampaignCard with clone/delete actions
+- ✅ **List Views**: WorldListView, CampaignListView with search, filtering, grid layout
+- ✅ **Detail Pages**: WorldDetailPage, CampaignDetailPage with auto-save, nested resource management
 - ✅ **Hierarchy Navigation**: AdventureDetailPage breadcrumb for campaign context
-- ✅ **Routing**: App.tsx routes for Epic/Campaign pages
+- ✅ **Routing**: App.tsx routes for World/Campaign pages
 
 ### Post-Review Security Improvements (2025-11-09)
 
@@ -72,10 +72,10 @@ Following independent code review, all identified gaps were fixed:
 
 ## Architecture Decisions (User Approved)
 
-- ✅ **UI**: Separate tabs (Epics | Campaigns | Adventures) in ContentLibraryPage
-- ✅ **API**: Semi-flat endpoints (`/api/epics/{id}/campaigns` following Adventure/Encounter pattern)
+- ✅ **UI**: Separate tabs (Worlds | Campaigns | Adventures) in ContentLibraryPage
+- ✅ **API**: Semi-flat endpoints (`/api/worlds/{id}/campaigns` following Adventure/Encounter pattern)
 - ✅ **Data**: Hybrid lazy loading (consistent with Adventures)
-- ✅ **Hierarchy**: Update endpoint for movement (epicId field)
+- ✅ **Hierarchy**: Update endpoint for movement (worldId field)
 - ✅ **Domain**: Campaign converted to record type for immutability
 
 ---
@@ -85,57 +85,57 @@ Following independent code review, all identified gaps were fixed:
 ### Backend Components
 
 **Domain Models**:
-- `Epic.cs` - Record type with IReadOnlyList<Campaign>
+- `World.cs` - Record type with IReadOnlyList<Campaign>
 - `Campaign.cs` - Record type with IReadOnlyList<Adventure>
 
 **Services**:
-- `IEpicService` / `EpicService` - 11 methods (CRUD + nested Campaigns)
+- `IWorldService` / `WorldService` - 11 methods (CRUD + nested Campaigns)
 - `ICampaignService` / `CampaignService` - 11 methods (CRUD + nested Adventures)
 
 **Storage**:
-- `IEpicStorage` / `EpicStorage` - EF Core with filters
+- `IWorldStorage` / `WorldStorage` - EF Core with filters
 - `ICampaignStorage` / `CampaignStorage` - EF Core with filters
 
 **API Handlers**:
-- `EpicHandlers` - 10 endpoints (6 Epic CRUD + 4 Campaign operations)
+- `WorldHandlers` - 10 endpoints (6 World CRUD + 4 Campaign operations)
 - `CampaignHandlers` - 10 endpoints (6 Campaign CRUD + 4 Adventure operations)
 
 **Tests**:
-- `EpicServiceTests` - 35 tests, 90% coverage
+- `WorldServiceTests` - 35 tests, 90% coverage
 - `CampaignServiceTests` - 35 tests, 95% coverage
 
 ### Frontend Components
 
 **RTK Query**:
-- `epicsApi.ts` - 10 endpoints with 'Epic'/'EpicCampaigns' tags
+- `worldsApi.ts` - 10 endpoints with 'World'/'WorldCampaigns' tags
 - `campaignsApi.ts` - 10 endpoints with 'Campaign'/'CampaignAdventures' tags
 
 **Components**:
-- `EpicCard` - Card display with clone/delete actions
-- `EpicListView` - Grid with search, filtering, CRUD
+- `WorldCard` - Card display with clone/delete actions
+- `WorldListView` - Grid with search, filtering, CRUD
 - `CampaignCard` - Card display with clone/delete actions
 - `CampaignListView` - Grid with search, filtering, CRUD
 
 **Pages**:
 - `ContentLibraryPage` - MUI Tabs for hierarchy navigation
-- `EpicDetailPage` - Editing with campaign management
+- `WorldDetailPage` - Editing with campaign management
 - `CampaignDetailPage` - Editing with adventure management
 - `AdventureDetailPage` - Updated with campaign breadcrumb
 
 **Routing**:
-- `/content-library/epics` - Epic list
+- `/content-library/worlds` - World list
 - `/content-library/campaigns` - Campaign list
-- `/epics/:epicId` - Epic detail
+- `/worlds/:worldId` - World detail
 - `/campaigns/:campaignId` - Campaign detail
 
 ---
 
 ## Success Criteria
 
-- ✅ Create/Edit/Delete Epics and Campaigns
+- ✅ Create/Edit/Delete Worlds and Campaigns
 - ✅ Hierarchy relationships maintained
 - ✅ Adventures can link to campaigns
-- ✅ Campaigns can link to epics
+- ✅ Campaigns can link to worlds
 - ✅ OWASP Top 10 compliant
 - ✅ 90%+ backend test coverage
 - ✅ Pattern consistency with Adventure/Encounter
@@ -145,7 +145,7 @@ Following independent code review, all identified gaps were fixed:
 ## Technical Highlights
 
 **Backend Patterns**:
-- DDD aggregate pattern (Epic→Campaigns, Campaign→Adventures)
+- DDD aggregate pattern (World→Campaigns, Campaign→Adventures)
 - Result<T> pattern for error handling
 - Optional<T> pattern for partial updates
 - Immutable record types with `with` expressions
@@ -173,18 +173,18 @@ Following independent code review, all identified gaps were fixed:
 ## Files Created/Modified
 
 **Backend (19 files)**:
-- Domain: Epic.cs, Campaign.cs, IEpicService.cs, ICampaignService.cs, IEpicStorage.cs, ICampaignStorage.cs
-- Contracts: CreateEpicRequest.cs, UpdateEpicRequest.cs, CreateCampaignRequest.cs, UpdateCampaignRequest.cs, CreateEpicData.cs, UpdatedEpicData.cs, CreateCampaignData.cs, UpdatedCampaignData.cs
-- Services: EpicService.cs, CampaignService.cs
-- Storage: EpicStorage.cs, CampaignStorage.cs
-- Handlers: EpicHandlers.cs, CampaignHandlers.cs
-- Tests: EpicServiceTests.cs, CampaignServiceTests.cs
+- Domain: World.cs, Campaign.cs, IWorldService.cs, ICampaignService.cs, IWorldStorage.cs, ICampaignStorage.cs
+- Contracts: CreateWorldRequest.cs, UpdateWorldRequest.cs, CreateCampaignRequest.cs, UpdateCampaignRequest.cs, CreateWorldData.cs, UpdatedWorldData.cs, CreateCampaignData.cs, UpdatedCampaignData.cs
+- Services: WorldService.cs, CampaignService.cs
+- Storage: WorldStorage.cs, CampaignStorage.cs
+- Handlers: WorldHandlers.cs, CampaignHandlers.cs
+- Tests: WorldServiceTests.cs, CampaignServiceTests.cs
 
 **Frontend (12 files)**:
-- Types: domain.ts (Epic/Campaign interfaces)
-- API: epicsApi.ts, campaignsApi.ts
-- Components: EpicCard.tsx, EpicListView.tsx, CampaignCard.tsx, CampaignListView.tsx
-- Pages: ContentLibraryPage.tsx, EpicDetailPage.tsx, CampaignDetailPage.tsx, AdventureDetailPage.tsx
+- Types: domain.ts (World/Campaign interfaces)
+- API: worldsApi.ts, campaignsApi.ts
+- Components: WorldCard.tsx, WorldListView.tsx, CampaignCard.tsx, CampaignListView.tsx
+- Pages: ContentLibraryPage.tsx, WorldDetailPage.tsx, CampaignDetailPage.tsx, AdventureDetailPage.tsx
 - Routing: App.tsx
 - Store: index.ts
 
@@ -203,7 +203,7 @@ Following independent code review, all identified gaps were fixed:
 ## Testing Strategy
 
 **Unit Tests** (Backend):
-- 70 tests total (35 Epic + 35 Campaign)
+- 70 tests total (35 World + 35 Campaign)
 - Coverage: 90-95%
 - Framework: xUnit + NSubstitute + FluentAssertions
 - Pattern: AAA (Arrange, Act, Assert)
@@ -211,7 +211,7 @@ Following independent code review, all identified gaps were fixed:
 **E2E Tests** (Deferred):
 - Frontend component tests deferred to BDD scenarios
 - Integration tests deferred to Cucumber/Playwright
-- Critical paths: Epic CRUD, Campaign CRUD, hierarchy navigation, tab switching, authorization
+- Critical paths: World CRUD, Campaign CRUD, hierarchy navigation, tab switching, authorization
 
 ---
 
@@ -250,7 +250,7 @@ Following independent code review, all identified gaps were fixed:
 
 - [CHANGELOG.md](../CHANGELOG.md) - Phase 9 entries
 - [LESSONS_LEARNED.md](../LESSONS_LEARNED.md) - Architecture and testing insights
-- [CODE_EXAMPLES.md](../../Guides/CODE_EXAMPLES.md) - Epic/Campaign code patterns
+- [CODE_EXAMPLES.md](../../Guides/CODE_EXAMPLES.md) - World/Campaign code patterns
 - [ARCHITECTURE_PATTERN.md](../../Guides/ARCHITECTURE_PATTERN.md) - DDD Contracts + Service Implementation
 
 ---
@@ -258,23 +258,23 @@ Following independent code review, all identified gaps were fixed:
 ## Future Enhancements (Optional)
 
 - Frontend unit tests (target ≥70% coverage)
-- Drag-and-drop reordering of campaigns within epics
+- Drag-and-drop reordering of campaigns within worlds
 - Bulk operations (multi-select, bulk delete, bulk publish)
-- Epic/Campaign templates marketplace
+- World/Campaign templates marketplace
 - Advanced filtering (by tag, by date, by author)
-- Export/import Epic hierarchy as JSON
+- Export/import World hierarchy as JSON
 
 ---
 
 ## Commits
 
 **Phase 9 Implementation**:
-- 9d28b84 - feat(library): add IEpicService interface
-- 6d24b95 - feat(library): add IEpicStorage interface
-- 83f07d0 - feat(library): add Epic API contracts
-- fb569ea - feat(library): add Epic Service contracts
+- 9d28b84 - feat(library): add IWorldService interface
+- 6d24b95 - feat(library): add IWorldStorage interface
+- 83f07d0 - feat(library): add World API contracts
+- fb569ea - feat(library): add World Service contracts
 - [... 38 more commits ...]
-- 68bab54 - Add Epic/Campaign routing to App.tsx
+- 68bab54 - Add World/Campaign routing to App.tsx
 
 **Post-Review Improvements**:
 - 94eaf43 - Fix code review gaps: security, logging, and immutability improvements

@@ -32,7 +32,7 @@ Feature: Delete Campaign
 
   @happy-path
   Scenario: Successfully delete standalone campaign
-    Given my campaign is standalone with null EpicId
+    Given my campaign is standalone with null WorldId
     And the campaign has 2 adventures
     When I delete the campaign
     Then the campaign is removed
@@ -40,12 +40,12 @@ Feature: Delete Campaign
     And the campaign should not appear in standalone campaigns list
 
   @happy-path
-  Scenario: Successfully delete campaign from epic
-    Given my campaign is in an epic with 5 campaigns
+  Scenario: Successfully delete campaign from world
+    Given my campaign is in an world with 5 campaigns
     When I delete the campaign
     Then the campaign is removed
-    And the epic should now have 4 campaigns
-    And the epic should remain intact
+    And the world should now have 4 campaigns
+    And the world should remain intact
 
   @happy-path
   Scenario: Successfully delete campaign with no adventures

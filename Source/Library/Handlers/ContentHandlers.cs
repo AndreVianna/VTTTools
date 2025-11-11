@@ -35,12 +35,12 @@ internal static class ContentHandlers {
         var parsedType = contentType?.ToLowerInvariant() switch {
             "adventure" => ContentType.Adventure,
             "campaign" => ContentType.Campaign,
-            "epic" => ContentType.Epic,
+            "world" => ContentType.World,
             _ => (ContentType?)null
         };
 
         if (contentType != null && parsedType == null) {
-            var validTypes = new[] { "adventure", "campaign", "epic" };
+            var validTypes = new[] { "adventure", "campaign", "world" };
             return Results.BadRequest($"Invalid contentType. Must be one of: {string.Join(", ", validTypes)}");
         }
 

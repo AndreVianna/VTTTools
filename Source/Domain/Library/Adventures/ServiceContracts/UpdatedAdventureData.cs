@@ -2,6 +2,7 @@ namespace VttTools.Library.Adventures.ServiceContracts;
 
 public record UpdatedAdventureData
     : Data {
+    public Optional<Guid?> WorldId { get; init; }
     public Optional<Guid?> CampaignId { get; init; }
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }

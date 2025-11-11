@@ -1,4 +1,4 @@
-# GetCampaignsByEpic Use Case
+# GetCampaignsByWorld Use Case
 
 **Status**: Specification pending - BDD file exists
 

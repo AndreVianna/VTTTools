@@ -1,7 +1,7 @@
 
 using AdventureEntity = VttTools.Data.Library.Entities.Adventure;
 using CampaignEntity = VttTools.Data.Library.Entities.Campaign;
-using EpicEntity = VttTools.Data.Library.Entities.Epic;
+using WorldEntity = VttTools.Data.Library.Entities.World;
 using ResourceEntity = VttTools.Data.Media.Entities.Resource;
 using EncounterAssetEntity = VttTools.Data.Library.Entities.EncounterAsset;
 using EncounterEffectEntity = VttTools.Data.Library.Entities.EncounterEffect;
@@ -13,7 +13,7 @@ using EncounterWallEntity = VttTools.Data.Library.Entities.EncounterWall;
 namespace VttTools.Data.Library;
 
 internal static class Mapper {
-    internal static Expression<Func<EpicEntity, Epic>> AsEpic = entity
+    internal static Expression<Func<WorldEntity, World>> AsWorld = entity
         => new() {
             OwnerId = entity.OwnerId,
             Id = entity.Id,
@@ -23,12 +23,13 @@ internal static class Mapper {
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Campaigns = entity.Campaigns.AsQueryable().Select(AsCampaign!).ToList(),
+            Adventures = entity.Adventures.AsQueryable().Select(AsAdventure!).ToList(),
         };
 
     internal static Expression<Func<CampaignEntity, Campaign>> AsCampaign = entity
         => new() {
-            EpicId = entity.EpicId,
             OwnerId = entity.OwnerId,
+            World = entity.World != null ? entity.World.ToModel() : null!,
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
@@ -41,7 +42,8 @@ internal static class Mapper {
     internal static Expression<Func<AdventureEntity, Adventure>> AsAdventure = entity
         => new() {
             OwnerId = entity.OwnerId,
-            CampaignId = entity.CampaignId,
+            World = entity.World != null ? entity.World.ToModel() : null!,
+            Campaign = entity.Campaign != null ? entity.Campaign.ToModel() : null!,
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
@@ -133,7 +135,7 @@ internal static class Mapper {
         };
 
     [return: NotNullIfNotNull(nameof(entity))]
-    internal static Epic? ToModel(this EpicEntity? entity)
+    internal static World? ToModel(this WorldEntity? entity)
         => entity == null ? null : new() {
             OwnerId = entity.OwnerId,
             Id = entity.Id,
@@ -143,9 +145,10 @@ internal static class Mapper {
             IsPublished = entity.IsPublished,
             IsPublic = entity.IsPublic,
             Campaigns = entity.Campaigns.Select(ToModel).ToList()!,
+            Adventures = entity.Adventures.Select(ToModel).ToList()!,
         };
 
-    internal static EpicEntity ToEntity(this Epic model)
+    internal static WorldEntity ToEntity(this World model)
         => new() {
             OwnerId = model.OwnerId,
             Id = model.Id,
@@ -155,13 +158,26 @@ internal static class Mapper {
             IsPublished = model.IsPublished,
             IsPublic = model.IsPublic,
             Campaigns = model.Campaigns.ConvertAll(c => c.ToEntity()),
+            Adventures = model.Adventures.ConvertAll(c => c.ToEntity()),
         };
+
+    internal static void UpdateFrom(this WorldEntity entity, World model) {
+        entity.OwnerId = model.OwnerId;
+        entity.Id = model.Id;
+        entity.Name = model.Name;
+        entity.Description = model.Description;
+        entity.BackgroundId = model.Background?.Id;
+        entity.IsPublished = model.IsPublished;
+        entity.IsPublic = model.IsPublic;
+        entity.Campaigns = model.Campaigns.ConvertAll(a => a.ToEntity());
+        entity.Adventures = model.Adventures.ConvertAll(a => a.ToEntity());
+    }
 
     [return: NotNullIfNotNull(nameof(entity))]
     internal static Campaign? ToModel(this CampaignEntity? entity)
         => entity == null ? null : new() {
-            EpicId = entity.EpicId,
             OwnerId = entity.OwnerId,
+            World = entity.World?.ToModel(),
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
@@ -173,8 +189,8 @@ internal static class Mapper {
 
     internal static CampaignEntity ToEntity(this Campaign model)
         => new() {
-            EpicId = model.EpicId,
             OwnerId = model.OwnerId,
+            WorldId = model.World?.Id,
             Id = model.Id,
             Name = model.Name,
             Description = model.Description,
@@ -184,11 +200,24 @@ internal static class Mapper {
             Adventures = model.Adventures.ConvertAll(a => a.ToEntity()),
         };
 
+    internal static void UpdateFrom(this CampaignEntity entity, Campaign model) {
+        entity.OwnerId = model.OwnerId;
+        entity.WorldId = model.World?.Id;
+        entity.Id = model.Id;
+        entity.Name = model.Name;
+        entity.Description = model.Description;
+        entity.BackgroundId = model.Background?.Id;
+        entity.IsPublished = model.IsPublished;
+        entity.IsPublic = model.IsPublic;
+        entity.Adventures = model.Adventures.ConvertAll(a => a.ToEntity());
+    }
+
     [return: NotNullIfNotNull(nameof(entity))]
     internal static Adventure? ToModel(this AdventureEntity? entity)
         => entity == null ? null : new() {
             OwnerId = entity.OwnerId,
-            CampaignId = entity.CampaignId,
+            World = entity.World?.ToModel(),
+            Campaign = entity.Campaign?.ToModel(),
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
@@ -203,7 +232,8 @@ internal static class Mapper {
     internal static AdventureEntity ToEntity(this Adventure model)
         => new() {
             OwnerId = model.OwnerId,
-            CampaignId = model.CampaignId,
+            WorldId = model.World?.Id,
+            CampaignId = model.Campaign?.Id,
             Id = model.Id,
             Name = model.Name,
             Description = model.Description,
@@ -217,7 +247,8 @@ internal static class Mapper {
 
     internal static void UpdateFrom(this AdventureEntity entity, Adventure model) {
         entity.OwnerId = model.OwnerId;
-        entity.CampaignId = model.CampaignId;
+        entity.WorldId = model.World?.Id;
+        entity.CampaignId = model.Campaign?.Id;
         entity.Id = model.Id;
         entity.Name = model.Name;
         entity.Description = model.Description;

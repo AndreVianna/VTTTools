@@ -6,6 +6,7 @@ namespace VttTools.Library.Campaigns.ServiceContracts;
 public record UpdatedCampaignData
     : Data {
     public Guid Id { get; init; }
+    public Optional<Guid?> WorldId { get; init; }
     public Optional<string> Name { get; init; }
     public Optional<string> Description { get; init; }
     public Optional<Guid?> BackgroundId { get; init; }

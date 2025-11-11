@@ -87,7 +87,7 @@ export class MockApiService {
     if (user.phoneNumber) result.phoneNumber = user.phoneNumber;
     if (user.lockoutEnd) result.lockoutEnd = user.lockoutEnd;
     if (user.lastLoginAt) result.lastLoginAt = user.lastLoginAt;
-    if (user.profilePictureUrl) result.profilePictureUrl = user.profilePictureUrl;
+    if (user.profilworldtureUrl) result.profilworldtureUrl = user.profilworldtureUrl;
 
     return result;
   }

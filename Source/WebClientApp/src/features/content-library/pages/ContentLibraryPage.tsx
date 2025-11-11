@@ -7,8 +7,8 @@ export function ContentLibraryPage() {
     const navigate = useNavigate();
 
     const getCurrentTab = () => {
-        if (location.pathname.startsWith('/content-library/epics')) {
-            return 'epics';
+        if (location.pathname.startsWith('/content-library/worlds')) {
+            return 'worlds';
         }
         if (location.pathname.startsWith('/content-library/campaigns')) {
             return 'campaigns';
@@ -38,7 +38,7 @@ export function ContentLibraryPage() {
                     onChange={handleTabChange}
                     aria-label="content library tabs"
                 >
-                    <Tab label="Epics" value="epics" id="tab-epics" />
+                    <Tab label="Worlds" value="worlds" id="tab-worlds" />
                     <Tab label="Campaigns" value="campaigns" id="tab-campaigns" />
                     <Tab label="Adventures" value="adventures" id="tab-adventures" />
                 </Tabs>

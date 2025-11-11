@@ -46,28 +46,28 @@ Feature: Create Campaign
       Then I should see error with validation error
       And I should see error "Published campaigns must be public"
 
-  Rule: Campaign can optionally belong to an epic
+  Rule: Campaign can optionally belong to an world
 
-    Scenario: Create standalone campaign without epic
+    Scenario: Create standalone campaign without world
       Given I provide valid campaign data
-      And I do not specify an epic ID
+      And I do not specify an world ID
       When I create the campaign
       Then the campaign is created
-      And the EpicId should be null
+      And the WorldId should be null
       And the campaign should be standalone
 
-    Scenario: Create campaign within existing epic
-      Given I own an epic with ID "550e8400-e29b-41d4-a716-446655440000"
-      And I provide valid campaign data with that epic ID
+    Scenario: Create campaign within existing world
+      Given I own an world with ID "550e8400-e29b-41d4-a716-446655440000"
+      And I provide valid campaign data with that world ID
       When I create the campaign
       Then the campaign is created
-      And the EpicId should be "550e8400-e29b-41d4-a716-446655440000"
+      And the WorldId should be "550e8400-e29b-41d4-a716-446655440000"
 
-    Scenario: Reject campaign with non-existent epic ID
-      Given I provide campaign with epic ID that doesn't exist
+    Scenario: Reject campaign with non-existent world ID
+      Given I provide campaign with world ID that doesn't exist
       When I attempt to create the campaign
       Then I should see error with not found error
-      And I should see error "Epic not found"
+      And I should see error "World not found"
 
   @happy-path
   Scenario: Successfully create campaign with all properties
@@ -113,14 +113,14 @@ Feature: Create Campaign
     And the full description should be preserved
 
   @data-driven
-  Scenario Outline: Validate campaign creation with epic associations
-    Given I provide campaign with epic association <epic_status>
+  Scenario Outline: Validate campaign creation with world associations
+    Given I provide campaign with world association <world_status>
     When I create the campaign
     Then the result should be <result>
-    And the EpicId should be <epic_value>
+    And the WorldId should be <world_value>
 
     Examples:
-      | epic_status  | result  | epic_value |
+      | world_status  | result  | world_value |
       | not_provided | success | null       |
-      | valid_epic   | success | set        |
-      | invalid_epic | failure | n/a        |
+      | valid_world   | success | set        |
+      | invalid_world | failure | n/a        |

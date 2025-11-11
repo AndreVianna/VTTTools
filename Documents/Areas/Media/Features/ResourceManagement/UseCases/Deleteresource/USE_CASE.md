@@ -80,7 +80,7 @@
 
 ### Business Logic
 - **Business Rules**:
-  - BR-04: Resource cannot be deleted if in use (check Asset.Display.ResourceId and Encounter/Adventure/Epic.Background references)
+  - BR-04: Resource cannot be deleted if in use (check Asset.Display.ResourceId and Encounter/Adventure/World.Background references)
   - BR-05: Resource entity and blob storage file must be synchronized (delete entity first, then file; rollback entity if blob delete fails)
   - AGG-03: Resource cannot be deleted if referenced by any Asset or Encounter (aggregate invariant)
 - **Processing Steps**:
@@ -88,7 +88,7 @@
   2. Query database for Resource entity by Id
   3. If Resource not found, return 404 error
   4. Check if resource is referenced by any Asset (Asset.Display.ResourceId = resourceId)
-  5. Check if resource is referenced by any Encounter/Adventure/Epic (Background property = resourceId)
+  5. Check if resource is referenced by any Encounter/Adventure/World (Background property = resourceId)
   6. If any references found, return 409 Conflict error with reference details
   7. Delete Resource entity from database
   8. Delete blob storage file at Resource.Path

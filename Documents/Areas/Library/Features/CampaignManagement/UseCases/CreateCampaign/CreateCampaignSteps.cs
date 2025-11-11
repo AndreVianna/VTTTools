@@ -13,7 +13,7 @@ using VttTools.Library.Campaigns.Model;
 using VttTools.Library.Campaigns.ServiceContracts;
 using VttTools.Library.Campaigns.Services;
 using VttTools.Library.Campaigns.Storage;
-using VttTools.Library.Epics.Storage;
+using VttTools.Library.Worlds.Storage;
 using VttTools.Media.Storage;
 using Xunit;
 
@@ -23,7 +23,7 @@ namespace VttTools.Library.Tests.BDD.CampaignManagement.CreateCampaign;
 public class CreateCampaignSteps {
     private readonly ScenarioContext _context;
     private readonly ICampaignStorage _campaignStorage;
-    private readonly IEpicStorage _epicStorage;
+    private readonly IWorldStorage _worldStorage;
     private readonly IMediaStorage _mediaStorage;
     private readonly ICampaignService _service;
 
@@ -31,18 +31,18 @@ public class CreateCampaignSteps {
     private CreateCampaignData? _createData;
     private Result<Campaign>? _createResult;
     private Guid _userId = Guid.Empty;
-    private Guid _epicId = Guid.Empty;
+    private Guid _worldId = Guid.Empty;
     private Exception? _exception;
 
     public CreateCampaignSteps(ScenarioContext context) {
         _context = context;
         _campaignStorage = Substitute.For<ICampaignStorage>();
-        _epicStorage = Substitute.For<IEpicStorage>();
+        _worldStorage = Substitute.For<IWorldStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
 
         // NOTE: CampaignService not implemented yet (Phase 7 - BLOCKED)
         // This will fail until service implementation is complete
-        _service = new CampaignService(_campaignStorage, _epicStorage, _mediaStorage);
+        _service = new CampaignService(_campaignStorage, _worldStorage, _mediaStorage);
     }
 
     #region Background Steps
@@ -109,46 +109,46 @@ public class CreateCampaignSteps {
 
     #endregion
 
-    #region Given Steps - Epic Association
+    #region Given Steps - World Association
 
-    [Given(@"I own an epic with ID ""(.*)""")]
-    public void GivenIAlreadyOwnAnEpic(string epicId) {
-        _epicId = Guid.Parse(epicId);
-        _context["EpicId"] = _epicId;
+    [Given(@"I own an world with ID ""(.*)""")]
+    public void GivenIAlreadyOwnAnWorld(string worldId) {
+        _worldId = Guid.Parse(worldId);
+        _context["WorldId"] = _worldId;
 
-        // Mock epic storage to return epic
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(new Epic { Id = _epicId, OwnerId = _userId });
+        // Mock world storage to return world
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(new World { Id = _worldId, OwnerId = _userId });
     }
 
-    [Given(@"I provide valid campaign data with that epic ID")]
-    public void GivenIProvideValidCampaignDataWithEpicId() {
+    [Given(@"I provide valid campaign data with that world ID")]
+    public void GivenIProvideValidCampaignDataWithWorldId() {
         _createData = new CreateCampaignData {
-            Name = "Epic Campaign",
-            Description = "Campaign within epic",
-            EpicId = _epicId
+            Name = "World Campaign",
+            Description = "Campaign within world",
+            WorldId = _worldId
         };
     }
 
-    [Given(@"I do not specify an epic ID")]
-    public void GivenIDoNotSpecifyEpicId() {
+    [Given(@"I do not specify an world ID")]
+    public void GivenIDoNotSpecifyWorldId() {
         if (_createData is not null) {
-            _createData = _createData with { EpicId = null };
+            _createData = _createData with { WorldId = null };
         }
     }
 
-    [Given(@"I provide campaign with epic ID that doesn't exist")]
-    public void GivenIProvideCampaignWithNonExistentEpicId() {
-        var nonExistentEpicId = Guid.CreateVersion7();
+    [Given(@"I provide campaign with world ID that doesn't exist")]
+    public void GivenIProvideCampaignWithNonExistentWorldId() {
+        var nonExistentWorldId = Guid.CreateVersion7();
         _createData = new CreateCampaignData {
             Name = "Test Campaign",
             Description = string.Empty,
-            EpicId = nonExistentEpicId
+            WorldId = nonExistentWorldId
         };
 
-        // Mock epic storage to return null for non-existent epic
-        _epicStorage.GetByIdAsync(nonExistentEpicId, Arg.Any<CancellationToken>())
-            .Returns((Epic?)null);
+        // Mock world storage to return null for non-existent world
+        _worldStorage.GetByIdAsync(nonExistentWorldId, Arg.Any<CancellationToken>())
+            .Returns((World?)null);
     }
 
     #endregion
@@ -294,20 +294,20 @@ public class CreateCampaignSteps {
         _createResult!.Value!.IsPublic.Should().BeTrue();
     }
 
-    [Then(@"the EpicId should be null")]
-    public void ThenTheEpicIdShouldBeNull() {
-        _createResult!.Value!.EpicId.Should().BeNull();
+    [Then(@"the WorldId should be null")]
+    public void ThenTheWorldIdShouldBeNull() {
+        _createResult!.Value!.WorldId.Should().BeNull();
     }
 
     [Then(@"the campaign should be standalone")]
     public void ThenTheCampaignShouldBeStandalone() {
-        _createResult!.Value!.EpicId.Should().BeNull();
+        _createResult!.Value!.WorldId.Should().BeNull();
     }
 
-    [Then(@"the EpicId should be ""(.*)""")]
-    public void ThenTheEpicIdShouldBe(string expectedId) {
+    [Then(@"the WorldId should be ""(.*)""")]
+    public void ThenTheWorldIdShouldBe(string expectedId) {
         var expectedGuid = Guid.Parse(expectedId);
-        _createResult!.Value!.EpicId.Should().Be(expectedGuid);
+        _createResult!.Value!.WorldId.Should().Be(expectedGuid);
     }
 
     [Then(@"the campaign is saved in the database")]

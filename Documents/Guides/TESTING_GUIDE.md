@@ -136,7 +136,7 @@ public async Task CreateGameSessionAsync_WithValidData_ReturnsCreatedSession() {
     // Arrange
     var userId = Guid.CreateVersion7();
     var data = new CreateGameSessionData {
-        Title = "Epic Adventure",
+        Title = "World Adventure",
         EncounterId = Guid.CreateVersion7()
     };
     var storage = Substitute.For<IGameSessionStorage>();
@@ -148,11 +148,11 @@ public async Task CreateGameSessionAsync_WithValidData_ReturnsCreatedSession() {
     // Assert
     result.StatusCode.Should().Be(HttpStatusCode.Created);
     result.Value.Should().NotBeNull();
-    result.Value!.Title.Should().Be("Epic Adventure");
+    result.Value!.Title.Should().Be("World Adventure");
     result.Value.OwnerId.Should().Be(userId);
 
     await storage.Received(1).AddAsync(
-        Arg.Is<GameSession>(s => s.Title == "Epic Adventure"),
+        Arg.Is<GameSession>(s => s.Title == "World Adventure"),
         Arg.Any<CancellationToken>());
 }
 
@@ -476,7 +476,7 @@ it('should submit form', async () => {
 describe('GameSessionCard', () => {
     const mockSession = {
         id: '123',
-        title: 'Epic Adventure',
+        title: 'World Adventure',
         ownerId: 'user-1',
         status: 'InProgress',
         playerCount: 4,
@@ -487,7 +487,7 @@ describe('GameSessionCard', () => {
         render(<GameSessionCard session={mockSession} />);
 
         // Assert
-        expect(screen.getByRole('heading', { name: 'Epic Adventure' })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'World Adventure' })).toBeInTheDocument();
         expect(screen.getByText(/in progress/i)).toBeInTheDocument();
     });
 

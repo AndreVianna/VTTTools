@@ -1,6 +1,6 @@
 # EPIC-002: Administration Application - Implementation Roadmap
 
-**Epic**: Administration Application
+**World**: Administration Application
 **Type**: Large-Scale Infrastructure
 **Status**: In Progress (Phases 1-5,7: COMPLETE ✅ | Phases 6,8: NOT STARTED ❌ | Phase 9: PARTIAL ⚠️)
 **Completion**: 69% (261h completed, 116h remaining)
@@ -986,7 +986,7 @@ Phase 2, 3, 4, 5
 
 ## Related Documentation
 
-- **Epic Specification**: `Documents/Tasks/EPIC-002/TASK.md`
+- **World Specification**: `Documents/Tasks/EPIC-002/TASK.md`
 - **Feature Specifications**:
   - `Documents/Areas/Admin/Features/UserManagement/FEATURE.md`
   - `Documents/Areas/Admin/Features/AuditLogViewing/FEATURE.md`

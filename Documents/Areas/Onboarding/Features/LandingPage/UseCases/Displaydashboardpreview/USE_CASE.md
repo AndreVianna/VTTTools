@@ -20,7 +20,7 @@
 
 **Quick Action Cards**:
 1. **Encounter Editor**: Active, navigates to /encounter-editor (Phases 3-4 complete)
-2. **Content Library**: Disabled with "Coming Soon" label (blocked by backend Epic/Campaign services)
+2. **Content Library**: Disabled with "Coming Soon" label (blocked by backend World/Campaign services)
 3. **Asset Library**: Disabled with "Coming Soon" label (planned for implementation)
 4. **Account Settings**: Disabled with "Coming Soon" label (planned for implementation)
 

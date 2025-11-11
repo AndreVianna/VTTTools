@@ -38,6 +38,9 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
             return result;
         var campaign = new Campaign {
             OwnerId = userId,
+            World = data.WorldId.HasValue
+                        ? new World { Id = data.WorldId.Value }
+                        : null,
             Name = data.Name,
             Description = data.Description,
             Background = data.BackgroundId.HasValue
@@ -93,6 +96,11 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
                 : campaign.Background,
             IsPublished = data.IsPublished.IsSet ? data.IsPublished.Value : campaign.IsPublished,
             IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : campaign.IsPublic,
+            World = data.WorldId.IsSet
+                        ? data.WorldId.Value.HasValue
+                            ? new World { Id = data.WorldId.Value.Value }
+                            : null
+                        : campaign.World,
         };
         await campaignStorage.UpdateAsync(campaign, ct);
         return campaign;
@@ -125,7 +133,7 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
 
         var adventure = new Adventure {
             OwnerId = userId,
-            CampaignId = id,
+            Campaign = campaign,
         };
         var updatedCampaign = campaign with {
             Adventures = [.. campaign.Adventures, adventure]
@@ -156,7 +164,7 @@ public class CampaignService(ICampaignStorage campaignStorage, IAdventureStorage
             original = renamedOriginal;
         }
 
-        var clone = original.Clone(userId, cloneName) with { CampaignId = id };
+        var clone = original.Clone(userId, cloneName) with { Campaign = campaign };
         var updatedCampaign = campaign with {
             Adventures = [.. campaign.Adventures, clone]
         };

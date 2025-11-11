@@ -9,4 +9,5 @@ global using VttTools.Common.Model;
 global using VttTools.Library.Adventures.Model;
 global using VttTools.Library.Campaigns.Model;
 global using VttTools.Library.Encounters.Model;
+global using VttTools.Library.Worlds.Model;
 global using VttTools.Media.Model;

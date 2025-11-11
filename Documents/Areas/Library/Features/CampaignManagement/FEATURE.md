@@ -1,8 +1,8 @@
 # Campaign Management Feature
 
-**Original Request**: Manage multi-adventure storylines (Campaign entities) within epic hierarchy or standalone
+**Original Request**: Manage multi-adventure storylines (Campaign entities) within world hierarchy or standalone
 
-**Campaign Management** is a content organization feature that enables Game Masters to create, manage, and organize multi-adventure storylines connecting related adventures. This feature affects the Library area and enables Game Masters to structure their game content into campaign-level narratives that can optionally belong to an epic or exist standalone.
+**Campaign Management** is a content organization feature that enables Game Masters to create, manage, and organize multi-adventure storylines connecting related adventures. This feature affects the Library area and enables Game Masters to structure their game content into campaign-level narratives that can optionally belong to an world or exist standalone.
 
 ---
 
@@ -14,9 +14,9 @@
 ## Feature Overview
 
 ### Business Value
-- **User Benefit**: Game Masters can organize multiple adventures into connected storylines, with flexibility to nest campaigns within epics or maintain them as standalone content
-- **Business Objective**: Provide mid-level organizational structure for hierarchical game content management with optional epic association (Epic → Campaign → Adventure → Encounter)
-- **Success Criteria**: Game Masters can create campaigns (standalone or within epics), update campaign properties, move campaigns between epic/standalone, control visibility, and delete campaigns with proper cascade handling
+- **User Benefit**: Game Masters can organize multiple adventures into connected storylines, with flexibility to nest campaigns within worlds or maintain them as standalone content
+- **Business Objective**: Provide mid-level organizational structure for hierarchical game content management with optional world association (World → Campaign → Adventure → Encounter)
+- **Success Criteria**: Game Masters can create campaigns (standalone or within worlds), update campaign properties, move campaigns between world/standalone, control visibility, and delete campaigns with proper cascade handling
 
 ### Area Assignment
 - **Primary Area**: Library
@@ -24,7 +24,7 @@
 - **Cross-Area Impact**:
   - Identity context: OwnerId references User entities
   - Media context: Background property references Resource entities for visual backdrops
-  - Library (internal): EpicId optionally references parent Epic entity
+  - Library (internal): WorldId optionally references parent World entity
 
 ---
 
@@ -39,8 +39,8 @@
 - **Create Campaign**: API_ENDPOINT - POST /api/library/campaigns
 - **Update Campaign**: API_ENDPOINT - PUT /api/library/campaigns/:id
 - **Get Campaign By ID**: API_ENDPOINT - GET /api/library/campaigns/:id
-- **Get Campaigns By Epic**: API_ENDPOINT - GET /api/library/campaigns?epicId=:epicId
-- **Move Campaign To Epic**: API_ENDPOINT - PATCH /api/library/campaigns/:id/move-to-epic
+- **Get Campaigns By World**: API_ENDPOINT - GET /api/library/campaigns?worldId=:worldId
+- **Move Campaign To World**: API_ENDPOINT - PATCH /api/library/campaigns/:id/move-to-world
 - **Make Campaign Standalone**: API_ENDPOINT - PATCH /api/library/campaigns/:id/make-standalone
 - **Delete Campaign**: API_ENDPOINT - DELETE /api/library/campaigns/:id
 
@@ -49,23 +49,23 @@
 ## Architecture Analysis
 
 ### Area Impact Assessment
-- **Library**: Core campaign management logic, persistence operations, hierarchy management, cascade delete enforcement, optional epic association
+- **Library**: Core campaign management logic, persistence operations, hierarchy management, cascade delete enforcement, optional world association
 - **Identity (External)**: Campaign ownership validation (OwnerId must reference existing User)
 - **Media (External)**: Background resource validation (must be valid Image resource if provided)
 
 ### Use Case Breakdown
-- **Create Campaign** (Library): Create new campaign with optional epic association and adventures, enforce invariants INV-01 through INV-06
+- **Create Campaign** (Library): Create new campaign with optional world association and adventures, enforce invariants INV-01 through INV-06
 - **Update Campaign** (Library): Modify campaign properties, enforce publication rules (INV-04)
 - **Get Campaign By ID** (Library): Retrieve single campaign by identifier with optional eager loading of adventures
-- **Get Campaigns By Epic** (Library): Query campaigns within specific epic (or standalone with EpicId=null)
-- **Move Campaign To Epic** (Library): Associate standalone campaign with epic (set EpicId)
-- **Make Campaign Standalone** (Library): Remove campaign from epic (set EpicId=null)
+- **Get Campaigns By World** (Library): Query campaigns within specific world (or standalone with WorldId=null)
+- **Move Campaign To World** (Library): Associate standalone campaign with world (set WorldId)
+- **Make Campaign Standalone** (Library): Remove campaign from world (set WorldId=null)
 - **Delete Campaign** (Library): Remove campaign and cascade delete all owned adventures (AGG-03 aggregate rule)
 
 ### Architectural Integration
-- **New Interfaces Needed**: ILibraryStorage.CreateCampaignAsync, UpdateCampaignAsync, GetCampaignByIdAsync, GetCampaignsByEpicAsync, MoveCampaignToEpicAsync, MakeCampaignStandaloneAsync, DeleteCampaignAsync
+- **New Interfaces Needed**: ILibraryStorage.CreateCampaignAsync, UpdateCampaignAsync, GetCampaignByIdAsync, GetCampaignsByWorldAsync, MoveCampaignToWorldAsync, MakeCampaignStandaloneAsync, DeleteCampaignAsync
 - **External Dependencies**: IUserStorage (Identity), IMediaStorage (Media)
-- **Implementation Priority**: Phase 2 (implement after Epic Management due to optional epic association)
+- **Implementation Priority**: Phase 2 (implement after World Management due to optional world association)
 
 ---
 
@@ -74,25 +74,25 @@
 ### Area Interactions
 - **Library** → **Identity**: Campaign creation validates OwnerId references existing User
 - **Library** → **Media**: Campaign creation/update validates Background references valid Image resource
-- **Library (internal)** → **Library**: Campaign optionally references parent Epic (nullable FK, INV-06)
+- **Library (internal)** → **Library**: Campaign optionally references parent World (nullable FK, INV-06)
 
 ### Integration Requirements
-- **Data Sharing**: Campaign.OwnerId shared with Identity context, Campaign.Background shared with Media context, Campaign.EpicId references Epic within Library
+- **Data Sharing**: Campaign.OwnerId shared with Identity context, Campaign.Background shared with Media context, Campaign.WorldId references World within Library
 - **Interface Contracts**: ILibraryStorage interface defines campaign operations, IUserStorage validates ownership, IMediaStorage validates resources
-- **Dependency Management**: Library depends on Identity and Media abstractions (ports), not concrete implementations; Campaign has optional self-reference to Epic within bounded context
+- **Dependency Management**: Library depends on Identity and Media abstractions (ports), not concrete implementations; Campaign has optional self-reference to World within bounded context
 
 ### Implementation Guidance
 - **Development Approach**:
-  - Implement Campaign entity as immutable record (data contract) with nullable EpicId
+  - Implement Campaign entity as immutable record (data contract) with nullable WorldId
   - ILibraryStorage service enforces invariants (INV-01 through INV-06) and aggregate rules (AGG-03, AGG-04)
-  - Use EF Core for persistence with cascade delete configuration and nullable FK for optional epic association
+  - Use EF Core for persistence with cascade delete configuration and nullable FK for optional world association
   - Validate OwnerId via IUserStorage port
   - Validate Background via IMediaStorage port
-  - Support hierarchy movement operations (add to epic, make standalone)
+  - Support hierarchy movement operations (add to world, make standalone)
 - **Testing Strategy**:
-  - Unit tests for invariant enforcement (name validation, publication rules, optional epic reference)
+  - Unit tests for invariant enforcement (name validation, publication rules, optional world reference)
   - Integration tests for cascade delete behavior and hierarchy movement
-  - Acceptance tests for ownership validation, epic association, and standalone mode
+  - Acceptance tests for ownership validation, world association, and standalone mode
 - **Architecture Compliance**:
   - Domain entities are anemic data contracts
   - Business logic resides in ILibraryStorage application service
@@ -106,19 +106,19 @@
 ### Implementation Phases
 
 #### Phase 1: Core Campaign Operations
-- **Create Campaign**: Foundation capability for campaign creation with optional epic association and adventure ownership
+- **Create Campaign**: Foundation capability for campaign creation with optional world association and adventure ownership
 - **Get Campaign By ID**: Essential retrieval operation for single campaign access
-- **Get Campaigns By Epic**: Essential for retrieving campaigns within epic or standalone
+- **Get Campaigns By World**: Essential for retrieving campaigns within world or standalone
 
 #### Phase 2: Campaign Management
 - **Update Campaign**: Build on foundation to enable property modifications and publication
-- **Move Campaign To Epic**: Add hierarchy management for epic association
+- **Move Campaign To World**: Add hierarchy management for world association
 - **Make Campaign Standalone**: Add hierarchy management for standalone mode
 - **Delete Campaign**: Add removal capability with cascade delete enforcement (AGG-03)
 
 ### Dependencies & Prerequisites
-- **Technical Dependencies**: EF Core, IUserStorage, IMediaStorage abstractions, Epic entity
-- **Area Dependencies**: Identity context (User entity), Media context (Resource entity), Library (Epic entity for optional association)
+- **Technical Dependencies**: EF Core, IUserStorage, IMediaStorage abstractions, World entity
+- **Area Dependencies**: Identity context (User entity), Media context (Resource entity), Library (World entity for optional association)
 - **External Dependencies**: Database with cascade delete configuration and nullable FK support
 
 ---
@@ -157,7 +157,7 @@ FEATURE SPECIFICATION QUALITY CHECKLIST
 ## Implementation Guidance (20 points)
 ✅ 5pts: New interfaces needed are identified (ILibraryStorage operations)
 ✅ 5pts: External dependencies documented (Identity, Media contexts)
-✅ 5pts: Implementation priority clearly stated (Phase 2 after Epic)
+✅ 5pts: Implementation priority clearly stated (Phase 2 after World)
 ✅ 5pts: Technical considerations address integration requirements
 
 ## Target Score: 100/100 ✅

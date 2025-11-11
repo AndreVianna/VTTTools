@@ -5,7 +5,7 @@ import type { Adventure } from '@/types/domain';
 export interface ContentFilters {
     after?: string;
     limit?: number;
-    contentType?: 'adventure' | 'campaign' | 'epic';
+    contentType?: 'adventure' | 'campaign' | 'world';
     style?: number;
     isOneShot?: boolean;
     minEncounterCount?: number;

@@ -20,7 +20,7 @@
 
 ## Current Status Summary
 
-**Completed**: Phases 1-7 (75.8% of epic)
+**Completed**: Phases 1-7 (75.8% of world)
 - ✅ Phase 1-2: Foundation, Auth, Landing
 - ✅ Phase 3-4: Encounter Editor (Pan/Zoom, Grid/Layers)
 - ✅ Phase 5: Asset Library
@@ -120,7 +120,7 @@
 **Start Here**:
 - `README.md` - This file (orientation)
 - `ROADMAP.md` - Master plan, all phases, current status (58KB)
-- `TASK.md` - Epic definition, success criteria (22KB)
+- `TASK.md` - World definition, success criteria (22KB)
 
 **Phase 7 Specifications**:
 - `phases/PHASE-7-DESIGN.md` - User flows, UI specs, implementation steps (28KB)
@@ -269,7 +269,7 @@ cat Documents/Architecture/CONTENT-LIBRARY.md
 
 ## Contact / Questions
 
-- Epic Owner: VTTTools Development Team
+- World Owner: VTTTools Development Team
 - Architecture: See CONTENT-LIBRARY.md
 - Questions: Check ROADMAP.md or PHASE-7-DESIGN.md first
 

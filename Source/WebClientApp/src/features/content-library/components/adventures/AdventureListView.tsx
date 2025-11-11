@@ -37,7 +37,7 @@ import { useDebounce, useInfiniteScroll } from '../../hooks';
 const DEFAULT_ADVENTURE_NAME = 'Untitled Adventure';
 const DEFAULT_ADVENTURE_DESCRIPTION = 'A new adventure.';
 
-type ContentTypeFilter = 'all' | 'single-encounter' | 'one-shot' | 'adventure' | 'campaign' | 'epic';
+type ContentTypeFilter = 'all' | 'single-encounter' | 'one-shot' | 'adventure' | 'campaign' | 'world';
 
 export function AdventureListView() {
     const navigate = useNavigate();
@@ -58,7 +58,7 @@ export function AdventureListView() {
         limit: 20
     };
 
-    if (['campaign', 'epic'].includes(contentTypeFilter)) {
+    if (['campaign', 'world'].includes(contentTypeFilter)) {
         filters.contentType = contentTypeFilter;
     }
     if (styleFilter !== 'all') {
@@ -215,7 +215,7 @@ export function AdventureListView() {
                         <MenuItem value="one-shot">One Shot</MenuItem>
                         <MenuItem value="adventure">Adventure</MenuItem>
                         <MenuItem value="campaign">Campaign</MenuItem>
-                        <MenuItem value="epic">Epic</MenuItem>
+                        <MenuItem value="world">World</MenuItem>
                     </Select>
                 </FormControl>
                 <FormControl size="small" sx={{ minWidth: 180 }}>

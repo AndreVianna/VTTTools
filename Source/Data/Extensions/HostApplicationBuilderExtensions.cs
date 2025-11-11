@@ -6,7 +6,7 @@ public static class HostApplicationBuilderExtensions {
         builder.Services.AddScoped<IAssetStorage, AssetStorage>();
         builder.Services.AddScoped<IAdventureStorage, AdventureStorage>();
         builder.Services.AddScoped<IEncounterStorage, EncounterStorage>();
-        builder.Services.AddScoped<IEpicStorage, EpicStorage>();
+        builder.Services.AddScoped<IWorldStorage, WorldStorage>();
         builder.Services.AddScoped<ICampaignStorage, CampaignStorage>();
         builder.Services.AddScoped<IGameSessionStorage, GameSessionStorage>();
     }

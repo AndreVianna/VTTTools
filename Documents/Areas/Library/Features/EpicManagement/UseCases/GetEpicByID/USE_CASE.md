@@ -1,4 +1,4 @@
-# GetEpicByID Use Case
+# GetWorldByID Use Case
 
 **Status**: Specification pending - BDD file exists
 

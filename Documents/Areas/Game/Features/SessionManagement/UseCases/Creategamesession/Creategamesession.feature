@@ -32,12 +32,12 @@ Feature: Create-Game-Session
       And the session title is "Waterdeep Dragon Heist: A Thrilling Adventure in the City of Splendors"
 
     Scenario: Create game session with title at exactly 128 characters
-      When I create a game session with title "The Lost Mines of Phandelver: An Epic Quest Through Dangerous Dungeons and Treacherous Terrain Filled With Ancient Mysteries"
+      When I create a game session with title "The Lost Mines of Phandelver: An World Quest Through Dangerous Dungeons and Treacherous Terrain Filled With Ancient Mysteries"
       Then my session is created successfully
       And the title length is exactly 128 characters
 
     Scenario: Create game session with title exceeding maximum length
-      When I create a game session with title "The Lost Mines of Phandelver: An Epic Quest Through Dangerous Dungeons and Treacherous Terrain Filled With Ancient Mysteries and Hidden Treasures Beyond Imagination"
+      When I create a game session with title "The Lost Mines of Phandelver: An World Quest Through Dangerous Dungeons and Treacherous Terrain Filled With Ancient Mysteries and Hidden Treasures Beyond Imagination"
       Then I receive a 400 Bad Request error
       And the error message is "Title must not exceed 128 characters"
 

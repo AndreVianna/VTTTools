@@ -157,7 +157,7 @@
 - **AC-04**: VTT-themed messaging displayed
   - **Given**: ServiceUnavailablePage rendered
   - **When**: Component displays
-  - **Then**: Message uses VTT language ("Adventure Temporarily Unavailable", "prepare your next epic campaign")
+  - **Then**: Message uses VTT language ("Adventure Temporarily Unavailable", "prepare your next world campaign")
 
 ---
 

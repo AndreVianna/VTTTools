@@ -383,11 +383,16 @@ namespace VttTools.Data.MigrationService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("WorldId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BackgroundId");
 
                     b.HasIndex("CampaignId");
+
+                    b.HasIndex("WorldId");
 
                     b.ToTable("Adventures", (string)null);
                 });
@@ -406,9 +411,6 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("EpicId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<bool>("IsPublic")
                         .HasColumnType("bit");
 
@@ -423,11 +425,14 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("WorldId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BackgroundId");
 
-                    b.HasIndex("EpicId");
+                    b.HasIndex("WorldId");
 
                     b.ToTable("Campaigns", (string)null);
                 });
@@ -864,7 +869,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.ToTable("EncounterWalls", (string)null);
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.Epic", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.World", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -896,7 +901,7 @@ namespace VttTools.Data.MigrationService.Migrations
 
                     b.HasIndex("BackgroundId");
 
-                    b.ToTable("Epics", (string)null);
+                    b.ToTable("Worlds", (string)null);
                 });
 
             modelBuilder.Entity("VttTools.Data.Maintenance.Entities.MaintenanceMode", b =>
@@ -1453,16 +1458,23 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
                         .WithMany()
                         .HasForeignKey("BackgroundId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("VttTools.Data.Library.Entities.Campaign", "Campaign")
                         .WithMany("Adventures")
                         .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("VttTools.Data.Library.Entities.World", "World")
+                        .WithMany("Adventures")
+                        .HasForeignKey("WorldId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Background");
 
                     b.Navigation("Campaign");
+
+                    b.Navigation("World");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Campaign", b =>
@@ -1472,14 +1484,14 @@ namespace VttTools.Data.MigrationService.Migrations
                         .HasForeignKey("BackgroundId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("VttTools.Data.Library.Entities.Epic", "Epic")
+                    b.HasOne("VttTools.Data.Library.Entities.World", "World")
                         .WithMany("Campaigns")
-                        .HasForeignKey("EpicId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("WorldId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Background");
 
-                    b.Navigation("Epic");
+                    b.Navigation("World");
                 });
 
             modelBuilder.Entity("VttTools.Data.Library.Entities.Encounter", b =>
@@ -1657,7 +1669,7 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Poles");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.Epic", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.World", b =>
                 {
                     b.HasOne("VttTools.Data.Media.Entities.Resource", "Background")
                         .WithMany()
@@ -1782,8 +1794,10 @@ namespace VttTools.Data.MigrationService.Migrations
                     b.Navigation("Walls");
                 });
 
-            modelBuilder.Entity("VttTools.Data.Library.Entities.Epic", b =>
+            modelBuilder.Entity("VttTools.Data.Library.Entities.World", b =>
                 {
+                    b.Navigation("Adventures");
+
                     b.Navigation("Campaigns");
                 });
 #pragma warning restore 612, 618

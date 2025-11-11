@@ -1,4 +1,4 @@
 export { ContentLibraryPage } from './ContentLibraryPage';
-export { EpicDetailPage } from './EpicDetailPage';
+export { WorldDetailPage } from './WorldDetailPage';
 export { CampaignDetailPage } from './CampaignDetailPage';
 export { AdventureDetailPage } from './AdventureDetailPage';

@@ -1,7 +1,7 @@
 // Generated: 2025-10-12
-// BDD Step Definitions for Get Epic By ID Use Case
+// BDD Step Definitions for Get World By ID Use Case
 // Framework: SpecFlow/Cucumber.NET with xUnit
-// Testing: Backend API (EpicService - Phase 7 BLOCKED)
+// Testing: Backend API (WorldService - Phase 7 BLOCKED)
 // CRITICAL: Service not implemented - steps use placeholder contracts
 
 using FluentAssertions;
@@ -9,38 +9,38 @@ using NSubstitute;
 using TechTalk.SpecFlow;
 using VttTools.Common.Model;
 using VttTools.Library.Campaigns.Model;
-using VttTools.Library.Epics.Model;
-using VttTools.Library.Epics.Services;
-using VttTools.Library.Epics.Storage;
+using VttTools.Library.Worlds.Model;
+using VttTools.Library.Worlds.Services;
+using VttTools.Library.Worlds.Storage;
 using Xunit;
 
-namespace VttTools.Library.Tests.BDD.EpicManagement.GetEpicByID;
+namespace VttTools.Library.Tests.BDD.WorldManagement.GetWorldByID;
 
 /// <summary>
-/// BDD Step Definitions for Get Epic By ID scenarios.
-/// BLOCKED: EpicService implementation pending (Phase 7).
+/// BDD Step Definitions for Get World By ID scenarios.
+/// BLOCKED: WorldService implementation pending (Phase 7).
 /// These steps define expected behavior using placeholder service contracts.
 /// </summary>
 [Binding]
 [Tag("@blocked", "@phase7-pending")]
-public class GetEpicByIDSteps {
+public class GetWorldByIDSteps {
     private readonly ScenarioContext _context;
-    private readonly IEpicStorage _epicStorage;
-    private readonly IEpicService _service;
+    private readonly IWorldStorage _worldStorage;
+    private readonly IWorldService _service;
 
     // Test state
-    private Epic? _existingEpic;
-    private Result<Epic>? _getResult;
+    private World? _existingWorld;
+    private Result<World>? _getResult;
     private Guid _userId = Guid.Empty;
-    private Guid _epicId = Guid.Empty;
+    private Guid _worldId = Guid.Empty;
     private string? _invalidId;
     private Exception? _exception;
 
-    public GetEpicByIDSteps(ScenarioContext context) {
+    public GetWorldByIDSteps(ScenarioContext context) {
         _context = context;
-        _epicStorage = Substitute.For<IEpicStorage>();
-        // NOTE: IEpicService does not exist yet - placeholder for Phase 7
-        _service = Substitute.For<IEpicService>();
+        _worldStorage = Substitute.For<IWorldStorage>();
+        // NOTE: IWorldService does not exist yet - placeholder for Phase 7
+        _service = Substitute.For<IWorldService>();
     }
 
     #region Background Steps
@@ -53,40 +53,40 @@ public class GetEpicByIDSteps {
 
     #endregion
 
-    #region Given Steps - Epic Existence
+    #region Given Steps - World Existence
 
-    [Given(@"an epic exists with ID ""(.*)""")]
-    public void GivenAnEpicExistsWithId(string epicId) {
-        _epicId = Guid.Parse(epicId);
-        _existingEpic = new Epic {
-            Id = _epicId,
+    [Given(@"an world exists with ID ""(.*)""")]
+    public void GivenAnWorldExistsWithId(string worldId) {
+        _worldId = Guid.Parse(worldId);
+        _existingWorld = new World {
+            Id = _worldId,
             OwnerId = _userId,
-            Name = "Test Epic",
+            Name = "Test World",
             Description = "Test Description",
             IsPublished = false,
             IsPublic = false,
             Campaigns = []
         };
 
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(_existingEpic);
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(_existingWorld);
     }
 
-    [Given(@"the epic has name ""(.*)""")]
-    public void GivenTheEpicHasName(string name) {
-        if (_existingEpic is not null) {
-            _existingEpic = _existingEpic with { Name = name };
+    [Given(@"the world has name ""(.*)""")]
+    public void GivenTheWorldHasName(string name) {
+        if (_existingWorld is not null) {
+            _existingWorld = _existingWorld with { Name = name };
         }
     }
 
-    [Given(@"an epic exists with (.*) associated campaigns")]
-    public void GivenAnEpicExistsWithAssociatedCampaigns(int count) {
-        if (_existingEpic is null) {
-            _epicId = Guid.CreateVersion7();
-            _existingEpic = new Epic {
-                Id = _epicId,
+    [Given(@"an world exists with (.*) associated campaigns")]
+    public void GivenAnWorldExistsWithAssociatedCampaigns(int count) {
+        if (_existingWorld is null) {
+            _worldId = Guid.CreateVersion7();
+            _existingWorld = new World {
+                Id = _worldId,
                 OwnerId = _userId,
-                Name = "Test Epic",
+                Name = "Test World",
                 Description = "Test Description"
             };
         }
@@ -97,25 +97,25 @@ public class GetEpicByIDSteps {
                 Id = Guid.CreateVersion7(),
                 Name = $"Campaign {i + 1}",
                 OwnerId = _userId,
-                EpicId = _epicId
+                WorldId = _worldId
             });
         }
 
-        _existingEpic = _existingEpic with { Campaigns = campaigns };
+        _existingWorld = _existingWorld with { Campaigns = campaigns };
         _context["CampaignCount"] = count;
 
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(_existingEpic);
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(_existingWorld);
     }
 
-    [Given(@"an epic exists with background resource")]
-    public void GivenAnEpicExistsWithBackgroundResource() {
-        if (_existingEpic is null) {
-            _epicId = Guid.CreateVersion7();
-            _existingEpic = new Epic {
-                Id = _epicId,
+    [Given(@"an world exists with background resource")]
+    public void GivenAnWorldExistsWithBackgroundResource() {
+        if (_existingWorld is null) {
+            _worldId = Guid.CreateVersion7();
+            _existingWorld = new World {
+                Id = _worldId,
                 OwnerId = _userId,
-                Name = "Test Epic",
+                Name = "Test World",
                 Description = "Test Description"
             };
         }
@@ -127,33 +127,33 @@ public class GetEpicByIDSteps {
             MimeType = "image/jpeg"
         };
 
-        _existingEpic = _existingEpic with { Background = resource };
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(_existingEpic);
+        _existingWorld = _existingWorld with { Background = resource };
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(_existingWorld);
     }
 
-    [Given(@"an epic exists with no associated campaigns")]
-    public void GivenAnEpicExistsWithNoAssociatedCampaigns() {
-        _epicId = Guid.CreateVersion7();
-        _existingEpic = new Epic {
-            Id = _epicId,
+    [Given(@"an world exists with no associated campaigns")]
+    public void GivenAnWorldExistsWithNoAssociatedCampaigns() {
+        _worldId = Guid.CreateVersion7();
+        _existingWorld = new World {
+            Id = _worldId,
             OwnerId = _userId,
-            Name = "Empty Epic",
+            Name = "Empty World",
             Description = "No campaigns",
             Campaigns = []
         };
 
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(_existingEpic);
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(_existingWorld);
     }
 
-    [Given(@"an epic exists with only required fields populated")]
-    public void GivenAnEpicExistsWithOnlyRequiredFieldsPopulated() {
-        _epicId = Guid.CreateVersion7();
-        _existingEpic = new Epic {
-            Id = _epicId,
+    [Given(@"an world exists with only required fields populated")]
+    public void GivenAnWorldExistsWithOnlyRequiredFieldsPopulated() {
+        _worldId = Guid.CreateVersion7();
+        _existingWorld = new World {
+            Id = _worldId,
             OwnerId = _userId,
-            Name = "Minimal Epic",
+            Name = "Minimal World",
             Description = string.Empty,
             Background = null!,
             IsPublished = false,
@@ -161,25 +161,25 @@ public class GetEpicByIDSteps {
             Campaigns = []
         };
 
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(_existingEpic);
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(_existingWorld);
     }
 
-    [Given(@"an epic exists with IsPublished=(.*) and IsPublic=(.*)")]
-    public void GivenAnEpicExistsWithPublicationStatus(bool isPublished, bool isPublic) {
-        _epicId = Guid.CreateVersion7();
-        _existingEpic = new Epic {
-            Id = _epicId,
+    [Given(@"an world exists with IsPublished=(.*) and IsPublic=(.*)")]
+    public void GivenAnWorldExistsWithPublicationStatus(bool isPublished, bool isPublic) {
+        _worldId = Guid.CreateVersion7();
+        _existingWorld = new World {
+            Id = _worldId,
             OwnerId = _userId,
-            Name = "Test Epic",
+            Name = "Test World",
             Description = "Test Description",
             IsPublished = isPublished,
             IsPublic = isPublic,
             Campaigns = []
         };
 
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(_existingEpic);
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(_existingWorld);
     }
 
     [Given(@"I am authenticated as (.*)")]
@@ -190,30 +190,30 @@ public class GetEpicByIDSteps {
         _context["UserRole"] = role;
     }
 
-    [Given(@"I have created an epic titled ""(.*)""")]
-    public void GivenIHaveCreatedAnEpicTitled(string name) {
-        _epicId = Guid.CreateVersion7();
-        _existingEpic = new Epic {
-            Id = _epicId,
+    [Given(@"I have created an world titled ""(.*)""")]
+    public void GivenIHaveCreatedAnWorldTitled(string name) {
+        _worldId = Guid.CreateVersion7();
+        _existingWorld = new World {
+            Id = _worldId,
             OwnerId = _userId,
             Name = name,
-            Description = "Epic description",
+            Description = "World description",
             Campaigns = []
         };
 
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(_existingEpic);
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(_existingWorld);
     }
 
     #endregion
 
     #region Given Steps - Error Scenarios
 
-    [Given(@"no epic exists with ID ""(.*)""")]
-    public void GivenNoEpicExistsWithId(string epicId) {
-        _epicId = Guid.Parse(epicId);
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns((Epic?)null);
+    [Given(@"no world exists with ID ""(.*)""")]
+    public void GivenNoWorldExistsWithId(string worldId) {
+        _worldId = Guid.Parse(worldId);
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns((World?)null);
     }
 
     [Given(@"I provide invalid ID format ""(.*)""")]
@@ -221,24 +221,24 @@ public class GetEpicByIDSteps {
         _invalidId = invalidId;
     }
 
-    [Given(@"an epic exists in the database")]
-    public void GivenAnEpicExistsInTheDatabase() {
-        _epicId = Guid.CreateVersion7();
-        _existingEpic = new Epic {
-            Id = _epicId,
+    [Given(@"an world exists in the database")]
+    public void GivenAnWorldExistsInTheDatabase() {
+        _worldId = Guid.CreateVersion7();
+        _existingWorld = new World {
+            Id = _worldId,
             OwnerId = _userId,
-            Name = "Test Epic",
+            Name = "Test World",
             Description = "Test Description"
         };
 
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(_existingEpic);
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(_existingWorld);
     }
 
     [Given(@"the database is unavailable")]
     public void GivenTheDatabaseIsUnavailable() {
-        _epicStorage.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns<Epic?>(x => throw new InvalidOperationException("Database connection failed"));
+        _worldStorage.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns<World?>(x => throw new InvalidOperationException("Database connection failed"));
     }
 
     [Given(@"I am not authenticated")]
@@ -247,43 +247,43 @@ public class GetEpicByIDSteps {
         _context["UserAuthenticated"] = false;
     }
 
-    [Given(@"a private epic exists")]
-    public void GivenAPrivateEpicExists() {
-        _epicId = Guid.CreateVersion7();
-        _existingEpic = new Epic {
-            Id = _epicId,
+    [Given(@"a private world exists")]
+    public void GivenAPrivateWorldExists() {
+        _worldId = Guid.CreateVersion7();
+        _existingWorld = new World {
+            Id = _worldId,
             OwnerId = Guid.CreateVersion7(), // Different owner
-            Name = "Private Epic",
+            Name = "Private World",
             Description = "Private description",
             IsPublished = false,
             IsPublic = false
         };
 
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(_existingEpic);
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(_existingWorld);
     }
 
     #endregion
 
     #region When Steps - Retrieve Actions
 
-    [When(@"I request the epic by ID ""(.*)""")]
-    public async Task WhenIRequestTheEpicById(string epicId) {
-        _epicId = Guid.Parse(epicId);
+    [When(@"I request the world by ID ""(.*)""")]
+    public async Task WhenIRequestTheWorldById(string worldId) {
+        _worldId = Guid.Parse(worldId);
         await ExecuteGet();
     }
 
-    [When(@"I request the epic by its ID")]
-    public async Task WhenIRequestTheEpicByItsId() {
+    [When(@"I request the world by its ID")]
+    public async Task WhenIRequestTheWorldByItsId() {
         await ExecuteGet();
     }
 
-    [When(@"I attempt to request the epic")]
-    public async Task WhenIAttemptToRequestTheEpic() {
+    [When(@"I attempt to request the world")]
+    public async Task WhenIAttemptToRequestTheWorld() {
         if (_invalidId is not null) {
             // Invalid GUID format - should fail parsing
             try {
-                _epicId = Guid.Parse(_invalidId);
+                _worldId = Guid.Parse(_invalidId);
             }
             catch (FormatException ex) {
                 _exception = ex;
@@ -294,21 +294,21 @@ public class GetEpicByIDSteps {
         await ExecuteGet();
     }
 
-    [When(@"I attempt to request the epic by its ID")]
-    public async Task WhenIAttemptToRequestTheEpicByItsId() {
+    [When(@"I attempt to request the world by its ID")]
+    public async Task WhenIAttemptToRequestTheWorldByItsId() {
         await ExecuteGet();
     }
 
-    [When(@"I retrieve the epic by its identifier")]
-    public async Task WhenIRetrieveTheEpicByItsIdentifier() {
+    [When(@"I retrieve the world by its identifier")]
+    public async Task WhenIRetrieveTheWorldByItsIdentifier() {
         await ExecuteGet();
     }
 
     private async Task ExecuteGet() {
         try {
-            // NOTE: This will fail because IEpicService.GetByIdAsync does not exist
+            // NOTE: This will fail because IWorldService.GetByIdAsync does not exist
             // Placeholder call for when service is implemented
-            _getResult = await _service.GetByIdAsync(_epicId, CancellationToken.None);
+            _getResult = await _service.GetByIdAsync(_worldId, CancellationToken.None);
             _context["GetResult"] = _getResult;
         }
         catch (Exception ex) {
@@ -321,25 +321,25 @@ public class GetEpicByIDSteps {
 
     #region Then Steps - Success Assertions
 
-    [Then(@"I should receive the epic details")]
-    public void ThenIShouldReceiveTheEpicDetails() {
+    [Then(@"I should receive the world details")]
+    public void ThenIShouldReceiveTheWorldDetails() {
         _getResult.Should().NotBeNull();
         _getResult!.IsSuccessful.Should().BeTrue();
         _getResult.Value.Should().NotBeNull();
     }
 
-    [Then(@"I receive the complete epic details")]
-    public void ThenIReceiveTheCompleteEpicDetails() {
-        ThenIShouldReceiveTheEpicDetails();
+    [Then(@"I receive the complete world details")]
+    public void ThenIReceiveTheCompleteWorldDetails() {
+        ThenIShouldReceiveTheWorldDetails();
     }
 
-    [Then(@"the epic name should be ""(.*)""")]
-    public void ThenTheEpicNameShouldBe(string expectedName) {
+    [Then(@"the world name should be ""(.*)""")]
+    public void ThenTheWorldNameShouldBe(string expectedName) {
         _getResult!.Value!.Name.Should().Be(expectedName);
     }
 
-    [Then(@"the epic should include all properties")]
-    public void ThenTheEpicShouldIncludeAllProperties() {
+    [Then(@"the world should include all properties")]
+    public void ThenTheWorldShouldIncludeAllProperties() {
         _getResult!.Value.Should().NotBeNull();
         _getResult!.Value!.Id.Should().NotBeEmpty();
         _getResult!.Value!.Name.Should().NotBeEmpty();
@@ -350,10 +350,10 @@ public class GetEpicByIDSteps {
         _getResult!.Value!.Campaigns.Should().HaveCount(expectedCount);
     }
 
-    [Then(@"each campaign should reference the correct epic ID")]
-    public void ThenEachCampaignShouldReferenceTheCorrectEpicId() {
+    [Then(@"each campaign should reference the correct world ID")]
+    public void ThenEachCampaignShouldReferenceTheCorrectWorldId() {
         _getResult!.Value!.Campaigns.Should().AllSatisfy(c =>
-            c.EpicId.Should().Be(_epicId)
+            c.WorldId.Should().Be(_worldId)
         );
     }
 

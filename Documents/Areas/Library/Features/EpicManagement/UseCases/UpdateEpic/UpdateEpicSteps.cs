@@ -1,7 +1,7 @@
 // Generated: 2025-10-12
-// BDD Step Definitions for Update Epic Use Case
+// BDD Step Definitions for Update World Use Case
 // Framework: SpecFlow/Cucumber.NET with xUnit
-// Testing: Backend API (EpicService - Phase 7 BLOCKED)
+// Testing: Backend API (WorldService - Phase 7 BLOCKED)
 // CRITICAL: Service not implemented - steps use placeholder contracts
 
 using FluentAssertions;
@@ -9,42 +9,42 @@ using NSubstitute;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 using VttTools.Common.Model;
-using VttTools.Library.Epics.Model;
-using VttTools.Library.Epics.ServiceContracts;
-using VttTools.Library.Epics.Services;
-using VttTools.Library.Epics.Storage;
+using VttTools.Library.Worlds.Model;
+using VttTools.Library.Worlds.ServiceContracts;
+using VttTools.Library.Worlds.Services;
+using VttTools.Library.Worlds.Storage;
 using VttTools.Media.Storage;
 using Xunit;
 
-namespace VttTools.Library.Tests.BDD.EpicManagement.UpdateEpic;
+namespace VttTools.Library.Tests.BDD.WorldManagement.UpdateWorld;
 
 /// <summary>
-/// BDD Step Definitions for Update Epic scenarios.
-/// BLOCKED: EpicService implementation pending (Phase 7).
+/// BDD Step Definitions for Update World scenarios.
+/// BLOCKED: WorldService implementation pending (Phase 7).
 /// These steps define expected behavior using placeholder service contracts.
 /// </summary>
 [Binding]
 [Tag("@blocked", "@phase7-pending")]
-public class UpdateEpicSteps {
+public class UpdateWorldSteps {
     private readonly ScenarioContext _context;
-    private readonly IEpicStorage _epicStorage;
+    private readonly IWorldStorage _worldStorage;
     private readonly IMediaStorage _mediaStorage;
-    private readonly IEpicService _service;
+    private readonly IWorldService _service;
 
     // Test state
-    private Epic? _existingEpic;
-    private UpdateEpicData? _updateData;
+    private World? _existingWorld;
+    private UpdateWorldData? _updateData;
     private Result? _updateResult;
     private Guid _userId = Guid.Empty;
-    private Guid _epicId = Guid.Empty;
+    private Guid _worldId = Guid.Empty;
     private Exception? _exception;
 
-    public UpdateEpicSteps(ScenarioContext context) {
+    public UpdateWorldSteps(ScenarioContext context) {
         _context = context;
-        _epicStorage = Substitute.For<IEpicStorage>();
+        _worldStorage = Substitute.For<IWorldStorage>();
         _mediaStorage = Substitute.For<IMediaStorage>();
-        // NOTE: IEpicService does not exist yet - placeholder for Phase 7
-        _service = Substitute.For<IEpicService>();
+        // NOTE: IWorldService does not exist yet - placeholder for Phase 7
+        _service = Substitute.For<IWorldService>();
     }
 
     #region Background Steps
@@ -55,67 +55,67 @@ public class UpdateEpicSteps {
         _context["UserId"] = _userId;
     }
 
-    [Given(@"I own an epic in my library")]
-    public void GivenIOwnAnEpicInMyLibrary() {
-        _epicId = Guid.CreateVersion7();
-        _existingEpic = new Epic {
-            Id = _epicId,
+    [Given(@"I own an world in my library")]
+    public void GivenIOwnAnWorldInMyLibrary() {
+        _worldId = Guid.CreateVersion7();
+        _existingWorld = new World {
+            Id = _worldId,
             OwnerId = _userId,
-            Name = "Original Epic",
+            Name = "Original World",
             Description = "Original description",
             IsPublished = false,
             IsPublic = false
         };
 
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(_existingEpic);
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(_existingWorld);
 
-        _context["EpicId"] = _epicId;
+        _context["WorldId"] = _worldId;
     }
 
-    [Given(@"I have an existing epic titled ""(.*)""")]
-    public void GivenIHaveAnExistingEpicTitled(string name) {
-        GivenIOwnAnEpicInMyLibrary();
-        _existingEpic = _existingEpic! with { Name = name };
+    [Given(@"I have an existing world titled ""(.*)""")]
+    public void GivenIHaveAnExistingWorldTitled(string name) {
+        GivenIOwnAnWorldInMyLibrary();
+        _existingWorld = _existingWorld! with { Name = name };
     }
 
     #endregion
 
-    #region Given Steps - Existing Epic State
+    #region Given Steps - Existing World State
 
-    [Given(@"my epic has name ""(.*)""")]
-    public void GivenMyEpicHasName(string name) {
-        if (_existingEpic is not null) {
-            _existingEpic = _existingEpic with { Name = name };
+    [Given(@"my world has name ""(.*)""")]
+    public void GivenMyWorldHasName(string name) {
+        if (_existingWorld is not null) {
+            _existingWorld = _existingWorld with { Name = name };
         }
     }
 
-    [Given(@"my epic has description ""(.*)""")]
-    public void GivenMyEpicHasDescription(string description) {
-        if (_existingEpic is not null) {
-            _existingEpic = _existingEpic with { Description = description };
+    [Given(@"my world has description ""(.*)""")]
+    public void GivenMyWorldHasDescription(string description) {
+        if (_existingWorld is not null) {
+            _existingWorld = _existingWorld with { Description = description };
         }
     }
 
-    [Given(@"my epic has IsPublished=(.*) and IsPublic=(.*)")]
-    public void GivenMyEpicHasPublicationStatus(bool isPublished, bool isPublic) {
-        if (_existingEpic is not null) {
-            _existingEpic = _existingEpic with {
+    [Given(@"my world has IsPublished=(.*) and IsPublic=(.*)")]
+    public void GivenMyWorldHasPublicationStatus(bool isPublished, bool isPublic) {
+        if (_existingWorld is not null) {
+            _existingWorld = _existingWorld with {
                 IsPublished = isPublished,
                 IsPublic = isPublic
             };
         }
     }
 
-    [Given(@"my epic has no background resource")]
-    public void GivenMyEpicHasNoBackgroundResource() {
-        if (_existingEpic is not null) {
-            _existingEpic = _existingEpic with { Background = null! };
+    [Given(@"my world has no background resource")]
+    public void GivenMyWorldHasNoBackgroundResource() {
+        if (_existingWorld is not null) {
+            _existingWorld = _existingWorld with { Background = null! };
         }
     }
 
-    [Given(@"my epic has background resource")]
-    public void GivenMyEpicHasBackgroundResource() {
+    [Given(@"my world has background resource")]
+    public void GivenMyWorldHasBackgroundResource() {
         var resourceId = Guid.CreateVersion7();
         var resource = new Resource {
             Id = resourceId,
@@ -124,15 +124,15 @@ public class UpdateEpicSteps {
             MimeType = "image/jpeg"
         };
 
-        if (_existingEpic is not null) {
-            _existingEpic = _existingEpic with { Background = resource };
+        if (_existingWorld is not null) {
+            _existingWorld = _existingWorld with { Background = resource };
         }
     }
 
-    [Given(@"my epic exists")]
-    public void GivenMyEpicExists() {
-        if (_existingEpic is null) {
-            GivenIOwnAnEpicInMyLibrary();
+    [Given(@"my world exists")]
+    public void GivenMyWorldExists() {
+        if (_existingWorld is null) {
+            GivenIOwnAnWorldInMyLibrary();
         }
     }
 
@@ -140,26 +140,26 @@ public class UpdateEpicSteps {
 
     #region Given Steps - Error Scenarios
 
-    [Given(@"no epic exists with ID ""(.*)""")]
-    public void GivenNoEpicExistsWithId(string epicId) {
-        var guid = Guid.Parse(epicId);
-        _epicStorage.GetByIdAsync(guid, Arg.Any<CancellationToken>())
-            .Returns((Epic?)null);
+    [Given(@"no world exists with ID ""(.*)""")]
+    public void GivenNoWorldExistsWithId(string worldId) {
+        var guid = Guid.Parse(worldId);
+        _worldStorage.GetByIdAsync(guid, Arg.Any<CancellationToken>())
+            .Returns((World?)null);
     }
 
-    [Given(@"an epic exists owned by another user")]
-    public void GivenAnEpicExistsOwnedByAnotherUser() {
+    [Given(@"an world exists owned by another user")]
+    public void GivenAnWorldExistsOwnedByAnotherUser() {
         var otherUserId = Guid.CreateVersion7();
-        _epicId = Guid.CreateVersion7();
-        _existingEpic = new Epic {
-            Id = _epicId,
+        _worldId = Guid.CreateVersion7();
+        _existingWorld = new World {
+            Id = _worldId,
             OwnerId = otherUserId, // Different owner
-            Name = "Other User's Epic",
+            Name = "Other User's World",
             Description = "Description"
         };
 
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(_existingEpic);
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(_existingWorld);
     }
 
     [Given(@"I am not authenticated")]
@@ -168,23 +168,23 @@ public class UpdateEpicSteps {
         _context["UserAuthenticated"] = false;
     }
 
-    [Given(@"an epic exists")]
-    public void GivenAnEpicExists() {
-        GivenIOwnAnEpicInMyLibrary();
+    [Given(@"an world exists")]
+    public void GivenAnWorldExists() {
+        GivenIOwnAnWorldInMyLibrary();
     }
 
-    [Given(@"another Game Master has created an epic")]
-    public void GivenAnotherGameMasterHasCreatedAnEpic() {
-        GivenAnEpicExistsOwnedByAnotherUser();
+    [Given(@"another Game Master has created an world")]
+    public void GivenAnotherGameMasterHasCreatedAnWorld() {
+        GivenAnWorldExistsOwnedByAnotherUser();
     }
 
     #endregion
 
     #region When Steps - Update Actions
 
-    [When(@"I update the epic name to ""(.*)""")]
-    public async Task WhenIUpdateTheEpicNameTo(string newName) {
-        _updateData = new UpdateEpicData {
+    [When(@"I update the world name to ""(.*)""")]
+    public async Task WhenIUpdateTheWorldNameTo(string newName) {
+        _updateData = new UpdateWorldData {
             Name = newName
         };
         await ExecuteUpdate();
@@ -192,7 +192,7 @@ public class UpdateEpicSteps {
 
     [When(@"I attempt to update with empty name")]
     public async Task WhenIAttemptToUpdateWithEmptyName() {
-        _updateData = new UpdateEpicData {
+        _updateData = new UpdateWorldData {
             Name = string.Empty
         };
         await ExecuteUpdate();
@@ -200,7 +200,7 @@ public class UpdateEpicSteps {
 
     [When(@"I attempt to update with name of (.*) characters")]
     public async Task WhenIAttemptToUpdateWithNameOfCharacters(int length) {
-        _updateData = new UpdateEpicData {
+        _updateData = new UpdateWorldData {
             Name = new string('A', length)
         };
         await ExecuteUpdate();
@@ -208,7 +208,7 @@ public class UpdateEpicSteps {
 
     [When(@"I update to IsPublished=(.*) and IsPublic=(.*)")]
     public async Task WhenIUpdateToPublicationStatus(bool isPublished, bool isPublic) {
-        _updateData = new UpdateEpicData {
+        _updateData = new UpdateWorldData {
             IsPublished = isPublished,
             IsPublic = isPublic
         };
@@ -222,7 +222,7 @@ public class UpdateEpicSteps {
 
     [When(@"I update the description to ""(.*)""")]
     public async Task WhenIUpdateTheDescriptionTo(string newDescription) {
-        _updateData = new UpdateEpicData {
+        _updateData = new UpdateWorldData {
             Description = newDescription
         };
         await ExecuteUpdate();
@@ -241,16 +241,16 @@ public class UpdateEpicSteps {
         _mediaStorage.GetByIdAsync(resourceId, Arg.Any<CancellationToken>())
             .Returns(resource);
 
-        _updateData = new UpdateEpicData {
+        _updateData = new UpdateWorldData {
             BackgroundResourceId = resourceId
         };
         await ExecuteUpdate();
     }
 
-    [When(@"I update the epic with:")]
-    public async Task WhenIUpdateTheEpicWith(Table table) {
+    [When(@"I update the world with:")]
+    public async Task WhenIUpdateTheWorldWith(Table table) {
         var data = table.CreateInstance<UpdateDataTable>();
-        _updateData = new UpdateEpicData {
+        _updateData = new UpdateWorldData {
             Name = data.Name,
             Description = data.Description,
             IsPublic = data.IsPublic
@@ -258,10 +258,10 @@ public class UpdateEpicSteps {
         await ExecuteUpdate();
     }
 
-    [When(@"I attempt to update epic ""(.*)""")]
-    public async Task WhenIAttemptToUpdateEpic(string epicId) {
-        _epicId = Guid.Parse(epicId);
-        _updateData = new UpdateEpicData {
+    [When(@"I attempt to update world ""(.*)""")]
+    public async Task WhenIAttemptToUpdateWorld(string worldId) {
+        _worldId = Guid.Parse(worldId);
+        _updateData = new UpdateWorldData {
             Name = "Updated Name"
         };
         await ExecuteUpdate();
@@ -273,7 +273,7 @@ public class UpdateEpicSteps {
         _mediaStorage.GetByIdAsync(nonExistentResourceId, Arg.Any<CancellationToken>())
             .Returns((Resource?)null);
 
-        _updateData = new UpdateEpicData {
+        _updateData = new UpdateWorldData {
             BackgroundResourceId = nonExistentResourceId
         };
         await ExecuteUpdate();
@@ -281,23 +281,23 @@ public class UpdateEpicSteps {
 
     [When(@"I attempt to update with description of (.*) characters")]
     public async Task WhenIAttemptToUpdateWithDescriptionOfCharacters(int length) {
-        _updateData = new UpdateEpicData {
+        _updateData = new UpdateWorldData {
             Description = new string('B', length)
         };
         await ExecuteUpdate();
     }
 
-    [When(@"I attempt to update that epic")]
-    public async Task WhenIAttemptToUpdateThatEpic() {
-        _updateData = new UpdateEpicData {
+    [When(@"I attempt to update that world")]
+    public async Task WhenIAttemptToUpdateThatWorld() {
+        _updateData = new UpdateWorldData {
             Name = "Unauthorized Update"
         };
         await ExecuteUpdate();
     }
 
-    [When(@"I attempt to update the epic")]
-    public async Task WhenIAttemptToUpdateTheEpic() {
-        _updateData = new UpdateEpicData {
+    [When(@"I attempt to update the world")]
+    public async Task WhenIAttemptToUpdateTheWorld() {
+        _updateData = new UpdateWorldData {
             Name = "Some Update"
         };
         await ExecuteUpdate();
@@ -305,7 +305,7 @@ public class UpdateEpicSteps {
 
     [When(@"I update to remove background resource")]
     public async Task WhenIUpdateToRemoveBackgroundResource() {
-        _updateData = new UpdateEpicData {
+        _updateData = new UpdateWorldData {
             BackgroundResourceId = null
         };
         await ExecuteUpdate();
@@ -313,7 +313,7 @@ public class UpdateEpicSteps {
 
     [When(@"I update with the same name ""(.*)""")]
     public async Task WhenIUpdateWithTheSameName(string name) {
-        _updateData = new UpdateEpicData {
+        _updateData = new UpdateWorldData {
             Name = name
         };
         await ExecuteUpdate();
@@ -321,7 +321,7 @@ public class UpdateEpicSteps {
 
     [When(@"I update the title to ""(.*)""")]
     public async Task WhenIUpdateTheTitleTo(string newTitle) {
-        _updateData = new UpdateEpicData {
+        _updateData = new UpdateWorldData {
             Name = newTitle
         };
         await ExecuteUpdate();
@@ -329,26 +329,26 @@ public class UpdateEpicSteps {
 
     [When(@"I update the description")]
     public async Task WhenIUpdateTheDescription() {
-        _updateData = new UpdateEpicData {
+        _updateData = new UpdateWorldData {
             Description = "Updated description content"
         };
         await ExecuteUpdate();
     }
 
-    [When(@"I attempt to update their epic")]
-    public async Task WhenIAttemptToUpdateTheirEpic() {
-        await WhenIAttemptToUpdateThatEpic();
+    [When(@"I attempt to update their world")]
+    public async Task WhenIAttemptToUpdateTheirWorld() {
+        await WhenIAttemptToUpdateThatWorld();
     }
 
     private async Task ExecuteUpdate() {
         try {
             // Mock storage to succeed
-            _epicStorage.UpdateAsync(Arg.Any<Epic>(), Arg.Any<CancellationToken>())
+            _worldStorage.UpdateAsync(Arg.Any<World>(), Arg.Any<CancellationToken>())
                 .Returns(true);
 
-            // NOTE: This will fail because IEpicService.UpdateEpicAsync does not exist
+            // NOTE: This will fail because IWorldService.UpdateWorldAsync does not exist
             // Placeholder call for when service is implemented
-            _updateResult = await _service.UpdateEpicAsync(_userId, _epicId, _updateData!, CancellationToken.None);
+            _updateResult = await _service.UpdateWorldAsync(_userId, _worldId, _updateData!, CancellationToken.None);
             _context["UpdateResult"] = _updateResult;
         }
         catch (Exception ex) {
@@ -361,32 +361,32 @@ public class UpdateEpicSteps {
 
     #region Then Steps - Success Assertions
 
-    [Then(@"the epic is updated successfully")]
-    public void ThenTheEpicIsUpdatedSuccessfully() {
+    [Then(@"the world is updated successfully")]
+    public void ThenTheWorldIsUpdatedSuccessfully() {
         _updateResult.Should().NotBeNull();
         _updateResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"my epic is updated successfully")]
-    public void ThenMyEpicIsUpdatedSuccessfully() {
-        ThenTheEpicIsUpdatedSuccessfully();
+    [Then(@"my world is updated successfully")]
+    public void ThenMyWorldIsUpdatedSuccessfully() {
+        ThenTheWorldIsUpdatedSuccessfully();
     }
 
-    [Then(@"the epic name should be ""(.*)""")]
-    public void ThenTheEpicNameShouldBe(string expectedName) {
+    [Then(@"the world name should be ""(.*)""")]
+    public void ThenTheWorldNameShouldBe(string expectedName) {
         // After update, verify the name was changed
         _updateData!.Name.Should().Be(expectedName);
     }
 
-    [Then(@"the epic name should remain ""(.*)""")]
-    public void ThenTheEpicNameShouldRemain(string originalName) {
+    [Then(@"the world name should remain ""(.*)""")]
+    public void ThenTheWorldNameShouldRemain(string originalName) {
         // Update failed, name should not change
-        _existingEpic!.Name.Should().Be(originalName);
+        _existingWorld!.Name.Should().Be(originalName);
     }
 
-    [Then(@"the epic is updated")]
-    public void ThenTheEpicIsUpdated() {
-        ThenTheEpicIsUpdatedSuccessfully();
+    [Then(@"the world is updated")]
+    public void ThenTheWorldIsUpdated() {
+        ThenTheWorldIsUpdatedSuccessfully();
     }
 
     [Then(@"I should see the new name")]
@@ -420,8 +420,8 @@ public class UpdateEpicSteps {
         _updateResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"I receive the updated epic details")]
-    public void ThenIReceiveTheUpdatedEpicDetails() {
+    [Then(@"I receive the updated world details")]
+    public void ThenIReceiveTheUpdatedWorldDetails() {
         _updateResult!.IsSuccessful.Should().BeTrue();
     }
 
@@ -506,9 +506,9 @@ public class UpdateEpicSteps {
 }
 
 // Placeholder service contract (Phase 7 - to be implemented)
-namespace VttTools.Library.Epics.ServiceContracts;
+namespace VttTools.Library.Worlds.ServiceContracts;
 
-public record UpdateEpicData {
+public record UpdateWorldData {
     public string? Name { get; init; }
     public string? Description { get; init; }
     public Guid? BackgroundResourceId { get; init; }

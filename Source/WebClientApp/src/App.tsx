@@ -14,8 +14,8 @@ import { LoadingOverlay } from '@/components/common';
 import { ProtectedRoute } from '@/components/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { PasswordResetRequestPage } from '@/pages/auth/PasswordResetRequestPage';
-import { ContentLibraryPage, EpicDetailPage, CampaignDetailPage, AdventureDetailPage } from '@/features/content-library/pages';
-import { EpicListView } from '@/features/content-library/components/epics';
+import { ContentLibraryPage, WorldDetailPage, CampaignDetailPage, AdventureDetailPage } from '@/features/content-library/pages';
+import { WorldListView } from '@/features/content-library/components/worlds';
 import { CampaignListView } from '@/features/content-library/components/campaigns';
 import { AdventureListView } from '@/features/content-library/components/adventures';
 import { SecuritySettingsPage } from '@/pages/settings/SecuritySettingsPage';
@@ -88,16 +88,16 @@ function AppRoutes() {
               </ProtectedRoute>
             </AppLayout>
           }>
-            <Route path="epics" element={<EpicListView />} />
+            <Route path="worlds" element={<WorldListView />} />
             <Route path="campaigns" element={<CampaignListView />} />
             <Route path="adventures" element={<AdventureListView />} />
             <Route index element={<Navigate to="adventures" replace />} />
           </Route>
 
-          <Route path="/epics/:epicId" element={
+          <Route path="/worlds/:worldId" element={
             <AppLayout>
               <ProtectedRoute authLevel="authorized">
-                <EpicDetailPage />
+                <WorldDetailPage />
               </ProtectedRoute>
             </AppLayout>
           } />

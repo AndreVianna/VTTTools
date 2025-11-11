@@ -18,7 +18,7 @@
 
 ### Business Value
 - **User Benefit**: Game Masters can design complete tactical maps with background images, grid configurations (square, hexagonal, isometric), and placed asset instances, with flexibility to nest encounters within adventures or maintain them as standalone content
-- **Business Objective**: Provide encounter-level tactical map design capabilities with comprehensive composition features (background, grid, asset placement) within hierarchical game content management with optional adventure association (Epic → Campaign → Adventure → Encounter)
+- **Business Objective**: Provide encounter-level tactical map design capabilities with comprehensive composition features (background, grid, asset placement) within hierarchical game content management with optional adventure association (World → Campaign → Adventure → Encounter)
 - **Success Criteria**: Game Masters can create encounters (standalone or within adventures), configure stage rendering (background, viewport, dimensions), configure grid overlay (type, size, offset, color), place/move/remove assets, clone encounters with all assets, and delete encounters with active game session validation
 
 ### Area Assignment

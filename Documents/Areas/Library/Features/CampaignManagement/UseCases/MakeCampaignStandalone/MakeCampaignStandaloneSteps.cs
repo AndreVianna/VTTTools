@@ -28,7 +28,7 @@ public class MakeCampaignStandaloneSteps {
     private Result<Campaign>? _updateResult;
     private Guid _userId = Guid.Empty;
     private Guid _campaignId = Guid.Empty;
-    private Guid _epicId = Guid.Empty;
+    private Guid _worldId = Guid.Empty;
 
     public MakeCampaignStandaloneSteps(ScenarioContext context) {
         _context = context;
@@ -46,21 +46,21 @@ public class MakeCampaignStandaloneSteps {
         _context["UserId"] = _userId;
     }
 
-    [Given(@"I own a campaign within an epic")]
-    public void GivenIAlreadyOwnACampaignWithinEpic() {
+    [Given(@"I own a campaign within an world")]
+    public void GivenIAlreadyOwnACampaignWithinWorld() {
         _campaignId = Guid.CreateVersion7();
-        _epicId = Guid.CreateVersion7();
+        _worldId = Guid.CreateVersion7();
         _existingCampaign = new Campaign {
             Id = _campaignId,
             OwnerId = _userId,
-            EpicId = _epicId,
-            Name = "Epic Campaign",
-            Description = "Campaign within epic",
+            WorldId = _worldId,
+            Name = "World Campaign",
+            Description = "Campaign within world",
             Adventures = []
         };
 
         _context["CampaignId"] = _campaignId;
-        _context["EpicId"] = _epicId;
+        _context["WorldId"] = _worldId;
 
         // Mock storage to return existing campaign
         _campaignStorage.GetByIdAsync(_campaignId, Arg.Any<CancellationToken>())
@@ -71,26 +71,26 @@ public class MakeCampaignStandaloneSteps {
 
     #region Given Steps - Campaign State
 
-    [Given(@"my campaign has EpicId ""(.*)""")]
-    public void GivenMyCampaignHasEpicId(string epicId) {
-        _epicId = Guid.Parse(epicId);
+    [Given(@"my campaign has WorldId ""(.*)""")]
+    public void GivenMyCampaignHasWorldId(string worldId) {
+        _worldId = Guid.Parse(worldId);
         if (_existingCampaign is not null) {
-            _existingCampaign.EpicId = _epicId;
+            _existingCampaign.WorldId = _worldId;
         }
     }
 
-    [Given(@"my campaign has null EpicId")]
-    public void GivenMyCampaignHasNullEpicId() {
+    [Given(@"my campaign has null WorldId")]
+    public void GivenMyCampaignHasNullWorldId() {
         if (_existingCampaign is not null) {
-            _existingCampaign.EpicId = null;
+            _existingCampaign.WorldId = null;
         }
     }
 
-    [Given(@"my campaign is in an epic")]
-    public void GivenMyCampaignIsInAnEpic() {
-        _epicId = Guid.CreateVersion7();
+    [Given(@"my campaign is in an world")]
+    public void GivenMyCampaignIsInAnWorld() {
+        _worldId = Guid.CreateVersion7();
         if (_existingCampaign is not null) {
-            _existingCampaign.EpicId = _epicId;
+            _existingCampaign.WorldId = _worldId;
         }
     }
 
@@ -110,15 +110,15 @@ public class MakeCampaignStandaloneSteps {
 
     #endregion
 
-    #region Given Steps - Epic Context
+    #region Given Steps - World Context
 
-    [Given(@"an epic has (.*) campaigns")]
-    public void GivenAnEpicHasCampaigns(int totalCount) {
-        _epicId = Guid.CreateVersion7();
-        _context["TotalCampaignsInEpic"] = totalCount;
+    [Given(@"an world has (.*) campaigns")]
+    public void GivenAnWorldHasCampaigns(int totalCount) {
+        _worldId = Guid.CreateVersion7();
+        _context["TotalCampaignsInWorld"] = totalCount;
 
         if (_existingCampaign is not null) {
-            _existingCampaign.EpicId = _epicId;
+            _existingCampaign.WorldId = _worldId;
         }
     }
 
@@ -132,15 +132,15 @@ public class MakeCampaignStandaloneSteps {
 
     #region Given Steps - Campaign Properties
 
-    [Given(@"my campaign in an epic has:")]
-    public void GivenMyCampaignInEpicHasProperties(Table table) {
+    [Given(@"my campaign in an world has:")]
+    public void GivenMyCampaignInWorldHasProperties(Table table) {
         var data = table.CreateInstance<CampaignPropertiesTable>();
         if (_existingCampaign is not null) {
             _existingCampaign.Name = data.Name;
             _existingCampaign.Description = data.Description;
             _existingCampaign.IsPublished = data.IsPublished;
             _existingCampaign.IsPublic = data.IsPublic;
-            _existingCampaign.EpicId = _epicId;
+            _existingCampaign.WorldId = _worldId;
         }
     }
 
@@ -153,10 +153,10 @@ public class MakeCampaignStandaloneSteps {
         _context["StandaloneCampaignsCount"] = count;
     }
 
-    [Given(@"I have (.*) campaign in an epic")]
-    public void GivenIAlreadyHaveCampaignInEpic(int count) {
-        // Current campaign is in epic
-        GivenIAlreadyOwnACampaignWithinEpic();
+    [Given(@"I have (.*) campaign in an world")]
+    public void GivenIAlreadyHaveCampaignInWorld(int count) {
+        // Current campaign is in world
+        GivenIAlreadyOwnACampaignWithinWorld();
     }
 
     #endregion
@@ -172,15 +172,15 @@ public class MakeCampaignStandaloneSteps {
             .Returns((Campaign?)null);
     }
 
-    [Given(@"a campaign exists in an epic owned by another user")]
-    public void GivenACampaignExistsInEpicOwnedByAnotherUser() {
+    [Given(@"a campaign exists in an world owned by another user")]
+    public void GivenACampaignExistsInWorldOwnedByAnotherUser() {
         var otherUserId = Guid.CreateVersion7();
         _campaignId = Guid.CreateVersion7();
-        _epicId = Guid.CreateVersion7();
+        _worldId = Guid.CreateVersion7();
         _existingCampaign = new Campaign {
             Id = _campaignId,
             OwnerId = otherUserId,
-            EpicId = _epicId,
+            WorldId = _worldId,
             Name = "Other User's Campaign",
             Description = string.Empty
         };
@@ -235,8 +235,8 @@ public class MakeCampaignStandaloneSteps {
         await WhenIMakeTheCampaignStandalone();
     }
 
-    [When(@"I make the epic campaign standalone")]
-    public async Task WhenIMakeTheEpicCampaignStandalone() {
+    [When(@"I make the world campaign standalone")]
+    public async Task WhenIMakeTheWorldCampaignStandalone() {
         await WhenIMakeTheCampaignStandalone();
     }
 
@@ -251,14 +251,14 @@ public class MakeCampaignStandaloneSteps {
         _updateResult.Value.Should().NotBeNull();
     }
 
-    [Then(@"the campaign EpicId should be null")]
-    public void ThenTheCampaignEpicIdShouldBeNull() {
-        _updateResult!.Value!.EpicId.Should().BeNull();
+    [Then(@"the campaign WorldId should be null")]
+    public void ThenTheCampaignWorldIdShouldBeNull() {
+        _updateResult!.Value!.WorldId.Should().BeNull();
     }
 
     [Then(@"the campaign should become standalone")]
     public void ThenTheCampaignShouldBecomeStandalone() {
-        _updateResult!.Value!.EpicId.Should().BeNull();
+        _updateResult!.Value!.WorldId.Should().BeNull();
     }
 
     [Then(@"all (.*) adventures should remain with the campaign")]
@@ -266,20 +266,20 @@ public class MakeCampaignStandaloneSteps {
         _updateResult!.Value!.Adventures.Should().HaveCount(expectedCount);
     }
 
-    [Then(@"the EpicId should be null")]
-    public void ThenTheEpicIdShouldBeNull() {
-        _updateResult!.Value!.EpicId.Should().BeNull();
+    [Then(@"the WorldId should be null")]
+    public void ThenTheWorldIdShouldBeNull() {
+        _updateResult!.Value!.WorldId.Should().BeNull();
     }
 
-    [Then(@"the campaign is removed from epic")]
-    public void ThenTheCampaignIsRemovedFromEpic() {
-        _updateResult!.Value!.EpicId.Should().BeNull();
+    [Then(@"the campaign is removed from world")]
+    public void ThenTheCampaignIsRemovedFromWorld() {
+        _updateResult!.Value!.WorldId.Should().BeNull();
     }
 
-    [Then(@"the epic should now have (.*) campaigns")]
-    public void ThenTheEpicShouldNowHaveCampaigns(int expectedCount) {
-        var totalInEpic = _context.Get<int>("TotalCampaignsInEpic");
-        expectedCount.Should().Be(totalInEpic - 1);
+    [Then(@"the world should now have (.*) campaigns")]
+    public void ThenTheWorldShouldNowHaveCampaigns(int expectedCount) {
+        var totalInWorld = _context.Get<int>("TotalCampaignsInWorld");
+        expectedCount.Should().Be(totalInWorld - 1);
     }
 
     [Then(@"all campaign properties should remain unchanged")]
@@ -290,9 +290,9 @@ public class MakeCampaignStandaloneSteps {
         _updateResult!.Value!.IsPublic.Should().Be(_existingCampaign!.IsPublic);
     }
 
-    [Then(@"only the EpicId should be set to null")]
-    public void ThenOnlyTheEpicIdShouldBeSetToNull() {
-        _updateResult!.Value!.EpicId.Should().BeNull();
+    [Then(@"only the WorldId should be set to null")]
+    public void ThenOnlyTheWorldIdShouldBeSetToNull() {
+        _updateResult!.Value!.WorldId.Should().BeNull();
     }
 
     [Then(@"I should now have (.*) standalone campaigns")]
@@ -303,7 +303,7 @@ public class MakeCampaignStandaloneSteps {
 
     [Then(@"the campaign should appear in standalone campaigns query")]
     public void ThenTheCampaignShouldAppearInStandaloneCampaignsQuery() {
-        _updateResult!.Value!.EpicId.Should().BeNull();
+        _updateResult!.Value!.WorldId.Should().BeNull();
     }
 
     #endregion

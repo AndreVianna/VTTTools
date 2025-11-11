@@ -1,5 +1,5 @@
 // GENERATED: 2025-10-08 by Claude Code Phase 5 Step 5
-// EPIC: EPIC-001 Phase 5 - Asset Library UI
+// WORLD: EPIC-001 Phase 5 - Asset Library UI
 // LAYER: UI (Component)
 
 /**

@@ -17,7 +17,7 @@ Core domain layer containing all business entities, value objects, enums, and bu
 
 - **Authentication & User Management**: User/Role entities, authentication domain rules
 - **Media Resource Management**: Resource entity with ResourceMetadata and ResourceFile value objects
-- **Game Content Hierarchy**: Epic, Campaign, Adventure, Encounter entities with hierarchy business logic
+- **Game Content Hierarchy**: World, Campaign, Adventure, Encounter entities with hierarchy business logic
 - **Asset Management**: Asset entity with Display and Frame value objects
 - **Interactive Encounter Editor**: Encounter entity with Stage, Grid, EncounterAsset value objects
 - **Game Session Management**: GameSession and Schedule entities with Participant, Message, Event value objects
@@ -32,8 +32,8 @@ Core domain layer containing all business entities, value objects, enums, and bu
 - **UserRole, UserClaim, RoleClaim, UserLogin, UserToken**: Identity framework entities
 - **Resource**: Media resource entity (images, animations, videos) with blob storage integration
 - **Asset**: Reusable game asset entity (15 AssetType variations)
-- **Epic**: Multi-campaign story arc aggregate root
-- **Campaign**: Multi-adventure storyline (owned entity within Epic)
+- **World**: Multi-campaign story arc aggregate root
+- **Campaign**: Multi-adventure storyline (owned entity within World)
 - **Adventure**: Reusable game module aggregate root
 - **Encounter**: Interactive tactical map aggregate root
 - **GameSession**: Active game meeting entity
@@ -114,7 +114,7 @@ Core domain layer containing all business entities, value objects, enums, and bu
 - Tag-based organization for discovery
 
 ### Library Domain
-- Hierarchical relationships: Epic > Campaign > Adventure > Encounter
+- Hierarchical relationships: World > Campaign > Adventure > Encounter
 - Ownership and visibility rules
 - Adventure type categorization (7 types)
 - Grid configuration validation
@@ -129,8 +129,8 @@ Core domain layer containing all business entities, value objects, enums, and bu
 ## Architecture Notes
 
 - **Pure Domain Layer**: No dependencies on infrastructure concerns (EF Core, Azure Storage, etc.)
-- **DDD Aggregate Roots**: Epic, Adventure, Encounter, GameSession, Schedule
-- **Owned Entities**: Campaign (within Epic)
+- **DDD Aggregate Roots**: World, Adventure, Encounter, GameSession, Schedule
+- **Owned Entities**: Campaign (within World)
 - **Value Object Pattern**: Immutable objects for domain concepts (Display, Frame, Stage, Grid, etc.)
 - **Storage Interface Contracts**: Define persistence operations without implementation details
 - **Shared Kernel**: Common domain primitives used across all bounded contexts

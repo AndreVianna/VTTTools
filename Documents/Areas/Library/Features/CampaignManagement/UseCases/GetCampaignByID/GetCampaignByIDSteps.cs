@@ -98,15 +98,15 @@ public class GetCampaignByIDSteps {
             .Returns(_existingCampaign);
     }
 
-    [Given(@"a campaign exists within an epic")]
-    public void GivenACampaignExistsWithinEpic() {
+    [Given(@"a campaign exists within an world")]
+    public void GivenACampaignExistsWithinWorld() {
         _campaignId = Guid.CreateVersion7();
-        var epicId = Guid.CreateVersion7();
+        var worldId = Guid.CreateVersion7();
         _existingCampaign = new Campaign {
             Id = _campaignId,
             OwnerId = _userId,
-            EpicId = epicId,
-            Name = "Epic Campaign",
+            WorldId = worldId,
+            Name = "World Campaign",
             Description = string.Empty
         };
 
@@ -120,7 +120,7 @@ public class GetCampaignByIDSteps {
         _existingCampaign = new Campaign {
             Id = _campaignId,
             OwnerId = _userId,
-            EpicId = null,
+            WorldId = null,
             Name = "Standalone Campaign",
             Description = string.Empty
         };
@@ -247,14 +247,14 @@ public class GetCampaignByIDSteps {
         _getResult!.Value!.Adventures.Should().HaveCount(expectedCount);
     }
 
-    [Then(@"the epic ID should be included")]
-    public void ThenTheEpicIdShouldBeIncluded() {
-        _getResult!.Value!.EpicId.Should().NotBeNull();
+    [Then(@"the world ID should be included")]
+    public void ThenTheWorldIdShouldBeIncluded() {
+        _getResult!.Value!.WorldId.Should().NotBeNull();
     }
 
-    [Then(@"the EpicId should be null")]
-    public void ThenTheEpicIdShouldBeNull() {
-        _getResult!.Value!.EpicId.Should().BeNull();
+    [Then(@"the WorldId should be null")]
+    public void ThenTheWorldIdShouldBeNull() {
+        _getResult!.Value!.WorldId.Should().BeNull();
     }
 
     [Then(@"the adventures collection should be empty")]

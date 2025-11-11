@@ -5,6 +5,7 @@ namespace VttTools.Library.Campaigns.ServiceContracts;
 /// </summary>
 public record CreateCampaignData
     : Data {
+    public Guid? WorldId { get; init; }
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public Guid? BackgroundId { get; init; }

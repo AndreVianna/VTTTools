@@ -16,7 +16,7 @@ export interface User {
   accessFailedCount: number;
   createdAt: string;
   lastLoginAt?: string;
-  profilePictureUrl?: string;
+  profilworldtureUrl?: string;
 }
 
 // Standard API response wrapper
@@ -325,7 +325,7 @@ export enum AdventureStyle {
 export enum ContentType {
   Adventure = 0,
   Campaign = 1,
-  Epic = 2
+  World = 2
 }
 
 export interface Adventure {
@@ -343,14 +343,14 @@ export interface Adventure {
   encounters?: Encounter[];
 }
 
-// Epics (from Domain.Library.Epics.ApiContracts)
-export interface CreateEpicRequest {
+// Worlds (from Domain.Library.Worlds.ApiContracts)
+export interface CreateWorldRequest {
   name: string;           // [MaxLength(128)]
   description: string;    // [MaxLength(4096)]
   backgroundId?: string;  // Guid?
 }
 
-export interface UpdateEpicRequest {
+export interface UpdateWorldRequest {
   name?: string;
   description?: string;
   backgroundId?: string;
@@ -358,7 +358,7 @@ export interface UpdateEpicRequest {
   isPublic?: boolean;
 }
 
-export interface Epic {
+export interface World {
   id: string;
   ownerId: string;
   name: string;
@@ -391,7 +391,7 @@ export interface Campaign {
   description: string;
   isPublished: boolean;
   isPublic: boolean;
-  epicId?: string;
+  worldId?: string;
   background?: MediaResource | null;
   adventures?: Adventure[];
 }
@@ -643,7 +643,7 @@ export interface UpdateProfileRequest {
   name?: string;
   displayName?: string;
   phoneNumber?: string;
-  profilePictureUrl?: string;
+  profilworldtureUrl?: string;
 }
 
 export enum DisplayName {

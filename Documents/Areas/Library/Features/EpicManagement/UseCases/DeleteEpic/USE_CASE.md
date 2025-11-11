@@ -1,4 +1,4 @@
-# DeleteEpic Use Case
+# DeleteWorld Use Case
 
 **Status**: Specification pending - BDD file exists
 

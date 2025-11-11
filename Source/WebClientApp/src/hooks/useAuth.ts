@@ -668,7 +668,7 @@ export const useAuth = () => {
   const updateProfile = useCallback(async (updates: {
     userName?: string;
     phoneNumber?: string;
-    profilePictureUrl?: string;
+    profilworldtureUrl?: string;
   }) => {
     try {
       const result = await updateProfileMutation(updates).unwrap();

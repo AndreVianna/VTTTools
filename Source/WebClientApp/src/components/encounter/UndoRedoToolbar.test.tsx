@@ -1,5 +1,5 @@
 // GENERATED: 2025-10-11 by Claude Code Phase 6
-// EPIC: EPIC-001 Phase 6 - UndoRedoToolbar Tests
+// WORLD: EPIC-001 Phase 6 - UndoRedoToolbar Tests
 // LAYER: UI (Tests)
 
 import React from 'react';

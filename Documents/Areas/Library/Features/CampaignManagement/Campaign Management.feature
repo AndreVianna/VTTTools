@@ -4,7 +4,7 @@
 Feature: Campaign Management
   As a Game Master
   I want to manage multi-adventure storylines
-  So that I can organize connected adventures within or outside epics
+  So that I can organize connected adventures within or outside worlds
 
   Background:
     Given I am authenticated as a Game Master
@@ -47,33 +47,33 @@ Feature: Campaign Management
   @happy-path
   Scenario: Successfully create standalone campaign
     Given I provide valid campaign details
-    And I do not associate with an epic
+    And I do not associate with an world
     When I create the campaign
     Then the campaign should be created as standalone
-    And the EpicId should be null
+    And the WorldId should be null
 
   @happy-path
-  Scenario: Successfully create campaign within epic
-    Given I own an epic
+  Scenario: Successfully create campaign within world
+    Given I own an world
     And I provide valid campaign details
-    When I create the campaign within the epic
+    When I create the campaign within the world
     Then the campaign is created
-    And the campaign should reference the epic ID
+    And the campaign should reference the world ID
 
   @happy-path
-  Scenario: Successfully move campaign to epic
+  Scenario: Successfully move campaign to world
     Given I have a standalone campaign
-    And I own an epic
-    When I move the campaign to the epic
-    Then the campaign should be associated with the epic
-    And the EpicId should be set correctly
+    And I own an world
+    When I move the campaign to the world
+    Then the campaign should be associated with the world
+    And the WorldId should be set correctly
 
   @happy-path
   Scenario: Successfully make campaign standalone
-    Given I have a campaign within an epic
+    Given I have a campaign within an world
     When I make the campaign standalone
-    Then the campaign is removed from the epic
-    And the EpicId should be null
+    Then the campaign is removed from the world
+    And the WorldId should be null
 
   @happy-path
   Scenario: Successfully delete campaign with cascade
@@ -97,7 +97,7 @@ Feature: Campaign Management
     And I should see error "You are not authorized"
 
   @edge-case
-  Scenario: Retrieve campaigns for epic with no campaigns
-    Given I own an epic with no campaigns
-    When I request campaigns for that epic
+  Scenario: Retrieve campaigns for world with no campaigns
+    Given I own an world with no campaigns
+    When I request campaigns for that world
     Then I should receive an empty list

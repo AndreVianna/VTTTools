@@ -3,6 +3,7 @@ namespace VttTools.Library.Services;
 
 public class ClonerTests {
     private readonly Guid _userId = Guid.CreateVersion7();
+    private readonly Guid _worldId = Guid.CreateVersion7();
     private readonly Guid _campaignId = Guid.CreateVersion7();
 
     [Fact]
@@ -13,7 +14,8 @@ public class ClonerTests {
         var original = new Adventure {
             Id = originalId,
             OwnerId = Guid.CreateVersion7(),
-            CampaignId = _campaignId,
+            World = new World { Id = _worldId },
+            Campaign = new Campaign { Id = _campaignId },
             Name = "Original Adventure",
             Background = new() {
                 Path = "path/to/background.png",
@@ -73,7 +75,8 @@ public class ClonerTests {
         // Assert
         clone.OwnerId.Should().Be(_userId);
         clone.Id.Should().NotBe(originalId);
-        clone.CampaignId.Should().Be(original.CampaignId);
+        clone.World.Should().BeEquivalentTo(original.World);
+        clone.Campaign.Should().BeEquivalentTo(original.Campaign);
         clone.Name.Should().Be(original.Name);
         clone.Description.Should().Be(original.Description);
         clone.Background.Should().Be(original.Background);
@@ -94,7 +97,8 @@ public class ClonerTests {
         var original = new Adventure {
             Id = originalId,
             OwnerId = Guid.CreateVersion7(),
-            CampaignId = _campaignId,
+            World = new World { Id = _worldId },
+            Campaign = new Campaign { Id = _campaignId },
             Name = "Original Adventure",
             Background = new() {
                 Path = "path/to/background.png",
@@ -130,7 +134,8 @@ public class ClonerTests {
         // Assert
         clone.Should().NotBeNull();
         clone.Id.Should().NotBe(originalId);
-        clone.CampaignId.Should().Be(original.CampaignId);
+        clone.World.Should().BeEquivalentTo(original.World);
+        clone.Campaign.Should().BeEquivalentTo(original.Campaign);
         clone.Name.Should().Be(original.Name);
         clone.Description.Should().Be(original.Description);
         clone.Background.Should().Be(original.Background);

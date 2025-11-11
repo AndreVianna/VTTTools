@@ -1,10 +1,10 @@
 # EPIC-001: UI Migration - Implementation Roadmap
 
-**Target Type**: Task (Epic)
+**Target Type**: Task (World)
 **Target Item**: EPIC-001
 **Item Specification**: Documents/Tasks/EPIC-001/TASK.md
 **Created**: 2025-10-03
-**Last Updated**: 2025-11-09 (Phase 9 Completion - Epic/Campaign Hierarchy)
+**Last Updated**: 2025-11-09 (Phase 9 Completion - World/Campaign Hierarchy)
 **Version**: 2.1.0
 
 ---
@@ -71,7 +71,7 @@
 | 8.6 | Structures Backend | ✅ Complete | 37/32-42 | A- | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-86-structures-backend--complete) |
 | 8.7 | Structures Frontend | ✅ Complete | 67/56-76 | A- | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-87-structures-frontend--complete) |
 | 8.8 | Manual Tests | 🔄 Active | 5/8-12 | A | [PHASE_8_ENCOUNTER_MGMT.md](./phases/PHASE_8_ENCOUNTER_MGMT.md#phase-88-manual-tests--ui-refinements--in-progress) |
-| 9 | Epic/Campaign | ✅ Complete | 16/18 | A+ | [PHASE_9_EPIC_CAMPAIGN.md](./phases/PHASE_9_EPIC_CAMPAIGN.md) |
+| 9 | World/Campaign | ✅ Complete | 16/18 | A+ | [PHASE_9_WORLD_CAMPAIGN.md](./phases/PHASE_9_WORLD_CAMPAIGN.md) |
 | 10 | Game Sessions | 🔜 Ready | 0/22 | - | [PHASE_10_GAME_SESSIONS.md](./phases/PHASE_10_GAME_SESSIONS.md) |
 | 11 | Account Mgmt | 🚧 Partial | 16/16 | - | [PHASE_11_ACCOUNT_MGMT.md](./phases/PHASE_11_ACCOUNT_MGMT.md) |
 | 12 | Audit Logging | 🔜 Ready | 0/13 | - | [PHASE_12_AUDIT_LOGGING.md](./phases/PHASE_12_AUDIT_LOGGING.md) |
@@ -97,7 +97,7 @@
 - ✅ Asset rotation system with interactive handles and backend persistence
 - ✅ Wall undo/redo system with dual-queue architecture
 - ✅ Transactional wall editing with atomic commits
-- ✅ Epic/Campaign hierarchy with tabbed navigation (Phase 9, 16h, A+)
+- ✅ World/Campaign hierarchy with tabbed navigation (Phase 9, 16h, A+)
 
 ### In Progress 🚧
 - 🚧 Wall marquee selection debugging (Phase 8.8)
@@ -262,7 +262,7 @@
 ## Task Context
 
 **Task ID**: EPIC-001
-**Task Type**: Epic
+**Task Type**: World
 **Priority**: Critical
 
 **Cross-References**:
@@ -275,7 +275,7 @@
 
 ---
 
-## Related EPICs
+## Related WORLDs
 
 ### EPIC-002: Admin Application (40-60h) - PARALLEL TRACK
 
@@ -328,7 +328,7 @@ Phase 1 (Foundation) ✅
     │               │               │       │       ├─→ 8.7 ✅ [67h]
     │               │               │       │       └─→ 8.8 🔄 [5h]
     │               │               │       │               ↓
-    │               │               │       │               └─→ Phase 9 (Epic/Campaign) ✅ [16h]
+    │               │               │       │               └─→ Phase 9 (World/Campaign) ✅ [16h]
     │               │               │       │
     │               │               │       └─→ Phase 10 (Game Sessions) 🔜 [22h]
     │               │               │               ↓
@@ -342,7 +342,7 @@ Phase 1 (Foundation) ✅
     │               │               │
     │               │               └─→ Phase 11 (Account Management) 🚧 [PARALLEL]
     │               │
-    │               └─→ Phase 9 (Epic/Campaign) ✅ [16h]
+    │               └─→ Phase 9 (World/Campaign) ✅ [16h]
     │
     └─→ EPIC-002 (Admin Application) 🔜 PARALLEL [40-60h]
             └─→ BLOCKS Phase 13 (Release Preparation)
@@ -361,13 +361,13 @@ Phase 1 (Foundation) ✅
 
 **Completed Optional Work**:
 
-- Phase 9: Epic/Campaign - 16 hours ✅ COMPLETE (A+ grade, production ready)
+- Phase 9: World/Campaign - 16 hours ✅ COMPLETE (A+ grade, production ready)
 
 **Deferred Work**:
 
 - Phase 14: Performance & Quality - 16 hours 🔜 OPTIONAL
 
-**Separate Epic**:
+**Separate World**:
 
 - EPIC-002: Admin Application - 40-60 hours 🔜 REQUIRED for Phase 13
 
@@ -397,7 +397,7 @@ Implementation Order:
 - ✅ Phases 1-7: Foundation, Auth, Encounter basics, Assets, Adventures complete
 - ✅ Phase 8.0-8.7: Encounter Management & Structures complete
 - 🔄 Phase 8.8: Manual Testing & Refinements (active)
-- ✅ Phase 9: Epic/Campaign hierarchy complete (16h, Grade A+, production ready)
+- ✅ Phase 9: World/Campaign hierarchy complete (16h, Grade A+, production ready)
 - 🔜 Phase 10: SessionManagement feature (ready after Phase 8.8)
 - 🚧 Phase 11: AccountManagement feature (70% complete, 4-6h polish)
 - 🔜 Phase 12: Audit Logging (user-facing features)
@@ -412,9 +412,9 @@ Implementation Order:
 
 - **Phase**: 9
 - **Status**: RESOLVED - Phase 9 completed successfully (16h, Grade A+)
-- **Original Concern**: Epic/Campaign services confirmed missing
+- **Original Concern**: World/Campaign services confirmed missing
 - **Resolution**: Full backend and frontend implementation completed on 2025-11-09
-- **Outcome**: Production-ready Epic→Campaign→Adventure hierarchy with tabbed navigation
+- **Outcome**: Production-ready World→Campaign→Adventure hierarchy with tabbed navigation
 
 ### Risk: 100-Token Performance Target
 
@@ -623,7 +623,7 @@ Implementation Order:
 **Phase 8.6**: ✅ Complete (37/32-42 hours, 97%) - Structures Backend
 **Phase 8.7**: ✅ Complete (67/56-76 hours, 89%) - Structures Frontend
 **Phase 8.8**: 🔄 IN PROGRESS (5/8-12 hours, 50%) - Manual Tests & UI Refinements
-**Phase 9**: ✅ Complete (16/18 hours, 89%) - Epic/Campaign Hierarchy (Grade A+)
+**Phase 9**: ✅ Complete (16/18 hours, 89%) - World/Campaign Hierarchy (Grade A+)
 **Phase 10**: 🔜 (0/22 hours, 0%) - Game Sessions - READY
 **Phase 11**: ✅ Complete (16/16 hours, 100%) - Account Management
 **Phase 12**: 🔜 (0/13 hours, 0%) - Audit & Compliance Logging - READY
@@ -641,7 +641,7 @@ Implementation Order:
 - Completed (Phases 1-9, 11): 351 hours (8+16+28+12+70+30+19+23+9+37+67+16+16)
 - Remaining Core: 50 hours (8.8: 5-10h + 10: 22h + 12: 13h + 13: 5h)
 - Optional (Phase 14): 16 hours
-- EPIC-002 (Admin Application): 40-60 hours (separate EPIC, parallel track, REQUIRED for Phase 13)
+- EPIC-002 (Admin Application): 40-60 hours (separate WORLD, parallel track, REQUIRED for Phase 13)
 - Available Now: 45 hours (Phase 8.8 + 10 + 12 + 13)
 - Blocked by EPIC-002: Phase 13 (Release Preparation - requires Admin App complete)
 - Parallel Track: EPIC-002 Admin Application (40-60h, separate roadmap)
@@ -658,7 +658,7 @@ Implementation Order:
 - Phase 8.6 delivered in 37h vs 32-42h estimated (97%)
 - Phase 8.7 delivered in 67h vs 56-76h estimated (89%)
 - Phase 8.8 added for user-guided manual testing (8-12h)
-- Phase 9 delivered in 16h vs 18h estimated (89%) - Epic/Campaign hierarchy complete
+- Phase 9 delivered in 16h vs 18h estimated (89%) - World/Campaign hierarchy complete
 
 ---
 

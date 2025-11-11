@@ -1,7 +1,7 @@
 ---
 allowed-tools: mcp__memory__*, mcp__thinking__*, Task, Read, Write, Bash, TodoWrite
 description: Analyze business feature request and generate use case specifications
-argument-hint: {feature_name:string} {feature_description:string:optional} {jira_epic_id:string:optional} {jira_epic_url:string:optional}
+argument-hint: {feature_name:string} {feature_description:string:optional} {jira_world_id:string:optional} {jira_world_url:string:optional}
 ---
 
 # Add Feature
@@ -11,18 +11,18 @@ Analyze business feature request against project architecture and break down int
 ## 1. Validation
 - Validate feature_name non-empty
 - **Validate and process Jira fields (if provided)**:
-  - If {jira_epic_id} provided: must match regex `^[A-Z]+-[0-9]+$`
-  - If {jira_epic_id} provided but {jira_epic_url} NOT provided:
-    - Auto-generate URL: `https://rossvideo.atlassian.net/browse/{jira_epic_id}`
-    - Store generated URL in {jira_epic_url}
-  - If BOTH {jira_epic_id} and {jira_epic_url} provided:
+  - If {jira_world_id} provided: must match regex `^[A-Z]+-[0-9]+$`
+  - If {jira_world_id} provided but {jira_world_url} NOT provided:
+    - Auto-generate URL: `https://rossvideo.atlassian.net/browse/{jira_world_id}`
+    - Store generated URL in {jira_world_url}
+  - If BOTH {jira_world_id} and {jira_world_url} provided:
     - Validate URL is valid
-    - Extract epic ID from URL (parse from `/browse/{ID}` pattern)
-    - If extracted ID ≠ {jira_epic_id}: **ERROR** "Jira epic ID mismatch: URL contains '{extracted_id}' but argument is '{jira_epic_id}'"
-  - If only {jira_epic_url} provided (no ID): **ERROR** "Jira epic ID required when URL provided"
+    - Extract world ID from URL (parse from `/browse/{ID}` pattern)
+    - If extracted ID ≠ {jira_world_id}: **ERROR** "Jira world ID mismatch: URL contains '{extracted_id}' but argument is '{jira_world_id}'"
+  - If only {jira_world_url} provided (no ID): **ERROR** "Jira world ID required when URL provided"
 - Verify SOLUTION.md + FEATURE_TEMPLATE.md exist
 - Initialize feature entity in memory with status: analyzing
-- If {jira_epic_id} provided: add observations ["jira_epic_id: {jira_epic_id}", "jira_epic_url: {jira_epic_url}"]
+- If {jira_world_id} provided: add observations ["jira_world_id: {jira_world_id}", "jira_world_url: {jira_world_url}"]
 
 ## 2. Feature Analysis
 Delegate to solution-engineer:

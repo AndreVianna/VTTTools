@@ -11,13 +11,14 @@ internal static class AdventureSchemaBuilder {
             entity.ToTable("Adventures");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.OwnerId).IsRequired();
-            entity.Property(e => e.CampaignId);
+            entity.Property(e => e.WorldId).IsRequired(false);
+            entity.Property(e => e.CampaignId).IsRequired(false);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
             entity.Property(e => e.Style).IsRequired().HasConversion<string>();
             entity.HasOne(s => s.Background).WithMany()
                   .HasForeignKey(s => s.BackgroundId).IsRequired(false)
-                  .OnDelete(DeleteBehavior.SetNull);
+                  .OnDelete(DeleteBehavior.Restrict);
             entity.Property(e => e.IsOneShot).IsRequired();
             entity.Property(e => e.IsPublished).IsRequired();
             entity.Property(e => e.IsPublic).IsRequired();

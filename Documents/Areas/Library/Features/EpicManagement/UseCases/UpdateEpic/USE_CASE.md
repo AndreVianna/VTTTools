@@ -1,4 +1,4 @@
-# UpdateEpic Use Case
+# UpdateWorld Use Case
 
 **Status**: Specification pending - BDD file exists
 

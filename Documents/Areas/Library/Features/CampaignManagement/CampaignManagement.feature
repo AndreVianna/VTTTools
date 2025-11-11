@@ -4,24 +4,24 @@
 Feature: Campaign Management
   As a Game Master
   I want to manage multi-adventure storylines
-  So that I can organize connected adventures within epics or standalone
+  So that I can organize connected adventures within worlds or standalone
 
   Background:
     Given I am authenticated as a Game Master
     And I have an active account
 
   @happy-path @create
-  Scenario: Create campaign within epic
-    Given I have created an epic called "Dragon's Legacy"
-    When I create a campaign "Rise of the Dragon Lords" within epic "Dragon's Legacy"
+  Scenario: Create campaign within world
+    Given I have created an world called "Dragon's Legacy"
+    When I create a campaign "Rise of the Dragon Lords" within world "Dragon's Legacy"
     Then the campaign is created successfully
-    And the campaign belongs to epic "Dragon's Legacy"
+    And the campaign belongs to world "Dragon's Legacy"
 
   @happy-path @create
   Scenario: Create standalone campaign
     When I create a standalone campaign "Shadows of the Forgotten Realm"
     Then the campaign is created successfully
-    And the campaign has no parent epic
+    And the campaign has no parent world
 
   @happy-path @retrieve
   Scenario: Retrieve campaign details
@@ -38,11 +38,11 @@ Feature: Campaign Management
     Then the campaign reflects all changes
 
   @happy-path @query
-  Scenario: Query campaigns by epic
-    Given I have created an epic "Cosmic Chronicles"
-    And I have created campaign "Starfall" within epic "Cosmic Chronicles"
-    And I have created campaign "Nebula's End" within epic "Cosmic Chronicles"
-    When I query campaigns for epic "Cosmic Chronicles"
+  Scenario: Query campaigns by world
+    Given I have created an world "Cosmic Chronicles"
+    And I have created campaign "Starfall" within world "Cosmic Chronicles"
+    And I have created campaign "Nebula's End" within world "Cosmic Chronicles"
+    When I query campaigns for world "Cosmic Chronicles"
     Then I see 2 campaigns
     And I see campaign "Starfall"
     And I see campaign "Nebula's End"
@@ -53,7 +53,7 @@ Feature: Campaign Management
     And I have created standalone campaign "Echoes of Time"
     When I query standalone campaigns
     Then I see both standalone campaigns
-    And neither campaign has a parent epic
+    And neither campaign has a parent world
 
   Rule: Campaign names must be between 1 and 200 characters
 
@@ -70,25 +70,25 @@ Feature: Campaign Management
       And I see a validation error about name length
 
   @hierarchy @move
-  Scenario: Move standalone campaign to epic
+  Scenario: Move standalone campaign to world
     Given I have created standalone campaign "The Wastelands"
-    And I have created an epic "Post-Apocalypse Saga"
-    When I move campaign "The Wastelands" to epic "Post-Apocalypse Saga"
-    Then the campaign now belongs to epic "Post-Apocalypse Saga"
+    And I have created an world "Post-Apocalypse Saga"
+    When I move campaign "The Wastelands" to world "Post-Apocalypse Saga"
+    Then the campaign now belongs to world "Post-Apocalypse Saga"
 
   @hierarchy @move
   Scenario: Make campaign standalone
-    Given I have created an epic "The Winter's Tale"
-    And I have created campaign "Frozen Kingdoms" within epic "The Winter's Tale"
+    Given I have created an world "The Winter's Tale"
+    And I have created campaign "Frozen Kingdoms" within world "The Winter's Tale"
     When I make campaign "Frozen Kingdoms" standalone
-    Then the campaign has no parent epic
+    Then the campaign has no parent world
 
   @hierarchy @error
-  Scenario: Cannot move campaign to non-existent epic
+  Scenario: Cannot move campaign to non-existent world
     Given I have created standalone campaign "Orphaned Stories"
-    When I attempt to move campaign "Orphaned Stories" to a non-existent epic
+    When I attempt to move campaign "Orphaned Stories" to a non-existent world
     Then the operation fails
-    And I see an error indicating the epic does not exist
+    And I see an error indicating the world does not exist
 
   @integration @cross-area @cascade
   Scenario: Delete campaign cascades to adventures
@@ -100,16 +100,16 @@ Feature: Campaign Management
     And all adventures in the campaign are deleted
 
   @integration @cross-area @validation
-  Scenario: Create campaign references valid epic
-    Given I have created an epic "Legends of the North"
-    When I create a campaign "Northern Lights" within epic "Legends of the North"
-    Then the campaign is linked to epic "Legends of the North"
-    And the epic reference is validated
+  Scenario: Create campaign references valid world
+    Given I have created an world "Legends of the North"
+    When I create a campaign "Northern Lights" within world "Legends of the North"
+    Then the campaign is linked to world "Legends of the North"
+    And the world reference is validated
 
   @integration @cross-area @media
   Scenario: Create campaign with background resource
-    Given I have uploaded an image resource "epic-landscape.jpg"
-    When I create a campaign "Vast Horizons" with background "epic-landscape.jpg"
+    Given I have uploaded an image resource "world-landscape.jpg"
+    When I create a campaign "Vast Horizons" with background "world-landscape.jpg"
     Then the campaign is created successfully
     And the background resource is validated and linked
 
@@ -132,8 +132,8 @@ Feature: Campaign Management
   @authorization @hierarchy
   Scenario: Only owner can move campaign between hierarchy levels
     Given I have created standalone campaign "Independent Adventure"
-    And another Game Master has created an epic "Their Epic"
-    When the other Game Master attempts to move my campaign to their epic
+    And another Game Master has created an world "Their World"
+    When the other Game Master attempts to move my campaign to their world
     Then the operation is denied
     And I see an authorization error
 
@@ -153,7 +153,7 @@ Feature: Campaign Management
   Scenario: Move campaign with nested adventures
     Given I have created standalone campaign "The Deep Archive"
     And I have added 5 adventures with complex encounters to campaign "The Deep Archive"
-    And I have created an epic "Master Archive"
-    When I move campaign "The Deep Archive" to epic "Master Archive"
+    And I have created an world "Master Archive"
+    When I move campaign "The Deep Archive" to world "Master Archive"
     Then the campaign and all nested adventures are moved successfully
     And all adventure references remain valid

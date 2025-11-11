@@ -44,9 +44,9 @@ Feature: Adventure Management
   @update
   Scenario: Update adventure properties including type
     Given I have created a "Generic" adventure "Starter Quest"
-    When I update the name to "Epic Quest" and type to "OpenWorld"
+    When I update the name to "World Quest" and type to "OpenWorld"
     Then the adventure is updated successfully
-    And the adventure name is "Epic Quest"
+    And the adventure name is "World Quest"
     And the adventure type is "OpenWorld"
 
   # ═══════════════════════════════════════════════════════════════════════
@@ -115,7 +115,7 @@ Feature: Adventure Management
   @hierarchy @edge-case
   Scenario: Move adventure with many nested encounters
     Given I have a standalone adventure "Mega Dungeon" with 15 encounters
-    And I have an existing campaign "Epic Saga"
+    And I have an existing campaign "World Saga"
     When I move the adventure to the campaign
     Then the adventure and all 15 encounters are moved successfully
     And all encounters remain accessible

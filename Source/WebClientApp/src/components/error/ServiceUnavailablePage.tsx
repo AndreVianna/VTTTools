@@ -94,7 +94,7 @@ export const ServiceUnavailablePage: React.FC<ServiceUnavailablePageProps> = ({
             margin: '0 auto 40px',
           }}
         >
-          Our servers are taking a short rest. Please try again in a moment while we prepare your next epic campaign.
+          Our servers are taking a short rest. Please try again in a moment while we prepare your next world campaign.
         </Typography>
 
         <RetryButton

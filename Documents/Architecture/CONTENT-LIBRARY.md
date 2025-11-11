@@ -8,14 +8,14 @@
 
 ## Overview
 
-The Content Library is VTTTools' organizational system for managing tabletop content through a four-level hierarchy: Epic → Campaign → Adventure → Encounter. This document defines the architecture, design patterns, and implementation strategy.
+The Content Library is VTTTools' organizational system for managing tabletop content through a four-level hierarchy: World → Campaign → Adventure → Encounter. This document defines the architecture, design patterns, and implementation strategy.
 
 ## Hierarchy Model
 
 ### Structure
 
 ```text
-Epic (optional)
+World (optional)
   └─→ Campaign (optional)
         └─→ Adventure (optional)
               └─→ Encounter (required for gameplay)
@@ -26,7 +26,7 @@ Epic (optional)
 **Optional at Every Level:**
 - Encounter.adventureId: `Guid?` (nullable) - Encounters can be standalone
 - Adventure.campaignId: `Guid?` (nullable) - Adventures independent
-- Campaign.epicId: `Guid?` (nullable) - Campaigns independent
+- Campaign.worldId: `Guid?` (nullable) - Campaigns independent
 
 **Progressive Enhancement:**
 - Phase 7: Encounters only
@@ -71,16 +71,16 @@ interface Adventure extends ContentListItem {
 **Campaign** (Container):
 ```typescript
 interface Campaign extends ContentListItem {
-  epicId: string | null;
+  worldId: string | null;
   adventureIds: string[];
   theme: string | null;
   setting: string | null;
 }
 ```
 
-**Epic** (Top-Level Container):
+**World** (Top-Level Container):
 ```typescript
-interface Epic extends ContentListItem {
+interface World extends ContentListItem {
   campaignIds: string[];
   coverImageId: string | null;
   genre: string | null;
@@ -135,7 +135,7 @@ Content List → [Click Item] → Full Editor (properties in menus) → Auto-sav
   ├─ /encounters → EncounterListView
   ├─ /adventures → AdventureListView (Phase 8)
   ├─ /campaigns → DisabledView (Phase 9)
-  └─ /epics → DisabledView (Phase 9)
+  └─ /worlds → DisabledView (Phase 9)
 ```
 
 **Editors:**
@@ -364,7 +364,7 @@ const dehydratePlacedAssets = (
 - Reuse: ContentCard, ContentListLayout, EditableTitle
 - Add: AdventureListView, Adventure menu
 
-**Phase 9** (+ Campaigns/Epics):
+**Phase 9** (+ Campaigns/Worlds):
 - Enable remaining tabs
 - Minimal new code (reuse infrastructure)
 
@@ -395,7 +395,7 @@ const dehydratePlacedAssets = (
 
 **Base Interface:**
 ```typescript
-type ContentType = 'encounter' | 'adventure' | 'campaign' | 'epic';
+type ContentType = 'encounter' | 'adventure' | 'campaign' | 'world';
 
 interface ContentListItem {
   id: string;
@@ -414,7 +414,7 @@ type ContentItemByType<T extends ContentType> =
   T extends 'encounter' ? Encounter :
   T extends 'adventure' ? Adventure :
   T extends 'campaign' ? Campaign :
-  T extends 'epic' ? Epic :
+  T extends 'world' ? World :
   never;
 ```
 
@@ -491,7 +491,7 @@ Different canvas type (not visual like encounters):
 - Add/remove encounters
 - Different menu structure
 
-### Phase 9: Campaign/Epic Editors
+### Phase 9: Campaign/World Editors
 
 Further specialized editors for organizational content.
 

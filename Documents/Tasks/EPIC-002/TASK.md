@@ -1,6 +1,6 @@
 # EPIC-002: Administration Application
 
-**Type**: Epic (Large-Scale Infrastructure)
+**Type**: World (Large-Scale Infrastructure)
 **Status**: Planned
 **Priority**: Critical (Production Requirement)
 **Effort**: 332-352 hours total (includes Audit Infrastructure, Admin Dashboard, Public Library Management; Role Management deferred)
@@ -29,7 +29,7 @@ The Administration Application (WebAdminApp) is a mission-critical infrastructur
 
 ### Strategic Importance
 
-This epic is a **production requirement** and must be completed before EPIC-001 Phase 13 (Release Preparation). Without an administration interface, the following critical operations would require direct database access or custom scripts:
+This world is a **production requirement** and must be completed before EPIC-001 Phase 13 (Release Preparation). Without an administration interface, the following critical operations would require direct database access or custom scripts:
 
 - User account management (lock/unlock, role assignment, email verification)
 - Security incident investigation (audit log analysis, suspicious activity detection)
@@ -995,7 +995,7 @@ Role assignment handled in User Management feature via:
 
 ### Blocked By
 
-None (this is a parallel infrastructure epic)
+None (this is a parallel infrastructure world)
 
 ### Blocks
 
@@ -1625,7 +1625,7 @@ None (this is a parallel infrastructure epic)
 
 ## Sprint Planning
 
-**Epic Duration**: 8 weeks (dedicated, full-time focus) or 12-16 weeks (part-time)
+**World Duration**: 8 weeks (dedicated, full-time focus) or 12-16 weeks (part-time)
 
 **Sprint Goal Alignment**: Incremental delivery with testable milestones
 
@@ -1680,7 +1680,7 @@ None (this is a parallel infrastructure epic)
 
 ### Activity Log
 
-- **2025-10-31**: Epic created with comprehensive specification
+- **2025-10-31**: World created with comprehensive specification
 - **2025-10-31**: Role Management feature deferred (only 2 roles exist; User Management handles role assignment). Reduced scope from 280-320h to 248-288h.
 - **2025-10-31**: Audit Log Viewer updated with infinite scroll pagination and separate live monitoring grid (tail tracking). Increased from 48h to 52h. New scope: 252-292h.
 - **2025-10-31**: System Configuration categories clarified: Security (max login attempts, password policy, 2FA, session timeout), Feature Flags, Storage (database connection config, blob storage quotas, file limits), Email, Service API Settings (new category for external services), Maintenance Mode.
@@ -1883,7 +1883,7 @@ TASK SPECIFICATION QUALITY CHECKLIST
 ═══════════════════════════════════════════════════════════════
 
 ## Task Identity & Scope (15 points)
-✅ 5pts: Task type clearly specified (Epic - Large-Scale Infrastructure)
+✅ 5pts: Task type clearly specified (World - Large-Scale Infrastructure)
 ✅ 5pts: Clear, actionable title and description (Administration Application)
 ✅ 5pts: Priority (Critical) and effort estimate (292-332 hours core, includes Admin Dashboard as main page, Public Library Management, Role Management deferred) provided
 

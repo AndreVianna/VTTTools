@@ -11,7 +11,7 @@ internal static class CampaignSchemaBuilder {
             entity.ToTable("Campaigns");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.OwnerId).IsRequired();
-            entity.Property(e => e.EpicId);
+            entity.Property(e => e.WorldId).IsRequired(false);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
             entity.Property(e => e.Description).IsRequired().HasMaxLength(4096);
             entity.HasOne(s => s.Background).WithMany()
@@ -21,6 +21,6 @@ internal static class CampaignSchemaBuilder {
             entity.Property(e => e.IsPublic).IsRequired();
             entity.HasMany(e => e.Adventures).WithOne(e => e.Campaign)
                   .HasForeignKey(a => a.CampaignId).IsRequired(false)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 }

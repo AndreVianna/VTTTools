@@ -3,8 +3,8 @@
 namespace VttTools.Data.Library.Entities;
 
 public class Campaign {
-    public Guid? EpicId { get; set; }
-    public Epic? Epic { get; set; }
+    public Guid? WorldId { get; set; }
+    public World? World { get; set; }
     public Guid OwnerId { get; set; }
     public Guid Id { get; set; } = Guid.CreateVersion7();
     [MaxLength(128)]

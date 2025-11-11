@@ -14,7 +14,7 @@
 
 ### User Experience
 - **Target Users**: Game Masters and Players in tabletop RPG communities
-- **Primary Workflow**: Game Masters create adventures/campaigns/epics with encounters, place assets/tokens on interactive maps, schedule and run game meetings with real-time chat and dice rolling, while Players join meetings and interact with shared game state
+- **Primary Workflow**: Game Masters create adventures/campaigns/worlds with encounters, place assets/tokens on interactive maps, schedule and run game meetings with real-time chat and dice rolling, while Players join meetings and interact with shared game state
 - **Interface Type**: Single Page Application (SPA)
 - **Interaction Method**: Web browser
 
@@ -41,8 +41,8 @@ Current implementation includes:
 ### Game Content Hierarchy
 - **Area**: Library
 - **Type**: Core Feature
-- **Description**: Three-tier content hierarchy (Epic → Campaign → Adventure → Encounter) for organizing game content
-- **Use Cases**: Create Epic, Manage Campaigns, Create Adventures, Design Encounters
+- **Description**: Three-tier content hierarchy (World → Campaign → Adventure → Encounter) for organizing game content
+- **Use Cases**: Create World, Manage Campaigns, Create Adventures, Design Encounters
 - **Status**: 🚧 Phase 2 In Progress
 
 ### Asset Management
@@ -74,7 +74,7 @@ Current implementation includes:
 - **Identity**: User authentication and authorization with ASP.NET Core Identity
 - **Assets**: Reusable game assets (creatures, characters, NPCs, objects, tokens, walls, doors, effects)
 - **Media**: Media resource management (images, animations, videos) with blob storage integration
-- **Library**: Game content hierarchy management (Epic → Campaign → Adventure → Encounter)
+- **Library**: Game content hierarchy management (World → Campaign → Adventure → Encounter)
 - **Game**: Active game session management and scheduling with real-time state
 - **Common**: Shared domain primitives and value objects (Shared Kernel pattern)
 
@@ -92,7 +92,7 @@ Current implementation includes:
 - **Assets → Media**: Assets reference Resource entities for visual display
 - **Game → Library**: GameSessions reference Encounters for active gameplay
 - **Game → Identity**: GameSessions and Schedules reference Users as owners and participants
-- **Library → Identity**: All content entities (Epic, Campaign, Adventure, Encounter) reference Users as owners
+- **Library → Identity**: All content entities (World, Campaign, Adventure, Encounter) reference Users as owners
 - **WebApp → Core**: API controllers delegate to application services
 - **Core → Data**: Application services use storage interfaces (repositories)
 
@@ -106,7 +106,7 @@ Current implementation includes:
 - **Asset**: Reusable game piece (token, object, effect)
 - **Token**: Visual representation of character/creature on the encounter
 - **Meeting**: Active game session (terminology change from "Session")
-- **Epic**: Multi-campaign story arc spanning multiple campaigns
+- **World**: Multi-campaign story arc spanning multiple campaigns
 - **Campaign**: Multi-adventure storyline connecting related adventures
 - **Stage**: Encounter rendering area with background and viewport configuration
 - **Grid**: Tactical map overlay (square, hexagonal vertical, hexagonal horizontal, isometric)
@@ -142,11 +142,11 @@ Current implementation includes:
 - **Domain Events**: ResourceUploaded, ResourceDeleted, ResourceMetadataExtracted, ResourceTagsUpdated
 
 #### Library Domain
-- **Entities**: Epic, Campaign, Adventure, Encounter
+- **Entities**: World, Campaign, Adventure, Encounter
 - **Value Objects**: Stage (background, viewport, dimensions), Grid (type, offset, size, color), EncounterAsset (position, dimensions, z-index)
-- **Domain Services**: ContentHierarchyService (validates Epic→Campaign→Adventure→Encounter relationships and hierarchy integrity)
-- **Business Rules**: Hierarchical relationships (Epic > Campaign > Adventure > Encounter), ownership and visibility rules, adventure type categorization (7 types), grid configuration validation
-- **Domain Events**: EpicCreated, EpicPublished, EpicDeleted, CampaignCreated, CampaignAddedToEpic, CampaignMadeStandalone, AdventureCreated, AdventureCloned, AdventurePublished, EncounterCreated, EncounterCloned, EncounterStageConfigured, EncounterGridConfigured, AssetPlacedOnEncounter, AssetMovedOnEncounter, AssetRemovedFromEncounter
+- **Domain Services**: ContentHierarchyService (validates World→Campaign→Adventure→Encounter relationships and hierarchy integrity)
+- **Business Rules**: Hierarchical relationships (World > Campaign > Adventure > Encounter), ownership and visibility rules, adventure type categorization (7 types), grid configuration validation
+- **Domain Events**: WorldCreated, WorldPublished, WorldDeleted, CampaignCreated, CampaignAddedToWorld, CampaignMadeStandalone, AdventureCreated, AdventureCloned, AdventurePublished, EncounterCreated, EncounterCloned, EncounterStageConfigured, EncounterGridConfigured, AssetPlacedOnEncounter, AssetMovedOnEncounter, AssetRemovedFromEncounter
 
 #### Game Domain
 - **Entities**: GameSession, Schedule
@@ -160,8 +160,8 @@ Current implementation includes:
 ### Application Layer (Use Cases)
 - **User Authentication**: Login, register, two-factor authentication, password reset
 - **Profile Management**: Update profile, manage security settings, recovery codes
-- **Epic Management**: Create, update, delete epics with campaigns
-- **Campaign Management**: Create, update, delete campaigns within epics
+- **World Management**: Create, update, delete worlds with campaigns
+- **Campaign Management**: Create, update, delete campaigns within worlds
 - **Adventure Management**: Create, update, delete adventures with encounters
 - **Encounter Management**: Create, update, delete encounters with grid and assets
 - **Asset Management**: Create, update, delete reusable game assets
@@ -238,7 +238,7 @@ Current implementation includes:
 - **Domain Boundaries**: Identity handles users/roles, Assets handles reusable game pieces, Media handles file storage, Library handles content hierarchy, Game handles active sessions
 - **Dependency Flow**: UI → Application (Core) → Domain ← Infrastructure (Data, Storage)
 - **Communication Patterns**: REST API for standard operations, SignalR for real-time collaboration
-- **Complexity Justification**: Three-tier content hierarchy (Epic → Campaign → Adventure) supports flexible game content organization, owned entities reduce database joins
+- **Complexity Justification**: Three-tier content hierarchy (World → Campaign → Adventure) supports flexible game content organization, owned entities reduce database joins
 - **Simplification Applied**: Flat participant structure instead of complex user-session relationships, single Resource entity for all media types, storage interface abstraction allows easy adapter swapping
 
 ---
@@ -328,7 +328,7 @@ Current implementation includes:
 #### Storage Component (Infrastructure Layer)
 - **Technology**: SQL Server with Entity Framework Core 9.0
 - **Purpose**: Persistent data storage implementing repository pattern
-- **Data Entities**: Resource (media files), Asset (game pieces), Adventure (game modules), Encounter (tactical maps), GameSession (active meetings), Schedule (meeting schedules), Epic (story arcs), Campaign (story collections), User (identity), Role (permissions)
+- **Data Entities**: Resource (media files), Asset (game pieces), Adventure (game modules), Encounter (tactical maps), GameSession (active meetings), Schedule (meeting schedules), World (story arcs), Campaign (story collections), User (identity), Role (permissions)
 - **Storage Requirements**: SQL Server database for relational data, Azure Blob Storage for media files (production), local filesystem for media (development)
 - **Architecture Role**: Secondary Adapter implementing outbound storage ports (IAssetStorage, IMediaStorage, IEncounterStorage, IAdventureStorage, IGameSessionStorage)
 
@@ -392,8 +392,8 @@ Current implementation includes:
   - Support 4 ResourceType variations (Image, Animation, Video, Undefined)
   - Implement tag-based organization for resource discovery
   - Enforce blob storage path conventions
-- **Library Domain**: Implement Epic > Campaign > Adventure > Encounter hierarchy
-  - Epic as record aggregate root with owned Campaigns collection
+- **Library Domain**: Implement World > Campaign > Adventure > Encounter hierarchy
+  - World as record aggregate root with owned Campaigns collection
   - Campaign as owned entity class with Adventures collection
   - Adventure as record aggregate with Encounters collection
   - Encounter as record aggregate with Stage, Grid, and EncounterAssets value objects
@@ -411,13 +411,13 @@ Current implementation includes:
   - Input validation: email format, password strength (Identity framework rules)
   - Domain coordination: User entity creation, role assignment, token generation
   - Output: AuthResponse with JWT token, refresh token, user profile
-- **Epic Management**: Create, update, delete epics with campaign ownership
+- **World Management**: Create, update, delete worlds with campaign ownership
   - Input validation: name length (128 chars), description length (4096 chars)
-  - Domain coordination: Epic creation with owned Campaigns, background Resource assignment
-  - Output: Epic DTO with campaign count, publication status
-- **Campaign Management**: Manage campaigns within epic boundaries
-  - Input validation: EpicId existence, ownership verification
-  - Domain coordination: Campaign creation within Epic, Adventure collection management
+  - Domain coordination: World creation with owned Campaigns, background Resource assignment
+  - Output: World DTO with campaign count, publication status
+- **Campaign Management**: Manage campaigns within world boundaries
+  - Input validation: WorldId existence, ownership verification
+  - Domain coordination: Campaign creation within World, Adventure collection management
   - Output: Campaign DTO with adventure count, hierarchy path
 - **Adventure Management**: Create adventures with encounter collections
   - Input validation: CampaignId optional (standalone adventures allowed), AdventureType enum
@@ -493,10 +493,10 @@ Current implementation includes:
 
 ### Phase 1: Domain Foundation ✅ COMPLETE
 1. **Domain Modeling**: 10 bounded contexts with proper domain boundaries (Identity, Assets, Media, Library, Game, Common, Data, Auth, WebApp, Core)
-2. **Entity Creation**: 15 entities with business invariants (Resource, Asset, Adventure, Encounter, GameSession, Schedule, Epic, Campaign, User, Role, UserRole, UserClaim, RoleClaim, UserLogin, UserToken)
+2. **Entity Creation**: 15 entities with business invariants (Resource, Asset, Adventure, Encounter, GameSession, Schedule, World, Campaign, User, Role, UserRole, UserClaim, RoleClaim, UserLogin, UserToken)
 3. **Value Objects**: 11 immutable value objects (ResourceMetadata, ResourceFile, EncounterAsset, Stage, Grid, Participant, GameSessionMessage, GameSessionEvent, Recurrence, Frame, Display)
 4. **Domain Services**: Storage interfaces defined (IAssetStorage, IMediaStorage, IEncounterStorage, IAdventureStorage, IGameSessionStorage)
-5. **Ubiquitous Language**: Consistent terminology (Game Master, Player, Adventure, Encounter, Asset, Token, Meeting, Epic, Campaign, Stage, Grid, Frame, Resource, Participant)
+5. **Ubiquitous Language**: Consistent terminology (Game Master, Player, Adventure, Encounter, Asset, Token, Meeting, World, Campaign, Stage, Grid, Frame, Resource, Participant)
 
 ---
 
@@ -590,7 +590,7 @@ PROJECT SPECIFICATION QUALITY CHECKLIST
 ## Domain Architecture (DDD) (30 points)
 ✅ 10pts: Bounded contexts identified with clear responsibilities (10 contexts: Identity, Assets, Media, Library, Game, Common, Data, Auth, WebApp, Core)
 ✅ 5pts: Domain interactions documented with direction (Library→Media, Assets→Media, Game→Library, etc.)
-✅ 5pts: Ubiquitous language defined (13 core domain terms: GM, Player, Adventure, Encounter, Asset, Token, Meeting, Epic, Campaign, Stage, Grid, Frame, Resource, Participant)
+✅ 5pts: Ubiquitous language defined (13 core domain terms: GM, Player, Adventure, Encounter, Asset, Token, Meeting, World, Campaign, Stage, Grid, Frame, Resource, Participant)
 ✅ 5pts: Domain entities, value objects, services specified per context (15 entities, 11 value objects, 5 storage services)
 ⚠️ 5pts: Domain events identified for state changes (NOT IMPLEMENTED - documented as N/A)
 

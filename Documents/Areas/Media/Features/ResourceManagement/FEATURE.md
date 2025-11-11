@@ -43,7 +43,7 @@
 ### Area Impact Assessment
 - **Media**: Core storage operations, blob storage integration, metadata management, resource lifecycle
 - **Assets**: References Resource.Id for Asset.Display (read-only foreign key)
-- **Library**: References Resource.Id for Encounter/Adventure/Epic backgrounds (read-only foreign key)
+- **Library**: References Resource.Id for Encounter/Adventure/World backgrounds (read-only foreign key)
 
 ### Use Case Breakdown
 - **Upload Resource** (Media): Upload media file to blob storage and create Resource entity with metadata

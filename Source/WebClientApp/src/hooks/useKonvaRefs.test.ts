@@ -1,5 +1,5 @@
 // GENERATED: 2025-10-19 by Claude Code Phase 6
-// EPIC: EPIC-001 Phase 6 - Encounter Editor Tokens, Undo/Redo, Offline
+// WORLD: EPIC-001 Phase 6 - Encounter Editor Tokens, Undo/Redo, Offline
 // LAYER: UI (Hook Test)
 
 /**

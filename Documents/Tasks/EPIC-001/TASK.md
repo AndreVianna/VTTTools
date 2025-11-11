@@ -1,6 +1,6 @@
 # EPIC-001: UI Migration - Blazor to React
 
-**Type**: Epic (Large-Scale Migration)
+**Type**: World (Large-Scale Migration)
 **Status**: In Progress (Phase 6 Complete, Phase 7 Starting)
 **Priority**: Critical
 **Effort**: 273 hours total (188 complete, 85 remaining)
@@ -11,7 +11,7 @@
 
 ## Description
 
-Migrate VTTTools frontend from Blazor WebAssembly to React 19 + TypeScript + Material-UI + React-Konva for improved performance, better creative tool UX, and modern component architecture. This epic replaces the legacy Blazor WASM client with a modern React SPA while maintaining feature parity and enhancing the user experience for encounter editing and real-time collaboration.
+Migrate VTTTools frontend from Blazor WebAssembly to React 19 + TypeScript + Material-UI + React-Konva for improved performance, better creative tool UX, and modern component architecture. This world replaces the legacy Blazor WASM client with a modern React SPA while maintaining feature parity and enhancing the user experience for encounter editing and real-time collaboration.
 
 ---
 
@@ -163,7 +163,7 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
    - Status: ✅ Complete (Phase 5)
 
 6. **Build Content Management UI** 🔜 PLANNED
-   - Action: Epic/Campaign/Adventure/Encounter hierarchy management with tree views and forms
+   - Action: World/Campaign/Adventure/Encounter hierarchy management with tree views and forms
    - Component: WebClientApp/src/pages/library/
    - Estimated Time: 32 hours
    - Status: Not started
@@ -204,7 +204,7 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 
 ### Blocking Tasks
 
-- None - This is a foundational epic
+- None - This is a foundational world
 
 ### Blocked Tasks
 
@@ -374,7 +374,7 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 
 ## Sprint Planning
 
-**Epic Breakdown**: Multiple sprints over 6-8 weeks
+**World Breakdown**: Multiple sprints over 6-8 weeks
 **Sprint Goal Alignment**: Incremental feature delivery with user testing
 
 ### Time Breakdown
@@ -389,7 +389,7 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 - **Game Sessions & Real-Time**: 22 hours (🔜 Planned - Phase 10)
 - **Account Management**: 16 hours (🔜 Planned - Phase 11)
 - **Performance & Production**: 14 hours (🔜 Final - Phase 12)
-- **Epic/Campaign**: 18 hours (⚠️ BLOCKED - Phase 9, optional)
+- **World/Campaign**: 18 hours (⚠️ BLOCKED - Phase 9, optional)
 - **Total**: 273 hours (188 complete, 85 remaining)
 
 ---
@@ -405,7 +405,7 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 - **Phase 6 (Encounter Tokens)**: ✅ Complete (100%)
 - **Phase 7 (Encounter Management)**: ⏳ Starting (0%)
 - **Phase 8 (Adventures)**: 🔜 Planned (0%)
-- **Phase 9 (Epic/Campaign)**: ⚠️ Blocked (0%)
+- **Phase 9 (World/Campaign)**: ⚠️ Blocked (0%)
 - **Phase 10 (Game Sessions)**: 🔜 Planned (0%)
 - **Phase 11 (Account Mgmt)**: 🔜 Planned (0%)
 - **Phase 12 (Production)**: 🔜 Planned (0%)
@@ -419,7 +419,7 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 - **2025-10-04**: Phase 3 COMPLETE - Encounter editor panning/zoom
 - **2025-10-03**: Phase 2 COMPLETE - Authentication and landing page
 - **2025-10-03**: Phase 1 COMPLETE - React foundation setup
-- **2025-10-03**: Epic created with comprehensive specification and cross-references
+- **2025-10-03**: World created with comprehensive specification and cross-references
 
 ---
 
@@ -455,7 +455,7 @@ Replace Blazor WebAssembly frontend with modern React 19 + TypeScript SPA to del
 - **2025-10-11**: Phase 5 complete with 70-hour expansion
 - **2025-10-05**: Phase 4 complete with grid system
 - **2025-10-04**: Phase 3 complete with authentication improvements
-- **2025-10-03**: Epic created with full cross-reference structure following naming conventions restructuring
+- **2025-10-03**: World created with full cross-reference structure following naming conventions restructuring
 
 ---
 
@@ -465,7 +465,7 @@ TASK SPECIFICATION QUALITY CHECKLIST
 ═══════════════════════════════════════════════════════════════
 
 ## Task Identity & Scope (15 points)
-✅ 5pts: Task type clearly specified (Epic)
+✅ 5pts: Task type clearly specified (World)
 ✅ 5pts: Clear, actionable title and description
 ✅ 5pts: Priority (Critical) and effort estimate (120-160 hours) provided
 

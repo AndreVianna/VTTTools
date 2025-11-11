@@ -1,4 +1,4 @@
-# GetEpicsByOwner Use Case
+# GetWorldsByOwner Use Case
 
 **Status**: Specification pending - BDD file exists
 

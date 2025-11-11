@@ -1,5 +1,4 @@
-﻿
-namespace VttTools.Library.Services;
+﻿namespace VttTools.Library.Services;
 
 public class AdventureServiceTests {
     private readonly IAdventureStorage _adventureStorage;
@@ -56,6 +55,7 @@ public class AdventureServiceTests {
             Name = "New Adventure",
             Description = "Adventure description",
             Style = AdventureStyle.Survival,
+            WorldId = Guid.CreateVersion7(),
             CampaignId = Guid.CreateVersion7(),
             IsOneShot = false,
         };
@@ -72,7 +72,8 @@ public class AdventureServiceTests {
         result.Value.Background.Should().BeNull();
         result.Value.IsPublished.Should().BeFalse();
         result.Value.IsPublic.Should().BeFalse();
-        result.Value.CampaignId.Should().Be(request.CampaignId);
+        result.Value.World!.Id.Should().Be(request.WorldId.Value);
+        result.Value.Campaign!.Id.Should().Be(request.CampaignId.Value);
         result.Value.Id.Should().NotBe(Guid.Empty);
         result.Value.Encounters.Should().BeEmpty();
         result.Value.OwnerId.Should().Be(_userId);
@@ -86,6 +87,7 @@ public class AdventureServiceTests {
             Name = "",
             Description = "Adventure description",
             Style = AdventureStyle.Survival,
+            WorldId = Guid.CreateVersion7(),
             CampaignId = Guid.CreateVersion7(),
             IsOneShot = false,
         };
@@ -105,6 +107,7 @@ public class AdventureServiceTests {
             Name = "   ",
             Description = "Adventure description",
             Style = AdventureStyle.Survival,
+            WorldId = Guid.CreateVersion7(),
             CampaignId = Guid.CreateVersion7(),
             IsOneShot = false,
         };
@@ -124,6 +127,7 @@ public class AdventureServiceTests {
             Name = null!,
             Description = "Adventure description",
             Style = AdventureStyle.Survival,
+            WorldId = Guid.CreateVersion7(),
             CampaignId = Guid.CreateVersion7(),
             IsOneShot = false,
         };
@@ -156,6 +160,7 @@ public class AdventureServiceTests {
             },
         };
         var request = new UpdatedAdventureData {
+            WorldId = Guid.CreateVersion7(),
             CampaignId = Guid.CreateVersion7(),
             Name = "Updated Name",
             Description = "Adventure description",
@@ -179,7 +184,8 @@ public class AdventureServiceTests {
         result.Value.Background.Should().NotBeNull();
         result.Value.IsPublished.Should().BeTrue();
         result.Value.IsPublic.Should().BeTrue();
-        result.Value.CampaignId.Should().Be(request.CampaignId.Value);
+        result.Value.World!.Id.Should().Be(request.WorldId.Value!.Value);
+        result.Value.Campaign!.Id.Should().Be(request.CampaignId.Value!.Value);
         result.Value.Id.Should().Be(adventureId);
         result.Value.Encounters.Should().BeEmpty();
         result.Value.OwnerId.Should().Be(_userId);
@@ -195,7 +201,9 @@ public class AdventureServiceTests {
             Name = "Old Name",
             OwnerId = _userId,
             Description = "Old description",
-            CampaignId = Guid.CreateVersion7(),
+            Style = AdventureStyle.Survival,
+            World = new World { Id = Guid.CreateVersion7() },
+            Campaign = new Campaign { Id = Guid.CreateVersion7() },
             Background = new() {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
@@ -226,7 +234,8 @@ public class AdventureServiceTests {
         result.Value.IsPublished.Should().BeFalse();
         result.Value.IsOneShot.Should().BeFalse();
         result.Value.IsPublic.Should().BeFalse();
-        result.Value.CampaignId.Should().Be(adventure.CampaignId);
+        result.Value.World.Should().BeEquivalentTo(adventure.World);
+        result.Value.Campaign.Should().BeEquivalentTo(adventure.Campaign);
         result.Value.Id.Should().Be(adventureId);
         result.Value.Encounters.Should().BeEmpty();
         result.Value.OwnerId.Should().Be(_userId);
@@ -342,11 +351,10 @@ public class AdventureServiceTests {
             Description = "Adventure description",
             Style = AdventureStyle.Survival,
             IsOneShot = false,
-            // NOTE: Service logic prevents cloning if both IsPublished=true AND IsPublic=true, even for owners
             IsPublished = false,
             IsPublic = false,
-            CampaignId = Guid.CreateVersion7(),
-            // NOTE: Cloner requires Background to be non-null
+            World = new World { Id = Guid.CreateVersion7() },
+            Campaign = new Campaign { Id = Guid.CreateVersion7() },
             Background = new Resource {
                 Id = Guid.CreateVersion7(),
                 Type = ResourceType.Image,
@@ -426,7 +434,8 @@ public class AdventureServiceTests {
             IsOneShot = false,
             IsPublished = true,
             IsPublic = false,
-            CampaignId = Guid.CreateVersion7(),
+            World = new () { Id = Guid.CreateVersion7() },
+            Campaign = new () { Id = Guid.CreateVersion7() },
         };
 
         _adventureStorage.GetByIdAsync(adventureId, Arg.Any<CancellationToken>()).Returns(adventure);

@@ -25,7 +25,7 @@ const ALLOWED_TABLES = [
     // Library tables
     'Adventures',
     'Campaigns',
-    'Epics',
+    'Worlds',
     'Encounters',
     'EncounterAssets',
     'EncounterEffects',
@@ -743,7 +743,7 @@ export class DatabaseHelper {
             DELETE FROM Encounters WHERE OwnerId = ?;
             DELETE FROM Adventures WHERE OwnerId = ?;
             DELETE FROM Campaigns WHERE OwnerId = ?;
-            DELETE FROM Epics WHERE OwnerId = ?;
+            DELETE FROM Worlds WHERE OwnerId = ?;
             DELETE FROM Structures WHERE OwnerId = ?;
             DELETE FROM Effects WHERE OwnerId = ?;
             DELETE FROM GameSessions WHERE OwnerId = ?;

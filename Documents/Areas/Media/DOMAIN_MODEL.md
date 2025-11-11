@@ -169,7 +169,7 @@ Potential future events:
   - **Cardinality**: One-to-Many (one resource can be referenced by many AssetResource associations)
   - **Roles**: Each reference has a role (Token for encounters, Display for UI)
 
-- **Referenced By** ← Encounter/Adventure/Epic: Resource may be used as Background
+- **Referenced By** ← Encounter/Adventure/World: Resource may be used as Background
   - **Cardinality**: One-to-Many (one resource used by many backgrounds)
   - **Navigation**: Not navigable from Resource (no collection property)
 
@@ -311,7 +311,7 @@ Cleanup process can safely delete these blobs and Resource entities.
 **What's Outside** (Referenced, not contained):
 - User (uploader, if tracking is added)
 - Asset (references Resource via Display.ResourceId)
-- Encounter/Adventure/Epic (reference Resource for Background)
+- Encounter/Adventure/World (reference Resource for Background)
 
 **Boundary Rule**: All data needed to store, retrieve, and serve a media file is within this aggregate. External usage (Asset display, Encounter backgrounds) is tracked in those aggregates, not here. Resource is a shared kernel referenced by ID.
 
@@ -449,7 +449,7 @@ This domain model is **dependency-free** in the Domain project:
 - **Tag Resources Use Case**: Uses Resource entity, updates Tags property
 - **Delete Media Use Case**: Uses Resource entity ID, checks usage before deletion
 - **Asset Display**: Asset context references Resource.Id via Display.ResourceId value object
-- **Encounter Backgrounds**: Library context (Encounter, Adventure, Epic) references Resource.Id for Background property
+- **Encounter Backgrounds**: Library context (Encounter, Adventure, World) references Resource.Id for Background property
 
 ---
 

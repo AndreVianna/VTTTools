@@ -46,7 +46,7 @@
 
 ### UI State Requirements
 - **Data Dependencies**: useAuth hook (updateProfile function, isLoading, error)
-- **State Scope**: Local form state (formData: name, displayName, phoneNumber, profilePictureUrl, validationErrors, isEditing)
+- **State Scope**: Local form state (formData: name, displayName, phoneNumber, profilworldtureUrl, validationErrors, isEditing)
 - **API Calls**: PUT /api/users/profile, POST /api/users/avatar (for image upload)
 - **State Management**: React useState for form, Auth Context for profile updates
 
@@ -174,7 +174,7 @@
     name?: string
     displayName?: string
     phoneNumber?: string
-    profilePictureUrl?: string
+    profilworldtureUrl?: string
   }
 
   interface UpdateResult {

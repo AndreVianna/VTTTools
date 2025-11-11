@@ -2,26 +2,26 @@
 
 **Generated**: 2025-10-02
 **Domain Model Version**: 1.0.0
-**Total Use Cases**: 23 (5 Epic + 5 Campaign + 5 Adventure + 8 Encounter)
+**Total Use Cases**: 23 (5 World + 5 Campaign + 5 Adventure + 8 Encounter)
 
-This document contains complete specifications for all Library area use cases across 4 features: Epic Management, Campaign Management, Adventure Management, and Encounter Management.
+This document contains complete specifications for all Library area use cases across 4 features: World Management, Campaign Management, Adventure Management, and Encounter Management.
 
 ---
 
 ## Table of Contents
 
-### Epic Management (5 use cases)
-1. [Create Epic](#1-create-epic)
-2. [Get Epic By ID](#2-get-epic-by-id)
-3. [Update Epic](#3-update-epic)
-4. [Delete Epic](#4-delete-epic)
-5. [Get Epics By Owner](#5-get-epics-by-owner)
+### World Management (5 use cases)
+1. [Create World](#1-create-world)
+2. [Get World By ID](#2-get-world-by-id)
+3. [Update World](#3-update-world)
+4. [Delete World](#4-delete-world)
+5. [Get Worlds By Owner](#5-get-worlds-by-owner)
 
 ### Campaign Management (5 use cases)
 6. [Create Campaign](#6-create-campaign)
 7. [Update Campaign](#7-update-campaign)
-8. [Get Campaigns By Epic](#8-get-campaigns-by-epic)
-9. [Move Campaign To Epic](#9-move-campaign-to-epic)
+8. [Get Campaigns By World](#8-get-campaigns-by-world)
+9. [Move Campaign To World](#9-move-campaign-to-world)
 10. [Make Campaign Standalone](#10-make-campaign-standalone)
 
 ### Adventure Management (5 use cases)
@@ -43,13 +43,13 @@ This document contains complete specifications for all Library area use cases ac
 
 ---
 
-## Epic Management Use Cases
+## World Management Use Cases
 
-### 1. Create Epic
+### 1. Create World
 
-**UI Type**: API_ENDPOINT - POST /api/library/epics
+**UI Type**: API_ENDPOINT - POST /api/library/worlds
 
-**Purpose**: Create new multi-campaign story arc (Epic entity) with optional campaigns
+**Purpose**: Create new multi-campaign story arc (World entity) with optional campaigns
 
 **Business Value**: Enables Game Masters to establish top-level organizational structure for multi-campaign narratives
 
@@ -68,8 +68,8 @@ This document contains complete specifications for all Library area use cases ac
 - INV-03: Description max 4096 characters
 - INV-04: IsPublished=true → IsPublic=true
 - INV-05: OwnerId must reference existing User
-- AGG-01: Epic owns Campaigns (cascade insert)
-- AGG-02: Only owner can modify Epic
+- AGG-01: World owns Campaigns (cascade insert)
+- AGG-02: Only owner can modify World
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
@@ -78,81 +78,81 @@ This document contains complete specifications for all Library area use cases ac
 4. Validate publication rules (INV-04)
 5. Validate OwnerId via IUserStorage (INV-05)
 6. Validate Background via IMediaStorage if provided
-7. Generate Epic.Id (Guid)
-8. Create Epic entity
-9. Validate and associate Campaigns (set EpicId)
-10. Persist via ILibraryStorage.CreateEpicAsync
-11. Publish EpicCreated domain event
-12. Return Epic with Id and Campaigns
+7. Generate World.Id (Guid)
+8. Create World entity
+9. Validate and associate Campaigns (set WorldId)
+10. Persist via ILibraryStorage.CreateWorldAsync
+11. Publish WorldCreated domain event
+12. Return World with Id and Campaigns
 
-**Output**: Epic entity (JSON) with generated Id, owned Campaigns
+**Output**: World entity (JSON) with generated Id, owned Campaigns
 
 **Error Scenarios**:
-- Name empty/whitespace → 400 "Epic name is required"
-- Name too long → 400 "Epic name must not exceed 128 characters"
-- Description too long → 400 "Epic description must not exceed 4096 characters"
-- IsPublished=true but IsPublic=false → 400 "Published epics must be public"
+- Name empty/whitespace → 400 "World name is required"
+- Name too long → 400 "World name must not exceed 128 characters"
+- Description too long → 400 "World description must not exceed 4096 characters"
+- IsPublished=true but IsPublic=false → 400 "Published worlds must be public"
 - Invalid OwnerId → 404 "Owner user not found"
 - Invalid Background → 404 "Background resource not found or not an image"
 - Campaign validation failure → 400 with specific message
-- Persistence failure → 500 "Failed to create epic"
+- Persistence failure → 500 "Failed to create world"
 - Unauthorized → 403 "User not authorized"
 
 **Acceptance Criteria**:
-- AC-01: Epic creation succeeds with valid inputs, EpicCreated event published
-- AC-02: Epic creation fails with empty name (INV-01)
-- AC-03: Epic creation fails with name > 128 chars (INV-02)
-- AC-04: Epic creation fails with IsPublished=true, IsPublic=false (INV-04)
-- AC-05: Epic creation succeeds with Campaigns, all persisted with EpicId
-- AC-06: Epic creation fails with invalid OwnerId (INV-05)
+- AC-01: World creation succeeds with valid inputs, WorldCreated event published
+- AC-02: World creation fails with empty name (INV-01)
+- AC-03: World creation fails with name > 128 chars (INV-02)
+- AC-04: World creation fails with IsPublished=true, IsPublic=false (INV-04)
+- AC-05: World creation succeeds with Campaigns, all persisted with WorldId
+- AC-06: World creation fails with invalid OwnerId (INV-05)
 
 ---
 
-### 2. Get Epic By ID
+### 2. Get World By ID
 
-**UI Type**: API_ENDPOINT - GET /api/library/epics/:id
+**UI Type**: API_ENDPOINT - GET /api/library/worlds/:id
 
-**Purpose**: Retrieve epic with owned campaigns collection
+**Purpose**: Retrieve world with owned campaigns collection
 
-**Business Value**: Enables viewing complete epic details including all associated campaigns
+**Business Value**: Enables viewing complete world details including all associated campaigns
 
 **Input Requirements**:
-- EpicId: Guid (required, from route parameter)
+- WorldId: Guid (required, from route parameter)
 
 **Business Rules**:
-- Epic must exist
+- World must exist
 - No authorization required (public/private handled by business logic)
 
 **Processing Steps**:
-1. Validate EpicId format (valid Guid)
-2. Query Epic via ILibraryStorage.GetEpicByIdAsync(epicId)
+1. Validate WorldId format (valid Guid)
+2. Query World via ILibraryStorage.GetWorldByIdAsync(worldId)
 3. Include Campaigns collection (eager loading)
-4. Return Epic or null if not found
+4. Return World or null if not found
 
-**Output**: Epic entity (JSON) with Campaigns collection, or 404 if not found
+**Output**: World entity (JSON) with Campaigns collection, or 404 if not found
 
 **Error Scenarios**:
-- Invalid EpicId format → 400 "Invalid epic identifier"
-- Epic not found → 404 "Epic not found"
-- Database error → 500 "Failed to retrieve epic"
+- Invalid WorldId format → 400 "Invalid world identifier"
+- World not found → 404 "World not found"
+- Database error → 500 "Failed to retrieve world"
 
 **Acceptance Criteria**:
-- AC-01: GetEpicById returns Epic with Campaigns for valid existing Id
-- AC-02: GetEpicById returns 404 for non-existent Id
+- AC-01: GetWorldById returns World with Campaigns for valid existing Id
+- AC-02: GetWorldById returns 404 for non-existent Id
 - AC-03: Campaigns collection loaded and included in response
 
 ---
 
-### 3. Update Epic
+### 3. Update World
 
-**UI Type**: API_ENDPOINT - PUT /api/library/epics/:id
+**UI Type**: API_ENDPOINT - PUT /api/library/worlds/:id
 
-**Purpose**: Modify epic properties (name, description, background, publication status)
+**Purpose**: Modify world properties (name, description, background, publication status)
 
-**Business Value**: Enables Game Masters to refine epic details and control visibility
+**Business Value**: Enables Game Masters to refine world details and control visibility
 
 **Input Requirements**:
-- EpicId: Guid (required, from route)
+- WorldId: Guid (required, from route)
 - Name: string (required, 1-128 characters)
 - Description: string (optional, max 4096)
 - Background: Resource? (optional)
@@ -161,47 +161,47 @@ This document contains complete specifications for all Library area use cases ac
 - OwnerId: Guid (from authenticated user, for authorization)
 
 **Business Rules**:
-- Same as Create Epic (INV-01 through INV-05)
+- Same as Create World (INV-01 through INV-05)
 - AGG-02: Only owner can modify
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
-2. Retrieve existing Epic via GetEpicByIdAsync
-3. Verify ownership (Epic.OwnerId == authenticated OwnerId)
+2. Retrieve existing World via GetWorldByIdAsync
+3. Verify ownership (World.OwnerId == authenticated OwnerId)
 4. Validate Name (INV-01, INV-02)
 5. Validate Description (INV-03)
 6. Validate publication rules (INV-04)
 7. Validate Background via IMediaStorage if changed
-8. Update Epic properties
-9. Persist via ILibraryStorage.UpdateEpicAsync
-10. Publish EpicUpdated domain event
-11. Return updated Epic
+8. Update World properties
+9. Persist via ILibraryStorage.UpdateWorldAsync
+10. Publish WorldUpdated domain event
+11. Return updated World
 
-**Output**: Updated Epic entity (JSON)
+**Output**: Updated World entity (JSON)
 
 **Error Scenarios**:
-- Epic not found → 404 "Epic not found"
-- Not owner → 403 "Only owner can modify epic"
-- Same validation errors as Create Epic
+- World not found → 404 "World not found"
+- Not owner → 403 "Only owner can modify world"
+- Same validation errors as Create World
 
 **Acceptance Criteria**:
 - AC-01: Update succeeds with valid changes by owner
 - AC-02: Update fails when not owner (AGG-02)
 - AC-03: Update fails with invalid publication rules (INV-04)
-- AC-04: EpicUpdated event published on success
+- AC-04: WorldUpdated event published on success
 
 ---
 
-### 4. Delete Epic
+### 4. Delete World
 
-**UI Type**: API_ENDPOINT - DELETE /api/library/epics/:id
+**UI Type**: API_ENDPOINT - DELETE /api/library/worlds/:id
 
-**Purpose**: Remove epic and cascade to campaigns/adventures/encounters
+**Purpose**: Remove world and cascade to campaigns/adventures/encounters
 
 **Business Value**: Enables Game Masters to remove unwanted content hierarchies
 
 **Input Requirements**:
-- EpicId: Guid (required, from route)
+- WorldId: Guid (required, from route)
 - OwnerId: Guid (from authenticated user)
 
 **Business Rules**:
@@ -211,60 +211,60 @@ This document contains complete specifications for all Library area use cases ac
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
-2. Retrieve Epic via GetEpicByIdAsync
-3. Verify ownership (Epic.OwnerId == OwnerId)
+2. Retrieve World via GetWorldByIdAsync
+3. Verify ownership (World.OwnerId == OwnerId)
 4. Check for active GameSession references via IGameSessionStorage
 5. If active references exist, return error
-6. Delete Epic via ILibraryStorage.DeleteEpicAsync (cascade)
-7. Publish EpicDeleted domain event
+6. Delete World via ILibraryStorage.DeleteWorldAsync (cascade)
+7. Publish WorldDeleted domain event
 8. Return success (204 No Content)
 
 **Output**: 204 No Content on success
 
 **Error Scenarios**:
-- Epic not found → 404 "Epic not found"
-- Not owner → 403 "Only owner can delete epic"
-- Active game session references → 409 "Epic contains encounters in use by active game sessions"
-- Database error → 500 "Failed to delete epic"
+- World not found → 404 "World not found"
+- Not owner → 403 "Only owner can delete world"
+- Active game session references → 409 "World contains encounters in use by active game sessions"
+- Database error → 500 "Failed to delete world"
 
 **Acceptance Criteria**:
 - AC-01: Delete succeeds and cascades to all Campaigns/Adventures/Encounters
 - AC-02: Delete fails when not owner (AGG-02)
 - AC-03: Delete fails when Encounter in use by active GameSession (BR-13)
-- AC-04: EpicDeleted event published on success
+- AC-04: WorldDeleted event published on success
 
 ---
 
-### 5. Get Epics By Owner
+### 5. Get Worlds By Owner
 
-**UI Type**: API_ENDPOINT - GET /api/library/epics?ownerId=:ownerId
+**UI Type**: API_ENDPOINT - GET /api/library/worlds?ownerId=:ownerId
 
-**Purpose**: Query epics owned by specific Game Master
+**Purpose**: Query worlds owned by specific Game Master
 
-**Business Value**: Enables Game Masters to view their epic library
+**Business Value**: Enables Game Masters to view their world library
 
 **Input Requirements**:
 - OwnerId: Guid (required, from query parameter)
 
 **Business Rules**:
 - No ownership validation (public query)
-- Returns empty list if no epics found
+- Returns empty list if no worlds found
 
 **Processing Steps**:
 1. Validate OwnerId format
-2. Query Epics via ILibraryStorage.GetEpicsByOwnerAsync(ownerId)
+2. Query Worlds via ILibraryStorage.GetWorldsByOwnerAsync(ownerId)
 3. Include Campaigns collections (optional, based on query parameter)
-4. Return list of Epics
+4. Return list of Worlds
 
-**Output**: Array of Epic entities (JSON)
+**Output**: Array of World entities (JSON)
 
 **Error Scenarios**:
 - Invalid OwnerId format → 400 "Invalid owner identifier"
-- Database error → 500 "Failed to retrieve epics"
+- Database error → 500 "Failed to retrieve worlds"
 
 **Acceptance Criteria**:
-- AC-01: GetEpicsByOwner returns all epics for valid owner
-- AC-02: GetEpicsByOwner returns empty list for owner with no epics
+- AC-01: GetWorldsByOwner returns all worlds for valid owner
+- AC-02: GetWorldsByOwner returns empty list for owner with no worlds
 - AC-03: Campaigns included if query parameter `includeCampaigns=true`
 
 ---
@@ -275,9 +275,9 @@ This document contains complete specifications for all Library area use cases ac
 
 **UI Type**: API_ENDPOINT - POST /api/library/campaigns
 
-**Purpose**: Create new multi-adventure storyline with optional epic association
+**Purpose**: Create new multi-adventure storyline with optional world association
 
-**Business Value**: Enables Game Masters to establish campaign-level organization (standalone or within epic)
+**Business Value**: Enables Game Masters to establish campaign-level organization (standalone or within world)
 
 **Input Requirements**:
 - Name: string (required, 1-128 characters)
@@ -286,14 +286,14 @@ This document contains complete specifications for all Library area use cases ac
 - IsPublished: bool (default false)
 - IsPublic: bool (default false)
 - OwnerId: Guid (from authenticated user)
-- EpicId: Guid? (optional, for epic association)
+- WorldId: Guid? (optional, for world association)
 - Adventures: List<Adventure> (optional)
 
 **Business Rules**:
-- Same as Epic (INV-01 through INV-05)
-- INV-06: If EpicId provided, Epic must exist
+- Same as World (INV-01 through INV-05)
+- INV-06: If WorldId provided, World must exist
 - AGG-03: Campaign owns Adventures (cascade)
-- AGG-04: Campaign can be standalone or within Epic
+- AGG-04: Campaign can be standalone or within World
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
@@ -302,9 +302,9 @@ This document contains complete specifications for all Library area use cases ac
 4. Validate publication rules (INV-04)
 5. Validate OwnerId via IUserStorage (INV-05)
 6. Validate Background via IMediaStorage if provided
-7. If EpicId provided, validate Epic exists via GetEpicByIdAsync (INV-06)
+7. If WorldId provided, validate World exists via GetWorldByIdAsync (INV-06)
 8. Generate Campaign.Id
-9. Create Campaign entity (with nullable EpicId)
+9. Create Campaign entity (with nullable WorldId)
 10. Validate and associate Adventures (set CampaignId)
 11. Persist via ILibraryStorage.CreateCampaignAsync
 12. Publish CampaignCreated domain event
@@ -313,13 +313,13 @@ This document contains complete specifications for all Library area use cases ac
 **Output**: Campaign entity (JSON) with generated Id, Adventures
 
 **Error Scenarios**:
-- Same validation errors as Create Epic
-- Invalid EpicId → 404 "Epic not found"
+- Same validation errors as Create World
+- Invalid WorldId → 404 "World not found"
 
 **Acceptance Criteria**:
-- AC-01: Campaign creation succeeds standalone (EpicId=null)
-- AC-02: Campaign creation succeeds with valid EpicId
-- AC-03: Campaign creation fails with invalid EpicId (INV-06)
+- AC-01: Campaign creation succeeds standalone (WorldId=null)
+- AC-02: Campaign creation succeeds with valid WorldId
+- AC-03: Campaign creation fails with invalid WorldId (INV-06)
 - AC-04: Campaign creation succeeds with Adventures, all persisted with CampaignId
 - AC-05: CampaignCreated event published
 
@@ -329,7 +329,7 @@ This document contains complete specifications for all Library area use cases ac
 
 **UI Type**: API_ENDPOINT - PUT /api/library/campaigns/:id
 
-**Purpose**: Modify campaign properties (name, description, background, publication, epic association)
+**Purpose**: Modify campaign properties (name, description, background, publication, world association)
 
 **Business Value**: Enables Game Masters to refine campaign details and control hierarchy placement
 
@@ -340,19 +340,19 @@ This document contains complete specifications for all Library area use cases ac
 - Background: Resource? (optional)
 - IsPublished: bool
 - IsPublic: bool
-- EpicId: Guid? (nullable, for hierarchy changes)
+- WorldId: Guid? (nullable, for hierarchy changes)
 - OwnerId: Guid (from authenticated user)
 
 **Business Rules**:
 - Same as Create Campaign (INV-01 through INV-06)
-- AGG-04: Can change EpicId (move between epic/standalone)
+- AGG-04: Can change WorldId (move between world/standalone)
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
 2. Retrieve existing Campaign
 3. Verify ownership
 4. Validate all inputs (same as Create)
-5. If EpicId changed, validate new Epic exists (if not null)
+5. If WorldId changed, validate new World exists (if not null)
 6. Update Campaign properties
 7. Persist via UpdateCampaignAsync
 8. Publish CampaignUpdated event
@@ -367,86 +367,86 @@ This document contains complete specifications for all Library area use cases ac
 
 **Acceptance Criteria**:
 - AC-01: Update succeeds with valid changes by owner
-- AC-02: Update succeeds changing EpicId (hierarchy movement)
+- AC-02: Update succeeds changing WorldId (hierarchy movement)
 - AC-03: Update fails when not owner
 
 ---
 
-### 8. Get Campaigns By Epic
+### 8. Get Campaigns By World
 
-**UI Type**: API_ENDPOINT - GET /api/library/campaigns?epicId=:epicId
+**UI Type**: API_ENDPOINT - GET /api/library/campaigns?worldId=:worldId
 
-**Purpose**: Query campaigns within specific epic (or standalone with epicId=null)
+**Purpose**: Query campaigns within specific world (or standalone with worldId=null)
 
-**Business Value**: Enables viewing campaign organization within epic hierarchy
+**Business Value**: Enables viewing campaign organization within world hierarchy
 
 **Input Requirements**:
-- EpicId: Guid? (nullable query parameter; null returns standalone campaigns)
+- WorldId: Guid? (nullable query parameter; null returns standalone campaigns)
 
 **Business Rules**:
 - Returns empty list if no campaigns found
 
 **Processing Steps**:
-1. Validate EpicId format if provided
-2. If EpicId provided, query Campaigns with CampaignId==epicId
-3. If EpicId null, query Campaigns with EpicId==null (standalone)
+1. Validate WorldId format if provided
+2. If WorldId provided, query Campaigns with CampaignId==worldId
+3. If WorldId null, query Campaigns with WorldId==null (standalone)
 4. Include Adventures collections (optional)
 5. Return list of Campaigns
 
 **Output**: Array of Campaign entities (JSON)
 
 **Error Scenarios**:
-- Invalid EpicId format → 400
+- Invalid WorldId format → 400
 - Database error → 500
 
 **Acceptance Criteria**:
-- AC-01: Returns campaigns for valid Epic
-- AC-02: Returns standalone campaigns when epicId=null
+- AC-01: Returns campaigns for valid World
+- AC-02: Returns standalone campaigns when worldId=null
 - AC-03: Returns empty list when no campaigns found
 
 ---
 
-### 9. Move Campaign To Epic
+### 9. Move Campaign To World
 
-**UI Type**: API_ENDPOINT - PATCH /api/library/campaigns/:id/move-to-epic
+**UI Type**: API_ENDPOINT - PATCH /api/library/campaigns/:id/move-to-world
 
-**Purpose**: Associate standalone campaign with epic (set EpicId)
+**Purpose**: Associate standalone campaign with world (set WorldId)
 
-**Business Value**: Enables Game Masters to reorganize campaign hierarchy by adding standalone campaigns to epics
+**Business Value**: Enables Game Masters to reorganize campaign hierarchy by adding standalone campaigns to worlds
 
 **Input Requirements**:
 - CampaignId: Guid (required, from route)
-- EpicId: Guid (required, from request body)
+- WorldId: Guid (required, from request body)
 - OwnerId: Guid (from authenticated user)
 
 **Business Rules**:
-- INV-06: Epic must exist
-- AGG-04: Campaign can move between Epic/standalone
-- Campaign must currently be standalone (EpicId==null) or explicitly allow epic change
+- INV-06: World must exist
+- AGG-04: Campaign can move between World/standalone
+- Campaign must currently be standalone (WorldId==null) or explicitly allow world change
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
 2. Retrieve Campaign via GetCampaignByIdAsync
 3. Verify ownership
-4. Validate Epic exists via GetEpicByIdAsync (INV-06)
-5. Verify Epic ownership matches Campaign ownership (optional business rule)
-6. Update Campaign.EpicId = epicId
+4. Validate World exists via GetWorldByIdAsync (INV-06)
+5. Verify World ownership matches Campaign ownership (optional business rule)
+6. Update Campaign.WorldId = worldId
 7. Persist via UpdateCampaignAsync
-8. Publish CampaignMovedToEpic event
+8. Publish CampaignMovedToWorld event
 9. Return updated Campaign
 
-**Output**: Updated Campaign entity with EpicId set
+**Output**: Updated Campaign entity with WorldId set
 
 **Error Scenarios**:
 - Campaign not found → 404
-- Epic not found → 404
+- World not found → 404
 - Not owner → 403
-- Ownership mismatch → 409 "Epic and Campaign must have same owner"
+- Ownership mismatch → 409 "World and Campaign must have same owner"
 
 **Acceptance Criteria**:
-- AC-01: Move succeeds for standalone campaign to valid Epic
-- AC-02: Move fails with invalid EpicId (INV-06)
-- AC-03: CampaignMovedToEpic event published
+- AC-01: Move succeeds for standalone campaign to valid World
+- AC-02: Move fails with invalid WorldId (INV-06)
+- AC-03: CampaignMovedToWorld event published
 
 ---
 
@@ -454,7 +454,7 @@ This document contains complete specifications for all Library area use cases ac
 
 **UI Type**: API_ENDPOINT - PATCH /api/library/campaigns/:id/make-standalone
 
-**Purpose**: Remove campaign from epic (set EpicId=null)
+**Purpose**: Remove campaign from world (set WorldId=null)
 
 **Business Value**: Enables Game Masters to reorganize campaign hierarchy by making campaigns independent
 
@@ -463,20 +463,20 @@ This document contains complete specifications for all Library area use cases ac
 - OwnerId: Guid (from authenticated user)
 
 **Business Rules**:
-- AGG-04: Campaign can move between Epic/standalone
-- Campaign must currently have EpicId (not already standalone)
+- AGG-04: Campaign can move between World/standalone
+- Campaign must currently have WorldId (not already standalone)
 
 **Processing Steps**:
 1. Validate authentication, extract OwnerId
 2. Retrieve Campaign
 3. Verify ownership
-4. Verify Campaign.EpicId is not null
-5. Update Campaign.EpicId = null
+4. Verify Campaign.WorldId is not null
+5. Update Campaign.WorldId = null
 6. Persist via UpdateCampaignAsync
 7. Publish CampaignMadeStandalone event
 8. Return updated Campaign
 
-**Output**: Updated Campaign entity with EpicId=null
+**Output**: Updated Campaign entity with WorldId=null
 
 **Error Scenarios**:
 - Campaign not found → 404
@@ -484,7 +484,7 @@ This document contains complete specifications for all Library area use cases ac
 - Already standalone → 409 "Campaign is already standalone"
 
 **Acceptance Criteria**:
-- AC-01: Make standalone succeeds for campaign with EpicId
+- AC-01: Make standalone succeeds for campaign with WorldId
 - AC-02: Make standalone fails when already standalone
 - AC-03: CampaignMadeStandalone event published
 
@@ -773,7 +773,7 @@ This document contains complete specifications for all Library area use cases ac
   - Rotation: double? (nullable)
 
 **Business Rules**:
-- INV-01, INV-02, INV-03, INV-05 (same as Epic)
+- INV-01, INV-02, INV-03, INV-05 (same as World)
 - INV-09: Stage Width > 0, Height > 0
 - INV-10: Grid configuration consistent with GridType (Size required if Type != NoGrid)
 - INV-11: EncounterAsset positions should be within Stage bounds (optional enforcement)
@@ -806,7 +806,7 @@ This document contains complete specifications for all Library area use cases ac
 **Output**: Encounter entity (JSON) with generated Id, Stage, Grid, Assets
 
 **Error Scenarios**:
-- Same name validation errors as Epic
+- Same name validation errors as World
 - Invalid Stage dimensions → 400 "Stage dimensions must be positive" (INV-09)
 - Invalid Grid configuration → 400 "Grid size required for non-NoGrid types" (INV-10)
 - Invalid Background → 404 "Background resource not found"
@@ -1173,8 +1173,8 @@ This document contains complete specifications for all Library area use cases ac
 ## Summary
 
 **Total Use Cases**: 23
-- **Epic Management**: 5 use cases (Create, Get, Update, Delete, Get By Owner)
-- **Campaign Management**: 5 use cases (Create, Update, Get By Epic, Move To Epic, Make Standalone)
+- **World Management**: 5 use cases (Create, Get, Update, Delete, Get By Owner)
+- **Campaign Management**: 5 use cases (Create, Update, Get By World, Move To World, Make Standalone)
 - **Adventure Management**: 5 use cases (Create, Update, Clone, Move To Campaign, Make Standalone)
 - **Encounter Management**: 8 use cases (Create, Update, Configure Stage, Configure Grid, Place Asset, Move Asset, Remove Asset, Clone)
 
@@ -1191,7 +1191,7 @@ This document contains complete specifications for all Library area use cases ac
 **Architecture Compliance**:
 - **Clean Architecture**: Application services orchestrate, domain entities are contracts, infrastructure provides persistence
 - **Hexagonal Architecture**: Primary ports (ILibraryStorage) define operations, secondary ports (IUserStorage, IMediaStorage, IAssetStorage, IGameSessionStorage) provide external dependencies
-- **DDD**: Bounded context (Library), aggregates (Epic, Campaign, Adventure, Encounter with context-dependent roots), domain events, ubiquitous language
+- **DDD**: Bounded context (Library), aggregates (World, Campaign, Adventure, Encounter with context-dependent roots), domain events, ubiquitous language
 
 **API Endpoints**:
 All use cases exposed as RESTful API endpoints (API_ENDPOINT UI type), frontend Encounter Editor UI in progress.
@@ -1205,7 +1205,7 @@ LIBRARY USE CASES QUALITY CHECKLIST
 
 ## Completeness (25 points)
 ✅ 5pts: All 23 use cases documented
-✅ 5pts: All features covered (Epic, Campaign, Adventure, Encounter)
+✅ 5pts: All features covered (World, Campaign, Adventure, Encounter)
 ✅ 5pts: All CRUD operations included
 ✅ 5pts: All hierarchy management operations included
 ✅ 5pts: All specialized operations included (Clone, Configure)

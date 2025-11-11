@@ -1,7 +1,7 @@
 // Generated: 2025-10-12
-// BDD Step Definitions for Delete Epic Use Case
+// BDD Step Definitions for Delete World Use Case
 // Framework: SpecFlow/Cucumber.NET with xUnit
-// Testing: Backend API (EpicService - Phase 7 BLOCKED)
+// Testing: Backend API (WorldService - Phase 7 BLOCKED)
 // CRITICAL: Service not implemented - steps use placeholder contracts
 
 using FluentAssertions;
@@ -11,41 +11,41 @@ using TechTalk.SpecFlow.Assist;
 using VttTools.Common.Model;
 using VttTools.Library.Adventures.Model;
 using VttTools.Library.Campaigns.Model;
-using VttTools.Library.Epics.Model;
-using VttTools.Library.Epics.Services;
-using VttTools.Library.Epics.Storage;
+using VttTools.Library.Worlds.Model;
+using VttTools.Library.Worlds.Services;
+using VttTools.Library.Worlds.Storage;
 using VttTools.Library.Encounters.Model;
 using Xunit;
 
-namespace VttTools.Library.Tests.BDD.EpicManagement.DeleteEpic;
+namespace VttTools.Library.Tests.BDD.WorldManagement.DeleteWorld;
 
 /// <summary>
-/// BDD Step Definitions for Delete Epic scenarios.
-/// BLOCKED: EpicService implementation pending (Phase 7).
+/// BDD Step Definitions for Delete World scenarios.
+/// BLOCKED: WorldService implementation pending (Phase 7).
 /// These steps define expected behavior using placeholder service contracts.
 /// </summary>
 [Binding]
 [Tag("@blocked", "@phase7-pending")]
-public class DeleteEpicSteps {
+public class DeleteWorldSteps {
     private readonly ScenarioContext _context;
-    private readonly IEpicStorage _epicStorage;
-    private readonly IEpicService _service;
+    private readonly IWorldStorage _worldStorage;
+    private readonly IWorldService _service;
 
     // Test state
-    private Epic? _existingEpic;
+    private World? _existingWorld;
     private Result? _deleteResult;
     private Guid _userId = Guid.Empty;
-    private Guid _epicId = Guid.Empty;
+    private Guid _worldId = Guid.Empty;
     private int _campaignCount = 0;
     private int _adventureCount = 0;
     private int _encounterCount = 0;
     private Exception? _exception;
 
-    public DeleteEpicSteps(ScenarioContext context) {
+    public DeleteWorldSteps(ScenarioContext context) {
         _context = context;
-        _epicStorage = Substitute.For<IEpicStorage>();
-        // NOTE: IEpicService does not exist yet - placeholder for Phase 7
-        _service = Substitute.For<IEpicService>();
+        _worldStorage = Substitute.For<IWorldStorage>();
+        // NOTE: IWorldService does not exist yet - placeholder for Phase 7
+        _service = Substitute.For<IWorldService>();
     }
 
     #region Background Steps
@@ -56,42 +56,42 @@ public class DeleteEpicSteps {
         _context["UserId"] = _userId;
     }
 
-    [Given(@"I own an epic in my library")]
-    public void GivenIOwnAnEpicInMyLibrary() {
-        _epicId = Guid.CreateVersion7();
-        _existingEpic = new Epic {
-            Id = _epicId,
+    [Given(@"I own an world in my library")]
+    public void GivenIOwnAnWorldInMyLibrary() {
+        _worldId = Guid.CreateVersion7();
+        _existingWorld = new World {
+            Id = _worldId,
             OwnerId = _userId,
-            Name = "Test Epic",
+            Name = "Test World",
             Description = "Test Description",
             Campaigns = []
         };
 
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(_existingEpic);
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(_existingWorld);
 
-        _context["EpicId"] = _epicId;
+        _context["WorldId"] = _worldId;
     }
 
-    [Given(@"I have an epic with two campaigns")]
-    public void GivenIHaveAnEpicWithTwoCampaigns() {
-        GivenMyEpicHasAssociatedCampaigns(2);
+    [Given(@"I have an world with two campaigns")]
+    public void GivenIHaveAnWorldWithTwoCampaigns() {
+        GivenMyWorldHasAssociatedCampaigns(2);
     }
 
-    [Given(@"I have an epic titled ""(.*)""")]
-    public void GivenIHaveAnEpicTitled(string name) {
-        GivenIOwnAnEpicInMyLibrary();
-        _existingEpic = _existingEpic! with { Name = name };
+    [Given(@"I have an world titled ""(.*)""")]
+    public void GivenIHaveAnWorldTitled(string name) {
+        GivenIOwnAnWorldInMyLibrary();
+        _existingWorld = _existingWorld! with { Name = name };
     }
 
     #endregion
 
-    #region Given Steps - Epic with Campaigns
+    #region Given Steps - World with Campaigns
 
-    [Given(@"my epic has (.*) associated campaigns")]
-    public void GivenMyEpicHasAssociatedCampaigns(int count) {
-        if (_existingEpic is null) {
-            GivenIOwnAnEpicInMyLibrary();
+    [Given(@"my world has (.*) associated campaigns")]
+    public void GivenMyWorldHasAssociatedCampaigns(int count) {
+        if (_existingWorld is null) {
+            GivenIOwnAnWorldInMyLibrary();
         }
 
         var campaigns = new List<Campaign>();
@@ -100,32 +100,32 @@ public class DeleteEpicSteps {
                 Id = Guid.CreateVersion7(),
                 Name = $"Campaign {i + 1}",
                 OwnerId = _userId,
-                EpicId = _epicId
+                WorldId = _worldId
             });
         }
 
-        _existingEpic = _existingEpic! with { Campaigns = campaigns };
+        _existingWorld = _existingWorld! with { Campaigns = campaigns };
         _campaignCount = count;
         _context["CampaignCount"] = count;
     }
 
-    [Given(@"my epic has no associated campaigns")]
-    public void GivenMyEpicHasNoAssociatedCampaigns() {
-        if (_existingEpic is null) {
-            GivenIOwnAnEpicInMyLibrary();
+    [Given(@"my world has no associated campaigns")]
+    public void GivenMyWorldHasNoAssociatedCampaigns() {
+        if (_existingWorld is null) {
+            GivenIOwnAnWorldInMyLibrary();
         }
-        _existingEpic = _existingEpic! with { Campaigns = [] };
+        _existingWorld = _existingWorld! with { Campaigns = [] };
         _campaignCount = 0;
     }
 
-    [Given(@"my epic has (.*) campaigns")]
-    public void GivenMyEpicHasCampaigns(int count) {
-        GivenMyEpicHasAssociatedCampaigns(count);
+    [Given(@"my world has (.*) campaigns")]
+    public void GivenMyWorldHasCampaigns(int count) {
+        GivenMyWorldHasAssociatedCampaigns(count);
     }
 
-    [Given(@"the epic has a campaign in use by an active game session")]
-    public void GivenTheEpicHasACampaignInUseByActiveGameSession() {
-        GivenMyEpicHasAssociatedCampaigns(1);
+    [Given(@"the world has a campaign in use by an active game session")]
+    public void GivenTheWorldHasACampaignInUseByActiveGameSession() {
+        GivenMyWorldHasAssociatedCampaigns(1);
         _context["HasActiveSession"] = true;
     }
 
@@ -145,14 +145,14 @@ public class DeleteEpicSteps {
         _context["SecondCampaignAdventureCount"] = count;
     }
 
-    [Given(@"my epic has complete content hierarchy:")]
-    public void GivenMyEpicHasCompleteContentHierarchy(Table table) {
+    [Given(@"my world has complete content hierarchy:")]
+    public void GivenMyWorldHasCompleteContentHierarchy(Table table) {
         foreach (var row in table.Rows) {
             var level = row["Level"];
             var count = int.Parse(row["Count"]);
 
             if (level == "Campaigns") {
-                GivenMyEpicHasAssociatedCampaigns(count);
+                GivenMyWorldHasAssociatedCampaigns(count);
             }
             else if (level == "Adventures") {
                 _adventureCount = count;
@@ -175,98 +175,98 @@ public class DeleteEpicSteps {
 
     #endregion
 
-    #region Given Steps - Epic State
+    #region Given Steps - World State
 
-    [Given(@"my epic has ID ""(.*)""")]
-    public void GivenMyEpicHasId(string epicId) {
-        _epicId = Guid.Parse(epicId);
-        if (_existingEpic is null) {
-            GivenIOwnAnEpicInMyLibrary();
+    [Given(@"my world has ID ""(.*)""")]
+    public void GivenMyWorldHasId(string worldId) {
+        _worldId = Guid.Parse(worldId);
+        if (_existingWorld is null) {
+            GivenIOwnAnWorldInMyLibrary();
         }
-        _existingEpic = _existingEpic! with { Id = _epicId };
+        _existingWorld = _existingWorld! with { Id = _worldId };
     }
 
-    [Given(@"my epic exists")]
-    public void GivenMyEpicExists() {
-        if (_existingEpic is null) {
-            GivenIOwnAnEpicInMyLibrary();
+    [Given(@"my world exists")]
+    public void GivenMyWorldExists() {
+        if (_existingWorld is null) {
+            GivenIOwnAnWorldInMyLibrary();
         }
     }
 
-    [Given(@"my epic is published and public")]
-    public void GivenMyEpicIsPublishedAndPublic() {
-        if (_existingEpic is null) {
-            GivenIOwnAnEpicInMyLibrary();
+    [Given(@"my world is published and public")]
+    public void GivenMyWorldIsPublishedAndPublic() {
+        if (_existingWorld is null) {
+            GivenIOwnAnWorldInMyLibrary();
         }
-        _existingEpic = _existingEpic! with {
+        _existingWorld = _existingWorld! with {
             IsPublished = true,
             IsPublic = true
         };
     }
 
-    [Given(@"my epic was recently deleted")]
-    public void GivenMyEpicWasRecentlyDeleted() {
-        // Epic no longer exists in storage
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns((Epic?)null);
+    [Given(@"my world was recently deleted")]
+    public void GivenMyWorldWasRecentlyDeleted() {
+        // World no longer exists in storage
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns((World?)null);
     }
 
-    [Given(@"an epic exists with (.*) campaigns")]
-    public void GivenAnEpicExistsWithCampaigns(int count) {
-        GivenIOwnAnEpicInMyLibrary();
-        GivenMyEpicHasAssociatedCampaigns(count);
+    [Given(@"an world exists with (.*) campaigns")]
+    public void GivenAnWorldExistsWithCampaigns(int count) {
+        GivenIOwnAnWorldInMyLibrary();
+        GivenMyWorldHasAssociatedCampaigns(count);
     }
 
     #endregion
 
-    #region Given Steps - Multi-Epic Scenarios
+    #region Given Steps - Multi-World Scenarios
 
-    [Given(@"I own another separate epic with (.*) campaigns")]
-    public void GivenIOwnAnotherSeparateEpicWithCampaigns(int count) {
-        var secondEpicId = Guid.CreateVersion7();
-        var secondEpic = new Epic {
-            Id = secondEpicId,
+    [Given(@"I own another separate world with (.*) campaigns")]
+    public void GivenIOwnAnotherSeparateWorldWithCampaigns(int count) {
+        var secondWorldId = Guid.CreateVersion7();
+        var secondWorld = new World {
+            Id = secondWorldId,
             OwnerId = _userId,
-            Name = "Second Epic",
-            Description = "Another epic",
+            Name = "Second World",
+            Description = "Another world",
             Campaigns = []
         };
 
-        _context["SecondEpicId"] = secondEpicId;
-        _context["SecondEpicCampaignCount"] = count;
+        _context["SecondWorldId"] = secondWorldId;
+        _context["SecondWorldCampaignCount"] = count;
     }
 
     #endregion
 
     #region Given Steps - Error Scenarios
 
-    [Given(@"no epic exists with ID ""(.*)""")]
-    public void GivenNoEpicExistsWithId(string epicId) {
-        var guid = Guid.Parse(epicId);
-        _epicStorage.GetByIdAsync(guid, Arg.Any<CancellationToken>())
-            .Returns((Epic?)null);
+    [Given(@"no world exists with ID ""(.*)""")]
+    public void GivenNoWorldExistsWithId(string worldId) {
+        var guid = Guid.Parse(worldId);
+        _worldStorage.GetByIdAsync(guid, Arg.Any<CancellationToken>())
+            .Returns((World?)null);
     }
 
     [Given(@"the database is unavailable")]
     public void GivenTheDatabaseIsUnavailable() {
         // Mock storage to throw exception
-        _epicStorage.DeleteAsync(_epicId, Arg.Any<CancellationToken>())
+        _worldStorage.DeleteAsync(_worldId, Arg.Any<CancellationToken>())
             .Returns<Task>(x => throw new InvalidOperationException("Database connection failed"));
     }
 
-    [Given(@"an epic exists owned by another user")]
-    public void GivenAnEpicExistsOwnedByAnotherUser() {
+    [Given(@"an world exists owned by another user")]
+    public void GivenAnWorldExistsOwnedByAnotherUser() {
         var otherUserId = Guid.CreateVersion7();
-        _epicId = Guid.CreateVersion7();
-        _existingEpic = new Epic {
-            Id = _epicId,
+        _worldId = Guid.CreateVersion7();
+        _existingWorld = new World {
+            Id = _worldId,
             OwnerId = otherUserId, // Different owner
-            Name = "Other User's Epic",
+            Name = "Other User's World",
             Description = "Description"
         };
 
-        _epicStorage.GetByIdAsync(_epicId, Arg.Any<CancellationToken>())
-            .Returns(_existingEpic);
+        _worldStorage.GetByIdAsync(_worldId, Arg.Any<CancellationToken>())
+            .Returns(_existingWorld);
     }
 
     [Given(@"I am not authenticated")]
@@ -275,61 +275,61 @@ public class DeleteEpicSteps {
         _context["UserAuthenticated"] = false;
     }
 
-    [Given(@"an epic exists")]
-    public void GivenAnEpicExists() {
-        GivenIOwnAnEpicInMyLibrary();
+    [Given(@"an world exists")]
+    public void GivenAnWorldExists() {
+        GivenIOwnAnWorldInMyLibrary();
     }
 
-    [Given(@"another Game Master has created an epic")]
-    public void GivenAnotherGameMasterHasCreatedAnEpic() {
-        GivenAnEpicExistsOwnedByAnotherUser();
+    [Given(@"another Game Master has created an world")]
+    public void GivenAnotherGameMasterHasCreatedAnWorld() {
+        GivenAnWorldExistsOwnedByAnotherUser();
     }
 
     #endregion
 
     #region When Steps - Delete Actions
 
-    [When(@"I delete the epic")]
-    public async Task WhenIDeleteTheEpic() {
+    [When(@"I delete the world")]
+    public async Task WhenIDeleteTheWorld() {
         await ExecuteDelete();
     }
 
-    [When(@"I attempt to delete the epic")]
-    public async Task WhenIAttemptToDeleteTheEpic() {
+    [When(@"I attempt to delete the world")]
+    public async Task WhenIAttemptToDeleteTheWorld() {
         await ExecuteDelete();
     }
 
-    [When(@"I attempt to delete epic ""(.*)""")]
-    public async Task WhenIAttemptToDeleteEpic(string epicId) {
-        _epicId = Guid.Parse(epicId);
+    [When(@"I attempt to delete world ""(.*)""")]
+    public async Task WhenIAttemptToDeleteWorld(string worldId) {
+        _worldId = Guid.Parse(worldId);
         await ExecuteDelete();
     }
 
-    [When(@"I attempt to delete that epic")]
-    public async Task WhenIAttemptToDeleteThatEpic() {
+    [When(@"I attempt to delete that world")]
+    public async Task WhenIAttemptToDeleteThatWorld() {
         await ExecuteDelete();
     }
 
-    [When(@"I delete the first epic")]
-    public async Task WhenIDeleteTheFirstEpic() {
-        // Delete the primary epic (already set up)
+    [When(@"I delete the first world")]
+    public async Task WhenIDeleteTheFirstWorld() {
+        // Delete the primary world (already set up)
         await ExecuteDelete();
     }
 
-    [When(@"I attempt to delete their epic")]
-    public async Task WhenIAttemptToDeleteTheirEpic() {
+    [When(@"I attempt to delete their world")]
+    public async Task WhenIAttemptToDeleteTheirWorld() {
         await ExecuteDelete();
     }
 
     private async Task ExecuteDelete() {
         try {
             // Mock storage to succeed
-            _epicStorage.DeleteAsync(_epicId, Arg.Any<CancellationToken>())
+            _worldStorage.DeleteAsync(_worldId, Arg.Any<CancellationToken>())
                 .Returns(Task.CompletedTask);
 
-            // NOTE: This will fail because IEpicService.DeleteEpicAsync does not exist
+            // NOTE: This will fail because IWorldService.DeleteWorldAsync does not exist
             // Placeholder call for when service is implemented
-            _deleteResult = await _service.DeleteEpicAsync(_userId, _epicId, CancellationToken.None);
+            _deleteResult = await _service.DeleteWorldAsync(_userId, _worldId, CancellationToken.None);
             _context["DeleteResult"] = _deleteResult;
         }
         catch (Exception ex) {
@@ -342,15 +342,15 @@ public class DeleteEpicSteps {
 
     #region Then Steps - Success Assertions
 
-    [Then(@"the epic is removed")]
-    public void ThenTheEpicIsRemoved() {
+    [Then(@"the world is removed")]
+    public void ThenTheWorldIsRemoved() {
         _deleteResult.Should().NotBeNull();
         _deleteResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"the epic is removed successfully")]
-    public void ThenTheEpicIsRemovedSuccessfully() {
-        ThenTheEpicIsRemoved();
+    [Then(@"the world is removed successfully")]
+    public void ThenTheWorldIsRemovedSuccessfully() {
+        ThenTheWorldIsRemoved();
     }
 
     [Then(@"I should receive deletion confirmation")]
@@ -401,28 +401,28 @@ public class DeleteEpicSteps {
         ThenAllAdventuresAreRemoved();
     }
 
-    [Then(@"attempting to retrieve epic ""(.*)"" should fail")]
-    public async Task ThenAttemptingToRetrieveEpicShouldFail(string epicId) {
-        var guid = Guid.Parse(epicId);
-        var epic = await _epicStorage.GetByIdAsync(guid, CancellationToken.None);
-        epic.Should().BeNull();
+    [Then(@"attempting to retrieve world ""(.*)"" should fail")]
+    public async Task ThenAttemptingToRetrieveWorldShouldFail(string worldId) {
+        var guid = Guid.Parse(worldId);
+        var world = await _worldStorage.GetByIdAsync(guid, CancellationToken.None);
+        world.Should().BeNull();
     }
 
-    [Then(@"public users should no longer see the epic")]
-    public void ThenPublicUsersShouldNoLongerSeeTheEpic() {
+    [Then(@"public users should no longer see the world")]
+    public void ThenPublicUsersShouldNoLongerSeeTheWorld() {
         _deleteResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"the first epic and its (.*) campaigns is removed")]
-    public void ThenTheFirstEpicAndItsCampaignsAreRemoved(int count) {
+    [Then(@"the first world and its (.*) campaigns is removed")]
+    public void ThenTheFirstWorldAndItsCampaignsAreRemoved(int count) {
         _deleteResult!.IsSuccessful.Should().BeTrue();
         _campaignCount.Should().Be(count);
     }
 
-    [Then(@"the second epic and its (.*) campaigns should remain intact")]
-    public void ThenTheSecondEpicAndItsCampaignsShouldRemainIntact(int count) {
-        var secondEpicCampaignCount = _context.Get<int>("SecondEpicCampaignCount");
-        secondEpicCampaignCount.Should().Be(count);
+    [Then(@"the second world and its (.*) campaigns should remain intact")]
+    public void ThenTheSecondWorldAndItsCampaignsShouldRemainIntact(int count) {
+        var secondWorldCampaignCount = _context.Get<int>("SecondWorldCampaignCount");
+        secondWorldCampaignCount.Should().Be(count);
     }
 
     #endregion
@@ -447,9 +447,9 @@ public class DeleteEpicSteps {
         _exception.Should().BeOfType<InvalidOperationException>();
     }
 
-    [Then(@"the epic should remain in the database")]
-    public void ThenTheEpicShouldRemainInTheDatabase() {
-        // Delete failed, epic still exists
+    [Then(@"the world should remain in the database")]
+    public void ThenTheWorldShouldRemainInTheDatabase() {
+        // Delete failed, world still exists
         _deleteResult!.IsSuccessful.Should().BeFalse();
     }
 
@@ -487,7 +487,7 @@ public class DeleteEpicSteps {
 
     [Then(@"I receive an error indicating active session dependency")]
     public void ThenIReceiveAnErrorIndicatingActiveSessionDependency() {
-        ThenIShouldSeeError("Cannot delete epic referenced by active game session");
+        ThenIShouldSeeError("Cannot delete world referenced by active game session");
     }
 
     #endregion

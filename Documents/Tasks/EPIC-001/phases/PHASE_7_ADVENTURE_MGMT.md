@@ -64,7 +64,7 @@ Adventures as DDD aggregate roots with encounters as child entities
 
 ### Type System
 - AdventureStyle enum (0-6): Generic, OpenWorld, DungeonCrawl, HackNSlash, Survival, GoalDriven, RandomlyGenerated
-- ContentType enum (0-2): Adventure, Campaign, Epic
+- ContentType enum (0-2): Adventure, Campaign, World
 - domain.ts as single source of truth
 - GridConfig updated: nested cellSize/offset structure
 

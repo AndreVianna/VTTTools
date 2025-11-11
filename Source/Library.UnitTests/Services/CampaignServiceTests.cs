@@ -73,6 +73,7 @@ public class CampaignServiceTests {
             Description = "Campaign description",
             IsPublished = false,
             IsPublic = false,
+            WorldId = Guid.CreateVersion7(),
         };
 
         // Act
@@ -88,6 +89,7 @@ public class CampaignServiceTests {
         result.Value.Id.Should().NotBe(Guid.Empty);
         result.Value.Adventures.Should().BeEmpty();
         result.Value.OwnerId.Should().Be(_userId);
+        result.Value.World!.Id.Should().Be(request.WorldId.Value);
         await _campaignStorage.Received(1).AddAsync(Arg.Any<Campaign>(), Arg.Any<CancellationToken>());
     }
 
@@ -179,6 +181,7 @@ public class CampaignServiceTests {
         var campaignId = Guid.CreateVersion7();
         var campaign = new Campaign {
             Id = campaignId,
+            World = new() { Id = Guid.CreateVersion7() },
             Name = "Campaign",
             OwnerId = _userId,
             Description = "Campaign description",
@@ -206,6 +209,7 @@ public class CampaignServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Name.Should().NotBe(campaign.Name);
         result.Value.OwnerId.Should().Be(_userId);
+        result.Value.World.Should().BeEquivalentTo(campaign.World);
         await _campaignStorage.Received(1).AddAsync(Arg.Any<Campaign>(), Arg.Any<CancellationToken>());
     }
 
@@ -216,6 +220,7 @@ public class CampaignServiceTests {
         var nonOwnerId = Guid.CreateVersion7();
         var campaign = new Campaign {
             Id = campaignId,
+            World = new() { Id = Guid.CreateVersion7() },
             Name = "Campaign",
             OwnerId = _userId,
             Description = "Campaign description",
@@ -233,6 +238,7 @@ public class CampaignServiceTests {
         // Assert
         result.IsSuccessful.Should().BeTrue();
         result.Value.OwnerId.Should().Be(nonOwnerId);
+        result.Value.World.Should().BeEquivalentTo(campaign.World);
         await _campaignStorage.Received(1).AddAsync(Arg.Any<Campaign>(), Arg.Any<CancellationToken>());
     }
 
@@ -582,7 +588,7 @@ public class CampaignServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value.OwnerId.Should().Be(_userId);
-        result.Value.CampaignId.Should().Be(campaignId);
+        result.Value.Campaign.Should().BeEquivalentTo(campaign);
         await _campaignStorage.Received(1).UpdateAsync(Arg.Is<Campaign>(c => c.Adventures.Count == 1), Arg.Any<CancellationToken>());
     }
 
@@ -650,7 +656,7 @@ public class CampaignServiceTests {
         result.IsSuccessful.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value.OwnerId.Should().Be(_userId);
-        result.Value.CampaignId.Should().Be(campaignId);
+        result.Value.Campaign.Should().BeEquivalentTo(campaign);
         result.Value.Name.Should().NotBe(adventure.Name);
         await _campaignStorage.Received(1).UpdateAsync(Arg.Is<Campaign>(c => c.Adventures.Count == 1), Arg.Any<CancellationToken>());
     }

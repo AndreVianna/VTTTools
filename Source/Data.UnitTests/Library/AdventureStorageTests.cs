@@ -72,7 +72,8 @@ public class AdventureStorageTests
         dbAdventure.IsPublished.Should().Be(adventure.IsPublished);
         dbAdventure.IsPublic.Should().Be(adventure.IsPublic);
         dbAdventure.OwnerId.Should().Be(adventure.OwnerId);
-        dbAdventure.CampaignId.Should().Be(adventure.CampaignId);
+        dbAdventure.WorldId.Should().Be(adventure.World?.Id);
+        dbAdventure.CampaignId.Should().Be(adventure.Campaign?.Id);
         dbAdventure.BackgroundId.Should().Be(adventure.Background?.Id);
     }
 
@@ -86,7 +87,24 @@ public class AdventureStorageTests
         var adventure = new Adventure {
             Id = entity.Id,
             OwnerId = entity.OwnerId,
-            CampaignId = entity.CampaignId,
+            World = entity.WorldId.HasValue ? new World() {
+                Id = entity.WorldId.Value,
+                OwnerId = entity.OwnerId,
+                Name = "Existing World",
+                Description = "World Description",
+                IsPublished = false,
+                IsPublic = false,
+                Adventures = [],
+            } : null,
+            Campaign = entity.CampaignId.HasValue ? new Campaign() {
+                Id = entity.CampaignId.Value,
+                OwnerId = entity.OwnerId,
+                Name = "Existing Campaign",
+                Description = "Campaign Description",
+                IsPublished = false,
+                IsPublic = false,
+                Adventures = [],
+            } : null,
             Name = "Updated Name",
             Description = "Updated Description",
             Style = AdventureStyle.OpenWorld,
@@ -123,7 +141,8 @@ public class AdventureStorageTests
         dbAdventure.IsPublic.Should().Be(adventure.IsPublic);
         dbAdventure.IsPublished.Should().Be(adventure.IsPublished);
         dbAdventure.OwnerId.Should().Be(adventure.OwnerId);
-        dbAdventure.CampaignId.Should().Be(adventure.CampaignId);
+        dbAdventure.WorldId.Should().Be(adventure.World?.Id);
+        dbAdventure.CampaignId.Should().Be(adventure.Campaign?.Id);
         dbAdventure.BackgroundId.Should().Be(adventure.Background?.Id);
     }
 

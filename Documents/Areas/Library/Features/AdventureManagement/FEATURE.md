@@ -15,7 +15,7 @@
 
 ### Business Value
 - **User Benefit**: Game Masters can organize multiple encounters into complete game modules with type categorization (Generic, OpenWorld, DungeonCrawl, etc.), with flexibility to nest adventures within campaigns or maintain them as standalone content
-- **Business Objective**: Provide adventure-level organizational structure for hierarchical game content management with optional campaign association and type categorization (Epic → Campaign → Adventure → Encounter)
+- **Business Objective**: Provide adventure-level organizational structure for hierarchical game content management with optional campaign association and type categorization (World → Campaign → Adventure → Encounter)
 - **Success Criteria**: Game Masters can create adventures (standalone or within campaigns), categorize adventures by type, update adventure properties, move adventures between campaign/standalone, clone adventures with all encounters, control visibility, and delete adventures with proper cascade handling
 
 ### Area Assignment

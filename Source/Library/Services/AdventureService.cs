@@ -38,13 +38,18 @@ public class AdventureService(IAdventureStorage adventureStorage, IEncounterStor
             return result;
         var adventure = new Adventure {
             OwnerId = userId,
-            CampaignId = data.CampaignId,
+            World = data.WorldId.HasValue
+                ? new World { Id = data.WorldId.Value }
+                : null,
+            Campaign = data.CampaignId.HasValue
+                ? new Campaign { Id = data.CampaignId.Value }
+                : null,
             Name = data.Name,
             Description = data.Description,
             Style = data.Style,
             IsOneShot = data.IsOneShot,
             Background = data.BackgroundId.HasValue
-                ? await mediaStorage.GetByIdAsync(data.BackgroundId.Value, ct)
+                ? new Resource { Id = data.BackgroundId.Value }
                 : null,
         };
         await adventureStorage.AddAsync(adventure, ct);
@@ -97,7 +102,16 @@ public class AdventureService(IAdventureStorage adventureStorage, IEncounterStor
             IsPublished = data.IsListed.IsSet ? data.IsListed.Value : adventure.IsPublished,
             IsOneShot = data.IsOneShot.IsSet ? data.IsOneShot.Value : adventure.IsOneShot,
             IsPublic = data.IsPublic.IsSet ? data.IsPublic.Value : adventure.IsPublic,
-            CampaignId = data.CampaignId.IsSet ? data.CampaignId.Value : adventure.CampaignId,
+            World = data.WorldId.IsSet
+                        ? data.WorldId.Value.HasValue
+                            ? new World { Id = data.WorldId.Value.Value }
+                            : null
+                        : adventure.World,
+            Campaign = data.CampaignId.IsSet
+                        ? data.CampaignId.Value.HasValue
+                            ? new Campaign { Id = data.CampaignId.Value.Value }
+                            : null
+                        : adventure.Campaign,
         };
         await adventureStorage.UpdateAsync(adventure, ct);
         return adventure;

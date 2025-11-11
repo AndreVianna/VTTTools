@@ -1,5 +1,5 @@
 // GENERATED: 2025-10-04 by Claude Code Phase 3
-// EPIC: EPIC-001 Phase 3 - Encounter Editor Background Rendering
+// WORLD: EPIC-001 Phase 3 - Encounter Editor Background Rendering
 // LAYER: UI (Component)
 
 /**

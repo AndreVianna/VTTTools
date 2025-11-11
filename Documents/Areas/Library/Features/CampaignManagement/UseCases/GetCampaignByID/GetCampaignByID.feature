@@ -26,18 +26,18 @@ Feature: Get Campaign By ID
     And I should see all 5 adventures in the collection
 
   @happy-path
-  Scenario: Successfully retrieve campaign with epic association
-    Given a campaign exists within an epic
+  Scenario: Successfully retrieve campaign with world association
+    Given a campaign exists within an world
     When I request the campaign by its ID
     Then I should receive the campaign details
-    And the epic ID should be included
+    And the world ID should be included
 
   @happy-path
   Scenario: Successfully retrieve standalone campaign
     Given a standalone campaign exists
     When I request the campaign by its ID
     Then I should receive the campaign details
-    And the EpicId should be null
+    And the WorldId should be null
 
   @error-handling
   Scenario: Handle request for non-existent campaign

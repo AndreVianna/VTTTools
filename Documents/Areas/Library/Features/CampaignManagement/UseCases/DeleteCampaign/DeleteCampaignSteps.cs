@@ -146,21 +146,21 @@ public class DeleteCampaignSteps {
 
     #region Given Steps - Campaign Hierarchy
 
-    [Given(@"my campaign is standalone with null EpicId")]
+    [Given(@"my campaign is standalone with null WorldId")]
     public void GivenMyCampaignIsStandalone() {
         if (_existingCampaign is not null) {
-            _existingCampaign.EpicId = null;
+            _existingCampaign.WorldId = null;
         }
     }
 
-    [Given(@"my campaign is in an epic with (.*) campaigns")]
-    public void GivenMyCampaignIsInEpicWithCampaigns(int totalCampaigns) {
-        var epicId = Guid.CreateVersion7();
+    [Given(@"my campaign is in an world with (.*) campaigns")]
+    public void GivenMyCampaignIsInWorldWithCampaigns(int totalCampaigns) {
+        var worldId = Guid.CreateVersion7();
         if (_existingCampaign is not null) {
-            _existingCampaign.EpicId = epicId;
+            _existingCampaign.WorldId = worldId;
         }
-        _context["EpicId"] = epicId;
-        _context["TotalCampaignsInEpic"] = totalCampaigns;
+        _context["WorldId"] = worldId;
+        _context["TotalCampaignsInWorld"] = totalCampaigns;
     }
 
     #endregion
@@ -353,14 +353,14 @@ public class DeleteCampaignSteps {
         _deleteResult!.IsSuccessful.Should().BeTrue();
     }
 
-    [Then(@"the epic should now have (.*) campaigns")]
-    public void ThenTheEpicShouldNowHaveCampaigns(int expectedCount) {
-        var totalInEpic = _context.Get<int>("TotalCampaignsInEpic");
-        expectedCount.Should().Be(totalInEpic - 1);
+    [Then(@"the world should now have (.*) campaigns")]
+    public void ThenTheWorldShouldNowHaveCampaigns(int expectedCount) {
+        var totalInWorld = _context.Get<int>("TotalCampaignsInWorld");
+        expectedCount.Should().Be(totalInWorld - 1);
     }
 
-    [Then(@"the epic should remain intact")]
-    public void ThenTheEpicShouldRemainIntact() {
+    [Then(@"the world should remain intact")]
+    public void ThenTheWorldShouldRemainIntact() {
         _deleteResult!.IsSuccessful.Should().BeTrue();
     }
 

@@ -1,4 +1,3 @@
-
 namespace VttTools.Library.Campaigns.Model;
 
 public class CampaignTests {
@@ -10,7 +9,7 @@ public class CampaignTests {
         // Assert
         campaign.Id.Should().NotBeEmpty();
         campaign.OwnerId.Should().BeEmpty();
-        campaign.EpicId.Should().BeNull();
+        campaign.World.Should().BeNull();
         campaign.Adventures.Should().BeEmpty();
         campaign.Name.Should().BeEmpty();
         campaign.Description.Should().BeEmpty();
@@ -23,10 +22,10 @@ public class CampaignTests {
     public void Constructor_WithValues_InitializesWithProvidedValues() {
         // Arrange
         var id = Guid.CreateVersion7();
-        const string name = "Some Epic";
+        const string name = "Some World";
         const string description = "Some Description";
         var ownerId = Guid.CreateVersion7();
-        var epicId = Guid.CreateVersion7();
+        var world = new World { Id = Guid.CreateVersion7() };
         var display = new Resource {
             Id = Guid.CreateVersion7(),
             Type = ResourceType.Image,
@@ -47,7 +46,7 @@ public class CampaignTests {
             Name = name,
             Description = description,
             OwnerId = ownerId,
-            EpicId = epicId,
+            World = world,
             Background = display,
             IsPublished = true,
             IsPublic = true,
@@ -59,7 +58,7 @@ public class CampaignTests {
         campaign.Name.Should().Be(name);
         campaign.Description.Should().Be(description);
         campaign.OwnerId.Should().Be(ownerId);
-        campaign.EpicId.Should().Be(epicId);
+        campaign.World.Should().BeEquivalentTo(world);
         campaign.Background.Should().BeEquivalentTo(display);
         campaign.IsPublished.Should().BeTrue();
         campaign.IsPublic.Should().BeTrue();

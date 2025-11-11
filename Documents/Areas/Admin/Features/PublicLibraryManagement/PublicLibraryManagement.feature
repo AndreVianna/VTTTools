@@ -84,7 +84,7 @@ Feature: Admin Public Library Management
 
   @medium
   Scenario: Upload preview images
-    Given I have an asset "Epic Adventure Pack"
+    Given I have an asset "World Adventure Pack"
     When I open the content detail dialog
     And I navigate to the "Preview Images" tab
     And I upload 3 preview images via drag-and-drop

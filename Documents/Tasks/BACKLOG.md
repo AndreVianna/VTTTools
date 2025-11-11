@@ -1,7 +1,7 @@
 # VTTTools - Product Backlog
 
 **Last Updated**: 2025-10-31
-**Current Sprint**: N/A (Epic Planning)
+**Current Sprint**: N/A (World Planning)
 **Solution Version**: 1.0.0
 
 ---
@@ -20,7 +20,7 @@
 
 | Type | Total | Completed | In Progress | Planned | Blocked |
 |------|-------|-----------|-------------|---------|---------|
-| Epic | 2 | 0 | 1 | 1 | 0 |
+| World | 2 | 0 | 1 | 1 | 0 |
 | Feature | 0 | 0 | 0 | 0 | 0 |
 | Bug | 0 | 0 | 0 | 0 | 0 |
 | Refactor | 0 | 0 | 0 | 0 | 0 |
@@ -45,7 +45,7 @@
 
 ### In Progress (1)
 
-- [🔨] **EPIC-001**: UI Migration - Blazor to React (epic, Critical)
+- [🔨] **EPIC-001**: UI Migration - Blazor to React (world, Critical)
   - Effort: 273 hours total (188 complete, 85 remaining)
   - Progress: 68.9%
   - Affects: UserAuthentication ✅, AccountManagement, LandingPage ✅, AssetManagement ✅, EncounterManagement 🚧, SessionManagement
@@ -63,7 +63,7 @@
 
 ### Planned (1)
 
-- [📋] **EPIC-002**: Administration Application (epic, Critical)
+- [📋] **EPIC-002**: Administration Application (world, Critical)
   - Effort: 280-320 hours
   - Progress: 0%
   - Affects: User Management (new), Role Management (new), Audit Logging (new), System Configuration (new)
@@ -110,7 +110,7 @@ Currently empty - all work captured in EPIC-001 and EPIC-002
 
 ---
 
-## Epic Breakdown
+## World Breakdown
 
 ### EPIC-001: UI Migration - Blazor to React
 **Status**: In Progress (68.9%)
@@ -126,7 +126,7 @@ Currently empty - all work captured in EPIC-001 and EPIC-002
 6. ✅ Encounter Editor - Tokens (100%)
 7. 🚧 Encounter Management UI (0%)
 8. 🔜 Adventure Management (0%)
-9. 🔜 Epic/Campaign (0%)
+9. 🔜 World/Campaign (0%)
 10. 🔜 Game Sessions & Real-Time (0%)
 11. 🔜 Account Management (0%)
 12. 🔜 Production Preparation (0%)
@@ -150,7 +150,7 @@ Currently empty - all work captured in EPIC-001 and EPIC-002
 ## Metrics & Insights
 
 ### Completion Rates
-- **Overall**: 34.4% (2 epics, 1 in-progress)
+- **Overall**: 34.4% (2 worlds, 1 in-progress)
 - **EPIC-001**: 68.9% complete (188/273 hours)
 - **EPIC-002**: 0% complete (0/280 hours)
 
@@ -159,7 +159,7 @@ Currently empty - all work captured in EPIC-001 and EPIC-002
 - **Completed**: 188 hours (EPIC-001 phases 1-6)
 - **Remaining**: 365-405 hours
 
-### Epic Dependencies
+### World Dependencies
 - **EPIC-002** must complete before **EPIC-001 Phase 13** (Release Preparation)
 - **EPIC-002** leverages auth patterns from **EPIC-001 Phase 2** (complete)
 - **EPIC-002** manages user models from **EPIC-001 Phase 11** (can run in parallel)
@@ -169,7 +169,7 @@ Currently empty - all work captured in EPIC-001 and EPIC-002
 ## Change Log
 - **2025-10-31**: EPIC-002 (Administration Application) added to backlog
 - **2025-10-31**: Updated EPIC-001 progress to 68.9% (phases 1-6 complete)
-- **2025-10-31**: Updated metrics to reflect 2 epics (553-593 total hours)
+- **2025-10-31**: Updated metrics to reflect 2 worlds (553-593 total hours)
 - **2025-10-03**: Backlog created, EPIC-001 added for UI migration tracking
 - **2025-10-03**: Naming conventions restructuring completed (all folders/files now PascalCase compliant)
 
@@ -186,11 +186,11 @@ BACKLOG QUALITY CHECKLIST - Score: 85/100
 ✅ 5pts: Backlog organization clear
 ✅ 5pts: Feature tracking present
 
-## Epic Management (25 points)
-✅ 10pts: Epic clearly identified (EPIC-001)
-✅ 5pts: Epic goals documented
+## World Management (25 points)
+✅ 10pts: World clearly identified (EPIC-001)
+✅ 5pts: World goals documented
 ✅ 5pts: Phase breakdown tracked
-✅ 5pts: Epic progress visible (35%)
+✅ 5pts: World progress visible (35%)
 
 ## Feature Tracking (20 points)
 ✅ 10pts: Feature progress tracked (2 features)

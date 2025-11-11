@@ -254,7 +254,7 @@ export const LandingPage: React.FC = () => {
             Craft Legendary Adventures
           </HeroTitle>
           <HeroSubtitle id="hero-subtitle" variant="h5">
-            Professional Virtual Tabletop tools designed for Game Masters who create epic campaigns and immersive worlds
+            Professional Virtual Tabletop tools designed for Game Masters who create world campaigns and immersive worlds
           </HeroSubtitle>
           <CTAContainer>
             <PrimaryCTA

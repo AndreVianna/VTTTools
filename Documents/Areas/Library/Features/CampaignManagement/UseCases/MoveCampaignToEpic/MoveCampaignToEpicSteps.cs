@@ -1,5 +1,5 @@
 // Generated: 2025-10-12
-// BDD Step Definitions for Move Campaign To Epic Use Case
+// BDD Step Definitions for Move Campaign To World Use Case
 // Framework: SpecFlow/Cucumber.NET with xUnit
 // Testing: Backend API (CampaignService)
 // Status: Phase 7 - BLOCKED (CampaignService not implemented)
@@ -13,35 +13,35 @@ using VttTools.Library.Adventures.Model;
 using VttTools.Library.Campaigns.Model;
 using VttTools.Library.Campaigns.Services;
 using VttTools.Library.Campaigns.Storage;
-using VttTools.Library.Epics.Model;
-using VttTools.Library.Epics.Storage;
+using VttTools.Library.Worlds.Model;
+using VttTools.Library.Worlds.Storage;
 using Xunit;
 
-namespace VttTools.Library.Tests.BDD.CampaignManagement.MoveCampaignToEpic;
+namespace VttTools.Library.Tests.BDD.CampaignManagement.MoveCampaignToWorld;
 
 [Binding]
-public class MoveCampaignToEpicSteps {
+public class MoveCampaignToWorldSteps {
     private readonly ScenarioContext _context;
     private readonly ICampaignStorage _campaignStorage;
-    private readonly IEpicStorage _epicStorage;
+    private readonly IWorldStorage _worldStorage;
     private readonly ICampaignService _service;
 
     // Test state
     private Campaign? _existingCampaign;
-    private Epic? _targetEpic;
+    private World? _targetWorld;
     private Result<Campaign>? _updateResult;
     private Guid _userId = Guid.Empty;
     private Guid _campaignId = Guid.Empty;
-    private Guid _targetEpicId = Guid.Empty;
+    private Guid _targetWorldId = Guid.Empty;
     private string? _invalidId;
 
-    public MoveCampaignToEpicSteps(ScenarioContext context) {
+    public MoveCampaignToWorldSteps(ScenarioContext context) {
         _context = context;
         _campaignStorage = Substitute.For<ICampaignStorage>();
-        _epicStorage = Substitute.For<IEpicStorage>();
+        _worldStorage = Substitute.For<IWorldStorage>();
 
         // NOTE: CampaignService not implemented yet (Phase 7 - BLOCKED)
-        _service = new CampaignService(_campaignStorage, _epicStorage, null!);
+        _service = new CampaignService(_campaignStorage, _worldStorage, null!);
     }
 
     #region Background Steps
@@ -58,9 +58,9 @@ public class MoveCampaignToEpicSteps {
         _existingCampaign = new Campaign {
             Id = _campaignId,
             OwnerId = _userId,
-            EpicId = null, // Standalone
+            WorldId = null, // Standalone
             Name = "Standalone Campaign",
-            Description = "Campaign without epic",
+            Description = "Campaign without world",
             Adventures = []
         };
 
@@ -71,68 +71,68 @@ public class MoveCampaignToEpicSteps {
             .Returns(_existingCampaign);
     }
 
-    [Given(@"I own an epic")]
-    public void GivenIAlreadyOwnAnEpic() {
-        _targetEpicId = Guid.CreateVersion7();
-        _targetEpic = new Epic {
-            Id = _targetEpicId,
+    [Given(@"I own an world")]
+    public void GivenIAlreadyOwnAnWorld() {
+        _targetWorldId = Guid.CreateVersion7();
+        _targetWorld = new World {
+            Id = _targetWorldId,
             OwnerId = _userId,
-            Name = "Target Epic",
+            Name = "Target World",
             Description = string.Empty
         };
 
-        _context["EpicId"] = _targetEpicId;
+        _context["WorldId"] = _targetWorldId;
 
-        // Mock epic storage to return epic
-        _epicStorage.GetByIdAsync(_targetEpicId, Arg.Any<CancellationToken>())
-            .Returns(_targetEpic);
+        // Mock world storage to return world
+        _worldStorage.GetByIdAsync(_targetWorldId, Arg.Any<CancellationToken>())
+            .Returns(_targetWorld);
     }
 
     #endregion
 
     #region Given Steps - Campaign State
 
-    [Given(@"my campaign has null EpicId")]
-    public void GivenMyCampaignHasNullEpicId() {
+    [Given(@"my campaign has null WorldId")]
+    public void GivenMyCampaignHasNullWorldId() {
         if (_existingCampaign is not null) {
-            _existingCampaign.EpicId = null;
+            _existingCampaign.WorldId = null;
         }
     }
 
-    [Given(@"I own epic with ID ""(.*)""")]
-    public void GivenIAlreadyOwnEpicWithId(string epicId) {
-        _targetEpicId = Guid.Parse(epicId);
-        _targetEpic = new Epic {
-            Id = _targetEpicId,
+    [Given(@"I own world with ID ""(.*)""")]
+    public void GivenIAlreadyOwnWorldWithId(string worldId) {
+        _targetWorldId = Guid.Parse(worldId);
+        _targetWorld = new World {
+            Id = _targetWorldId,
             OwnerId = _userId,
-            Name = "My Epic",
+            Name = "My World",
             Description = string.Empty
         };
 
-        _epicStorage.GetByIdAsync(_targetEpicId, Arg.Any<CancellationToken>())
-            .Returns(_targetEpic);
+        _worldStorage.GetByIdAsync(_targetWorldId, Arg.Any<CancellationToken>())
+            .Returns(_targetWorld);
     }
 
-    [Given(@"my campaign is in epic ""(.*)""")]
-    public void GivenMyCampaignIsInEpic(string epicId) {
-        var currentEpicId = Guid.Parse(epicId);
+    [Given(@"my campaign is in world ""(.*)""")]
+    public void GivenMyCampaignIsInWorld(string worldId) {
+        var currentWorldId = Guid.Parse(worldId);
         if (_existingCampaign is not null) {
-            _existingCampaign.EpicId = currentEpicId;
+            _existingCampaign.WorldId = currentWorldId;
         }
     }
 
-    [Given(@"I own epic ""(.*)""")]
-    public void GivenIAlreadyOwnEpic(string epicId) {
-        _targetEpicId = Guid.Parse(epicId);
-        _targetEpic = new Epic {
-            Id = _targetEpicId,
+    [Given(@"I own world ""(.*)""")]
+    public void GivenIAlreadyOwnWorld(string worldId) {
+        _targetWorldId = Guid.Parse(worldId);
+        _targetWorld = new World {
+            Id = _targetWorldId,
             OwnerId = _userId,
-            Name = "Target Epic",
+            Name = "Target World",
             Description = string.Empty
         };
 
-        _epicStorage.GetByIdAsync(_targetEpicId, Arg.Any<CancellationToken>())
-            .Returns(_targetEpic);
+        _worldStorage.GetByIdAsync(_targetWorldId, Arg.Any<CancellationToken>())
+            .Returns(_targetWorld);
     }
 
     #endregion
@@ -170,22 +170,22 @@ public class MoveCampaignToEpicSteps {
 
     #endregion
 
-    #region Given Steps - Epic Context
+    #region Given Steps - World Context
 
-    [Given(@"an epic has (.*) campaigns")]
-    public void GivenAnEpicHasCampaigns(int totalCount) {
-        _targetEpicId = Guid.CreateVersion7();
-        _targetEpic = new Epic {
-            Id = _targetEpicId,
+    [Given(@"an world has (.*) campaigns")]
+    public void GivenAnWorldHasCampaigns(int totalCount) {
+        _targetWorldId = Guid.CreateVersion7();
+        _targetWorld = new World {
+            Id = _targetWorldId,
             OwnerId = _userId,
-            Name = "Epic with Campaigns",
+            Name = "World with Campaigns",
             Description = string.Empty
         };
 
-        _context["TotalCampaignsInEpic"] = totalCount;
+        _context["TotalCampaignsInWorld"] = totalCount;
 
-        _epicStorage.GetByIdAsync(_targetEpicId, Arg.Any<CancellationToken>())
-            .Returns(_targetEpic);
+        _worldStorage.GetByIdAsync(_targetWorldId, Arg.Any<CancellationToken>())
+            .Returns(_targetWorld);
     }
 
     #endregion
@@ -198,13 +198,13 @@ public class MoveCampaignToEpicSteps {
         _existingCampaign.Should().NotBeNull();
     }
 
-    [Given(@"no epic exists with ID ""(.*)""")]
-    public void GivenNoEpicExistsWithId(string epicId) {
-        _targetEpicId = Guid.Parse(epicId);
+    [Given(@"no world exists with ID ""(.*)""")]
+    public void GivenNoWorldExistsWithId(string worldId) {
+        _targetWorldId = Guid.Parse(worldId);
 
-        // Mock epic storage to return null
-        _epicStorage.GetByIdAsync(_targetEpicId, Arg.Any<CancellationToken>())
-            .Returns((Epic?)null);
+        // Mock world storage to return null
+        _worldStorage.GetByIdAsync(_targetWorldId, Arg.Any<CancellationToken>())
+            .Returns((World?)null);
     }
 
     [Given(@"a standalone campaign exists owned by another user")]
@@ -214,7 +214,7 @@ public class MoveCampaignToEpicSteps {
         _existingCampaign = new Campaign {
             Id = _campaignId,
             OwnerId = otherUserId,
-            EpicId = null,
+            WorldId = null,
             Name = "Other User's Campaign",
             Description = string.Empty
         };
@@ -223,35 +223,35 @@ public class MoveCampaignToEpicSteps {
             .Returns(_existingCampaign);
     }
 
-    [Given(@"an epic exists owned by another user")]
-    public void GivenAnEpicExistsOwnedByAnotherUser() {
+    [Given(@"an world exists owned by another user")]
+    public void GivenAnWorldExistsOwnedByAnotherUser() {
         var otherUserId = Guid.CreateVersion7();
-        _targetEpicId = Guid.CreateVersion7();
-        _targetEpic = new Epic {
-            Id = _targetEpicId,
+        _targetWorldId = Guid.CreateVersion7();
+        _targetWorld = new World {
+            Id = _targetWorldId,
             OwnerId = otherUserId,
-            Name = "Other User's Epic",
+            Name = "Other User's World",
             Description = string.Empty
         };
 
-        _epicStorage.GetByIdAsync(_targetEpicId, Arg.Any<CancellationToken>())
-            .Returns(_targetEpic);
+        _worldStorage.GetByIdAsync(_targetWorldId, Arg.Any<CancellationToken>())
+            .Returns(_targetWorld);
     }
 
     #endregion
 
-    #region When Steps - Move to Epic Actions
+    #region When Steps - Move to World Actions
 
-    [When(@"I move the campaign to epic ""(.*)""")]
-    public async Task WhenIMoveTheCampaignToEpic(string epicId) {
+    [When(@"I move the campaign to world ""(.*)""")]
+    public async Task WhenIMoveTheCampaignToWorld(string worldId) {
         try {
-            _targetEpicId = Guid.Parse(epicId);
+            _targetWorldId = Guid.Parse(worldId);
 
             // Mock storage to succeed
             _campaignStorage.UpdateAsync(Arg.Any<Campaign>(), Arg.Any<CancellationToken>())
                 .Returns(true);
 
-            _updateResult = await _service.MoveCampaignToEpicAsync(_userId, _campaignId, _targetEpicId, CancellationToken.None);
+            _updateResult = await _service.MoveCampaignToWorldAsync(_userId, _campaignId, _targetWorldId, CancellationToken.None);
             _context["UpdateResult"] = _updateResult;
         }
         catch (Exception ex) {
@@ -259,13 +259,13 @@ public class MoveCampaignToEpicSteps {
         }
     }
 
-    [When(@"I move the campaign to the epic")]
-    public async Task WhenIMoveTheCampaignToTheEpic() {
+    [When(@"I move the campaign to the world")]
+    public async Task WhenIMoveTheCampaignToTheWorld() {
         try {
             _campaignStorage.UpdateAsync(Arg.Any<Campaign>(), Arg.Any<CancellationToken>())
                 .Returns(true);
 
-            _updateResult = await _service.MoveCampaignToEpicAsync(_userId, _campaignId, _targetEpicId, CancellationToken.None);
+            _updateResult = await _service.MoveCampaignToWorldAsync(_userId, _campaignId, _targetWorldId, CancellationToken.None);
             _context["UpdateResult"] = _updateResult;
         }
         catch (Exception ex) {
@@ -273,18 +273,18 @@ public class MoveCampaignToEpicSteps {
         }
     }
 
-    [When(@"I attempt to move the campaign to epic ""(.*)""")]
-    public async Task WhenIAttemptToMoveTheCampaignToEpic(string epicId) {
-        await WhenIMoveTheCampaignToEpic(epicId);
+    [When(@"I attempt to move the campaign to world ""(.*)""")]
+    public async Task WhenIAttemptToMoveTheCampaignToWorld(string worldId) {
+        await WhenIMoveTheCampaignToWorld(worldId);
     }
 
-    [When(@"I attempt to move campaign to epic ""(.*)""")]
-    public async Task WhenIAttemptToMoveCampaignToEpic(string epicId) {
-        if (epicId == "not-a-guid") {
-            _invalidId = epicId;
+    [When(@"I attempt to move campaign to world ""(.*)""")]
+    public async Task WhenIAttemptToMoveCampaignToWorld(string worldId) {
+        if (worldId == "not-a-guid") {
+            _invalidId = worldId;
             try {
-                if (!Guid.TryParse(_invalidId, out _targetEpicId)) {
-                    throw new FormatException("Invalid epic ID format");
+                if (!Guid.TryParse(_invalidId, out _targetWorldId)) {
+                    throw new FormatException("Invalid world ID format");
                 }
             }
             catch (Exception ex) {
@@ -293,27 +293,27 @@ public class MoveCampaignToEpicSteps {
             }
         }
 
-        await WhenIMoveTheCampaignToEpic(epicId);
+        await WhenIMoveTheCampaignToWorld(worldId);
     }
 
-    [When(@"I attempt to move that campaign to my epic")]
-    public async Task WhenIAttemptToMoveThatCampaignToMyEpic() {
-        await WhenIMoveTheCampaignToTheEpic();
+    [When(@"I attempt to move that campaign to my world")]
+    public async Task WhenIAttemptToMoveThatCampaignToMyWorld() {
+        await WhenIMoveTheCampaignToTheWorld();
     }
 
-    [When(@"I attempt to move my campaign to that epic")]
-    public async Task WhenIAttemptToMoveMyC ampaignToThatEpic() {
-        await WhenIMoveTheCampaignToTheEpic();
+    [When(@"I attempt to move my campaign to that world")]
+    public async Task WhenIAttemptToMoveMyC ampaignToThatWorld() {
+        await WhenIMoveTheCampaignToTheWorld();
     }
 
-    [When(@"I move the standalone campaign to the epic")]
-    public async Task WhenIMoveTheStandaloneCampaignToTheEpic() {
-        await WhenIMoveTheCampaignToTheEpic();
+    [When(@"I move the standalone campaign to the world")]
+    public async Task WhenIMoveTheStandaloneCampaignToTheWorld() {
+        await WhenIMoveTheCampaignToTheWorld();
     }
 
-    [When(@"I move the campaign to an epic")]
-    public async Task WhenIMoveTheCampaignToAnEpic() {
-        await WhenIMoveTheCampaignToTheEpic();
+    [When(@"I move the campaign to an world")]
+    public async Task WhenIMoveTheCampaignToAnWorld() {
+        await WhenIMoveTheCampaignToTheWorld();
     }
 
     #endregion
@@ -327,15 +327,15 @@ public class MoveCampaignToEpicSteps {
         _updateResult.Value.Should().NotBeNull();
     }
 
-    [Then(@"the campaign EpicId should be ""(.*)""")]
-    public void ThenTheCampaignEpicIdShouldBe(string expectedEpicId) {
-        var expectedGuid = Guid.Parse(expectedEpicId);
-        _updateResult!.Value!.EpicId.Should().Be(expectedGuid);
+    [Then(@"the campaign WorldId should be ""(.*)""")]
+    public void ThenTheCampaignWorldIdShouldBe(string expectedWorldId) {
+        var expectedGuid = Guid.Parse(expectedWorldId);
+        _updateResult!.Value!.WorldId.Should().Be(expectedGuid);
     }
 
-    [Then(@"the campaign should be associated with the epic")]
-    public void ThenTheCampaignShouldBeAssociatedWithEpic() {
-        _updateResult!.Value!.EpicId.Should().Be(_targetEpicId);
+    [Then(@"the campaign should be associated with the world")]
+    public void ThenTheCampaignShouldBeAssociatedWithWorld() {
+        _updateResult!.Value!.WorldId.Should().Be(_targetWorldId);
     }
 
     [Then(@"all (.*) adventures should remain with the campaign")]
@@ -351,21 +351,21 @@ public class MoveCampaignToEpicSteps {
         _updateResult!.Value!.IsPublic.Should().Be(_existingCampaign!.IsPublic);
     }
 
-    [Then(@"only the EpicId is updated")]
-    public void ThenOnlyTheEpicIdIsUpdated() {
-        _updateResult!.Value!.EpicId.Should().Be(_targetEpicId);
-        _updateResult!.Value!.EpicId.Should().NotBeNull();
+    [Then(@"only the WorldId is updated")]
+    public void ThenOnlyTheWorldIdIsUpdated() {
+        _updateResult!.Value!.WorldId.Should().Be(_targetWorldId);
+        _updateResult!.Value!.WorldId.Should().NotBeNull();
     }
 
-    [Then(@"the epic should now have (.*) campaigns")]
-    public void ThenTheEpicShouldNowHaveCampaigns(int expectedCount) {
-        var previousCount = _context.Get<int>("TotalCampaignsInEpic");
+    [Then(@"the world should now have (.*) campaigns")]
+    public void ThenTheWorldShouldNowHaveCampaigns(int expectedCount) {
+        var previousCount = _context.Get<int>("TotalCampaignsInWorld");
         expectedCount.Should().Be(previousCount + 1);
     }
 
-    [Then(@"the moved campaign should appear in epic's campaign collection")]
-    public void ThenTheMovedCampaignShouldAppearInEpicCampaignCollection() {
-        _updateResult!.Value!.EpicId.Should().Be(_targetEpicId);
+    [Then(@"the moved campaign should appear in world's campaign collection")]
+    public void ThenTheMovedCampaignShouldAppearInWorldCampaignCollection() {
+        _updateResult!.Value!.WorldId.Should().Be(_targetWorldId);
     }
 
     #endregion

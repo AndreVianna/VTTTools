@@ -85,7 +85,7 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
-        '/api/epics': {
+        '/api/worlds': {
           target: 'https://localhost:7172',
           changeOrigin: true,
           secure: false,

@@ -1,4 +1,3 @@
-
 namespace VttTools.Library.Adventures.Model;
 
 public class AdventureTests {
@@ -10,7 +9,8 @@ public class AdventureTests {
         // Assert
         adventure.Id.Should().NotBeEmpty();
         adventure.OwnerId.Should().BeEmpty();
-        adventure.CampaignId.Should().BeNull();
+        adventure.World.Should().BeNull();
+        adventure.Campaign.Should().BeNull();
         adventure.Encounters.Should().NotBeNull();
         adventure.Encounters.Should().BeEmpty();
         adventure.Name.Should().BeEmpty();
@@ -43,7 +43,8 @@ public class AdventureTests {
         const bool isPublic = true;
         const bool isOneShot = true;
         var ownerId = Guid.CreateVersion7();
-        var campaignId = Guid.CreateVersion7();
+        var world = new World { Id = Guid.CreateVersion7() };
+        var campaign = new Campaign { Id = Guid.CreateVersion7() };
         var encounter = new Encounter {
             Id = Guid.CreateVersion7(),
         };
@@ -59,7 +60,8 @@ public class AdventureTests {
             IsOneShot = isOneShot,
             IsPublic = isPublic,
             OwnerId = ownerId,
-            CampaignId = campaignId,
+            World = world,
+            Campaign = campaign,
             Encounters = [encounter],
         };
 
@@ -73,7 +75,8 @@ public class AdventureTests {
         adventure.IsOneShot.Should().Be(isOneShot);
         adventure.IsPublic.Should().Be(isPublic);
         adventure.OwnerId.Should().Be(ownerId);
-        adventure.CampaignId.Should().Be(campaignId);
+        adventure.World.Should().BeEquivalentTo(world);
+        adventure.Campaign.Should().BeEquivalentTo(campaign);
         adventure.Encounters.Should().ContainSingle(e => e.Equals(encounter));
     }
 }

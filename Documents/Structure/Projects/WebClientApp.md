@@ -17,7 +17,7 @@ Modern React-based single page application providing the primary user interface 
 
 - **Authentication & User Management**: Login, register, 2FA, password reset pages with React Hook Form
 - **Media Resource Management**: Media upload UI, asset display integration (in development)
-- **Game Content Hierarchy**: Content management UI for epics, campaigns, adventures, encounters (in development)
+- **Game Content Hierarchy**: Content management UI for worlds, campaigns, adventures, encounters (in development)
 - **Asset Management**: Asset library browsing and creation UI (in development)
 - **Interactive Encounter Editor**: Konva-based canvas with panning, zoom, grid overlay, token placement (in progress)
 - **Game Session Management**: Real-time collaboration via SignalR for chat, dice rolls, state sync (planned)
@@ -144,7 +144,7 @@ Modern React-based single page application providing the primary user interface 
 - JWT token storage
 
 **Phase 2 (Content Management)**: 🚧 In Progress
-- Content management UI for epics, campaigns, adventures, encounters (planned)
+- Content management UI for worlds, campaigns, adventures, encounters (planned)
 - Asset library browsing and creation UI (planned)
 
 **Phase 3 (Encounter Editor)**: 🚧 In Progress

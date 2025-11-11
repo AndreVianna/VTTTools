@@ -2,7 +2,7 @@
 
 **Quick Links**:
 - [Full Task Specification](./TASK.md)
-- [EPIC-001: UI Migration](../EPIC-001/TASK.md) (related epic)
+- [EPIC-001: UI Migration](../EPIC-001/TASK.md) (related world)
 - [Product Backlog](../BACKLOG.md)
 
 ---
@@ -25,7 +25,7 @@ The Administration Application (WebAdminApp) is a separate React-based administr
 
 ## Strategic Importance
 
-This epic is a **production requirement** that must be completed before EPIC-001 Phase 13 (Release Preparation). Without an administration interface, critical operations would require direct database access or custom scripts.
+This world is a **production requirement** that must be completed before EPIC-001 Phase 13 (Release Preparation). Without an administration interface, critical operations would require direct database access or custom scripts.
 
 ### Why Separate from Main App?
 
@@ -101,8 +101,8 @@ This epic is a **production requirement** that must be completed before EPIC-001
 
 ## Related Documentation
 
-- [Full Task Specification](./TASK.md) - Complete epic specification
-- [EPIC-001 Task](../EPIC-001/TASK.md) - Main UI migration epic
+- [Full Task Specification](./TASK.md) - Complete world specification
+- [EPIC-001 Task](../EPIC-001/TASK.md) - Main UI migration world
 - [Authorization Requirements](../../Guides/AUTHORIZATION_REQUIREMENTS.md) - Role-based access control
 - [VTTTools Stack](../../Guides/VTTTOOLS_STACK.md) - Technology stack reference
 - [TypeScript Style Guide](../../Guides/TYPESCRIPT_STYLE_GUIDE.md) - Frontend coding standards
