@@ -334,11 +334,35 @@ export const encounterApi = createApi({
         color?: string | undefined;
       }
     >({
-      query: ({ encounterId, ...body }) => ({
-        url: `/${encounterId}/walls`,
-        method: 'POST',
-        body,
-      }),
+      query: ({ encounterId, ...body }) => {
+        console.log('[encounterApi.addEncounterWall] Request:', {
+          encounterId,
+          name: body.name,
+          material: body.material,
+          color: body.color,
+          visibility: body.visibility,
+          isClosed: body.isClosed,
+          poleCount: body.poles?.length,
+        });
+        return {
+          url: `/${encounterId}/walls`,
+          method: 'POST',
+          body,
+        };
+      },
+      onQueryStarted: async (_arg, { queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled;
+          console.log('[encounterApi.addEncounterWall] Response:', {
+            index: data.index,
+            name: data.name,
+            material: data.material,
+            color: data.color,
+          });
+        } catch (error) {
+          console.error('[encounterApi.addEncounterWall] Error:', error);
+        }
+      },
       invalidatesTags: (_result, _error, { encounterId }) => [
         { type: 'EncounterWall', id: `ENCOUNTER_${encounterId}` },
         { type: 'Encounter', id: encounterId },
@@ -358,11 +382,31 @@ export const encounterApi = createApi({
         color?: string | undefined;
       }
     >({
-      query: ({ encounterId, wallIndex, ...body }) => ({
-        url: `/${encounterId}/walls/${wallIndex}`,
-        method: 'PATCH',
-        body,
-      }),
+      query: ({ encounterId, wallIndex, ...body }) => {
+        console.log('[encounterApi.updateEncounterWall] Request:', {
+          encounterId,
+          wallIndex,
+          name: body.name,
+          material: body.material,
+          color: body.color,
+          visibility: body.visibility,
+          isClosed: body.isClosed,
+          poleCount: body.poles?.length,
+        });
+        return {
+          url: `/${encounterId}/walls/${wallIndex}`,
+          method: 'PATCH',
+          body,
+        };
+      },
+      onQueryStarted: async (_arg, { queryFulfilled }) => {
+        try {
+          await queryFulfilled;
+          console.log('[encounterApi.updateEncounterWall] Response: Success');
+        } catch (error) {
+          console.error('[encounterApi.updateEncounterWall] Error:', error);
+        }
+      },
       invalidatesTags: (_result, _error, { encounterId, wallIndex }) => [
         { type: 'EncounterWall', id: `${encounterId}-${wallIndex}` },
         { type: 'EncounterWall', id: `ENCOUNTER_${encounterId}` },

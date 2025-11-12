@@ -48,36 +48,43 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
     if (poles.length < 2) return;
     if (!encounter) return;
 
+    const activeSegments = wallTransaction.getActiveSegments();
+    const currentSegment = activeSegments[0] || {};
+
+    const segmentName = wall?.name || currentSegment.name || '';
+    const segmentMaterial = wall?.material || currentSegment.material;
+    const segmentColor = wall?.color || currentSegment.color;
+    const segmentVisibility = wall?.visibility ?? currentSegment.visibility ?? 0;
+
     const TOLERANCE = 5;
     const polePoints = poles.map((p) => ({ x: p.x, y: p.y }));
     const { closedWalls, openSegments } = decomposeSelfIntersectingPath(polePoints, TOLERANCE);
 
-    // Create all segments from decomposition
     if (closedWalls.length > 0 || openSegments.length > 0) {
       const allSegments = [
         ...closedWalls.map((wallPoles) => ({
           tempId: -1,
           wallIndex: null as number | null,
-          name: wall?.name || '',
+          name: segmentName,
           poles: wallPoles.map((p) => ({ x: p.x, y: p.y, h: defaultHeight })),
           isClosed: true,
-          visibility: wall?.visibility || 0,
-          material: wall?.material,
-          color: wall?.color,
+          visibility: segmentVisibility,
+          material: segmentMaterial,
+          color: segmentColor,
         })),
         ...openSegments.map((segmentPoles) => ({
           tempId: -1,
           wallIndex: null as number | null,
-          name: wall?.name || '',
+          name: segmentName,
           poles: segmentPoles.map((p) => ({
             x: p.x,
             y: p.y,
             h: defaultHeight,
           })),
           isClosed: false,
-          visibility: wall?.visibility || 0,
-          material: wall?.material,
-          color: wall?.color,
+          visibility: segmentVisibility,
+          material: segmentMaterial,
+          color: segmentColor,
         })),
       ];
 
@@ -86,7 +93,6 @@ export const WallDrawingTool: React.FC<WallDrawingToolProps> = ({
       return;
     }
 
-    // Fallback: no decomposition needed, just finish
     onFinish();
   }, [poles, encounter, wall, wallTransaction, defaultHeight, onFinish]);
 

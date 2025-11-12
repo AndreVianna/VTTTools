@@ -168,6 +168,18 @@ export const useWallHandlers = ({
     if (!encounterId || !encounter || selectedWallIndex === null) return;
 
     const activeSegments = wallTransaction.getActiveSegments();
+    console.log('[useWallHandlers.handleFinishEditing] Active segments before processing:',
+      activeSegments.map(s => ({
+        tempId: s.tempId,
+        wallIndex: s.wallIndex,
+        name: s.name,
+        material: s.material,
+        color: s.color,
+        poleCount: s.poles.length,
+        isClosed: s.isClosed,
+      }))
+    );
+
     const editedSegment = activeSegments[0];
 
     if (editedSegment && editedSegment.poles.length >= 2) {
@@ -217,6 +229,18 @@ export const useWallHandlers = ({
     }
 
     const updatedActiveSegments = wallTransaction.getActiveSegments();
+    console.log('[useWallHandlers.handleFinishEditing] Active segments after decomposition:',
+      updatedActiveSegments.map(s => ({
+        tempId: s.tempId,
+        wallIndex: s.wallIndex,
+        name: s.name,
+        material: s.material,
+        color: s.color,
+        poleCount: s.poles.length,
+        isClosed: s.isClosed,
+      }))
+    );
+
     const finalEditedSegment = updatedActiveSegments[0];
 
     if (finalEditedSegment && finalEditedSegment.wallIndex === selectedWallIndex) {
@@ -407,6 +431,19 @@ export const useWallHandlers = ({
   const handleWallPlacementFinish = useCallback(async () => {
     if (!encounterId || !encounter) return;
     if (drawingMode !== 'wall' || drawingWallIndex === null) return;
+
+    const activeSegments = wallTransaction.getActiveSegments();
+    console.log('[useWallHandlers.handleWallPlacementFinish] Active segments before commit:',
+      activeSegments.map(s => ({
+        tempId: s.tempId,
+        wallIndex: s.wallIndex,
+        name: s.name,
+        material: s.material,
+        color: s.color,
+        poleCount: s.poles.length,
+        isClosed: s.isClosed,
+      }))
+    );
 
     const result = await wallTransaction.commitTransaction(encounterId, {
       addEncounterWall,

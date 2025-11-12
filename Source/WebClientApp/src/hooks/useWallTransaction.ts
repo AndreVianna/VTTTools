@@ -261,9 +261,20 @@ export const useWallTransaction = () => {
         for (let i = 0; i < segmentsToProcess.length; i++) {
           const segment = segmentsToProcess[i];
           const assignedName = names[i];
+
+          console.log('[useWallTransaction.commitTransaction] Segment:', {
+            tempId: segment?.tempId,
+            wallIndex: segment?.wallIndex,
+            name: assignedName,
+            material: segment?.material,
+            color: segment?.color,
+            isClosed: segment?.isClosed,
+            poleCount: segment?.poles?.length,
+          });
+
           try {
             if (segment?.wallIndex !== null) {
-              await updateEncounterWall({
+              const updatePayload = {
                 encounterId,
                 wallIndex: segment?.wallIndex || 1,
                 name: assignedName,
@@ -272,14 +283,18 @@ export const useWallTransaction = () => {
                 isClosed: segment?.isClosed || false,
                 material: segment?.material || undefined,
                 color: segment?.color || undefined,
-              }).unwrap();
+              };
+
+              console.log('[useWallTransaction.commitTransaction] UPDATE API payload:', updatePayload);
+
+              await updateEncounterWall(updatePayload).unwrap();
 
               results.push({
                 tempId: segment?.tempId || 0,
                 wallIndex: segment?.wallIndex || 0,
               });
             } else {
-              const result = await addEncounterWall({
+              const addPayload = {
                 encounterId,
                 name: assignedName || '',
                 poles: segment?.poles || [],
@@ -287,7 +302,11 @@ export const useWallTransaction = () => {
                 isClosed: segment?.isClosed || false,
                 material: segment?.material || undefined,
                 color: segment?.color || undefined,
-              }).unwrap();
+              };
+
+              console.log('[useWallTransaction.commitTransaction] ADD API payload:', addPayload);
+
+              const result = await addEncounterWall(addPayload).unwrap();
 
               results.push({
                 tempId: segment.tempId,
